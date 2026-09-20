@@ -1,5 +1,72 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-1996619760729079852
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c6e585d9d2317e438a403bbb1965d5e, type: 3}
+  m_Name: StylizedWater3.StylizedWaterRenderFeature
+  m_EditorClassIdentifier: sc.stylizedwater3.runtime::StylizedWater3.StylizedWaterRenderFeature
+  m_Active: 1
+  dynamicEffectsSettings:
+    enabled: 1
+    renderRange: 500
+    fadePercentage: 10
+    texelsPerUnit: 8
+    maxResolution: 4096
+    enableDisplacement: 1
+    enableNormals: 1
+    halfResolutionNormals: 0
+    normalMipmaps: 1
+    ignoreSceneView: 0
+  transparencyRefraction: 0
+  screenSpaceReflectionSettings:
+    allow: 1
+    reflectEverything: 0
+  allowDirectionalCaustics: 0
+  enableDepthPrePass: 0
+  heightPrePassSettings:
+    enable: 1
+    range: 500
+    cellsPerUnit: 4
+    maxResolution: 4096
+    disableInSceneView: 1
+  heightReadbackCS: {fileID: 7200000, guid: 768e0c28dfdbc6b429fd59518fa03f2d, type: 3}
+  heightProcessingShader: {fileID: 4800000, guid: a1cfcf2c2c8140c084fb10845093540e, type: 3}
+  underwaterRenderingSettings:
+    enable: 1
+    renderMethod: 0
+    ignoreSceneView: 0
+  underwaterResources: {fileID: 11400000, guid: 185c96ef53e9cf14bbc913f624752e24, type: 2}
+--- !u!114 &-1162199858321035771
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd5ce549e0b646a7adf00b1b9fc8603d, type: 3}
+  m_Name: Stylized Grass
+  m_EditorClassIdentifier: sc.stylizedgrass.runtime::sc.stylizedgrass.runtime.GrassRenderFeature
+  m_Active: 1
+  bendingShader: {fileID: 4800000, guid: 83f1a74da0594f2439500e813fc6108b, type: 3}
+  settings:
+    enableBending: 1
+    debugBending: 0
+    bendingRenderRange: 50
+    forwardPerspectiveCorrection: 1
+    fadeAtMaxRenderingRange: 0
+    ditheringNoise: {fileID: 2800000, guid: 81200413a40918d4d8702e94db29911c, type: 3}
+    animateDithering: 1
+    ignoreSceneView: 0
+    ignoreOverlayCamera: 1
 --- !u!114 &-957601416443136380
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -48,6 +115,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
   - {fileID: -957601416443136380}
+  - {fileID: -1996619760729079852}
+  - {fileID: -1162199858321035771}
   m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2l
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
