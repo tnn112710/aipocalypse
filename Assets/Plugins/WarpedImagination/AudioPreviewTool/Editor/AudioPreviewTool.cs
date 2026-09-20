@@ -105,6 +105,8 @@ namespace WarpedImagination.AudioPreviewTool
         }
 #elif UNITY_6000_3_OR_NEWER
 
+        static EntityId? _lastPlayedAudioClipEntityId = null;
+
         /// <summary>
         /// Runs when someone double clicks on an audio file in the project window
         /// </summary>
@@ -126,8 +128,8 @@ namespace WarpedImagination.AudioPreviewTool
                 {
                     StopAllPreviewClips();
 
-                    if (_lastPlayedAudioClipId.HasValue &&
-                        _lastPlayedAudioClipId.Value != entityId)
+                    if (_lastPlayedAudioClipEntityId.HasValue &&
+                        _lastPlayedAudioClipEntityId.Value != entityId)
                     {
                         PlayPreviewClip(audioClip);
                     }
@@ -137,7 +139,7 @@ namespace WarpedImagination.AudioPreviewTool
                     PlayPreviewClip(audioClip);
                 }
 
-                _lastPlayedAudioClipId = entityId;
+                _lastPlayedAudioClipEntityId = entityId;
 
                 return true;
             }
