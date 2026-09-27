@@ -28,7 +28,9 @@ The `unity-mcp` tools (`mcp__unity-mcp__*`) can drive the running editor (read c
 ## Keeping docs current
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
-- Design intent: `docs/GDD.md`. Architecture and data flow: `docs/ARCHITECTURE.md`. Why choices were made: `docs/DECISIONS.md`. Current milestone/tasks: `docs/ROADMAP.md`.
+- `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` (split into per-topic files here as it grows). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
+- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Why choices were made: `docs/technicals/DECISIONS.md`.
+- Current milestone/tasks: `docs/ROADMAP.md`.
 - A Stop hook (`.claude/hooks/check-docs.sh`) reminds once when `Assets/_Game/**/*.cs` changed without doc updates.
 
 ## Code style
