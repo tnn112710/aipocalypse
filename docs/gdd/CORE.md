@@ -29,7 +29,7 @@ Every 5–10 nights: BIG FIGHT (prepare or pay the Lord's Wish List)
 ```
 
 | Scale | What the player does |
-|---|---|
+| --- | --- |
 | Seconds | Shoot, melee, chop, dodge, stay in the light |
 | One day | Spend day hours on activities, prepare for the night, choose fight or sleep |
 | One cycle (5–10 days) | Build up for the next big fight |
@@ -102,4 +102,11 @@ Economy (shops, selling), grand trial details, a "stay forever" ending, key frag
 
 ## Inspirations
 
-Village 51, Chop Chop Inc., Escape from Duckov, How to Fish, Dave the Diver, Swamp Attack 1 & 2, Megabonk.
+| Game | What we take | What we leave |
+| --- | --- | --- |
+| Village 51 | Farming + base defense + first-person shooting in one game | — |
+| Chop Chop Inc. | Chopping trees that regrow; "desk worker becomes strong" humor | Deep crafting and production lines |
+| How to Fish | Comedy fishing with guns (gun fishing); stranded somewhere, working your way home | — |
+| Dave the Diver | Day split into activities; main goal optional, no forced story; lose your loot on death; many minigames inside activities | — |
+| Swamp Attack 1 & 2 | Defending your home from waves of silly enemies | — |
+| Megabonk | Grand trial: run-and-gun levels with card picks on level-up | Auto-attack (we keep manual aiming) |
