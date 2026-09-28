@@ -35,6 +35,17 @@ Every 5–10 nights: BIG FIGHT (prepare or pay the Lord's Wish List)
 | One cycle (5–10 days) | Build up for the next big fight |
 | Long term | 30+ days to reach an ending; the game never ends — difficulty keeps scaling |
 
+### Loop rules
+
+1. **Activities consume limited daytime hours** — every day is a choice of what to do.
+2. **Upgrades make activities faster** — growth means doing more per day.
+3. **Night combat gives faster XP and loot** — fighting is the quick but risky path.
+4. **Light creates a safety/risk boundary** — inside is safe, the dark is where risk and reward are.
+5. **Death causes meaningful but recoverable losses** — it hurts, but never wipes progress.
+6. **Major fights create progression checkpoints** — each big fight survived is a milestone and a save point.
+7. **The day produces what the night consumes** — wood becomes light and repairs, food covers hunger, day items fill the Wish List.
+8. **Balance rest and fighting** — sleeping keeps you safe and recovers you, but leaves the farm open to small raids; fighting night after night wears you out. One night of either costs nothing; only consecutive nights raise the raid chance or tiredness, so mixing both is best.
+
 ## Day
 
 - The day is a **clock of hours**. Activities cost hours; walking is free. When the hours run out, night comes. Upgrades make activities faster.
@@ -45,7 +56,7 @@ Every 5–10 nights: BIG FIGHT (prepare or pay the Lord's Wish List)
 
 ## Night
 
-- **Light the beacon** at the base = fight tonight's waves. Don't light it = sleep safely and recover.
+- **Light the beacon** at the base = fight tonight's waves. Don't light it = sleep safely and recover; after several sleep nights in a row, small raids may hit the farm.
 - **Small nights** (optional): faster XP, coins and loot, but risky.
 - **Big fights** (every 5–10 nights, harder each time): (almost) unavoidable. The AI Lord's **Wish List** — items gathered during the day — can delay the fight or, with luck, skip it for partial rewards. No skipping twice in a row.
 - **Night types** come from enemy themes (zombie, robot, dino, Sky Invaders…). Each has a small-night version and a big-fight boss version.

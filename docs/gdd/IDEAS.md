@@ -120,6 +120,18 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Dogs fight at a low rate; upgradable
 - Big fights get harder and harder over time
 
+### Rest vs fight balance
+
+- The first night of either is free; only streaks count
+- Consecutive sleep nights → raid chance on the farm grows; resets when you fight
+- Consecutive fight nights → **Tired**: slower stamina regen, faster sanity drain (reuses existing stats, no new meter); resets when you sleep
+- Tiredness has a limit; coffee/energy drinks offset it (office-worker joke)
+- Raids can be prevented without combat: fences, scarecrows, dog on guard, lamps around fields (wood), so chill players defend by preparing
+- Raid losses are capped: a share of crops/eggs/stored food; never buildings or animals
+- Warnings before a raid: the drone or omens hint ("Something's been sniffing around the barn…")
+- (CH) During a sleep-night raid, the dog barks and you may get up to defend, giving up that night's recovery
+- References: This War of Mine (guard vs sleep, tiredness, shelter raids), Kingdom Two Crowns (base attacked at night)
+
 ### Big fight offering — the Lord's Wish List
 
 - Before each big fight the AI Lord asks for specific items (e.g. a legendary catfish, 10 golden eggs, a perfect pumpkin) — ties daytime activities to nights
