@@ -50,6 +50,14 @@ Raw and still-open ideas.
 - Lottery, classic minigames
 - Funny minigames: whack-a-mole, duck shooting, space invaders, fish shooting, etc. — direction agreed, see Promising > Minigames
 
+### Night types & night map (???)
+
+- Not every night is a fight night
+- Quiet nights (peaceful, rainy, no threat): sleep, or go out at night for fishing and special things that only appear at night
+- Fight nights: sleep (slower XP progression) or fight (risk of death, health loss)
+- Signals show what will come; some are hidden "?" signals
+- Think like a rogue-like progression map: each night is a node/room where you decide what to do; some are "?" secret rooms
+
 ### Story & tone
 
 - Comedy, fun, lots of funny lines and cross-references/déjà vu, cozy environment, not too serious; nights a bit scary
@@ -113,7 +121,6 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 ### Night fights & death
 
 - Fights happen at base; small nights opt-in; big fight every 5–10 nights, (almost) unavoidable
-- Starting a small night: light the beacon at the base = fight; don't light it = sleep
 - Signals: symbols on the ground in front of the house hint at what's coming; each shows a % chance to happen
 - Dying on a small night: wake at base, lose that night's loot + some coins, next day starts with fewer hours and lower sanity; XP, buildings, upgrades kept
 - Losing a big fight: back to the morning of the last big fight survived (autosave); lose some resources; prepare again
@@ -131,6 +138,19 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Warnings before a raid: the signals show the raid chance; the drone may comment ("Something's been sniffing around the barn…")
 - (CH) During a sleep-night raid, the dog barks and you may get up to defend, giving up that night's recovery
 - References: This War of Mine (guard vs sleep, tiredness, shelter raids), Kingdom Two Crowns (base attacked at night)
+
+### Sleep nights — sounds from outside
+
+- While sleeping, you hear what happens outside (sound only, with subtitles)
+
+| Situation | Sounds |
+| --- | --- |
+| Quiet night | Crickets, wind, the cat purring, the dog snoring, the drone's quiet "zzz… standby mode" |
+| A farm raid | Chickens squawking, a fence cracking, the dog barking at something, chewing in the field |
+| Tonight's signal threat nearby | Distant roars (dinos), groans (zombies), 8-bit beeps (invaders), all matching the morning's symbols |
+| Weather | Rain on the roof, thunder, wind shaking the shutters |
+| Scary moments | Footsteps on the porch… scratching at the door… then it turns out to be the cat |
+| Comedy | The MC talking in his sleep: "Per my last email…", "No, the deadline is Friday…" |
 
 ### Big fight offering — the Lord's Wish List
 
@@ -157,7 +177,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Chop trees for wood (inspired by Chop Chop Inc.); stumps regrow after some days
 - Rule: resources are spent directly, like money — no recipes, no workbench, no intermediate items
 - Simple spend/repair system, extendable later as the game grows:
-  - Light the beacon/campfire: costs wood
+  - Keep fires and torches lit: costs wood
   - Build/repair fences and barricades: costs wood
   - Sell wood for money (where/how is part of Economy [TBD])
 - Felling gives wood directly; no log-splitting step for now

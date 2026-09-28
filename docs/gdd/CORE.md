@@ -56,7 +56,7 @@ Every 5–10 nights: BIG FIGHT (prepare or pay the Lord's Wish List)
 
 ## Night
 
-- **Light the beacon** at the base = fight tonight's waves. Don't light it = sleep safely and recover; after several sleep nights in a row, small raids may hit the farm.
+- **No trigger needed:** the signals decide what kind of night comes. On a fight night, fight the waves or go to bed and sleep safely to recover; after several sleep nights in a row, small raids may hit the farm.
 - **Small nights** (optional): faster XP, coins and loot, but risky.
 - **Big fights** (every 5–10 nights, harder each time): (almost) unavoidable. The AI Lord's **Wish List** — items gathered during the day — can delay the fight or, with luck, skip it for partial rewards. No skipping twice in a row.
 - **Night types** come from enemy themes (zombie, robot, dino, Sky Invaders…). Each has a small-night version and a big-fight boss version.
@@ -93,7 +93,7 @@ Every 5–10 nights: BIG FIGHT (prepare or pay the Lord's Wish List)
 ## Resources
 
 - **Rule: resources are spent directly, like money — no recipes.**
-- **Coins**, **wood** (beacon/campfire fuel, building, repairs; trees regrow), **food** (hunger, Wish List).
+- **Coins**, **wood** (fuel for fires and torches, building, repairs; trees regrow), **food** (hunger, Wish List).
 - Where to buy and sell: TBD.
 
 ## Failure
