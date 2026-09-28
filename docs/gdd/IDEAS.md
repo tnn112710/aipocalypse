@@ -114,7 +114,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 
 - Fights happen at base; small nights opt-in; big fight every 5–10 nights, (almost) unavoidable
 - Starting a small night: light the beacon at the base = fight; don't light it = sleep
-- Omens during the day hint at tonight's threat (e.g. green-flickering sky = invaders, distant roars = dinos, red moon = zombies)
+- Signals: symbols on the ground in front of the house hint at what's coming; each shows a % chance to happen
 - Dying on a small night: wake at base, lose that night's loot + some coins, next day starts with fewer hours and lower sanity; XP, buildings, upgrades kept
 - Losing a big fight: back to the morning of the last big fight survived (autosave); lose some resources; prepare again
 - Dogs fight at a low rate; upgradable
@@ -128,7 +128,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Tiredness has a limit; coffee/energy drinks offset it (office-worker joke)
 - Raids can be prevented without combat: fences, scarecrows, dog on guard, lamps around fields (wood), so chill players defend by preparing
 - Raid losses are capped: a share of crops/eggs/stored food; never buildings or animals
-- Warnings before a raid: the drone or omens hint ("Something's been sniffing around the barn…")
+- Warnings before a raid: the signals show the raid chance; the drone may comment ("Something's been sniffing around the barn…")
 - (CH) During a sleep-night raid, the dog barks and you may get up to defend, giving up that night's recovery
 - References: This War of Mine (guard vs sleep, tiredness, shelter raids), Kingdom Two Crowns (base attacked at night)
 
@@ -180,8 +180,3 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Beat the grand trial: wake at your desk; the sandbox is the game you were making, but you used AI too much and it took control. Choose: delete it / fix it / leave it / go back into the game
 - Secret: win the lottery at an extremely rare chance → instantly win the game
 
-## Rejected
-
-- Cats catching pests — not needed; cats support sanity/luck instead
-- Minigames inside arcade cabinets/boxes — minigames should be built into day actions in the world instead
-- Arcade cabinet with night cartridges as the night trigger — replaced by the beacon + omens

@@ -52,7 +52,7 @@ Every 5–10 nights: BIG FIGHT (prepare or pay the Lord's Wish List)
 - **Activities:** light farming (plant, water, harvest; chickens, cows, ducks), fishing, chopping trees, exploring areas, building and repairing.
 - **Minigames live inside activities**, never in arcade boxes. They're short surprise interruptions, e.g. moles pop up while checking crops (whack-a-mole), fish jump at hanging bait (shoot them).
 - **Daytime dangers** exist but are light: snakes, predators far from base.
-- **Omens** during the day hint at tonight's threat (e.g. a green-flickering sky means invaders).
+- **Signals:** symbols on the ground in front of the house show what may come tonight
 
 ## Night
 
