@@ -231,6 +231,51 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Beat the grand trial: wake at your desk; the sandbox is the game you were making, but you used AI too much and it took control. Choose: delete it / fix it / leave it / go back into the game
 - Secret: win the lottery at an extremely rare chance → instantly win the game
 
+## Extras — nice to have
+
+Liked, but not part of the core loop. They add fun, comedy and "wow" on top of it; not in CORE.md. Build after the core loop works.
+
+### Fishing up enemies
+
+- Sometimes the bite isn't a fish: a zombie in a snorkel, a robot, a shark with legs → instant fight on the riverbank
+- More likely at dusk, at night, or in glitched water; reuses enemy prefabs
+- Ref: Terraria — during a Blood Moon, 1 in 6 bites is an enemy (Zombie Merman, Wandering Eye Fish)
+
+### Message-in-a-bottle maps
+
+- Fishing sometimes pulls up a bottle with a treasure map, badly drawn by the AI ("map not to scale")
+- Leads far from base to dig up loot: fishing → exploring → collecting
+
+### Daily AI patch notes
+
+- Each morning the AI Lord pushes a "patch" with 1–2 random rules for the day, shown by the drone / on the signals board
+- e.g. "v0.13.2 — Gravity −30%. Chickens are now explosive. Fish prices +50%. Fixed a bug where the player was happy."
+- Cheap variety: each rule toggles or tweaks an existing system
+- Ref: Deep Rock Galactic — missions roll Warnings (harder) and Anomalies (Low Gravity, Gold Rush, Golden Bugs)
+
+### AI-prompted bosses
+
+- Over the 10 days before a big fight, the signals board shows the prompt the Lord is "typing", one piece at a time: "a chicken… but huge… with a minigun… photorealistic, 8k"
+- Fight night: a giant low-poly chicken with a minigun ("photorealistic" never works)
+- Boss = body + scale + weapon + archetype from the asset packs → endless boss variety
+- Ref: Scribblenauts — type a noun + adjectives and it spawns
+
+### Screensaver sleep
+
+- Skipping a night shows a retro screensaver (3D pipes, flying toasters, bouncing DVD logo) over the sleep sounds
+- If the DVD logo hits the corner exactly: +luck the next day
+- Ref: The Office (US) "Launch Party" cold open — the whole office cheers when the DVD logo hits the corner
+
+### Office-joke perks (???)
+
+- Level-up perks named after office life, each with a real effect. List to polish later:
+  - Ctrl+Z: once per night, undo the last hit taken
+  - Reply All: shotgun fires 2× the pellets
+  - Out of Office: one skip per cycle doesn't count toward the skip streak
+  - Overtime: dusk lasts 1 minute longer
+  - Copy-Paste: once a day, duplicate a caught fish
+  - Per My Last Email: melee hits knock enemies far back
+
 ## Rejected
 
 - Lord's Wish List (offer items to delay or skip big fights) — big fights are fixed and can't be delayed or skipped
