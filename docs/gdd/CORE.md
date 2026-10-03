@@ -81,7 +81,7 @@ At dusk, the player chooses the fire:
 - **Perk cards:** after every night fight, pick 1 of 3 cards (max 1 reroll). Small/bonfire night cards are temporary and last 3–5 days; the big-fight card is permanent. XP is long-term growth; cards are short-term boosts that change each cycle.
 - **Starts weak:** heavy recoil, frequent gun jams (clear them with a quick timed input), slow chopping. Growth makes all of it better.
 - **Sanity:** low sanity makes the player "dizzy" — vignette, shorter vision, missing HUD. Drained by darkness; restored by sleep, food and pets.
-- **Luck works like karma:** good actions raise it, bad ones lower it. It affects loot, crits, fishing, the lottery and jam rate.
+- **Luck** affects loot, crits, fishing, the lottery and jam rate.
 
 ## Combat & enemies
 

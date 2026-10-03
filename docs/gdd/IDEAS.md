@@ -257,8 +257,9 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
 - Ref: Thronefall — max 5 perks active at once; supports keeping the active card count small
 
-### Luck as karma
+### Luck as karma [TBD]
 
+- Removed from the design for now (2026-10-04); luck stays as a growth stat
 - Up for good actions (feeding animals, releasing rare fish, petting the cat), down for bad ones (breaking things)
 - Affects loot, crits, fishing, lottery, jam rate
 

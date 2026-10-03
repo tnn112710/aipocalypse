@@ -10,6 +10,12 @@ Newest first. One entry per non-obvious choice: what, why, alternatives rejected
 - **Why:**
 - **Alternatives:**
 
+## 2026-10-04 — Crowd entities: pooled, centrally ticked, no per-enemy container
+
+- **Decision:** Enemies and other many-instance entities are pooled, injected once at pool creation (or by `EntityInjector` when placed by hand), and ticked by `EnemyManager` in one loop with time-sliced decisions. Only unique entities (player, companions, fire) get an `EntityScope`. Navigation uses A\* `FollowerEntity`. A `Proto_Stress` scene sets the performance budget.
+- **Why:** Hundreds of enemies are expected. A container and an `Update()` per enemy don't scale; this keeps MonoBehaviour workflow, zero per-frame allocations, and leaves an escape hatch to Burst jobs without adopting ECS in our code.
+- **Alternatives:** `EntityScope` per enemy (container build + reflection per instance), ECS/DOTS for enemies (big workflow change while the design is still moving).
+
 ## 2026-10-04 — Core / Features split, enforced by assemblies
 
 - **Decision:** Stable mechanics (movement, combat, enemies, inventory counts, clock) are Core; design-dependent rules (day/night, progression, persistence, activities, economy) are Features, each a folder + installer. Trial mechanics go in `_Experimental/` behind `DevStartConfig` toggles. Asmdefs `Aipocalypse.Core` ← `Features` ← `Experimental` enforce the direction.
@@ -19,7 +25,7 @@ Newest first. One entry per non-obvious choice: what, why, alternatives rejected
 ## 2026-10-04 — MessagePipe for gameplay events
 
 - **Decision:** Core publishes small event structs (`ShotFired`, `DamageDealt`, `EntityDied`, `ItemPicked`, `TimePhaseChanged`…) through MessagePipe; features subscribe. C# events only within one system.
-- **Why:** New rules (karma, perks, drone quips, AI patch notes) attach as subscribers without editing Core — the main lever for an unfinished design.
+- **Why:** New rules (perks, loot drops, drone quips, AI patch notes) attach as subscribers without editing Core — the main lever for an unfinished design.
 - **Alternatives:** Direct calls / C# events across systems (every new rule edits existing code), hand-rolled static event bus (statics, no DI).
 
 ## 2026-10-04 — Defer save until the core loop is fun

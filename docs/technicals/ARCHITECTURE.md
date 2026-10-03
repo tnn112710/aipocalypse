@@ -9,7 +9,7 @@ The design is still moving, so the architecture is built to absorb change: a sma
 | Core — build now, rarely changes | Features — *provisional*, built when the design settles |
 | --- | --- |
 | Movement, look, interact | Day/night rules: phases, fire tiers, skip streak, big fights |
-| Shooting, melee, damage, `Health` | Perk cards, XP / skill tree, luck / karma |
+| Shooting, melee, damage, `Health` | Perk cards, XP / skill tree, luck |
 | Enemy navigation, attack, pooling | Death penalty, rewind, save |
 | Inventory as resource counts | Wave makeup, night types, economy, crafting |
 | Clock (time of day only) | Fishing, farming, minigames, companions' special behaviour |
@@ -39,7 +39,8 @@ Core **announces** what happens; features **react**. New rules are new subscribe
 
 - Events are small structs published through MessagePipe (`IPublisher<T>` / `ISubscriber<T>`, injected). Brokers are registered in the root scope.
 - Core events live in `_Core/_Common/Events`: `ShotFired`, `DamageDealt`, `EntityDied`, `ItemPicked`, `ItemConsumed`, `TimePhaseChanged`, `PlayerDied`… Features may define their own.
-- Examples: Luck subscribes to `EntityDied` (killed the cat → karma down); Perks subscribe to `DamageDealt`; the drone's quips subscribe to anything.
+- Examples: loot drops subscribe to `EntityDied`; perks subscribe to `DamageDealt`; the drone's quips subscribe to anything.
+- Events are for things that *happen* (a shot, a hit, a death), never per-frame data (positions, timers). Structs only — publishing a struct allocates nothing.
 - Inside one system, plain C# events are fine. Across systems, use MessagePipe.
 
 ## Composition and data
@@ -84,18 +85,18 @@ Any scene (World, Proto_*, test arenas)
 | --- | --- |
 | PlayerSystem | Controller, look, movement, interact; meters (HP, stamina…) in State, the view shows them |
 | WeaponSystem | Weapon, `WeaponDef`, fire/cost/on-hit modules, recoil, jams, melee |
-| EnemySystem | `EnemyFactory` + pool, enemy parts (Mover/Targeting/Senses/Attack), `EnemyArchetypeDef`, A\* agents |
+| EnemySystem | `EnemyManager` (central tick, time-slicing), `EnemyFactory` + pool, enemy parts (Mover/Targeting/Senses/Attack), `EnemyArchetypeDef`, A\* `FollowerEntity` agents |
 | InventorySystem | Resource counts and items (ammo is a resource, not a weapon field) |
 | TimeSystem | `TimeService`: time of day, day number, pause, phase events. No rules about what phases mean |
 | InputSystem | `InputService` over `InputSystem_Actions`, map switching. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
-| _Common | `EntityScope`, `EntityRegistry`, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`, `Modifier`), `IChanceRoll`, Utils |
+| _Common | `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`, `Modifier`), `IChanceRoll`, Utils |
 
 **Features** (`Assets/_Game/Features/`, *provisional — follow the GDD*)
 
 | Feature | Owns |
 | --- | --- |
 | DayNight | `DayCycle` (what phases mean), fire tiers, skip streak, big-fight countdown, `NightPlan`, `WaveDirector` |
-| Progression | XP / skill tree, perk cards, luck / karma (`IChanceRoll` implementation) |
+| Progression | XP / skill tree, perk cards, luck (`IChanceRoll` implementation) |
 | Persistence | Save, death penalty, rewind |
 | Activities | Fishing, chopping, farming, minigames |
 | Economy | Shops, crafting, selling |
@@ -125,13 +126,19 @@ Each feature adds its own commands through a small `IDebugCommands` registration
 
 ## Entities: self-contained prefabs
 
-Player, enemies, companions (dog, cat, drone) and stateful interactables (fire, fishing spot) are **entities**: drop the prefab into any scene — World, a prototype, an empty test scene — and it works. Simple objects (projectiles, pickups, props) are plain components with no scope.
+Any entity prefab works when dropped into any scene — World, a prototype, an empty test scene. There are two weights, because a `LifetimeScope` per enemy does not scale to hundreds:
+
+| Kind | Examples | How it gets services |
+| --- | --- | --- |
+| **Unique entity** — one or a few | Player, dog, cat, drone, fire | Own `EntityScope` (a child container) |
+| **Crowd entity** — many, pooled | Enemies, fish, critters, loot pickups | `EntityInjector`: injected once from the nearest scope, no container of its own |
+| Plain object | Projectiles, VFX, props | No injection; data via `[SerializeField]` / the spawner |
 
 ```text
-Entity prefab root: PlayerScope : EntityScope
+Unique entity root: PlayerScope : EntityScope
   ├─ own components, wired with [SerializeField]  (camera rig, CinemachineBrain, AudioListener live inside the Player)
-  ├─ data: PlayerTuning / WeaponDef / EnemyArchetypeDef (ScriptableObjects)
-  └─ needs from outside = small interfaces (IAmmoSource, IStatProvider, IPlayerLocator…)
+  ├─ data: PlayerTuning / WeaponDef (ScriptableObjects)
+  └─ needs from outside = small interfaces (IAmmoSource, IStatProvider…)
 
 Parent lookup:  scene's GameLifetimeScope  →  if none: root ProjectLifetimeScope
 Each need:      parent chain has it?  yes → use it   no → entity's default (InfiniteAmmo, BaseStats…) + one warning
@@ -139,20 +146,62 @@ Each need:      parent chain has it?  yes → use it   no → entity's default (
 
 How `EntityScope` does it (VContainer API checked in package source):
 
-- **Parent:** overrides `FindParent()` to return the scene's `GameLifetimeScope` (or `null` → VContainer falls back to the root). Spawned entities get their parent explicitly via `LifetimeScope.EnqueueParent` / the factory.
+- **Parent:** overrides `FindParent()` to return the scene's `GameLifetimeScope` (or `null` → VContainer falls back to the root).
 - **Defaults:** in `Configure`, registers a default for a need only if `Parent.Container.TryGetRegistration(type, …)` fails (it searches the whole parent chain). A child registration would otherwise override the real service.
 - **Injection:** `RegisterBuildCallback(r => r.InjectGameObject(gameObject))` injects the entity's own hierarchy. Never `RegisterComponentInHierarchy` for entity parts — it searches the whole scene and grabs another instance's component.
 - **Order:** `GameLifetimeScope` gets `[DefaultExecutionOrder(-5000)]`. Without it, an entity scope whose `Awake` runs first would build against a parent with no container yet (NullReferenceException; VContainer only defers for `parentReference`, not `FindParent`).
 - **Strict mode:** `GameLifetimeScope.strict` (on in World) turns "default used" into an error, so a missing installer in the real game can't hide behind a default.
-- **Pooling:** an enemy's scope is built once when the pool creates it, not on every spawn.
-- **Finding each other:** entities register themselves on enable in the `EntityRegistry` (root scope) — e.g. enemies get the player through `IPlayerLocator`. No `FindObjectOfType`, no statics.
+
+Crowd entities:
+
+- **Spawned** (normal case): the pool injects each instance **once at creation** (`resolver.InjectGameObject`), then reuses it. Spawning = take from pool + `Reset(def, position)`: no injection, no `Instantiate`, no allocation.
+- **Dropped into a scene by hand** (prototypes): `EntityInjector` finds the nearest scope on `Awake`, injects once, and hands the enemy to the scene's `EnemyManager` (or a default one if none exists). Same prefab, same behaviour.
+- Enemies read their numbers from their `EnemyArchetypeDef` (+ a per-night difficulty multiplier), not from the stats service.
+
+**Finding each other:** entities register on enable in the `EntityRegistry` (root scope): dense lists for iteration plus a **spatial grid** for "who is near this point" (senses, explosions, targeting). Enemies get the player through `IPlayerLocator`. No `FindObjectOfType`, no statics.
+
+## Performance
+
+Target: **hundreds of active enemies at 60 fps** on the target PC, without ECS in our own code. Verify with a stress scene, don't assume.
+
+**Update loop**
+
+- Crowd entities have **no `Update()` of their own.** `EnemyManager` ticks all active enemies in one loop over a dense list (VContainer `ITickable`). Hundreds of separate `Update()` calls cost far more than one loop.
+- **Time-slicing:** decisions (retarget, line-of-sight, choose attack) run at a reduced rate — e.g. each enemy thinks every 4–10 frames, staggered so the load is even. Movement and animation stay per-frame.
+- **Distance LOD:** far enemies think less often, skip line-of-sight raycasts, and use cheaper animation.
+
+**Navigation (A\* 5.4)**
+
+- Use **`FollowerEntity`** agents: A\* runs their movement on ECS/Burst internally (`com.unity.entities` is installed), which scales to hundreds while our code stays MonoBehaviours.
+- Repath on a timer scaled by distance, not every frame; local avoidance (RVO) on; swarms can share a destination.
+
+**Physics and queries**
+
+- Senses and targeting check the spatial grid first; raycast only for the few that pass. Use `NonAlloc` / batched queries (`RaycastCommand`) when counts grow.
+- Simple colliders (capsules), dedicated layers and a tight collision matrix.
+
+**Memory / GC**
+
+- **Zero allocations per frame** in gameplay code: no LINQ, no `new` in hot paths, no boxing, no string building in `Update`. Event payloads are structs.
+- **Pool everything that spawns repeatedly:** enemies, projectiles, VFX, decals, damage numbers, loot pickups, audio sources (`UnityEngine.Pool`). Prewarm pools during loading or at dusk, not when the wave arrives.
+- Stats are **cached**: a stat recomputes when its modifiers change (dirty flag), not on every read.
+- DI is setup-time only: resolve and inject at creation, never per frame.
+
+**Rendering and animation**
+
+- Animator culling (`CullUpdateTransforms` / `CullCompletely`), LOD groups, few bones on crowd meshes. If skinned crowds become the bottleneck: GPU/vertex-animated crowds for swarms.
+- GPU Instancer Pro for foliage and props; SRP Batcher-friendly materials.
+
+**Escape hatch to Jobs/Burst (still no ECS):** `EnemyManager` keeps enemy hot data (position, target, timers) in arrays, with components as views. If profiling shows the tick loop is the bottleneck, that loop moves into a Burst job without changing the rest of the architecture.
+
+**Measure:** `Proto_Stress` spawns N enemies (100 / 300 / 500) attacking the player, with `ProfilerMarker`s on `EnemyManager`, senses and spawning. Run it whenever enemy code changes.
 
 ## Prototypes → main game
 
 Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings), e.g. `Proto_Movement`, `Proto_Shooting`, `Proto_Enemies`.
 
 1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real folder (Core, Feature or Experimental) from day one. No `Proto*` copies of classes or prefabs.
-2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs; they run on root services + their defaults.
+2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs; they run on root services + their defaults (crowd entities via `EntityInjector`).
 3. **Real systems via installers.** When a prototype needs a real system, add a `GameLifetimeScope` with just those installers. World uses the same class with all installers.
 4. **Defaults belong to the entity's system** (e.g. `WeaponSystem/Defaults/InfiniteAmmo`) — they are part of the entity's contract.
 5. **Tuning lives in ScriptableObjects** under `Assets/_Game/Data/`, shared by every scene.
