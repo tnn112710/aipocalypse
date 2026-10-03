@@ -27,11 +27,20 @@ The `unity-mcp` tools (`mcp__unity-mcp__*`) can drive the running editor (read c
 - **Rendering/perf**: URP, GPU Instancer Pro for foliage/props, VFX Graph, Splines, Terrain Tools.
 - **Editor conveniences**: Odin Inspector (`Sirenix`), DOTween, Feel (MoreMountains), Damage Numbers Pro are available for game code.
 
+## Plugins — check before building, use them correctly
+
+Many runtime and editor plugins are installed (Feel, BroAudio, Easy Save 3, Damage Numbers Pro, DOTween, Odin, GPU Instancer Pro, A*, Unity Behavior, Localization…). **Read `docs/technicals/PLUGINS.md` before any task that a plugin might cover.**
+
+- **Check first:** before writing a system or tool, check whether an installed plugin already does it. Use the plugin rather than reinventing it, unless PLUGINS.md says otherwise.
+- **Use it the documented way:** follow the plugin's rules in PLUGINS.md (e.g. no plugin singletons/static event systems in gameplay code, `TimeService` owns `Time.timeScale`, uGUI for UI, DOTween for code tweens, Behavior only for unique AI). When unsure how a plugin works, read its docs or source in `Assets/Plugins/` / `Packages/` instead of guessing (some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`).
+- **Use it efficiently:** prefer the plugin's pooling, batching and caching features (Damage Numbers Pro and BroAudio pooling, GPUI instancing) and keep per-instance plugin components off crowd entities.
+- **Keep PLUGINS.md current:** when adding, removing or starting to use a plugin in a new way, update it in the same change.
+
 ## Keeping docs current
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
 - `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` is the index of per-topic files; start with `docs/gdd/CORE.md` (pitch, pillars, core loop). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
-- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Why choices were made: `docs/technicals/DECISIONS.md`.
+- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Plugin usage rules: `docs/technicals/PLUGINS.md`. Why choices were made: `docs/technicals/DECISIONS.md`.
 - Current milestone/tasks: `docs/ROADMAP.md`.
 - A Stop hook (`.claude/hooks/check-docs.sh`) reminds once when `Assets/_Game/**/*.cs` changed without doc updates.
 
