@@ -54,6 +54,48 @@ Raw and still-open ideas.
 - Lottery, classic minigames
 - Funny minigames: whack-a-mole, duck shooting, space invaders, fish shooting, etc. — direction agreed, see Promising > Minigames
 
+### Minigame system (???)
+
+Many short "one more go" minigames, each a simpler take on a famous game. Extends Promising > Minigames.
+
+- Every minigame = **template + skin + host + reward**, like enemy = archetype + skin. Code a template once; new minigames are mostly data and art
+- Templates:
+  1. Shooting gallery: targets move on paths; aim and shoot with the real gun
+  2. Timing bar: stop or hold inside a zone
+  3. Reveal grid: scratch, dig or flip hidden cells
+  4. Cards: draw, pick, score combos (reuses the perk card UI)
+  5. Drop & merge: physics drop; matching items merge
+- Hosts (???: loosens "never in arcade boxes"):
+  - Interruption: pops up during an activity (whack-a-mole while checking crops)
+  - Activity: the activity itself is the minigame (fishing, cooking)
+  - Device: in-world objects with a story reason — the MC's old work laptop, the AI Lord's vending machine, the drone's screen. Still no arcade cabinets
+- When to play device games (???): by day at base (costs daylight) / lights-out nights before sleep, where the laptop glow may draw sniffers ("pretend nobody's home") / quiet rainy nights
+- Guardrails:
+  - Sessions 30 s – 3 min; the sun keeps moving, so playing costs daylight
+  - Rewards feed core resources (coins, food, luck, gunpowder, XP) but stay small next to going out; device games have daily limits ("machine restocks tomorrow")
+  - Shooting minigames use real ammo and pay off only with good aim: trains the core skill, keeps "every bullet counts"
+  - One hook per minigame: high score, collection log, upgrades, or a rare jackpot
+  - No real playing cards or casino art (age rating); parody names and our own art
+- Ref: Dave the Diver — many minigames, each feeding the dive ↔ sushi loop
+- Ref: Stardew Valley — Journey of the Prairie King pulls players away from the farm for hours; keep minigame rewards small so they stay side dishes
+- Ref: Balatro — rated PEGI 18 for "gambling imagery" (it teaches poker hands), later appealed down to 12
+
+| Minigame | Based on | Template | Host | Hook / reward |
+| --- | --- | --- | --- | --- |
+| Ducks Must Be Paid | Bills Must Be Paid: smash bouncing piggy banks until stamina runs out; bills with deadlines; pay one → pick a perk | Shooting gallery | Pond | Coin-carrying ducks; the AI Lord's "bills" arrive with deadlines; pay one → pick a mini-perk for the session |
+| Cast n Chill fishing | Cast n Chill: active or idle fishing, logbook | Timing bar | Fishing | Chill active fishing; idle rods set at the dock before leaving, collected at dusk; fish log |
+| Scratch tickets | Scritchy Scratchy: drag to scratch, ticket tiers, Scratch Bot automation, prestige | Reveal grid | Vending machine | Ticket tiers; Luck shifts odds; the drone offers to "automate your hobby"; the secret-ending lottery is the rarest ticket |
+| Quarterly Review | Balatro: poker hands × Joker multipliers vs a target score | Cards | Laptop | Office/fish cards; Coworker cards (Intern, Middle Manager) as multipliers; beat the KPI |
+| Aim trainer | Aim Lab | Shooting gallery | The drone throws targets | Gunsmanship XP; costs ammo |
+| Compost bin | Suika Game | Drop & merge | Farm | Matching scraps merge; top tier = fertilizer or a golden veg |
+| Woodshed stacking | Tetris | Drop & merge | Chopping | Full rows = dry wood that burns longer |
+| Treasure dig | Minesweeper | Reveal grid | Bottle maps | Detector numbers show nearby loot; a wrong dig springs a trap |
+| Prove you're not a robot | CAPTCHA | Reveal grid | Vending machine | "Select all squares with fish"; harder as the Lord gets suspicious; a joke gate before buying |
+| Campfire cooking | Cooking Mama | Timing bar | Base | A perfect cook = better food |
+| Decode the signal | Wordle | Word puzzle (later) | Signals board | Daily word reveals tonight's hidden "?" signal |
+| Solitaire | Windows Solitaire | Cards | Laptop | Pure office joke; the bouncing-cards win screen |
+| Fish shooting, whack-a-mole, Sky Invaders | (already agreed) | Shooting gallery | Fishing / crops / night | — |
+
 ### Night types & night map (???)
 
 - Fight or hide is now the fire choice (see Promising > The fire); revisit what's left of this section
