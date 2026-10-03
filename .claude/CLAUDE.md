@@ -10,7 +10,8 @@ The `unity-mcp` tools (`mcp__unity-mcp__*`) can drive the running editor (read c
 
 ## Where things live
 
-- `Assets/_Game/` — **all first-party game code and content go here.** Core gameplay lives under `Assets/_Game/_Core/`, split by system: `EnemySystem`, `InputSystem`, `PlayerSystem`, `WeaponSystem`, and `_Common/Utils`. Also `Materials`, `Models`, `Prefabs`, `Scenes`. (Currently scaffolding — folders exist but are still mostly empty, so establish conventions here rather than looking for them.)
+- `Assets/_Game/` — **all first-party game code and content go here.** Core gameplay lives under `Assets/_Game/_Core/`, one folder per system (`PlayerSystem`, `WeaponSystem`, `EnemySystem`, `DaySystem`, …) plus `_Bootstrap` (lifetime scopes), `_Common` (Combat, Utils) and `_Prototype` (prototype scopes + stand-ins). ScriptableObject assets go in `Assets/_Game/Data/`. Full layout and system ownership: `docs/technicals/ARCHITECTURE.md`.
+- `Assets/_Game/Scenes/Prototypes/` — `Proto_*` scenes that test one mechanic each, not in Build Settings. They use the real code and prefabs; only scopes and stand-ins are prototype-specific (rules in ARCHITECTURE.md → "Prototypes → main game").
 - `Assets/_StoreAssets/` — third-party art/asset-store content (Synty Polygon Generic/Prototype, Low Poly Weapon Bundles 1–3, Stylized Grass/Water 3, Damage Numbers Pro, Feel). Treat as vendor code: don't modify; reference or make variants/prefabs under `_Game`.
 - `Assets/Plugins/` — third-party editor/runtime tooling (Odin Inspector, DOTween/Demigiant, GPUInstancerPro, etc.). Don't modify.
 - `Assets/Settings/` — URP assets (`PC_RPAsset`, `PC_Renderer`), volume profile, and Input System config.
@@ -20,7 +21,8 @@ The `unity-mcp` tools (`mcp__unity-mcp__*`) can drive the running editor (read c
 ## Key tech choices (from `Packages/manifest.json`)
 
 - **Input**: new Input System only (`activeInputHandler: 1`). Actions asset is `Assets/Settings/InputSystem_Actions.inputactions` with a `Player` map: Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint. Use these actions; don't call the legacy `UnityEngine.Input`.
-- **Enemy AI / navigation**: A* Pathfinding Project is present, alongside `com.unity.ai.navigation` and `com.unity.behavior` (Unity Behavior graphs). Pick one navigation stack per feature deliberately.
+- **Architecture / DI**: VContainer (`jp.hadashikick.vcontainer`) + UniTask. No `X.Instance` singletons in game code — services are plain C# registered in lifetime scopes; each system registers through its own installer. See `docs/technicals/ARCHITECTURE.md`.
+- **Enemy navigation**: A* Pathfinding Project (decided; see `DECISIONS.md`). `com.unity.ai.navigation` and `com.unity.behavior` are also installed but not the navigation stack.
 - **Camera**: Cinemachine 6.6 is installed.
 - **Rendering/perf**: URP, GPU Instancer Pro for foliage/props, VFX Graph, Splines, Terrain Tools.
 - **Editor conveniences**: Odin Inspector (`Sirenix`), DOTween, Feel (MoreMountains), Damage Numbers Pro are available for game code.
