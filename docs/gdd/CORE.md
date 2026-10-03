@@ -4,7 +4,7 @@ High-level design of aipocalypse. Details live in topic files as they're written
 
 ## Pitch
 
-A comedy first-person survival shooter. A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. By day, go out to scavenge, fish and fight, and get home before dark. By night, light the fire and fight whatever it attracts — or put it out and pretend nobody's home.
+A first-person survival shooter. A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. By day, go out to scavenge, fish and fight, and get home before dark. By night, light the fire and fight whatever it attracts — or put it out and pretend nobody's home.
 
 ## Pillars
 
@@ -20,14 +20,14 @@ A comedy first-person survival shooter. A game dev burned out by AI wakes up in 
 
 - The MC works in games, gets overwhelmed by AI, and quits to become a farmer. The night before leaving, he falls asleep at his desk, a flash from the computer takes him, and he wakes in a remote meadow.
 - A cute guide **drone** welcomes him and explains the world — it's secretly the eyes of the **AI Lord** who built this sandbox.
-- Tone: comedy, lots of jokes and cross-references; cozy at home, risky out in the world, a bit scary at night.
+- Tone: lots of jokes and cross-references; cozy at home, risky out in the world, a bit scary at night.
 
 ## Core loop
 
 ```
 MORNING (signals, plan) → DAY (go out: collect, fish, fight) → DUSK (get home) → NIGHT (fire on: fight / fire out: hide)
    ↑                                                                                            |
-   └────────────── loot, XP, upgrades → longer trips, bigger fires, stronger player ─────────────┘
+   └────────────── loot, XP, perk cards → longer trips, bigger fires, stronger player ──────────┘
 Every 10th night: BIG FIGHT (the fire can't be put out)
 ```
 
@@ -35,7 +35,7 @@ Every 10th night: BIG FIGHT (the fire can't be put out)
 | --- | --- |
 | Seconds | Shoot, melee, loot, fish, dodge, stay in the light |
 | One day | Go out and get back before dark; choose the fire for the night |
-| One cycle (10 days) | Build up for the next big fight |
+| One cycle (10 days) | Build up for the next big fight; stack perk cards before it |
 | Long term | Survive as many days as possible and keep getting stronger; 30+ days to reach an ending; the game never ends — difficulty keeps scaling |
 
 ### Loop rules
@@ -49,6 +49,7 @@ Every 10th night: BIG FIGHT (the fire can't be put out)
 7. **Big fights are fixed checkpoints** — every 10th night, harder each time; they can't be delayed or skipped.
 8. **Death costs loot, never the run** — XP, buildings and upgrades are kept.
 9. **Upgrades make activities faster** — growth means doing more per day.
+10. **Fights pay in perks** — every night fight ends with a perk card pick; skipped nights give none.
 
 ## Day
 
@@ -65,8 +66,8 @@ At dusk, the player chooses the fire:
 | Fire | Night |
 | --- | --- |
 | **Out** | Go to bed in the tent/house and skip the night. Pretend nobody's home. |
-| **Small fire** | A small wave comes to the base. Normal loot and XP. |
-| **Bonfire** | More wood, more torches lit. A bigger wave, better loot. |
+| **Small fire** | A small wave comes to the base. Normal loot and XP, plus a perk card. |
+| **Bonfire** | More wood, more torches lit. A bigger wave, better loot, plus a perk card. |
 
 - **Skip streak:** the first skip is free; a second in a row brings thieves who take some stored food and items; from the third on, raiders damage fences and buildings. Fighting resets the streak. Fences, scarecrows, the dog and lamps reduce raids.
 - **Big fights** (every 10th night, visible countdown, harder each time): the AI Lord relights the fire — no hiding, no delaying.
@@ -76,7 +77,8 @@ At dusk, the player chooses the fire:
 ## Player
 
 - **Survival meters:** HP, Hunger, Stamina (sprinting, fighting), Sanity.
-- **Growth (XP → points):** Fitness, Gunsmanship, Luck.
+- **Growth (XP → skill tree, permanent):** Fitness, Gunsmanship, Luck.
+- **Perk cards:** after every night fight, pick 1 of 3 cards (max 1 reroll). Small/bonfire night cards are temporary and last 3–5 days; the big-fight card is permanent. XP is long-term growth; cards are short-term boosts that change each cycle.
 - **Starts weak:** heavy recoil, frequent gun jams (clear them with a quick timed input), slow chopping. Growth makes all of it better.
 - **Sanity:** low sanity makes the player "dizzy" — vignette, shorter vision, missing HUD. Drained by darkness; restored by sleep, food and pets.
 - **Luck works like karma:** good actions raise it, bad ones lower it. It affects loot, crits, fishing, the lottery and jam rate.
@@ -108,7 +110,7 @@ At dusk, the player chooses the fire:
 
 ## Failure
 
-- **Death never ends the run.** XP, buildings and upgrades are always kept.
+- **Death never ends the run.** XP, buildings, upgrades and permanent perk cards are always kept.
 - **Die anywhere** (out in the world or on any night): wake at base and lose 50–70% of your loot — a share of everything, stored items included. Part of it is hidden somewhere on the map and can be partly recovered. Upgrades reduce the loss.
 - **Lose a big fight:** the same loot loss, and the clock rewinds a few days (start with 3). You get time to prepare, but you still have to fight it.
 
@@ -120,16 +122,16 @@ At dusk, the player chooses the fire:
 
 ## Not decided yet
 
-Crafting and economy (shops, selling, buying ammo), how lost loot is recovered, grand trial details, a "stay forever" ending, key fragments to unlock the trial, intro setup.
+Crafting and economy (shops, selling, buying ammo), perk card details (duration rules, duplicates, separate permanent pool, reroll per pick or per cycle, whether temporary cards survive death), how lost loot is recovered, grand trial details, a "stay forever" ending, key fragments to unlock the trial, intro setup.
 
 ## Inspirations
 
 | Game | What we take | What we leave |
 | --- | --- | --- |
 | Escape from Duckov | Go out, loot, get home; limited ammo with melee fallback; a real-time clock that runs at base too; fishing; death costs loot, not the run | Top-down view; separate raid maps |
-| Dome Keeper | Go-out ↔ defend rhythm with a timer; systems that feed each other; upgrades you can feel | Mining; 2D |
 | Darkwood | Home before dark; light draws enemies, hiding avoids them | Grim horror tone |
 | Village 51 | Farming + base defense + first-person shooting in one game | — |
 | Chop Chop Inc. | Chopping trees that regrow; "desk worker becomes strong" humor | Deep crafting and production lines |
-| How to Fish | Comedy fishing with guns (gun fishing); stranded somewhere, working your way home | — |
+| How to Fish | fishing with guns (gun fishing); stranded somewhere, working your way home | — |
 | Megabonk | Grand trial: run-and-gun levels with card picks on level-up | Auto-attack (we keep manual aiming) |
+| Cult of the Lamb | Temporary card buffs that make each stretch play differently | Cards lost all at once at the end of a run |

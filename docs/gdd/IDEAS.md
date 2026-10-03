@@ -13,7 +13,7 @@ Raw and still-open ideas.
 - Engine: Unity, asset-store based
 - Team: solo programmer; art/audio/content bought from asset stores; placeholders first for prototype
 - Genre: FPS, base defense shooting, looting, fishing, survival, rogue-lite, simulation, semi open world; mid-core, low-budget indie
-- Style: stylized low poly
+- Style: stylized low poly/toon
 - Inspirations: Village 51, Chop Chop Inc., Escape from Duckov, Dome Keeper, Darkwood, How to Fish, Dave the Diver, Swamp Attack 1 & 2, Megabonk
 - DNA: "How many things do you want to add?" — "Yes!" Fun, various activities, chilling, FPS
 - Core experiences: gun shooting (melee when out of ammo), fishing (let the player have fun), item collecting (food, materials while exploring). An Escape from Duckov-style loop in first person, with Dome Keeper's go-out ↔ defend rhythm
@@ -173,7 +173,6 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 ### Rest vs fight balance
 
 - You can rest, but you can't hide forever; only skip streaks count (fighting is limited by ammo, so there's no fight-streak penalty)
-- Skip ladder: 1st skip free → 2nd in a row: thieves take some stored food/items → 3rd and later: raiders damage fences and buildings. Fighting resets the streak
 - Raids can be reduced without combat: fences, scarecrows, dog on guard, lamps around fields (wood)
 - Warnings: the signals show the skip streak and raid chance; the drone may comment ("Something's been sniffing around the barn…")
 - During a raid, the dog barks and you may get up to defend, giving up that night's sleep
@@ -192,6 +191,24 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 | Weather | Rain on the roof, thunder, wind shaking the shutters |
 | Scary moments | Footsteps on the porch… scratching at the door… then it turns out to be the cat |
 | Comedy | The MC talking in his sleep: "Per my last email…", "No, the deadline is Friday…" |
+
+### Perk cards after fights
+
+- XP = permanent skill tree (Fitness, Gunsmanship, Luck); perk cards = perks. Two separate systems
+- After a night fight, 3 cards appear; pick 1. Max 1 reroll
+- Small/bonfire night cards are temporary: each lasts 3–5 days, then expires
+- Big-fight card is permanent
+- Skip nights give no cards
+- Suggested (not agreed yet):
+  - Duration by rarity (common 3 days, rare from bonfire 5 days); cards expire at dawn; each card shows days left
+  - Picking a card you already have refreshes its timer (or levels it up)
+  - Permanent cards come from their own pool, so they never repeat a temporary card; losing a big fight gives no card
+  - Cards survive death (death already costs loot)
+  - Pool mixes combat, activity (fishing/chopping speed) and base/companion perks; Office-joke perks (Extras) are the content
+  - The grand trial reuses the same card system
+  - Open (???): is the reroll per pick or per 10-day cycle? Can Luck grant an extra reroll?
+- Ref: Cult of the Lamb — tarot cards last only until the crusade ends; each run feels different without permanent power creep
+- Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
 
 ### Luck as karma
 
