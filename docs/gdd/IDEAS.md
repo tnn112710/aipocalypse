@@ -25,6 +25,7 @@ Raw and still-open ideas.
 - Ammo must be buyable and craftable, so the ammo loop depends on this
 - The "no recipes" rule (see Promising > Wood & resources) gets revisited together with crafting
 - Options raised so far: shipping bin, daily "hot item", vending terminal, drone delivery, wandering trader, arcade ticket counter, Lord's night market, the AI Lord's vending machine with surge pricing / "Ammo+ subscription" (AI satire)
+  - Ref: Atomicrops — a Seasonal Festival shop opens between seasons (tractors, upgrades for cashews); idea: a market day after each big fight
 
 ### Length & scaling
 
@@ -113,6 +114,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Activities and walking take real time; upgrades make activities faster (more done per day)
 - Night ends when you sleep or finish fighting
 - Ref: Escape from Duckov — time keeps passing in the bunker; day runs 06:00–22:00
+- Ref: Dredge — the clock only moves while you sail or fish; resting at a dock skips to 06:00. Fallback if real time at base feels too stressful
 
 ### Guns, ammo & jamming
 
@@ -131,6 +133,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   3. Too far: instant death, jump scare
 - Loot glowing in the dark = bait for greedy players
 - Torch/lantern burns fuel to push the safe radius out temporarily
+- Ref: Dredge — panic builds at night and its effects hit your loot (crows steal fish, hallucinated monsters damage the boat); only sleep resets it. Sanity could cost loot, not just blur the screen
 
 ### Daytime danger
 
@@ -157,6 +160,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Wood is the night-difficulty knob
 - Ref: Darkwood — the hideout's generator light attracts enemies; keeping the light from the windows can prevent attacks
 - Ref: 7 Days to Die — campfires and forges create "heat" that attracts screamers, who call hordes
+- Ref: Thronefall — day: build, night: defend; opt-in mutators make enemies stronger for bigger rewards. Bonfire extras (more torches) could work like mutators: each adds a rule and a reward
 
 ### Night fights & death
 
@@ -209,6 +213,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   - Open (???): is the reroll per pick or per 10-day cycle? Can Luck grant an extra reroll?
 - Ref: Cult of the Lamb — tarot cards last only until the crusade ends; each run feels different without permanent power creep
 - Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
+- Ref: Thronefall — max 5 perks active at once; supports keeping the active card count small
 
 ### Luck as karma
 
