@@ -28,8 +28,8 @@ World scene (one persistent map, no mission/night scopes)
   GameLifetimeScope: GameStarter (entry point) reads SessionRequest → builds/loads State → DayCycle.Begin()
   Quit to menu: save → load MainMenu (scene unload disposes all game services)
 
-Prototype scenes
-  PrototypeLifetimeScope: same installers as World + stand-ins for missing systems
+Any scene (World, Proto_*, test arenas)
+  Entity prefabs (Player, enemies, companions, fire…) carry their own EntityScope — see Entities
 ```
 
 - **Play from any scene:** the root scope always exists. If `SessionRequest` is empty (Play pressed in World), `GameStarter` uses a `DevStartConfig` asset (editor only): start day/time, fire tier, inventory, perks, stat overrides. In builds an empty request returns to the menu.
@@ -56,19 +56,42 @@ Rules worth keeping:
 - Ammo is an inventory resource, not a weapon field.
 - Services talk through C# events. Add MessagePipe only if events get unmanageable.
 
+## Entities: self-contained prefabs
+
+Player, enemies, companions (dog, cat, drone) and stateful interactables (fire, fishing spot) are **entities**: drop the prefab into any scene — World, a prototype, an empty test scene — and it works. Simple objects (projectiles, pickups, props) are plain components with no scope.
+
+```text
+Entity prefab root: PlayerScope : EntityScope
+  ├─ own components, wired with [SerializeField]  (camera rig, CinemachineBrain, AudioListener live inside the Player)
+  ├─ data: PlayerDef / WeaponDef / EnemyArchetypeDef (ScriptableObjects)
+  └─ needs from outside = small interfaces (IAmmoSource, IStatProvider, IPlayerLocator…)
+
+Parent lookup:  scene's GameLifetimeScope  →  if none: root ProjectLifetimeScope
+Each need:      parent chain has it?  yes → use it   no → entity's default (InfiniteAmmo, BaseStats…) + one warning
+```
+
+How `EntityScope` does it (VContainer API checked in package source):
+
+- **Parent:** overrides `FindParent()` to return the scene's `GameLifetimeScope` (or `null` → VContainer falls back to the root). Spawned entities get their parent explicitly via `LifetimeScope.EnqueueParent` / the factory.
+- **Defaults:** in `Configure`, registers a default for a need only if `Parent.Container.TryGetRegistration(type, …)` fails (it searches the whole parent chain). A child registration would otherwise override the real service.
+- **Injection:** `RegisterBuildCallback(r => r.InjectGameObject(gameObject))` injects the entity's own hierarchy. Never `RegisterComponentInHierarchy` for entity parts — it searches the whole scene and grabs another instance's component.
+- **Order:** `GameLifetimeScope` gets `[DefaultExecutionOrder(-5000)]`. Without it, an entity scope whose `Awake` runs first would build against a parent with no container yet (NullReferenceException; VContainer only defers for `parentReference`, not `FindParent`).
+- **Strict mode:** `GameLifetimeScope.strict` (on in World) turns "default used" into an error, so a missing installer in the real game can't hide behind a default.
+- **Pooling:** an enemy's scope is built once when the pool creates it, not on every spawn.
+- **Finding each other:** entities register themselves on enable in an `EntityRegistry` (root scope) — e.g. enemies get the player through `IPlayerLocator`. No `FindObjectOfType`, no statics.
+
 ## Prototypes → main game
 
-Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings), e.g. `Proto_Movement`, `Proto_Shooting`, `Proto_Enemies`. Rules so a working prototype plugs into World unchanged:
+Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings), e.g. `Proto_Movement`, `Proto_Shooting`, `Proto_Enemies`.
 
-1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real system folder from day one. No `Proto*` copies of classes.
-2. **Same prefabs.** Prototype scenes use the real Player/Weapon/Enemy prefabs, not duplicates.
-3. **Seams are small interfaces owned by the consumer.** E.g. the weapon needs `IAmmoSource` and `IStatProvider`; the real `InventoryService` / `StatsService` implement them later.
-4. **Stand-ins live in `_Core/_Prototype/`** (`InfiniteAmmo`, `BaseStats`, `PrototypeLifetimeScope`). They are the only prototype-only code.
-5. **Each system has an installer** (`IInstaller`, e.g. `PlayerInstaller`, `WeaponInstaller`). `GameLifetimeScope` and `PrototypeLifetimeScope` call the same installers; the prototype scope adds stand-ins for what is missing. Plugging a mechanic into World = adding its installer to `GameLifetimeScope`.
-6. **Tuning lives in ScriptableObjects** under `Assets/_Game/Data/`, shared by prototype and World.
-7. VContainer throws on a missing registration — a prototype scope that fails to start lists exactly which stand-in is missing.
+1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real system folder from day one. No `Proto*` copies of classes or prefabs.
+2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs; they run on root services + their defaults.
+3. **Real systems via installers.** When a prototype needs a real system (e.g. `Proto_Ammo` needs Inventory and Stats), add a `GameLifetimeScope` to the scene with just those installers. World uses the same class with all installers. Plugging into World = the installer is already there; nothing to port.
+4. **Defaults belong to the entity's system** (e.g. `WeaponSystem/Defaults/InfiniteAmmo`), not to a prototype folder — they are part of the entity's contract.
+5. **Tuning lives in ScriptableObjects** under `Assets/_Game/Data/`, shared by every scene.
+6. **Smoke test** (PlayMode): load World and every `Proto_*` scene, wait a frame, assert entities are injected and no errors were logged.
 
-A prototype is done when it works in its scene **and** in World with no code changes beyond scope registration.
+A prototype is done when it works in its scene **and** in World with no code changes.
 
 ## Folder layout
 
@@ -76,8 +99,7 @@ A prototype is done when it works in its scene **and** in World with no code cha
 Assets/_Game/
   _Core/
     _Bootstrap/         ProjectLifetimeScope, GameLifetimeScope, MainMenuLifetimeScope, GameStarter, DevStartConfig
-    _Common/            Combat (IDamageable, DamageInfo, Health), Utils
-    _Prototype/         PrototypeLifetimeScope, stand-ins
+    _Common/            EntityScope, EntityRegistry, Combat (IDamageable, DamageInfo, Health), Utils
     DaySystem/  EnemySystem/  PlayerSystem/  WeaponSystem/
     InventorySystem/  ProgressionSystem/  SaveSystem/  InputSystem/
   Data/                 ScriptableObject assets
