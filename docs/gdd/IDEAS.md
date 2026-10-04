@@ -51,6 +51,29 @@ Raw and still-open ideas.
   - Ref: Kingdom Two Crowns — Greed attack from both ends of the island; two readable fronts keep night defense manageable
 - Layout suggestion: one direction = one zone + one landmark you can see from base (N mountains & caves, E big river, S meadow & pond, W forest). The farther from base, the higher the risk and the reward. The mountain ring is the map border, so no invisible walls. The river can block the far side until you build a bridge
   - Ref: Breath of the Wild — "triangle rule": big hills are landmarks, medium hills hide what's behind them; borrow it so players want to look past each hill
+- User's layout (2026-10-04, "South Cliff"; options sketched in the Meadow Map Layouts artifact): base at the south end on a cliff (high ground: easier to overview and defend), inside a fenced garden with crops and animals. In front: a grass field/meadow with low hills and a few trees. Near the front and to the west, a river that starts from a waterfall with a pond; mountains in the west, forest in the east
+  - Suggested: shape the map as a fan around the base, ~600–650 m deep and wider than tall (e.g. 1.2 × 0.65 km). With the base at the edge of a 1 × 1 km map, the far corners are ~900 m (3 min) away
+  - Water (user, 2026-10-04): the waterfall is close to the house, the river runs along the west side, and a branch goes to a pond. Drawn as: waterfall from the mountains → pond at the west foot of the cliff (~200 m) → river flows north along the west → a branch crosses the meadow to a second pond (~360 m) → a creek runs east into the forest
+  - Suggested: the main river is deep (a bridge is needed to reach the west mountains and caves); the branch and creek are shallow (wade or stepping stones). Night enemies cross the branch at fords, which gives readable lanes
+  - Suggested: each water body has its own fish: the waterfall pond for common fish near home, the branch pond for calm-water fish, the river for river fish, the far north for rare fish
+  - Suggested: hide each river junction under rocks or rapids. Stylized Water 3's River Modeler builds one mesh per spline, so branch seams need cover
+  - Suggested: a low cliff (~5–8 m) with two ramps = two night lanes you watch from above; climbers come up the cliff face in later big fights
+  - Open: what is north of the meadow? Where does the river leave the map (a gorge in the north mountains, or a lake)? Is the U-shaped line in the first sketch the valley rim (low hills) or the map border? Should the portal behind the waterfall stay so close to home (e.g. locked until later)?
+- Map enhancement suggestions (not agreed yet):
+  - Gates you open by getting stronger, not invisible walls: a giant fallen log blocks the forest path until the axe is upgraded; the deep river needs a bridge; a ladder or rope opens the mountain ledges; a flooded cave needs a later item. The map grows with the player (pillar 4)
+    - Ref: Stardew Valley — a large log blocks the Secret Woods until you get the Steel Axe; a clear goal you can see from day one
+    - Ref: Animal Crossing: New Horizons — the vaulting pole (rivers) and ladder (cliffs) open the rest of the island
+    - Ref: Sons of the Forest — cave items (rebreather → rope gun → shovel) unlock the next caves; use 1–2 such items at most
+  - Shortcuts home: ziplines from far lookouts down to the cliff top. These solve the long walk back from far zones before dark instead of shrinking the map
+    - Ref: Dome Keeper — lifts/teleporters remove hauling later in a run
+  - Tree types by zone: fast-burning birch near home, slow-burning oak in the east forest (bonfire fuel), pine in the mountains, glitched metal/electronic trees at glitch spots that drop special materials. A big bonfire then needs a trip to the far forest
+    - Ref: Chop Chop Inc. — 8 tree types (incl. Metal, Electronic, Crystal) and new regions gated by tool upgrades; reviews say it runs out of things to do, so keep the map refreshing
+  - Landmarks seen from the porch: the waterfall (W), a lookout tower in the north, one giant tree in the east forest, and one AI-glitch landmark (e.g. a half-rendered mountain or an oversized floating object). Every far zone has a silhouette you can point at
+    - Ref: Grounded — the big oak is visible from the starting base and works as a compass
+  - No minimap: the drone draws a paper map as you discover places, with comic notes ("here be snakes", "map not to scale"); a compass on the HUD
+    - Ref: Firewatch — a map and compass, no waypoints; discovered paths get added to the map; every find feels earned
+  - Something every 150–250 m (30–50 s of walking): a lookout, an old camp, a ruined cabin, a dock, beehives, berry bushes, a glitch patch, the MC's own office desk standing in the woods (easter egg)
+  - Weather changes the map: rain floods the fords on the branch (the long way around), a dry spell lowers the pond and uncovers a sunken chest, fog hides landmarks
 - The home map has one consistent look (one terrain/vegetation family, one color grade, Cozy lighting); mixed styles belong to portals and enemies
 - Glitch spots: patches the AI "didn't finish" (Synty Prototype grid material, missing-texture magenta) that hide portals
 
