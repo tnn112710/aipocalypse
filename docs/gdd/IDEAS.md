@@ -35,15 +35,36 @@ Raw and still-open ideas.
 ### Combat & enemies
 
 - Combat: melee, guns
-- Enemies: predators, monsters, robots/terminators/AI, dinosaurs, zombies, dragons
+- Enemies: predators, monsters, robots/terminators/AI, dinosaurs, zombies, dragons, kaiju
 - Use as many store asset packs as possible for variety; enemies don't need a consistent theme — the randomness itself is the hint that the world is an AI-generated sandbox
 - Enemies may reference other games (cross-references, déjà vu)
 
-### World
+### World & environment (???)
 
-- Fixed map, not too big, with many places to explore
-- Base in the center; surrounding areas: river, forest, meadow/grass fields, cave, etc.
-- Mostly alone; non-human NPCs in some places (low priority)
+- Fixed map, not too big, with many places to explore; mostly alone, non-human NPCs in some places (low priority)
+- A peaceful, cozy meadow with a big river, a pond, forest, mountains and caves in different directions
+- Style: stylized/toon low poly. BK environment packs + MicroVerse presets for terrain and vegetation; Synty for props and characters; Cozy Stylized Weather 3; Stylized Water 3 (its River Modeler follows MicroVerse splines)
+- Terrain size (???): 1000×1000 to 2000×2000
+  - Suggested: ~1 km playable (2×2 tiles of 512 m) inside a ring of mountains you can see but can't walk on. Walking at ~5 m/s, center → edge takes ~100 s on 1 km but ~200 s on 2 km, so on 2 km one far trip eats most of a ~10 min day
+- Base position (???): middle of the meadow (open 360°) or against a mountain (open 180°)
+  - Suggested: near the center, backed by a cliff or a river bend. Every direction stays the same distance away, nights come from 1–2 readable sides (in first person you can't watch behind you), and there are fewer spawn lanes. Big fights can open the back ("they climb down the cliff")
+  - Ref: Kingdom Two Crowns — Greed attack from both ends of the island; two readable fronts keep night defense manageable
+- Layout suggestion: one direction = one zone + one landmark you can see from base (N mountains & caves, E big river, S meadow & pond, W forest). The farther from base, the higher the risk and the reward. The mountain ring is the map border, so no invisible walls. The river can block the far side until you build a bridge
+  - Ref: Breath of the Wild — "triangle rule": big hills are landmarks, medium hills hide what's behind them; borrow it so players want to look past each hill
+- The home map has one consistent look (one terrain/vegetation family, one color grade, Cozy lighting); mixed styles belong to portals and enemies
+- Glitch spots: patches the AI "didn't finish" (Synty Prototype grid material, missing-texture magenta) that hide portals
+
+### Biome portals (???)
+
+- Hidden portals/caves teleport the player to other biomes (other BK packs) for an exploration + survival rogue-like mission like Megabonk
+- Suggested: the grand trial split into pieces. Each portal biome is one trial stage; clearing it gives a key fragment + rare loot; all fragments open the final trial (escape ending)
+- Ref: Megabonk — each stage has a ~10 min timer, a boss portal hidden somewhere on the map, and a final swarm at 0:00; beating the boss opens the portal to the next stage
+- Open questions:
+  - Ammo vs hordes: suggested "trial ammo", plentiful inside and gone at the exit, so ammo stays scarce at home. Level-up cards that last only for the run reuse the perk card UI
+  - Sun timer: suggested a portal run costs the rest of the day; you come back at dusk and still choose the fire. Alternative: the run replaces the night fight
+  - Death inside: lose only that run's rewards (???)
+  - Finding portals: glitch particles/sounds, the drone's scanner, bottle maps
+  - Each biome = BK pack + MicroVerse preset + Cozy weather profile + enemy theme; build one biome after the core loop works
 
 ### Activities / minigames / microgames
 
