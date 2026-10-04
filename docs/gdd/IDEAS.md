@@ -59,6 +59,31 @@ Raw and still-open ideas.
   - Suggested: hide each river junction under rocks or rapids. Stylized Water 3's River Modeler builds one mesh per spline, so branch seams need cover
   - Suggested: a low cliff (~5–8 m) with two ramps = two night lanes you watch from above; climbers come up the cliff face in later big fights
   - Open: what is north of the meadow? Where does the river leave the map (a gorge in the north mountains, or a lake)? Is the U-shaped line in the first sketch the valley rim (low hills) or the map border? Should the portal behind the waterfall stay so close to home (e.g. locked until later)?
+- House on a ridge (user, 2026-10-04, side-view sketch): the ground rises gently from the meadow up to the house; behind the house the ridge drops into empty space. Replaces the "cliff in front + ramps" version
+  - Suggested: the empty space is the edge of the AI-made world, a void with clouds far below. It fits the story, needs no mountain wall behind the house, and nothing can attack from behind
+    - Ref: Valheim — water pours off the world's edge into a black void; a strong current drags you toward it and falling is instant death. Here, falling could be an "out of bounds" joke instead: the drone teleports you back ("Please stay inside the play area")
+  - Suggested: let the pond near the house spill over the edge as a waterfall into the void. The river then flows south from the north mountains, along the west side, to the house
+  - Suggested: distant floating chunks of other biomes (desert, snow, jungle) drift in the void behind the house, a hint at the portal biomes
+  - Suggested: with no cliff in front, the slope is the defense: attackers walk uphill in the open, and a low stone wall with 2 gaps around the garden keeps 2 readable night lanes. In big fights, climbers can come up from the void as a rare, signalled surprise
+  - Decided (user, 2026-10-04): the empty space is a sea far below; the house sits 5–10 m above the meadow; the waterfall drops off the edge into the sea
+  - Wanted (user, 2026-10-04): a more complex map: rocks, hills, more forest past the river in front, denser the further out, more small river branches, a mine entrance (place open)
+  - Suggested layout, in rings from the house:
+    - Ridge (0–80 m): house, garden, cliff edge; the cliff behind drops ~60–100 m to the sea (user confirmed 2026-10-04)
+    - Near meadow (80–220 m): open grass and flower fields, a few trees; the night arena. Readable sight lines
+    - The main river crosses in front (~200 m), then bends south past the house into a pond at the edge and falls into the sea. 2 bridges + a few shallow fords = the night lanes (replaces the old cliff ramps)
+    - Far bank (220–450 m): groves, rock outcrops, small hills; 2–3 shallow streams come down from the north and join the river
+    - Woods (450–650 m): denser trees, stepped rock terraces, more streams, the mine
+    - Deep forest & mountains (650 m+): densest trees, caves, the glitch, snow peaks
+    - The farther, the denser, the darker and the richer: dense forest blocks sight lines (tension, ambushes) and also hides draw distance (cheaper rendering)
+  - Mine entrance: option A chosen (user, 2026-10-04). Options were:
+    - A (suggested): on the far bank, in a rocky ridge where the woods meet the mountains, ~450–550 m from home. Ore, metal and gunpowder → the ammo-crafting source. Always dark inside, so the light pillar applies by day too. A minecart track toward the river can later become a shortcut home
+    - B: a sea cave in the cliff below the house, reached by a cliff path down to a small beach. Close to home and mysterious, but breaks "farther = riskier"
+    - C: deep in the north mountains next to the caves; very far, end-game
+    - Ref: Stardew Valley — the Mines are floors going down, with an elevator every 5 floors so progress isn't lost; a mine can grow downward instead of outward
+  - Suggested: other biomes appear as islands on the sea horizon (desert, snow, volcano), a hint at the portal biomes (replaces the floating chunks)
+  - Look references (user, 2026-10-04): Highlands, Grasslands, Toon Fantasy Nature, a painterly blue forest, rolling hills with a dirt path, a night forest with glowing flowers. Shared traits: painterly leaf-card foliage, dense grass with big color fields (lavender, yellow, white), chunky stylized rocks and stepped rock terraces, big soft clouds, blue atmospheric haze in the distance, bloom and light shafts, a blue-purple night with glowing flowers and fireflies. Much of this look is lighting and post-processing (color grade, fog, bloom), not just the models
+- Art direction (suggested; 3D concept in the "South Cliff Meadow" artifact): one pack per job so the home map reads as one place. Plants & trees = Pure Nature 2: Meadows (BK); buildings, props & characters = Synty (POLYGON Meadow Forest: cabin, bridge, windmill, fences, warpgate for portals); cliffs & rocks = Toon Enchanted Meadow; water = Stylized Water 3; sky & weather = Cozy. One color grade over everything. Test a 100 × 100 m scene (Synty character + cabin, BK plants, one Toon cliff, day and night) before buying everything
+  - Scale in the concept: cliff ~10 m, plateau ~300 m wide, fenced garden ~120 × 90 m (layout F's sketch drew the garden ~360 m wide at true scale, too big to defend at night)
 - Map enhancement suggestions (not agreed yet):
   - Gates you open by getting stronger, not invisible walls: a giant fallen log blocks the forest path until the axe is upgraded; the deep river needs a bridge; a ladder or rope opens the mountain ledges; a flooded cave needs a later item. The map grows with the player (pillar 4)
     - Ref: Stardew Valley — a large log blocks the Secret Woods until you get the Steel Axe; a clear goal you can see from day one
