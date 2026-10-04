@@ -4,6 +4,8 @@
 
 Core feel prototypes — each mechanic in its own scene under `Assets/_Game/Scenes/Prototypes/` (see [ARCHITECTURE.md](technicals/ARCHITECTURE.md#prototypes--main-game)).
 
+**Prototype environments:** build with Synty `Assets/_StoreAssets/Synty/PolygonPrototype` (greybox) and `PolygonGeneric` first, to test mechanics. No environment art pass until the mechanics feel good.
+
 ## Next
 
 - [ ] Foundation
@@ -13,10 +15,11 @@ Core feel prototypes — each mechanic in its own scene under `Assets/_Game/Scen
   - [ ] Debug panel with `IDebugCommands`
   - [ ] PlayMode smoke test
 - [ ] `Proto_Movement` — walk, sprint, crouch, jump, look
-- [ ] `Proto_Shooting` — fire, switch, recoil, hit feedback, dummies (entity defaults: infinite ammo, base stats)
+- [ ] `Proto_Shooting` — fire, recoil, hit feedback, reload, gun jammed, (entity defaults: limited/infinite ammo, base stats, gun feel)
+- [ ] `Proto_Equipment` — hotbar, switch among guns, melee, fishing rod, axe, farm tools (Previous / Next, number keys); equip / unequip animation, primary / secondary use per item
 - [ ] `Proto_Enemies` — A* `FollowerEntity`, one archetype, attack, health, pooling, `EnemyManager` central tick
-- [ ] `Proto_Stress` — 100 / 300 / 500 enemies, profiler markers, sets the performance budget
-- [ ] `Proto_Ammo` — limited ammo, melee fallback, jams (real Inventory + Stats)
+- [ ] `Proto_Fishing` — rod: cast, bite, reel, catch into Inventory; gun fishing: shoot jumping fish (weapon on-hit "catch fish"); fish as crowd entities
+- [ ] `Proto_Crafting` — workbench, recipe data, materials → ammo (crafting rules are still [TBD] in the GDD; this tests only the interaction)
 
 ## Later (Features — after the core feels good)
 

@@ -84,6 +84,7 @@ Any scene (World, Proto_*, test arenas)
 | System | Owns |
 | --- | --- |
 | PlayerSystem | Controller, look, movement, interact; meters (HP, stamina…) in State, the view shows them |
+| EquipmentSystem | Hotbar, held item, switching, equip/unequip; held-item contract (primary/secondary use). Weapons are one kind of held item; Features add their own (rod, farm tools) |
 | WeaponSystem | Weapon, `WeaponDef`, fire/cost/on-hit modules, recoil, jams, melee |
 | EnemySystem | `EnemyManager` (central tick, time-slicing), `EnemyFactory` + pool, enemy parts (Mover/Targeting/Senses/Attack), `EnemyArchetypeDef`, A\* `FollowerEntity` agents |
 | InventorySystem | Resource counts and items (ammo is a resource, not a weapon field) |
@@ -217,7 +218,7 @@ Assets/_Game/
     _Bootstrap/           ProjectLifetimeScope, GameLifetimeScope, MainMenuLifetimeScope, GameStarter, DevStartConfig
     _Common/              EntityScope, EntityRegistry, Combat, Events, Stats, IChanceRoll, Utils
     _Debug/               debug panel, IDebugCommands
-    PlayerSystem/  WeaponSystem/  EnemySystem/  InventorySystem/  TimeSystem/  InputSystem/
+    PlayerSystem/  EquipmentSystem/  WeaponSystem/  EnemySystem/  InventorySystem/  TimeSystem/  InputSystem/
   Features/               asmdef Aipocalypse.Features → references Core
     DayNight/  Progression/  Persistence/  Activities/  Economy/
   _Experimental/          asmdef Aipocalypse.Experimental → references Core + Features
