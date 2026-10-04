@@ -1,6 +1,6 @@
 # Game Design Document — aipocalypse
 
-Design intent, split into topic files. Implementation lives in `../technicals/ARCHITECTURE.md`; rationale in `../technicals/DECISIONS.md`; schedule in `../ROADMAP.md`. Unvetted ideas: [IDEAS.md](IDEAS.md).
+Design intent, split into topic files. Implementation lives in `../technicals/ARCHITECTURE.md`; schedule in `../ROADMAP.md`. Unvetted ideas: [IDEAS.md](IDEAS.md).
 
 ## Topics
 

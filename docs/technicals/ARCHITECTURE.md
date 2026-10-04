@@ -1,6 +1,6 @@
 # Architecture
 
-DI with **VContainer** (no gameplay singletons), events with **MessagePipe**, async with **UniTask**, enemy navigation with **A\* Pathfinding Project**. Rationale in [DECISIONS.md](DECISIONS.md).
+DI with **VContainer** (no gameplay singletons), events with **MessagePipe**, async with **UniTask**, enemy navigation with **A\* Pathfinding Project**.
 
 The design is still moving, so the architecture is built to absorb change: a small stable **Core**, swappable **Features** on top, everything tunable in data, and events as the joints between them.
 
