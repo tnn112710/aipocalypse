@@ -25,7 +25,6 @@ Raw and still-open ideas.
 - Ammo must be buyable and craftable, so the ammo loop depends on this
 - The "no recipes" rule (see Promising > Wood & resources) gets revisited together with crafting
 - Options raised so far: shipping bin, daily "hot item", vending terminal, drone delivery, wandering trader, arcade ticket counter, Lord's night market, the AI Lord's vending machine with surge pricing / "Ammo+ subscription" (AI satire)
-  - Ref: Atomicrops — a Seasonal Festival shop opens between seasons (tractors, upgrades for cashews); idea: a market day after each big fight
 
 ### Length & scaling
 
@@ -48,7 +47,7 @@ Raw and still-open ideas.
 - Terrain size (???): 1000×1000 to 2000×2000
   - Suggested: ~1 km playable (2×2 tiles of 512 m) inside a ring of mountains you can see but can't walk on. Walking at ~5 m/s, center → edge takes ~100 s on 1 km but ~200 s on 2 km, so on 2 km one far trip eats most of a ~10 min day
 - Base position (???): middle of the meadow (open 360°) or against a mountain (open 180°)
-  - Suggested: near the center, backed by a cliff or a river bend. Every direction stays the same distance away, nights come from 1–2 readable sides (in first person you can't watch behind you), and there are fewer spawn lanes. Big fights can open the back ("they climb down the cliff")
+  - Suggested: near the center, backed by a cliff or a river bend. Every direction stays the same distance away, nights come from 1–2 readable sides (in first person you can't watch behind you), and there are fewer spawn lanes. Bonfire nights can open the back ("they climb down the cliff")
   - Ref: Kingdom Two Crowns — Greed attack from both ends of the island; two readable fronts keep night defense manageable
 - Layout suggestion: one direction = one zone + one landmark you can see from base (N mountains & caves, E big river, S meadow & pond, W forest). The farther from base, the higher the risk and the reward. The mountain ring is the map border, so no invisible walls. The river can block the far side until you build a bridge
   - Ref: Breath of the Wild — "triangle rule": big hills are landmarks, medium hills hide what's behind them; borrow it so players want to look past each hill
@@ -58,14 +57,14 @@ Raw and still-open ideas.
   - Suggested: the main river is deep (a bridge is needed to reach the west mountains and caves); the branch and creek are shallow (wade or stepping stones). Night enemies cross the branch at fords, which gives readable lanes
   - Suggested: each water body has its own fish: the waterfall pond for common fish near home, the branch pond for calm-water fish, the river for river fish, the far north for rare fish
   - Suggested: hide each river junction under rocks or rapids. Stylized Water 3's River Modeler builds one mesh per spline, so branch seams need cover
-  - Suggested: a low cliff (~5–8 m) with two ramps = two night lanes you watch from above; climbers come up the cliff face in later big fights
+  - Suggested: a low cliff (~5–8 m) with two ramps = two night lanes you watch from above; climbers come up the cliff face on bonfire nights
   - Open: what is north of the meadow? Where does the river leave the map (a gorge in the north mountains, or a lake)? Is the U-shaped line in the first sketch the valley rim (low hills) or the map border? Should the portal behind the waterfall stay so close to home (e.g. locked until later)?
 - House on a ridge (user, 2026-10-04, side-view sketch): the ground rises gently from the meadow up to the house; behind the house the ridge drops into empty space. Replaces the "cliff in front + ramps" version
   - Suggested: the empty space is the edge of the AI-made world, a void with clouds far below. It fits the story, needs no mountain wall behind the house, and nothing can attack from behind
     - Ref: Valheim — water pours off the world's edge into a black void; a strong current drags you toward it and falling is instant death. Here, falling could be an "out of bounds" joke instead: the drone teleports you back ("Please stay inside the play area")
   - Suggested: let the pond near the house spill over the edge as a waterfall into the void. The river then flows south from the north mountains, along the west side, to the house
   - Suggested: distant floating chunks of other biomes (desert, snow, jungle) drift in the void behind the house, a hint at the portal biomes
-  - Suggested: with no cliff in front, the slope is the defense: attackers walk uphill in the open, and a low stone wall with 2 gaps around the garden keeps 2 readable night lanes. In big fights, climbers can come up from the void as a rare, signalled surprise
+  - Suggested: with no cliff in front, the slope is the defense: attackers walk uphill in the open, and a low stone wall with 2 gaps around the garden keeps 2 readable night lanes. On bonfire nights, climbers can come up from the void as a rare, signalled surprise
   - Decided (user, 2026-10-04): the empty space is a sea far below; the house sits 5–10 m above the meadow; the waterfall drops off the edge into the sea
   - Wanted (user, 2026-10-04): a more complex map: rocks, hills, more forest past the river in front, denser the further out, more small river branches, a mine entrance (place open)
   - Suggested layout, in rings from the house:
@@ -176,7 +175,6 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   - (???) 50–70% of what you carried only, or stored items too? Suggested: carried only, so the stash is safe (matches Night stakes)
   - Ref: Escape from Duckov — on normal difficulty gear drops in a grave and is lost if you die again before reaching it; the dog's backpack survives death
 - Night stakes (user): a lost night defense damages the base (fences, defenses, crops, stations), and repairs cost materials; the stash stays safe. Dying at night puts the grave at base, so the damage is the real cost
-  - (???) Skip-streak thieves still take stored food and items (see Rest vs fight balance). Suggested: limit them to food, crops and animals outside the house, and keep the stash locked
 - Tension: every bullet you take on a trip is one you won't have for tonight's defense
 - Ref: Road to Vostok — single-player survival FPS; shelters are the only save point and safe storage, and dying outside loses what you carried. The loop works in first person
 - Ref: Outpost: Infinity Siege — FPS + tower defense + base building + extraction; OpenCritic 58, critics said the extraction gathering and rogue-like parts diluted it. Keep each layer simple
@@ -214,9 +212,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Death inside: the grave stays while that portal is open, so you have until you sleep to recover it
 - The sun keeps running inside. Staying out at night (user): if you're still in a biome at night, the base isn't attacked, but the risk is on you
   - Suggested: the Dark still applies in there (carry a light); night enemies are tougher and loot is better, like Duckov's night raids. No base fight means no perk card
-  - Staying out doesn't count toward the skip streak (user, 2026-10-10)
   - Portals only reroll when you sleep, so staying out could stretch one biome over several days; staying out costs your sleep, so sanity doesn't recover and you can't keep it up (user, 2026-10-10)
-  - Big-fight nights can't be skipped: on those nights the biomes shut down at dusk and the drone sends anyone still inside back home ("Please return to the play area") (user, 2026-10-10)
 - Grand trial portal (user): unlocks once you find all the relics (user, 2026-10-10: relics, not missions)
   - Suggested: one relic per biome, found by searching (possibly over several visits). The locked portal sits behind the waterfall near home, a goal you can see from day one (answers the waterfall-portal question in World & environment)
 - Suggested (tech): each biome is its own scene; the home map can unload while you're inside
@@ -286,23 +282,14 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 ### Night fights & death
 
 - Fights happen at base; the fire decides whether a night is a fight
-- Big fight every 10th night on a fixed, visible countdown; harder each time; the AI Lord relights the fire, so no hiding; can't be delayed or skipped
+- Cozy is optional (user, 2026-10-10): no required fights and no big fights. Night fights only happen when the player lights the campfire
+  - (???) Where do bosses live now? Suggested: an opt-in top fire tier (e.g. a "beacon" bonfire) that summons a boss, or a boss inside a biome
 - Signals: symbols on the ground in front of the house hint at what's coming if the fire is lit; each shows a % chance to happen
 - Death never ends the run; XP, buildings and upgrades are always kept (like Escape from Duckov)
-- Any death (out in the world, small night, big fight): wake at base and lose 50–70% of loot (???: carried only, or stored items too — see Extraction loop)
+- Any death (in a biome or on a fire night): wake at base and lose 50–70% of loot (???: carried only, or stored items too — see Extraction loop)
 - The lost share drops in a grave where you died; one chance to recover it, gone if you die again first (user, 2026-10-10)
 - Upgrades reduce the loss
-- Losing a big fight also rewinds the clock X days (start: 3 (???)); the boss comes back when the countdown ends — you still have to fight it
 - Dogs fight at a low rate; upgradable
-
-### Rest vs fight balance
-
-- You can rest, but you can't hide forever; only skip streaks count (fighting is limited by ammo, so there's no fight-streak penalty)
-- Raids can be reduced without combat: fences, scarecrows, dog on guard, lamps around fields (wood)
-- Warnings: the signals show the skip streak and raid chance; the drone may comment ("Something's been sniffing around the barn…")
-- During a raid, the dog barks and you may get up to defend, giving up that night's sleep
-- Ref: Minecraft — phantoms spawn after 3 nights without a bed; ours is inverted: too much sleep invites trouble
-- References: This War of Mine (guard vs sleep, shelter raids), Kingdom Two Crowns (base attacked at night)
 
 ### Sleep nights — sounds from outside
 
@@ -311,7 +298,6 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 | Situation | Sounds |
 | --- | --- |
 | Quiet night | Crickets, wind, the cat purring, the dog snoring, the drone's quiet "zzz… standby mode" |
-| A farm raid | Chickens squawking, a fence cracking, the dog barking at something, chewing in the field |
 | Tonight's signal threat nearby | Distant roars (dinos), groans (zombies), 8-bit beeps (invaders), all matching the morning's symbols |
 | Weather | Rain on the roof, thunder, wind shaking the shutters |
 | Scary moments | Footsteps on the porch… scratching at the door… then it turns out to be the cat |
@@ -321,17 +307,16 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 
 - XP = permanent skill tree (Fitness, Gunsmanship, Luck); perk cards = perks. Two separate systems
 - After a night fight, 3 cards appear; pick 1. Max 1 reroll
-- Small/bonfire night cards are temporary: each lasts 3–5 days, then expires
-- Big-fight card is permanent
-- Skip nights give no cards
+- Cards are temporary: each lasts 3–5 days, then expires
+- Nights without a fire give no cards
+- (???) Permanent cards came from big fights, which are gone. Suggested: drop permanent cards; XP and gear are the permanent growth
 - Suggested (not agreed yet):
   - Duration by rarity (common 3 days, rare from bonfire 5 days); cards expire at dawn; each card shows days left
   - Picking a card you already have refreshes its timer (or levels it up)
-  - Permanent cards come from their own pool, so they never repeat a temporary card; losing a big fight gives no card
   - Cards survive death (death already costs loot)
   - Pool mixes combat, activity (fishing/chopping speed) and base/companion perks; Office-joke perks (Extras) are the content
   - The grand trial reuses the same card system
-  - Open (???): is the reroll per pick or per 10-day cycle? Can Luck grant an extra reroll?
+  - Open (???): is the reroll per pick or per few days? Can Luck grant an extra reroll?
 - Ref: Cult of the Lamb — tarot cards last only until the crusade ends; each run feels different without permanent power creep
 - Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
 - Ref: Thronefall — max 5 perks active at once; supports keeping the active card count small
@@ -361,7 +346,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 
 - Minigames happen inside normal actions in the world, not in arcade cabinets
 - Fish shooting: hang bait over the water, fish jump out, shoot them
-- Sky Invaders: night fight mission — both a small-night mission and a big-fight version with a mothership boss
+- Sky Invaders: night fight mission — a small-fire version and a bonfire version with a mothership boss
   - Formation moves side to side, steps down, speeds up as fewer remain; barn roofs/fences act as shields; landed invaders abduct animals
 
 ### Grand trial (escape) — deferred until after main gameplay
@@ -398,7 +383,7 @@ Liked, but not part of the core loop. They add fun, comedy and "wow" on top of i
 
 ### AI-prompted bosses
 
-- Over the 10 days before a big fight, the signals board shows the prompt the Lord is "typing", one piece at a time: "a chicken… but huge… with a minigun… photorealistic, 8k"
+- Over the days before a boss night (see Night fights & death (???)), the signals board shows the prompt the Lord is "typing", one piece at a time: "a chicken… but huge… with a minigun… photorealistic, 8k"
 - Fight night: a giant low-poly chicken with a minigun ("photorealistic" never works)
 - Boss = body + scale + weapon + archetype from the asset packs → endless boss variety
 - Ref: Scribblenauts — type a noun + adjectives and it spawns
@@ -414,7 +399,6 @@ Liked, but not part of the core loop. They add fun, comedy and "wow" on top of i
 - Level-up perks named after office life, each with a real effect. List to polish later:
   - Ctrl+Z: once per night, undo the last hit taken
   - Reply All: shotgun fires 2× the pellets
-  - Out of Office: one skip per cycle doesn't count toward the skip streak
   - Overtime: dusk lasts 1 minute longer
   - Copy-Paste: once a day, duplicate a caught fish
   - Per My Last Email: melee hits knock enemies far back
@@ -471,10 +455,10 @@ Many short "one more go" minigames, each a simpler take on a famous game. Extend
 
 ## Rejected
 
-- Lord's Wish List (offer items to delay or skip big fights) — big fights are fixed and can't be delayed or skipped
-- Attacks on the base during the day — no agency while away, rewards staying home, blurs the skip → raid rule
+- Attacks on the base during the day — no agency while away, rewards staying home
 - Tired (fight-streak penalty) — ammo cost already limits fighting every night
-- Fully peaceful playstyle ("stay and enjoy") — players must balance; you can rest but not hide forever
+- Big fights every 10th night (forced, can't be skipped) — cozy is optional; fights only happen when you light the fire (user, 2026-10-10)
+- Skip streak (thieves and raiders after nights without a fire) — it forced fights on players who want to stay cozy (user, 2026-10-10)
 - Field campfire when caught outside at dusk — not wanted
 - "Days without incident" streak sign with a growing bonus — not wanted
 - Run-ending death (Dome Keeper / Don't Starve style) — death costs loot, never the run, like Escape from Duckov

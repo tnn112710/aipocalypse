@@ -8,7 +8,7 @@ The design is still moving, so the architecture is built to absorb change: a sma
 
 | Core — build now, rarely changes | Features — *provisional*, built when the design settles |
 | --- | --- |
-| Movement, look, interact | Day/night rules: phases, fire tiers, skip streak, big fights |
+| Movement, look, interact | Day/night rules: phases, fire tiers |
 | Shooting, melee, damage, `Health` | Perk cards, XP / skill tree, luck |
 | Enemy navigation, attack, pooling | Death penalty, rewind, save |
 | Inventory as resource counts | Wave makeup, night types, economy, crafting |
@@ -96,7 +96,7 @@ Any scene (World, Proto_*, test arenas)
 
 | Feature | Owns |
 | --- | --- |
-| DayNight | `DayCycle` (what phases mean), fire tiers, skip streak, big-fight countdown, `NightPlan`, `WaveDirector` |
+| DayNight | `DayCycle` (what phases mean), fire tiers, `NightPlan`, `WaveDirector` |
 | Progression | XP / skill tree, perk cards, luck (`IChanceRoll` implementation) |
 | Persistence | Save, death penalty, rewind |
 | Activities | Fishing, chopping, farming, minigames |
@@ -118,7 +118,7 @@ Trial mechanics live in `Assets/_Game/_Experimental/<Name>/`, each with its own 
 
 Part of Foundation, not an afterthought — experimenting is only fast if setting up a situation is fast. A debug panel (Odin / in-game overlay):
 
-- Set time / day, skip to dusk or a big fight, time-scale slider
+- Set time / day, skip to dusk, time-scale slider
 - Spawn an enemy or a wave at the crosshair
 - Give ammo / items, set meters, god mode
 - Apply a modifier or perk, toggle features and experiments
