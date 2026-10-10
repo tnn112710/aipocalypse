@@ -274,7 +274,7 @@ namespace GPUInstancerPro
         private Vector2Int GetScreenSize()
         {
             Vector2Int screenSize = Vector2Int.zero;
-#if GPUI_XR
+#if GPUI_VR
             if (_occlusionPassData.isVRCulling)
             {
                 screenSize.x = UnityEngine.XR.XRSettings.eyeTextureWidth;
@@ -286,7 +286,7 @@ namespace GPUInstancerPro
 #endif
                 screenSize.x = _activeCamera.pixelWidth;
                 screenSize.y = _activeCamera.pixelHeight;
-#if GPUI_XR
+#if GPUI_VR
             }
 #endif
 
@@ -376,7 +376,7 @@ namespace GPUInstancerPro
                     _hiZGeneratorRenderPass.Setup(HiZDepthTexture);
                     _isHiZDepthUpdated = false;
                 }
-#if GPUI_XR
+#if GPUI_VR
                 if (_occlusionPassData.isVRCulling && UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.MultiPass && _hiZGeneratorRenderPassRightEye == null)
                 {
                     _hiZGeneratorRenderPassRightEye = new GPUIHiZGeneratorRenderPass(this);
@@ -460,7 +460,7 @@ namespace GPUInstancerPro
 #if UNITY_6000_0_OR_NEWER && GPUI_URP
             if (ActiveCullingMode == GPUIOcclusionCullingMode.URPScriptableRenderPass && _hiZGeneratorRenderPass != null)
             {
-#if GPUI_XR
+#if GPUI_VR
                 if (_occlusionPassData.isVRCulling && UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.MultiPass && _hiZGeneratorRenderPassRightEye != null)
                 {
                     if (_renderPassQueuedFrameCount != Time.frameCount)
@@ -482,7 +482,7 @@ namespace GPUInstancerPro
 
         private void DirectTextureAccessUpdate()
         {
-#if GPUI_XR
+#if GPUI_VR
             if (_occlusionPassData.isVRCulling)
             {
                 int sourceWidth = HiZTextureSize.x / 2;
@@ -518,7 +518,7 @@ namespace GPUInstancerPro
                 UpdateTextureWithComputeShader(0, 0, 1);
             else
 #endif
-                UpdateTextureWithComputeShader(HiZTextureSize.x, 0);
+            UpdateTextureWithComputeShader(HiZTextureSize.x, 0);
 
             for (int i = 0; i < _occlusionPassData.hiZMipLevels - 1; i++)
                 GPUIHiZDepthTextureUtility.ReduceTextureWithComputeShader(_occlusionPassData.reduceCS, HiZDepthTexture, HiZTextureSize.x, HiZTextureSize.y, i, i + 1);
@@ -567,7 +567,7 @@ namespace GPUInstancerPro
             if (HiZDepthTexture == null)
                 return;
 
-#if GPUI_XR
+#if GPUI_VR
             if (_occlusionPassData.isVRCulling)
             {
                 int sourceWidth = HiZTextureSize.x / 2;

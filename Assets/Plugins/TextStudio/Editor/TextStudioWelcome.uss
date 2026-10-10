@@ -1,0 +1,271 @@
+.ts-onboarding-root {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.ts-onboarding-scroll {
+    flex-grow: 1;
+}
+
+.ts-onboarding-content {
+    width: 100%;
+    max-width: 820px;
+    min-width: 0;
+    align-self: center;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 16px;
+    padding-bottom: 18px;
+}
+
+.ts-editor-live-preview {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+    background-color: rgb(22, 27, 35);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(128, 146, 162, 0.28);
+    border-right-color: rgba(128, 146, 162, 0.28);
+    border-top-color: rgba(128, 146, 162, 0.28);
+    border-bottom-color: rgba(128, 146, 162, 0.28);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.ts-editor-live-preview-label {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    color: rgb(235, 243, 248);
+}
+
+.ts-onboarding-hero-preview {
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 104px;
+    margin-bottom: 14px;
+}
+
+.ts-onboarding-progress {
+    flex-direction: row;
+    min-width: 0;
+    margin-left: -3px;
+    margin-right: -3px;
+    margin-bottom: 16px;
+}
+
+.ts-onboarding-step {
+    flex-grow: 1;
+    flex-basis: 140px;
+    min-width: 0;
+    height: 30px;
+    margin-left: 3px;
+    margin-right: 3px;
+    -unity-font-style: normal;
+    color: rgb(166, 177, 190);
+    background-color: rgba(70, 79, 91, 0.24);
+    border-left-color: rgba(129, 142, 157, 0.2);
+    border-right-color: rgba(129, 142, 157, 0.2);
+    border-top-color: rgba(129, 142, 157, 0.2);
+    border-bottom-color: rgba(129, 142, 157, 0.2);
+}
+
+.ts-onboarding-step--complete {
+    color: rgb(177, 218, 223);
+}
+
+.ts-onboarding-step--current {
+    -unity-font-style: bold;
+    color: rgb(223, 248, 250);
+    background-color: rgba(34, 111, 120, 0.7);
+    border-left-color: rgba(81, 198, 211, 0.5);
+    border-right-color: rgba(81, 198, 211, 0.5);
+    border-top-color: rgba(81, 198, 211, 0.5);
+    border-bottom-color: rgba(81, 198, 211, 0.5);
+}
+
+.ts-onboarding-stage {
+    min-width: 0;
+}
+
+.ts-onboarding-stage-title {
+    margin-bottom: 8px;
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(240, 244, 247);
+}
+
+.ts-onboarding-stage-summary {
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: rgb(170, 181, 197);
+}
+
+.ts-onboarding-action-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+    margin-left: -3px;
+    margin-right: -3px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.ts-onboarding-action-row > .ts-button {
+    flex-grow: 1;
+    flex-basis: 170px;
+    min-width: 0;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-bottom: 6px;
+}
+
+.ts-onboarding-concepts {
+    min-width: 0;
+    margin-bottom: 10px;
+}
+
+.ts-onboarding-concept {
+    flex-direction: row;
+    min-width: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(125, 139, 153, 0.18);
+}
+
+.ts-onboarding-concept-title {
+    width: 142px;
+    min-width: 112px;
+    margin-right: 12px;
+    -unity-font-style: bold;
+    color: rgb(225, 233, 239);
+}
+
+.ts-onboarding-concept-copy {
+    flex-grow: 1;
+    color: rgb(171, 182, 197);
+}
+
+.ts-onboarding-stage-primary {
+    min-height: 32px;
+    margin-top: 6px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.ts-onboarding-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+    margin-left: -5px;
+    margin-right: -5px;
+    margin-bottom: 9px;
+}
+
+.ts-onboarding-card {
+    flex-grow: 1;
+    flex-basis: 285px;
+    min-width: 0;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 10px;
+    padding-left: 13px;
+    padding-right: 13px;
+    padding-top: 12px;
+    padding-bottom: 11px;
+    background-color: rgba(42, 48, 58, 0.76);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(124, 139, 154, 0.24);
+    border-right-color: rgba(124, 139, 154, 0.24);
+    border-top-color: rgba(124, 139, 154, 0.24);
+    border-bottom-color: rgba(124, 139, 154, 0.24);
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+.ts-onboarding-card-title {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(235, 241, 245);
+}
+
+.ts-onboarding-card-copy {
+    flex-grow: 1;
+    margin-top: 4px;
+    margin-bottom: 9px;
+    color: rgb(168, 179, 193);
+}
+
+.ts-onboarding-card-action {
+    min-height: 28px;
+}
+
+.ts-onboarding-status {
+    margin-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    white-space: normal;
+    color: rgb(172, 223, 197);
+    background-color: rgba(48, 116, 82, 0.22);
+    border-left-width: 3px;
+    border-left-color: rgb(79, 181, 125);
+}
+
+.ts-onboarding-status--warning {
+    color: rgb(235, 205, 158);
+    background-color: rgba(127, 82, 30, 0.24);
+    border-left-color: rgb(204, 148, 64);
+}
+
+.ts-onboarding-footer {
+    min-width: 0;
+}
+
+.ts-onboarding-footer-hint {
+    flex-grow: 1;
+    min-width: 160px;
+    color: rgb(148, 160, 174);
+}
+
+.ts-onboarding-quiet-button {
+    min-width: 104px;
+}
+
+.ts-theme-light .ts-onboarding-stage-title,
+.ts-theme-light .ts-onboarding-card-title,
+.ts-theme-light .ts-onboarding-concept-title {
+    color: rgb(38, 45, 52);
+}
+
+.ts-theme-light .ts-onboarding-stage-summary,
+.ts-theme-light .ts-onboarding-card-copy,
+.ts-theme-light .ts-onboarding-concept-copy,
+.ts-theme-light .ts-onboarding-footer-hint {
+    color: rgb(78, 88, 99);
+}
+
+.ts-theme-light .ts-onboarding-card {
+    background-color: rgba(225, 229, 234, 0.78);
+    border-left-color: rgba(90, 102, 114, 0.28);
+    border-right-color: rgba(90, 102, 114, 0.28);
+    border-top-color: rgba(90, 102, 114, 0.28);
+    border-bottom-color: rgba(90, 102, 114, 0.28);
+}

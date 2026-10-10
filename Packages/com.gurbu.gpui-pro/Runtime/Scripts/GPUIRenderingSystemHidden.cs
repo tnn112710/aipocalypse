@@ -317,7 +317,7 @@ namespace GPUInstancerPro
 
             if (hasCameraData)
             {
-#if GPUI_XR
+#if GPUI_VR
                 if (cameraData.IsVRCulling && UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.MultiPass && cameraData.ActiveCamera.stereoActiveEye == Camera.MonoOrStereoscopicEye.Right) // Avoid making draw calls multiple times for the same frame when using XR MultiPass.
                     return;
 #endif

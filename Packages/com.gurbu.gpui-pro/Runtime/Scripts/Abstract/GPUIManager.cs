@@ -442,6 +442,8 @@ namespace GPUInstancerPro
 
         public static bool ValidatePrefabPrototype(GPUIPrototype prototype)
         {
+            prototype.errorMessage = null;
+            prototype.errorContext = null;
 #if UNITY_EDITOR
             string shaderExtensionCode = null;
             int shaderErrorCodeAddition = 0;
@@ -476,6 +478,8 @@ namespace GPUInstancerPro
                                     if (!meshRenderer.TryGetComponent(out MeshFilter meshFilter) || meshFilter.sharedMesh == null)
                                     {
                                         prototype.errorCode = ERROR_CODE_ADDITION * 10 + 5; // missing mesh
+                                        prototype.errorMessage = GPUIUtility.GetMissingMeshMessage(meshRenderer, lodIndex);
+                                        prototype.errorContext = meshRenderer.gameObject;
                                         return false;
                                     }
                                 }
@@ -485,6 +489,8 @@ namespace GPUInstancerPro
                                     if (skinnedMeshRenderer.sharedMesh == null)
                                     {
                                         prototype.errorCode = ERROR_CODE_ADDITION * 10 + 5; // missing mesh
+                                        prototype.errorMessage = GPUIUtility.GetMissingMeshMessage(skinnedMeshRenderer, lodIndex);
+                                        prototype.errorContext = skinnedMeshRenderer.gameObject;
                                         return false;
                                     }
                                 }
@@ -551,6 +557,8 @@ namespace GPUInstancerPro
                     if (!meshRenderer.TryGetComponent(out MeshFilter meshFilter) || meshFilter.sharedMesh == null)
                     {
                         prototype.errorCode = ERROR_CODE_ADDITION * 10 + 5; // missing mesh
+                        prototype.errorMessage = GPUIUtility.GetMissingMeshMessage(meshRenderer);
+                        prototype.errorContext = meshRenderer.gameObject;
                         return false;
                     }
                     foreach (var mat in meshRenderer.sharedMaterials)
@@ -582,6 +590,8 @@ namespace GPUInstancerPro
                     if (skinnedMeshRenderer.sharedMesh == null)
                     {
                         prototype.errorCode = ERROR_CODE_ADDITION * 10 + 5; // missing mesh
+                        prototype.errorMessage = GPUIUtility.GetMissingMeshMessage(skinnedMeshRenderer);
+                        prototype.errorContext = skinnedMeshRenderer.gameObject;
                         return false;
                     }
                     foreach (var mat in skinnedMeshRenderer.sharedMaterials)

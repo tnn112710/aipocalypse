@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:ts="TextStudio" editor-extension-mode="False">
+    <Style src="B14_Renderer.uss" />
+    <ui:VisualElement name="renderer-root" class="renderer-root" picking-mode="Ignore">
+        <ui:VisualElement name="renderer-widget" class="renderer-widget" picking-mode="Ignore">
+            <ui:Label text="UI Toolkit · Label text" class="renderer-caption" picking-mode="Ignore" />
+            <ui:Label name="renderer-target" text="SIGNAL FOUND" class="renderer-message" picking-mode="Ignore">
+                <Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" reveal-mode="ByGlyph" typewriter-start="OnEnableOrTextChanged" text-change-scope="ChangedGlyphs" enable-in-edit-mode="true" default-effects-mode="Constant" default-effects="&lt;wave amplitude=.025 speed=.6&gt;" reaction-source="BuiltIn" reaction-preset="reaction.reward-impact" /></Bindings>
+            </ui:Label>
+        </ui:VisualElement>
+        <ui:VisualElement name="renderer-element-widget" class="renderer-widget renderer-element-widget" picking-mode="Ignore">
+            <ui:Label text="UI Toolkit · Element source" class="renderer-caption" picking-mode="Ignore" />
+            <ui:Label name="renderer-element-target" text="SIGNAL FOUND" class="renderer-message" picking-mode="Ignore"><Bindings><ts:TextStudioBinding property="text" source-mode="Element" source-element="renderer-source" source-property-path="value" reveal-mode="ByGlyph" typewriter-start="OnEnableOrTextChanged" text-change-scope="ChangedGlyphs" enable-in-edit-mode="true" default-effects-mode="Constant" default-effects="&lt;wave amplitude=.025 speed=.6&gt;" reaction-source="BuiltIn" reaction-preset="reaction.reward-impact" /></Bindings></ui:Label>
+        </ui:VisualElement>
+        <ui:VisualElement name="renderer-data-widget" class="renderer-widget renderer-data-widget" picking-mode="Ignore">
+            <ui:Label text="UI Toolkit · Data source" class="renderer-caption" picking-mode="Ignore" />
+            <ui:Label name="renderer-data-target" text="SIGNAL FOUND" class="renderer-message" picking-mode="Ignore"><Bindings><ts:TextStudioBinding property="text" source-mode="Data" reveal-mode="ByGlyph" typewriter-start="OnEnableOrTextChanged" text-change-scope="ChangedGlyphs" enable-in-edit-mode="true" default-effects-mode="Constant" default-effects="&lt;wave amplitude=.025 speed=.6&gt;" reaction-source="BuiltIn" reaction-preset="reaction.reward-impact" /></Bindings></ui:Label>
+        </ui:VisualElement>
+        <ui:TextField name="renderer-source" label="Message" value="SIGNAL FOUND" class="renderer-input" />
+    </ui:VisualElement>
+</ui:UXML>

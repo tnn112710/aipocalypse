@@ -1,0 +1,74 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:ts="TextStudio" editor-extension-mode="False">
+    <ui:Style src="Whisperwood.uss" />
+    <ui:VisualElement name="whisperwood-root" class="whisperwood-root">
+        <ui:VisualElement name="map-viewport" class="map-viewport">
+        <ui:VisualElement name="world" class="world">
+            <ui:VisualElement name="world-shade" class="world-shade" />
+            <ui:VisualElement name="moon-gate-marker" class="token gate-token">
+            <ui:Label name="gate-sign" class="gate-sign"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            </ui:VisualElement>
+            <ui:VisualElement name="lantern-0" class="lantern lantern-0" />
+            <ui:VisualElement name="npc-marker-0" class="token mara-token">
+                <ui:Label name="npc-label-0" class="npc-label"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            </ui:VisualElement>
+            <ui:VisualElement name="lantern-1" class="lantern lantern-1" />
+            <ui:VisualElement name="npc-marker-1" class="token luma-token">
+                <ui:Label name="npc-label-1" class="npc-label"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            </ui:VisualElement>
+            <ui:VisualElement name="lantern-2" class="lantern lantern-2" />
+            <ui:VisualElement name="npc-marker-2" class="token rowan-token">
+                <ui:Label name="npc-label-2" class="npc-label"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            </ui:VisualElement>
+            <ui:VisualElement name="player-marker" class="token player-token" />
+        </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <ui:Label name="controls" class="hud"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+        <ui:Button name="sound-button" text="Sound on" class="sound-button" />
+        <ui:Button name="journal-button" text="Journal" class="journal-button" />
+        <ui:Label name="quest" class="quest"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+        <ui:Label name="nearby" class="nearby"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+        <ui:Label name="prompt" class="prompt"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+
+        <ui:VisualElement name="menu-composition" class="menu-composition" picking-mode="Ignore">
+            <ui:VisualElement class="title-slot" picking-mode="Ignore">
+                <ui:Label name="title" class="title"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            </ui:VisualElement>
+            <ui:VisualElement class="parchment-slot" picking-mode="Ignore">
+                <ui:VisualElement name="menu-panel" class="parchment-panel menu-panel">
+                    <ui:Label name="menu-body" class="menu-body"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="buttons-slot" picking-mode="Ignore">
+                <ui:VisualElement name="menu-button-row" class="menu-button-row">
+                    <ui:Button name="start-button" text="Start" class="menu-button start-button" />
+                    <ui:Button name="credits-button" text="Credits" class="menu-button credits-button" />
+                    <ui:Button name="resume-button" text="Resume" class="menu-button resume-button" />
+                    <ui:Button name="restart-button" text="Restart" class="menu-button restart-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="dialogue-panel" class="parchment-panel dialogue-panel">
+            <ui:Label name="speaker" class="speaker"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            <ui:Label name="dialogue" class="dialogue"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            <ui:Button name="clue-button" text="Listen to the three notes" class="clue-button" />
+            <ui:Button name="ask-button" text="Ask about the gate" class="choice-button ask-button" />
+            <ui:Button name="leave-button" text="Leave for now" class="choice-button leave-button" />
+            <ui:Button name="continue-button" text="Continue" class="dialogue-button continue-button" />
+            <ui:Button name="skip-button" text="Skip" class="dialogue-button skip-button" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="credits-panel" class="parchment-panel credits-panel">
+            <ui:Button name="journal-back-button" text="Back" class="journal-back-button" />
+            <ui:Label name="credits" class="credits-copy"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+        </ui:VisualElement>
+        <ui:VisualElement name="finale-panel" class="finale-panel">
+            <ui:Label text="MOON GATE" class="finale-heading" />
+            <ui:Label name="inscription" class="inscription"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            <ui:Label name="finale-reward" class="finale-reward"><Bindings><ts:TextStudioBinding property="text" source-mode="LabelText" update-mode="Manual" /></Bindings></ui:Label>
+            <ui:Button name="finale-continue-button" text="Skip inscription" class="finale-continue-button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

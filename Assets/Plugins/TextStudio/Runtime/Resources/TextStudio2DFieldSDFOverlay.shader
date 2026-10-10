@@ -1,0 +1,82 @@
+Shader "Text Studio/2D Field SDF Overlay"
+{
+    Properties
+    {
+        _FaceColor ("Face Color", Color) = (1,1,1,1)
+        _FaceTex ("Face Texture", 2D) = "white" {}
+        _FaceUVSpeedX ("Face UV Speed X", Range(-5,5)) = 0
+        _FaceUVSpeedY ("Face UV Speed Y", Range(-5,5)) = 0
+        _FaceDilate ("Face Dilate", Range(-1,1)) = 0
+        _OutlineColor ("Outline Color", Color) = (0,0,0,1)
+        _OutlineTex ("Outline Texture", 2D) = "white" {}
+        _OutlineUVSpeedX ("Outline UV Speed X", Range(-5,5)) = 0
+        _OutlineUVSpeedY ("Outline UV Speed Y", Range(-5,5)) = 0
+        _OutlineWidth ("Outline Thickness", Range(0,1)) = 0
+        _OutlineSoftness ("Outline Softness", Range(0,1)) = 0
+        _UnderlayColor ("Border Color", Color) = (0,0,0,.5)
+        _UnderlayOffsetX ("Border Offset X", Range(-1,1)) = 0
+        _UnderlayOffsetY ("Border Offset Y", Range(-1,1)) = 0
+        _UnderlayDilate ("Border Dilate", Range(-1,1)) = 0
+        _UnderlaySoftness ("Border Softness", Range(0,1)) = 0
+        _WeightNormal ("Weight Normal", Float) = 0
+        _WeightBold ("Weight Bold", Float) = .5
+        _ShaderFlags ("Flags", Float) = 0
+        _ScaleRatioA ("Scale Ratio A", Float) = 1
+        _ScaleRatioB ("Scale Ratio B", Float) = 1
+        _ScaleRatioC ("Scale Ratio C", Float) = 1
+        _MainTex ("Font Atlas", 2D) = "white" {}
+        _TextureWidth ("Texture Width", Float) = 512
+        _TextureHeight ("Texture Height", Float) = 512
+        _GradientScale ("Gradient Scale", Float) = 5
+        [HideInInspector] _TextStudioFieldFormat ("Text Studio Field Format", Float) = 0
+        [HideInInspector] _TextStudioFieldPixelsPerEm ("Text Studio Field Pixels Per Em", Float) = 0
+        [HideInInspector] _TextStudioFieldSafeDistance ("Text Studio Field Safe Distance", Float) = 0
+        _ScaleX ("Scale X", Float) = 1
+        _ScaleY ("Scale Y", Float) = 1
+        _PerspectiveFilter ("Perspective Correction", Range(0,1)) = .875
+        _Sharpness ("Sharpness", Range(-1,1)) = 0
+        _VertexOffsetX ("Vertex Offset X", Float) = 0
+        _VertexOffsetY ("Vertex Offset Y", Float) = 0
+        _ClipRect ("Clip Rect", Vector) = (-32767,-32767,32767,32767)
+        _MaskSoftnessX ("Mask Softness X", Float) = 0
+        _MaskSoftnessY ("Mask Softness Y", Float) = 0
+        _StencilComp ("Stencil Comparison", Float) = 8
+        _Stencil ("Stencil ID", Float) = 0
+        _StencilOp ("Stencil Operation", Float) = 0
+        _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        _StencilReadMask ("Stencil Read Mask", Float) = 255
+        _CullMode ("Cull Mode", Float) = 0
+        _ColorMask ("Color Mask", Float) = 15
+        _TextStudioGlowColor ("Text Studio Glow", Color) = (.2,.65,1,1)
+        _TextStudioSweepColor ("Text Studio Sweep", Color) = (1,1,1,1)
+        _TextStudioSweepIntensity ("Text Studio Sweep Intensity", Range(0,3)) = 1
+        _TextStudioChromaticIntensity ("Text Studio Chromatic Intensity", Range(0,3)) = 1
+        [HideInInspector] _TextStudioPayloadEnabled ("Text Studio Payload Enabled", Float) = 1
+        [HideInInspector] _TextStudioWritingSourceEnabled ("Text Studio Writing Source Enabled", Float) = 0
+        [HideInInspector] _TextStudioPayloadFromTangent ("Text Studio Payload From Tangent", Float) = 0
+        [HideInInspector] _TextStudioSourceBounds ("Text Studio Source Bounds", Vector) = (0,0,0,0)
+    }
+
+    SubShader
+    {
+        Tags { "Queue"="Overlay" "IgnoreProjector"="True" "RenderType"="Transparent" }
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+        Cull [_CullMode]
+        ZWrite Off
+        Lighting Off
+        Fog { Mode Off }
+        ZTest Always
+        Blend One OneMinusSrcAlpha
+        ColorMask [_ColorMask]
+
+        UsePass "Text Studio/2D Field SDF/TEXTSTUDIO_FIELD_SDF"
+    }
+    CustomEditor "TMPro.EditorUtilities.TMP_SDFShaderGUI"
+}

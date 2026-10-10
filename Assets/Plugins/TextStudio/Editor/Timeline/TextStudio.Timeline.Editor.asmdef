@@ -1,0 +1,30 @@
+{
+    "name": "TextStudio.Timeline.Editor",
+    "rootNamespace": "TextStudio.Timeline.Editor",
+    "references": [
+        "TextStudio",
+        "TextStudio.Editor",
+        "TextStudio.Timeline",
+        "Unity.Timeline",
+        "Unity.Timeline.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "USE_TIMELINE"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.7.0",
+            "define": "USE_TIMELINE"
+        }
+    ],
+    "noEngineReferences": false
+}

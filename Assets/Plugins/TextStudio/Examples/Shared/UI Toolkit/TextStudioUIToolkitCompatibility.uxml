@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:ts="TextStudio" editor-extension-mode="False">
+    <ui:Style src="TextStudioTutorial.uss" />
+    <ui:VisualElement name="tutorial-root" class="tutorial-root compatibility-root">
+        <ui:Label text="LEARN 11  /  UI TOOLKIT COMPATIBILITY" class="lesson-badge" />
+        <ui:Label text="Use the compatibility control in an authored visual tree" class="lesson-title" />
+        <ui:Label text="A normal Label uses one native Text Studio binding, with typewriter support on every supported Unity version." class="lesson-summary" />
+        <ui:VisualElement name="placement-stage" class="stage">
+            <ui:Label
+                name="compatibility-text"
+                class="compatibility-label"
+                text="Compatibility &lt;wave&gt;label&lt;/wave&gt;">
+                <Bindings>
+                    <ts:TextStudioBinding
+                        property="text"
+                        source-mode="LabelText"
+                        update-mode="Automatic"
+                        play-on-attach="true"
+                        reveal-mode="ByGlyph"
+                        speed-multiplier="1.25"
+                        loop-reveal="false" />
+                </Bindings>
+            </ui:Label>
+            <ui:Label text="RESPONSIVE STAGE  •  BALANCED GRID  •  COMPATIBILITY API" class="stage-caption" />
+        </ui:VisualElement>
+        <ui:Label text="The scene contains a real UIDocument and references this template. Runtime code only configures animation and handles the two controls." class="status" />
+        <ui:VisualElement class="control-row">
+            <ui:Button name="replay-button" text="Replay" class="control-button" />
+            <ui:Button name="skip-button" text="Skip" class="control-button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

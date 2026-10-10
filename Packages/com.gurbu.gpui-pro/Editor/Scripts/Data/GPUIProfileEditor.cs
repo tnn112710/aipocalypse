@@ -175,6 +175,7 @@ namespace GPUInstancerPro
             #region LOD
             SerializedProperty isLODCrossFadeSP = serializedObject.FindProperty("isLODCrossFade");
             lodContent.Add(DrawSerializedProperty(isLODCrossFadeSP, helpBoxes, out PropertyField isLODCrossFadePF));
+            isLODCrossFadePF.SetEnabled(!Application.isPlaying);
             SerializedProperty isAnimateCrossFadeSP = serializedObject.FindProperty("isAnimateCrossFade");
             VisualElement isAnimateCrossFadeVE = DrawSerializedProperty(isAnimateCrossFadeSP, helpBoxes, out PropertyField isAnimateCrossFadePF);
             lodContent.Add(isAnimateCrossFadeVE);

@@ -1,0 +1,25 @@
+{
+    "name": "TextStudio.Examples.Whisperwood.InputSystem",
+    "rootNamespace": "TextStudio.Examples.Whisperwood.InputSystem",
+    "references": [
+        "TextStudio.Examples.Whisperwood",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "USE_INPUT_SYSTEM"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.4.0",
+            "define": "USE_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}

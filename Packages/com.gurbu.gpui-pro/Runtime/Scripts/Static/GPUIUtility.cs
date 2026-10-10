@@ -1004,6 +1004,42 @@ namespace GPUInstancerPro
             return q;
         }
 
+        public static Mesh CreateTriangulatedMeshFromQuads(Mesh source)
+        {
+            Mesh copy = UnityEngine.Object.Instantiate(source);
+            copy.name = source.name + "_Triangulated";
+
+            for (int subMeshIndex = 0; subMeshIndex < copy.subMeshCount; subMeshIndex++)
+            {
+                if (copy.GetTopology(subMeshIndex) != MeshTopology.Quads)
+                    continue;
+
+                int[] quadIndices = copy.GetIndices(subMeshIndex);
+
+                int[] triangleIndices = new int[(quadIndices.Length / 4) * 6];
+
+                for (int src = 0, dst = 0; src < quadIndices.Length; src += 4, dst += 6)
+                {
+                    int i0 = quadIndices[src + 0];
+                    int i1 = quadIndices[src + 1];
+                    int i2 = quadIndices[src + 2];
+                    int i3 = quadIndices[src + 3];
+
+                    triangleIndices[dst + 0] = i0;
+                    triangleIndices[dst + 1] = i1;
+                    triangleIndices[dst + 2] = i2;
+
+                    triangleIndices[dst + 3] = i0;
+                    triangleIndices[dst + 4] = i2;
+                    triangleIndices[dst + 5] = i3;
+                }
+
+                copy.SetIndices(triangleIndices, MeshTopology.Triangles, subMeshIndex, false);
+            }
+
+            return copy;
+        }
+
         #endregion Math Methods
 
         #region String Extensions
@@ -1171,6 +1207,28 @@ namespace GPUInstancerPro
             }
 
             return $"{bytes:0.00} {suffixes[index]}";
+        }
+
+        internal static string GetMissingMeshMessage(Renderer renderer, int lodIndex = -1)
+        {
+            string hierarchyPath = renderer.name;
+            Transform parent = renderer.transform.parent;
+            while (parent != null)
+            {
+                hierarchyPath = parent.name + "/" + hierarchyPath;
+                parent = parent.parent;
+            }
+            string location = "'" + hierarchyPath + "'" + (lodIndex >= 0 ? " (LOD " + lodIndex + ")" : "");
+#if UNITY_EDITOR
+            string assetPath = AssetDatabase.GetAssetPath(renderer.gameObject);
+            if (!string.IsNullOrEmpty(assetPath))
+                location += " in asset '" + assetPath + "'";
+#endif
+            if (renderer is SkinnedMeshRenderer)
+                return "Mesh reference is missing on SkinnedMeshRenderer at " + location + ". Assign a mesh to its Mesh field.";
+            if (!renderer.TryGetComponent(out MeshFilter meshFilter))
+                return "MeshFilter component is missing for MeshRenderer at " + location + ". Add a MeshFilter to this GameObject and assign its Mesh field.";
+            return "Mesh reference is missing on MeshFilter at " + location + ". Assign a mesh to its Mesh field.";
         }
 
         #endregion String Extensions
@@ -1445,10 +1503,11 @@ namespace GPUInstancerPro
                 for (int r = 0; r < renderers.Length; r++)
                 {
                     GPUIRendererData renderer = renderers[r];
+                    Mesh rendererMesh = renderer.GetMesh();
                     Matrix4x4 ltw = matrix * renderer.transformOffset;
-                    for (int i = 0; i < renderer.rendererMesh.subMeshCount; i++)
+                    for (int i = 0; i < rendererMesh.subMeshCount; i++)
                     {
-                        Gizmos.DrawWireMesh(renderer.rendererMesh, i, ltw.GetPosition(), ltw.rotation, ltw.lossyScale);
+                        Gizmos.DrawWireMesh(rendererMesh, i, ltw.GetPosition(), ltw.rotation, ltw.lossyScale);
                     }
                 }
             }

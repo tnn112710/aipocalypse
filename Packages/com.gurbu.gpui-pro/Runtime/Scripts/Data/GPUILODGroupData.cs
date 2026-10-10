@@ -121,7 +121,7 @@ namespace GPUInstancerPro
         {
             if (mesh == null)
             {
-                Debug.LogError(GPUIConstants.LOG_PREFIX + "Can not create LODGroupData. Mesh is null.");
+                Debug.LogError(GPUIConstants.LOG_PREFIX + "Cannot create LODGroupData: the mesh argument passed to GPUILODGroupData.CreateLODGroupData is null. Supply a valid Mesh reference at the calling code shown in this error's stack trace.");
                 return null;
             }
             if (materials == null)
@@ -424,7 +424,7 @@ namespace GPUInstancerPro
             {
                 if (smr.sharedMesh == null)
                 {
-                    Debug.LogWarning(GPUIConstants.LOG_PREFIX + "Can't add renderer: mesh is null. Make sure that all the SkinnedMeshRenderers on the prototype has a mesh assigned.", parentTransform.gameObject);
+                    Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIUtility.GetMissingMeshMessage(renderer, lodIndex), renderer.gameObject);
                     return null;
                 }
                 if (smr.sharedMaterials == null || smr.sharedMaterials.Length == 0)
@@ -441,13 +441,13 @@ namespace GPUInstancerPro
             MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
             if (meshFilter == null)
             {
-                Debug.LogWarning(GPUIConstants.LOG_PREFIX + "MeshRenderer with no MeshFilter found on GameObject <" + parentTransform.name + ">. Are you missing a component?", parentTransform.gameObject);
+                Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIUtility.GetMissingMeshMessage(renderer, lodIndex), renderer.gameObject);
                 return null;
             }
 
             if (meshFilter.sharedMesh == null)
             {
-                Debug.LogWarning(GPUIConstants.LOG_PREFIX + "Can't add renderer: mesh is null. Make sure that all the MeshFilters on the prototype has a mesh assigned.", parentTransform.gameObject);
+                Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIUtility.GetMissingMeshMessage(renderer, lodIndex), renderer.gameObject);
                 return null;
             }
 
@@ -506,9 +506,10 @@ namespace GPUInstancerPro
                 for (int r = 0; r < lodData.rendererDataArray.Length; r++)
                 {
                     GPUIRendererData renderer = lodData.rendererDataArray[r];
-                    if (renderer.doesNotContributeToBounds || renderer.rendererMesh == null)
+                    Mesh rendererMesh = renderer.GetMesh();
+                    if (renderer.doesNotContributeToBounds || rendererMesh == null)
                         continue;
-                    rendererBounds = renderer.rendererMesh.bounds;
+                    rendererBounds = rendererMesh.bounds;
                     rendererBounds = rendererBounds.GetMatrixAppliedBoundsWithPivot(renderer.boundsOffset, GPUIConstants.Vector3_ZERO);
                     if (lod == 0 && r == 0)
                         bounds = rendererBounds;
@@ -724,12 +725,13 @@ namespace GPUInstancerPro
             for (int r = 0; r < Length; r++)
             {
                 GPUIRendererData renderer = this[r];
-                if (renderer.rendererMesh != null && renderer.optionalRendererNo == 0)
+                Mesh rendererMesh = renderer.GetMesh();
+                if (rendererMesh != null && renderer.optionalRendererNo == 0)
                 {
-                    int subMeshCount = renderer.rendererMesh.subMeshCount;
+                    int subMeshCount = rendererMesh.subMeshCount;
 #if UNITY_6000_2_OR_NEWER
                     int meshLod = -1;
-                    int meshLodCount = renderer.rendererMesh.lodCount;
+                    int meshLodCount = rendererMesh.lodCount;
                     if (meshLodCount > 1)
                     {
                         if (renderer.forceMeshLod >= 0)
@@ -747,13 +749,13 @@ namespace GPUInstancerPro
 
                         _commandBufferArgs.Add(new GraphicsBuffer.IndirectDrawIndexedArgs()
                         {
-                            baseVertexIndex = renderer.rendererMesh.GetBaseVertex(submeshIndex),
+                            baseVertexIndex = rendererMesh.GetBaseVertex(submeshIndex),
 #if UNITY_6000_2_OR_NEWER
-                            indexCountPerInstance = renderer.rendererMesh.GetIndexCount(submeshIndex, meshLod),
-                            startIndex = renderer.rendererMesh.GetIndexStart(submeshIndex, meshLod),
+                            indexCountPerInstance = rendererMesh.GetIndexCount(submeshIndex, meshLod),
+                            startIndex = rendererMesh.GetIndexStart(submeshIndex, meshLod),
 #else
-                            indexCountPerInstance = renderer.rendererMesh.GetIndexCount(submeshIndex),
-                            startIndex = renderer.rendererMesh.GetIndexStart(submeshIndex),
+                            indexCountPerInstance = rendererMesh.GetIndexCount(submeshIndex),
+                            startIndex = rendererMesh.GetIndexStart(submeshIndex),
 #endif
                             instanceCount = 0,
                             startInstance = 0
@@ -771,12 +773,13 @@ namespace GPUInstancerPro
             for (int r = 0; r < Length; r++)
             {
                 GPUIRendererData renderer = this[r];
-                if (renderer.rendererMesh != null && renderer.optionalRendererNo == optionalRendererNo)
+                Mesh rendererMesh = renderer.GetMesh();
+                if (rendererMesh != null && renderer.optionalRendererNo == optionalRendererNo)
                 {
-                    int subMeshCount = renderer.rendererMesh.subMeshCount;
+                    int subMeshCount = rendererMesh.subMeshCount;
 #if UNITY_6000_2_OR_NEWER
                     int meshLod = -1;
-                    int meshLodCount = renderer.rendererMesh.lodCount;
+                    int meshLodCount = rendererMesh.lodCount;
                     if (meshLodCount > 1)
                     {
                         if (renderer.forceMeshLod >= 0)
@@ -794,13 +797,13 @@ namespace GPUInstancerPro
 
                         _optionalRendererCommandBufferArgs.Add(new GraphicsBuffer.IndirectDrawIndexedArgs()
                         {
-                            baseVertexIndex = renderer.rendererMesh.GetBaseVertex(submeshIndex),
+                            baseVertexIndex = rendererMesh.GetBaseVertex(submeshIndex),
 #if UNITY_6000_2_OR_NEWER
-                            indexCountPerInstance = renderer.rendererMesh.GetIndexCount(submeshIndex, meshLod),
-                            startIndex = renderer.rendererMesh.GetIndexStart(submeshIndex, meshLod),
+                            indexCountPerInstance = rendererMesh.GetIndexCount(submeshIndex, meshLod),
+                            startIndex = rendererMesh.GetIndexStart(submeshIndex, meshLod),
 #else
-                            indexCountPerInstance = renderer.rendererMesh.GetIndexCount(submeshIndex),
-                            startIndex = renderer.rendererMesh.GetIndexStart(submeshIndex),
+                            indexCountPerInstance = rendererMesh.GetIndexCount(submeshIndex),
+                            startIndex = rendererMesh.GetIndexStart(submeshIndex),
 #endif
                             instanceCount = 0,
                             startInstance = 0
@@ -824,7 +827,7 @@ namespace GPUInstancerPro
             for (int r = 0; r < Length; r++)
             {
                 GPUIRendererData renderer = this[r];
-                if (renderer.rendererMesh != null && renderer.optionalRendererNo == 0)
+                if (renderer.GetMesh() != null && renderer.optionalRendererNo == 0)
                 {
                     for (int m = 0; m < renderer.rendererMaterials.Length; m++)
                     {
@@ -844,7 +847,7 @@ namespace GPUInstancerPro
             for (int r = 0; r < Length; r++)
             {
                 GPUIRendererData renderer = this[r];
-                if (renderer.rendererMesh != null && renderer.optionalRendererNo == optionalRendererNo)
+                if (renderer.GetMesh() != null && renderer.optionalRendererNo == optionalRendererNo)
                 {
                     for (int m = 0; m < renderer.rendererMaterials.Length; m++)
                     {
@@ -929,6 +932,9 @@ namespace GPUInstancerPro
 #if UNITY_6000_2_OR_NEWER
             this.forceMeshLod = forceMeshLod;
 #endif
+
+            if (rendererMesh != null && rendererMesh.GetTopology(0) == MeshTopology.Quads)
+                replacementMesh = GPUIUtility.CreateTriangulatedMeshFromQuads(rendererMesh);
         }
 
         public void InitializeReplacementMaterials(GPUIMaterialProvider materialProvider)

@@ -2,6 +2,19 @@
 All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.12.20] - 2026-10-07
+
+### Changed
+- Improved missing-mesh errors to show the affected object and how to fix it.
+- Clarified prototype removal dialogs in the Tree and Detail Managers.
+
+### Fixed
+- Fixed XR-related compiler errors in recent Unity versions when the built-in XR package is installed but the VR package is not.
+- Fixed SpeedTree cross-fading issues in recent Unity versions.
+- Fixed an issue when rendering meshes with Quads topology.
+- Fixed Crowd Animations shader conversion to respect conditional vertex attributes.
+- Fixed incorrect terrain tree and detail prototype removal when multiple terrain prototypes map to the same manager prototype.
+
 ## [0.12.19] - 2026-09-07
 
 ### New

@@ -1,0 +1,162 @@
+.ts-migration-window.ts-inspector-root { padding: 0; }
+.ts-migration-window { flex-grow: 1; min-width: 0; background-color: rgb(37, 39, 43); }
+.ts-migration-window.ts-theme-light { background-color: rgb(222, 224, 227); }
+
+.ts-migration-masthead { flex-shrink: 0; padding: 16px 16px 10px 16px; }
+.ts-migration-header { flex-direction: row; align-items: center; margin-bottom: 4px; }
+.ts-migration-logo { flex-shrink: 0; margin-right: 10px; }
+.ts-migration-title { min-width: 0; flex-shrink: 1; white-space: normal; font-size: 20px; -unity-font-style: bold; }
+.ts-migration-copy { min-width: 0; flex-shrink: 1; margin: 3px 0; white-space: normal; }
+.ts-migration-window.ts-theme-dark .ts-migration-copy { color: rgb(185, 193, 200); opacity: 1; }
+.ts-migration-window.ts-theme-light .ts-migration-copy { color: rgb(77, 84, 91); opacity: 1; }
+.ts-migration-small { font-size: 11px; }
+
+.ts-migration-tabs, .ts-migration-tab-body { flex-grow: 1; min-height: 0; }
+.ts-migration-tab-strip { flex-direction: row; padding: 0 16px; border-bottom-width: 1px; border-bottom-color: rgba(160, 165, 170, 0.3); }
+.ts-migration-tab { min-width: 104px; min-height: 30px; flex-shrink: 0; margin: 0; padding: 7px 14px; border-width: 0; border-bottom-width: 2px; border-bottom-color: transparent; border-radius: 0; background-color: transparent; }
+.ts-migration-tab--selected { border-bottom-color: rgb(128, 215, 202); -unity-font-style: bold; }
+.ts-theme-light .ts-migration-tab--selected { border-bottom-color: rgb(35, 113, 103); }
+.ts-migration-tab:focus { border-color: rgb(100, 176, 234); }
+
+.ts-migration-scroll { flex-grow: 1; min-height: 0; }
+.ts-migration-scroll-content { padding: 14px 16px 20px 16px; }
+
+.ts-migration-scope { flex-direction: row; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.ts-migration-scope > .unity-base-popup-field { flex-grow: 1; flex-basis: 240px; min-width: 0; margin: 0 8px 4px 0; }
+.ts-migration-scope > .unity-base-popup-field > .unity-base-field__label { min-width: 60px; width: 60px; }
+.ts-migration-scope > .ts-migration-button { margin: 0 0 4px 0; }
+.ts-migration-scope-info { flex-basis: 100%; font-size: 11px; }
+
+.ts-migration-button { min-height: 24px; margin: 0 6px 4px 0; padding: 3px 12px; white-space: normal; flex-shrink: 1; }
+.ts-migration-button:focus { border-color: rgb(100, 176, 234); }
+
+.ts-migration-summary { margin-bottom: 14px; padding: 16px; border-width: 0; border-left-width: 3px; border-left-color: rgb(103, 168, 222); border-radius: 7px; background-color: rgb(45, 55, 65); }
+.ts-migration-summary--ready { border-left-color: rgb(113, 206, 157); background-color: rgb(40, 57, 51); }
+.ts-migration-summary--attention { border-left-color: rgb(232, 181, 92); background-color: rgb(63, 53, 38); }
+.ts-migration-summary-heading { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.ts-migration-status-icon { width: 32px; height: 32px; flex-shrink: 0; border-radius: 16px; -unity-text-align: middle-center; font-size: 20px; -unity-font-style: bold; color: rgb(166, 211, 250); background-color: rgb(47, 77, 100); }
+.ts-migration-summary--ready .ts-migration-status-icon { color: rgb(166, 236, 195); background-color: rgb(47, 87, 65); }
+.ts-migration-summary--attention .ts-migration-status-icon { color: rgb(255, 218, 150); background-color: rgb(102, 76, 38); }
+.ts-migration-headline { min-width: 0; flex-grow: 1; flex-shrink: 1; flex-basis: 160px; margin: 0 8px; white-space: normal; font-size: 18px; -unity-font-style: bold; }
+.ts-migration-summary-heading > .ts-migration-pill { margin-top: 4px; margin-bottom: 4px; }
+.ts-migration-guidance { margin-top: 10px; margin-bottom: 10px; }
+
+.ts-migration-stats { flex-direction: row; flex-wrap: wrap; margin: 0 -4px 6px -4px; }
+.ts-migration-stat { min-width: 0; flex-grow: 1; flex-shrink: 1; flex-basis: 150px; margin: 4px; padding: 9px 12px; border-radius: 6px; background-color: rgba(255, 255, 255, 0.06); }
+.ts-migration-stat-value { font-size: 22px; -unity-font-style: bold; }
+.ts-migration-stat--works .ts-migration-stat-value { color: rgb(161, 226, 207); }
+.ts-migration-stat--automatic .ts-migration-stat-value { color: rgb(166, 211, 250); }
+.ts-migration-stat--manual .ts-migration-stat-value { color: rgb(246, 211, 151); }
+.ts-migration-stat--clear .ts-migration-stat-value { color: rgb(150, 158, 166); }
+.ts-migration-stat-label { white-space: normal; -unity-font-style: bold; }
+.ts-migration-stat-detail { white-space: normal; font-size: 11px; }
+
+.ts-migration-safety { flex-direction: row; align-items: flex-start; margin: 4px 0 12px 0; padding: 8px 10px; border-radius: 5px; background-color: rgba(113, 206, 157, 0.1); }
+.ts-migration-safety-icon { flex-shrink: 0; margin-right: 8px; -unity-font-style: bold; color: rgb(161, 226, 207); }
+.ts-migration-safety > .ts-migration-copy { flex-grow: 1; margin: 0; }
+.ts-migration-primary { min-height: 32px; margin: 0; }
+.ts-migration-result { margin-top: 10px; padding: 7px 10px; border-radius: 5px; background-color: rgba(255, 255, 255, 0.06); white-space: normal; }
+
+.ts-migration-section-heading { flex-direction: row; flex-wrap: wrap; align-items: center; margin: 20px 0 4px 0; }
+.ts-migration-section-title { margin-right: 8px; white-space: normal; font-size: 15px; -unity-font-style: bold; }
+.ts-migration-section-copy { margin-bottom: 8px; }
+.ts-migration-output { flex-direction: row; flex-wrap: wrap; align-items: center; margin: 0 0 10px 0; }
+.ts-migration-output > .ts-migration-copy { flex-shrink: 1; margin-right: 8px; }
+.ts-migration-output > .ts-migration-button { margin-bottom: 0; }
+
+.ts-migration-card { min-width: 0; margin-bottom: 10px; padding: 12px 14px; border-width: 1px; border-color: rgb(64, 68, 75); border-radius: 7px; background-color: rgb(46, 49, 54); }
+.ts-migration-card--done { border-left-width: 3px; border-left-color: rgb(113, 206, 157); }
+.ts-migration-card--manual { border-left-width: 3px; border-left-color: rgb(232, 181, 92); }
+.ts-migration-card-heading { flex-direction: row; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
+.ts-migration-step-number { width: 22px; height: 22px; flex-shrink: 0; margin-right: 8px; border-radius: 11px; -unity-text-align: middle-center; font-size: 11px; -unity-font-style: bold; color: rgb(212, 219, 225); background-color: rgb(69, 75, 82); }
+.ts-migration-step-number--done { color: rgb(166, 236, 195); background-color: rgb(47, 87, 65); }
+.ts-migration-card-title { min-width: 0; flex-grow: 1; flex-shrink: 1; margin-right: 8px; white-space: normal; font-size: 13px; -unity-font-style: bold; }
+
+.ts-migration-impact { margin: 8px 0 10px 0; padding: 8px 10px; border-radius: 5px; background-color: rgba(0, 0, 0, 0.14); }
+.ts-migration-impact-row { flex-direction: row; flex-wrap: wrap; margin: 2px 0; }
+.ts-migration-impact-key { width: 100px; flex-shrink: 0; margin: 0 8px 0 0; font-size: 11px; -unity-font-style: bold; }
+.ts-migration-impact-value { min-width: 0; flex-grow: 1; flex-shrink: 1; flex-basis: 200px; margin: 0; white-space: normal; }
+.ts-migration-card-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.ts-migration-step-button { min-height: 26px; padding-left: 14px; padding-right: 14px; }
+
+.ts-migration-items { margin-top: 6px; }
+.ts-migration-items > .unity-foldout__toggle { min-height: 22px; margin-left: 0; }
+.ts-migration-items > .unity-foldout__content { margin-left: 0; }
+.ts-migration-item { flex-direction: row; flex-wrap: wrap; align-items: center; min-width: 0; padding: 6px 0; border-top-width: 1px; border-top-color: rgba(160, 165, 170, 0.15); }
+.ts-migration-item-text { min-width: 0; flex-grow: 1; flex-shrink: 1; flex-basis: 220px; margin-right: 8px; }
+.ts-migration-item-title { white-space: normal; -unity-font-style: bold; }
+.ts-migration-item-detail { margin: 1px 0; white-space: normal; }
+.ts-migration-item-location { margin: 0; white-space: normal; font-size: 10px; }
+.ts-migration-item-side { flex-direction: row; flex-shrink: 0; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+.ts-migration-item-side > .ts-migration-pill { margin-right: 6px; }
+.ts-migration-item-button { min-height: 22px; margin: 2px 0 2px 4px; padding: 2px 9px; }
+.ts-migration-more { margin-top: 6px; font-size: 11px; }
+
+.ts-migration-pill { flex-shrink: 0; align-self: center; max-width: 100%; margin: 0; padding: 3px 9px; border-radius: 10px; white-space: normal; font-size: 10px; color: rgb(212, 219, 225); background-color: rgb(69, 75, 82); }
+.ts-migration-pill--ready { color: rgb(161, 226, 207); background-color: rgb(43, 77, 68); }
+.ts-migration-pill--info { color: rgb(179, 216, 248); background-color: rgb(45, 71, 94); }
+.ts-migration-pill--attention { color: rgb(246, 211, 151); background-color: rgb(91, 73, 43); }
+
+.ts-migration-guide-text { margin: 6px 0 8px 0; }
+.ts-migration-api-map { margin: 2px 0 8px 0; padding: 7px 10px; border-radius: 5px; background-color: rgba(0, 0, 0, 0.14); }
+.ts-migration-api-row { flex-direction: row; flex-wrap: wrap; margin: 1px 0; }
+.ts-migration-api-from, .ts-migration-api-to { min-width: 0; flex-shrink: 1; margin: 0; white-space: normal; font-size: 11px; }
+.ts-migration-api-from { flex-basis: 210px; flex-grow: 1; }
+.ts-migration-api-to { flex-basis: 210px; flex-grow: 1; color: rgb(161, 226, 207); }
+
+.ts-migration-works-line { flex-direction: row; align-items: flex-start; margin: 3px 0; }
+.ts-migration-works-icon { flex-shrink: 0; width: 18px; margin: 0; -unity-font-style: bold; color: rgb(161, 226, 207); }
+.ts-migration-works-line > .ts-migration-copy { flex-grow: 1; margin: 0; }
+
+.ts-migration-checklist-row { flex-direction: row; align-items: flex-start; margin: 6px 0; }
+.ts-migration-checklist-number { flex-shrink: 0; width: 22px; height: 22px; margin-right: 8px; border-radius: 11px; -unity-text-align: middle-center; font-size: 11px; -unity-font-style: bold; color: rgb(212, 219, 225); background-color: rgb(69, 75, 82); }
+.ts-migration-checklist-body { min-width: 0; flex-grow: 1; flex-shrink: 1; }
+.ts-migration-checklist-body > .ts-migration-copy { margin-top: 2px; }
+.ts-migration-checklist-body > .ts-migration-button { align-self: flex-start; margin-top: 4px; }
+.ts-migration-samples-note { margin-top: 12px; font-size: 11px; }
+.ts-migration-export { align-self: flex-start; margin-top: 10px; }
+
+.ts-migration-advanced { margin-top: 14px; padding: 8px 12px; border-radius: 7px; background-color: rgb(46, 49, 54); }
+.ts-migration-advanced > .unity-foldout__toggle { min-height: 25px; margin-left: 0; }
+.ts-migration-advanced > .unity-foldout__content { margin-left: 0; }
+.ts-migration-advanced-block { margin-top: 10px; padding-top: 8px; border-top-width: 1px; border-top-color: rgba(160, 165, 170, 0.15); }
+.ts-migration-advanced-title { -unity-font-style: bold; white-space: normal; }
+.ts-migration-advanced-block > .ts-migration-button { align-self: flex-start; margin-top: 2px; }
+.ts-migration-advanced .unity-toggle { margin-top: 8px; }
+.ts-migration-advanced .unity-toggle__text { min-width: 0; flex-shrink: 1; white-space: normal; }
+.ts-migration-paste { min-height: 64px; margin: 6px 0; }
+.ts-migration-paste .unity-text-field__input { min-height: 60px; white-space: normal; }
+.ts-migration-check-result { margin-top: 4px; }
+
+.ts-migration-findings-toolbar { flex-direction: row; flex-wrap: wrap; align-items: center; flex-shrink: 0; padding: 10px 16px 6px 16px; }
+.ts-migration-findings-toolbar > .unity-toolbar-search-field { min-width: 0; flex-grow: 1; flex-basis: 200px; width: auto; max-width: none; height: 22px; margin: 0 8px 4px 0; }
+.ts-migration-findings-toolbar > .unity-base-popup-field { flex-basis: 170px; flex-grow: 0; min-width: 0; margin: 0 0 4px 0; }
+.ts-migration-findings-toolbar > .unity-base-popup-field > .unity-base-field__label { min-width: 46px; width: 46px; }
+.ts-migration-findings-count { flex-basis: 100%; font-size: 11px; }
+.ts-migration-findings-list { flex-grow: 1; min-height: 0; margin: 0 16px 12px 16px; }
+.ts-migration-findings-list .ts-migration-item { padding: 6px 8px; border-top-width: 0; border-bottom-width: 1px; border-bottom-color: rgba(160, 165, 170, 0.15); }
+
+.ts-theme-light .ts-migration-card, .ts-theme-light .ts-migration-advanced { border-color: rgb(191, 196, 202); background-color: rgb(239, 240, 242); }
+.ts-theme-light .ts-migration-summary { border-left-color: rgb(50, 113, 165); background-color: rgb(226, 237, 247); }
+.ts-theme-light .ts-migration-summary--ready { border-left-color: rgb(44, 129, 84); background-color: rgb(224, 240, 231); }
+.ts-theme-light .ts-migration-summary--attention { border-left-color: rgb(161, 111, 30); background-color: rgb(249, 238, 218); }
+.ts-theme-light .ts-migration-status-icon { color: rgb(35, 88, 135); background-color: rgb(187, 215, 239); }
+.ts-theme-light .ts-migration-summary--ready .ts-migration-status-icon { color: rgb(28, 100, 61); background-color: rgb(183, 219, 196); }
+.ts-theme-light .ts-migration-summary--attention .ts-migration-status-icon { color: rgb(120, 77, 13); background-color: rgb(239, 212, 165); }
+.ts-theme-light .ts-migration-stat { background-color: rgba(255, 255, 255, 0.55); }
+.ts-theme-light .ts-migration-stat--works .ts-migration-stat-value { color: rgb(28, 100, 61); }
+.ts-theme-light .ts-migration-stat--automatic .ts-migration-stat-value { color: rgb(29, 78, 119); }
+.ts-theme-light .ts-migration-stat--manual .ts-migration-stat-value { color: rgb(120, 77, 13); }
+.ts-theme-light .ts-migration-stat--clear .ts-migration-stat-value { color: rgb(96, 104, 112); }
+.ts-theme-light .ts-migration-card--done { border-left-color: rgb(44, 129, 84); }
+.ts-theme-light .ts-migration-card--manual { border-left-color: rgb(161, 111, 30); }
+.ts-theme-light .ts-migration-safety { background-color: rgba(44, 129, 84, 0.12); }
+.ts-theme-light .ts-migration-safety-icon, .ts-theme-light .ts-migration-works-icon, .ts-theme-light .ts-migration-api-to { color: rgb(28, 100, 61); }
+.ts-theme-light .ts-migration-result { background-color: rgba(255, 255, 255, 0.55); }
+.ts-theme-light .ts-migration-impact, .ts-theme-light .ts-migration-api-map { background-color: rgba(0, 0, 0, 0.05); }
+.ts-theme-light .ts-migration-step-number, .ts-theme-light .ts-migration-checklist-number { color: rgb(48, 57, 68); background-color: rgb(197, 206, 216); }
+.ts-theme-light .ts-migration-step-number--done { color: rgb(28, 100, 61); background-color: rgb(183, 219, 196); }
+.ts-theme-light .ts-migration-pill { color: rgb(48, 57, 68); background-color: rgb(197, 206, 216); }
+.ts-theme-light .ts-migration-pill--ready { color: rgb(25, 85, 64); background-color: rgb(193, 224, 211); }
+.ts-theme-light .ts-migration-pill--info { color: rgb(29, 78, 119); background-color: rgb(199, 220, 240); }
+.ts-theme-light .ts-migration-pill--attention { color: rgb(108, 70, 13); background-color: rgb(237, 216, 172); }

@@ -121,15 +121,12 @@ namespace GPUInstancerPro
             }
         }
 
-        private static readonly string SPEEDTREE8_SHADER_PACKAGE = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shader_SpeedTree8_GPUIPro.unitypackage";
-        private static readonly string SPEEDTREE9_SHADER_PACKAGE = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shader_SpeedTree9_GPUIPro.unitypackage";
-        private static readonly string BUILTIN_SHADERS_PACKAGE = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shaders-Builtin.unitypackage";
         private static bool SPEEDTREE8_SHADER_IMPORTED = false;
         private static bool SPEEDTREE9_SHADER_IMPORTED = false;
         private static bool BUILTIN_SHADERS_IMPORTED = false;
         private static bool ProcessShaderImports(Shader shader, string extensionCode)
         {
-            if (Application.isPlaying)
+            if (Application.isPlaying || !GPUIRuntimeSettings.Instance.IsBuiltInRP)
                 return false;
             string shaderName = shader.name;
             if (shaderName == GPUIConstants.SHADER_UNITY_SPEEDTREE8)
@@ -137,7 +134,7 @@ namespace GPUInstancerPro
                 if (SPEEDTREE8_SHADER_IMPORTED)
                     return true;
                 SPEEDTREE8_SHADER_IMPORTED = true;
-                ImportShaderPackage(SPEEDTREE8_SHADER_PACKAGE, shaderName);
+                ImportShaderPackage(GPUIDefines.SHADERS_BUILTIN_SPEEDTREE8_PACKAGE_PATH, shaderName);
                 return true;
             }
             else if (shaderName == GPUIConstants.SHADER_UNITY_SPEEDTREE9)
@@ -145,7 +142,7 @@ namespace GPUInstancerPro
                 if (SPEEDTREE9_SHADER_IMPORTED)
                     return true;
                 SPEEDTREE9_SHADER_IMPORTED = true;
-                ImportShaderPackage(SPEEDTREE9_SHADER_PACKAGE, shaderName);
+                ImportShaderPackage(GPUIDefines.SHADERS_BUILTIN_SPEEDTREE9_PACKAGE_PATH, shaderName);
                 return true;
             }
             else if (GPUIConstants.SHADERS_UNITY_BUILTIN.Contains(shaderName))
@@ -153,7 +150,7 @@ namespace GPUInstancerPro
                 if (BUILTIN_SHADERS_IMPORTED)
                     return true;
                 BUILTIN_SHADERS_IMPORTED = true;
-                ImportShaderPackage(BUILTIN_SHADERS_PACKAGE, shaderName);
+                ImportShaderPackage(GPUIDefines.SHADERS_BUILTIN_PACKAGE_PATH, shaderName);
                 return true;
             }
             return false;
@@ -655,7 +652,7 @@ namespace GPUInstancerPro
                     return false;
             }
 
-            if (!TryFindVertexStructFields(inputType, blockText, shaderDirectory, out string vertexField, out string normalField, out string tangentField))
+            if (!TryFindVertexStructFields(inputType, blockText, shaderDirectory, out List<VertexStructField> vertexFields, out List<VertexStructField> normalFields, out List<VertexStructField> tangentFields))
                 return false;
 
             string crowdMethod = string.Empty;
@@ -663,12 +660,12 @@ namespace GPUInstancerPro
             {
                 if (blockText.Contains("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"))
                 {
-                    normalField = null;
-                    tangentField = null;
+                    normalFields.Clear();
+                    tangentFields.Clear();
                 }
                 else if (blockText.Contains("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl"))
                 {
-                    crowdMethod = "        GPUI_CROWD_VERTEX_V(vertexID, input." + vertexField + ".xyz);";
+                    crowdMethod = BuildCrowdVertexCall(vertexFields, new List<VertexStructField>(), new List<VertexStructField>(), newLineString);
                     wrapperCode = newLineString + returnType + " " + methodName + "GPUICA(" + inputType + " input, AttributesPass inputPass, uint vertexID : SV_VertexID)" + newLineString +
     "{" + newLineString +
     "    #ifdef GPUI_PRO_CROWD_ACTIVE" + newLineString +
@@ -682,18 +679,7 @@ namespace GPUInstancerPro
                 }
             }
 
-            if (normalField != null && tangentField != null)
-            {
-                crowdMethod = "        GPUI_CROWD_VERTEX(vertexID, input." + vertexField + ".xyz, input." + normalField + ".xyz, input." + tangentField + ".xyz);";
-            }
-            else if (normalField == null)
-            {
-                crowdMethod = "        GPUI_CROWD_VERTEX_V(vertexID, input." + vertexField + ".xyz);";
-            }
-            else if (tangentField == null)
-            {
-                crowdMethod = "        GPUI_CROWD_VERTEX_VN(vertexID, input." + vertexField + ".xyz, input." + normalField + ".xyz);";
-            }
+            crowdMethod = BuildCrowdVertexCall(vertexFields, normalFields, tangentFields, newLineString);
 
             wrapperCode = newLineString + returnType + " " + methodName + "GPUICA(" + inputType + " input, uint vertexID : SV_VertexID)" + newLineString +
     "{" + newLineString +
@@ -907,47 +893,129 @@ namespace GPUInstancerPro
             return includePath;
         }
 
-        private static bool TryFindVertexStructFields(string structName, string baseText, string shaderDirectory, out string positionField, out string normalField, out string tangentField, HashSet<string> visitedFiles = null)
+        private sealed class VertexStructField
         {
-            positionField = normalField = tangentField = null;
+            public string name;
+            public string condition;
+        }
+
+        private sealed class VertexFieldCondition
+        {
+            public string previousBranches;
+            public string currentBranch;
+        }
+
+        private static string BuildCrowdVertexCall(List<VertexStructField> positions, List<VertexStructField> normals, List<VertexStructField> tangents, string newLine)
+        {
+            var knownConditions = new Dictionary<string, bool>();
+            return SelectVertexField(positions, position =>
+            {
+                if (position == null)
+                    return string.Empty;
+                string arguments = "vertexID, input." + position + ".xyz";
+                return SelectVertexField(normals, normal =>
+                {
+                    if (normal == null)
+                        return "        GPUI_CROWD_VERTEX_V(" + arguments + ");";
+                    return SelectVertexField(tangents, tangent => tangent == null
+                        ? "        GPUI_CROWD_VERTEX_VN(" + arguments + ", input." + normal + ".xyz);"
+                        : "        GPUI_CROWD_VERTEX(" + arguments + ", input." + normal + ".xyz, input." + tangent + ".xyz);", newLine, knownConditions);
+                }, newLine, knownConditions);
+            }, newLine, knownConditions);
+        }
+
+        // Let the shader preprocessor select fields for each variant; do not evaluate keywords in C#.
+        private static string SelectVertexField(List<VertexStructField> fields, Func<string, string> createCode, string newLine, Dictionary<string, bool> knownConditions, int index = 0)
+        {
+            if (index == fields.Count)
+                return createCode(null);
+            VertexStructField field = fields[index];
+            if (string.IsNullOrEmpty(field.condition))
+                return createCode(field.name);
+            if (knownConditions.TryGetValue(field.condition, out bool isAvailable))
+                return isAvailable ? createCode(field.name) : SelectVertexField(fields, createCode, newLine, knownConditions, index + 1);
+
+            // Reuse an enclosing branch when multiple attributes share the same condition.
+            knownConditions.Add(field.condition, true);
+            string code = createCode(field.name);
+            knownConditions[field.condition] = false;
+            string fallback = SelectVertexField(fields, createCode, newLine, knownConditions, index + 1);
+            knownConditions.Remove(field.condition);
+            return "        #if " + field.condition + newLine + code + newLine
+                + (string.IsNullOrEmpty(fallback) ? string.Empty : "        #else" + newLine + fallback + newLine)
+                + "        #endif";
+        }
+
+        private static bool TryFindVertexStructFields(string structName, string baseText, string shaderDirectory, out List<VertexStructField> positionFields, out List<VertexStructField> normalFields, out List<VertexStructField> tangentFields, HashSet<string> visitedFiles = null)
+        {
+            positionFields = new List<VertexStructField>();
+            normalFields = new List<VertexStructField>();
+            tangentFields = new List<VertexStructField>();
 
             if (visitedFiles == null)
                 visitedFiles = new HashSet<string>();
 
-            // Search for struct declaration
-            string[] lines = baseText.Split('\n');
-            bool insideStruct = false;
-            bool foundStruct = false;
-
-            foreach (string line in lines)
+            // Join continued directives and remove comments before matching declarations.
+            string source = Regex.Replace(baseText, @"\\\r?\n", "");
+            source = Regex.Replace(source, @"/\*[\s\S]*?\*/|//[^\r\n]*", match =>
+                Regex.Replace(match.Value, @"[^\r\n]", " "));
+            string[] lines = source.Split('\n');
+            Match structMatch = Regex.Match(source, @"\bstruct\s+" + Regex.Escape(structName) + @"\s*\{(?<body>[^}]*)\}");
+            if (structMatch.Success)
             {
-                string trimmed = line.Trim();
-
-                if (!insideStruct && trimmed.StartsWith("struct ") && trimmed.Contains(structName))
+                var conditions = new List<VertexFieldCondition>();
+                foreach (string line in structMatch.Groups["body"].Value.Split('\n'))
                 {
-                    insideStruct = true;
-                    foundStruct = true;
-                    continue;
-                }
-
-                if (insideStruct)
-                {
-                    if (trimmed.StartsWith("}"))
-                        break;
-
-                    if (trimmed.Contains(":"))
+                    Match directive = Regex.Match(line, @"^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b(.*)$");
+                    if (directive.Success)
                     {
-                        if (trimmed.Contains(": POSITION"))
-                            positionField = GetFieldName(trimmed);
-                        else if (trimmed.Contains(": NORMAL"))
-                            normalField = GetFieldName(trimmed);
-                        else if (trimmed.Contains(": TANGENT"))
-                            tangentField = GetFieldName(trimmed);
+                        string keyword = directive.Groups[1].Value;
+                        string expression = directive.Groups[2].Value.Trim();
+                        if (keyword == "if" || keyword == "ifdef" || keyword == "ifndef")
+                        {
+                            if (keyword != "if")
+                                expression = (keyword == "ifndef" ? "!" : "") + "defined(" + expression + ")";
+                            conditions.Add(new VertexFieldCondition { previousBranches = "(" + expression + ")", currentBranch = "(" + expression + ")" });
+                        }
+                        else
+                        {
+                            if (conditions.Count == 0)
+                                return false;
+                            VertexFieldCondition condition = conditions[conditions.Count - 1];
+                            if (keyword == "endif")
+                                conditions.RemoveAt(conditions.Count - 1);
+                            else
+                            {
+                                condition.currentBranch = "!(" + condition.previousBranches + ")";
+                                if (keyword == "elif")
+                                {
+                                    condition.currentBranch += " && (" + expression + ")";
+                                    condition.previousBranches += " || (" + expression + ")";
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
+                    foreach (Match field in Regex.Matches(line, @"\b(?<name>[A-Za-z_]\w*)\s*:\s*(?<semantic>POSITION|NORMAL|TANGENT)\b"))
+                    {
+                        var expressions = new List<string>();
+                        foreach (VertexFieldCondition condition in conditions)
+                            expressions.Add("(" + condition.currentBranch + ")");
+                        var vertexField = new VertexStructField { name = field.Groups["name"].Value, condition = string.Join(" && ", expressions) };
+                        switch (field.Groups["semantic"].Value)
+                        {
+                            case "POSITION": positionFields.Add(vertexField); break;
+                            case "NORMAL": normalFields.Add(vertexField); break;
+                            case "TANGENT": tangentFields.Add(vertexField); break;
+                        }
                     }
                 }
+                if (conditions.Count != 0)
+                    return false;
             }
 
-            if (foundStruct && positionField != null)
+            if (structMatch.Success && positionFields.Count > 0)
                 return true;
 
             // Look into includes recursively
@@ -969,7 +1037,7 @@ namespace GPUInstancerPro
                         {
                             visitedFiles.Add(resolvedPath);
                             string includedText = File.ReadAllText(resolvedPath);
-                                if (TryFindVertexStructFields(structName, includedText, shaderDirectory, out positionField, out normalField, out tangentField, visitedFiles))
+                            if (TryFindVertexStructFields(structName, includedText, Path.GetDirectoryName(resolvedPath), out positionFields, out normalFields, out tangentFields, visitedFiles))
                                 return true;
                         }
                     }
@@ -977,14 +1045,6 @@ namespace GPUInstancerPro
             }
 
             return false;
-        }
-
-        private static string GetFieldName(string line)
-        {
-            string[] tokens = line.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length >= 2)
-                return tokens[1].TrimEnd(';');
-            return null;
         }
 
         private static Shader SaveInstancedShader(string newShaderText, string newAssetPath, string newShaderName)
@@ -1016,8 +1076,8 @@ namespace GPUInstancerPro
                     && !line.Contains("DOTS.hlsl")
                     && !line.Contains("#define UNIVERSAL_DOTS_PRAGMAS_INCLUDED // Added by GPUIPro")
                     && !line.Contains("GPUInstancerInclude.cginc")
-                    && !line.Contains("#pragma multi_compile LOD_FADE_PERCENTAGE")
-                    && !line.Contains("#pragma multi_compile_vertex LOD_FADE_PERCENTAGE")
+                    //&& !line.Contains("#pragma multi_compile LOD_FADE_PERCENTAGE")
+                    //&& !line.Contains("#pragma multi_compile_vertex LOD_FADE_PERCENTAGE")
                     //&& !line.Contains("// Added by GPUIPro")
                     ;
         }

@@ -38,7 +38,7 @@ namespace GPUInstancerPro
         public const string FILE_DEBUGGER_CANVAS = "GPUIDebuggerCanvas";
 
         public const string FILE_CS_CameraVisibility = "GPUICameraVisibilityCS";
-#if GPUI_XR
+#if GPUI_VR
         public const string FILE_CS_CameraVisibilityXR = "GPUICameraVisibilityXRCS";
 #endif
         public const string FILE_CS_CommandBufferUtility = "GPUICommandBufferUtilityCS";
@@ -201,6 +201,7 @@ namespace GPUInstancerPro
         }
 
         public const string Kw_LOD_FADE_CROSSFADE = "LOD_FADE_CROSSFADE";
+        public const string Kw_LOD_FADE_PERCENTAGE = "LOD_FADE_PERCENTAGE";
 
         public const string EXTENSION_CODE_CROWD = "CROWD";
         public const string SHADER_NAME_PREFIX = "GPUInstancerPro/";
@@ -269,7 +270,7 @@ namespace GPUInstancerPro
                 return _CS_CameraVisibility;
             }
         }
-#if GPUI_XR
+#if GPUI_VR
         private static ComputeShader _CS_CameraVisibilityXR;
         public static ComputeShader CS_CameraVisibilityXR
         {

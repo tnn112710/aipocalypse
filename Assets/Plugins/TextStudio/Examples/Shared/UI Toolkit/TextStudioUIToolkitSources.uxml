@@ -1,0 +1,39 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:ts="TextStudio" editor-extension-mode="False">
+    <ui:VisualElement name="source-mode-examples">
+        <ui:Label
+            name="direct-target"
+            text="Direct &lt;wave&gt;Label Text&lt;/wave&gt;">
+            <Bindings>
+                <ts:TextStudioBinding
+                    property="text"
+                    source-mode="LabelText"
+                    reveal-mode="ByGlyph"
+                    typewriter-source="BuiltIn"
+                    typewriter-built-in-preset="typewriter.dialogue.smooth"
+                    reaction-source="BuiltIn"
+                    reaction-preset="reaction.reward-impact" />
+            </Bindings>
+        </ui:Label>
+        <ui:TextField
+            name="element-source"
+            label="Element source"
+            value="Editable &lt;rainbow&gt;source&lt;/rainbow&gt;" />
+        <ui:Label name="element-target">
+            <Bindings>
+                <ts:TextStudioBinding
+                    property="text"
+                    source-mode="Element"
+                    source-element="element-source"
+                    source-property-path="value" />
+            </Bindings>
+        </ui:Label>
+        <ui:Label name="data-target">
+            <Bindings>
+                <ts:TextStudioBinding
+                    property="text"
+                    source-mode="Data"
+                    data-source-path="Message" />
+            </Bindings>
+        </ui:Label>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,20 @@
+.ts-prepared-data { min-width: 0; }
+.ts-prepared-data .ts-prepared-copy { white-space: normal; min-width: 0; flex-shrink: 1; margin: 4px 0; }
+.ts-prepared-data .ts-prepared-summary { border-left-width: 3px; border-left-color: rgb(106, 188, 144); }
+.ts-prepared-data .ts-prepared-summary--attention { border-left-color: rgb(224, 174, 89); }
+.ts-prepared-data .ts-status { border-width: 0; align-self: flex-start; border-radius: 10px; padding: 3px 10px; margin: 4px 0 8px 0; }
+.ts-prepared-data .ts-button { min-height: 26px; margin-top: 8px; white-space: normal; }
+.ts-prepared-metrics { flex-direction: row; flex-wrap: wrap; margin: 4px 0 10px 0; }
+.ts-prepared-metric { flex-grow: 1; flex-basis: 100px; min-width: 0; margin: 3px; padding: 10px; border-radius: 5px; background-color: rgba(128, 143, 161, 0.11); }
+.ts-prepared-metric-value { font-size: 17px; -unity-font-style: bold; white-space: normal; min-width: 0; }
+.ts-prepared-source .unity-object-field { min-width: 0; }
+.ts-prepared-source > .ts-button { align-self: flex-start; }
+.ts-prepared-image { height: 100px; align-self: stretch; margin: 8px 0; background-color: rgba(128, 143, 161, 0.08); }
+.ts-prepared-data.ts-theme-light .ts-prepared-summary { border-left-color: rgb(44, 129, 84); }
+.ts-prepared-data.ts-theme-light .ts-prepared-summary--attention { border-left-color: rgb(161, 111, 30); }
+.ts-prepared-data .ts-status.common-status--success { color: rgb(161, 226, 207); background-color: rgb(43, 77, 68); }
+.ts-prepared-data .ts-status.common-status--warning { color: rgb(246, 211, 151); background-color: rgb(91, 73, 43); }
+.ts-prepared-data.ts-theme-light .ts-status.common-status--success { color: rgb(25, 85, 64); background-color: rgb(193, 224, 211); }
+.ts-prepared-data.ts-theme-light .ts-status.common-status--warning { color: rgb(108, 70, 13); background-color: rgb(237, 216, 172); }
+.ts-prepared-data.ts-theme-dark .ts-prepared-copy { color: rgb(185, 193, 200); opacity: 1; }
+.ts-prepared-data.ts-theme-light .ts-prepared-copy { color: rgb(77, 84, 91); opacity: 1; }

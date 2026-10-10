@@ -1,0 +1,30 @@
+{
+    "name": "TextStudio.Splines.Editor",
+    "rootNamespace": "TextStudio.Splines.Editor",
+    "references": [
+        "TextStudio",
+        "TextStudio.Editor",
+        "TextStudio.Splines",
+        "Unity.Splines",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "USE_SPLINES"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.splines",
+            "expression": "2.0.0",
+            "define": "USE_SPLINES"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -167,16 +167,30 @@ namespace GPUInstancerPro.TerrainModule
                 }
             }
 
-            if (EditorUtility.DisplayDialog("Remove Confirmation", "Are you sure you want to remove the prototype from prototype list?" + selectedPrototypesText, "Remove From List", "Cancel"))
+            bool removeFromTerrain = false;
+            if (_gpuiTreeManager.GetTerrainCount() > 0)
             {
-                Undo.RecordObject(_gpuiManager, "Remove Prototype");
-                _gpuiManager.editor_selectedPrototypeIndexes.Sort();
-                bool removeFromTerrain = _gpuiTreeManager.GetTerrainCount() > 0 && EditorUtility.DisplayDialog("Remove Prototypes from Terrain", "Do you wish to remove the prototypes form the terrains?" + selectedPrototypesText, "Remove from Terrains", "No");
-                for (int i = _gpuiManager.editor_selectedPrototypeIndexes.Count - 1; i >= 0; i--)
-                    _gpuiTreeManager.RemoveTreePrototypeAtIndex(_gpuiManager.editor_selectedPrototypeIndexes[i], removeFromTerrain);
-                _gpuiManager.editor_selectedPrototypeIndexes.Clear();
-                DrawPrototypeButtons();
+                int choice = EditorUtility.DisplayDialogComplex("Remove Selected Prototypes?", "Remove from Manager Only removes the selected prototypes from this GPUI manager. Your terrain prototypes and their placed trees will be preserved.\n\nDelete from Terrains also deletes the selected prototypes and their placed trees from every terrain assigned to this manager.\n\nSelected prototypes:" + selectedPrototypesText, "Remove from Manager Only", "Cancel", "Delete from Terrains...");
+                if (choice == 1)
+                    return;
+
+                if (choice == 2)
+                {
+                    int terrainChoice = EditorUtility.DisplayDialogComplex("Delete Trees from Terrain Data?", "This will delete the selected tree prototypes and ALL placed trees using them from every terrain assigned to this manager.\n\nThis changes the terrain data itself. Adding the prototypes again will NOT restore the deleted trees.\n\nThis cannot be undone. Make sure you have a backup before continuing.\n\nChoose Keep Terrain Data to remove the prototypes from the manager only.\n\nSelected prototypes:" + selectedPrototypesText, "Keep Terrain Data", "Cancel", "Delete Trees from Terrains");
+                    if (terrainChoice == 1)
+                        return;
+                    removeFromTerrain = terrainChoice == 2;
+                }
             }
+            else if (!EditorUtility.DisplayDialog("Remove Selected Prototypes?", "Remove the selected prototypes from this GPUI manager?\n\nSelected prototypes:" + selectedPrototypesText, "Remove from Manager Only", "Cancel"))
+                return;
+
+            Undo.RecordObject(_gpuiManager, "Remove Prototype");
+            _gpuiManager.editor_selectedPrototypeIndexes.Sort();
+            for (int i = _gpuiManager.editor_selectedPrototypeIndexes.Count - 1; i >= 0; i--)
+                _gpuiTreeManager.RemoveTreePrototypeAtIndex(_gpuiManager.editor_selectedPrototypeIndexes[i], removeFromTerrain);
+            _gpuiManager.editor_selectedPrototypeIndexes.Clear();
+            DrawPrototypeButtons();
         }
 
         public override bool SupportsBillboardGeneration()

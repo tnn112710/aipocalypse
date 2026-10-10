@@ -453,7 +453,7 @@ namespace GPUInstancerPro
         private void ResetMaterialPropertyBlock()
         {
             _mpb.Clear();
-            _mpb.SetVector(GPUIConstants.PROP_unity_LODFade, new Vector4(1, 16, 0, 0)); // Set the default value for LODFade in case GPUI setup does not run on some shader passes
+            _mpb.SetVector(GPUIConstants.PROP_unity_LODFade, new Vector4(1f, 16f, 0f, 2.0f)); // Set the default value for LODFade in case GPUI setup does not run on some shader passes
 
             //_mpb.SetVector(GPUIConstants.PROP_unity_LightmapST, Vector4.zero);
 

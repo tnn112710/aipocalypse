@@ -6,14 +6,14 @@ Error[105]|Error[105]|Error[105]|<size=13><b>Container Prefab</b></size>\nConsid
 Error[106]|Error[106]|Error[106]|The <b>Render Mode</b> option is set to <b>Edit Mode Only</b>. The GPUI Manager will be destroyed when entering Play Mode.|
 Error[1001]|Error[1001]|Error[1001]|Prefab reference is null!|
 Error[1002]|Error[1002]|Error[1002]|GPUI LOD Group Data reference is null!|
-Error[1003]|Error[1003]|Error[1003]|Mesh reference is null!|
+Error[1003]|Error[1003]|Error[1003]|Mesh reference is missing. Assign a mesh to the Mesh field in this prototype's settings on the GPUI Manager.|
 Error[1004]|Error[1004]|Error[1004]|Materials reference is null!|
 Error[1101]|Error[1101]|Error[1101]|After changing Billboard settings, press the <b>Regenerate</b> button to apply the changes. Press the <b>Preview</b> button to see the billboard.|
 Error[2001]|Error[2001]|Error[2001]|GPUI prototypes can not have LOD Group component on child GameObjects.|
 Error[2002]|Error[2002]|Error[2002]|One or more LODs on the LOD Group component do not have any Mesh Renderers.|
 Error[2003]|Error[2003]|Error[2003]|Prefab does not have any Mesh Renderers.|
 Error[2004]|Error[2004]|Error[2004]|One or more renderers are missing material references.|
-Error[2005]|Error[2005]|Error[2005]|One or more renderers are missing mesh references.|
+Error[2005]|Error[2005]|Error[2005]|A renderer on this prefab is missing a mesh. Check the Mesh field on its MeshFilter or SkinnedMeshRenderer, including children used by the LOD Group. MeshRenderers also require a MeshFilter on the same GameObject.|
 Error[2006]|Error[2006]|Error[2006]|One or more renderers are missing shader references.|
 Error[2007]|Error[2007]|Error[2007]|Can not automatically add procedural GPU instancing setup to shader. Please see shader setup documentation for detailed information.|https://wiki.gurbu.com/index.php?title=GPU_Instancer_Pro:GettingStarted#Shader_Setup_Guide
 Error[2008]|Error[2008]|Error[2008]|Can not automatically add procedural GPU instancing setup to shader. Crowd Animations extension requires shader modifications for GPU skinning. Please see the Docs for more information.|https://wiki.gurbu.com/index.php?title=GPU_Instancer_Pro-Crowd_Animations#Shader_Setup_Guide

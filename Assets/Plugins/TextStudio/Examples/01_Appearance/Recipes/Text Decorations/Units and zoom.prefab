@@ -1,0 +1,3877 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3256461934743996479
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8302627442987912040}
+  - component: {fileID: 3933078402530869669}
+  - component: {fileID: 3876868784787658052}
+  - component: {fileID: 1753314946142022689}
+  m_Layer: 0
+  m_Name: Pixels / 110%
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &8302627442987912040
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3256461934743996479}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.36, y: 0.15999998}
+  m_AnchorMax: {x: 0.95, y: 0.32999998}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &3933078402530869669
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3256461934743996479}
+  m_CullTransparentMesh: 1
+--- !u!114 &3876868784787658052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3256461934743996479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: copy key
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: e7a45e08f5e4f4e04ae3d5b3cc201346, type: 2}
+  m_sharedMaterial: {fileID: 0}
+  m_fontSharedMaterials:
+  - {fileID: 0}
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 90
+  m_fontSizeBase: 90
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 90
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1753314946142022689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3256461934743996479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 571b8413ca00f400ca67894f1caab41c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TextStudio::TextStudio.TextStudioText
+  _appearanceImages: []
+  _appearanceFonts:
+  - {fileID: 11400000, guid: 43cb6d15c5d3640b3aba016614d422b5, type: 2}
+  _textChangeLayoutDuration: 0
+  _markup: copy key
+  _authoringMode: 1
+  _backendWriteHandling: 0
+  _markupSyntaxOverride: {fileID: 0}
+  _behaviorProfile: {fileID: 0}
+  _inlineDefaultEffectMode: 0
+  _inlineDefaultEffects: 
+  _inlineDefaultRevealEffects: 
+  _inlineDefaultActiveEffects: 
+  _inlineDefaultHideEffects: 
+  _appearanceStyle: {fileID: 0}
+  _appearanceSource: 0
+  _inlineAppearanceSettings:
+    _baseStyle: {fileID: 0}
+    _inheritanceMode: 0
+    _sourceFieldQuality: 0
+    _painterOrder: 0
+    _worldShadowMode: 0
+    _layers:
+    - _itemId:
+        _value: course.a11-underline-solid.0
+      _displayName: Readable ink
+      _kind: 0
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 0.05
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments: []
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 0
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 0.2
+          _gap: 0.12
+          _dotSpacing: 0.15
+          _waveAmplitude: 0.035
+          _wavelength: 0.25
+          _doubleSeparation: 0.06
+          _phase: 0
+          _cap: 0
+          _skipInk: 0
+          _inkClearance: 0
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+    - _itemId:
+        _value: course.a11-underline-solid.1
+      _displayName: Patterned line
+      _kind: 8
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 1, g: 1, b: 1, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 3.5
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments:
+        - _itemId:
+            _value: course.a11-underline-solid.1.treatment.0
+          _displayName: Fill
+          _kind: 0
+          _enabled: 1
+          _opacity: 1
+          _blendMode: 0
+          _participatesInAnimatedTint: 1
+          _paint:
+            _source: {fileID: 0}
+            _useSource: 0
+            _overrides: 0
+            _rangeMapping: 0
+            _kind: 0
+            _mapping: 0
+            _spread: 0
+            _color: {r: 0.70980394, g: 0.3137255, b: 0.2, a: 1}
+            _gradientStops: []
+            _fourCornerGradient:
+              _topLeft: {r: 1, g: 1, b: 1, a: 1}
+              _topRight: {r: 1, g: 1, b: 1, a: 1}
+              _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+              _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+            _angle: 0
+            _center: {x: 0.5, y: 0.5}
+            _scale: {x: 1, y: 1}
+            _offset: {x: 0, y: 0}
+            _texture: {fileID: 0}
+            _resourceId: 
+            _textureFit: 0
+            _distanceDomain: 0
+            _distanceRange: {x: 0, y: 0.25}
+            _noiseScale: 8
+            _noiseDetail: 0.5
+            _noiseSeed: 0
+          _fill:
+            _dilation: 0
+            _softness: 0
+            _units: 0
+            _colorFace: 0
+          _stroke:
+            _width: 0
+            _alignment: 0
+            _join: 0
+            _miterLimit: 0
+            _dashPattern: []
+            _dashOffset: 0
+            _dashCap: 0
+            _continueAcrossContours: 0
+            _softness: 0
+            _units: 0
+          _shadow:
+            _offset: {x: 0, y: 0}
+            _blur: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _glow:
+            _radius: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _bevel:
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _units: 0
+          _materialResponse:
+            _kind: 0
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _roughness: 0
+            _metallic: 0
+            _clearcoat: 0
+            _anisotropy: 0
+            _iridescence: 0
+            _sparkle: 0
+            _emission: 0
+            _seed: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _environment: {r: 0, g: 0, b: 0, a: 0}
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 1
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 20
+          _gap: 12
+          _dotSpacing: 15.000001
+          _waveAmplitude: 3.5
+          _wavelength: 25
+          _doubleSeparation: 6
+          _phase: 0
+          _cap: 1
+          _skipInk: 2
+          _inkClearance: 0.06
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+  _inlineColorAlphaThreshold: 0.5
+  _writingStyle: {fileID: 11400000, guid: 100d2c9d0b3414e069a6b888ad489537, type: 2}
+  _writingEnabled: 0
+  _eraseOnHide: 0
+  _typewriterTimingMode: 0
+  _typewriterSource: 3
+  _typewriterPreset: {fileID: 0}
+  _revealMode: 0
+  _timings: {fileID: 0}
+  _builtInTimingsPreset: 3
+  _waitAfterFinalReveal: 1
+  _revealSpeedMultiplier: 1
+  _revealAppearanceDuration: 3
+  _revealDisappearanceDuration: 0.3
+  _loopReveal: 0
+  _loopRevealDelay: 0.75
+  _revealSequence:
+    Order: 4
+    Direction: 0
+    Spread: 0
+    Seed: 1729
+  _hideSequence:
+    Order: 0
+    Direction: 0
+    Spread: 1
+    Seed: 1729
+  _motionPolicy: 0
+  _typewriterStartMode: 0
+  _textChangeMode: 0
+  _textChangeScope: 0
+  _resetSpeedOnNewText: 1
+  _skipRevealMode: 0
+  _triggerRemainingMarkersOnSkip: 0
+  _skipCurrentWaitOnSkip: 1
+  _skipHideMode: 0
+  _typewriterPresetId: typewriter.classic
+  _typewriterRevealEffectExpression: ""
+  _typewriterHideEffectExpression: ""
+  _timing:
+    _clockMode: 0
+    _updatePhase: 0
+    _maxDeltaTime: 0.1
+    _tickInEditMode: 1
+    _timeScale: 1
+  _runActionsInPreview: 0
+  _previewStageMode: 0
+  _previewView: 1
+  _previewQuality: 1
+  _previewOrbitAngles: {x: 25, y: -20}
+  _previewCompareSpacing: 4
+  _placementMode: 0
+  _extensionPlacementId: 
+  _arcPlacement:
+    radius: 5
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    arcAngle: 160
+    startAngle: -80
+    pathPosition: 0
+    spacing: 0
+    fill: 1
+    reverse: 0
+    radiusChange: 0
+  _wavePlacement:
+    amplitude: 0.5
+    frequency: 1
+    phase: 0
+    speed: 1
+    depthAmplitude: 0
+    spinSpeed: 0
+    spinStagger: 0
+  _circlePlacement:
+    radius: 3
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    startAngle: 0
+    pathPosition: 0
+    spacing: 0
+    reverse: 0
+    radiusChange: 0
+  _gridPlacement:
+    columns: 10
+    cellSizing: 0
+    cellSize: {x: 0.6, y: 1}
+    gap: {x: 0, y: 0}
+    flow: 0
+    reverse: 0
+    respectSourceLines: 0
+  _influenceTarget: {fileID: 0}
+  _placementRotation:
+    orientation: 4
+    fineRotation: {x: 0, y: 0, z: 0}
+  _presentationProvider: {fileID: 0}
+  _onSetText:
+    m_PersistentCalls:
+      m_Calls: []
+  _onShowComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDisappearComplete:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &3315427976013930268
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1505210611618967306}
+  - component: {fileID: 3542628376145068987}
+  - component: {fileID: 260017795118080392}
+  m_Layer: 0
+  m_Name: Pixels / 110% caption
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1505210611618967306
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3315427976013930268}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.045, y: 0.15999998}
+  m_AnchorMax: {x: 0.33499998, y: 0.32999998}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0.000030517578, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &3542628376145068987
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3315427976013930268}
+  m_CullTransparentMesh: 1
+--- !u!114 &260017795118080392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3315427976013930268}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Pixels / 110%
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 27
+  m_fontSizeBase: 27
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 20.25
+  m_fontSizeMax: 27
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 4096
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &4166116065452005655
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3031489409327552158}
+  - component: {fileID: 6201673176259389201}
+  - component: {fileID: 7365093398835420178}
+  m_Layer: 0
+  m_Name: Em / 110% caption
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3031489409327552158
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4166116065452005655}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.045, y: 0.56}
+  m_AnchorMax: {x: 0.33499998, y: 0.73}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0.000030517578, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &6201673176259389201
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4166116065452005655}
+  m_CullTransparentMesh: 1
+--- !u!114 &7365093398835420178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4166116065452005655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Em / 110%
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 27
+  m_fontSizeBase: 27
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 20.25
+  m_fontSizeMax: 27
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 4096
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &5117032798361716242
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4618975201538652774}
+  m_Layer: 0
+  m_Name: Units and zoom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4618975201538652774
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5117032798361716242}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1596398553573346094}
+  - {fileID: 6700145148540908973}
+  - {fileID: 3211354268360201546}
+  - {fileID: 3031489409327552158}
+  - {fileID: 6219758004502301287}
+  - {fileID: 2210815179125960511}
+  - {fileID: 8302627442987912040}
+  - {fileID: 1505210611618967306}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &5714809535462037737
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6219758004502301287}
+  - component: {fileID: 4044117658465271279}
+  - component: {fileID: 3466674770836499840}
+  - component: {fileID: 9215269023618561996}
+  m_Layer: 0
+  m_Name: Pixels / 65%
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6219758004502301287
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5714809535462037737}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.36, y: 0.35999998}
+  m_AnchorMax: {x: 0.95, y: 0.53}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &4044117658465271279
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5714809535462037737}
+  m_CullTransparentMesh: 1
+--- !u!114 &3466674770836499840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5714809535462037737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: copy key
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: e7a45e08f5e4f4e04ae3d5b3cc201346, type: 2}
+  m_sharedMaterial: {fileID: 0}
+  m_fontSharedMaterials:
+  - {fileID: 0}
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 90
+  m_fontSizeBase: 90
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 90
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &9215269023618561996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5714809535462037737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 571b8413ca00f400ca67894f1caab41c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TextStudio::TextStudio.TextStudioText
+  _appearanceImages: []
+  _appearanceFonts:
+  - {fileID: 11400000, guid: 43cb6d15c5d3640b3aba016614d422b5, type: 2}
+  _textChangeLayoutDuration: 0
+  _markup: copy key
+  _authoringMode: 1
+  _backendWriteHandling: 0
+  _markupSyntaxOverride: {fileID: 0}
+  _behaviorProfile: {fileID: 0}
+  _inlineDefaultEffectMode: 0
+  _inlineDefaultEffects: 
+  _inlineDefaultRevealEffects: 
+  _inlineDefaultActiveEffects: 
+  _inlineDefaultHideEffects: 
+  _appearanceStyle: {fileID: 0}
+  _appearanceSource: 0
+  _inlineAppearanceSettings:
+    _baseStyle: {fileID: 0}
+    _inheritanceMode: 0
+    _sourceFieldQuality: 0
+    _painterOrder: 0
+    _worldShadowMode: 0
+    _layers:
+    - _itemId:
+        _value: course.a11-underline-solid.0
+      _displayName: Readable ink
+      _kind: 0
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 0.05
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments: []
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 0
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 0.2
+          _gap: 0.12
+          _dotSpacing: 0.15
+          _waveAmplitude: 0.035
+          _wavelength: 0.25
+          _doubleSeparation: 0.06
+          _phase: 0
+          _cap: 0
+          _skipInk: 0
+          _inkClearance: 0
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+    - _itemId:
+        _value: course.a11-underline-solid.1
+      _displayName: Patterned line
+      _kind: 8
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 1, g: 1, b: 1, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 3.5
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments:
+        - _itemId:
+            _value: course.a11-underline-solid.1.treatment.0
+          _displayName: Fill
+          _kind: 0
+          _enabled: 1
+          _opacity: 1
+          _blendMode: 0
+          _participatesInAnimatedTint: 1
+          _paint:
+            _source: {fileID: 0}
+            _useSource: 0
+            _overrides: 0
+            _rangeMapping: 0
+            _kind: 0
+            _mapping: 0
+            _spread: 0
+            _color: {r: 0.70980394, g: 0.3137255, b: 0.2, a: 1}
+            _gradientStops: []
+            _fourCornerGradient:
+              _topLeft: {r: 1, g: 1, b: 1, a: 1}
+              _topRight: {r: 1, g: 1, b: 1, a: 1}
+              _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+              _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+            _angle: 0
+            _center: {x: 0.5, y: 0.5}
+            _scale: {x: 1, y: 1}
+            _offset: {x: 0, y: 0}
+            _texture: {fileID: 0}
+            _resourceId: 
+            _textureFit: 0
+            _distanceDomain: 0
+            _distanceRange: {x: 0, y: 0.25}
+            _noiseScale: 8
+            _noiseDetail: 0.5
+            _noiseSeed: 0
+          _fill:
+            _dilation: 0
+            _softness: 0
+            _units: 0
+            _colorFace: 0
+          _stroke:
+            _width: 0
+            _alignment: 0
+            _join: 0
+            _miterLimit: 0
+            _dashPattern: []
+            _dashOffset: 0
+            _dashCap: 0
+            _continueAcrossContours: 0
+            _softness: 0
+            _units: 0
+          _shadow:
+            _offset: {x: 0, y: 0}
+            _blur: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _glow:
+            _radius: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _bevel:
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _units: 0
+          _materialResponse:
+            _kind: 0
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _roughness: 0
+            _metallic: 0
+            _clearcoat: 0
+            _anisotropy: 0
+            _iridescence: 0
+            _sparkle: 0
+            _emission: 0
+            _seed: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _environment: {r: 0, g: 0, b: 0, a: 0}
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 1
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 20
+          _gap: 12
+          _dotSpacing: 15.000001
+          _waveAmplitude: 3.5
+          _wavelength: 25
+          _doubleSeparation: 6
+          _phase: 0
+          _cap: 1
+          _skipInk: 2
+          _inkClearance: 0.06
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+  _inlineColorAlphaThreshold: 0.5
+  _writingStyle: {fileID: 11400000, guid: 100d2c9d0b3414e069a6b888ad489537, type: 2}
+  _writingEnabled: 0
+  _eraseOnHide: 0
+  _typewriterTimingMode: 0
+  _typewriterSource: 3
+  _typewriterPreset: {fileID: 0}
+  _revealMode: 0
+  _timings: {fileID: 0}
+  _builtInTimingsPreset: 3
+  _waitAfterFinalReveal: 1
+  _revealSpeedMultiplier: 1
+  _revealAppearanceDuration: 3
+  _revealDisappearanceDuration: 0.3
+  _loopReveal: 0
+  _loopRevealDelay: 0.75
+  _revealSequence:
+    Order: 4
+    Direction: 0
+    Spread: 0
+    Seed: 1729
+  _hideSequence:
+    Order: 0
+    Direction: 0
+    Spread: 1
+    Seed: 1729
+  _motionPolicy: 0
+  _typewriterStartMode: 0
+  _textChangeMode: 0
+  _textChangeScope: 0
+  _resetSpeedOnNewText: 1
+  _skipRevealMode: 0
+  _triggerRemainingMarkersOnSkip: 0
+  _skipCurrentWaitOnSkip: 1
+  _skipHideMode: 0
+  _typewriterPresetId: typewriter.classic
+  _typewriterRevealEffectExpression: ""
+  _typewriterHideEffectExpression: ""
+  _timing:
+    _clockMode: 0
+    _updatePhase: 0
+    _maxDeltaTime: 0.1
+    _tickInEditMode: 1
+    _timeScale: 1
+  _runActionsInPreview: 0
+  _previewStageMode: 0
+  _previewView: 1
+  _previewQuality: 1
+  _previewOrbitAngles: {x: 25, y: -20}
+  _previewCompareSpacing: 4
+  _placementMode: 0
+  _extensionPlacementId: 
+  _arcPlacement:
+    radius: 5
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    arcAngle: 160
+    startAngle: -80
+    pathPosition: 0
+    spacing: 0
+    fill: 1
+    reverse: 0
+    radiusChange: 0
+  _wavePlacement:
+    amplitude: 0.5
+    frequency: 1
+    phase: 0
+    speed: 1
+    depthAmplitude: 0
+    spinSpeed: 0
+    spinStagger: 0
+  _circlePlacement:
+    radius: 3
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    startAngle: 0
+    pathPosition: 0
+    spacing: 0
+    reverse: 0
+    radiusChange: 0
+  _gridPlacement:
+    columns: 10
+    cellSizing: 0
+    cellSize: {x: 0.6, y: 1}
+    gap: {x: 0, y: 0}
+    flow: 0
+    reverse: 0
+    respectSourceLines: 0
+  _influenceTarget: {fileID: 0}
+  _placementRotation:
+    orientation: 4
+    fineRotation: {x: 0, y: 0, z: 0}
+  _presentationProvider: {fileID: 0}
+  _onSetText:
+    m_PersistentCalls:
+      m_Calls: []
+  _onShowComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDisappearComplete:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &6399422275678738548
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6700145148540908973}
+  - component: {fileID: 2359401492884567411}
+  - component: {fileID: 4037467615026546391}
+  m_Layer: 0
+  m_Name: Em / 65% caption
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6700145148540908973
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6399422275678738548}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.045, y: 0.76}
+  m_AnchorMax: {x: 0.33499998, y: 0.93}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0.000030517578, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &2359401492884567411
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6399422275678738548}
+  m_CullTransparentMesh: 1
+--- !u!114 &4037467615026546391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6399422275678738548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Em / 65%
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 27
+  m_fontSizeBase: 27
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 20.25
+  m_fontSizeMax: 27
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 4096
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &6600192109828535148
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3211354268360201546}
+  - component: {fileID: 5923048959638232476}
+  - component: {fileID: 1072975943717735548}
+  - component: {fileID: 6669564067204348958}
+  m_Layer: 0
+  m_Name: Em / 110%
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3211354268360201546
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6600192109828535148}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.36, y: 0.56}
+  m_AnchorMax: {x: 0.95, y: 0.73}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &5923048959638232476
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6600192109828535148}
+  m_CullTransparentMesh: 1
+--- !u!114 &1072975943717735548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6600192109828535148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: copy key
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: e7a45e08f5e4f4e04ae3d5b3cc201346, type: 2}
+  m_sharedMaterial: {fileID: 0}
+  m_fontSharedMaterials:
+  - {fileID: 0}
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 90
+  m_fontSizeBase: 90
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 90
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6669564067204348958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6600192109828535148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 571b8413ca00f400ca67894f1caab41c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TextStudio::TextStudio.TextStudioText
+  _appearanceImages: []
+  _appearanceFonts:
+  - {fileID: 11400000, guid: 43cb6d15c5d3640b3aba016614d422b5, type: 2}
+  _textChangeLayoutDuration: 0
+  _markup: copy key
+  _authoringMode: 1
+  _backendWriteHandling: 0
+  _markupSyntaxOverride: {fileID: 0}
+  _behaviorProfile: {fileID: 0}
+  _inlineDefaultEffectMode: 0
+  _inlineDefaultEffects: 
+  _inlineDefaultRevealEffects: 
+  _inlineDefaultActiveEffects: 
+  _inlineDefaultHideEffects: 
+  _appearanceStyle: {fileID: 0}
+  _appearanceSource: 0
+  _inlineAppearanceSettings:
+    _baseStyle: {fileID: 0}
+    _inheritanceMode: 0
+    _sourceFieldQuality: 0
+    _painterOrder: 0
+    _worldShadowMode: 0
+    _layers:
+    - _itemId:
+        _value: course.a11-underline-solid.0
+      _displayName: Readable ink
+      _kind: 0
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 0.05
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments: []
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 0
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 0.2
+          _gap: 0.12
+          _dotSpacing: 0.15
+          _waveAmplitude: 0.035
+          _wavelength: 0.25
+          _doubleSeparation: 0.06
+          _phase: 0
+          _cap: 0
+          _skipInk: 0
+          _inkClearance: 0
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+    - _itemId:
+        _value: course.a11-underline-solid.1
+      _displayName: Patterned line
+      _kind: 8
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 1, g: 1, b: 1, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 0.035
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments:
+        - _itemId:
+            _value: course.a11-underline-solid.1.treatment.0
+          _displayName: Fill
+          _kind: 0
+          _enabled: 1
+          _opacity: 1
+          _blendMode: 0
+          _participatesInAnimatedTint: 1
+          _paint:
+            _source: {fileID: 0}
+            _useSource: 0
+            _overrides: 0
+            _rangeMapping: 0
+            _kind: 0
+            _mapping: 0
+            _spread: 0
+            _color: {r: 0.70980394, g: 0.3137255, b: 0.2, a: 1}
+            _gradientStops: []
+            _fourCornerGradient:
+              _topLeft: {r: 1, g: 1, b: 1, a: 1}
+              _topRight: {r: 1, g: 1, b: 1, a: 1}
+              _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+              _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+            _angle: 0
+            _center: {x: 0.5, y: 0.5}
+            _scale: {x: 1, y: 1}
+            _offset: {x: 0, y: 0}
+            _texture: {fileID: 0}
+            _resourceId: 
+            _textureFit: 0
+            _distanceDomain: 0
+            _distanceRange: {x: 0, y: 0.25}
+            _noiseScale: 8
+            _noiseDetail: 0.5
+            _noiseSeed: 0
+          _fill:
+            _dilation: 0
+            _softness: 0
+            _units: 0
+            _colorFace: 0
+          _stroke:
+            _width: 0
+            _alignment: 0
+            _join: 0
+            _miterLimit: 0
+            _dashPattern: []
+            _dashOffset: 0
+            _dashCap: 0
+            _continueAcrossContours: 0
+            _softness: 0
+            _units: 0
+          _shadow:
+            _offset: {x: 0, y: 0}
+            _blur: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _glow:
+            _radius: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _bevel:
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _units: 0
+          _materialResponse:
+            _kind: 0
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _roughness: 0
+            _metallic: 0
+            _clearcoat: 0
+            _anisotropy: 0
+            _iridescence: 0
+            _sparkle: 0
+            _emission: 0
+            _seed: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _environment: {r: 0, g: 0, b: 0, a: 0}
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 0
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 0.2
+          _gap: 0.12
+          _dotSpacing: 0.15
+          _waveAmplitude: 0.035
+          _wavelength: 0.25
+          _doubleSeparation: 0.06
+          _phase: 0
+          _cap: 1
+          _skipInk: 2
+          _inkClearance: 0.06
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+  _inlineColorAlphaThreshold: 0.5
+  _writingStyle: {fileID: 11400000, guid: 100d2c9d0b3414e069a6b888ad489537, type: 2}
+  _writingEnabled: 0
+  _eraseOnHide: 0
+  _typewriterTimingMode: 0
+  _typewriterSource: 3
+  _typewriterPreset: {fileID: 0}
+  _revealMode: 0
+  _timings: {fileID: 0}
+  _builtInTimingsPreset: 3
+  _waitAfterFinalReveal: 1
+  _revealSpeedMultiplier: 1
+  _revealAppearanceDuration: 3
+  _revealDisappearanceDuration: 0.3
+  _loopReveal: 0
+  _loopRevealDelay: 0.75
+  _revealSequence:
+    Order: 4
+    Direction: 0
+    Spread: 0
+    Seed: 1729
+  _hideSequence:
+    Order: 0
+    Direction: 0
+    Spread: 1
+    Seed: 1729
+  _motionPolicy: 0
+  _typewriterStartMode: 0
+  _textChangeMode: 0
+  _textChangeScope: 0
+  _resetSpeedOnNewText: 1
+  _skipRevealMode: 0
+  _triggerRemainingMarkersOnSkip: 0
+  _skipCurrentWaitOnSkip: 1
+  _skipHideMode: 0
+  _typewriterPresetId: typewriter.classic
+  _typewriterRevealEffectExpression: ""
+  _typewriterHideEffectExpression: ""
+  _timing:
+    _clockMode: 0
+    _updatePhase: 0
+    _maxDeltaTime: 0.1
+    _tickInEditMode: 1
+    _timeScale: 1
+  _runActionsInPreview: 0
+  _previewStageMode: 0
+  _previewView: 1
+  _previewQuality: 1
+  _previewOrbitAngles: {x: 25, y: -20}
+  _previewCompareSpacing: 4
+  _placementMode: 0
+  _extensionPlacementId: 
+  _arcPlacement:
+    radius: 5
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    arcAngle: 160
+    startAngle: -80
+    pathPosition: 0
+    spacing: 0
+    fill: 1
+    reverse: 0
+    radiusChange: 0
+  _wavePlacement:
+    amplitude: 0.5
+    frequency: 1
+    phase: 0
+    speed: 1
+    depthAmplitude: 0
+    spinSpeed: 0
+    spinStagger: 0
+  _circlePlacement:
+    radius: 3
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    startAngle: 0
+    pathPosition: 0
+    spacing: 0
+    reverse: 0
+    radiusChange: 0
+  _gridPlacement:
+    columns: 10
+    cellSizing: 0
+    cellSize: {x: 0.6, y: 1}
+    gap: {x: 0, y: 0}
+    flow: 0
+    reverse: 0
+    respectSourceLines: 0
+  _influenceTarget: {fileID: 0}
+  _placementRotation:
+    orientation: 4
+    fineRotation: {x: 0, y: 0, z: 0}
+  _presentationProvider: {fileID: 0}
+  _onSetText:
+    m_PersistentCalls:
+      m_Calls: []
+  _onShowComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDisappearComplete:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &7417312031471688718
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2210815179125960511}
+  - component: {fileID: 4432120786816162893}
+  - component: {fileID: 7398053445509075028}
+  m_Layer: 0
+  m_Name: Pixels / 65% caption
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2210815179125960511
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7417312031471688718}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.045, y: 0.35999998}
+  m_AnchorMax: {x: 0.33499998, y: 0.53}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0.000030517578, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &4432120786816162893
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7417312031471688718}
+  m_CullTransparentMesh: 1
+--- !u!114 &7398053445509075028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7417312031471688718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Pixels / 65%
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 27
+  m_fontSizeBase: 27
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 20.25
+  m_fontSizeMax: 27
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 4096
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &7999506215637520481
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1596398553573346094}
+  - component: {fileID: 3600812907734773636}
+  - component: {fileID: 6251501765704322294}
+  - component: {fileID: 2145564164839165710}
+  m_Layer: 0
+  m_Name: Em / 65%
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1596398553573346094
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7999506215637520481}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618975201538652774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.36, y: 0.76}
+  m_AnchorMax: {x: 0.95, y: 0.93}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &3600812907734773636
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7999506215637520481}
+  m_CullTransparentMesh: 1
+--- !u!114 &6251501765704322294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7999506215637520481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: copy key
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: e7a45e08f5e4f4e04ae3d5b3cc201346, type: 2}
+  m_sharedMaterial: {fileID: 0}
+  m_fontSharedMaterials:
+  - {fileID: 0}
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 90
+  m_fontSizeBase: 90
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 90
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2145564164839165710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7999506215637520481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 571b8413ca00f400ca67894f1caab41c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TextStudio::TextStudio.TextStudioText
+  _appearanceImages: []
+  _appearanceFonts:
+  - {fileID: 11400000, guid: 43cb6d15c5d3640b3aba016614d422b5, type: 2}
+  _textChangeLayoutDuration: 0
+  _markup: copy key
+  _authoringMode: 1
+  _backendWriteHandling: 0
+  _markupSyntaxOverride: {fileID: 0}
+  _behaviorProfile: {fileID: 0}
+  _inlineDefaultEffectMode: 0
+  _inlineDefaultEffects: 
+  _inlineDefaultRevealEffects: 
+  _inlineDefaultActiveEffects: 
+  _inlineDefaultHideEffects: 
+  _appearanceStyle: {fileID: 0}
+  _appearanceSource: 0
+  _inlineAppearanceSettings:
+    _baseStyle: {fileID: 0}
+    _inheritanceMode: 0
+    _sourceFieldQuality: 0
+    _painterOrder: 0
+    _worldShadowMode: 0
+    _layers:
+    - _itemId:
+        _value: course.a11-underline-solid.0
+      _displayName: Readable ink
+      _kind: 0
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 0.09019608, g: 0.25490198, b: 0.23921569, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 0.05
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments: []
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 0
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 0.2
+          _gap: 0.12
+          _dotSpacing: 0.15
+          _waveAmplitude: 0.035
+          _wavelength: 0.25
+          _doubleSeparation: 0.06
+          _phase: 0
+          _cap: 0
+          _skipInk: 0
+          _inkClearance: 0
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+    - _itemId:
+        _value: course.a11-underline-solid.1
+      _displayName: Patterned line
+      _kind: 8
+      _enabled: 1
+      _solo: 0
+      _participatesInAnimatedTint: 1
+      _opacity: 1
+      _blendMode: 0
+      _executionPath: 0
+      _qualityTier: 1
+      _groupOrder: 0
+      _sharedSurfaceOrder: 0
+      _sourceApplicability: 0
+      _parentId:
+        _value: 
+      _maskId:
+        _value: 
+      _selector:
+        _root: 0
+        _nodes:
+        - _kind: 0
+          _left: -1
+          _right: -1
+          _start: 0
+          _count: 0
+          _key: 
+          _color: {r: 1, g: 1, b: 1, a: 1}
+          _tolerance: 0.05
+          _value: 0
+          _comparison: 5
+          _semanticState: 0
+          _invert: 0
+      _paint:
+        _source: {fileID: 0}
+        _useSource: 0
+        _overrides: 0
+        _rangeMapping: 0
+        _kind: 0
+        _mapping: 0
+        _spread: 0
+        _color: {r: 1, g: 1, b: 1, a: 1}
+        _gradientStops: []
+        _fourCornerGradient:
+          _topLeft: {r: 1, g: 1, b: 1, a: 1}
+          _topRight: {r: 1, g: 1, b: 1, a: 1}
+          _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+          _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+        _angle: 0
+        _center: {x: 0.5, y: 0.5}
+        _scale: {x: 1, y: 1}
+        _offset: {x: 0, y: 0}
+        _texture: {fileID: 0}
+        _resourceId: 
+        _textureFit: 0
+        _distanceDomain: 0
+        _distanceRange: {x: 0, y: 0.25}
+        _noiseScale: 8
+        _noiseDetail: 0.5
+        _noiseSeed: 0
+      _fill:
+        _dilation: 0
+        _softness: 0
+        _units: 0
+        _colorFace: 0
+      _stroke:
+        _width: 0.05
+        _alignment: 0
+        _join: 0
+        _miterLimit: 4
+        _dashPattern: []
+        _dashOffset: 0
+        _dashCap: 0
+        _continueAcrossContours: 0
+        _softness: 0
+        _units: 0
+      _shadow:
+        _offset: {x: 0.05, y: -0.05}
+        _blur: 0.05
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _glow:
+        _radius: 0.1
+        _spread: 0
+        _rendering: 0
+        _units: 0
+      _bevel:
+        _width: 0.05
+        _softness: 0.02
+        _depth: 0.5
+        _lightAngle: 135
+        _lightElevation: 45
+        _highlight: {r: 1, g: 1, b: 1, a: 1}
+        _shadow: {r: 0, g: 0, b: 0, a: 1}
+        _units: 0
+      _fauxDepth:
+        _offset: {x: 0.08, y: -0.08}
+        _taper: 0
+        _falloff: 0
+        _softness: 0
+        _silhouetteOutset: 0
+        _endFade: 0
+        _paintMapping: 0
+        _sideLightAngle: 135
+        _sideLightStrength: 0
+        _frontBevelWidth: 0
+        _frontBevelStrength: 0
+        _farCapShade: 0
+        _units: 0
+      _decoration:
+        _kind: 0
+        _thickness: 0.035
+        _offset: 0
+        _padding: {x: 0, y: 0, z: 0, w: 0}
+        _cornerRadius: 0
+        _plateHeight: 0
+        _verticalAnchor: 0
+        _leftEnd: 0
+        _rightEnd: 0
+        _capSize: 0
+        _shape: 0
+        _cornerRadii: {x: 0, y: 0, z: 0, w: 0}
+        _squirclePower: 4
+        _polygonSides: 6
+        _starInset: 0.5
+        _customPoints: []
+        _glyphPadding: 0
+        _glyphBridgeRadius: 0
+        _glyphFillHoles: 0
+        _topology: 0
+        _connectAcrossLineBreaks: 0
+        _surfaceTreatments:
+        - _itemId:
+            _value: course.a11-underline-solid.1.treatment.0
+          _displayName: Fill
+          _kind: 0
+          _enabled: 1
+          _opacity: 1
+          _blendMode: 0
+          _participatesInAnimatedTint: 1
+          _paint:
+            _source: {fileID: 0}
+            _useSource: 0
+            _overrides: 0
+            _rangeMapping: 0
+            _kind: 0
+            _mapping: 0
+            _spread: 0
+            _color: {r: 0.70980394, g: 0.3137255, b: 0.2, a: 1}
+            _gradientStops: []
+            _fourCornerGradient:
+              _topLeft: {r: 1, g: 1, b: 1, a: 1}
+              _topRight: {r: 1, g: 1, b: 1, a: 1}
+              _bottomLeft: {r: 0, g: 0, b: 0, a: 1}
+              _bottomRight: {r: 0, g: 0, b: 0, a: 1}
+            _angle: 0
+            _center: {x: 0.5, y: 0.5}
+            _scale: {x: 1, y: 1}
+            _offset: {x: 0, y: 0}
+            _texture: {fileID: 0}
+            _resourceId: 
+            _textureFit: 0
+            _distanceDomain: 0
+            _distanceRange: {x: 0, y: 0.25}
+            _noiseScale: 8
+            _noiseDetail: 0.5
+            _noiseSeed: 0
+          _fill:
+            _dilation: 0
+            _softness: 0
+            _units: 0
+            _colorFace: 0
+          _stroke:
+            _width: 0
+            _alignment: 0
+            _join: 0
+            _miterLimit: 0
+            _dashPattern: []
+            _dashOffset: 0
+            _dashCap: 0
+            _continueAcrossContours: 0
+            _softness: 0
+            _units: 0
+          _shadow:
+            _offset: {x: 0, y: 0}
+            _blur: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _glow:
+            _radius: 0
+            _spread: 0
+            _rendering: 0
+            _units: 0
+          _bevel:
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _units: 0
+          _materialResponse:
+            _kind: 0
+            _width: 0
+            _softness: 0
+            _depth: 0
+            _lightAngle: 0
+            _lightElevation: 0
+            _roughness: 0
+            _metallic: 0
+            _clearcoat: 0
+            _anisotropy: 0
+            _iridescence: 0
+            _sparkle: 0
+            _emission: 0
+            _seed: 0
+            _highlight: {r: 0, g: 0, b: 0, a: 0}
+            _shadow: {r: 0, g: 0, b: 0, a: 0}
+            _environment: {r: 0, g: 0, b: 0, a: 0}
+        _line:
+          _pattern: 0
+          _thicknessMode: 0
+          _offsetMode: 2
+          _units: 0
+          _followFontRuns: 0
+          _phaseRestart: 0
+          _dashLength: 0.2
+          _gap: 0.12
+          _dotSpacing: 0.15
+          _waveAmplitude: 0.035
+          _wavelength: 0.25
+          _doubleSeparation: 0.06
+          _phase: 0
+          _cap: 1
+          _skipInk: 2
+          _inkClearance: 0.06
+      _mask:
+        _sourceItemId:
+          _value: 
+        _invert: 0
+        _feather: 0
+      _materialResponse:
+        _kind: 0
+        _width: 0.16
+        _softness: 0.035
+        _depth: 0.72
+        _lightAngle: 135
+        _lightElevation: 42
+        _roughness: 0.5
+        _metallic: 0
+        _clearcoat: 0.15
+        _anisotropy: 0
+        _iridescence: 0
+        _sparkle: 0
+        _emission: 0
+        _seed: 7
+        _highlight: {r: 1, g: 1, b: 1, a: 0.72}
+        _shadow: {r: 0.025, g: 0.03, b: 0.045, a: 0.64}
+        _environment: {r: 0.4, g: 0.48, b: 0.62, a: 0.2}
+      _graphicEffect:
+        _kind: 0
+        _mapping: 3
+        _intensity: 0.82
+        _scale: 18
+        _detail: 0.35
+        _width: 0.34
+        _softness: 0.045
+        _angle: 22.5
+        _offset: {x: 0, y: 0}
+        _primaryColor: {r: 0.96, g: 0.92, b: 0.78, a: 1}
+        _secondaryColor: {r: 0.08, g: 0.06, b: 0.045, a: 1}
+        _seed: 173
+        _halftoneSizeRamp:
+          _enabled: 0
+          _minimumRadius: 0
+          _maximumRadius: 0
+          _angleDegrees: 0
+      _animatedEffect:
+        _kind: 0
+        _mapping: 3
+        _amount: 1.12
+        _speed: 0.28
+        _phase: 0.08
+        _scale: 1
+        _width: 0.14
+        _softness: 0.016
+        _amplitude: 0.12
+        _frequency: 1
+        _direction: {x: 1, y: 0.06}
+        _primaryColor: {r: 1, g: 1, b: 1, a: 1}
+        _secondaryColor: {r: 1, g: 0.55, b: 0.08, a: 0.5}
+        _seed: 401
+        _historyFrames: 1
+        _reducedMotionBehavior: 1
+      _colorAdjustment:
+        _mode: 0
+        _saturation: 0
+        _hueDegrees: 0
+        _exposure: 0
+        _brightness: 0
+        _contrast: 0
+        _contrastPivot: 0
+        _tint: {r: 0, g: 0, b: 0, a: 0}
+        _grayscale: 0
+        _sepia: 0
+        _invert: 0
+        _surfaceSelection: 0
+        _red: {x: 1, y: 0, z: 0, w: 0}
+        _green: {x: 0, y: 1, z: 0, w: 0}
+        _blue: {x: 0, y: 0, z: 1, w: 0}
+        _alpha: {x: 0, y: 0, z: 0, w: 1}
+        _offset: {x: 0, y: 0, z: 0, w: 0}
+        _strength: 1
+        _clampOutput: 0
+  _inlineColorAlphaThreshold: 0.5
+  _writingStyle: {fileID: 11400000, guid: 100d2c9d0b3414e069a6b888ad489537, type: 2}
+  _writingEnabled: 0
+  _eraseOnHide: 0
+  _typewriterTimingMode: 0
+  _typewriterSource: 3
+  _typewriterPreset: {fileID: 0}
+  _revealMode: 0
+  _timings: {fileID: 0}
+  _builtInTimingsPreset: 3
+  _waitAfterFinalReveal: 1
+  _revealSpeedMultiplier: 1
+  _revealAppearanceDuration: 3
+  _revealDisappearanceDuration: 0.3
+  _loopReveal: 0
+  _loopRevealDelay: 0.75
+  _revealSequence:
+    Order: 4
+    Direction: 0
+    Spread: 0
+    Seed: 1729
+  _hideSequence:
+    Order: 0
+    Direction: 0
+    Spread: 1
+    Seed: 1729
+  _motionPolicy: 0
+  _typewriterStartMode: 0
+  _textChangeMode: 0
+  _textChangeScope: 0
+  _resetSpeedOnNewText: 1
+  _skipRevealMode: 0
+  _triggerRemainingMarkersOnSkip: 0
+  _skipCurrentWaitOnSkip: 1
+  _skipHideMode: 0
+  _typewriterPresetId: typewriter.classic
+  _typewriterRevealEffectExpression: ""
+  _typewriterHideEffectExpression: ""
+  _timing:
+    _clockMode: 0
+    _updatePhase: 0
+    _maxDeltaTime: 0.1
+    _tickInEditMode: 1
+    _timeScale: 1
+  _runActionsInPreview: 0
+  _previewStageMode: 0
+  _previewView: 1
+  _previewQuality: 1
+  _previewOrbitAngles: {x: 25, y: -20}
+  _previewCompareSpacing: 4
+  _placementMode: 0
+  _extensionPlacementId: 
+  _arcPlacement:
+    radius: 5
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    arcAngle: 160
+    startAngle: -80
+    pathPosition: 0
+    spacing: 0
+    fill: 1
+    reverse: 0
+    radiusChange: 0
+  _wavePlacement:
+    amplitude: 0.5
+    frequency: 1
+    phase: 0
+    speed: 1
+    depthAmplitude: 0
+    spinSpeed: 0
+    spinStagger: 0
+  _circlePlacement:
+    radius: 3
+    autoFitRadius: 1
+    autoFitPadding: 1.08
+    startAngle: 0
+    pathPosition: 0
+    spacing: 0
+    reverse: 0
+    radiusChange: 0
+  _gridPlacement:
+    columns: 10
+    cellSizing: 0
+    cellSize: {x: 0.6, y: 1}
+    gap: {x: 0, y: 0}
+    flow: 0
+    reverse: 0
+    respectSourceLines: 0
+  _influenceTarget: {fileID: 0}
+  _placementRotation:
+    orientation: 4
+    fineRotation: {x: 0, y: 0, z: 0}
+  _presentationProvider: {fileID: 0}
+  _onSetText:
+    m_PersistentCalls:
+      m_Calls: []
+  _onShowComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDisappearComplete:
+    m_PersistentCalls:
+      m_Calls: []

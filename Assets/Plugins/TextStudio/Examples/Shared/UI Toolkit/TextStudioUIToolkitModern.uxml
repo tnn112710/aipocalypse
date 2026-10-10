@@ -1,0 +1,17 @@
+<UXML xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="TextStudioTutorial.uss" />
+    <VisualElement name="tutorial-root" class="tutorial-root">
+        <Label text="LEARN 10  /  UI TOOLKIT MODERN" class="lesson-badge" />
+        <Label text="Attach Text Studio to a normal Label" class="lesson-title" />
+        <Label text="The visual hierarchy and responsive layout are authored in UXML/USS. The controller only binds Text Studio behavior and playback commands." class="lesson-summary" />
+        <VisualElement name="placement-stage" class="stage">
+            <Label name="modern-text" class="modern-label" />
+            <Label text="RESPONSIVE STAGE  •  ARC PLACEMENT  •  NORMAL UI TOOLKIT LABEL" class="stage-caption" />
+        </VisualElement>
+        <Label text="Inspect this UXML, its USS, the UIDocument, and the thin binding controller. Nothing in the visual tree is generated at runtime." class="status" />
+        <VisualElement class="control-row">
+            <Button name="replay-button" text="Replay" class="control-button" />
+            <Button name="skip-button" text="Skip" class="control-button" />
+        </VisualElement>
+    </VisualElement>
+</UXML>

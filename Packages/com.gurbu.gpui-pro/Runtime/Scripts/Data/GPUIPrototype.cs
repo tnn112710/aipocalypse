@@ -50,6 +50,10 @@ namespace GPUInstancerPro
         [NonSerialized]
         public int errorCode;
         [NonSerialized]
+        public string errorMessage;
+        [NonSerialized]
+        public UnityEngine.Object errorContext;
+        [NonSerialized]
         public UnityEngine.Events.UnityAction errorFixAction;
 
         private const int ERROR_CODE_ADDITION = 1000;
@@ -87,6 +91,8 @@ namespace GPUInstancerPro
         public bool IsValid(bool logError)
         {
             errorCode = 0;
+            errorMessage = null;
+            errorContext = null;
             errorFixAction = null;
             if (profile == null)
                 profile = GPUIProfile.DefaultProfile;
@@ -114,7 +120,7 @@ namespace GPUInstancerPro
                     if (prototypeMesh == null)
                     {
                         if (logError)
-                            Debug.LogError(GPUIConstants.LOG_PREFIX + this + " mesh is null.");
+                            Debug.LogError(GPUIConstants.LOG_PREFIX + "Mesh reference is missing for prototype '" + (string.IsNullOrEmpty(name) ? ToString() : name) + "'. Assign a mesh to its Mesh field (prototypeMesh) in the GPUI Manager's prototype settings.");
                         errorCode = ERROR_CODE_ADDITION + 3;
                         return false;
                     }

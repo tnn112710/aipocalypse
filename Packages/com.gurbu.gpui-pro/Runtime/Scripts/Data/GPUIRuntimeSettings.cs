@@ -374,7 +374,7 @@ namespace GPUInstancerPro
 
         public void SetRuntimeSettings()
         {
-#if GPUI_XR
+#if GPUI_VR
             IsVREnabled = UnityEngine.XR.XRSettings.enabled;
 #else
             IsVREnabled = false;

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d998a40d122b6d74ab81bd240d7fce28, type: 3}
+  m_Name: WhisperwoodStory
+  m_EditorClassIdentifier: TextStudio.Examples.Whisperwood::TextStudio.Examples.Whisperwood.TextStudioWhisperwoodStory
+  _npcs:
+  - _name: Mara
+    _role: Ranger
+    _greeting: You look like you have taken the long way round.
+    _question: Ask about the gate
+    _word: EMBER
+    _position: {x: 0.24, y: 0.48}
+    _color: {r: 0.92, g: 0.52, b: 0.28, a: 1}
+    _lines:
+    - <typewriter>The Moon Gate listens for old words.</typewriter> <em>Not loud
+      ones.</em> True ones.<wait=0.2>
+    - 'Carry the first word with care: <colorPulse>EMBER</colorPulse>.<wait=0.2><event=word,ember><waitForInput>'
+    _repeatLine: The gate remembers your warmth. Find the other words.
+  - _name: Luma
+    _role: Forest spirit
+    _greeting: Careful. The leaves are still wet.
+    _question: Ask for help
+    _word: DEW
+    _position: {x: 0.76, y: 0.34}
+    _color: {r: 0.46, g: 0.86, b: 0.96, a: 1}
+    _lines:
+    - <wave a=.035 speed=.75>Letters settle where moonlight meets the leaves.</wave><wait=0.2>
+    - 'Take this one before sunrise: <shimmer><gradientFlow>DEW</gradientFlow></shimmer>.<wait=0.2><event=word,dew><waitForInput>'
+    _repeatLine: Dew is quiet, but it carries the whole sky.
+  - _name: Rowan
+    _role: Guide
+    _greeting: Lost? I was just checking the old map.
+    _question: Ask for directions
+    _word: STAR
+    _position: {x: 0.73, y: 0.64}
+    _color: {r: 0.88, g: 0.76, b: 1, a: 1}
+    _lines:
+    - <typewriter>I copied the final word from a map older than the village.</typewriter><wait=0.2>
+    - 'Look up when you speak it: <pop><colorPulse>STAR</colorPulse></pop>.<wait=0.2><event=word,star><waitForInput>'
+    _repeatLine: Even a copied star can still point the way home.

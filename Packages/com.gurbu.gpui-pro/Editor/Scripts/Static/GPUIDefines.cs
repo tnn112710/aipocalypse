@@ -13,7 +13,7 @@ namespace GPUInstancerPro
     [InitializeOnLoad]
     public static class GPUIDefines
     {
-        public static readonly uint GPUI_PRO_BUILD_NO = 58;
+        public static readonly uint GPUI_PRO_BUILD_NO = 59;
         public static Version DEMO_UPDATE_VERSION = Version.Parse("0.12.7"); // The package version where the demo scenes were last updated and needs to be reimported.
         public static Version REGENERATE_SHADERS_VERSION = Version.Parse("0.12.12"); // The package version where the automatic shader converter has been modified and the shaders will be regenerated.
         public static readonly string PACKAGE_NAME = "com.gurbu.gpui-pro";
@@ -23,6 +23,8 @@ namespace GPUInstancerPro
         public static readonly string INITIAL_PACKAGE_HDRP_PATH = "Packages/com.gurbu.gpui-pro/Editor/InitialPackageHDRP.unitypackage";
 
         public static readonly string SHADERS_BUILTIN_PACKAGE_PATH = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shaders-Builtin.unitypackage";
+        public static readonly string SHADERS_BUILTIN_SPEEDTREE8_PACKAGE_PATH = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shader_SpeedTree8_GPUIPro.unitypackage";
+        public static readonly string SHADERS_BUILTIN_SPEEDTREE9_PACKAGE_PATH = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shader_SpeedTree9_GPUIPro.unitypackage";
         public static readonly string SHADERS_SHADERGRAPH_PACKAGE_PATH = "Packages/com.gurbu.gpui-pro/Editor/Extras/Shaders-ShaderGraph.unitypackage";
         public static readonly List<string> REMOVED_FILES = new List<string>() {
             "Packages/com.gurbu.gpui-pro/Runtime/Shaders/Billboard/Billboard2DRendererSoftOcclusion_GPUI.shader",
@@ -250,6 +252,17 @@ namespace GPUInstancerPro
             {
                 GPUIEditorSettings.Instance.ImportPackageAtPath(SHADERS_BUILTIN_PACKAGE_PATH);
                 Debug.Log(GPUIConstants.LOG_PREFIX + "Importing builtin shaders for version " + GPUIEditorSettings.Instance.GetVersion() + "...");
+
+                if (Shader.Find(GPUIConstants.SHADER_NAME_PREFIX + GPUIConstants.SHADER_UNITY_SPEEDTREE8))
+                {
+                    GPUIEditorSettings.Instance.ImportPackageAtPath(SHADERS_BUILTIN_SPEEDTREE8_PACKAGE_PATH);
+                    Debug.Log(GPUIConstants.LOG_PREFIX + "Importing SpeedTree8 shader for version " + GPUIEditorSettings.Instance.GetVersion() + "...");
+                }
+                if (Shader.Find(GPUIConstants.SHADER_NAME_PREFIX + GPUIConstants.SHADER_UNITY_SPEEDTREE9))
+                {
+                    GPUIEditorSettings.Instance.ImportPackageAtPath(SHADERS_BUILTIN_SPEEDTREE9_PACKAGE_PATH);
+                    Debug.Log(GPUIConstants.LOG_PREFIX + "Importing SpeedTree9 shader for version " + GPUIEditorSettings.Instance.GetVersion() + "...");
+                }
             }
             else
             {

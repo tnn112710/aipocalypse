@@ -988,9 +988,10 @@ namespace GPUInstancerPro.TerrainModule
             List<int> terrainPrototypeIndexes = new List<int>();
             GetTerrainTreePrototypeIndexes(index, ref terrainPrototypeIndexes);
             LoadTreeInstances();
-            foreach (int terrainPrototypeIndex in terrainPrototypeIndexes)
+            // Indexes are collected in ascending order; remove from the end to avoid shifting remaining indexes.
+            for (int i = terrainPrototypeIndexes.Count - 1; i >= 0; i--)
             {
-                RemoveTerrainTreePrototypeAtIndex(terrainPrototypeIndex);
+                RemoveTerrainTreePrototypeAtIndex(terrainPrototypeIndexes[i]);
             }
             OnRemoveTreePrototypesAtIndexes(terrainPrototypeIndexes);
             DetermineTreePrototypeIndexes(TreeManager);
@@ -1033,9 +1034,10 @@ namespace GPUInstancerPro.TerrainModule
             List<int> terrainPrototypeIndexes = new List<int>();
             GetTerrainDetailPrototypeIndexes(index, ref terrainPrototypeIndexes);
 
-            foreach (int terrainPrototypeIndex in terrainPrototypeIndexes)
+            // Indexes are collected in ascending order; remove from the end to avoid shifting remaining indexes.
+            for (int i = terrainPrototypeIndexes.Count - 1; i >= 0; i--)
             {
-                _detailPrototypes = _detailPrototypes.RemoveAtAndReturn(terrainPrototypeIndex);
+                _detailPrototypes = _detailPrototypes.RemoveAtAndReturn(terrainPrototypeIndexes[i]);
             }
             OnRemoveDetailPrototypesAtIndexes(terrainPrototypeIndexes);
             DetermineDetailPrototypeIndexes(DetailManager);

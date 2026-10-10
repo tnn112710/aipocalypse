@@ -1244,7 +1244,10 @@ namespace GPUInstancerPro
                 return;
 
             GPUIPrototype prototype = _gpuiManager.GetPrototype(_selectedIndex0);
-            GPUIEditorUtility.DrawErrorMessage(_prototypeSettingsContentVE, prototype.errorCode, prototype.prefabObject, prototype.errorFixAction != null ? () => { prototype.errorFixAction.Invoke(); DrawPrototypeButtons(); } : null);
+            if (prototype.errorCode != 0 && !string.IsNullOrEmpty(prototype.errorMessage))
+                _prototypeSettingsContentVE.Add(new GPUIHelpBox(prototype.errorMessage, HelpBoxMessageType.Error, null, prototype.errorContext != null ? prototype.errorContext : prototype.prefabObject));
+            else
+                GPUIEditorUtility.DrawErrorMessage(_prototypeSettingsContentVE, prototype.errorCode, prototype.prefabObject, prototype.errorFixAction != null ? () => { prototype.errorFixAction.Invoke(); DrawPrototypeButtons(); } : null);
 
             DrawPrototypeTypeAndObjects(prototypeSP);
         }

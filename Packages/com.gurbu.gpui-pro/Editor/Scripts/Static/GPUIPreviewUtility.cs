@@ -328,7 +328,8 @@ namespace GPUInstancerPro
                                 int submeshIndex = 0;
                                 foreach (Material mat in renderer.rendererMaterials)
                                 {
-                                    Graphics.DrawMesh(renderer.rendererMesh, renderer.transformOffset, mat, _sampleLayer, _camera, Math.Min(submeshIndex, renderer.rendererMesh.subMeshCount - 1),
+                                    Mesh rendererMesh = renderer.GetMesh();
+                                    Graphics.DrawMesh(rendererMesh, renderer.transformOffset, mat, _sampleLayer, _camera, Math.Min(submeshIndex, rendererMesh.subMeshCount - 1),
                                         null, ShadowCastingMode.Off, false, null, false);
                                     submeshIndex++;
                                 }

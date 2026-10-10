@@ -1,0 +1,31 @@
+{
+    "name": "TextStudio.Editor",
+    "rootNamespace": "TextStudio.Editor",
+    "references": [
+        "TextStudio",
+        "ImpossibleRobert.Common",
+        "TextStudio.Geometry",
+        "ImpossibleRobert.Common.Editor",
+        "Unity.TextMeshPro",
+        "Unity.TextMeshPro.Editor",
+        "UnityEditor.UI",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.febucci.text-animator-unity",
+            "expression": "1.0.0",
+            "define": "TEXTSTUDIO_TEXT_ANIMATOR_INSTALLED"
+        }
+    ],
+    "noEngineReferences": false
+}

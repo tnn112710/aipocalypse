@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9df747edf0c94a5409aaf265be0378d2, type: 3}
+  m_Name: Text Studio Built-In Reactions
+  m_EditorClassIdentifier: TextStudio::TextStudio.TextStudioReactionBuiltInLibrary
+  _entries:
+  - _id: reaction.ui.typing-sparks
+    _displayName: Typing Sparks (UI)
+    _description: A brief spark burst on each revealed glyph. Works in Play Mode
+      on UI Toolkit and Canvas text.
+    _resourcePath: TextStudio/ReactionPresets/UI Typing Sparks Reaction
+    _outputs: 1
+  - _id: reaction.world.typing-sparks
+    _displayName: Typing Sparks (World)
+    _description: A finite spark burst on each revealed world-space glyph. Works
+      with TextMeshPro text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/World Typing Sparks Reaction
+    _outputs: 2
+  - _id: reaction.ui.completion-flash
+    _displayName: Completion Flash (UI)
+    _description: A warm, finite burst when a glyph finishes revealing. Works
+      on UI Toolkit and Canvas text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/UI Completion Flash Reaction
+    _outputs: 1
+  - _id: reaction.world.completion-flash
+    _displayName: Completion Flash (World)
+    _description: A finite amber burst when a world-space glyph finishes revealing.
+      Works with TextMeshPro text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/World Completion Flash Reaction
+    _outputs: 2
+  - _id: reaction.ui.outgoing-shards
+    _displayName: Outgoing Shards (UI)
+    _description: A bounded magenta burst from each old glyph on hide or text change.
+      Works on Canvas and Unity 6.2+ UI Toolkit text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/UI Outgoing Shards Reaction
+    _outputs: 1
+  - _id: reaction.world.outgoing-shards
+    _displayName: Outgoing Shards (World)
+    _description: A bounded magenta shard burst from each old world-space glyph
+      on hide or text change. Works with TextMeshPro text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/World Outgoing Shards Reaction
+    _outputs: 2
+  - _id: reaction.ui.counter-outgoing
+    _displayName: Counter Outgoing (UI)
+    _description: Retains each changed digit for a brief warm-colored ballistic
+      exit. Works on Canvas and Unity 6.2+ UI Toolkit text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/UI Counter Outgoing Reaction
+    _outputs: 1
+  - _id: reaction.world.counter-outgoing
+    _displayName: Counter Outgoing (World)
+    _description: Retains each changed world-space digit for a brief warm-colored
+      ballistic exit. Works with TextMeshPro text in Play Mode.
+    _resourcePath: TextStudio/ReactionPresets/World Counter Outgoing Reaction
+    _outputs: 2

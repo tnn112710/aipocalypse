@@ -68,6 +68,7 @@ void setupGPUI()
     unity_ObjectToWorld = GetGPUITransformData(gpui_InstanceID);
     unity_LODFade.x = instanceData.y;
     unity_LODFade.y = round(instanceData.y * 16.0);
+    unity_LODFade.w = 2.0;
     
     //float4x4 transformOffset;
     float4x4 transformOffset = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1); // identity

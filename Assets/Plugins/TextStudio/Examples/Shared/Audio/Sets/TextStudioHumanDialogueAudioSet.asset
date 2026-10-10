@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a90cbddcc0342208cd984d49822f38f, type: 3}
+  m_Name: TextStudioHumanDialogueAudioSet
+  m_EditorClassIdentifier: TextStudio::TextStudio.TextStudioAudioSet
+  _glyphClips:
+  - {fileID: 8300000, guid: a87493e506dc82245ba66ddfb141feaa, type: 3}
+  - {fileID: 8300000, guid: c8af6de9dc629a14e9c235847839fb13, type: 3}
+  - {fileID: 8300000, guid: 208dea0c7f6270a47944bfae552afea4, type: 3}
+  _markerCues:
+  - _routeId: choice
+    _clips:
+    - {fileID: 8300000, guid: bc7c98b26ae7dec498d5d083af46db79, type: 3}
+    _clipSequenceMode: 0
+    _volume: 0.56
+    _pitchRange: {x: 0.9, y: 1.08}
+  _sourcePoolSize: 5
+  _clipSequenceMode: 2
+  _playbackMode: 0
+  _ignoreWhitespaceAndPunctuation: 1
+  _ignoredPunctuation: .,;:!?
+  _cooldownSeconds: 0.025
+  _pitchRange: {x: 0.9, y: 1.08}
+  _volume: 0.48

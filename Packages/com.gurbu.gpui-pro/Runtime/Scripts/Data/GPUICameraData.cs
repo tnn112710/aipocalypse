@@ -63,7 +63,7 @@ namespace GPUInstancerPro
         public RenderTexture HiZDepthTexture { get { return OcclusionCullingData == null ? null : OcclusionCullingData.HiZDepthTexture; } }
         public Vector2Int HiZTextureSize { get { return OcclusionCullingData == null ? Vector2Int.zero : OcclusionCullingData.HiZTextureSize; } }
 
-#if GPUI_XR
+#if GPUI_VR
         private Matrix4x4 _mvpMatrix2;
 #endif
         private bool _isVRCulling;
@@ -122,7 +122,7 @@ namespace GPUInstancerPro
             GPUIRuntimeSettings.Instance.SetRuntimeSettings();
             _instanceCountMultiplier = 1;
             _isVRCulling = false;
-#if GPUI_XR
+#if GPUI_VR
             if (GPUIRuntimeSettings.Instance.IsVREnabled)
             {
                 _isVRCulling = _camera.stereoTargetEye == StereoTargetEyeMask.Both && IsStereoEnabledForCamera(_camera)
@@ -181,7 +181,7 @@ namespace GPUInstancerPro
             if (GPUIRuntimeSettings.Instance.occlusionCullingCondition == GPUIOcclusionCullingCondition.IfDepthAvailable && !ActiveCamera.IsDepthTextureAvailable())
                 return;
 
-#if GPUI_XR
+#if GPUI_VR
             if (GPUIRuntimeSettings.Instance.IsVREnabled && GPUIRuntimeSettings.Instance.IsHDRP)
             {
                 Debug.LogWarning(GPUIConstants.LOG_PREFIX + "GPU Instancer Pro currently does not support Occlusion Culling for VR devices on HDRP. Occlusion culling will be disabled.");
@@ -240,7 +240,7 @@ namespace GPUInstancerPro
 
             _commandBuffer.UpdateBufferData();
             Matrix4x4 worldToCameraMatrix = _camera.worldToCameraMatrix;
-#if GPUI_XR
+#if GPUI_VR
             if (GPUIRuntimeSettings.Instance.IsVREnabled)
             {
                 if (UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.SinglePassInstanced)
@@ -268,7 +268,7 @@ namespace GPUInstancerPro
             }
             else
 #endif
-                _mvpMatrix = _camera.projectionMatrix * worldToCameraMatrix;
+            _mvpMatrix = _camera.projectionMatrix * worldToCameraMatrix;
 
             Vector3 cameraPos = _cachedTransform.position;
             if (OcclusionCullingData != null)
@@ -445,7 +445,7 @@ namespace GPUInstancerPro
                 else
                     _CS_CameraVisibility.DisableKeyword(GPUIConstants.Kw_GPUI_OCCLUSION_CULLING);
 
-#if GPUI_XR
+#if GPUI_VR
                 if (_isVRCulling)
                     _CS_CameraVisibility.SetMatrix(GPUIConstants.PROP_mvpMatrix2, _mvpMatrix2);
 #endif

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 335df768f208c8b47b89e17fa249e4ec, type: 3}
+  m_Name: 01_CurrentWord
+  m_EditorClassIdentifier: TextStudio.Examples.Production::TextStudio.Examples.Production.TextStudioKaraokeStylePreset
+  _displayName: Current Word
+  _buttonLabel: Current
+  _description: The active word receives a mint-to-white tint and a subtle range
+    pulse.
+  _recipe: Color Lerp + range scale pulse
+  _coverage: 0
+  _releaseDuration: 0.2
+  _activeEffect: {fileID: 11400000, guid: 5cb89c3af48818f4d9e4416592c520d8, type: 2}
+  _completedEffect: {fileID: 11400000, guid: 32ea5705f70c96c41ab5644149f58585, type: 2}
+  _reducedMotionActiveEffect: {fileID: 11400000, guid: 6e336775a3024104589c2529872b0179,
+    type: 2}
+  _reducedMotionCompletedEffect: {fileID: 11400000, guid: 32ea5705f70c96c41ab5644149f58585,
+    type: 2}
