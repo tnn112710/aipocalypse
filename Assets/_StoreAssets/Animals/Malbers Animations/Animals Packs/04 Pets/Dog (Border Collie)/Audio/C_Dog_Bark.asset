@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1233149941 &-731482972181350011
+AudioContainerElement:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Dog Barking 3_{-731482972181350011}
+  m_AudioClip: {fileID: 8300000, guid: 4c3d6e12cb5dec443bee11ed6aa065c8, type: 3}
+  m_Volume: 0
+  m_Enabled: 1
+--- !u!1233149941 &-287274226990733478
+AudioContainerElement:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Dog Barking 2_{-287274226990733478}
+  m_AudioClip: {fileID: 8300000, guid: 39610bf8e6f89b74eab5d502c7a400b9, type: 3}
+  m_Volume: 0
+  m_Enabled: 1
+--- !u!1233149941 &2246440698114376004
+AudioContainerElement:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Dog Barking 4_{2246440698114376004}
+  m_AudioClip: {fileID: 8300000, guid: e804eb74c4d41b44fa7e21136868d4b1, type: 3}
+  m_Volume: 0
+  m_Enabled: 1
+--- !u!1233149941 &6091526235021725453
+AudioContainerElement:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Dog Barking 1_{6091526235021725453}
+  m_AudioClip: {fileID: 8300000, guid: abe90cf3417ad054aae7af90e17102cb, type: 3}
+  m_Volume: 0
+  m_Enabled: 1
+--- !u!1307931743 &6418180475301049370
+AudioRandomContainer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: C_Dog_Bark
+  m_Volume: 0
+  m_Pitch: 0
+  m_AutomaticTriggerTime: 0
+  m_LoopCount: 1
+  m_VolumeRandomizationRange: {x: -6.1017036, y: 35.932186}
+  m_PitchRandomizationRange: {x: -193.22026, y: 183.05083}
+  m_AutomaticTriggerTimeRandomizationRange: {x: 0, y: 0}
+  m_LoopCountRandomizationRange: {x: 0, y: 0}
+  m_Elements:
+  - {fileID: 6091526235021725453}
+  - {fileID: -287274226990733478}
+  - {fileID: -731482972181350011}
+  - {fileID: 2246440698114376004}
+  m_AvoidRepeatingLast: 1
+  m_PlaybackMode: 2
+  m_TriggerMode: 0
+  m_AutomaticTriggerMode: 1
+  m_LoopMode: 2
+  m_VolumeRandomizationEnabled: 1
+  m_PitchRandomizationEnabled: 1
+  m_AutomaticTriggerTimeRandomizationEnabled: 0
+  m_LoopCountRandomizationEnabled: 0
