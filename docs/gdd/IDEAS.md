@@ -41,6 +41,7 @@ Raw and still-open ideas.
 
 ### World & environment (???)
 
+- Update (user, 2026-10-10): the home map shrinks to the ridge, near meadow and river; beyond the river, portals lead to mission biomes (see Promising > Portal biomes beyond the river). The far-bank, woods, mine and deep-forest design below becomes biome #1
 - Fixed map, not too big, with many places to explore; mostly alone, non-human NPCs in some places (low priority)
 - A peaceful, cozy meadow with a big river, a pond, forest, mountains and caves in different directions
 - Style: stylized/toon low poly. BK environment packs + MicroVerse presets for terrain and vegetation; Synty for props and characters; Cozy Stylized Weather 3; Stylized Water 3 (its River Modeler follows MicroVerse splines)
@@ -99,21 +100,17 @@ Raw and still-open ideas.
     - Ref: Firewatch — a map and compass, no waypoints; discovered paths get added to the map; every find feels earned
   - Something every 150–250 m (30–50 s of walking): a lookout, an old camp, a ruined cabin, a dock, beehives, berry bushes, a glitch patch, the MC's own office desk standing in the woods (easter egg)
   - Weather changes the map: rain floods the fords on the branch (the long way around), a dry spell lowers the pond and uncovers a sunken chest, fog hides landmarks
-- The home map has one consistent look (one terrain/vegetation family, one color grade, Cozy lighting); mixed styles belong to portals and enemies
-- Glitch spots: patches the AI "didn't finish" (Synty Prototype grid material, missing-texture magenta) that hide portals
+- The home map has one consistent look (one terrain/vegetation family, one color grade, Cozy lighting); mixed styles belong to the portal biomes and enemies
+- Glitch spots: patches the AI "didn't finish" (Synty Prototype grid material, missing-texture magenta) that hide secrets (relics, easter eggs)
 
-### Biome portals (???)
+### Grand trial portal (???)
 
-- Hidden portals/caves teleport the player to other biomes (other BK packs) for an exploration + survival rogue-like mission like Megabonk
-- Suggested: the grand trial split into pieces. Each portal biome is one trial stage; clearing it gives a key fragment + rare loot; all fragments open the final trial (escape ending)
+- Updated (user, 2026-10-10): the portals beyond the river lead to daily mission biomes (see Promising > Portal biomes beyond the river). A separate grand trial portal unlocks once all the relics are found
 - Ref: Megabonk — each stage has a ~10 min timer, a boss portal hidden somewhere on the map, and a final swarm at 0:00; beating the boss opens the portal to the next stage
-- Direction (user, 2026-10-10): portals later add separate Duckov-style raid maps (other biomes, better loot), after the home-map loop works. Open: keep the Megabonk run format inside them, or play them as normal raids
-- Open questions:
+- Open questions for the trial run:
   - Ammo vs hordes: suggested "trial ammo", plentiful inside and gone at the exit, so ammo stays scarce at home. Level-up cards that last only for the run reuse the perk card UI
-  - Sun timer: suggested a portal run costs the rest of the day; you come back at dusk and still choose the fire. Alternative: the run replaces the night fight
+  - Sun timer: suggested the run costs the rest of the day; you come back at dusk and still choose the fire. Alternative: the run replaces the night fight
   - Death inside: lose only that run's rewards (???)
-  - Finding portals: glitch particles/sounds, the drone's scanner, bottle maps
-  - Each biome = BK pack + MicroVerse preset + Cozy weather profile + enemy theme; build one biome after the core loop works
 
 ### Activities
 
@@ -171,12 +168,9 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 ### Extraction loop — Duckov in first person, plus base defense
 
 - Direction (user, 2026-10-10): more like Escape from Duckov — an extraction shooter FPS + base defense. Defend the base at night; explore and wander freely by day
-- The home map is the raid (user): no hub/raid-map split. Every day trip is a raid, and loot only counts once it's home
-- Home is the main exit; walking back is extracting
-  - Suggested: 2–3 field exits that are faster but cost something or need a condition: a zipline from a far lookout, a drone pickup beacon, a minecart from the mine
-  - Ref: Escape from Duckov — exits (green smoke) include side tunnels and manholes; guides say learn two routes before you loot
-- Safe or risky is the player's choice (user): fish and chop around the house to play safe, or cross the river to explore
-  - Suggested: the near bank pays for food and the fire (fish, wood); guns, ammo, gear and materials are on the far bank, so playing safe never covers everything. The bridges and fords become the raid's entry and exit points
+- Home is the hub; raids happen in portal biomes beyond the river, and loot only counts once it's home (user, 2026-10-10; replaces "the home map is the raid"). Entry is one-way, so you extract through exits inside the biome (see Portal biomes beyond the river)
+- Safe or risky is the player's choice (user): fish and chop around the house to play safe, or cross the river and take a portal
+  - Suggested: home pays for food and the fire (fish, wood); guns, ammo, gear and materials come from the biomes, so playing safe never covers everything
 - Loadout risk: you choose what to take from the stash; what you carry can be lost
 - Death (user: Duckov's grave merged with the 50–70% rule): lose 50–70%; the lost share drops in a grave where you died, with one chance to recover it — gone if you die again first. The dog's backpack and equipped melee are always kept
   - (???) 50–70% of what you carried only, or stored items too? Suggested: carried only, so the stash is safe (matches Night stakes)
@@ -184,14 +178,48 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Night stakes (user): a lost night defense damages the base (fences, defenses, crops, stations), and repairs cost materials; the stash stays safe. Dying at night puts the grave at base, so the damage is the real cost
   - (???) Skip-streak thieves still take stored food and items (see Rest vs fight balance). Suggested: limit them to food, crops and animals outside the house, and keep the stash locked
 - Tension: every bullet you take on a trip is one you won't have for tonight's defense
-- Portals later add separate Duckov-style raid maps (see Biome portals)
 - Ref: Road to Vostok — single-player survival FPS; shelters are the only save point and safe storage, and dying outside loses what you carried. The loop works in first person
 - Ref: Outpost: Infinity Siege — FPS + tower defense + base building + extraction; OpenCritic 58, critics said the extraction gathering and rogue-like parts diluted it. Keep each layer simple
 - Suggested (not agreed yet):
   - Economy [TBD] gets more urgent: extraction runs on loot value (selling, vendors, upgrades). Reopen it when you're ready
-  - Loot and enemies refill daily (containers restock at dawn, random spawn spots), or the persistent map runs dry
   - Gear becomes progression too (gun mods, armor tiers, bigger backpacks), next to XP and perk cards: three systems, one may need trimming
   - Ready-made from Review suggestions: backpack weight limit, container search with rarity colors, 3 ammo types, low-ammo safety net
+
+### Portal biomes beyond the river
+
+- Idea (user, 2026-10-10): beyond the river, mission biomes change every day, each a different map with its own lootables, enemies and easter eggs
+- Portals, not a seamless far side (user, 2026-10-10): you preview each biome from home, enter through a portal, then find a way out or search for relics. Like Duckov's other maps: you have to extract to get back to base
+- Up to 3 portals open at a time, out of up to 6 biomes (user)
+  - Shuffle-bag offers: every dawn 3 of the 6 open, and at least one still holds a relic you haven't found, so relic progress never stalls
+  - Ref: Tetris — the 7-bag randomizer deals all 7 pieces before repeating, which prevents long droughts
+- 3 fixed portal spots across the river, visible from the house
+- Preview: the drone scans each portal (biome, weather, threat level, relic); the portal surface shows a pre-made 360° snapshot of its biome (a live camera into another scene costs much more)
+  - Ref: Lethal Company — the terminal lists each moon with today's weather before you pick
+  - Ref: Hades — each exit door shows its reward, so you choose a path by what you want
+- One-way entry (user): the portal closes behind you; leave through one of 2–3 exits inside the biome
+  - Suggested: some exits need a condition or cost (a zipline, a drone pickup beacon, a minecart out of the mine)
+  - Ref: Escape from Duckov — exits (green smoke) include side tunnels and manholes; guides say learn two routes before you loot
+- Hand-made pool (user): biomes repeat, so players learn each map; its contents roll on every visit
+  - Biome #1 = the far-bank design in World & environment: woods, mine, deep forest (user)
+  - Suggested: each biome has fixed spots for points of interest, containers, enemy spawns, exits and easter eggs, filled at random each visit, plus random weather. Start with 2 biomes and add more over time
+  - Suggested: each biome is a theme the AI "generated": BK pack + MicroVerse preset + Cozy weather profile + enemy theme + loot table + easter eggs (dino jungle, zombie suburb, robot factory, 8-bit arcade…)
+  - Suggested: rare biomes as jackpot days (the MC's office, a golden world, a half-rendered world)
+  - Ref: Lethal Company — each moon has a fixed exterior and a random interior (Facility, Manor or Mineshaft), and the weather is random every day
+  - Ref: Pacific Drive — the garage is the persistent base; junction roads stay the same, but landmarks, buildings, anomalies, loot and exits are placed again on each visit
+  - Ref: Dave the Diver — the Blue Hole reshapes its layout and fish between dives
+  - Ref: Animal Crossing: New Horizons — a Mystery Island ticket goes to a random island (~20 layouts, a few rare); once you leave, it's gone forever
+  - Ref: Kate Compton's "10,000 bowls of oatmeal" — procedural output that's unique on paper but feels the same; why hand-made biomes beat generated ones here
+- The home map shrinks to the ridge, near meadow and river (user): base, fishing, chopping, the night arena. Anything you build stays at home; gates and shortcuts inside a biome belong to it, and permanent upgrades (e.g. a better axe for the fallen log) open them on every visit
+- Night enemies don't come out of the portals (user): night themes roll on their own
+- Death inside: the grave stays while that portal is open, so you have until you sleep to recover it
+- The sun keeps running inside. Staying out at night (user): if you're still in a biome at night, the base isn't attacked, but the risk is on you
+  - Suggested: the Dark still applies in there (carry a light); night enemies are tougher and loot is better, like Duckov's night raids. No base fight means no perk card
+  - Staying out doesn't count toward the skip streak (user, 2026-10-10)
+  - Portals only reroll when you sleep, so staying out could stretch one biome over several days; staying out costs your sleep, so sanity doesn't recover and you can't keep it up (user, 2026-10-10)
+  - Big-fight nights can't be skipped: on those nights the biomes shut down at dusk and the drone sends anyone still inside back home ("Please return to the play area") (user, 2026-10-10)
+- Grand trial portal (user): unlocks once you find all the relics (user, 2026-10-10: relics, not missions)
+  - Suggested: one relic per biome, found by searching (possibly over several visits). The locked portal sits behind the waterfall near home, a goal you can see from day one (answers the waterfall-portal question in World & environment)
+- Suggested (tech): each biome is its own scene; the home map can unload while you're inside
 
 ### Stats — two groups
 
@@ -450,3 +478,5 @@ Many short "one more go" minigames, each a simpler take on a famous game. Extend
 - Field campfire when caught outside at dusk — not wanted
 - "Days without incident" streak sign with a growing bonus — not wanted
 - Run-ending death (Dome Keeper / Don't Starve style) — death costs loot, never the run, like Escape from Duckov
+- A seamless far side that swaps daily (walk across the river into it) — every world would have to fit the same river edge, bridge ends, terrain heights and footprint, and a bridge home is always nearby, so extraction loses its tension; portals instead
+- Night enemies coming out of the open portals — night themes stay separate from the portals

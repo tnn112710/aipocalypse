@@ -40,8 +40,8 @@ Every 10th night: BIG FIGHT (the fire can't be put out)
 
 ### Loop rules
 
-1. **The day trip is the raid** — one open map, no separate raid maps. Home is the main exit; what you carry can be lost until you get there. The stash at home is safe.
-2. **Play safe or cross the river** — fishing and chopping around the house are safe; across the river is where the danger and the loot are.
+1. **Home is the hub, biomes are the raids** — across the river, up to 3 portals open each day, out of up to 6 hand-made biomes. Pick one; the portal is one-way, so you find an exit inside to get home. What you carry can be lost until then; the stash at home is safe.
+2. **Play safe or cross the river** — fishing and chopping around the house are safe; the portals across the river are where the danger and the loot are.
 3. **The sun is the timer** — time passes in real time, at base too. Be home before dark.
 4. **Everything feeds everything** — loot and fish pay for ammo; shooting protects your raids and drops loot; wood fuels the night. "Every bullet is a fish you caught."
 5. **Ammo is limited** — every shot costs something, out on a raid or defending at night; melee is the fallback.
@@ -56,7 +56,8 @@ Every 10th night: BIG FIGHT (the fire can't be put out)
 ## Day
 
 - **Time passes gradually in real time**, also at base. Dusk warns you; get home before dark. Activities and walking take real time; upgrades make activities faster.
-- **Raids:** pick a loadout from the stash, head out, loot what you can carry, and get it home.
+- **Raids:** pick a loadout from the stash, pick a portal, loot what you can carry and find an exit home.
+- **Portal biomes:** each biome is a hand-made map with its own lootables, enemies and easter eggs; what's in it rolls on every visit. The offer rerolls when you sleep, and the drone scans each portal first (biome, weather, threat, relic).
 - **Activities:** exploring and looting (food, materials, gear), fishing, fighting out in the world, chopping trees (wood fuels the fire), building and repairing.
 - **Minigames live inside activities**, never in arcade boxes, e.g. fish jump at hanging bait (shoot them).
 - **Daytime dangers** are out in the world: snakes, predators, enemies far from base. The base is never attacked during the day.
@@ -74,7 +75,8 @@ At dusk, the player chooses the fire:
 
 - **Lose a night defense** and the base takes damage: fences, defenses and buildings need materials to repair. The stash stays safe.
 - **Skip streak:** the first skip is free; a second in a row brings thieves who take some stored food and items; from the third on, raiders damage fences and buildings. Fighting resets the streak. Fences, scarecrows, the dog and lamps reduce raids.
-- **Big fights** (every 10th night, visible countdown, harder each time): the AI Lord relights the fire — no hiding, no delaying.
+- **Stay out:** still in a biome at night? The base isn't attacked, but the risk is on you. It doesn't count as a skip, but it costs your sleep, so sanity doesn't recover.
+- **Big fights** (every 10th night, visible countdown, harder each time): the AI Lord relights the fire — no hiding, no delaying. The biomes shut down at dusk and the drone sends anyone still inside home.
 - **Night types** come from enemy themes (zombie, robot, dino, Sky Invaders…). Each has a small-night version and a big-fight boss version.
 - **Light vs the Dark:** inside the light you're safe from the Dark (not from monsters). In the dark, sanity drains and warnings escalate; go too far and a hidden terror kills you instantly. Glowing loot in the dark tempts greedy players.
 
@@ -96,11 +98,11 @@ At dusk, the player chooses the fire:
 
 ## World
 
-- Fixed, compact map. The house sits on a ridge at the edge, above the sea. The home side of the river is safe by day; across it, the map gets riskier and richer.
+- **Home map:** small and fixed — the house on a ridge above the sea, a meadow, and a river in front. Safe by day: fishing, chopping, building, and the night arena.
+- **Beyond the river:** 3 fixed portal spots lead to the day's biomes (see Day).
 - **Weather + day/night** change gameplay, e.g. rain helps fishing but puts out fires faster; fog shortens vision.
 - Mostly alone; a few non-human NPCs later.
 - Always first person.
-- Later: hidden portals lead to separate raid maps in other biomes.
 
 ## Companions
 
@@ -117,24 +119,24 @@ At dusk, the player chooses the fire:
 ## Failure
 
 - **Death never ends the run.** XP, buildings, upgrades and permanent perk cards are always kept.
-- **Die anywhere** (out in the world or on any night): wake at base and lose 50–70% of your loot. The lost share drops in a grave where you died; you get one chance to recover it — die again first and it's gone. The dog's backpack and equipped melee are always kept. Upgrades reduce the loss.
+- **Die anywhere** (out in the world or on any night): wake at base and lose 50–70% of your loot. The lost share drops in a grave where you died; you get one chance to recover it — die again first, or sleep before you reach a grave in a biome, and it's gone. The dog's backpack and equipped melee are always kept. Upgrades reduce the loss.
 - **Lose a big fight:** the same loot loss, and the clock rewinds a few days (start with 3). You get time to prepare, but you still have to fight it.
 
 ## Endings
 
-- **Escape:** beat the grand trial (a rogue-lite run, designed later). Wake at your desk and discover the sandbox is the game you were making — AI took over. Delete it, fix it, leave it, or go back in.
+- **Escape:** find the relics hidden in the biomes to open the grand trial portal, then beat the trial (a rogue-lite run, designed later). Wake at your desk and discover the sandbox is the game you were making — AI took over. Delete it, fix it, leave it, or go back in.
 - **Secret:** win the lottery at an extremely rare chance and instantly win.
 - Otherwise the game continues without end.
 
 ## Not decided yet
 
-Crafting and economy (shops, selling, buying ammo), what the 50–70% loss counts (only what you carried, or stored items too), whether skip-streak thieves can take stash items, perk card details (duration rules, duplicates, separate permanent pool, reroll per pick or per cycle, whether temporary cards survive death), portal raid maps (a Megabonk-style run or a normal raid), grand trial details, a "stay forever" ending, key fragments to unlock the trial, intro setup.
+Crafting and economy (shops, selling, buying ammo), what the 50–70% loss counts (only what you carried, or stored items too), whether skip-streak thieves can take stash items, perk card details (duration rules, duplicates, separate permanent pool, reroll per pick or per cycle, whether temporary cards survive death), grand trial details, a "stay forever" ending, intro setup.
 
 ## Inspirations
 
 | Game | What we take | What we leave |
 | --- | --- | --- |
-| Escape from Duckov | The extraction loop: go out, loot, get it home; a grave to recover lost loot; the dog's backpack as a safe slot; limited ammo with melee fallback; a real-time clock that runs at base too; fishing; death costs loot, not the run | Top-down view; separate raid maps (only later, through portals) |
+| Escape from Duckov | The extraction loop: a home hub, separate raid maps, find an exit to get home; a grave to recover lost loot; the dog's backpack as a safe slot; limited ammo with melee fallback; a real-time clock that runs at base too; fishing; death costs loot, not the run | Top-down view |
 | Darkwood | Home before dark; light draws enemies, hiding avoids them | Grim horror tone |
 | Village 51 | Base defense + first-person shooting in one game | Farming as a core activity |
 | Chop Chop Inc. | Chopping trees that regrow; "desk worker becomes strong" humor | Deep crafting and production lines |
