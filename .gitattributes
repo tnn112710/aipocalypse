@@ -74,6 +74,16 @@ Packages/packages-lock.json linguist-generated
 *.cubemap               lfs
 *.unitypackage          lfs
 
+# Terrain data: binary TerrainData .asset files (heightmaps/splatmaps), often >100 MB
+Terrain*.asset                      lfs
+*Terrain.asset                      lfs
+*terrain.asset                      lfs
+**/Terrain/*.asset                  lfs
+**/Terrains/*.asset                 lfs
+**/Terrain[[:space:]]Data/*.asset   lfs
+*.raw                               lfs
+*.r16                               lfs
+
 # 3D models
 *.3dm                   lfs
 *.3ds                   lfs
