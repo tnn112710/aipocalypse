@@ -12,7 +12,7 @@ Raw and still-open ideas.
 
 - Engine: Unity, asset-store based
 - Team: solo programmer; art/audio/content bought from asset stores; placeholders first for prototype
-- Genre: FPS, base defense shooting, looting, fishing, survival, rogue-lite, simulation, semi open world; mid-core, low-budget indie
+- Genre: extraction shooter FPS + base defense (user, 2026-10-10: "more like Escape from Duckov"); looting, fishing, survival, rogue-lite, simulation, semi open world; mid-core, low-budget indie
 - Style: stylized low poly/toon
 - Inspirations: Village 51, Chop Chop Inc., Escape from Duckov, Dome Keeper, Darkwood, How to Fish, Dave the Diver, Swamp Attack 1 & 2, Megabonk
 - DNA: "How many things do you want to add?" — "Yes!" Fun, various activities, chilling, FPS
@@ -107,6 +107,7 @@ Raw and still-open ideas.
 - Hidden portals/caves teleport the player to other biomes (other BK packs) for an exploration + survival rogue-like mission like Megabonk
 - Suggested: the grand trial split into pieces. Each portal biome is one trial stage; clearing it gives a key fragment + rare loot; all fragments open the final trial (escape ending)
 - Ref: Megabonk — each stage has a ~10 min timer, a boss portal hidden somewhere on the map, and a final swarm at 0:00; beating the boss opens the portal to the next stage
+- Direction (user, 2026-10-10): portals later add separate Duckov-style raid maps (other biomes, better loot), after the home-map loop works. Open: keep the Megabonk run format inside them, or play them as normal raids
 - Open questions:
   - Ammo vs hordes: suggested "trial ammo", plentiful inside and gone at the exit, so ammo stays scarce at home. Level-up cards that last only for the run reuse the perk card UI
   - Sun timer: suggested a portal run costs the rest of the day; you come back at dusk and still choose the fire. Alternative: the run replaces the night fight
@@ -114,56 +115,12 @@ Raw and still-open ideas.
   - Finding portals: glitch particles/sounds, the drone's scanner, bottle maps
   - Each biome = BK pack + MicroVerse preset + Cozy weather profile + enemy theme; build one biome after the core loop works
 
-### Activities / minigames / microgames
+### Activities
 
-- Build up base/farm
+- Core activities (user, 2026-10-10): fishing and tree chopping. The tiny farm and minigames moved to Extras
+- Build up base
 - Wood, log chopping — agreed, see Promising > Wood & resources
-- Light farming, kept tiny (shooting, fishing and collecting come first): small garden, a few animals (chickens, ducks), collect eggs
-- Fishing, gun fishing, duck shooting
-- Lottery, classic minigames
-- Funny minigames: whack-a-mole, duck shooting, space invaders, fish shooting, etc. — direction agreed, see Promising > Minigames
-
-### Minigame system (???)
-
-Many short "one more go" minigames, each a simpler take on a famous game. Extends Promising > Minigames.
-
-- Every minigame = **template + skin + host + reward**, like enemy = archetype + skin. Code a template once; new minigames are mostly data and art
-- Templates:
-  1. Shooting gallery: targets move on paths; aim and shoot with the real gun
-  2. Timing bar: stop or hold inside a zone
-  3. Reveal grid: scratch, dig or flip hidden cells
-  4. Cards: draw, pick, score combos (reuses the perk card UI)
-  5. Drop & merge: physics drop; matching items merge
-- Hosts (???: loosens "never in arcade boxes"):
-  - Interruption: pops up during an activity (whack-a-mole while checking crops)
-  - Activity: the activity itself is the minigame (fishing, cooking)
-  - Device: in-world objects with a story reason — the MC's old work laptop, the AI Lord's vending machine, the drone's screen. Still no arcade cabinets
-- When to play device games (???): by day at base (costs daylight) / lights-out nights before sleep, where the laptop glow may draw sniffers ("pretend nobody's home") / quiet rainy nights
-- Guardrails:
-  - Sessions 30 s – 3 min; the sun keeps moving, so playing costs daylight
-  - Rewards feed core resources (coins, food, luck, gunpowder, XP) but stay small next to going out; device games have daily limits ("machine restocks tomorrow")
-  - Shooting minigames use real ammo and pay off only with good aim: trains the core skill, keeps "every bullet counts"
-  - One hook per minigame: high score, collection log, upgrades, or a rare jackpot
-  - No real playing cards or casino art (age rating); parody names and our own art
-- Ref: Dave the Diver — many minigames, each feeding the dive ↔ sushi loop
-- Ref: Stardew Valley — Journey of the Prairie King pulls players away from the farm for hours; keep minigame rewards small so they stay side dishes
-- Ref: Balatro — rated PEGI 18 for "gambling imagery" (it teaches poker hands), later appealed down to 12
-
-| Minigame | Based on | Template | Host | Hook / reward |
-| --- | --- | --- | --- | --- |
-| Ducks Must Be Paid | Bills Must Be Paid: smash bouncing piggy banks until stamina runs out; bills with deadlines; pay one → pick a perk | Shooting gallery | Pond | Coin-carrying ducks; the AI Lord's "bills" arrive with deadlines; pay one → pick a mini-perk for the session |
-| Cast n Chill fishing | Cast n Chill: active or idle fishing, logbook | Timing bar | Fishing | Chill active fishing; idle rods set at the dock before leaving, collected at dusk; fish log |
-| Scratch tickets | Scritchy Scratchy: drag to scratch, ticket tiers, Scratch Bot automation, prestige | Reveal grid | Vending machine | Ticket tiers; Luck shifts odds; the drone offers to "automate your hobby"; the secret-ending lottery is the rarest ticket |
-| Quarterly Review | Balatro: poker hands × Joker multipliers vs a target score | Cards | Laptop | Office/fish cards; Coworker cards (Intern, Middle Manager) as multipliers; beat the KPI |
-| Aim trainer | Aim Lab | Shooting gallery | The drone throws targets | Gunsmanship XP; costs ammo |
-| Compost bin | Suika Game | Drop & merge | Farm | Matching scraps merge; top tier = fertilizer or a golden veg |
-| Woodshed stacking | Tetris | Drop & merge | Chopping | Full rows = dry wood that burns longer |
-| Treasure dig | Minesweeper | Reveal grid | Bottle maps | Detector numbers show nearby loot; a wrong dig springs a trap |
-| Prove you're not a robot | CAPTCHA | Reveal grid | Vending machine | "Select all squares with fish"; harder as the Lord gets suspicious; a joke gate before buying |
-| Campfire cooking | Cooking Mama | Timing bar | Base | A perfect cook = better food |
-| Decode the signal | Wordle | Word puzzle (later) | Signals board | Daily word reveals tonight's hidden "?" signal |
-| Solitaire | Windows Solitaire | Cards | Laptop | Pure office joke; the bouncing-cards win screen |
-| Fish shooting, whack-a-mole, Sky Invaders | (already agreed) | Shooting gallery | Fishing / crops / night | — |
+- Fishing, gun fishing
 
 ### Night types & night map (???)
 
@@ -210,6 +167,31 @@ Raised while reworking the core loop; not reviewed yet.
 ## Promising
 
 Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details stay here until they move into their own topic files.
+
+### Extraction loop — Duckov in first person, plus base defense
+
+- Direction (user, 2026-10-10): more like Escape from Duckov — an extraction shooter FPS + base defense. Defend the base at night; explore and wander freely by day
+- The home map is the raid (user): no hub/raid-map split. Every day trip is a raid, and loot only counts once it's home
+- Home is the main exit; walking back is extracting
+  - Suggested: 2–3 field exits that are faster but cost something or need a condition: a zipline from a far lookout, a drone pickup beacon, a minecart from the mine
+  - Ref: Escape from Duckov — exits (green smoke) include side tunnels and manholes; guides say learn two routes before you loot
+- Safe or risky is the player's choice (user): fish and chop around the house to play safe, or cross the river to explore
+  - Suggested: the near bank pays for food and the fire (fish, wood); guns, ammo, gear and materials are on the far bank, so playing safe never covers everything. The bridges and fords become the raid's entry and exit points
+- Loadout risk: you choose what to take from the stash; what you carry can be lost
+- Death (user: Duckov's grave merged with the 50–70% rule): lose 50–70%; the lost share drops in a grave where you died, with one chance to recover it — gone if you die again first. The dog's backpack and equipped melee are always kept
+  - (???) 50–70% of what you carried only, or stored items too? Suggested: carried only, so the stash is safe (matches Night stakes)
+  - Ref: Escape from Duckov — on normal difficulty gear drops in a grave and is lost if you die again before reaching it; the dog's backpack survives death
+- Night stakes (user): a lost night defense damages the base (fences, defenses, crops, stations), and repairs cost materials; the stash stays safe. Dying at night puts the grave at base, so the damage is the real cost
+  - (???) Skip-streak thieves still take stored food and items (see Rest vs fight balance). Suggested: limit them to food, crops and animals outside the house, and keep the stash locked
+- Tension: every bullet you take on a trip is one you won't have for tonight's defense
+- Portals later add separate Duckov-style raid maps (see Biome portals)
+- Ref: Road to Vostok — single-player survival FPS; shelters are the only save point and safe storage, and dying outside loses what you carried. The loop works in first person
+- Ref: Outpost: Infinity Siege — FPS + tower defense + base building + extraction; OpenCritic 58, critics said the extraction gathering and rogue-like parts diluted it. Keep each layer simple
+- Suggested (not agreed yet):
+  - Economy [TBD] gets more urgent: extraction runs on loot value (selling, vendors, upgrades). Reopen it when you're ready
+  - Loot and enemies refill daily (containers restock at dawn, random spawn spots), or the persistent map runs dry
+  - Gear becomes progression too (gun mods, armor tiers, bigger backpacks), next to XP and perk cards: three systems, one may need trimming
+  - Ready-made from Review suggestions: backpack weight limit, container search with rarity colors, 3 ammo types, low-ammo safety net
 
 ### Stats — two groups
 
@@ -279,8 +261,8 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Big fight every 10th night on a fixed, visible countdown; harder each time; the AI Lord relights the fire, so no hiding; can't be delayed or skipped
 - Signals: symbols on the ground in front of the house hint at what's coming if the fire is lit; each shows a % chance to happen
 - Death never ends the run; XP, buildings and upgrades are always kept (like Escape from Duckov)
-- Any death (out in the world, small night, big fight): wake at base and lose 50–70% of loot — a share of everything, stored items included
-- Part of the lost loot is hidden somewhere on the map and can be partly recovered (???: how — e.g. a vague drone hint, one chance, gone if you die again first)
+- Any death (out in the world, small night, big fight): wake at base and lose 50–70% of loot (???: carried only, or stored items too — see Extraction loop)
+- The lost share drops in a grave where you died; one chance to recover it, gone if you die again first (user, 2026-10-10)
 - Upgrades reduce the loss
 - Losing a big fight also rewinds the clock X days (start: 3 (???)); the boss comes back when the countdown ends — you still have to fight it
 - Dogs fight at a low rate; upgradable
@@ -350,7 +332,6 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 ### Minigames — built into day actions
 
 - Minigames happen inside normal actions in the world, not in arcade cabinets
-- Whack-a-mole: happens occasionally while checking crops
 - Fish shooting: hang bait over the water, fish jump out, shoot them
 - Sky Invaders: night fight mission — both a small-night mission and a big-fight version with a mothership boss
   - Formation moves side to side, steps down, speeds up as fewer remain; barn roofs/fences act as shields; landed invaders abduct animals
@@ -409,6 +390,56 @@ Liked, but not part of the core loop. They add fun, comedy and "wow" on top of i
   - Overtime: dusk lasts 1 minute longer
   - Copy-Paste: once a day, duplicate a caught fish
   - Per My Last Email: melee hits knock enemies far back
+
+### Tiny farm
+
+- Moved out of the core loop (user, 2026-10-10)
+- Light farming, kept tiny: small garden, a few animals (chickens, ducks), collect eggs
+- Whack-a-mole: happens occasionally while checking crops
+
+### Minigame system (???)
+
+- Moved out of the core loop (user, 2026-10-10), together with duck shooting, the lottery and other classic minigames
+
+Many short "one more go" minigames, each a simpler take on a famous game. Extends Promising > Minigames.
+
+- Every minigame = **template + skin + host + reward**, like enemy = archetype + skin. Code a template once; new minigames are mostly data and art
+- Templates:
+  1. Shooting gallery: targets move on paths; aim and shoot with the real gun
+  2. Timing bar: stop or hold inside a zone
+  3. Reveal grid: scratch, dig or flip hidden cells
+  4. Cards: draw, pick, score combos (reuses the perk card UI)
+  5. Drop & merge: physics drop; matching items merge
+- Hosts (???: loosens "never in arcade boxes"):
+  - Interruption: pops up during an activity (whack-a-mole while checking crops)
+  - Activity: the activity itself is the minigame (fishing, cooking)
+  - Device: in-world objects with a story reason — the MC's old work laptop, the AI Lord's vending machine, the drone's screen. Still no arcade cabinets
+- When to play device games (???): by day at base (costs daylight) / lights-out nights before sleep, where the laptop glow may draw sniffers ("pretend nobody's home") / quiet rainy nights
+- Guardrails:
+  - Sessions 30 s – 3 min; the sun keeps moving, so playing costs daylight
+  - Rewards feed core resources (coins, food, luck, gunpowder, XP) but stay small next to going out; device games have daily limits ("machine restocks tomorrow")
+  - Shooting minigames use real ammo and pay off only with good aim: trains the core skill, keeps "every bullet counts"
+  - One hook per minigame: high score, collection log, upgrades, or a rare jackpot
+  - No real playing cards or casino art (age rating); parody names and our own art
+- Ref: Dave the Diver — many minigames, each feeding the dive ↔ sushi loop
+- Ref: Stardew Valley — Journey of the Prairie King pulls players away from the farm for hours; keep minigame rewards small so they stay side dishes
+- Ref: Balatro — rated PEGI 18 for "gambling imagery" (it teaches poker hands), later appealed down to 12
+
+| Minigame | Based on | Template | Host | Hook / reward |
+| --- | --- | --- | --- | --- |
+| Ducks Must Be Paid | Bills Must Be Paid: smash bouncing piggy banks until stamina runs out; bills with deadlines; pay one → pick a perk | Shooting gallery | Pond | Coin-carrying ducks; the AI Lord's "bills" arrive with deadlines; pay one → pick a mini-perk for the session |
+| Cast n Chill fishing | Cast n Chill: active or idle fishing, logbook | Timing bar | Fishing | Chill active fishing; idle rods set at the dock before leaving, collected at dusk; fish log |
+| Scratch tickets | Scritchy Scratchy: drag to scratch, ticket tiers, Scratch Bot automation, prestige | Reveal grid | Vending machine | Ticket tiers; Luck shifts odds; the drone offers to "automate your hobby"; the secret-ending lottery is the rarest ticket |
+| Quarterly Review | Balatro: poker hands × Joker multipliers vs a target score | Cards | Laptop | Office/fish cards; Coworker cards (Intern, Middle Manager) as multipliers; beat the KPI |
+| Aim trainer | Aim Lab | Shooting gallery | The drone throws targets | Gunsmanship XP; costs ammo |
+| Compost bin | Suika Game | Drop & merge | Farm | Matching scraps merge; top tier = fertilizer or a golden veg |
+| Woodshed stacking | Tetris | Drop & merge | Chopping | Full rows = dry wood that burns longer |
+| Treasure dig | Minesweeper | Reveal grid | Bottle maps | Detector numbers show nearby loot; a wrong dig springs a trap |
+| Prove you're not a robot | CAPTCHA | Reveal grid | Vending machine | "Select all squares with fish"; harder as the Lord gets suspicious; a joke gate before buying |
+| Campfire cooking | Cooking Mama | Timing bar | Base | A perfect cook = better food |
+| Decode the signal | Wordle | Word puzzle (later) | Signals board | Daily word reveals tonight's hidden "?" signal |
+| Solitaire | Windows Solitaire | Cards | Laptop | Pure office joke; the bouncing-cards win screen |
+| Fish shooting, whack-a-mole, Sky Invaders | (already agreed) | Shooting gallery | Fishing / crops / night | — |
 
 ## Rejected
 

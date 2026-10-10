@@ -6,6 +6,6 @@ Design intent, split into topic files. Implementation lives in `../technicals/AR
 
 | File | Covers | Status |
 | --- | --- | --- |
-| [CORE.md](CORE.md) | Pitch, pillars, premise, core loop, day/night, player, combat, world, companions, resources, failure, endings | Draft |
+| [CORE.md](CORE.md) | Pitch, pillars, premise, core loop (extraction + base defense), day/night, player, combat, world, companions, resources, failure, endings | Draft |
 
 Detailed topic files (player, weapons, enemies, night fights, activities, world, story, economy, UI, art, audio) get added here as each area is designed.

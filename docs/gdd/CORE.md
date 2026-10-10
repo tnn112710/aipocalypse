@@ -4,17 +4,17 @@ High-level design of aipocalypse. Details live in topic files as they're written
 
 ## Pitch
 
-A first-person survival shooter. A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. By day, go out to scavenge, fish and fight, and get home before dark. By night, light the fire and fight whatever it attracts — or put it out and pretend nobody's home.
+A first-person extraction shooter with base defense. A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. By day, head out to loot, fish and fight, and bring it all home before dark: loot only counts once it's home. By night, light the fire and defend the base against whatever it attracts — or put it out and pretend nobody's home.
 
 ## Pillars
 
-1. **Every bullet counts** — shooting is the star, but ammo is limited. Save it, earn it, and fall back on melee when it runs out.
-2. **Go out, get home** — collecting and fishing happen out in the world, and the sun is the timer. One more fish, or home before dark?
-3. **Lights on or lights off** — every night you choose to fight or hide. You can rest, but you can't hide forever.
+1. **Every bullet counts** — shooting is the star, but ammo is limited. Every bullet you take on a trip is one you won't have for tonight. Fall back on melee when it runs out.
+2. **Bring it home** — every day trip is a raid: what you carry is at risk until you're home, and the sun is the timer. One more crate, or home before dark?
+3. **Lights on or lights off** — every night you choose to defend the base or hide. You can rest, but you can't hide forever.
 4. **From office worker to survivor** — the player starts weak and clumsy and *feels* every improvement. The longer you survive, the stronger you get.
 5. **Everything is a game** — the world is AI-made, so classic games, references and déjà vu show up everywhere. Funny, never too serious.
 
-**Core experiences:** gun shooting (melee when out of ammo), fishing (the fun, chill part), item collecting (food and materials found while exploring). Each one feeds the others.
+**Core experiences:** gun shooting (melee when out of ammo), looting and extracting (search, carry, get it home), defending the base at night, and fishing and chopping (the safe, chill part near home). Each one feeds the others.
 
 ## Premise & tone
 
@@ -24,38 +24,41 @@ A first-person survival shooter. A game dev burned out by AI wakes up in the pea
 
 ## Core loop
 
-```
-MORNING (signals, plan) → DAY (go out: collect, fish, fight) → DUSK (get home) → NIGHT (fire on: fight / fire out: hide)
-   ↑                                                                                            |
-   └────────────── loot, XP, perk cards → longer trips, bigger fires, stronger player ──────────┘
+```text
+MORNING (signals, loadout) → DAY (raid: loot, fish, fight) → DUSK (get home = extract) → NIGHT (fire on: defend / fire out: hide)
+   ↑                                                                                             |
+   └── extracted loot, XP, perk cards → better gear, stronger base, longer raids, bigger fires ──┘
 Every 10th night: BIG FIGHT (the fire can't be put out)
 ```
 
 | Scale | What the player does |
 | --- | --- |
 | Seconds | Shoot, melee, loot, fish, dodge, stay in the light |
-| One day | Go out and get back before dark; choose the fire for the night |
-| One cycle (10 days) | Build up for the next big fight; stack perk cards before it |
+| One day | Pick a loadout, raid, get home before dark; choose the fire for the night |
+| One cycle (10 days) | Build up gear and base for the next big fight; stack perk cards before it |
 | Long term | Survive as many days as possible and keep getting stronger; 30+ days to reach an ending; the game never ends — difficulty keeps scaling |
 
 ### Loop rules
 
-1. **The sun is the timer** — time passes in real time, at base too. Be home before dark.
-2. **The three activities feed each other** — fishing and collecting pay for ammo; shooting protects your trips and drops loot. "Every bullet is a fish you caught."
-3. **Ammo is limited** — every shot costs something; melee is the fallback.
-4. **The fire sets the night** — fire out: hide and skip; small fire: small night; bonfire: bigger wave, better loot.
-5. **You can rest, but you can't hide forever** — skipping nights in a row invites raids on the base.
-6. **Light keeps the Dark away, not the monsters** — the fire protects you from the Dark but attracts enemies.
-7. **Big fights are fixed checkpoints** — every 10th night, harder each time; they can't be delayed or skipped.
-8. **Death costs loot, never the run** — XP, buildings and upgrades are kept.
-9. **Upgrades make activities faster** — growth means doing more per day.
-10. **Fights pay in perks** — every night fight ends with a perk card pick; skipped nights give none.
+1. **The day trip is the raid** — one open map, no separate raid maps. Home is the main exit; what you carry can be lost until you get there. The stash at home is safe.
+2. **Play safe or cross the river** — fishing and chopping around the house are safe; across the river is where the danger and the loot are.
+3. **The sun is the timer** — time passes in real time, at base too. Be home before dark.
+4. **Everything feeds everything** — loot and fish pay for ammo; shooting protects your raids and drops loot; wood fuels the night. "Every bullet is a fish you caught."
+5. **Ammo is limited** — every shot costs something, out on a raid or defending at night; melee is the fallback.
+6. **The fire sets the night** — fire out: hide and skip; small fire: small night; bonfire: bigger wave, better loot.
+7. **You can rest, but you can't hide forever** — skipping nights in a row invites raids on the base.
+8. **Light keeps the Dark away, not the monsters** — the fire protects you from the Dark but attracts enemies.
+9. **Big fights are fixed checkpoints** — every 10th night, harder each time; they can't be delayed or skipped.
+10. **Death costs loot, never the run** — lost loot drops in a grave you get one chance to recover; XP, buildings and upgrades are kept.
+11. **Upgrades make activities faster** — growth means doing more per day.
+12. **Fights pay in perks** — every night fight ends with a perk card pick; skipped nights give none.
 
 ## Day
 
 - **Time passes gradually in real time**, also at base. Dusk warns you; get home before dark. Activities and walking take real time; upgrades make activities faster.
-- **Activities:** exploring and collecting (food, materials, loot), fishing, fighting out in the world, chopping trees (wood fuels the fire), building and repairing, a tiny farm (small garden, a few animals).
-- **Minigames live inside activities**, never in arcade boxes. They're short surprise interruptions, e.g. moles pop up while checking crops (whack-a-mole), fish jump at hanging bait (shoot them).
+- **Raids:** pick a loadout from the stash, head out, loot what you can carry, and get it home.
+- **Activities:** exploring and looting (food, materials, gear), fishing, fighting out in the world, chopping trees (wood fuels the fire), building and repairing.
+- **Minigames live inside activities**, never in arcade boxes, e.g. fish jump at hanging bait (shoot them).
 - **Daytime dangers** are out in the world: snakes, predators, enemies far from base. The base is never attacked during the day.
 - **Signals:** symbols on the ground in front of the house show what may come tonight if the fire is lit, the skip streak, and the countdown to the next big fight.
 
@@ -69,6 +72,7 @@ At dusk, the player chooses the fire:
 | **Small fire** | A small wave comes to the base. Normal loot and XP, plus a perk card. |
 | **Bonfire** | More wood, more torches lit. A bigger wave, better loot, plus a perk card. |
 
+- **Lose a night defense** and the base takes damage: fences, defenses and buildings need materials to repair. The stash stays safe.
 - **Skip streak:** the first skip is free; a second in a row brings thieves who take some stored food and items; from the third on, raiders damage fences and buildings. Fighting resets the streak. Fences, scarecrows, the dog and lamps reduce raids.
 - **Big fights** (every 10th night, visible countdown, harder each time): the AI Lord relights the fire — no hiding, no delaying.
 - **Night types** come from enemy themes (zombie, robot, dino, Sky Invaders…). Each has a small-night version and a big-fight boss version.
@@ -92,26 +96,28 @@ At dusk, the player chooses the fire:
 
 ## World
 
-- Fixed, compact map with the **base in the center**; river, forest, meadow, cave and more around it.
+- Fixed, compact map. The house sits on a ridge at the edge, above the sea. The home side of the river is safe by day; across it, the map gets riskier and richer.
 - **Weather + day/night** change gameplay, e.g. rain helps fishing but puts out fires faster; fog shortens vision.
 - Mostly alone; a few non-human NPCs later.
 - Always first person.
+- Later: hidden portals lead to separate raid maps in other biomes.
 
 ## Companions
 
 - **Drone:** guide, tips and in-world UI; comic tech-support voice; secretly the villain's eyes.
-- **Dog:** fights a little; can be upgraded.
+- **Dog:** fights a little; can be upgraded. Its backpack keeps items safe when you die.
 - **Cat:** raises sanity and luck; hisses to warn of sneaky enemies.
 
 ## Resources
 
-- **Coins**, **wood** (fuel for the night fire and torches, building, repairs; trees regrow), **food** (hunger), **materials**, **ammo**.
+- **Coins**, **wood** (fuel for the night fire and torches, building, repairs; trees regrow), **food** (hunger), **materials**, **ammo**, **gear**.
+- **Stash** at home: everything you've brought back, safe from death and lost fights.
 - Crafting, selling and buying: TBD. Ammo will be buyable and craftable.
 
 ## Failure
 
 - **Death never ends the run.** XP, buildings, upgrades and permanent perk cards are always kept.
-- **Die anywhere** (out in the world or on any night): wake at base and lose 50–70% of your loot — a share of everything, stored items included. Part of it is hidden somewhere on the map and can be partly recovered. Upgrades reduce the loss.
+- **Die anywhere** (out in the world or on any night): wake at base and lose 50–70% of your loot. The lost share drops in a grave where you died; you get one chance to recover it — die again first and it's gone. The dog's backpack and equipped melee are always kept. Upgrades reduce the loss.
 - **Lose a big fight:** the same loot loss, and the clock rewinds a few days (start with 3). You get time to prepare, but you still have to fight it.
 
 ## Endings
@@ -122,15 +128,15 @@ At dusk, the player chooses the fire:
 
 ## Not decided yet
 
-Crafting and economy (shops, selling, buying ammo), perk card details (duration rules, duplicates, separate permanent pool, reroll per pick or per cycle, whether temporary cards survive death), how lost loot is recovered, grand trial details, a "stay forever" ending, key fragments to unlock the trial, intro setup.
+Crafting and economy (shops, selling, buying ammo), what the 50–70% loss counts (only what you carried, or stored items too), whether skip-streak thieves can take stash items, perk card details (duration rules, duplicates, separate permanent pool, reroll per pick or per cycle, whether temporary cards survive death), portal raid maps (a Megabonk-style run or a normal raid), grand trial details, a "stay forever" ending, key fragments to unlock the trial, intro setup.
 
 ## Inspirations
 
 | Game | What we take | What we leave |
 | --- | --- | --- |
-| Escape from Duckov | Go out, loot, get home; limited ammo with melee fallback; a real-time clock that runs at base too; fishing; death costs loot, not the run | Top-down view; separate raid maps |
+| Escape from Duckov | The extraction loop: go out, loot, get it home; a grave to recover lost loot; the dog's backpack as a safe slot; limited ammo with melee fallback; a real-time clock that runs at base too; fishing; death costs loot, not the run | Top-down view; separate raid maps (only later, through portals) |
 | Darkwood | Home before dark; light draws enemies, hiding avoids them | Grim horror tone |
-| Village 51 | Farming + base defense + first-person shooting in one game | — |
+| Village 51 | Base defense + first-person shooting in one game | Farming as a core activity |
 | Chop Chop Inc. | Chopping trees that regrow; "desk worker becomes strong" humor | Deep crafting and production lines |
 | How to Fish | fishing with guns (gun fishing); stranded somewhere, working your way home | — |
 | Megabonk | Grand trial: run-and-gun levels with card picks on level-up | Auto-attack (we keep manual aiming) |
