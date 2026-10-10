@@ -1,0 +1,36 @@
+#pragma kernel MV_KWS_Blur
+
+RWTexture2D<float4> Result;
+Texture2D<float4> Source;
+
+int Radius;
+
+[numthreads(8, 8, 1)]
+void MV_KWS_Blur(uint3 id : SV_DispatchThreadID)
+{
+    uint2 size;
+    Source.GetDimensions(size.x, size.y);
+
+    if (id.x >= size.x || id.y >= size.y)
+        return;
+
+    float4 colorSum = float4(0, 0, 0, 0);
+    float weightSum = 0.0;
+
+    for (int y = -Radius; y <= Radius; y++)
+    {
+        for (int x = -Radius; x <= Radius; x++)
+        {
+            int2 offset = int2(x, y);
+            int2 coord = clamp(int2(id.xy) + offset, int2(0, 0), size - 1);
+
+            float weight = 1.0 - length(float2(x, y)) / (Radius + 1.0);
+            weight = max(weight, 0.0);
+
+            colorSum += Source.Load(int3(coord, 0)) * weight;
+            weightSum += weight;
+        }
+    }
+
+    Result[id.xy] = colorSum / max(weightSum, 0.0001);
+}

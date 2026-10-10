@@ -1,0 +1,51 @@
+#pragma kernel MV_KWS_Erosion
+
+Texture2D<float4> Source;
+RWTexture2D<float4> Result;
+
+float ErosionStrength;
+
+[numthreads(8, 8, 1)]
+void MV_KWS_Erosion(uint3 id : SV_DispatchThreadID)
+{
+    uint2 size;
+    Source.GetDimensions(size.x, size.y);
+
+    if (id.x >= size.x || id.y >= size.y)
+        return;
+
+    uint2 coord = int2(id.xy);
+    float height = Source.Load(int3(coord, 0)).x;
+
+    float erosion = 0.0;
+    bool isShrink = (ErosionStrength > 0);
+
+    for (int dy = -1; dy <= 1; dy++)
+    {
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            if (dx == 0 && dy == 0)
+                continue;
+
+            uint2 neighborCoord = coord + int2(dx, dy);
+
+            if (neighborCoord.x < 0 || neighborCoord.x >= size.x || neighborCoord.y < 0 || neighborCoord.y >= size.y)
+                continue;
+
+            float neighborHeight = Source.Load(int3(neighborCoord, 0)).x;
+            float diff = height - neighborHeight;
+
+            if (isShrink && diff > 0)
+                erosion += diff;
+            else if (!isShrink && diff < 0)
+                erosion += diff;
+        }
+    }
+
+    erosion *= abs(ErosionStrength);
+
+    float newHeight = height - erosion;
+    newHeight = max(newHeight, 0.0);
+
+    Result[coord] = float4(newHeight, newHeight, newHeight, 1);
+}

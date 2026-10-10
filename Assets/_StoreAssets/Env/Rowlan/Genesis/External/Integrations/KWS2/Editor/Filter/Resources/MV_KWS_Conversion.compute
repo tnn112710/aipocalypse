@@ -1,0 +1,33 @@
+#pragma kernel MV_KWS_Conversion
+
+Texture2D<float4> Source;
+RWTexture2D<float4> Result;
+int UseThreshold; // 0 = passthrough, 1 = thresholding
+
+[numthreads(8, 8, 1)]
+void MV_KWS_Conversion(uint3 id : SV_DispatchThreadID)
+{
+    uint2 size;
+    Source.GetDimensions(size.x, size.y);
+    if (id.x >= size.x || id.y >= size.y)
+        return;
+
+    float4 pixel = Source.Load(int3(id.xy, 0));
+
+    float color = pixel.a; // kws uses alpha for terrain height
+    
+    
+    float red;
+    if (UseThreshold == 1)
+    {
+        // set 0/1, kws texture is height based, we just subtract wherever a river is
+        red = color == 0.0 ? 0.0 : 1.0;
+    }
+    else
+    {
+        // use actual texture
+        red = color;
+    }
+    
+    Result[id.xy] = float4(red, 0.0, 0.0, 1.0); // Store thresholded red in red channel only
+}

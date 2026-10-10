@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4219188134062047795
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4222242741827123423}
+  - component: {fileID: 7512613088408969389}
+  m_Layer: 0
+  m_Name: Birds
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4222242741827123423
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4219188134062047795}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7512613088408969389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4219188134062047795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85da0c4ba78591142a1e0a25cd384f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  birdPrefab: {fileID: 4881360442700569113, guid: 8714ecd0a7464364817b38bd2ae5b63f, type: 3}
+  materialSlots:
+  - {fileID: 2100000, guid: a833841af0c342afae0289722477e21a, type: 2}
+  - {fileID: 2100000, guid: a833841af0c342afae0289722477e21a, type: 2}
+  - {fileID: 2100000, guid: a833841af0c342afae0289722477e21a, type: 2}
+  - {fileID: 2100000, guid: e0298515654b4d2aaea0dd44ef7d4d93, type: 2}
+  flockCount: 20
+  birdsPerFlock: 5
+  minSpeed: 6
+  maxSpeed: 10
+  volumeCenterLocal: {x: 0, y: 0, z: 0}
+  volumeSize: {x: 500, y: 100, z: 500}
+  neighborRadius: 18
+  separationRadius: 6
+  cohesionWeight: 1
+  alignmentWeight: 1
+  separationWeight: 1.8
+  wanderWeight: 1.3
+  wanderJitter: 1.2
+  wanderDistance: 10
+  wanderRadius: 6
+  boundsMargin: 18
+  boundsSteerWeight: 2.2
+  maxTurnRateDeg: 140
+  steeringSharpness: 10
+  maxAcceleration: 18
+  rotationSharpness: 8
+  writeStableRandomToTexcoord1Y: 1
