@@ -24,7 +24,7 @@ Vendor folders (`Assets/Plugins/`, `Assets/_StoreAssets/`, `Assets/Synty/`, `Pac
 | Library | Version | Status | Notes |
 |---|---|---|---|
 | VContainer (`jp.hadashikick.vcontainer`) | 1.19.0 (pinned tag) | Core | DI. Lifetime scopes, per-system installers, `EntityScope` on entity prefabs. |
-| MessagePipe (+ `.vcontainer`) | 1.8.2 | Core | Cross-system events. |
+| MessagePipe (+ `.vcontainer`) | 1.8.2 | Core | Cross-system events. Registered once in the root scope (open generics on, no per-type registration). Skill: `tools-unity-messagepipe`. |
 | UniTask | 2.5.11 | Core | Async. Use instead of coroutines. |
 | UIEffect (`com.coffee.ui-effect`) | 5.11.7 | Use | uGUI effects. |
 
@@ -34,12 +34,12 @@ MessagePipe, UniTask and UIEffect track the repo HEAD (no tag pinned), so a pack
 
 | Plugin | Version | Location | Status | Notes |
 |---|---|---|---|---|
-| A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Core | Enemy navigation. Move agents only through `IAstarAI`. |
+| A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Core | Enemy navigation with `FollowerEntity` agents (driven through `IAstarAI`). `AstarPath.active` only inside the `INavigation` service. Scenes with agents need the `Navigation` prefab (AstarPath + RVOSimulator). Skill: `tools-unity-astar`. |
 | Behavior Designer Pro (+ Opsive Graph Designer 3.3.4, Opsive Shared 2.3.2) | 3.3.3 | `Packages/com.opsive.*`, `Assets/Plugins/Opsive` | Use | Behaviour trees for unique AI only (drone, companions, bosses). Crowd enemies stay code-driven. Skill: `tools-unity-behavior-designer`. |
 | GPU Instancer Pro (Core, Prefab, Terrain) | 0.12.20 | `Packages/com.gurbu.gpui-pro*`, `Assets/Plugins/GPUInstancerPro` | Use | Foliage and props instancing. |
 | GPU Instancer Pro – Crowd Animations | 0.10.5 | `Packages/com.gurbu.gpui-pro.crowd-animations` | Undecided | Candidate for crowd enemy rendering. |
 | DOTween + DOTween Pro (+ DemiLib) | — | `Assets/Plugins/Demigiant` | Use | Code tweens. |
-| Feel (MoreMountains) | — | `Assets/_StoreAssets/GameFeel/Feel` | Use | Game feel / feedbacks. Hook into `Health` and event subscribers, never into weapons directly. |
+| Feel (MoreMountains) | — | `Assets/_StoreAssets/GameFeel/Feel` | Use | Game feel / feedbacks. Views play `MMF_Player`s in response to events, never services or weapons directly. No time-scale, sound, scene-loading, floating-text or broadcast feedbacks, and no `MMF_Player` on crowd enemies. Skill: `tools-unity-feel` (feedback catalog in its references). |
 | Damage Numbers Pro | — | `Assets/_StoreAssets/GameFeel/DamageNumbersPro` | Use | Hit numbers. Use its pooling. Same hook rule as Feel. |
 | BroAudio | — | `Assets/Plugins/BroAudio` | Use | Audio playback and pooling. Read its `CLAUDE.md`. |
 | Easy Save 3 | — | `Assets/Plugins/Easy Save 3` | Use | Persistence (save system postponed, see ARCHITECTURE.md). |
