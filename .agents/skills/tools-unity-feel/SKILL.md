@@ -154,7 +154,7 @@ namespace Aipocalypse.Core.Feedback
 
 ## 6. Crowd enemies and performance
 
-CLAUDE.md: keep per-instance plugin components off crowd entities.
+AGENTS.md: keep per-instance plugin components off crowd entities.
 - **No `MMF_Player` on crowd enemy prefabs.** Hundreds of players with initialized feedback lists is the per-instance overhead we avoid.
 - Enemy **hit flash**: the enemy view sets a shader property (MaterialPropertyBlock / material instance pooled with the enemy) from the `EnemyManager` tick or the damage router. It's cheap and needs no Feel.
 - Enemy **hit and death VFX**: our VFX pool. **Damage numbers**: Damage Numbers Pro (pooled).

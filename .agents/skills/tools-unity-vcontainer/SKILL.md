@@ -7,7 +7,7 @@ description: VContainer 1.19 dependency injection for aipocalypse — the scope 
 
 Installed: **VContainer 1.19.0** (UPM git, pinned tag; source in `Library/PackageCache/jp.hadashikick.vcontainer@*/Runtime`). Namespaces `VContainer`, `VContainer.Unity`. The architecture is in **ARCHITECTURE.md → Scopes and app flow / Entities**. This skill is the how-to for it. If `_Core/_Bootstrap` and `_Core/_Common` already contain the scope classes, follow the existing code over the sketches here.
 
-House rules (CLAUDE.md, ARCHITECTURE.md):
+House rules (AGENTS.md, ARCHITECTURE.md):
 - No `X.Instance` singletons, no `FindObjectOfType`, no static service access in game code. Services are plain C#, registered in scopes.
 - **Each system registers through its own installer.** Cutting a feature = removing its installer.
 - DI is setup-time only: resolve and inject at creation, never per frame.
@@ -86,7 +86,7 @@ public sealed class GameLifetimeScope : LifetimeScope
 
 - Registration API (checked in source): `Register<T>(Lifetime)`, `Register<TInterface, TImpl>(Lifetime)`, `.As<T>()`, `.AsImplementedInterfaces()`, `.AsSelf()`, `.WithParameter(...)`, `RegisterInstance(obj)` (plus `<TInterface…>` overloads), `RegisterEntryPoint<T>(Lifetime = Singleton)`, `RegisterComponent(component)`, `RegisterComponentInNewPrefab(prefab, Lifetime)`, `RegisterComponentOnNewGameObject<T>(Lifetime, name)`, `RegisterBuildCallback(Action<IObjectResolver>)`, `RegisterDisposeCallback(Action<IObjectResolver>)`, `RegisterEntryPointExceptionHandler(Action<Exception>)`, `UseEntryPoints(...)`, `UseComponents(...)`.
 - Factories: `RegisterFactory<T>(Func<T>)` (**no lifetime parameter**, the func is the singleton), or `RegisterFactory<TParam, T>(Func<IObjectResolver, Func<TParam, T>> factoryFactory, Lifetime)` when the factory needs the container. For anything non-trivial (pools, spawning prefabs) write a factory **class** that takes `IObjectResolver` instead.
-- Data: register ScriptableObjects with `RegisterInstance(asset)` from a serialized field. **No `Resources.Load`** (CLAUDE.md / PLUGINS.md).
+- Data: register ScriptableObjects with `RegisterInstance(asset)` from a serialized field. **No `Resources.Load`** (AGENTS.md / PLUGINS.md).
 - **`RegisterComponentInHierarchy` searches the whole scene.** It's fine for one-per-scene objects in a scene scope (e.g. the HUD). **Never use it for entity parts.** It grabs another instance's component (ARCHITECTURE.md).
 
 ## 4. Entry points (no MonoBehaviour Update for services)

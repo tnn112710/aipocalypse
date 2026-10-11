@@ -12,13 +12,13 @@ Before writing code, read:
 - [references/patterns.md](references/patterns.md) — tree recipes for this game's archetypes.
 - [references/entity-tasks.md](references/entity-tasks.md) — only if writing Burst/ECS tasks.
 
-After a package update, re-verify the API: `unity command run_script --file .claude/skills/tools-unity-behavior-designer/scripts/BdApi.cs --entry BdApi.Dump --args '["Opsive.BehaviorDesigner.Runtime.BehaviorTree"]'` (or `BdApi.Find '["Sequence"]'`). Sources for anything else: built-in tasks `Packages/com.opsive.behaviordesigner/Runtime/Tasks/**` (full C#), samples `Samples~/Scripts/**`, docs https://opsive.com/support/documentation/behavior-designer-pro/.
+After a package update, re-verify the API: `unity command run_script --file .agents/skills/tools-unity-behavior-designer/scripts/BdApi.cs --entry BdApi.Dump --args '["Opsive.BehaviorDesigner.Runtime.BehaviorTree"]'` (or `BdApi.Find '["Sequence"]'`). Sources for anything else: built-in tasks `Packages/com.opsive.behaviordesigner/Runtime/Tasks/**` (full C#), samples `Samples~/Scripts/**`, docs https://opsive.com/support/documentation/behavior-designer-pro/.
 
 ## 1. Decide first: should this be a behavior tree at all?
 
 | Agent | Tool | Why |
 | --- | --- | --- |
-| Crowd enemies (rusher, tank, ranged, flyer, swarm, sneaker) — hundreds | **Code** in `EnemyManager` (state per archetype, data in `EnemyArchetypeDef`) | ARCHITECTURE.md: no per-enemy `Update`, time-sliced thinking, zero alloc. CLAUDE.md: no per-instance plugin components on crowd entities |
+| Crowd enemies (rusher, tank, ranged, flyer, swarm, sneaker) — hundreds | **Code** in `EnemyManager` (state per archetype, data in `EnemyArchetypeDef`) | ARCHITECTURE.md: no per-enemy `Update`, time-sliced thinking, zero alloc. AGENTS.md: no per-instance plugin components on crowd entities |
 | Unique agents — drone, dog, cat, bosses, elites, set-piece NPCs | **Behavior tree** (GameObject tasks) | Few instances, rich branching, designer iteration |
 | Crowd via BD (only if a `Proto_Stress` run proves it) | `UpdateMode.Manual` + `EnemyManager` calls `Tick()` staggered, or Entity tasks | Must keep the central tick and budget |
 
