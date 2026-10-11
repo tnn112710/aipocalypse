@@ -1,0 +1,317 @@
+/* Kroma Scene Lighting View Styles
+ * Styles specific to the KromaSceneLighting component inspector view.
+ */
+
+.kroma-desc-label {
+    white-space: normal;
+    font-size: 11px;
+    color: #b8b8b8;
+    margin-bottom: 8px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.kroma-action-btn {
+    width: 120px;
+    min-height: 28px;
+    height: auto;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    align-self: flex-start;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.kroma-action-btn--auto {
+    width: auto;
+    min-width: 140px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.kroma-button-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 2px;
+}
+
+.kroma-button-row > .kroma-button {
+    margin-right: 6px;
+    margin-bottom: 4px;
+}
+
+
+.kroma-subassets-group {
+    margin-top: 2px;
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+.kroma-slider {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.kroma-slider-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    flex-shrink: 0;
+    min-width: 0;
+    width: 100%;
+}
+
+.kroma-slider-row__slider {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: 4px;
+    overflow: hidden;
+}
+
+.kroma-slider-row__slider .unity-base-field__label {
+    width: 55px;
+    min-width: 55px;
+    max-width: 55px;
+    margin-right: 4px;
+    padding-right: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.kroma-slider-row__slider .unity-base-field__input {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+}
+
+.kroma-slider-row__slider .unity-base-slider__drag-container {
+    min-width: 16px;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.kroma-slider-row__btn {
+    width: 20px;
+    height: 18px;
+    margin-left: 2px;
+    margin-right: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.kroma-slider-row__btn:disabled {
+    opacity: 0.35;
+}
+
+.kroma-icon-refresh {
+    width: 13px;
+    height: 13px;
+    -unity-background-scale-mode: scale-to-fit;
+    --unity-image: url("../icons/kroma-Ico-Reset.png");
+}
+
+.kroma-atmosphere-list {
+    margin-top: 2px;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.kroma-atmosphere-empty {
+    font-size: 11px;
+    -unity-font-style: italic;
+    color: #888888;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Card Header Icons
+ * -------------------------------------------------------------------------- */
+.kroma-card__icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.kroma-icon-scene-tuning {
+    --unity-image: url("../../Resources/UI/Editor_UI/icon_scene_Tuning.png");
+}
+
+.kroma-icon-atmosphere-prefabs {
+    --unity-image: url("../../Resources/UI/Editor_UI/icon_atmosphere_prefabs.png");
+}
+
+.kroma-icon-profile-tools {
+    --unity-image: url("../../Resources/UI/Editor_UI/icon_profile_tools.png");
+}
+
+/* --------------------------------------------------------------------------
+ * Top Card
+ * -------------------------------------------------------------------------- */
+.kroma-card--top {
+    background-color: #141414;
+    overflow: hidden;
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.kroma-top-card__bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 80px;
+    background-image: url("../../Resources/UI/kroma-top-bg.png");
+}
+
+.kroma-top-card__image {
+    width: 20px;
+    height: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+    --unity-image: url("../../Resources/UI/header-Kroma-profile.png");
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.kroma-card--top .kroma-top-card__title {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: #ffa83a;
+    -unity-text-align: middle-left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Profile Details Card (Featured Layout)
+ * -------------------------------------------------------------------------- */
+.kroma-profile-details__container {
+    flex-direction: row;
+    align-items: center;
+}
+
+.kroma-profile-details__thumb {
+    width: 120px;
+    height: 120px;
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 14px;
+    overflow: hidden;
+    -unity-background-scale-mode: scale-and-crop;
+    flex-shrink: 0;
+    margin-right: 16px;
+}
+
+.kroma-profile-details__content {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    justify-content: center;
+}
+
+.kroma-card .kroma-profile-details__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #d2d2d2;
+    margin-bottom:12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kroma-profile-details__content .unity-base-field__label {
+    width: 55px;
+    min-width: 55px;
+    max-width: 55px;
+    margin-right: 4px;
+}
+
+.kroma-foldout {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background-color: #363636;
+    border-width: 1px;
+    border-color: transparent;
+    transition-property: background-color, border-color;
+    transition-duration: 0.15s;
+    flex-shrink: 0;
+}
+
+.kroma-foldout:hover {
+    background-color: #3f3f3f;
+    border-color: #454545;
+}
+
+.kroma-foldout--spaced {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top-width: 0;
+}
+
+.kroma-foldout .unity-foldout__toggle {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.kroma-foldout .unity-foldout__text {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #c4c4c4;
+    margin-left: 2px;
+}
+
+.kroma-foldout:hover .unity-foldout__text {
+    color: #ffffff;
+}
+
+.kroma-foldout .unity-foldout__content {
+    margin-left: 14px;
+    margin-top: 6px;
+    margin-bottom: 2px;
+}
+
+
+

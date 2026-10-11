@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sakura_Bark_1
+  m_Shader: {fileID: -6465566751694194690, guid: f1fe06984099bda44a6b5e6e1013a048, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _ENABLE_COV
+  - _ENABLE_WIND
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 9f047177a39704c4f825992ebed495d3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 12e77ee8d3565e24abb4883203551c45, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cov_Albedo:
+        m_Texture: {fileID: 2800000, guid: 047ad9275077d3541af92468c5d6e134, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cov_Mask:
+        m_Texture: {fileID: 2800000, guid: 0a335b2d3cf2b7948848f7a8016ad182, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cov_Normal:
+        m_Texture: {fileID: 2800000, guid: 94ffdf6155e72384f8440bf2c8d5bdd9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Coverage_Normal_Map:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normal_Map:
+        m_Texture: {fileID: 2800000, guid: 12e77ee8d3565e24abb4883203551c45, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Smoothness:
+        m_Texture: {fileID: 2800000, guid: 8c8a0c92adb80a643ae099baae5815c0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Smoothness_Map:
+        m_Texture: {fileID: 2800000, guid: 8c8a0c92adb80a643ae099baae5815c0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Tree_Mask:
+        m_Texture: {fileID: 2800000, guid: 8c8a0c92adb80a643ae099baae5815c0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AO_Int: 0.3
+    - _Ambient_Occlusion: 0.25
+    - _Cov_Density: 1.58
+    - _Cov_Level: -0.75
+    - _Cov_Mask_Contrast: 7
+    - _Cov_Normal_Blending: 0.2
+    - _Cov_Normal_Str: 3
+    - _Cov_Smoothness: 0.25
+    - _Cov_Tiling: 0.5
+    - _ENABLE_COV: 1
+    - _ENABLE_WIND: 1
+    - _Enable_Coverage: 1
+    - _Enable_Wind: 1
+    - _Noise_Scale_Multiplier: 1
+    - _Noise_Speed_Multiplier: 1
+    - _Normal: 2
+    - _Normal_Str: 1.5
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Smoothness: 1
+    - _Smoothness_Int: 1
+    - _Tree_Mask_Tiling: 1
+    - _Wind_Force_Multiplier: 1
+    m_Colors:
+    - _BaseColor: {r: 0.61, g: 0.53801244, b: 0.5001242, a: 1}
+    - _Cov_Color: {r: 0.48876348, g: 0.6431373, b: 0.42352942, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &453949334287575486
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 10

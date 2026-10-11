@@ -1,0 +1,351 @@
+/* Kroma Design System - Common Component Styles
+ * Reusable classes for headers, banners, cards, buttons, and rows.
+ */
+
+.kroma-root {
+    flex-direction: column;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Top Header & Banner
+ * -------------------------------------------------------------------------- */
+.kroma-header {
+    height: 40px;
+    background-color: #191919;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 8px;
+    padding-right: 12px;
+    margin-left: -18px;
+    margin-right: -18px;
+    border-bottom-width: 1px;
+    border-bottom-color: #2b2b2b;
+    flex-shrink: 0;
+}
+
+.kroma-header__icon {
+    height: 40px;
+    width: 120px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.kroma-header__title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #ffffff;
+    -unity-text-align: middle-right;
+    white-space: nowrap;
+}
+
+.kroma-banner {
+    height: 120px;
+    margin-left: -18px;
+    margin-right: -18px;
+    margin-bottom: 6px;
+    background-color: #202020;
+    -unity-background-scale-mode: scale-and-crop;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    border-bottom-width: 1px;
+    border-bottom-color: #2b2b2b;
+}
+
+.kroma-banner__placeholder {
+    color: #808080;
+    font-size: 12px;
+    -unity-font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
+ * Cards / Containers
+ * -------------------------------------------------------------------------- */
+.kroma-card-container {
+    flex-direction: column;
+    padding: 0;
+    margin-left: -6px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.kroma-card {
+    background-color: var(--kroma-color-bg-card);
+    border-color: var(--kroma-color-border-card);
+    border-width: 1px;
+    border-radius: var(--kroma-radius-card);
+    margin-top: 4px;
+    margin-bottom: 4px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.kroma-card__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+    padding-bottom: 0;
+    border-bottom-width: 0;
+}
+
+.kroma-card__body {
+    flex-direction: column;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Global Typography & High-Contrast Field Readability
+ * -------------------------------------------------------------------------- */
+.kroma-root .unity-label,
+.kroma-card .unity-label,
+.kroma-card .unity-base-field__label {
+    color: #e0e0e0;
+    font-size: 12px;
+}
+
+.kroma-card .kroma-card__title {
+    font-size: var(--kroma-font-size-title, 14px);
+    -unity-font-style: bold;
+    color: #ffffff;
+}
+
+.kroma-card .unity-base-field {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.kroma-card .unity-base-field__input {
+    color: #ffffff;
+}
+
+.kroma-card .unity-object-field-display__label {
+    color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+ * Buttons
+ * -------------------------------------------------------------------------- */
+.kroma-button {
+    background-color: #333333;
+    color: #ffffff;
+    border-color: #444444;
+    border-width: 1px;
+    border-radius: 3px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    flex-shrink: 0;
+}
+
+.kroma-button:hover {
+    background-color: #3d3d3d;
+    border-color: #555555;
+}
+
+.kroma-button:active {
+    background-color: #1f1f1f;
+}
+
+.kroma-button--accent {
+    background-color: #5b4de0;
+    border-color: #6e60ec;
+}
+
+.kroma-button--accent:hover {
+    background-color: #6e60ec;
+}
+
+.kroma-button--accent:active {
+    background-color: #4839cb;
+}
+
+.kroma-button--danger {
+    background-color: #5E2C2C;
+    border-color: #444444;
+    color: #ff8585;
+}
+
+.kroma-button--danger:hover {
+    background-color: #8a2525;
+}
+
+.kroma-button--icon {
+    width: 24px;
+    height: 20px;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin-left: 2px;
+    margin-right: 2px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+ * Rows & Lists
+ * -------------------------------------------------------------------------- */
+.kroma-row {
+    flex-direction: row;
+    align-items: center;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-bottom-width: 1px;
+    border-bottom-color: #333333;
+    flex-shrink: 0;
+}
+
+.kroma-row--last {
+    border-bottom-width: 0;
+}
+
+.kroma-row__field {
+    flex-grow: 1;
+    margin-right: 4px;
+}
+
+.kroma-row__actions {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+ * Spacing Utilities
+ * -------------------------------------------------------------------------- */
+.kroma-spacer-sm { height: 4px; flex-shrink: 0; }
+.kroma-spacer-md { height: 8px; flex-shrink: 0; }
+.kroma-spacer-lg { height: 12px; flex-shrink: 0; }
+
+/* --------------------------------------------------------------------------
+ * Visibility & Layout Utilities
+ * -------------------------------------------------------------------------- */
+.kroma-hidden {
+    display: none;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+    height: 0;
+    min-height: 0;
+    max-height: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Sliders & Progress Fill
+ * -------------------------------------------------------------------------- */
+.kroma-slider .unity-base-slider__drag-container {
+    position: relative;
+}
+
+.kroma-slider .unity-base-slider__tracker {
+    background-color: #353535;
+    border-color: #484848;
+    border-width: 1px;
+    border-radius: 2px;
+}
+
+.kroma-slider .unity-base-slider__text-field {
+    width: 38px;
+    min-width: 34px;
+    flex-shrink: 0;
+    margin-left: 4px;
+    margin-right: 0;
+}
+
+.kroma-slider .unity-base-slider__text-field .unity-base-text-field__input {
+    min-width: 34px;
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+}
+
+.kroma-slider__fill {
+    position: absolute;
+    background-color: var(--kroma-color-slider-fill, #0A7AFF);
+    border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+ * Checkboxes & Toggles
+ * -------------------------------------------------------------------------- */
+.kroma-toggle {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: flex-start;
+}
+
+.kroma-toggle .unity-toggle__input {
+    flex-grow: 0;
+    flex-direction: row;
+    align-items: center;
+}
+
+.kroma-toggle .unity-toggle__checkmark {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: #4a4a4a;
+    background-color: #1a1a1a;
+    background-image: none;
+    -unity-background-scale-mode: scale-to-fit;
+    margin-right: 8px;
+    margin-left: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.kroma-toggle:hover .unity-toggle__checkmark {
+    border-color: #ffa83a;
+}
+
+.kroma-toggle--checked .unity-toggle__checkmark,
+.kroma-toggle:checked .unity-toggle__checkmark,
+.kroma-toggle > .unity-toggle__input:checked > .unity-toggle__checkmark,
+.kroma-toggle .unity-toggle__input:checked > #unity-checkmark {
+    background-color: #ffa83a;
+    border-color: #ffa83a;
+    background-image: url("../icons/kroma-Ico-Check.png");
+    -unity-background-image-tint-color: #141414;
+}
+
+.kroma-toggle--checked:hover .unity-toggle__checkmark,
+.kroma-toggle:checked:hover .unity-toggle__checkmark {
+    background-color: #ffb85a;
+    border-color: #ffb85a;
+}
+
+.kroma-toggle .unity-toggle__text {
+    font-size: 12px;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+}
+
+.kroma-toggle:hover .unity-toggle__text {
+    color: #ffffff;
+}
+
+

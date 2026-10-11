@@ -1,0 +1,1926 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 091f9ecd8e91c1d4c812cfb87a31bfff, type: 3}
+  m_Name: 01_Daylight
+  m_EditorClassIdentifier: 
+  sectionName: Master
+  properties:
+  - name: _SimulateGround
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _UseTwoColorMode
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _TopColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.047058824, g: 0.14186077, b: 0.39215687, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _MidColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 0.8491281, b: 1.2311444, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _HorizonColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.7295991, g: 1.9202858, b: 1.9496855, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Ground_Color
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0.7137255, g: 0.91372555, b: 0.91372555, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Horizon_Offset
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0.18
+    textureValue: {fileID: 0}
+  - name: _Mid_Sky_Height
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0.5
+    textureValue: {fileID: 0}
+  - name: _Horizon_Softness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.478
+    textureValue: {fileID: 0}
+  - name: _Mid_Sky_Softness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.37
+    textureValue: {fileID: 0}
+  - name: _GlobalRotation
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 360
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Ground_Blend
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.01
+    textureValue: {fileID: 0}
+  - name: _Ground_Horizon_Smoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 20
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.2
+    textureValue: {fileID: 0}
+  - name: _CelestialToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Tiling
+    type: 1
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0.95, y: 0.9, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Tint
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 5.992157, g: 4.198539, b: 2.6666665, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Size
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.0499
+    textureValue: {fileID: 0}
+  - name: _CelestialEdgeSoftness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Phase
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _InvertPhase
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _PhaseSize
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.95
+    textureValue: {fileID: 0}
+  - name: _PhaseSmoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Rotation
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 360
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 294
+    textureValue: {fileID: 0}
+  - name: _Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _DarkSideOcclusion
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GlowEnabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _GlowColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 8.474191, g: 1.3016375, b: 0, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GlowPower
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.03
+    textureValue: {fileID: 0}
+  - name: _GlowIntensity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.76
+    textureValue: {fileID: 0}
+  - name: _AtmosphereEnabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _AtmosphereColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 13.766361, g: 2.0700753, b: 0, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _AtmosphereOpacity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.076
+    textureValue: {fileID: 0}
+  - name: _AtmosphereSize
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.52
+    textureValue: {fileID: 0}
+  - name: _AtmosphereBlur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 6.29
+    textureValue: {fileID: 0}
+  - name: _AtmosphereGlowPosition
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Atmosphere2Enabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Atmosphere2Color
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 1.628982, b: 2.996078, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Atmosphere2Opacity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.304
+    textureValue: {fileID: 0}
+  - name: _Atmosphere2Size
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.25
+    textureValue: {fileID: 0}
+  - name: _Atmosphere2Blur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4.7
+    textureValue: {fileID: 0}
+  - name: _Atmosphere2GlowPosition
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _StarsToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _StarCubeMap
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 8900000, guid: b81ab103da55b4441ae77e454cee2f3b, type: 3}
+  - name: _StarExposure
+    type: 2
+    isRange: 1
+    rangeMin: -16
+    rangeMax: 16
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4
+    textureValue: {fileID: 0}
+  - name: _StarSize
+    type: 2
+    isRange: 1
+    rangeMin: 0.02
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.39
+    textureValue: {fileID: 0}
+  - name: _StarTint
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 20.18759, g: 20.18759, b: 20.18759, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _StarLatitude
+    type: 2
+    isRange: 1
+    rangeMin: -90
+    rangeMax: 90
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 54
+    textureValue: {fileID: 0}
+  - name: _StarRotation
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.469
+    textureValue: {fileID: 0}
+  - name: _StarSpeed
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.01
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Star_Blend
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.68
+    textureValue: {fileID: 0}
+  - name: _Star_Blend_Contrast
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 4
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.64
+    textureValue: {fileID: 0}
+  - name: _CloudsToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _Cloud_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 2800000, guid: 4231ea20ef623f54a804d604540b8a6c, type: 3}
+  - name: _Color_1
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 2.5909486, g: 2.996079, b: 2.9834187, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Scale
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.29
+    textureValue: {fileID: 0}
+  - name: _Density
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.791
+    textureValue: {fileID: 0}
+  - name: _Intensity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.61
+    textureValue: {fileID: 0}
+  - name: _CloudErosion
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.228
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightsToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 3.3317301, g: 4.05935, b: 4.029651, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightControl
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.399
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightContrast
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4.54
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightSmoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.1
+    textureValue: {fileID: 0}
+  - name: _Horizon_Level
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0.07
+    textureValue: {fileID: 0}
+  - name: _Horizon_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.725
+    textureValue: {fileID: 0}
+  - name: _Top_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.045
+    textureValue: {fileID: 0}
+  - name: _Speed
+    type: 1
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0.01, y: 0.0005, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _CloudBaseSpeedMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.293
+    textureValue: {fileID: 0}
+  - name: _CloudDetailSpeedMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.67
+    textureValue: {fileID: 0}
+  - name: _CloudDetailScale
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.5
+    textureValue: {fileID: 0}
+  - name: _CloudErosionMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _CloudAlphaEdge
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.817
+    textureValue: {fileID: 0}
+  - name: _CloudHeightScale
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4.66
+    textureValue: {fileID: 0}
+  - name: _CloudLightingWrap
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.323
+    textureValue: {fileID: 0}
+  - name: _CloudSunBoost
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.9
+    textureValue: {fileID: 0}
+  - name: _CloudScatterMin
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 100
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 6.8
+    textureValue: {fileID: 0}
+  - name: _CloudScatterMax
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 6.29
+    textureValue: {fileID: 0}
+  - name: _CloudHeightBias
+    type: 2
+    isRange: 1
+    rangeMin: -0.5
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.084
+    textureValue: {fileID: 0}
+  - name: _CloudBaseEpsilon
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.0449
+    textureValue: {fileID: 0}
+  - name: _CloudDetailEpsilon
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.0661
+    textureValue: {fileID: 0}
+  - name: _CloudDetailTexToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud_Detail_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Clouds2Toggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 2800000, guid: caf5fcd307429c245a830ee65a877b57, type: 3}
+  - name: _Cloud2_Color
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.4958466, g: 0.8616352, b: 0.8411825, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Scale
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.199
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Density
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Intensity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Erosion
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.363
+    textureValue: {fileID: 0}
+  - name: _Cloud2HighlightsToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_HighlightColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 2.370603, g: 1.7295845, b: 0.4994662, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_HighlightControl
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.399
+    textureValue: {fileID: 0}
+  - name: _Cloud2_HighlightContrast
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 5
+    textureValue: {fileID: 0}
+  - name: _Cloud2_HighlightSmoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.06
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Horizon_Level
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Horizon_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Top_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.33
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Speed
+    type: 1
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0.04, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_BaseSpeedMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.181
+    textureValue: {fileID: 0}
+  - name: _Cloud2_DetailSpeedMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.55
+    textureValue: {fileID: 0}
+  - name: _Cloud2_DetailScale
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 3
+    textureValue: {fileID: 0}
+  - name: _Cloud2_ErosionMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.92
+    textureValue: {fileID: 0}
+  - name: _Cloud2_AlphaEdge
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.71
+    textureValue: {fileID: 0}
+  - name: _Cloud2_HeightScale
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.29
+    textureValue: {fileID: 0}
+  - name: _Cloud2_LightingWrap
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.273
+    textureValue: {fileID: 0}
+  - name: _Cloud2_SunBoost
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.04
+    textureValue: {fileID: 0}
+  - name: _Cloud2_ScatterMin
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 100
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 28
+    textureValue: {fileID: 0}
+  - name: _Cloud2_ScatterMax
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 8.39
+    textureValue: {fileID: 0}
+  - name: _Cloud2_HeightBias
+    type: 2
+    isRange: 1
+    rangeMin: -0.5
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.15
+    textureValue: {fileID: 0}
+  - name: _Cloud2_BaseEpsilon
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.0281
+    textureValue: {fileID: 0}
+  - name: _Cloud2_DetailEpsilon
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.154
+    textureValue: {fileID: 0}
+  - name: _Cloud2DetailTexToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud2_Detail_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 1.6245048, g: 1.5170093, b: 0.8531204, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysDensity
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 20
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 18.35
+    textureValue: {fileID: 0}
+  - name: _GodRaysContrast
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.59
+    textureValue: {fileID: 0}
+  - name: _GodRaysBeamBlur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _GodRaysBeamSweep
+    type: 2
+    isRange: 1
+    rangeMin: -5
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _GodRaysRotateWithCamera
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysSpeed
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.1
+    textureValue: {fileID: 0}
+  - name: _GodRaysPackCount
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 10
+    textureValue: {fileID: 0}
+  - name: _GodRaysMinPackWidth
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.809
+    textureValue: {fileID: 0}
+  - name: _GodRaysMaxPackWidth
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.584
+    textureValue: {fileID: 0}
+  - name: _GodRaysHoleSize
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.072
+    textureValue: {fileID: 0}
+  - name: _GodRaysHoleSoftness
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _GodRaysHoleNoise
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.219
+    textureValue: {fileID: 0}
+  - name: _GodRaysLength
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.98
+    textureValue: {fileID: 0}
+  - name: _GodRaysFalloff
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _GodRaysHorizonFade
+    type: 2
+    isRange: 1
+    rangeMin: -0.5
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysHorizonMaskPower
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 20
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 5
+    textureValue: {fileID: 0}
+  - name: _GodRaysHorizonCruft
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.2
+    textureValue: {fileID: 0}
+  - name: _C1_Enabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Tiling
+    type: 1
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0.85, y: 0.85, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Tint
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 0.9811321, b: 0.20478022, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Size
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.469
+    textureValue: {fileID: 0}
+  - name: _C1_EdgeSoftness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Phase
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0
+    textureValue: {fileID: 0}
+  - name: _C1_InvertPhase
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_PhaseSize
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _C1_PhaseSmoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Rotation
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 360
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 300
+    textureValue: {fileID: 0}
+  - name: _C1_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _C1_DarkSideOcclusion
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_GlowEnabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_GlowColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 2.1185474, g: 1.099246, b: 1.3468726, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_GlowPower
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 5
+    textureValue: {fileID: 0}
+  - name: _C1_GlowIntensity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2
+    textureValue: {fileID: 0}
+  - name: _C1_AtmosphereEnabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_AtmosphereColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 3.6886055, g: 1.9138985, b: 2.3450415, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_AtmosphereOpacity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.206
+    textureValue: {fileID: 0}
+  - name: _C1_AtmosphereSize
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.01
+    textureValue: {fileID: 0}
+  - name: _C1_AtmosphereBlur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.3
+    textureValue: {fileID: 0}
+  - name: _C1_AtmosphereGlowPosition
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Atmosphere2Enabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Atmosphere2Color
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C1_Atmosphere2Opacity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _C1_Atmosphere2Size
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.5
+    textureValue: {fileID: 0}
+  - name: _C1_Atmosphere2Blur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.5
+    textureValue: {fileID: 0}
+  - name: _C1_Atmosphere2GlowPosition
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Enabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Tiling
+    type: 1
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0.4, y: 0.4, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Tint
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 1, g: 1, b: 1, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Size
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.2
+    textureValue: {fileID: 0}
+  - name: _C2_EdgeSoftness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.331
+    textureValue: {fileID: 0}
+  - name: _C2_Phase
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_InvertPhase
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_PhaseSize
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _C2_PhaseSmoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.415
+    textureValue: {fileID: 0}
+  - name: _C2_Rotation
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 360
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _C2_DarkSideOcclusion
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_GlowEnabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _C2_GlowColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_GlowPower
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 5
+    textureValue: {fileID: 0}
+  - name: _C2_GlowIntensity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2
+    textureValue: {fileID: 0}
+  - name: _C2_AtmosphereEnabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_AtmosphereColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_AtmosphereOpacity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _C2_AtmosphereSize
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.6
+    textureValue: {fileID: 0}
+  - name: _C2_AtmosphereBlur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.3
+    textureValue: {fileID: 0}
+  - name: _C2_AtmosphereGlowPosition
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Atmosphere2Enabled
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Atmosphere2Color
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _C2_Atmosphere2Opacity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _C2_Atmosphere2Size
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.5
+    textureValue: {fileID: 0}
+  - name: _C2_Atmosphere2Blur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.5
+    textureValue: {fileID: 0}
+  - name: _C2_Atmosphere2GlowPosition
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}

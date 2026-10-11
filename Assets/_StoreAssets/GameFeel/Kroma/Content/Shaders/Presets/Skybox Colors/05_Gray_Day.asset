@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 091f9ecd8e91c1d4c812cfb87a31bfff, type: 3}
+  m_Name: 05_Gray_Day
+  m_EditorClassIdentifier: 
+  sectionName: Skybox Colors
+  properties:
+  - name: _SimulateGround
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _UseTwoColorMode
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _TopColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.10349999, g: 0.124199994, b: 0.138, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _MidColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.43921563, g: 0.5019608, b: 0.5411765, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _HorizonColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.033, g: 0.0396, b: 0.044, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Ground_Color
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0.24313709, g: 0.2627449, b: 0.27450964, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Horizon_Offset
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0.051
+    textureValue: {fileID: 0}
+  - name: _Mid_Sky_Height
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0.108
+    textureValue: {fileID: 0}
+  - name: _Horizon_Softness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2
+    textureValue: {fileID: 0}
+  - name: _Mid_Sky_Softness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.023
+    textureValue: {fileID: 0}
+  - name: _GlobalRotation
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 360
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Ground_Blend
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Ground_Horizon_Smoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 20
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 5
+    textureValue: {fileID: 0}

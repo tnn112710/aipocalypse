@@ -1,0 +1,28 @@
+{
+    "name": "FayLabs.Kroma.Editor",
+    "rootNamespace": "FayLabs.Kroma.Editor",
+    "references": [
+        "FayLabs.Kroma.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "KROMA_URP"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "0.0.0",
+            "define": "KROMA_URP"
+        }
+    ],
+    "noEngineReferences": false
+}

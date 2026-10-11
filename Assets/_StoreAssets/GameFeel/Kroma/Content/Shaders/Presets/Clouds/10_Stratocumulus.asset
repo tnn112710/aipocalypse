@@ -1,0 +1,316 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 091f9ecd8e91c1d4c812cfb87a31bfff, type: 3}
+  m_Name: 10_Stratocumulus
+  m_EditorClassIdentifier: 
+  sectionName: Clouds
+  properties:
+  - name: _Cloud_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 2800000, guid: dcd702eb6f624014e9bf80fad79964ad, type: 3}
+  - name: _Color_1
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 0.020705879, g: 0.08538038, b: 0.15686275, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Scale
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.6
+    textureValue: {fileID: 0}
+  - name: _Density
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _Intensity
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.47
+    textureValue: {fileID: 0}
+  - name: _CloudErosion
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.439
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightsToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 3.382119, g: 3.5937953, b: 3.652396, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightControl
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.141
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightContrast
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4.33
+    textureValue: {fileID: 0}
+  - name: _CloudHighlightSmoothness
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.88
+    textureValue: {fileID: 0}
+  - name: _Horizon_Level
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -0.07
+    textureValue: {fileID: 0}
+  - name: _Horizon_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.422
+    textureValue: {fileID: 0}
+  - name: _Top_Fade
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.045
+    textureValue: {fileID: 0}
+  - name: _Speed
+    type: 1
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0.02, y: 0.001, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _CloudBaseSpeedMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.274
+    textureValue: {fileID: 0}
+  - name: _CloudDetailSpeedMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.47
+    textureValue: {fileID: 0}
+  - name: _CloudDetailScale
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.5
+    textureValue: {fileID: 0}
+  - name: _CloudErosionMultiplier
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _CloudAlphaEdge
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.5
+    textureValue: {fileID: 0}
+  - name: _CloudHeightScale
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.54
+    textureValue: {fileID: 0}
+  - name: _CloudLightingWrap
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.339
+    textureValue: {fileID: 0}
+  - name: _CloudSunBoost
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 2.85
+    textureValue: {fileID: 0}
+  - name: _CloudScatterMin
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 100
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 28.3
+    textureValue: {fileID: 0}
+  - name: _CloudScatterMax
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 9.6
+    textureValue: {fileID: 0}
+  - name: _CloudHeightBias
+    type: 2
+    isRange: 1
+    rangeMin: -0.5
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.301
+    textureValue: {fileID: 0}
+  - name: _CloudBaseEpsilon
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.0399
+    textureValue: {fileID: 0}
+  - name: _CloudDetailEpsilon
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.0661
+    textureValue: {fileID: 0}
+  - name: _CloudDetailTexToggle
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _Cloud_Detail_Texture
+    type: 3
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}

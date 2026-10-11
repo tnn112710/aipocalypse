@@ -1,0 +1,33 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:Style src="../Theme/KromaTheme.uss" />
+    <ui:Style src="../Components/KromaCommon.uss" />
+    <ui:Style src="KromaAtmosphereRow.uss" />
+
+    <ui:VisualElement class="kroma-atmosphere-row">
+        <!-- Object Field to display and ping the scene object in the hierarchy -->
+        <uie:ObjectField name="atmosphere-object-field" class="kroma-atmosphere-row__field" />
+
+        <!-- Actions Toolbar -->
+        <ui:VisualElement class="kroma-atmosphere-row__actions">
+            <!-- 0. Particle Play/Pause Toggle -->
+            <ui:Button name="btn-particle-toggle" class="kroma-button kroma-button--icon kroma-atmosphere-row__btn kroma-atmosphere-row__btn--particle" tooltip="Play/Pause particle simulation">
+                <ui:Image name="icon-particle" class="kroma-atmosphere-row__icon kroma-icon-play" picking-mode="Ignore" />
+            </ui:Button>
+
+            <!-- 1. Camera Follow Toggle -->
+            <ui:Button name="btn-follow-toggle" class="kroma-button kroma-button--icon kroma-atmosphere-row__btn kroma-atmosphere-row__btn--follow" tooltip="Toggle camera follow">
+                <ui:Image name="icon-follow" class="kroma-atmosphere-row__icon kroma-icon-camera-follow" picking-mode="Ignore" />
+            </ui:Button>
+
+            <!-- 2. Scene Visibility (Eye) Toggle -->
+            <ui:Button name="btn-visibility-toggle" class="kroma-button kroma-button--icon kroma-atmosphere-row__btn kroma-atmosphere-row__btn--visibility" tooltip="Toggle scene visibility">
+                <ui:Image name="icon-visibility" class="kroma-atmosphere-row__icon kroma-icon-eye" picking-mode="Ignore" />
+            </ui:Button>
+
+            <!-- 3. Delete Permanently Button -->
+            <ui:Button name="btn-delete" class="kroma-button kroma-button--icon kroma-button--danger kroma-atmosphere-row__btn kroma-atmosphere-row__btn--delete" tooltip="Delete permanently">
+                <ui:Image name="icon-delete" class="kroma-atmosphere-row__icon kroma-icon-delete" picking-mode="Ignore" />
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

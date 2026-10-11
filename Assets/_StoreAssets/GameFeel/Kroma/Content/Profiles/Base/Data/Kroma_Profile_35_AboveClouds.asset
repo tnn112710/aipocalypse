@@ -1,0 +1,734 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8385782643976741296
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66f335fb1ffd8684294ad653bf1c7564, type: 3}
+  m_Name: ColorAdjustments
+  m_EditorClassIdentifier: 
+  active: 1
+  postExposure:
+    m_OverrideState: 1
+    m_Value: 0.8
+  contrast:
+    m_OverrideState: 1
+    m_Value: 30
+  colorFilter:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  hueShift:
+    m_OverrideState: 0
+    m_Value: 0
+  saturation:
+    m_OverrideState: 1
+    m_Value: 30
+--- !u!114 &-8238824995320649324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Above Clouds_Volume
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 4270078670205834582}
+  - {fileID: 3507668834246205378}
+  - {fileID: 2777456806856773681}
+  - {fileID: -8385782643976741296}
+  - {fileID: -6871523748037329593}
+  - {fileID: -4864038133792842223}
+  - {fileID: 5415946782694135235}
+  - {fileID: -5138520289892767350}
+--- !u!114 &-6871523748037329593
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 899c54efeace73346a0a16faa3afe726, type: 3}
+  m_Name: Vignette
+  m_EditorClassIdentifier: 
+  active: 1
+  color:
+    m_OverrideState: 1
+    m_Value: {r: 0.027807394, g: 0.107002236, b: 0.23899364, a: 1}
+  center:
+    m_OverrideState: 0
+    m_Value: {x: 0.5, y: 0.5}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.35
+  smoothness:
+    m_OverrideState: 1
+    m_Value: 0.35
+  rounded:
+    m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &-5138520289892767350
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81180773991d8724ab7f2d216912b564, type: 3}
+  m_Name: ChromaticAberration
+  m_EditorClassIdentifier: 
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.25
+--- !u!114 &-4864038133792842223
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 221518ef91623a7438a71fef23660601, type: 3}
+  m_Name: WhiteBalance
+  m_EditorClassIdentifier: 
+  active: 1
+  temperature:
+    m_OverrideState: 1
+    m_Value: 6.5
+  tint:
+    m_OverrideState: 0
+    m_Value: 16
+--- !u!21 &-1942771395135355284
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Above Clouds_Skybox
+  m_Shader: {fileID: 4800000, guid: 867e83a9dddd0ce47943993ccc375936, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _C1_ATMOSPHERE2_ON
+  - _C2_ATMOSPHERE2_ON
+  - _CELESTIAL1_ON
+  - _CELESTIAL2_ON
+  - _CELESTIAL_ON
+  - _CLOUD2_DETAIL_TEX_ON
+  - _CLOUDS2_ON
+  - _CLOUDS_ON
+  - _CLOUD_DETAIL_TEX_ON
+  - _CLOUD_HIGHLIGHTS_ON
+  - _GODRAYS_ON
+  - _SIMULATE_GROUND
+  - _STARS_ON
+  m_InvalidKeywords:
+  - _ATMOSPHERE_ON
+  - _C1_ATMOSPHERE_ON
+  - _C1_ATMOSPHERE_PHASE_ON
+  - _C1_GLOW_ON
+  - _C1_INNER_GLOW_ON
+  - _C2_ATMOSPHERE_ON
+  - _C2_GLOW_ON
+  - _C2_INNER_GLOW_ON
+  - _CLOUD_FOG_ON
+  - _GLOW_ON
+  - _INNER_GLOW_ON
+  - _ROTATE_WITH_CAMERA
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _C1_Texture:
+        m_Texture: {fileID: 2800000, guid: fb20166ffd46e3746923ca466f1444e6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _C2_Texture:
+        m_Texture: {fileID: 2800000, guid: eac392a147c056345aaf8b90c40ddd72, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud2_Detail_Texture:
+        m_Texture: {fileID: 2800000, guid: caf5fcd307429c245a830ee65a877b57, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud2_Texture:
+        m_Texture: {fileID: 2800000, guid: 7681016dfdb764b48a18bfb59fc48325, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud_Detail_Texture:
+        m_Texture: {fileID: 2800000, guid: caf5fcd307429c245a830ee65a877b57, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud_Texture:
+        m_Texture: {fileID: 2800000, guid: 7681016dfdb764b48a18bfb59fc48325, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StarCubeMap:
+        m_Texture: {fileID: 8900000, guid: b81ab103da55b4441ae77e454cee2f3b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StarTexture:
+        m_Texture: {fileID: 2800000, guid: 4738e3d819ef67046b6dc7cbf215817a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Atmosphere2Blur: 10
+    - _Atmosphere2Enabled: 0
+    - _Atmosphere2GlowPosition: 0
+    - _Atmosphere2Opacity: 1
+    - _Atmosphere2PhaseInfluence: 1
+    - _Atmosphere2Size: 0
+    - _Atmosphere2Smoothness: 1.63
+    - _AtmosphereBlur: 10
+    - _AtmosphereEnabled: 1
+    - _AtmosphereGlowPosition: 0
+    - _AtmosphereOpacity: 0.102
+    - _AtmospherePhaseEnabled: 0
+    - _AtmospherePhaseInfluence: 1
+    - _AtmosphereSize: 3.87
+    - _AtmosphereSmoothness: 1
+    - _C1_Altitude: 28.7
+    - _C1_Atmosphere2Blur: 3.75
+    - _C1_Atmosphere2Enabled: 1
+    - _C1_Atmosphere2GlowPosition: 0.2
+    - _C1_Atmosphere2Opacity: 1
+    - _C1_Atmosphere2PhaseInfluence: 1
+    - _C1_Atmosphere2Size: 0.35
+    - _C1_Atmosphere2Smoothness: 2
+    - _C1_AtmosphereBlur: 1.03
+    - _C1_AtmosphereEnabled: 1
+    - _C1_AtmosphereGlowPosition: 0.393
+    - _C1_AtmosphereOpacity: 0.369
+    - _C1_AtmospherePhaseEnabled: 1
+    - _C1_AtmospherePhaseInfluence: 1
+    - _C1_AtmosphereSize: 0.13
+    - _C1_AtmosphereSmoothness: 1
+    - _C1_Azimuth: 53
+    - _C1_DarkSideOcclusion: 0.012
+    - _C1_EdgeSoftness: 0.005
+    - _C1_Enabled: 1
+    - _C1_Fade: 1
+    - _C1_GlowEnabled: 1
+    - _C1_GlowFresnel: 5.8
+    - _C1_GlowIntensity: 2.36
+    - _C1_GlowOuterRadius: 1
+    - _C1_GlowPower: 4.81
+    - _C1_GlowSmoothness: 1.08
+    - _C1_InnerGlowEnabled: 0
+    - _C1_InvertPhase: 0
+    - _C1_OuterGlowEnabled: 1
+    - _C1_OuterGlowSize: 0.022
+    - _C1_Phase: 0.14
+    - _C1_PhaseSize: 0.603
+    - _C1_PhaseSmoothness: 0.56
+    - _C1_RotateWithCamera: 0
+    - _C1_Rotation: 4
+    - _C1_Size: 0.307
+    - _C1_SunshaftsCount: 5
+    - _C1_SunshaftsEnabled: 0
+    - _C1_SunshaftsIntensity: 1
+    - _C1_SunshaftsRadius: 0.5
+    - _C1_SunshaftsSpeed: 0.5
+    - _C2_Altitude: 60
+    - _C2_Atmosphere2Blur: 4
+    - _C2_Atmosphere2Enabled: 1
+    - _C2_Atmosphere2GlowPosition: 0
+    - _C2_Atmosphere2Opacity: 0.1
+    - _C2_Atmosphere2PhaseInfluence: 1
+    - _C2_Atmosphere2Size: 0.88
+    - _C2_Atmosphere2Smoothness: 2
+    - _C2_AtmosphereBlur: 2.27
+    - _C2_AtmosphereEnabled: 1
+    - _C2_AtmosphereGlowPosition: 0.37
+    - _C2_AtmosphereOpacity: 0.4
+    - _C2_AtmospherePhaseEnabled: 0
+    - _C2_AtmospherePhaseInfluence: 1
+    - _C2_AtmosphereSize: 0.22
+    - _C2_AtmosphereSmoothness: 0.1
+    - _C2_Azimuth: 135
+    - _C2_DarkSideOcclusion: 0
+    - _C2_EdgeSoftness: 0
+    - _C2_Enabled: 1
+    - _C2_Fade: 0.974
+    - _C2_GlowEnabled: 1
+    - _C2_GlowFresnel: 2
+    - _C2_GlowIntensity: 1.15
+    - _C2_GlowOuterRadius: 1
+    - _C2_GlowPower: 5.53
+    - _C2_GlowSmoothness: 0.5
+    - _C2_InnerGlowEnabled: 1
+    - _C2_InvertPhase: 0
+    - _C2_OuterGlowEnabled: 0
+    - _C2_OuterGlowSize: 0
+    - _C2_Phase: 0.45
+    - _C2_PhaseSize: 1.35
+    - _C2_PhaseSmoothness: 1
+    - _C2_RotateWithCamera: 0
+    - _C2_Rotation: 345
+    - _C2_Size: 0.7
+    - _C2_SunshaftsCount: 5
+    - _C2_SunshaftsEnabled: 0
+    - _C2_SunshaftsIntensity: 1
+    - _C2_SunshaftsRadius: 0.5
+    - _C2_SunshaftsSpeed: 0.5
+    - _CelestialEdgeSoftness: 0
+    - _CelestialToggle: 1
+    - _Cloud2DetailTexToggle: 1
+    - _Cloud2HighlightsToggle: 0
+    - _Cloud2_AlphaEdge: 0.959
+    - _Cloud2_BaseEpsilon: 0.0463
+    - _Cloud2_BaseSpeedMultiplier: 0.881
+    - _Cloud2_Density: 0.963
+    - _Cloud2_DetailEpsilon: 0
+    - _Cloud2_DetailScale: 0.59
+    - _Cloud2_DetailSpeedMultiplier: 1.7
+    - _Cloud2_Erosion: 0.307
+    - _Cloud2_ErosionMultiplier: 0.94
+    - _Cloud2_HeightBias: 0.404
+    - _Cloud2_HeightScale: 2.61
+    - _Cloud2_HighlightContrast: 1.51
+    - _Cloud2_HighlightControl: 0.489
+    - _Cloud2_HighlightSmoothness: 2.32
+    - _Cloud2_Horizon_Fade: 0.201
+    - _Cloud2_Horizon_Level: -0.13
+    - _Cloud2_Intensity: 2
+    - _Cloud2_LightingWrap: 0.396
+    - _Cloud2_Scale: 1.11
+    - _Cloud2_ScatterMax: 10
+    - _Cloud2_ScatterMin: 13.4
+    - _Cloud2_SunBoost: 0.5
+    - _Cloud2_Top_Fade: 2.25
+    - _CloudAlphaEdge: 0.732
+    - _CloudBaseEpsilon: 0.0463
+    - _CloudBaseSpeedMultiplier: 0.275
+    - _CloudDetailEpsilon: 0
+    - _CloudDetailScale: 0.59
+    - _CloudDetailSpeedMultiplier: 1
+    - _CloudDetailTexToggle: 1
+    - _CloudErosion: 0.476
+    - _CloudErosionMultiplier: 0.94
+    - _CloudFogToggle: 1
+    - _CloudHeightBias: 0.183
+    - _CloudHeightScale: 2.61
+    - _CloudHighlightContrast: 1.51
+    - _CloudHighlightControl: 0.489
+    - _CloudHighlightSmoothness: 2.32
+    - _CloudHighlightsToggle: 1
+    - _CloudLightingContrast: 5
+    - _CloudLightingSmoothness: 1.34
+    - _CloudLightingWrap: 0.396
+    - _CloudScatterMax: 10
+    - _CloudScatterMin: 13.4
+    - _CloudSunBoost: 0.5
+    - _Clouds2Toggle: 1
+    - _CloudsToggle: 1
+    - _DarkSideOcclusion: 0
+    - _Density: 0.61
+    - _Fade: 1
+    - _GlobalRotation: 0
+    - _GlowEnabled: 1
+    - _GlowFresnel: 0.1
+    - _GlowIntensity: 6.16
+    - _GlowOuterRadius: 0.603
+    - _GlowPower: 2.46
+    - _GlowSmoothness: 0.12
+    - _GodRays2Contrast: 4
+    - _GodRays2Length: 2
+    - _GodRays2MaxPackWidth: 0.8
+    - _GodRays2MinPackWidth: 0.2
+    - _GodRays2PackCount: 15
+    - _GodRays2Power: 0.5
+    - _GodRays2Radius: 0.8
+    - _GodRays2Speed: 0.1
+    - _GodRays2Toggle: 0
+    - _GodRaysBeamBlur: 5
+    - _GodRaysBeamSweep: 0.025
+    - _GodRaysContrast: 1
+    - _GodRaysDensity: 6.7
+    - _GodRaysFalloff: 2.72
+    - _GodRaysHoleNoise: 0
+    - _GodRaysHoleSize: -0.02
+    - _GodRaysHoleSoftness: 0.083
+    - _GodRaysHorizonCruft: 0.186
+    - _GodRaysHorizonFade: -0.139
+    - _GodRaysHorizonMaskPower: 1.89
+    - _GodRaysLength: 2.6
+    - _GodRaysMaxPackWidth: 1
+    - _GodRaysMinPackWidth: 0.7549771
+    - _GodRaysPackCount: 4.11
+    - _GodRaysRotateWithCamera: 0
+    - _GodRaysSpeed: 0.15
+    - _GodRaysToggle: 1
+    - _Ground_Blend: 0.01
+    - _Ground_Horizon_Smoothness: 0.2
+    - _Horizon_Fade: 0.291
+    - _Horizon_Level: -0.03
+    - _Horizon_Offset: -0.18
+    - _Horizon_Softness: 0.478
+    - _InnerGlowEnabled: 1
+    - _Intensity: 0.18
+    - _InvertPhase: 0
+    - _Mid_Sky_Height: -0.5
+    - _Mid_Sky_Softness: 1.37
+    - _OuterGlowEnabled: 0
+    - _OuterGlowSize: 0
+    - _Phase: 0
+    - _PhaseSize: 0.95
+    - _PhaseSmoothness: 0
+    - _QueueControl: -1
+    - _QueueOffset: 0
+    - _RotateWithCamera: 1
+    - _Rotation: 294
+    - _Scale: 0.41
+    - _Scatter: 0.312
+    - _ScatterDebug: 0
+    - _Scatter_Contrast: 0.166
+    - _Scatter_size: 1.88
+    - _SimulateGround: 1
+    - _Size: 0.06
+    - _StarColorTempMax: 40000
+    - _StarColorTempMin: 1000
+    - _StarDensity: 0.033
+    - _StarExposure: 8.4
+    - _StarHeight: 1654
+    - _StarHorizonFade: 0.5
+    - _StarLatitude: 54
+    - _StarPower: 42.2
+    - _StarRotation: 0.469
+    - _StarSaturation: 2
+    - _StarSize: 0.39
+    - _StarSizeMax: 1.3112634
+    - _StarSizeMin: 0.21822841
+    - _StarSoftness: 1
+    - _StarSpeed: 0.001
+    - _StarTiling: 1
+    - _StarTwinkleAmount: 0
+    - _StarTwinkleSpeed: 0
+    - _Star_Blend: 1.68
+    - _Star_Blend_Contrast: 1.64
+    - _Star_Scatter: 1
+    - _StarsToggle: 1
+    - _Stars_Scatter_Size: 13.14
+    - _SunshaftsCount: 5
+    - _SunshaftsEnabled: 0
+    - _SunshaftsIntensity: 1
+    - _SunshaftsRadius: 0.5
+    - _SunshaftsSpeed: 0.5
+    - _Top_Fade: 0
+    - _Top_Softness: 0.899
+    - _TwinkleAmount: 0.5
+    - _TwinkleSpeed: 1
+    - _UseTwoColorMode: 0
+    m_Colors:
+    - _Atmosphere2Color: {r: 566.8053, g: 766.99615, b: 690.9085, a: 0}
+    - _AtmosphereColor: {r: 0.62920856, g: 2.1185474, b: 1.2057266, a: 1}
+    - _C1_Atmosphere2Color: {r: 0.4169136, g: 1.2769418, b: 1.5597484, a: 1}
+    - _C1_AtmosphereColor: {r: 0.4169136, g: 1.2769418, b: 1.5597484, a: 1}
+    - _C1_GlowColor: {r: 0.4169136, g: 1.2769418, b: 1.5597484, a: 1}
+    - _C1_OuterGlowColor: {r: 1.9999999, g: 1.7244011, b: 0, a: 0}
+    - _C1_SunshaftsColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+    - _C1_Tiling: {r: 0.7, g: 0.7, b: 0, a: 0}
+    - _C1_Tint: {r: 0.4169136, g: 1.2769418, b: 1.5597484, a: 1}
+    - _C2_Atmosphere2Color: {r: 1.5946325, g: 3.6784458, b: 4.1227098, a: 1}
+    - _C2_AtmosphereColor: {r: 1.4146254, g: 3.542289, b: 3.9809818, a: 1}
+    - _C2_GlowColor: {r: 0.5176471, g: 0.73819774, b: 0.7490196, a: 1}
+    - _C2_OuterGlowColor: {r: 0, g: 0, b: 0, a: 0}
+    - _C2_SunshaftsColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+    - _C2_Tiling: {r: 0.85, g: 0.85, b: 0, a: 0}
+    - _C2_Tint: {r: 1.7369298, g: 2.3010187, b: 2.4548612, a: 1}
+    - _Cloud2_Color: {r: 0.46236783, g: 1.1953902, b: 0.9305811, a: 1}
+    - _Cloud2_HighlightColor: {r: 0.32549024, g: 0.6343157, b: 0.8039216, a: 1}
+    - _Cloud2_Speed: {r: 0.01, g: 0.02, b: 0, a: 0}
+    - _CloudHighlightColor: {r: 0.32549024, g: 0.6343157, b: 0.8039216, a: 1}
+    - _Color_1: {r: 0.686102, g: 1.4980392, b: 1.2047216, a: 1}
+    - _GlowColor: {r: 0.3930637, g: 2.1185474, b: 1.0615757, a: 1}
+    - _GodRaysColor: {r: 0.60284734, g: 1.3041189, b: 0.991573, a: 1}
+    - _Ground_Color: {r: 0.688422, g: 0.95597476, b: 0.90147334, a: 1}
+    - _HorizonColor: {r: 0.7295991, g: 1.9202858, b: 1.9496855, a: 1}
+    - _MidColor: {r: 0, g: 0.29185635, b: 1.2311443, a: 1}
+    - _OuterGlowColor: {r: 0, g: 0, b: 0, a: 0}
+    - _Speed: {r: 0.03, g: 0.01, b: 0, a: 0}
+    - _StarTint: {r: 3.07726, g: 3.07726, b: 3.07726, a: 0.32941177}
+    - _SunshaftsColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+    - _Tiling: {r: 0, g: 0, b: 0, a: 0}
+    - _Tint: {r: 1.1070416, g: 1.4980392, b: 1.3403987, a: 1}
+    - _TopColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47f564f51d5e50b4eb5468bec86f10d3, type: 3}
+  m_Name: Kroma_Profile_35_AboveClouds
+  m_EditorClassIdentifier: 
+  volumeProfile: {fileID: -8238824995320649324}
+  skyboxMaterial: {fileID: -1942771395135355284}
+  configureSunLight: 1
+  cameraRelativeSun: 1
+  sunAzimuth: -22.257563
+  sunElevation: 12.752444
+  sunRotation: {x: 50, y: -30, z: 0}
+  sunColor: {r: 1, g: 0.9137255, b: 0.7254902, a: 1}
+  sunIntensity: 1
+  shadowType: 2
+  shadowStrength: 0.938
+  environmentSource: 1
+  ambientSkyColor: {r: 0.25792938, g: 0.50799036, b: 0.63529414, a: 1}
+  ambientEquatorColor: {r: 0.9693585, g: 1.1879393, b: 1.1723264, a: 1}
+  ambientGroundColor: {r: 1, g: 1, b: 1, a: 1}
+  ambientColor: {r: 0.25792938, g: 0.50799036, b: 0.63529414, a: 1}
+  environmentMultiplier: 1.71
+  fogEnabled: 1
+  fogColor: {r: 0.45665088, g: 0.72384024, b: 0.821, a: 0}
+  fogMode: 2
+  fogDensity: 0.005
+  fogStartDistance: 20
+  fogEndDistance: 150
+  sceneObjects:
+  - enabled: 1
+    prefab: {fileID: 1080103550003618731, guid: b19f419a44b6762409362d632ccd4a87, type: 3}
+    position: {x: 646.02075, y: 6.83242, z: 586.0682}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    useCameraRelative: 1
+    parentToCamera: 0
+    snapMode: 2
+    groundOffset: 0.5
+    cameraOffset: {x: 0, y: 1, z: 0}
+    raycastDistance: 400
+    azimuth: 29.917564
+    elevation: 44.350765
+    distance: 6.475563
+    rotationOffset: {x: 8.835151, y: 339.51083, z: 356.71945}
+    absoluteRotation: {x: 0, y: 0, z: 0}
+    parentObjectName: 
+    rotationMode: 0
+    parentMode: 0
+    followCamera: 1
+  thumbnail: {fileID: 2800000, guid: cdf8b712c08417045a24bfc2ba1ca2ee, type: 3}
+  profileName: Above Clouds
+  category: 0
+  timeOfDay: 1
+  searchTags: Cyan, Aquamarine, Clouds, Sky, Space, Planet, Sun, Sun-Drenched, Painterly,
+    High-Contrast, Vibrant, Ethereal-Glow, Saturated, Whimsical, Hopeful, Dreamy,
+    Peaceful, Bright, Uplifting, Sky-Kingdom
+--- !u!114 &2777456806856773681
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c23e3b12dc18c42a140437e53d3951, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: 
+  active: 1
+  mode:
+    m_OverrideState: 1
+    m_Value: 2
+  neutralHDRRangeReductionMode:
+    m_OverrideState: 0
+    m_Value: 2
+  acesPreset:
+    m_OverrideState: 0
+    m_Value: 3
+  hueShiftAmount:
+    m_OverrideState: 0
+    m_Value: 0
+  detectPaperWhite:
+    m_OverrideState: 0
+    m_Value: 0
+  paperWhite:
+    m_OverrideState: 0
+    m_Value: 300
+  detectBrightnessLimits:
+    m_OverrideState: 0
+    m_Value: 1
+  minNits:
+    m_OverrideState: 0
+    m_Value: 0.005
+  maxNits:
+    m_OverrideState: 0
+    m_Value: 1000
+--- !u!114 &3507668834246205378
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06437c1ff663d574d9447842ba0a72e4, type: 3}
+  m_Name: ScreenSpaceLensFlare
+  m_EditorClassIdentifier: 
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  tintColor:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 0.9215687, b: 0.74509805, a: 1}
+  bloomMip:
+    m_OverrideState: 0
+    m_Value: 1
+  firstFlareIntensity:
+    m_OverrideState: 1
+    m_Value: 1
+  secondaryFlareIntensity:
+    m_OverrideState: 1
+    m_Value: 1
+  warpedFlareIntensity:
+    m_OverrideState: 1
+    m_Value: 1
+  warpedFlareScale:
+    m_OverrideState: 0
+    m_Value: {x: 1, y: 1}
+  samples:
+    m_OverrideState: 0
+    m_Value: 1
+  sampleDimmer:
+    m_OverrideState: 0
+    m_Value: 0.5
+  vignetteEffect:
+    m_OverrideState: 0
+    m_Value: 1
+  startingPosition:
+    m_OverrideState: 0
+    m_Value: 1.25
+  scale:
+    m_OverrideState: 0
+    m_Value: 1.5
+  streaksIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+  streaksLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+  streaksOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  streaksThreshold:
+    m_OverrideState: 0
+    m_Value: 0.25
+  resolution:
+    m_OverrideState: 0
+    m_Value: 4
+  chromaticAbberationIntensity:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &4270078670205834582
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b2db86121404754db890f4c8dfe81b2, type: 3}
+  m_Name: Bloom
+  m_EditorClassIdentifier: 
+  active: 1
+  skipIterations:
+    m_OverrideState: 0
+    m_Value: 1
+  threshold:
+    m_OverrideState: 1
+    m_Value: 0.85
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.5
+  scatter:
+    m_OverrideState: 1
+    m_Value: 0.6
+  clamp:
+    m_OverrideState: 0
+    m_Value: 65472
+  tint:
+    m_OverrideState: 0
+    m_Value: {r: 0.8616352, g: 0.68459535, b: 0.44165573, a: 1}
+  highQualityFiltering:
+    m_OverrideState: 0
+    m_Value: 0
+  downscale:
+    m_OverrideState: 0
+    m_Value: 0
+  maxIterations:
+    m_OverrideState: 0
+    m_Value: 6
+  dirtTexture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+    dimension: 1
+  dirtIntensity:
+    m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &5415946782694135235
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 558a8e2b6826cf840aae193990ba9f2e, type: 3}
+  m_Name: ShadowsMidtonesHighlights
+  m_EditorClassIdentifier: 
+  active: 1
+  shadows:
+    m_OverrideState: 1
+    m_Value: {x: 0.9695022, y: 1, z: 0.8101851, w: 0.19095762}
+  midtones:
+    m_OverrideState: 0
+    m_Value: {x: 0.94720817, y: 1, z: 0.99513644, w: -0.25835428}
+  highlights:
+    m_OverrideState: 0
+    m_Value: {x: 0.89203036, y: 1, z: 0.83464813, w: -0.033698395}
+  shadowsStart:
+    m_OverrideState: 1
+    m_Value: 0
+  shadowsEnd:
+    m_OverrideState: 1
+    m_Value: 0.06
+  highlightsStart:
+    m_OverrideState: 0
+    m_Value: 0.55
+  highlightsEnd:
+    m_OverrideState: 0
+    m_Value: 1

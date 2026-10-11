@@ -1,0 +1,89 @@
+/* Kroma Atmosphere Row Styles
+ * Dedicated styling for the Atmosphere Prefabs list sub-item.
+ */
+
+.kroma-atmosphere-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-radius: 8px;
+    background-color: #363636;
+    transition-property: background-color, border-color;
+    transition-duration: 0.15s;
+}
+
+.kroma-atmosphere-row:hover {
+    background-color: #3f3f3f;
+    border-color: #454545;
+}
+
+.kroma-atmosphere-row__field {
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 0;
+    min-width: 60px;
+    margin-right: 6px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.kroma-atmosphere-row__field .unity-base-field__input {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.kroma-atmosphere-row__actions {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.kroma-atmosphere-row__btn {
+    width: 24px;
+    height: 20px;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    justify-content: center;
+    align-items: center;
+}
+
+.kroma-atmosphere-row__icon {
+    width: 14px;
+    height: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.kroma-atmosphere-row__btn:disabled .kroma-atmosphere-row__icon {
+    opacity: 0.4;
+}
+
+/* State & Icon variants */
+.kroma-icon-play {
+}
+
+.kroma-icon-pause {
+}
+
+.kroma-icon-camera-follow {
+}
+
+.kroma-icon-camera-follow--active {
+}
+
+.kroma-icon-eye {
+}
+
+.kroma-icon-eye--hidden {
+    opacity: 0.5;
+}
+
+.kroma-icon-delete {
+    --unity-image: url("../icons/kroma-Ico-Delete.png");
+}

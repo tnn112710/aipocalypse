@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Mat_Grass
+  m_Shader: {fileID: 4800000, guid: 446ae548227e07a4d9e67ee6ada83472, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ROOTPIN_ON
+  - _WIND_ON
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 32185c873a7c17743a47779af41f08e2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SmoothnessMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaCutoff: 0.33
+    - _NormalStrength: 1
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _RootPin: 1
+    - _ScatterEnable: 1
+    - _ScatterPower: 4
+    - _ScatterStrength: 1
+    - _SmoothnessScale: 0
+    - _TipBlend: -0.74
+    - _TipColorEnable: 1
+    - _TipContrast: 3.75
+    - _WindDirX: 0.2
+    - _WindDirZ: -0.2
+    - _WindEnable: 1
+    - _WindFrequency: 0.91
+    - _WindStrength: 0.8
+    - _WindTurbulence: 2.93
+    m_Colors:
+    - _ScatterColor: {r: 0.39999998, g: 0.8, b: 0.19999996, a: 1}
+    - _TintColor: {r: 0.72955966, g: 0.72955966, b: 0.72955966, a: 1}
+    - _TipColor: {r: 0.8, g: 0.9, b: 0.29999998, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

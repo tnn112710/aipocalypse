@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Bush_Leaves_1
+  m_Shader: {fileID: -6465566751694194690, guid: 4f229e5046b9f0240abf2b12d25debb0, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: _Smoothness
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Albedo:
+        m_Texture: {fileID: 2800000, guid: f101f6371ef452740919f3b8fa290c88, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normal_Map:
+        m_Texture: {fileID: 2800000, guid: c00ac924e92da1e43be7bf6c488d2fcd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Smoothness_Map:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AO_Int: 0.4
+    - _AlphaClip: 1
+    - _AlphaCutoff: 0.25
+    - _AlphaToMask: 1
+    - _Ambient_Occlusion: 0.4
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 1
+    - _CastShadows: 1
+    - _Cull: 0
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
+    - _Enable_Color_Variation: 1
+    - _Enable_Height_Gradient: 1
+    - _Enable_UV_Color: 0
+    - _Enable_UV_Gradient: 0
+    - _Enable_Wind: 1
+    - _Height_Gradient_Fade: 0.05
+    - _Height_Gradient_Offset: 6.18
+    - _Noise_Scale_Multiplier: 5
+    - _Noise_Speed_Multiplier: 0.6
+    - _Normal: 0.7
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _ReceiveShadows: 1
+    - _SSS_Against_Sun: 2
+    - _SSS_Against_Sun_Int: 15
+    - _SSS_Fade: 0.5
+    - _SSS_Level: 0
+    - _SSS_Offset: 1
+    - _SSS_and_AO_blend: 1
+    - _SecondColorFade: 0.2
+    - _SecondColorOffset: 3.78
+    - _Smoothness: 0.35
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _Surface: 0
+    - _UV_Color_Fade: 0
+    - _UV_Color_Offset: 0
+    - _UV_Gradient_Fade: 1
+    - _UV_Gradient_Offset: 0
+    - _UV_Shake: 1
+    - _UV_Shake_Force: 0.5
+    - _UV_Shake_Speed: 10
+    - _Vertex_Shake: 1
+    - _Vertex_Shake_Noise_Scale: 10
+    - _Vertex_Shake_Speed: 2
+    - _Wind_Force_Multiplier: 3
+    - _WorkflowMode: 1
+    - _ZTest: 4
+    - _ZWrite: 1
+    - _ZWriteControl: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 0}
+    - _Height_Gradient_Color: {r: 0.62342715, g: 0.667, b: 0.26143718, a: 0}
+    - _MainColor: {r: 0.2694792, g: 0.398, b: 0.27362502, a: 0}
+    - _SSS_Color: {r: 0.07058825, g: 0.23921569, b: 0.103541106, a: 0}
+    - _Second_Color: {r: 0.45411918, g: 0.553, b: 0.2783311, a: 0}
+    - _UV_Color: {r: 0, g: 0, b: 0, a: 0}
+    - _UV_Gradient_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &3830633808414308866
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 10

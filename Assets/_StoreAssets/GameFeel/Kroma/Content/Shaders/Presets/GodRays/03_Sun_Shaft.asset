@@ -1,0 +1,196 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 091f9ecd8e91c1d4c812cfb87a31bfff, type: 3}
+  m_Name: 03_Sun_Shaft
+  m_EditorClassIdentifier: 
+  sectionName: GodRays
+  properties:
+  - name: _GodRaysColor
+    type: 0
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 1
+    colorValue: {r: 3.0660899, g: 2.398034, b: 1.0509547, a: 1}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysDensity
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 20
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 9.37
+    textureValue: {fileID: 0}
+  - name: _GodRaysContrast
+    type: 2
+    isRange: 1
+    rangeMin: 1
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.12
+    textureValue: {fileID: 0}
+  - name: _GodRaysBeamBlur
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 5
+    textureValue: {fileID: 0}
+  - name: _GodRaysBeamSweep
+    type: 2
+    isRange: 1
+    rangeMin: -5
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.075
+    textureValue: {fileID: 0}
+  - name: _GodRaysRotateWithCamera
+    type: 2
+    isRange: 0
+    rangeMin: 0
+    rangeMax: 0
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _GodRaysSpeed
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 2
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.2
+    textureValue: {fileID: 0}
+  - name: _GodRaysPackCount
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 10
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4.18
+    textureValue: {fileID: 0}
+  - name: _GodRaysMinPackWidth
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.49803144
+    textureValue: {fileID: 0}
+  - name: _GodRaysMaxPackWidth
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1
+    textureValue: {fileID: 0}
+  - name: _GodRaysHoleSize
+    type: 2
+    isRange: 1
+    rangeMin: -1
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: -1
+    textureValue: {fileID: 0}
+  - name: _GodRaysHoleSoftness
+    type: 2
+    isRange: 1
+    rangeMin: 0.01
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.143
+    textureValue: {fileID: 0}
+  - name: _GodRaysHoleNoise
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}
+  - name: _GodRaysLength
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.2
+    textureValue: {fileID: 0}
+  - name: _GodRaysFalloff
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 4.8
+    textureValue: {fileID: 0}
+  - name: _GodRaysHorizonFade
+    type: 2
+    isRange: 1
+    rangeMin: -0.5
+    rangeMax: 0.5
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0.115
+    textureValue: {fileID: 0}
+  - name: _GodRaysHorizonMaskPower
+    type: 2
+    isRange: 1
+    rangeMin: 0.1
+    rangeMax: 20
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 1.7
+    textureValue: {fileID: 0}
+  - name: _GodRaysHorizonCruft
+    type: 2
+    isRange: 1
+    rangeMin: 0
+    rangeMax: 1
+    isHDR: 0
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    vectorValue: {x: 0, y: 0, z: 0, w: 0}
+    floatValue: 0
+    textureValue: {fileID: 0}

@@ -1,0 +1,33 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="../Theme/KromaTheme.uss" />
+    <ui:Style src="../Components/KromaCommon.uss" />
+    <ui:Style src="../Components/KromaModal.uss" />
+    <ui:VisualElement class="kroma-root kroma-modal-root">
+        <ui:VisualElement class="kroma-modal-header">
+            <ui:VisualElement class="kroma-modal-header__bg" picking-mode="Ignore" />
+            <ui:Image name="modal-header-icon" class="kroma-modal-header__image" picking-mode="Ignore" />
+            <ui:Label text="CLONE PROFILE" class="kroma-modal-header__title" />
+        </ui:VisualElement>
+        <ui:VisualElement class="kroma-modal-content">
+            <ui:Label name="modal-body-label" class="kroma-modal-body" enable-rich-text="true" />
+            
+            <ui:VisualElement class="kroma-modal-box kroma-modal-clone-preview">
+                <ui:Image name="clone-source-thumbnail" class="kroma-modal-clone-thumb" picking-mode="Ignore" />
+                <ui:VisualElement class="kroma-modal-clone-info">
+                    <ui:Label text="SOURCE PROFILE" class="kroma-modal-box__subtitle" />
+                    <ui:Label name="clone-source-name" text="Source Profile" class="kroma-modal-clone-name" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="kroma-modal-field-group">
+                <ui:Label text="New Profile Name:" class="kroma-modal-field-label" />
+                <ui:TextField name="field-profile-name" class="kroma-modal-input" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="kroma-modal-actions">
+                <ui:Button name="btn-cancel" text="Cancel" class="kroma-button kroma-modal-btn" />
+                <ui:Button name="btn-confirm" text="Clone" class="kroma-button kroma-modal-btn kroma-modal-btn--accent" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

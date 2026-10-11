@@ -1,0 +1,90 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="../Theme/KromaTheme.uss" />
+    <ui:Style src="../Components/KromaCommon.uss" />
+    <ui:Style src="KromaSceneLighting.uss" />
+    <ui:VisualElement name="kroma-scene-lighting-root" class="kroma-root">
+        <ui:VisualElement class="kroma-card-container">
+            <ui:VisualElement name="top-card" class="kroma-card kroma-card--top">
+                <ui:VisualElement name="top-card-bg" class="kroma-top-card__bg" picking-mode="Ignore" />
+                <ui:Image name="top-card-image" class="kroma-top-card__image" picking-mode="Ignore" />
+                <ui:Label name="top-card-title" text="KROMA SCENE PROFILE" class="kroma-top-card__title" />
+            </ui:VisualElement>
+            <ui:VisualElement name="section-profile-details" class="kroma-card">
+                <ui:VisualElement class="kroma-card__body">
+                    <ui:VisualElement name="profile-active-container" class="kroma-profile-details__container">
+                        <ui:Image name="profile-details-thumb" class="kroma-profile-details__thumb" picking-mode="Ignore" />
+                        <ui:VisualElement class="kroma-profile-details__content">
+                            <ui:Label name="profile-details-name" class="kroma-profile-details__name" text="NO PROFILE" />
+                            <uie:ObjectField name="field-kroma-profile" label="Profile" allow-scene-objects="false" />
+                            <ui:VisualElement name="profile-subassets-container" class="kroma-subassets-group">
+                                <uie:ObjectField name="field-skybox" label="Skybox" allow-scene-objects="false" />
+                                <uie:ObjectField name="field-pp-volume" label="Volume" allow-scene-objects="false" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:HelpBox name="profile-no-profile-box" text="Apply a profile from the Kroma Browser to get started." message-type="Info" style="display: none;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="section-profile-tuning" class="kroma-card">
+                <ui:VisualElement class="kroma-card__header">
+                    <ui:Image class="kroma-card__icon kroma-icon-scene-tuning" picking-mode="Ignore" />
+                    <ui:Label text="Scene Tuning" class="kroma-card__title" />
+                </ui:VisualElement>
+                <ui:VisualElement class="kroma-card__body">
+                    <ui:VisualElement name="row-lighting-boost" class="kroma-slider-row">
+                        <ui:Slider name="slider-lighting-boost" label="Lighting" low-value="0" high-value="5" value="1" show-input-field="true" tooltip="Adjust the intensity of the environment lighting." class="kroma-slider kroma-slider-row__slider" />
+                        <ui:Button name="btn-reset-lighting-boost" tooltip="Reset to profile default" class="kroma-button kroma-button--icon kroma-slider-row__btn">
+                            <ui:Image class="kroma-icon-refresh" picking-mode="Ignore" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="row-volume-weight" class="kroma-slider-row">
+                        <ui:Slider name="slider-volume-weight" label="Volume" low-value="0.001" high-value="1" value="1" show-input-field="true" tooltip="Controls the global influence (weight) of the post-processing volume associated with this profile." class="kroma-slider kroma-slider-row__slider" />
+                        <ui:Button name="btn-reset-volume-weight" tooltip="Reset to profile default" class="kroma-button kroma-button--icon kroma-slider-row__btn">
+                            <ui:Image class="kroma-icon-refresh" picking-mode="Ignore" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="row-fog-intensity" class="kroma-slider-row">
+                        <ui:Slider name="slider-fog-intensity" label="Fog" low-value="0" high-value="10" value="1" show-input-field="true" tooltip="Adjusts the scene fog density or linear distance based on the profile's active fog mode." class="kroma-slider kroma-slider-row__slider" />
+                        <ui:Button name="btn-reset-fog-intensity" tooltip="Reset to profile default" class="kroma-button kroma-button--icon kroma-slider-row__btn">
+                            <ui:Image class="kroma-icon-refresh" picking-mode="Ignore" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="section-atmosphere-prefabs" class="kroma-card">
+                <ui:VisualElement class="kroma-card__header">
+                    <ui:Image class="kroma-card__icon kroma-icon-atmosphere-prefabs" picking-mode="Ignore" />
+                    <ui:Label text="Atmosphere Prefabs" class="kroma-card__title" />
+                </ui:VisualElement>
+                <ui:VisualElement class="kroma-card__body">
+                    <ui:Label name="atmosphere-empty-label" text="No atmosphere prefabs spawned." class="kroma-atmosphere-empty" />
+                    <ui:VisualElement name="atmosphere-list-container" class="kroma-atmosphere-list" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="section-profile-tools" class="kroma-card">
+                <ui:VisualElement class="kroma-card__header">
+                    <ui:Image class="kroma-card__icon kroma-icon-profile-tools" picking-mode="Ignore" />
+                    <ui:Label text="Profile Tools" class="kroma-card__title" />
+                </ui:VisualElement>
+                <ui:VisualElement class="kroma-card__body">
+                    <ui:Foldout name="foldout-clone-profile" text="Clone Profile" value="false" class="kroma-foldout">
+                        <ui:Label text="To preserve your skybox and post-processing settings, please clone this profile before making changes." class="kroma-desc-label" />
+                        <ui:Button name="btn-clone-profile" text="Clone Profile" class="kroma-button kroma-action-btn" />
+                    </ui:Foldout>
+                    <ui:Foldout name="foldout-reset-profile" text="Reset Profile" value="false" class="kroma-foldout kroma-foldout--spaced">
+                        <ui:Label text="Reset scene lighting back to default, or selectively clear skybox, post-processing volume, and atmosphere objects." class="kroma-desc-label" />
+                        <ui:Button name="btn-reset-profile" text="Reset Profile" class="kroma-button kroma-action-btn" />
+                    </ui:Foldout>
+                    <ui:Foldout name="foldout-update-profile" text="Update Profile" value="false" class="kroma-foldout kroma-foldout--spaced">
+                        <ui:Label text="Update the active profile asset by capturing directional light, fog, and ambient settings directly from the current scene." class="kroma-desc-label" />
+                        <ui:VisualElement class="kroma-button-row">
+                            <ui:Button name="btn-capture-direct-light" text="Capture Direct Light" class="kroma-button kroma-action-btn kroma-action-btn--auto" />
+                            <ui:Button name="btn-capture-fog-ambient" text="Capture Fog &amp; Ambient Light" class="kroma-button kroma-action-btn kroma-action-btn--auto" />
+                        </ui:VisualElement>
+                    </ui:Foldout>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="kroma-spacer-md" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

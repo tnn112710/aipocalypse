@@ -1,0 +1,42 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="../Theme/KromaTheme.uss" />
+    <ui:Style src="../Components/KromaCommon.uss" />
+    <ui:Style src="../Components/KromaModal.uss" />
+    <ui:VisualElement class="kroma-root kroma-modal-root">
+        <ui:VisualElement class="kroma-modal-header">
+            <ui:VisualElement class="kroma-modal-header__bg" picking-mode="Ignore" />
+            <ui:Image name="modal-header-icon" class="kroma-modal-header__image" picking-mode="Ignore" />
+            <ui:Label text="RESET PROFILE SETTINGS" class="kroma-modal-header__title" />
+        </ui:VisualElement>
+        <ui:VisualElement class="kroma-modal-content">
+            <ui:Label name="modal-body-label" class="kroma-modal-body" enable-rich-text="true" />
+            
+            <ui:VisualElement class="kroma-modal-box">
+                <ui:Label text="SELECT ASPECTS TO RESET:" class="kroma-modal-box__title" />
+                
+                <ui:VisualElement class="kroma-modal-toggle-row">
+                    <ui:Toggle name="toggle-pp" text="Post-Processing Volume" class="kroma-toggle" />
+                    <ui:Label name="badge-pp-applied" text="Already applied" class="kroma-modal-badge--applied" style="display: none;" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="kroma-modal-toggle-row">
+                    <ui:Toggle name="toggle-skybox" text="Skybox Material" class="kroma-toggle" />
+                    <ui:Label name="badge-skybox-applied" text="Already applied" class="kroma-modal-badge--applied" style="display: none;" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="kroma-modal-toggle-row">
+                    <ui:Toggle name="toggle-sun" text="Sun Light" class="kroma-toggle" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="kroma-modal-toggle-row">
+                    <ui:Toggle name="toggle-fog" text="Fog Settings" class="kroma-toggle" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="kroma-modal-actions">
+                <ui:Button name="btn-cancel" text="Cancel" class="kroma-button kroma-modal-btn" />
+                <ui:Button name="btn-confirm" text="Reset" class="kroma-button kroma-modal-btn kroma-modal-btn--accent" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

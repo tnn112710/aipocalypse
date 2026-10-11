@@ -4,8 +4,6 @@
 
 Core feel prototypes — each mechanic in its own scene under `Assets/_Game/Scenes/Prototypes/` (see [ARCHITECTURE.md](technicals/ARCHITECTURE.md#prototypes--main-game)).
 
-**Prototype environments:** build with Synty `Assets/_StoreAssets/Synty/PolygonPrototype` (greybox) and `PolygonGeneric` first, to test mechanics. No environment art pass until the mechanics feel good.
-
 ## Next
 
 - [ ] Foundation

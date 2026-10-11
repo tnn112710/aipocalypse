@@ -1,0 +1,165 @@
+#ifndef KROMA_STARS_INCLUDED
+#define KROMA_STARS_INCLUDED
+
+#include "Kroma_Shared.hlsl"
+
+// Helper: Blackbody Color Temperature (Approx)
+// Input: Temperature in Kelvin (1000 to 40000)
+// Output: RGB Color (Normalized)
+float3 ColorFromTemperature(float t)
+{
+    // Tanner Helland's algorithm approximation
+    float3 color = float3(1, 1, 1);
+    t = clamp(t, 1000.0, 40000.0) / 100.0;
+
+    if (t <= 66.0)
+    {
+        color.r = 1.0;
+        color.g = saturate(0.39008157876901960784 * log(t) - 0.63184144378862745098);
+    }
+    else
+    {
+        color.r = saturate(1.29293618606274509804 * pow(t - 60.0, -0.1332047592));
+        color.g = saturate(1.12989086089529411765 * pow(t - 60.0, -0.0755148492));
+    }
+
+    if (t >= 66.0)
+    {
+        color.b = 1.0;
+    }
+    else if (t <= 19.0)
+    {
+        color.b = 0.0;
+    }
+    else
+    {
+        color.b = saturate(0.54320678911019607843 * log(t - 10.0) - 1.19625408914);
+    }
+
+    return color;
+}
+
+// Helper: 2D Hash
+float2 Hash12(float2 p)
+{
+	float3 p3 = frac(float3(p.xyx) * float3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx + 33.33);
+	return frac((p3.xx+p3.yz)*p3.zy);
+}
+
+float Hash13(float2 p) 
+{
+	float3 p3  = frac(float3(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return frac((p3.x + p3.y) * p3.z);
+}
+
+float3 CalculateStars(float3 viewDir, float seedTime, float3 positionWS)
+{
+    #if defined(_STARS_ON)
+        
+        float3 d = normalize(viewDir);
+        
+        // 1. Planar Projection (Dome)
+        float2 uv = d.xz / (abs(d.y) + 0.1); 
+        
+        // 2. Grid Traversal (Tile-based Stars)
+        // Tune Scale for better density distribution
+        float baseScale = 250.0; 
+        float2 st = uv * baseScale;
+        float2 id = floor(st);
+        float2 lv = frac(st) - 0.5;
+        
+        // 3. Star Properties Per Cell
+        float rnd = Hash13(id);
+        
+        // Density Logic Fix
+        // _StarDensity 0.0 -> 0.01 stars
+        // _StarDensity 1.0 -> 0.99 stars
+        // Less "fiddly" threshold
+        float density = max(0.01, _StarDensity);
+        float threshold = 1.0 - (density * 0.98); 
+        
+        float3 starColor = float3(0,0,0);
+        
+        if (rnd > threshold)
+        {
+            // 4. Position Jitter
+            float2 offset = (Hash12(id) - 0.5) * 0.8;
+            float2 pos = lv - offset;
+            float dist = length(pos);
+            
+            // 5. Size Variation
+            float rndSize = frac(rnd * 43.12);
+            float baseSize = lerp(_StarSizeMin, _StarSizeMax, rndSize);
+            
+            // Fix: Visual compensation for planar projection
+            // Without this, stars near horizon (d.y -> 0) get massive due to the UV stretch.
+            float projectionScale = abs(d.y) + 0.1;
+            float radius = baseSize * 0.3 * projectionScale; 
+            
+            // 6. Anti-Aliased Shape (Softness)
+            // Softness logic: 0 = sharp (0.01 smoothing), 1 = soft (full radius smoothing)
+            // We clamp smoothing so it never exceeds radius (which would invert the shape)
+            float smoothing = lerp(0.01, radius, _StarSoftness);
+            float starShape = 1.0 - smoothstep(radius - smoothing, radius + smoothing, dist * projectionScale);
+            
+            // 7. Color Temperature
+            float rndTemp = frac(rnd * 91.53);
+            float tempK = lerp(_StarColorTempMin, _StarColorTempMax, rndTemp);
+            float3 bbColor = ColorFromTemperature(tempK);
+            
+            // Saturation
+            float3 gray = dot(bbColor, float3(0.3, 0.59, 0.11));
+            bbColor = lerp(gray, bbColor, _StarSaturation);
+            
+            // 8. Twinkle
+            float twinkleSpeed = _StarTwinkleSpeed;
+            float timeOffset = rnd * 100.0;
+            float pulse = sin(seedTime * twinkleSpeed + timeOffset);
+            
+            float minBrightness = 1.0 - min(0.95, _StarTwinkleAmount); // Ensure it doesn't go negative
+            float flicker = lerp(minBrightness, 1.0 + _StarTwinkleAmount * 0.5, pulse * 0.5 + 0.5);
+            
+            // Final Signal
+            starColor = bbColor * starShape * flicker * _StarTint.rgb * _StarExposure;
+        }
+        
+        // -----------------------------------------------------------
+        // 8. Galactic Mask / Scatter
+        // -----------------------------------------------------------
+        float scatterNoise;
+        Unity_SimpleNoise_Deterministic_float(uv, _Stars_Scatter_Size, scatterNoise);
+        
+        float contrastMin = _Scatter_Contrast;
+        float contrastMax = clamp(contrastMin + 0.5, 0.0, 1.0);
+        float smoothScatter = smoothstep(contrastMin, contrastMax, scatterNoise);
+        
+        float scatterIntensity = lerp(0.0, _Star_Scatter, smoothScatter);
+        float mask = 1.0 - scatterIntensity;
+        
+        // -----------------------------------------------------------
+        // 9. Horizon Fade
+        // -----------------------------------------------------------
+        // Raise power to sharpen the fade
+        float fade = smoothstep(0.0, max(0.01, _Star_Blend), d.y);
+        
+        float3 finalStars = starColor * mask * fade;
+
+        // -----------------------------------------------------------
+        // 10. Debug
+        // -----------------------------------------------------------
+        if (_ScatterDebug > 0.5)
+        {
+             // Show mask as Magenta overlay
+             return finalStars + float3(1, 0, 1) * smoothScatter * 0.5;
+        }
+
+        return finalStars;
+        
+    #else
+        return float3(0,0,0);
+    #endif
+}
+
+#endif // KROMA_STARS_INCLUDED

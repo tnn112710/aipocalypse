@@ -1,0 +1,66 @@
+#ifndef KROMA_CLOUDS_INCLUDED
+#define KROMA_CLOUDS_INCLUDED
+
+#include "Kroma_Shared.hlsl"
+
+// Triplanar or Dual-Layer Cloud Sampling
+float4 CalculateClouds(float3 viewDir, float3 timeParams)
+{
+    #if defined(_CLOUDS_ON)
+        // Project ViewDir to UVs (Spherical / planar projection approximation for sky)
+        // We use a simple projection for the sky dome
+        float2 uv = viewDir.xz / (viewDir.y + 0.15); // Simple dome separation
+        
+        // Optimize: Reduce tiling to reasonable numbers if input is too high
+        float2 baseUV = uv * _Scale;
+        float time = timeParams.x;
+
+        // Layer 1
+        float2 speed1 = _Speed * 0.2 * time;
+        float2 uv1 = baseUV + speed1;
+        float noise1 = SAMPLE_TEXTURE2D(_Cloud_Texture, sampler_Cloud_Texture, uv1).r;
+
+        // Layer 2 (Smaller, faster to create parallax/turbulence detail)
+        float2 speed2 = _Speed * 0.45 * time;
+        float2 uv2 = baseUV * 1.5 + speed2;
+        float noise2 = SAMPLE_TEXTURE2D(_Cloud_Texture, sampler_Cloud_Texture, uv2).r;
+
+        // Combine
+        float combinedNoise =  lerp(noise1, noise2, 0.5);
+        
+        // Fade at top
+        // AAA Feature 1: Organic Erosion
+        // Instead of multiplying alpha, we multiply the density threshold.
+        // This makes clouds break up into smaller chunks as they fade, rather than just becoming transparent.
+        float fadeVal = viewDir.y * _Top_Fade; 
+        float topFadeMultiplier = 1.0 - smoothstep(0.0, 1.0, fadeVal);
+        
+        // Intensity and Cutoff (Organic Erosion applied here)
+        float density = _Density * topFadeMultiplier;
+        
+        // Ensure we don't divide by zero or have weird artifacts if density is 0
+        density = max(0.001, density);
+        
+        float cloudVal = smoothstep(1.0 - density, 1.0 - density + 0.2, combinedNoise);
+        
+        // Fade at horizon (Keep this as alpha fade for soft horizon blend)
+        float horizonFade = smoothstep(_Horizon_Level, _Horizon_Level + _Horizon_Fade, viewDir.y);
+        
+        float finalAlpha = cloudVal * _Intensity * horizonFade;
+        finalAlpha = saturate(finalAlpha);
+
+        // AAA Feature 2: Highlights
+        // Blend between Base Color and Highlight based on density/noise "height"
+        // Thicker parts (higher values) get the highlight color
+        // Or we can use a remapped curve for 'rim' lighting.
+        // Simple and effective: Use smoothed noise for gradient
+        float highlightFactor = smoothstep(1.0 - density, 1.0, combinedNoise); 
+        float3 cloudColor = lerp(_Color_1.rgb, _CloudHighlightColor.rgb, highlightFactor);
+
+        return float4(cloudColor, finalAlpha);
+    #else
+        return float4(0,0,0,0);
+    #endif
+}
+
+#endif // KROMA_CLOUDS_INCLUDED
