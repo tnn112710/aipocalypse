@@ -127,7 +127,7 @@ Dispose in `OnDestroy` (or `OnDisable`, if you subscribe in `OnEnable`). The pre
 - The **manager subscribes once** (`EnemyManager`, `PickupManager`) and routes to the right instance via `EntityRegistry` or the event's target reference.
 - Or, when many listeners each care about *their own* key, use a **keyed broker**: `ISubscriber<int, EnemyAlerted>` with `Subscribe(entityId, handler)`. Lookup is by key, not a loop over all handlers. Use only if the manager-routing approach gets awkward.
 
-**Behavior Designer trees** don't subscribe. The agent's bridge component subscribes and forwards into the tree (`tools-unity-behavior-designer` §3). **Feel players** don't subscribe either. A view subscribes and plays them (`tools-unity-feel`).
+**Behavior Designer trees** don't subscribe. A unique agent's bridge (`AgentBrain`) subscribes and forwards into the tree; for crowd enemies `EnemyManager` subscribes once and calls the hit enemy's `EnemyBrain.Notify` (`tools-unity-behavior-designer` §3). **Feel players** don't subscribe either. A view subscribes and plays them (`tools-unity-feel`).
 
 ## 5. Variants: when to use which
 

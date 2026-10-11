@@ -1,6 +1,6 @@
 # Architecture
 
-DI with **VContainer** (no gameplay singletons), events with **MessagePipe**, async with **UniTask**, enemy navigation with **A\* Pathfinding Project**.
+DI with **VContainer** (no gameplay singletons), events with **MessagePipe**, async with **UniTask**, AI decisions with **Behavior Designer Pro**, enemy navigation with **A\* Pathfinding Project**.
 
 The design is still moving, so the architecture is built to absorb change: a small stable **Core**, swappable **Features** on top, everything tunable in data, and events as the joints between them.
 
@@ -47,7 +47,7 @@ Core **announces** what happens; features **react**. New rules are new subscribe
 
 **Entities are built from parts, not class hierarchies.**
 
-- Enemy = `Health` + `Mover` (A\*) + `Targeting` + `Senses` + `Attack`. An archetype (rusher, tank, ranged…) is a combination + data → a new enemy type is a prefab variant, not a new class.
+- Enemy = `Health` + `Mover` (A\*) + `Targeting` + `Senses` + `Attack` + a behavior tree that decides which part to use. An archetype (rusher, tank, ranged…) is a combination + a tree + data → a new enemy type is a prefab variant, a Subtree asset and an `EnemyArchetypeDef`, not a new class.
 - Weapon = `WeaponDef` pointing to swappable modules: **fire** (hitscan / projectile / spread / melee swing), **cost** (ammo / stamina / none), **on-hit** (damage, knockback, catch fish…). Fishing gun, axe and jamming pistol are combinations.
 - Buffs, perks, food, weather, sanity effects all apply the same small `Modifier` pieces to stats. Start minimal (base + list of modifiers); add expiry, stacking and sources when perks are actually designed.
 
@@ -86,11 +86,11 @@ Any scene (World, Proto_*, test arenas)
 | PlayerSystem | Controller, look, movement, interact; meters (HP, stamina…) in State, the view shows them |
 | EquipmentSystem | Hotbar, held item, switching, equip/unequip; held-item contract (primary/secondary use). Weapons are one kind of held item; Features add their own (rod, farm tools) |
 | WeaponSystem | Weapon, `WeaponDef`, fire/cost/on-hit modules, recoil, jams, melee |
-| EnemySystem | `EnemyManager` (central tick, time-slicing), `EnemyFactory` + pool, enemy parts (Mover/Targeting/Senses/Attack), `EnemyArchetypeDef`, A\* `FollowerEntity` agents |
+| EnemySystem | `EnemyManager` (central tick: ticks enemy trees time-sliced), `EnemyFactory` + pool, enemy parts (Mover/Targeting/Senses/Attack), enemy BD tasks, `EnemyArchetypeDef` (numbers + archetype Subtree), A\* `FollowerEntity` agents |
 | InventorySystem | Resource counts and items (ammo is a resource, not a weapon field) |
 | TimeSystem | `TimeService`: time of day, day number, pause, phase events. No rules about what phases mean |
 | InputSystem | `InputService` over `InputSystem_Actions`, map switching. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
-| _Common | `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`, `Modifier`), `IChanceRoll`, Utils |
+| _Common | `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`, `Modifier`), `IChanceRoll`, AI (`AgentBrain` bridge, generic BD tasks), Utils |
 
 **Features** (`Assets/_Game/Features/`, *provisional — follow the GDD*)
 
@@ -161,6 +161,18 @@ Crowd entities:
 
 **Finding each other:** entities register on enable in the `EntityRegistry` (root scope): dense lists for iteration plus a **spatial grid** for "who is near this point" (senses, explosions, targeting). Enemies get the player through `IPlayerLocator`. No `FindObjectOfType`, no statics.
 
+## AI
+
+**Every AI agent decides with a Behavior Designer Pro tree** — crowd enemies, companions, the drone, bosses. Skill: `tools-unity-behavior-designer`.
+
+- **Trees decide, parts act.** Tasks are thin: they call `Mover` / `Targeting` / `Senses` / `Attack` (or a companion's parts), which hold the rules and are tested in code. Numbers come from the def, not the graph.
+- **Archetype = Subtree asset.** `EnemyArchetypeDef` references the archetype's Subtree. The pool assigns it once per instance at creation (`tree.Subgraph = def.Behavior`), never per spawn — assigning rebuilds the tree.
+- **One bridge per agent** (`AgentBrain`, injected): tasks reach services only through it; it forwards gameplay events into the tree and publishes the tree's results. VContainer can't inject tasks.
+- **Unique agents** (drone, dog, cat, bosses): `EntityScope`, tree in `EveryFrame` or `Manual`, the bridge subscribes to events itself.
+- **Crowd enemies:** tree in **`Manual`** update mode, ticked by `EnemyManager` (see Performance). The bridge never subscribes; `EnemyManager` subscribes once and forwards to the target's tree. Spawn = set variables + `StartBehavior()`; despawn = `StopBehavior(false)`.
+- **Per-frame work stays out of trees:** movement (A\* jobs), animation and hit flash run outside the tree; the tree only sets goals and picks actions.
+- Built-in tasks that bypass our systems are off-limits (time scale, spawning/pooling, audio, scenes, saving) — list in the skill.
+
 ## Performance
 
 Target: **hundreds of active enemies at 60 fps** on the target PC, without ECS in our own code. Verify with a stress scene, don't assume.
@@ -168,8 +180,9 @@ Target: **hundreds of active enemies at 60 fps** on the target PC, without ECS i
 **Update loop**
 
 - Crowd entities have **no `Update()` of their own.** `EnemyManager` ticks all active enemies in one loop over a dense list (VContainer `ITickable`). Hundreds of separate `Update()` calls cost far more than one loop.
-- **Time-slicing:** decisions (retarget, line-of-sight, choose attack) run at a reduced rate — e.g. each enemy thinks every 4–10 frames, staggered so the load is even. Movement and animation stay per-frame.
-- **Distance LOD:** far enemies think less often, skip line-of-sight raycasts, and use cheaper animation.
+- **Time-slicing:** an enemy's think step is one `tree.Tick()` (retarget, line-of-sight, choose attack), run at a reduced rate — e.g. every 4–10 frames, staggered so the load is even. Movement and animation stay per-frame.
+- **Distance LOD:** far enemies tick their tree less often, skip line-of-sight raycasts, and use cheaper animation.
+- **Tree budget:** crowd trees stay small (shared subtrees, cheap conditionals first, events instead of polling). BD traversal is Burst-compiled; our GameObject task bodies run managed on the main thread.
 
 **Navigation (A\* 5.4)**
 
@@ -193,9 +206,14 @@ Target: **hundreds of active enemies at 60 fps** on the target PC, without ECS i
 - Animator culling (`CullUpdateTransforms` / `CullCompletely`), LOD groups, few bones on crowd meshes. If skinned crowds become the bottleneck: GPU/vertex-animated crowds for swarms.
 - GPU Instancer Pro for foliage and props; SRP Batcher-friendly materials.
 
-**Escape hatch to Jobs/Burst (still no ECS):** `EnemyManager` keeps enemy hot data (position, target, timers) in arrays, with components as views. If profiling shows the tick loop is the bottleneck, that loop moves into a Burst job without changing the rest of the architecture.
+**Escape hatches, in order** (only when a profile shows the cost):
 
-**Measure:** `Proto_Stress` spawns N enemies (100 / 300 / 500) attacking the player, with `ProfilerMarker`s on `EnemyManager`, senses and spawning. Run it whenever enemy code changes.
+1. Tick crowd trees less often (stride, distance LOD), or `EvaluationType.Count` to spread a big tree over frames.
+2. Move the hot tasks (senses, targeting) to BD **Entity tasks** (Burst) — the tree layout stays.
+3. `EnemyManager` keeps enemy hot data (position, target, timers) in arrays, with components as views; the senses/targeting loop moves into a Burst job and feeds the trees through variables.
+4. Last resort for one archetype (e.g. a 500-strong swarm): a code-driven think step for that archetype only. Cheap because tasks already delegate to the parts.
+
+**Measure:** `Proto_Stress` spawns N enemies (100 / 300 / 500) with their real trees attacking the player, with `ProfilerMarker`s on `EnemyManager` (tree ticks), senses and spawning. Run it whenever enemy code or a crowd tree changes. **Gate:** prove 300 tree-driven enemies fit the budget in `Proto_Enemies` before building more archetypes.
 
 ## Prototypes → main game
 
@@ -216,7 +234,7 @@ A prototype is done when it works in its scene **and** in World with no code cha
 Assets/_Game/
   _Core/                  asmdef Aipocalypse.Core
     _Bootstrap/           ProjectLifetimeScope, GameLifetimeScope, MainMenuLifetimeScope, GameStarter, DevStartConfig
-    _Common/              EntityScope, EntityRegistry, Combat, Events, Stats, IChanceRoll, Utils
+    _Common/              EntityScope, EntityRegistry, AI, Combat, Events, Stats, IChanceRoll, Utils
     _Debug/               debug panel, IDebugCommands
     PlayerSystem/  EquipmentSystem/  WeaponSystem/  EnemySystem/  InventorySystem/  TimeSystem/  InputSystem/
   Features/               asmdef Aipocalypse.Features → references Core

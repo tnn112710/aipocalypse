@@ -54,7 +54,7 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Enemy part. EnemyManager calls Think() time-sliced; no Update() of its own.
+    // Enemy part, driven by the enemy's BD tasks at the tree's think rate; no Update() of its own.
     public sealed class Mover : MonoBehaviour
     {
         [SerializeField] FollowerEntity _agent;
@@ -70,7 +70,7 @@ namespace Aipocalypse.Core.EnemySystem
             _lastDestination = new Vector3(float.PositiveInfinity, 0f, 0f);
         }
 
-        // Called at the enemy's think rate, not every frame.
+        // Called from a tree task (e.g. ChaseTarget) at the think rate, not every frame.
         public void SetGoal(Vector3 goal, float repathThresholdSqr)
         {
             if ((goal - _lastDestination).sqrMagnitude < repathThresholdSqr) return;   // skip tiny moves
@@ -136,7 +136,7 @@ FollowerEntity simulates in the ECS world's time, which follows `Time.timeScale`
 
 ## 10. Performance checklist
 
-- No `Update()` per enemy. `EnemyManager` ticks and sets destinations at the think rate (ARCHITECTURE.md).
+- No `Update()` per enemy. `EnemyManager` ticks the enemy trees time-sliced; their tasks set destinations through `Mover` at that rate (ARCHITECTURE.md → AI). Movement tasks use `Mover`, not `IAstarAI` directly, on crowd enemies.
 - Minimise `FollowerEntity` property access per frame (§4). Avoid `movementOverrides` callbacks on crowd agents: any callback creates a sync point for **all** agents.
 - RVO: `maxNeighbours` ~10, smaller `agentTimeHorizon` for dense swarms. Disable avoidance on far or idle enemies.
 - Turn off all debug rendering on agent prefabs. In builds, enable `ALINE_EXCLUDED_IN_BUILD` (A* Inspector → Optimization) unless graph gizmos are needed in player builds.

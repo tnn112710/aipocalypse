@@ -35,7 +35,7 @@ public sealed class EnemyManager : ITickable
     public void Tick()
     {
         using var _ = s_Tick.Auto();
-        using (s_Think.Auto()) { /* time-sliced decisions */ }
+        using (s_Think.Auto()) { /* time-sliced tree.Tick() on enemy BD trees */ }
         using (s_Senses.Auto()) { /* grid queries + few raycasts */ }
     }
 }

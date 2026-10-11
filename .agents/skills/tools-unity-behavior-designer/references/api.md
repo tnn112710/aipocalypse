@@ -37,7 +37,7 @@ Tasks and introspection:
 - `T FindTask<T>()`, `T[] FindTasks<T>()`, `int FindTasks<T>(T[] buffer)` (the last one doesn't allocate)
 - `Task GetTaskObject(int index)`, `TaskStatus GetRuntimeNodeStatus(int index)`, `bool IsNodeActive(bool, int)`, `bool IsNodeEnabled(bool, int)`
 
-Subtrees: `void ReevaluateSubtreeReferences()` re-picks the subtrees of `SubtreeReferenceSelector`.
+Subtrees: `void ReevaluateSubtreeReferences()` re-picks the subtrees of `SubtreeReferenceSelector`. `Subgraph` (settable, takes a `Subtree` asset) replaces the whole tree — a structural rebuild, so set it once at pool creation, outside the tree's own execution (the built-in `SetSubtree` task defers it to end of frame for that reason; checked in `Runtime/Tasks/Actions/BehaviorTree/SetSubtree.cs`).
 
 Save/load: `SaveManager.SaveData? Save(VariableSaveScope)`, `bool Save(string path, VariableSaveScope)`, `bool Load(SaveData, Action<BehaviorTree> beforeRestore)`, `bool Load(string path, Action<BehaviorTree>)`. `VariableSaveScope` is `GameObjectVariables, SceneVariables, ProjectVariables`. Scene object references can't be saved, so restore them in the `Load` callback (see `Samples~/Scripts/SceneManagers/SaveLoadSceneManager.cs`). Saving is postponed in this project (ARCHITECTURE.md). When it's added, route this through the Persistence feature and Easy Save 3.
 

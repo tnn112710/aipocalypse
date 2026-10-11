@@ -1,6 +1,6 @@
 ---
 name: tools-unity-behavior-designer
-description: Behavior Designer Pro 3.x (Opsive, DOTS-based) for aipocalypse — writing GameObject/Entity tasks, designing trees (aborts, events, subtrees, utility), wiring trees to VContainer/MessagePipe/A* FollowerEntity, pooling, Manual Tick, performance. Use for any behavior tree / enemy or companion AI design work with Behavior Designer. NOT classic Behavior Designer 1.x — its API (BehaviorDesigner.Runtime, SharedFloat, TaskCategory) does not exist here.
+description: Behavior Designer Pro 3.x (Opsive, DOTS-based) for aipocalypse — writing GameObject/Entity tasks, designing trees (aborts, events, subtrees, utility), wiring trees to VContainer/MessagePipe/A* FollowerEntity, crowd enemy trees ticked by EnemyManager (Manual mode), archetype Subtrees, pooling, performance. Use for any AI decision work — crowd enemies, companions, drone, bosses — since every agent in this game runs a Behavior Designer tree. NOT classic Behavior Designer 1.x — its API (BehaviorDesigner.Runtime, SharedFloat, TaskCategory) does not exist here.
 ---
 
 # Behavior Designer Pro (aipocalypse)
@@ -14,15 +14,19 @@ Before writing code, read:
 
 After a package update, re-verify the API: `unity command run_script --file .agents/skills/tools-unity-behavior-designer/scripts/BdApi.cs --entry BdApi.Dump --args '["Opsive.BehaviorDesigner.Runtime.BehaviorTree"]'` (or `BdApi.Find '["Sequence"]'`). Sources for anything else: built-in tasks `Packages/com.opsive.behaviordesigner/Runtime/Tasks/**` (full C#), samples `Samples~/Scripts/**`, docs https://opsive.com/support/documentation/behavior-designer-pro/.
 
-## 1. Decide first: should this be a behavior tree at all?
+## 1. Every agent runs a tree — pick the mode
 
-| Agent | Tool | Why |
-| --- | --- | --- |
-| Crowd enemies (rusher, tank, ranged, flyer, swarm, sneaker) — hundreds | **Code** in `EnemyManager` (state per archetype, data in `EnemyArchetypeDef`) | ARCHITECTURE.md: no per-enemy `Update`, time-sliced thinking, zero alloc. AGENTS.md: no per-instance plugin components on crowd entities |
-| Unique agents — drone, dog, cat, bosses, elites, set-piece NPCs | **Behavior tree** (GameObject tasks) | Few instances, rich branching, designer iteration |
-| Crowd via BD (only if a `Proto_Stress` run proves it) | `UpdateMode.Manual` + `EnemyManager` calls `Tick()` staggered, or Entity tasks | Must keep the central tick and budget |
+All AI decisions in this game are Behavior Designer trees (ARCHITECTURE.md → AI). What differs is how the tree is ticked and wired:
 
-If the user asks for a tree on a crowd enemy, point this out and confirm before proceeding. Unity Behavior (`com.unity.behavior`) is also installed — the project should standardise on one tree tool; check `docs/technicals/PLUGINS.md` (create/update it when the choice is made).
+| Agent | Update mode | Wiring | Tree source |
+| --- | --- | --- | --- |
+| Crowd enemies (rusher, tank, ranged, flyer, swarm, sneaker) — hundreds, pooled | **`Manual`**, `EnemyManager` calls `Tick()` time-sliced (§5) | `EnemyBrain` bridge injected once at pool creation; **no per-instance subscriptions** — `EnemyManager` routes events (§3) | Archetype **Subtree** from `EnemyArchetypeDef`, assigned at pool creation |
+| Unique agents — drone, dog, cat, bosses, elites, set-piece NPCs | `EveryFrame` (or `Manual` if a manager wants control) | `AgentBrain` bridge in the entity's `EntityScope`, subscribes itself | Tree authored on the prefab, phases as subtrees |
+
+Rules that hold for both:
+- **Trees decide, parts act.** Tasks are thin and call our tested components (`Mover`, `Targeting`, `Senses`, `Attack`, companion parts). Rules and numbers never live in the graph.
+- **Per-frame work stays outside the tree**: movement (A\* jobs), animation, hit flash. The tree sets goals and picks actions at its think rate.
+- Unity Behavior (`com.unity.behavior`) is **not** used (PLUGINS.md) — never generate Unity Behavior graphs or `Unity.Behavior` code.
 
 ## 2. Task basics (GameObject tasks)
 
@@ -140,6 +144,41 @@ namespace Aipocalypse.AI
 
 (Event/interface names above are placeholders — use the real ones from `_Core/_Common`.)
 
+**Crowd enemy variant (`EnemyBrain`).** Same idea, different lifetime — the enemy is pooled and has no scope of its own:
+
+```csharp
+namespace Aipocalypse.Core.EnemySystem
+{
+    // On the enemy root next to BehaviorTree (Update Mode = Manual, Start When Enabled = OFF). Injected once by the pool.
+    public class EnemyBrain : MonoBehaviour
+    {
+        [SerializeField] BehaviorTree _tree;
+        public BehaviorTree Tree => _tree;
+        public IPlayerLocator Player { get; private set; }
+
+        [Inject]
+        void Construct(IPlayerLocator player) => Player = player;    // no MessagePipe subscriptions here
+
+        // Pool creation, once per instance: the archetype's Subtree (assigning rebuilds the tree — never per spawn).
+        public void Build(EnemyArchetypeDef def) => _tree.Subgraph = def.Behavior;
+
+        public void OnSpawned(EnemyArchetypeDef def)
+        {
+            _tree.SetVariableValue("Player", Player.Transform.gameObject);
+            _tree.SetVariableValue("AttackRange", def.AttackRange);
+            _tree.StartBehavior();
+        }
+
+        public void OnDespawned() => _tree.StopBehavior(false);
+
+        // EnemyManager subscribes to DamageDealt once and calls this on the hit enemy.
+        public void Notify(string eventName, float value) => Opsive.Shared.Events.EventHandler.ExecuteEvent(_tree, eventName, value);
+    }
+}
+```
+
+`EnemyFactory` calls `Build` in its pool's create callback, `OnSpawned`/`OnDespawned` on get/release, and registers the brain with `EnemyManager`, which ticks `brain.Tree` (§5). Tasks reach the brain with `GetComponent<EnemyBrain>()` in `OnAwake`.
+
 - **Start order:** turn **Start When Enabled off** and call `StartBehavior()` from the bridge after injection. Otherwise `OnAwake` of tasks can run before VContainer has injected the bridge.
 - Tasks reach services via `GetComponent<AgentBrain>()` in `OnAwake`, never via statics, `FindObjectOfType`, or BD's `FindGameObject*` tasks.
 - **Inbound gameplay → tree:** MessagePipe subscriber in the bridge → `EventHandler.ExecuteEvent(tree, "Name", args)` (reacting) or `tree.SetVariableValue("Name", value)` (state). Tree side: `HasReceivedEvent` under a conditional abort, or an `OnReceivedEvent` event branch.
@@ -148,9 +187,9 @@ namespace Aipocalypse.AI
 - **Data:** tuning numbers come from the agent's ScriptableObject def (copied into variables by the bridge at start), not hardcoded in the graph, so the "every number lives in data" rule holds.
 - **Navigation:** `FollowerEntity` implements `Pathfinding.IAstarAI` — write movement tasks against `IAstarAI` (`destination`, `isStopped`, `reachedDestination`, `remainingDistance`, `pathPending`, `SearchPath()`, `Teleport`). Never the built-in `NavMesh/*` tasks. Opsive also ships an A* integration (separate download from Opsive Downloads, adds a pathfinder adapter for its Movement/Tactical add-ons) — only relevant if those packs are bought.
 - **Time:** use `Time.deltaTime`/`Time.time`; `TimeService` owns `Time.timeScale` — never use the built-in `Time/SetTimeScale`, `SlowMotionEffect`, `TimeScaleCurve` tasks.
-- **Pooling:** built-in `Instantiate`, `Destroy`, `CloneGameObject`, `SpawnAtPosition`, `PoolManager` tasks are off-limits — spawn through our pools via the bridge. Despawn: `StopBehavior()`; respawn: set variables then `StartBehavior()` (or `RestartBehavior()`).
+- **Pooling:** built-in `Instantiate`, `Destroy`, `CloneGameObject`, `SpawnAtPosition`, `PoolManager` tasks are off-limits — spawn through our pools via the bridge. Despawn: `StopBehavior(false)` (`true` = pause, keeps task state); respawn: set variables then `StartBehavior()` (or `RestartBehavior()`).
 - **Other off-limits built-ins:** `SaveLoad/*` PlayerPrefs tasks (Easy Save 3 / Persistence feature owns saving), `Audio/*` (BroAudio), `SceneManagement/*` (SceneLoader). Feel has an Opsive bridge (separate download) — otherwise trigger feedbacks through the bridge/events like the rest of the game.
-- **Assemblies:** Opsive's runtime DLLs are auto-referenced. An asmdef only needs explicit refs for Opsive *source* asmdefs (e.g. `Opsive.BehaviorDesigner.Runtime.Tasks.Actions` to subclass a built-in) and, for Entity tasks, `Unity.Entities`, `Unity.Burst`, `Unity.Collections`, `Unity.Mathematics`. Generic AI tasks: `Assets/_Game/_Core/EnemySystem/AI/`; feature-specific (drone, pets) in that feature's folder — Features → Core only.
+- **Assemblies:** Opsive's runtime DLLs are auto-referenced. An asmdef only needs explicit refs for Opsive *source* asmdefs (e.g. `Opsive.BehaviorDesigner.Runtime.Tasks.Actions` to subclass a built-in) and, for Entity tasks, `Unity.Entities`, `Unity.Burst`, `Unity.Collections`, `Unity.Mathematics`. Shared bridge base and generic tasks (move, senses, wait-for-event): `Assets/_Game/_Core/_Common/AI/`; enemy tasks and `EnemyBrain`: `Assets/_Game/_Core/EnemySystem/AI/`; feature-specific (drone, pets) in that feature's folder — Features → Core only.
 
 ## 4. Designing trees
 
@@ -178,9 +217,12 @@ Root: Selector (abort: none)
 
 ## 5. Performance settings
 
-- **Update Mode:** `EveryFrame` (default) or `Manual` (`tree.Tick()` from our code; calling `Tick()` in EveryFrame only logs a warning). Manual is how a central manager can time-slice trees.
+- **Update Mode:** `EveryFrame` (default) or `Manual` (`tree.Tick()` from our code; calling `Tick()` in EveryFrame only logs a warning). Crowd enemies are always Manual.
+- **Crowd ticking** lives in `EnemyManager.Tick()` (the central `ITickable`), not a separate ticker: walk the dense list with a stride so each tree ticks every N frames (N from distance LOD), staggered by index. Wrap it in the `Aipocalypse.EnemyManager.Think` marker. See [references/patterns.md](references/patterns.md).
+- **Crowd tree budget:** small trees built from shared subtrees, cheap conditionals before raycasts, events instead of polling services, no `Time/Wait` on hundreds of agents when a timestamp variable will do. Senses go through the `EntityRegistry` grid.
+- **Gate:** before adding archetypes, `Proto_Enemies`/`Proto_Stress` must show 300 tree-driven enemies within budget (`tools-unity-profiling`). If not, follow ARCHITECTURE.md's escape hatches in order: lower tick rate → Entity tasks for hot tasks → Burst senses feeding variables → code think step for that one archetype.
 - **Evaluation Type:** `EntireTree` (resolve fully this frame) or `Count` + `MaxEvaluationCount` (spread big trees across frames, adds decision latency).
-- Traversal is Burst-compiled for all trees; GameObject task bodies run managed on the main thread. Move to Entity tasks only if a **player build** profile shows task execution (not traversal) is the bottleneck.
+- Traversal is Burst-compiled for all trees; GameObject task bodies run managed on the main thread. Move hot crowd tasks to Entity tasks only if a **player build** profile shows task execution (not traversal) is the bottleneck.
 - Profile with the Behavior Designer window **closed**, Burst compilation **on**, in a development build. Add a `ProfilerMarker` around our manual `Tick()` loop.
 
 ## 6. Debugging

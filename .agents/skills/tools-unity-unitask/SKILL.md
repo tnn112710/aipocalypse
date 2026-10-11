@@ -11,7 +11,7 @@ Installed: **UniTask 2.5.11** (UPM git, tracks HEAD; source in `Library/PackageC
 
 | Use UniTask | Don't. Use a central tick instead |
 | --- | --- |
-| Scene loading (`SceneLoader`), startup (`IAsyncStartable`), loading screens | Per-enemy / per-projectile timers, cooldowns, AI think delays (they belong in `EnemyManager` / service ticks) |
+| Scene loading (`SceneLoader`), startup (`IAsyncStartable`), loading screens | Per-enemy / per-projectile timers, cooldowns, AI think delays (they belong in BD trees ticked by `EnemyManager` / service ticks) |
 | Pool prewarm spread over frames | Anything that runs for hundreds of entities at once |
 | One-off sequences: dusk → night transition, tutorial steps, death → respawn flow | Per-frame polling loops (`while (true) { …; await Yield(); }`) for gameplay. Make it an `ITickable` |
 | UI flows: wait for a button, fade, then continue | Repeating gameplay timers (use a timestamp checked in a tick) |

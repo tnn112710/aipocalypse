@@ -16,7 +16,7 @@ Vendor folders (`Assets/Plugins/`, `Assets/_StoreAssets/`, `Assets/Synty/`, `Pac
 - No plugin singletons or static event systems in gameplay code (`MMEventManager`, `X.Instance`, …). Wrap a plugin behind a service registered in VContainer when game code needs it. Cross-system events go through MessagePipe.
 - `TimeService` owns `Time.timeScale`. No plugin may set it directly (Feel's time-scale feedbacks, BD's `Time/SetTimeScale`, …).
 - UI is uGUI. Code tweens use DOTween.
-- Prefer each plugin's pooling, batching and caching (Damage Numbers Pro and BroAudio pools, GPUI instancing). Keep per-instance plugin components off crowd entities.
+- Prefer each plugin's pooling, batching and caching (Damage Numbers Pro and BroAudio pools, GPUI instancing). Keep per-instance plugin components off crowd entities. Exceptions: BD's `BehaviorTree` (Manual mode, centrally ticked) and A*'s `FollowerEntity`.
 - When unsure how a plugin works, read its docs or source instead of guessing. Some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`.
 
 ## Code libraries (UPM, from git)
@@ -35,7 +35,7 @@ MessagePipe, UniTask and UIEffect track the repo HEAD (no tag pinned), so a pack
 | Plugin | Version | Location | Status | Notes |
 |---|---|---|---|---|
 | A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Core | Enemy navigation with `FollowerEntity` agents (driven through `IAstarAI`). `AstarPath.active` only inside the `INavigation` service. Scenes with agents need the `Navigation` prefab (AstarPath + RVOSimulator). Skill: `tools-unity-astar`. |
-| Behavior Designer Pro (+ Opsive Graph Designer 3.3.4, Opsive Shared 2.3.2) | 3.3.3 | `Packages/com.opsive.*`, `Assets/Plugins/Opsive` | Use | Behaviour trees for unique AI only (drone, companions, bosses). Crowd enemies stay code-driven. Skill: `tools-unity-behavior-designer`. |
+| Behavior Designer Pro (+ Opsive Graph Designer 3.3.4, Opsive Shared 2.3.2) | 3.3.3 | `Packages/com.opsive.*`, `Assets/Plugins/Opsive` | Core | Behaviour trees for **all** AI: crowd enemies, companions, drone, bosses. Crowd trees run in `Manual` mode, ticked time-sliced by `EnemyManager`; tasks delegate to our parts. Skill: `tools-unity-behavior-designer`. |
 | GPU Instancer Pro (Core, Prefab, Terrain) | 0.12.20 | `Packages/com.gurbu.gpui-pro*`, `Assets/Plugins/GPUInstancerPro` | Use | Foliage and props instancing. |
 | GPU Instancer Pro – Crowd Animations | 0.10.5 | `Packages/com.gurbu.gpui-pro.crowd-animations` | Undecided | Candidate for crowd enemy rendering. |
 | DOTween + DOTween Pro (+ DemiLib) | — | `Assets/Plugins/Demigiant` | Use | Code tweens. |
@@ -64,7 +64,7 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 | Test Framework | 1.8.0 | Core | `unity command run_tests`. |
 | Unity Pipeline (`com.unity.pipeline`) | 0.8.0-exp.1 | Editor | Unity CLI bridge. Skill: `unity-pipeline`. |
 | Entities / Entities Graphics | 6.6.0 | Undecided | Required by BD Pro. Our own code stays MonoBehaviour (ARCHITECTURE.md). |
-| Unity Behavior | 1.0.16 | Undecided | Overlaps with Behavior Designer Pro. Pick one. |
+| Unity Behavior | 1.0.16 | Remove | Behavior Designer Pro was chosen. Don't use; remove the package. |
 | AI Navigation | 2.0.15 | Undecided | Overlaps with A*. Not used for enemies. |
 | Visual Scripting | 1.9.12 | Undecided | Probably a dependency of another package or unused. |
 | Addressables | 2.11.2 | Undecided | |
@@ -115,7 +115,6 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 
 ## Open overlaps to decide
 
-- **Behavior Designer Pro vs Unity Behavior.** Both installed. BD Pro has the project skill; remove the other once chosen.
 - **A\* vs AI Navigation.** A* is the choice for enemies; AI Navigation can probably go.
 - **Tweening: DOTween vs LeanTransition vs Feel's tweens.** DOTween for code; Feel only through feedbacks.
 - **Atmosphere: COZY vs Kronnect Volumetric Fog / Global Snow vs URP volumes.** Decide who owns fog, sky and weather.

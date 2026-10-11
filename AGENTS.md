@@ -25,7 +25,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `tools-unity-unitask` | Any async/await, delays, scene flow |
 | `tools-unity-object-pooling` | Anything that spawns repeatedly; temporary collections in hot paths |
 | `tools-unity-astar` | Enemy/companion movement, navmesh queries, dynamic obstacles |
-| `tools-unity-behavior-designer` | Behavior trees for unique AI (BD Pro 3.3.3) |
+| `tools-unity-behavior-designer` | Any AI decisions — behavior trees for all agents, crowd enemies included (BD Pro 3.3.3) |
 | `tools-unity-cinemachine` | Player camera rig, FOV, shake, extra cameras (Cinemachine 3 API) |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks) |
 | `tools-unity-profiling` | Measuring or optimising performance, `Proto_Stress` |
@@ -47,6 +47,7 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 
 - **Input**: new Input System only (`activeInputHandler: 1`). Actions asset is `Assets/Settings/InputSystem_Actions.inputactions` with a `Player` map: Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint. Use these actions; don't call the legacy `UnityEngine.Input`.
 - **Architecture / DI**: VContainer (`jp.hadashikick.vcontainer`) + UniTask. Cross-system events go through MessagePipe. No `X.Instance` singletons in game code — services are plain C# registered in lifetime scopes; each system registers through its own installer. Entity prefabs (player, enemies…) carry their own `EntityScope` and must work dropped into any scene. See `docs/technicals/ARCHITECTURE.md`.
+- **AI**: Behavior Designer Pro 3.3 trees for every agent; crowd enemy trees ticked time-sliced by `EnemyManager`.
 - **Enemy navigation**: A* Pathfinding Project 5.4 (`FollowerEntity` agents).
 - **Camera**: Cinemachine 6.6 (Cinemachine 3 API, namespace `Unity.Cinemachine`).
 - **Rendering/perf**: URP, GPU Instancer Pro for foliage/props, VFX Graph, Splines, Terrain Tools.
@@ -57,8 +58,8 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 Many runtime and editor plugins are installed (Feel, BroAudio, Easy Save 3, Damage Numbers Pro, DOTween, Odin, GPU Instancer Pro, A*, Behavior Designer Pro, Localization…). **Read `docs/technicals/PLUGINS.md` before any task that a plugin might cover.**
 
 - **Check first:** before writing a system or tool, check whether an installed plugin already does it. Use the plugin rather than reinventing it, unless PLUGINS.md says otherwise.
-- **Use it the documented way:** follow the plugin's rules in PLUGINS.md (e.g. no plugin singletons/static event systems in gameplay code, `TimeService` owns `Time.timeScale`, uGUI for UI, DOTween for code tweens, behavior trees only for unique AI). When unsure how a plugin works, read its docs or source in `Assets/Plugins/` / `Packages/` instead of guessing (some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`).
-- **Use it efficiently:** prefer the plugin's pooling, batching and caching features (Damage Numbers Pro and BroAudio pooling, GPUI instancing) and keep per-instance plugin components off crowd entities.
+- **Use it the documented way:** follow the plugin's rules in PLUGINS.md (e.g. no plugin singletons/static event systems in gameplay code, `TimeService` owns `Time.timeScale`, uGUI for UI, DOTween for code tweens, behavior trees for all AI with crowd trees ticked by `EnemyManager`). When unsure how a plugin works, read its docs or source in `Assets/Plugins/` / `Packages/` instead of guessing (some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`).
+- **Use it efficiently:** prefer the plugin's pooling, batching and caching features (Damage Numbers Pro and BroAudio pooling, GPUI instancing) and keep per-instance plugin components off crowd entities (exceptions: BD `BehaviorTree` in Manual mode, A* `FollowerEntity`).
 - **Keep PLUGINS.md current:** when adding, removing or starting to use a plugin in a new way, update it in the same change.
 
 ## Keeping docs current

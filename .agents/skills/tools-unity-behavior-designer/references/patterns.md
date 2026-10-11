@@ -54,6 +54,41 @@ Use the `OnReceivedEvent` event node instead when the reaction is a separate one
 ### Picking the best option (needs / attacks)
 `UtilitySelector`. Wrap each child in `UtilityCurveEvaluator` (curve over a 0–1 input variable the bridge or a task updates) or `UtilityVariableEvaluator` (score read from a variable). Keep the inputs normalised to 0–1.
 
+## Crowd enemy archetypes (from docs/gdd/CORE.md)
+
+One Subtree asset per archetype, referenced by its `EnemyArchetypeDef`. Ticked by `EnemyManager` at the think rate, so `Running` tasks are re-entered every N frames, not every frame: write them against state (`Mover.Arrived`, `Attack.IsBusy`), never per-frame accumulation. Senses come from the `EntityRegistry` grid. Sketches to agree with the user before building.
+
+### Rusher (also the base for swarm)
+```text
+Selector
+├─ Sequence [abort: LowerPriority]  "Attack"
+│   ├─ TargetInRange (AttackRange)
+│   └─ PerformAttack
+└─ ChaseTarget                         fallback: Mover.SetGoal(target), Running
+```
+
+### Ranged
+```text
+Selector
+├─ Sequence [abort: LowerPriority]  "Too close"
+│   ├─ TargetInRange (MinRange)
+│   └─ BackOff
+├─ Sequence [abort: LowerPriority]  "Shoot"
+│   ├─ TargetInRange (AttackRange) → CanSeeTarget
+│   └─ PerformAttack
+└─ ChaseTarget (stop at AttackRange)
+```
+
+### Sneaker
+```text
+Selector
+├─ Sequence [abort: LowerPriority]  "Ambush": TargetInRange(PounceRange) → PerformAttack
+├─ Sequence [abort: Self]           "Stalk":  TargetLooking? (inverted) → ChaseTarget (cover-biased goal)
+└─ HoldPosition / Hide
+```
+
+Tank and flyer reuse Rusher with different parts/data (flyer = different `Mover` setup). Prefer a new def over a new tree; a new tree over a new task; a new task over a new part.
+
 ## Unique agents in this game (from docs/gdd/CORE.md)
 
 These are sketches to discuss with the user. CORE.md is canon. Never design from IDEAS.md unless asked.
@@ -127,27 +162,31 @@ public class PerformAttack : Action
     public override void OnEnd() => _attack.CancelIfBusy();   // runs on abort too
 }
 ```
-Prefer this shape: the task drives a tested component, and the component holds the rules and numbers. Then the same `Attack` part serves code-driven crowd enemies too.
+Always this shape: the task drives a tested component, and the component holds the rules and numbers. That keeps crowd trees cheap and keeps the last-resort escape hatch (a code think step for one archetype) cheap too.
 
-### Manual ticking from a manager (only if trees ever run on many agents)
+### Crowd tree ticking in `EnemyManager`
 ```csharp
-// Set each tree's Update Mode to Manual. Stagger so each tree thinks every N frames.
-public class TreeTicker : ITickable
+// Crowd trees are Update Mode = Manual. Each enemy ticks every Stride frames, staggered by index; far enemies skip more.
+public sealed class EnemyManager : ITickable
 {
-    readonly List<BehaviorTree> _trees = new(64);
-    static readonly ProfilerMarker Marker = new("TreeTicker.Tick");
+    static readonly ProfilerMarker s_Think = new("Aipocalypse.EnemyManager.Think");
+    readonly List<EnemyBrain> _active = new(512);    // dense; swap-remove on despawn
     int _frame;
     const int Stride = 4;
 
-    public void Add(BehaviorTree tree) => _trees.Add(tree);
-    public void Remove(BehaviorTree tree) => _trees.Remove(tree);
-
     public void Tick()
     {
-        using var _ = Marker.Auto();
         var phase = _frame++ % Stride;
-        for (int i = phase; i < _trees.Count; i += Stride) _trees[i].Tick();
+        using (s_Think.Auto())
+        {
+            for (int i = phase; i < _active.Count; i += Stride)
+            {
+                var brain = _active[i];
+                if (brain.IsFar && (_frame / Stride) % 2 != 0) continue;    // distance LOD: half rate
+                brain.Tree.Tick();
+            }
+        }
     }
 }
 ```
-Register it in the system's installer (`builder.RegisterEntryPoint<TreeTicker>().AsSelf()`). Measure in `Proto_Stress` before adopting it for crowd enemies.
+No separate ticker class: `EnemyManager` stays the one central tick for enemies (ARCHITECTURE.md). `IsFar` is updated by the senses pass, not computed here. Unique agents with Manual trees get ticked by their own system the same way.
