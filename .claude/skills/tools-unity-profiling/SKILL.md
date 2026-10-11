@@ -1,616 +1,119 @@
 ---
 name: tools-unity-profiling
-description: Unity profiling patterns including ProfilerMarkers, FrameTimingManager, memory profiling, and performance budgets.
+description: Profiling for aipocalypse's target (hundreds of enemies at 60 fps on PC) — Proto_Stress measurement protocol, ProfilerMarker conventions for central ticks, zero-GC-per-frame verification, reading A*/Burst job threads, in-game stats with ProfilerRecorder, memory leak checks with the Memory Profiler package, GPU/rendering tools (Frame Debugger, Rendering Debugger, GPUI), hitch hunting, and the Unity CLI get_performance_stats command. Use when measuring or optimising performance, adding markers, or judging whether a change is fast enough.
 ---
 
-# Unity Profiling
+# Profiling (aipocalypse)
 
-## Overview
+Target (ARCHITECTURE.md): **hundreds of active enemies at 60 fps** (16.6 ms/frame) on the target PC, **zero GC allocations per frame** in gameplay, measured in `Proto_Stress`, not assumed.
 
-Unity provides comprehensive profiling tools for CPU, GPU, memory, and frame timing analysis. This skill covers instrumentation patterns and performance optimization workflows.
+Tools available here: Unity Profiler (CPU, GPU, Memory, Rendering, Physics modules), **Memory Profiler package 1.1.12** (`com.unity.memoryprofiler`), Frame Debugger, URP **Rendering Debugger**, Render Graph Viewer, **Advanced FPS Counter** (CodeStage, dev-build overlay), and Unity CLI `unity command get_performance_stats` (render, memory, frame-timing snapshot). Not installed: Profile Analyzer, `com.unity.profiling.core` (so **no `ProfilerCounter<T>` / `ProfilerCounterValue<T>`**; those types aren't in the engine).
 
-## When to Use
+## 1. Measurement protocol (Proto_Stress)
 
-- Identifying performance bottlenecks
-- Tracking memory allocations
-- Measuring frame times
-- Implementing performance budgets
-- Detecting hitches and stutters
+Run it whenever enemy, navigation, spawning, weapon or rendering code changes (ARCHITECTURE.md → Measure).
 
-## ProfilerMarkers
+1. **Development build** with *Autoconnect Profiler* (Build Profiles). Deep Profile **off**. Editor numbers are for quick looks only: the editor adds overhead and different GC and job-safety behaviour.
+2. Before measuring: Burst compilation on. Jobs → Burst → **Safety Checks off** and Leak Detection off for the measuring session (turn them back on for development). A* agent debug rendering off. Scene view, Behavior Designer window and Frame Debugger closed.
+3. `Proto_Stress` spawns **100 / 300 / 500** enemies attacking the player. For each tier, wait ~5 s for spawn/prewarm to settle, then capture ~300 frames.
+4. Record per tier: median and 95th-percentile frame time, main thread ms, `Aipocalypse.EnemyManager.Tick` ms, A* movement (`AIMovementSystemGroup`, RVO) on worker threads, render thread ms, GPU ms, **GC Alloc per frame (must be 0)**, batches/SetPass calls.
+5. Write the numbers into `docs/technicals/PERF.md` (create it on first run: date, commit, hardware, tier table). A change that regresses a tier needs an explanation in that file.
 
-### Basic ProfilerMarker
+Starting budget at 300 enemies (refine with real data): main thread scripts ≤ 5 ms (of which `EnemyManager.Tick` ≤ 2 ms), physics ≤ 1.5 ms, animation ≤ 2 ms, render thread ≤ 5 ms, GPU ≤ 12 ms. Over budget means profile *before* optimising, and fix the biggest item first.
 
-```csharp
-using Unity.Profiling;
-
-public class CombatSystem
-{
-    private static readonly ProfilerMarker s_UpdateMarker = new(
-        ProfilerCategory.Scripts,
-        "CombatSystem.Update"
-    );
-    
-    public void Update()
-    {
-        s_UpdateMarker.Begin();
-        try
-        {
-            ProcessCombat();
-        }
-        finally
-        {
-            s_UpdateMarker.End();
-        }
-    }
-}
-```
-
-### Auto-Dispose Pattern
-
-```csharp
-public class AbilitySystem
-{
-    private static readonly ProfilerMarker s_ExecuteMarker = new("AbilitySystem.Execute");
-    
-    public void ExecuteAbility(Ability ability)
-    {
-        using (s_ExecuteMarker.Auto())
-        {
-            ability.Activate();
-            ApplyEffects();
-            PlayAnimation();
-        }
-    }
-}
-```
-
-### Nested Markers
-
-```csharp
-public class GameLoop
-{
-    private static readonly ProfilerMarker s_UpdateMarker = new("GameLoop.Update");
-    private static readonly ProfilerMarker s_PhysicsMarker = new("GameLoop.Physics");
-    private static readonly ProfilerMarker s_AIMarker = new("GameLoop.AI");
-    private static readonly ProfilerMarker s_RenderMarker = new("GameLoop.Render");
-    
-    public void Update()
-    {
-        using (s_UpdateMarker.Auto())
-        {
-            using (s_PhysicsMarker.Auto())
-            {
-                UpdatePhysics();
-            }
-            
-            using (s_AIMarker.Auto())
-            {
-                UpdateAI();
-            }
-            
-            using (s_RenderMarker.Auto())
-            {
-                PrepareRendering();
-            }
-        }
-    }
-}
-```
-
-### ProfilerMarker with Metadata
-
-```csharp
-private static readonly ProfilerMarker s_LoadAssetMarker = new(
-    ProfilerCategory.Loading,
-    "LoadAsset",
-    new ProfilerMarkerDataUnit[]
-    {
-        ProfilerMarkerDataUnit.Bytes,
-        ProfilerMarkerDataUnit.Count
-    }
-);
-
-public void LoadAsset(string path)
-{
-    using (s_LoadAssetMarker.Auto())
-    {
-        // Marker metadata captures additional info
-        var asset = Resources.Load(path);
-    }
-}
-```
-
-## FrameTimingManager
-
-### Basic Frame Timing
-
-```csharp
-public class FrameTimeTracker
-{
-    private readonly FrameTiming[] _frameTimings = new FrameTiming[1];
-    
-    public void CaptureFrameTiming()
-    {
-        if (!FrameTimingManager.IsFeatureEnabled())
-        {
-            Debug.LogWarning("FrameTimingManager not available");
-            return;
-        }
-        
-        FrameTimingManager.CaptureFrameTimings();
-        var count = FrameTimingManager.GetLatestTimings(1, _frameTimings);
-        
-        if (count > 0)
-        {
-            var timing = _frameTimings[0];
-            
-            Debug.Log($"CPU Frame Time: {timing.cpuFrameTime:F2}ms");
-            Debug.Log($"CPU Main Thread: {timing.cpuMainThreadFrameTime:F2}ms");
-            Debug.Log($"CPU Render Thread: {timing.cpuRenderThreadFrameTime:F2}ms");
-            Debug.Log($"GPU Frame Time: {timing.gpuFrameTime:F2}ms");
-            Debug.Log($"Present Wait: {timing.cpuMainThreadPresentWaitTime:F2}ms");
-        }
-    }
-}
-```
-
-### Continuous Frame Monitoring
-
-```csharp
-public class PerformanceMonitor : MonoBehaviour
-{
-    private readonly FrameTiming[] _frameTimings = new FrameTiming[30];
-    
-    private float _avgCpuTime;
-    private float _avgGpuTime;
-    private float _maxFrameTime;
-    
-    private void Update()
-    {
-        if (!FrameTimingManager.IsFeatureEnabled()) return;
-        
-        FrameTimingManager.CaptureFrameTimings();
-        var count = FrameTimingManager.GetLatestTimings(_frameTimings.Length, _frameTimings);
-        
-        if (count > 0)
-        {
-            float totalCpu = 0, totalGpu = 0;
-            _maxFrameTime = 0;
-            int gpuCount = 0;
-            
-            for (int i = 0; i < count; i++)
-            {
-                var t = _frameTimings[i];
-                totalCpu += t.cpuFrameTime;
-                
-                if (t.gpuFrameTime > 0)
-                {
-                    totalGpu += t.gpuFrameTime;
-                    gpuCount++;
-                }
-                
-                var frameTime = Mathf.Max(t.cpuFrameTime, t.gpuFrameTime);
-                _maxFrameTime = Mathf.Max(_maxFrameTime, frameTime);
-            }
-            
-            _avgCpuTime = totalCpu / count;
-            _avgGpuTime = gpuCount > 0 ? totalGpu / gpuCount : 0;
-        }
-    }
-    
-    public (float cpu, float gpu, float max) GetFrameTimes()
-    {
-        return (_avgCpuTime, _avgGpuTime, _maxFrameTime);
-    }
-}
-```
-
-## Memory Profiling
-
-### Memory Snapshot
-
-```csharp
-using UnityEngine.Profiling;
-
-public class MemoryTracker
-{
-    public MemorySnapshot CaptureSnapshot()
-    {
-        return new MemorySnapshot
-        {
-            TotalAllocated = Profiler.GetTotalAllocatedMemoryLong(),
-            TotalReserved = Profiler.GetTotalReservedMemoryLong(),
-            TotalUnused = Profiler.GetTotalUnusedReservedMemoryLong(),
-            MonoUsed = Profiler.GetMonoUsedSizeLong(),
-            MonoHeap = Profiler.GetMonoHeapSizeLong(),
-            GfxDriver = Profiler.GetAllocatedMemoryForGraphicsDriver(),
-            Timestamp = Time.realtimeSinceStartup
-        };
-    }
-}
-
-public struct MemorySnapshot
-{
-    public long TotalAllocated;
-    public long TotalReserved;
-    public long TotalUnused;
-    public long MonoUsed;
-    public long MonoHeap;
-    public long GfxDriver;
-    public float Timestamp;
-    
-    public long TotalMB => TotalAllocated / 1_000_000;
-    public long MonoMB => MonoUsed / 1_000_000;
-}
-```
-
-### GC Allocation Tracking
-
-```csharp
-public class GCAllocationTracker
-{
-    private long _lastGCMemory;
-    private int _lastGCCount;
-    
-    public void BeginFrame()
-    {
-        _lastGCMemory = GC.GetTotalMemory(false);
-        _lastGCCount = GC.CollectionCount(0);
-    }
-    
-    public (long allocated, bool gcOccurred) EndFrame()
-    {
-        var currentMemory = GC.GetTotalMemory(false);
-        var currentGCCount = GC.CollectionCount(0);
-        
-        var allocated = currentMemory - _lastGCMemory;
-        var gcOccurred = currentGCCount > _lastGCCount;
-        
-        if (allocated > 1024) // Log allocations > 1KB
-        {
-            Debug.LogWarning($"Frame allocated {allocated} bytes");
-        }
-        
-        return (allocated, gcOccurred);
-    }
-}
-```
-
-### GC Notification
-
-```csharp
-public class GCNotificationHandler
-{
-    private bool _isRegistered;
-    
-    public void Register()
-    {
-        if (_isRegistered) return;
-        
-        // Register for full GC notification (Gen2)
-        GC.RegisterForFullGCNotification(10, 10);
-        _isRegistered = true;
-        
-        // Start monitoring thread
-        StartMonitoringThread();
-    }
-    
-    private void StartMonitoringThread()
-    {
-        var thread = new Thread(() =>
-        {
-            while (_isRegistered)
-            {
-                var status = GC.WaitForFullGCApproach();
-                if (status == GCNotificationStatus.Succeeded)
-                {
-                    // GC is approaching - prepare
-                    OnGCApproaching();
-                }
-                
-                status = GC.WaitForFullGCComplete();
-                if (status == GCNotificationStatus.Succeeded)
-                {
-                    // GC completed
-                    OnGCComplete();
-                }
-            }
-        });
-        thread.IsBackground = true;
-        thread.Start();
-    }
-    
-    private void OnGCApproaching()
-    {
-        Debug.Log("Full GC approaching");
-    }
-    
-    private void OnGCComplete()
-    {
-        Debug.Log("Full GC complete");
-    }
-}
-```
-
-## Hitch Detection
-
-### Simple Hitch Detector
-
-```csharp
-public class HitchDetector : MonoBehaviour
-{
-    private const float MinorHitchMs = 33.33f;  // < 30 FPS
-    private const float MajorHitchMs = 50f;     // < 20 FPS
-    private const float SevereHitchMs = 100f;   // < 10 FPS
-    
-    public event Action<float, HitchSeverity> OnHitchDetected;
-    
-    private float _lastFrameTime;
-    
-    private void Update()
-    {
-        var frameTimeMs = Time.unscaledDeltaTime * 1000f;
-        
-        if (frameTimeMs >= SevereHitchMs)
-        {
-            OnHitchDetected?.Invoke(frameTimeMs, HitchSeverity.Severe);
-        }
-        else if (frameTimeMs >= MajorHitchMs)
-        {
-            OnHitchDetected?.Invoke(frameTimeMs, HitchSeverity.Major);
-        }
-        else if (frameTimeMs >= MinorHitchMs)
-        {
-            OnHitchDetected?.Invoke(frameTimeMs, HitchSeverity.Minor);
-        }
-        
-        _lastFrameTime = frameTimeMs;
-    }
-}
-
-public enum HitchSeverity { Minor, Major, Severe }
-```
-
-### Advanced Hitch Tracker
-
-```csharp
-public class HitchTracker
-{
-    private readonly Queue<float> _frameTimes = new();
-    private readonly int _windowSize;
-    
-    private int _minorHitchCount;
-    private int _majorHitchCount;
-    private int _severeHitchCount;
-    private int _totalFrames;
-    
-    public float HitchRate => _totalFrames > 0 
-        ? (float)(_minorHitchCount + _majorHitchCount + _severeHitchCount) / _totalFrames 
-        : 0f;
-    
-    public HitchTracker(int windowSize = 300)
-    {
-        _windowSize = windowSize;
-    }
-    
-    public void RecordFrame(float frameTimeMs)
-    {
-        _frameTimes.Enqueue(frameTimeMs);
-        _totalFrames++;
-        
-        // Classify hitch
-        if (frameTimeMs >= 100f)
-            _severeHitchCount++;
-        else if (frameTimeMs >= 50f)
-            _majorHitchCount++;
-        else if (frameTimeMs >= 33.33f)
-            _minorHitchCount++;
-        
-        // Maintain window
-        while (_frameTimes.Count > _windowSize)
-        {
-            var removed = _frameTimes.Dequeue();
-            _totalFrames--;
-            
-            // Adjust counts
-            if (removed >= 100f)
-                _severeHitchCount--;
-            else if (removed >= 50f)
-                _majorHitchCount--;
-            else if (removed >= 33.33f)
-                _minorHitchCount--;
-        }
-    }
-    
-    public HitchStats GetStats()
-    {
-        return new HitchStats
-        {
-            TotalFrames = _totalFrames,
-            MinorHitches = _minorHitchCount,
-            MajorHitches = _majorHitchCount,
-            SevereHitches = _severeHitchCount,
-            HitchRate = HitchRate,
-            WorstFrameTime = _frameTimes.Count > 0 ? _frameTimes.Max() : 0f
-        };
-    }
-}
-
-public struct HitchStats
-{
-    public int TotalFrames;
-    public int MinorHitches;
-    public int MajorHitches;
-    public int SevereHitches;
-    public float HitchRate;
-    public float WorstFrameTime;
-}
-```
-
-## Performance Budgets
-
-### Frame Budget System
-
-```csharp
-public class FrameBudgetManager
-{
-    private readonly Dictionary<string, float> _budgets = new();
-    private readonly Dictionary<string, float> _actuals = new();
-    
-    public float TotalBudgetMs { get; } = 16.67f; // 60 FPS target
-    
-    public void SetBudget(string system, float budgetMs)
-    {
-        _budgets[system] = budgetMs;
-    }
-    
-    public void RecordActual(string system, float actualMs)
-    {
-        _actuals[system] = actualMs;
-        
-        if (_budgets.TryGetValue(system, out var budget) && actualMs > budget)
-        {
-            Debug.LogWarning($"{system} over budget: {actualMs:F2}ms / {budget:F2}ms");
-        }
-    }
-    
-    public bool IsWithinBudget()
-    {
-        var totalActual = _actuals.Values.Sum();
-        return totalActual <= TotalBudgetMs;
-    }
-    
-    public void LogBudgetReport()
-    {
-        Debug.Log("=== Frame Budget Report ===");
-        
-        foreach (var (system, budget) in _budgets)
-        {
-            var actual = _actuals.GetValueOrDefault(system, 0f);
-            var status = actual <= budget ? "OK" : "OVER";
-            Debug.Log($"{system}: {actual:F2}ms / {budget:F2}ms [{status}]");
-        }
-        
-        var totalActual = _actuals.Values.Sum();
-        Debug.Log($"Total: {totalActual:F2}ms / {TotalBudgetMs:F2}ms");
-    }
-}
-
-// Usage
-var budgetManager = new FrameBudgetManager();
-budgetManager.SetBudget("Physics", 2f);
-budgetManager.SetBudget("AI", 3f);
-budgetManager.SetBudget("Animation", 2f);
-budgetManager.SetBudget("Rendering", 8f);
-```
-
-### Memory Budget System
-
-```csharp
-public class MemoryBudgetManager
-{
-    public long TotalBudgetMB { get; private set; }
-    public long TextureBudgetMB { get; private set; }
-    public long AudioBudgetMB { get; private set; }
-    public long MeshBudgetMB { get; private set; }
-    
-    public void SetBudgetsForDevice(DeviceTier tier)
-    {
-        switch (tier)
-        {
-            case DeviceTier.Low:
-                TotalBudgetMB = 512;
-                TextureBudgetMB = 256;
-                AudioBudgetMB = 64;
-                MeshBudgetMB = 128;
-                break;
-                
-            case DeviceTier.Medium:
-                TotalBudgetMB = 1024;
-                TextureBudgetMB = 512;
-                AudioBudgetMB = 128;
-                MeshBudgetMB = 256;
-                break;
-                
-            case DeviceTier.High:
-                TotalBudgetMB = 2048;
-                TextureBudgetMB = 1024;
-                AudioBudgetMB = 256;
-                MeshBudgetMB = 512;
-                break;
-        }
-    }
-    
-    public bool IsOverBudget()
-    {
-        var currentMB = Profiler.GetTotalAllocatedMemoryLong() / 1_000_000;
-        return currentMB > TotalBudgetMB;
-    }
-    
-    public float GetBudgetUsagePercent()
-    {
-        var currentMB = Profiler.GetTotalAllocatedMemoryLong() / 1_000_000;
-        return (float)currentMB / TotalBudgetMB * 100f;
-    }
-}
-
-public enum DeviceTier { Low, Medium, High }
-```
-
-## Profiler Counters (Custom)
-
-### ProfilerCounter
+## 2. ProfilerMarkers: naming and placement
 
 ```csharp
 using Unity.Profiling;
 
-public class CustomProfilerCounters
+public sealed class EnemyManager : ITickable
 {
-    public static readonly ProfilerCounter<int> EnemyCount = new(
-        ProfilerCategory.Scripts,
-        "Enemy Count",
-        ProfilerMarkerDataUnit.Count
-    );
-    
-    public static readonly ProfilerCounter<int> ActiveEffects = new(
-        ProfilerCategory.Scripts,
-        "Active Effects",
-        ProfilerMarkerDataUnit.Count
-    );
-    
-    public static readonly ProfilerCounter<float> MemoryUsageMB = new(
-        ProfilerCategory.Memory,
-        "Custom Memory MB",
-        ProfilerMarkerDataUnit.Bytes
-    );
-}
+    static readonly ProfilerMarker s_Tick   = new("Aipocalypse.EnemyManager.Tick");
+    static readonly ProfilerMarker s_Think  = new("Aipocalypse.EnemyManager.Think");
+    static readonly ProfilerMarker s_Senses = new("Aipocalypse.EnemyManager.Senses");
 
-// Usage in Update
-CustomProfilerCounters.EnemyCount.Sample(_enemies.Count);
-CustomProfilerCounters.ActiveEffects.Sample(_activeEffects.Count);
+    public void Tick()
+    {
+        using var _ = s_Tick.Auto();
+        using (s_Think.Auto()) { /* time-sliced decisions */ }
+        using (s_Senses.Auto()) { /* grid queries + few raycasts */ }
+    }
+}
 ```
 
-## Best Practices
+- Prefix **`Aipocalypse.`** so a Profiler hierarchy search finds all our markers at once.
+- `static readonly`, created once. `Auto()` returns a struct, so there's no allocation. Markers are near-free when the profiler isn't recording, so leave them in.
+- Put markers at **system granularity**: every central tick (`EnemyManager`, projectile service, pools' expiry), senses/targeting, spawning and despawning, `PrefabPool.Get/Release`, `WaveDirector`, `EntityRegistry` grid queries, scene-load steps. Not on tiny per-entity methods: thousands of samples per frame distort the capture.
+- Markers on code inside Burst jobs: `ProfilerMarker` works in Burst too, and shows on worker threads.
+- Don't use `Profiler.BeginSample(string)` (legacy). Use `ProfilerMarker` instead.
 
-1. **Use ProfilerMarkers** for custom code sections
-2. **Sample FrameTimingManager** for accurate timing
-3. **Set performance budgets** early in development
-4. **Track allocations** to prevent GC spikes
-5. **Detect hitches** in production builds
-6. **Profile on target devices** - Editor is not representative
-7. **Use Deep Profile sparingly** - Significant overhead
-8. **Profile specific scenarios** - Combat, loading, menus
-9. **Automate profiling** - CI performance tests
-10. **Log outliers** - Capture worst-case frames
+## 3. Zero allocations per frame
 
-## Troubleshooting
+- Profiler CPU module → Hierarchy → sort by **GC Alloc**. Turn on *Call Stacks* for `GC.Alloc` to see the allocating line.
+- After prewarm, a steady combat frame must show **0 B** under our markers. Allowed exceptions: editor-only code, UI text that changes (keep it rare), one-time spawn of a new pool item (shouldn't happen after prewarm).
+- Usual culprits: LINQ, `foreach` over interfaces (boxing enumerators), closures/lambdas in hot paths, `string` concatenation or formatting, `params` arrays, boxing structs (event structs as `object`), `GetComponent` returning arrays, `Physics.*` non-`NonAlloc` calls, `new List` per call, `UniTask` lambdas per frame, coroutines' `WaitForSeconds`.
+- Incremental GC is **on** (`gcIncremental: 1`). That spreads collection cost but doesn't excuse allocations.
+- Quick check without the profiler: a `ProfilerRecorder` on `"GC Allocated In Frame"` (§5) in the debug overlay.
 
-| Issue | Investigation |
-|-------|--------------|
-| Low FPS | Check CPU vs GPU bound in Profiler |
-| Hitches | Look for GC, loading, or spikes |
-| Memory growth | Track allocations over time |
-| GC spikes | Find allocation sources |
-| GPU bound | Reduce draw calls, shader complexity |
-| CPU bound | Optimize scripts, reduce Updates |
+## 4. Reading A*, Burst and the job threads
+
+- `FollowerEntity` movement runs in ECS systems (`AIMovementSystemGroup`, `RVOSystem`) on **worker threads**, so expand the Timeline view, not just the main-thread Hierarchy. Main-thread cost shows as **sync points** (`JobHandle.Complete`, `CompleteDependency`) inside our code when we read or write agent properties. Many small waits under `EnemyManager.Tick` means too much `FollowerEntity` property access (`tools-unity-astar` §4).
+- Pathfinding runs on A*'s own pathfinding threads. A long `Pathfinding` thread with idle agents means too many repaths (check repath intervals and destination churn).
+- Burst-compiled jobs show as `(Burst)`. If a job shows without it, Burst is off or the method failed to compile (see Jobs → Burst → Open Inspector).
+
+## 5. In-game stats (dev builds, debug panel)
+
+Use `ProfilerRecorder` (CoreModule) to read built-in counters with no package needed:
+
+```csharp
+ProfilerRecorder _mainThread, _gcAlloc, _batches;
+
+void OnEnable()
+{
+    _mainThread = ProfilerRecorder.StartNew(ProfilerCategory.Internal, "Main Thread", 15);
+    _gcAlloc    = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
+    _batches    = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Batches Count");
+}
+
+void OnDisable() { _mainThread.Dispose(); _gcAlloc.Dispose(); _batches.Dispose(); }
+// Read _gcAlloc.LastValue, _batches.LastValue; average _mainThread samples (nanoseconds) for ms.
+```
+
+- Our own counts (active enemies, pool sizes, active agents) go in the debug panel directly from the services (`IDebugCommands`). No custom profiler counters (package not installed). If you need them in Profiler captures, add `com.unity.profiling.core` and note it in PLUGINS.md.
+- **Advanced FPS Counter** (CodeStage) gives an FPS/memory overlay in dev builds. Keep it out of release builds.
+- `FrameTimingManager` (CPU/GPU frame times in builds) returns nothing unless **Player Settings → Frame Timing Stats** is enabled (`enableFrameTimingStats` is currently **0**). Enable it only for profiling builds if needed.
+- From the CLI (editor in Play mode): `unity command get_performance_stats` gives a structured snapshot of render, memory and frame timing. It's handy for quick before/after checks while iterating, not for budget numbers (editor).
+
+## 6. Memory and leaks
+
+- **Memory Profiler** (Window → Analysis → Memory Profiler): take a snapshot in World at the start of night 1 and after night 3. Compare. Growth in managed objects (`List`, closures, our services), GameObjects or textures between snapshots is a leak.
+- Typical leaks here: pools growing every night (items not released, `tools-unity-object-pooling` §9), MessagePipe subscriptions not disposed (Diagnostics window counts, `tools-unity-messagepipe` §8), UniTasks pending forever (UniTask Tracker), root services holding scene objects after "quit to menu".
+- Asset memory: textures (Synty/BK packs are large, so check import sizes and compression), audio import settings (BroAudio library entries), meshes with Read/Write enabled unnecessarily.
+
+## 7. Rendering and GPU
+
+- **GPU bound or CPU bound?** Compare GPU ms vs main/render thread ms in the Profiler (GPU module needs a supported graphics API in the build). If GPU ms is highest, optimise rendering, not scripts.
+- **Frame Debugger**: draw call list, SRP Batcher breaks, overdraw sources. **Rendering Debugger** (URP): overdraw, lighting, material validation. **Render Graph Viewer**: URP passes and resource usage. Custom renderer features must validate (see the `unity:validate-urp-render-graph-renderer-feature` skill).
+- Many enemies on screen: skinned mesh cost (bones, `Animator` culling mode, LOD groups), shadow casters (turn off shadows on far or small enemies), SRP Batcher-compatible materials.
+- Foliage and props go through **GPU Instancer Pro**. Check its debugger/stats window for instance counts and culling.
+- Post-processing (URP volumes, Kronnect, COZY clouds/fog) can dominate GPU time. Toggle volumes in the Rendering Debugger to measure each.
+
+## 8. Hitches (single long frames)
+
+Capture with the Profiler recording, then select the spike frame:
+- `GC.Collect`: allocations (§3).
+- `Instantiate` / `Awake`: pool not prewarmed (`tools-unity-object-pooling` §6), or heavy `Awake` work.
+- `Shader.CreateGPUProgram` / PSO creation: first use of a shader variant. Prewarm via a shader variant collection / `GraphicsStateCollection` during loading.
+- A* graph updates or scans: large `UpdateGraphs` bounds, or rescanning instead of `NavmeshCut`.
+- `Physics.SyncTransforms`: many transforms moved, then queried in the same frame.
+- Scene / asset loads on the main thread: should be async in `SceneLoader` behind a loading screen.
+
+## 9. Writing performance-sensitive code: quick rules
+
+- Measure first. Optimise the top item in the capture, re-measure, record in PERF.md.
+- One loop over dense data beats many `Update()`s. Time-slice decisions, keep movement per-frame (ARCHITECTURE.md).
+- Cache component and service references at setup. No `GetComponent`, `Find*` or DI resolve per frame.
+- Escape hatch: when `EnemyManager.Tick` itself is the bottleneck, move its hot data into arrays and the loop into a Burst job (ARCHITECTURE.md), and profile again before and after.
+
+---
+Rewritten for this project from `tools-unity-profiling` in [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, see `../THIRD_PARTY_LICENSE-unity-gamedev.txt`). Profiling types checked against the Unity 6000.6.5 `UnityEngine.CoreModule` docs and `ProjectSettings.asset`.

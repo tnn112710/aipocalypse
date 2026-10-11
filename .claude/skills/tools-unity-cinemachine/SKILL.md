@@ -1,523 +1,119 @@
 ---
 name: tools-unity-cinemachine
-description: Unity Cinemachine camera system patterns including virtual cameras, blending, and state-driven cameras.
+description: Cinemachine 3 (package 6.6, namespace Unity.Cinemachine) for aipocalypse's first-person camera — the player camera rig inside the Player prefab (HardLockToTarget + RotateWithFollowTarget driven by our look code, not PanTilt input), FOV for sprint/ADS/settings, view bob noise, impulses for shake, camera offset for ADS/lean, extra cameras (death cam, cutscenes, drone view) by priority, brain update/blend settings, time scale. Use for any camera work. NOT Cinemachine 2 — CinemachineVirtualCamera, `using Cinemachine`, m_Lens/m_Follow/m_Priority, GetCinemachineComponent<T>() are the old API.
 ---
 
-# Unity Cinemachine
+# Cinemachine 3 (aipocalypse)
 
-## Overview
+Installed: **`com.unity.cinemachine` 6.6.0**, which is the **Cinemachine 3 API**. Namespace **`Unity.Cinemachine`**, asmdef `Unity.Cinemachine`. Source: `Library/PackageCache/com.unity.cinemachine@*/Runtime` (`Behaviours/`, `Components/`, `Impulse/`, `Helpers/`). Docs: https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/index.html.
 
-Cinemachine is Unity's camera system for dynamic, procedural camera behavior. This skill covers common patterns for gameplay cameras, cutscenes, and camera effects.
+Most examples online are Cinemachine 2 and won't compile:
 
-## When to Use
+| CM2 (don't write) | CM3 (installed) |
+| --- | --- |
+| `using Cinemachine;` | `using Unity.Cinemachine;` |
+| `CinemachineVirtualCamera` | `CinemachineCamera` (the old class is in `Runtime/Deprecated`, so don't add it) |
+| `vcam.m_Follow`, `m_LookAt`, `vcam.Follow =` | `cam.Target.TrackingTarget`, `cam.Target.LookAtTarget` (`Follow`/`LookAt` properties still exist) |
+| `vcam.m_Lens.FieldOfView` | `cam.Lens.FieldOfView` (struct field, assignable in place) |
+| `vcam.m_Priority = 10` | `cam.Priority = 10` (`PrioritySettings`, implicit from int) or `cam.Prioritize()` |
+| `GetCinemachineComponent<T>()` | Components are separate MonoBehaviours on the camera GameObject, so use `GetComponent<T>()` once and cache it |
+| `CinemachineComposer`, `CinemachineTransposer`, `CinemachinePOV`, `Cinemachine3rdPersonFollow` | `CinemachineRotationComposer`, `CinemachineFollow`, `CinemachinePanTilt`, `CinemachineThirdPersonFollow` |
+| `noise.m_AmplitudeGain` | `noise.AmplitudeGain`, `noise.FrequencyGain` |
+| `impulseSource.m_ImpulseDefinition` | `impulseSource.ImpulseDefinition`, `GenerateImpulse(velocity)` / `GenerateImpulseAt(pos, velocity)` |
+| `brain.m_DefaultBlend.m_Time` | `brain.DefaultBlend = new CinemachineBlendDefinition(Styles.Cut, 0f)` |
 
-- Third-person cameras
-- Combat camera behavior
-- Cutscene cameras
-- Camera shake effects
-- Multi-target framing
-- State-driven camera transitions
+## 1. The player camera rig
 
-## Basic Setup
+ARCHITECTURE.md: the camera rig, `CinemachineBrain` and `AudioListener` live **inside the Player prefab**, so the player works dropped into any scene.
 
-### Virtual Camera Configuration
+```text
+Player (PlayerScope : EntityScope)            ← yaw rotates this root (our look code)
+├─ CameraPivot (eye height)                   ← pitch rotates this (our look code); gameplay aim origin
+├─ PlayerCamera  [CinemachineCamera]
+│     Tracking Target = CameraPivot
+│     Position Control: CinemachineHardLockToTarget
+│     Rotation Control: CinemachineRotateWithFollowTarget (Damping 0)
+│     Noise: CinemachineBasicMultiChannelPerlin (view bob/idle sway, gain driven by speed)
+│     Extensions: CinemachineImpulseListener, CinemachineCameraOffset (ADS / lean)
+└─ MainCamera    [Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData]
+```
+
+- **Our look code owns rotation.** `InputService`'s `Look` action → player controller rotates the root (yaw) and `CameraPivot` (pitch, clamped). The Cinemachine camera just copies it (`HardLockToTarget` + `RotateWithFollowTarget`). Don't use `CinemachinePanTilt` + `CinemachineInputAxisController`. They read input themselves (bypassing `InputService` and map switching), and gameplay aim would then have to read rotation back from the camera.
+- **Shoot from `CameraPivot`**, not from the rendered camera. Noise, impulses and offsets move the camera, not the pivot, so shake never changes where bullets go. Visual recoil is a camera effect. Gameplay recoil is the WeaponSystem rotating the pivot by data.
+- `MainCamera` may sit inside the Player prefab. The brain overwrites its world transform every frame. There must be **one** `CinemachineBrain` and one `AudioListener` in the scene. Prototype scenes must not keep their default Main Camera when the player is dropped in.
+- Unity's `Camera` component settings (clear flags, URP renderer, post-processing on) live on `MainCamera`. Lens values (FOV, near/far clip) are driven by the active `CinemachineCamera.Lens`, so set them there.
+
+## 2. FOV (settings, sprint, ADS)
 
 ```csharp
-using Cinemachine;
-
-public class CameraController : MonoBehaviour
+// On the Player prefab; ticked by the player's own update path, writes only when the value changes.
+public sealed class PlayerCameraLens : MonoBehaviour
 {
-    [SerializeField] private CinemachineVirtualCamera _mainCamera;
-    [SerializeField] private Transform _followTarget;
-    [SerializeField] private Transform _lookAtTarget;
-    
-    private void Start()
+    [SerializeField] CinemachineCamera _camera;
+    float _baseFov, _targetFov, _currentFov;
+    float _fovSpeed;                                    // from PlayerTuning
+
+    [Inject]
+    void Construct(ISettings settings, PlayerTuning tuning)  // placeholder names
     {
-        _mainCamera.Follow = _followTarget;
-        _mainCamera.LookAt = _lookAtTarget;
+        _baseFov = _targetFov = _currentFov = settings.FieldOfView;
+        _fovSpeed = tuning.FovLerpSpeed;
     }
-    
-    public void SetFollowTarget(Transform target)
+
+    public void SetMultiplier(float multiplier) => _targetFov = _baseFov * multiplier;   // sprint 1.1, ADS from WeaponDef
+
+    public void Tick(float dt)
     {
-        _mainCamera.Follow = target;
-    }
-    
-    public void SetLookAtTarget(Transform target)
-    {
-        _mainCamera.LookAt = target;
+        if (Mathf.Approximately(_currentFov, _targetFov)) return;
+        _currentFov = Mathf.MoveTowards(_currentFov, _targetFov, _fovSpeed * dt);
+        _camera.Lens.FieldOfView = _currentFov;
     }
 }
 ```
 
-### Third Person Camera
+- Base FOV comes from the settings service (player option), and multipliers from data (`PlayerTuning`, `WeaponDef`). Nothing hardcoded.
+- Feel's FOV shaker (`MMCinemachineFieldOfViewShaker`) captures the FOV at shake start and restores it. It fights this component during ADS transitions, so use relative mode or impulses instead (`tools-unity-feel` §3).
+- Weapon view model: render it with a URP Renderer Feature (Render Objects on a "ViewModel" layer with its own FOV) or a camera-stack overlay so it doesn't clip into walls or stretch with FOV changes. That's URP work, not Cinemachine.
 
-```csharp
-public class ThirdPersonCameraSetup : MonoBehaviour
-{
-    [SerializeField] private CinemachineVirtualCamera _virtualCamera;
-    
-    private Cinemachine3rdPersonFollow _bodyComponent;
-    private CinemachineComposer _aimComponent;
-    
-    private void Awake()
-    {
-        _bodyComponent = _virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>();
-        _aimComponent = _virtualCamera.GetCinemachineComponent<CinemachineComposer>();
-    }
-    
-    public void SetCameraDistance(float distance)
-    {
-        if (_bodyComponent != null)
-        {
-            _bodyComponent.CameraDistance = distance;
-        }
-    }
-    
-    public void SetShoulderOffset(Vector3 offset)
-    {
-        if (_bodyComponent != null)
-        {
-            _bodyComponent.ShoulderOffset = offset;
-        }
-    }
-    
-    public void SetDamping(float damping)
-    {
-        if (_bodyComponent != null)
-        {
-            _bodyComponent.Damping.x = damping;
-            _bodyComponent.Damping.y = damping;
-            _bodyComponent.Damping.z = damping;
-        }
-    }
-}
-```
+## 3. Shake, bob and offsets
 
-## Camera Blending
+| Effect | Tool |
+| --- | --- |
+| One-shot shake (shot kick, explosion, hurt) | **Impulse**: `CinemachineImpulseListener` on the camera. Sources via Feel's `MMF_CinemachineImpulse` (preferred, see `tools-unity-feel`) or a `CinemachineImpulseSource` on the emitter (`GenerateImpulseAt(position, velocity)`). Use listener `ChannelMask` to separate camera-only impulses |
+| Continuous sway / view bob | `CinemachineBasicMultiChannelPerlin` with a handheld-style `NoiseProfile`. Drive `AmplitudeGain`/`FrequencyGain` from player speed (0 when still) |
+| ADS / lean / crouch offset | `CinemachineCameraOffset.Offset` (applied after Aim). Crouch height itself is a pivot move by the controller, not a camera offset |
+| Dutch roll on big hits | `cam.Lens.Dutch` or Feel's `MMF_CinemachineCameraDutch` |
 
-### Priority-Based Switching
+- Don't animate the `MainCamera` or `CameraPivot` transforms for shake. The brain overwrites the camera, and the pivot is gameplay aim.
+- Impulse **distance** matters: `GenerateImpulseAt(position, …)` decays with distance from the listener per the definition's dissipation. Explosions should pass their world position.
+- Impulses obey `CinemachineImpulseManager.Instance.IgnoreTimeScale` (global). Feel sets it per play. Keep all impulses on scaled time.
 
-```csharp
-public class CameraPriorityManager : MonoBehaviour
-{
-    [SerializeField] private CinemachineVirtualCamera _explorationCamera;
-    [SerializeField] private CinemachineVirtualCamera _combatCamera;
-    [SerializeField] private CinemachineVirtualCamera _dialogueCamera;
-    
-    private const int InactivePriority = 0;
-    private const int ActivePriority = 10;
-    
-    private void Start()
-    {
-        SetExplorationCamera();
-    }
-    
-    public void SetExplorationCamera()
-    {
-        _explorationCamera.Priority = ActivePriority;
-        _combatCamera.Priority = InactivePriority;
-        _dialogueCamera.Priority = InactivePriority;
-    }
-    
-    public void SetCombatCamera()
-    {
-        _explorationCamera.Priority = InactivePriority;
-        _combatCamera.Priority = ActivePriority;
-        _dialogueCamera.Priority = InactivePriority;
-    }
-    
-    public void SetDialogueCamera()
-    {
-        _explorationCamera.Priority = InactivePriority;
-        _combatCamera.Priority = InactivePriority;
-        _dialogueCamera.Priority = ActivePriority;
-    }
-}
-```
+## 4. Other cameras (death cam, cutscenes, drone view, menus)
 
-### Custom Blend Settings
+- Each extra view is its own `CinemachineCamera` (in the relevant prefab or scene). Switch by priority: `cam.Priority = 20` to take over, back to `0` (or disable the GameObject) to release. `Prioritize()` moves a camera to the top among equal priorities.
+- The player camera stays at a fixed base priority (e.g. 10). Disabling the `CinemachineCamera` GameObject is the cleanest "off".
+- Blends: `brain.DefaultBlend` = **Cut** for gameplay (an FPS camera must never ease between views by accident). Specific pairs (gameplay → death cam: EaseOut 0.5 s) go in a `CinemachineBlenderSettings` asset on `brain.CustomBlends`.
+- A camera following another target (drone view, dog view): `CinemachineFollow` or `CinemachineThirdPersonFollow` + `CinemachineRotationComposer`. Don't reuse the player's rig.
+- React to camera switches with the `CinemachineBrainEvents` / `CinemachineCameraEvents` helper components (UnityEvents), or `brain.ActiveVirtualCamera` / `brain.IsBlending`. Never poll every frame for gameplay logic.
 
-```csharp
-public class CameraBlendController : MonoBehaviour
-{
-    [SerializeField] private CinemachineBrain _brain;
-    
-    public void SetBlendTime(float duration)
-    {
-        _brain.m_DefaultBlend.m_Time = duration;
-    }
-    
-    public void SetBlendStyle(CinemachineBlendDefinition.Style style)
-    {
-        _brain.m_DefaultBlend.m_Style = style;
-    }
-    
-    public void SetInstantBlend()
-    {
-        _brain.m_DefaultBlend.m_Style = CinemachineBlendDefinition.Style.Cut;
-    }
-    
-    public void SetSmoothBlend(float duration = 1f)
-    {
-        _brain.m_DefaultBlend.m_Style = CinemachineBlendDefinition.Style.EaseInOut;
-        _brain.m_DefaultBlend.m_Time = duration;
-    }
-}
-```
+## 5. Brain settings
 
-## State-Driven Camera
+- `UpdateMethod`: `SmartUpdate` (default) or `LateUpdate`. If the player moves in `FixedUpdate` with Rigidbody interpolation, SmartUpdate handles it. Jitter usually means the pivot moves in a different update phase than the camera, so fix the controller's update phase rather than reaching for FixedUpdate on the brain.
+- `IgnoreTimeScale = false`: damping and noise freeze when `TimeService` pauses, and slow during hit stop. Set it to true only on a menu-only brain.
+- `ShowDebugText` / `ShowCameraFrustum` for debugging only.
 
-### Animator State Camera
+## 6. Performance
 
-```csharp
-public class StateDrivenCameraController : MonoBehaviour
-{
-    [SerializeField] private CinemachineStateDrivenCamera _stateDrivenCamera;
-    [SerializeField] private Animator _animator;
-    
-    private void Start()
-    {
-        // Animator is automatically linked via CinemachineStateDrivenCamera inspector
-        // States are mapped to virtual cameras in the component
-    }
-    
-    public void TriggerCameraState(string animatorStateName)
-    {
-        // Triggering animator state will automatically switch camera
-        _animator.CrossFade(animatorStateName, 0.2f);
-    }
-}
-```
+- One live `CinemachineCamera` costs little. Inactive cameras in standby update round-robin (`StandbyUpdate = RoundRobin`). Set `Never` on cameras that are rarely used (cutscene cams).
+- `CinemachineDeoccluder`/`Decollider` are third-person tools. The FPS rig doesn't need them.
+- Don't write `Lens`, `Priority` or noise gains every frame unless the value changed (§2 pattern).
 
-### Manual State Switching
+## 7. Debugging
 
-```csharp
-public class GameStateCameraManager : MonoBehaviour
-{
-    [SerializeField] private CinemachineVirtualCamera[] _cameras;
-    
-    private Dictionary<GameState, CinemachineVirtualCamera> _cameraMap;
-    
-    private void Awake()
-    {
-        _cameraMap = new Dictionary<GameState, CinemachineVirtualCamera>
-        {
-            { GameState.Exploration, _cameras[0] },
-            { GameState.Combat, _cameras[1] },
-            { GameState.Dialogue, _cameras[2] },
-            { GameState.Cinematic, _cameras[3] }
-        };
-    }
-    
-    public void OnGameStateChanged(GameState newState)
-    {
-        foreach (var cam in _cameras)
-        {
-            cam.Priority = 0;
-        }
-        
-        if (_cameraMap.TryGetValue(newState, out var activeCamera))
-        {
-            activeCamera.Priority = 10;
-        }
-    }
-}
-```
+- Brain inspector shows the live camera and blend. `ShowDebugText` overlays it in the Game view.
+- Camera doesn't follow: `Target.TrackingTarget` unset, or two brains in the scene (the prototype's default camera).
+- Shake does nothing: no `CinemachineImpulseListener` on the live camera, `ChannelMask` mismatch, zero impulse velocity, or the source is too far for its dissipation distance.
+- Aim drifts while shaking: shots use the camera transform instead of `CameraPivot`.
 
-## Camera Shake
-
-### Impulse System
-
-```csharp
-public class CameraShakeController : MonoBehaviour
-{
-    [SerializeField] private CinemachineImpulseSource _impulseSource;
-    [SerializeField] private CinemachineImpulseDefinition _lightImpulse;
-    [SerializeField] private CinemachineImpulseDefinition _heavyImpulse;
-    
-    public void LightShake()
-    {
-        _impulseSource.m_ImpulseDefinition = _lightImpulse;
-        _impulseSource.GenerateImpulse();
-    }
-    
-    public void HeavyShake()
-    {
-        _impulseSource.m_ImpulseDefinition = _heavyImpulse;
-        _impulseSource.GenerateImpulse();
-    }
-    
-    public void ShakeWithVelocity(Vector3 velocity)
-    {
-        _impulseSource.GenerateImpulse(velocity);
-    }
-    
-    public void DirectionalShake(Vector3 direction, float force)
-    {
-        _impulseSource.GenerateImpulse(direction.normalized * force);
-    }
-}
-```
-
-### Noise-Based Shake
-
-```csharp
-public class ContinuousShakeController : MonoBehaviour
-{
-    [SerializeField] private CinemachineVirtualCamera _virtualCamera;
-    
-    private CinemachineBasicMultiChannelPerlin _noise;
-    
-    private void Awake()
-    {
-        _noise = _virtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
-    }
-    
-    public void SetShakeIntensity(float amplitude, float frequency)
-    {
-        if (_noise != null)
-        {
-            _noise.m_AmplitudeGain = amplitude;
-            _noise.m_FrequencyGain = frequency;
-        }
-    }
-    
-    public void StartCombatShake()
-    {
-        SetShakeIntensity(0.5f, 1f);
-    }
-    
-    public void StopShake()
-    {
-        SetShakeIntensity(0f, 0f);
-    }
-    
-    public async UniTask ShakeForDuration(float amplitude, float frequency, float duration)
-    {
-        SetShakeIntensity(amplitude, frequency);
-        await UniTask.Delay(TimeSpan.FromSeconds(duration));
-        StopShake();
-    }
-}
-```
-
-## Target Group
-
-### Multi-Target Framing
-
-```csharp
-public class TargetGroupController : MonoBehaviour
-{
-    [SerializeField] private CinemachineTargetGroup _targetGroup;
-    [SerializeField] private CinemachineVirtualCamera _groupCamera;
-    
-    public void AddTarget(Transform target, float weight = 1f, float radius = 1f)
-    {
-        _targetGroup.AddMember(target, weight, radius);
-    }
-    
-    public void RemoveTarget(Transform target)
-    {
-        _targetGroup.RemoveMember(target);
-    }
-    
-    public void SetTargetWeight(Transform target, float weight)
-    {
-        for (int i = 0; i < _targetGroup.m_Targets.Length; i++)
-        {
-            if (_targetGroup.m_Targets[i].target == target)
-            {
-                _targetGroup.m_Targets[i].weight = weight;
-                break;
-            }
-        }
-    }
-    
-    public void ClearAllTargets()
-    {
-        while (_targetGroup.m_Targets.Length > 0)
-        {
-            _targetGroup.RemoveMember(_targetGroup.m_Targets[0].target);
-        }
-    }
-}
-```
-
-### Combat Target Group
-
-```csharp
-public class CombatCameraController : MonoBehaviour
-{
-    [SerializeField] private CinemachineTargetGroup _combatGroup;
-    [SerializeField] private Transform _player;
-    
-    private readonly List<Transform> _enemies = new();
-    
-    public void StartCombat()
-    {
-        _combatGroup.AddMember(_player, 2f, 2f); // Higher weight for player
-    }
-    
-    public void AddEnemy(Transform enemy)
-    {
-        _enemies.Add(enemy);
-        _combatGroup.AddMember(enemy, 1f, 1f);
-    }
-    
-    public void RemoveEnemy(Transform enemy)
-    {
-        _enemies.Remove(enemy);
-        _combatGroup.RemoveMember(enemy);
-    }
-    
-    public void EndCombat()
-    {
-        foreach (var enemy in _enemies)
-        {
-            _combatGroup.RemoveMember(enemy);
-        }
-        _enemies.Clear();
-        _combatGroup.RemoveMember(_player);
-    }
-}
-```
-
-## Field of View
-
-### Dynamic FOV
-
-```csharp
-public class DynamicFOVController : MonoBehaviour
-{
-    [SerializeField] private CinemachineVirtualCamera _virtualCamera;
-    
-    [SerializeField] private float _defaultFOV = 60f;
-    [SerializeField] private float _sprintFOV = 70f;
-    [SerializeField] private float _aimFOV = 45f;
-    [SerializeField] private float _fovTransitionSpeed = 5f;
-    
-    private float _targetFOV;
-    
-    private void Start()
-    {
-        _targetFOV = _defaultFOV;
-    }
-    
-    private void Update()
-    {
-        _virtualCamera.m_Lens.FieldOfView = Mathf.Lerp(
-            _virtualCamera.m_Lens.FieldOfView,
-            _targetFOV,
-            Time.deltaTime * _fovTransitionSpeed
-        );
-    }
-    
-    public void SetSprintFOV()
-    {
-        _targetFOV = _sprintFOV;
-    }
-    
-    public void SetAimFOV()
-    {
-        _targetFOV = _aimFOV;
-    }
-    
-    public void ResetFOV()
-    {
-        _targetFOV = _defaultFOV;
-    }
-}
-```
-
-## Dolly Track
-
-### Dolly Camera Movement
-
-```csharp
-public class DollyCameraController : MonoBehaviour
-{
-    [SerializeField] private CinemachineVirtualCamera _dollyCamera;
-    [SerializeField] private CinemachineDollyCart _dollyCart;
-    [SerializeField] private CinemachineSmoothPath _dollyPath;
-    
-    public void StartDollyShot(float duration)
-    {
-        StartCoroutine(PlayDollyShot(duration));
-    }
-    
-    private IEnumerator PlayDollyShot(float duration)
-    {
-        _dollyCart.m_Position = 0f;
-        _dollyCamera.Priority = 20;
-        
-        float elapsed = 0f;
-        float pathLength = _dollyPath.PathLength;
-        
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-            _dollyCart.m_Position = t * pathLength;
-            yield return null;
-        }
-        
-        _dollyCamera.Priority = 0;
-    }
-    
-    public void SetDollyPosition(float normalizedPosition)
-    {
-        _dollyCart.m_Position = normalizedPosition * _dollyPath.PathLength;
-    }
-}
-```
-
-## Confiner
-
-### Camera Bounds
-
-```csharp
-public class CameraConfinerController : MonoBehaviour
-{
-    [SerializeField] private CinemachineConfiner2D _confiner;
-    
-    public void SetBounds(Collider2D boundsCollider)
-    {
-        _confiner.m_BoundingShape2D = boundsCollider;
-        _confiner.InvalidateCache();
-    }
-    
-    public void ClearBounds()
-    {
-        _confiner.m_BoundingShape2D = null;
-    }
-    
-    public void SetDamping(float damping)
-    {
-        _confiner.m_Damping = damping;
-    }
-}
-```
-
-## Best Practices
-
-1. **Use virtual cameras** - Don't move main camera directly
-2. **Set priorities** for camera switching
-3. **Use impulse** for one-shot shakes
-4. **Use noise** for continuous shake
-5. **Tune damping** for smooth following
-6. **Use target groups** for multi-subject framing
-7. **Cache component references** on Awake
-8. **Test blend times** for feel
-9. **Use confiners** for bounded areas
-10. **Profile camera updates** - Can be expensive
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Camera not switching | Check priorities |
-| Jerky movement | Adjust damping values |
-| Shake too intense | Lower amplitude gain |
-| Wrong blend | Check custom blends in brain |
-| Target lost | Verify Follow/LookAt assigned |
-| Confiner issues | Call InvalidateCache() |
+---
+Rewritten for this project from `tools-unity-cinemachine` in [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, see `../THIRD_PARTY_LICENSE-unity-gamedev.txt`). API checked against the installed `com.unity.cinemachine` 6.6.0 source.

@@ -1,622 +1,201 @@
 ---
 name: tools-unity-object-pooling
-description: Object pooling patterns for Unity to reduce GC allocations and improve performance.
+description: Object pooling for aipocalypse with Unity's built-in UnityEngine.Pool — who owns which pool (system services, never a static PoolManager), PrefabPool with VContainer injection at creation, spawn/despawn contract and reset checklist (A* FollowerEntity, Behavior Designer, Feel, physics, VFX), central-tick despawn timers, async prewarm, scene lifetime, collection pools (ListPool/HashSetPool) and which plugins pool for themselves (BroAudio, Damage Numbers Pro, GPUI). Use when anything spawns repeatedly — enemies, projectiles, VFX, decals, pickups — or when a hot path needs a temporary collection.
 ---
 
-# Unity Object Pooling
+# Object pooling (aipocalypse)
 
-## Overview
+Use **Unity's built-in `UnityEngine.Pool`** (CoreModule, Unity 6000.6). Don't write a custom pool class, a static `PoolManager`, or extension methods like `prefab.SpawnPooled()`. ARCHITECTURE.md: *pool everything that spawns repeatedly, prewarm during loading or at dusk, spawning = take from pool + reset, no `Instantiate`, no allocation.*
 
-Object pooling reuses GameObjects instead of instantiating/destroying them, reducing GC pressure and improving performance.
+## 1. Who owns which pool
 
-## When to Use
+Pools are owned by the system that spawns the thing, inside a plain C# service registered by that system's installer. No static access.
 
-- Frequently spawned objects (projectiles, particles, enemies)
-- UI list items
-- Audio sources
-- Network messages
-- Any high-frequency instantiation
+| Spawns | Pool owner | Notes |
+| --- | --- | --- |
+| Enemies | `EnemyFactory` (EnemySystem) | Injected once at creation (§3). `EnemyManager` ticks them and returns them on death |
+| Projectiles | WeaponSystem (projectile service) | Ticked and expired by the service's loop, not per-projectile `Update` |
+| Hit VFX, decals, shell casings | A VFX/decal service in `_Common` (or the owning system) | Plain objects, no injection |
+| Loot pickups | The system that drops them (inventory / loot feature) | Crowd entity: injected once at creation |
+| Damage numbers | **Damage Numbers Pro**, built-in pooling | Enable pooling on the DNP prefab. Don't wrap it in our pool |
+| Audio sources | **BroAudio** | Never pool `AudioSource`s ourselves |
+| Foliage / props | **GPU Instancer Pro** | Instanced, not pooled |
+| Unique entities (player, dog, cat, drone, bosses) | Not pooled | Few instances. Spawn/destroy normally, or keep in scene and toggle |
 
-## Basic Object Pool
+Off-limits plugin pools: Feel's `MMObjectPooler` / `MMMiniObjectPooler` / `MMF_ParticlesInstantiation`, Behavior Designer's `PoolManager` / `Instantiate` / `Destroy` tasks.
 
-### Generic Pool Implementation
+## 2. `UnityEngine.Pool` API (checked against the 6000.6 docs)
 
-```csharp
-public class ObjectPool<T> where T : class
-{
-    private readonly Stack<T> _pool = new();
-    private readonly Func<T> _createFunc;
-    private readonly Action<T> _onGet;
-    private readonly Action<T> _onRelease;
-    private readonly Action<T> _onDestroy;
-    private readonly int _maxSize;
-    
-    public int CountActive { get; private set; }
-    public int CountInactive => _pool.Count;
-    public int CountAll => CountActive + CountInactive;
-    
-    public ObjectPool(
-        Func<T> createFunc,
-        Action<T> onGet = null,
-        Action<T> onRelease = null,
-        Action<T> onDestroy = null,
-        int defaultCapacity = 10,
-        int maxSize = 1000)
-    {
-        _createFunc = createFunc ?? throw new ArgumentNullException(nameof(createFunc));
-        _onGet = onGet;
-        _onRelease = onRelease;
-        _onDestroy = onDestroy;
-        _maxSize = maxSize;
-        
-        // Pre-warm pool
-        for (int i = 0; i < defaultCapacity; i++)
-        {
-            var obj = _createFunc();
-            _onRelease?.Invoke(obj);
-            _pool.Push(obj);
-        }
-    }
-    
-    public T Get()
-    {
-        T obj;
-        
-        if (_pool.Count > 0)
-        {
-            obj = _pool.Pop();
-        }
-        else
-        {
-            obj = _createFunc();
-        }
-        
-        _onGet?.Invoke(obj);
-        CountActive++;
-        return obj;
-    }
-    
-    public void Release(T obj)
-    {
-        if (obj == null) return;
-        
-        _onRelease?.Invoke(obj);
-        CountActive--;
-        
-        if (_pool.Count < _maxSize)
-        {
-            _pool.Push(obj);
-        }
-        else
-        {
-            _onDestroy?.Invoke(obj);
-        }
-    }
-    
-    public void Clear()
-    {
-        while (_pool.Count > 0)
-        {
-            var obj = _pool.Pop();
-            _onDestroy?.Invoke(obj);
-        }
-        CountActive = 0;
-    }
-}
-```
+- `new ObjectPool<T>(Func<T> createFunc, Action<T> actionOnGet = null, Action<T> actionOnRelease = null, Action<T> actionOnDestroy = null, bool collectionCheck = true, int defaultCapacity = 10, int maxSize = 10000)`
+  - **`defaultCapacity` creates nothing.** It only sizes the internal storage. Instances are created lazily on `Get`, so prewarm yourself (§6).
+  - `collectionCheck` throws on double release, **in the Editor only** (no cost in player builds). Keep it `true`.
+  - When the pool already holds `maxSize` inactive items, a released item goes to `actionOnDestroy` instead. Size `maxSize` to the real peak from data (`WaveTable`), and destroy the GameObject in `actionOnDestroy`.
+- `T Get()`, `PooledObject<T> Get(out T v)` (dispose to return; for short-lived scoped use), `void Release(T)`, `void Clear()`, `void Dispose()` (destroys all inactive items via `actionOnDestroy`).
+- `CountAll`, `CountActive`, `CountInactive`.
+- `LinkedPool<T>`: same idea, linked list, no capacity arg. Only useful when pool sizes swing wildly. Default to `ObjectPool<T>`.
+- Static collection pools: `ListPool<T>`, `HashSetPool<T>`, `DictionaryPool<TKey, TValue>`, `CollectionPool<TCollection, TItem>` (cleared on release), `GenericPool<T>`, `UnsafeGenericPool<T>` (no collection check). Main thread only.
 
-### Unity Built-in Pool (2021+)
+## 3. `PrefabPool<T>`: the one wrapper we keep
+
+Put it in `Assets/_Game/_Core/_Common/Pooling/`. It's a plain class owned by a service, so it isn't registered as a global singleton.
 
 ```csharp
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Pool;
+using VContainer;
+using VContainer.Unity;
+using Object = UnityEngine.Object;
 
-public class ProjectileSpawner : MonoBehaviour
+namespace Aipocalypse.Core.Common.Pooling
 {
-    [SerializeField] private Projectile _prefab;
-    
-    private ObjectPool<Projectile> _pool;
-    
-    private void Awake()
+    // One prefab's pool. Instances are created inactive and injected once; the owner activates them on spawn.
+    public sealed class PrefabPool<T> : IDisposable where T : Component
     {
-        _pool = new ObjectPool<Projectile>(
-            createFunc: CreateProjectile,
-            actionOnGet: OnGetProjectile,
-            actionOnRelease: OnReleaseProjectile,
-            actionOnDestroy: OnDestroyProjectile,
-            collectionCheck: true,
-            defaultCapacity: 20,
-            maxSize: 100
-        );
-    }
-    
-    private Projectile CreateProjectile()
-    {
-        var proj = Instantiate(_prefab);
-        proj.SetPool(_pool);
-        return proj;
-    }
-    
-    private void OnGetProjectile(Projectile proj)
-    {
-        proj.gameObject.SetActive(true);
-    }
-    
-    private void OnReleaseProjectile(Projectile proj)
-    {
-        proj.gameObject.SetActive(false);
-    }
-    
-    private void OnDestroyProjectile(Projectile proj)
-    {
-        Destroy(proj.gameObject);
-    }
-    
-    public Projectile Spawn(Vector3 position, Quaternion rotation)
-    {
-        var proj = _pool.Get();
-        proj.transform.SetPositionAndRotation(position, rotation);
-        return proj;
-    }
-}
-```
+        readonly T _prefab;
+        readonly Transform _root;            // active parent for pooled instances (scene object, see §7)
+        readonly Transform _incubator;       // inactive parent: Instantiate under it so Awake/OnEnable don't run before injection
+        readonly IObjectResolver _resolver;  // null for plain objects (VFX, decals)
+        readonly ObjectPool<T> _pool;
 
-### Pooled Object Base Class
+        public PrefabPool(T prefab, Transform root, IObjectResolver resolver, int maxSize)
+        {
+            _prefab = prefab;
+            _root = root;
+            _resolver = resolver;
+            var incubator = new GameObject($"{prefab.name}_Incubator");
+            incubator.SetActive(false);
+            incubator.transform.SetParent(root, false);
+            _incubator = incubator.transform;
+            _pool = new ObjectPool<T>(Create, null, OnRelease, OnDestroy, collectionCheck: true, maxSize: maxSize);
+        }
 
-```csharp
-public abstract class PooledObject<T> : MonoBehaviour where T : PooledObject<T>
-{
-    private IObjectPool<T> _pool;
-    
-    public void SetPool(IObjectPool<T> pool)
-    {
-        _pool = pool;
-    }
-    
-    public void ReturnToPool()
-    {
-        if (_pool != null)
-        {
-            _pool.Release((T)this);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public virtual void OnSpawn() { }
-    public virtual void OnDespawn() { }
-}
+        public int CountActive => _pool.CountActive;
+        public int CountInactive => _pool.CountInactive;
 
-// Usage
-public class Projectile : PooledObject<Projectile>
-{
-    [SerializeField] private float _lifetime = 5f;
-    private float _spawnTime;
-    
-    public override void OnSpawn()
-    {
-        _spawnTime = Time.time;
-    }
-    
-    public override void OnDespawn()
-    {
-        // Reset state
-    }
-    
-    private void Update()
-    {
-        if (Time.time - _spawnTime > _lifetime)
-        {
-            ReturnToPool();
-        }
-    }
-}
-```
+        // Returns an INACTIVE instance. Caller positions and initialises it, then calls SetActive(true).
+        public T Get() => _pool.Get();
+        public void Release(T item) => _pool.Release(item);
 
-## Multi-Prefab Pool
-
-### Pool Manager
-
-```csharp
-public class PoolManager : MonoBehaviour
-{
-    public static PoolManager Instance { get; private set; }
-    
-    private readonly Dictionary<GameObject, ObjectPool<GameObject>> _pools = new();
-    
-    private void Awake()
-    {
-        Instance = this;
-    }
-    
-    public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
-    {
-        if (!_pools.TryGetValue(prefab, out var pool))
+        public async UniTask PrewarmAsync(int total, int perFrame, CancellationToken ct)
         {
-            pool = CreatePool(prefab);
-            _pools[prefab] = pool;
-        }
-        
-        var obj = pool.Get();
-        obj.transform.SetPositionAndRotation(position, rotation);
-        return obj;
-    }
-    
-    public void Despawn(GameObject obj, GameObject prefab)
-    {
-        if (_pools.TryGetValue(prefab, out var pool))
-        {
-            pool.Release(obj);
-        }
-        else
-        {
-            Destroy(obj);
-        }
-    }
-    
-    public void PrewarmPool(GameObject prefab, int count)
-    {
-        if (!_pools.ContainsKey(prefab))
-        {
-            var pool = CreatePool(prefab, count);
-            _pools[prefab] = pool;
-        }
-    }
-    
-    private ObjectPool<GameObject> CreatePool(GameObject prefab, int initialSize = 10)
-    {
-        Transform poolParent = new GameObject($"Pool_{prefab.name}").transform;
-        poolParent.SetParent(transform);
-        
-        return new ObjectPool<GameObject>(
-            createFunc: () =>
+            var batch = ListPool<T>.Get();
+            try
             {
-                var obj = Instantiate(prefab, poolParent);
-                obj.SetActive(false);
-                return obj;
-            },
-            actionOnGet: obj => obj.SetActive(true),
-            actionOnRelease: obj => obj.SetActive(false),
-            actionOnDestroy: obj => Destroy(obj),
-            defaultCapacity: initialSize,
-            maxSize: 200
-        );
-    }
-}
-```
-
-### Pooled Spawn Extension
-
-```csharp
-public static class PoolExtensions
-{
-    public static GameObject SpawnPooled(
-        this GameObject prefab, 
-        Vector3 position, 
-        Quaternion rotation)
-    {
-        return PoolManager.Instance.Spawn(prefab, position, rotation);
-    }
-    
-    public static void DespawnPooled(this GameObject obj, GameObject prefab)
-    {
-        PoolManager.Instance.Despawn(obj, prefab);
-    }
-}
-
-// Usage
-var enemy = _enemyPrefab.SpawnPooled(spawnPoint, Quaternion.identity);
-// Later...
-enemy.DespawnPooled(_enemyPrefab);
-```
-
-## Component Pool
-
-### Component-Specific Pool
-
-```csharp
-public class ComponentPool<T> where T : Component
-{
-    private readonly ObjectPool<T> _pool;
-    private readonly Transform _parent;
-    
-    public ComponentPool(T prefab, Transform parent, int initialSize = 10)
-    {
-        _parent = parent;
-        
-        _pool = new ObjectPool<T>(
-            createFunc: () =>
-            {
-                var obj = UnityEngine.Object.Instantiate(prefab, parent);
-                obj.gameObject.SetActive(false);
-                return obj;
-            },
-            actionOnGet: c => c.gameObject.SetActive(true),
-            actionOnRelease: c =>
-            {
-                c.gameObject.SetActive(false);
-                c.transform.SetParent(_parent);
-            },
-            actionOnDestroy: c => UnityEngine.Object.Destroy(c.gameObject),
-            defaultCapacity: initialSize
-        );
-    }
-    
-    public T Get() => _pool.Get();
-    public void Release(T component) => _pool.Release(component);
-}
-
-// Usage for UI
-public class DamageNumberPool : MonoBehaviour
-{
-    [SerializeField] private DamageNumber _prefab;
-    
-    private ComponentPool<DamageNumber> _pool;
-    
-    private void Awake()
-    {
-        _pool = new ComponentPool<DamageNumber>(_prefab, transform, 20);
-    }
-    
-    public DamageNumber Show(Vector3 worldPos, int damage)
-    {
-        var number = _pool.Get();
-        number.Initialize(worldPos, damage, () => _pool.Release(number));
-        return number;
-    }
-}
-```
-
-## List/Collection Pooling
-
-### List Pool
-
-```csharp
-public static class ListPool<T>
-{
-    private static readonly ObjectPool<List<T>> s_Pool = new(
-        createFunc: () => new List<T>(),
-        actionOnRelease: list => list.Clear(),
-        defaultCapacity: 10,
-        maxSize: 100
-    );
-    
-    public static List<T> Get() => s_Pool.Get();
-    
-    public static void Release(List<T> list)
-    {
-        if (list != null)
-            s_Pool.Release(list);
-    }
-    
-    // Disposable wrapper
-    public static PooledList<T> GetDisposable()
-    {
-        return new PooledList<T>(s_Pool.Get());
-    }
-}
-
-public struct PooledList<T> : IDisposable
-{
-    public List<T> List { get; }
-    
-    public PooledList(List<T> list)
-    {
-        List = list;
-    }
-    
-    public void Dispose()
-    {
-        ListPool<T>.Release(List);
-    }
-}
-
-// Usage
-using (var pooledList = ListPool<Enemy>.GetDisposable())
-{
-    GetEnemiesInRange(pooledList.List);
-    foreach (var enemy in pooledList.List)
-    {
-        // Process
-    }
-} // Automatically returned to pool
-```
-
-### StringBuilder Pool
-
-```csharp
-public static class StringBuilderPool
-{
-    private static readonly ObjectPool<StringBuilder> s_Pool = new(
-        createFunc: () => new StringBuilder(256),
-        actionOnRelease: sb => sb.Clear(),
-        defaultCapacity: 5,
-        maxSize: 50
-    );
-    
-    public static StringBuilder Get() => s_Pool.Get();
-    public static void Release(StringBuilder sb) => s_Pool.Release(sb);
-    
-    public static string GetStringAndRelease(StringBuilder sb)
-    {
-        string result = sb.ToString();
-        Release(sb);
-        return result;
-    }
-}
-
-// Usage
-var sb = StringBuilderPool.Get();
-sb.Append("Player: ");
-sb.Append(playerName);
-sb.Append(" Score: ");
-sb.Append(score);
-string message = StringBuilderPool.GetStringAndRelease(sb);
-```
-
-## Audio Pool
-
-### Pooled Audio Source
-
-```csharp
-public class AudioPool : MonoBehaviour
-{
-    [SerializeField] private AudioSource _prefab;
-    [SerializeField] private int _poolSize = 20;
-    
-    private ObjectPool<AudioSource> _pool;
-    
-    private void Awake()
-    {
-        _pool = new ObjectPool<AudioSource>(
-            createFunc: () =>
-            {
-                var source = Instantiate(_prefab, transform);
-                source.gameObject.SetActive(false);
-                return source;
-            },
-            actionOnGet: source => source.gameObject.SetActive(true),
-            actionOnRelease: source =>
-            {
-                source.Stop();
-                source.clip = null;
-                source.gameObject.SetActive(false);
-            },
-            defaultCapacity: _poolSize,
-            maxSize: _poolSize * 2
-        );
-    }
-    
-    public void PlayOneShot(AudioClip clip, Vector3 position, float volume = 1f)
-    {
-        var source = _pool.Get();
-        source.transform.position = position;
-        source.clip = clip;
-        source.volume = volume;
-        source.Play();
-        
-        // Return after clip finishes
-        StartCoroutine(ReturnAfterPlay(source, clip.length));
-    }
-    
-    private IEnumerator ReturnAfterPlay(AudioSource source, float delay)
-    {
-        yield return new WaitForSeconds(delay + 0.1f);
-        _pool.Release(source);
-    }
-}
-```
-
-## Performance Considerations
-
-### Warm-up Strategy
-
-```csharp
-public class PoolWarmer : MonoBehaviour
-{
-    [SerializeField] private PoolWarmupConfig[] _configs;
-    
-    private async UniTaskVoid Start()
-    {
-        await WarmPools();
-    }
-    
-    private async UniTask WarmPools()
-    {
-        foreach (var config in _configs)
-        {
-            PoolManager.Instance.PrewarmPool(config.Prefab, config.InitialCount);
-            
-            // Spread over frames
-            if (config.InitialCount > 10)
-            {
-                await UniTask.Yield();
+                while (_pool.CountAll < total)
+                {
+                    for (int i = 0; i < perFrame && _pool.CountAll < total; i++) batch.Add(_pool.Get());
+                    foreach (var item in batch) _pool.Release(item);
+                    batch.Clear();
+                    await UniTask.Yield(ct);
+                }
             }
+            finally { ListPool<T>.Release(batch); }
+        }
+
+        T Create()
+        {
+            var item = Object.Instantiate(_prefab, _incubator);
+            item.gameObject.SetActive(false);
+            _resolver?.InjectGameObject(item.gameObject);
+            item.transform.SetParent(_root, false);
+            return item;
+        }
+
+        static void OnRelease(T item) => item.gameObject.SetActive(false);
+        static void OnDestroy(T item) { if (item) Object.Destroy(item.gameObject); }
+
+        public void Dispose()
+        {
+            _pool.Dispose();
+            if (_incubator) Object.Destroy(_incubator.gameObject);
         }
     }
 }
-
-[Serializable]
-public class PoolWarmupConfig
-{
-    public GameObject Prefab;
-    public int InitialCount = 10;
-}
 ```
 
-### Pool Statistics
+Why it's shaped this way:
+- **Injection happens once, at creation, before `Awake`** (ARCHITECTURE.md → crowd entities). Instantiating under an inactive parent keeps `Awake`/`OnEnable` from running before `[Inject]`. `InjectGameObject` walks inactive children too.
+- **`Get()` doesn't activate.** The owner sets position and data *first*, then activates. Activating at the old position and then moving breaks things. In particular, `FollowerEntity` creates its ECS entity in `OnEnable` at the current transform position.
+- The resolver passed in is the owning scope's (`GameLifetimeScope` for World), so the injected services are the scene's.
+
+## 4. Spawn / despawn contract
+
+Each pooled component exposes an explicit spawn method that takes its data. Don't name it `Reset` (that's a Unity editor message, and it errors when it has parameters). Don't use `OnEnable` for spawn logic.
 
 ```csharp
-public class PoolStats
+// EnemyFactory (owner)
+public Enemy Spawn(EnemyArchetypeDef def, Vector3 position, Quaternion rotation)
 {
-    private readonly Dictionary<string, PoolMetrics> _metrics = new();
-    
-    public void RecordGet(string poolName)
-    {
-        GetOrCreate(poolName).Gets++;
-    }
-    
-    public void RecordRelease(string poolName)
-    {
-        GetOrCreate(poolName).Releases++;
-    }
-    
-    public void RecordCreate(string poolName)
-    {
-        GetOrCreate(poolName).Creates++;
-    }
-    
-    public void LogStats()
-    {
-        foreach (var (name, metrics) in _metrics)
-        {
-            float hitRate = metrics.Gets > 0 
-                ? (float)(metrics.Gets - metrics.Creates) / metrics.Gets 
-                : 0;
-            
-            Debug.Log($"Pool {name}: Gets={metrics.Gets}, Creates={metrics.Creates}, HitRate={hitRate:P1}");
-        }
-    }
-    
-    private PoolMetrics GetOrCreate(string name)
-    {
-        if (!_metrics.TryGetValue(name, out var metrics))
-        {
-            metrics = new PoolMetrics();
-            _metrics[name] = metrics;
-        }
-        return metrics;
-    }
-    
-    private class PoolMetrics
-    {
-        public int Gets;
-        public int Releases;
-        public int Creates;
-    }
+    var enemy = _pools[def].Get();                      // inactive
+    enemy.transform.SetPositionAndRotation(position, rotation);
+    enemy.gameObject.SetActive(true);                   // OnEnable: FollowerEntity creates its entity here
+    enemy.Spawn(def, position);                         // data, Teleport, start tree, register in EntityRegistry
+    return enemy;
+}
+
+public void Despawn(Enemy enemy)
+{
+    enemy.Despawn();                                    // undo everything Spawn did (checklist below)
+    _pools[enemy.Def].Release(enemy);                   // deactivates
 }
 ```
 
-## Best Practices
+**Reset checklist.** `Despawn()` undoes what `Spawn()` did, and `Spawn()` sets every field it relies on:
+- Gameplay state: health, timers, target, status effects, cached references to other entities.
+- `EntityRegistry` unregister (or rely on `OnDisable` unregistering consistently, but pick one).
+- **A\* `FollowerEntity`**: `Teleport(pos)` *after* activation in `Spawn`. Re-apply speed, stop distance and RVO settings. Clear `AIDestinationSetter.target` on despawn (`tools-unity-astar` §5).
+- **Behavior Designer**: `StopBehavior()` on despawn. Set variables then `StartBehavior()` / `RestartBehavior()` on spawn (`tools-unity-behavior-designer` §3).
+- **Feel** (unique or pooled view models only): `StopFeedbacksOnDisable` + `RestoreInitialValuesOnDisable` on their players.
+- **MessagePipe**: crowd entities don't subscribe (the manager routes). If a pooled object must subscribe, subscribe in `Spawn`, dispose in `Despawn`.
+- Physics: `Rigidbody.linearVelocity = angularVelocity = Vector3.zero`, re-enable colliders disabled on death, ragdoll back to kinematic.
+- Visuals: Animator `Rebind()` + `Update(0f)` if state must restart. Shader properties (hit flash) back to neutral. `TrailRenderer.Clear()`, `ParticleSystem.Clear()` on reuse.
+- UniTask work started by the instance: cancel its `CancellationTokenSource` on despawn (don't use `destroyCancellationToken`, since pooled objects are never destroyed).
 
-1. **Pre-warm pools** during loading screens
-2. **Set appropriate max sizes** - Don't pool forever
-3. **Reset state** on release, not on get
-4. **Use composition** - PooledObject base class
-5. **Track pool hit rates** - Optimize sizes
-6. **Release in OnDisable** - Handle scene changes
-7. **Parent inactive objects** - Organize hierarchy
-8. **Use built-in pools** when available (2021+)
-9. **Pool expensive components** - Particle systems, audio
-10. **Profile allocation reduction** - Verify GC improvement
+**Releasing twice** or releasing an object that came from another pool corrupts state. `collectionCheck` catches the first in the Editor. Keep a `Def`/`Pool` back-reference on the instance so the owner knows which pool it came from.
 
-## Troubleshooting
+## 5. Despawn timing: central, not per object
 
-| Issue | Solution |
-|-------|----------|
-| Objects not resetting | Implement OnDespawn/Reset |
-| Pool growing indefinitely | Set maxSize limit |
-| Objects active when spawned | SetActive in create, not get |
-| Memory not decreasing | Clear pools on scene change |
-| Wrong pool used | Track prefab->pool mapping |
+- No per-projectile or per-VFX `Update`, no `Invoke`, no coroutine `WaitForSeconds` timers (they allocate and scatter control).
+- The owner keeps a dense list of active items with an expiry time and checks it in its single tick (`ITickable`). Swap-remove on expiry.
+- Particle VFX: set `Stop Action = Callback` and have one small component forward `OnParticleSystemStopped` to the owner, or expire by the known duration in the owner's list.
+
+## 6. Prewarming
+
+- Prewarm counts come from data (wave/night tables), never magic numbers in code.
+- When: World load (loading screen) for baseline counts, and **at dusk** for the night's wave size (ARCHITECTURE.md), spread across frames with `PrewarmAsync(total, perFrame, ct)`. Never at the moment a wave arrives.
+- Each item goes through `Create` → injection, plus `Awake` on first activation. Watch the first-spawn frame in the profiler. If `Awake` work is heavy, move it to injection time or do a one-time warm activation during loading.
+
+## 7. Scene lifetime
+
+- Pool roots are scene objects (e.g. a `Pools` GameObject in World, or created by the owning service under the scene). They are never `DontDestroyOnLoad`.
+- Pool-owning services live in `GameLifetimeScope` and implement `IDisposable` → `pool.Dispose()`. On "quit to menu" the scope disposes the services and the scene unload destroys the objects. Nothing survives into the next run.
+- Prototype scenes: the owning system's installer (or the entity's default) creates its pools, so same code, no special prototype pool.
+
+## 8. Collection pools for hot paths
+
+For temporary lists in queries (spatial grid results, overlap results, targets in range):
+
+```csharp
+using (ListPool<IDamageable>.Get(out var hits))
+{
+    _registry.QueryRadius(point, radius, hits);
+    for (int i = 0; i < hits.Count; i++) hits[i].TakeDamage(info);
+}
+```
+
+- For code that runs **every frame on one owner** (`EnemyManager` tick), a reused member buffer (`readonly List<T> _buffer = new(256)`, cleared each use) is simpler and just as fast. Use `ListPool` for occasional, re-entrant or scattered uses.
+- Never keep a pooled list after releasing it, and never release a list you still return to a caller.
+- Physics: `Physics.OverlapSphereNonAlloc` / `RaycastNonAlloc` into a reused array. Batched queries (`RaycastCommand`) when counts grow (ARCHITECTURE.md).
+- Strings: don't build strings per frame at all (debug UI excepted). No StringBuilder pool needed.
+
+## 9. Debugging and verification
+
+- Show `CountActive` / `CountInactive` per pool in the debug panel (`IDebugCommands`). A steadily climbing `CountAll` during a night means items aren't being released.
+- `ProfilerMarker` around spawn/despawn in the owners. In `Proto_Stress`, the GC Alloc column for spawn frames must be 0 after prewarm.
+- Common bugs: object appears for one frame at its old position (activated before positioning); enemy keeps the previous life's target or tree state (missing reset); `MissingReferenceException` after a scene change (a pool kept across scenes); "Trying to release an object that has already been released" (double despawn, e.g. death and timeout both releasing).
+
+---
+Rewritten for this project from `tools-unity-object-pooling` in [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, see `../THIRD_PARTY_LICENSE-unity-gamedev.txt`). `UnityEngine.Pool` API checked against the Unity 6000.6.5 `UnityEngine.CoreModule.xml` docs.

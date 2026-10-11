@@ -1,528 +1,186 @@
 ---
 name: tools-unity-vcontainer
-description: VContainer dependency injection patterns for Unity including lifecycle management, scoped registrations, and common pitfalls.
+description: VContainer 1.19 dependency injection for aipocalypse — the scope tree (ProjectLifetimeScope root via VContainerSettings, GameLifetimeScope per scene, EntityScope per unique entity, EntityInjector for crowds), per-system installers, lifetimes across child scopes, entry points (ITickable central ticks, IAsyncStartable), injecting MonoBehaviours and pooled prefabs, defaults-with-warning seams, strict mode, testing and diagnostics. Use for any registration, injection, scope, installer or "VContainerException" work.
 ---
 
-# VContainer Dependency Injection
+# VContainer (aipocalypse)
 
-## Overview
+Installed: **VContainer 1.19.0** (UPM git, pinned tag; source in `Library/PackageCache/jp.hadashikick.vcontainer@*/Runtime`). Namespaces `VContainer`, `VContainer.Unity`. The architecture is in **ARCHITECTURE.md → Scopes and app flow / Entities**. This skill is the how-to for it. If `_Core/_Bootstrap` and `_Core/_Common` already contain the scope classes, follow the existing code over the sketches here.
 
-VContainer is a lightweight, fast DI container for Unity. This skill covers registration patterns, lifecycle management, and common pitfalls that cause crashes.
+House rules (CLAUDE.md, ARCHITECTURE.md):
+- No `X.Instance` singletons, no `FindObjectOfType`, no static service access in game code. Services are plain C#, registered in scopes.
+- **Each system registers through its own installer.** Cutting a feature = removing its installer.
+- DI is setup-time only: resolve and inject at creation, never per frame.
+- **The VContainer source generator stays off** (multi-assembly injector issue hadashiA/VContainer#822). Reflection injection is fine on PC.
 
-## When to Use
+## 1. The scope tree
 
-- Setting up dependency injection in Unity
-- Creating scoped containers for features/states
-- Debugging VContainerException crashes
-- Writing testable Unity code
-- Managing service lifetimes
-
-## Installation
-
-```csharp
-// Package Manager
-// Add to manifest.json:
-"jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
+```text
+ProjectLifetimeScope (root)  ← VContainerSettings.RootLifetimeScope prefab, auto-created before any scene
+  SettingsService · InputService · SceneLoader · SessionRequest · EntityRegistry · MessagePipe · LoadingScreen
+  ├─ MainMenuLifetimeScope (MainMenu scene)
+  └─ GameLifetimeScope (World / Proto_* scene) [DefaultExecutionOrder(-5000)]
+       installers: Core systems + enabled Features; GameStarter entry point
+       ├─ PlayerScope : EntityScope   (unique entity, child container)
+       ├─ DogScope    : EntityScope
+       └─ crowd entities (enemies, pickups): no scope; injected once by their pool / EntityInjector
 ```
 
-## Core Concepts
+- **Root:** `VContainerSettings` asset (in Preloaded Assets) → `RootLifetimeScope` = the `ProjectLifetimeScope` prefab. Every scene scope gets it as its parent automatically, so Play works from any scene.
+- **Scene scopes** find the root on their own. No `parentReference` needed.
+- **`EntityScope`** overrides `FindParent()` to return the scene's `GameLifetimeScope`, or `null` to fall back to the root. `GameLifetimeScope` needs `[DefaultExecutionOrder(-5000)]` so it has built its container before any entity scope's `Awake`. VContainer only defers building for `parentReference`, not `FindParent`.
+- **Scene unload** disposes the scene scope: every `IDisposable` it created is disposed, then the GameObjects are destroyed. Root services survive.
 
-### Lifetime Types
+## 2. Lifetimes, as they actually behave across scopes
 
-| Lifetime | Description | Use Case |
-|----------|-------------|----------|
-| `Singleton` | One instance per container | Global services, managers |
-| `Scoped` | One instance per scope | Feature-specific services |
-| `Transient` | New instance every resolve | Factories, short-lived objects |
+From `Container.cs` (`ScopedContainer.ResolveCore`):
 
-**Critical:** `Singleton` in a child scope is actually **scoped to that child**, not truly global!
+| Lifetime | Resolved from a child scope |
+| --- | --- |
+| `Singleton` registered in the **root** | The root's one instance. Truly shared |
+| `Singleton` registered in a **child** | One instance in that child (shared by its descendants) |
+| `Scoped` | **A new instance per scope that resolves it**, even if registered only in the parent. A `Scoped` root service resolved by 10 entity scopes is 10 instances |
+| `Transient` | New every resolve |
 
-## Registration Patterns
+So use `Singleton` by default. Use `Scoped` only when you *want* one per scope (e.g. a per-entity helper registered in `EntityScope.Configure`). Never register a service again in a child scope "to be safe": it shadows the parent's and splits state. MessagePipe has the same trap (`tools-unity-messagepipe` §1).
 
-### Basic Registration
+A root singleton must not depend on a scene-scope service (the root can't see children). Invert it: the scene service registers itself with the root one at `Start` and unregisters on `Dispose` (e.g. `EntityRegistry` in root, entities register into it).
+
+## 3. Installers: one per system
 
 ```csharp
-public class GameInstaller : LifetimeScope
+namespace Aipocalypse.Core.EnemySystem
 {
+    public sealed class EnemySystemInstaller : IInstaller
+    {
+        readonly EnemySystemSettings _settings;   // ScriptableObject from the scope's inspector
+        public EnemySystemInstaller(EnemySystemSettings settings) => _settings = settings;
+
+        public void Install(IContainerBuilder builder)
+        {
+            builder.RegisterInstance(_settings);
+            builder.Register<EnemyFactory>(Lifetime.Singleton);
+            builder.Register<INavigation, AstarNavigation>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<EnemyManager>().AsSelf();      // ITickable central tick
+        }
+    }
+}
+```
+
+```csharp
+[DefaultExecutionOrder(-5000)]
+public sealed class GameLifetimeScope : LifetimeScope
+{
+    [SerializeField] EnemySystemSettings _enemySettings;
+    [SerializeField] bool _strict;      // on in World (§6)
+    // …
+
     protected override void Configure(IContainerBuilder builder)
     {
-        // Interface to implementation
-        builder.Register<IPlayerService, PlayerService>(Lifetime.Singleton);
-        
-        // Concrete type
-        builder.Register<GameManager>(Lifetime.Singleton);
-        
-        // With interfaces
-        builder.Register<AudioSystem>(Lifetime.Singleton)
-            .AsImplementedInterfaces()
-            .AsSelf();
+        new EnemySystemInstaller(_enemySettings).Install(builder);
+        // other Core installers; Feature installers only if enabled (DevStartConfig / session)
+        builder.RegisterEntryPoint<GameStarter>();
     }
 }
 ```
 
-### Instance Registration
+- Registration API (checked in source): `Register<T>(Lifetime)`, `Register<TInterface, TImpl>(Lifetime)`, `.As<T>()`, `.AsImplementedInterfaces()`, `.AsSelf()`, `.WithParameter(...)`, `RegisterInstance(obj)` (plus `<TInterface…>` overloads), `RegisterEntryPoint<T>(Lifetime = Singleton)`, `RegisterComponent(component)`, `RegisterComponentInNewPrefab(prefab, Lifetime)`, `RegisterComponentOnNewGameObject<T>(Lifetime, name)`, `RegisterBuildCallback(Action<IObjectResolver>)`, `RegisterDisposeCallback(Action<IObjectResolver>)`, `RegisterEntryPointExceptionHandler(Action<Exception>)`, `UseEntryPoints(...)`, `UseComponents(...)`.
+- Factories: `RegisterFactory<T>(Func<T>)` (**no lifetime parameter**, the func is the singleton), or `RegisterFactory<TParam, T>(Func<IObjectResolver, Func<TParam, T>> factoryFactory, Lifetime)` when the factory needs the container. For anything non-trivial (pools, spawning prefabs) write a factory **class** that takes `IObjectResolver` instead.
+- Data: register ScriptableObjects with `RegisterInstance(asset)` from a serialized field. **No `Resources.Load`** (CLAUDE.md / PLUGINS.md).
+- **`RegisterComponentInHierarchy` searches the whole scene.** It's fine for one-per-scene objects in a scene scope (e.g. the HUD). **Never use it for entity parts.** It grabs another instance's component (ARCHITECTURE.md).
+
+## 4. Entry points (no MonoBehaviour Update for services)
+
+`IInitializable`, `IPostInitializable`, `IStartable`, `IPostStartable`, `IAsyncStartable` (`UniTask StartAsync(CancellationToken)`), `ITickable`, `IPostTickable`, `ILateTickable`, `IPostLateTickable`, `IFixedTickable`, `IPostFixedTickable`. They're registered with `RegisterEntryPoint<T>()`. VContainer drives them from the PlayerLoop (one loop for all, not per-object `Update`).
+
+- Central ticks (`EnemyManager`, projectile service, pools' expiry lists) are `ITickable`. That is ARCHITECTURE.md's "no `Update()` of their own".
+- Exceptions thrown in entry points are logged with `Debug.LogException` by default (`RegisterEntryPointExceptionHandler` to route elsewhere). A throwing `Tick` keeps ticking next frame.
+- `IAsyncStartable.StartAsync` gets a token cancelled when the scope is disposed. Pass it to every await (`tools-unity-unitask`).
+- Entry points are only created if registered with `RegisterEntryPoint`. A plain `Register<T>` for an `ITickable` never ticks (common bug). To expose it too, chain `.AsSelf()` / `.As<IFoo>()`.
+
+## 5. Injecting MonoBehaviours
+
+| Kind (ARCHITECTURE.md → Entities) | How it gets injected |
+| --- | --- |
+| Scene objects of a scene scope (HUD, `EnemyManager`'s scene view) | Scope's **Auto Inject Game Objects** list, or `RegisterComponent(…)` from a serialized ref |
+| Unique entity (player, dog, drone) | Its own `EntityScope`: `RegisterBuildCallback(r => r.InjectGameObject(gameObject))` injects its hierarchy |
+| Crowd entity, spawned | Pool injects **once at creation**: `resolver.InjectGameObject(instance)` (`tools-unity-object-pooling` §3) |
+| Crowd entity, dropped in a scene by hand | `EntityInjector` on `Awake`: finds the nearest scope, injects once, hands itself to the manager |
+| Plain objects (projectiles, VFX, props) | No injection. Data via `[SerializeField]` or from the spawner |
+
+- MonoBehaviours use **method injection**: `[Inject] void Construct(IFoo foo, IBar bar)`. Constructor injection is impossible for them. Avoid `[Inject]` fields and properties. They hide dependencies and are easy to forget in tests.
+- Plain C# services use **constructor injection** only.
+- Injection happens before the object is used *only if* you arrange it. For prefabs: `resolver.Instantiate(prefab, parent)` (VContainer temporarily deactivates the prefab so `Awake`/`OnEnable` run after injection), or instantiate under an inactive parent then `InjectGameObject` (pools). Don't rely on `Start` running after injection by luck.
+- Third-party objects that can't be injected (BD tasks, Feel feedbacks): use a bridge MonoBehaviour that *is* injected (`AgentBrain`, `FeedbackContext`).
+
+## 6. EntityScope defaults and strict mode
 
 ```csharp
-protected override void Configure(IContainerBuilder builder)
+public abstract class EntityScope : LifetimeScope
 {
-    // Pre-existing instance
-    builder.RegisterInstance(existingService);
-    
-    // ScriptableObject from Resources
-    var config = Resources.Load<GameConfig>("GameConfig");
-    builder.RegisterInstance(config);
-    
-    // Component on same GameObject
-    builder.RegisterComponent(GetComponent<AudioSource>());
-}
-```
+    protected override LifetimeScope FindParent() =>
+        Find<GameLifetimeScope>(gameObject.scene);           // null → VContainer falls back to the root
 
-### Factory Registration
-
-```csharp
-protected override void Configure(IContainerBuilder builder)
-{
-    // Simple factory
-    builder.RegisterFactory<Enemy>(() => new Enemy(), Lifetime.Scoped);
-    
-    // Factory with parameters
-    builder.RegisterFactory<string, IWeapon>(name => 
-        new Weapon(name), Lifetime.Transient);
-    
-    // Async factory
-    builder.Register<IEnemyFactory, EnemyFactory>(Lifetime.Singleton);
-}
-
-public class EnemyFactory : IEnemyFactory
-{
-    private readonly IObjectResolver _resolver;
-    
-    public EnemyFactory(IObjectResolver resolver)
+    protected override void Configure(IContainerBuilder builder)
     {
-        _resolver = resolver;
+        RegisterParts(builder);
+        builder.RegisterBuildCallback(r => r.InjectGameObject(gameObject));
     }
-    
-    public Enemy Create(EnemyConfig config)
+
+    protected abstract void RegisterParts(IContainerBuilder builder);
+
+    // Register a default only if no ancestor provides the real service.
+    protected void RegisterDefault<TService, TDefault>(IContainerBuilder builder) where TDefault : TService
     {
-        var enemy = new Enemy(config);
-        _resolver.Inject(enemy);
-        return enemy;
+        if (Parent != null && Parent.Container.TryGetRegistration(typeof(TService), out _)) return;
+        if (GameLifetimeScopeIsStrict) throw new VContainerException(typeof(TService), $"{name}: missing {typeof(TService).Name}");
+        Debug.LogWarning($"{name}: using default {typeof(TDefault).Name} for {typeof(TService).Name}", this);
+        builder.Register<TService, TDefault>(Lifetime.Singleton);
     }
 }
 ```
 
-### EntryPoint Registration
+- `LifetimeScope.Find<T>(scene)` exists in 1.19. `Parent` is set before `Configure` runs. `TryGetRegistration` on the parent container searches the whole parent chain.
+- Strict mode (`GameLifetimeScope` in World): a default being used is an **error**, so a missing installer can't hide behind `InfiniteAmmo`/`BaseStats`. Prototype scenes are non-strict.
+- Use defaults only at the entity's real seams (`IAmmoSource`, `IStatProvider`, `IPlayerLocator`…), never for core services like `EntityRegistry`.
 
-```csharp
-protected override void Configure(IContainerBuilder builder)
-{
-    // IStartable - called once after container built
-    builder.RegisterEntryPoint<GameInitializer>();
-    
-    // ITickable - called every frame
-    builder.RegisterEntryPoint<GameLoop>();
-    
-    // IAsyncStartable - async initialization
-    builder.RegisterEntryPoint<AsyncGameInitializer>();
-    
-    // Multiple interfaces
-    builder.Register<GameManager>(Lifetime.Singleton)
-        .AsImplementedInterfaces();
-}
+## 7. Async work, scope disposal and lifetimes
 
-public class GameInitializer : IStartable
-{
-    public void Start()
-    {
-        // Called after container is built
-    }
-}
+- Services that start async work implement `IDisposable` and cancel their own `CancellationTokenSource` in `Dispose`, or take the token from `IAsyncStartable.StartAsync`. Scope disposal does **not** wait for pending awaits. A continuation that runs after disposal must see the cancelled token and stop.
+- `Lazy<T>` injection is **not supported** by VContainer, so don't "fix" a circular dependency with it. Circular dependencies mean a missing seam. Split the shared part into a third service, or turn one direction into an event (MessagePipe).
+- Don't hold `IObjectResolver` in services to resolve things later (service locator). The exceptions are factories and pools that instantiate or inject prefabs.
+- `resolver.TryResolve<T>(out var x)` is built in (`IObjectResolverExtensions`). Don't add your own extension with the same name.
 
-public class AsyncGameInitializer : IAsyncStartable
-{
-    public async UniTask StartAsync(CancellationToken ct)
-    {
-        await LoadGameDataAsync(ct);
-    }
-}
-```
+## 8. Testing
 
-## Injection Patterns
-
-### Constructor Injection (Preferred)
-
-```csharp
-public class PlayerController
-{
-    private readonly IInputService _input;
-    private readonly IPlayerService _player;
-    
-    // Dependencies injected via constructor
-    public PlayerController(IInputService input, IPlayerService player)
-    {
-        _input = input;
-        _player = player;
-    }
-}
-```
-
-### Method Injection
-
-```csharp
-public class EnemyBehavior : MonoBehaviour
-{
-    private ITargetingService _targeting;
-    
-    [Inject]
-    public void Construct(ITargetingService targeting)
-    {
-        _targeting = targeting;
-    }
-}
-```
-
-### Property Injection (Use Sparingly)
-
-```csharp
-public class DebugManager
-{
-    // Optional dependency
-    [Inject]
-    public IAnalyticsService Analytics { get; set; }
-}
-```
-
-### Field Injection (Avoid in Production)
-
-```csharp
-public class LegacyComponent : MonoBehaviour
-{
-    [Inject] private IService _service; // Avoid - harder to test
-}
-```
-
-## Scoped Containers (Child Scopes)
-
-### Creating Child Scopes
-
-```csharp
-public class StateNavigationController
-{
-    private readonly LifetimeScope _rootScope;
-    private readonly List<LifetimeScope> _stateStack = new();
-    
-    public async UniTask NavigateTo(IStateTransitionData data)
-    {
-        // Create child scope for new state
-        var stateScope = _rootScope.CreateChild(builder =>
-        {
-            builder.Register<IState, WorldState>(Lifetime.Singleton);
-            builder.Register<WorldController>(Lifetime.Singleton);
-        });
-        
-        _stateStack.Add(stateScope);
-        
-        var state = stateScope.Container.Resolve<IState>();
-        await state.Enter(data);
-    }
-    
-    public async UniTask ExitState()
-    {
-        var scope = _stateStack[^1];
-        _stateStack.RemoveAt(_stateStack.Count - 1);
-        
-        var state = scope.Container.Resolve<IState>();
-        await state.Exit();
-        
-        // CRITICAL: Dispose scope AFTER exit completes
-        await UniTask.Yield(); // Allow pending callbacks
-        scope.Dispose();
-    }
-}
-```
-
-### Using IInstaller
-
-```csharp
-public class WorldStateInstaller : IInstaller
-{
-    public void Install(IContainerBuilder builder)
-    {
-        builder.Register<IState, WorldState>(Lifetime.Singleton);
-        builder.Register<WorldController>(Lifetime.Singleton);
-        builder.Register<WorldView>(Lifetime.Singleton);
-    }
-}
-
-// Usage
-var scope = parentScope.CreateChild(new WorldStateInstaller());
-```
-
-### Enqueue Pattern for Segment Loading
-
-```csharp
-using (LifetimeScope.Enqueue(segmentCache))
-{
-    var stateScope = _rootScope.CreateChild(installer);
-    // segmentCache registrations included
-}
-```
-
-## Common Crash Patterns & Fixes
-
-### Problem 1: Resolving After Disposal
-
-```csharp
-// BAD: Scope disposed while async operation pending
-await state.Exit();
-scope.Dispose(); // Crash if Exit has pending callbacks
-
-// GOOD: Wait for pending operations
-await state.Exit();
-await UniTask.Yield(); // Allow callbacks to complete
-scope.Dispose();
-```
-
-### Problem 2: Singleton Referencing Scoped
-
-```csharp
-// BAD: Global singleton holds scoped reference
-builder.Register<GlobalManager>(Lifetime.Singleton); // Root scope
-builder.Register<FeatureService>(Lifetime.Scoped);   // Child scope
-
-public class GlobalManager
-{
-    // This will break when child scope disposes!
-    public GlobalManager(FeatureService feature) { }
-}
-
-// GOOD: Use factory or lazy resolution
-public class GlobalManager
-{
-    private readonly IObjectResolver _resolver;
-    
-    public GlobalManager(IObjectResolver resolver)
-    {
-        _resolver = resolver;
-    }
-    
-    public FeatureService GetFeature()
-    {
-        return _resolver.Resolve<FeatureService>();
-    }
-}
-```
-
-### Problem 3: Fire-and-Forget Without Guard
-
-```csharp
-// BAD: No cancellation when scope disposes
-public async UniTaskVoid DoAsyncWork()
-{
-    await UniTask.Delay(5000);
-    _service.DoSomething(); // May crash if disposed
-}
-
-// GOOD: Use CancellationToken
-private CancellationTokenSource _cts;
-
-public void Initialize()
-{
-    _cts = new CancellationTokenSource();
-}
-
-public async UniTask DoAsyncWork()
-{
-    await UniTask.Delay(5000, cancellationToken: _cts.Token);
-    _service.DoSomething();
-}
-
-public void Dispose()
-{
-    _cts?.Cancel();
-    _cts?.Dispose();
-}
-```
-
-### Problem 4: Missing Registration
-
-```csharp
-// VContainerException: Unable to resolve IService
-
-// Check 1: Is it registered?
-builder.Register<IService, ServiceImpl>(Lifetime.Singleton);
-
-// Check 2: Is the assembly referenced?
-// Add to asmdef references
-
-// Check 3: Is the scope correct?
-// Child scope can't resolve from parent without proper hierarchy
-```
-
-### Problem 5: Circular Dependency
-
-```csharp
-// VContainerException: Circular dependency detected
-
-// BAD
-public class ServiceA
-{
-    public ServiceA(ServiceB b) { }
-}
-public class ServiceB
-{
-    public ServiceB(ServiceA a) { }
-}
-
-// GOOD: Break with Lazy<T> or factory
-public class ServiceA
-{
-    private readonly Lazy<ServiceB> _b;
-    public ServiceA(Lazy<ServiceB> b) => _b = b;
-}
-```
-
-## Safe Resolution Patterns
-
-### TryResolve Extension
-
-```csharp
-public static class VContainerExtensions
-{
-    public static bool TryResolve<T>(this IObjectResolver resolver, out T result)
-    {
-        result = default;
-        try
-        {
-            if (resolver == null) return false;
-            result = resolver.Resolve<T>();
-            return true;
-        }
-        catch (VContainerException)
-        {
-            return false;
-        }
-    }
-    
-    public static T ResolveOrDefault<T>(this IObjectResolver resolver, T defaultValue = default)
-    {
-        return resolver.TryResolve<T>(out var result) ? result : defaultValue;
-    }
-}
-
-// Usage
-if (scope.Container.TryResolve<IState>(out var state))
-{
-    await state.Exit();
-}
-```
-
-### Scope Alive Check
-
-```csharp
-public static bool IsAlive(this LifetimeScope scope)
-{
-    try
-    {
-        return scope != null && scope.Container != null;
-    }
-    catch
-    {
-        return false;
-    }
-}
-```
-
-## Testing with VContainer
-
-### Mocking Dependencies
-
-```csharp
-[TestFixture]
-public class PlayerControllerTests
-{
-    private LifetimeScope _testScope;
-    
-    [SetUp]
-    public void SetUp()
-    {
-        _testScope = LifetimeScope.Create(builder =>
-        {
-            // Register mocks
-            var mockInput = Substitute.For<IInputService>();
-            builder.RegisterInstance(mockInput);
-            
-            // Register real implementation under test
-            builder.Register<PlayerController>(Lifetime.Singleton);
-        });
-    }
-    
-    [TearDown]
-    public void TearDown()
-    {
-        _testScope?.Dispose();
-    }
-    
-    [Test]
-    public void PlayerController_Move_UpdatesPosition()
-    {
-        var controller = _testScope.Container.Resolve<PlayerController>();
-        // Test...
-    }
-}
-```
-
-### Testing Installers
+EditMode tests build a container directly. No scene and no `LifetimeScope` are needed:
 
 ```csharp
 [Test]
-public void Installer_RegistersAllDependencies()
+public void Inventory_ConsumesAmmo()
 {
-    using var scope = LifetimeScope.Create(new GameInstaller());
-    
-    Assert.DoesNotThrow(() => scope.Container.Resolve<IPlayerService>());
-    Assert.DoesNotThrow(() => scope.Container.Resolve<IInputService>());
+    var builder = new ContainerBuilder();
+    builder.Register<InventoryService>(Lifetime.Singleton);
+    builder.RegisterInstance<IStatProvider>(new FakeStats());   // hand-written fake; no mocking library is installed
+    using var resolver = builder.Build();
+
+    var inventory = resolver.Resolve<InventoryService>();
+    // act / assert
 }
 ```
 
-## Editor Cleanup (Critical for Unity Editor)
+- Installer smoke test: `new ContainerBuilder()`, run the system's `Install(builder)` with test settings, `Build()`, and resolve each public service. This catches missing registrations without a scene.
+- Child-scope behaviour: `resolver.CreateScope(b => …)` returns an `IScopedObjectResolver`. Use it to test shadowing and default rules.
+- PlayMode smoke test (ARCHITECTURE.md → Prototypes): load World and each `Proto_*`, wait a frame, assert entities are injected and nothing was logged as an error.
 
-```csharp
-// Prevent VContainerException when exiting Play Mode
-public static class EditorLifetimeScopeCleanup
-{
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ClearGlobalInstallers()
-    {
-        var type = typeof(LifetimeScope);
-        var field = type.GetField("GlobalExtraInstallers", 
-            BindingFlags.NonPublic | BindingFlags.Static);
-        
-        if (field?.GetValue(null) is IList list)
-        {
-            list.Clear();
-        }
-    }
-}
-```
+## 9. Diagnostics and common errors
 
-## Best Practices
+- **Window → VContainer Diagnostics** (enable `EnableDiagnostics` on the `VContainerSettings` asset, editor only): every scope, registration, resolve and instance.
+- `VContainerException: No such registration of type: X`: no installer registers X in this scope or its ancestors; the scope found the wrong parent (check `FindParent` and the execution order); or the type lives in an assembly the installer doesn't reference.
+- Service exists but is "a different instance" than expected: `Scoped` lifetime (§2), or a duplicate registration in a child scope.
+- `NullReferenceException` in `Awake`/`OnEnable` of an injected component: it ran before injection (§5). Move the logic into `Construct` / a spawn method.
+- An `ITickable` that never ticks: registered with `Register` instead of `RegisterEntryPoint`.
+- `MissingReferenceException` after quitting to menu: a root service kept a reference to a scene object. Unregister in `OnDisable`/`Dispose`.
 
-1. **Prefer constructor injection** - Explicit dependencies, easier testing
-2. **Use interfaces** - Enables mocking and swapping implementations
-3. **Scope appropriately** - Don't make everything Singleton
-4. **Dispose child scopes** - Prevent memory leaks
-5. **Use CancellationToken** - Graceful async cleanup
-6. **Avoid property/field injection** - Except for optional dependencies
-7. **Test your installers** - Catch missing registrations early
-8. **Guard against disposed scopes** - Use TryResolve in edge cases
-
-## Troubleshooting
-
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `Unable to resolve` | Not registered | Add registration |
-| `Circular dependency` | A→B→A | Use Lazy<T> or factory |
-| `Object disposed` | Scope disposed | Check lifecycle, add guards |
-| `Multiple registrations` | Duplicate registration | Remove duplicate |
-| `Invalid cast` | Wrong type registered | Check As<T>() calls |
+---
+Rewritten for this project from `tools-unity-vcontainer` in [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, see `../THIRD_PARTY_LICENSE-unity-gamedev.txt`). API checked against the VContainer 1.19.0 source.
