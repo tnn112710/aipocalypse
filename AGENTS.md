@@ -75,7 +75,7 @@ When writing code, the user's prompt is the spec.
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
 - `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` is the index of per-topic files; start with `docs/gdd/CORE.md` (pitch, pillars, core loop). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
-- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Script map (what each script owns, dependencies, frame order): `docs/technicals/CODE_STRUCTURE.md` — update it whenever you add, move or remove a script. Plugin inventory and usage rules: `docs/technicals/PLUGINS.md`.
+- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Script map (what each script owns, dependencies, frame order): `docs/technicals/CODE_STRUCTURE.md` — update it whenever you add, move or remove a script. Plugin inventory and usage rules: `docs/technicals/PLUGINS.md`. UI (HUD canvas, widgets, styles, adding info): `docs/technicals/UI.md`.
 - Current milestone/tasks: `docs/ROADMAP.md`.
 
 ## Code style

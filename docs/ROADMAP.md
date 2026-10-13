@@ -10,6 +10,7 @@ Core feel prototypes — each mechanic in its own scene under `Assets/_Game/Scen
   - [ ] Asmdefs (Core / Features / Experimental / Tests) — Core + EditMode tests done
   - [ ] Root `ProjectLifetimeScope` prefab, `GameLifetimeScope` (installers, strict mode), `DevStartConfig` — root prefab + VContainerSettings, MessagePipe, `InputService` done; `GameLifetimeScope` is a stub with the strict flag
   - [ ] `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, `_Common` Combat / Events / Stats / `IChanceRoll` — `EntityScope`, `Health`/`IDamageable`/`DamageInfo`, `DamageDealt`/`PlayerDied`, `IStatProvider` done
+  - [ ] HUD — canvas (1920×1080, corner regions) in the Player prefab, `StatBar` widget + style assets; health and stamina bars done
   - [ ] Debug panel with `IDebugCommands`
   - [ ] PlayMode smoke test
 - [ ] `Proto_Movement` — walk, sprint, crouch, jump, look. Done in `Scenes/Prototype.unity`: walk, sprint + stamina/exhaustion, jump (coyote, buffer), look, steep-slope slide, fall damage, head bob + landing dip. Left: crouch, interact

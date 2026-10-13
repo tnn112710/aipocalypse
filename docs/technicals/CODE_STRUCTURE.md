@@ -6,7 +6,7 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine; precompiled DLLs (Odin) auto-referenced |
+| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro; precompiled DLLs (Odin) auto-referenced |
 | `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit. Editor only |
 
 Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Core.PlayerSystem`, `Aipocalypse.Core.Combat`). One exception: input uses **`Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
@@ -34,19 +34,27 @@ Assets/_Game/
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
-│  └─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│     ├─ Player.cs                          view MonoBehaviour: input → intent, ticks the parts, IDamageable
-│     ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
-│     ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump
-│     ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo)
-│     ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot
-│     ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root
-│     ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
-│     ├─ FallDamage.cs                      drop height → damage
-│     ├─ PlayerTuning.cs                    ScriptableObject type for every player number
-│     ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
-│     └─ Prefabs/Player.prefab              the player entity (see below)
-├─ Data/Player/PlayerTuning.asset           the tuning values used in every scene
+│  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent, ticks the parts, IDamageable
+│  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider, registers its Player
+│  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump
+│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo)
+│  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot
+│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root
+│  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
+│  │  ├─ FallDamage.cs                      drop height → damage
+│  │  ├─ PlayerTuning.cs                    ScriptableObject type for every player number
+│  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
+│  │  └─ Prefabs/Player.prefab              the player entity (see below)
+│  └─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
+│     ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail
+│     ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
+│     ├─ Hud/PlayerVitalsHud.cs             presenter: injected Player → health + stamina bars (LateUpdate)
+│     ├─ Prefabs/HUD.prefab                 overlay canvas 1920×1080, SafeFrame + corner regions (nested in Player)
+│     └─ Prefabs/Widgets/StatBar.prefab     the bar widget
+├─ Data/
+│  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    └─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
 ```
@@ -58,11 +66,13 @@ ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
    │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
-   └─ injects the Player GameObject
+   │ registers the Player component as an instance (for HUD views)
+   └─ injects the Player GameObject (whole hierarchy, HUD included)
          Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
              PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot)
+         PlayerVitalsHud.Construct(Player)   (in the nested HUD)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
@@ -78,6 +88,8 @@ PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Lande
 Stamina.Tick         regen (spending happened inside the motor)
 PlayerHeadBob.Tick   camera root offset
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
+                     PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
+StatBar.Update       only while a trail is catching up, otherwise disabled
 ```
 
 ## Player prefab
@@ -87,7 +99,8 @@ Player                       CharacterController (h 1.8, r 0.35, step 0.35, slop
 ├─ CameraRoot                y 1.65 (eye height); PlayerHeadBob offsets it
 │  └─ CameraPitch            PlayerLook pitches it; Cinemachine tracking target
 ├─ PlayerCamera              Camera (tag MainCamera) · URP camera data · CinemachineBrain · AudioListener
-└─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
+├─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
+└─ HUD                       nested HUD.prefab (overlay canvas; hierarchy in UI.md)
 ```
 
 ## Adding a script

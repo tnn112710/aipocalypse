@@ -80,6 +80,7 @@ Any scene (World, Proto_*, test arenas)
 | PlayerSystem | Controller, look, movement, stamina, fall damage, head bob. See Entities → Player |
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`) |
+| UI | HUD canvas (nested in the Player prefab), passive widgets with style assets (`StatBar` + `StatBarStyle`), presenters that feed them (`PlayerVitalsHud`). Rules and how-tos: [UI.md](UI.md) |
 
 **Features** (`Assets/_Game/Features/`): *none yet.* Each system or feature gets a row here when it lands.
 
@@ -131,7 +132,7 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 `_Core/PlayerSystem/Prefabs/Player.prefab` works dropped into any scene; scenes need no camera of their own. Hierarchy: [CODE_STRUCTURE.md → Player prefab](CODE_STRUCTURE.md#player-prefab).
 
-- `Player` is the only MonoBehaviour with an `Update`. Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob`. Tests or cutscenes can drive the motor with an intent directly.
+- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views in the prefab read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob`. Tests or cutscenes can drive the motor with an intent directly.
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
 - `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage, linear between a safe and a lethal drop height. Taking damage publishes `DamageDealt`; dying publishes `PlayerDied`.
 - All numbers live in `Data/Player/PlayerTuning.asset`.
