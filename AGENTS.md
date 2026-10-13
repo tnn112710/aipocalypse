@@ -35,7 +35,7 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 
 ## Where things live
 
-- `Assets/_Game/` — **all first-party game code and content go here.** Stable mechanics live in `Assets/_Game/_Core/` (one folder per system plus `_Bootstrap`, `_Common`, `_Debug`); design-dependent rules in `Assets/_Game/Features/`; trial mechanics in `Assets/_Game/_Experimental/`. Features depend on Core, never the reverse (enforced by asmdefs). ScriptableObject assets go in `Assets/_Game/Data/`. Full layout and system ownership: `docs/technicals/ARCHITECTURE.md`.
+- `Assets/_Game/` — **all first-party game code and content go here.** Stable mechanics live in `Assets/_Game/_Core/` (one folder per system plus `_Bootstrap`, `_Common`, `_Debug`); design-dependent rules in `Assets/_Game/Features/`; trial mechanics in `Assets/_Game/_Experimental/`. Features depend on Core, never the reverse (enforced by asmdefs). ScriptableObject assets go in `Assets/_Game/Data/`. Full layout and system ownership: `docs/technicals/ARCHITECTURE.md`; script map: `docs/technicals/CODE_STRUCTURE.md`.
 - `Assets/_Game/Scenes/Prototypes/` — `Proto_*` scenes that test one mechanic each, not in Build Settings. They use the real code and prefabs, never copies (rules in ARCHITECTURE.md → "Prototypes → main game").
 - `Assets/_StoreAssets/` and `Assets/Synty/` — third-party art/asset-store content (Synty packs, Low Poly Weapon Bundles 1–3, Stylized Grass/Water 3, Damage Numbers Pro, Feel…). Treat as vendor code: don't modify; reference or make variants/prefabs under `_Game`. Full inventory: `docs/technicals/PLUGINS.md`.
 - `Assets/Plugins/` — third-party editor/runtime tooling (Odin Inspector, DOTween/Demigiant, GPUInstancerPro, etc.). Don't modify.
