@@ -104,9 +104,9 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 |---|---|
 | Synty Polygon Generic, Polygon Prototype, Sidekick Characters | `Assets/Synty` |
 | Synty Animation Base Locomotion, Goblin Locomotion | `Assets/Synty` |
-| Synty Interface Core, Interface Apocalypse HUD | `Assets/Synty`. HUD art: **sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Our widgets reference the sprites through style assets ([UI.md](UI.md)) |
-| Low Poly Weapon Bundle Packs 1–3 | `Assets/_StoreAssets/Weapons` |
-| Animpic Polygon Mega Survival (Kit, Construction, Tools, Medical, Weapons), Poly-Survival Food / Melee / Workshop | `Assets/_StoreAssets/Env/Animpic` |
+| Synty Interface Core, Interface Apocalypse HUD | `Assets/Synty`. HUD art: **sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Our widgets reference the sprites through style assets ([UI.md](UI.md)); item icons come from `Icons_Weapons` and the hotbar key cap from Interface Core's `Icons_Input` |
+| Low Poly Weapon Bundle Packs 1–3 | `Assets/_StoreAssets/Weapons`. Gun models: nest the store prefab as the `Model` child of our held prefab (`_Core/WeaponSystem/Prefabs/`), shadows off, no colliders ([EQUIPMENT.md](EQUIPMENT.md)) |
+| Animpic Polygon Mega Survival (Kit, Construction, Tools, Medical, Weapons), Poly-Survival Food / Melee / Workshop | `Assets/_StoreAssets/Env/Animpic`. Melee models are used the same way as the gun models |
 | BK Pure Nature (Asian Valley, Jungle, Meadows, Mesa Desert, Mountains, Redwood) | `Assets/_StoreAssets/Env/BK` |
 | ANGRY MESH Stylized Pack – Meadow | `Assets/_StoreAssets/Env/ANGRY MESH` |
 | NewLua Stylized Farm Crops | `Assets/_StoreAssets/Env/NewLua Studios` |

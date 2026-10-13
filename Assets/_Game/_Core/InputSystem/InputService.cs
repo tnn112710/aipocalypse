@@ -8,16 +8,49 @@ namespace Aipocalypse.Input
     // Single owner of gameplay input: action maps, map switching and cursor lock. Consumers read it, never enable actions.
     public sealed class InputService : IInitializable, IDisposable
     {
+        const string KeyboardMouseGroup = "Keyboard&Mouse";
+
         readonly GameInputActions _actions = new();
         readonly ControlSettings _controls;
+        readonly InputAction[] _slots;
 
-        public InputService(ControlSettings controls) => _controls = controls;
+        public InputService(ControlSettings controls)
+        {
+            _controls = controls;
+            GameInputActions.PlayerActions player = _actions.Player;
+            _slots = new[] { player.Slot1, player.Slot2, player.Slot3, player.Slot4, player.Slot5, player.Slot6, player.Slot7, player.Slot8, player.Slot9 };
+        }
 
         public bool GameplayEnabled => _actions.Player.enabled;
 
         public Vector2 Move => _actions.Player.Move.ReadValue<Vector2>();
         public bool SprintHeld => _actions.Player.Sprint.IsPressed();
         public bool JumpPressed => _actions.Player.Jump.WasPressedThisFrame();
+
+        public int SlotKeyCount => _slots.Length;
+
+        // Hotbar key pressed this frame (0 = Slot1), or -1.
+        public int SlotPressed
+        {
+            get
+            {
+                for (int i = 0; i < _slots.Length; i++)
+                    if (_slots[i].WasPressedThisFrame())
+                        return i;
+                return -1;
+            }
+        }
+
+        // +1 next slot, -1 previous slot (mouse wheel, d-pad), 0 none.
+        public int CycleDirection =>
+            _actions.Player.Next.WasPressedThisFrame() ? 1 :
+            _actions.Player.Previous.WasPressedThisFrame() ? -1 : 0;
+
+        // Key name for a hotbar slot ("1", "2"…), follows rebinding. Allocates: call at setup, not per frame.
+        public string GetSlotKeyLabel(int index) =>
+            index >= 0 && index < _slots.Length
+                ? _slots[index].GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup))
+                : string.Empty;
 
         public void Initialize() => EnableGameplay();
 

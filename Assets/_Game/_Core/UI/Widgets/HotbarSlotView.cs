@@ -1,0 +1,93 @@
+using Sirenix.OdinInspector;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Aipocalypse.Core.UI
+{
+    // One hotbar slot: item icon on a tile, a selection frame, and the key cap below. Knows nothing about items or input.
+    public sealed class HotbarSlotView : MonoBehaviour
+    {
+        [SerializeField, InlineEditor] HotbarSlotStyle _style;
+        [SerializeField, Tooltip("Scaled while selected")] RectTransform _tile;
+        [SerializeField] Image _background;
+        [SerializeField] Image _icon;
+        [SerializeField] Image _frame;
+        [SerializeField] Image _keyCap;
+        [SerializeField] TMP_Text _keyLabel;
+
+        Sprite _iconSprite;
+        bool _selected;
+
+        public HotbarSlotStyle Style => _style;
+
+        void Awake() => ApplyStyle();
+
+        public void SetKey(string key) => _keyLabel.SetText(key);
+
+        // null = empty slot.
+        public void SetIcon(Sprite icon)
+        {
+            _iconSprite = icon;
+            Refresh();
+        }
+
+        public void SetSelected(bool selected)
+        {
+            if (selected == _selected)
+                return;
+            _selected = selected;
+            Refresh();
+        }
+
+        [Button, PropertyOrder(-1)]
+        public void ApplyStyle()
+        {
+            if (_style == null)
+                return;
+
+            _background.sprite = _style.BackgroundSprite;
+            _background.type = TypeFor(_style.BackgroundSprite);
+            _frame.sprite = _style.FrameSprite;
+            _frame.type = TypeFor(_style.FrameSprite);
+            _frame.color = _style.FrameColor;
+            _icon.color = _style.IconColor;
+            _icon.preserveAspect = true;
+
+            _keyCap.sprite = _style.KeySprite;
+            _keyCap.type = TypeFor(_style.KeySprite);
+            if (_style.KeyFont != null)
+                _keyLabel.font = _style.KeyFont;
+            _keyLabel.color = _style.KeyLabelColor;
+            _keyLabel.fontSize = _style.KeyFontSize;
+
+            Refresh();
+        }
+
+        void Refresh()
+        {
+            bool hasItem = _iconSprite != null;
+            _icon.sprite = _iconSprite;
+            _icon.enabled = hasItem;
+
+            if (_style == null)
+                return;
+
+            _background.color = hasItem ? _style.BackgroundColor : _style.EmptyBackgroundColor;
+            _frame.enabled = _selected;
+            _keyCap.color = _selected ? _style.SelectedKeyColor : _style.KeyColor;
+            _tile.localScale = Vector3.one * (_selected ? _style.SelectedScale : 1f);
+        }
+
+        static Image.Type TypeFor(Sprite sprite) =>
+            sprite != null && sprite.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
+
+#if UNITY_EDITOR
+        void OnValidate() => UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (this != null)
+                ApplyStyle();
+        };
+#endif
+    }
+}

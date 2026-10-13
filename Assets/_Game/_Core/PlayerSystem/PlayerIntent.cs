@@ -9,5 +9,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public Vector2 LookDegrees;
         public bool Sprint;
         public bool Jump;
+        public int? SelectSlot;
+        public int CycleSlot;
     }
 }

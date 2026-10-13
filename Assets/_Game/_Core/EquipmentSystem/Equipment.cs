@@ -1,0 +1,83 @@
+using System;
+
+namespace Aipocalypse.Core.EquipmentSystem
+{
+    // Which hotbar slot is selected, and keeping the switcher's target in sync with it.
+    public sealed class Equipment : IDisposable
+    {
+        readonly Func<ItemInstance, bool> _canSelect = CanSelect;
+
+        // previous index, new index; -1 = nothing selected
+        public event Action<int, int> SelectionChanged;
+
+        public Equipment(Hotbar hotbar)
+        {
+            Hotbar = hotbar;
+            Switcher = new EquipmentSwitcher();
+            Hotbar.SlotChanged += OnSlotChanged;
+        }
+
+        public Hotbar Hotbar { get; }
+        public EquipmentSwitcher Switcher { get; }
+        public int SelectedIndex { get; private set; } = -1;
+        public ItemInstance Selected => SelectedIndex >= 0 ? Hotbar[SelectedIndex] : null;
+
+        public void Dispose() => Hotbar.SlotChanged -= OnSlotChanged;
+
+        public bool Select(int index)
+        {
+            if (index < 0 || index >= Hotbar.Count || index == SelectedIndex)
+                return false;
+
+            ItemInstance item = Hotbar[index];
+            if (item == null || !CanSelect(item))
+                return false;
+
+            SetSelection(index);
+            return true;
+        }
+
+        public bool Cycle(int direction)
+        {
+            int next = Hotbar.FindNext(SelectedIndex, direction, _canSelect);
+            return next >= 0 && Select(next);
+        }
+
+        // Selects and holds the first selectable slot without the switch animation.
+        public void EquipFirstImmediately()
+        {
+            int first = Hotbar.FindNext(-1, 1, _canSelect);
+            if (first < 0)
+                return;
+            SetSelection(first);
+            Switcher.EquipImmediately(Hotbar[first]);
+        }
+
+        public void Tick(float deltaTime, float switchSpeed) => Switcher.Tick(deltaTime, switchSpeed);
+
+        // Selecting a slot holds its item. Items that do something else on select (quick-use consumables) go here.
+        static bool CanSelect(ItemInstance item) => item.IsEquippable;
+
+        void SetSelection(int index)
+        {
+            int previous = SelectedIndex;
+            SelectedIndex = index;
+            ItemInstance item = Selected;
+            Switcher.SetTarget(item != null && CanSelect(item) ? item : null);
+            if (previous != index)
+                SelectionChanged?.Invoke(previous, index);
+        }
+
+        // The selected slot's item was swapped or removed (inventory, pickup): hold the new one, or nothing.
+        void OnSlotChanged(int index, ItemInstance previous, ItemInstance current)
+        {
+            if (index != SelectedIndex)
+                return;
+
+            if (current != null && CanSelect(current))
+                Switcher.SetTarget(current);
+            else
+                SetSelection(-1);
+        }
+    }
+}

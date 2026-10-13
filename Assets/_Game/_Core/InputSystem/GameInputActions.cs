@@ -183,6 +183,96 @@ namespace Aipocalypse.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot1"",
+                    ""type"": ""Button"",
+                    ""id"": ""2a7338c3-c4c8-4c03-a712-1fcdbfdedd09"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot2"",
+                    ""type"": ""Button"",
+                    ""id"": ""41cf5afc-6a06-4798-8ffa-859c1c9fb5c8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot3"",
+                    ""type"": ""Button"",
+                    ""id"": ""23108699-2f1e-434f-9e09-19c2af1763c3"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot4"",
+                    ""type"": ""Button"",
+                    ""id"": ""d680ad21-f650-457d-9b4d-efac22e623e0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot5"",
+                    ""type"": ""Button"",
+                    ""id"": ""9353039e-73a0-4377-89c3-8972d497a392"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot6"",
+                    ""type"": ""Button"",
+                    ""id"": ""5a4d7700-fa72-4bba-8bb9-206fd406e25d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot7"",
+                    ""type"": ""Button"",
+                    ""id"": ""b7ce3a95-c981-40f1-b966-77fc8a36c690"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot8"",
+                    ""type"": ""Button"",
+                    ""id"": ""0121cf69-bc45-4cce-89a9-d4f7176d8532"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Slot9"",
+                    ""type"": ""Button"",
+                    ""id"": ""ddac4d57-8e40-4259-9c1c-848cd275993e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -420,7 +510,7 @@ namespace Aipocalypse.Input
                 {
                     ""name"": """",
                     ""id"": ""cbac6039-9c09-46a1-b5f2-4e5124ccb5ed"",
-                    ""path"": ""<Keyboard>/2"",
+                    ""path"": ""<Mouse>/scroll/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
@@ -508,7 +598,7 @@ namespace Aipocalypse.Input
                 {
                     ""name"": """",
                     ""id"": ""1534dc16-a6aa-499d-9c3a-22b47347b52a"",
-                    ""path"": ""<Keyboard>/1"",
+                    ""path"": ""<Mouse>/scroll/up"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
@@ -568,6 +658,105 @@ namespace Aipocalypse.Input
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Crouch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""75c0d84e-d731-4341-b26c-f1dfb38c4f02"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3d758950-747f-4998-bd3f-a99e6653ef14"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c7602a3c-9d40-4cab-b61c-c0beea4caf27"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a049ae3b-617b-4053-82c6-bc011b345330"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a4ec8e91-fbb6-44ea-930f-d58d112637ed"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8ef466f9-0b0c-44e2-952b-17b119d2e314"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""61507033-5e64-4aa0-bee4-828f799873e4"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot7"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""996b6bdc-4dac-408b-8383-535661b4479d"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot8"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f724a252-4933-4901-a254-d5f5fae44d20"",
+                    ""path"": ""<Keyboard>/9"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot9"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1174,6 +1363,15 @@ namespace Aipocalypse.Input
             m_Player_Previous = m_Player.FindAction("Previous", throwIfNotFound: true);
             m_Player_Next = m_Player.FindAction("Next", throwIfNotFound: true);
             m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
+            m_Player_Slot1 = m_Player.FindAction("Slot1", throwIfNotFound: true);
+            m_Player_Slot2 = m_Player.FindAction("Slot2", throwIfNotFound: true);
+            m_Player_Slot3 = m_Player.FindAction("Slot3", throwIfNotFound: true);
+            m_Player_Slot4 = m_Player.FindAction("Slot4", throwIfNotFound: true);
+            m_Player_Slot5 = m_Player.FindAction("Slot5", throwIfNotFound: true);
+            m_Player_Slot6 = m_Player.FindAction("Slot6", throwIfNotFound: true);
+            m_Player_Slot7 = m_Player.FindAction("Slot7", throwIfNotFound: true);
+            m_Player_Slot8 = m_Player.FindAction("Slot8", throwIfNotFound: true);
+            m_Player_Slot9 = m_Player.FindAction("Slot9", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1276,6 +1474,15 @@ namespace Aipocalypse.Input
         private readonly InputAction m_Player_Previous;
         private readonly InputAction m_Player_Next;
         private readonly InputAction m_Player_Sprint;
+        private readonly InputAction m_Player_Slot1;
+        private readonly InputAction m_Player_Slot2;
+        private readonly InputAction m_Player_Slot3;
+        private readonly InputAction m_Player_Slot4;
+        private readonly InputAction m_Player_Slot5;
+        private readonly InputAction m_Player_Slot6;
+        private readonly InputAction m_Player_Slot7;
+        private readonly InputAction m_Player_Slot8;
+        private readonly InputAction m_Player_Slot9;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -1323,6 +1530,42 @@ namespace Aipocalypse.Input
             /// Provides access to the underlying input action "Player/Sprint".
             /// </summary>
             public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot1".
+            /// </summary>
+            public InputAction @Slot1 => m_Wrapper.m_Player_Slot1;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot2".
+            /// </summary>
+            public InputAction @Slot2 => m_Wrapper.m_Player_Slot2;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot3".
+            /// </summary>
+            public InputAction @Slot3 => m_Wrapper.m_Player_Slot3;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot4".
+            /// </summary>
+            public InputAction @Slot4 => m_Wrapper.m_Player_Slot4;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot5".
+            /// </summary>
+            public InputAction @Slot5 => m_Wrapper.m_Player_Slot5;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot6".
+            /// </summary>
+            public InputAction @Slot6 => m_Wrapper.m_Player_Slot6;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot7".
+            /// </summary>
+            public InputAction @Slot7 => m_Wrapper.m_Player_Slot7;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot8".
+            /// </summary>
+            public InputAction @Slot8 => m_Wrapper.m_Player_Slot8;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Slot9".
+            /// </summary>
+            public InputAction @Slot9 => m_Wrapper.m_Player_Slot9;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1376,6 +1619,33 @@ namespace Aipocalypse.Input
                 @Sprint.started += instance.OnSprint;
                 @Sprint.performed += instance.OnSprint;
                 @Sprint.canceled += instance.OnSprint;
+                @Slot1.started += instance.OnSlot1;
+                @Slot1.performed += instance.OnSlot1;
+                @Slot1.canceled += instance.OnSlot1;
+                @Slot2.started += instance.OnSlot2;
+                @Slot2.performed += instance.OnSlot2;
+                @Slot2.canceled += instance.OnSlot2;
+                @Slot3.started += instance.OnSlot3;
+                @Slot3.performed += instance.OnSlot3;
+                @Slot3.canceled += instance.OnSlot3;
+                @Slot4.started += instance.OnSlot4;
+                @Slot4.performed += instance.OnSlot4;
+                @Slot4.canceled += instance.OnSlot4;
+                @Slot5.started += instance.OnSlot5;
+                @Slot5.performed += instance.OnSlot5;
+                @Slot5.canceled += instance.OnSlot5;
+                @Slot6.started += instance.OnSlot6;
+                @Slot6.performed += instance.OnSlot6;
+                @Slot6.canceled += instance.OnSlot6;
+                @Slot7.started += instance.OnSlot7;
+                @Slot7.performed += instance.OnSlot7;
+                @Slot7.canceled += instance.OnSlot7;
+                @Slot8.started += instance.OnSlot8;
+                @Slot8.performed += instance.OnSlot8;
+                @Slot8.canceled += instance.OnSlot8;
+                @Slot9.started += instance.OnSlot9;
+                @Slot9.performed += instance.OnSlot9;
+                @Slot9.canceled += instance.OnSlot9;
             }
 
             /// <summary>
@@ -1414,6 +1684,33 @@ namespace Aipocalypse.Input
                 @Sprint.started -= instance.OnSprint;
                 @Sprint.performed -= instance.OnSprint;
                 @Sprint.canceled -= instance.OnSprint;
+                @Slot1.started -= instance.OnSlot1;
+                @Slot1.performed -= instance.OnSlot1;
+                @Slot1.canceled -= instance.OnSlot1;
+                @Slot2.started -= instance.OnSlot2;
+                @Slot2.performed -= instance.OnSlot2;
+                @Slot2.canceled -= instance.OnSlot2;
+                @Slot3.started -= instance.OnSlot3;
+                @Slot3.performed -= instance.OnSlot3;
+                @Slot3.canceled -= instance.OnSlot3;
+                @Slot4.started -= instance.OnSlot4;
+                @Slot4.performed -= instance.OnSlot4;
+                @Slot4.canceled -= instance.OnSlot4;
+                @Slot5.started -= instance.OnSlot5;
+                @Slot5.performed -= instance.OnSlot5;
+                @Slot5.canceled -= instance.OnSlot5;
+                @Slot6.started -= instance.OnSlot6;
+                @Slot6.performed -= instance.OnSlot6;
+                @Slot6.canceled -= instance.OnSlot6;
+                @Slot7.started -= instance.OnSlot7;
+                @Slot7.performed -= instance.OnSlot7;
+                @Slot7.canceled -= instance.OnSlot7;
+                @Slot8.started -= instance.OnSlot8;
+                @Slot8.performed -= instance.OnSlot8;
+                @Slot8.canceled -= instance.OnSlot8;
+                @Slot9.started -= instance.OnSlot9;
+                @Slot9.performed -= instance.OnSlot9;
+                @Slot9.canceled -= instance.OnSlot9;
             }
 
             /// <summary>
@@ -1777,6 +2074,69 @@ namespace Aipocalypse.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSprint(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot1(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot2(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot3(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot4" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot4(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot5" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot5(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot6" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot6(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot7" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot7(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot8" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot8(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Slot9" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSlot9(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

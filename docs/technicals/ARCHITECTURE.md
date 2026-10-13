@@ -77,10 +77,12 @@ Any scene (World, Proto_*, test arenas)
 | System | Owns |
 | --- | --- |
 | _Bootstrap | Root `ProjectLifetimeScope` (+ prefab, `ControlSettings`), `VContainerSettings` asset, `GameLifetimeScope` |
-| PlayerSystem | Controller, look, movement, stamina, fall damage, head bob. See Entities → Player |
+| PlayerSystem | Controller, look, movement, stamina, fall damage, head bob, owns the player's `Equipment`. See Entities → Player |
+| EquipmentSystem | Items (`ItemDefinition` → `EquippableDefinition`, `ItemInstance`), `Hotbar` (≤ 9 category-checked slots), `EquipmentSwitcher` (timed holster → equip), `Equipment` (selection), first-person `EquipmentRig` / `HeldItem`. Rules and how-tos: [EQUIPMENT.md](EQUIPMENT.md) |
+| WeaponSystem | Weapon item kinds (`GunDefinition`, `MeleeDefinition`) and their held prefabs; shooting and melee land here |
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`) |
-| UI | HUD canvas (nested in the Player prefab), passive widgets with style assets (`StatBar` + `StatBarStyle`), presenters that feed them (`PlayerVitalsHud`). Rules and how-tos: [UI.md](UI.md) |
+| UI | HUD canvas (nested in the Player prefab), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`). Rules and how-tos: [UI.md](UI.md) |
 
 **Features** (`Assets/_Game/Features/`): *none yet.* Each system or feature gets a row here when it lands.
 
@@ -132,10 +134,11 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 `_Core/PlayerSystem/Prefabs/Player.prefab` works dropped into any scene; scenes need no camera of their own. Hierarchy: [CODE_STRUCTURE.md → Player prefab](CODE_STRUCTURE.md#player-prefab).
 
-- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views in the prefab read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob`. Tests or cutscenes can drive the motor with an intent directly.
+- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views in the prefab read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
 - `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage, linear between a safe and a lethal drop height. Taking damage publishes `DamageDealt`; dying publishes `PlayerDied`.
-- All numbers live in `Data/Player/PlayerTuning.asset`.
+- Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
+- All numbers live in `Data/Player/PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
 
 ## AI
 
@@ -175,7 +178,7 @@ Assets/_Game/
   _Core/                  asmdef Aipocalypse.Core
     _Bootstrap/           ProjectLifetimeScope (+ prefab), VContainerSettings asset (preloaded), GameLifetimeScope
     _Common/              Entities, Combat, Events, Stats
-    PlayerSystem/  InputSystem/
+    PlayerSystem/  InputSystem/  EquipmentSystem/  WeaponSystem/  UI/
     <NewSystem>/          one folder per Core system, with its installer
   Features/               (when the first feature lands) asmdef Aipocalypse.Features → references Core
   _Experimental/          (when the first experiment lands) asmdef Aipocalypse.Experimental → references Core + Features

@@ -6,7 +6,7 @@ How the in-game UI is built and how to extend or restyle it. Script locations an
 
 - **uGUI + TextMeshPro.** No UI Toolkit for the game HUD.
 - **Art comes from Synty Interface Apocalypse HUD as sprites only** (`Assets/Synty/InterfaceApocalypseHUD/Sprites/`, font `Fonts/SairaCondensed/Font_Apocalypse_Bold`). Never use or nest its prefabs: they carry Synty's sample scripts and animators. Our widgets are our own prefabs under `_Core/UI/Prefabs/`.
-- **Views are passive.** A widget (`StatBar`) only displays the values it's given. A presenter (`PlayerVitalsHud`) reads game state and feeds the widgets. Widgets never know about the player, stats or events.
+- **Views are passive.** A widget (`StatBar`, `HotbarSlotView`) only displays the values it's given. A presenter (`PlayerVitalsHud`, `HotbarHud`) reads game state and feeds the widgets. Widgets never know about the player, items, stats or events.
 - **Looks live in style assets, layout lives in prefabs.** Sprites, colors and fonts go in a `*Style` ScriptableObject (`Data/UI/`). Size, position and anchors stay on the prefab's RectTransforms.
 - **HUD images are not raycast targets** and the HUD canvas has no `GraphicRaycaster`, because nothing on it is clickable. Menus that need clicks get their own canvas with a raycaster.
 - **Zero allocations per frame.** Widgets skip values that didn't change. Labels use `TMP_Text.SetText("{0}", value)`, never string concatenation.
@@ -30,11 +30,14 @@ HUD                          Canvas · CanvasScaler
    │  └─ Vitals              nested Canvas · VerticalLayoutGroup · ContentSizeFitter · PlayerVitalsHud
    │     ├─ HealthBar        StatBar (HealthBarStyle)
    │     └─ StaminaBar       StatBar (StaminaBarStyle)
+   ├─ BottomCenter
+   │  └─ Hotbar              nested Canvas · HorizontalLayoutGroup · ContentSizeFitter · HotbarHud
+   │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
    └─ Center
 ```
 
-- **Region per corner.** New HUD info goes under the matching region: quest tracker in TopRight, currency in TopLeft, crosshair and interact prompt in Center, ammo and hotbar in BottomRight.
+- **Region per corner.** New HUD info goes under the matching region: quest tracker in TopRight, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
 - **A nested Canvas around anything that changes often.** `Vitals` has its own Canvas, so the bars changing every frame (stamina regen) only rebuild that group, not the whole HUD. Give each frequently updated group its own nested Canvas. Static decoration can share the root.
 
 ## Where the HUD lives
@@ -43,11 +46,11 @@ The HUD is nested inside `Player.prefab`, so any scene with a player has a worki
 
 ## StatBar widget
 
-`_Core/UI/Prefabs/Widgets/StatBar.prefab`, 320×36 at 1080p (label 24 pt):
+`_Core/UI/Prefabs/Widgets/StatBar.prefab`, 368×41 at 1080p (label 28 pt):
 
 ```text
 StatBar                      StatBar component
-├─ IconFrame                 36×36, left; hidden when the style has no icon
+├─ IconFrame                 41×41, left; hidden when the style has no icon
 │  └─ Icon                   preserve aspect
 └─ Bar                       rest of the width
    ├─ Background
@@ -64,6 +67,24 @@ API, called by a presenter:
 
 The trail (health only) holds for `TrailDelay`, then slides to the new value at `TrailSpeed`. The component's `Update` runs only while the trail is moving.
 
+## Hotbar
+
+`_Core/UI/Prefabs/Widgets/HotbarSlot.prefab`, 84×84 tile + 30×30 key cap at 1080p:
+
+```text
+HotbarSlot                   HotbarSlotView component
+├─ Tile                      scaled by SelectedScale while selected
+│  ├─ Background             9-sliced box; dimmer when empty
+│  ├─ Icon                   item icon (ItemDefinition.Icon), preserve aspect; hidden when empty
+│  └─ Frame                  selection outline, only on the selected slot
+└─ KeyCap                    key sprite + TMP label ("1", "2"… from the input binding)
+```
+
+- `HotbarSlotView` API: `SetKey(string)`, `SetIcon(Sprite)` (null = empty), `SetSelected(bool)`, `ApplyStyle()`.
+- `HotbarHud` (presenter on `Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig` (up to 9). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight. Nothing is polled.
+- The highlight moves as soon as a slot is selected, not when the switch animation finishes.
+- Behavior and switching rules: [EQUIPMENT.md](EQUIPMENT.md).
+
 ## Changing the look
 
 | To change | Edit |
@@ -71,6 +92,10 @@ The trail (health only) holds for `TrailDelay`, then slides to the new value at 
 | Sprites, colors, font, font size, trail, label on/off | `Data/UI/HealthBarStyle.asset` / `StaminaBarStyle.asset`. Bars in the open scene repaint right away; everything else picks the change up in `Awake` |
 | A new look for one bar | Duplicate a style asset and assign it to that bar's `StatBar._style` |
 | Bar size, icon size, padding | `StatBar.prefab` RectTransforms. Every bar updates |
+| Hotbar sprites, colors, key font, selected scale | `Data/UI/HotbarSlotStyle.asset` |
+| Hotbar slot size, key cap size | `HotbarSlot.prefab` RectTransforms. Outline / box thickness: the images' Pixels Per Unit Multiplier |
+| Spacing between hotbar slots | `Hotbar` → HorizontalLayoutGroup spacing |
+| Item icons | the item's `Data/Items/*.asset` → `Icon` |
 | Spacing between bars | `Vitals` → VerticalLayoutGroup spacing |
 | Distance from the screen edge | `HUD` → `SafeFrame` offsets |
 | Overall HUD scale | `HUD` → CanvasScaler reference resolution / match |
