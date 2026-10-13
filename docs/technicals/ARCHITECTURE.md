@@ -247,6 +247,8 @@ A prototype is done when it works in its scene **and** in World with no code cha
 
 ## Folder layout
 
+Target layout below. What exists today, script by script: [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
+
 ```text
 Assets/_Game/
   _Core/                  asmdef Aipocalypse.Core
