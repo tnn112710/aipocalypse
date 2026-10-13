@@ -62,6 +62,15 @@ Many runtime and editor plugins are installed (Feel, BroAudio, Easy Save 3, Dama
 - **Use it efficiently:** prefer the plugin's pooling, batching and caching features (Damage Numbers Pro and BroAudio pooling, GPUI instancing) and keep per-instance plugin components off crowd entities (exceptions: BD `BehaviorTree` in Manual mode, A* `FollowerEntity`).
 - **Keep PLUGINS.md current:** when adding, removing or starting to use a plugin in a new way, update it in the same change.
 
+## Prompt first, GDD second
+
+When writing code, the user's prompt is the spec.
+
+- Build what the prompt asks. Don't add mechanics, rules or numbers the prompt didn't ask for.
+- You may read `docs/gdd/` for context, but anything taken from it (a rule, a mechanic, a number, a constraint) must be **proposed and confirmed by the user before you implement it**. Say what it is and where it comes from (e.g. "CORE.md says stamina drains when sprinting — add it?").
+- If the prompt and the GDD disagree, follow the prompt and mention the difference; don't "fix" the code toward the GDD.
+- Technical docs (`docs/technicals/`, this file) still decide *how* to build.
+
 ## Keeping docs current
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
