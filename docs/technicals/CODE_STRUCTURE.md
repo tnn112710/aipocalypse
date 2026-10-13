@@ -17,7 +17,7 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 Assets/_Game/
 ├─ _Core/                                   asmdef Aipocalypse.Core
 │  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
-│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller
+│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, PlayerInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y…)
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  └─ GameLifetimeScope.cs               per-scene scope (stub), Strict flag, execution order -5000
@@ -28,6 +28,7 @@ Assets/_Game/
 │  │  │  ├─ DamageInfo.cs                   DamageInfo struct + DamageType enum
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt, PlayerDied
+│  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
 │  │  └─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
@@ -47,7 +48,9 @@ Assets/_Game/
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
 │  │  ├─ Player.cs                          view MonoBehaviour: input → intent, ticks the parts, IDamageable
-│  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider, registers its Player
+│  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
+│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
+│  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
 │  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot
 │  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo)
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot
@@ -62,9 +65,11 @@ Assets/_Game/
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
 │  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / ApplyStyle
 │  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font
-│  │  ├─ Hud/PlayerVitalsHud.cs             presenter: injected Player → health + stamina bars (LateUpdate)
-│  │  ├─ Hud/HotbarHud.cs                   presenter: Player.Equipment → one slot view per slot (events, no polling)
-│  │  ├─ Prefabs/HUD.prefab                 overlay canvas 1920×1080, SafeFrame + corner regions (nested in Player)
+│  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
+│  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind per active player
+│  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
+│  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment (events, no polling)
+│  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  └─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem
@@ -84,19 +89,22 @@ Assets/_Game/
 ## Who depends on whom
 
 ```text
-ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers
+ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, PlayerRegistry
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
    │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
-   │ registers the Player component as an instance (for HUD views)
-   └─ injects the Player GameObject (whole hierarchy, HUD included)
-         Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>)
+   └─ injects the Player GameObject (whole hierarchy)
+         Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>, PlayerRegistry)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
              PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment)
-         PlayerVitalsHud.Construct(Player)            (in the nested HUD)
-         HotbarHud.Construct(Player, InputService)    (in the nested HUD; builds its slots in Start)
+           last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
+
+HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
+   └─ injects the HUD GameObject
+         PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active player
+           PlayerVitalsHud, HotbarHud (+ InputService for key labels)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
@@ -129,9 +137,10 @@ Player                       CharacterController (h 1.8, r 0.35, step 0.35, slop
 │     └─ HeldItems           EquipmentRig
 │        └─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig
 ├─ PlayerCamera              Camera (tag MainCamera) · URP camera data · CinemachineBrain · AudioListener
-├─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
-└─ HUD                       nested HUD.prefab (overlay canvas; hierarchy in UI.md)
+└─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
 ```
+
+The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md → Where the HUD lives](UI.md#where-the-hud-lives)).
 
 ## Adding a script
 

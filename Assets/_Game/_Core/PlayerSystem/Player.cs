@@ -25,6 +25,7 @@ namespace Aipocalypse.Core.PlayerSystem
         IStatProvider _stats;
         IPublisher<DamageDealt> _damageDealt;
         IPublisher<PlayerDied> _died;
+        PlayerRegistry _registry;
 
         PlayerMotor _motor;
         PlayerLook _look;
@@ -37,9 +38,10 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool IsDead => Health != null && Health.IsDead;
 
         [Inject]
-        void Construct(InputService input, IStatProvider stats, IPublisher<DamageDealt> damageDealt, IPublisher<PlayerDied> died)
+        void Construct(InputService input, IStatProvider stats, IPublisher<DamageDealt> damageDealt, IPublisher<PlayerDied> died, PlayerRegistry registry)
         {
             _input = input;
+            _registry = registry;
             _stats = stats;
             _damageDealt = damageDealt;
             _died = died;
@@ -52,14 +54,19 @@ namespace Aipocalypse.Core.PlayerSystem
 
             _motor.Landed += OnLanded;
 
-            if (_equipmentConfig == null || _equipmentRig == null)
+            if (_equipmentConfig != null && _equipmentRig != null)
+            {
+                Equipment = new Equipment(_equipmentConfig.CreateHotbar());
+                Equipment.EquipFirstImmediately();
+                _equipmentRig.Bind(Equipment);
+            }
+            else
             {
                 Debug.LogError($"{name}: Equipment Config or Equipment Rig not assigned; equipment is off.", this);
-                return;
             }
-            Equipment = new Equipment(_equipmentConfig.CreateHotbar());
-            Equipment.EquipFirstImmediately();
-            _equipmentRig.Bind(Equipment);
+
+            // Last, so views outside the prefab (HUD) see a fully built player.
+            _registry.Register(this);
         }
 
         void Start()
@@ -87,6 +94,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
         void OnDestroy()
         {
+            _registry?.Unregister(this);
             if (_motor != null)
                 _motor.Landed -= OnLanded;
             Equipment?.Dispose();

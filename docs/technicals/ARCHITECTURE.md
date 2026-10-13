@@ -68,7 +68,7 @@ Any scene (World, Proto_*, test arenas)
 
 - **Play from any scene:** the root scope always exists. With no `SessionRequest` (Play pressed in World), `GameStarter` uses a `DevStartConfig` asset (editor only): start day/time, inventory, stats, **which features and experiments are on**. In builds an empty request returns to the menu.
 - Scenes load with `SceneManager.LoadSceneAsync` + UniTask; no Addressables for now.
-- **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe and `InputService`; `GameLifetimeScope` as a stub with the strict flag. Menu, World, `GameStarter` and the other root services are not built yet.
+- **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe, `InputService` and `PlayerRegistry`; `GameLifetimeScope` as a stub with the strict flag. Menu, World, `GameStarter` and the other root services are not built yet.
 
 ## Systems
 
@@ -82,7 +82,7 @@ Any scene (World, Proto_*, test arenas)
 | WeaponSystem | Weapon item kinds (`GunDefinition`, `MeleeDefinition`) and their held prefabs; shooting and melee land here |
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`) |
-| UI | HUD canvas (nested in the Player prefab), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`). Rules and how-tos: [UI.md](UI.md) |
+| UI | Standalone HUD canvas with its own `HudScope` (placed in the scene; player views follow `PlayerRegistry`), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`). Rules and how-tos: [UI.md](UI.md) |
 
 **Features** (`Assets/_Game/Features/`): *none yet.* Each system or feature gets a row here when it lands.
 
@@ -128,13 +128,13 @@ How `EntityScope` does it (VContainer API checked in package source):
 - **Order:** `GameLifetimeScope` gets `[DefaultExecutionOrder(-5000)]`. Without it, an entity scope whose `Awake` runs first would build against a parent with no container yet (NullReferenceException; VContainer only defers for `parentReference`, not `FindParent`). `EntityScope` itself is `-4000`, so it injects before its own components' `Awake`.
 - **Strict mode:** `GameLifetimeScope.Strict` (to be on in World) turns "default used" into an error, so a missing installer in the real game can't hide behind a default.
 
-**Finding each other:** *not built yet* (planned: an `EntityRegistry` in the root scope). No `FindObjectOfType`, no statics.
+**Finding each other:** `PlayerRegistry` (root scope) holds the active player: players register themselves and it publishes `ActivePlayerChanged`. The HUD uses it today; enemies and companions will too. Other entities: *not built yet* (planned: an `EntityRegistry` in the root scope, which can absorb `PlayerRegistry`). No `FindObjectOfType`, no statics.
 
 ### Player
 
 `_Core/PlayerSystem/Prefabs/Player.prefab` works dropped into any scene; scenes need no camera of their own. Hierarchy: [CODE_STRUCTURE.md → Player prefab](CODE_STRUCTURE.md#player-prefab).
 
-- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views in the prefab read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
+- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
 - `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage, linear between a safe and a lethal drop height. Taking damage publishes `DamageDealt`; dying publishes `PlayerDied`.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
@@ -161,7 +161,7 @@ Per-system budgets (enemy counts, stress scenes) get added here with those syste
 Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the player is tested in `Assets/_Game/Scenes/Prototype.unity`.
 
 1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real folder (Core, Feature or Experimental) from day one. No `Proto*` copies of classes or prefabs.
-2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs; they run on root services + their defaults.
+2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs (and `HUD.prefab` if you want the HUD); they run on root services + their defaults.
 3. **Real systems via installers.** When a prototype needs a real system, add a `GameLifetimeScope` with just those installers. World uses the same class with all installers.
 4. **Defaults belong to the entity's system** (e.g. `PlayerSystem/Defaults/BaseStats`) — they are part of the entity's contract.
 5. **Tuning lives in ScriptableObjects** under `Assets/_Game/Data/`, shared by every scene.

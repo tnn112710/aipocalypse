@@ -42,7 +42,17 @@ HUD                          Canvas · CanvasScaler
 
 ## Where the HUD lives
 
-The HUD is nested inside `Player.prefab`, so any scene with a player has a working HUD and nothing has to be wired up in the scene. `PlayerScope` registers its `Player` (`RegisterInstance`, no second injection), and every `[Inject]` view in the HUD receives that player. HUD views can also inject anything from the parent scopes (root or `GameLifetimeScope`), so non-player info such as objectives or currency fits in the same canvas.
+The HUD is **standalone**, not part of the player. It holds info that isn't the player's (time, objectives, currency), and it keeps working through death and respawn, or in a scene with no player.
+
+- **Put `HUD.prefab` in the scene** next to the Player. In World the scene scope will spawn it.
+- **`HudScope`** on the HUD root injects every view in it from the scene's `GameLifetimeScope`, or from the root scope if the scene has none. It works the same way as an entity's scope, so the HUD works dropped into any scene.
+- **Player views derive from `PlayerHudView`.** Players register with the root `PlayerRegistry`, which publishes `ActivePlayerChanged` (MessagePipe) when the active player changes. The view's `Bind(player)` runs when a player appears and `Unbind(player)` when it leaves or is replaced. Build per-player state in `Bind` (the hotbar spawns its slot views there) and tear it down in `Unbind`.
+- **Views about anything else** are plain MonoBehaviours that `[Inject]` their service (time, objectives) or subscribe to its MessagePipe events.
+
+```text
+PlayerRegistry (root) ── ActivePlayerChanged ──> PlayerHudView.Rebind → Unbind(old) / Bind(new)
+   ▲ Register / Unregister                         ├─ PlayerVitalsHud   polls the bound player in LateUpdate
+Player (Construct / OnDestroy)                    └─ HotbarHud         spawns slot views, listens to Hotbar / Equipment
 
 ## StatBar widget
 
@@ -109,5 +119,5 @@ HotbarSlot                   HotbarSlotView component
 
 1. **A new meter** (hunger, thirst, oxygen): make a style asset in `Data/UI/`, drop a `StatBar.prefab` instance under `Vitals` (the layout group stacks it), assign the style, and feed it from a presenter.
 2. **A new widget type** (counter, objective line, prompt): add a passive view under `_Core/UI/Widgets/` with a `*Style` asset if it has art, make its prefab in `Prefabs/Widgets/`, and place it in the right region.
-3. **New data to show:** add a presenter under `_Core/UI/Hud/` that injects its source (a service, or `Player`) and pushes values into widgets. Use polling for values that change continuously. For rare changes (currency, objectives), subscribe to MessagePipe events.
+3. **New data to show:** add a presenter under `_Core/UI/Hud/` that injects its source (a service; for player data derive from `PlayerHudView`) and pushes values into widgets. Use polling for values that change continuously. For rare changes (currency, objectives), subscribe to MessagePipe events.
 4. Add the scripts to [CODE_STRUCTURE.md](CODE_STRUCTURE.md).

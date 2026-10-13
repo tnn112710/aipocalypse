@@ -6,28 +6,22 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // One slot view per hotbar slot, refreshed on events (items and selection change rarely), never polled.
-    public sealed class HotbarHud : MonoBehaviour
+    // One slot view per slot of the active player's hotbar, refreshed on events (items and selection change rarely), never polled.
+    public sealed class HotbarHud : PlayerHudView
     {
         [SerializeField] HotbarSlotView _slotPrefab;
         [SerializeField, Tooltip("Layout group the slot views are spawned into")] RectTransform _slotParent;
 
-        Player _player;
         InputService _input;
         Equipment _equipment;
         HotbarSlotView[] _slots;
 
         [Inject]
-        void Construct(Player player, InputService input)
-        {
-            _player = player;
-            _input = input;
-        }
+        void Construct(InputService input) => _input = input;
 
-        // Start, not Construct: the player builds its Equipment during its own injection.
-        void Start()
+        protected override void Bind(Player player)
         {
-            _equipment = _player != null ? _player.Equipment : null;
+            _equipment = player.Equipment;
             if (_equipment == null)
                 return;
 
@@ -47,12 +41,21 @@ namespace Aipocalypse.Core.UI
             _equipment.SelectionChanged += OnSelectionChanged;
         }
 
-        void OnDestroy()
+        protected override void Unbind(Player player)
         {
-            if (_slots == null)
+            if (_equipment == null)
                 return;
+
             _equipment.Hotbar.SlotChanged -= OnSlotChanged;
             _equipment.SelectionChanged -= OnSelectionChanged;
+            _equipment = null;
+
+            foreach (HotbarSlotView slot in _slots)
+            {
+                if (slot != null)
+                    Destroy(slot.gameObject);
+            }
+            _slots = null;
         }
 
         void OnSlotChanged(int index, ItemInstance previous, ItemInstance current) =>

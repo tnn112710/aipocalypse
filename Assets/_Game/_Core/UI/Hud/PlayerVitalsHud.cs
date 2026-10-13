@@ -1,29 +1,27 @@
 using Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
-using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // Health and stamina bars for the player whose prefab holds this HUD (PlayerScope registers that Player).
-    public sealed class PlayerVitalsHud : MonoBehaviour
+    // Health and stamina bars for the active player.
+    public sealed class PlayerVitalsHud : PlayerHudView
     {
         [SerializeField] StatBar _health;
         [SerializeField] StatBar _stamina;
 
-        Player _player;
-
-        [Inject]
-        void Construct(Player player) => _player = player;
+        protected override void Bind(Player player) { }
+        protected override void Unbind(Player player) { }
 
         // Polled after Player.Update: two bars, and StatBar ignores unchanged values.
         void LateUpdate()
         {
-            if (_player == null || _player.Health == null)
+            Player player = Player;
+            if (player == null || player.Health == null)
                 return;
 
-            _health.SetValue(_player.Health.Current, _player.Health.Max);
-            _stamina.SetValue(_player.Stamina.Current, _player.Stamina.Max);
-            _stamina.SetWarning(_player.Stamina.IsExhausted);
+            _health.SetValue(player.Health.Current, player.Health.Max);
+            _stamina.SetValue(player.Stamina.Current, player.Stamina.Max);
+            _stamina.SetWarning(player.Stamina.IsExhausted);
         }
     }
 }
