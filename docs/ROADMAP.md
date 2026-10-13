@@ -7,12 +7,12 @@ Core feel prototypes — each mechanic in its own scene under `Assets/_Game/Scen
 ## Next
 
 - [ ] Foundation
-  - [ ] Asmdefs (Core / Features / Experimental / Tests)
-  - [ ] Root `ProjectLifetimeScope` prefab, `GameLifetimeScope` (installers, strict mode), `DevStartConfig`
-  - [ ] `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, `_Common` Combat / Events / Stats / `IChanceRoll`
+  - [ ] Asmdefs (Core / Features / Experimental / Tests) — Core + EditMode tests done
+  - [ ] Root `ProjectLifetimeScope` prefab, `GameLifetimeScope` (installers, strict mode), `DevStartConfig` — root prefab + VContainerSettings, MessagePipe, `InputService` done; `GameLifetimeScope` is a stub with the strict flag
+  - [ ] `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, `_Common` Combat / Events / Stats / `IChanceRoll` — `EntityScope`, `Health`/`IDamageable`/`DamageInfo`, `DamageDealt`/`PlayerDied`, `IStatProvider` done
   - [ ] Debug panel with `IDebugCommands`
   - [ ] PlayMode smoke test
-- [ ] `Proto_Movement` — walk, sprint, crouch, jump, look
+- [ ] `Proto_Movement` — walk, sprint, crouch, jump, look. Done in `Scenes/Prototype.unity`: walk, sprint + stamina/exhaustion, jump (coyote, buffer), look, steep-slope slide, fall damage, head bob + landing dip. Left: crouch, interact
 - [ ] `Proto_Shooting` — fire, recoil, hit feedback, reload, gun jammed, (entity defaults: limited/infinite ammo, base stats, gun feel)
 - [ ] `Proto_Equipment` — hotbar, switch among guns, melee, fishing rod, axe, farm tools (Previous / Next, number keys); equip / unequip animation, primary / secondary use per item
 - [ ] `Proto_Enemies` — A* `FollowerEntity`, one archetype as a BD Subtree (Manual mode, ticked by `EnemyManager`), `EnemyBrain`, attack, health, pooling. **Gate:** 300 tree-driven enemies within budget (`Proto_Stress`) before more archetypes

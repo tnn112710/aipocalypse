@@ -23,7 +23,7 @@ Vendor folders (`Assets/Plugins/`, `Assets/_StoreAssets/`, `Assets/Synty/`, `Pac
 
 | Library | Version | Status | Notes |
 |---|---|---|---|
-| VContainer (`jp.hadashikick.vcontainer`) | 1.19.0 (pinned tag) | Core | DI. Lifetime scopes, per-system installers, `EntityScope` on entity prefabs. |
+| VContainer (`jp.hadashikick.vcontainer`) | 1.19.0 (pinned tag) | Core | DI. Lifetime scopes, per-system installers, `EntityScope` on entity prefabs. Root via `_Core/_Bootstrap/VContainerSettings.asset` (Preloaded Assets) → `ProjectLifetimeScope.prefab`. `DisableScriptModifier` is on: otherwise VContainer overwrites any newly created `*LifetimeScope.cs` with its template. |
 | MessagePipe (+ `.vcontainer`) | 1.8.2 | Core | Cross-system events. Registered once in the root scope (open generics on, no per-type registration). Skill: `tools-unity-messagepipe`. |
 | UniTask | 2.5.11 | Core | Async. Use instead of coroutines. |
 | UIEffect (`com.coffee.ui-effect`) | 5.11.7 | Use | uGUI effects. |
@@ -58,9 +58,9 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 
 | Package | Version | Status | Notes |
 |---|---|---|---|
-| Input System | 1.20.0 | Core | New Input System only. `Assets/Settings/InputSystem_Actions.inputactions`. |
+| Input System | 1.20.0 | Core | New Input System only. `Assets/Settings/InputSystem_Actions.inputactions`, read only through `InputService` via the generated wrapper `GameInputActions` (`_Core/InputSystem/`, regenerated on import). The asset is also the project-wide actions, which only feed UI for now. Editor: keyboard/mouse reach the game only while the Game view has focus. |
 | URP / Shader Graph / VFX Graph | 17.6.0 | Core | Rendering. |
-| Cinemachine | 6.6.0 | Core | Owns the camera. |
+| Cinemachine | 6.6.0 | Core | Owns the camera. The player rig (`CinemachineBrain` + a `CinemachineCamera` hard-locked to the player's camera pivot) lives inside the Player prefab; scenes have no camera of their own. |
 | Test Framework | 1.8.0 | Core | `unity command run_tests`. |
 | Unity Pipeline (`com.unity.pipeline`) | 0.8.0-exp.1 | Editor | Unity CLI bridge. Skill: `unity-pipeline`. |
 | Entities / Entities Graphics | 6.6.0 | Undecided | Required by BD Pro. Our own code stays MonoBehaviour (ARCHITECTURE.md). |

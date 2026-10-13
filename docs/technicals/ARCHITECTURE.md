@@ -83,13 +83,13 @@ Any scene (World, Proto_*, test arenas)
 
 | System | Owns |
 | --- | --- |
-| PlayerSystem | Controller, look, movement, interact; meters (HP, stamina…) in State, the view shows them |
+| PlayerSystem | Controller, look, movement, interact; meters (HP, stamina…) in State, the view shows them. See Player entity |
 | EquipmentSystem | Hotbar, held item, switching, equip/unequip; held-item contract (primary/secondary use). Weapons are one kind of held item; Features add their own (rod, farm tools) |
 | WeaponSystem | Weapon, `WeaponDef`, fire/cost/on-hit modules, recoil, jams, melee |
 | EnemySystem | `EnemyManager` (central tick: ticks enemy trees time-sliced), `EnemyFactory` + pool, enemy parts (Mover/Targeting/Senses/Attack), enemy BD tasks, `EnemyArchetypeDef` (numbers + archetype Subtree), A\* `FollowerEntity` agents |
 | InventorySystem | Resource counts and items (ammo is a resource, not a weapon field) |
 | TimeSystem | `TimeService`: time of day, day number, pause, phase events. No rules about what phases mean |
-| InputSystem | `InputService` over `InputSystem_Actions`, map switching. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
+| InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | `EntityScope`, `EntityInjector`, `EntityRegistry` + spatial grid, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`, `Modifier`), `IChanceRoll`, AI (`AgentBrain` bridge, generic BD tasks), Utils |
 
 **Features** (`Assets/_Game/Features/`, *provisional — follow the GDD*)
@@ -150,7 +150,7 @@ How `EntityScope` does it (VContainer API checked in package source):
 - **Parent:** overrides `FindParent()` to return the scene's `GameLifetimeScope` (or `null` → VContainer falls back to the root).
 - **Defaults:** in `Configure`, registers a default for a need only if `Parent.Container.TryGetRegistration(type, …)` fails (it searches the whole parent chain). A child registration would otherwise override the real service.
 - **Injection:** `RegisterBuildCallback(r => r.InjectGameObject(gameObject))` injects the entity's own hierarchy. Never `RegisterComponentInHierarchy` for entity parts — it searches the whole scene and grabs another instance's component.
-- **Order:** `GameLifetimeScope` gets `[DefaultExecutionOrder(-5000)]`. Without it, an entity scope whose `Awake` runs first would build against a parent with no container yet (NullReferenceException; VContainer only defers for `parentReference`, not `FindParent`).
+- **Order:** `GameLifetimeScope` gets `[DefaultExecutionOrder(-5000)]`. Without it, an entity scope whose `Awake` runs first would build against a parent with no container yet (NullReferenceException; VContainer only defers for `parentReference`, not `FindParent`). `EntityScope` itself is `-4000`, so it injects before its own components' `Awake`.
 - **Strict mode:** `GameLifetimeScope.strict` (on in World) turns "default used" into an error, so a missing installer in the real game can't hide behind a default.
 
 Crowd entities:
@@ -160,6 +160,23 @@ Crowd entities:
 - Enemies read their numbers from their `EnemyArchetypeDef` (+ a per-night difficulty multiplier), not from the stats service.
 
 **Finding each other:** entities register on enable in the `EntityRegistry` (root scope): dense lists for iteration plus a **spatial grid** for "who is near this point" (senses, explosions, targeting). Enemies get the player through `IPlayerLocator`. No `FindObjectOfType`, no statics.
+
+### Player entity
+
+`_Core/PlayerSystem/Prefabs/Player.prefab` works dropped into any scene (scenes need no camera of their own):
+
+```text
+Player              CharacterController · Player (view) · PlayerScope (default IStatProvider → BaseStats)
+  CameraRoot        eye height; head bob + landing dip move it
+    CameraPitch     pitch; tracked by the Cinemachine camera
+  PlayerCamera      Camera (MainCamera tag) · URP data · CinemachineBrain · AudioListener
+  PlayerCinemachineCamera   CinemachineCamera · HardLockToTarget · RotateWithFollowTarget
+```
+
+- `Player` is the only MonoBehaviour with an `Update`. Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob`. Tests or cutscenes can drive the motor with an intent directly.
+- `PlayerMotor`: walk/sprint (forward only, backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
+- `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` (`_Common/Combat`) takes fall damage, linear between a safe and a lethal drop height. Taking damage publishes `DamageDealt`; dying publishes `PlayerDied`.
+- All numbers live in `Data/Player/PlayerTuning.asset`.
 
 ## AI
 
@@ -233,7 +250,7 @@ A prototype is done when it works in its scene **and** in World with no code cha
 ```text
 Assets/_Game/
   _Core/                  asmdef Aipocalypse.Core
-    _Bootstrap/           ProjectLifetimeScope, GameLifetimeScope, MainMenuLifetimeScope, GameStarter, DevStartConfig
+    _Bootstrap/           ProjectLifetimeScope (+ prefab), VContainerSettings asset (preloaded), GameLifetimeScope, MainMenuLifetimeScope, GameStarter, DevStartConfig
     _Common/              EntityScope, EntityRegistry, AI, Combat, Events, Stats, IChanceRoll, Utils
     _Debug/               debug panel, IDebugCommands
     PlayerSystem/  EquipmentSystem/  WeaponSystem/  EnemySystem/  InventorySystem/  TimeSystem/  InputSystem/
@@ -243,10 +260,11 @@ Assets/_Game/
   Data/                   ScriptableObject assets
   Scenes/                 MainMenu, World
     Prototypes/           Proto_* scenes
+  Tests/EditMode/         asmdef Aipocalypse.Tests.EditMode
 ```
 
 ## Assemblies
 
-- `Aipocalypse.Core`, `Aipocalypse.Features`, `Aipocalypse.Experimental` + one EditMode/PlayMode test asmdef. The asmdef references enforce **Features → Core** at compile time.
+- `Aipocalypse.Core`, `Aipocalypse.Features`, `Aipocalypse.Experimental` + one EditMode/PlayMode test asmdef. The asmdef references enforce **Features → Core** at compile time. Created so far: `Aipocalypse.Core`, `Aipocalypse.Tests.EditMode`; Features/Experimental get theirs with their first code.
 - **Don't enable VContainer's source generator** for now: it has an open issue with injectors across multiple assemblies (hadashiA/VContainer#822), and reflection-based injection is fine on PC. Revisit only if profiling shows injection cost.
 - Rule-heavy services (stats, inventory, day/night rules, progression) are plain C# and get EditMode tests.

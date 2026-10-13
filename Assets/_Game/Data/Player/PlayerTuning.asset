@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa025ccf4e035446be3016558584021, type: 3}
+  m_Name: PlayerTuning
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerTuning
+  <WalkSpeed>k__BackingField: 3.5
+  <SprintSpeed>k__BackingField: 6
+  <StrafeSpeedMultiplier>k__BackingField: 0.9
+  <BackwardSpeedMultiplier>k__BackingField: 0.7
+  <SprintMinForwardInput>k__BackingField: 0.5
+  <GroundAcceleration>k__BackingField: 10
+  <GroundDeceleration>k__BackingField: 12
+  <AirAcceleration>k__BackingField: 1.5
+  <JumpHeight>k__BackingField: 1.1
+  <Gravity>k__BackingField: 22
+  <MaxFallSpeed>k__BackingField: 50
+  <GroundStickSpeed>k__BackingField: 5
+  <CoyoteTime>k__BackingField: 0.12
+  <JumpBufferTime>k__BackingField: 0.12
+  <SteepSlopeSlideAcceleration>k__BackingField: 12
+  <HeavyLandingHeight>k__BackingField: 2
+  <HeavyLandingSpeedMultiplier>k__BackingField: 0.5
+  <HeavyLandingRecoveryTime>k__BackingField: 0.4
+  <SafeFallHeight>k__BackingField: 3.5
+  <LethalFallHeight>k__BackingField: 14
+  <MaxHealth>k__BackingField: 100
+  <MaxStamina>k__BackingField: 100
+  <SprintStaminaPerSecond>k__BackingField: 12
+  <JumpStaminaCost>k__BackingField: 12
+  <StaminaRegenPerSecond>k__BackingField: 18
+  <StaminaRegenDelay>k__BackingField: 1
+  <ExhaustionRecoverFraction>k__BackingField: 0.3
+  <MinPitch>k__BackingField: -85
+  <MaxPitch>k__BackingField: 85
+  <StepLength>k__BackingField: 1.7
+  <WalkBobAmplitude>k__BackingField: 0.02
+  <SprintBobAmplitude>k__BackingField: 0.05
+  <BobSideRatio>k__BackingField: 0.5
+  <BobFadeSpeed>k__BackingField: 8
+  <LandingDipMinSpeed>k__BackingField: 3
+  <LandingDipPerSpeed>k__BackingField: 0.35
+  <LandingDipMax>k__BackingField: 0.25
+  <LandingDipStiffness>k__BackingField: 120
+  <LandingDipPitch>k__BackingField: 15

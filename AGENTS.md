@@ -45,7 +45,7 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 
 ## Key tech choices (from `Packages/manifest.json`)
 
-- **Input**: new Input System only (`activeInputHandler: 1`). Actions asset is `Assets/Settings/InputSystem_Actions.inputactions` with a `Player` map: Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint. Use these actions; don't call the legacy `UnityEngine.Input`.
+- **Input**: new Input System only (`activeInputHandler: 1`). Actions asset is `Assets/Settings/InputSystem_Actions.inputactions` with a `Player` map: Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint. Use these actions; don't call the legacy `UnityEngine.Input`. Game code reads input only through `InputService` (root scope, generated wrapper `GameInputActions`); never enable/disable actions or set the cursor lock elsewhere.
 - **Architecture / DI**: VContainer (`jp.hadashikick.vcontainer`) + UniTask. Cross-system events go through MessagePipe. No `X.Instance` singletons in game code — services are plain C# registered in lifetime scopes; each system registers through its own installer. Entity prefabs (player, enemies…) carry their own `EntityScope` and must work dropped into any scene. See `docs/technicals/ARCHITECTURE.md`.
 - **AI**: Behavior Designer Pro 3.3 trees for every agent; crowd enemy trees ticked time-sliced by `EnemyManager`.
 - **Enemy navigation**: A* Pathfinding Project 5.4 (`FollowerEntity` agents).
