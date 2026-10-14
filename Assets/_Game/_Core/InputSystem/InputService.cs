@@ -26,6 +26,9 @@ namespace Aipocalypse.Input
         public Vector2 Move => _actions.Player.Move.ReadValue<Vector2>();
         public bool SprintHeld => _actions.Player.Sprint.IsPressed();
         public bool JumpPressed => _actions.Player.Jump.WasPressedThisFrame();
+        // On press, not when the action's Hold interaction completes.
+        public bool InteractPressed => _actions.Player.Interact.WasPressedThisFrame();
+        public bool DropPressed => _actions.Player.Drop.WasPressedThisFrame();
 
         public int SlotKeyCount => _slots.Length;
 
@@ -51,6 +54,10 @@ namespace Aipocalypse.Input
             index >= 0 && index < _slots.Length
                 ? _slots[index].GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup))
                 : string.Empty;
+
+        // Key name for Interact ("E"), follows rebinding. Allocates: call at setup, not per frame.
+        public string GetInteractKeyLabel() =>
+            _actions.Player.Interact.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
 
         public void Initialize() => EnableGameplay();
 

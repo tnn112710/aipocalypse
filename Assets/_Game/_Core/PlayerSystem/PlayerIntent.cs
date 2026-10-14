@@ -11,5 +11,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool Jump;
         public int? SelectSlot;
         public int CycleSlot;
+        public bool Interact;
+        public bool Drop;
     }
 }

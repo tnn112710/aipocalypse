@@ -55,6 +55,17 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         public int IndexOf(ItemInstance item) => item == null ? -1 : Array.IndexOf(_items, item);
 
+        // First empty slot that accepts the item, or -1.
+        public int FindFreeSlot(ItemInstance item)
+        {
+            for (int i = 0; i < _items.Length; i++)
+            {
+                if (_items[i] == null && CanPlace(i, item))
+                    return i;
+            }
+            return -1;
+        }
+
         // Next slot after `from` in `direction` (+1 / -1) whose item passes the filter, wrapping around. -1 if none.
         public int FindNext(int from, int direction, Func<ItemInstance, bool> filter)
         {

@@ -53,6 +53,15 @@ namespace Aipocalypse.Core.EquipmentSystem
                 BecameReady?.Invoke(item);
         }
 
+        // The held item is gone (dropped, swapped away): it leaves the hands now instead of being holstered.
+        public void DropHeld()
+        {
+            if (Held == null)
+                return;
+            Raise = 0f;
+            Swap();
+        }
+
         public void Tick(float deltaTime, float speedMultiplier)
         {
             float step = deltaTime * speedMultiplier;

@@ -29,20 +29,24 @@ Assets/_Game/
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt, PlayerDied
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
+│  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  └─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
-│  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, CreateInstance
+│  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, WorldPrefab, CreateInstance
 │  │  ├─ Items/EquippableDefinition.cs      abstract SO: held prefab, equip / holster time
 │  │  ├─ Items/ItemInstance.cs              one owned item (per-copy state goes in subclasses)
-│  │  ├─ Hotbar.cs                          ≤ 9 slots, category check, SlotChanged, FindNext
+│  │  ├─ Hotbar.cs                          ≤ 9 slots, category check, SlotChanged, FindNext, FindFreeSlot
 │  │  ├─ EquipmentSwitcher.cs               holster → swap → equip timing (Raise 0..1, SwitchPhase)
-│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle
+│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle; pick up (store / swap), DropSelected
+│  │  ├─ PickUpAction.cs                    None / Store / Swap
+│  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
+│  │  ├─ WorldItem.cs                       item lying in the world: IInteractable, picks up / swaps; Spawn for drops
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
 │  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Show / Hide / OnReady hooks
 │  │  └─ EquipmentRig.cs                    spawns HeldItems, shows the held one, temporary lower/raise pose
 │  ├─ InputSystem/                          Aipocalypse.Input
-│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling
+│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
@@ -51,10 +55,11 @@ Assets/_Game/
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
-│  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot
+│  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop
 │  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo)
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root
+│  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
 │  │  ├─ FallDamage.cs                      drop height → damage
 │  │  ├─ PlayerTuning.cs                    ScriptableObject type for every player number
@@ -65,25 +70,30 @@ Assets/_Game/
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
 │  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / ApplyStyle
 │  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font
+│  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
+│  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
 │  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
 │  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind per active player
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment (events, no polling)
+│  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
-│  │  └─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
+│  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
+│  │  └─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun (gun data lands here with shooting)
 │     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee
-│     └─ Prefabs/DummyRifle, DummyPistol, DummyFireAxe.prefab   held prefabs: HeldItem root + store model
+│     ├─ Prefabs/DummyRifle, DummyPistol, DummyFireAxe.prefab   held prefabs: HeldItem root + store model
+│     └─ Prefabs/Dummy*Pickup.prefab        world prefabs: WorldItem + trigger box + model lying flat
 ├─ Data/
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
-│  ├─ Equipment/EquipmentConfig.asset       3 slots: Primary (Gun) Rifle, Secondary (Gun) Pistol, Melee (Melee) Fire Axe
-│  ├─ Items/Rifle, Pistol, FireAxe.asset     item definitions
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset
+│  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
+│  ├─ Items/Rifle, Pistol, FireAxe.asset     item definitions (held + world prefab)
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
-   └─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle
+   └─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
 ```
 
 ## Who depends on whom
@@ -97,18 +107,19 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
          Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>, PlayerRegistry)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
-             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot),
+             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerInteractor(cameraPitch, gameObject),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment)
            last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
 
 HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
    └─ injects the HUD GameObject
          PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active player
-           PlayerVitalsHud, HotbarHud (+ InputService for key labels)
+           PlayerVitalsHud, HotbarHud, InteractPromptHud (+ InputService for key labels)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
-- `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons.
+- `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner` (Player implements it).
+- Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
 - Inside the player system, plain C# events are used (`PlayerMotor.Landed` / `Jumped`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
 
 ## Frame order (Player.Update)
@@ -120,11 +131,13 @@ PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Lande
                        └─ Player.OnLanded: head-bob dip + fall damage → Health → DamageDealt / PlayerDied
 Stamina.Tick         regen (spending happened inside the motor)
 PlayerHeadBob.Tick   camera root offset
-Equipment            intent.SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
+PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
+Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    hand pose from Raise
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
+                     InteractPromptHud reads Player.Interactor → InteractPromptView
 StatBar.Update       only while a trail is catching up, otherwise disabled
 ```
 

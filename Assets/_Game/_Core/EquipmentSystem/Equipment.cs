@@ -55,6 +55,43 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         public void Tick(float deltaTime, float switchSpeed) => Switcher.Tick(deltaTime, switchSpeed);
 
+        // Store: goes into the first free slot that accepts it, and is switched to. Swap: no free slot, it replaces the selected item.
+        public PickUpAction GetPickUpAction(ItemInstance item)
+        {
+            if (item == null || Hotbar.IndexOf(item) >= 0)
+                return PickUpAction.None;
+            if (Hotbar.FindFreeSlot(item) >= 0)
+                return PickUpAction.Store;
+            if (SelectedIndex >= 0 && Hotbar.CanPlace(SelectedIndex, item))
+                return PickUpAction.Swap;
+            return PickUpAction.None;
+        }
+
+        // Takes the selected item out of the hotbar and empties the hands. The caller puts it in the world.
+        public ItemInstance DropSelected() => SelectedIndex >= 0 ? Hotbar.Remove(SelectedIndex) : null;
+
+        // `dropped` is the item a swap pushed out of the hotbar; the caller puts it in the world.
+        public bool TryPickUp(ItemInstance item, out ItemInstance dropped)
+        {
+            dropped = null;
+            switch (GetPickUpAction(item))
+            {
+                case PickUpAction.Store:
+                    int slot = Hotbar.FindFreeSlot(item);
+                    Hotbar.TryPlace(slot, item);
+                    Select(slot);
+                    return true;
+
+                case PickUpAction.Swap:
+                    dropped = Hotbar[SelectedIndex];
+                    Hotbar.TryPlace(SelectedIndex, item);
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         // Selecting a slot holds its item. Items that do something else on select (quick-use consumables) go here.
         static bool CanSelect(ItemInstance item) => item.IsEquippable;
 
@@ -68,16 +105,20 @@ namespace Aipocalypse.Core.EquipmentSystem
                 SelectionChanged?.Invoke(previous, index);
         }
 
-        // The selected slot's item was swapped or removed (inventory, pickup): hold the new one, or nothing.
         void OnSlotChanged(int index, ItemInstance previous, ItemInstance current)
         {
-            if (index != SelectedIndex)
-                return;
+            // The selected slot's item was swapped or removed: hold the new one, or nothing.
+            if (index == SelectedIndex)
+            {
+                if (current != null && CanSelect(current))
+                    Switcher.SetTarget(current);
+                else
+                    SetSelection(-1);
+            }
 
-            if (current != null && CanSelect(current))
-                Switcher.SetTarget(current);
-            else
-                SetSelection(-1);
+            // An item that left the hotbar can't be holstered, so it leaves the hands at once.
+            if (previous != null && previous == Switcher.Held && Hotbar.IndexOf(previous) < 0)
+                Switcher.DropHeld();
         }
     }
 }

@@ -273,6 +273,16 @@ namespace Aipocalypse.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""37b10c1d-710c-4530-8c4f-f7d299e2ac44"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -757,6 +767,17 @@ namespace Aipocalypse.Input
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Slot9"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e0a1ab84-49d9-48eb-816a-27134bae24ae"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Drop"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1372,6 +1393,7 @@ namespace Aipocalypse.Input
             m_Player_Slot7 = m_Player.FindAction("Slot7", throwIfNotFound: true);
             m_Player_Slot8 = m_Player.FindAction("Slot8", throwIfNotFound: true);
             m_Player_Slot9 = m_Player.FindAction("Slot9", throwIfNotFound: true);
+            m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1483,6 +1505,7 @@ namespace Aipocalypse.Input
         private readonly InputAction m_Player_Slot7;
         private readonly InputAction m_Player_Slot8;
         private readonly InputAction m_Player_Slot9;
+        private readonly InputAction m_Player_Drop;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -1567,6 +1590,10 @@ namespace Aipocalypse.Input
             /// </summary>
             public InputAction @Slot9 => m_Wrapper.m_Player_Slot9;
             /// <summary>
+            /// Provides access to the underlying input action "Player/Drop".
+            /// </summary>
+            public InputAction @Drop => m_Wrapper.m_Player_Drop;
+            /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
             public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1646,6 +1673,9 @@ namespace Aipocalypse.Input
                 @Slot9.started += instance.OnSlot9;
                 @Slot9.performed += instance.OnSlot9;
                 @Slot9.canceled += instance.OnSlot9;
+                @Drop.started += instance.OnDrop;
+                @Drop.performed += instance.OnDrop;
+                @Drop.canceled += instance.OnDrop;
             }
 
             /// <summary>
@@ -1711,6 +1741,9 @@ namespace Aipocalypse.Input
                 @Slot9.started -= instance.OnSlot9;
                 @Slot9.performed -= instance.OnSlot9;
                 @Slot9.canceled -= instance.OnSlot9;
+                @Drop.started -= instance.OnDrop;
+                @Drop.performed -= instance.OnDrop;
+                @Drop.canceled -= instance.OnDrop;
             }
 
             /// <summary>
@@ -2137,6 +2170,13 @@ namespace Aipocalypse.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSlot9(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Drop" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnDrop(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

@@ -10,9 +10,9 @@ using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The player's view: turns input into an intent and drives look → movement → stamina → head motion → equipment in that order.
+    // The player's view: turns input into an intent and drives look → movement → stamina → head motion → interaction → equipment in that order.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class Player : MonoBehaviour, IDamageable
+    public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner
     {
         [SerializeField] PlayerTuning _tuning;
         [SerializeField] CharacterController _controller;
@@ -30,11 +30,13 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerMotor _motor;
         PlayerLook _look;
         PlayerHeadBob _headBob;
+        PlayerInteractor _interactor;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
         public Equipment Equipment { get; private set; }
         public PlayerMotor Motor => _motor;
+        public PlayerInteractor Interactor => _interactor;
         public bool IsDead => Health != null && Health.IsDead;
 
         [Inject]
@@ -51,6 +53,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _motor = new PlayerMotor(_controller, _tuning, stats, Stamina);
             _look = new PlayerLook(transform, _cameraPitch, _tuning);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning);
+            _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning);
 
             _motor.Landed += OnLanded;
 
@@ -87,6 +90,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _motor.Tick(intent, deltaTime);
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.StaminaRegenPerSecond));
             _headBob.Tick(_motor, deltaTime);
+            TickInteraction(intent);
             TickEquipment(intent, deltaTime);
         }
 
@@ -125,20 +129,39 @@ namespace Aipocalypse.Core.PlayerSystem
             Jump = _input.JumpPressed,
             SelectSlot = _input.SlotPressed is var slot and >= 0 ? slot : null,
             CycleSlot = _input.CycleDirection,
+            Interact = _input.InteractPressed,
+            Drop = _input.DropPressed,
         };
+
+        void TickInteraction(in PlayerIntent intent)
+        {
+            if (IsDead || !_input.GameplayEnabled)
+                _interactor.Clear();
+            else
+                _interactor.Tick(intent.Interact);
+        }
 
         void TickEquipment(in PlayerIntent intent, float deltaTime)
         {
             if (Equipment == null)
                 return;
 
-            if (intent.SelectSlot is int slot)
+            if (intent.Drop)
+                DropSelected();
+            else if (intent.SelectSlot is int slot)
                 Equipment.Select(slot);
             else if (intent.CycleSlot != 0)
                 Equipment.Cycle(intent.CycleSlot);
 
             Equipment.Tick(deltaTime, _equipmentConfig.SwitchSpeed);
             _equipmentRig.Tick();
+        }
+
+        void DropSelected()
+        {
+            ItemInstance item = Equipment.DropSelected();
+            if (item != null)
+                WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, transform.eulerAngles.y + 90f, 0f), null);
         }
 
         void OnLanded(LandingInfo landing)

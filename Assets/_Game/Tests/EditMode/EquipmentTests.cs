@@ -11,7 +11,9 @@ namespace Aipocalypse.Tests
         const float Equip = 0.35f;
         const float Holster = 0.25f;
 
-        ItemInstance _rifle, _pistol, _axe;
+        const ItemCategory Weapon = ItemCategory.Gun | ItemCategory.Melee;
+
+        ItemInstance _rifle, _pistol, _axe, _rifle2;
 
         [SetUp]
         public void SetUp()
@@ -19,6 +21,7 @@ namespace Aipocalypse.Tests
             _rifle = ScriptableObject.CreateInstance<GunDefinition>().CreateInstance();
             _pistol = ScriptableObject.CreateInstance<GunDefinition>().CreateInstance();
             _axe = ScriptableObject.CreateInstance<MeleeDefinition>().CreateInstance();
+            _rifle2 = _rifle.Definition.CreateInstance();
         }
 
         [TearDown]
@@ -30,6 +33,16 @@ namespace Aipocalypse.Tests
         }
 
         static Hotbar GunsAndMelee() => new(new[] { ItemCategory.Gun, ItemCategory.Gun, ItemCategory.Melee });
+        static Hotbar AnyWeapon() => new(new[] { Weapon, Weapon, Weapon });
+
+        static Equipment Empty(Hotbar hotbar)
+        {
+            var equipment = new Equipment(hotbar);
+            equipment.EquipFirstImmediately();
+            return equipment;
+        }
+
+        static void Settle(Equipment equipment) => equipment.Tick(10f, 1f);
 
         Equipment Loaded()
         {
@@ -147,16 +160,111 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void RemovingSelectedItem_HolstersToEmptyHands()
+        public void RemovingSelectedItem_LeavesHandsAtOnce()
         {
             Equipment equipment = Loaded();
 
             equipment.Hotbar.Remove(0);
-            equipment.Tick(Holster, 1f);
 
             Assert.AreEqual(-1, equipment.SelectedIndex);
             Assert.IsNull(equipment.Switcher.Held);
             Assert.AreEqual(SwitchPhase.Empty, equipment.Switcher.Phase);
+        }
+
+        [Test]
+        public void PickUp_FillsFirstFreeSlot_WhateverTheKind()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+
+            Assert.IsTrue(equipment.TryPickUp(_axe, out ItemInstance dropped));
+            Assert.IsNull(dropped);
+            Assert.IsTrue(equipment.TryPickUp(_rifle, out _));
+            Assert.IsTrue(equipment.TryPickUp(_pistol, out _));
+
+            Assert.AreSame(_axe, equipment.Hotbar[0]);
+            Assert.AreSame(_rifle, equipment.Hotbar[1]);
+            Assert.AreSame(_pistol, equipment.Hotbar[2]);
+        }
+
+        [Test]
+        public void PickUp_SwitchesToThePickedUpItem()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+
+            equipment.TryPickUp(_pistol, out _);
+            Assert.AreEqual(0, equipment.SelectedIndex);
+            Assert.AreSame(_pistol, equipment.Switcher.Target);
+            Settle(equipment);
+
+            equipment.TryPickUp(_rifle, out _);
+            Assert.AreEqual(1, equipment.SelectedIndex);
+            Assert.AreSame(_rifle, equipment.Switcher.Target);
+            Assert.AreEqual(SwitchPhase.Holstering, equipment.Switcher.Phase);
+        }
+
+        [Test]
+        public void PickUp_WhenFull_SwapsWithSelected_AndRaisesTheNewOne()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+            equipment.TryPickUp(_rifle, out _);
+            equipment.TryPickUp(_pistol, out _);
+            equipment.TryPickUp(_axe, out _);
+            equipment.Select(1);
+            Settle(equipment);
+
+            Assert.AreEqual(PickUpAction.Swap, equipment.GetPickUpAction(_rifle2));
+            Assert.IsTrue(equipment.TryPickUp(_rifle2, out ItemInstance dropped));
+
+            Assert.AreSame(_pistol, dropped);
+            Assert.AreSame(_rifle2, equipment.Hotbar[1]);
+            Assert.AreEqual(1, equipment.SelectedIndex);
+            Assert.AreSame(_rifle2, equipment.Switcher.Held);
+            Assert.AreEqual(SwitchPhase.Equipping, equipment.Switcher.Phase);
+            Assert.AreEqual(0f, equipment.Switcher.Raise);
+        }
+
+        [Test]
+        public void PickUp_RespectsSlotCategories()
+        {
+            Equipment equipment = Loaded();
+            equipment.Select(2);
+
+            Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_rifle2));
+            Assert.IsFalse(equipment.TryPickUp(_rifle2, out _));
+
+            equipment.Select(0);
+            Assert.AreEqual(PickUpAction.Swap, equipment.GetPickUpAction(_rifle2));
+        }
+
+        [Test]
+        public void DropSelected_EmptiesSlotAndHands_AndFreesTheSlotForPickUp()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+            equipment.TryPickUp(_rifle, out _);
+            equipment.TryPickUp(_pistol, out _);
+            equipment.TryPickUp(_axe, out _);
+            equipment.Select(0);
+            Settle(equipment);
+
+            Assert.AreSame(_rifle, equipment.DropSelected());
+            Assert.IsNull(equipment.Hotbar[0]);
+            Assert.AreEqual(-1, equipment.SelectedIndex);
+            Assert.AreEqual(SwitchPhase.Empty, equipment.Switcher.Phase);
+            Assert.IsNull(equipment.DropSelected());
+
+            Assert.AreEqual(PickUpAction.Store, equipment.GetPickUpAction(_rifle2));
+            equipment.TryPickUp(_rifle2, out _);
+            Assert.AreSame(_rifle2, equipment.Hotbar[0]);
+            Assert.AreEqual(0, equipment.SelectedIndex);
+        }
+
+        [Test]
+        public void PickUp_IgnoresItemAlreadyInHotbar()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+            equipment.TryPickUp(_rifle, out _);
+
+            Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_rifle));
         }
     }
 }

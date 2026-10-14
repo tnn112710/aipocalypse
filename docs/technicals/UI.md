@@ -35,6 +35,8 @@ HUD                          Canvas · CanvasScaler
    │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
    └─ Center
+      └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
+         └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
 ```
 
 - **Region per corner.** New HUD info goes under the matching region: quest tracker in TopRight, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
@@ -95,6 +97,21 @@ HotbarSlot                   HotbarSlotView component
 - The highlight moves as soon as a slot is selected, not when the switch animation finishes.
 - Behavior and switching rules: [EQUIPMENT.md](EQUIPMENT.md).
 
+## Interact prompt
+
+`_Core/UI/Prefabs/Widgets/InteractPrompt.prefab`: "[E] Pick up Rifle".
+
+```text
+InteractPrompt               InteractPromptView component
+└─ Content                   HorizontalLayoutGroup + ContentSizeFitter: grows with the text; shown / hidden as a whole
+   ├─ KeyCap                 36×36 key sprite + TMP label (from the Interact binding)
+   └─ Text                   TMP: verb in VerbColor, target name in TargetColor
+```
+
+- `InteractPromptView` API: `SetKey(string)`, `Show(verb, target)` (rebuilds the text only when it changes), `Hide()`, `ApplyStyle()`.
+- `InteractPromptHud` polls `Player.Interactor` in `LateUpdate`, because the focus changes as you look around.
+- The text comes from the focused `IInteractable` ([EQUIPMENT.md → Pickup, swap and drop](EQUIPMENT.md#pickup-swap-and-drop)).
+
 ## Changing the look
 
 | To change | Edit |
@@ -106,6 +123,8 @@ HotbarSlot                   HotbarSlotView component
 | Hotbar slot size, key cap size | `HotbarSlot.prefab` RectTransforms. Outline / box thickness: the images' Pixels Per Unit Multiplier |
 | Spacing between hotbar slots | `Hotbar` → HorizontalLayoutGroup spacing |
 | Item icons | the item's `Data/Items/*.asset` → `Icon` |
+| Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
+| Interact prompt position | `HUD` → `Center/Interact` anchored position |
 | Spacing between bars | `Vitals` → VerticalLayoutGroup spacing |
 | Distance from the screen edge | `HUD` → `SafeFrame` offsets |
 | Overall HUD scale | `HUD` → CanvasScaler reference resolution / match |

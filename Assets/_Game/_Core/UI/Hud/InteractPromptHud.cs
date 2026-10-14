@@ -1,0 +1,42 @@
+using Aipocalypse.Core.Interaction;
+using Aipocalypse.Core.PlayerSystem;
+using Aipocalypse.Input;
+using UnityEngine;
+using VContainer;
+
+namespace Aipocalypse.Core.UI
+{
+    // Shows what the active player can use right now ("[E] Pick up Rifle"). Polled: the focus changes as the player looks around.
+    public sealed class InteractPromptHud : PlayerHudView
+    {
+        [SerializeField] InteractPromptView _view;
+
+        InputService _input;
+
+        [Inject]
+        void Construct(InputService input) => _input = input;
+
+        protected override void Start()
+        {
+            _view.Hide();
+            _view.SetKey(_input?.GetInteractKeyLabel() ?? "E");
+            base.Start();
+        }
+
+        protected override void Bind(Player player) { }
+        protected override void Unbind(Player player) => _view.Hide();
+
+        void LateUpdate()
+        {
+            PlayerInteractor interactor = Player != null ? Player.Interactor : null;
+            if (interactor == null || !interactor.HasPrompt)
+            {
+                _view.Hide();
+                return;
+            }
+
+            InteractionPrompt prompt = interactor.Prompt;
+            _view.Show(prompt.Verb, prompt.Target);
+        }
+    }
+}
