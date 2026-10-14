@@ -25,13 +25,13 @@ Assets/_Game/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage
-│  │  │  ├─ DamageInfo.cs                   DamageInfo struct + DamageType enum (Generic, Fall, Gunshot)
+│  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force) + DamageType enum (Generic, Fall, Gunshot, Melee)
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt, PlayerDied
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  └─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
-│  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health
+│  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health, tips over from knockback and springs back
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, WorldPrefab, CreateInstance
@@ -87,14 +87,18 @@ Assets/_Game/
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, handling, sounds, effects
 │     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
 │     ├─ GunInstance.cs                     one owned gun: Rounds, IsJammed, Changed (survives drop / swap)
-│     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee
+│     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee: Swing, Sounds, ImpactEffect
+│     ├─ MeleeSettings.cs                   SwingSettings (damage, reach, radius, wind-up, recovery, knockback, layers), MeleeSounds
+│     ├─ MeleeAttack.cs                     melee rules: swing timing, hold to repeat, buffered click, alternating sides → SwingStarted, Struck
+│     ├─ HeldMelee.cs                       HeldItem for melee: runs MeleeAttack, procedural swing between pose markers, sphere-cast hit → damage, knockback, impact, sounds
 │     ├─ Ammo/AmmoType.cs                   SO: a kind of round; guns of one type share a pool
 │     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
 │     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
-│     ├─ IGunUser.cs                        holder seam: Ammo, Eye, Root, AimFrom (Player implements it)
+│     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root
+│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom (Player implements it)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload, jam + clear, aim; events (+ GunAction, GunInput)
-│     ├─ GunRecoil.cs                       procedural recoil: spray pattern, spring return → gun and view offsets
+│     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, action motion, sounds (own AudioSource)
@@ -108,13 +112,13 @@ Assets/_Game/
 │     ├─ Prefabs/Guns/*_Pickup.prefab       world prefabs: WorldItem + trigger box + model lying flat
 │     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
 │     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
-│     ├─ Prefabs/DummyFireAxe.prefab        held prefab: HeldItem root + store model
-│     └─ Prefabs/DummyFireAxePickup.prefab  world prefab
+│     ├─ Prefabs/Melee/FireAxe.prefab       HeldMelee + 2D AudioSource: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model
+│     └─ Prefabs/Melee/FireAxe_Pickup.prefab  world prefab
 ├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
 ├─ Data/
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/AK47, Pistol, FireAxe.asset      item definitions (held + world prefab; guns hold all their numbers)
+│  ├─ Items/AK47, Pistol, FireAxe.asset      item definitions (held + world prefab; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo.asset   ammo types
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
@@ -122,7 +126,8 @@ Assets/_Game/
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
-   └─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
+   ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
+   └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
 
 ## Who depends on whom
@@ -140,8 +145,8 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
              PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerInteractor(cameraPitch, gameObject),
              AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
-               rig spawns held prefabs with resolver.Instantiate → HeldGun.Construct(BulletSystem, EffectPool)
-               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil
+               rig spawns held prefabs with resolver.Instantiate → HeldGun.Construct(BulletSystem, EffectPool), HeldMelee.Construct(EffectPool)
+               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil; HeldMelee builds MeleeAttack
            last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
 
 HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
@@ -151,7 +156,7 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
-- `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser` (Player implements both). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
+- `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser`, a `HeldMelee` its eye and root through `IWeaponUser` (Player implements all of them). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
 - Bullets hit anything with an `IDamageable` (`_Common/Combat`) and call `TakeDamage` with `DamageType.Gunshot`; the target publishes `DamageDealt` itself.
 - Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
 - Inside the player system, plain C# events are used (`PlayerMotor.Landed` / `Jumped`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
@@ -169,10 +174,12 @@ PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteract
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    hand pose from Raise
-EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired counts shots); pose + recoil pivots
+EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired counts shots); pose + recoil pivots.
+                       HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
-                       from the muzzle as drawn, then GunRecoil.Kick (shows from next frame)
+                       from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
+                       HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
 VContainer ticks     BulletSystem moves and ray-tests bullets → damage, impacts, holes; EffectPool returns expired effects
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)

@@ -67,27 +67,31 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Seconds to clear a jam. Clearing starts by itself")] public float ClearTime = 1.5f;
     }
 
+    // Aim kick moves the view, so it moves the crosshair and where shots go. Gun kick is extra motion of the model only,
+    // on top of the view it's attached to; keep it small so the barrel stays near the crosshair.
     [Serializable]
     public sealed class RecoilValues
     {
         [Range(0f, 2f)] public float Multiplier = 1f;
 
-        [Header("Gun kick"), Min(0f), Tooltip("Degrees up per shot")] public float Vertical = 6f;
-        [Min(0f), Tooltip("Degrees sideways per shot, along the spray pattern")] public float Horizontal = 6f;
-        [Min(0f), Tooltip("Metres pushed back per shot")] public float KickBack = 0.1f;
+        [Header("Aim kick (the view, where shots go)"), Min(0f), Tooltip("Degrees up per shot")] public float Vertical = 3.5f;
+        [Min(0f), Tooltip("Degrees sideways per shot, along the spray pattern")] public float Horizontal = 2.5f;
+        [Min(0f), Tooltip("Degrees of view roll per shot")] public float Roll = 0.3f;
+        [Min(0f), Tooltip("Random extra degrees up / down per shot")] public float NoisePitch = 0.11f;
+        [Min(0f), Tooltip("Random extra degrees sideways per shot")] public float NoiseYaw = 0.08f;
+        [Min(0f), Tooltip("View shake per shot (m)")] public float CameraShake = 0.01f;
 
-        [Header("Response (higher = faster)"), Min(0f)] public float VerticalReturnSpeed = 10f;
+        [Header("Aim response (higher = faster)"), Min(0f)] public float VerticalReturnSpeed = 10f;
         [Min(0f)] public float HorizontalReturnSpeed = 10f;
         [Min(0f)] public float VerticalSnappiness = 10f;
         [Min(0f)] public float HorizontalSnappiness = 10f;
 
-        [Header("Noise"), Min(0f)] public float NoisePitch = 0.16f;
-        [Min(0f)] public float NoiseYaw = 0.24f;
-
-        [Header("Camera"), Min(0f), Tooltip("Share of the gun kick the view follows; 0 keeps the view still")]
-        public float CameraRotation = 0.7f;
-        [Min(0f)] public float CameraRoll = 0.3f;
-        [Min(0f), Tooltip("View shake per shot (m)")] public float CameraShake = 0.01f;
+        [Header("Gun kick (model only, on top of the view)"), Min(0f), Tooltip("Extra degrees the muzzle lifts per shot")] public float GunPitch = 1f;
+        [Min(0f), Tooltip("Extra degrees sideways per shot, along the spray pattern")] public float GunYaw = 0.5f;
+        [Min(0f), Tooltip("Extra degrees of roll per shot")] public float GunRoll = 1f;
+        [Min(0f), Tooltip("Metres pushed back per shot")] public float KickBack = 0.06f;
+        [Min(0f), Tooltip("How fast the gun kick settles (higher = the barrel stays closer to the crosshair)")] public float GunReturnSpeed = 18f;
+        [Min(0f)] public float GunSnappiness = 20f;
     }
 
     [Serializable]

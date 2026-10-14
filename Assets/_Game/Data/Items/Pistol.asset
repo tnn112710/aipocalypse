@@ -42,32 +42,40 @@ MonoBehaviour:
   <Recoil>k__BackingField:
     Hip:
       Multiplier: 1
-      Vertical: 5
-      Horizontal: 8
-      KickBack: 0.1
+      Vertical: 3.5
+      Horizontal: 2.5
+      Roll: 0.3
+      NoisePitch: 0.11
+      NoiseYaw: 0.08
+      CameraShake: 0.01
       VerticalReturnSpeed: 10
       HorizontalReturnSpeed: 10
       VerticalSnappiness: 10
       HorizontalSnappiness: 10
-      NoisePitch: 0.16
-      NoiseYaw: 0.24
-      CameraRotation: 0.7
-      CameraRoll: 0.3
-      CameraShake: 0.01
+      GunPitch: 1
+      GunYaw: 0.5
+      GunRoll: 1
+      KickBack: 0.06
+      GunReturnSpeed: 18
+      GunSnappiness: 20
     Aim:
       Multiplier: 1
-      Vertical: 3
-      Horizontal: 6
-      KickBack: 0.1
+      Vertical: 2.1
+      Horizontal: 1.9
+      Roll: 0.3
+      NoisePitch: 0.11
+      NoiseYaw: 0.08
+      CameraShake: 0.01
       VerticalReturnSpeed: 15
       HorizontalReturnSpeed: 15
       VerticalSnappiness: 10
       HorizontalSnappiness: 10
-      NoisePitch: 0.16
-      NoiseYaw: 0.24
-      CameraRotation: 0.7
-      CameraRoll: 0.3
-      CameraShake: 0.01
+      GunPitch: 0.6
+      GunYaw: 0.3
+      GunRoll: 0.5
+      KickBack: 0.04
+      GunReturnSpeed: 18
+      GunSnappiness: 20
     MovingMultiplier: 1.14
     AirborneMultiplier: 1.65
     AccurateShots: 2

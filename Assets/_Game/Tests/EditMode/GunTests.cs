@@ -291,7 +291,8 @@ namespace Aipocalypse.Tests
             for (int i = 0; i < 6; i++)
                 recoil.Tick(Frame, false);
             Assert.Less(recoil.ViewEuler.x, -0.5f);
-            Assert.Less(recoil.GunEuler.x, -0.5f);
+            Assert.Less(recoil.GunEuler.x, 0f);
+            Assert.Less(Mathf.Abs(recoil.GunEuler.x), Mathf.Abs(recoil.ViewEuler.x), "the gun's extra kick stays smaller than the aim kick");
 
             for (int i = 0; i < 180; i++)
                 recoil.Tick(Frame, false);

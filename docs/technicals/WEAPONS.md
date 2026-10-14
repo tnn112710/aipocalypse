@@ -1,14 +1,14 @@
 # Weapons
 
-Guns: shooting, ammo, reloading, jams, recoil, aiming, bullets and their effects. Ported from the old project's `WeaponSystem` and rebuilt on this project's rules (plain C# rules + one view, central ticks, pooling). Items, the hotbar and switching are in [EQUIPMENT.md](EQUIPMENT.md); script locations in [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Melee is not built yet.
+Guns (shooting, ammo, reloading, jams, recoil, aiming, bullets and their effects) and [melee](#melee) (swings, hits, knockback). Guns are ported from the old project's `WeaponSystem` and rebuilt on this project's rules (plain C# rules + one view, central ticks, pooling); melee is new, built the same way. Items, the hotbar and switching are in [EQUIPMENT.md](EQUIPMENT.md); script locations in [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
-Today: an **AK-47** (auto) and a **pistol** (semi-auto), picked up from the table in `Scenes/Prototype.unity`, with a shooting range (backstop wall + two `TargetDummy` capsules) further ahead.
+Today: an **AK-47** (auto), a **pistol** (semi-auto) and a **fire axe** (melee), picked up from the table in `Scenes/Prototype.unity`, with a shooting range (backstop wall + two `TargetDummy` capsules) further ahead.
 
 ## Controls
 
 | Input | Action | Binding (`InputSystem_Actions`, Player map) |
 | --- | --- | --- |
-| `Attack` | Fire (hold for auto) | Left mouse, gamepad west |
+| `Attack` | Fire (hold for auto); swing a melee weapon (hold to keep swinging) | Left mouse, gamepad west |
 | `Aim` | Aim down sights while held | Right mouse, gamepad left trigger |
 | `Reload` | Reload | R (no gamepad binding yet) |
 
@@ -23,16 +23,16 @@ Today: an **AK-47** (auto) and a **pistol** (semi-auto), picked up from the tabl
 | Travelling bullets | Plain data moved each frame and ray-tested along their path: speed, range (then they vanish), optional gravity. No rigidbodies, no GameObject per bullet (only its pooled tracer) | Gun asset → Bullet |
 | Damage | Each bullet calls `IDamageable.TakeDamage` with `DamageType.Gunshot` on what it hits | Fire → `Damage` |
 | Never hits the shooter | Anything under the shooter's root is skipped (body, held gun). Triggers (pickups) are ignored | `IGunUser.Root` |
-| Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path. **MuzzleToCrosshair**: a ray from the screen centre finds what the crosshair is on (or the point at full range), and bullets leave the muzzle towards it (`GunAim.MuzzleToPoint`); closer than 1 m or behind the muzzle, they use the camera direction. Camera kick still moves the shots; the gun's own extra kick doesn't | `PlayerTuning` → Guns → `AimFrom` (live in Play mode). Set to MuzzleToCrosshair |
+| Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path. **MuzzleToCrosshair**: a ray from the screen centre finds what the crosshair is on (or the point at full range), and bullets leave the muzzle towards it (`GunAim.MuzzleToPoint`); closer than 1 m or behind the muzzle, they use the camera direction. The aim kick (the view) moves the shots in every mode; the gun's small extra kick only moves them in Muzzle mode | `PlayerTuning` → Guns → `AimFrom` (live in Play mode). Set to MuzzleToCrosshair |
 | Magazine | Rounds live on the gun (`GunInstance`), so they survive drop, pick up and swap. A new gun spawns full | Magazine → `Size` |
 | Shared ammo by type | The player carries an `AmmoReserve`: spare rounds per `AmmoType`. Guns of the same type reload from the same pool | `Data/Weapons/AmmoConfig.asset` (starting amounts, `Infinite`) |
 | Magazine reload | One timed reload; takes only what the reserve has | Magazine → `Reload = Magazine`, `ReloadTime` |
 | Per-round reload | One round per `ReloadTime` until full or the reserve is empty (shotgun style) | Magazine → `Reload = PerRound` |
 | Auto reload | Starts by itself when the magazine runs dry and there's ammo | Magazine → `AutoReload` |
 | Jams | Each shot has `Chance` to jam instead of firing (no round used). A jammed gun can't fire; clearing starts by itself and takes `ClearTime`, with a racking motion | Gun asset → Jam |
-| Recoil | Each shot kicks the gun (tilt + push back) and the view (pitch, yaw, roll, shake) along a random spray pattern that restarts after a 0.24 s pause, then both spring back. Hip-fire and aiming have separate values | Gun asset → Recoil |
+| Recoil | Two parts per shot, along a random spray pattern that restarts after a 0.24 s pause. **Aim kick** turns the view (up, sideways, roll, shake), so the crosshair and the shots climb together. **Gun kick** is a small, fast extra tilt + push-back of the model only, on top of the view it's attached to, so the barrel stays near the crosshair. Both spring back. Hip-fire and aiming have separate values | Gun asset → Recoil → Aim kick / Aim response / Gun kick |
 | Recoil modifiers | Extra kick while moving / airborne; the first `AccurateShots` of a spray kick less | Recoil |
-| Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
+| Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
 | Reload / jam motion | Temporary procedural tilt (reload), dip per round (per-round reload), tilt + rack (jam) until there are animations | Gun prefab → `HeldGun` → Action motion |
@@ -52,17 +52,20 @@ Data
   AmmoType (Data/Weapons/)      a kind of round
   AmmoConfig                    starting reserve + Infinite (on the Player prefab)
   BulletEffects                 effect prefabs + bullet hole settings, shared by guns
+  MeleeDefinition (Data/Items/) Swing, Sounds, ImpactEffect
 
 Rules (plain C#, EditMode-tested in GunTests)
   GunInstance                   Rounds, IsJammed (per copy)
   AmmoReserve                   counts by AmmoType, Take / Add, Infinite
   GunTrigger                    when shots happen (mode, rate, bursts)
   Gun                           one held gun: trigger + magazine + reload / jam clear + aim; Fired, Jammed, Action events
-  GunRecoil                     kick and spring-back → GunEuler, GunKickBack, ViewEuler, ViewShake
+  GunRecoil                     aim kick → ViewEuler, ViewShake; gun kick → GunEuler, GunKickBack; spring-back
   BulletSpread                  direction inside a cone
+  MeleeAttack                   one held melee weapon: swing timing, hold to repeat, buffered click; SwingStarted, Struck
 
 Views and services
   HeldGun : HeldItem            on the gun prefab: feeds Gun from HeldItemInput, spawns bullets, applies poses and recoil, sounds
+  HeldMelee : HeldItem          on the melee prefab: feeds MeleeAttack, swing motion, hit check → damage, knockback, impact, sounds
   BulletSystem  (root, tick)    bullets in flight → hits → damage, impact, hole
   EffectPool    (root, tick)    one pool per effect prefab, timed returns, MaxActive
 ```
@@ -74,7 +77,7 @@ Who calls what each frame: [CODE_STRUCTURE.md → Frame order](CODE_STRUCTURE.md
 ```text
 AK47 (variant of Gun_Base)    HeldGun · AudioSource (2D, gun sounds)
 ├─ Poses
-│  ├─ Hip                     where the gun rests (relative to the rig's Hand)
+│  ├─ Hip                     where the gun rests (relative to the rig's Hand), barrel on the screen centre 20 m out
 │  ├─ Aim                     sights on the screen centre
 │  └─ Sprint                  lowered and turned
 └─ PosePivot                  moved to the active pose (+ reload / jam motion)
@@ -95,11 +98,39 @@ Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera)
 
 A shotgun is the same steps with `Pellets` > 1, `SpreadAngle` > 0 and `Reload = PerRound`.
 
+## Melee
+
+| Feature | How it works | Where to change it |
+| --- | --- | --- |
+| Swing | Click: `WindUp` seconds to the hit, then `Recovery` before the next swing can start. Holding keeps swinging at that rate (frame-rate independent); a click during a swing queues one more, never extra | Melee asset → Swing |
+| Hit check | At the moment of the hit (after the camera is placed for the frame), one sphere-cast from the screen centre: `Radius`, `Range` from the eye, `HitLayers`. The first thing hit counts; one target per swing. The holder and triggers (pickups) are skipped | Swing → `Range`, `Radius`, `HitLayers` |
+| Damage | `IDamageable.TakeDamage` with `DamageType.Melee` | Swing → `Damage` |
+| Knockback | The hit pushes along the view: `Knockback` N·s. Rigidbodies get the impulse; damageables get it as `DamageInfo.Force` and decide how to move (`TargetDummy` tips over and springs back; enemies later) | Swing → `Knockback` |
+| Swing motion | Procedural, between pose markers: Idle → WindUp (eased) → a fast strike through the hit to FollowThrough (`_strikeTime`, the hit lands halfway) → back to Idle. Swings in a row alternate sides: every other one mirrors the poses left-right around Idle (a backhand). After a 0.5 s pause it starts on the first side again | Melee prefab → `Poses/*`, `HeldMelee` → Swing motion |
+| Rules | Sprinting starts no swing (the current one finishes). Switching away cancels a swing that hasn't landed | `MeleeAttack.Tick` |
+| Effects, sounds | `ImpactEffect` at the hit point (the fire axe uses the bullet impact). Equip, swing (at the start), hit flesh (something that takes damage), hit surface, on the prefab's 2D `AudioSource`. The fire axe uses Malbers' common audio: `Melee Swing`, `Flesh Hit`, `Wood Impact` | Melee asset → Sounds, `ImpactEffect` |
+| Pose preview | Idle / Wind-up / Follow-through / Sprint buttons on `HeldMelee` | `HeldMelee` inspector |
+
+```text
+FireAxe                       HeldMelee · AudioSource (2D)
+├─ Poses
+│  ├─ Idle                    where it rests (relative to the rig's Hand)
+│  ├─ WindUp                  raised, ready to strike
+│  ├─ FollowThrough           where the swing ends, past the hit
+│  └─ Sprint
+└─ PosePivot                  moved along the swing / to the active pose (the swing turns around this point)
+   └─ Model                   the store prefab (shadows off, no colliders)
+```
+
+**Adding a melee weapon:** duplicate `Prefabs/Melee/FireAxe.prefab`, swap the `Model`, and move the pose markers using the preview buttons (the hit doesn't depend on them, only the look does). Duplicate `Data/Items/FireAxe.asset` (or Create → Aipocalypse → Items → Melee), set `HeldPrefab`, Swing, Sounds and `ImpactEffect`, and make a pickup like `FireAxe_Pickup.prefab`.
+
 ## Tuning
 
 | To change | Edit |
 | --- | --- |
 | A gun's numbers | `Data/Items/<Gun>.asset` (live in Play mode) |
+| A melee weapon's numbers, sounds | `Data/Items/<Melee>.asset` (live in Play mode) |
+| How a melee swing looks | melee prefab → `Poses/*`, `HeldMelee` → Swing motion |
 | Muzzle vs camera aiming, slower walk while aiming | `Data/Player/PlayerTuning.asset` → Guns |
 | Starting ammo, infinite ammo | `Data/Weapons/AmmoConfig.asset` (read at spawn). In Play mode, `Player` → **Add Ammo** gives more |
 | Which effects a gun uses, bullet hole layers / size | `Data/Weapons/BulletEffects.asset` |
@@ -117,3 +148,4 @@ A shotgun is the same steps with `Pellets` > 1, `SpreadAngle` > 0 and `Reload = 
 - **Per-round reload can't be interrupted by firing** (as in the old system).
 - The held gun renders in the world camera, so it can clip into walls (see [EQUIPMENT.md](EQUIPMENT.md#known-gaps)).
 - Reload and jam motions are procedural placeholders; replace them with animations driven from `Gun.ActionStarted` / `ActionProgress`.
+- **Melee:** no hit-stop, hit marker or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).

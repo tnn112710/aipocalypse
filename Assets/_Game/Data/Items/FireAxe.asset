@@ -15,6 +15,23 @@ MonoBehaviour:
   <DisplayName>k__BackingField: Fire Axe
   <Icon>k__BackingField: {fileID: 21300000, guid: 250cdadc7165b93419bc266cc89fb315, type: 3}
   <WorldPrefab>k__BackingField: {fileID: 3055642033106226709, guid: 525cf5d98c6837e48b4fe4606e75b100, type: 3}
-  <HeldPrefab>k__BackingField: {fileID: 7384571788784696579, guid: ec296269a5dcd0b478a192d233eb38b2, type: 3}
+  <HeldPrefab>k__BackingField: {fileID: 8497764626162184611, guid: ec296269a5dcd0b478a192d233eb38b2, type: 3}
   <EquipTime>k__BackingField: 0.35
   <HolsterTime>k__BackingField: 0.25
+  <Swing>k__BackingField:
+    Damage: 35
+    Range: 2
+    Radius: 0.25
+    WindUp: 0.18
+    Recovery: 0.42
+    Knockback: 4
+    HitLayers:
+      serializedVersion: 2
+      m_Bits: 4294967291
+  <Sounds>k__BackingField:
+    Volume: 1
+    Equip: {fileID: 0}
+    Swing: {fileID: 8300000, guid: e2f13f4efc10aae4e89e06d4b804c6e2, type: 3}
+    HitFlesh: {fileID: 8300000, guid: 6fa6f8e3d0b17884588ddd02f9b6cd09, type: 3}
+    HitSurface: {fileID: 8300000, guid: b9e0576551c735c428fdd3988f8fc093, type: 3}
+  <ImpactEffect>k__BackingField: {fileID: 6968849120514067824, guid: dcd2680e30f554740b81e3b702f4ed4c, type: 3}

@@ -2,8 +2,9 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // Procedural recoil: each shot kicks the gun and the view along a random spray pattern, then both spring back.
-    // Outputs are offsets; HeldGun applies the gun's, the player's look applies the view's.
+    // Procedural recoil: each shot kicks the view (aim: moves the crosshair and where shots go) and adds a smaller kick
+    // to the gun model, along a random spray pattern; both spring back. The gun is attached to the view, so its offset
+    // is only the extra on top. HeldGun applies the gun's, the player's look applies the view's.
     public sealed class GunRecoil
     {
         const float SprayResetDelay = 0.24f;
@@ -37,7 +38,7 @@ namespace Aipocalypse.Core.WeaponSystem
             BeginSpray();
         }
 
-        // Euler offset for the gun model; negative x lifts the muzzle.
+        // Extra euler offset for the gun model on top of the view; negative x lifts the muzzle.
         public Vector3 GunEuler => _gun;
         // Metres the gun is pushed back.
         public float GunKickBack => _kick;
@@ -64,19 +65,15 @@ namespace Aipocalypse.Core.WeaponSystem
             float shakeNoise = SignedNoise(sample + 9.41f, 1.19f);
             Pattern(shot, out float pitchScale, out float yawPattern, out float rollPattern);
 
-            float multiplier = AccurateShotsMultiplier(shot) * values.Multiplier;
-            float pitch = Mathf.Max(0.01f, (values.Vertical * pitchScale + pitchNoise * values.NoisePitch) * multiplier);
-            float yaw = (yawPattern * values.Horizontal + yawNoise * values.NoiseYaw) * multiplier;
-            float roll = rollPattern * multiplier;
+            float multiplier = AccurateShotsMultiplier(shot) * values.Multiplier * stateMultiplier;
+            float pitch = Mathf.Max(0.01f, values.Vertical * pitchScale + pitchNoise * values.NoisePitch);
+            float yaw = yawPattern * values.Horizontal + yawNoise * values.NoiseYaw;
 
-            _gunTarget += new Vector3(-pitch, yaw, roll * 0.35f) * stateMultiplier;
-            _kickTarget += values.KickBack * multiplier * stateMultiplier;
-
-            _viewTarget += new Vector3(
-                -pitch * values.CameraRotation,
-                yaw * values.CameraRotation * 0.45f,
-                roll * values.CameraRoll) * stateMultiplier;
+            _viewTarget += new Vector3(-pitch, yaw, rollPattern * values.Roll) * multiplier;
             _shakeTarget += new Vector3(yawNoise, pitchNoise + shakeNoise * 0.35f, 0f) * (values.CameraShake * stateMultiplier);
+
+            _gunTarget += new Vector3(-values.GunPitch * pitchScale, values.GunYaw * yawPattern, values.GunRoll * rollPattern) * multiplier;
+            _kickTarget += values.KickBack * multiplier;
         }
 
         public void Tick(float deltaTime, bool aiming)
@@ -91,14 +88,16 @@ namespace Aipocalypse.Core.WeaponSystem
             float verticalSnap = Damp(values.VerticalSnappiness, deltaTime);
             float horizontalSnap = Damp(values.HorizontalSnappiness, deltaTime);
 
-            _gunTarget = DampAxes(_gunTarget, Vector3.zero, verticalReturn, horizontalReturn);
-            _gun = DampAxes(_gun, _gunTarget, verticalSnap, horizontalSnap);
+            float gunReturn = Damp(values.GunReturnSpeed, deltaTime);
+            float gunSnap = Damp(values.GunSnappiness, deltaTime);
+            _gunTarget = Vector3.Lerp(_gunTarget, Vector3.zero, gunReturn);
+            _gun = Vector3.Lerp(_gun, _gunTarget, gunSnap);
             _viewTarget = DampAxes(_viewTarget, Vector3.zero, verticalReturn, horizontalReturn);
             _view = DampAxes(_view, _viewTarget, verticalSnap, horizontalSnap);
             _shakeTarget = Vector3.Lerp(_shakeTarget, Vector3.zero, horizontalReturn);
             _shake = Vector3.Lerp(_shake, _shakeTarget, horizontalSnap);
-            _kickTarget = Mathf.Lerp(_kickTarget, 0f, verticalReturn);
-            _kick = Mathf.Lerp(_kick, _kickTarget, verticalSnap);
+            _kickTarget = Mathf.Lerp(_kickTarget, 0f, gunReturn);
+            _kick = Mathf.Lerp(_kick, _kickTarget, gunSnap);
         }
 
         public void Reset()

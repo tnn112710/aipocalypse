@@ -43,8 +43,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public PlayerInteractor Interactor => _interactor;
         public bool IsDead => Health != null && Health.IsDead;
 
-        Transform IGunUser.Eye => _cameraPitch;
-        Transform IGunUser.Root => transform;
+        Transform IWeaponUser.Eye => _cameraPitch;
+        Transform IWeaponUser.Root => transform;
         AimOrigin IGunUser.AimFrom => _tuning.AimFrom;
 
         [Inject]

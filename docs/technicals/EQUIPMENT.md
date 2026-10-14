@@ -2,7 +2,7 @@
 
 The hotbar, items and switching between what's in the player's hands. Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The hotbar HUD: [UI.md](UI.md#hotbar).
 
-Modelled on Escape from Duckov's quick bar: a row of numbered slots along the bottom, guns and a melee weapon first, then room for consumables and tools. Today there are 3 weapon slots that take any weapon (gun or melee) in any order, filled by picking weapons up. Guns shoot ([WEAPONS.md](WEAPONS.md)); the fire axe is a dummy model.
+Modelled on Escape from Duckov's quick bar: a row of numbered slots along the bottom, guns and a melee weapon first, then room for consumables and tools. Today there are 3 weapon slots that take any weapon (gun or melee) in any order, filled by picking weapons up. Guns shoot and the fire axe swings ([WEAPONS.md](WEAPONS.md)).
 
 ## Controls
 
@@ -84,7 +84,7 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 | One item's equip / holster time | `Data/Items/<Item>.asset` → `EquipTime` / `HolsterTime` |
 | Which slots exist, what they accept, starting items | `EquipmentConfig` → `Slots` (order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
 | Reach and thickness of the look ray, drop distance | `Data/Player/PlayerTuning.asset` → Interaction |
-| How a pickup lies on the ground, its pickup box | `*_Pickup.prefab` / `DummyFireAxePickup.prefab` → `Model` transform, root `BoxCollider` |
+| How a pickup lies on the ground, its pickup box | `*_Pickup.prefab` → `Model` transform, root `BoxCollider` |
 | The temporary lower/raise motion | `Player.prefab` → `CameraRoot/CameraPitch/HeldItems` → `EquipmentRig` (lowered offset, tilt, curve) |
 | Where the hand sits on screen | `HeldItems/Hand` local position |
 | One model's grip position | that item's held prefab → `Model` child transform |
@@ -96,7 +96,7 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 ## Extending
 
 - **Another gun:** follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun).
-- **A new item of an existing kind** (another melee weapon): create a `Melee` asset (Create → Aipocalypse → Items) in `Data/Items/`, plus a held prefab: an empty root with `HeldItem` and the model as a child named `Model`. Turn off the model's shadows and remove its colliders. Also make a world prefab: a root with `WorldItem` (`_definition` = the asset) and a trigger `BoxCollider`, with the model lying flat as a child. Assign it to the asset's `WorldPrefab`, and drop copies into scenes to place pickups.
+- **A new item of an existing kind** (another gun or melee weapon): follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun) or [Melee](WEAPONS.md#melee). In short: a held prefab copied from an existing one with the model swapped (shadows off, no colliders), an item asset in `Data/Items/`, and a world prefab (a root with `WorldItem` (`_definition` = the asset) and a trigger `BoxCollider`, with the model lying flat as a child) assigned to the asset's `WorldPrefab`. Drop copies into scenes to place pickups.
 - **More slots** (up to 9): add entries to `EquipmentConfig.Slots`. The HUD spawns one slot view per slot and keys 1–9 are already bound.
 - **A new item kind** (bandage, drink, tool):
   1. Add a flag to `ItemCategory`.
@@ -104,7 +104,7 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
   3. Give it slots in the config that accept the new category.
   4. If it doesn't sit in your hand, change what selecting it does in `Equipment.CanSelect`. For example, a bandage would play a use action instead of being held: add a `QuickUse` path there rather than branching in `Player`.
   5. Put per-copy state (stack count, charges) in an `ItemInstance` subclass returned by the definition's `CreateInstance()`.
-- **Melee:** subclass `HeldItem` (like `HeldGun`) in `WeaponSystem` and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the swing inputs.
+- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`.
 - **Inventory:** fill the hotbar with `Equipment.TryPickUp` or `Hotbar.TryPlace` / `Remove`. `EquipmentRig` spawns and despawns models, and `HotbarHud` refreshes from `SlotChanged`. `StartingItem` in the config can still hand out items at spawn.
 - **Other interactables** (doors, loot, workbench): implement `IInteractable` (`_Common/Interaction`) on the object with the collider. `PlayerInteractor` and the HUD prompt pick it up with no other changes.
 
