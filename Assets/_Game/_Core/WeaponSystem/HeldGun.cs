@@ -148,15 +148,15 @@ namespace Aipocalypse.Core.WeaponSystem
             if (effects != null)
                 _effects.Spawn(effects.MuzzleFlash, _muzzle.position, _muzzle.rotation, _muzzle);
 
-            Transform from = _user.AimFrom == AimOrigin.Camera ? _user.Eye : _muzzle;
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
+            AimShot(bullet.Range, out Vector3 origin, out Vector3 direction);
             for (int i = 0; i < fire.Pellets; i++)
             {
                 _bullets.Fire(new BulletShot
                 {
-                    Origin = from.position,
-                    Direction = BulletSpread.Apply(from.forward, fire.SpreadAngle),
+                    Origin = origin,
+                    Direction = BulletSpread.Apply(direction, fire.SpreadAngle),
                     VisualOrigin = _muzzle.position,
                     Speed = bullet.Speed,
                     Range = bullet.Range,
@@ -165,6 +165,31 @@ namespace Aipocalypse.Core.WeaponSystem
                     Ignore = _user.Root,
                     Effects = effects,
                 });
+            }
+        }
+
+        void AimShot(float range, out Vector3 origin, out Vector3 direction)
+        {
+            Transform eye = _user.Eye;
+            switch (_user.AimFrom)
+            {
+                case AimOrigin.Camera:
+                    origin = eye.position;
+                    direction = eye.forward;
+                    return;
+
+                case AimOrigin.MuzzleToCrosshair:
+                    Vector3 aimPoint = _bullets.TryHit(eye.position, eye.forward, range, _user.Root, out RaycastHit hit)
+                        ? hit.point
+                        : eye.position + eye.forward * range;
+                    origin = _muzzle.position;
+                    direction = GunAim.MuzzleToPoint(origin, eye.forward, aimPoint);
+                    return;
+
+                default:
+                    origin = _muzzle.position;
+                    direction = _muzzle.forward;
+                    return;
             }
         }
 

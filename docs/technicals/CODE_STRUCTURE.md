@@ -85,7 +85,7 @@ Assets/_Game/
 │  │  └─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, handling, sounds, effects
-│     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin
+│     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
 │     ├─ GunInstance.cs                     one owned gun: Rounds, IsJammed, Changed (survives drop / swap)
 │     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee
 │     ├─ Ammo/AmmoType.cs                   SO: a kind of round; guns of one type share a pool
@@ -96,6 +96,7 @@ Assets/_Game/
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload, jam + clear, aim; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern, spring return → gun and view offsets
 │     ├─ BulletSpread.cs                    random direction inside a cone
+│     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, action motion, sounds (own AudioSource)
 │     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps

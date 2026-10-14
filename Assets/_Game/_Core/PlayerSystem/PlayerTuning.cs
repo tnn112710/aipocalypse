@@ -59,7 +59,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Min(0f), Tooltip("How far in front of the player dropped items land (m)")]
         public float DropDistance { get; private set; } = 1.2f;
 
-        [field: Header("Guns"), SerializeField, Tooltip("Where bullets start: the gun's muzzle (follows the model and its kick) or the screen centre")]
+        [field: Header("Guns"), SerializeField, Tooltip("Where bullets start: the muzzle along the barrel (follows the model and its kick), the screen centre, or the muzzle towards what the crosshair is on")]
         public AimOrigin AimFrom { get; private set; } = AimOrigin.Muzzle;
         [field: SerializeField, Range(0.1f, 1f), Tooltip("Move speed multiplier while aiming down sights")]
         public float AimMoveSpeedMultiplier { get; private set; } = 0.6f;

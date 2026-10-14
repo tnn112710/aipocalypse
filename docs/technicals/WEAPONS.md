@@ -23,7 +23,7 @@ Today: an **AK-47** (auto) and a **pistol** (semi-auto), picked up from the tabl
 | Travelling bullets | Plain data moved each frame and ray-tested along their path: speed, range (then they vanish), optional gravity. No rigidbodies, no GameObject per bullet (only its pooled tracer) | Gun asset → Bullet |
 | Damage | Each bullet calls `IDamageable.TakeDamage` with `DamageType.Gunshot` on what it hits | Fire → `Damage` |
 | Never hits the shooter | Anything under the shooter's root is skipped (body, held gun). Triggers (pickups) are ignored | `IGunUser.Root` |
-| Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path | `PlayerTuning` → Guns → `AimFrom` (live in Play mode) |
+| Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path. **MuzzleToCrosshair**: a ray from the screen centre finds what the crosshair is on (or the point at full range), and bullets leave the muzzle towards it (`GunAim.MuzzleToPoint`); closer than 1 m or behind the muzzle, they use the camera direction. Camera kick still moves the shots; the gun's own extra kick doesn't | `PlayerTuning` → Guns → `AimFrom` (live in Play mode). Set to MuzzleToCrosshair |
 | Magazine | Rounds live on the gun (`GunInstance`), so they survive drop, pick up and swap. A new gun spawns full | Magazine → `Size` |
 | Shared ammo by type | The player carries an `AmmoReserve`: spare rounds per `AmmoType`. Guns of the same type reload from the same pool | `Data/Weapons/AmmoConfig.asset` (starting amounts, `Infinite`) |
 | Magazine reload | One timed reload; takes only what the reserve has | Magazine → `Reload = Magazine`, `ReloadTime` |
@@ -110,8 +110,8 @@ A shotgun is the same steps with `Pellets` > 1, `SpreadAngle` > 0 and `Reload = 
 ## Known gaps
 
 - **Sounds bypass BroAudio for now:** each gun plays its clips on its own `AudioSource`, so a sound is cut when the gun is fully holstered or dropped. Moving to BroAudio means swapping the `AudioClip` fields for `SoundID`s and `HeldGun.Play` for `BroAudio.Play`.
-- **Crosshair is a plain dot:** no spread / hit feedback, no hit marker or damage numbers yet. With `AimFrom = Muzzle` it only roughly matches where bullets go (the muzzle is off-centre and kicks).
-- **Muzzle aiming through walls:** with the muzzle inside a wall, bullets start on the far side. Camera aiming doesn't have this.
+- **Crosshair is a plain dot:** no spread / hit feedback, no hit marker or damage numbers yet. It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
+- **Muzzle inside a wall:** with Muzzle / MuzzleToCrosshair aiming and the muzzle pushed into a wall, bullets start on the far side. Camera aiming doesn't have this. (With MuzzleToCrosshair, cover in front of the barrel but below the crosshair is hit, as expected.)
 - **No dry-fire click** when the magazine and reserve are empty.
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
 - **Per-round reload can't be interrupted by firing** (as in the old system).

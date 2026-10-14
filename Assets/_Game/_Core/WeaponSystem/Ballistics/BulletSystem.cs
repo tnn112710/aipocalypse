@@ -125,8 +125,8 @@ namespace Aipocalypse.Core.WeaponSystem
             return !lastStep;
         }
 
-        // Nearest hit that isn't the shooter. Triggers (pickups) are ignored.
-        bool TryHit(Vector3 origin, Vector3 direction, float distance, Transform ignore, out RaycastHit nearest)
+        // Nearest hit that isn't the shooter. Triggers (pickups) are ignored. Also what aiming uses to find the crosshair point.
+        public bool TryHit(Vector3 origin, Vector3 direction, float distance, Transform ignore, out RaycastHit nearest)
         {
             int count = Physics.RaycastNonAlloc(origin, direction, _hits, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             nearest = default;

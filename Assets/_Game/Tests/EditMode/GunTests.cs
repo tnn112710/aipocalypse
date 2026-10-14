@@ -299,6 +299,26 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void MuzzleToCrosshair_PointsFromTheMuzzleAtTheAimPoint()
+        {
+            var muzzle = new Vector3(0.2f, -0.2f, 0.5f);
+            var aimPoint = new Vector3(0f, 0f, 20f);
+
+            Vector3 direction = GunAim.MuzzleToPoint(muzzle, Vector3.forward, aimPoint);
+
+            Assert.AreEqual(0f, Vector3.Angle(direction, aimPoint - muzzle), 0.01f);
+        }
+
+        [Test]
+        public void MuzzleToCrosshair_UsesTheEyeDirection_WhenThePointIsTooCloseOrBehind()
+        {
+            var muzzle = new Vector3(0.2f, -0.2f, 0.5f);
+
+            Assert.AreEqual(Vector3.forward, GunAim.MuzzleToPoint(muzzle, Vector3.forward, new Vector3(0f, 0f, 0.8f)));
+            Assert.AreEqual(Vector3.forward, GunAim.MuzzleToPoint(muzzle, Vector3.forward, new Vector3(0f, 0f, -5f)));
+        }
+
+        [Test]
         public void Spread_StaysInsideTheCone()
         {
             for (int i = 0; i < 200; i++)

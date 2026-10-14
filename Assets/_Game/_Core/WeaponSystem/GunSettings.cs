@@ -23,6 +23,7 @@ namespace Aipocalypse.Core.WeaponSystem
     {
         Muzzle, // the gun's muzzle: follows the model, its pose and its kick
         Camera, // the screen centre
+        MuzzleToCrosshair, // the muzzle, towards whatever the screen centre is on
     }
 
     [Serializable]
