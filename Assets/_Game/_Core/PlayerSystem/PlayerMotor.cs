@@ -45,6 +45,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public float VerticalVelocity => _verticalVelocity;
         public float WalkSpeed => _stats.Get(StatId.WalkSpeed, _tuning.WalkSpeed);
         public float SprintSpeed => _stats.Get(StatId.SprintSpeed, _tuning.SprintSpeed);
+        // Ground speed scale set by the player each frame (slower while aiming down sights).
+        public float SpeedMultiplier { get; set; } = 1f;
 
         public event Action Jumped;
         public event Action<LandingInfo> Landed;
@@ -125,7 +127,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             if (stableGround)
             {
-                Vector3 target = wishDirection * ((wantsSprint ? SprintSpeed : WalkSpeed) * scale);
+                Vector3 target = wishDirection * ((wantsSprint ? SprintSpeed : WalkSpeed) * scale * SpeedMultiplier);
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, 1f - Mathf.Exp(-rate * deltaTime));
             }

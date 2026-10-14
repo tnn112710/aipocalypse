@@ -17,7 +17,7 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 Assets/_Game/
 ├─ _Core/                                   asmdef Aipocalypse.Core
 │  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
-│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, PlayerInstaller
+│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y…)
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  └─ GameLifetimeScope.cs               per-scene scope (stub), Strict flag, execution order -5000
@@ -25,12 +25,13 @@ Assets/_Game/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage
-│  │  │  ├─ DamageInfo.cs                   DamageInfo struct + DamageType enum
+│  │  │  ├─ DamageInfo.cs                   DamageInfo struct + DamageType enum (Generic, Fall, Gunshot)
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt, PlayerDied
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  └─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
+│  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, WorldPrefab, CreateInstance
@@ -43,21 +44,22 @@ Assets/_Game/
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world: IInteractable, picks up / swaps; Spawn for drops
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Show / Hide / OnReady hooks
-│  │  └─ EquipmentRig.cs                    spawns HeldItems, shows the held one, temporary lower/raise pose
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), ViewKick, IsAiming
+│  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
+│  │  └─ EquipmentRig.cs                    spawns HeldItems through the resolver (injected), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ InputSystem/                          Aipocalypse.Input
-│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop
+│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: input → intent, ticks the parts, IDamageable
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent, ticks the parts, IDamageable, IGunUser (owns the AmmoReserve)
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
-│  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop
-│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo)
-│  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot
+│  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop, Fire, FirePressed, Aim, Reload
+│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); SpeedMultiplier (aiming)
+│  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
@@ -68,47 +70,77 @@ Assets/_Game/
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
-│  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / ApplyStyle
-│  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font
+│  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / SetAmmo / HideAmmo / ApplyStyle
+│  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font, ammo font + colors
 │  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
 │  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
 │  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
 │  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind per active player
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
-│  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment (events, no polling)
+│  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment + gun ammo counts (events, no polling)
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  │  └─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
-│  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem
-│     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun (gun data lands here with shooting)
+│  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
+│     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, handling, sounds, effects
+│     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin
+│     ├─ GunInstance.cs                     one owned gun: Rounds, IsJammed, Changed (survives drop / swap)
 │     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee
-│     ├─ Prefabs/DummyRifle, DummyPistol, DummyFireAxe.prefab   held prefabs: HeldItem root + store model
-│     └─ Prefabs/Dummy*Pickup.prefab        world prefabs: WorldItem + trigger box + model lying flat
+│     ├─ Ammo/AmmoType.cs                   SO: a kind of round; guns of one type share a pool
+│     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
+│     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
+│     ├─ IGunUser.cs                        holder seam: Ammo, Eye, Root, AimFrom (Player implements it)
+│     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
+│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload, jam + clear, aim; events (+ GunAction, GunInput)
+│     ├─ GunRecoil.cs                       procedural recoil: spray pattern, spring return → gun and view offsets
+│     ├─ BulletSpread.cs                    random direction inside a cone
+│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, action motion, sounds (own AudioSource)
+│     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
+│     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
+│     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
+│     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
+│     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) in the root scope
+│     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun + 2D AudioSource skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
+│     ├─ Prefabs/Guns/AK47, Pistol.prefab   variants of Gun_Base with the store model and their poses / muzzle
+│     ├─ Prefabs/Guns/*_Pickup.prefab       world prefabs: WorldItem + trigger box + model lying flat
+│     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
+│     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
+│     ├─ Prefabs/DummyFireAxe.prefab        held prefab: HeldItem root + store model
+│     └─ Prefabs/DummyFireAxePickup.prefab  world prefab
+├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
 ├─ Data/
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/Rifle, Pistol, FireAxe.asset     item definitions (held + world prefab)
+│  ├─ Items/AK47, Pistol, FireAxe.asset      item definitions (held + world prefab; guns hold all their numbers)
+│  ├─ Weapons/RifleAmmo, PistolAmmo.asset   ammo types
+│  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol), Infinite off
+│  ├─ Weapons/BulletEffects.asset           effects shared by both guns
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
-   └─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
+   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
+   └─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
 ```
 
 ## Who depends on whom
 
 ```text
-ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, PlayerRegistry
+ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, PlayerRegistry,
+                                           EffectPool, BulletSystem (ticked by VContainer)
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
    │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
    └─ injects the Player GameObject (whole hierarchy)
-         Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>, PlayerRegistry)
+         Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
              PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerInteractor(cameraPitch, gameObject),
-             Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment)
+             AmmoReserve(AmmoConfig.CreateReserve()),
+             Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
+               rig spawns held prefabs with resolver.Instantiate → HeldGun.Construct(BulletSystem, EffectPool)
+               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil
            last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
 
 HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
@@ -118,7 +150,8 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
-- `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner` (Player implements it).
+- `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser` (Player implements both). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
+- Bullets hit anything with an `IDamageable` (`_Common/Combat`) and call `TakeDamage` with `DamageType.Gunshot`; the target publishes `DamageDealt` itself.
 - Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
 - Inside the player system, plain C# events are used (`PlayerMotor.Landed` / `Jumped`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
 
@@ -135,6 +168,10 @@ PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteract
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    hand pose from Raise
+EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired)
+                       └─ Fired → GunRecoil.Kick, muzzle flash, BulletSystem.Fire per pellet; pose + recoil pivots
+PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
+VContainer ticks     BulletSystem moves and ray-tests bullets → damage, impacts, holes; EffectPool returns expired effects
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
                      InteractPromptHud reads Player.Interactor → InteractPromptView
@@ -144,11 +181,11 @@ StatBar.Update       only while a trail is catching up, otherwise disabled
 ## Player prefab
 
 ```text
-Player                       CharacterController (h 1.8, r 0.35, step 0.35, slope 45°) · Player · PlayerScope
+Player                       CharacterController (h 1.8, r 0.35, step 0.35, slope 45°) · Player (AmmoConfig) · PlayerScope
 ├─ CameraRoot                y 1.65 (eye height); PlayerHeadBob offsets it
 │  └─ CameraPitch            PlayerLook pitches it; Cinemachine tracking target
 │     └─ HeldItems           EquipmentRig
-│        └─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig
+│        └─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig (guns add their own poses on top)
 ├─ PlayerCamera              Camera (tag MainCamera) · URP camera data · CinemachineBrain · AudioListener
 └─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
 ```

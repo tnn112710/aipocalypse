@@ -1,3 +1,4 @@
+using Aipocalypse.Core.WeaponSystem;
 using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
@@ -57,6 +58,11 @@ namespace Aipocalypse.Core.PlayerSystem
         public LayerMask InteractMask { get; private set; } = Physics.DefaultRaycastLayers;
         [field: SerializeField, Min(0f), Tooltip("How far in front of the player dropped items land (m)")]
         public float DropDistance { get; private set; } = 1.2f;
+
+        [field: Header("Guns"), SerializeField, Tooltip("Where bullets start: the gun's muzzle (follows the model and its kick) or the screen centre")]
+        public AimOrigin AimFrom { get; private set; } = AimOrigin.Muzzle;
+        [field: SerializeField, Range(0.1f, 1f), Tooltip("Move speed multiplier while aiming down sights")]
+        public float AimMoveSpeedMultiplier { get; private set; } = 0.6f;
 
         [field: Header("Head bob"), SerializeField, Min(0.1f), Tooltip("Metres per footstep; bob follows distance, not time")]
         public float StepLength { get; private set; } = 1.7f;

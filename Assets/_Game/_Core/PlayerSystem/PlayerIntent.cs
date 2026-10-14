@@ -13,5 +13,9 @@ namespace Aipocalypse.Core.PlayerSystem
         public int CycleSlot;
         public bool Interact;
         public bool Drop;
+        public bool Fire;
+        public bool FirePressed;
+        public bool Aim;
+        public bool Reload;
     }
 }

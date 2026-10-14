@@ -35,6 +35,7 @@ HUD                          Canvas · CanvasScaler
    │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
    └─ Center
+      ├─ Crosshair           6×6 dot (built-in Knob sprite, white 90 %, thin dark outline); placeholder, no script
       └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
          └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
 ```
@@ -88,12 +89,14 @@ HotbarSlot                   HotbarSlotView component
 ├─ Tile                      scaled by SelectedScale while selected
 │  ├─ Background             9-sliced box; dimmer when empty
 │  ├─ Icon                   item icon (ItemDefinition.Icon), preserve aspect; hidden when empty
-│  └─ Frame                  selection outline, only on the selected slot
+│  ├─ Frame                  selection outline, only on the selected slot
+│  └─ Ammo                   TMP, bottom-right: "30/90" (magazine / reserve) for guns; hidden for other items
 └─ KeyCap                    key sprite + TMP label ("1", "2"… from the input binding)
 ```
 
-- `HotbarSlotView` API: `SetKey(string)`, `SetIcon(Sprite)` (null = empty), `SetSelected(bool)`, `ApplyStyle()`.
-- `HotbarHud` (presenter on `Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig` (up to 9). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight. Nothing is polled.
+- `HotbarSlotView` API: `SetKey(string)`, `SetIcon(Sprite)` (null = empty), `SetSelected(bool)`, `SetAmmo(rounds, reserve, infiniteReserve, warning)`, `HideAmmo()`, `ApplyStyle()`.
+- `HotbarHud` (presenter on `Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig` (up to 9). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight, `GunInstance.Changed` / `AmmoReserve.Changed` → ammo counts. Nothing is polled.
+- **Ammo count** (as in Escape from Duckov): magazine / reserve of that gun's ammo type, magazine only when the reserve is infinite, `AmmoWarningColor` when the magazine is empty or the gun is jammed.
 - The highlight moves as soon as a slot is selected, not when the switch animation finishes.
 - Behavior and switching rules: [EQUIPMENT.md](EQUIPMENT.md).
 
@@ -119,12 +122,13 @@ InteractPrompt               InteractPromptView component
 | Sprites, colors, font, font size, trail, label on/off | `Data/UI/HealthBarStyle.asset` / `StaminaBarStyle.asset`. Bars in the open scene repaint right away; everything else picks the change up in `Awake` |
 | A new look for one bar | Duplicate a style asset and assign it to that bar's `StatBar._style` |
 | Bar size, icon size, padding | `StatBar.prefab` RectTransforms. Every bar updates |
-| Hotbar sprites, colors, key font, selected scale | `Data/UI/HotbarSlotStyle.asset` |
+| Hotbar sprites, colors, key font, selected scale, ammo font / size / colors | `Data/UI/HotbarSlotStyle.asset` |
 | Hotbar slot size, key cap size | `HotbarSlot.prefab` RectTransforms. Outline / box thickness: the images' Pixels Per Unit Multiplier |
 | Spacing between hotbar slots | `Hotbar` → HorizontalLayoutGroup spacing |
 | Item icons | the item's `Data/Items/*.asset` → `Icon` |
 | Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
 | Interact prompt position | `HUD` → `Center/Interact` anchored position |
+| Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
 | Spacing between bars | `Vitals` → VerticalLayoutGroup spacing |
 | Distance from the screen edge | `HUD` → `SafeFrame` offsets |
 | Overall HUD scale | `HUD` → CanvasScaler reference resolution / match |

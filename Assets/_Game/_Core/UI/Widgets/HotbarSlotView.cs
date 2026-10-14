@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 namespace Aipocalypse.Core.UI
 {
-    // One hotbar slot: item icon on a tile, a selection frame, and the key cap below. Knows nothing about items or input.
+    // One hotbar slot: item icon on a tile, a selection frame, an ammo count in the corner, and the key cap below.
+    // Knows nothing about items or input.
     public sealed class HotbarSlotView : MonoBehaviour
     {
         [SerializeField, InlineEditor] HotbarSlotStyle _style;
@@ -15,6 +16,7 @@ namespace Aipocalypse.Core.UI
         [SerializeField] Image _frame;
         [SerializeField] Image _keyCap;
         [SerializeField] TMP_Text _keyLabel;
+        [SerializeField, Tooltip("Magazine / reserve, bottom-right of the tile")] TMP_Text _ammoLabel;
 
         Sprite _iconSprite;
         bool _selected;
@@ -30,6 +32,26 @@ namespace Aipocalypse.Core.UI
         {
             _iconSprite = icon;
             Refresh();
+        }
+
+        // Infinite reserve shows the magazine only. `warning`: empty magazine or jammed.
+        public void SetAmmo(int rounds, int reserve, bool infiniteReserve, bool warning)
+        {
+            if (_ammoLabel == null)
+                return;
+            _ammoLabel.enabled = true;
+            if (infiniteReserve)
+                _ammoLabel.SetText("{0}", (float)rounds);
+            else
+                _ammoLabel.SetText("{0}/{1}", (float)rounds, (float)reserve);
+            if (_style != null)
+                _ammoLabel.color = warning ? _style.AmmoWarningColor : _style.AmmoColor;
+        }
+
+        public void HideAmmo()
+        {
+            if (_ammoLabel != null)
+                _ammoLabel.enabled = false;
         }
 
         public void SetSelected(bool selected)
@@ -60,6 +82,14 @@ namespace Aipocalypse.Core.UI
                 _keyLabel.font = _style.KeyFont;
             _keyLabel.color = _style.KeyLabelColor;
             _keyLabel.fontSize = _style.KeyFontSize;
+
+            if (_ammoLabel != null)
+            {
+                if (_style.AmmoFont != null)
+                    _ammoLabel.font = _style.AmmoFont;
+                _ammoLabel.color = _style.AmmoColor;
+                _ammoLabel.fontSize = _style.AmmoFontSize;
+            }
 
             Refresh();
         }

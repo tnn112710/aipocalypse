@@ -29,6 +29,10 @@ namespace Aipocalypse.Input
         // On press, not when the action's Hold interaction completes.
         public bool InteractPressed => _actions.Player.Interact.WasPressedThisFrame();
         public bool DropPressed => _actions.Player.Drop.WasPressedThisFrame();
+        public bool AttackHeld => _actions.Player.Attack.IsPressed();
+        public bool AttackPressed => _actions.Player.Attack.WasPressedThisFrame();
+        public bool AimHeld => _actions.Player.Aim.IsPressed();
+        public bool ReloadPressed => _actions.Player.Reload.WasPressedThisFrame();
 
         public int SlotKeyCount => _slots.Length;
 

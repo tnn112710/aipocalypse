@@ -24,6 +24,11 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Key")] public Color KeyLabelColor = new(0.1f, 0.1f, 0.1f, 1f);
         [BoxGroup("Key"), Min(1f)] public float KeyFontSize = 20f;
 
+        [BoxGroup("Ammo"), Tooltip("Magazine / reserve count in the tile corner, for guns")] public TMP_FontAsset AmmoFont;
+        [BoxGroup("Ammo")] public Color AmmoColor = new(0.95f, 0.95f, 0.95f, 1f);
+        [BoxGroup("Ammo"), Tooltip("When the magazine is empty or the gun is jammed")] public Color AmmoWarningColor = new(1f, 0.35f, 0.3f, 1f);
+        [BoxGroup("Ammo"), Min(1f)] public float AmmoFontSize = 16f;
+
 #if UNITY_EDITOR
         // Edit-time preview only: slots re-apply their style in Awake.
         void OnValidate() => UnityEditor.EditorApplication.delayCall += RefreshOpenSlots;

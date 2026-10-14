@@ -2,6 +2,7 @@ using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
 using Aipocalypse.Core.Stats;
+using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
 using MessagePipe;
 using Sirenix.OdinInspector;
@@ -10,9 +11,10 @@ using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The player's view: turns input into an intent and drives look → movement → stamina → head motion → interaction → equipment in that order.
+    // The player's view: turns input into an intent and drives look → movement → stamina → head motion → interaction → equipment
+    // (switching, then the item in hand: fire, aim, reload) → view kick, in that order.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner
+    public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner, IGunUser
     {
         [SerializeField] PlayerTuning _tuning;
         [SerializeField] CharacterController _controller;
@@ -20,6 +22,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Tooltip("Child of the camera root; pitch rotates it and the Cinemachine camera tracks it")] Transform _cameraPitch;
         [SerializeField] EquipmentConfig _equipmentConfig;
         [SerializeField] EquipmentRig _equipmentRig;
+        [SerializeField, Tooltip("Starting reserve ammo, or infinite")] AmmoConfig _ammoConfig;
 
         InputService _input;
         IStatProvider _stats;
@@ -35,12 +38,18 @@ namespace Aipocalypse.Core.PlayerSystem
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
         public Equipment Equipment { get; private set; }
+        public AmmoReserve Ammo { get; private set; }
         public PlayerMotor Motor => _motor;
         public PlayerInteractor Interactor => _interactor;
         public bool IsDead => Health != null && Health.IsDead;
 
+        Transform IGunUser.Eye => _cameraPitch;
+        Transform IGunUser.Root => transform;
+        AimOrigin IGunUser.AimFrom => _tuning.AimFrom;
+
         [Inject]
-        void Construct(InputService input, IStatProvider stats, IPublisher<DamageDealt> damageDealt, IPublisher<PlayerDied> died, PlayerRegistry registry)
+        void Construct(InputService input, IStatProvider stats, IPublisher<DamageDealt> damageDealt, IPublisher<PlayerDied> died, PlayerRegistry registry,
+            IObjectResolver resolver)
         {
             _input = input;
             _registry = registry;
@@ -56,12 +65,13 @@ namespace Aipocalypse.Core.PlayerSystem
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning);
 
             _motor.Landed += OnLanded;
+            Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
 
             if (_equipmentConfig != null && _equipmentRig != null)
             {
                 Equipment = new Equipment(_equipmentConfig.CreateHotbar());
                 Equipment.EquipFirstImmediately();
-                _equipmentRig.Bind(Equipment);
+                _equipmentRig.Bind(Equipment, this, resolver);
             }
             else
             {
@@ -121,6 +131,9 @@ namespace Aipocalypse.Core.PlayerSystem
             Stamina?.Restore();
         }
 
+        [Button, HideInEditorMode]
+        void AddAmmo(AmmoType type, int amount = 30) => Ammo?.Add(type, amount);
+
         PlayerIntent ReadIntent(float deltaTime) => new()
         {
             Move = _input.Move,
@@ -131,6 +144,10 @@ namespace Aipocalypse.Core.PlayerSystem
             CycleSlot = _input.CycleDirection,
             Interact = _input.InteractPressed,
             Drop = _input.DropPressed,
+            Fire = _input.AttackHeld,
+            FirePressed = _input.AttackPressed,
+            Aim = _input.AimHeld,
+            Reload = _input.ReloadPressed,
         };
 
         void TickInteraction(in PlayerIntent intent)
@@ -155,6 +172,20 @@ namespace Aipocalypse.Core.PlayerSystem
 
             Equipment.Tick(deltaTime, _equipmentConfig.SwitchSpeed);
             _equipmentRig.Tick();
+            _equipmentRig.TickHeld(new HeldItemInput
+            {
+                UseHeld = intent.Fire,
+                UsePressed = intent.FirePressed,
+                AimHeld = intent.Aim,
+                ReloadPressed = intent.Reload,
+                IsSprinting = _motor.IsSprinting,
+                IsMoving = _motor.HorizontalVelocity.sqrMagnitude > 0.25f,
+                IsAirborne = !_motor.IsGrounded,
+            }, deltaTime);
+
+            HeldItem held = _equipmentRig.Current;
+            _look.SetKick(held != null ? held.ViewKick : default);
+            _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.AimMoveSpeedMultiplier : 1f;
         }
 
         void DropSelected()

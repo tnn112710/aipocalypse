@@ -14,7 +14,75 @@ MonoBehaviour:
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunDefinition
   <DisplayName>k__BackingField: Pistol
   <Icon>k__BackingField: {fileID: 21300000, guid: 2d193da356502104ab1cb2d5da99ef54, type: 3}
-  <WorldPrefab>k__BackingField: {fileID: 6228006698497909641, guid: 0a1f96d7bc590194a9315b5a06ad72ab, type: 3}
-  <HeldPrefab>k__BackingField: {fileID: 5083574932436117084, guid: 12ebc95b1f9834741a0ffe765d6b779e, type: 3}
+  <WorldPrefab>k__BackingField: {fileID: 2457833102003743930, guid: 967347f2f5b4f2b46a4fea91777e140f, type: 3}
+  <HeldPrefab>k__BackingField: {fileID: 6877744463888237537, guid: 32e47f2adb00a3c48af5565454aa6224, type: 3}
   <EquipTime>k__BackingField: 0.3
   <HolsterTime>k__BackingField: 0.2
+  <Fire>k__BackingField:
+    Mode: 1
+    RoundsPerMinute: 400
+    BurstCount: 3
+    BurstCooldown: 0.25
+    Damage: 25
+    Pellets: 1
+    SpreadAngle: 0
+  <Bullet>k__BackingField:
+    Speed: 120
+    Range: 150
+    GravityScale: 0
+  <Magazine>k__BackingField:
+    AmmoType: {fileID: 11400000, guid: 824935d59cad2c84d8b89c7a7268c247, type: 2}
+    Size: 12
+    Reload: 0
+    ReloadTime: 1.5
+    AutoReload: 1
+  <Jam>k__BackingField:
+    Chance: 0.02
+    ClearTime: 1.5
+  <Recoil>k__BackingField:
+    Hip:
+      Multiplier: 1
+      Vertical: 5
+      Horizontal: 8
+      KickBack: 0.1
+      VerticalReturnSpeed: 10
+      HorizontalReturnSpeed: 10
+      VerticalSnappiness: 10
+      HorizontalSnappiness: 10
+      NoisePitch: 0.16
+      NoiseYaw: 0.24
+      CameraRotation: 0.7
+      CameraRoll: 0.3
+      CameraShake: 0.01
+    Aim:
+      Multiplier: 1
+      Vertical: 3
+      Horizontal: 6
+      KickBack: 0.1
+      VerticalReturnSpeed: 15
+      HorizontalReturnSpeed: 15
+      VerticalSnappiness: 10
+      HorizontalSnappiness: 10
+      NoisePitch: 0.16
+      NoiseYaw: 0.24
+      CameraRotation: 0.7
+      CameraRoll: 0.3
+      CameraShake: 0.01
+    MovingMultiplier: 1.14
+    AirborneMultiplier: 1.65
+    AccurateShots: 2
+    AccurateShotsMultiplier: 0.5
+  <Handling>k__BackingField:
+    AimSpeed: 10
+    SprintPoseSpeed: 8
+  <Sounds>k__BackingField:
+    Volume: 1
+    Equip: {fileID: 8300000, guid: e0ef6a3c6ccb1c14fa7993240ec8b8b4, type: 3}
+    Fire: {fileID: 8300000, guid: 5cf46115d1060b34da73bdd7142ba54e, type: 3}
+    ReloadStart: {fileID: 8300000, guid: 5eb06b5e7e9d0ae408b348ee6de52f1b, type: 3}
+    ReloadInsert: {fileID: 0}
+    ReloadEnd: {fileID: 8300000, guid: c6f742db31059134183c51cbd9faf8a5, type: 3}
+    Jam: {fileID: 0}
+    ClearJamStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
+    ClearJamEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+  <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

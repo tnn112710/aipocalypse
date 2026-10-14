@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3}
+  m_Name: AK47
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunDefinition
+  <DisplayName>k__BackingField: AK-47
+  <Icon>k__BackingField: {fileID: 21300000, guid: 8a1d5c60915e682498ccc6618da10e7c, type: 3}
+  <WorldPrefab>k__BackingField: {fileID: 8538163625140783550, guid: 906aeb1e7a16a8148b7a2d4da7625f82, type: 3}
+  <HeldPrefab>k__BackingField: {fileID: 3228223442516091722, guid: 973f72a4391c09d4f870477de8b0c597, type: 3}
+  <EquipTime>k__BackingField: 0.45
+  <HolsterTime>k__BackingField: 0.3
+  <Fire>k__BackingField:
+    Mode: 0
+    RoundsPerMinute: 600
+    BurstCount: 3
+    BurstCooldown: 0.25
+    Damage: 20
+    Pellets: 1
+    SpreadAngle: 0
+  <Bullet>k__BackingField:
+    Speed: 120
+    Range: 150
+    GravityScale: 0
+  <Magazine>k__BackingField:
+    AmmoType: {fileID: 11400000, guid: 37c465915d6cf49428a6cc5810a1bfb9, type: 2}
+    Size: 30
+    Reload: 0
+    ReloadTime: 2
+    AutoReload: 1
+  <Jam>k__BackingField:
+    Chance: 0.02
+    ClearTime: 1.5
+  <Recoil>k__BackingField:
+    Hip:
+      Multiplier: 1
+      Vertical: 5
+      Horizontal: 8
+      KickBack: 0.1
+      VerticalReturnSpeed: 10
+      HorizontalReturnSpeed: 10
+      VerticalSnappiness: 10
+      HorizontalSnappiness: 10
+      NoisePitch: 0.16
+      NoiseYaw: 0.24
+      CameraRotation: 0.7
+      CameraRoll: 0.3
+      CameraShake: 0.01
+    Aim:
+      Multiplier: 1
+      Vertical: 3
+      Horizontal: 6
+      KickBack: 0.1
+      VerticalReturnSpeed: 15
+      HorizontalReturnSpeed: 15
+      VerticalSnappiness: 10
+      HorizontalSnappiness: 10
+      NoisePitch: 0.16
+      NoiseYaw: 0.24
+      CameraRotation: 0.7
+      CameraRoll: 0.3
+      CameraShake: 0.01
+    MovingMultiplier: 1.14
+    AirborneMultiplier: 1.65
+    AccurateShots: 2
+    AccurateShotsMultiplier: 0.5
+  <Handling>k__BackingField:
+    AimSpeed: 10
+    SprintPoseSpeed: 8
+  <Sounds>k__BackingField:
+    Volume: 1
+    Equip: {fileID: 8300000, guid: 4ec054a2f96c312449d544ca90f6b9dd, type: 3}
+    Fire: {fileID: 8300000, guid: b3a1b0f854d515b4798e653179fdaea9, type: 3}
+    ReloadStart: {fileID: 8300000, guid: 8fd53b83fcdca0a408f2e89ef21d4b5e, type: 3}
+    ReloadInsert: {fileID: 0}
+    ReloadEnd: {fileID: 8300000, guid: 8aba37af064a2b149be7bd57e6d8fe65, type: 3}
+    Jam: {fileID: 0}
+    ClearJamStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
+    ClearJamEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+  <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

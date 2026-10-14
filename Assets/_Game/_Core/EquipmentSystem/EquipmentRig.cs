@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace Aipocalypse.Core.EquipmentSystem
 {
@@ -18,13 +20,21 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         readonly Dictionary<ItemInstance, HeldItem> _views = new();
         Equipment _equipment;
+        IEquipmentOwner _owner;
+        IObjectResolver _resolver;
         HeldItem _current;
         Vector3 _restPosition;
         Quaternion _restRotation;
 
-        public void Bind(Equipment equipment)
+        // The item model in hand (raising, ready or holstering), or null.
+        public HeldItem Current => _current;
+
+        // The resolver injects the held models (guns need the bullet and effect services).
+        public void Bind(Equipment equipment, IEquipmentOwner owner, IObjectResolver resolver)
         {
             _equipment = equipment;
+            _owner = owner;
+            _resolver = resolver;
             _restPosition = _hand.localPosition;
             _restRotation = _hand.localRotation;
 
@@ -50,6 +60,17 @@ namespace Aipocalypse.Core.EquipmentSystem
             float pose = _raiseCurve.Evaluate(_equipment.Switcher.Raise);
             _hand.localPosition = _restPosition + Vector3.LerpUnclamped(_loweredOffset, Vector3.zero, pose);
             _hand.localRotation = _restRotation * Quaternion.SlerpUnclamped(Quaternion.Euler(_loweredEuler), Quaternion.identity, pose);
+        }
+
+        // Lets the item in hand act (fire, aim, reload). After Tick, so it sees this frame's switch state.
+        public void TickHeld(HeldItemInput input, float deltaTime)
+        {
+            if (_current == null)
+                return;
+
+            EquipmentSwitcher switcher = _equipment.Switcher;
+            input.IsReady = switcher.IsReady && switcher.Held == _current.Item;
+            _current.Tick(input, deltaTime);
         }
 
         void OnDestroy()
@@ -101,9 +122,9 @@ namespace Aipocalypse.Core.EquipmentSystem
                 return null;
             }
 
-            view = Instantiate(prefab, _hand, false);
+            view = _resolver != null ? _resolver.Instantiate(prefab, _hand, false) : Instantiate(prefab, _hand, false);
             view.name = prefab.name;
-            view.Bind(item);
+            view.Bind(item, _owner);
             view.gameObject.SetActive(false);
             _views.Add(item, view);
             return view;

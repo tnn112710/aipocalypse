@@ -8,8 +8,17 @@ namespace Aipocalypse.Core.EquipmentSystem
     public class HeldItem : MonoBehaviour
     {
         public ItemInstance Item { get; private set; }
+        protected IEquipmentOwner Owner { get; private set; }
 
-        public void Bind(ItemInstance item) => Item = item;
+        public virtual ViewKick ViewKick => default;
+        public virtual bool IsAiming => false;
+
+        public void Bind(ItemInstance item, IEquipmentOwner owner)
+        {
+            Item = item;
+            Owner = owner;
+            OnBound();
+        }
 
         // Shown when it starts being raised, hidden once fully holstered.
         public void Show()
@@ -25,6 +34,11 @@ namespace Aipocalypse.Core.EquipmentSystem
         }
 
         public virtual void OnReady() { }
+
+        // Every frame while this is the item in hand, raising and holstering included (input.IsReady is false then).
+        public virtual void Tick(in HeldItemInput input, float deltaTime) { }
+
+        protected virtual void OnBound() { }
         protected virtual void OnShown() { }
         protected virtual void OnHidden() { }
     }

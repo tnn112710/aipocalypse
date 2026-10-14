@@ -6,6 +6,7 @@ namespace Aipocalypse.Core.Combat
     {
         Generic,
         Fall,
+        Gunshot,
     }
 
     public readonly struct DamageInfo

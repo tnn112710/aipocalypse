@@ -1,0 +1,312 @@
+using Aipocalypse.Core.WeaponSystem;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Aipocalypse.Tests
+{
+    public class GunTests
+    {
+        const float Frame = 1f / 60f;
+
+        GunDefinition _definition;
+        AmmoType _rifleAmmo;
+        AmmoType _pistolAmmo;
+        AmmoReserve _reserve;
+        int _shots;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _rifleAmmo = ScriptableObject.CreateInstance<AmmoType>();
+            _pistolAmmo = ScriptableObject.CreateInstance<AmmoType>();
+            _definition = ScriptableObject.CreateInstance<GunDefinition>();
+            _definition.Fire.Mode = FireMode.Auto;
+            _definition.Fire.RoundsPerMinute = 600f;
+            _definition.Magazine.AmmoType = _rifleAmmo;
+            _definition.Magazine.Size = 30;
+            _definition.Magazine.ReloadTime = 1f;
+            _definition.Jam.Chance = 0f;
+            _definition.Jam.ClearTime = 1f;
+            _reserve = new AmmoReserve();
+            _shots = 0;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_definition);
+            Object.DestroyImmediate(_rifleAmmo);
+            Object.DestroyImmediate(_pistolAmmo);
+        }
+
+        Gun NewGun(float jamRoll = 1f)
+        {
+            var gun = new Gun(new GunInstance(_definition), _reserve, () => jamRoll);
+            gun.Fired += () => _shots++;
+            return gun;
+        }
+
+        static GunInput Trigger(bool held, bool pressed = false) => new()
+        {
+            TriggerHeld = held,
+            TriggerPressed = pressed,
+            IsReady = true,
+            CanFire = true,
+            CanAim = true,
+        };
+
+        static void Run(Gun gun, GunInput input, float seconds, float deltaTime = Frame)
+        {
+            int frames = Mathf.RoundToInt(seconds / deltaTime);
+            for (int i = 0; i < frames; i++)
+                gun.Tick(input, deltaTime);
+        }
+
+        [Test]
+        public void Auto_FiresAtItsRate_AtAnyFrameRate()
+        {
+            Run(NewGun(), Trigger(true), 1f);
+            Assert.AreEqual(10, _shots, 1);
+
+            _shots = 0;
+            Run(NewGun(), Trigger(true), 2f, 1f / 7f);
+            Assert.AreEqual(20, _shots, 2);
+        }
+
+        [Test]
+        public void SemiAuto_OneShotPerClick_AndClicksCantBeatTheFireRate()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            _definition.Fire.RoundsPerMinute = 60f;
+            Gun gun = NewGun();
+
+            gun.Tick(Trigger(true, true), Frame);
+            Assert.AreEqual(1, _shots);
+
+            gun.Tick(Trigger(true, true), Frame);
+            Run(gun, Trigger(true), 0.5f);
+            Assert.AreEqual(1, _shots, "second click waits for the fire rate");
+
+            Run(gun, Trigger(true), 0.6f);
+            Assert.AreEqual(2, _shots, "the buffered click fires once the rate allows");
+
+            Run(gun, Trigger(true), 2f);
+            Assert.AreEqual(2, _shots, "holding doesn't fire again");
+        }
+
+        [Test]
+        public void SingleBurst_FiresOneBurstPerClick()
+        {
+            _definition.Fire.Mode = FireMode.SingleBurst;
+            _definition.Fire.BurstCount = 3;
+            Gun gun = NewGun();
+
+            gun.Tick(Trigger(true, true), Frame);
+            Run(gun, Trigger(false), 1f);
+
+            Assert.AreEqual(3, _shots);
+        }
+
+        [Test]
+        public void AutoBurst_PausesBetweenBursts()
+        {
+            _definition.Fire.Mode = FireMode.AutoBurst;
+            _definition.Fire.BurstCount = 3;
+            _definition.Fire.BurstCooldown = 0.5f;
+
+            // Bursts at 0 / 0.1 / 0.2 s, then 0.7 / 0.8 / 0.9 s.
+            Run(NewGun(), Trigger(true), 1f);
+
+            Assert.AreEqual(6, _shots);
+        }
+
+        [Test]
+        public void Firing_UsesRounds_ThenAutoReloadsFromTheReserve()
+        {
+            _definition.Magazine.Size = 5;
+            _reserve.Add(_rifleAmmo, 12);
+            Gun gun = NewGun();
+
+            Run(gun, Trigger(true), 1f);
+            Assert.AreEqual(5, _shots);
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+
+            Run(gun, Trigger(false), 1.05f);
+            Assert.AreEqual(GunAction.None, gun.Action);
+            Assert.AreEqual(5, gun.Item.Rounds);
+            Assert.AreEqual(7, _reserve.Count(_rifleAmmo));
+        }
+
+        [Test]
+        public void Reload_TakesOnlyWhatTheReserveHas()
+        {
+            _reserve.Add(_rifleAmmo, 4);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(0);
+
+            Run(gun, Trigger(false), 1.05f);
+
+            Assert.AreEqual(4, gun.Item.Rounds);
+            Assert.AreEqual(0, _reserve.Count(_rifleAmmo));
+            Assert.IsFalse(gun.CanReload);
+        }
+
+        [Test]
+        public void Reload_NeedsAKey_UnlessEmpty()
+        {
+            _reserve.Add(_rifleAmmo, 30);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(10);
+
+            gun.Tick(Trigger(false), Frame);
+            Assert.AreEqual(GunAction.None, gun.Action);
+
+            gun.Tick(new GunInput { Reload = true, IsReady = true, CanFire = true, CanAim = true }, Frame);
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+        }
+
+        [Test]
+        public void PerRoundReload_LoadsOneRoundAtATime()
+        {
+            _definition.Magazine.Size = 5;
+            _definition.Magazine.Reload = ReloadType.PerRound;
+            _definition.Magazine.ReloadTime = 0.5f;
+            _reserve.Add(_rifleAmmo, 10);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(2);
+            int loaded = 0;
+            gun.RoundLoaded += () => loaded++;
+
+            gun.Tick(new GunInput { Reload = true, IsReady = true }, Frame);
+            Run(gun, Trigger(false), 0.55f);
+            Assert.AreEqual(3, gun.Item.Rounds);
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+
+            Run(gun, Trigger(false), 1f);
+            Assert.AreEqual(5, gun.Item.Rounds);
+            Assert.AreEqual(3, loaded);
+            Assert.AreEqual(GunAction.None, gun.Action);
+        }
+
+        [Test]
+        public void Jam_StopsTheShot_ThenClearsItself()
+        {
+            _definition.Jam.Chance = 0.5f;
+            Gun gun = NewGun(jamRoll: 0f);
+
+            gun.Tick(Trigger(true), Frame);
+            Assert.AreEqual(0, _shots);
+            Assert.IsTrue(gun.Item.IsJammed);
+            Assert.AreEqual(30, gun.Item.Rounds, "a jammed shot uses no round");
+
+            gun.Tick(Trigger(true), Frame);
+            Assert.AreEqual(GunAction.ClearingJam, gun.Action);
+
+            Run(gun, Trigger(false), 1.05f);
+            Assert.IsFalse(gun.Item.IsJammed);
+            Assert.AreEqual(GunAction.None, gun.Action);
+        }
+
+        [Test]
+        public void Switching_InterruptsTheReload()
+        {
+            _reserve.Add(_rifleAmmo, 30);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(0);
+            gun.Tick(Trigger(false), Frame);
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+
+            gun.Tick(new GunInput { IsReady = false }, 2f);
+
+            Assert.AreEqual(GunAction.None, gun.Action);
+            Assert.AreEqual(0, gun.Item.Rounds);
+        }
+
+        [Test]
+        public void Sprinting_BlocksFireAndAim()
+        {
+            Gun gun = NewGun();
+
+            Run(gun, new GunInput { TriggerHeld = true, Aim = true, IsReady = true }, 0.5f);
+
+            Assert.AreEqual(0, _shots);
+            Assert.IsFalse(gun.IsAiming);
+        }
+
+        [Test]
+        public void Reloading_DropsTheAim()
+        {
+            _reserve.Add(_rifleAmmo, 30);
+            Gun gun = NewGun();
+            var aim = new GunInput { Aim = true, IsReady = true, CanFire = true, CanAim = true };
+            gun.Tick(aim, Frame);
+            Assert.IsTrue(gun.IsAiming);
+
+            gun.Item.SetRounds(0);
+            gun.Tick(aim, Frame);
+
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+            Assert.IsFalse(gun.IsAiming);
+        }
+
+        [Test]
+        public void Reserve_IsSharedByAmmoType()
+        {
+            _reserve.Add(_rifleAmmo, 10);
+            _reserve.Add(_pistolAmmo, 3);
+            var other = new GunInstance(_definition);
+            other.SetRounds(0);
+            var otherGun = new Gun(other, _reserve, () => 1f);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(25);
+
+            Run(gun, new GunInput { Reload = true, IsReady = true }, 1.05f);
+            Run(otherGun, Trigger(false), 1.05f);
+
+            Assert.AreEqual(30, gun.Item.Rounds);
+            Assert.AreEqual(5, other.Rounds);
+            Assert.AreEqual(0, _reserve.Count(_rifleAmmo));
+            Assert.AreEqual(3, _reserve.Count(_pistolAmmo));
+        }
+
+        [Test]
+        public void InfiniteReserve_NeverRunsDown()
+        {
+            _reserve.Infinite = true;
+            Gun gun = NewGun();
+            gun.Item.SetRounds(0);
+
+            Run(gun, Trigger(false), 1.05f);
+
+            Assert.AreEqual(30, gun.Item.Rounds);
+            Assert.AreEqual(0, _reserve.Count(_rifleAmmo));
+        }
+
+        [Test]
+        public void Recoil_KicksTheViewUp_ThenSettles()
+        {
+            var recoil = new GunRecoil(_definition.Recoil);
+
+            recoil.Kick(false, 1f);
+            for (int i = 0; i < 6; i++)
+                recoil.Tick(Frame, false);
+            Assert.Less(recoil.ViewEuler.x, -0.5f);
+            Assert.Less(recoil.GunEuler.x, -0.5f);
+
+            for (int i = 0; i < 180; i++)
+                recoil.Tick(Frame, false);
+            Assert.AreEqual(0f, recoil.ViewEuler.magnitude, 0.01f);
+        }
+
+        [Test]
+        public void Spread_StaysInsideTheCone()
+        {
+            for (int i = 0; i < 200; i++)
+            {
+                Vector3 direction = BulletSpread.Apply(Vector3.forward, 5f);
+                Assert.LessOrEqual(Vector3.Angle(Vector3.forward, direction), 5.01f);
+            }
+            Assert.AreEqual(Vector3.forward, BulletSpread.Apply(Vector3.forward, 0f));
+        }
+    }
+}

@@ -1,4 +1,5 @@
 using Aipocalypse.Core.PlayerSystem;
+using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
 using MessagePipe;
 using UnityEngine;
@@ -27,6 +28,7 @@ namespace Aipocalypse.Core.Bootstrap
 
             new InputInstaller(_controls).Install(builder);
             new PlayerInstaller().Install(builder);
+            new WeaponInstaller().Install(builder);
         }
     }
 }
