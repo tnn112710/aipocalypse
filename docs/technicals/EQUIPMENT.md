@@ -33,14 +33,15 @@ Rules (plain C#, EditMode-tested)
 
 Views
   HeldItem                       root of an item's first-person prefab; subclass for fire / swing / use (HeldGun)
-                                 Tick(HeldItemInput) every frame it's in hand; ViewKick (camera offset), IsAiming
+                                 Tick(HeldItemInput) every frame it's in hand; LateTick after the view kick is applied
+                                 (spawn things that must line up with the model); ViewKick (camera offset), IsAiming
   EquipmentRig                   spawns one HeldItem per hotbar item (injected via the resolver), shows the held one,
                                  poses the hand from Raise, TickHeld passes the input on with IsReady
   HotbarHud → HotbarSlotView     HUD, event-driven (see UI.md)
   WorldItem                      an item lying in the world (IInteractable): pick up / swap; Spawn for drops
 ```
 
-`Player` owns the `Equipment` (built from `EquipmentConfig` in `Construct`), feeds it from `PlayerIntent.SelectSlot` / `CycleSlot`, and ticks it and the rig last in its `Update`. Then it builds a `HeldItemInput` (fire / aim / reload + sprinting, moving, airborne) and calls `EquipmentRig.TickHeld`, applies the item's `ViewKick` to the look and its `IsAiming` to the move speed. Nothing else ticks.
+`Player` owns the `Equipment` (built from `EquipmentConfig` in `Construct`), feeds it from `PlayerIntent.SelectSlot` / `CycleSlot`, and ticks it and the rig last in its `Update`. Then it builds a `HeldItemInput` (fire / aim / reload + sprinting, moving, airborne) and calls `EquipmentRig.TickHeld`, applies the item's `ViewKick` to the look and its `IsAiming` to the move speed, then calls the item's `LateTick` (guns spawn their shots there, so tracers start at the muzzle as drawn). Nothing else ticks.
 
 ## Switching
 

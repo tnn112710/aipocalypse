@@ -44,7 +44,7 @@ Assets/_Game/
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world: IInteractable, picks up / swaps; Spawn for drops
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), ViewKick, IsAiming
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  └─ EquipmentRig.cs                    spawns HeldItems through the resolver (injected), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ InputSystem/                          Aipocalypse.Input
@@ -169,9 +169,10 @@ PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteract
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    hand pose from Raise
-EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired)
-                       └─ Fired → GunRecoil.Kick, muzzle flash, BulletSystem.Fire per pellet; pose + recoil pivots
+EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired counts shots); pose + recoil pivots
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
+HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
+                       from the muzzle as drawn, then GunRecoil.Kick (shows from next frame)
 VContainer ticks     BulletSystem moves and ray-tests bullets → damage, impacts, holes; EffectPool returns expired effects
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)

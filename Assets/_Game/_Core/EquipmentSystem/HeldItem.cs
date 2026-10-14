@@ -38,6 +38,10 @@ namespace Aipocalypse.Core.EquipmentSystem
         // Every frame while this is the item in hand, raising and holstering included (input.IsReady is false then).
         public virtual void Tick(in HeldItemInput input, float deltaTime) { }
 
+        // After the holder applied ViewKick: the camera and this model are where they'll be drawn this frame.
+        // Spawn things that must line up with the model here (bullets from the muzzle).
+        public virtual void LateTick() { }
+
         protected virtual void OnBound() { }
         protected virtual void OnShown() { }
         protected virtual void OnHidden() { }

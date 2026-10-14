@@ -186,6 +186,8 @@ namespace Aipocalypse.Core.PlayerSystem
             HeldItem held = _equipmentRig.Current;
             _look.SetKick(held != null ? held.ViewKick : default);
             _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.AimMoveSpeedMultiplier : 1f;
+            if (held != null)
+                held.LateTick();
         }
 
         void DropSelected()

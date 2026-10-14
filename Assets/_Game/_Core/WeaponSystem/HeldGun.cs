@@ -44,6 +44,8 @@ namespace Aipocalypse.Core.WeaponSystem
         float _actionWeight;
         GunAction _shownAction;
         float _insertBump;
+        // Shots from this frame's Gun.Tick, spawned in LateTick once the model and camera are in their final place.
+        int _pendingShots;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
@@ -122,8 +124,19 @@ namespace Aipocalypse.Core.WeaponSystem
             ApplyPose();
         }
 
+        public override void LateTick()
+        {
+            for (; _pendingShots > 0; _pendingShots--)
+            {
+                Shoot();
+                // After the shot leaves: its kick shows from the next frame, as the bullet is already out of the barrel.
+                _recoil.Kick(_gun.IsAiming, _stateMultiplier);
+            }
+        }
+
         protected override void OnHidden()
         {
+            _pendingShots = 0;
             _gun?.Interrupt();
             _recoil?.Reset();
         }
@@ -141,9 +154,12 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnFired()
         {
-            _recoil.Kick(_gun.IsAiming, _stateMultiplier);
+            _pendingShots++;
             Play(_definition.Sounds.Fire);
+        }
 
+        void Shoot()
+        {
             BulletEffects effects = _definition.Effects;
             if (effects != null)
                 _effects.Spawn(effects.MuzzleFlash, _muzzle.position, _muzzle.rotation, _muzzle);
