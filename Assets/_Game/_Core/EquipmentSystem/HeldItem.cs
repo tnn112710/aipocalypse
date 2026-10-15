@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Aipocalypse.Core.EquipmentSystem
@@ -7,17 +8,53 @@ namespace Aipocalypse.Core.EquipmentSystem
     [DisallowMultipleComponent]
     public class HeldItem : MonoBehaviour
     {
+        readonly List<Renderer> _renderers = new();
+
         public ItemInstance Item { get; private set; }
         protected IEquipmentOwner Owner { get; private set; }
 
         public virtual ViewKick ViewKick => default;
         public virtual bool IsAiming => false;
+        // False while an obstacle pose would interfere with the item's motion.
+        public virtual bool KeepsClear => true;
 
         public void Bind(ItemInstance item, IEquipmentOwner owner)
         {
             Item = item;
             Owner = owner;
+            // Before anything gets parented to the model (muzzle flashes), so only the model's own meshes count.
+            foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer is MeshRenderer or SkinnedMeshRenderer)
+                    _renderers.Add(renderer);
+            }
             OnBound();
+        }
+
+        // The model's furthest point along `forward` from `eye`, from its meshes' bounds as drawn this frame.
+        public bool TryGetTip(Vector3 eye, Vector3 forward, out Vector3 tip)
+        {
+            tip = eye;
+            float furthest = float.MinValue;
+            foreach (Renderer renderer in _renderers)
+            {
+                if (renderer == null || !renderer.enabled)
+                    continue;
+                Bounds bounds = renderer.localBounds;
+                Transform space = renderer.transform;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 corner = bounds.center + Vector3.Scale(bounds.extents, new Vector3(
+                        (i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+                    Vector3 point = space.TransformPoint(corner);
+                    float along = Vector3.Dot(point - eye, forward);
+                    if (along <= furthest)
+                        continue;
+                    furthest = along;
+                    tip = point;
+                }
+            }
+            return furthest > 0f;
         }
 
         // Shown when it starts being raised, hidden once fully holstered.

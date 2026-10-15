@@ -42,6 +42,8 @@ namespace Aipocalypse.Core.WeaponSystem
         bool _pendingStrike;
 
         public MeleeAttack Attack => _attack;
+        // Let the swing play without the obstacle pose changing its arc.
+        public override bool KeepsClear => _attack == null || _attack.Phase == SwingPhase.None;
 
         [Inject]
         void Construct(EffectPool effects) => _effects = effects;

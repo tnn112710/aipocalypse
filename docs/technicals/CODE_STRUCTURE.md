@@ -44,7 +44,7 @@ Assets/_Game/
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world: IInteractable, picks up / swaps; Spawn for drops
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, TryGetTip (model's furthest point from mesh bounds)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  └─ EquipmentRig.cs                    spawns HeldItems through the resolver (injected), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ InputSystem/                          Aipocalypse.Input
@@ -62,6 +62,8 @@ Assets/_Game/
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
+│  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
+│  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera FOV / aspect / viewport after Cinemachine
 │  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
 │  │  ├─ FallDamage.cs                      drop height → damage
 │  │  ├─ PlayerTuning.cs                    ScriptableObject type for every player number
@@ -127,6 +129,7 @@ Assets/_Game/
    ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
+   ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
 
@@ -173,10 +176,11 @@ PlayerHeadBob.Tick   camera root offset
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
-EquipmentRig.Tick    hand pose from Raise
+EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired counts shots); pose + recoil pivots.
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
+HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
@@ -195,7 +199,8 @@ Player                       CharacterController (h 1.8, r 0.35, step 0.35, slop
 │  └─ CameraPitch            PlayerLook pitches it; Cinemachine tracking target
 │     └─ HeldItems           EquipmentRig
 │        └─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig (guns add their own poses on top)
-├─ PlayerCamera              Camera (tag MainCamera) · URP camera data · CinemachineBrain · AudioListener
+├─ PlayerCamera              Camera (tag MainCamera, excludes HeldWeapon) · URP camera data · CinemachineBrain · AudioListener · WeaponOverlayCamera
+│  └─ WeaponCamera           URP Overlay (Clear Depth), HeldWeapon only, same FOV, near 0.01 m
 └─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
 ```
 

@@ -795,6 +795,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.Debugging.TargetDummy
   _maxHealth: 100
+  _body: {fileID: 0}
+  _tipPerForce: 6
+  _maxTip: 35
+  _stiffness: 120
+  _damping: 9
 --- !u!23 &458502752
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1545,6 +1550,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2929853657998608234, guid: 1144b94f7343f5a409716110c146f3ab, type: 3}
+      propertyPath: m_ClearFlags
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 6102316466898910966, guid: 1144b94f7343f5a409716110c146f3ab, type: 3}
       propertyPath: orthographic size
       value: 10
@@ -1761,6 +1770,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.Debugging.TargetDummy
   _maxHealth: 100
+  _body: {fileID: 0}
+  _tipPerForce: 6
+  _maxTip: 35
+  _stiffness: 120
+  _damping: 9
 --- !u!23 &1928984534
 MeshRenderer:
   m_ObjectHideFlags: 0

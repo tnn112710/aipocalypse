@@ -73,6 +73,19 @@ namespace Aipocalypse.Core.EquipmentSystem
             _current.Tick(input, deltaTime);
         }
 
+        public void ApplyObstaclePose(float weight, float distance, Vector3 euler)
+        {
+            _hand.localPosition += Vector3.back * (weight * distance);
+            _hand.localRotation *= Quaternion.Slerp(Quaternion.identity, Quaternion.Euler(euler), weight);
+        }
+
+        internal static void SetLayer(Transform root, int layer)
+        {
+            root.gameObject.layer = layer;
+            for (int i = 0; i < root.childCount; i++)
+                SetLayer(root.GetChild(i), layer);
+        }
+
         void OnDestroy()
         {
             if (_equipment == null)
@@ -124,6 +137,7 @@ namespace Aipocalypse.Core.EquipmentSystem
 
             view = _resolver != null ? _resolver.Instantiate(prefab, _hand, false) : Instantiate(prefab, _hand, false);
             view.name = prefab.name;
+            SetLayer(view.transform, _hand.gameObject.layer);
             view.Bind(item, _owner);
             view.gameObject.SetActive(false);
             _views.Add(item, view);

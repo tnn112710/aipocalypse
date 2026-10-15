@@ -89,6 +89,21 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 | Where the hand sits on screen | `HeldItems/Hand` local position |
 | One model's grip position | that item's held prefab → `Model` child transform |
 
+## First-person rendering and obstacle pose
+
+Held models use the `HeldWeapon` layer, rendered by `PlayerCamera/WeaponCamera`, a URP Overlay camera in the world camera's stack with Clear Depth enabled. The world camera excludes that layer; world pickups remain on their original layers. `EquipmentRig` assigns the hand's layer recursively when it creates held models. Muzzle flashes use the held gun's layer; tracers, impacts and decals stay in the world.
+
+`WeaponOverlayCamera` matches the world camera's FOV, aspect and viewport before rendering, after Cinemachine has placed it. The overlay camera is a child of the world camera, with a 0.01 m near plane and no separate Cinemachine rig or AudioListener. Held models remain visible against walls and enemies.
+
+`PlayerSystem/HeldItemClearance`, ticked by `Player`, adds a smooth backward offset and tilt to the hand near obstacles. It never moves the player:
+
+- The rig first restores its normal switch pose and the item applies its normal aim/sprint/reload pose. `HeldItem.TryGetTip` measures the model's forward extent from its mesh bounds before the obstacle offset is applied, avoiding a retract/extend feedback loop.
+- A sphere-cast from the eye to that tip (plus margin) finds the nearest wall, floor or entity. The player and triggers are ignored.
+- Penetration determines the obstacle pose weight. The hand blends back and tilts, then smoothly returns when clear. Switching to another item resets the weight.
+- Melee opts out during swings so the obstacle pose does not change the swing arc. Damage checks remain in world space.
+
+Settings: `PlayerTuning` → Held item obstacle pose (on/off, margin, radius, retract distance, tilt, blend speed, layers). The overlay guarantees visibility even when an item is longer than the maximum retraction. Gun shots check the eye-to-muzzle segment before using a muzzle origin so a displayed barrel beyond cover cannot fire through it.
+
 ## Temporary animation
 
 `EquipmentRig` moves the `Hand` transform between its rest pose and a lowered, tilted pose using `Raise` through an `AnimationCurve`. It's a placeholder until there are first-person arms. To replace it, drive an Animator from the switcher instead: a `Raise` float parameter, or equip / holster clips whose lengths match `EquipTime` / `HolsterTime`. Do it in the rig or in a `HeldItem` subclass. `EquipmentSwitcher` stays as the single source of timing either way.
@@ -112,5 +127,6 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 
 - Dropped items are placed on the ground, not thrown: no physics. Picking up has no animation or sound.
 
-- The held model renders in the world camera, so it can clip into walls when you stand close. Fix it later with a separate view-model render pass or layer.
+- The overlay can make held models appear over nearby surfaces; the obstacle pose softens this, but does not simulate physical weapon collision.
+
 - No sound or HUD feedback for the switch itself. The slot highlight moves immediately when the selection changes.

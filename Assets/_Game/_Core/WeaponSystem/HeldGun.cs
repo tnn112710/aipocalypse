@@ -162,7 +162,11 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             BulletEffects effects = _definition.Effects;
             if (effects != null)
-                _effects.Spawn(effects.MuzzleFlash, _muzzle.position, _muzzle.rotation, _muzzle);
+            {
+                PooledEffect flash = _effects.Spawn(effects.MuzzleFlash, _muzzle.position, _muzzle.rotation, _muzzle);
+                if (flash != null)
+                    EquipmentRig.SetLayer(flash.transform, gameObject.layer);
+            }
 
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
@@ -173,7 +177,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 {
                     Origin = origin,
                     Direction = BulletSpread.Apply(direction, fire.SpreadAngle),
-                    VisualOrigin = _muzzle.position,
+                    VisualOrigin = _user.AimFrom == AimOrigin.Camera ? _muzzle.position : origin,
                     Speed = bullet.Speed,
                     Range = bullet.Range,
                     GravityScale = bullet.GravityScale,
@@ -187,6 +191,15 @@ namespace Aipocalypse.Core.WeaponSystem
         void AimShot(float range, out Vector3 origin, out Vector3 direction)
         {
             Transform eye = _user.Eye;
+            Vector3 toMuzzle = _muzzle.position - eye.position;
+            // The view model draws over cover, but a barrel beyond cover must still hit its near face.
+            if (_user.AimFrom != AimOrigin.Camera && toMuzzle.sqrMagnitude > 0.000001f &&
+                _bullets.TryHit(eye.position, toMuzzle.normalized, toMuzzle.magnitude, _user.Root, out _))
+            {
+                direction = toMuzzle.normalized;
+                origin = eye.position;
+                return;
+            }
             switch (_user.AimFrom)
             {
                 case AimOrigin.Camera:

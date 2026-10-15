@@ -138,6 +138,7 @@ How `EntityScope` does it (VContainer API checked in package source):
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
 - `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage, linear between a safe and a lethal drop height. Taking damage publishes `DamageDealt`; dying publishes `PlayerDied`.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
+- First-person presentation: a HeldWeapon-only URP Overlay camera keeps held models visible. `HeldItemClearance` blends the hand back and tilts it near obstacles without moving the player; melee swings opt out. `WeaponOverlayCamera` synchronizes the overlay lens after Cinemachine places the world camera.
 - All numbers live in `Data/Player/PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
 
 ## AI

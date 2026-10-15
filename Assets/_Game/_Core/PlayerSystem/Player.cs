@@ -34,6 +34,7 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerLook _look;
         PlayerHeadBob _headBob;
         PlayerInteractor _interactor;
+        HeldItemClearance _heldClearance;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -63,6 +64,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _look = new PlayerLook(transform, _cameraPitch, _tuning);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning);
+            _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning, _equipmentRig);
 
             _motor.Landed += OnLanded;
             Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
@@ -186,6 +188,8 @@ namespace Aipocalypse.Core.PlayerSystem
             HeldItem held = _equipmentRig.Current;
             _look.SetKick(held != null ? held.ViewKick : default);
             _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.AimMoveSpeedMultiplier : 1f;
+            // Apply the obstacle pose before shots use the final muzzle position.
+            _heldClearance.Tick(held, deltaTime);
             if (held != null)
                 held.LateTick();
         }

@@ -142,10 +142,10 @@ FireAxe                       HeldMelee · AudioSource (2D)
 
 - **Sounds bypass BroAudio for now:** each gun plays its clips on its own `AudioSource`, so a sound is cut when the gun is fully holstered or dropped. Moving to BroAudio means swapping the `AudioClip` fields for `SoundID`s and `HeldGun.Play` for `BroAudio.Play`.
 - **Crosshair is a plain dot:** no spread / hit feedback, no hit marker or damage numbers yet. It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
-- **Muzzle inside a wall:** with Muzzle / MuzzleToCrosshair aiming and the muzzle pushed into a wall, bullets start on the far side. Camera aiming doesn't have this. (With MuzzleToCrosshair, cover in front of the barrel but below the crosshair is hit, as expected.)
+- **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.
 - **No dry-fire click** when the magazine and reserve are empty.
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
 - **Per-round reload can't be interrupted by firing** (as in the old system).
-- The held gun renders in the world camera, so it can clip into walls (see [EQUIPMENT.md](EQUIPMENT.md#known-gaps)).
 - Reload and jam motions are procedural placeholders; replace them with animations driven from `Gun.ActionStarted` / `ActionProgress`.
+- Held weapons and muzzle flashes render through the weapon overlay camera. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
 - **Melee:** no hit-stop, hit marker or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).
