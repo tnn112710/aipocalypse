@@ -6,10 +6,23 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro; precompiled DLLs (Odin) auto-referenced |
+| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing; precompiled plugin DLLs auto-referenced |
 | `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit. Editor only |
 
 Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Core.PlayerSystem`, `Aipocalypse.Core.Combat`). One exception: input uses **`Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
+
+## Enemy wander slice
+
+`_Core/EnemySystem/` (`Aipocalypse.Core.EnemySystem`):
+
+- `EnemyInstaller.cs` registers scene navigation, settings, assigned agents, and the central entry point.
+- `EnemyManager.cs` starts agents and time-slices Manual Behavior Designer trees through VContainer's tick loop.
+- `EnemyBrain.cs` bridges each tree to its mover and stops both when disabled.
+- `WanderMover.cs` samples reachable destinations around the spawn point and drives A* FollowerEntity, including arrival and travel timeout checks.
+- `WanderTasks.cs` contains the choose, walk, and pause ActionNodes used by the shared subtree.
+- `WanderSettings.cs` holds movement, radius, pause, timeout, and think-stride tuning; the asset and shared subtree are in `Data/Enemies/`.
+
+`GameLifetimeScope` installs this slice when navigation and settings are assigned. `AgentScripts/WanderDemo.cs` builds and inspects the two-agent scene setup through Unity CLI. Core also references AstarPathfindingProject and its PackageTools/Drawing base assemblies.
 
 ## Script map
 
@@ -20,7 +33,7 @@ Assets/_Game/
 │  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y…)
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
-│  │  └─ GameLifetimeScope.cs               per-scene scope (stub), Strict flag, execution order -5000
+│  │  └─ GameLifetimeScope.cs               per-scene scope, optional EnemyInstaller, Strict flag, execution order -5000
 │  ├─ _Common/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat

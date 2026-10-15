@@ -1,6 +1,8 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using Aipocalypse.Core.EnemySystem;
+using Pathfinding;
 
 namespace Aipocalypse.Core.Bootstrap
 {
@@ -10,11 +12,16 @@ namespace Aipocalypse.Core.Bootstrap
     {
         [SerializeField, Tooltip("On in World: an entity falling back to a default service is an error.")]
         bool _strict;
+        [SerializeField] AstarPath _navigation;
+        [SerializeField] WanderSettings _wanderSettings;
+        [SerializeField] EnemyBrain[] _enemies = System.Array.Empty<EnemyBrain>();
 
         public bool Strict => _strict;
 
         protected override void Configure(IContainerBuilder builder)
         {
+            if (_navigation != null && _wanderSettings != null)
+                new EnemyInstaller(_enemies, _navigation, _wanderSettings).Install(builder);
         }
     }
 }

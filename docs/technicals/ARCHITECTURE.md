@@ -143,7 +143,9 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 ## AI
 
-*Not built yet.* Rule for when it lands: every AI agent decides with a Behavior Designer Pro tree; trees decide, parts act (tasks stay thin and call tested code). Skill: `tools-unity-behavior-designer`.
+The first AI slice is a capsule wander demo in `Prototype.unity`. Every AI agent decides with a Behavior Designer Pro tree; tasks delegate navigation to `WanderMover`. The shared `Data/Enemies/Wander.asset` subtree repeats a sequence: choose a reachable point, walk there, pause. Tuning lives in `WanderSettings.asset`.
+
+`GameLifetimeScope` optionally installs `EnemyInstaller` when its navigation and wander settings are assigned. `EnemyManager` starts the explicitly assigned scene agents after setup and ticks their Manual trees with a staggered stride. `Navigation.prefab` holds AstarPath and RVOSimulator; its small terrain-following grid scans on startup. This initial slice supports the two scene-placed agents; pooling, combat, and dynamic enemy registration are not implemented yet. Skill: `tools-unity-behavior-designer`.
 
 ## Performance
 

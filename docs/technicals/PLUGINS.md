@@ -116,6 +116,8 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 
 ## Open overlaps to decide
 
+The capsule wander demo in `Assets/_Game/Scenes/Prototype.unity` uses a shared Behavior Designer Pro subtree (`Data/Enemies/Wander.asset`), with custom choose/walk/pause tasks and Manual trees ticked by `EnemyManager`. A* FollowerEntity handles movement and local avoidance; `Prefabs/Navigation.prefab` contains AstarPath, a small terrain-following grid scanned on startup, and RVOSimulator. The `Enemy` layer keeps the capsules out of terrain navigation and grounding queries.
+
 - **A\* vs AI Navigation.** A* is the choice for enemies; AI Navigation can probably go.
 - **Tweening: DOTween vs LeanTransition vs Feel's tweens.** DOTween for code; Feel only through feedbacks.
 - **Atmosphere: COZY vs Kronnect Volumetric Fog / Global Snow vs URP volumes.** Decide who owns fog, sky and weather.
