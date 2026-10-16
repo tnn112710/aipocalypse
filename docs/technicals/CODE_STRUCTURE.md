@@ -64,8 +64,8 @@ Assets/_Game/
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread calibration, Place, Apply, forearm axis, contact samples, setup buttons
 │  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows (view space), preview item position
-│  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit); Resolve; Preview hand, Bake fit; FingerMask
-│  │  ├─ ItemHands.cs                       on an item prefab: default grips + named hand actions (hand keys, part tracks, shown props); Play / SetProgress / Stop; preview scrubber
+│  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit or clip-authored shape); Resolve; Preview hand, Bake fit; FingerMask
+│  │  ├─ ItemHands.cs                       on an item prefab: default grips, per-item hand scale + named procedural hand actions (hand keys, part tracks, shown props); Play / SetProgress / Stop; preview scrubber
 │  │  ├─ FirstPersonHands.cs                on the player: spawns the HandSet, puts each hand on the item's current grip (elbow-aimed), arcs between grips with fingers opening
 │  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
 │  │  └─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
@@ -125,7 +125,8 @@ Assets/_Game/
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
-│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, action motion, pump / break parts, sounds (own AudioSource)
+│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, optional GunAnimation (procedural fallback), pump / break parts, sounds (own AudioSource)
+│     ├─ GunAnimation.cs                    optional clip view: shared Animator state slots + per-gun Override Controller, manual controller/Animation Rigging graph, action-progress sampling, pooled cosmetic magazine release; AK47 first
 │     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
@@ -151,6 +152,7 @@ Assets/_Game/
    ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
+   ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
@@ -200,7 +202,7 @@ Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the dro
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots, pump / break parts,
-                       ItemHands.SetProgress (hand action parts: mag, bolt, shells).
+                       ItemHands.SetProgress (procedural hand action parts: mag, bolt, shells), or GunAnimation samples the controller and constraints for AK47.
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)

@@ -109,6 +109,9 @@ namespace Aipocalypse.Core.HandSystem
         // Places a rig on a grip as the player would see it, with the elbow from the HandSet.
         public static void Pose(HandRig rig, HandGrip grip)
         {
+            ItemHands item = grip.GetComponentInParent<ItemHands>(true);
+            HandRig prefab = Set != null ? Set.Get(rig.Side) : null;
+            rig.transform.localScale = (prefab != null ? prefab.transform.localScale : Vector3.one) * (item != null ? item.HandScale : 1f);
             grip.Resolve(rig, Elbow(grip.transform, rig.Side), out Vector3 position, out Quaternion rotation);
             rig.Place(position, rotation);
             rig.Apply(grip.Shape);

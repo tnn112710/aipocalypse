@@ -78,6 +78,7 @@ namespace Aipocalypse.Core.HandSystem
 
         [SerializeField] HandGrip _right;
         [SerializeField, Tooltip("None = this hand stays off screen (one-handed item)")] HandGrip _left;
+        [SerializeField, Min(0.1f), Tooltip("Hand size for this item; the hand's grip point stays on its contact")] float _handScale = 1f;
         [SerializeField, Min(0f), Tooltip("Seconds a hand takes to move between grips, unless a key says otherwise")]
         float _blend = 0.12f;
         [SerializeField, ListDrawerSettings(ShowFoldout = true, ListElementLabelName = "Name")] HandAction[] _actions = Array.Empty<HandAction>();
@@ -89,6 +90,7 @@ namespace Aipocalypse.Core.HandSystem
         public bool IsPlaying => _playing != null;
         public string Playing => _playing?.Name;
         public float DefaultBlend => _blend;
+        public float HandScale => _handScale;
 
         void Awake() => CaptureRest();
 

@@ -12,6 +12,7 @@ namespace Aipocalypse.Core.HandSystem
         {
             public HandSide Side;
             public HandRig Rig;
+            public Vector3 BaseScale;
             public ItemHands Item;
             public HandGrip Grip;
             // Where the move starts, relative to the item, so the hand doesn't lag behind a moving item.
@@ -64,7 +65,7 @@ namespace Aipocalypse.Core.HandSystem
             rig.name = prefab.name;
             SetLayer(rig.transform, gameObject.layer);
             rig.SetVisible(false);
-            return new Hand { Side = side, Rig = rig };
+            return new Hand { Side = side, Rig = rig, BaseScale = rig.transform.localScale };
         }
 
         void Tick(Hand hand, ItemHands item, float deltaTime)
@@ -83,6 +84,7 @@ namespace Aipocalypse.Core.HandSystem
             }
 
             Transform space = item.transform;
+            hand.Rig.transform.localScale = hand.BaseScale * item.HandScale;
             if (hand.Item != item || hand.Grip == null)
             {
                 // A new item or a hand coming back: no move, it's already out of view or tied to the switch motion.

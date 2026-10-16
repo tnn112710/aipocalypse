@@ -38,14 +38,14 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
 | Hands | Floating hands hold each gun's grips; reloads, jam clears and per-round loading move the gun's own parts (mag, bolt, slide, shells) and the left hand follows them. Played by name from `Gun` actions: `Reload` / `ReloadEmpty` (magazine empty at the start) / `LoadRound` (per round) / `ClearJam` / `Cycle` | Gun prefab → `ItemHands`; [HANDS.md](HANDS.md) |
-| Reload / jam / pump motion | Temporary procedural tilt (reload), dip per round (per-round reload), tilt + rack (jam), small dip and roll over the pump stroke until there are animations | Gun prefab → `HeldGun` → Action motion |
+| Reload / jam / pump motion | AK47 uses editable clips and hand contact constraints. Other guns keep temporary procedural tilt, insertion dip, jam rack and pump stroke | AK47 → AnimationRoot / clips; other gun prefabs → `HeldGun` → Action motion |
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
 | Effects | Muzzle flash, tracer, impact (removed after 3 s), bullet hole decal (removed after 20 s, at most 64). All pooled; no holes on things that take damage | `Data/Weapons/BulletEffects.asset`; lifetime / cap on each effect prefab's `PooledEffect` |
 | Sounds | Equip, fire, reload start / insert / end, jam, jam clear start / end, cycle start / end (pump back / home) as plain `AudioClip`s, played with `PlayOneShot` on the gun prefab's 2D `AudioSource` (BroAudio later). Clips come from the old project's samples (`Assets/_Samples/Audio/Weapons`): rifle / pistol equip, fire, mag out (reload start), mag in (reload end), sniper bolt pull / push (jam clear). The shotguns borrow sniper fire / equip, bolt pull / push (pump; break open / close) and pistol mag in (shell insert) until there are shotgun clips. Jam has no clip yet | Gun asset → Sounds (clips, volume) |
 | Crosshair | A 6 px dot at the screen centre (placeholder, to be polished) | `HUD` → `SafeFrame/Center/Crosshair` |
 | Ammo on the HUD | Magazine / reserve in the corner of each gun's hotbar slot (`30/90`; magazine only when the reserve is infinite), red when empty or jammed | [UI.md](UI.md#hotbar) |
 
-Cut from the old system: built-in fallback recoil assets, Animator triggers (no gun animations exist), the laser sight, the `Item` / `Weapon` / `IEquipable` bases (replaced by the item definitions and `EquipmentSwitcher`), and the hidden "legacy" stat copies.
+Cut from the old system: built-in fallback recoil assets, legacy Animator triggers, the laser sight, the `Item` / `Weapon` / `IEquipable` bases (replaced by the item definitions and `EquipmentSwitcher`), and the hidden "legacy" stat copies. AK47 now has its own clip/constraint presentation, described below.
 
 ## Layers
 
@@ -92,6 +92,14 @@ AK47 (variant of Gun_Base)    HeldGun · AudioSource (2D, gun sounds)
 Shotguns add a moving part inside `Model`: `PumpShotgun` slides `ShotGun_C_BarrelGuard` (the forend) as its pump part; `DoubleBarrel` has its model unpacked so the barrels, rib and forend sit under a `Hinge` at the front of the receiver, its break part.
 
 Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera) and are stored relative to `Hand`.
+
+### AK47 clips and constraints
+
+AK47 keeps the `Gun_Base` variant and its pose/recoil pivots. Under `RecoilPivot`, `AnimationRoot` adds an Animator using `Animations/AK47/AK47.overrideController`, a RigBuilder and `GunAnimation`. `AnimationRoot/Motion/Weapon` holds our unpacked copy of the store model with generic names (`Magazine`, `ReplacementMagazine`, `Bolt`, `Barrel`, `Handguard`, `Grip`, `Receiver`, `Stock`, `Trigger`, `Rail`, `Muzzle`). Shared mesh/material assets are still referenced; the original store prefab is untouched. The inherited base muzzle marker remains as `UnusedMuzzle`; `HeldGun` references the animated `Weapon/Muzzle` instead.
+
+The shared `Animations/Shared/Gun.controller` has Equipped, Idle, Firing, Reloading, ReloadingEmpty and Repairing states. Each weapon Override Controller supplies clips for those slots. Gameplay chooses states explicitly; the controller has no automatic transitions. `GunAnimation` uses a manual AnimatorControllerPlayable graph with Animation Rigging outputs, sampled once from `HeldGun.Tick` before final muzzle/hand use. Reloads and repairs sample `Gun.ActionProgress`; ammo still transfers only when `Gun` completes a reload. A weapon switch cancels the action and the next show starts cleanly with Equipped. Gameplay timing, input and recoil are unchanged.
+
+The reload separates the old magazine, an animated replacement, and a pooled world magazine (`Prefabs/Effects/AK47_Magazine.prefab`, Rigidbody + collider + PooledEffect). The existing EffectPool prewarms, caps and expires these cosmetics. The drop does not consume inventory ammo or create pickups. Right-hand contact remains on the grip; left-hand contacts, free paths and fingers are clip-authored. See [HANDS.md](HANDS.md#ak47-animation-authoring) for editing steps and contact weights. MP5, pistol, shotguns and melee remain procedural until converted explicitly.
 
 ## Adding a gun
 

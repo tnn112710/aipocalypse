@@ -1,11 +1,33 @@
 # Hands
 
-First-person floating hands (no arms), in the style of How to Fish and VR games. Nothing is animated per weapon. The hands hold **grips** on the item, and during actions the item's own parts move (mag out, bolt back, a shell going in), so the hands follow. Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Weapons: [WEAPONS.md](WEAPONS.md).
+First-person floating hands (no arms), in the style of How to Fish and VR games. Shared hands follow **grips** on the held item. AK47 uses editable animation clips and Animation Rigging constraints to drive its grips and finger shapes; other items retain the procedural hand actions below. Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Weapons: [WEAPONS.md](WEAPONS.md).
+
+## AK47 animation authoring
+
+The AK47 is the first clip-driven weapon. `ItemHands` points to the two `Motion/HandTargets` grips, whose rotations are used as authored. Their `_animatedShape` finger controls are keyed in each clip; the automatic reach arc and elbow rotation do not override them. The player's shared hand meshes still follow those targets, so a hand-mesh swap does not require new weapon clips.
+
+`ItemHands > Hand Scale` adjusts hand size per item while keeping the palm grip point fixed on the target. AK47 uses **1.12** (12% larger); unconverted items default to 1. Runtime placement and ghost previews both use this setting. The original hand mesh bounds are about 26 cm long against this AK47 model's roughly 1.2 m length; the increase is a first-person art adjustment. Large scale changes still need grip/finger-fit review. AK47's trigger and magazine poses use authored curls instead of the old fit solver's partly open fingers.
+
+`PosePivot/RecoilPivot/AnimationRoot` carries the Animator, RigBuilder and `GunAnimation`. Its `Motion` child contains `Weapon`, `Controls/LeftFree` and `HandTargets`. `Rig/LeftHand` is a Multi-Parent Constraint with five sources in this fixed order: forend grip, old magazine grip, replacement magazine grip, bolt grip, free-hand control. `Rig/RightHand` keeps the right target on the pistol grip. Contact switches are stepped keys, with matching free-control poses at each boundary. No hierarchy reparenting happens during playback.
+
+Clips live in `_Core/WeaponSystem/Animations/AK47/`: `AK47_Equipped`, `AK47_Idle`, `AK47_Firing`, `AK47_Reloading`, `AK47_ReloadingEmpty`, `AK47_Repairing`. Repairing means the existing jam-clear action, not durability repair. Normal reload omits charging the bolt; empty reload includes it. Firing animates the bolt and trigger finger; accumulated gun and camera recoil remain procedural.
+
+To edit:
+
+1. Open `Prefabs/Guns/AK47.prefab`, select `AnimationRoot`, and open **Window > Animation > Animation**. Select the desired AK47 clip. Keep RigBuilder enabled for Animation-window constraint previews.
+2. On the prefab root's `ItemHands`, use **Preview > Show hands** with default grips to show the shared ghost hands. Then scrub the clip in the Animation window; the ghosts follow the constrained targets. End the hand preview when finished.
+3. Key `Motion` for whole-weapon gestures; `Motion/Weapon/Magazine`, `ReplacementMagazine`, and `Bolt` for parts; `Motion/Controls/LeftFree` for independent reaches. Grip contacts remain children of their parts.
+4. Key `Rig/LeftHand > Source Objects > Weight` to select a contact. At a switch, make `LeftFree` coincide with the contact's position and rotation to prevent jumps. Key `Motion/HandTargets/Left > HandGrip > Animated Shape` to open and close fingers around contact.
+5. Magazine visibility uses MeshRenderer **Enabled**, so hidden meshes do not disable their contact controls. At normalized time 0.3 the original magazine hides and `GunAnimation` releases a pooled world magazine. If this moment changes, update the clip's hide/contact keys and `GunAnimation`'s **Release Time** together. The replacement appears at 0.42 and seats later; it resets on cancellation or the next idle frame.
+
+`Animations/Shared/Gun.controller` defines the six state slots; `AK47.overrideController` assigns the actual clips. `GunAnimation` selects states and samples the controller plus constraints manually in the player's tick, before hands and shots. During playback it detaches the controller from the Animator component and gives it exclusively to the manual graph, so Unity's later automatic Animator pass cannot restore Idle over the action. Stop/holster restores the component's controller for re-equipping and editor previews. Reload/repair progress comes from `Gun.ActionProgress`, so changing clip length does not change ammo or jam rules. Equip/idle/fire use clip duration. All clip-driven properties have baseline keys in every clip, including visibility and constraint weights; keep those reset keys when editing. The controller has no automatic transitions to compete with gameplay state.
+
+For another gun, use the same generic control paths and a new Override Controller. Matching names make bindings reusable; different proportions and reload mechanisms still need fitting and often different clips. Do not rerun `FirstPersonHandsSetup.Item("AK47")`: it rebuilds the old procedural setup. `AgentScripts/Ak47Animations.cs` is a one-time migration and deliberately refuses to overwrite an already converted gun.
 
 ## How it works
 
 ```text
-Item prefab (AK47)                     Player
+Procedural item prefab (MP5)           Player
   ItemHands                              CameraPitch/HeldItems/Hands: FirstPersonHands (HandSet, view = CameraPitch)
     default grips: Right = Grip_R,         spawns FPHand_Left / FPHand_Right (HandRig)
                    Left  = Grip_L_Forend   each frame, after the item is posed:
@@ -15,7 +37,7 @@ Item prefab (AK47)                     Player
   (Model/…/AR_B_Mag/Grip_L_Mag)              grip changed → arc there over the key's Blend seconds, fingers opening mid-way
 ```
 
-- **A hand is never animated.** It follows a `HandGrip` each frame. Grips sit under the part they hold, so the hand follows recoil, aim / sprint poses, the switch motion, the wall retraction, the pump and the break-action hinge with no extra code.
+- **Hands follow grips each frame.** On procedural items, grips sit under the part they hold. On AK47, constrained hand targets select part contacts or an animated free-hand control. Both follow the parent's recoil, aim / sprint poses, switch motion and wall retraction.
 - **Implied arms.** There are no forearms, so the wrist is what tells the eye where an arm would be. A grip only fixes *where* the hand holds and *along which direction* (the held part's axis). By default (`Aim = TowardElbow`) the hand turns round that axis so its wrist points at an invisible elbow (`HandSet` → elbows, in view space, low and out to each side). That keeps the wrist believable on every grip, including mid-reload, without tuning a rotation per grip. `Roll` adds a turn on top. `AsAuthored` uses the grip's exact rotation instead (e.g. a palm-up hand feeding shells).
 - **Fitted fingers.** **Bake fit** (on a grip, or **Bake fit for all grips** on `ItemHands`) runs in the editor. It slides the palm onto the part's surface, then searches each finger's curl and tip bend for the shape that hugs the item's meshes without going into them, staying close to the pose. The result is saved on the grip, so nothing runs in game. **Keep fingers** leaves chosen fingers at the pose (trigger finger, support hand round the other hand, small props).
 - **Moving between grips.** The hand travels on an arc that bows away from the item's long axis (the line between its two default grips) and a little towards the eye, and its fingers open half way. This reads as letting go and reaching, not sliding (`FirstPersonHands` → Moving between grips).
@@ -38,7 +60,8 @@ An item with no matching action keeps its default grips.
 
 | Weapon | Hold | Actions |
 | --- | --- | --- |
-| AK-47, MP5 | Right on the pistol grip (trigger finger kept), left cradling the forend | `Reload`: grab the mag, pull it down and out, drop it out of view, come back with the "new" one, rock it in, seat it. `ReloadEmpty`: the same, then the bolt is pulled and let go (AK: over the receiver from the left; MP5: the cocking lever on the left). `ClearJam`: rack the bolt twice |
+| AK-47 | Right on the pistol grip, left cradling the forend; hands scaled 1.12 | Clips and contact constraints: grab/extract/release old magazine, independent reach, bring replacement and seat it; empty reload adds the bolt; Repairing racks the bolt twice. See authoring above |
+| MP5 | Right on the pistol grip (trigger finger kept), left cradling the forend | Procedural `Reload`: grab the mag, pull it down and out, return with the same mesh posing as the replacement, seat it. `ReloadEmpty` adds the left cocking lever; `ClearJam` racks it twice |
 | Pistol | Two-handed: support hand on the grip's left side round the shooting hand | Mag drops free; the hand brings a new one up and slaps it in; `ReloadEmpty` adds an overhand slide rack. `ClearJam`: rack twice |
 | Pump shotgun | Left on the pump (HeldGun slides it) | `LoadRound`: hand down to the belt, a shell up to the loading port and pushed into the tube, every round |
 | Double barrel | Left on the forend (rides the hinge) | `Reload`: palm-up hand brings two shells up into the open chambers |

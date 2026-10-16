@@ -16,6 +16,7 @@ namespace Aipocalypse.Core.WeaponSystem
         [SerializeField, Tooltip("Gun kick is applied here; parent of the model and the muzzle")] Transform _recoilPivot;
         [SerializeField, Tooltip("Bullets and the muzzle flash leave here, along its forward (blue axis)")] Transform _muzzle;
         [SerializeField, Tooltip("2D source for the gun's own sounds")] AudioSource _audio;
+        [SerializeField, Tooltip("Optional clip and constraint rig; guns without one keep procedural actions")] GunAnimation _animation;
 
         [BoxGroup("Poses"), SerializeField, Tooltip("Siblings of the pose pivot; move them to pose the gun")] Transform _hipPose;
         [BoxGroup("Poses"), SerializeField] Transform _aimPose;
@@ -101,6 +102,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _gun.ActionStarted += OnActionStarted;
             _gun.RoundLoaded += OnRoundLoaded;
             _gun.ActionEnded += OnActionEnded;
+            _animation?.Bind(_effects);
 
             if (_definition.Effects != null && _effects != null)
                 _definition.Effects.Prewarm(_effects);
@@ -127,6 +129,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             _recoil.Tick(deltaTime, _gun.IsAiming);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
+            _animation?.Tick(deltaTime, _gun.ActionProgress);
         }
 
         protected override void OnShown()
@@ -137,6 +140,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _actionWeight = 0f;
             _insertBump = 0f;
             ApplyPose();
+            _animation?.Show();
         }
 
         public override void LateTick()
@@ -171,6 +175,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void OnFired()
         {
             _pendingShots++;
+            _animation?.Fired();
             Play(_definition.Sounds.Fire);
         }
 
@@ -243,7 +248,10 @@ namespace Aipocalypse.Core.WeaponSystem
         void OnActionStarted(GunAction action)
         {
             _shownAction = action;
-            PlayHands(action);
+            if (_animation != null)
+                _animation.StartAction(action, _gun.Item.Rounds == 0);
+            else
+                PlayHands(action);
             GunSounds sounds = _definition.Sounds;
             Play(action switch
             {
@@ -263,6 +271,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void OnActionEnded(GunAction action, bool finished)
         {
             Hands?.Stop();
+            _animation?.EndAction();
             if (!finished)
                 return;
             GunSounds sounds = _definition.Sounds;
@@ -351,8 +360,8 @@ namespace Aipocalypse.Core.WeaponSystem
             if (Hands != null && Hands.IsPlaying)
                 Hands.SetProgress(progress);
 
-            _posePivot.localPosition = _posePosition + offset;
-            _posePivot.localRotation = _poseRotation * Quaternion.Euler(euler);
+            _posePivot.localPosition = _posePosition + (_animation != null ? Vector3.zero : offset);
+            _posePivot.localRotation = _poseRotation * (_animation != null ? Quaternion.identity : Quaternion.Euler(euler));
 
             if (_pumpPart != null)
                 _pumpPart.localPosition = _restPumpPosition + _pumpStroke * stroke;

@@ -19,6 +19,8 @@ namespace Aipocalypse.Core.HandSystem
     {
         [SerializeField] HandSide _side = HandSide.Right;
         [SerializeField, Tooltip("Finger pose here; none = open hand. Bake fit adjusts the curls to the item")] HandPose _pose;
+        [SerializeField, Tooltip("Use a shape keyed by weapon animation clips instead of the fitted pose")] bool _animateShape;
+        [SerializeField] HandShape _animatedShape;
         [SerializeField] GripAim _aim = GripAim.TowardElbow;
         [SerializeField, Range(-180f, 180f), Tooltip("Extra turn round the held part (Z), after aiming")] float _roll;
         [SerializeField, Tooltip("Bake fit moves the palm onto the item's surface. Off for pinches (bolt, shell)")] bool _fitPalm = true;
@@ -30,7 +32,7 @@ namespace Aipocalypse.Core.HandSystem
 
         public HandSide Side => _side;
         public HandShape PoseShape => _pose != null ? _pose.Shape : default;
-        public HandShape Shape => _fitted ? _fittedShape : PoseShape;
+        public HandShape Shape => _animateShape ? _animatedShape : _fitted ? _fittedShape : PoseShape;
         public bool FitsPalm => _fitPalm;
         public FingerMask KeepFingers => _keepFingers;
 
