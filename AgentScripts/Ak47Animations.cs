@@ -32,11 +32,222 @@ public static class Ak47Animations
 
     sealed class Context
     {
-        public Transform Root, Motion, Model, Magazine, Replacement, Bolt, Free;
+        public string Name = "AK47";
+        public Transform Root, Motion, Model, Magazine, Replacement, Bolt, Free, Pump, Hinge, Shells;
+        public Vector3 PumpRest, ShellRest, SlapPoint = new(-0.05f, 0.07f, 0.15f);
+        public Quaternion HingeRest = Quaternion.identity;
         public HandGrip Left, Right;
         public MultiParentConstraint LeftConstraint;
         public Pose Forend, Mag, BoltGrip, RightGrip;
         public Vector3 MagRest, BoltRest;
+    }
+
+    public static object InspectWeapons()
+    {
+        return new[] { "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" }.Select(name => {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/" + name + ".prefab");
+            var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/" + name + ".asset");
+            return new { name, equip = definition.EquipTime, reload = definition.Magazine.ReloadTime, cycle = definition.Fire.CycleTime,
+                parts = root.GetComponentsInChildren<Transform>(true).Where(t => t.GetComponent<MeshFilter>() != null || t.name == "Model" || t.name == "Hinge" || t.name.StartsWith("HandProp")).Select(t => new {
+                    path = AnimationUtility.CalculateTransformPath(t, root.transform), p = t.localPosition.ToString("F3"), r = t.localEulerAngles.ToString("F1"), s = t.localScale.ToString("F3"),
+                    size = t.GetComponent<MeshFilter>() != null ? t.GetComponent<MeshFilter>().sharedMesh.bounds.size.ToString("F3") : "" }).ToArray() };
+        }).ToArray();
+    }
+
+    public static object BuildOther(string name)
+    {
+        if (!new[] { "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" }.Contains(name))
+            throw new ArgumentException("Unknown weapon", nameof(name));
+        string path = "Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/" + name + ".prefab";
+        Folder(Animations + "/" + name);
+        var root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            if (root.GetComponentInChildren<GunAnimation>(true) != null)
+                throw new InvalidOperationException(name + " already converted. Edit the clips directly.");
+            var recoil = root.transform.Find("PosePivot/RecoilPivot");
+            var model = recoil.Find("Model");
+            var oldGrips = root.GetComponentsInChildren<HandGrip>(true);
+            var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
+            Pose Resolve(string gripName, HandSide side)
+            {
+                var hand = Object.Instantiate(set.Get(side));
+                try
+                {
+                    var grip = oldGrips.Single(g => g.name == gripName);
+                    grip.Resolve(hand, root.transform.TransformPoint(set.Elbow(side) - set.PreviewItemPosition), out var p, out var r);
+                    return new Pose { P = model.InverseTransformPoint(p), R = Quaternion.Inverse(model.rotation) * r, Shape = grip.Shape };
+                }
+                finally { Object.DestroyImmediate(hand.gameObject); }
+            }
+            HandShape ShapeOf(string pose) => AssetDatabase.LoadAssetAtPath<HandPose>("Assets/_Game/Data/Hands/Poses/" + pose + ".asset").Shape;
+            bool detachable = name == "MP5" || name == "Pistol";
+            var forend = Resolve(name == "Pistol" ? "Grip_L_Support" : name == "PumpShotgun" ? "Grip_L_Pump" : "Grip_L_Forend", HandSide.Left);
+            var mag = Resolve(detachable ? "Grip_L_Mag" : name == "PumpShotgun" ? "Grip_L_Shell" : "Grip_L_Shells", HandSide.Left);
+            var bolt = detachable ? Resolve(name == "Pistol" ? "Grip_L_Slide" : "Grip_L_Bolt", HandSide.Left) : forend;
+            var right = Resolve("Grip_R", HandSide.Right);
+            right.Shape = ShapeOf("TriggerGrip");
+            mag.Shape = ShapeOf(detachable || name == "DoubleBarrel" ? "HoldMag" : "Pinch");
+            if (name == "MP5") bolt.Shape = ShapeOf("Pinch");
+            if (PrefabUtility.IsAnyPrefabInstanceRoot(model.gameObject))
+                PrefabUtility.UnpackPrefabInstance(model.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            foreach (var grip in oldGrips) Object.DestroyImmediate(grip.gameObject);
+            foreach (var part in model.GetComponentsInChildren<Transform>(true).Skip(1))
+            {
+                string generic = part.name.Replace("SMG_B_", "").Replace("Pistol_E_", "").Replace("ShotGun_C_", "").Replace("ShotGun_E_", "");
+                generic = generic.Replace("Receiver_Down", "Grip").Replace("Receiver_Up", "Receiver").Replace("BarrelGuard", name == "Pistol" ? "Slide" : name == "PumpShotgun" ? "Pump" : "Handguard");
+                if (generic == "Mag") generic = detachable ? "Magazine" : "MagazineTube";
+                if (generic == "HandProp_Shell" || generic == "HandProp_Shells") generic = "Shells";
+                part.name = generic;
+            }
+            var animationRoot = Child(recoil, "AnimationRoot");
+            var motion = Child(animationRoot, "Motion");
+            model.SetParent(motion, false);
+            model.name = "Weapon";
+            var c = new Context { Name = name, Root = animationRoot, Motion = motion, Model = model,
+                Forend = forend, Mag = mag, BoltGrip = bolt, RightGrip = right,
+                Magazine = detachable ? model.Find("Magazine") : null,
+                Bolt = model.Find(name == "Pistol" ? "Slide" : "Bolt"),
+                Pump = model.Find("Pump"), Hinge = model.Find("Hinge") };
+            c.BoltRest = c.Bolt.localPosition;
+            c.SlapPoint = name == "Pistol" ? new Vector3(-0.035f, 0.04f, 0.02f) : new Vector3(-0.045f, name == "MP5" ? 0.10f : 0.06f, 0.10f);
+            Transform holdPart = model.Find(name == "Pistol" ? "Receiver" : name == "PumpShotgun" ? "Pump" : name == "DoubleBarrel" ? "Hinge/Handguard" : "Handguard");
+            var forendContact = Contact(holdPart, "LeftGrip", model, forend);
+            var rightContact = Contact(model.Find(name == "Pistol" || name == "DoubleBarrel" ? "Receiver" : "Grip"), "RightGrip", model, right);
+            Transform oldContact = forendContact, replacementContact = forendContact, boltContact = forendContact;
+            PooledEffect dropped = null;
+            if (detachable)
+            {
+                c.MagRest = c.Magazine.localPosition;
+                c.Replacement = Object.Instantiate(c.Magazine.gameObject, model).transform;
+                c.Replacement.name = "ReplacementMagazine";
+                c.Replacement.GetComponent<MeshRenderer>().enabled = false;
+                oldContact = Contact(c.Magazine, "LeftGrip", model, mag);
+                replacementContact = Contact(c.Replacement, "LeftGrip", model, mag);
+                boltContact = Contact(c.Bolt, "LeftGrip", model, bolt);
+                dropped = DroppedMagazine(c.Magazine, name);
+            }
+            else
+            {
+                c.Shells = model.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Shells");
+                c.ShellRest = c.Shells.localPosition;
+                c.Shells.gameObject.SetActive(true);
+                int index = 0;
+                foreach (var renderer in c.Shells.GetComponentsInChildren<MeshRenderer>())
+                {
+                    renderer.name = "Shell" + index++;
+                    renderer.enabled = false;
+                }
+                replacementContact = Contact(c.Shells, "LeftGrip", model, mag);
+                if (c.Pump != null) c.PumpRest = c.Pump.localPosition;
+                if (c.Hinge != null) c.HingeRest = c.Hinge.localRotation;
+            }
+            var muzzle = recoil.Find("Muzzle");
+            var animatedMuzzle = Child(c.Hinge != null ? c.Hinge : model, "Muzzle");
+            animatedMuzzle.SetPositionAndRotation(muzzle.position, muzzle.rotation);
+            muzzle.name = "UnusedMuzzle";
+            Set(root.GetComponent<HeldGun>(), "_muzzle", animatedMuzzle);
+            c.Free = Child(Child(motion, "Controls"), "LeftFree");
+            c.Free.SetLocalPositionAndRotation(forend.P, forend.R);
+            var targets = Child(motion, "HandTargets");
+            c.Left = Target(targets, "Left", HandSide.Left, forend);
+            c.Right = Target(targets, "Right", HandSide.Right, right);
+            var rigObject = Child(animationRoot, "Rig");
+            var rig = rigObject.gameObject.AddComponent<Rig>();
+            c.LeftConstraint = Constraint(rigObject, "LeftHand", c.Left.transform, forendContact, oldContact, replacementContact, boltContact, c.Free);
+            Constraint(rigObject, "RightHand", c.Right.transform, rightContact);
+            var animator = animationRoot.gameObject.AddComponent<Animator>();
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            var builder = animationRoot.gameObject.AddComponent<RigBuilder>();
+            builder.layers.Add(new RigLayer(rig));
+            var controller = CreateController();
+            EnsureCyclingSlot(controller);
+            var overrides = new AnimatorOverrideController(controller) { name = name };
+            AssetDatabase.CreateAsset(overrides, Animations + "/" + name + "/" + name + ".overrideController");
+            var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/" + name + ".asset");
+            foreach (string state in States.Concat(new[] { "Cycling" }))
+            {
+                float duration = state == "Equipped" ? definition.EquipTime : state == "Idle" ? 3f : state == "Firing" ? definition.Fire.SecondsPerShot :
+                    state == "Repairing" ? definition.Jam.ClearTime : state == "Cycling" ? Mathf.Max(0.1f, definition.Fire.CycleTime) : definition.Magazine.ReloadTime;
+                overrides[state] = CreateClip(c, state, duration);
+            }
+            animator.runtimeAnimatorController = overrides;
+            var animation = animationRoot.gameObject.AddComponent<GunAnimation>();
+            Set(animation, "_animator", animator);
+            Set(animation, "_rig", builder);
+            Set(animation, "_magazine", c.Magazine);
+            Set(animation, "_droppedMagazine", dropped);
+            Set(root.GetComponent<HeldGun>(), "_animation", animation);
+            var hands = root.GetComponent<ItemHands>();
+            Set(hands, "_left", c.Left);
+            Set(hands, "_right", c.Right);
+            var so = new SerializedObject(hands);
+            so.FindProperty("_handScale").floatValue = 1.12f;
+            so.FindProperty("_actions").arraySize = 0;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+            AssetDatabase.SaveAssets();
+            return new { prefab = path, states = overrides.animationClips.Select(clip => clip.name).ToArray(), handScale = 1.12f };
+        }
+        finally { PrefabUtility.UnloadPrefabContents(root); }
+    }
+
+    static void EnsureCyclingSlot(AnimatorController controller)
+    {
+        var machine = controller.layers[0].stateMachine;
+        if (machine.states.Any(s => s.state.name == "Cycling")) return;
+        var slot = new AnimationClip { name = "Cycling", frameRate = 60f };
+        AnimationUtility.SetEditorCurve(slot, EditorCurveBinding.FloatCurve("Motion", typeof(Transform), "m_LocalPosition.x"), AnimationCurve.Constant(0f, 1f, 0f));
+        AssetDatabase.CreateAsset(slot, Shared + "/Cycling.anim");
+        var state = machine.AddState("Cycling", new Vector3(260f, 450f, 0f));
+        state.motion = slot;
+        state.writeDefaultValues = false;
+        EditorUtility.SetDirty(controller);
+    }
+
+    public static object AlignReloadContacts()
+    {
+        foreach (string name in new[] { "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" })
+        foreach (string state in new[] { "Reloading", "ReloadingEmpty" })
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Animations + "/" + name + "/" + name + "_" + state + ".anim");
+            var paths = name == "DoubleBarrel" ? new[] { "Motion/Controls/LeftFree", "Motion/Weapon/Hinge" } : new[] { "Motion/Controls/LeftFree" };
+            foreach (string path in paths)
+            foreach (char axis in "xyzw")
+            {
+                var binding = EditorCurveBinding.FloatCurve(path, typeof(Transform), "m_LocalRotation." + axis);
+                var curve = AnimationUtility.GetEditorCurve(clip, binding);
+                float time = clip.length * 0.02f;
+                if (!curve.keys.Any(k => Mathf.Abs(k.time - time) < 0.00001f))
+                    curve.AddKey(new Keyframe(time, curve.Evaluate(0f)));
+                for (int i = 0; i < curve.length; i++)
+                {
+                    AnimationUtility.SetKeyLeftTangentMode(curve, i, AnimationUtility.TangentMode.ClampedAuto);
+                    AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.ClampedAuto);
+                }
+                AnimationUtility.SetEditorCurve(clip, binding, curve);
+            }
+            if (name == "MP5" || name == "Pistol")
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/" + name + ".prefab");
+                var magazine = prefab.transform.Find("PosePivot/RecoilPivot/AnimationRoot/Motion/Weapon/ReplacementMagazine");
+                float time = clip.length * (state == "ReloadingEmpty" ? 0.665f : 0.785f);
+                var binding = EditorCurveBinding.FloatCurve("Motion/Controls/LeftFree", typeof(Transform), "m_LocalPosition.y");
+                var curve = AnimationUtility.GetEditorCurve(clip, binding);
+                int key = Array.FindIndex(curve.keys, k => Mathf.Abs(k.time - time) < 0.00001f);
+                curve.MoveKey(key, new Keyframe(time, magazine.localPosition.y + magazine.Find("LeftGrip").localPosition.y + 0.003f));
+                for (int i = 0; i < curve.length; i++)
+                {
+                    AnimationUtility.SetKeyLeftTangentMode(curve, i, AnimationUtility.TangentMode.ClampedAuto);
+                    AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.ClampedAuto);
+                }
+                AnimationUtility.SetEditorCurve(clip, binding, curve);
+            }
+            clip.EnsureQuaternionContinuity();
+            EditorUtility.SetDirty(clip);
+            AssetDatabase.SaveAssetIfDirty(clip);
+        }
+        return "Reload free controls align at release and after the seating bump.";
     }
 
     public static object Build()
@@ -189,16 +400,16 @@ public static class Ak47Animations
 
     public static object RenderRepairing() => Render(true);
 
-    public static object Render(bool repairingOnly = false)
+    public static object Render(bool repairingOnly = false, string weapon = "AK47")
     {
-        const string output = "Temp/AK47Animations";
+        string output = "Temp/" + weapon + "Animations";
         Directory.CreateDirectory(output);
         var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GunPath);
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/" + weapon + ".prefab");
         var files = new List<string>();
         var poses = new[] { ("Idle", 0f), ("Equipped", 0.35f), ("Firing", 0.3f), ("Reloading", 0.1f),
             ("Reloading", 0.22f), ("Reloading", 0.36f), ("Reloading", 0.5f), ("Reloading", 0.7f),
-            ("ReloadingEmpty", 0.75f), ("ReloadingEmpty", 0.82f), ("ReloadingEmpty", 0.94f), ("Repairing", 0.33f) };
+            (weapon == "PumpShotgun" ? "Cycling" : "ReloadingEmpty", 0.5f), ("ReloadingEmpty", 0.82f), ("Repairing", 0.43f), ("Repairing", 0.33f) };
         if (repairingOnly)
             poses = new[] { 0f, 0.1f, 0.2f, 0.3f, 0.35f, 0.4f, 0.43f, 0.46f, 0.5f, 0.65f, 0.85f, 1f }
                 .Select(t => ("Repairing", t)).ToArray();
@@ -211,13 +422,15 @@ public static class Ak47Animations
             {
                 var item = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
                 item.transform.position = set.PreviewItemPosition;
+                var hip = item.transform.Find("Poses/Hip");
+                item.transform.Find("PosePivot").SetLocalPositionAndRotation(hip.localPosition, hip.localRotation);
                 animation = item.GetComponentInChildren<GunAnimation>();
                 string state = poses[i].Item1;
                 float t = poses[i].Item2;
                 if (state == "Equipped") { animation.Show(); animation.Tick(t * 0.45f, 0f); }
                 else if (state == "Firing") { animation.Fired(); animation.Tick(t * 0.1f, 0f); }
                 else if (state == "Idle") { animation.EndAction(); animation.Tick(0.01f, 0f); }
-                else { animation.StartAction(state == "Repairing" ? GunAction.ClearingJam : GunAction.Reloading, state == "ReloadingEmpty"); animation.Tick(0.01f, t); }
+                else { animation.StartAction(state == "Repairing" ? GunAction.ClearingJam : state == "Cycling" ? GunAction.Cycling : GunAction.Reloading, state == "ReloadingEmpty"); animation.Tick(0.01f, t); }
                 var hands = item.GetComponent<ItemHands>();
                 foreach (HandSide side in new[] { HandSide.Left, HandSide.Right })
                 {
@@ -330,9 +543,9 @@ public static class Ak47Animations
         return constraint;
     }
 
-    static PooledEffect DroppedMagazine(Transform magazine)
+    static PooledEffect DroppedMagazine(Transform magazine, string name = "AK47")
     {
-        var go = new GameObject("AK47_Magazine");
+        var go = new GameObject(name + "_Magazine");
         try
         {
             var filter = go.AddComponent<MeshFilter>();
@@ -349,7 +562,7 @@ public static class Ak47Animations
             so.FindProperty("_lifetime").floatValue = 4f;
             so.FindProperty("_maxActive").intValue = 8;
             so.ApplyModifiedPropertiesWithoutUndo();
-            return PrefabUtility.SaveAsPrefabAsset(go, DropPath).GetComponent<PooledEffect>();
+            return PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/_Core/WeaponSystem/Prefabs/Effects/" + name + "_Magazine.prefab").GetComponent<PooledEffect>();
         }
         finally { Object.DestroyImmediate(go); }
     }
@@ -376,11 +589,11 @@ public static class Ak47Animations
 
     static AnimationClip CreateClip(Context c, string state, float duration)
     {
-        string path = Clips + "/AK47_" + state + ".anim";
+        string path = Animations + "/" + c.Name + "/" + c.Name + "_" + state + ".anim";
         var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
         if (clip == null)
         {
-            clip = new AnimationClip { name = "AK47_" + state, frameRate = 60f };
+            clip = new AnimationClip { name = c.Name + "_" + state, frameRate = 60f };
             AssetDatabase.CreateAsset(clip, path);
         }
         var settings = AnimationUtility.GetAnimationClipSettings(clip);
@@ -393,6 +606,10 @@ public static class Ak47Animations
         Position(clip, c, c.Replacement, duration, (0f, c.MagRest), (1f, c.MagRest));
         Rotation(clip, c, c.Replacement, duration, (0f, Quaternion.identity), (1f, Quaternion.identity));
         Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (1f, c.BoltRest));
+        Position(clip, c, c.Pump, duration, (0f, c.PumpRest), (1f, c.PumpRest));
+        Rotation(clip, c, c.Hinge, duration, (0f, c.HingeRest), (1f, c.HingeRest));
+        Position(clip, c, c.Shells, duration, (0f, c.ShellRest), (1f, c.ShellRest));
+        ShellVisibility(clip, c, duration, (0f, 0f), (1f, 0f));
         Position(clip, c, c.Free, duration, (0f, c.Forend.P), (1f, c.Forend.P));
         Rotation(clip, c, c.Free, duration, (0f, c.Forend.R), (1f, c.Forend.R));
         Weights(clip, c, duration, (0f, 0), (1f, 0));
@@ -411,16 +628,61 @@ public static class Ak47Animations
         }
         else if (state == "Firing")
         {
-            Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (0.3f, c.BoltRest + Vector3.back * 0.055f), (0.72f, c.BoltRest), (1f, c.BoltRest));
+            if (c.Name == "AK47" || c.Name == "Pistol")
+                Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (0.3f, c.BoltRest + Vector3.back * (c.Name == "Pistol" ? 0.045f : 0.055f)), (0.72f, c.BoltRest), (1f, c.BoltRest));
             var pulled = c.RightGrip.Shape;
             pulled.Index.Curl = Mathf.Clamp01(pulled.Index.Curl + 0.12f);
             Shape(clip, c, c.Right, duration, (0f, c.RightGrip.Shape), (0.2f, pulled), (0.8f, c.RightGrip.Shape), (1f, c.RightGrip.Shape));
         }
         else if (state == "Reloading" || state == "ReloadingEmpty")
-            Reload(clip, c, duration, state == "ReloadingEmpty");
+        {
+            if (c.Shells != null) ReloadShells(clip, c, duration);
+            else Reload(clip, c, duration, state == "ReloadingEmpty");
+        }
         else if (state == "Repairing")
             Repair(clip, c, duration);
+        else if (state == "Cycling" && c.Pump != null)
+        {
+            Position(clip, c, c.Pump, duration, (0f, c.PumpRest), (0.16f, c.PumpRest), (0.47f, c.PumpRest + Vector3.back * 0.085f), (0.58f, c.PumpRest + Vector3.back * 0.085f), (0.88f, c.PumpRest), (1f, c.PumpRest));
+            Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (0.16f, c.BoltRest), (0.47f, c.BoltRest + Vector3.back * 0.075f), (0.58f, c.BoltRest + Vector3.back * 0.075f), (0.88f, c.BoltRest), (1f, c.BoltRest));
+            Position(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.47f, new Vector3(0f, -0.008f, -0.014f)), (0.88f, new Vector3(0f, 0.002f, 0.003f)), (1f, Vector3.zero));
+            Euler(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.47f, new Vector3(-2f, 0f, 2f)), (1f, Vector3.zero));
+        }
         return clip;
+    }
+
+    static void ShellVisibility(AnimationClip clip, Context c, float duration, params (float t, float v)[] keys)
+    {
+        if (c.Shells == null) return;
+        foreach (var renderer in c.Shells.GetComponentsInChildren<MeshRenderer>())
+            Visible(clip, c, renderer.transform, duration, keys);
+    }
+
+    static void ReloadShells(AnimationClip clip, Context c, float duration)
+    {
+        bool hinged = c.Hinge != null;
+        var held = hinged ? new Vector3(-0.035f, 0.025f, 0.11f) : new Vector3(-0.035f, 0.065f, 0.025f);
+        var tilt = hinged ? new Vector3(8f, 10f, -22f) : new Vector3(-12f, 18f, -38f);
+        Position(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.14f, held), (0.68f, held), (0.72f, held + Vector3.up * 0.005f), (0.8f, held), (1f, Vector3.zero));
+        Euler(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.14f, tilt), (0.76f, tilt), (1f, Vector3.zero));
+        var open = Quaternion.Euler(32f, 0f, 0f);
+        Rotation(clip, c, c.Hinge, duration, (0f, c.HingeRest), (0.02f, c.HingeRest), (0.17f, open), (0.77f, open), (0.96f, c.HingeRest), (1f, c.HingeRest));
+        Vector3 belt = new(-0.09f, -0.28f, -0.14f);
+        Vector3 approach = hinged ? new Vector3(-0.01f, 0.015f, -0.07f) : new Vector3(0f, -0.045f, -0.04f);
+        Position(clip, c, c.Shells, duration, (0f, c.ShellRest + belt), (0.28f, c.ShellRest + belt), (0.54f, c.ShellRest + approach), (0.70f, c.ShellRest), (1f, c.ShellRest));
+        ShellVisibility(clip, c, duration, (0f, 0f), (0.28f, 1f), (0.73f, 0f), (1f, 0f));
+        Vector3 ContactAt(Vector3 offset) => hinged ? c.Hinge.localPosition + open * (c.Mag.P - c.Hinge.localPosition + offset) : c.Mag.P + offset;
+        var beltHand = ContactAt(belt);
+        var seatedHand = ContactAt(Vector3.zero);
+        var shellRotation = hinged ? open * c.Mag.R : c.Mag.R;
+        Position(clip, c, c.Free, duration, (0f, c.Forend.P), (0.02f, c.Forend.P),
+            (0.13f, Vector3.Lerp(c.Forend.P, beltHand, 0.45f) + Vector3.left * 0.035f), (0.28f, beltHand),
+            (0.73f, seatedHand), (0.82f, seatedHand + new Vector3(-0.055f, -0.035f, -0.025f)),
+            (0.90f, Vector3.Lerp(seatedHand, c.Forend.P, 0.65f) + new Vector3(-0.04f, -0.02f, 0f)), (1f, c.Forend.P));
+        Rotation(clip, c, c.Free, duration, (0f, c.Forend.R), (0.02f, c.Forend.R), (0.28f, shellRotation), (0.73f, shellRotation), (0.85f, shellRotation), (1f, c.Forend.R));
+        Weights(clip, c, duration, (0f, 0), (0.02f, 4), (0.28f, 2), (0.73f, 4), (1f, 0));
+        var relaxed = HandShape.Lerp(c.Mag.Shape, default, 0.65f);
+        Shape(clip, c, c.Left, duration, (0f, c.Forend.Shape), (0.14f, relaxed), (0.28f, c.Mag.Shape), (0.69f, c.Mag.Shape), (0.76f, relaxed), (1f, c.Forend.Shape));
     }
 
     static void Reload(AnimationClip clip, Context c, float duration, bool empty)
@@ -430,7 +692,8 @@ public static class Ak47Animations
         var tilt = new Vector3(-15f, 15f, -32f);
         Position(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.12f, new Vector3(-0.045f, 0.09f, 0.055f)), (seated - 0.02f, new Vector3(-0.045f, 0.09f, 0.055f)), (seated, new Vector3(-0.043f, 0.099f, 0.05f)), (seated + 0.035f, new Vector3(-0.045f, 0.09f, 0.055f)), (0.91f, new Vector3(-0.02f, 0.035f, 0.025f)), (1f, Vector3.zero));
         Euler(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.14f, tilt), (seated, tilt + new Vector3(1f, 0f, 1.2f)), (seated + 0.035f, tilt), (0.9f, tilt * 0.55f), (1f, Vector3.zero));
-        var extracted = new Vector3(-0.025f, -0.12f, 0.018f);
+        bool pistol = c.Name == "Pistol";
+        var extracted = pistol ? new Vector3(-0.015f, -0.16f, -0.015f) : new Vector3(-0.025f, -0.12f, 0.018f);
         Position(clip, c, c.Magazine, duration, (0f, c.MagRest), (0.16f, c.MagRest), (0.24f, c.MagRest + new Vector3(0f, -0.065f, 0.015f)), (0.3f, c.MagRest + extracted), (1f, c.MagRest + extracted));
         Euler(clip, c, c.Magazine, duration, (0f, Vector3.zero), (0.16f, Vector3.zero), (0.24f, new Vector3(14f, 0f, 0f)), (0.3f, new Vector3(18f, -5f, 12f)), (1f, new Vector3(18f, -5f, 12f)));
         Visible(clip, c, c.Magazine, duration, (0f, 1f), (0.3f, 0f), (1f, 0f));
@@ -443,21 +706,22 @@ public static class Ak47Animations
         var beltGrip = c.MagRest + fromBelt + Quaternion.Euler(18f, -8f, -12f) * (c.Mag.P - c.MagRest);
         var seatedPosition = c.Mag.P;
         var boltStart = c.BoltGrip.P;
-        var boltEnd = boltStart + Vector3.back * 0.085f;
+        float rack = pistol ? 0.055f : c.Name == "MP5" ? 0.07f : 0.085f;
+        var boltEnd = boltStart + Vector3.back * rack;
         Position(clip, c, c.Free, duration,
             (0f, c.Forend.P), (0.02f, c.Forend.P), (0.08f, Vector3.Lerp(c.Forend.P, c.Mag.P, 0.5f) + new Vector3(-0.04f, 0.015f, -0.025f)), (0.145f, c.Mag.P),
             (0.3f, releasePosition), (0.36f, releasePosition + new Vector3(-0.045f, -0.08f, -0.015f)), (0.42f, beltGrip),
-            (seated + 0.025f, seatedPosition),
+            (seated + 0.025f, seatedPosition + Vector3.up * 0.003f),
             (empty ? 0.73f : 0.83f, empty ? boltStart + new Vector3(-0.035f, 0.07f, -0.02f) : Vector3.Lerp(seatedPosition, c.Forend.P, 0.5f) + new Vector3(-0.045f, 0f, -0.03f)),
             (empty ? 0.77f : back, empty ? boltStart : c.Forend.P),
             (empty ? 0.85f : 0.95f, empty ? boltEnd : c.Forend.P),
             (empty ? 0.89f : 0.98f, empty ? boltEnd + new Vector3(-0.035f, 0.04f, -0.025f) : c.Forend.P),
             (back, c.Forend.P), (1f, c.Forend.P));
-        Rotation(clip, c, c.Free, duration, (0f, c.Forend.R), (0.145f, c.Mag.R), (0.3f, Quaternion.Euler(18f, -5f, 12f) * c.Mag.R), (0.42f, Quaternion.Euler(18f, -8f, -12f) * c.Mag.R), (seated + 0.025f, c.Mag.R), (empty ? 0.77f : back, empty ? c.BoltGrip.R : c.Forend.R), (empty ? 0.85f : 0.96f, empty ? c.BoltGrip.R : c.Forend.R), (back, c.Forend.R), (1f, c.Forend.R));
+        Rotation(clip, c, c.Free, duration, (0f, c.Forend.R), (0.02f, c.Forend.R), (0.145f, c.Mag.R), (0.3f, Quaternion.Euler(18f, -5f, 12f) * c.Mag.R), (0.42f, Quaternion.Euler(18f, -8f, -12f) * c.Mag.R), (seated + 0.025f, c.Mag.R), (empty ? 0.77f : back, empty ? c.BoltGrip.R : c.Forend.R), (empty ? 0.85f : 0.96f, empty ? c.BoltGrip.R : c.Forend.R), (back, c.Forend.R), (1f, c.Forend.R));
         if (empty)
         {
             Weights(clip, c, duration, (0f, 0), (0.02f, 4), (0.145f, 1), (0.3f, 4), (0.42f, 2), (seated + 0.025f, 4), (0.77f, 3), (0.85f, 4), (back, 0), (1f, 0));
-            Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (0.78f, c.BoltRest), (0.83f, c.BoltRest + Vector3.back * 0.085f), (0.85f, c.BoltRest + Vector3.back * 0.085f), (0.865f, c.BoltRest), (1f, c.BoltRest));
+            Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (0.78f, c.BoltRest), (0.83f, c.BoltRest + Vector3.back * rack), (0.85f, c.BoltRest + Vector3.back * rack), (0.865f, c.BoltRest), (1f, c.BoltRest));
         }
         else
             Weights(clip, c, duration, (0f, 0), (0.02f, 4), (0.145f, 1), (0.3f, 4), (0.42f, 2), (seated + 0.025f, 4), (back, 0), (1f, 0));
@@ -476,7 +740,7 @@ public static class Ak47Animations
             (0.455f, tilt + new Vector3(-1.5f, 4f, -3f)), (0.50f, tilt + new Vector3(0.5f, -1f, 0.8f)),
             (0.58f, tilt), (0.78f, tilt * 0.65f), (1f, Vector3.zero));
         Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (1f, c.BoltRest));
-        var hit = new Vector3(-0.05f, 0.07f, 0.15f);
+        var hit = c.SlapPoint;
         var windup = hit + new Vector3(-0.18f, 0.055f, -0.035f);
         var slapRotation = Quaternion.LookRotation(Vector3.up, Vector3.left);
         Position(clip, c, c.Free, duration, (0f, c.Forend.P), (0.04f, c.Forend.P),
@@ -523,6 +787,7 @@ public static class Ak47Animations
 
     static void Position(AnimationClip clip, Context c, Transform part, float duration, params (float t, Vector3 v)[] keys)
     {
+        if (part == null) return;
         for (int i = 0; i < 3; i++)
         {
             int axis = i;
@@ -535,6 +800,7 @@ public static class Ak47Animations
 
     static void Rotation(AnimationClip clip, Context c, Transform part, float duration, params (float t, Quaternion v)[] keys)
     {
+        if (part == null) return;
         for (int i = 0; i < 4; i++)
         {
             int axis = i;
@@ -545,6 +811,7 @@ public static class Ak47Animations
 
     static void Curve(AnimationClip clip, Context c, Transform part, Type type, string property, float duration, (float t, float v)[] keys, bool stepped = false)
     {
+        if (part == null) return;
         var curve = new AnimationCurve(keys.OrderBy(k => k.t).GroupBy(k => k.t).Select(g => g.Last()).Select(k => new Keyframe(k.t * duration, k.v)).ToArray());
         for (int i = 0; i < curve.length; i++)
         {

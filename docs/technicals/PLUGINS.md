@@ -69,7 +69,7 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 | Visual Scripting | 1.9.12 | Undecided | Probably a dependency of another package or unused. |
 | Addressables | 2.11.2 | Undecided | |
 | Localization | 1.5.13 | Use | |
-| Animation Rigging | 6.6.0 | Use | AK47: Multi-Parent Constraints drive shared-hand targets from gun parts or an authored free-hand control. GunAnimation evaluates the rig with its manual controller graph in the central weapon tick; no per-hand Update. Editor Animation-window previews use RigBuilder normally. See HANDS.md. |
+| Animation Rigging | 6.6.0 | Use | AK47, MP5, pistol, pump shotgun and double barrel: Multi-Parent Constraints drive shared-hand targets from gun parts or an authored free-hand control. GunAnimation evaluates the rig with its manual controller graph in the central weapon tick; no per-hand Update. Editor Animation-window previews use RigBuilder normally. See HANDS.md. |
 | Splines | 2.9.1 | Use | |
 | Terrain Tools | 5.3.3 | Editor | |
 | Timeline | 6.6.0 | Use | |

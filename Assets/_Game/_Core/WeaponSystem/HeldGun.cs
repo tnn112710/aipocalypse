@@ -6,10 +6,7 @@ using VContainer;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // A gun in hand: runs its Gun rules from the holder's input and shows them — bullets from the muzzle, recoil,
-    // hip / aim / sprint poses, procedural reload, jam-clearing and pump motion, sounds.
-    // Prefab layout: Poses (Hip, Aim, Sprint markers) and PosePivot > RecoilPivot > Model + Muzzle; optional pump /
-    // break parts inside Model.
+    // Runs held-gun rules and presents shots, poses, recoil, sounds and clip actions (with a procedural fallback).
     public sealed class HeldGun : HeldItem
     {
         [SerializeField, Tooltip("Moved to the active pose; parent of the recoil pivot")] Transform _posePivot;
@@ -363,9 +360,9 @@ namespace Aipocalypse.Core.WeaponSystem
             _posePivot.localPosition = _posePosition + (_animation != null ? Vector3.zero : offset);
             _posePivot.localRotation = _poseRotation * (_animation != null ? Quaternion.identity : Quaternion.Euler(euler));
 
-            if (_pumpPart != null)
+            if (_animation == null && _pumpPart != null)
                 _pumpPart.localPosition = _restPumpPosition + _pumpStroke * stroke;
-            if (_breakPart != null)
+            if (_animation == null && _breakPart != null)
             {
                 float open = _shownAction == GunAction.Reloading ? _actionWeight : 0f;
                 _breakPart.localRotation = _restBreakRotation * Quaternion.Euler(_breakOpenEuler * open);

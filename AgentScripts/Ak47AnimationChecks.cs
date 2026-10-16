@@ -23,7 +23,8 @@ public static class Ak47AnimationChecks
         var motion = root.Find("Motion");
         var magazine = root.Find("Motion/Weapon/Magazine");
         var replacement = root.Find("Motion/Weapon/ReplacementMagazine");
-        var overrides = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>("Assets/_Game/_Core/WeaponSystem/Animations/AK47/AK47.overrideController");
+        string weapon = held.Gun.Item.Gun.name;
+        var overrides = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>("Assets/_Game/_Core/WeaponSystem/Animations/" + weapon + "/" + weapon + ".overrideController");
         var clip = overrides[action];
         var magY = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve("Motion/Weapon/Magazine", typeof(Transform), "m_LocalPosition.y"));
         var motionY = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve("Motion", typeof(Transform), "m_LocalPosition.y"));
@@ -33,8 +34,8 @@ public static class Ak47AnimationChecks
         var samples = new List<object>();
         held.Gun.Interrupt();
         held.Gun.Item.SetJammed(action == "Repairing");
-        held.Gun.Item.SetRounds(action == "ReloadingEmpty" ? 0 : 12);
-        held.Gun.Tick(new GunInput { IsReady = true, CanFire = true, CanAim = true, Reload = action == "Reloading" }, 0f);
+        held.Gun.Item.SetRounds(action == "ReloadingEmpty" ? 0 : action == "Cycling" ? held.Gun.Item.Gun.Magazine.Size : Mathf.Max(1, held.Gun.Item.Gun.Magazine.Size - 2));
+        held.Gun.Tick(new GunInput { IsReady = true, CanFire = true, CanAim = true, Reload = action == "Reloading", TriggerHeld = action == "Cycling", TriggerPressed = action == "Cycling" }, 0f);
         EditorApplication.isPaused = false;
         Application.runInBackground = true;
         float start = Time.realtimeSinceStartup;
@@ -53,7 +54,14 @@ public static class Ak47AnimationChecks
             }
             observedFrames++;
             float t = animation.Progress * clip.length;
-            maxPartError = Mathf.Max(maxPartError, Mathf.Abs(magazine.localPosition.y - magY.Evaluate(t)), Mathf.Abs(motion.localPosition.y - motionY.Evaluate(t)));
+            maxPartError = Mathf.Max(maxPartError, Mathf.Abs(motion.localPosition.y - motionY.Evaluate(t)));
+            if (magazine != null) maxPartError = Mathf.Max(maxPartError, Mathf.Abs(magazine.localPosition.y - magY.Evaluate(t)));
+            foreach (var binding in AnimationUtility.GetCurveBindings(clip).Where(b => b.type == typeof(Transform) && b.propertyName.StartsWith("m_LocalPosition")))
+            {
+                var part = root.Find(binding.path);
+                int axis = "xyz".IndexOf(binding.propertyName[binding.propertyName.Length - 1]);
+                maxPartError = Mathf.Max(maxPartError, Mathf.Abs(part.localPosition[axis] - AnimationUtility.GetEditorCurve(clip, binding).Evaluate(t)));
+            }
             maxHandError = Mathf.Max(maxHandError, Vector3.Distance(leftHand.GripPoint.position, leftTarget.position));
             if (animation.Progress >= nextSample)
             {
@@ -61,7 +69,7 @@ public static class Ak47AnimationChecks
                 samples.Add(new { frame = Time.frameCount, state = animation.State, progress = animation.Progress,
                     action = held.Gun.Action.ToString(), actionProgress = held.Gun.ActionProgress,
                     motion = motion.localPosition.ToString("F4"), rotation = motion.localEulerAngles.ToString("F1"),
-                    mag = magazine.localPosition.ToString("F4"), visible = magazine.GetComponent<Renderer>().enabled,
+                    mag = magazine != null ? magazine.localPosition.ToString("F4") : "none", visible = magazine != null && magazine.GetComponent<Renderer>().enabled,
                     animatorState = animator.GetCurrentAnimatorStateInfo(0).shortNameHash,
                     animatorTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime });
             }
@@ -70,17 +78,17 @@ public static class Ak47AnimationChecks
         }
         if (!completed || maxPartError > 0.0001f || maxHandError > 0.0001f)
             throw new Exception($"End-of-frame animation check failed: complete={completed}, part error={maxPartError}, hand error={maxHandError}.");
-        if (!magazine.GetComponent<Renderer>().enabled || replacement.GetComponent<Renderer>().enabled)
+        if (magazine != null && (!magazine.GetComponent<Renderer>().enabled || replacement.GetComponent<Renderer>().enabled))
             throw new Exception("Reload visibility did not reset after completion.");
-        return new { action, observedFrames, completed, maxPartError, maxHandError, samples };
+        return new { weapon, action, observedFrames, completed, maxPartError, maxHandError, samples };
     }
 
-    public static object EquipLive()
+    public static object EquipLive(string weapon = "AK47")
     {
         var player = Object.FindAnyObjectByType<Player>();
         if (player == null) throw new InvalidOperationException("No player in the running scene.");
-        var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/AK47.asset");
-        var item = player.Equipment.Selected as GunInstance ?? new GunInstance(definition);
+        var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/" + weapon + ".asset");
+        var item = Enumerable.Range(0, player.Equipment.Hotbar.Count).Select(i => player.Equipment.Hotbar[i]).OfType<GunInstance>().FirstOrDefault(i => i.Gun == definition) ?? new GunInstance(definition);
         player.Ammo.Add(definition.Magazine.AmmoType, 90);
         bool picked = player.Equipment.Hotbar.IndexOf(item) >= 0 || player.Equipment.TryPickUp(item, out _);
         player.Equipment.Switcher.EquipImmediately(item);
@@ -181,13 +189,13 @@ public static class Ak47AnimationChecks
         player.Equipment.Switcher.EquipImmediately(mp5);
         var other = Object.FindAnyObjectByType<HeldGun>();
         Object.FindAnyObjectByType<Aipocalypse.Core.HandSystem.FirstPersonHands>().Tick(other.Hands, 1f / 60f);
-        if (other.GetComponentInChildren<GunAnimation>() != null || other.Hands.HandScale != 1f)
-            throw new Exception("The unconverted gun changed its animation or hand size.");
+        if (other.GetComponentInChildren<GunAnimation>() == null || Mathf.Abs(other.Hands.HandScale - 1.12f) > 0.001f)
+            throw new Exception("The other converted gun did not retain its animation and hand size.");
         var handRig = Object.FindAnyObjectByType<Aipocalypse.Core.HandSystem.FirstPersonHands>();
-        if (handRig.GetComponentsInChildren<Aipocalypse.Core.HandSystem.HandRig>().Any(h => Mathf.Abs(h.transform.localScale.x - 1f) > 0.001f))
-            throw new Exception("Shared hands did not return to the unconverted gun's scale.");
+        if (handRig.GetComponentsInChildren<Aipocalypse.Core.HandSystem.HandRig>().Any(h => Mathf.Abs(h.transform.localScale.x - 1.12f) > 0.001f))
+            throw new Exception("Shared hands did not keep the converted gun's scale.");
         return new { reloadCompleted = true, magazineReleasedOnce = true, jamCleared = true, reequipped = true,
-            otherGunStillProcedural = true, otherGunHandScale = other.Hands.HandScale };
+            otherGunClipsPresent = true, otherGunHandScale = other.Hands.HandScale };
     }
 
     public static object Verify(string fixture = "GunAnimationTests")

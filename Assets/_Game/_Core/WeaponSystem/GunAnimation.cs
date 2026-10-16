@@ -14,6 +14,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public const string Reloading = "Reloading";
         public const string ReloadingEmpty = "ReloadingEmpty";
         public const string Repairing = "Repairing";
+        public const string Cycling = "Cycling";
 
         [SerializeField] Animator _animator;
         [SerializeField] RigBuilder _rig;
@@ -59,6 +60,7 @@ namespace Aipocalypse.Core.WeaponSystem
             {
                 GunAction.Reloading => empty ? ReloadingEmpty : Reloading,
                 GunAction.ClearingJam => Repairing,
+                GunAction.Cycling => Cycling,
                 _ => Idle,
             });
         }
@@ -88,7 +90,7 @@ namespace Aipocalypse.Core.WeaponSystem
             Evaluate(_state == Idle ? Mathf.Repeat(_elapsed / duration, 1f) : Mathf.Clamp01(_elapsed / duration));
         }
 
-        bool IsAction => _state is Reloading or ReloadingEmpty or Repairing;
+        bool IsAction => _state is Reloading or ReloadingEmpty or Repairing or Cycling;
 
         void SetState(string state)
         {

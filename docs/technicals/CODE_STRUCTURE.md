@@ -126,7 +126,7 @@ Assets/_Game/
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, optional GunAnimation (procedural fallback), pump / break parts, sounds (own AudioSource)
-│     ├─ GunAnimation.cs                    optional clip view: shared Animator state slots + per-gun Override Controller, manual controller/Animation Rigging graph, action-progress sampling, pooled cosmetic magazine release; AK47 first
+│     ├─ GunAnimation.cs                    optional clip view: shared Animator state slots + per-gun Override Controller, manual controller/Animation Rigging graph, action-progress sampling, pooled cosmetic magazine release; all five guns (including pump Cycling and per-shell reload loops)
 │     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
@@ -153,6 +153,7 @@ Assets/_Game/
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
+   ├─ WeaponAnimationTests.cs               MP5/pistol/shotgun bindings, scaled hands, automatic Animator pass, contacts and continuity, slap/reset, repeated shell reload and pump cycle, break-action closure
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
@@ -202,7 +203,7 @@ Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the dro
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots, pump / break parts,
-                       ItemHands.SetProgress (procedural hand action parts: mag, bolt, shells), or GunAnimation samples the controller and constraints for AK47.
+                       ItemHands.SetProgress (procedural hand action parts: mag, bolt, shells), or GunAnimation samples the controller and constraints for all five guns.
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
