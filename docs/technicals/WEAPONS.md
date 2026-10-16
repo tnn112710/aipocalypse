@@ -29,7 +29,6 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Magazine reload | One timed reload; takes only what the reserve has | Magazine → `Reload = Magazine`, `ReloadTime` |
 | Per-round reload | One round per `ReloadTime` until full or the reserve is empty (tube shotgun style). Pulling the trigger stops it once the round going in is loaded, then that click fires (no instant shot from the reload pose) | Magazine → `Reload = PerRound` |
 | Pump / bolt action | After each shot that leaves a round, the gun works its action for `CycleTime` (`GunAction.Cycling`) before it can fire again. Aiming stays up. A click during the pump is kept and fires when it's done. After the last round there's nothing to chamber, so it goes straight to the reload. Switching away mid-pump finishes the pump when the gun is raised again. 0 = self-loading | Fire → `CycleTime` |
-| Moving parts | Optional, on the held prefab: a **pump part** slides by `Pump Stroke` and back over the cycle (and racks while clearing a jam); a **break part** swings to `Break Open Euler` while reloading | Gun prefab → `HeldGun` → Moving parts |
 | Auto reload | Starts by itself when the magazine runs dry and there's ammo | Magazine → `AutoReload` |
 | Jams | Each shot has `Chance` to jam instead of firing (no round used). A jammed gun can't fire: it stays stuck for `JamPause` (0.6 s) while trigger pulls only dry-click, then all five guns automatically clear over 4-5 seconds, with an optional timing QTE; guns without a profile retain automatic clearing over `ClearTime` | Gun asset → Jam |
 | Recoil | Two parts per shot, along a random spray pattern that restarts after a 0.24 s pause. **Aim kick** turns the view (up, sideways, roll, shake), so the crosshair and the shots climb together. **Gun kick** is a small, fast extra tilt + push-back of the model only, on top of the view it's attached to, so the barrel stays near the crosshair. Both spring back. Hip-fire and aiming have separate values | Gun asset → Recoil → Aim kick / Aim response / Gun kick |
@@ -37,8 +36,8 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
-| Hands | Floating hands hold each gun's grips; reloads, jam clears and per-round loading move the gun's own parts (mag, bolt, slide, shells) and the left hand follows them. Played by name from `Gun` actions: `Reload` / `ReloadEmpty` (magazine empty at the start) / `LoadRound` (per round) / `ClearJam` / `Cycle` | Gun prefab → `ItemHands`; [HANDS.md](HANDS.md) |
-| Reload / jam / pump motion | AK47, MP5, pistol and both shotguns use editable clips and hand contact constraints; procedural action motion remains a fallback for new prefabs | Gun prefab → AnimationRoot / clips; fallback → `HeldGun` → Action motion |
+| Hands | Floating hands follow each gun's two hand targets; the clips move the gun's own parts (mag, bolt, slide, pump, hinge, shells) and switch the left hand's contact between them | Gun prefab → `ItemHands`, clips; [HANDS.md](HANDS.md) |
+| Reload / jam / pump motion | Every gun plays editable clips with hand contact constraints (`GunAnimation`, required on a gun prefab). One clip per `GunAction`, sampled at `Gun.ActionProgress`, so it always fits `ReloadTime` / the repair time / `CycleTime` | Gun prefab → AnimationRoot / clips |
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
 | Effects | Muzzle flash, tracer, impact (removed after 3 s), bullet hole decal (removed after 20 s, at most 64). All pooled; no holes on things that take damage | `Data/Weapons/BulletEffects.asset`; lifetime / cap on each effect prefab's `PooledEffect` |
 | Sounds | Equip, fire, reload start / insert / end, jam (trigger falls on the jammed round), dry fire (each pull while stuck), jam clear start / end, repair slaps / punches, cycle start / end (pump back / home) as plain `AudioClip`s, played with `PlayOneShot` on the gun prefab's 2D `AudioSource` (BroAudio later). Clips come from the old project's samples (`Assets/_Samples/Audio/Weapons`): rifle / pistol equip, fire, mag out (reload start), mag in (reload end), sniper bolt pull / push (jam clear). The shotguns borrow sniper fire / equip, bolt pull / push (pump; break open / close) and pistol mag in (shell insert) until there are shotgun clips. Jam and dry fire use the Malbers pistol / default empty clicks; repair punches use Malbers Hit1 / Hit3 and Highlands Metal Shield 1 (placeholders) | Gun asset → Sounds (clips, volume) |
@@ -83,13 +82,13 @@ AK47 (variant of Gun_Base)    HeldGun · AudioSource (2D, gun sounds)
 │  ├─ Hip                     where the gun rests (relative to the rig's Hand), barrel on the screen centre 20 m out
 │  ├─ Aim                     sights on the screen centre
 │  └─ Sprint                  lowered and turned
-└─ PosePivot                  moved to the active pose (+ reload / jam motion)
+└─ PosePivot                  moved to the active pose
    └─ RecoilPivot             gun kick
       ├─ Model                the store prefab (shadows off, no colliders)
       └─ Muzzle               bullets and the flash leave here, along its blue (Z) axis
 ```
 
-Shotguns add a moving part inside `Model`: `PumpShotgun` slides `ShotGun_C_BarrelGuard` (the forend) as its pump part; `DoubleBarrel` has its model unpacked so the barrels, rib and forend sit under a `Hinge` at the front of the receiver, its break part.
+Shotgun parts move only in their clips: `PumpShotgun`'s Cycling clip slides the pump; `DoubleBarrel`'s barrels, rib and forend sit under a `Hinge` at the front of the receiver that its reload clip opens.
 
 Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera) and are stored relative to `Hand`.
 
@@ -101,7 +100,7 @@ MP5's `Sight` uses our `WeaponSystem/Meshes/MP5_Sight.asset` copy. Only the disc
 
 AK47, MP5, Pistol, PumpShotgun and DoubleBarrel keep their `Gun_Base` variants and pose/recoil pivots. Under `RecoilPivot`, `AnimationRoot` adds an Animator using `Animations/<Gun>/<Gun>.overrideController`, a RigBuilder and `GunAnimation`. `AnimationRoot/Motion/Weapon` holds our unpacked copy of the store model with generic part names. Shared mesh/material assets are still referenced; original store prefabs are untouched. The inherited base muzzle marker remains as `UnusedMuzzle`; `HeldGun` references the animated `Weapon/Muzzle` instead (under `Weapon/Hinge` on DoubleBarrel).
 
-The shared `Animations/Shared/Gun.controller` has Equipped, Idle, Firing, Reloading, ReloadingEmpty, Repairing and Cycling states. Each weapon Override Controller supplies clips for its actions; AK47 does not use Cycling. Gameplay chooses states explicitly; the controller has no automatic transitions. `GunAnimation` uses a manual AnimatorControllerPlayable graph with Animation Rigging outputs, sampled once from `HeldGun.Tick` before final muzzle/hand use. Reloads, repairs and cycles sample `Gun.ActionProgress`; ammo still transfers only when `Gun` completes a reload or shell insertion. A weapon switch cancels the action and the next show starts cleanly with Equipped. Reload/cycle timing, ammo and recoil remain owned by gameplay; repair initiation and QTE behavior are described below. `HeldGun` only applies its procedural pump/break motion when no clip rig is assigned.
+The shared `Animations/Shared/Gun.controller` has one state per `GunClip` (Equipped, Idle, Firing, Reloading, ReloadingEmpty, Repairing, RepairingStubborn, RepairFocus, RepairEnd, Cycling); each name is also the shared clip an override replaces, so add a state, a shared clip and an enum value together. Each weapon Override Controller supplies clips for its actions; AK47 does not use Cycling. Gameplay chooses states explicitly; the controller has no automatic transitions. `GunAnimation` uses a manual AnimatorControllerPlayable graph with Animation Rigging outputs, sampled once from `HeldGun.Tick` before final muzzle/hand use. Reloads, repairs and cycles sample `Gun.ActionProgress`; ammo still transfers only when `Gun` completes a reload or shell insertion. A weapon switch cancels the action and the next show starts cleanly with Equipped. Reload/cycle timing, ammo and recoil remain owned by gameplay; repair initiation and QTE behavior are described below. State hashes and clip lengths are cached when the graph is built, so sampling allocates nothing per frame.
 
 AK47, MP5 and pistol reloads separate the old magazine, an animated replacement, and a pooled world magazine (`Prefabs/Effects/<Gun>_Magazine.prefab`, Rigidbody + collider + PooledEffect). The existing EffectPool prewarms, caps and expires these cosmetics. The drop does not consume inventory ammo or create pickups. Empty reloads add the bolt/slide rack. PumpShotgun's reload clip repeats once per shell; its Cycling clip drives the pump and bolt with the hand attached. DoubleBarrel opens its hinge, loads a pair of shells, and closes. Shotguns have no detached magazine effect. All five guns use the multi-slap repair sequence described below. Right-hand contact remains on the grip; left-hand contacts, free paths and fingers are clip-authored. All five use hand scale 1.12. See [HANDS.md](HANDS.md#weapon-animation-authoring) for editing steps and contact weights. Melee remains procedural.
 
@@ -110,7 +109,7 @@ AK47, MP5 and pistol reloads separate the old magazine, an animated replacement,
 1. **Prefab:** right-click `Prefabs/Guns/Gun_Base.prefab` → Create → Prefab Variant. Drag the store model under `PosePivot/RecoilPivot`, rename it `Model`, turn off its shadows and remove colliders. Move `Muzzle` to the barrel tip (blue axis out of the barrel).
 2. **Poses:** select the gun root, use the **Aim** preview button, and move `Poses/Aim` until the sights sit on the screen centre in the Game view (enter Play mode to check; edits to the prefab in Play mode are lost). Do the same for Hip and Sprint, then press **Hip** before saving.
 3. **Item:** duplicate `Data/Items/AK47.asset` (or Create → Aipocalypse → Items → Gun). Set `DisplayName`, `Icon`, `Prefab` (the variant), Fire / Bullet / Magazine (pick or create an `AmmoType` in `Data/Weapons/`) / Jam / Recoil, and `Effects` (`Data/Weapons/BulletEffects.asset`).
-4. **Hands:** add `ItemHands` to the root, `HandGrip`s for the right hand (grip) and left hand (forend), and actions for its mag / bolt ([HANDS.md → Adding hands to an item](HANDS.md#adding-hands-to-an-item)).
+4. **Clips and hands:** add `AnimationRoot` under `RecoilPivot` (Animator with a new Override Controller of `Gun.controller`, RigBuilder, `GunAnimation`) and assign it to `HeldGun` → Animation; a gun without one logs an error and stays inert. Point `ItemHands` at the two `Motion/HandTargets` grips ([HANDS.md → Weapon animation authoring](HANDS.md#weapon-animation-authoring)).
 5. **World side** (same prefab, see [EQUIPMENT.md → One prefab per item](EQUIPMENT.md#one-prefab-per-item)): add `WorldItem` (`_definition` = the asset) and a trigger `BoxCollider` to the root, and a `World` child with the store model lying flat (shadows on); set `WorldItem._worldModel` to it and turn `World` off. Drop copies of the prefab into a scene to place pickups.
 6. **New ammo type?** Add its starting amount to `Data/Weapons/AmmoConfig.asset`.
 
@@ -163,7 +162,7 @@ FireAxe                       HeldMelee · AudioSource (2D)
 | Which effects a gun uses, bullet hole layers / size | `Data/Weapons/BulletEffects.asset` |
 | How long an effect lives, how many at once | the effect prefab in `Prefabs/Effects/` → `PooledEffect` |
 | Where the gun sits, aims, sprints | gun prefab → `Poses/*` |
-| Reload / jam / pump motion, pump stroke, break angle | gun prefab → `HeldGun` → Action motion / Moving parts |
+| Reload / jam / pump motion, pump stroke, break angle | the gun's clips in `Animations/<Gun>/` ([HANDS.md](HANDS.md#weapon-animation-authoring)) |
 
 ## Known gaps
 
@@ -173,7 +172,6 @@ FireAxe                       HeldMelee · AudioSource (2D)
 - **No dry-fire click** when the magazine and reserve are empty.
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
 - **Shotguns have no damage falloff**: each pellet does full damage until the bullet's `Range`; spread alone thins hits at distance. No shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
-- The gun's own reload tilt (`HeldGun` → Action motion) is now set per gun so the hands' work faces the player ([HANDS.md](HANDS.md)); the jam-clear and pump tilts are still the earlier placeholders.
 - Held weapons and muzzle flashes render through the weapon overlay camera. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
 - **Melee:** no hit-stop, hit marker or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).
 

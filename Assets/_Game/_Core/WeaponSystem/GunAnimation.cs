@@ -1,58 +1,83 @@
+using System;
+using Aipocalypse.Core.HandSystem;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.Playables;
-using Aipocalypse.Core.HandSystem;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
+    // The states of Animations/Shared/Gun.controller. Each name is also the shared clip a gun's override controller replaces.
+    public enum GunClip
+    {
+        Equipped,
+        Idle,
+        Firing,
+        Reloading,
+        ReloadingEmpty,
+        Repairing,
+        RepairingStubborn,
+        RepairFocus,
+        RepairEnd,
+        Cycling,
+    }
+
+    // A gun's clips and hand constraints, sampled by hand once per frame from HeldGun.Tick (the Animator never updates
+    // on its own). Actions follow Gun.ActionProgress; Equipped, Firing and RepairEnd run on their own time, then Idle loops.
     [RequireComponent(typeof(Animator), typeof(RigBuilder))]
     public sealed class GunAnimation : MonoBehaviour
     {
-        public const string Equipped = "Equipped";
-        public const string Idle = "Idle";
-        public const string Firing = "Firing";
-        public const string Reloading = "Reloading";
-        public const string ReloadingEmpty = "ReloadingEmpty";
-        public const string Repairing = "Repairing";
-        public const string RepairingStubborn = "RepairingStubborn";
-        public const string RepairFocus = "RepairFocus";
-        public const string RepairEnd = "RepairEnd";
-        public const string Cycling = "Cycling";
+        static readonly string[] ClipNames = Enum.GetNames(typeof(GunClip));
+        static readonly int[] StateHashes = Array.ConvertAll(ClipNames, clip => Animator.StringToHash("Base Layer." + clip));
 
-        [SerializeField] Animator _animator;
+        [SerializeField, Tooltip("Its controller must be an override of Gun.controller")] Animator _animator;
         [SerializeField] RigBuilder _rig;
-        [SerializeField] Transform _magazine;
-        [SerializeField] PooledEffect _droppedMagazine;
+
+        [Header("Dropped magazine")]
+        [SerializeField, Tooltip("The magazine in the gun; the dropped copy spawns at its pose. None = nothing drops (shotguns)")]
+        Transform _magazine;
+        [SerializeField, Tooltip("Pooled physics copy thrown out on reload")] PooledEffect _droppedMagazine;
         [SerializeField, Min(0)] int _magazinePrewarm = 3;
-        [SerializeField, Range(0f, 1f)] float _releaseTime = 0.3f;
-        [SerializeField] Vector3 _dropVelocity = new(-0.25f, -0.8f, 0.1f);
+        [SerializeField, Range(0f, 1f), Tooltip("Reload progress at which it drops")] float _releaseTime = 0.3f;
+        [SerializeField, Tooltip("Launch velocity, in the gun's space")] Vector3 _dropVelocity = new(-0.25f, -0.8f, 0.1f);
         [SerializeField] Vector3 _dropAngularVelocity = new(2f, 0f, -3f);
+
+        // Keyed in the repair clips: impacts so far, and 1 while the latest one is a punch (0 = slap).
         [SerializeField, HideInInspector] float _repairImpactCount;
-        // Stepped clip curve: 1 while the latest repair impact is a punch, 0 for a slap.
         [SerializeField, HideInInspector] float _repairPunch;
+
+        readonly float[] _clipLengths = new float[ClipNames.Length];
 
         PlayableGraph _graph;
         AnimatorControllerPlayable _controller;
         AnimatorOverrideController _overrides;
         EffectPool _effects;
-        string _state = Idle;
+        GunClip _state = GunClip.Idle;
+        GunClip _repairState = GunClip.Repairing;
         float _elapsed;
         bool _released;
-        string _repairState = Repairing;
+        int _notifiedImpacts;
+
+        // RepairEnd after a QTE success: blends from the pose the repair was cut at.
         bool _returnFromSequence;
         Transform[] _returnParts;
         Vector3[] _returnPositions;
         Quaternion[] _returnRotations;
         HandGrip[] _returnGrips;
         HandShape[] _returnShapes;
-        int _notifiedImpacts;
 
-        public event System.Action RepairSlapped;
+        // Once per slap or punch keyed in a repair clip, even when a long frame skips past several.
+        public event Action RepairSlapped;
 
-        public string State => _state;
+        public GunClip State => _state;
         public bool ImpactIsPunch => _repairPunch > 0.5f;
+        // 0..1 through the clip last sampled.
         public float Progress { get; private set; }
+
+        bool IsAction => _state is GunClip.Reloading or GunClip.ReloadingEmpty or GunClip.Repairing or GunClip.RepairingStubborn
+            or GunClip.RepairFocus or GunClip.Cycling;
+        bool IsRepairing => _state is GunClip.Repairing or GunClip.RepairingStubborn;
+        bool Loops => _state is GunClip.Idle or GunClip.RepairFocus;
 
         public void Bind(EffectPool effects)
         {
@@ -62,39 +87,42 @@ namespace Aipocalypse.Core.WeaponSystem
 
         public void Show()
         {
-            SetState(Equipped);
+            SetState(GunClip.Equipped);
             Evaluate(0f);
         }
 
         public void Fired()
         {
             if (!IsAction)
-                SetState(Firing);
+                SetState(GunClip.Firing);
         }
 
         public void StartAction(GunAction action, bool empty, bool stubborn = false)
         {
-            _repairState = stubborn ? RepairingStubborn : Repairing;
+            _repairState = stubborn ? GunClip.RepairingStubborn : GunClip.Repairing;
             SetState(action switch
             {
-                GunAction.Reloading => empty ? ReloadingEmpty : Reloading,
+                GunAction.Reloading => empty ? GunClip.ReloadingEmpty : GunClip.Reloading,
                 GunAction.ClearingJam => _repairState,
-                GunAction.Cycling => Cycling,
-                _ => Idle,
+                GunAction.Cycling => GunClip.Cycling,
+                _ => GunClip.Idle,
             });
         }
 
-        public void EndAction() => SetState(Idle);
+        public void EndAction() => SetState(GunClip.Idle);
 
+        // Holds the repair on its looping focus clip (while a QTE waits), or goes back to the repair sequence.
         public void FocusRepair(bool focus)
         {
             int impacts = _notifiedImpacts;
-            SetState(focus ? RepairFocus : _repairState);
+            SetState(focus ? GunClip.RepairFocus : _repairState);
             _notifiedImpacts = impacts;
         }
+
+        // The repair succeeded early: RepairEnd plays from the current pose back to the grips.
         public void FinishRepair()
         {
-            bool capture = _state is Repairing or RepairingStubborn;
+            bool capture = IsRepairing;
             if (capture)
             {
                 EnsureGraph();
@@ -106,7 +134,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 for (int i = 0; i < _returnGrips.Length; i++)
                     _returnShapes[i] = _returnGrips[i].Shape;
             }
-            SetState(RepairEnd);
+            SetState(GunClip.RepairEnd);
             _returnFromSequence = capture;
         }
 
@@ -116,60 +144,79 @@ namespace Aipocalypse.Core.WeaponSystem
                 return;
             if (_returnFromSequence)
             {
-                _elapsed += deltaTime;
-                float progress = Mathf.Clamp01(_elapsed / ClipLength(RepairEnd));
-                if (progress >= 1f)
-                {
-                    SetState(Idle);
-                    Evaluate(0f);
-                }
-                else
-                {
-                    Evaluate(progress);
-                    float blend = Mathf.SmoothStep(0f, 1f, progress);
-                    for (int i = 0; i < _returnParts.Length; i++)
-                    {
-                        Transform part = _returnParts[i];
-                        part.SetLocalPositionAndRotation(Vector3.Lerp(_returnPositions[i], part.localPosition, blend),
-                            Quaternion.Slerp(_returnRotations[i], part.localRotation, blend));
-                    }
-                    for (int i = 0; i < _returnGrips.Length; i++)
-                        _returnGrips[i].SetAnimatedShape(HandShape.Lerp(_returnShapes[i], _returnGrips[i].Shape, blend));
-                }
+                TickReturn(deltaTime);
                 return;
             }
-            if (IsAction && _state != RepairFocus)
+            if (IsAction && _state != GunClip.RepairFocus)
             {
                 Evaluate(Mathf.Clamp01(actionProgress));
-                if (_state is Repairing or RepairingStubborn)
-                {
-                    int impacts = Mathf.FloorToInt(_repairImpactCount + 0.001f);
-                    while (_notifiedImpacts < impacts)
-                    {
-                        _notifiedImpacts++;
-                        RepairSlapped?.Invoke();
-                    }
-                }
-                if (!_released && (_state is Reloading or ReloadingEmpty) && Progress >= _releaseTime)
+                if (IsRepairing)
+                    NotifyImpacts();
+                if (!_released && (_state is GunClip.Reloading or GunClip.ReloadingEmpty) && Progress >= _releaseTime)
                     ReleaseMagazine();
                 return;
             }
 
             _elapsed += deltaTime;
             float duration = ClipLength(_state);
-            bool loop = _state is Idle or RepairFocus;
-            if (!loop && _elapsed >= duration)
+            if (!Loops && _elapsed >= duration)
             {
                 _elapsed -= duration;
-                _state = Idle;
-                duration = ClipLength(Idle);
+                _state = GunClip.Idle;
+                duration = ClipLength(GunClip.Idle);
             }
-            Evaluate(_state is Idle or RepairFocus ? Mathf.Repeat(_elapsed / duration, 1f) : Mathf.Clamp01(_elapsed / duration));
+            Evaluate(Loops ? Mathf.Repeat(_elapsed / duration, 1f) : Mathf.Clamp01(_elapsed / duration));
         }
 
-        bool IsAction => _state is Reloading or ReloadingEmpty or Repairing or RepairingStubborn or RepairFocus or Cycling;
+        // Back to rest and the shared controller, so the prefab previews and re-equips cleanly.
+        public void Stop()
+        {
+            if (_rig != null)
+                _rig.Clear();
+            if (_graph.IsValid())
+                _graph.Destroy();
+            if (_animator != null && _overrides != null)
+                _animator.runtimeAnimatorController = _overrides;
+            _overrides = null;
+            SetState(GunClip.Idle);
+        }
 
-        void SetState(string state)
+        void OnDisable() => Stop();
+
+        void TickReturn(float deltaTime)
+        {
+            _elapsed += deltaTime;
+            float progress = Mathf.Clamp01(_elapsed / ClipLength(GunClip.RepairEnd));
+            if (progress >= 1f)
+            {
+                SetState(GunClip.Idle);
+                Evaluate(0f);
+                return;
+            }
+
+            Evaluate(progress);
+            float blend = Mathf.SmoothStep(0f, 1f, progress);
+            for (int i = 0; i < _returnParts.Length; i++)
+            {
+                Transform part = _returnParts[i];
+                part.SetLocalPositionAndRotation(Vector3.Lerp(_returnPositions[i], part.localPosition, blend),
+                    Quaternion.Slerp(_returnRotations[i], part.localRotation, blend));
+            }
+            for (int i = 0; i < _returnGrips.Length; i++)
+                _returnGrips[i].SetAnimatedShape(HandShape.Lerp(_returnShapes[i], _returnGrips[i].Shape, blend));
+        }
+
+        void NotifyImpacts()
+        {
+            int impacts = Mathf.FloorToInt(_repairImpactCount + 0.001f);
+            while (_notifiedImpacts < impacts)
+            {
+                _notifiedImpacts++;
+                RepairSlapped?.Invoke();
+            }
+        }
+
+        void SetState(GunClip state)
         {
             _state = state;
             _elapsed = 0f;
@@ -181,11 +228,10 @@ namespace Aipocalypse.Core.WeaponSystem
             _notifiedImpacts = 0;
         }
 
-        float ClipLength(string state)
+        float ClipLength(GunClip clip)
         {
             EnsureGraph();
-            AnimationClip clip = _overrides[state];
-            return clip != null ? Mathf.Max(0.001f, clip.length) : 1f;
+            return _clipLengths[(int)clip];
         }
 
         void EnsureGraph()
@@ -193,6 +239,11 @@ namespace Aipocalypse.Core.WeaponSystem
             if (_graph.IsValid())
                 return;
             _overrides = _animator.runtimeAnimatorController as AnimatorOverrideController;
+            for (int i = 0; i < ClipNames.Length; i++)
+            {
+                AnimationClip clip = _overrides != null ? _overrides[ClipNames[i]] : null;
+                _clipLengths[i] = clip != null ? Mathf.Max(0.001f, clip.length) : 1f;
+            }
             if (_returnParts == null)
             {
                 _returnParts = GetComponentsInChildren<Transform>(true);
@@ -214,11 +265,11 @@ namespace Aipocalypse.Core.WeaponSystem
             _graph.Play();
         }
 
-        void Evaluate(float progress, string sequence = null)
+        void Evaluate(float progress)
         {
             EnsureGraph();
             Progress = progress;
-            _controller.Play(Animator.StringToHash("Base Layer." + (sequence ?? _state)), 0, progress);
+            _controller.Play(StateHashes[(int)_state], 0, progress);
             _rig.SyncLayers();
             _graph.Evaluate(0f);
         }
@@ -236,19 +287,5 @@ namespace Aipocalypse.Core.WeaponSystem
                 body.WakeUp();
             }
         }
-
-        public void Stop()
-        {
-            if (_rig != null)
-                _rig.Clear();
-            if (_graph.IsValid())
-                _graph.Destroy();
-            if (_animator != null && _overrides != null)
-                _animator.runtimeAnimatorController = _overrides;
-            _overrides = null;
-            SetState(Idle);
-        }
-
-        void OnDisable() => Stop();
     }
 }

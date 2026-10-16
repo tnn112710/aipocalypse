@@ -123,10 +123,11 @@ Assets/_Game/
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
+│     ├─ GunJolt.cs                         GunJolt (self-returning kick / wobble of the model) + GunJoltPlayer (runs one; HeldGun applies it on the recoil pivot)
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
-│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, optional GunAnimation (procedural fallback), pump / break parts, sounds (own AudioSource)
-│     ├─ GunAnimation.cs                    optional clip view: shared Animator state slots + per-gun Override Controller, manual controller/Animation Rigging graph, action-progress sampling, pooled cosmetic magazine release; all five guns (including pump Cycling and per-shell reload loops)
+│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, repair QTE + feedback, sounds (own AudioSource)
+│     ├─ GunAnimation.cs                    every gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
 │     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
@@ -203,8 +204,8 @@ PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteract
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
-EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots, pump / break parts,
-                       ItemHands.SetProgress (procedural hand action parts: mag, bolt, shells), or GunAnimation samples the controller and constraints for all five guns.
+EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots,
+                       GunAnimation samples the controller and constraints (parts, hand targets, fingers).
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
@@ -254,7 +255,7 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 - `_Core/QuickTimeSystem/QuickTimeService.cs`: one active owner-bound session, unscaled central tick, confirmation through InputService.ReloadPressed, timed or owner-controlled lifetime, cancellation, optional time request, completion callback and lifecycle events. QuickTimeInstaller.cs registers the root entry point.
 - `_Core/_Common/Events/QteEvents.cs`: QteStarted, QteEnded and accepted QteAttempted MessagePipe payloads; no per-frame messages. IQteSession.Press distinguishes Ignored/Miss/Success, so locked presses emit no attempt event.
 - `_Core/WeaponSystem/GunRepairProfile.cs`: per-gun automatic/manual initiation, jam pause, quick/stubborn duration and probability, configurable QTE onset fraction, miss penalty and cap, challenge and cosmetic feedback references. Gun.cs selects timing, waits out the jam pause (DryFired on trigger pulls), applies miss penalties (AddRepairTime) and owns completion. HeldGun.cs requests/cancels QTEs and chooses repair animation states.
-- `_Core/WeaponSystem/RepairFeedbackSettings.cs`: shared or per-gun ScriptableObject preset for result colors, UI punch/ring/hold/shake/squash/fade, GunJolt presets (jam, dry fire, slap, punch, miss, success) and success/mechanism/accent/miss/natural audio. HeldGun plays gun-source audio and the active jolt on its existing recoil pivot (scaled time), resets on hide, and publishes GunJamBeat and GunRepairCompleted.
+- `_Core/WeaponSystem/RepairFeedbackSettings.cs`: shared or per-gun ScriptableObject preset for result colors, UI punch/ring/hold/shake/squash/fade, GunJolt presets (jam, dry fire, slap, punch, miss, success; `GunJolt.cs` holds the struct and the GunJoltPlayer that runs one) and success/mechanism/accent/miss/natural audio. HeldGun plays gun-source audio and the active jolt on its existing recoil pivot (scaled time), resets on hide, and publishes GunJamBeat and GunRepairCompleted.
 - `_Core/_Common/Events/GunRepairCompleted.cs`: owner, item and QTE-success flag for completed repairs; interruptions do not publish it.
 - `_Core/QuickTimeSystem/TimingQteChallenge.cs`: timing settings and session with independent lifetime/pointer clocks, configurable miss hold and bounded green-zone relocation after the hold. Pointer pauses never extend standalone expiry or gun repair; presses during a hold are ignored. Optional random delegate supports deterministic relocation checks.
 - `_Core/UI/Widgets/QteStyle.cs`: Synty sprites, font and colors. QteView.cs is the replaceable view contract; TimingQteView.cs presents circle or bar without weapon/input knowledge.

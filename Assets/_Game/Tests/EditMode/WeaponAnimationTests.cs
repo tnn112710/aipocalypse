@@ -41,7 +41,7 @@ namespace Aipocalypse.Tests
             Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.005f));
             _animation.Tick(0.4f, 0f);
             Assert.That(impacts, Is.EqualTo(expected + 2));
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
         }
 
         void Load(string name)

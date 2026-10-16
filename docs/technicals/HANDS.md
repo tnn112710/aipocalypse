@@ -49,16 +49,7 @@ Procedural item prefab                Player
   - **Hands:** at time t, a hand moves to a grip (empty grip = back to its default).
   - **Parts:** keyframed offsets of item parts from their rest pose (smoothed between keys; it starts and ends at rest unless there are keys at 0 / 1).
   - **Show:** an object visible only between two times (a shell in the hand).
-- **Who plays actions:** the item's view. `HeldGun` plays one per `GunAction` and drives it from `Gun.ActionProgress`, so an action always fits the gun's `ReloadTime` / `ClearTime` / `CycleTime`. Switching weapons cancels it cleanly (parts go back to rest).
-
-| `GunAction` | Action played | Progress |
-| --- | --- | --- |
-| Reloading (magazine) | `ReloadEmpty` when the magazine was empty at the start (falls back to `Reload`), else `Reload` | whole reload |
-| Reloading (per round) | `LoadRound` | each round; restarts for the next one |
-| ClearingJam | `ClearJam` | whole clear |
-| Cycling | `Cycle` | pump / bolt stroke (the pump guns need none: the hand is on the pump part) |
-
-An item with no matching action keeps its default grips.
+- **Who plays actions:** the item's view, from its `HeldItem` subclass (`Hands.Play(name)`, `Hands.SetProgress(t)`, `Hands.Stop()`). No item uses them yet: guns animate with clips (`GunAnimation`), and the axe keeps its default grips. An item with no matching action keeps its default grips.
 
 ### What the weapons do
 
@@ -71,7 +62,7 @@ An item with no matching action keeps its default grips.
 | Double barrel | Left on the forend (rides the clip-animated hinge) | Clips: open hinge, palm-up hand feeds two shells, close hinge. Repairing/RepairingStubborn provide 3/4 alternating receiver slaps / punches with synchronized SFX and optional QTE |
 | Fire axe | Both hands on the handle | (swing stays procedural) |
 
-Each gun's `Motion` curves present the magazine well, loading port or chambers while the hands work. `HeldGun > Action motion` and its pump/break offsets apply only to prefabs without `GunAnimation`.
+Each gun's `Motion` curves present the magazine well, loading port or chambers while the hands work.
 
 ## Hand poses
 
@@ -110,7 +101,7 @@ Editing a pose asset updates every grip that uses it and isn't fitted. Fitted gr
    - Use the **Preview** foldout on `ItemHands`: pick the action and drag the time slider. The parts and both ghost hands pose at that point. Press **End preview** before saving, so the parts go back to rest (saving or closing the prefab also ends it).
    - Press **Bake fit for all grips** once the grips are placed.
 8. Shells and other props: add a hidden child object (`HandProp_Shell`), give it a grip, animate it with a part track and show it with a Show span. The hand holding it follows it.
-9. Check it from the player's view: the gun's reload tilt (`HeldGun` → Action motion) decides whether the hands' work is visible.
+9. Check it from the player's view: the item's own pose decides whether the hands' work is visible.
 
 ## Changing the hand mesh (retargeting)
 
@@ -144,7 +135,7 @@ The current prefabs (`Prefabs/Hands/FPHand_Left`, `FPHand_Right`, VR Low Poly Ha
 | How fast hands move between grips | `ItemHands` → Blend, or a hand key's Blend |
 | Reach arc and finger opening | Player → `HeldItems/Hands` → `FirstPersonHands` → Moving between grips |
 | Timing / path of a reload step | Guns: Animation clip on `AnimationRoot`; procedural items: `ItemHands` → Actions |
-| How the whole gun tilts while reloading | Guns: clip's `Motion` curves; procedural fallback: `HeldGun` → Action motion |
+| How the whole gun tilts while reloading | the clip's `Motion` curves |
 | Hand size, mesh, grip centre | Per-item size: `ItemHands > Hand Scale`; shared mesh: `Prefabs/Hands/FPHand_*`, then review contacts and fingers |
 
 ## Known gaps

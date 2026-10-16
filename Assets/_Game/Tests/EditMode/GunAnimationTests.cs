@@ -134,7 +134,7 @@ namespace Aipocalypse.Tests
             _animation.Tick(0.1f, 0.81f);
             _animation.EndAction();
             _animation.Tick(1f / 60f, 0f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
             Assert.That(Vector3.Distance(magazine.localPosition, magazineRest), Is.LessThan(0.0001f));
             Assert.That(Vector3.Distance(bolt.localPosition, boltRest), Is.LessThan(0.0001f));
             Assert.That(magazine.GetComponent<MeshRenderer>().enabled, Is.True);
@@ -147,16 +147,16 @@ namespace Aipocalypse.Tests
         public void EquippedAndFiringReturnToIdleAndPauseDoesNotAdvance()
         {
             _animation.Show();
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Equipped));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Equipped));
             _animation.Tick(0f, 0f);
             Assert.That(_animation.Progress, Is.Zero);
             _animation.Tick(0.5f, 0f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
             _animation.Fired();
             _animation.Tick(0.02f, 0f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Firing));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Firing));
             _animation.Tick(0.2f, 0f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
         }
 
         [Test]
@@ -168,7 +168,7 @@ namespace Aipocalypse.Tests
             Vector3 boltRest = bolt.localPosition;
             _animation.StartAction(GunAction.ClearingJam, false);
             _animation.Tick(0.1f, 0.33f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Repairing));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Repairing));
             Assert.That(Vector3.Distance(magazine.localPosition, rest), Is.LessThan(0.0001f));
             Assert.That(Vector3.Distance(_root.Find("Motion/HandTargets/Left").position,
                 _root.Find("Motion/Controls/LeftFree").position), Is.LessThan(0.0001f));
@@ -188,11 +188,11 @@ namespace Aipocalypse.Tests
             _animation.Tick(0.001f, 0.5f);
             Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.001f));
             _animation.Tick(1.9f, 0.5f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.RepairFocus));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.RepairFocus));
             Assert.That(Vector3.Distance(hand.position, contact.position), Is.LessThan(0.0001f));
             _animation.FocusRepair(false);
             _animation.Tick(0.01f, 0.6f);
-            Assert.That(_animation.State, Is.EqualTo(stubborn ? GunAnimation.RepairingStubborn : GunAnimation.Repairing));
+            Assert.That(_animation.State, Is.EqualTo(stubborn ? GunClip.RepairingStubborn : GunClip.Repairing));
             Assert.That(Vector3.Distance(hand.position, contact.position), Is.LessThan(0.0001f));
         }
 
@@ -209,7 +209,7 @@ namespace Aipocalypse.Tests
             _animation.Tick(0.001f, 0f);
             Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.001f));
             _animation.Tick(0.4f, 0f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
         }
 
         [TestCase(0.64f)]
@@ -224,7 +224,7 @@ namespace Aipocalypse.Tests
             _animation.Tick(0.001f, 0f);
             Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.005f));
             _animation.Tick(0.4f, 0f);
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
         }
 
         [TestCase(false, 3)]
@@ -261,7 +261,7 @@ namespace Aipocalypse.Tests
             for (int i = 0; i < 30; i++)
                 _animation.Tick(1f / 60f, 0f);
             Assert.That(impacts, Is.EqualTo(1));
-            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+            Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
         }
     }
 }
