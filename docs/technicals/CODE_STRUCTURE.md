@@ -123,7 +123,7 @@ Assets/_Game/
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) in the root scope
 │     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun + 2D AudioSource skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
-│     ├─ Prefabs/Guns/AK47, Pistol, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle
+│     ├─ Prefabs/Guns/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle
 │     ├─ Prefabs/Guns/*_Pickup.prefab       world prefabs: WorldItem + trigger box + model lying flat
 │     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
 │     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
@@ -133,7 +133,7 @@ Assets/_Game/
 ├─ Data/
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/AK47, Pistol, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (held + world prefab; weapons hold all their numbers)
+│  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (held + world prefab; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
