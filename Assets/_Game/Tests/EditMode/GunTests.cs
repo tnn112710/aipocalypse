@@ -189,7 +189,7 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void PerRoundReload_FiringCutsItShort()
+        public void PerRoundReload_Firing_StopsAfterTheRoundGoingIn_ThenFires()
         {
             _definition.Fire.Mode = FireMode.SemiAuto;
             _definition.Magazine.Size = 5;
@@ -206,30 +206,38 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(2, gun.Item.Rounds);
 
             gun.Tick(Trigger(true, pressed: true), Frame);
+            Run(gun, Trigger(false), 0.2f);
+            Assert.AreEqual(GunAction.Reloading, gun.Action, "the round going in finishes first");
+            Assert.AreEqual(0, _shots);
 
+            Run(gun, Trigger(false), 0.15f);
+            Assert.AreEqual(true, finished);
+            Assert.AreEqual(1, _shots, "the click fires once the reload stops");
+            Assert.AreEqual(2, gun.Item.Rounds);
             Assert.AreEqual(GunAction.None, gun.Action);
-            Assert.AreEqual(false, finished);
-            Assert.AreEqual(1, _shots);
-            Assert.AreEqual(1, gun.Item.Rounds);
         }
 
         [Test]
-        public void PerRoundReload_FromEmpty_ClickWaitsForTheFirstRound()
+        public void PerRoundReload_FromEmpty_ClickFiresAfterTheFirstRound()
         {
             _definition.Fire.Mode = FireMode.SemiAuto;
             _definition.Magazine.Size = 5;
             _definition.Magazine.Reload = ReloadType.PerRound;
             _definition.Magazine.ReloadTime = 0.5f;
+            _definition.Magazine.AutoReload = false;
             _reserve.Add(_rifleAmmo, 10);
             Gun gun = NewGun();
             gun.Item.SetRounds(0);
-            gun.Tick(Trigger(false), Frame);
-            Assert.AreEqual(GunAction.Reloading, gun.Action);
+            gun.Tick(new GunInput { Reload = true, IsReady = true }, Frame);
 
             gun.Tick(Trigger(true, pressed: true), Frame);
-
             Assert.AreEqual(GunAction.Reloading, gun.Action);
             Assert.AreEqual(0, _shots);
+
+            Run(gun, Trigger(false), 0.55f);
+            Assert.AreEqual(1, _shots);
+            Assert.AreEqual(0, gun.Item.Rounds);
+            Assert.AreEqual(GunAction.None, gun.Action);
         }
 
         [Test]

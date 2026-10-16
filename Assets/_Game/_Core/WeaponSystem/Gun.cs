@@ -39,6 +39,8 @@ namespace Aipocalypse.Core.WeaponSystem
         float _actionTime;
         // Survives an interrupted cycle, so the pump finishes when the gun is raised again.
         bool _needsCycle;
+        // Per-round reload: the trigger was pulled, so stop once the round going in is loaded.
+        bool _stopReload;
 
         // One per shot that used a round. A shotgun shot is one event; HeldGun spawns its pellets.
         public event Action Fired;
@@ -84,8 +86,9 @@ namespace Aipocalypse.Core.WeaponSystem
             }
 
             TickAction(deltaTime);
-            if (CanCutReload(input))
-                EndAction(false);
+            if (Action == GunAction.Reloading && _definition.Magazine.Reload == ReloadType.PerRound &&
+                input.TriggerPressed && input.CanFire)
+                _stopReload = true;
             if (Action == GunAction.None)
                 StartActionIfNeeded(input.Reload);
 
@@ -93,13 +96,14 @@ namespace Aipocalypse.Core.WeaponSystem
             IsAiming = input.Aim && input.CanAim && Action is GunAction.None or GunAction.Cycling;
 
             _trigger.Update(deltaTime, input.TriggerHeld, input.TriggerPressed);
-            if (Action is not (GunAction.None or GunAction.Cycling) || !input.CanFire || _item.IsJammed)
+            bool keepsClick = Action == GunAction.Cycling || (Action == GunAction.Reloading && _stopReload);
+            if ((Action != GunAction.None && !keepsClick) || !input.CanFire || _item.IsJammed)
             {
                 _trigger.Cancel();
                 return;
             }
-            // A click during the pump is kept and fires once it's done.
-            if (Action == GunAction.Cycling)
+            // A click during the pump, or one that stops a per-round reload, fires once that's done.
+            if (keepsClick)
                 return;
 
             while (_trigger.TryShot())
@@ -130,11 +134,6 @@ namespace Aipocalypse.Core.WeaponSystem
                 }
             }
         }
-
-        // Per-round reload: pulling the trigger stops loading and fires what's in the gun.
-        bool CanCutReload(in GunInput input) =>
-            Action == GunAction.Reloading && _definition.Magazine.Reload == ReloadType.PerRound &&
-            input.TriggerPressed && input.CanFire && _item.Rounds > 0;
 
         // Holstered or switching: drops the aim and stops a reload, jam clear or pump (it restarts next time).
         public void Interrupt()
@@ -167,6 +166,7 @@ namespace Aipocalypse.Core.WeaponSystem
             GunAction action = Action;
             Action = GunAction.None;
             _actionTime = 0f;
+            _stopReload = false;
             ActionEnded?.Invoke(action, finished);
         }
 
@@ -202,18 +202,20 @@ namespace Aipocalypse.Core.WeaponSystem
                 return;
             }
 
+            bool roundIn = false;
             while (_actionTime >= duration)
             {
                 _actionTime -= duration;
                 if (_ammo.Take(magazine.AmmoType, 1) == 0)
                     break;
                 _item.SetRounds(_item.Rounds + 1);
+                roundIn = true;
                 RoundLoaded?.Invoke();
-                if (!CanReload)
+                if (!CanReload || _stopReload)
                     break;
             }
 
-            if (!CanReload)
+            if (!CanReload || (roundIn && _stopReload))
                 EndAction(true);
         }
 

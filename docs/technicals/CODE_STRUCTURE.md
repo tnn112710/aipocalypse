@@ -112,7 +112,7 @@ Assets/_Game/
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root
 │     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom (Player implements it)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
-│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round cut short by firing), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
+│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)

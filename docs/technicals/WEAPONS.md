@@ -27,7 +27,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), a **double-barrel shotgun*
 | Magazine | Rounds live on the gun (`GunInstance`), so they survive drop, pick up and swap. A new gun spawns full | Magazine → `Size` |
 | Shared ammo by type | The player carries an `AmmoReserve`: spare rounds per `AmmoType`. Guns of the same type reload from the same pool | `Data/Weapons/AmmoConfig.asset` (starting amounts, `Infinite`) |
 | Magazine reload | One timed reload; takes only what the reserve has | Magazine → `Reload = Magazine`, `ReloadTime` |
-| Per-round reload | One round per `ReloadTime` until full or the reserve is empty (tube shotgun style). Pulling the trigger with a round in the gun stops loading and fires (the round being loaded is not added) | Magazine → `Reload = PerRound` |
+| Per-round reload | One round per `ReloadTime` until full or the reserve is empty (tube shotgun style). Pulling the trigger stops it once the round going in is loaded, then that click fires (no instant shot from the reload pose) | Magazine → `Reload = PerRound` |
 | Pump / bolt action | After each shot that leaves a round, the gun works its action for `CycleTime` (`GunAction.Cycling`) before it can fire again. Aiming stays up. A click during the pump is kept and fires when it's done. After the last round there's nothing to chamber, so it goes straight to the reload. Switching away mid-pump finishes the pump when the gun is raised again. 0 = self-loading | Fire → `CycleTime` |
 | Moving parts | Optional, on the held prefab: a **pump part** slides by `Pump Stroke` and back over the cycle (and racks while clearing a jam); a **break part** swings to `Break Open Euler` while reloading | Gun prefab → `HeldGun` → Moving parts |
 | Auto reload | Starts by itself when the magazine runs dry and there's ammo | Magazine → `AutoReload` |
@@ -107,7 +107,7 @@ Same steps with `Pellets` > 1 and `SpreadAngle` > 0 (each pellet does `Damage`);
 | Kind | Example | Fire | Magazine | Held prefab |
 | --- | --- | --- | --- | --- |
 | Break action | `DoubleBarrel` (9 pellets, 6°) | `SemiAuto`, `CycleTime 0` (one barrel per click) | `Size 2`, `Reload = Magazine` (both shells at once) | break part = a hinge over the barrels |
-| Pump, tube-fed | `PumpShotgun` (8 pellets, 5°) | `SemiAuto`, `CycleTime` 0.55 s | `Size 6`, `Reload = PerRound` (firing cuts it short) | pump part = the forend |
+| Pump, tube-fed | `PumpShotgun` (8 pellets, 5°) | `SemiAuto`, `CycleTime` 0.55 s | `Size 6`, `Reload = PerRound` (firing stops it after the current shell) | pump part = the forend |
 | Semi-auto, tube-fed (XM1014) | — | `SemiAuto`, `CycleTime 0` | `PerRound` | none |
 | Auto, box mag (Saiga-12) | — | `Auto`, `CycleTime 0` | `Reload = Magazine` | none |
 

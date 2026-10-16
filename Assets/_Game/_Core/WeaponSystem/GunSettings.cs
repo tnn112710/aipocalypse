@@ -15,7 +15,7 @@ namespace Aipocalypse.Core.WeaponSystem
     public enum ReloadType
     {
         Magazine, // one timed reload refills the magazine
-        PerRound, // one round at a time (tube shotgun style); pulling the trigger stops it
+        PerRound, // one round at a time (tube shotgun style); pulling the trigger stops it after the round going in
     }
 
     // Where bullets start and which way they go.
