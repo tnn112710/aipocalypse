@@ -1,4 +1,5 @@
 using Aipocalypse.Core.EquipmentSystem;
+using Aipocalypse.Core.HandSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -152,6 +153,7 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             _pendingShots = 0;
             _gun?.Interrupt();
+            Hands?.Stop();
             _recoil?.Reset();
         }
 
@@ -241,6 +243,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void OnActionStarted(GunAction action)
         {
             _shownAction = action;
+            PlayHands(action);
             GunSounds sounds = _definition.Sounds;
             Play(action switch
             {
@@ -259,6 +262,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnActionEnded(GunAction action, bool finished)
         {
+            Hands?.Stop();
             if (!finished)
                 return;
             GunSounds sounds = _definition.Sounds;
@@ -269,6 +273,24 @@ namespace Aipocalypse.Core.WeaponSystem
                 GunAction.Cycling => sounds.CycleEnd,
                 _ => null,
             });
+        }
+
+        void PlayHands(GunAction action)
+        {
+            if (Hands == null)
+                return;
+            bool perRound = _definition.Magazine.Reload == ReloadType.PerRound;
+            bool played = action switch
+            {
+                GunAction.Reloading when perRound => Hands.Play(ItemHands.Actions.LoadRound),
+                GunAction.Reloading => (_gun.Item.Rounds == 0 && Hands.Play(ItemHands.Actions.ReloadEmpty)) ||
+                                       Hands.Play(ItemHands.Actions.Reload),
+                GunAction.ClearingJam => Hands.Play(ItemHands.Actions.ClearJam),
+                GunAction.Cycling => Hands.Play(ItemHands.Actions.Cycle),
+                _ => false,
+            };
+            if (!played)
+                Hands.Stop();
         }
 
         void Play(AudioClip clip)
@@ -325,6 +347,9 @@ namespace Aipocalypse.Core.WeaponSystem
                     euler = _reloadEuler * _actionWeight;
                     break;
             }
+
+            if (Hands != null && Hands.IsPlaying)
+                Hands.SetProgress(progress);
 
             _posePivot.localPosition = _posePosition + offset;
             _posePivot.localRotation = _poseRotation * Quaternion.Euler(euler);

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2963571884056349353}
   - component: {fileID: 8497764626162184611}
   - component: {fileID: 8330277655557405369}
+  - component: {fileID: 2503907456247792857}
   m_Layer: 0
   m_Name: FireAxe
   m_TagString: Untagged
@@ -153,6 +154,22 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &2503907456247792857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 154388667274756575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b15a97b10992264abb9b87d7b72873e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.ItemHands
+  _right: {fileID: 1925256746497977859}
+  _left: {fileID: 8709455594340975293}
+  _blend: 0.12
+  _actions: []
 --- !u!1 &320768905644936224
 GameObject:
   m_ObjectHideFlags: 0
@@ -247,6 +264,79 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5024719848019707048}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6193916810798410091
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1261230722426511765}
+  - component: {fileID: 1925256746497977859}
+  m_Layer: 0
+  m_Name: Grip_R
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1261230722426511765
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6193916810798410091}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000074505806, y: -0.7347602, z: -0.6783269, w: 0}
+  m_LocalPosition: {x: 0.0000000018626451, y: -0.069999985, z: -0.011999991}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2839326449206320391}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1925256746497977859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6193916810798410091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621ff543bdb406043b70b9172c7d2731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.HandGrip
+  _side: 1
+  _pose: {fileID: 11400000, guid: 8d7a14885ba7daa4b8505b8585268929, type: 2}
+  _aim: 0
+  _roll: 0
+  _fitPalm: 1
+  _keepFingers: 0
+  _fitted: 1
+  _fittedShape:
+    Thumb:
+      Curl: 0.25
+      Spread: 0
+      Tip: -0.000000014901161
+    Index:
+      Curl: 0.2
+      Spread: 0
+      Tip: -0.000000014901161
+    Middle:
+      Curl: 0.5500001
+      Spread: 0
+      Tip: -0.10000002
+    Ring:
+      Curl: 0.7500001
+      Spread: 0
+      Tip: -0.4
+    Little:
+      Curl: 1.0000001
+      Spread: 0
+      Tip: -0.5
+  _palmOffset: 0
 --- !u!1 &6830631337757535889
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,6 +403,79 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5024719848019707048}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7723108952184515669
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9051351329506748949}
+  - component: {fileID: 8709455594340975293}
+  m_Layer: 0
+  m_Name: Grip_L
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9051351329506748949
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7723108952184515669}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000074505806, y: -0.7347602, z: -0.6783269, w: 0}
+  m_LocalPosition: {x: -0.0000000037252903, y: 0.2, z: -0.045}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2839326449206320391}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8709455594340975293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7723108952184515669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621ff543bdb406043b70b9172c7d2731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.HandGrip
+  _side: 0
+  _pose: {fileID: 11400000, guid: 8d7a14885ba7daa4b8505b8585268929, type: 2}
+  _aim: 0
+  _roll: 0
+  _fitPalm: 1
+  _keepFingers: 0
+  _fitted: 1
+  _fittedShape:
+    Thumb:
+      Curl: 0.15
+      Spread: 0
+      Tip: -0.000000014901161
+    Index:
+      Curl: 0.3
+      Spread: 0
+      Tip: -0.000000014901161
+    Middle:
+      Curl: 0.50000006
+      Spread: 0
+      Tip: -0.000000014901161
+    Ring:
+      Curl: 0.5500001
+      Spread: 0
+      Tip: -0.10000002
+    Little:
+      Curl: 0.7500001
+      Spread: 0
+      Tip: -0.6
+  _palmOffset: 0
 --- !u!1 &9064526639708697828
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,7 +565,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5869655751716297722, guid: f519442fe83cbc14486507898eb52cc7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1261230722426511765}
+    - targetCorrespondingSourceObject: {fileID: 5869655751716297722, guid: f519442fe83cbc14486507898eb52cc7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9051351329506748949}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f519442fe83cbc14486507898eb52cc7, type: 3}
 --- !u!4 &2839326449206320391 stripped

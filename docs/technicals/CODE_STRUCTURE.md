@@ -57,9 +57,18 @@ Assets/_Game/
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world: IInteractable, picks up / swaps; Spawn for drops
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, TryGetTip (model's furthest point from mesh bounds)
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  └─ EquipmentRig.cs                    spawns HeldItems through the resolver (injected), shows the held one, temporary lower/raise pose, TickHeld
+│  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
+│  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
+│  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread calibration, Place, Apply, forearm axis, contact samples, setup buttons
+│  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows (view space), preview item position
+│  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit); Resolve; Preview hand, Bake fit; FingerMask
+│  │  ├─ ItemHands.cs                       on an item prefab: default grips + named hand actions (hand keys, part tracks, shown props); Play / SetProgress / Stop; preview scrubber
+│  │  ├─ FirstPersonHands.cs                on the player: spawns the HandSet, puts each hand on the item's current grip (elbow-aimed), arcs between grips with fingers opening
+│  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
+│  │  └─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  ├─ InputSystem/                          Aipocalypse.Input
 │  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
@@ -190,13 +199,15 @@ PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteract
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
-EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots, pump / break parts.
+EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots, pump / break parts,
+                       ItemHands.SetProgress (hand action parts: mag, bolt, shells).
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
+FirstPersonHands.Tick  each hand onto the held item's current grip, turned towards its implied elbow (arc + finger opening on a grip change); hidden with no grip
 VContainer ticks     BulletSystem moves and ray-tests bullets → damage, impacts, holes; EffectPool returns expired effects
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
@@ -211,7 +222,8 @@ Player                       CharacterController (h 1.8, r 0.35, step 0.35, slop
 ├─ CameraRoot                y 1.65 (eye height); PlayerHeadBob offsets it
 │  └─ CameraPitch            PlayerLook pitches it; Cinemachine tracking target
 │     └─ HeldItems           EquipmentRig
-│        └─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig (guns add their own poses on top)
+│        ├─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig (guns add their own poses on top)
+│        └─ Hands            FirstPersonHands (HandSet); HeldWeapon layer; spawns FPHand_Left / FPHand_Right
 ├─ PlayerCamera              Camera (tag MainCamera, excludes HeldWeapon) · URP camera data · CinemachineBrain · AudioListener · WeaponOverlayCamera
 │  └─ WeaponCamera           URP Overlay (Clear Depth), HeldWeapon only, same FOV, near 0.01 m
 └─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget

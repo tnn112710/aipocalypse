@@ -106,6 +106,8 @@ Settings: `PlayerTuning` → Held item obstacle pose (on/off, margin, radius, re
 
 ## Temporary animation
 
+The visible hands are separate from this: `HandSystem/FirstPersonHands` puts floating hands on the held item's `HandGrip`s, so they follow this motion with no extra work ([HANDS.md](HANDS.md)).
+
 `EquipmentRig` moves the `Hand` transform between its rest pose and a lowered, tilted pose using `Raise` through an `AnimationCurve`. It's a placeholder until there are first-person arms. To replace it, drive an Animator from the switcher instead: a `Raise` float parameter, or equip / holster clips whose lengths match `EquipTime` / `HolsterTime`. Do it in the rig or in a `HeldItem` subclass. `EquipmentSwitcher` stays as the single source of timing either way.
 
 ## Extending
@@ -119,7 +121,7 @@ Settings: `PlayerTuning` → Held item obstacle pose (on/off, margin, radius, re
   3. Give it slots in the config that accept the new category.
   4. If it doesn't sit in your hand, change what selecting it does in `Equipment.CanSelect`. For example, a bandage would play a use action instead of being held: add a `QuickUse` path there rather than branching in `Player`.
   5. Put per-copy state (stack count, charges) in an `ItemInstance` subclass returned by the definition's `CreateInstance()`.
-- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`.
+- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`. For hands, add `ItemHands` + `HandGrip`s to its prefab and play its actions from the subclass (`Hands.Play("Use")`, `Hands.SetProgress(t)`, `Hands.Stop()`).
 - **Inventory:** fill the hotbar with `Equipment.TryPickUp` or `Hotbar.TryPlace` / `Remove`. `EquipmentRig` spawns and despawns models, and `HotbarHud` refreshes from `SlotChanged`. `StartingItem` in the config can still hand out items at spawn.
 - **Other interactables** (doors, loot, workbench): implement `IInteractable` (`_Common/Interaction`) on the object with the collider. `PlayerInteractor` and the HUD prompt pick it up with no other changes.
 

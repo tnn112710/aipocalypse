@@ -1,6 +1,7 @@
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
+using Aipocalypse.Core.HandSystem;
 using Aipocalypse.Core.Stats;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
@@ -22,6 +23,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Tooltip("Child of the camera root; pitch rotates it and the Cinemachine camera tracks it")] Transform _cameraPitch;
         [SerializeField] EquipmentConfig _equipmentConfig;
         [SerializeField] EquipmentRig _equipmentRig;
+        [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
         [SerializeField, Tooltip("Starting reserve ammo, or infinite")] AmmoConfig _ammoConfig;
 
         InputService _input;
@@ -192,6 +194,8 @@ namespace Aipocalypse.Core.PlayerSystem
             _heldClearance.Tick(held, deltaTime);
             if (held != null)
                 held.LateTick();
+            if (_hands != null)
+                _hands.Tick(held != null ? held.Hands : null, deltaTime);
         }
 
         void DropSelected()

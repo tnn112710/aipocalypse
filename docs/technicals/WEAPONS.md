@@ -37,6 +37,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
+| Hands | Floating hands hold each gun's grips; reloads, jam clears and per-round loading move the gun's own parts (mag, bolt, slide, shells) and the left hand follows them. Played by name from `Gun` actions: `Reload` / `ReloadEmpty` (magazine empty at the start) / `LoadRound` (per round) / `ClearJam` / `Cycle` | Gun prefab → `ItemHands`; [HANDS.md](HANDS.md) |
 | Reload / jam / pump motion | Temporary procedural tilt (reload), dip per round (per-round reload), tilt + rack (jam), small dip and roll over the pump stroke until there are animations | Gun prefab → `HeldGun` → Action motion |
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
 | Effects | Muzzle flash, tracer, impact (removed after 3 s), bullet hole decal (removed after 20 s, at most 64). All pooled; no holes on things that take damage | `Data/Weapons/BulletEffects.asset`; lifetime / cap on each effect prefab's `PooledEffect` |
@@ -97,7 +98,8 @@ Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera)
 1. **Prefab:** right-click `Prefabs/Guns/Gun_Base.prefab` → Create → Prefab Variant. Drag the store model under `PosePivot/RecoilPivot`, rename it `Model`, turn off its shadows and remove colliders. Move `Muzzle` to the barrel tip (blue axis out of the barrel).
 2. **Poses:** select the gun root, use the **Aim** preview button, and move `Poses/Aim` until the sights sit on the screen centre in the Game view (enter Play mode to check; edits to the prefab in Play mode are lost). Do the same for Hip and Sprint, then press **Hip** before saving.
 3. **Item:** duplicate `Data/Items/AK47.asset` (or Create → Aipocalypse → Items → Gun). Set `DisplayName`, `Icon`, `HeldPrefab` (the variant), Fire / Bullet / Magazine (pick or create an `AmmoType` in `Data/Weapons/`) / Jam / Recoil, and `Effects` (`Data/Weapons/BulletEffects.asset`).
-4. **Pickup:** make a world prefab like `AK47_Pickup` (root with `WorldItem` + trigger `BoxCollider`, model lying flat) and assign it to the asset's `WorldPrefab`. Drop copies into a scene.
+4. **Hands:** add `ItemHands` to the root, `HandGrip`s for the right hand (grip) and left hand (forend), and actions for its mag / bolt ([HANDS.md → Adding hands to an item](HANDS.md#adding-hands-to-an-item)).
+5. **Pickup:** make a world prefab like `AK47_Pickup` (root with `WorldItem` + trigger `BoxCollider`, model lying flat) and assign it to the asset's `WorldPrefab`. Drop copies into a scene.
 5. **New ammo type?** Add its starting amount to `Data/Weapons/AmmoConfig.asset`.
 
 ### Shotguns
@@ -159,6 +161,6 @@ FireAxe                       HeldMelee · AudioSource (2D)
 - **No dry-fire click** when the magazine and reserve are empty.
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
 - **Shotguns have no damage falloff**: each pellet does full damage until the bullet's `Range`; spread alone thins hits at distance. No shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
-- Reload, jam and pump motions are procedural placeholders; replace them with animations driven from `Gun.ActionStarted` / `ActionProgress`.
+- The gun's own reload tilt (`HeldGun` → Action motion) is now set per gun so the hands' work faces the player ([HANDS.md](HANDS.md)); the jam-clear and pump tilts are still the earlier placeholders.
 - Held weapons and muzzle flashes render through the weapon overlay camera. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
 - **Melee:** no hit-stop, hit marker or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).

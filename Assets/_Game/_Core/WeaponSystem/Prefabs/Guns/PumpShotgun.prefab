@@ -1,5 +1,347 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3150852493858357517
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1909799579580664943}
+  - component: {fileID: 2757473224446587429}
+  - component: {fileID: 2995826229068810940}
+  m_Layer: 0
+  m_Name: Shell
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1909799579580664943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3150852493858357517}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.024, y: 0.04, z: 0.024}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2185967189438224398}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2757473224446587429
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3150852493858357517}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &2995826229068810940
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3150852493858357517}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 886a08df530002e46883437e3e0a317f, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &3615644142158421578
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7256406574487960917}
+  - component: {fileID: 186279231217198255}
+  m_Layer: 0
+  m_Name: Grip_L_Shell
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7256406574487960917
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3615644142158421578}
+  serializedVersion: 2
+  m_LocalRotation: {x: -4.656613e-10, y: 6.8821427e-19, z: -0.0000000037252903, w: 1}
+  m_LocalPosition: {x: 0.0000000021182132, y: -0.012000001, z: -0.019999996}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2185967189438224398}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &186279231217198255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3615644142158421578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621ff543bdb406043b70b9172c7d2731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.HandGrip
+  _side: 0
+  _pose: {fileID: 11400000, guid: 72427378ccb33a743830e93d2fe4a24f, type: 2}
+  _aim: 0
+  _roll: 0
+  _fitPalm: 0
+  _keepFingers: 31
+  _fitted: 1
+  _fittedShape:
+    Thumb:
+      Curl: 0.6
+      Spread: -0.3
+      Tip: 0
+    Index:
+      Curl: 0.65
+      Spread: 0
+      Tip: 0
+    Middle:
+      Curl: 0.85
+      Spread: 0
+      Tip: 0
+    Ring:
+      Curl: 0.95
+      Spread: 0
+      Tip: 0
+    Little:
+      Curl: 1
+      Spread: 0
+      Tip: 0
+  _palmOffset: 0
+--- !u!1 &5004658906032542483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 157256882503340806}
+  - component: {fileID: 5332079755853287534}
+  m_Layer: 0
+  m_Name: Grip_L_Pump
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &157256882503340806
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5004658906032542483}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000022321355, y: -4.9117644e-17, z: -0.0000000022473614, w: 1}
+  m_LocalPosition: {x: -4.656613e-10, y: 0.005749993, z: -0.0049999957}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 70535962252968129}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5332079755853287534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5004658906032542483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621ff543bdb406043b70b9172c7d2731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.HandGrip
+  _side: 0
+  _pose: {fileID: 11400000, guid: 4394d818b85349b4c8635070d2c7b09b, type: 2}
+  _aim: 0
+  _roll: 0
+  _fitPalm: 1
+  _keepFingers: 0
+  _fitted: 1
+  _fittedShape:
+    Thumb:
+      Curl: 0.3
+      Spread: 0.3
+      Tip: -0.3
+    Index:
+      Curl: 0.25
+      Spread: 0
+      Tip: -0.10000002
+    Middle:
+      Curl: 0.50000006
+      Spread: 0
+      Tip: -0.5
+    Ring:
+      Curl: 0.5500001
+      Spread: 0
+      Tip: -0.6
+    Little:
+      Curl: 0.6000001
+      Spread: 0
+      Tip: -0.6
+  _palmOffset: 0.0044960026
+--- !u!1 &5902085924069615146
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2185967189438224398}
+  m_Layer: 0
+  m_Name: HandProp_Shell
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &2185967189438224398
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5902085924069615146}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.0000000014779289, w: 1}
+  m_LocalPosition: {x: -0.0000000013969839, y: -2.3283064e-10, z: 0.2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1909799579580664943}
+  - {fileID: 7256406574487960917}
+  m_Father: {fileID: 1513238095952651602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7418755484424788469
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4539900269256997907}
+  - component: {fileID: 1387920139464851695}
+  m_Layer: 0
+  m_Name: Grip_R
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4539900269256997907
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7418755484424788469}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.56139684, y: -0.000000003143214, z: -0.0000000011568773, w: 0.8275468}
+  m_LocalPosition: {x: -4.656613e-10, y: -0.037750002, z: -0.00000010265802}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1990010876790696573}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1387920139464851695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7418755484424788469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621ff543bdb406043b70b9172c7d2731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.HandGrip
+  _side: 1
+  _pose: {fileID: 11400000, guid: e16c65326a181ae48be15de53461bb36, type: 2}
+  _aim: 0
+  _roll: 0
+  _fitPalm: 1
+  _keepFingers: 2
+  _fitted: 1
+  _fittedShape:
+    Thumb:
+      Curl: 0
+      Spread: 0
+      Tip: 0.19999999
+    Index:
+      Curl: 0.35
+      Spread: 0
+      Tip: 0
+    Middle:
+      Curl: 1
+      Spread: 0
+      Tip: 0
+    Ring:
+      Curl: 0.40000004
+      Spread: 0
+      Tip: -0.000000014901161
+    Little:
+      Curl: 0.5500001
+      Spread: 0
+      Tip: -0.3
+  _palmOffset: 0.0023245811
 --- !u!1001 &511836168645101894
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -102,7 +444,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1304480727694404628, guid: fe26a96149707bc4d93b7954556dac31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2185967189438224398}
+    - targetCorrespondingSourceObject: {fileID: 567717839208925575, guid: fe26a96149707bc4d93b7954556dac31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 157256882503340806}
+    - targetCorrespondingSourceObject: {fileID: 2055778957005693755, guid: fe26a96149707bc4d93b7954556dac31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4539900269256997907}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fe26a96149707bc4d93b7954556dac31, type: 3}
 --- !u!4 &70535962252968129 stripped
@@ -113,6 +464,11 @@ Transform:
 --- !u!4 &1513238095952651602 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1304480727694404628, guid: fe26a96149707bc4d93b7954556dac31, type: 3}
+  m_PrefabInstance: {fileID: 511836168645101894}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1990010876790696573 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2055778957005693755, guid: fe26a96149707bc4d93b7954556dac31, type: 3}
   m_PrefabInstance: {fileID: 511836168645101894}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3187664347836882163
@@ -130,6 +486,30 @@ PrefabInstance:
     - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: _pumpStroke.z
       value: -0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _reloadEuler.x
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _reloadEuler.y
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _reloadEuler.z
+      value: -45
+      objectReference: {fileID: 0}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _reloadOffset.x
+      value: -0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _reloadOffset.y
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _reloadOffset.z
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 1290281886909534782, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.y
@@ -237,10 +617,65 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 601070152146707614, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       insertIndex: 0
       addedObject: {fileID: 1513238095952651602}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6544650596526180054, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8821898473033930906}
   m_SourcePrefab: {fileID: 100100000, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
 --- !u!4 &2624391094514088045 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 601070152146707614, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
   m_PrefabInstance: {fileID: 3187664347836882163}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8570243297514314277 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6544650596526180054, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 3187664347836882163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8821898473033930906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570243297514314277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b15a97b10992264abb9b87d7b72873e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.ItemHands
+  _right: {fileID: 1387920139464851695}
+  _left: {fileID: 5332079755853287534}
+  _blend: 0.12
+  _actions:
+  - Name: LoadRound
+    Hands:
+    - Time: 0
+      Side: 0
+      Grip: {fileID: 186279231217198255}
+      Blend: 0.12
+    Parts:
+    - Part: {fileID: 2185967189438224398}
+      Keys:
+      - Time: 0
+        Position: {x: 0, y: 0, z: 0}
+        Euler: {x: 0, y: 0, z: 0}
+      - Time: 0.28
+        Position: {x: -0.07, y: -0.28, z: -0.1}
+        Euler: {x: 40, y: 0, z: 0}
+      - Time: 0.36
+        Position: {x: -0.07, y: -0.28, z: -0.1}
+        Euler: {x: 40, y: 0, z: 0}
+      - Time: 0.66
+        Position: {x: 0, y: -0.045, z: -0.04}
+        Euler: {x: 12, y: 0, z: 0}
+      - Time: 0.86
+        Position: {x: 0, y: 0, z: 0}
+        Euler: {x: 0, y: 0, z: 0}
+      - Time: 1
+        Position: {x: 0, y: 0, z: 0}
+        Euler: {x: 0, y: 0, z: 0}
+    Show:
+    - Target: {fileID: 5902085924069615146}
+      From: 0.3
+      To: 0.88

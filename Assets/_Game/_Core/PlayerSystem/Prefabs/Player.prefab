@@ -31,6 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6282071912612408105}
+  - {fileID: 3552166503766393953}
   m_Father: {fileID: 227850444036008738}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6181281556107914033
@@ -419,6 +420,56 @@ MonoBehaviour:
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.WeaponOverlayCamera
   _worldCamera: {fileID: 6102316466898910966}
   _weaponCamera: {fileID: 2929853657998608234}
+--- !u!1 &1593965483363185522
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3552166503766393953}
+  - component: {fileID: 1283247606243111054}
+  m_Layer: 8
+  m_Name: Hands
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3552166503766393953
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593965483363185522}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5784355030986504129}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1283247606243111054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593965483363185522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11a8221b891e90c4598bbf09b7d5ffc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.FirstPersonHands
+  _set: {fileID: 11400000, guid: e4b68b2ed7d78ee4da4b05b5899962db, type: 2}
+  _view: {fileID: 227850444036008738}
+  _arc: 0.3
+  _maxArc: 0.05
+  _reachOpen: 0.6
+  _minReach: 0.03
 --- !u!1 &3537944015119317771
 GameObject:
   m_ObjectHideFlags: 0
@@ -562,6 +613,7 @@ MonoBehaviour:
   _cameraPitch: {fileID: 227850444036008738}
   _equipmentConfig: {fileID: 11400000, guid: f4050a003893aa34c9fc27a74614f729, type: 2}
   _equipmentRig: {fileID: 6181281556107914033}
+  _hands: {fileID: 1283247606243111054}
   _ammoConfig: {fileID: 11400000, guid: ad3b6b14e622d504896ab06b0365a255, type: 2}
 --- !u!114 &7947526299523327439
 MonoBehaviour:

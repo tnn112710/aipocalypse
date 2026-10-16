@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Aipocalypse.Core.HandSystem;
 using UnityEngine;
 
 namespace Aipocalypse.Core.EquipmentSystem
@@ -11,6 +12,8 @@ namespace Aipocalypse.Core.EquipmentSystem
         readonly List<Renderer> _renderers = new();
 
         public ItemInstance Item { get; private set; }
+        // Where the first-person hands hold this item, and its hand actions; null = no hands.
+        public ItemHands Hands { get; private set; }
         protected IEquipmentOwner Owner { get; private set; }
 
         public virtual ViewKick ViewKick => default;
@@ -22,6 +25,7 @@ namespace Aipocalypse.Core.EquipmentSystem
         {
             Item = item;
             Owner = owner;
+            Hands = GetComponent<ItemHands>();
             // Before anything gets parented to the model (muzzle flashes), so only the model's own meshes count.
             foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
             {
