@@ -35,7 +35,9 @@ Dependencies point down only.
 Core **announces** what happens; features **react**. New rules are new subscribers, not edits to existing code.
 
 - Events are small `readonly struct`s published through MessagePipe (`IPublisher<T>` / `ISubscriber<T>`, injected). Brokers are registered once in the root scope.
-- Core events live in `_Core/_Common/Events`: `DamageDealt`, `PlayerDied`. Features may define their own.
+- Core events live in `_Core/_Common/Events`: `DamageDealt`, `PlayerDied`, gun jam / repair beats. Features may define their own.
+- **Damage goes through `DamageService.Deal`** (root scope): it applies `IDamageable.TakeDamage` (which returns a `DamageResult`: applied amount, killed) and publishes `DamageDealt` with the hit's `Source`. Weapons, falls and future traps never call `TakeDamage` directly, so hit feedback, kill credit and damage rules hook in at one place.
+- **Sound goes through `AudioService`** (root scope), a thin wrapper over BroAudio: game code plays `SoundID`s and never calls BroAudio's static facade.
 - Events are for things that *happen* (a hit, a death), never per-frame data (positions, timers).
 - Inside one system, plain C# events are fine (`PlayerMotor.Landed`). Across systems, use MessagePipe.
 
@@ -81,7 +83,8 @@ Any scene (World, Proto_*, test arenas)
 | EquipmentSystem | Items (`ItemDefinition` → `EquippableDefinition`, `ItemInstance`), `Hotbar` (≤ 9 category-checked slots), `EquipmentSwitcher` (timed holster → equip), `Equipment` (selection, pick up / swap / drop), first-person `EquipmentRig` / `HeldItem`, `WorldItem` pickups. Rules and how-tos: [EQUIPMENT.md](EQUIPMENT.md) |
 | WeaponSystem | Weapon item kinds (`GunDefinition`, `MeleeDefinition`), guns (`Gun` rules, `HeldGun` view, `GunRecoil`, ammo by type in `AmmoReserve`), melee (`MeleeAttack` rules, `HeldMelee` view), and two root services ticked by VContainer: `BulletSystem` (bullets as data) and `EffectPool` (pooled muzzle flashes, tracers, impacts, holes). Rules and how-tos: [WEAPONS.md](WEAPONS.md) |
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
-| _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo`, `Health`), Events, Stats (`IStatProvider`), Interaction (`IInteractable`) |
+| _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo` / `DamageResult`, `DamageService`, `Health`), Events, Stats (`IStatProvider`), Interaction (`IInteractable`) |
+| AudioSystem | `AudioService` (root): plays BroAudio `SoundID`s 2D or at a point. Libraries in `Data/Audio/` |
 | UI | Standalone HUD canvas with its own `HudScope` (placed in the scene; player views follow `PlayerRegistry`), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`). Rules and how-tos: [UI.md](UI.md) |
 
 **Features** (`Assets/_Game/Features/`): *none yet.* Each system or feature gets a row here when it lands.
@@ -136,7 +139,8 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 - `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
-- `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage, linear between a safe and a lethal drop height. Taking damage publishes `DamageDealt`; dying publishes `PlayerDied`.
+- `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage (dealt through `DamageService`), linear between a safe and a lethal drop height. Dying publishes `PlayerDied`.
+- Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds (`PlayerTuning` → Sounds). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
 - First-person presentation: a HeldWeapon-only URP Overlay camera keeps held models visible. `HeldItemClearance` blends the hand back and tilts it near obstacles without moving the player; melee swings opt out. `WeaponOverlayCamera` synchronizes the overlay lens after Cinemachine places the world camera.
 - All numbers live in `Data/Player/PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
@@ -145,7 +149,7 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 The first AI slice is a capsule wander demo in `Prototype.unity`. Every AI agent decides with a Behavior Designer Pro tree; tasks delegate navigation to `WanderMover`. The shared `Data/Enemies/Wander.asset` subtree repeats a sequence: choose a reachable point, walk there, pause. Tuning lives in `WanderSettings.asset`.
 
-`GameLifetimeScope` optionally installs `EnemyInstaller` when its navigation and wander settings are assigned. `EnemyManager` starts the explicitly assigned scene agents after setup and ticks their Manual trees with a staggered stride. `Navigation.prefab` holds AstarPath and RVOSimulator; its small terrain-following grid scans on startup. This initial slice supports the two scene-placed agents; pooling, combat, and dynamic enemy registration are not implemented yet. Skill: `tools-unity-behavior-designer`.
+`GameLifetimeScope` optionally installs `EnemyInstaller` when its navigation and wander settings are assigned. Enemies are found through `EnemyRegistry` (scene scope), a dense list: each `EnemyBrain` is injected once (scene-placed ones by the scope's build callback, spawned ones by their spawner), starts its tree on its first `Start` and joins the registry while enabled, so spawned and pooled enemies tick like placed ones. `EnemyManager` walks the registry and ticks the Manual trees with a staggered stride. `Navigation.prefab` holds AstarPath and RVOSimulator; its small terrain-following grid scans on startup. Pooling, spawning and combat are not implemented yet. Skill: `tools-unity-behavior-designer`.
 
 ## Performance
 

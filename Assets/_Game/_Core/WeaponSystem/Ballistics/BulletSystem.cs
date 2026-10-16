@@ -17,11 +17,13 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Damage;
         // Anything under this is never hit (the shooter, its gun).
         public Transform Ignore;
+        // Who fired it, for DamageInfo.Source.
+        public GameObject Source;
         public BulletEffects Effects;
     }
 
     // Every bullet in flight as plain data: moved and ray-tested each frame, no rigidbodies, one central tick.
-    // Hits damage IDamageables and spawn pooled impacts and bullet holes.
+    // Hits damage IDamageables through DamageService and spawn pooled impacts and bullet holes.
     public sealed class BulletSystem : ITickable
     {
         struct Bullet
@@ -34,15 +36,21 @@ namespace Aipocalypse.Core.WeaponSystem
             public float GravityScale;
             public float Damage;
             public Transform Ignore;
+            public GameObject Source;
             public BulletEffects Effects;
             public PooledEffect Tracer;
         }
 
         readonly EffectPool _effects;
+        readonly DamageService _damage;
         readonly List<Bullet> _bullets = new(64);
         readonly RaycastHit[] _hits = new RaycastHit[16];
 
-        public BulletSystem(EffectPool effects) => _effects = effects;
+        public BulletSystem(EffectPool effects, DamageService damage)
+        {
+            _effects = effects;
+            _damage = damage;
+        }
 
         public void Fire(in BulletShot shot)
         {
@@ -56,6 +64,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 GravityScale = shot.GravityScale,
                 Damage = shot.Damage,
                 Ignore = shot.Ignore,
+                Source = shot.Source,
                 Effects = shot.Effects,
             };
 
@@ -145,8 +154,7 @@ namespace Aipocalypse.Core.WeaponSystem
             Vector3 normal = hit.normal != Vector3.zero ? hit.normal : -bullet.Velocity.normalized;
 
             IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            if (target != null && !target.IsDead)
-                target.TakeDamage(new DamageInfo(bullet.Damage, DamageType.Gunshot, hit.point));
+            _damage.Deal(target, new DamageInfo(bullet.Damage, DamageType.Gunshot, hit.point, default, bullet.Source));
 
             BulletEffects effects = bullet.Effects;
             if (effects == null)

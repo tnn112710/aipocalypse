@@ -1,4 +1,5 @@
 using System;
+using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -118,27 +119,26 @@ namespace Aipocalypse.Core.WeaponSystem
     {
         [Min(0f), Tooltip("How fast the gun moves between the hip and aim poses")] public float AimSpeed = 10f;
         [Min(0f), Tooltip("How fast it moves into and out of the sprint pose")] public float SprintPoseSpeed = 8f;
+        [Range(0.5f, 1f), Tooltip("Field of view multiplier while aiming down sights: 0.87 = 13% zoom")] public float AimZoom = 0.87f;
     }
 
-    // Played on the gun's own AudioSource. Empty clips stay silent.
+    // BroAudio entities (Data/Audio/Guns), played 2D for the holder. Unset ids stay silent.
     [Serializable]
     public sealed class GunSounds
     {
-        [Range(0f, 1f)] public float Volume = 1f;
-        [Tooltip("When it starts being raised")] public AudioClip Equip;
-        public AudioClip Fire;
-        public AudioClip ReloadStart;
-        [Tooltip("Per-round reload: each round")] public AudioClip ReloadInsert;
-        public AudioClip ReloadEnd;
-        [Tooltip("The trigger falls on a jammed round")] public AudioClip Jam;
-        [Tooltip("Each trigger pull while the gun is stuck before clearing")] public AudioClip DryFire;
-        public AudioClip ClearJamStart;
-        public AudioClip ClearJamEnd;
-        [Tooltip("Random impact variation for each clip-authored repair slap")] public AudioClip[] RepairSlaps;
-        [Range(0f, 1f)] public float RepairSlapVolume = 0.6f;
-        [Tooltip("Random impact variation for each clip-authored repair punch")] public AudioClip[] RepairPunches;
-        [Range(0f, 1f)] public float RepairPunchVolume = 0.8f;
-        [Tooltip("Pump / bolt pulled back after a shot")] public AudioClip CycleStart;
-        [Tooltip("Pump / bolt pushed home")] public AudioClip CycleEnd;
+        [Range(0f, 1f), Tooltip("Scales every sound of this gun")] public float Volume = 1f;
+        [Tooltip("When it starts being raised")] public SoundID Equip;
+        public SoundID Fire;
+        public SoundID ReloadStart;
+        [Tooltip("Per-round reload: each round")] public SoundID ReloadInsert;
+        public SoundID ReloadEnd;
+        [Tooltip("The trigger falls on a jammed round")] public SoundID Jam;
+        [Tooltip("Each trigger pull while the gun is stuck before clearing")] public SoundID DryFire;
+        public SoundID ClearJamStart;
+        [Tooltip("Guns without repair feedback only")] public SoundID ClearJamEnd;
+        [Tooltip("Each clip-authored repair slap (a random-clip entity)")] public SoundID RepairSlap;
+        [Tooltip("Each clip-authored repair punch; empty = the slap")] public SoundID RepairPunch;
+        [Tooltip("Pump / bolt pulled back after a shot")] public SoundID CycleStart;
+        [Tooltip("Pump / bolt pushed home")] public SoundID CycleEnd;
     }
 }

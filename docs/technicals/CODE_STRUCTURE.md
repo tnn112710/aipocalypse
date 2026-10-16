@@ -6,8 +6,9 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing; precompiled plugin DLLs auto-referenced |
-| `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit. Editor only |
+| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro; precompiled plugin DLLs auto-referenced |
+| `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, test runner, NUnit. Editor only |
+| `Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit |
 
 Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Core.PlayerSystem`, `Aipocalypse.Core.Combat`). One exception: input uses **`Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
 
@@ -15,9 +16,10 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 
 `_Core/EnemySystem/` (`Aipocalypse.Core.EnemySystem`):
 
-- `EnemyInstaller.cs` registers scene navigation, settings, assigned agents, and the central entry point.
-- `EnemyManager.cs` starts agents and time-slices Manual Behavior Designer trees through VContainer's tick loop.
-- `EnemyBrain.cs` bridges each tree to its mover and stops both when disabled.
+- `EnemyInstaller.cs` registers scene navigation, settings, `EnemyRegistry` and the central entry point, and injects the scene-placed enemies when the scope builds.
+- `EnemyRegistry.cs` the enemies in play as a dense swap-remove list; brains add themselves while enabled.
+- `EnemyManager.cs` walks the registry and time-slices Manual Behavior Designer trees through VContainer's tick loop.
+- `EnemyBrain.cs` injected bridge: on its first `Start` (and each re-enable) initializes its mover, starts its tree and registers; stops both and leaves when disabled.
 - `WanderMover.cs` samples reachable destinations around the spawn point and drives A* FollowerEntity, including arrival and travel timeout checks.
 - `WanderTasks.cs` contains the choose, walk, and pause ActionNodes used by the shared subtree.
 - `WanderSettings.cs` holds movement, radius, pause, timeout, and think-stride tuning; the asset and shared subtree are in `Data/Enemies/`.
@@ -30,22 +32,28 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 Assets/_Game/
 ├─ _Core/                                   asmdef Aipocalypse.Core
 │  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
-│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, PlayerInstaller, WeaponInstaller
+│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, AudioInstaller, CombatInstaller, TimeInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y…)
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  └─ GameLifetimeScope.cs               per-scene scope, optional EnemyInstaller, Strict flag, execution order -5000
 │  ├─ _Common/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
-│  │  │  ├─ IDamageable.cs                  anything that can take damage
-│  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force) + DamageType enum (Generic, Fall, Gunshot, Melee)
+│  │  │  ├─ IDamageable.cs                  anything that can take damage: TakeDamage → DamageResult (hurt it through DamageService)
+│  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force, Source) + DamageType enum (Generic, Fall, Gunshot, Melee) + DamageResult (Applied, Killed)
+│  │  │  ├─ DamageService.cs                root service: Deal(target, info) → TakeDamage, publishes DamageDealt with the result
+│  │  │  ├─ CombatInstaller.cs              registers DamageService in the root scope
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
-│  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt, PlayerDied
+│  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied
+│  │  ├─ Events/GunRepairQteStarted.cs      owner, item, QTE session, feedback preset: what the HUD needs to show a gun's repair QTE
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
 │  │  └─ TransformExtensions.cs             Aipocalypse.Core — SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
-│  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health, tips over from knockback and springs back
+│  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
+│  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
+│  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, over BroAudio (unset ids are silent)
+│  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, Prefab (one per item: world + hand), CreateInstance
@@ -58,7 +66,7 @@ Assets/_Game/
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world (on the item prefab's root): IInteractable, picks up / swaps; Spawn for drops; Awake shows only the World child; StripForHand
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, Zoom (field of view multiplier), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
@@ -76,20 +84,21 @@ Assets/_Game/
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: input → intent, ticks the parts, IDamageable, IGunUser (owns the AmmoReserve)
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing sounds, fall damage through DamageService
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
 │  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop, Fire, FirePressed, Aim, Reload
-│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); SpeedMultiplier (aiming)
+│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); Jumped / Landed events; SpeedMultiplier (aiming)
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
-│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root
+│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob
+│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps the weapon camera's FOV, LookScale
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
-│  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera FOV / aspect / viewport after Cinemachine
+│  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera aspect / viewport after Cinemachine; its own FOV (SetFieldOfView) so zoom doesn't swell the gun
 │  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
 │  │  ├─ FallDamage.cs                      drop height → damage
-│  │  ├─ PlayerTuning.cs                    ScriptableObject type for every player number
+│  │  ├─ PlayerTuning.cs                    ScriptableObject type for every player number + its sounds (footstep, jump, land SoundIDs)
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
@@ -104,10 +113,12 @@ Assets/_Game/
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment + gun ammo counts (events, no polling)
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
+│  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker, hit / kill sound, pooled damage numbers
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
-│  │  └─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
+│  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
+│  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled), font Data/UI/DamageNumberFont.asset
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, handling, sounds, effects
 │     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
@@ -115,7 +126,7 @@ Assets/_Game/
 │     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee: Swing, Sounds, ImpactEffect
 │     ├─ MeleeSettings.cs                   SwingSettings (damage, reach, radius, wind-up, recovery, knockback, layers), MeleeSounds
 │     ├─ MeleeAttack.cs                     melee rules: swing timing, hold to repeat, buffered click, alternating sides → SwingStarted, Struck
-│     ├─ HeldMelee.cs                       HeldItem for melee: runs MeleeAttack, procedural swing between pose markers, sphere-cast hit → damage, knockback, impact, sounds
+│     ├─ HeldMelee.cs                       HeldItem for melee: runs MeleeAttack, procedural swing between pose markers, sphere-cast hit → DamageService, knockback, impact, sounds (AudioService)
 │     ├─ Ammo/AmmoType.cs                   SO: a kind of round; guns of one type share a pool
 │     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
 │     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
@@ -127,29 +138,33 @@ Assets/_Game/
 │     ├─ GunJolt.cs                         GunJolt (self-returning kick / wobble of the model) + GunJoltPlayer (runs one; HeldGun applies it on the recoil pivot)
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
-│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, repair QTE + feedback, sounds (own AudioSource)
+│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses + aim zoom, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, presents GunRepairFlow (sounds, jolts, beats, repair events), sounds (AudioService)
+│     ├─ GunRepairFlow.cs                   the jam repair's QTE rules: start at QteStartProgress, early finish, miss penalty, interrupt on cancel; QteStarted / Missed
 │     ├─ GunAnimation.cs                    every gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
-│     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
+│     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage through DamageService (source = shooter), impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) in the root scope
-│     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun + 2D AudioSource skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
+│     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
 │     ├─ Prefabs/Guns/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle;
 │     │                                     also the pickup: root WorldItem + trigger box, World child = model lying flat
 │     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
 │     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
-│     └─ Prefabs/Melee/FireAxe.prefab       HeldMelee + 2D AudioSource: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World like the guns
+│     └─ Prefabs/Melee/FireAxe.prefab       HeldMelee: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World like the guns
 ├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
 ├─ Data/
+│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat .asset) + one folder of entities each
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
 │  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (one prefab each; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, DamageNumberFont.asset
+├─ Tests/PlayMode/PrototypeSmokeTests.cs  asmdef Aipocalypse.Tests.PlayMode: loads Prototype.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
+   ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
@@ -164,31 +179,32 @@ Assets/_Game/
 ## Who depends on whom
 
 ```text
-ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, PlayerRegistry,
-                                           EffectPool, BulletSystem (ticked by VContainer)
+ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, AudioService, DamageService,
+                                           TimeService, QuickTimeService, PlayerRegistry, EffectPool, BulletSystem (ticked by VContainer)
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
    │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
    └─ injects the Player GameObject (whole hierarchy)
-         Player.Construct(InputService, IStatProvider, IPublisher<DamageDealt>, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
+         Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
-             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerInteractor(cameraPitch, gameObject),
+             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerZoom(Cinemachine camera, weapon camera), PlayerInteractor(cameraPitch, gameObject),
              AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
-               rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool), HeldMelee.Construct(EffectPool)
-               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil; HeldMelee builds MeleeAttack
+               rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, QuickTimeService, publishers), HeldMelee.Construct(EffectPool, DamageService, AudioService)
+               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil + GunRepairFlow; HeldMelee builds MeleeAttack
            last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
 
 HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
    └─ injects the HUD GameObject
          PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active player
-           PlayerVitalsHud, HotbarHud, InteractPromptHud (+ InputService for key labels)
+           PlayerVitalsHud, HotbarHud, InteractPromptHud (+ InputService for key labels), HitFeedbackHud (+ AudioService, DamageDealt),
+           RepairQteHud (gun repair events)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
 - `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser`, a `HeldMelee` its eye and root through `IWeaponUser` (Player implements all of them). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
-- Bullets hit anything with an `IDamageable` (`_Common/Combat`) and call `TakeDamage` with `DamageType.Gunshot`; the target publishes `DamageDealt` itself.
+- Bullets, swings and falls hurt anything with an `IDamageable` (`_Common/Combat`) through `DamageService.Deal`, which applies `TakeDamage` and publishes `DamageDealt` (source, result). Targets only apply their own rules.
 - Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
 - Inside the player system, plain C# events are used (`PlayerMotor.Landed`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
 
@@ -198,9 +214,9 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 intent = dead or gameplay input disabled ? default : read InputService
 PlayerLook.Tick      yaw + pitch                    (movement uses the new facing this frame)
 PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Landed event
-                       └─ Player.OnLanded: head-bob dip + fall damage → Health → DamageDealt / PlayerDied
+                       └─ Player.OnJumped / OnLanded: jump / landing sound, head-bob dip, fall damage → DamageService → Health → DamageDealt / PlayerDied
 Stamina.Tick         regen (spending happened inside the motor)
-PlayerHeadBob.Tick   camera root offset
+PlayerHeadBob.Tick   camera root offset; Stepped → footstep sound
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
@@ -208,13 +224,14 @@ EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots,
                        GunAnimation samples the controller and constraints (parts, hand targets, fingers).
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
-PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
+PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerZoom.Tick(held.Zoom); PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
 FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip
-VContainer ticks     BulletSystem moves and ray-tests bullets → damage, impacts, holes; EffectPool returns expired effects
+VContainer ticks     BulletSystem moves and ray-tests bullets → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes;
+                     EffectPool returns expired effects; EnemyManager ticks registered enemy trees (scene scope)
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
                      InteractPromptHud reads Player.Interactor → InteractPromptView
@@ -255,17 +272,17 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 - `_Core/QuickTimeSystem/QteChallenge.cs`: abstract challenge data, IQteSession contract and QteResult. TimingQteChallenge.cs supplies repeating fill logic and configurable duration, zone and per-cycle attempts.
 - `_Core/QuickTimeSystem/QuickTimeService.cs`: one active owner-bound session, unscaled central tick, confirmation through InputService.ReloadPressed, timed or owner-controlled lifetime, cancellation, optional time request, completion callback and lifecycle events. QuickTimeInstaller.cs registers the root entry point.
 - `_Core/_Common/Events/QteEvents.cs`: QteStarted, QteEnded and accepted QteAttempted MessagePipe payloads; no per-frame messages. IQteSession.Press distinguishes Ignored/Miss/Success, so locked presses emit no attempt event.
-- `_Core/WeaponSystem/GunRepairProfile.cs`: per-gun automatic/manual initiation, jam pause, quick/stubborn duration and probability, configurable QTE onset fraction, miss penalty and cap, challenge and cosmetic feedback references. Gun.cs selects timing, waits out the jam pause (DryFired on trigger pulls), applies miss penalties (AddRepairTime) and owns completion. HeldGun.cs requests/cancels QTEs and chooses repair animation states.
-- `_Core/WeaponSystem/RepairFeedbackSettings.cs`: shared or per-gun ScriptableObject preset for result colors, UI punch/ring/hold/shake/squash/fade, GunJolt presets (jam, dry fire, slap, punch, miss, success; `GunJolt.cs` holds the struct and the GunJoltPlayer that runs one) and success/mechanism/accent/miss/natural audio. HeldGun plays gun-source audio and the active jolt on its existing recoil pivot (scaled time), resets on hide, and publishes GunJamBeat and GunRepairCompleted.
+- `_Core/WeaponSystem/GunRepairProfile.cs`: per-gun automatic/manual initiation, jam pause, quick/stubborn duration and probability, configurable QTE onset fraction, miss penalty and cap, challenge and cosmetic feedback references. Gun.cs selects timing, waits out the jam pause (DryFired on trigger pulls), applies miss penalties (AddRepairTime) and owns completion. GunRepairFlow.cs requests/cancels the QTE and turns its results into Gun calls; HeldGun.cs chooses repair animation states and presents the flow's events.
+- `_Core/WeaponSystem/RepairFeedbackSettings.cs`: shared or per-gun ScriptableObject preset for result colors, UI punch/ring/hold/shake/squash/fade, GunJolt presets (jam, dry fire, slap, punch, miss, success; `GunJolt.cs` holds the struct and the GunJoltPlayer that runs one) and success/mechanism/accent/miss/natural sounds (SoundIDs). HeldGun plays them through AudioService and the active jolt on its existing recoil pivot (scaled time), resets on hide, and publishes GunJamBeat and GunRepairCompleted.
 - `_Core/_Common/Events/GunRepairCompleted.cs`: owner, item and QTE-success flag for completed repairs; interruptions do not publish it.
 - `_Core/QuickTimeSystem/TimingQteChallenge.cs`: timing settings and session with independent lifetime/pointer clocks, configurable miss hold and bounded green-zone relocation after the hold. Pointer pauses never extend standalone expiry or gun repair; presses during a hold are ignored. Optional random delegate supports deterministic relocation checks.
 - `_Core/UI/Widgets/QteStyle.cs`: Synty sprites, font and colors. QteView.cs is the replaceable view contract; TimingQteView.cs presents circle or bar without weapon/input knowledge.
-- `_Core/UI/Hud/RepairQteHud.cs`: PlayerHudView presenter for the compact QTE/key cap plus scaled DOTween result feedback. Subscribes to QteAttempted and GunRepairCompleted, filters the active held gun, retains its last session for success/natural fade, and resets on cancellation, unbind, disable, input lock or weapon change. Pre-placed SuccessBurst and CanvasGroup avoid runtime object creation. QteView.Flash lets compatible widgets implement the flash without coupling the session to UI.
+- `_Core/UI/Hud/RepairQteHud.cs`: PlayerHudView presenter for the compact QTE/key cap plus scaled DOTween result feedback. Subscribes to GunRepairQteStarted, GunJamBeat (Miss) and GunRepairCompleted for the active player only, never reads the gun, retains its last session for success/natural fade, and resets on cancellation, unbind, disable, input lock or weapon change; idle frames do nothing. Pre-placed SuccessBurst and CanvasGroup avoid runtime object creation. QteView.Flash lets compatible widgets implement the flash without coupling the session to UI.
 - InputService.cs owns confirmation input consumption and the Reload binding label. ProjectLifetimeScope installs TimeInstaller and QuickTimeInstaller after InputInstaller.
 - `Tests/EditMode/RepairQteTests.cs`: timing passes, zone tuning, timeout, automatic/manual repair variants, continuous progress, owner-controlled QTE lifetime, early completion, interruption and time request arbitration. GunAnimationTests also validates repair focus/recovery contacts and all AK47 override bindings.
 - `AgentScripts/RepairQteSetup.cs`: live-Editor asset/clip/HUD builder. RepairQteChecks.cs: Play-mode input, timing, time restoration, cancellation and screenshot staging checks. The builder refuses to duplicate an existing HUD widget; AutomaticRepair updates its layout/tuning in place.
 
 
-GunAnimation also samples the clip-authored `_repairImpactCount` track and raises RepairSlapped once per contact; the stepped `_repairPunch` track makes ImpactIsPunch true for punches. HeldGun subscribes locally and selects a GunSounds.RepairSlaps or RepairPunches variation through its existing AudioSource. RepairSlapVolume is independent of the overall gun sound gain. Early success uses cached transform/shape snapshots to blend to RepairEnd without playing the remaining hits; HandGrip.SetAnimatedShape applies the blended finger pose. Arrays are cached once when the graph is created. GunAnimationTests covers skipped-frame markers, duplicate suppression, pause, restart and early success with no extra impacts.
+GunAnimation also samples the clip-authored `_repairImpactCount` track and raises RepairSlapped once per contact; the stepped `_repairPunch` track makes ImpactIsPunch true for punches. HeldGun subscribes locally and plays the GunSounds.RepairSlap or RepairPunch entity (random clip and volume live on the entity). Early success uses cached transform/shape snapshots to blend to RepairEnd without playing the remaining hits; HandGrip.SetAnimatedShape applies the blended finger pose. Arrays are cached once when the graph is created. GunAnimationTests covers skipped-frame markers, duplicate suppression, pause, restart and early success with no extra impacts.
 
 All five guns now supply independent Data/Weapons/<Gun>_Repair and <Gun>_RepairQte assets, impact audio settings on their GunDefinition, and four repair overrides. RepairQteSetup.OtherGuns creates the per-gun data; Ak47Animations.UpdateRepairing(weapon) fits the shared slap authoring to each gun's contact hierarchy. RepairQteChecks accepts any configured held gun and verifies full repair duration, 3/4 impacts and audio starts, persistent QTE and early completion. WeaponAnimationTests validates all new override bindings plus both repair variants and early returns for all four later guns.

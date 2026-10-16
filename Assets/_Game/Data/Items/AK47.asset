@@ -84,26 +84,59 @@ MonoBehaviour:
   <Handling>k__BackingField:
     AimSpeed: 10
     SprintPoseSpeed: 8
+    AimZoom: 0.87
   <Sounds>k__BackingField:
     Volume: 1
-    Equip: {fileID: 8300000, guid: 4ec054a2f96c312449d544ca90f6b9dd, type: 3}
-    Fire: {fileID: 8300000, guid: b3a1b0f854d515b4798e653179fdaea9, type: 3}
-    ReloadStart: {fileID: 8300000, guid: 8fd53b83fcdca0a408f2e89ef21d4b5e, type: 3}
-    ReloadInsert: {fileID: 0}
-    ReloadEnd: {fileID: 8300000, guid: 8aba37af064a2b149be7bd57e6d8fe65, type: 3}
-    Jam: {fileID: 8300000, guid: eb1493d1ce356ec45b1e4f44ea5314ca, type: 3}
-    DryFire: {fileID: 8300000, guid: ffd92ab4f3e30af49a072507a09bd4a3, type: 3}
-    ClearJamStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
-    ClearJamEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
-    RepairSlaps:
-    - {fileID: 8300000, guid: 8df1df53c4baa7a4b9f136e2b96525fd, type: 3}
-    - {fileID: 8300000, guid: b9e0576551c735c428fdd3988f8fc093, type: 3}
-    RepairSlapVolume: 0.55
-    RepairPunches:
-    - {fileID: 8300000, guid: f651108008a11ef4198deb6ab94131ea, type: 3}
-    - {fileID: 8300000, guid: f20f8e0714f425a4badc94a4276c03cd, type: 3}
-    - {fileID: 8300000, guid: a3aa617d270ea504bb5a90d965bfc936, type: 3}
-    RepairPunchVolume: 0.85
-    CycleStart: {fileID: 0}
-    CycleEnd: {fileID: 0}
+    Equip:
+      _entity: {fileID: 11400000, guid: be173cdcd70200043aa98337c6cc1942, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Fire:
+      _entity: {fileID: 11400000, guid: 2ee4147df30cc7f4cb44700a2d0f3bf6, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ReloadStart:
+      _entity: {fileID: 11400000, guid: 556b682a194693341935a2b2a1aa55ac, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ReloadInsert:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ReloadEnd:
+      _entity: {fileID: 11400000, guid: b40f2da62b965cd439b54f60e5e8e9c8, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Jam:
+      _entity: {fileID: 11400000, guid: bfcc47202ecc9694dbbcb0b5485ec9ac, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    DryFire:
+      _entity: {fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ClearJamStart:
+      _entity: {fileID: 11400000, guid: 7c46b85da282ee345aad7cbea2653514, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ClearJamEnd:
+      _entity: {fileID: 11400000, guid: 84f8be6ab74aa6d41b12ab83fc1373bd, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    RepairSlap:
+      _entity: {fileID: 11400000, guid: bda1536e51d1bda448a35fa4fb6c2612, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    RepairPunch:
+      _entity: {fileID: 11400000, guid: af6b3b83b9911bf41852cec0ba0f6c69, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    CycleStart:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    CycleEnd:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
   <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

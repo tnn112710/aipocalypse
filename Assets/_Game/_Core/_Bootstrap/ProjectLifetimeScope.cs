@@ -1,3 +1,5 @@
+using Aipocalypse.Core.AudioSystem;
+using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Core.TimeSystem;
@@ -29,6 +31,8 @@ namespace Aipocalypse.Core.Bootstrap
 #endif
 
             new InputInstaller(_controls).Install(builder);
+            new AudioInstaller().Install(builder);
+            new CombatInstaller().Install(builder);
             new TimeInstaller().Install(builder);
             new QuickTimeInstaller().Install(builder);
             new PlayerInstaller().Install(builder);

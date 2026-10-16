@@ -42,12 +42,18 @@ MonoBehaviour:
     Euler: {x: -5, y: 1.5, z: 2.5}
     Duration: 0.4
     Wobbles: 0
-  SuccessSound: {fileID: 8300000, guid: 162a73b58076a7f418cc0c25f2f37e78, type: 3}
-  SuccessVolume: 0.75
-  SuccessAccent: {fileID: 8300000, guid: a74b75e6be642da4a96b308cb8d307ad, type: 3}
-  AccentVolume: 0.65
-  SuccessMechanism: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
-  MechanismVolume: 1
+  SuccessSound:
+    _entity: {fileID: 11400000, guid: 6653aa82c797bb74fac70e3256e4ce24, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  SuccessAccent:
+    _entity: {fileID: 11400000, guid: 95d5921561836e4419ff4d229020fca1, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  SuccessMechanism:
+    _entity: {fileID: 11400000, guid: 38bc5efa34af3ff4bb34cef20f3bc82a, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
   MechanismDelay: 0.12
   MissColor: {r: 1, g: 0.2, b: 0.12, a: 1}
   MissDuration: 0.4
@@ -58,10 +64,16 @@ MonoBehaviour:
     Euler: {x: 4, y: -4, z: 7}
     Duration: 0.45
     Wobbles: 2.5
-  MissSound: {fileID: 8300000, guid: 5eb06b5e7e9d0ae408b348ee6de52f1b, type: 3}
-  MissVolume: 0.8
-  MissAccent: {fileID: 8300000, guid: 26c0f28f187852c4496645092aed979d, type: 3}
-  MissAccentVolume: 0.9
+  MissSound:
+    _entity: {fileID: 11400000, guid: 4c135dfa1484ef0469be6b455d9b01cb, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  MissAccent:
+    _entity: {fileID: 11400000, guid: 1ff233446d5d2624fbd4b24c94ff48e1, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
   NaturalFadeDuration: 0.18
-  NaturalSound: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
-  NaturalVolume: 0.45
+  NaturalSound:
+    _entity: {fileID: 11400000, guid: 1009e16a00a30864bbaaf3c397b72da5, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}

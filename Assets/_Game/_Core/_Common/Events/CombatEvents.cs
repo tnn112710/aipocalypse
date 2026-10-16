@@ -3,15 +3,18 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.Events
 {
+    // A hit that landed (published by DamageService). Info.Source is who dealt it; Result says how much and whether it killed.
     public readonly struct DamageDealt
     {
         public readonly IDamageable Target;
         public readonly DamageInfo Info;
+        public readonly DamageResult Result;
 
-        public DamageDealt(IDamageable target, in DamageInfo info)
+        public DamageDealt(IDamageable target, in DamageInfo info, in DamageResult result)
         {
             Target = target;
             Info = info;
+            Result = result;
         }
     }
 

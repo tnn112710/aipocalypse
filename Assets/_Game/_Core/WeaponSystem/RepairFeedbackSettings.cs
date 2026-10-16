@@ -1,3 +1,4 @@
+using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -18,12 +19,9 @@ namespace Aipocalypse.Core.WeaponSystem
         [BoxGroup("Success"), Range(1f, 1.8f)] public float SuccessScale = 1.5f;
         [BoxGroup("Success"), Range(1f, 3f)] public float BurstScale = 2.6f;
         [BoxGroup("Success")] public GunJolt SuccessJolt = new(new Vector3(0f, 0.008f, -0.03f), new Vector3(-5f, 1.5f, 2.5f), 0.4f);
-        [BoxGroup("Success"), Tooltip("The hit that frees the gun")] public AudioClip SuccessSound;
-        [BoxGroup("Success"), Range(0f, 1f)] public float SuccessVolume = 1f;
-        [BoxGroup("Success"), Tooltip("Reward chime")] public AudioClip SuccessAccent;
-        [BoxGroup("Success"), Range(0f, 1f)] public float AccentVolume = 0.65f;
-        [BoxGroup("Success"), Tooltip("Action snapping home, a moment after the hit")] public AudioClip SuccessMechanism;
-        [BoxGroup("Success"), Range(0f, 1f)] public float MechanismVolume = 1f;
+        [BoxGroup("Success"), Tooltip("The hit that frees the gun")] public SoundID SuccessSound;
+        [BoxGroup("Success"), Tooltip("Reward chime")] public SoundID SuccessAccent;
+        [BoxGroup("Success"), Tooltip("Action snapping home, a moment after the hit")] public SoundID SuccessMechanism;
         [BoxGroup("Success"), Min(0f)] public float MechanismDelay = 0.12f;
 
         [BoxGroup("Miss")] public Color MissColor = new(1f, 0.2f, 0.12f, 1f);
@@ -31,13 +29,10 @@ namespace Aipocalypse.Core.WeaponSystem
         [BoxGroup("Miss"), Min(0f)] public float MissShakePixels = 22f;
         [BoxGroup("Miss"), Range(0f, 0.5f), Tooltip("Widget squash on a miss")] public float MissSquash = 0.18f;
         [BoxGroup("Miss"), Tooltip("Fumbled hit")] public GunJolt MissJolt = new(new Vector3(-0.006f, -0.01f, 0.006f), new Vector3(4f, -4f, 7f), 0.45f, 2.5f);
-        [BoxGroup("Miss")] public AudioClip MissSound;
-        [BoxGroup("Miss"), Range(0f, 1f)] public float MissVolume = 0.8f;
-        [BoxGroup("Miss"), Tooltip("Dull thud layered under the miss sound")] public AudioClip MissAccent;
-        [BoxGroup("Miss"), Range(0f, 1f)] public float MissAccentVolume = 0.8f;
+        [BoxGroup("Miss")] public SoundID MissSound;
+        [BoxGroup("Miss"), Tooltip("Dull thud layered under the miss sound")] public SoundID MissAccent;
 
         [BoxGroup("Natural completion"), Min(0.05f)] public float NaturalFadeDuration = 0.18f;
-        [BoxGroup("Natural completion")] public AudioClip NaturalSound;
-        [BoxGroup("Natural completion"), Range(0f, 1f)] public float NaturalVolume = 0.45f;
+        [BoxGroup("Natural completion")] public SoundID NaturalSound;
     }
 }

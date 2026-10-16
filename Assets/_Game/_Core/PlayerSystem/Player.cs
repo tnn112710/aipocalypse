@@ -1,3 +1,4 @@
+using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
@@ -7,13 +8,14 @@ using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
 using MessagePipe;
 using Sirenix.OdinInspector;
+using Unity.Cinemachine;
 using UnityEngine;
 using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
     // The player's view: turns input into an intent and drives look → movement → stamina → head motion → interaction → equipment
-    // (switching, then the item in hand: fire, aim, reload) → view kick, in that order.
+    // (switching, then the item in hand: fire, aim, reload) → view kick and zoom, in that order.
     [RequireComponent(typeof(CharacterController))]
     public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner, IGunUser
     {
@@ -21,6 +23,8 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField] CharacterController _controller;
         [SerializeField, Tooltip("At eye height; head bob and landing dip move it")] Transform _cameraRoot;
         [SerializeField, Tooltip("Child of the camera root; pitch rotates it and the Cinemachine camera tracks it")] Transform _cameraPitch;
+        [SerializeField, Tooltip("Its lens narrows while the held item zooms (aiming down sights)")] CinemachineCamera _camera;
+        [SerializeField, Tooltip("Keeps the held model's field of view while the world zooms")] WeaponOverlayCamera _weaponCamera;
         [SerializeField] EquipmentConfig _equipmentConfig;
         [SerializeField] EquipmentRig _equipmentRig;
         [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
@@ -28,13 +32,15 @@ namespace Aipocalypse.Core.PlayerSystem
 
         InputService _input;
         IStatProvider _stats;
-        IPublisher<DamageDealt> _damageDealt;
+        DamageService _damage;
+        AudioService _audio;
         IPublisher<PlayerDied> _died;
         PlayerRegistry _registry;
 
         PlayerMotor _motor;
         PlayerLook _look;
         PlayerHeadBob _headBob;
+        PlayerZoom _zoom;
         PlayerInteractor _interactor;
         HeldItemClearance _heldClearance;
 
@@ -51,13 +57,14 @@ namespace Aipocalypse.Core.PlayerSystem
         AimOrigin IGunUser.AimFrom => _tuning.AimFrom;
 
         [Inject]
-        void Construct(InputService input, IStatProvider stats, IPublisher<DamageDealt> damageDealt, IPublisher<PlayerDied> died, PlayerRegistry registry,
-            IObjectResolver resolver)
+        void Construct(InputService input, IStatProvider stats, DamageService damage, AudioService audio, IPublisher<PlayerDied> died,
+            PlayerRegistry registry, IObjectResolver resolver)
         {
             _input = input;
             _registry = registry;
             _stats = stats;
-            _damageDealt = damageDealt;
+            _damage = damage;
+            _audio = audio;
             _died = died;
 
             Health = new Health(stats.Get(StatId.MaxHealth, _tuning.MaxHealth));
@@ -65,10 +72,13 @@ namespace Aipocalypse.Core.PlayerSystem
             _motor = new PlayerMotor(_controller, _tuning, stats, Stamina);
             _look = new PlayerLook(transform, _cameraPitch, _tuning);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning);
+            _zoom = new PlayerZoom(_camera, _weaponCamera);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning, _equipmentRig);
 
+            _motor.Jumped += OnJumped;
             _motor.Landed += OnLanded;
+            _headBob.Stepped += OnStepped;
             Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
 
             if (_equipmentConfig != null && _equipmentRig != null)
@@ -118,18 +128,22 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             _registry?.Unregister(this);
             if (_motor != null)
+            {
+                _motor.Jumped -= OnJumped;
                 _motor.Landed -= OnLanded;
+                _headBob.Stepped -= OnStepped;
+            }
             Equipment?.Dispose();
         }
 
-        public void TakeDamage(in DamageInfo info)
+        public DamageResult TakeDamage(in DamageInfo info)
         {
-            if (Health == null || Health.Damage(info.Amount) <= 0f)
-                return;
-
-            _damageDealt.Publish(new DamageDealt(this, info));
-            if (Health.IsDead)
+            if (Health == null)
+                return default;
+            float applied = Health.Damage(info.Amount);
+            if (applied > 0f && Health.IsDead)
                 _died.Publish(new PlayerDied(transform.position, info.Type));
+            return new DamageResult(applied, applied > 0f && Health.IsDead);
         }
 
         [Button, HideInEditorMode]
@@ -142,10 +156,11 @@ namespace Aipocalypse.Core.PlayerSystem
         [Button, HideInEditorMode]
         void AddAmmo(AmmoType type, int amount = 30) => Ammo?.Add(type, amount);
 
+        // Look follows the zoom, so the crosshair sweeps the same share of the screen per mouse move when aiming.
         PlayerIntent ReadIntent(float deltaTime) => new()
         {
             Move = _input.Move,
-            LookDegrees = _input.ReadLookDegrees(deltaTime),
+            LookDegrees = _input.ReadLookDegrees(deltaTime) * _zoom.LookScale,
             Sprint = _input.SprintHeld,
             Jump = _input.JumpPressed,
             SelectSlot = _input.SlotPressed is var slot and >= 0 ? slot : null,
@@ -185,6 +200,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             HeldItem held = _equipmentRig.Current;
             _look.SetKick(held != null ? held.ViewKick : default);
+            _zoom.Tick(held != null ? held.Zoom : 1f);
             _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.AimMoveSpeedMultiplier : 1f;
             // Apply the obstacle pose before shots use the final muzzle position.
             _heldClearance.Tick(held, deltaTime);
@@ -201,13 +217,19 @@ namespace Aipocalypse.Core.PlayerSystem
                 WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, transform.eulerAngles.y + 90f, 0f), null);
         }
 
+        void OnStepped() => _audio.Play(_tuning.FootstepSound, _motor.IsSprinting ? 1f : _tuning.WalkStepVolume);
+
+        void OnJumped() => _audio.Play(_tuning.JumpSound);
+
         void OnLanded(LandingInfo landing)
         {
             _headBob.OnLanded(landing.ImpactSpeed);
+            if (landing.ImpactSpeed >= _tuning.LandingSoundMinSpeed)
+                _audio.Play(_tuning.LandSound, Mathf.Clamp01(landing.ImpactSpeed / _tuning.LandingSoundFullSpeed));
 
             float damage = FallDamage.For(landing.DropHeight, _tuning.SafeFallHeight, _tuning.LethalFallHeight, Health.Max);
             if (damage > 0f)
-                TakeDamage(new DamageInfo(damage, DamageType.Fall, landing.Point));
+                _damage.Deal(this, new DamageInfo(damage, DamageType.Fall, landing.Point, default, gameObject));
         }
 
         void Reset() => _controller = GetComponent<CharacterController>();

@@ -81,7 +81,7 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 Each item has a single prefab (`Prefabs/Guns/AK47.prefab`, `Prefabs/Melee/FireAxe.prefab`), assigned to its asset's `Prefab`. The root carries both sides:
 
 ```text
-AK47                 HeldGun, ItemHands, AudioSource   first-person side
+AK47                 HeldGun, ItemHands                first-person side
 │                    WorldItem, trigger BoxCollider    world side (_definition = the asset, _worldModel = World)
 ├─ Poses, PosePivot  the first-person model, grips, muzzle, animator
 └─ World             inactive in the asset: the model lying on the ground
@@ -137,7 +137,7 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
   3. Give it slots in the config that accept the new category.
   4. If it doesn't sit in your hand, change what selecting it does in `Equipment.CanSelect`. For example, a bandage would play a use action instead of being held: add a `QuickUse` path there rather than branching in `Player`.
   5. Put per-copy state (stack count, charges) in an `ItemInstance` subclass returned by the definition's `CreateInstance()`.
-- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`. For hands, add `ItemHands` + `HandGrip`s to its prefab and play its actions from the subclass (`Hands.Play("Use")`, `Hands.SetProgress(t)`, `Hands.Stop()`).
+- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`. Override `ViewKick`, `IsAiming` and `Zoom` (field of view multiplier, e.g. a scope) for camera effects. For hands, add `ItemHands` + `HandGrip`s to its prefab; moving hands come from the item's clips ([HANDS.md](HANDS.md)). Play sounds through `AudioService` with BroAudio `SoundID`s.
 - **Inventory:** fill the hotbar with `Equipment.TryPickUp` or `Hotbar.TryPlace` / `Remove`. `EquipmentRig` spawns and despawns models, and `HotbarHud` refreshes from `SlotChanged`. `StartingItem` in the config can still hand out items at spawn.
 - **Other interactables** (doors, loot, workbench): implement `IInteractable` (`_Common/Interaction`) on the object with the collider. `PlayerInteractor` and the HUD prompt pick it up with no other changes.
 

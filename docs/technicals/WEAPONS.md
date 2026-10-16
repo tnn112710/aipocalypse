@@ -21,7 +21,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Bursts | `BurstCount` shots, then `BurstCooldown` before the next burst | Fire |
 | Shotgun pellets | `Pellets` bullets per shot (one round, one muzzle flash), each up to `SpreadAngle`° off the aim. A rifle is `Pellets 1, SpreadAngle 0` | Fire |
 | Travelling bullets | Plain data moved each frame and ray-tested along their path: speed, range (then they vanish), optional gravity. No rigidbodies, no GameObject per bullet (only its pooled tracer) | Gun asset → Bullet |
-| Damage | Each bullet calls `IDamageable.TakeDamage` with `DamageType.Gunshot` on what it hits | Fire → `Damage` |
+| Damage | Each bullet hurts what it hits through `DamageService.Deal` (`DamageType.Gunshot`, source = the shooter); the service publishes `DamageDealt` with what landed and whether it killed, which drives the hit marker and damage numbers ([UI.md](UI.md#hit-feedback)) | Fire → `Damage` |
 | Never hits the shooter | Anything under the shooter's root is skipped (body, held gun). Triggers (pickups) are ignored | `IGunUser.Root` |
 | Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path. **MuzzleToCrosshair**: a ray from the screen centre finds what the crosshair is on (or the point at full range), and bullets leave the muzzle towards it (`GunAim.MuzzleToPoint`); closer than 1 m or behind the muzzle, they use the camera direction. The aim kick (the view) moves the shots in every mode; the gun's small extra kick only moves them in Muzzle mode | `PlayerTuning` → Guns → `AimFrom` (live in Play mode). Set to MuzzleToCrosshair |
 | Magazine | Rounds live on the gun (`GunInstance`), so they survive drop, pick up and swap. A new gun spawns full | Magazine → `Size` |
@@ -36,11 +36,12 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
+| Aim zoom | Aiming down sights narrows the world camera to `AimZoom` × its field of view (0.87 = 13%), easing with the aim pose; the held gun keeps the unzoomed field of view on its overlay camera, and look speed scales with the zoom so aim feel stays the same | Gun asset → Handling → `AimZoom` |
 | Hands | Floating hands follow each gun's two hand targets; the clips move the gun's own parts (mag, bolt, slide, pump, hinge, shells) and switch the left hand's contact between them | Gun prefab → `ItemHands`, clips; [HANDS.md](HANDS.md) |
 | Reload / jam / pump motion | Every gun plays editable clips with hand contact constraints (`GunAnimation`, required on a gun prefab). One clip per `GunAction`, sampled at `Gun.ActionProgress`, so it always fits `ReloadTime` / the repair time / `CycleTime` | Gun prefab → AnimationRoot / clips |
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
 | Effects | Muzzle flash, tracer, impact (removed after 3 s), bullet hole decal (removed after 20 s, at most 64). All pooled; no holes on things that take damage | `Data/Weapons/BulletEffects.asset`; lifetime / cap on each effect prefab's `PooledEffect` |
-| Sounds | Equip, fire, reload start / insert / end, jam (trigger falls on the jammed round), dry fire (each pull while stuck), jam clear start / end, repair slaps / punches, cycle start / end (pump back / home) as plain `AudioClip`s, played with `PlayOneShot` on the gun prefab's 2D `AudioSource` (BroAudio later). Clips come from the old project's samples (`Assets/_Samples/Audio/Weapons`): rifle / pistol equip, fire, mag out (reload start), mag in (reload end), sniper bolt pull / push (jam clear). The shotguns borrow sniper fire / equip, bolt pull / push (pump; break open / close) and pistol mag in (shell insert) until there are shotgun clips. Jam and dry fire use the Malbers pistol / default empty clicks; repair punches use Malbers Hit1 / Hit3 and Highlands Metal Shield 1 (placeholders) | Gun asset → Sounds (clips, volume) |
+| Sounds | Equip, fire, reload start / insert / end, jam (trigger falls on the jammed round), dry fire (each pull while stuck), jam clear start / end, repair slap / punch, cycle start / end (pump back / home) as BroAudio `SoundID`s, played 2D through `AudioService` (pooled by BroAudio, so a sound isn't cut when the gun is holstered). Entities live in `Data/Audio/Guns/` (one per purpose and clip, e.g. `Fire_AssaultRifle1Fire`); each entity holds its own volume, random clips (`RepairSlap`, `RepairPunch`) and pitch variation. `Sounds.Volume` scales a whole gun. Clips are placeholders from the old project's samples (`Assets/_Samples/Audio/Weapons`) and Malbers / Highlands store audio; the shotguns borrow sniper and pistol clips | Gun asset → Sounds; entities in `Data/Audio/` (BroAudio Library Manager) |
 | Crosshair | A 6 px dot at the screen centre (placeholder, to be polished) | `HUD` → `SafeFrame/Center/Crosshair` |
 | Ammo on the HUD | Magazine / reserve in the corner of each gun's hotbar slot (`30/90`; magazine only when the reserve is infinite), red when empty or jammed | [UI.md](UI.md#hotbar) |
 
@@ -50,7 +51,7 @@ Cut from the old system: built-in fallback recoil assets, legacy Animator trigge
 
 ```text
 Data
-  GunDefinition (Data/Items/)   Fire, Bullet, Magazine, Jam, Recoil (Hip / Aim), Handling, Sounds (AudioClips), Effects
+  GunDefinition (Data/Items/)   Fire, Bullet, Magazine, Jam, Recoil (Hip / Aim), Handling, Sounds (BroAudio SoundIDs), Effects
   AmmoType (Data/Weapons/)      a kind of round
   AmmoConfig                    starting reserve + Infinite (on the Player prefab)
   BulletEffects                 effect prefabs + bullet hole settings, shared by guns
@@ -77,7 +78,7 @@ Who calls what each frame: [CODE_STRUCTURE.md → Frame order](CODE_STRUCTURE.md
 ## Gun prefab
 
 ```text
-AK47 (variant of Gun_Base)    HeldGun · AudioSource (2D, gun sounds)
+AK47 (variant of Gun_Base)    HeldGun
 ├─ Poses
 │  ├─ Hip                     where the gun rests (relative to the rig's Hand), barrel on the screen centre 20 m out
 │  ├─ Aim                     sights on the screen centre
@@ -130,15 +131,15 @@ Same steps with `Pellets` > 1 and `SpreadAngle` > 0 (each pellet does `Damage`);
 | --- | --- | --- |
 | Swing | Click: `WindUp` seconds to the hit, then `Recovery` before the next swing can start. Holding keeps swinging at that rate (frame-rate independent); a click during a swing queues one more, never extra | Melee asset → Swing |
 | Hit check | At the moment of the hit (after the camera is placed for the frame), one sphere-cast from the screen centre: `Radius`, `Range` from the eye, `HitLayers`. The first thing hit counts; one target per swing. The holder and triggers (pickups) are skipped | Swing → `Range`, `Radius`, `HitLayers` |
-| Damage | `IDamageable.TakeDamage` with `DamageType.Melee` | Swing → `Damage` |
+| Damage | `DamageService.Deal` with `DamageType.Melee`, source = the swinger | Swing → `Damage` |
 | Knockback | The hit pushes along the view: `Knockback` N·s. Rigidbodies get the impulse; damageables get it as `DamageInfo.Force` and decide how to move (`TargetDummy` tips over and springs back; enemies later) | Swing → `Knockback` |
 | Swing motion | Procedural, between pose markers: Idle → WindUp (eased) → a fast strike through the hit to FollowThrough (`_strikeTime`, the hit lands halfway) → back to Idle. Swings in a row alternate sides: every other one mirrors the poses left-right around Idle (a backhand). After a 0.5 s pause it starts on the first side again | Melee prefab → `Poses/*`, `HeldMelee` → Swing motion |
 | Rules | Sprinting starts no swing (the current one finishes). Switching away cancels a swing that hasn't landed | `MeleeAttack.Tick` |
-| Effects, sounds | `ImpactEffect` at the hit point (the fire axe uses the bullet impact). Equip, swing (at the start), hit flesh (something that takes damage), hit surface, on the prefab's 2D `AudioSource`. The fire axe uses Malbers' common audio: `Melee Swing`, `Flesh Hit`, `Wood Impact` | Melee asset → Sounds, `ImpactEffect` |
+| Effects, sounds | `ImpactEffect` at the hit point (the fire axe uses the bullet impact). Equip, swing (at the start), hit flesh (something that takes damage), hit surface, as BroAudio entities (`Data/Audio/Melee/`) played through `AudioService`. The fire axe uses Malbers' common audio: `Melee Swing`, `Flesh Hit`, `Wood Impact` | Melee asset → Sounds, `ImpactEffect` |
 | Pose preview | Idle / Wind-up / Follow-through / Sprint buttons on `HeldMelee` | `HeldMelee` inspector |
 
 ```text
-FireAxe                       HeldMelee · AudioSource (2D)
+FireAxe                       HeldMelee
 ├─ Poses
 │  ├─ Idle                    where it rests (relative to the rig's Hand)
 │  ├─ WindUp                  raised, ready to strike
@@ -166,14 +167,16 @@ FireAxe                       HeldMelee · AudioSource (2D)
 
 ## Known gaps
 
-- **Sounds bypass BroAudio for now:** each gun plays its clips on its own `AudioSource`, so a sound is cut when the gun is fully holstered or dropped. Moving to BroAudio means swapping the `AudioClip` fields for `SoundID`s and `HeldGun.Play` for `BroAudio.Play`.
-- **Crosshair is a plain dot:** no spread / hit feedback, no hit marker or damage numbers yet. It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
+- **Sound placeholders:** every gun sound is a stand-in clip (see Sounds above); swap the clips on the BroAudio entities, no code or gun asset changes needed.
+- **Crosshair is a plain dot** with a hit marker round it (no spread indicator). It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
+- **Nothing in `Prototype.unity` takes damage yet:** the wander capsules aren't damageable and the scene has no `TargetDummy`, so hit feedback only shows on a dummy you add (`_Debug/TargetDummy`).
+- **Clip authoring gaps** (their tests are marked `[Ignore]` with the reason): MP5 / pistol left-hand free control is ~1° off the magazine grip at the 0.145 switch; the AK47's is ~5.5° off the forend at 0.02; the DoubleBarrel's free hand is ~5 cm / 9° off the shell grip at 0.28 and its hinge curve overshoots ~0.5° after closing. Fix the keys in the Animation window (script edits of these clips re-tangent or rebind them), then drop the `Ignore`s in `WeaponAnimationTests`.
 - **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.
 - **No dry-fire click** when the magazine and reserve are empty.
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
 - **Shotguns have no damage falloff**: each pellet does full damage until the bullet's `Range`; spread alone thins hits at distance. No shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
 - Held weapons and muzzle flashes render through the weapon overlay camera. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
-- **Melee:** no hit-stop, hit marker or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).
+- **Melee:** no hit-stop or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).
 
 
 ## Gun jam clearing and QTE
@@ -210,7 +213,7 @@ For an Editor trial, enter Play, equip any of the five guns, select its spawned 
 
 Repair impact audio follows a stepped `_repairImpactCount` float curve on GunAnimation in each repair clip. It starts at zero and increments once at each contact (short: 0.8, 1.7, 2.8 seconds; long: 0.8, 1.7, 3.0, 4.0 seconds). A second stepped curve, `_repairPunch`, is 1 from each punch's approach and 0 for slaps (`GunAnimation.ImpactIsPunch`). Slaps take 0.12 seconds from wind-up; punches close the hand into a fist during the wind-up, come from higher and land in 0.09 seconds with a bigger gun reaction. Gameplay duration still scales the full clip through ActionProgress; changing duration keeps the markers synchronized with the hand. Move the counter keys with the contact keys when editing a clip. These are sampled markers, not Unity AnimationEvents, because this graph samples clips manually.
 
-GunAnimation announces each newly crossed marker once through the local RepairSlapped event, including markers skipped by a slow frame. HeldGun plays a random Gun.Sounds.RepairSlaps clip (RepairPunches at RepairPunchVolume for punches) on the existing gun AudioSource at Sounds.Volume * RepairSlapVolume, adds the matching gun jolt and publishes a GunJamBeat. All five guns start with the existing Malbers Hit2 and Wood Impact SFX as replaceable impact variations; their source assets are untouched. The bolt and magazine remain stationary during repair. No new impacts fire during pause, interruption or the QTE return. Audio remains presentation-only and cannot complete the jam.
+GunAnimation announces each newly crossed marker once through the local RepairSlapped event, including markers skipped by a slow frame. HeldGun plays the gun's `Sounds.RepairSlap` entity (`RepairPunch` for punches, falling back to the slap), which picks a random clip at the entity's volume, adds the matching gun jolt and publishes a GunJamBeat. All five guns share the `RepairSlap` (Malbers Hit2, Wood Impact) and `RepairPunch` (Hit1, Hit3, Highlands Metal Shield 1) entities as replaceable impact variations. The bolt and magazine remain stationary during repair. No new impacts fire during pause, interruption or the QTE return. Audio remains presentation-only and cannot complete the jam.
 
 `AgentScripts/RepairQteSetup.OtherGuns` creates independent profiles/challenges and assigns impact SFX for the four later guns. `Ak47Animations.UpdateRepairing(weapon)` regenerates only that gun's slap/punch repair clips/overrides (`RenderRepairAt(weapon, progress[])` renders review frames to Temp), preserving its reload, firing, cycling, pose and vendor-source assets.
 
@@ -222,7 +225,7 @@ All five repair profiles reference Data/Weapons/RepairFeedback.asset. Duplicate 
 | --- | --- | --- | --- |
 | Jammed | Jam click, `JamJolt` wobble | small jolt | — |
 | Dry fire (pull while stuck) | DryFire click, `DryFireJolt` twitch | tiny bump | — |
-| Slap / punch | RepairSlaps / RepairPunches, `SlapJolt` / `PunchJolt` | small / medium shake; the punch adds a 35 ms hit stop at 0.1× | — |
+| Slap / punch | `RepairSlap` / `RepairPunch` entities, `SlapJolt` / `PunchJolt` | small / medium shake; the punch adds a 35 ms hit stop at 0.1× | — |
 | QTE miss | MissSound + dull `MissAccent` thud, `MissJolt` fumble wobble; +0.5 s repair | sideways recoil shake | red flash, 22 px shake + squash over 0.4 s |
 | QTE success | metal `SuccessSound` hit + `SuccessAccent` chime, then `SuccessMechanism` (bolt home) after 0.12 s; strong `SuccessJolt` | big shake + 80 ms hit stop at 0.05× | full green widget, 150% punch, ring to 260%, 0.32 s hold, 1 s total |
 | Natural completion | quieter `NaturalSound` | light bump | 0.18 s fade |
@@ -233,6 +236,6 @@ Camera: the player's `PlayerCinemachineCamera` has a `CinemachineImpulseListener
 
 TimingQteSession tracks total lifetime separately from pointer movement. A miss holds the pointer for MissPauseDuration, rejects presses during the hold, then relocates the green zone and resumes from the held position. Green-zone width remains unchanged; the random position excludes a band around the previous position using MinimumZoneShift, clamped for wide zones. With OneAttemptPerCycle enabled, the next accepted attempt remains on the next fill. Standalone timeouts and the owning gun's repair timer keep advancing during pointer holds. Zone relocation can be disabled and a zero hold is supported.
 
-RepairFeedbackSettings exposes all durations, colors, scale/shake/squash strengths, the six gun jolts and the AudioClip/volume assignments. HeldGun uses its existing gun AudioSource for these cosmetics, publishes GunJamBeat (Jammed, DryFire, Slap, Punch, Miss) and GunRepairCompleted with owner/item, and adds the active jolt to the existing recoil pivot on scaled time (a hit stop slows it too). It does not change gameplay recoil. UI listens to completion and QteAttempted events; services never reference feedback libraries. IQteSession.Press returns Ignored/Miss/Success, and QuickTimeService publishes QteAttempted only for accepted attempts so repeated input in a locked cycle cannot spam feedback. Cancellation is separate from a missed attempt.
+RepairFeedbackSettings exposes all durations, colors, scale/shake/squash strengths, the six gun jolts and the result sounds (SoundIDs into `Data/Audio/RepairFeedback/`, each entity holding its own volume). The repair's QTE rules live in `GunRepairFlow` (plain C#: start at `QteStartProgress`, early finish on success, miss penalty, interrupt on cancel); HeldGun presents them: plays the sounds, publishes GunJamBeat (Jammed, DryFire, Slap, Punch, Miss), GunRepairQteStarted (owner, item, session, feedback preset) and GunRepairCompleted with owner/item, and adds the active jolt to the existing recoil pivot on scaled time (a hit stop slows it too). It does not change gameplay recoil. The HUD only listens to those gun events; it never reads the gun. IQteSession.Press returns Ignored/Miss/Success, and QuickTimeService publishes QteAttempted only for accepted attempts so repeated input in a locked cycle cannot spam feedback. Cancellation is separate from a missed attempt.
 
 AgentScripts/RepairJuiceSetup.All (re)builds the impulse listener, reaction noise and `Player/GunJamFeedback` players, assigns the jam/punch/success/miss clips, writes the jolt defaults and each profile's jam pause and miss penalty. RepairJuiceChecks.Live verifies the jam pause, slap → punch beats, camera shake, miss penalty and success hit stop in Play mode (captures in Temp/RepairJuice; set `Application.runInBackground` first or the editor won't tick). AgentScripts/RepairFeedbackSetup.Apply wires the shared preset and pre-placed HUD burst without rebuilding weapon clips. Enhance applies the stronger result settings and per-gun pointer-hold/zone-shift defaults. RepairFeedbackChecks.Live verifies miss/spam, held pointer with continuing repair, zone relocation, success hold or natural completion, cancellation, audio start, weapon kick, pause and cleanup in Play mode and writes review captures under Temp/RepairFeedback.

@@ -4,13 +4,14 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.Debugging
 {
-    // Shooting-range target: logs each hit and heals back to full when emptied, so it never runs out.
-    // Knockback tips it away from the hit and it springs back upright.
+    // Shooting-range target: logs each hit and heals back to full when emptied (that hit counts as a kill), so it never
+    // runs out. Knockback tips it away from the hit, every hit adds a small flinch, and it springs back upright.
     public sealed class TargetDummy : MonoBehaviour, IDamageable
     {
         [SerializeField, Min(1f)] float _maxHealth = 100f;
         [SerializeField, Tooltip("Tipped by knockback around its own pivot; empty = this transform")] Transform _body;
         [SerializeField, Min(0f), Tooltip("Degrees of tip per N·s of knockback")] float _tipPerForce = 6f;
+        [SerializeField, Min(0f), Tooltip("Degrees of tip from any hit, away from where it landed")] float _flinch = 4f;
         [SerializeField, Min(0f)] float _maxTip = 35f;
         [SerializeField, Min(0f)] float _stiffness = 120f;
         [SerializeField, Min(0f)] float _damping = 9f;
@@ -32,17 +33,22 @@ namespace Aipocalypse.Core.Debugging
             _rest = _body.localRotation;
         }
 
-        public void TakeDamage(in DamageInfo info)
+        public DamageResult TakeDamage(in DamageInfo info)
         {
-            _health.Damage(info.Amount);
+            float applied = _health.Damage(info.Amount);
+            bool emptied = _health.IsDead;
             Debug.Log($"{name}: hit for {info.Amount} ({info.Type}), {_health.Current}/{_health.Max}", this);
-            if (_health.IsDead)
+            if (emptied)
                 _health.Restore();
 
             Vector3 push = Vector3.ProjectOnPlane(info.Force, Vector3.up);
-            // Kick speed for a peak of about push * _tipPerForce degrees (an undamped spring peaks at v / sqrt(k)).
-            if (push.sqrMagnitude > 0.0001f)
-                _tipVelocity += Vector3.Cross(Vector3.up, push.normalized) * (push.magnitude * _tipPerForce * Mathf.Sqrt(_stiffness));
+            Vector3 away = Vector3.ProjectOnPlane(_body.position - info.Point, Vector3.up);
+            // Kick speeds for a peak of about the wanted degrees (an undamped spring peaks at v / sqrt(k)).
+            float kick = push.magnitude * _tipPerForce + _flinch;
+            Vector3 direction = push.sqrMagnitude > 0.0001f ? push.normalized : away.sqrMagnitude > 0.0001f ? away.normalized : Vector3.zero;
+            if (direction != Vector3.zero)
+                _tipVelocity += Vector3.Cross(Vector3.up, direction) * (kick * Mathf.Sqrt(_stiffness));
+            return new DamageResult(applied, emptied);
         }
 
         void Update()

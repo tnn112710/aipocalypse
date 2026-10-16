@@ -47,6 +47,7 @@ namespace Aipocalypse.Core.PlayerSystem
         // Ground speed scale set by the player each frame (slower while aiming down sights).
         public float SpeedMultiplier { get; set; } = 1f;
 
+        public event Action Jumped;
         public event Action<LandingInfo> Landed;
 
         public PlayerMotor(CharacterController controller, PlayerTuning tuning, IStatProvider stats, Stamina stamina)
@@ -155,6 +156,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _isJumping = true;
             _timeSinceStableGround = float.PositiveInfinity;
             _stamina.Spend(_stats.Get(StatId.JumpStaminaCost, _tuning.JumpStaminaCost));
+            Jumped?.Invoke();
             return true;
         }
 

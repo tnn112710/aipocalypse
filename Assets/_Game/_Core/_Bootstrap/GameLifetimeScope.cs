@@ -14,7 +14,8 @@ namespace Aipocalypse.Core.Bootstrap
         bool _strict;
         [SerializeField] AstarPath _navigation;
         [SerializeField] WanderSettings _wanderSettings;
-        [SerializeField] EnemyBrain[] _enemies = System.Array.Empty<EnemyBrain>();
+        [SerializeField, Tooltip("Enemies placed in this scene, injected when the scope builds. Spawned enemies are injected by their spawner")]
+        EnemyBrain[] _enemies = System.Array.Empty<EnemyBrain>();
 
         public bool Strict => _strict;
 

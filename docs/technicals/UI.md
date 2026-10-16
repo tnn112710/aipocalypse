@@ -146,12 +146,22 @@ InteractPrompt               InteractPromptView component
 4. Add the scripts to [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
 
+## Hit feedback
+
+`HitFeedbackHud` sits on `SafeFrame/Center/Crosshair/HitMarker` (an X of four 2.5×9 px ticks round the dot, in a CanvasGroup). It subscribes to `DamageDealt` and reacts only to hits whose `Info.Source` is the active player (not the player hurting itself):
+
+- **Marker:** pops to 1.3× and fades over 0.18 s; on a kill it turns red, pops to 1.8× and fades over 0.4 s. Unscaled time, so a hit stop doesn't freeze it. Several hits in one frame (shotgun pellets) mark once; a kill among them wins.
+- **Sound:** `Combat/HitMarker` or `Combat/KillConfirm` BroAudio entities, once per frame.
+- **Damage number:** `Prefabs/Widgets/DamageNumber.prefab` (Damage Numbers Pro mesh number, 3D, constant screen size, 0.8 s, combines rapid hits, pooled 40, prewarmed on Start) at the hit point; red on a kill. Its font is the first-party copy `Data/UI/DamageNumberFont.asset` (DNP's setup rewrites its font's material, so the vendor asset stays untouched).
+
+Colors, durations and pop sizes are on the component (no style asset yet).
+
 ## Repair QTE
 
 HUD.prefab has a nested Canvas at SafeFrame/Center/RepairQte. Its centre anchor is offset (-80, -60) at the 1920x1080 reference resolution, placing a compact widget beside the gun near the screen centre. The circle is 112x112; the bar is 210x20. A small R key cap sits below the selected view. The panel, title, hint and remaining-time strip are disabled. RepairQteHud shows Content while a repair QTE is active and briefly during completion feedback; there is no initial prompt or result popup.
 
 Circle and bar are TimingQteView components behind QteView. Their IDs match the challenge's Presentations list; leave one ID to force that view. The fill/marker show cycle progress and the green segment shows the success interval. A missed attempt flashes red, shakes the widget by 22 reference pixels and squashes it by 18% over 0.4 seconds (the repair also gets 0.5 s longer, see WEAPONS.md). The pointer holds for 0.24 seconds, then the green zone relocates before the pointer resumes from the same position; the fill remains in its miss color until the next pass. Success fills the whole widget green, hides its pointer/key cap, punches to 150% scale and sends an expanding ring outward to 260%. It settles and holds for 0.32 seconds before fading, for a total one-second result. Automatic completion fades it over 0.18 seconds. Cancellation hides it immediately without result feedback. Ignoring it has no effect on repair timing.
 
-The Content CanvasGroup fades the whole widget and its pre-placed SuccessBurst image supplies the ring. RepairQteHud subscribes to QteAttempted and GunRepairCompleted through MessagePipe, filters to the active player's held gun, and keeps the last session only for its completion animation. QteView.Flash and DisplaySuccess are presentation hooks for current and future widgets. DOTween sequences use unscaled time (so a success hit stop doesn't freeze them), stop/reset on disable, unbind, input lock, death or weapon changes, and hide while paused. RepairFeedback.asset supplies colors, timing and strength through each gun's repair profile; duplicate the preset for a per-gun variation. Pointer holds and green-zone movement belong to TimingQteChallenge, shared by both visual layouts.
+The Content CanvasGroup fades the whole widget and its pre-placed SuccessBurst image supplies the ring. RepairQteHud listens to gun events only: GunRepairQteStarted (shows the session with that gun's feedback preset), GunJamBeat Miss (shake and flash) and GunRepairCompleted (success burst or fade), all filtered to the active player. It hides when the QTE session ends without a result, or when the held item changes. QteView.Flash and DisplaySuccess are presentation hooks for current and future widgets. DOTween sequences use unscaled time (so a success hit stop doesn't freeze them), stop/reset on disable, unbind, input lock, death or weapon changes, and hide while paused. Idle frames skip all work. RepairFeedback.asset supplies colors, timing and strength through each gun's repair profile; duplicate the preset for a per-gun variation. Pointer holds and green-zone movement belong to TimingQteChallenge, shared by both visual layouts.
 
 RepairQteStyle.asset owns Synty Apocalypse ring/bar art, the Interface Core key cap, colors and the first-party RepairQteFont.asset copy. The copy owns its material, atlas and generated glyph data. Layout stays in the HUD prefab. Graphics are not raycast targets; InputService owns the Reload confirmation input. Vendor prefabs and sample scripts are not used. Rules and tuning are in WEAPONS.md.

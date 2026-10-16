@@ -1,4 +1,5 @@
 using System;
+using Ami.BroAudio;
 using UnityEngine;
 
 namespace Aipocalypse.Core.WeaponSystem
@@ -18,14 +19,14 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Duration => WindUp + Recovery;
     }
 
-    // Played on the weapon's own AudioSource. Empty clips stay silent.
+    // BroAudio entities (Data/Audio/Melee), played 2D for the holder. Unset ids stay silent.
     [Serializable]
     public sealed class MeleeSounds
     {
-        [Range(0f, 1f)] public float Volume = 1f;
-        [Tooltip("When it starts being raised")] public AudioClip Equip;
-        public AudioClip Swing;
-        [Tooltip("Hit something that takes damage")] public AudioClip HitFlesh;
-        [Tooltip("Hit anything else")] public AudioClip HitSurface;
+        [Range(0f, 1f), Tooltip("Scales every sound of this weapon")] public float Volume = 1f;
+        [Tooltip("When it starts being raised")] public SoundID Equip;
+        public SoundID Swing;
+        [Tooltip("Hit something that takes damage")] public SoundID HitFlesh;
+        [Tooltip("Hit anything else")] public SoundID HitSurface;
     }
 }

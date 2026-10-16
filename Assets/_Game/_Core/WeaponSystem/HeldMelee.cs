@@ -1,5 +1,7 @@
+using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EquipmentSystem;
+using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -12,7 +14,6 @@ namespace Aipocalypse.Core.WeaponSystem
     public sealed class HeldMelee : HeldItem
     {
         [SerializeField, Tooltip("Moved to the active pose; parent of the model")] Transform _posePivot;
-        [SerializeField, Tooltip("2D source for the weapon's own sounds")] AudioSource _audio;
 
         [BoxGroup("Poses"), SerializeField, Tooltip("Siblings of the pose pivot; move them to pose the weapon")] Transform _idlePose;
         [BoxGroup("Poses"), SerializeField, Tooltip("Raised, ready to strike")] Transform _windUpPose;
@@ -29,6 +30,8 @@ namespace Aipocalypse.Core.WeaponSystem
         readonly RaycastHit[] _hits = new RaycastHit[16];
 
         EffectPool _effects;
+        DamageService _damage;
+        AudioService _audio;
         IWeaponUser _user;
         MeleeDefinition _definition;
         MeleeAttack _attack;
@@ -46,7 +49,12 @@ namespace Aipocalypse.Core.WeaponSystem
         public override bool KeepsClear => _attack == null || _attack.Phase == SwingPhase.None;
 
         [Inject]
-        void Construct(EffectPool effects) => _effects = effects;
+        void Construct(EffectPool effects, DamageService damage, AudioService audio)
+        {
+            _effects = effects;
+            _damage = damage;
+            _audio = audio;
+        }
 
         protected override void OnBound()
         {
@@ -137,8 +145,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             Vector3 force = eye.forward * swing.Knockback;
             IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            if (target != null && !target.IsDead)
-                target.TakeDamage(new DamageInfo(swing.Damage, DamageType.Melee, hit.point, force));
+            _damage?.Deal(target, new DamageInfo(swing.Damage, DamageType.Melee, hit.point, force, _user.Root.gameObject));
 
             Rigidbody body = hit.rigidbody;
             if (body != null && !body.isKinematic)
@@ -175,11 +182,7 @@ namespace Aipocalypse.Core.WeaponSystem
             return true;
         }
 
-        void Play(AudioClip clip)
-        {
-            if (clip != null && _audio != null)
-                _audio.PlayOneShot(clip, _definition.Sounds.Volume);
-        }
+        void Play(SoundID sound) => _audio?.Play(sound, _definition.Sounds.Volume);
 
         void UpdatePose(bool sprinting, float deltaTime)
         {

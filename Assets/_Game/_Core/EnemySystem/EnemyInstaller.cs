@@ -1,28 +1,34 @@
-using Pathfinding;
 using VContainer;
 using VContainer.Unity;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    public sealed class EnemyInstaller
+    // Scene-scope enemy services. Enemies placed in the scene are injected when the scope builds; spawners inject their own.
+    public sealed class EnemyInstaller : IInstaller
     {
-        readonly EnemyBrain[] _enemies;
+        readonly EnemyBrain[] _sceneEnemies;
         readonly AstarPath _navigation;
         readonly WanderSettings _settings;
 
-        public EnemyInstaller(EnemyBrain[] enemies, AstarPath navigation, WanderSettings settings)
+        public EnemyInstaller(EnemyBrain[] sceneEnemies, AstarPath navigation, WanderSettings settings)
         {
-            _enemies = enemies;
+            _sceneEnemies = sceneEnemies;
             _navigation = navigation;
             _settings = settings;
         }
 
         public void Install(IContainerBuilder builder)
         {
-            builder.RegisterInstance(_enemies);
             builder.RegisterInstance(_navigation);
             builder.RegisterInstance(_settings);
+            builder.Register<EnemyRegistry>(Lifetime.Singleton);
             builder.RegisterEntryPoint<EnemyManager>();
+            builder.RegisterBuildCallback(resolver =>
+            {
+                foreach (EnemyBrain enemy in _sceneEnemies)
+                    if (enemy != null)
+                        resolver.InjectGameObject(enemy.gameObject);
+            });
         }
     }
 }

@@ -15,8 +15,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // The jam-repair QTE for the active player's held gun: picks a QteView for the session, shakes on a miss, and plays
-    // the success burst or a fade when the repair ends.
+    // The jam-repair QTE of the active player's held gun, from gun events only: shown on GunRepairQteStarted, shakes on a
+    // Miss beat, plays the success burst or a fade on GunRepairCompleted. Hidden when the QTE ends or the gun is put away.
     public sealed class RepairQteHud : PlayerHudView
     {
         [SerializeField] QteStyle _style;
@@ -30,11 +30,11 @@ namespace Aipocalypse.Core.UI
         QuickTimeService _qte;
         TimeService _time;
         InputService _input;
-        IDisposable _attempts;
-        IDisposable _repairs;
+        IDisposable _subscriptions;
         Tween _feedbackTween;
         IQteSession _displayedSession;
         ItemInstance _displayedItem;
+        RepairFeedbackSettings _feedback;
         QteView _selected;
         bool _finishing;
         bool _successful;
@@ -55,14 +55,16 @@ namespace Aipocalypse.Core.UI
         }
 
         [Inject]
-        void Construct(QuickTimeService qte, TimeService time, InputService input,
-            ISubscriber<QteAttempted> attempts, ISubscriber<GunRepairCompleted> repairs)
+        void Construct(QuickTimeService qte, TimeService time, InputService input, ISubscriber<GunRepairQteStarted> started,
+            ISubscriber<GunJamBeat> beats, ISubscriber<GunRepairCompleted> repairs)
         {
             _qte = qte;
             _time = time;
             _input = input;
-            _attempts = attempts.Subscribe(OnAttempted);
-            _repairs = repairs.Subscribe(OnRepairCompleted);
+            _subscriptions = DisposableBag.Create(
+                started.Subscribe(OnQteStarted, e => IsMine(e.Owner)),
+                beats.Subscribe(OnMissed, e => e.Kind == GunJamBeatKind.Miss && IsMine(e.Owner)),
+                repairs.Subscribe(OnRepairCompleted, e => IsMine(e.Owner)));
         }
 
         void Awake()
@@ -94,46 +96,22 @@ namespace Aipocalypse.Core.UI
 
         protected override void OnDestroy()
         {
-            _attempts?.Dispose();
-            _repairs?.Dispose();
+            _subscriptions?.Dispose();
             ResetFeedback();
             base.OnDestroy();
         }
 
         void OnDisable() => ResetFeedback();
 
-        void ResetFeedback()
-        {
-            if (_clean)
-                return;
-            _clean = true;
-            _feedbackTween?.Kill();
-            _feedbackTween = null;
-            _finishing = false;
-            _successful = false;
-            _flash = 0f;
-            _displayedSession = null;
-            _displayedItem = null;
-            if (_content == null)
-                return;
-            _content.transform.localScale = _restScale;
-            _content.transform.localPosition = _restPosition;
-            _content.SetActive(false);
-            _keyCap.gameObject.SetActive(true);
-            if (_group != null)
-                _group.alpha = 1f;
-            if (_burst != null)
-                _burst.gameObject.SetActive(false);
-        }
+        bool IsMine(IEquipmentOwner owner) => Player != null && !Player.IsDead && ReferenceEquals(owner, Player);
 
-        void ShowSession()
+        void OnQteStarted(GunRepairQteStarted started)
         {
-            if (ReferenceEquals(_displayedSession, _qte.Session))
-                return;
             ResetFeedback();
             _clean = false;
-            _displayedSession = _qte.Session;
-            _displayedItem = HeldInstance;
+            _displayedSession = started.Session;
+            _displayedItem = started.Item;
+            _feedback = started.Feedback;
             _selected = null;
             foreach (QteView view in _views)
                 if (view.CanDisplay(_displayedSession) && (_selected == null || view.PresentationId == _qte.Presentation))
@@ -142,38 +120,29 @@ namespace Aipocalypse.Core.UI
                 view.gameObject.SetActive(view == _selected);
         }
 
-        void OnAttempted(QteAttempted attempt)
+        void OnMissed(GunJamBeat beat)
         {
-            if (attempt.Result != QteAttemptResult.Miss || Player == null || Player.IsDead ||
-                Player.HeldItem is not HeldGun held || !_qte.IsActiveFor(held))
+            if (_feedback == null || _displayedSession == null || !ReferenceEquals(beat.Item, _displayedItem))
                 return;
-            RepairFeedbackSettings feedback = held.Gun.Item.Gun.Jam.Feedback;
-            if (feedback == null)
-                return;
-            ShowSession();
             _feedbackTween?.Kill();
             _content.transform.localPosition = _restPosition;
             _content.transform.localScale = _restScale;
             _flash = 1f;
-            _flashColor = feedback.MissColor;
-            float duration = Mathf.Max(0.05f, feedback.MissDuration);
+            _flashColor = _feedback.MissColor;
+            float duration = Mathf.Max(0.05f, _feedback.MissDuration);
             _feedbackTween = DOTween.Sequence()
-                .Append(_content.transform.DOPunchPosition(Vector3.right * feedback.MissShakePixels, duration, 10, 0.7f))
-                .Join(_content.transform.DOPunchScale(-_restScale * feedback.MissSquash, duration * 0.6f, 4, 0.5f))
+                .Append(_content.transform.DOPunchPosition(Vector3.right * _feedback.MissShakePixels, duration, 10, 0.7f))
+                .Join(_content.transform.DOPunchScale(-_restScale * _feedback.MissSquash, duration * 0.6f, 4, 0.5f))
                 .Join(DOTween.To(() => _flash, value => _flash = value, 0f, duration).SetEase(Ease.InQuad))
                 .SetUpdate(true);
         }
 
         void OnRepairCompleted(GunRepairCompleted repair)
         {
-            if (!ReferenceEquals(repair.Owner, Player) || Player == null || Player.IsDead ||
-                !ReferenceEquals(repair.Item, HeldInstance) || repair.Item is not GunInstance item)
-                return;
-            RepairFeedbackSettings feedback = item.Gun.Jam.Feedback;
+            RepairFeedbackSettings feedback = _feedback;
             if (feedback == null || _displayedSession == null || !ReferenceEquals(_displayedItem, repair.Item))
                 return;
             _feedbackTween?.Kill();
-            _clean = false;
             _content.transform.localPosition = _restPosition;
             _content.transform.localScale = _restScale;
             _group.alpha = 1f;
@@ -209,18 +178,39 @@ namespace Aipocalypse.Core.UI
             _feedbackTween = sequence.SetUpdate(true).OnComplete(ResetFeedback);
         }
 
+        void ResetFeedback()
+        {
+            if (_clean)
+                return;
+            _clean = true;
+            _feedbackTween?.Kill();
+            _feedbackTween = null;
+            _finishing = false;
+            _successful = false;
+            _flash = 0f;
+            _displayedSession = null;
+            _displayedItem = null;
+            _feedback = null;
+            if (_content == null)
+                return;
+            _content.transform.localScale = _restScale;
+            _content.transform.localPosition = _restPosition;
+            _content.SetActive(false);
+            _keyCap.gameObject.SetActive(true);
+            if (_group != null)
+                _group.alpha = 1f;
+            if (_burst != null)
+                _burst.gameObject.SetActive(false);
+        }
+
         void LateUpdate()
         {
-            bool allowed = _input != null && _input.GameplayEnabled && Player != null && !Player.IsDead;
-            if (!allowed || (_finishing && !ReferenceEquals(_displayedItem, HeldInstance)))
-            {
-                ResetFeedback();
+            if (_clean)
                 return;
-            }
-            bool active = _qte != null && _qte.IsActive && Player.HeldItem is HeldGun held && _qte.IsActiveFor(held);
-            if (active)
-                ShowSession();
-            if (!active && !_finishing)
+            bool live = _qte != null && ReferenceEquals(_qte.Session, _displayedSession);
+            bool allowed = _input != null && _input.GameplayEnabled && Player != null && !Player.IsDead &&
+                           ReferenceEquals(_displayedItem, HeldInstance);
+            if (!allowed || (!live && !_finishing))
             {
                 ResetFeedback();
                 return;
