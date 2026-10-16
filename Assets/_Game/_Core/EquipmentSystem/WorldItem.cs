@@ -4,7 +4,9 @@ using UnityEngine;
 namespace Aipocalypse.Core.EquipmentSystem
 {
     // An item lying in the world. Interacting stores it in the actor's hotbar, or swaps it with the selected item,
-    // which is dropped in its place. Root of an item's world prefab (ItemDefinition.WorldPrefab) with a trigger collider.
+    // which is dropped in its place. Root of the item's prefab (ItemDefinition.Prefab) with a trigger collider.
+    // Equippables share that prefab with their HeldItem: in the world only the world model shows, in hand
+    // EquipmentRig strips the world parts off a copy.
     [DisallowMultipleComponent]
     public sealed class WorldItem : MonoBehaviour, IInteractable
     {
@@ -14,6 +16,10 @@ namespace Aipocalypse.Core.EquipmentSystem
         [SerializeField, Tooltip("What a scene-placed copy holds. Dropped items carry their own instance instead")]
         ItemDefinition _definition;
 
+        [SerializeField, Tooltip("Child shown only in the world (the model lying on the ground). Every other child is " +
+            "the first-person model and is hidden in the world. Empty = all children show")]
+        GameObject _worldModel;
+
         ItemInstance _item;
         bool _taken;
 
@@ -22,10 +28,10 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         public static WorldItem Spawn(ItemInstance item, Vector3 position, Quaternion rotation, Transform parent)
         {
-            WorldItem prefab = item.Definition.WorldPrefab;
+            WorldItem prefab = item.Definition.Prefab;
             if (prefab == null)
             {
-                Debug.LogError($"{item.Definition.name} has no WorldPrefab; it can't be dropped.", item.Definition);
+                Debug.LogError($"{item.Definition.name} has no Prefab; it can't be dropped.", item.Definition);
                 return null;
             }
 
@@ -33,6 +39,25 @@ namespace Aipocalypse.Core.EquipmentSystem
             worldItem.name = prefab.name;
             worldItem._item = item;
             return worldItem;
+        }
+
+        void Awake()
+        {
+            if (_worldModel == null)
+                return;
+            foreach (Transform child in transform)
+                child.gameObject.SetActive(child.gameObject == _worldModel);
+        }
+
+        // Turns a fresh copy that hasn't woken up yet into a first-person model: removes the world model,
+        // the pickup colliders and this component.
+        internal void StripForHand()
+        {
+            if (_worldModel != null)
+                DestroyImmediate(_worldModel);
+            foreach (Collider pickupCollider in GetComponents<Collider>())
+                DestroyImmediate(pickupCollider);
+            DestroyImmediate(this);
         }
 
         public bool TryGetPrompt(GameObject actor, out InteractionPrompt prompt)

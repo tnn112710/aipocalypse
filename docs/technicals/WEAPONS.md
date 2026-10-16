@@ -109,10 +109,10 @@ AK47, MP5 and pistol reloads separate the old magazine, an animated replacement,
 
 1. **Prefab:** right-click `Prefabs/Guns/Gun_Base.prefab` → Create → Prefab Variant. Drag the store model under `PosePivot/RecoilPivot`, rename it `Model`, turn off its shadows and remove colliders. Move `Muzzle` to the barrel tip (blue axis out of the barrel).
 2. **Poses:** select the gun root, use the **Aim** preview button, and move `Poses/Aim` until the sights sit on the screen centre in the Game view (enter Play mode to check; edits to the prefab in Play mode are lost). Do the same for Hip and Sprint, then press **Hip** before saving.
-3. **Item:** duplicate `Data/Items/AK47.asset` (or Create → Aipocalypse → Items → Gun). Set `DisplayName`, `Icon`, `HeldPrefab` (the variant), Fire / Bullet / Magazine (pick or create an `AmmoType` in `Data/Weapons/`) / Jam / Recoil, and `Effects` (`Data/Weapons/BulletEffects.asset`).
+3. **Item:** duplicate `Data/Items/AK47.asset` (or Create → Aipocalypse → Items → Gun). Set `DisplayName`, `Icon`, `Prefab` (the variant), Fire / Bullet / Magazine (pick or create an `AmmoType` in `Data/Weapons/`) / Jam / Recoil, and `Effects` (`Data/Weapons/BulletEffects.asset`).
 4. **Hands:** add `ItemHands` to the root, `HandGrip`s for the right hand (grip) and left hand (forend), and actions for its mag / bolt ([HANDS.md → Adding hands to an item](HANDS.md#adding-hands-to-an-item)).
-5. **Pickup:** make a world prefab like `AK47_Pickup` (root with `WorldItem` + trigger `BoxCollider`, model lying flat) and assign it to the asset's `WorldPrefab`. Drop copies into a scene.
-5. **New ammo type?** Add its starting amount to `Data/Weapons/AmmoConfig.asset`.
+5. **World side** (same prefab, see [EQUIPMENT.md → One prefab per item](EQUIPMENT.md#one-prefab-per-item)): add `WorldItem` (`_definition` = the asset) and a trigger `BoxCollider` to the root, and a `World` child with the store model lying flat (shadows on); set `WorldItem._worldModel` to it and turn `World` off. Drop copies of the prefab into a scene to place pickups.
+6. **New ammo type?** Add its starting amount to `Data/Weapons/AmmoConfig.asset`.
 
 ### Shotguns
 
@@ -149,7 +149,7 @@ FireAxe                       HeldMelee · AudioSource (2D)
    └─ Model                   the store prefab (shadows off, no colliders)
 ```
 
-**Adding a melee weapon:** duplicate `Prefabs/Melee/FireAxe.prefab`, swap the `Model`, and move the pose markers using the preview buttons (the hit doesn't depend on them, only the look does). Duplicate `Data/Items/FireAxe.asset` (or Create → Aipocalypse → Items → Melee), set `HeldPrefab`, Swing, Sounds and `ImpactEffect`, and make a pickup like `FireAxe_Pickup.prefab`.
+**Adding a melee weapon:** duplicate `Prefabs/Melee/FireAxe.prefab`, swap the `Model`, and move the pose markers using the preview buttons (the hit doesn't depend on them, only the look does). Duplicate `Data/Items/FireAxe.asset` (or Create → Aipocalypse → Items → Melee), set `Prefab`, Swing, Sounds and `ImpactEffect`, and point the root `WorldItem._definition` at the new asset (swap `World/Model` too).
 
 ## Tuning
 

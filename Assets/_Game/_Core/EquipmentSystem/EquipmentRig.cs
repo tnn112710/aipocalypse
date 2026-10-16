@@ -23,6 +23,7 @@ namespace Aipocalypse.Core.EquipmentSystem
         IEquipmentOwner _owner;
         IObjectResolver _resolver;
         HeldItem _current;
+        Transform _staging;
         Vector3 _restPosition;
         Quaternion _restRotation;
 
@@ -131,17 +132,33 @@ namespace Aipocalypse.Core.EquipmentSystem
             HeldItem prefab = item.Equippable.HeldPrefab;
             if (prefab == null)
             {
-                Debug.LogError($"{item.Definition.name} has no HeldPrefab.", item.Definition);
+                Debug.LogError($"{item.Definition.name}: its Prefab has no HeldItem on the root.", item.Definition);
                 return null;
             }
 
-            view = _resolver != null ? _resolver.Instantiate(prefab, _hand, false) : Instantiate(prefab, _hand, false);
+            // Built under an inactive parent so the shared prefab's world parts are stripped before anything wakes up.
+            view = Instantiate(prefab, Staging(), false);
             view.name = prefab.name;
+            _resolver?.InjectGameObject(view.gameObject);
+            if (view.TryGetComponent(out WorldItem worldItem))
+                worldItem.StripForHand();
+            view.transform.SetParent(_hand, false);
             SetLayer(view.transform, _hand.gameObject.layer);
             view.Bind(item, _owner);
             view.gameObject.SetActive(false);
             _views.Add(item, view);
             return view;
+        }
+
+        Transform Staging()
+        {
+            if (_staging != null)
+                return _staging;
+            var staging = new GameObject("Staging");
+            staging.SetActive(false);
+            _staging = staging.transform;
+            _staging.SetParent(transform, false);
+            return _staging;
         }
 
         void Despawn(ItemInstance item)

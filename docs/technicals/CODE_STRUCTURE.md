@@ -47,19 +47,19 @@ Assets/_Game/
 │  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health, tips over from knockback and springs back
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
-│  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, WorldPrefab, CreateInstance
-│  │  ├─ Items/EquippableDefinition.cs      abstract SO: held prefab, equip / holster time
+│  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, Prefab (one per item: world + hand), CreateInstance
+│  │  ├─ Items/EquippableDefinition.cs      abstract SO: equip / holster time; HeldPrefab = the HeldItem on Prefab's root
 │  │  ├─ Items/ItemInstance.cs              one owned item (per-copy state goes in subclasses)
 │  │  ├─ Hotbar.cs                          ≤ 9 slots, category check, SlotChanged, FindNext, FindFreeSlot
 │  │  ├─ EquipmentSwitcher.cs               holster → swap → equip timing (Raise 0..1, SwitchPhase)
 │  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle; pick up (store / swap), DropSelected
 │  │  ├─ PickUpAction.cs                    None / Store / Swap
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
-│  │  ├─ WorldItem.cs                       item lying in the world: IInteractable, picks up / swaps; Spawn for drops
+│  │  ├─ WorldItem.cs                       item lying in the world (on the item prefab's root): IInteractable, picks up / swaps; Spawn for drops; Awake shows only the World child; StripForHand
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
 │  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
-│  │  └─ EquipmentRig.cs                    spawns HeldItems through the resolver (injected), shows the held one, temporary lower/raise pose, TickHeld
+│  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
@@ -133,17 +133,16 @@ Assets/_Game/
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) in the root scope
 │     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun + 2D AudioSource skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
-│     ├─ Prefabs/Guns/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle
-│     ├─ Prefabs/Guns/*_Pickup.prefab       world prefabs: WorldItem + trigger box + model lying flat
+│     ├─ Prefabs/Guns/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle;
+│     │                                     also the pickup: root WorldItem + trigger box, World child = model lying flat
 │     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
 │     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
-│     ├─ Prefabs/Melee/FireAxe.prefab       HeldMelee + 2D AudioSource: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model
-│     └─ Prefabs/Melee/FireAxe_Pickup.prefab  world prefab
+│     └─ Prefabs/Melee/FireAxe.prefab       HeldMelee + 2D AudioSource: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World like the guns
 ├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
 ├─ Data/
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (held + world prefab; weapons hold all their numbers)
+│  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (one prefab each; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
@@ -155,6 +154,7 @@ Assets/_Game/
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
    ├─ WeaponAnimationTests.cs               MP5/pistol/shotgun bindings, scaled hands, automatic Animator pass, contacts and continuity, slap/reset, repeated shell reload and pump cycle, break-action closure
    ├─ HandRigTests.cs                       normal grip compatibility, bounded fist calibration/blending, safe fallback and all guns' punch-contact finger shapes/closure timing
+   ├─ ItemPrefabTests.cs                    every item has one prefab for world + hand; world layout; rig strips world parts
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
@@ -174,7 +174,7 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
              PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerInteractor(cameraPitch, gameObject),
              AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
-               rig spawns held prefabs with resolver.Instantiate → HeldGun.Construct(BulletSystem, EffectPool), HeldMelee.Construct(EffectPool)
+               rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool), HeldMelee.Construct(EffectPool)
                HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil; HeldMelee builds MeleeAttack
            last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
 

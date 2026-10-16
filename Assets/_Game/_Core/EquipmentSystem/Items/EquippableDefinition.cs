@@ -5,8 +5,8 @@ namespace Aipocalypse.Core.EquipmentSystem
     // An item you hold in your hands when its slot is selected (guns, melee, later tools).
     public abstract class EquippableDefinition : ItemDefinition
     {
-        [field: SerializeField, Tooltip("First-person model; its root needs a HeldItem component")]
-        public HeldItem HeldPrefab { get; private set; }
+        // The first-person model: the HeldItem on the root of Prefab.
+        public HeldItem HeldPrefab => Prefab != null ? Prefab.GetComponent<HeldItem>() : null;
 
         [field: SerializeField, Min(0f), Tooltip("Seconds to raise it, before EquipmentConfig.SwitchSpeed")]
         public float EquipTime { get; private set; } = 0.35f;
