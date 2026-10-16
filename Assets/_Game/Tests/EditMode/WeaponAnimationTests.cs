@@ -14,6 +14,36 @@ namespace Aipocalypse.Tests
         GunAnimation _animation;
         Transform _root;
 
+        [TestCase("MP5", false, 3)]
+        [TestCase("MP5", true, 4)]
+        [TestCase("Pistol", false, 3)]
+        [TestCase("Pistol", true, 4)]
+        [TestCase("PumpShotgun", false, 3)]
+        [TestCase("PumpShotgun", true, 4)]
+        [TestCase("DoubleBarrel", false, 3)]
+        [TestCase("DoubleBarrel", true, 4)]
+        public void RepairSlapsAndEarlyReturnWorkForEachWeapon(string name, bool stubborn, int expected)
+        {
+            Load(name);
+            int impacts = 0;
+            _animation.RepairSlapped += () => impacts++;
+            _animation.StartAction(GunAction.ClearingJam, false, stubborn);
+            for (int i = 0; i <= 240; i++)
+                _animation.Tick(1f / 60f, i / 240f);
+            Assert.That(impacts, Is.EqualTo(expected));
+            _animation.StartAction(GunAction.ClearingJam, false, stubborn);
+            _animation.Tick(0.1f, 0.5f);
+            Assert.That(impacts, Is.EqualTo(expected + 2));
+            var hand = _root.Find("Motion/HandTargets/Left");
+            Vector3 start = hand.position;
+            _animation.FinishRepair();
+            _animation.Tick(0.001f, 0f);
+            Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.005f));
+            _animation.Tick(0.4f, 0f);
+            Assert.That(impacts, Is.EqualTo(expected + 2));
+            Assert.That(_animation.State, Is.EqualTo(GunAnimation.Idle));
+        }
+
         void Load(string name)
         {
             _item = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -39,7 +69,7 @@ namespace Aipocalypse.Tests
             var overrides = _animation.GetComponent<Animator>().runtimeAnimatorController as AnimatorOverrideController;
             Assert.That(overrides.runtimeAnimatorController, Is.SameAs(AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
                 "Assets/_Game/_Core/WeaponSystem/Animations/Shared/Gun.controller")));
-            foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "Cycling" })
+            foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "Cycling", "RepairingStubborn", "RepairFocus", "RepairEnd" })
             {
                 var clip = overrides[state];
                 Assert.That(clip.name, Is.EqualTo(name + "_" + state));

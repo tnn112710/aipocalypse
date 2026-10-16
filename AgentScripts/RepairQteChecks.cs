@@ -29,7 +29,7 @@ public static class RepairQteChecks
     public static Task<object> Stage(string presentation="Circle") => StageAsync(presentation).AsTask();
     static async UniTask<object> StageAsync(string presentation)
     {
-        if(!Application.isPlaying || Held?.Gun?.Item.Gun.name!="AK47")throw new InvalidOperationException("Play with AK47 equipped first.");
+        if(!Application.isPlaying || Held?.Gun?.Item.Gun.Jam.Repair==null)throw new InvalidOperationException("Play with a configured gun equipped first.");
         EditorApplication.isPaused=false;
         Application.runInBackground=true;
         var held=Held;
@@ -40,7 +40,7 @@ public static class RepairQteChecks
         try
         {
             held.Gun.Item.SetJammed(true);
-            held.Gun.Item.SetRounds(held.Gun.Item.Gun.Magazine.Size - 3);
+            held.Gun.Item.SetRounds(Mathf.Max(1, held.Gun.Item.Gun.Magazine.Size - 3));
             held.Gun.Tick(new GunInput{IsReady=true,CanFire=true,CanAim=true,Reload=true},0f);
             float start=Time.realtimeSinceStartup;
             float maxHandError=0f;

@@ -142,6 +142,31 @@ public static class RepairQteSetup
         return new{clips=clips.Select(c=>new{c.name,c.length}).ToArray(),definition.Sounds.RepairSlapVolume};
     }
 
+    public static object OtherGuns()
+    {
+        var source=AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/AK47.asset");
+        var results=new List<object>();
+        foreach(string name in new[]{"MP5","Pistol","PumpShotgun","DoubleBarrel"})
+        {
+            string profilePath=Data+"/"+name+"_Repair.asset";
+            string qtePath=Data+"/"+name+"_RepairQte.asset";
+            if(AssetDatabase.LoadAssetAtPath<GunRepairProfile>(profilePath)==null)
+                if(!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(source.Jam.Repair),profilePath))throw new InvalidOperationException("Could not create "+profilePath);
+            if(AssetDatabase.LoadAssetAtPath<QteChallenge>(qtePath)==null)
+                if(!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(source.Jam.Repair.Qte),qtePath))throw new InvalidOperationException("Could not create "+qtePath);
+            var profile=AssetDatabase.LoadAssetAtPath<GunRepairProfile>(profilePath);
+            profile.Qte=AssetDatabase.LoadAssetAtPath<QteChallenge>(qtePath);
+            var gun=AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/"+name+".asset");
+            gun.Jam.Repair=profile;
+            gun.Sounds.RepairSlaps=source.Sounds.RepairSlaps.ToArray();
+            gun.Sounds.RepairSlapVolume=source.Sounds.RepairSlapVolume;
+            EditorUtility.SetDirty(profile);EditorUtility.SetDirty(gun);
+            AssetDatabase.SaveAssetIfDirty(profile);AssetDatabase.SaveAssetIfDirty(gun);
+            results.Add(new{name,profilePath,qtePath,profile.QuickDuration,profile.StubbornDuration,profile.QteStartProgress});
+        }
+        return results;
+    }
+
     public static object IsolateFont()
     {
         const string path="Assets/_Game/Data/UI/RepairQteFont.asset";

@@ -40,6 +40,7 @@ MonoBehaviour:
   <Jam>k__BackingField:
     Chance: 0.01
     ClearTime: 1.2
+    Repair: {fileID: 11400000, guid: 87d2237d34c15a74caff05a73f9b7fe1, type: 2}
   <Recoil>k__BackingField:
     Hip:
       Multiplier: 1
@@ -94,6 +95,10 @@ MonoBehaviour:
     Jam: {fileID: 0}
     ClearJamStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
     ClearJamEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+    RepairSlaps:
+    - {fileID: 8300000, guid: 8df1df53c4baa7a4b9f136e2b96525fd, type: 3}
+    - {fileID: 8300000, guid: b9e0576551c735c428fdd3988f8fc093, type: 3}
+    RepairSlapVolume: 0.55
     CycleStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
     CycleEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
   <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

@@ -370,40 +370,64 @@ public static class Ak47Animations
         return child;
     }
 
-    public static object UpdateRepairing()
+    public static object UpdateRepairing(string weapon = "AK47")
     {
-        var root = PrefabUtility.LoadPrefabContents(GunPath);
+        if (!new[] { "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" }.Contains(weapon))
+            throw new ArgumentException("Unknown gun", nameof(weapon));
+        string directory = Animations + "/" + weapon;
+        var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/" + weapon + ".asset");
+        var root = PrefabUtility.LoadPrefabContents("Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/" + weapon + ".prefab");
         try
         {
             var animationRoot = root.transform.Find("PosePivot/RecoilPivot/AnimationRoot");
             var model = animationRoot.Find("Motion/Weapon");
             var hands = root.GetComponent<ItemHands>();
-            var forend = model.Find("Handguard/LeftGrip");
+            var constraint = animationRoot.Find("Rig/LeftHand").GetComponent<MultiParentConstraint>();
+            var forend = constraint.data.sourceObjects[0].transform;
             var c = new Context {
+                Name = weapon,
                 Root = animationRoot, Motion = animationRoot.Find("Motion"), Model = model,
-                Magazine = model.Find("Magazine"), Replacement = model.Find("ReplacementMagazine"), Bolt = model.Find("Bolt"),
+                Magazine = model.Find("Magazine"), Replacement = model.Find("ReplacementMagazine"), Bolt = model.Find(weapon == "Pistol" ? "Slide" : "Bolt"),
                 Free = animationRoot.Find("Motion/Controls/LeftFree"), Left = hands.GetDefault(HandSide.Left),
                 LeftConstraint = animationRoot.Find("Rig/LeftHand").GetComponent<MultiParentConstraint>(),
                 Forend = new Pose { P = model.InverseTransformPoint(forend.position), R = Quaternion.Inverse(model.rotation) * forend.rotation,
                     Shape = hands.GetDefault(HandSide.Left).Shape }
             };
-            c.BoltRest = c.Bolt.localPosition;
+            c.BoltRest = c.Bolt != null ? c.Bolt.localPosition : Vector3.zero;
+            if (weapon != "AK47")
+                c.SlapPoint = weapon == "Pistol" ? new Vector3(-.035f,.04f,.02f) : new Vector3(-.045f,weapon == "MP5" ? .10f : .06f,.10f);
+            var source = AssetDatabase.LoadAssetAtPath<AnimationClip>(directory + "/" + weapon + "_Repairing.anim");
+            if (source == null) throw new InvalidOperationException("Convert the gun to clips first.");
+            var overrides = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(directory + "/" + weapon + ".overrideController");
+            AnimationClip Clip(string state)
+            {
+                string path = directory + "/" + weapon + "_" + state + ".anim";
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+                if (clip == null)
+                {
+                    clip = Object.Instantiate(source);
+                    clip.name = weapon + "_" + state;
+                    AssetDatabase.CreateAsset(clip,path);
+                }
+                overrides[state] = clip;
+                return clip;
+            }
             foreach (string state in new[] { "Repairing", "RepairingStubborn" })
             {
-                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_" + state + ".anim");
-                if (clip == null) continue;
-                Undo.RegisterCompleteObjectUndo(clip, "AK47 receiver slap");
-                RepairSlaps(clip, c, clip.length, state == "Repairing" ? 3 : 4);
+                var clip = Clip(state);
+                Undo.RegisterCompleteObjectUndo(clip, weapon + " repair slaps");
+                float duration = state == "Repairing" ? definition.Jam.Repair.QuickDuration : definition.Jam.Repair.StubbornDuration;
+                RepairSlaps(clip, c, duration, state == "Repairing" ? 3 : 4);
                 EditorUtility.SetDirty(clip);
                 AssetDatabase.SaveAssetIfDirty(clip);
             }
-            var source = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_Repairing.anim");
             foreach (string state in new[] { "RepairFocus", "RepairEnd" })
             {
-                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_" + state + ".anim");
-                if (clip == null) continue;
-                Undo.RegisterCompleteObjectUndo(clip, "AK47 slap recovery");
-                float duration = clip.length;
+                string path = directory + "/" + weapon + "_" + state + ".anim";
+                var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+                float duration = existing != null ? existing.length : state == "RepairFocus" ? .8f : .28f;
+                var clip = Clip(state);
+                Undo.RegisterCompleteObjectUndo(clip, weapon + " slap recovery");
                 foreach (var binding in AnimationUtility.GetCurveBindings(source))
                 {
                     var original = AnimationUtility.GetEditorCurve(source, binding);
@@ -418,7 +442,9 @@ public static class Ak47Animations
                 EditorUtility.SetDirty(clip);
                 AssetDatabase.SaveAssetIfDirty(clip);
             }
-            return "AK47 repair clips contain 3/4 fast receiver slaps with synchronized impact markers. Durations and QTE settings preserved.";
+            EditorUtility.SetDirty(overrides);
+            AssetDatabase.SaveAssetIfDirty(overrides);
+            return weapon + " repair clips contain 3/4 fast slaps, impact markers and per-gun recovery overrides.";
         }
         finally { PrefabUtility.UnloadPrefabContents(root); }
     }
