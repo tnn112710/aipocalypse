@@ -133,12 +133,15 @@ namespace Aipocalypse.Core.UI
             ShowSession();
             _feedbackTween?.Kill();
             _content.transform.localPosition = _restPosition;
+            _content.transform.localScale = _restScale;
             _flash = 1f;
             _flashColor = feedback.MissColor;
             float duration = Mathf.Max(0.05f, feedback.MissDuration);
             _feedbackTween = DOTween.Sequence()
-                .Append(_content.transform.DOPunchPosition(Vector3.right * feedback.MissShakePixels, duration, 8, 0.8f))
-                .Join(DOTween.To(() => _flash, value => _flash = value, 0f, duration));
+                .Append(_content.transform.DOPunchPosition(Vector3.right * feedback.MissShakePixels, duration, 10, 0.7f))
+                .Join(_content.transform.DOPunchScale(-_restScale * feedback.MissSquash, duration * 0.6f, 4, 0.5f))
+                .Join(DOTween.To(() => _flash, value => _flash = value, 0f, duration).SetEase(Ease.InQuad))
+                .SetUpdate(true);
         }
 
         void OnRepairCompleted(GunRepairCompleted repair)
@@ -181,7 +184,8 @@ namespace Aipocalypse.Core.UI
             }
             else
                 sequence.Append(_group.DOFade(0f, Mathf.Max(0.05f, feedback.NaturalFadeDuration)));
-            _feedbackTween = sequence.OnComplete(ResetFeedback);
+            // Real time, so the success hit stop doesn't freeze the widget.
+            _feedbackTween = sequence.SetUpdate(true).OnComplete(ResetFeedback);
         }
 
         void LateUpdate()

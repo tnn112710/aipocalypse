@@ -12,23 +12,56 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 550257f729c5a3949962fc80140a2e59, type: 3}
   m_Name: RepairFeedback
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.RepairFeedbackSettings
+  JamJolt:
+    Position: {x: 0, y: -0.006, z: 0.012}
+    Euler: {x: 3, y: -1.5, z: 4}
+    Duration: 0.35
+    Wobbles: 2
+  DryFireJolt:
+    Position: {x: 0, y: 0, z: -0.004}
+    Euler: {x: -0.8, y: 0, z: 0.6}
+    Duration: 0.12
+    Wobbles: 0
+  SlapJolt:
+    Position: {x: 0.004, y: -0.003, z: 0}
+    Euler: {x: -1, y: 1.5, z: -2}
+    Duration: 0.18
+    Wobbles: 0
+  PunchJolt:
+    Position: {x: 0.007, y: -0.006, z: 0.004}
+    Euler: {x: -2, y: 3, z: -4}
+    Duration: 0.24
+    Wobbles: 1.5
   SuccessColor: {r: 0.5, g: 1, b: 0.64, a: 1}
-  MissColor: {r: 1, g: 0.36, b: 0.18, a: 1}
   SuccessDuration: 1
   SuccessHold: 0.32
-  SuccessScale: 1.35
-  BurstScale: 2.1
-  MissDuration: 0.3
-  MissShakePixels: 12
-  NaturalFadeDuration: 0.18
-  WeaponKickDuration: 0.32
-  WeaponKickPosition: {x: 0, y: 0.004, z: -0.018}
-  WeaponKickEuler: {x: -2.3, y: 0.5, z: 0.9}
-  SuccessSound: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
-  SuccessVolume: 1
+  SuccessScale: 1.5
+  BurstScale: 2.6
+  SuccessJolt:
+    Position: {x: 0, y: 0.008, z: -0.03}
+    Euler: {x: -5, y: 1.5, z: 2.5}
+    Duration: 0.4
+    Wobbles: 0
+  SuccessSound: {fileID: 8300000, guid: 162a73b58076a7f418cc0c25f2f37e78, type: 3}
+  SuccessVolume: 0.75
   SuccessAccent: {fileID: 8300000, guid: a74b75e6be642da4a96b308cb8d307ad, type: 3}
   AccentVolume: 0.65
+  SuccessMechanism: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+  MechanismVolume: 1
+  MechanismDelay: 0.12
+  MissColor: {r: 1, g: 0.2, b: 0.12, a: 1}
+  MissDuration: 0.4
+  MissShakePixels: 22
+  MissSquash: 0.18
+  MissJolt:
+    Position: {x: -0.006, y: -0.01, z: 0.006}
+    Euler: {x: 4, y: -4, z: 7}
+    Duration: 0.45
+    Wobbles: 2.5
   MissSound: {fileID: 8300000, guid: 5eb06b5e7e9d0ae408b348ee6de52f1b, type: 3}
-  MissVolume: 0.5
+  MissVolume: 0.8
+  MissAccent: {fileID: 8300000, guid: 26c0f28f187852c4496645092aed979d, type: 3}
+  MissAccentVolume: 0.9
+  NaturalFadeDuration: 0.18
   NaturalSound: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
   NaturalVolume: 0.45

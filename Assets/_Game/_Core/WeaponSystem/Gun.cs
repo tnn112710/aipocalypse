@@ -38,6 +38,9 @@ namespace Aipocalypse.Core.WeaponSystem
 
         float _actionTime;
         float _repairDuration;
+        float _repairPenalty;
+        // Time spent jammed before clearing starts.
+        float _jamTime;
         // Survives an interrupted cycle, so the pump finishes when the gun is raised again.
         bool _needsCycle;
         // Per-round reload: the trigger was pulled, so stop once the round going in is loaded.
@@ -46,6 +49,8 @@ namespace Aipocalypse.Core.WeaponSystem
         // One per shot that used a round. A shotgun shot is one event; HeldGun spawns its pellets.
         public event Action Fired;
         public event Action Jammed;
+        // The trigger was pulled on a jammed gun before clearing started.
+        public event Action DryFired;
         public event Action<GunAction> ActionStarted;
         // Per-round reload: each round going in.
         public event Action RoundLoaded;
@@ -88,6 +93,8 @@ namespace Aipocalypse.Core.WeaponSystem
             }
 
             TickAction(deltaTime);
+            if (_item.IsJammed && Action == GunAction.None)
+                _jamTime += deltaTime;
             if (Action == GunAction.Reloading && _definition.Magazine.Reload == ReloadType.PerRound &&
                 input.TriggerPressed && input.CanFire)
                 _stopReload = true;
@@ -101,6 +108,8 @@ namespace Aipocalypse.Core.WeaponSystem
             bool keepsClick = Action == GunAction.Cycling || (Action == GunAction.Reloading && _stopReload);
             if ((Action != GunAction.None && !keepsClick) || !input.CanFire || _item.IsJammed)
             {
+                if (_item.IsJammed && Action == GunAction.None && input.TriggerPressed && input.CanFire)
+                    DryFired?.Invoke();
                 _trigger.Cancel();
                 return;
             }
@@ -119,6 +128,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 if (_random() < _definition.Jam.Chance)
                 {
                     _item.SetJammed(true);
+                    _jamTime = 0f;
                     _trigger.Cancel();
                     Jammed?.Invoke();
                     break;
@@ -141,6 +151,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public void Interrupt()
         {
             IsAiming = false;
+            _jamTime = 0f;
             _trigger.Cancel();
             if (Action != GunAction.None)
                 EndAction(false);
@@ -155,11 +166,27 @@ namespace Aipocalypse.Core.WeaponSystem
             return true;
         }
 
+        // Adds time to what's left of a repair by slowing its remainder, so the clip never jumps back. Returns the time added.
+        public float AddRepairTime(float seconds, float maxTotal)
+        {
+            if (Action != GunAction.ClearingJam || seconds <= 0f)
+                return 0f;
+            float added = Mathf.Min(seconds, Mathf.Max(0f, maxTotal - _repairPenalty));
+            float progress = ActionProgress;
+            if (added <= 0f || progress >= 0.999f)
+                return 0f;
+            _repairPenalty += added;
+            _repairDuration += added / (1f - progress);
+            _actionTime = progress * _repairDuration;
+            return added;
+        }
+
         void StartActionIfNeeded(bool reloadPressed)
         {
             if (_item.IsJammed)
             {
-                if (_definition.Jam.Repair == null || !_definition.Jam.Repair.RequireReloadPress || reloadPressed)
+                GunRepairProfile repair = _definition.Jam.Repair;
+                if (repair == null || (repair.RequireReloadPress ? reloadPressed : _jamTime >= repair.JamPause))
                     StartAction(GunAction.ClearingJam);
             }
             else if (_needsCycle)
@@ -175,6 +202,7 @@ namespace Aipocalypse.Core.WeaponSystem
             if (action == GunAction.ClearingJam)
             {
                 GunRepairProfile repair = _definition.Jam.Repair;
+                _repairPenalty = 0f;
                 RepairIsStubborn = repair != null && _random() < repair.StubbornChance;
                 _repairDuration = repair == null ? _definition.Jam.ClearTime :
                     Mathf.Max(0.1f, RepairIsStubborn ? repair.StubbornDuration : repair.QuickDuration);

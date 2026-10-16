@@ -28,6 +28,7 @@ namespace Aipocalypse.Tests
             _repair.RequireReloadPress = true;
             _repair.QuickDuration = 2.6f;
             _repair.StubbornDuration = 3.8f;
+            _repair.JamPause = 0f;
         }
 
         [TearDown]
@@ -251,6 +252,79 @@ namespace Aipocalypse.Tests
             Assert.That(gun.Item.IsJammed, Is.True);
             gun.Tick(Ready(), 0.11f);
             Assert.That(gun.Item.IsJammed, Is.False);
+        }
+
+        [Test]
+        public void AutomaticRepairWaitsOutTheJamPauseWhileTriggerPullsOnlyClick()
+        {
+            _repair.RequireReloadPress = false;
+            _repair.JamPause = 0.6f;
+            Gun gun = Jammed(1f);
+            int clicks = 0;
+            gun.DryFired += () => clicks++;
+            GunInput pull = Ready();
+            pull.TriggerPressed = pull.TriggerHeld = true;
+            gun.Tick(pull, 0.3f);
+            gun.Tick(Ready(), 0.2f);
+            gun.Tick(pull, 0.05f);
+            Assert.That(gun.Action, Is.EqualTo(GunAction.None));
+            Assert.That(clicks, Is.EqualTo(2));
+            gun.Tick(Ready(), 0.06f);
+            Assert.That(gun.Action, Is.EqualTo(GunAction.ClearingJam));
+            gun.Tick(pull, 0.01f);
+            Assert.That(clicks, Is.EqualTo(2), "no clicks once clearing has started");
+        }
+
+        [Test]
+        public void MissPenaltyAddsRemainingTimeWithoutMovingProgressBackAndIsCapped()
+        {
+            _repair.RequireReloadPress = false;
+            _repair.QuickDuration = 4f;
+            Gun gun = Jammed(1f);
+            gun.Tick(Ready(), 0f);
+            gun.Tick(Ready(), 2f);
+            float progress = gun.ActionProgress;
+            Assert.That(gun.AddRepairTime(0.5f, 0.8f), Is.EqualTo(0.5f));
+            Assert.That(gun.ActionProgress, Is.EqualTo(progress).Within(0.0001f));
+            Assert.That(gun.AddRepairTime(0.5f, 0.8f), Is.EqualTo(0.3f).Within(0.0001f));
+            Assert.That(gun.AddRepairTime(0.5f, 0.8f), Is.Zero);
+            gun.Tick(Ready(), 2.75f);
+            Assert.That(gun.Item.IsJammed, Is.True, "2 s left + 0.8 s of penalty");
+            gun.Tick(Ready(), 0.1f);
+            Assert.That(gun.Item.IsJammed, Is.False);
+        }
+
+        [Test]
+        public void HitStopSlowsTimeForItsRealDurationThenRestores()
+        {
+            float scale = Time.timeScale;
+            using (var time = new TimeService())
+            {
+                time.RequestHitStop(0.1f, 0.05f);
+                Assert.That(Time.timeScale, Is.EqualTo(0.05f));
+                time.RequestHitStop(0.05f, 0.2f);
+                time.AdvanceHitStop(0.06f);
+                Assert.That(Time.timeScale, Is.EqualTo(0.05f), "overlaps keep the longest stop and lowest scale");
+                time.AdvanceHitStop(0.05f);
+                Assert.That(Time.timeScale, Is.EqualTo(1f));
+                time.SetPaused(true);
+                time.RequestHitStop(0.1f, 0.05f);
+                time.SetPaused(false);
+                Assert.That(Time.timeScale, Is.EqualTo(1f), "no hit stop is queued while paused");
+            }
+            Assert.That(Time.timeScale, Is.EqualTo(scale));
+        }
+
+        [Test]
+        public void GunJoltReturnsToRestAtBothEnds()
+        {
+            var kick = new GunJolt(Vector3.one, Vector3.one, 0.3f);
+            var wobble = new GunJolt(Vector3.one, Vector3.one, 0.3f, 2f);
+            Assert.That(kick.Weight(0f), Is.Zero);
+            Assert.That(kick.Weight(0.15f), Is.EqualTo(1f).Within(0.001f));
+            Assert.That(kick.Weight(0.9999f), Is.EqualTo(0f).Within(0.001f));
+            Assert.That(wobble.Weight(0.9999f), Is.EqualTo(0f).Within(0.001f));
+            Assert.That(wobble.Weight(0.375f), Is.LessThan(0f), "a wobble swings both ways");
         }
 
         [Test]

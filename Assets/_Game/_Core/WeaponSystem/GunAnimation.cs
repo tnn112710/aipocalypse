@@ -29,6 +29,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [SerializeField] Vector3 _dropVelocity = new(-0.25f, -0.8f, 0.1f);
         [SerializeField] Vector3 _dropAngularVelocity = new(2f, 0f, -3f);
         [SerializeField, HideInInspector] float _repairImpactCount;
+        // Stepped clip curve: 1 while the latest repair impact is a punch, 0 for a slap.
+        [SerializeField, HideInInspector] float _repairPunch;
 
         PlayableGraph _graph;
         AnimatorControllerPlayable _controller;
@@ -49,6 +51,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public event System.Action RepairSlapped;
 
         public string State => _state;
+        public bool ImpactIsPunch => _repairPunch > 0.5f;
         public float Progress { get; private set; }
 
         public void Bind(EffectPool effects)
@@ -174,6 +177,7 @@ namespace Aipocalypse.Core.WeaponSystem
             Progress = 0f;
             _returnFromSequence = false;
             _repairImpactCount = 0f;
+            _repairPunch = 0f;
             _notifiedImpacts = 0;
         }
 

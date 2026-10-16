@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: AK47_Repair
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunRepairProfile
   RequireReloadPress: 0
+  JamPause: 0.6
   QuickDuration: 4
   StubbornDuration: 5
   StubbornChance: 0.5
   QteStartProgress: 0.5
+  MissPenalty: 0.5
+  MaxMissPenalty: 1.5
   Qte: {fileID: 11400000, guid: a8e19e7d3554db947ab6598898bfeced, type: 2}
   Feedback: {fileID: 11400000, guid: ea4009d0662ecd145b5667776a24af75, type: 2}

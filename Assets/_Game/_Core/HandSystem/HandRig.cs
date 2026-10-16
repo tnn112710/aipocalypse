@@ -67,7 +67,7 @@ namespace Aipocalypse.Core.HandSystem
                 if (joint == null)
                     continue;
                 Quaternion open = chain.Open[j];
-                Quaternion curled = Quaternion.Slerp(open, chain.Closed[j], shape.JointCurl(j));
+                Quaternion curled = Quaternion.SlerpUnclamped(open, chain.Closed[j], shape.JointCurl(j));
                 Quaternion spread = Quaternion.Inverse(open) * chain.Spread[j];
                 joint.localRotation = curled * Quaternion.SlerpUnclamped(Quaternion.identity, spread, shape.Spread);
             }

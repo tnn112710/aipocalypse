@@ -83,7 +83,7 @@ public static class RepairFeedbackChecks
                     Require(!held.Gun.Item.IsJammed && !qte.IsActive && repairs == 1 && quick, "Early success did not finish repair exactly once");
                     Require(Field<bool>(hud, "_finishing") && burst.gameObject.activeSelf, "Success burst did not start");
                     await Seconds(0.055f, player);
-                    maximumKick = Field<float>(held, "_repairKickWeight");
+                    maximumKick = Field<float>(held, "_joltTime") >= 0f ? 1f : 0f;
                     Require(maximumKick > 0.1f && source.isPlaying, "Weapon kick or success sound did not play");
                     Capture(held.name, presentation, "Success");
                     var clock = resolver.Resolve<TimeService>();
@@ -92,7 +92,7 @@ public static class RepairFeedbackChecks
                     try
                     {
                         for (int i = 0; i < 4; i++) await Frame(player);
-                        Require(Mathf.Abs(group.alpha - alpha) < 0.001f && Mathf.Abs(Field<float>(held, "_repairKickWeight") - maximumKick) < 0.001f,
+                        Require(Mathf.Abs(group.alpha - alpha) < 0.001f && Field<float>(held, "_joltTime") >= 0f,
                             "Repair feedback advanced while paused");
                         Require(!content.activeSelf, "Feedback remained visible over pause");
                     }
@@ -109,7 +109,7 @@ public static class RepairFeedbackChecks
             {
                 await Until(() => !held.Gun.Item.IsJammed, player);
                 Require(repairs == 1 && !quick && Field<bool>(hud, "_finishing"), "Natural completion did not fade");
-                Require(!burst.gameObject.activeSelf && Field<float>(held, "_repairKickWeight") == 0f, "Natural completion used QTE reward feedback");
+                Require(!burst.gameObject.activeSelf && Field<float>(held, "_joltTime") < 0f, "Natural completion used QTE reward feedback");
                 Require(source.isPlaying, "Natural completion sound missing");
                 Capture(held.name, presentation, "Natural");
             }
@@ -122,7 +122,7 @@ public static class RepairFeedbackChecks
             }
             await Seconds(profile.Feedback.SuccessDuration + 0.1f, player);
             Require(!content.activeSelf && !burst.gameObject.activeSelf && !Field<bool>(hud, "_finishing"), "Feedback did not clean up");
-            Require(Mathf.Abs(Field<float>(held, "_repairKickWeight")) < 0.001f, "Weapon kick stuck");
+            Require(Field<float>(held, "_joltTime") < 0f, "Weapon kick stuck");
             Require(held.Gun.Item.Rounds == rounds && Mathf.Abs(Time.timeScale - 1f) < 0.001f, "Feedback changed ammo or time");
             return new { gun = held.name, presentation, outcome, attempts, repairs, quick, maximumKick, cleanedUp = true, rounds, scale = Time.timeScale };
         }

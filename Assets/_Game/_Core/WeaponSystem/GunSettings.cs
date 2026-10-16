@@ -128,11 +128,14 @@ namespace Aipocalypse.Core.WeaponSystem
         public AudioClip ReloadStart;
         [Tooltip("Per-round reload: each round")] public AudioClip ReloadInsert;
         public AudioClip ReloadEnd;
-        public AudioClip Jam;
+        [Tooltip("The trigger falls on a jammed round")] public AudioClip Jam;
+        [Tooltip("Each trigger pull while the gun is stuck before clearing")] public AudioClip DryFire;
         public AudioClip ClearJamStart;
         public AudioClip ClearJamEnd;
         [Tooltip("Random impact variation for each clip-authored repair slap")] public AudioClip[] RepairSlaps;
         [Range(0f, 1f)] public float RepairSlapVolume = 0.6f;
+        [Tooltip("Random impact variation for each clip-authored repair punch")] public AudioClip[] RepairPunches;
+        [Range(0f, 1f)] public float RepairPunchVolume = 0.8f;
         [Tooltip("Pump / bolt pulled back after a shot")] public AudioClip CycleStart;
         [Tooltip("Pump / bolt pushed home")] public AudioClip CycleEnd;
     }

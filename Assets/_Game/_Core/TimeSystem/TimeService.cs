@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace Aipocalypse.Core.TimeSystem
 {
-    public sealed class TimeService : IDisposable
+    public sealed class TimeService : ITickable, IDisposable
     {
         readonly Dictionary<object, float> _requests = new();
         readonly float _fixedStep = Time.fixedDeltaTime;
         readonly float _initialScale = Time.timeScale;
+        readonly object _hitStop = new();
+        float _hitStopRemaining;
 
         public bool IsPaused { get; private set; }
         public float Scale { get; private set; } = 1f;
@@ -25,10 +28,33 @@ namespace Aipocalypse.Core.TimeSystem
                 Apply();
         }
 
+        // A short slow-down timed in real seconds; overlapping stops keep the longest time and the lowest scale.
+        public void RequestHitStop(float duration, float scale)
+        {
+            if (duration <= 0f || IsPaused)
+                return;
+            scale = Mathf.Clamp01(scale);
+            if (_requests.TryGetValue(_hitStop, out float current))
+                scale = Mathf.Min(scale, current);
+            _hitStopRemaining = Mathf.Max(_hitStopRemaining, duration);
+            Request(_hitStop, scale);
+        }
+
         public void SetPaused(bool paused)
         {
             IsPaused = paused;
             Apply();
+        }
+
+        public void Tick() => AdvanceHitStop(Time.unscaledDeltaTime);
+
+        public void AdvanceHitStop(float unscaledDeltaTime)
+        {
+            if (_hitStopRemaining <= 0f || IsPaused)
+                return;
+            _hitStopRemaining -= unscaledDeltaTime;
+            if (_hitStopRemaining <= 0f)
+                Release(_hitStop);
         }
 
         void Apply()
@@ -44,6 +70,7 @@ namespace Aipocalypse.Core.TimeSystem
         public void Dispose()
         {
             _requests.Clear();
+            _hitStopRemaining = 0f;
             Time.timeScale = _initialScale;
             Time.fixedDeltaTime = _fixedStep;
         }

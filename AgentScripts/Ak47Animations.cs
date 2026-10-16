@@ -444,14 +444,18 @@ public static class Ak47Animations
             }
             EditorUtility.SetDirty(overrides);
             AssetDatabase.SaveAssetIfDirty(overrides);
-            return weapon + " repair clips contain 3/4 fast slaps, impact markers and per-gun recovery overrides.";
+            return weapon + " repair clips alternate slap / punch (3 or 4 hits) with impact and punch markers and per-gun recovery overrides.";
         }
         finally { PrefabUtility.UnloadPrefabContents(root); }
     }
 
     public static object RenderRepairing() => Render(true);
 
-    public static object Render(bool repairingOnly = false, string weapon = "AK47")
+    // Repair frames at the given progress values (up to 12), e.g. around the slap and punch hits.
+    public static object RenderRepairAt(string weapon, string[] progress) =>
+        Render(true, weapon, progress.Select(p => float.Parse(p, System.Globalization.CultureInfo.InvariantCulture)).ToArray());
+
+    public static object Render(bool repairingOnly = false, string weapon = "AK47", float[] repairTimes = null)
     {
         string output = "Temp/" + weapon + "Animations";
         Directory.CreateDirectory(output);
@@ -462,7 +466,7 @@ public static class Ak47Animations
             ("Reloading", 0.22f), ("Reloading", 0.36f), ("Reloading", 0.5f), ("Reloading", 0.7f),
             (weapon == "PumpShotgun" ? "Cycling" : "ReloadingEmpty", 0.5f), ("ReloadingEmpty", 0.82f), ("Repairing", 0.43f), ("Repairing", 0.33f) };
         if (repairingOnly)
-            poses = new[] { 0f, 0.1f, 0.2f, 0.3f, 0.35f, 0.4f, 0.43f, 0.46f, 0.5f, 0.65f, 0.85f, 1f }
+            poses = (repairTimes ?? new[] { 0f, 0.1f, 0.2f, 0.3f, 0.35f, 0.4f, 0.43f, 0.46f, 0.5f, 0.65f, 0.85f, 1f })
                 .Select(t => ("Repairing", t)).ToArray();
         var sheet = new Texture2D(4 * 480, 3 * 270, TextureFormat.RGB24, false);
         for (int i = 0; i < poses.Length; i++)
@@ -812,6 +816,7 @@ public static class Ak47Animations
             (0.60f, open), (0.75f, HandShape.Lerp(open, c.Forend.Shape, 0.35f)), (0.90f, c.Forend.Shape), (1f, c.Forend.Shape));
     }
 
+    // Alternates an open-palm slap and a closed-fist punch (slap first); the punch comes from higher and lands harder.
     static void RepairSlaps(AnimationClip clip, Context c, float duration, int count)
     {
         float[] hits = count == 3 ? new[] { 0.8f, 1.7f, 2.8f } : new[] { 0.8f, 1.7f, 3f, 4f };
@@ -819,26 +824,53 @@ public static class Ak47Animations
         Vector3 tilt = new(-10f, 25f, -20f);
         Vector3 hit = c.SlapPoint;
         Vector3 windup = hit + new Vector3(-0.18f, 0.055f, -0.035f);
+        Vector3 punchWindup = hit + new Vector3(-0.2f, 0.11f, -0.07f);
+        Vector3 punchHit = hit + new Vector3(0.005f, 0.012f, 0f);
         Quaternion slap = Quaternion.LookRotation(Vector3.up, Vector3.left);
         Quaternion ready = Quaternion.Euler(0f, 0f, -12f) * slap;
+        Quaternion punch = Quaternion.Euler(0f, 0f, 8f) * slap;
+        Quaternion punchReady = Quaternion.Euler(0f, 0f, -25f) * slap;
+        var open = new HandShape { Thumb=new FingerShape(.18f,.25f),Index=new FingerShape(.05f),Middle=new FingerShape(.08f),Ring=new FingerShape(.1f),Little=new FingerShape(.12f) };
+        // Curl above 1 over-curls past the rig's handle grip into a tight fist.
+        var fist = new HandShape { Thumb=new FingerShape(1.8f,-1f),Index=new FingerShape(1.5f),Middle=new FingerShape(1.55f),Ring=new FingerShape(1.55f),Little=new FingerShape(1.5f) };
         float N(float seconds) => seconds / duration;
+        bool IsPunch(int i) => i % 2 == 1;
         var positions = new List<(float t, Vector3 v)> { (0f,c.Forend.P), (N(.08f),c.Forend.P), (N(.42f),windup) };
         var rotations = new List<(float t, Quaternion v)> { (0f,c.Forend.R), (N(.08f),c.Forend.R), (N(.42f),ready) };
+        var shapes = new List<(float t, HandShape v)> { (0f,c.Forend.Shape), (N(.42f),open) };
         var motion = new List<(float t, Vector3 v)> { (0f,Vector3.zero), (N(.5f),held) };
         var euler = new List<(float t, Vector3 v)> { (0f,Vector3.zero), (N(.5f),tilt) };
         var impacts = new List<(float t, float v)> { (0f,0f) };
+        var punches = new List<(float t, float v)> { (0f,0f) };
         for (int i=0;i<hits.Length;i++)
         {
             float t = hits[i];
-            positions.AddRange(new[] { (N(t-.12f),windup), (N(t),hit), (N(t+.025f),hit),
-                (N(t+.11f),hit+new Vector3(-.10f,.025f,.015f)), (N(t+.28f),windup) });
-            rotations.AddRange(new[] { (N(t-.12f),ready), (N(t),slap), (N(t+.06f),slap), (N(t+.28f),ready) });
-            motion.AddRange(new[] { (N(t),held), (N(t+.02f),held+new Vector3(.014f,-.004f,.008f)), (N(t+.09f),held+new Vector3(-.003f,.002f,-.001f)), (N(t+.18f),held) });
-            euler.AddRange(new[] { (N(t),tilt), (N(t+.02f),tilt+new Vector3(-1.5f,4f,-3f)), (N(t+.09f),tilt+new Vector3(.5f,-1f,.8f)), (N(t+.18f),tilt) });
+            bool isPunch = IsPunch(i);
+            bool nextPunch = i + 1 < hits.Length && IsPunch(i + 1);
+            Vector3 from = isPunch ? punchWindup : windup;
+            Vector3 at = isPunch ? punchHit : hit;
+            Vector3 back = nextPunch ? punchWindup : windup;
+            Quaternion strike = isPunch ? punch : slap;
+            Quaternion backRotation = nextPunch ? punchReady : ready;
+            HandShape shape = isPunch ? fist : open;
+            HandShape nextShape = nextPunch ? fist : open;
+            float approach = isPunch ? .09f : .12f;
+            positions.AddRange(new[] { (N(t-approach),from), (N(t),at), (N(t+.025f),at),
+                (N(t+.11f),at+(isPunch ? new Vector3(-.12f,.045f,.01f) : new Vector3(-.10f,.025f,.015f))), (N(t+.28f),back) });
+            rotations.AddRange(new[] { (N(t-approach),isPunch ? punchReady : ready), (N(t),strike), (N(t+.06f),strike), (N(t+.28f),backRotation) });
+            // The hand closes during the wind-up and holds its shape through the hit.
+            shapes.AddRange(new[] { (N(t-approach-.06f),shape), (N(t+.06f),shape), (N(t+.28f),nextShape) });
+            Vector3 jolt = isPunch ? new Vector3(.024f,-.008f,.012f) : new Vector3(.014f,-.004f,.008f);
+            Vector3 joltTilt = isPunch ? new Vector3(-2.5f,6.5f,-5f) : new Vector3(-1.5f,4f,-3f);
+            float settle = isPunch ? .24f : .18f;
+            motion.AddRange(new[] { (N(t),held), (N(t+.02f),held+jolt), (N(t+.09f),held-jolt*.25f), (N(t+settle),held) });
+            euler.AddRange(new[] { (N(t),tilt), (N(t+.02f),tilt+joltTilt), (N(t+.09f),tilt-joltTilt*.3f), (N(t+settle),tilt) });
             impacts.Add((N(t),i+1));
+            punches.Add((N(t-approach),isPunch ? 1f : 0f));
         }
         positions.AddRange(new[] { (N(duration-.55f),windup), (N(duration-.08f),c.Forend.P), (1f,c.Forend.P) });
         rotations.AddRange(new[] { (N(duration-.55f),ready), (N(duration-.08f),c.Forend.R), (1f,c.Forend.R) });
+        shapes.AddRange(new[] { (N(duration-.55f),open), (N(duration-.08f),c.Forend.Shape), (1f,c.Forend.Shape) });
         motion.AddRange(new[] { (N(duration-.55f),held), (1f,Vector3.zero) });
         euler.AddRange(new[] { (N(duration-.55f),tilt), (1f,Vector3.zero) });
         impacts.Add((1f,count));
@@ -848,9 +880,9 @@ public static class Ak47Animations
         Euler(clip,c,c.Motion,duration,euler.ToArray());
         Position(clip,c,c.Bolt,duration,(0f,c.BoltRest),(1f,c.BoltRest));
         Weights(clip,c,duration,(0f,0),(N(.08f),4),(N(duration-.08f),0),(1f,0));
-        var open = new HandShape { Thumb=new FingerShape(.18f,.25f),Index=new FingerShape(.05f),Middle=new FingerShape(.08f),Ring=new FingerShape(.1f),Little=new FingerShape(.12f) };
-        Shape(clip,c,c.Left,duration,(0f,c.Forend.Shape),(N(.42f),open),(N(duration-.55f),open),(N(duration-.08f),c.Forend.Shape),(1f,c.Forend.Shape));
+        Shape(clip,c,c.Left,duration,shapes.ToArray());
         Curve(clip,c,c.Root,typeof(GunAnimation),"_repairImpactCount",duration,impacts.ToArray(),true);
+        Curve(clip,c,c.Root,typeof(GunAnimation),"_repairPunch",duration,punches.ToArray(),true);
     }
 
     static void Weights(AnimationClip clip, Context c, float duration, params (float t, int source)[] keys)

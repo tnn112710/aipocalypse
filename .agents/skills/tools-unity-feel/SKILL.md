@@ -147,7 +147,7 @@ namespace Aipocalypse.Core.Feedback
 }
 ```
 
-- `ITimeScaleRequests` / `RequestHitStop` don't exist yet. When hit stop is first needed, add the seam to **TimeSystem** (`TimeService` arbitrates requests: pause beats hit stop, overlapping hit stops take the max). Don't let a feedback or Feel's `MMTimeManager` own it.
+- Implemented: `_Core/_Common/Feedback/FeedbackContext.cs` exposes `TimeService` directly (no `ITimeScaleRequests` interface yet) and `MMF_HitStop.cs` calls `TimeService.RequestHitStop(duration, scale)` (real-time, pause beats hit stop, overlapping stops keep the longest time and lowest scale). Don't let a feedback or Feel's `MMTimeManager` own it.
 - **`MMF_BroSound`**, same shape: `[SerializeField] SoundID _sound;` and `CustomPlayFeedback` plays it at `position` through BroAudio (read `Assets/Plugins/BroAudio/CLAUDE.md`). If PLUGINS.md adds an audio service wrapper, go through `FeedbackContext` instead of the static facade.
 - Override points (from `MMF_Feedback.cs`): `CustomInitialization(MMF_Player owner)`, `CustomPlayFeedback(position, intensity)` (abstract), `CustomStopFeedback`, `CustomSkipToTheEnd`, `CustomRestoreInitialValues`, `CustomReset`, `CustomPlayerComplete`, `FeedbackDuration`. Useful members: `Owner`, `Active`, `Timing`, `FeedbackTime` / `FeedbackDeltaTime` (respect the timescale mode), `InScaledTimescaleMode`, `NormalPlayDirection`, `ComputeIntensity(intensity, position)`.
 - Put custom feedbacks in `Assets/_Game/_Core/_Common/Feedback/` (Core) or a feature's folder. The asmdef references `MoreMountains.Tools`.

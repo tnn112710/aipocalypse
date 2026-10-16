@@ -23,7 +23,10 @@ namespace Aipocalypse.Core.HandSystem
     [Serializable]
     public struct FingerShape
     {
-        [Range(0f, 1f), Tooltip("0 = straight (Open), 1 = curled (Closed)")] public float Curl;
+        // Past 1 the joints keep turning beyond Closed (a handle grip) into a tight fist.
+        public const float MaxCurl = 1.8f;
+
+        [Range(0f, MaxCurl), Tooltip("0 = straight (Open), 1 = curled (Closed); above 1 over-curls past Closed into a fist")] public float Curl;
         [Range(-1f, 1f), Tooltip("Towards the rig's Spread shape (thumb: away from the index). Negative goes the other way")] public float Spread;
         [Range(-1f, 1f), Tooltip("Added to Curl for the outer joints only: negative keeps the finger straight past the knuckle (flat on a side), positive hooks the tip")]
         public float Tip;
@@ -36,7 +39,7 @@ namespace Aipocalypse.Core.HandSystem
         }
 
         // Curl of joint `index` along the chain (0 = base): the first two take Curl, the rest Curl + Tip.
-        public float JointCurl(int index) => index < 2 ? Curl : Mathf.Clamp01(Curl + Tip);
+        public float JointCurl(int index) => index < 2 ? Curl : Mathf.Clamp(Curl + Tip, 0f, Mathf.Max(1f, Curl));
 
         public static FingerShape Lerp(FingerShape a, FingerShape b, float t) =>
             new(Mathf.Lerp(a.Curl, b.Curl, t), Mathf.Lerp(a.Spread, b.Spread, t), Mathf.Lerp(a.Tip, b.Tip, t));
