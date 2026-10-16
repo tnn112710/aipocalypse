@@ -93,6 +93,10 @@ Shotguns add a moving part inside `Model`: `PumpShotgun` slides `ShotGun_C_Barre
 
 Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera) and are stored relative to `Hand`.
 
+The current closer framing uses Hip Z = −0.40 m for AK47/MP5/both shotguns and −0.114 m for pistol. Aim Z = −0.46 m for AK47, −0.49 m for MP5, −0.44 m for both shotguns, and −0.34 m for pistol; Sprint Z = −0.18 m for MP5 and −0.10 m for the others. Tune eye distance with each gun's `Poses/*` local Z (more negative brings it closer), then use the Hip preview before saving. The shared Hand anchor remains at (0.17, −0.21, 0.62), and hand/weapon scale is separate from this framing.
+
+MP5's `Sight` uses our `WeaponSystem/Meshes/MP5_Sight.asset` copy. Only the disconnected aperture drum is leveled by 25° and aligned to the front post at model Y = 0.15924 m; its mounting base stays in place. The source FBX is unchanged. `Poses/Aim` uses position (−0.17, 0.05076, −0.49) and zero rotation so the aperture axis and front-post tip line up with the camera. Moving the gun alone cannot correct the source mesh's tilted bore. Its lower hip pose uses position (−0.095, 0.04, −0.40), independently of ADS.
+
 ### Gun clips and constraints
 
 AK47, MP5, Pistol, PumpShotgun and DoubleBarrel keep their `Gun_Base` variants and pose/recoil pivots. Under `RecoilPivot`, `AnimationRoot` adds an Animator using `Animations/<Gun>/<Gun>.overrideController`, a RigBuilder and `GunAnimation`. `AnimationRoot/Motion/Weapon` holds our unpacked copy of the store model with generic part names. Shared mesh/material assets are still referenced; original store prefabs are untouched. The inherited base muzzle marker remains as `UnusedMuzzle`; `HeldGun` references the animated `Weapon/Muzzle` instead (under `Weapon/Hinge` on DoubleBarrel).
