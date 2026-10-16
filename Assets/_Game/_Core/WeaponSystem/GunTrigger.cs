@@ -16,8 +16,6 @@ namespace Aipocalypse.Core.WeaponSystem
 
         public GunTrigger(FireSettings fire) => _fire = fire;
 
-        public bool InBurst => _burstLeft > 0;
-
         public void Update(float deltaTime, bool held, bool pressed)
         {
             _cooldown -= deltaTime;

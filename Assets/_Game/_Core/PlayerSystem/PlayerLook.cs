@@ -13,8 +13,6 @@ namespace Aipocalypse.Core.PlayerSystem
         float _pitch;
         ViewKick _kick;
 
-        public float Pitch => _pitch;
-
         public PlayerLook(Transform body, Transform pitchPivot, PlayerTuning tuning)
         {
             _body = body;

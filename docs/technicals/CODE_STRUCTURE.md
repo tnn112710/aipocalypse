@@ -43,7 +43,8 @@ Assets/_Game/
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt, PlayerDied
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
-│  │  └─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
+│  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
+│  │  └─ TransformExtensions.cs             Aipocalypse.Core — SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health, tips over from knockback and springs back
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
@@ -65,8 +66,8 @@ Assets/_Game/
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
 │  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows (view space), preview item position
 │  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit or clip-authored shape); Resolve; Preview hand, Bake fit; FingerMask
-│  │  ├─ ItemHands.cs                       on an item prefab: default grips, per-item hand scale + named procedural hand actions (hand keys, part tracks, shown props); Play / SetProgress / Stop; preview scrubber
-│  │  ├─ FirstPersonHands.cs                on the player: spawns the HandSet, puts each hand on the item's current grip (elbow-aimed), arcs between grips with fingers opening
+│  │  ├─ ItemHands.cs                       on an item prefab: one grip per hand, per-item hand scale; Show hands preview, Bake fit for all grips
+│  │  ├─ FirstPersonHands.cs                on the player: spawns the HandSet, puts each hand on the item's grip (elbow-aimed) with its finger shape
 │  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
 │  │  └─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  ├─ InputSystem/                          Aipocalypse.Input
@@ -189,7 +190,7 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 - `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser`, a `HeldMelee` its eye and root through `IWeaponUser` (Player implements all of them). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
 - Bullets hit anything with an `IDamageable` (`_Common/Combat`) and call `TakeDamage` with `DamageType.Gunshot`; the target publishes `DamageDealt` itself.
 - Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
-- Inside the player system, plain C# events are used (`PlayerMotor.Landed` / `Jumped`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
+- Inside the player system, plain C# events are used (`PlayerMotor.Landed`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
 
 ## Frame order (Player.Update)
 
@@ -212,7 +213,7 @@ HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / t
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
-FirstPersonHands.Tick  each hand onto the held item's current grip, turned towards its implied elbow (arc + finger opening on a grip change); hidden with no grip
+FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip
 VContainer ticks     BulletSystem moves and ray-tests bullets → damage, impacts, holes; EffectPool returns expired effects
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)

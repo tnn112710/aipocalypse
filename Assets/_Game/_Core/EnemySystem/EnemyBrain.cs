@@ -7,11 +7,14 @@ namespace Aipocalypse.Core.EnemySystem
     [RequireComponent(typeof(BehaviorTree), typeof(WanderMover))]
     public sealed class EnemyBrain : MonoBehaviour
     {
+        WanderMover _mover;
+
         public BehaviorTree Tree { get; private set; }
 
         public void Initialize(AstarPath navigation)
         {
-            GetComponent<WanderMover>().Initialize(navigation);
+            _mover = GetComponent<WanderMover>();
+            _mover.Initialize(navigation);
             Tree = GetComponent<BehaviorTree>();
             Tree.StartBehavior();
         }
@@ -19,7 +22,7 @@ namespace Aipocalypse.Core.EnemySystem
         void OnDisable()
         {
             if (Tree != null) Tree.StopBehavior(false);
-            GetComponent<WanderMover>().Halt();
+            if (_mover != null) _mover.Halt();
         }
     }
 }

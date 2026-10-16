@@ -36,8 +36,6 @@ namespace Aipocalypse.Input
         public bool ReloadPressed => _reloadConsumedFrame != Time.frameCount && _actions.Player.Reload.WasPressedThisFrame();
         public void ConsumeReloadPress() => _reloadConsumedFrame = Time.frameCount;
 
-        public int SlotKeyCount => _slots.Length;
-
         // Hotbar key pressed this frame (0 = Slot1), or -1.
         public int SlotPressed
         {

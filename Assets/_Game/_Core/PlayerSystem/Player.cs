@@ -42,7 +42,6 @@ namespace Aipocalypse.Core.PlayerSystem
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
         public Equipment Equipment { get; private set; }
         public AmmoReserve Ammo { get; private set; }
-        public PlayerMotor Motor => _motor;
         public PlayerInteractor Interactor => _interactor;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => Health != null && Health.IsDead;
@@ -99,13 +98,17 @@ namespace Aipocalypse.Core.PlayerSystem
             if (_motor == null || deltaTime <= 0f)
                 return;
 
-            PlayerIntent intent = IsDead || !_input.GameplayEnabled ? default : ReadIntent(deltaTime);
+            bool canAct = !IsDead && _input.GameplayEnabled;
+            PlayerIntent intent = canAct ? ReadIntent(deltaTime) : default;
 
             _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.StaminaRegenPerSecond));
             _headBob.Tick(_motor, deltaTime);
-            TickInteraction(intent);
+            if (canAct)
+                _interactor.Tick(intent.Interact);
+            else
+                _interactor.Clear();
             TickEquipment(intent, deltaTime);
         }
 
@@ -155,14 +158,6 @@ namespace Aipocalypse.Core.PlayerSystem
             Reload = _input.ReloadPressed,
         };
 
-        void TickInteraction(in PlayerIntent intent)
-        {
-            if (IsDead || !_input.GameplayEnabled)
-                _interactor.Clear();
-            else
-                _interactor.Tick(intent.Interact);
-        }
-
         void TickEquipment(in PlayerIntent intent, float deltaTime)
         {
             if (Equipment == null)
@@ -196,7 +191,7 @@ namespace Aipocalypse.Core.PlayerSystem
             if (held != null)
                 held.LateTick();
             if (_hands != null)
-                _hands.Tick(held != null ? held.Hands : null, deltaTime);
+                _hands.Tick(held != null ? held.Hands : null);
         }
 
         void DropSelected()

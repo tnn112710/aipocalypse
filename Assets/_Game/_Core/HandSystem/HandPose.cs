@@ -81,12 +81,5 @@ namespace Aipocalypse.Core.HandSystem
         [SerializeField] HandShape _shape;
 
         public HandShape Shape => _shape;
-
-        // Fires in the editor when the pose is edited, so previews and live hands refresh.
-        public static event Action<HandPose> Edited;
-
-        public void SetShape(HandShape shape) => _shape = shape;
-
-        void OnValidate() => Edited?.Invoke(this);
     }
 }

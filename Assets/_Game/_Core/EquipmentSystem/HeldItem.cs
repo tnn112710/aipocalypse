@@ -12,7 +12,7 @@ namespace Aipocalypse.Core.EquipmentSystem
         readonly List<Renderer> _renderers = new();
 
         public ItemInstance Item { get; private set; }
-        // Where the first-person hands hold this item, and its hand actions; null = no hands.
+        // Where the first-person hands hold this item; null = no hands.
         public ItemHands Hands { get; private set; }
         protected IEquipmentOwner Owner { get; private set; }
 

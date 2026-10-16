@@ -24,8 +24,6 @@ namespace Aipocalypse.Core.EquipmentSystem
         [ListDrawerSettings(ShowIndexLabels = true, ListElementLabelName = nameof(SlotConfig.Name))]
         List<SlotConfig> _slots = new();
 
-        public IReadOnlyList<SlotConfig> Slots => _slots;
-
         public Hotbar CreateHotbar()
         {
             var accepts = new ItemCategory[_slots.Count];

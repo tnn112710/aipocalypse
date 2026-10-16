@@ -80,13 +80,6 @@ namespace Aipocalypse.Core.EquipmentSystem
             _hand.localRotation *= Quaternion.Slerp(Quaternion.identity, Quaternion.Euler(euler), weight);
         }
 
-        internal static void SetLayer(Transform root, int layer)
-        {
-            root.gameObject.layer = layer;
-            for (int i = 0; i < root.childCount; i++)
-                SetLayer(root.GetChild(i), layer);
-        }
-
         void OnDestroy()
         {
             if (_equipment == null)
@@ -143,7 +136,7 @@ namespace Aipocalypse.Core.EquipmentSystem
             if (view.TryGetComponent(out WorldItem worldItem))
                 worldItem.StripForHand();
             view.transform.SetParent(_hand, false);
-            SetLayer(view.transform, _hand.gameObject.layer);
+            view.transform.SetLayerRecursively(_hand.gameObject.layer);
             view.Bind(item, _owner);
             view.gameObject.SetActive(false);
             _views.Add(item, view);

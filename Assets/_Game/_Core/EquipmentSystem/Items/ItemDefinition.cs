@@ -1,6 +1,5 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Aipocalypse.Core.EquipmentSystem
 {
@@ -10,8 +9,7 @@ namespace Aipocalypse.Core.EquipmentSystem
         [field: SerializeField] public string DisplayName { get; private set; }
         [field: SerializeField, PreviewField(64)] public Sprite Icon { get; private set; }
 
-        [field: SerializeField, FormerlySerializedAs("<WorldPrefab>k__BackingField")]
-        [field: Tooltip("The item's one prefab: lies in the world (picked up from it, spawned when dropped) and, " +
+        [field: SerializeField, Tooltip("The item's one prefab: lies in the world (picked up from it, spawned when dropped) and, " +
             "for equippables, is also the first-person model with its HeldItem on the same root")]
         public WorldItem Prefab { get; private set; }
 

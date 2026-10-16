@@ -40,7 +40,7 @@ namespace Aipocalypse.Tests
             {
                 hand.transform.localScale *= hands.HandScale;
                 _animation.Show();
-                var grip = hands.GetDefault(HandSide.Right);
+                var grip = hands.GetGrip(HandSide.Right);
                 grip.Resolve(hand, Vector3.zero, out var position, out var rotation);
                 hand.Place(position, rotation);
                 Assert.That(Vector3.Distance(hand.GripPoint.position, position), Is.LessThan(0.0001f));

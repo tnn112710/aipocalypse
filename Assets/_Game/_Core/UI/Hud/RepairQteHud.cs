@@ -1,28 +1,31 @@
+using System;
+using Aipocalypse.Core.EquipmentSystem;
+using Aipocalypse.Core.Events;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.QuickTimeSystem;
 using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Input;
-using TMPro;
-using UnityEngine;
-using VContainer;
-using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.WeaponSystem;
+using Aipocalypse.Input;
 using DG.Tweening;
 using MessagePipe;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
+    // The jam-repair QTE for the active player's held gun: picks a QteView for the session, shakes on a miss, and plays
+    // the success burst or a fade when the repair ends.
     public sealed class RepairQteHud : PlayerHudView
     {
         [SerializeField] QteStyle _style;
         [SerializeField] GameObject _content;
-        [SerializeField] UnityEngine.UI.Image _keyCap;
+        [SerializeField] Image _keyCap;
         [SerializeField] TMP_Text _key;
         [SerializeField] QteView[] _views;
         [SerializeField] CanvasGroup _group;
-        [SerializeField] UnityEngine.UI.Image _burst;
+        [SerializeField] Image _burst;
 
         QuickTimeService _qte;
         TimeService _time;
@@ -35,10 +38,21 @@ namespace Aipocalypse.Core.UI
         QteView _selected;
         bool _finishing;
         bool _successful;
+        // Nothing shown and nothing to undo, so idle frames skip the reset.
+        bool _clean;
         float _flash;
         Color _flashColor;
         Vector3 _restScale;
         Vector3 _restPosition;
+
+        ItemInstance HeldInstance
+        {
+            get
+            {
+                HeldItem held = Player != null ? Player.HeldItem : null;
+                return held != null ? held.Item : null;
+            }
+        }
 
         [Inject]
         void Construct(QuickTimeService qte, TimeService time, InputService input,
@@ -51,15 +65,17 @@ namespace Aipocalypse.Core.UI
             _repairs = repairs.Subscribe(OnRepairCompleted);
         }
 
+        void Awake()
+        {
+            _restScale = _content.transform.localScale;
+            _restPosition = _content.transform.localPosition;
+        }
+
         protected override void Start()
         {
             ApplyStyle();
             _key.SetText(_input?.GetReloadKeyLabel() ?? "R");
-            _content.SetActive(false);
-            _restScale = _content.transform.localScale;
-            _restPosition = _content.transform.localPosition;
-            if (_burst != null)
-                _burst.gameObject.SetActive(false);
+            ResetFeedback();
             base.Start();
         }
 
@@ -88,11 +104,16 @@ namespace Aipocalypse.Core.UI
 
         void ResetFeedback()
         {
+            if (_clean)
+                return;
+            _clean = true;
             _feedbackTween?.Kill();
             _feedbackTween = null;
             _finishing = false;
             _successful = false;
             _flash = 0f;
+            _displayedSession = null;
+            _displayedItem = null;
             if (_content == null)
                 return;
             _content.transform.localScale = _restScale;
@@ -103,8 +124,6 @@ namespace Aipocalypse.Core.UI
                 _group.alpha = 1f;
             if (_burst != null)
                 _burst.gameObject.SetActive(false);
-            _displayedSession = null;
-            _displayedItem = null;
         }
 
         void ShowSession()
@@ -112,8 +131,9 @@ namespace Aipocalypse.Core.UI
             if (ReferenceEquals(_displayedSession, _qte.Session))
                 return;
             ResetFeedback();
+            _clean = false;
             _displayedSession = _qte.Session;
-            _displayedItem = Player.HeldItem?.Item;
+            _displayedItem = HeldInstance;
             _selected = null;
             foreach (QteView view in _views)
                 if (view.CanDisplay(_displayedSession) && (_selected == null || view.PresentationId == _qte.Presentation))
@@ -127,7 +147,7 @@ namespace Aipocalypse.Core.UI
             if (attempt.Result != QteAttemptResult.Miss || Player == null || Player.IsDead ||
                 Player.HeldItem is not HeldGun held || !_qte.IsActiveFor(held))
                 return;
-            RepairFeedbackSettings feedback = held.Gun.Item.Gun.Jam.Repair?.Feedback;
+            RepairFeedbackSettings feedback = held.Gun.Item.Gun.Jam.Feedback;
             if (feedback == null)
                 return;
             ShowSession();
@@ -147,12 +167,13 @@ namespace Aipocalypse.Core.UI
         void OnRepairCompleted(GunRepairCompleted repair)
         {
             if (!ReferenceEquals(repair.Owner, Player) || Player == null || Player.IsDead ||
-                !ReferenceEquals(repair.Item, Player.HeldItem?.Item) || repair.Item is not GunInstance item)
+                !ReferenceEquals(repair.Item, HeldInstance) || repair.Item is not GunInstance item)
                 return;
-            RepairFeedbackSettings feedback = item.Gun.Jam.Repair?.Feedback;
+            RepairFeedbackSettings feedback = item.Gun.Jam.Feedback;
             if (feedback == null || _displayedSession == null || !ReferenceEquals(_displayedItem, repair.Item))
                 return;
             _feedbackTween?.Kill();
+            _clean = false;
             _content.transform.localPosition = _restPosition;
             _content.transform.localScale = _restScale;
             _group.alpha = 1f;
@@ -161,7 +182,7 @@ namespace Aipocalypse.Core.UI
             _keyCap.gameObject.SetActive(!repair.QteSuccess);
             _flash = repair.QteSuccess ? 1f : 0f;
             _flashColor = feedback.SuccessColor;
-            var sequence = DOTween.Sequence();
+            Sequence sequence = DOTween.Sequence();
             if (repair.QteSuccess)
             {
                 float duration = Mathf.Max(0.05f, feedback.SuccessDuration);
@@ -191,7 +212,7 @@ namespace Aipocalypse.Core.UI
         void LateUpdate()
         {
             bool allowed = _input != null && _input.GameplayEnabled && Player != null && !Player.IsDead;
-            if (!allowed || (_finishing && !ReferenceEquals(_displayedItem, Player.HeldItem?.Item)))
+            if (!allowed || (_finishing && !ReferenceEquals(_displayedItem, HeldInstance)))
             {
                 ResetFeedback();
                 return;
@@ -199,23 +220,21 @@ namespace Aipocalypse.Core.UI
             bool active = _qte != null && _qte.IsActive && Player.HeldItem is HeldGun held && _qte.IsActiveFor(held);
             if (active)
                 ShowSession();
-            bool visible = (active || _finishing) && !_time.IsPaused;
-            _content.SetActive(visible);
-            if (!visible)
+            if (!active && !_finishing)
             {
-                if (!active && !_finishing)
-                    ResetFeedback();
+                ResetFeedback();
                 return;
             }
-            if (_selected != null)
-            {
-                if (_finishing && _successful)
-                    _selected.DisplaySuccess(_displayedSession);
-                else
-                    _selected.Display(_displayedSession);
-                _selected.Flash(_flashColor, _flash);
-                _keyCap.rectTransform.anchoredPosition = new Vector2(0f, -((RectTransform)_selected.transform).rect.height * 0.5f - 22f);
-            }
+            bool visible = !_time.IsPaused;
+            _content.SetActive(visible);
+            if (!visible || _selected == null)
+                return;
+            if (_finishing && _successful)
+                _selected.DisplaySuccess(_displayedSession);
+            else
+                _selected.Display(_displayedSession);
+            _selected.Flash(_flashColor, _flash);
+            _keyCap.rectTransform.anchoredPosition = new Vector2(0f, -((RectTransform)_selected.transform).rect.height * 0.5f - 22f);
         }
     }
 }

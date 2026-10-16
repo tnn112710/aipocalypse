@@ -88,7 +88,7 @@ namespace Aipocalypse.Tests
                 try
                 {
                     hand.transform.localScale *= hands.HandScale;
-                    var grip = hands.GetDefault(side);
+                    var grip = hands.GetGrip(side);
                     grip.Resolve(hand, Vector3.zero, out var p, out var r);
                     hand.Place(p, r);
                     Assert.That(Vector3.Distance(hand.GripPoint.position, p), Is.LessThan(0.0001f));

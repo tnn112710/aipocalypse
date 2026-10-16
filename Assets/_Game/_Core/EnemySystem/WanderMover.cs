@@ -15,7 +15,6 @@ namespace Aipocalypse.Core.EnemySystem
         public float PauseDuration => _settings.PauseDuration;
         public bool Arrived => _agent.reachedDestination;
         public bool TimedOut => Time.time >= _deadline;
-        public int DestinationsChosen { get; private set; }
 
         public void Initialize(AstarPath navigation)
         {
@@ -40,7 +39,6 @@ namespace Aipocalypse.Core.EnemySystem
                 if ((nearest.position - _home).sqrMagnitude > _settings.Radius * _settings.Radius) continue;
                 if ((nearest.position - transform.position).sqrMagnitude < 1f) continue;
                 _agent.destination = nearest.position;
-                DestinationsChosen++;
                 return true;
             }
             return false;

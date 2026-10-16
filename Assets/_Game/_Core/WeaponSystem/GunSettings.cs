@@ -69,6 +69,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Fallback clear time for guns without a Repair profile; those guns clear automatically.")] public float ClearTime = 1.5f;
         [Tooltip("Optional per-gun repair sequence and QTE. Unassigned guns retain their existing jam clearing.")]
         public GunRepairProfile Repair;
+
+        public RepairFeedbackSettings Feedback => Repair != null ? Repair.Feedback : null;
     }
 
     // Aim kick moves the view, so it moves the crosshair and where shots go. Gun kick is extra motion of the model only,

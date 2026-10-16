@@ -44,8 +44,6 @@ namespace Aipocalypse.Core.WeaponSystem
 
         public BulletSystem(EffectPool effects) => _effects = effects;
 
-        public int InFlight => _bullets.Count;
-
         public void Fire(in BulletShot shot)
         {
             Vector3 direction = shot.Direction.normalized;

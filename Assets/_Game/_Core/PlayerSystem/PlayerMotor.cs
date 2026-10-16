@@ -42,13 +42,11 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool IsOnSteepSlope { get; private set; }
         public bool IsSprinting { get; private set; }
         public Vector3 HorizontalVelocity => _horizontalVelocity;
-        public float VerticalVelocity => _verticalVelocity;
         public float WalkSpeed => _stats.Get(StatId.WalkSpeed, _tuning.WalkSpeed);
         public float SprintSpeed => _stats.Get(StatId.SprintSpeed, _tuning.SprintSpeed);
         // Ground speed scale set by the player each frame (slower while aiming down sights).
         public float SpeedMultiplier { get; set; } = 1f;
 
-        public event Action Jumped;
         public event Action<LandingInfo> Landed;
 
         public PlayerMotor(CharacterController controller, PlayerTuning tuning, IStatProvider stats, Stamina stamina)
@@ -157,7 +155,6 @@ namespace Aipocalypse.Core.PlayerSystem
             _isJumping = true;
             _timeSinceStableGround = float.PositiveInfinity;
             _stamina.Spend(_stats.Get(StatId.JumpStaminaCost, _tuning.JumpStaminaCost));
-            Jumped?.Invoke();
             return true;
         }
 

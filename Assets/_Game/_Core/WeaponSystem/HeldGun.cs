@@ -54,14 +54,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public override bool IsAiming => _gun != null && _gun.IsAiming;
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
 
-        RepairFeedbackSettings Feedback
-        {
-            get
-            {
-                GunRepairProfile repair = _definition.Jam.Repair;
-                return repair != null ? repair.Feedback : null;
-            }
-        }
+        RepairFeedbackSettings Feedback => _definition.Jam.Feedback;
 
         [Inject]
         void Construct(BulletSystem bullets, EffectPool effects, QuickTimeService qte,
@@ -210,8 +203,9 @@ namespace Aipocalypse.Core.WeaponSystem
             if (effects != null)
             {
                 PooledEffect flash = _effects.Spawn(effects.MuzzleFlash, _muzzle.position, _muzzle.rotation, _muzzle);
-                if (flash != null)
-                    EquipmentRig.SetLayer(flash.transform, gameObject.layer);
+                // Pooled: only a fresh flash needs moving onto the first-person layer.
+                if (flash != null && flash.gameObject.layer != gameObject.layer)
+                    flash.transform.SetLayerRecursively(gameObject.layer);
             }
 
             FireSettings fire = _definition.Fire;
