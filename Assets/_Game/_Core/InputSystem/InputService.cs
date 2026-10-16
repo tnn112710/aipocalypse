@@ -13,6 +13,7 @@ namespace Aipocalypse.Input
         readonly GameInputActions _actions = new();
         readonly ControlSettings _controls;
         readonly InputAction[] _slots;
+        int _reloadConsumedFrame = -1;
 
         public InputService(ControlSettings controls)
         {
@@ -32,7 +33,8 @@ namespace Aipocalypse.Input
         public bool AttackHeld => _actions.Player.Attack.IsPressed();
         public bool AttackPressed => _actions.Player.Attack.WasPressedThisFrame();
         public bool AimHeld => _actions.Player.Aim.IsPressed();
-        public bool ReloadPressed => _actions.Player.Reload.WasPressedThisFrame();
+        public bool ReloadPressed => _reloadConsumedFrame != Time.frameCount && _actions.Player.Reload.WasPressedThisFrame();
+        public void ConsumeReloadPress() => _reloadConsumedFrame = Time.frameCount;
 
         public int SlotKeyCount => _slots.Length;
 
@@ -62,6 +64,9 @@ namespace Aipocalypse.Input
         // Key name for Interact ("E"), follows rebinding. Allocates: call at setup, not per frame.
         public string GetInteractKeyLabel() =>
             _actions.Player.Interact.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+
+        public string GetReloadKeyLabel() =>
+            _actions.Player.Reload.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
 
         public void Initialize() => EnableGameplay();
 

@@ -1,5 +1,7 @@
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.WeaponSystem;
+using Aipocalypse.Core.TimeSystem;
+using Aipocalypse.Core.QuickTimeSystem;
 using Aipocalypse.Input;
 using MessagePipe;
 using UnityEngine;
@@ -27,6 +29,8 @@ namespace Aipocalypse.Core.Bootstrap
 #endif
 
             new InputInstaller(_controls).Install(builder);
+            new TimeInstaller().Install(builder);
+            new QuickTimeInstaller().Install(builder);
             new PlayerInstaller().Install(builder);
             new WeaponInstaller().Install(builder);
         }

@@ -241,3 +241,20 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 - **Numbers go in a ScriptableObject** type next to the system, with the asset in `Data/<System>/`.
 - **New `*LifetimeScope.cs`:** `DisableScriptModifier` is on, but check that VContainer didn't replace the file with its template.
 - **Generated code** (`GameInputActions.cs`): change the `.inputactions` asset, never the file.
+
+
+## Repair QTE and time ownership
+
+- `_Core/TimeSystem/TimeService.cs`: sole writer of Time.timeScale; owner-keyed minimum-scale requests, explicit pause priority, fixed-step scaling, and disposal restoration. TimeInstaller.cs registers the root singleton.
+- `_Core/QuickTimeSystem/QteChallenge.cs`: abstract challenge data, IQteSession contract and QteResult. TimingQteChallenge.cs supplies repeating fill logic and configurable duration, zone and per-cycle attempts.
+- `_Core/QuickTimeSystem/QuickTimeService.cs`: one active owner-bound session, unscaled central tick, confirmation through InputService.ReloadPressed, timed or owner-controlled lifetime, cancellation, optional time request, completion callback and lifecycle events. QuickTimeInstaller.cs registers the root entry point.
+- `_Core/_Common/Events/QteEvents.cs`: QteStarted and QteEnded MessagePipe payloads; no per-frame messages.
+- `_Core/WeaponSystem/GunRepairProfile.cs`: per-gun automatic/manual initiation, quick/stubborn duration and probability, configurable QTE onset fraction and challenge reference. Gun.cs selects timing and owns completion. HeldGun.cs requests/cancels QTEs and chooses repair animation states.
+- `_Core/UI/Widgets/QteStyle.cs`: Synty sprites, font and colors. QteView.cs is the replaceable view contract; TimingQteView.cs presents circle or bar without weapon/input knowledge.
+- `_Core/UI/Hud/RepairQteHud.cs`: PlayerHudView presenter for the compact QTE and key cap; visible only while the service session is active, without prompts or result popups.
+- InputService.cs owns confirmation input consumption and the Reload binding label. ProjectLifetimeScope installs TimeInstaller and QuickTimeInstaller after InputInstaller.
+- `Tests/EditMode/RepairQteTests.cs`: timing passes, zone tuning, timeout, automatic/manual repair variants, continuous progress, owner-controlled QTE lifetime, early completion, interruption and time request arbitration. GunAnimationTests also validates repair focus/recovery contacts and all AK47 override bindings.
+- `AgentScripts/RepairQteSetup.cs`: live-Editor asset/clip/HUD builder. RepairQteChecks.cs: Play-mode input, timing, time restoration, cancellation and screenshot staging checks. The builder refuses to duplicate an existing HUD widget; AutomaticRepair updates its layout/tuning in place.
+
+
+GunAnimation also samples the clip-authored `_repairImpactCount` track and raises RepairSlapped once per contact. HeldGun subscribes locally and selects a GunSounds.RepairSlaps variation through its existing AudioSource. RepairSlapVolume is independent of the overall gun sound gain. Early success uses cached transform/shape snapshots to blend to RepairEnd without playing the remaining hits; HandGrip.SetAnimatedShape applies the blended finger pose. Arrays are cached once when the graph is created. GunAnimationTests covers skipped-frame markers, duplicate suppression, pause, restart and early success with no extra impacts.

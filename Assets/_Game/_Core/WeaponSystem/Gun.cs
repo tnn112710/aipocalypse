@@ -37,6 +37,7 @@ namespace Aipocalypse.Core.WeaponSystem
         readonly Func<float> _random;
 
         float _actionTime;
+        float _repairDuration;
         // Survives an interrupted cycle, so the pump finishes when the gun is raised again.
         bool _needsCycle;
         // Per-round reload: the trigger was pulled, so stop once the round going in is loaded.
@@ -64,6 +65,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public GunInstance Item => _item;
         public GunAction Action { get; private set; }
         public bool IsAiming { get; private set; }
+        public bool RepairIsStubborn { get; private set; }
 
         // 0..1 through the current action; per round: through the current round.
         public float ActionProgress
@@ -144,10 +146,22 @@ namespace Aipocalypse.Core.WeaponSystem
                 EndAction(false);
         }
 
+        public bool CompleteRepair()
+        {
+            if (Action != GunAction.ClearingJam)
+                return false;
+            _item.SetJammed(false);
+            EndAction(true);
+            return true;
+        }
+
         void StartActionIfNeeded(bool reloadPressed)
         {
             if (_item.IsJammed)
-                StartAction(GunAction.ClearingJam);
+            {
+                if (_definition.Jam.Repair == null || !_definition.Jam.Repair.RequireReloadPress || reloadPressed)
+                    StartAction(GunAction.ClearingJam);
+            }
             else if (_needsCycle)
                 StartAction(GunAction.Cycling);
             else if ((reloadPressed || (_definition.Magazine.AutoReload && _item.Rounds == 0)) && CanReload)
@@ -158,6 +172,13 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             Action = action;
             _actionTime = 0f;
+            if (action == GunAction.ClearingJam)
+            {
+                GunRepairProfile repair = _definition.Jam.Repair;
+                RepairIsStubborn = repair != null && _random() < repair.StubbornChance;
+                _repairDuration = repair == null ? _definition.Jam.ClearTime :
+                    Mathf.Max(0.1f, RepairIsStubborn ? repair.StubbornDuration : repair.QuickDuration);
+            }
             ActionStarted?.Invoke(action);
         }
 
@@ -222,7 +243,7 @@ namespace Aipocalypse.Core.WeaponSystem
         float ActionDuration() => Action switch
         {
             GunAction.Reloading => _definition.Magazine.ReloadTime,
-            GunAction.ClearingJam => _definition.Jam.ClearTime,
+            GunAction.ClearingJam => _repairDuration,
             GunAction.Cycling => _definition.Fire.CycleTime,
             _ => 0f,
         };

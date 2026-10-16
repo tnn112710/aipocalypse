@@ -66,7 +66,9 @@ namespace Aipocalypse.Core.WeaponSystem
     public sealed class JamSettings
     {
         [Range(0f, 1f), Tooltip("Chance each shot jams instead of firing")] public float Chance = 0.02f;
-        [Min(0f), Tooltip("Seconds to clear a jam. Clearing starts by itself")] public float ClearTime = 1.5f;
+        [Min(0f), Tooltip("Fallback clear time for guns without a Repair profile; those guns clear automatically.")] public float ClearTime = 1.5f;
+        [Tooltip("Optional per-gun repair sequence and QTE. Unassigned guns retain their existing jam clearing.")]
+        public GunRepairProfile Repair;
     }
 
     // Aim kick moves the view, so it moves the crosshair and where shots go. Gun kick is extra motion of the model only,
@@ -129,6 +131,8 @@ namespace Aipocalypse.Core.WeaponSystem
         public AudioClip Jam;
         public AudioClip ClearJamStart;
         public AudioClip ClearJamEnd;
+        [Tooltip("Random impact variation for each clip-authored repair slap")] public AudioClip[] RepairSlaps;
+        [Range(0f, 1f)] public float RepairSlapVolume = 0.6f;
         [Tooltip("Pump / bolt pulled back after a shot")] public AudioClip CycleStart;
         [Tooltip("Pump / bolt pushed home")] public AudioClip CycleEnd;
     }

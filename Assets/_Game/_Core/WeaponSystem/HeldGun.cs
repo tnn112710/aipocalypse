@@ -3,6 +3,7 @@ using Aipocalypse.Core.HandSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
+using Aipocalypse.Core.QuickTimeSystem;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
@@ -38,6 +39,10 @@ namespace Aipocalypse.Core.WeaponSystem
 
         BulletSystem _bullets;
         EffectPool _effects;
+        QuickTimeService _qte;
+        bool _qteRequested;
+        bool _repairQteSucceeded;
+        System.Action<QteResult> _repairQteCompleted;
         IGunUser _user;
         GunDefinition _definition;
         Gun _gun;
@@ -57,14 +62,23 @@ namespace Aipocalypse.Core.WeaponSystem
         int _pendingShots;
 
         public Gun Gun => _gun;
+#if UNITY_EDITOR
+        [Button("Jam gun (test)"), HideInEditorMode]
+        void JamGun()
+        {
+            _gun?.Interrupt();
+            _gun?.Item.SetJammed(true);
+        }
+#endif
         public override bool IsAiming => _gun != null && _gun.IsAiming;
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
 
         [Inject]
-        void Construct(BulletSystem bullets, EffectPool effects)
+        void Construct(BulletSystem bullets, EffectPool effects, QuickTimeService qte)
         {
             _bullets = bullets;
             _effects = effects;
+            _qte = qte;
         }
 
         void Awake()
@@ -93,6 +107,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 Debug.LogWarning($"{_definition.name} has no ammo type and can't be reloaded.", _definition);
 
             _gun = new Gun(item, _user.Ammo);
+            _repairQteCompleted = OnRepairQteCompleted;
             _recoil = new GunRecoil(_definition.Recoil);
             _gun.Fired += OnFired;
             _gun.Jammed += OnJammed;
@@ -100,6 +115,8 @@ namespace Aipocalypse.Core.WeaponSystem
             _gun.RoundLoaded += OnRoundLoaded;
             _gun.ActionEnded += OnActionEnded;
             _animation?.Bind(_effects);
+            if (_animation != null)
+                _animation.RepairSlapped += OnRepairSlapped;
 
             if (_definition.Effects != null && _effects != null)
                 _definition.Effects.Prewarm(_effects);
@@ -123,6 +140,14 @@ namespace Aipocalypse.Core.WeaponSystem
                 CanFire = !input.IsSprinting,
                 CanAim = !input.IsSprinting,
             }, deltaTime);
+
+            GunRepairProfile repair = _definition.Jam.Repair;
+            if (!_qteRequested && input.IsReady && _gun.Action == GunAction.ClearingJam && repair != null &&
+                _gun.ActionProgress >= repair.QteStartProgress && _qte != null && repair.Qte != null)
+            {
+                _qteRequested = true;
+                _qte.TryStart(this, repair.Qte, _repairQteCompleted, ownerControlled: true);
+            }
 
             _recoil.Tick(deltaTime, _gun.IsAiming);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
@@ -160,6 +185,9 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnDestroy()
         {
+            if (_animation != null)
+                _animation.RepairSlapped -= OnRepairSlapped;
+            _qte?.Cancel(this);
             if (_gun == null)
                 return;
             _gun.Fired -= OnFired;
@@ -242,11 +270,24 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnJammed() => Play(_definition.Sounds.Jam);
 
+        void OnRepairSlapped()
+        {
+            GunSounds sounds = _definition.Sounds;
+            AudioClip[] clips = sounds.RepairSlaps;
+            if (_audio == null || clips == null || clips.Length == 0)
+                return;
+            AudioClip clip = clips[Random.Range(0, clips.Length)];
+            if (clip != null)
+                _audio.PlayOneShot(clip, sounds.Volume * sounds.RepairSlapVolume);
+        }
+
         void OnActionStarted(GunAction action)
         {
+            _qteRequested = false;
+            _repairQteSucceeded = false;
             _shownAction = action;
             if (_animation != null)
-                _animation.StartAction(action, _gun.Item.Rounds == 0);
+                _animation.StartAction(action, _gun.Item.Rounds == 0, _gun.RepairIsStubborn);
             else
                 PlayHands(action);
             GunSounds sounds = _definition.Sounds;
@@ -267,8 +308,12 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnActionEnded(GunAction action, bool finished)
         {
+            _qte?.Cancel(this);
             Hands?.Stop();
-            _animation?.EndAction();
+            if (finished && action == GunAction.ClearingJam && _repairQteSucceeded)
+                _animation?.FinishRepair();
+            else
+                _animation?.EndAction();
             if (!finished)
                 return;
             GunSounds sounds = _definition.Sounds;
@@ -279,6 +324,19 @@ namespace Aipocalypse.Core.WeaponSystem
                 GunAction.Cycling => sounds.CycleEnd,
                 _ => null,
             });
+        }
+
+        void OnRepairQteCompleted(QteResult result)
+        {
+            if (_gun == null || _gun.Action != GunAction.ClearingJam)
+                return;
+            if (result == QteResult.Success)
+            {
+                _repairQteSucceeded = true;
+                _gun.CompleteRepair();
+            }
+            else if (result == QteResult.Cancelled)
+                _gun.Interrupt();
         }
 
         void PlayHands(GunAction action)

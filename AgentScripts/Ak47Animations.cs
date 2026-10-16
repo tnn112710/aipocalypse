@@ -388,12 +388,37 @@ public static class Ak47Animations
                     Shape = hands.GetDefault(HandSide.Left).Shape }
             };
             c.BoltRest = c.Bolt.localPosition;
-            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_Repairing.anim");
-            Undo.RegisterCompleteObjectUndo(clip, "AK47 receiver slap");
-            Repair(clip, c, clip.length);
-            EditorUtility.SetDirty(clip);
-            AssetDatabase.SaveAssetIfDirty(clip);
-            return "Repairing now slaps the receiver; clip duration and gameplay unchanged.";
+            foreach (string state in new[] { "Repairing", "RepairingStubborn" })
+            {
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_" + state + ".anim");
+                if (clip == null) continue;
+                Undo.RegisterCompleteObjectUndo(clip, "AK47 receiver slap");
+                RepairSlaps(clip, c, clip.length, state == "Repairing" ? 3 : 4);
+                EditorUtility.SetDirty(clip);
+                AssetDatabase.SaveAssetIfDirty(clip);
+            }
+            var source = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_Repairing.anim");
+            foreach (string state in new[] { "RepairFocus", "RepairEnd" })
+            {
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_" + state + ".anim");
+                if (clip == null) continue;
+                Undo.RegisterCompleteObjectUndo(clip, "AK47 slap recovery");
+                float duration = clip.length;
+                foreach (var binding in AnimationUtility.GetCurveBindings(source))
+                {
+                    var original = AnimationUtility.GetEditorCurve(source, binding);
+                    float start = original.Evaluate(source.length * 0.5f);
+                    float end = state == "RepairFocus" ? start : original.Evaluate(source.length);
+                    var curve = AnimationCurve.EaseInOut(0f, start, duration, end);
+                    if (binding.type == typeof(MultiParentConstraint) || binding.propertyName == "m_Enabled")
+                        AnimationUtility.SetKeyRightTangentMode(curve, 0, AnimationUtility.TangentMode.Constant);
+                    AnimationUtility.SetEditorCurve(clip, binding, curve);
+                }
+                clip.EnsureQuaternionContinuity();
+                EditorUtility.SetDirty(clip);
+                AssetDatabase.SaveAssetIfDirty(clip);
+            }
+            return "AK47 repair clips contain 3/4 fast receiver slaps with synchronized impact markers. Durations and QTE settings preserved.";
         }
         finally { PrefabUtility.UnloadPrefabContents(root); }
     }
@@ -759,6 +784,47 @@ public static class Ak47Animations
         };
         Shape(clip, c, c.Left, duration, (0f, c.Forend.Shape), (0.14f, open), (0.43f, open),
             (0.60f, open), (0.75f, HandShape.Lerp(open, c.Forend.Shape, 0.35f)), (0.90f, c.Forend.Shape), (1f, c.Forend.Shape));
+    }
+
+    static void RepairSlaps(AnimationClip clip, Context c, float duration, int count)
+    {
+        float[] hits = count == 3 ? new[] { 0.8f, 1.7f, 2.8f } : new[] { 0.8f, 1.7f, 3f, 4f };
+        Vector3 held = new(-0.035f, 0.07f, 0.035f);
+        Vector3 tilt = new(-10f, 25f, -20f);
+        Vector3 hit = c.SlapPoint;
+        Vector3 windup = hit + new Vector3(-0.18f, 0.055f, -0.035f);
+        Quaternion slap = Quaternion.LookRotation(Vector3.up, Vector3.left);
+        Quaternion ready = Quaternion.Euler(0f, 0f, -12f) * slap;
+        float N(float seconds) => seconds / duration;
+        var positions = new List<(float t, Vector3 v)> { (0f,c.Forend.P), (N(.08f),c.Forend.P), (N(.42f),windup) };
+        var rotations = new List<(float t, Quaternion v)> { (0f,c.Forend.R), (N(.08f),c.Forend.R), (N(.42f),ready) };
+        var motion = new List<(float t, Vector3 v)> { (0f,Vector3.zero), (N(.5f),held) };
+        var euler = new List<(float t, Vector3 v)> { (0f,Vector3.zero), (N(.5f),tilt) };
+        var impacts = new List<(float t, float v)> { (0f,0f) };
+        for (int i=0;i<hits.Length;i++)
+        {
+            float t = hits[i];
+            positions.AddRange(new[] { (N(t-.12f),windup), (N(t),hit), (N(t+.025f),hit),
+                (N(t+.11f),hit+new Vector3(-.10f,.025f,.015f)), (N(t+.28f),windup) });
+            rotations.AddRange(new[] { (N(t-.12f),ready), (N(t),slap), (N(t+.06f),slap), (N(t+.28f),ready) });
+            motion.AddRange(new[] { (N(t),held), (N(t+.02f),held+new Vector3(.014f,-.004f,.008f)), (N(t+.09f),held+new Vector3(-.003f,.002f,-.001f)), (N(t+.18f),held) });
+            euler.AddRange(new[] { (N(t),tilt), (N(t+.02f),tilt+new Vector3(-1.5f,4f,-3f)), (N(t+.09f),tilt+new Vector3(.5f,-1f,.8f)), (N(t+.18f),tilt) });
+            impacts.Add((N(t),i+1));
+        }
+        positions.AddRange(new[] { (N(duration-.55f),windup), (N(duration-.08f),c.Forend.P), (1f,c.Forend.P) });
+        rotations.AddRange(new[] { (N(duration-.55f),ready), (N(duration-.08f),c.Forend.R), (1f,c.Forend.R) });
+        motion.AddRange(new[] { (N(duration-.55f),held), (1f,Vector3.zero) });
+        euler.AddRange(new[] { (N(duration-.55f),tilt), (1f,Vector3.zero) });
+        impacts.Add((1f,count));
+        Position(clip,c,c.Free,duration,positions.ToArray());
+        Rotation(clip,c,c.Free,duration,rotations.ToArray());
+        Position(clip,c,c.Motion,duration,motion.ToArray());
+        Euler(clip,c,c.Motion,duration,euler.ToArray());
+        Position(clip,c,c.Bolt,duration,(0f,c.BoltRest),(1f,c.BoltRest));
+        Weights(clip,c,duration,(0f,0),(N(.08f),4),(N(duration-.08f),0),(1f,0));
+        var open = new HandShape { Thumb=new FingerShape(.18f,.25f),Index=new FingerShape(.05f),Middle=new FingerShape(.08f),Ring=new FingerShape(.1f),Little=new FingerShape(.12f) };
+        Shape(clip,c,c.Left,duration,(0f,c.Forend.Shape),(N(.42f),open),(N(duration-.55f),open),(N(duration-.08f),c.Forend.Shape),(1f,c.Forend.Shape));
+        Curve(clip,c,c.Root,typeof(GunAnimation),"_repairImpactCount",duration,impacts.ToArray(),true);
     }
 
     static void Weights(AnimationClip clip, Context c, float duration, params (float t, int source)[] keys)

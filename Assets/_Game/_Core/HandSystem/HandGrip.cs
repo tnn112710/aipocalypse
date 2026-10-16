@@ -36,6 +36,8 @@ namespace Aipocalypse.Core.HandSystem
         public bool FitsPalm => _fitPalm;
         public FingerMask KeepFingers => _keepFingers;
 
+        public void SetAnimatedShape(HandShape shape) => _animatedShape = shape;
+
         // Where the rig's grip point goes, given the elbow this hand's forearm leads to.
         public void Resolve(HandRig rig, Vector3 elbow, out Vector3 position, out Quaternion rotation) =>
             Resolve(rig, elbow, _palmOffset, out position, out rotation);

@@ -41,7 +41,7 @@ MessagePipe, UniTask and UIEffect track the repo HEAD (no tag pinned), so a pack
 | DOTween + DOTween Pro (+ DemiLib) | — | `Assets/Plugins/Demigiant` | Use | Code tweens. |
 | Feel (MoreMountains) | — | `Assets/_StoreAssets/GameFeel/Feel` | Use | Game feel / feedbacks. Views play `MMF_Player`s in response to events, never services or weapons directly. No time-scale, sound, scene-loading, floating-text or broadcast feedbacks, and no `MMF_Player` on crowd enemies. Skill: `tools-unity-feel` (feedback catalog in its references). |
 | Damage Numbers Pro | — | `Assets/_StoreAssets/GameFeel/DamageNumbersPro` | Use | Hit numbers. Use its pooling. Same hook rule as Feel. |
-| BroAudio | — | `Assets/Plugins/BroAudio` | Use | Audio playback and pooling. Read its `CLAUDE.md`. Not used yet: gun sounds are plain `AudioClip`s on the gun's own `AudioSource` for now ([WEAPONS.md](WEAPONS.md)). |
+| BroAudio | — | `Assets/Plugins/BroAudio` | Use | Audio playback and pooling. Read its `CLAUDE.md`. Not used yet: gun sounds (including clip-synchronized repair-slap variations) are plain `AudioClip`s on the gun's own `AudioSource` for now ([WEAPONS.md](WEAPONS.md)). |
 | Easy Save 3 | — | `Assets/Plugins/Easy Save 3` | Use | Persistence (save system postponed, see ARCHITECTURE.md). |
 | Odin Inspector | — | `Assets/Plugins/Sirenix` | Use | Inspector attributes in game code. Mostly editor-side. |
 | COZY 3: Stylized Weather (+ Blocks 1.7.2, Habits 1.4.0, Horizon 1.0.0, Plume 1.4.3) | 3.6.23 | `Packages/com.distantlands.cozy.*` | Undecided | Sky, weather, time of day, clouds. Must not own game time if a day/night system is ours. |
@@ -104,7 +104,7 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 |---|---|
 | Synty Polygon Generic, Polygon Prototype, Sidekick Characters | `Assets/Synty` |
 | Synty Animation Base Locomotion, Goblin Locomotion | `Assets/Synty` |
-| Synty Interface Core, Interface Apocalypse HUD | `Assets/Synty`. HUD art: **sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Our widgets reference the sprites through style assets ([UI.md](UI.md)); item icons come from `Icons_Weapons` and the hotbar key cap from Interface Core's `Icons_Input` |
+| Synty Interface Core, Interface Apocalypse HUD | `Assets/Synty`. HUD art: **sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Our widgets reference the sprites through style assets ([UI.md](UI.md)); the repair QTE uses Apocalypse ring/bar/panel sprites with first-party timing views; item icons come from `Icons_Weapons` and the hotbar key cap from Interface Core's `Icons_Input` |
 | Low Poly Weapon Bundle Packs 1–3 | `Assets/_StoreAssets/Weapons`. Gun models: nest the store prefab as the `Model` child of a `Gun_Base` variant (`_Core/WeaponSystem/Prefabs/Guns/`), shadows off, no colliders ([WEAPONS.md](WEAPONS.md#adding-a-gun)). In use: AR_B (AK-47), Pistol_E |
 | VFX: Gabriel Aguiar Unique Projectiles Vol 1, Hovl Studio packs | `Assets/_StoreAssets/VFX`. Our effect prefabs (`_Core/WeaponSystem/Prefabs/Effects/`: muzzle flash, tracer, impact) use the Unique Projectiles materials; they're pooled through `EffectPool`, never instantiated per shot. Hovl Studio: not used yet |
 | Animpic Polygon Mega Survival (Kit, Construction, Tools, Medical, Weapons), Poly-Survival Food / Melee / Workshop | `Assets/_StoreAssets/Env/Animpic`. Melee models are used the same way as the gun models |

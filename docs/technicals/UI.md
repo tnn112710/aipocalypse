@@ -144,3 +144,12 @@ InteractPrompt               InteractPromptView component
 2. **A new widget type** (counter, objective line, prompt): add a passive view under `_Core/UI/Widgets/` with a `*Style` asset if it has art, make its prefab in `Prefabs/Widgets/`, and place it in the right region.
 3. **New data to show:** add a presenter under `_Core/UI/Hud/` that injects its source (a service; for player data derive from `PlayerHudView`) and pushes values into widgets. Use polling for values that change continuously. For rare changes (currency, objectives), subscribe to MessagePipe events.
 4. Add the scripts to [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
+
+
+## Repair QTE
+
+HUD.prefab has a nested Canvas at SafeFrame/Center/RepairQte. Its centre anchor is offset (-80, -60) at the 1920x1080 reference resolution, placing a compact widget beside the gun near the screen centre. The circle is 112x112; the bar is 210x20. A small R key cap sits below the selected view. The panel, title, hint and remaining-time strip are disabled. RepairQteHud shows Content only while a QTE is active; there is no initial prompt or result popup.
+
+Circle and bar are TimingQteView components behind QteView. Their IDs match the challenge's Presentations list; leave one ID to force that view. The fill/marker show cycle progress and the green segment shows the success interval. A miss changes the fill color until the next pass. The QTE stays visible while repair continues, then closes immediately on completion/cancellation. Ignoring it has no effect on repair timing.
+
+RepairQteStyle.asset owns Synty Apocalypse ring/bar art, the Interface Core key cap, colors and the first-party RepairQteFont.asset copy. The copy owns its material, atlas and generated glyph data. Layout stays in the HUD prefab. Graphics are not raycast targets; InputService owns the Reload confirmation input. Vendor prefabs and sample scripts are not used. Rules and tuning are in WEAPONS.md.

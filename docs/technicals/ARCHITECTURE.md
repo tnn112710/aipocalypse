@@ -196,3 +196,12 @@ Assets/_Game/
 - `Aipocalypse.Core` and `Aipocalypse.Tests.EditMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
 - **Don't enable VContainer's source generator** for now: it has an open issue with injectors across multiple assemblies (hadashiA/VContainer#822), and reflection-based injection is fine on PC. Revisit only if profiling shows injection cost.
 - Rules are plain C# and get EditMode tests (today: `Stamina`, `Health`, `FallDamage`, directional speed).
+
+
+## Time and QTE services
+
+ProjectLifetimeScope now also installs TimeInstaller and QuickTimeInstaller. TimeService is the sole owner of Time.timeScale and fixed-step adjustment: owner-keyed requests combine by taking the slowest, explicit pause wins, and releasing a request preserves other requests. Disposal restores the initial Unity settings. Future pause/slow-motion callers must use this service.
+
+QuickTimeService owns one replaceable IQteSession at a time and ticks it in real time while gameplay input is enabled and TimeService is not paused. QteChallenge data creates timed or owner-controlled sessions; MessagePipe QteStarted/QteEnded announce lifecycle changes. The weapon view requests an event and receives its result through a method callback; Gun owns gameplay completion. The passive HUD widgets render the session through QteView. AK47 is the first consumer; other guns keep their existing behavior until assigned repair profiles and matching clips. No durability, heat or additional malfunction types were added.
+
+AK47 repair QTEs are optional accelerators: the automatic 4-5 second repair continues while an owner-controlled session is visible, with no slow-motion request. The onset fraction is per-profile data. The owner closes the event on normal completion; a successful input completes gameplay immediately. Standalone timed QTEs retain their own duration and optional time-scale settings.

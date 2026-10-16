@@ -44,6 +44,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public AmmoReserve Ammo { get; private set; }
         public PlayerMotor Motor => _motor;
         public PlayerInteractor Interactor => _interactor;
+        public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => Health != null && Health.IsDead;
 
         Transform IWeaponUser.Eye => _cameraPitch;
