@@ -77,7 +77,7 @@ Each gun's `Motion` curves present the magazine well, loading port or chambers w
 
 A `HandPose` (`Data/Hands/Poses/`) holds three numbers per finger:
 
-- **Curl:** 0 straight … 1 wrapped round a handle at the grip point. Above 1 (up to 1.8) the joints keep turning past Closed into a tight fist; the repair punch uses fingers 1.5-1.55 and thumb 1.8 / Spread -1 (thumb tucked across the fingers). A captured Fist calibration on the HandRig would look better if the hand mesh changes.
+- **Curl:** 0 straight, 1 wrapped round a handle, 1.8 the rig's calibrated Fist. Values between 1 and 1.8 blend Closed to Fist, with bounded rotation instead of extrapolating the handle grip. Missing Fist calibration safely holds Closed. Repair punches reach 1.8 on all five fingers with thumb Spread 0; little/ring fingers close slightly earlier and the thumb settles last. The shared hand prefabs have separate per-joint fist rotations with aligned fingers, moderate knuckle bend, tucked fingertips and the thumb across the outside.
 - **Spread:** −1 … 1.
 - **Tip:** added to Curl on the outer joints only. Negative keeps the finger straight past the knuckle, flat along a side; positive hooks the tip.
 
@@ -118,17 +118,20 @@ Items only reference `HandGrip`s and `HandPose`s, which don't depend on the mesh
 
 1. Make a prefab per side: an empty root with **`HandRig`**, and the hand model as a child (shadows off, **Update When Offscreen** on the skinned mesh renderer). Scale it so it reads well next to the weapons; they are ~1.3x real size, and the current hands are ~26 cm.
 2. `HandRig` → Setup → **Auto-find finger bones**. It finds chains named thumb / index / middle / ring / pinky or little under the hand bone. Check the five lists and fix them by hand if the rig uses other names.
-3. Calibrate three shapes: bend the bones in the prefab, then **Capture** each one:
+3. Calibrate four shapes: bend the bones in the prefab, then **Capture** each one:
    - **Open:** flat hand. Auto-find already stores the current bones as this.
    - **Closed:** fingers wrapped round a bar, thumb over the top.
    - **Spread:** fingers fanned out, thumb swung away from the index.
+   - **Fist:** fingers folded into the palm, thumb resting across their outside. Keep the fingertips from curling back toward the knuckles.
 
-   Check them with Show Open / Closed / Spread or the preview sliders.
+   Check them with Show Open / Closed / Spread / Fist or the preview sliders. Spread fades out while blending beyond Closed so a grip's thumb spread cannot twist the finished fist.
 4. Add a **`GripPoint`** child at the centre of that bar (Z from little finger to index, leaning towards the fingers, as a handle crosses the palm diagonally; Y out of the back of the hand) and assign it. Set **Finger Radius** (finger half-thickness) and **Palm Thickness** (bone to palm skin) for fitting.
 5. Point `Data/Hands/HandSet.asset` at the new prefabs, or make a new `HandSet` and assign it on the player's `Hands` object. Previews and Bake fit use the first `HandSet` found in the project.
 6. Bake fit again on every item (**Bake fit for all grips**): fits depend on the hand's size and shape.
 
 The current prefabs (`Prefabs/Hands/FPHand_Left`, `FPHand_Right`, VR Low Poly Hand pack, NO UV variant) were built and calibrated by `AgentScripts/FirstPersonHandsSetup.cs`. Its entries are `Hands`, `Poses`, `Player`, and `Item` (one weapon per call, as fitting can take ~20 s), plus `RenderItem` / `RenderTilts` for checking from the player's view. Re-running `Item` rebuilds that weapon's grips, actions and reload tilt, overwriting hand edits there.
+
+`Tools/HandFistReview.cs` supplies the current Fist calibration and targeted repair-finger curve update (`Apply`), isolated hand renders (`Render`) and player-view weapon renders (`Weapon`) under Temp/HandFist. It preserves existing Open/Closed/Spread calibrations and does not rebuild reloads or repair movement/impact tracks. HandRigTests checks ordinary grip compatibility, bounded fist blending, safe fallback and fist/closure timing at every gun's punch contacts.
 
 ## Tuning
 

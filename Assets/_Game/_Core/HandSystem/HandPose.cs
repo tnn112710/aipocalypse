@@ -23,10 +23,9 @@ namespace Aipocalypse.Core.HandSystem
     [Serializable]
     public struct FingerShape
     {
-        // Past 1 the joints keep turning beyond Closed (a handle grip) into a tight fist.
         public const float MaxCurl = 1.8f;
 
-        [Range(0f, MaxCurl), Tooltip("0 = straight (Open), 1 = curled (Closed); above 1 over-curls past Closed into a fist")] public float Curl;
+        [Range(0f, MaxCurl), Tooltip("0 = Open, 1 = Closed grip, 1.8 = calibrated Fist; values above 1 blend towards Fist")] public float Curl;
         [Range(-1f, 1f), Tooltip("Towards the rig's Spread shape (thumb: away from the index). Negative goes the other way")] public float Spread;
         [Range(-1f, 1f), Tooltip("Added to Curl for the outer joints only: negative keeps the finger straight past the knuckle (flat on a side), positive hooks the tip")]
         public float Tip;

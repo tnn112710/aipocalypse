@@ -6,7 +6,7 @@ namespace Aipocalypse.Core.HandSystem
 {
     // Root of one first-person hand prefab: where its grip point is and how its finger bones bend.
     // Any skinned hand mesh works: fill the finger joints (Auto-find), place GripPoint, then capture the Open, Closed and
-    // Spread shapes from bones you bent by hand. HandPoses only hold 0..1 weights between those shapes.
+    // Spread and Fist shapes from bones you bent by hand. HandPoses blend calibrated shapes.
     [DisallowMultipleComponent]
     public sealed class HandRig : MonoBehaviour
     {
@@ -17,6 +17,7 @@ namespace Aipocalypse.Core.HandSystem
             [HideInInspector] public Quaternion[] Open = Array.Empty<Quaternion>();
             [HideInInspector] public Quaternion[] Closed = Array.Empty<Quaternion>();
             [HideInInspector] public Quaternion[] Spread = Array.Empty<Quaternion>();
+            [HideInInspector] public Quaternion[] Fist = Array.Empty<Quaternion>();
 
             public bool IsCalibrated => Joints.Length > 0 && Open.Length == Joints.Length && Closed.Length == Joints.Length &&
                                         Spread.Length == Joints.Length;
@@ -67,9 +68,13 @@ namespace Aipocalypse.Core.HandSystem
                 if (joint == null)
                     continue;
                 Quaternion open = chain.Open[j];
-                Quaternion curled = Quaternion.SlerpUnclamped(open, chain.Closed[j], shape.JointCurl(j));
+                float curl = Mathf.Clamp(shape.JointCurl(j), 0f, FingerShape.MaxCurl);
+                float fist = Mathf.InverseLerp(1f, FingerShape.MaxCurl, curl);
+                Quaternion curled = curl <= 1f
+                    ? Quaternion.Slerp(open, chain.Closed[j], curl)
+                    : Quaternion.Slerp(chain.Closed[j], chain.Fist.Length == chain.Joints.Length ? chain.Fist[j] : chain.Closed[j], fist);
                 Quaternion spread = Quaternion.Inverse(open) * chain.Spread[j];
-                joint.localRotation = curled * Quaternion.SlerpUnclamped(Quaternion.identity, spread, shape.Spread);
+                joint.localRotation = curled * Quaternion.SlerpUnclamped(Quaternion.identity, spread, shape.Spread * (1f - fist));
             }
         }
 
@@ -210,15 +215,17 @@ namespace Aipocalypse.Core.HandSystem
             return -1;
         }
 
-        enum Shape { Open, Closed, Spread }
+        enum Shape { Open, Closed, Spread, Fist }
 
         [ButtonGroup("Setup/Capture"), Button("Capture Open")] void CaptureOpen() => Capture(Shape.Open);
         [ButtonGroup("Setup/Capture"), Button("Capture Closed")] void CaptureClosed() => Capture(Shape.Closed);
         [ButtonGroup("Setup/Capture"), Button("Capture Spread")] void CaptureSpread() => Capture(Shape.Spread);
+        [ButtonGroup("Setup/Capture"), Button("Capture Fist")] void CaptureFist() => Capture(Shape.Fist);
 
         [ButtonGroup("Setup/Show"), Button("Show Open")] void ShowOpen() => ShowShape(default);
         [ButtonGroup("Setup/Show"), Button("Show Closed")] void ShowClosed() => ShowShape(Uniform(1f, 0f));
         [ButtonGroup("Setup/Show"), Button("Show Spread")] void ShowSpread() => ShowShape(Uniform(0f, 1f));
+        [ButtonGroup("Setup/Show"), Button("Show Fist")] void ShowFist() => ShowShape(Uniform(FingerShape.MaxCurl, 0f));
 
         static HandShape Uniform(float curl, float spread) => new()
         {
@@ -241,6 +248,7 @@ namespace Aipocalypse.Core.HandSystem
                 {
                     case Shape.Open: chain.Open = rotations; break;
                     case Shape.Closed: chain.Closed = rotations; break;
+                    case Shape.Fist: chain.Fist = rotations; break;
                     default: chain.Spread = rotations; break;
                 }
             }

@@ -62,7 +62,7 @@ Assets/_Game/
 │  │  └─ EquipmentRig.cs                    spawns HeldItems through the resolver (injected), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
-│  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread calibration, Place, Apply, forearm axis, contact samples, setup buttons
+│  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
 │  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows (view space), preview item position
 │  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit or clip-authored shape); Resolve; Preview hand, Bake fit; FingerMask
 │  │  ├─ ItemHands.cs                       on an item prefab: default grips, per-item hand scale + named procedural hand actions (hand keys, part tracks, shown props); Play / SetProgress / Stop; preview scrubber
@@ -154,6 +154,7 @@ Assets/_Game/
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
    ├─ WeaponAnimationTests.cs               MP5/pistol/shotgun bindings, scaled hands, automatic Animator pass, contacts and continuity, slap/reset, repeated shell reload and pump cycle, break-action closure
+   ├─ HandRigTests.cs                       normal grip compatibility, bounded fist calibration/blending, safe fallback and all guns' punch-contact finger shapes/closure timing
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
