@@ -14,18 +14,20 @@ namespace Aipocalypse.Core.QuickTimeSystem
         readonly TimeService _time;
         readonly IPublisher<QteStarted> _started;
         readonly IPublisher<QteEnded> _ended;
+        readonly IPublisher<QteAttempted> _attempted;
         Action<QteResult> _completed;
         object _owner;
         readonly IDisposable _playerDied;
         readonly IDisposable _playerChanged;
 
         public QuickTimeService(InputService input, TimeService time, IPublisher<QteStarted> started, IPublisher<QteEnded> ended,
-            ISubscriber<PlayerDied> playerDied, ISubscriber<ActivePlayerChanged> playerChanged)
+            ISubscriber<PlayerDied> playerDied, ISubscriber<ActivePlayerChanged> playerChanged, IPublisher<QteAttempted> attempted)
         {
             _input = input;
             _time = time;
             _started = started;
             _ended = ended;
+            _attempted = attempted;
             _playerDied = playerDied.Subscribe(_ => CancelCurrent());
             _playerChanged = playerChanged.Subscribe(_ => CancelCurrent());
         }
@@ -69,8 +71,15 @@ namespace Aipocalypse.Core.QuickTimeSystem
             if (!IsActive || _time.IsPaused)
                 return;
             Session.Tick(unscaledDeltaTime);
+            IQteSession session = Session;
             if (pressed)
-                Session.Press();
+            {
+                QteAttemptResult attempt = session.Press();
+                if (attempt != QteAttemptResult.Ignored)
+                    _attempted.Publish(new QteAttempted(session, attempt));
+            }
+            if (!ReferenceEquals(Session, session))
+                return;
             if (Session.Result != QteResult.Running)
                 Finish(Session.Result);
         }

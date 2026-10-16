@@ -13,5 +13,7 @@ namespace Aipocalypse.Core.WeaponSystem
         [Range(0f, 1f), Tooltip("Fraction of repair elapsed before the optional QTE appears. 0.5 = halfway; lower values appear earlier.")]
         public float QteStartProgress = 0.5f;
         public QteChallenge Qte;
+        [Tooltip("Shared cosmetic preset; duplicate it to customize one gun independently.")]
+        public RepairFeedbackSettings Feedback;
     }
 }

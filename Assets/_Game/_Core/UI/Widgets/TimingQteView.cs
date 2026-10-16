@@ -27,10 +27,27 @@ namespace Aipocalypse.Core.UI
 
         public override bool CanDisplay(IQteSession session) => session is TimingQteSession;
 
+        public override void DisplaySuccess(IQteSession session)
+        {
+            Display(session);
+            _fill.fillAmount = 1f;
+            _marker.enabled = false;
+        }
+
+        public override void Flash(Color color, float amount)
+        {
+            _fill.color = Color.Lerp(_fill.color, color, amount);
+            _zone.color = Color.Lerp(_zone.color, color, amount);
+            _marker.color = Color.Lerp(_marker.color, color, amount);
+            _track.color = Color.Lerp(_track.color, color, amount * 0.65f);
+        }
+
         public override void Display(IQteSession session)
         {
             if (session is not TimingQteSession timing)
                 return;
+            ApplyStyle();
+            _marker.enabled = true;
             float progress = timing.Progress;
             _fill.fillAmount = progress;
             _fill.color = timing.AttemptAvailable ? _style.Fill : _style.Miss;

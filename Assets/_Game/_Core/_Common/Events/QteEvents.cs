@@ -2,6 +2,13 @@ using Aipocalypse.Core.QuickTimeSystem;
 
 namespace Aipocalypse.Core.Events
 {
+    public readonly struct QteAttempted
+    {
+        public readonly IQteSession Session;
+        public readonly QteAttemptResult Result;
+        public QteAttempted(IQteSession session, QteAttemptResult result) { Session = session; Result = result; }
+    }
+
     public readonly struct QteStarted
     {
         public readonly IQteSession Session;

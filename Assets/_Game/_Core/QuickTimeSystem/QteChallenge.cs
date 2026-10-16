@@ -3,13 +3,14 @@ using UnityEngine;
 namespace Aipocalypse.Core.QuickTimeSystem
 {
     public enum QteResult { Running, Success, TimedOut, Cancelled }
+    public enum QteAttemptResult { Ignored, Miss, Success }
 
     public interface IQteSession
     {
         QteResult Result { get; }
         float Remaining { get; }
         void Tick(float unscaledDeltaTime);
-        void Press();
+        QteAttemptResult Press();
         void Cancel();
     }
 

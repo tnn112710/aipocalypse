@@ -20,6 +20,8 @@ namespace Aipocalypse.Tests
             _challenge.CycleDuration = 1f;
             _challenge.GreenZoneCenter = 0.7f;
             _challenge.GreenZoneWidth = 0.2f;
+            _challenge.MissPauseDuration = 0f;
+            _challenge.RelocateZoneOnMiss = false;
             _definition = ScriptableObject.CreateInstance<GunDefinition>();
             _repair = ScriptableObject.CreateInstance<GunRepairProfile>();
             _definition.Jam.Repair = _repair;
@@ -49,6 +51,98 @@ namespace Aipocalypse.Tests
             session.Tick(1f);
             session.Press();
             Assert.That(session.Result, Is.EqualTo(QteResult.Success));
+        }
+
+        [Test]
+        public void AttemptOutcomesSeparateMissesFromIgnoredSpamAndSuccess()
+        {
+            var session = _challenge.CreateSession(ownerControlled: true);
+            session.Tick(0.2f);
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Miss));
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Ignored));
+            session.Tick(1.5f);
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Success));
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Ignored));
+        }
+
+        [Test]
+        public void CancelledAndTimedOutSessionsProduceNoAttemptFeedback()
+        {
+            var cancelled = _challenge.CreateSession();
+            cancelled.Cancel();
+            Assert.That(cancelled.Press(), Is.EqualTo(QteAttemptResult.Ignored));
+            var expired = _challenge.CreateSession();
+            expired.Tick(5f);
+            Assert.That(expired.Press(), Is.EqualTo(QteAttemptResult.Ignored));
+        }
+
+        [Test]
+        public void MissHoldsPointerThenMovesZoneWithoutLosingWidthOrOvershoot()
+        {
+            _challenge.MissPauseDuration = 0.24f;
+            _challenge.RelocateZoneOnMiss = true;
+            var session = new TimingQteSession(_challenge, true, () => 0.25f);
+            session.Tick(0.2f);
+            float originalZone = session.ZoneStart;
+            session.Press();
+            session.Tick(0.1f);
+            Assert.That(session.IsPointerPaused, Is.True);
+            Assert.That(session.Progress, Is.EqualTo(0.2f).Within(0.0001f));
+            Assert.That(session.ZoneStart, Is.EqualTo(originalZone));
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Ignored));
+            session.Tick(0.2f);
+            Assert.That(session.IsPointerPaused, Is.False);
+            Assert.That(session.Progress, Is.EqualTo(0.26f).Within(0.0001f));
+            Assert.That(Mathf.Abs(session.ZoneStart - originalZone), Is.GreaterThanOrEqualTo(0.1599f));
+            Assert.That(session.ZoneWidth, Is.EqualTo(0.2f));
+            float moved = session.ZoneStart;
+            session.Tick(0.1f);
+            Assert.That(session.ZoneStart, Is.EqualTo(moved));
+        }
+
+        [TestCase(0f, 0.2f)]
+        [TestCase(1f, 0.2f)]
+        [TestCase(0f, 0.9f)]
+        [TestCase(1f, 0.9f)]
+        public void RelocatedZoneStaysOnTrackAndCanBeHit(float random, float width)
+        {
+            _challenge.MissPauseDuration = 0.24f;
+            _challenge.RelocateZoneOnMiss = true;
+            _challenge.GreenZoneWidth = width;
+            _challenge.GreenZoneCenter = 0.5f;
+            var session = new TimingQteSession(_challenge, true, () => random);
+            float original = session.ZoneStart;
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Miss));
+            session.Tick(0.24f);
+            Assert.That(session.ZoneStart, Is.InRange(0f, 1f - session.ZoneWidth));
+            Assert.That(Mathf.Abs(session.ZoneStart - original), Is.GreaterThan(0.01f));
+            session.Tick(1f + session.ZoneStart + session.ZoneWidth * 0.5f);
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Success));
+        }
+
+        [Test]
+        public void PointerHoldDoesNotExtendStandaloneTimeout()
+        {
+            _challenge.TotalDuration = 0.3f;
+            _challenge.MissPauseDuration = 2f;
+            var session = _challenge.CreateSession();
+            session.Tick(0.1f);
+            session.Press();
+            session.Tick(0.21f);
+            Assert.That(session.Result, Is.EqualTo(QteResult.TimedOut));
+        }
+
+        [Test]
+        public void MissHoldRejectsSpamEvenWhenMultipleAttemptsPerCycleAreAllowed()
+        {
+            _challenge.OneAttemptPerCycle = false;
+            _challenge.MissPauseDuration = 0.24f;
+            var session = _challenge.CreateSession(ownerControlled: true);
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Miss));
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Ignored));
+            session.Cancel();
+            session.Tick(1f);
+            Assert.That(session.Press(), Is.EqualTo(QteAttemptResult.Ignored));
         }
 
         [Test]

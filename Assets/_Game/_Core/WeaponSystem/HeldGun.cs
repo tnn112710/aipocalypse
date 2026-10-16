@@ -4,6 +4,9 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 using Aipocalypse.Core.QuickTimeSystem;
+using Aipocalypse.Core.Events;
+using DG.Tweening;
+using MessagePipe;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
@@ -40,6 +43,10 @@ namespace Aipocalypse.Core.WeaponSystem
         BulletSystem _bullets;
         EffectPool _effects;
         QuickTimeService _qte;
+        IPublisher<GunRepairCompleted> _repairCompleted;
+        System.IDisposable _qteAttempts;
+        Tween _repairKick;
+        float _repairKickWeight;
         bool _qteRequested;
         bool _repairQteSucceeded;
         System.Action<QteResult> _repairQteCompleted;
@@ -74,11 +81,14 @@ namespace Aipocalypse.Core.WeaponSystem
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
 
         [Inject]
-        void Construct(BulletSystem bullets, EffectPool effects, QuickTimeService qte)
+        void Construct(BulletSystem bullets, EffectPool effects, QuickTimeService qte,
+            IPublisher<GunRepairCompleted> repairCompleted, ISubscriber<QteAttempted> qteAttempts)
         {
             _bullets = bullets;
             _effects = effects;
             _qte = qte;
+            _repairCompleted = repairCompleted;
+            _qteAttempts = qteAttempts.Subscribe(OnQteAttempted);
         }
 
         void Awake()
@@ -177,6 +187,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
         protected override void OnHidden()
         {
+            ResetRepairKick();
             _pendingShots = 0;
             _gun?.Interrupt();
             Hands?.Stop();
@@ -185,6 +196,8 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnDestroy()
         {
+            ResetRepairKick();
+            _qteAttempts?.Dispose();
             if (_animation != null)
                 _animation.RepairSlapped -= OnRepairSlapped;
             _qte?.Cancel(this);
@@ -281,8 +294,51 @@ namespace Aipocalypse.Core.WeaponSystem
                 _audio.PlayOneShot(clip, sounds.Volume * sounds.RepairSlapVolume);
         }
 
+        void OnQteAttempted(QteAttempted attempt)
+        {
+            if (attempt.Result != QteAttemptResult.Miss || !_qte.IsActiveFor(this))
+                return;
+            RepairFeedbackSettings feedback = _definition?.Jam.Repair?.Feedback;
+            if (feedback != null)
+                PlayRepairSound(feedback.MissSound, feedback.MissVolume);
+        }
+
+        void PlayRepairSound(AudioClip clip, float volume)
+        {
+            if (clip != null && _audio != null)
+                _audio.PlayOneShot(clip, _definition.Sounds.Volume * volume);
+        }
+
+        void ResetRepairKick()
+        {
+            _repairKick?.Kill();
+            _repairKick = null;
+            _repairKickWeight = 0f;
+        }
+
+        void RepairFeedback(bool qteSuccess)
+        {
+            RepairFeedbackSettings feedback = _definition.Jam.Repair?.Feedback;
+            if (feedback != null)
+            {
+                PlayRepairSound(qteSuccess ? feedback.SuccessSound : feedback.NaturalSound,
+                    qteSuccess ? feedback.SuccessVolume : feedback.NaturalVolume);
+                if (qteSuccess)
+                {
+                    PlayRepairSound(feedback.SuccessAccent, feedback.AccentVolume);
+                    ResetRepairKick();
+                    float duration = Mathf.Max(0.05f, feedback.WeaponKickDuration);
+                    _repairKick = DOTween.Sequence()
+                        .Append(DOTween.To(() => _repairKickWeight, value => _repairKickWeight = value, 1f, duration * 0.2f).SetEase(Ease.OutQuad))
+                        .Append(DOTween.To(() => _repairKickWeight, value => _repairKickWeight = value, 0f, duration * 0.8f).SetEase(Ease.OutCubic));
+                }
+            }
+            _repairCompleted?.Publish(new GunRepairCompleted(Owner, Item, qteSuccess));
+        }
+
         void OnActionStarted(GunAction action)
         {
+            ResetRepairKick();
             _qteRequested = false;
             _repairQteSucceeded = false;
             _shownAction = action;
@@ -316,11 +372,13 @@ namespace Aipocalypse.Core.WeaponSystem
                 _animation?.EndAction();
             if (!finished)
                 return;
+            if (action == GunAction.ClearingJam)
+                RepairFeedback(_repairQteSucceeded);
             GunSounds sounds = _definition.Sounds;
             Play(action switch
             {
                 GunAction.Reloading => sounds.ReloadEnd,
-                GunAction.ClearingJam => sounds.ClearJamEnd,
+                GunAction.ClearingJam => _definition.Jam.Repair?.Feedback == null ? sounds.ClearJamEnd : null,
                 GunAction.Cycling => sounds.CycleEnd,
                 _ => null,
             });
@@ -430,6 +488,12 @@ namespace Aipocalypse.Core.WeaponSystem
             {
                 _recoilPivot.localPosition = _restRecoilPosition + Vector3.back * _recoil.GunKickBack;
                 _recoilPivot.localRotation = _restRecoilRotation * Quaternion.Euler(_recoil.GunEuler);
+                RepairFeedbackSettings feedback = _definition.Jam.Repair?.Feedback;
+                if (feedback != null && _repairKickWeight > 0f)
+                {
+                    _recoilPivot.localPosition += feedback.WeaponKickPosition * _repairKickWeight;
+                    _recoilPivot.localRotation *= Quaternion.Euler(feedback.WeaponKickEuler * _repairKickWeight);
+                }
             }
         }
 

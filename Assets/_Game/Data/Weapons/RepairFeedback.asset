@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 550257f729c5a3949962fc80140a2e59, type: 3}
+  m_Name: RepairFeedback
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.RepairFeedbackSettings
+  SuccessColor: {r: 0.5, g: 1, b: 0.64, a: 1}
+  MissColor: {r: 1, g: 0.36, b: 0.18, a: 1}
+  SuccessDuration: 1
+  SuccessHold: 0.32
+  SuccessScale: 1.35
+  BurstScale: 2.1
+  MissDuration: 0.3
+  MissShakePixels: 12
+  NaturalFadeDuration: 0.18
+  WeaponKickDuration: 0.32
+  WeaponKickPosition: {x: 0, y: 0.004, z: -0.018}
+  WeaponKickEuler: {x: -2.3, y: 0.5, z: 0.9}
+  SuccessSound: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+  SuccessVolume: 1
+  SuccessAccent: {fileID: 8300000, guid: a74b75e6be642da4a96b308cb8d307ad, type: 3}
+  AccentVolume: 0.65
+  MissSound: {fileID: 8300000, guid: 5eb06b5e7e9d0ae408b348ee6de52f1b, type: 3}
+  MissVolume: 0.5
+  NaturalSound: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+  NaturalVolume: 0.45

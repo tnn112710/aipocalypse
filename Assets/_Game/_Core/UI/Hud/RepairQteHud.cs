@@ -5,6 +5,12 @@ using Aipocalypse.Input;
 using TMPro;
 using UnityEngine;
 using VContainer;
+using System;
+using Aipocalypse.Core.Events;
+using Aipocalypse.Core.EquipmentSystem;
+using Aipocalypse.Core.WeaponSystem;
+using DG.Tweening;
+using MessagePipe;
 
 namespace Aipocalypse.Core.UI
 {
@@ -15,17 +21,34 @@ namespace Aipocalypse.Core.UI
         [SerializeField] UnityEngine.UI.Image _keyCap;
         [SerializeField] TMP_Text _key;
         [SerializeField] QteView[] _views;
+        [SerializeField] CanvasGroup _group;
+        [SerializeField] UnityEngine.UI.Image _burst;
 
         QuickTimeService _qte;
         TimeService _time;
         InputService _input;
+        IDisposable _attempts;
+        IDisposable _repairs;
+        Tween _feedbackTween;
+        IQteSession _displayedSession;
+        ItemInstance _displayedItem;
+        QteView _selected;
+        bool _finishing;
+        bool _successful;
+        float _flash;
+        Color _flashColor;
+        Vector3 _restScale;
+        Vector3 _restPosition;
 
         [Inject]
-        void Construct(QuickTimeService qte, TimeService time, InputService input)
+        void Construct(QuickTimeService qte, TimeService time, InputService input,
+            ISubscriber<QteAttempted> attempts, ISubscriber<GunRepairCompleted> repairs)
         {
             _qte = qte;
             _time = time;
             _input = input;
+            _attempts = attempts.Subscribe(OnAttempted);
+            _repairs = repairs.Subscribe(OnRepairCompleted);
         }
 
         protected override void Start()
@@ -33,6 +56,10 @@ namespace Aipocalypse.Core.UI
             ApplyStyle();
             _key.SetText(_input?.GetReloadKeyLabel() ?? "R");
             _content.SetActive(false);
+            _restScale = _content.transform.localScale;
+            _restPosition = _content.transform.localPosition;
+            if (_burst != null)
+                _burst.gameObject.SetActive(false);
             base.Start();
         }
 
@@ -47,28 +74,144 @@ namespace Aipocalypse.Core.UI
         }
 
         protected override void Bind(Player player) { }
-        protected override void Unbind(Player player) => _content.SetActive(false);
+        protected override void Unbind(Player player) => ResetFeedback();
+
+        protected override void OnDestroy()
+        {
+            _attempts?.Dispose();
+            _repairs?.Dispose();
+            ResetFeedback();
+            base.OnDestroy();
+        }
+
+        void OnDisable() => ResetFeedback();
+
+        void ResetFeedback()
+        {
+            _feedbackTween?.Kill();
+            _feedbackTween = null;
+            _finishing = false;
+            _successful = false;
+            _flash = 0f;
+            if (_content == null)
+                return;
+            _content.transform.localScale = _restScale;
+            _content.transform.localPosition = _restPosition;
+            _content.SetActive(false);
+            _keyCap.gameObject.SetActive(true);
+            if (_group != null)
+                _group.alpha = 1f;
+            if (_burst != null)
+                _burst.gameObject.SetActive(false);
+            _displayedSession = null;
+            _displayedItem = null;
+        }
+
+        void ShowSession()
+        {
+            if (ReferenceEquals(_displayedSession, _qte.Session))
+                return;
+            ResetFeedback();
+            _displayedSession = _qte.Session;
+            _displayedItem = Player.HeldItem?.Item;
+            _selected = null;
+            foreach (QteView view in _views)
+                if (view.CanDisplay(_displayedSession) && (_selected == null || view.PresentationId == _qte.Presentation))
+                    _selected = view;
+            foreach (QteView view in _views)
+                view.gameObject.SetActive(view == _selected);
+        }
+
+        void OnAttempted(QteAttempted attempt)
+        {
+            if (attempt.Result != QteAttemptResult.Miss || Player == null || Player.IsDead ||
+                Player.HeldItem is not HeldGun held || !_qte.IsActiveFor(held))
+                return;
+            RepairFeedbackSettings feedback = held.Gun.Item.Gun.Jam.Repair?.Feedback;
+            if (feedback == null)
+                return;
+            ShowSession();
+            _feedbackTween?.Kill();
+            _content.transform.localPosition = _restPosition;
+            _flash = 1f;
+            _flashColor = feedback.MissColor;
+            float duration = Mathf.Max(0.05f, feedback.MissDuration);
+            _feedbackTween = DOTween.Sequence()
+                .Append(_content.transform.DOPunchPosition(Vector3.right * feedback.MissShakePixels, duration, 8, 0.8f))
+                .Join(DOTween.To(() => _flash, value => _flash = value, 0f, duration));
+        }
+
+        void OnRepairCompleted(GunRepairCompleted repair)
+        {
+            if (!ReferenceEquals(repair.Owner, Player) || Player == null || Player.IsDead ||
+                !ReferenceEquals(repair.Item, Player.HeldItem?.Item) || repair.Item is not GunInstance item)
+                return;
+            RepairFeedbackSettings feedback = item.Gun.Jam.Repair?.Feedback;
+            if (feedback == null || _displayedSession == null || !ReferenceEquals(_displayedItem, repair.Item))
+                return;
+            _feedbackTween?.Kill();
+            _content.transform.localPosition = _restPosition;
+            _content.transform.localScale = _restScale;
+            _group.alpha = 1f;
+            _finishing = true;
+            _successful = repair.QteSuccess;
+            _keyCap.gameObject.SetActive(!repair.QteSuccess);
+            _flash = repair.QteSuccess ? 1f : 0f;
+            _flashColor = feedback.SuccessColor;
+            var sequence = DOTween.Sequence();
+            if (repair.QteSuccess)
+            {
+                float duration = Mathf.Max(0.05f, feedback.SuccessDuration);
+                float hold = Mathf.Clamp(feedback.SuccessHold, 0f, duration * 0.65f);
+                float fade = duration * 0.76f - hold;
+                sequence.Append(_content.transform.DOScale(_restScale * feedback.SuccessScale, duration * 0.12f).SetEase(Ease.OutCubic))
+                    .Append(_content.transform.DOScale(_restScale * 1.08f, duration * 0.12f).SetEase(Ease.OutQuad))
+                    .AppendInterval(hold)
+                    .Append(_group.DOFade(0f, fade))
+                    .Join(_content.transform.DOScale(_restScale * 0.9f, fade).SetEase(Ease.InCubic));
+                if (_burst != null)
+                {
+                    _burst.gameObject.SetActive(true);
+                    _burst.sprite = _style.Ring;
+                    _burst.color = feedback.SuccessColor;
+                    _burst.transform.localScale = Vector3.one;
+                    sequence.Insert(0f, _burst.transform.DOScale(feedback.BurstScale, duration * 0.65f).SetEase(Ease.OutCubic))
+                        .Insert(0f, _burst.DOFade(0f, duration * 0.65f));
+                }
+            }
+            else
+                sequence.Append(_group.DOFade(0f, Mathf.Max(0.05f, feedback.NaturalFadeDuration)));
+            _feedbackTween = sequence.OnComplete(ResetFeedback);
+        }
 
         void LateUpdate()
         {
-            bool visible = _qte != null && _qte.IsActive && _input != null && _input.GameplayEnabled &&
-                !_time.IsPaused && Player != null && !Player.IsDead;
+            bool allowed = _input != null && _input.GameplayEnabled && Player != null && !Player.IsDead;
+            if (!allowed || (_finishing && !ReferenceEquals(_displayedItem, Player.HeldItem?.Item)))
+            {
+                ResetFeedback();
+                return;
+            }
+            bool active = _qte != null && _qte.IsActive && Player.HeldItem is HeldGun held && _qte.IsActiveFor(held);
+            if (active)
+                ShowSession();
+            bool visible = (active || _finishing) && !_time.IsPaused;
             _content.SetActive(visible);
             if (!visible)
-                return;
-
-            QteView selected = null;
-            foreach (QteView view in _views)
-                if (view.CanDisplay(_qte.Session) && (selected == null || view.PresentationId == _qte.Presentation))
-                    selected = view;
-            foreach (QteView view in _views)
             {
-                view.gameObject.SetActive(view == selected);
-                if (view == selected)
-                    view.Display(_qte.Session);
+                if (!active && !_finishing)
+                    ResetFeedback();
+                return;
             }
-            if (selected != null)
-                _keyCap.rectTransform.anchoredPosition = new Vector2(0f, -((RectTransform)selected.transform).rect.height * 0.5f - 22f);
+            if (_selected != null)
+            {
+                if (_finishing && _successful)
+                    _selected.DisplaySuccess(_displayedSession);
+                else
+                    _selected.Display(_displayedSession);
+                _selected.Flash(_flashColor, _flash);
+                _keyCap.rectTransform.anchoredPosition = new Vector2(0f, -((RectTransform)_selected.transform).rect.height * 0.5f - 22f);
+            }
         }
     }
 }
