@@ -10,7 +10,7 @@ The AK47 is the first clip-driven weapon. `ItemHands` points to the two `Motion/
 
 `PosePivot/RecoilPivot/AnimationRoot` carries the Animator, RigBuilder and `GunAnimation`. Its `Motion` child contains `Weapon`, `Controls/LeftFree` and `HandTargets`. `Rig/LeftHand` is a Multi-Parent Constraint with five sources in this fixed order: forend grip, old magazine grip, replacement magazine grip, bolt grip, free-hand control. `Rig/RightHand` keeps the right target on the pistol grip. Contact switches are stepped keys, with matching free-control poses at each boundary. No hierarchy reparenting happens during playback.
 
-Clips live in `_Core/WeaponSystem/Animations/AK47/`: `AK47_Equipped`, `AK47_Idle`, `AK47_Firing`, `AK47_Reloading`, `AK47_ReloadingEmpty`, `AK47_Repairing`. Repairing means the existing jam-clear action, not durability repair. Normal reload omits charging the bolt; empty reload includes it. Firing animates the bolt and trigger finger; accumulated gun and camera recoil remain procedural.
+Clips live in `_Core/WeaponSystem/Animations/AK47/`: `AK47_Equipped`, `AK47_Idle`, `AK47_Firing`, `AK47_Reloading`, `AK47_ReloadingEmpty`, `AK47_Repairing`. Repairing means the existing jam-clear action, not durability repair: the left hand opens, winds up, slaps the receiver at normalized time 0.43, recoils and returns to the forend. The gun has a small authored impact reaction; the bolt and magazine stay in place. Normal reload omits charging the bolt; empty reload includes it. Firing animates the bolt and trigger finger; accumulated gun and camera recoil remain procedural.
 
 To edit:
 
@@ -60,7 +60,7 @@ An item with no matching action keeps its default grips.
 
 | Weapon | Hold | Actions |
 | --- | --- | --- |
-| AK-47 | Right on the pistol grip, left cradling the forend; hands scaled 1.12 | Clips and contact constraints: grab/extract/release old magazine, independent reach, bring replacement and seat it; empty reload adds the bolt; Repairing racks the bolt twice. See authoring above |
+| AK-47 | Right on the pistol grip, left cradling the forend; hands scaled 1.12 | Clips and contact constraints: grab/extract/release old magazine, independent reach, bring replacement and seat it; empty reload adds the bolt; Repairing slaps the receiver with an open palm. See authoring above |
 | MP5 | Right on the pistol grip (trigger finger kept), left cradling the forend | Procedural `Reload`: grab the mag, pull it down and out, return with the same mesh posing as the replacement, seat it. `ReloadEmpty` adds the left cocking lever; `ClearJam` racks it twice |
 | Pistol | Two-handed: support hand on the grip's left side round the shooting hand | Mag drops free; the hand brings a new one up and slaps it in; `ReloadEmpty` adds an overhand slide rack. `ClearJam`: rack twice |
 | Pump shotgun | Left on the pump (HeldGun slides it) | `LoadRound`: hand down to the belt, a shell up to the loading port and pushed into the tube, every round |

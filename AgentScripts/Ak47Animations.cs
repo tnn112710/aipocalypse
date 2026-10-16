@@ -159,7 +159,37 @@ public static class Ak47Animations
         return child;
     }
 
-    public static object Render()
+    public static object UpdateRepairing()
+    {
+        var root = PrefabUtility.LoadPrefabContents(GunPath);
+        try
+        {
+            var animationRoot = root.transform.Find("PosePivot/RecoilPivot/AnimationRoot");
+            var model = animationRoot.Find("Motion/Weapon");
+            var hands = root.GetComponent<ItemHands>();
+            var forend = model.Find("Handguard/LeftGrip");
+            var c = new Context {
+                Root = animationRoot, Motion = animationRoot.Find("Motion"), Model = model,
+                Magazine = model.Find("Magazine"), Replacement = model.Find("ReplacementMagazine"), Bolt = model.Find("Bolt"),
+                Free = animationRoot.Find("Motion/Controls/LeftFree"), Left = hands.GetDefault(HandSide.Left),
+                LeftConstraint = animationRoot.Find("Rig/LeftHand").GetComponent<MultiParentConstraint>(),
+                Forend = new Pose { P = model.InverseTransformPoint(forend.position), R = Quaternion.Inverse(model.rotation) * forend.rotation,
+                    Shape = hands.GetDefault(HandSide.Left).Shape }
+            };
+            c.BoltRest = c.Bolt.localPosition;
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Clips + "/AK47_Repairing.anim");
+            Undo.RegisterCompleteObjectUndo(clip, "AK47 receiver slap");
+            Repair(clip, c, clip.length);
+            EditorUtility.SetDirty(clip);
+            AssetDatabase.SaveAssetIfDirty(clip);
+            return "Repairing now slaps the receiver; clip duration and gameplay unchanged.";
+        }
+        finally { PrefabUtility.UnloadPrefabContents(root); }
+    }
+
+    public static object RenderRepairing() => Render(true);
+
+    public static object Render(bool repairingOnly = false)
     {
         const string output = "Temp/AK47Animations";
         Directory.CreateDirectory(output);
@@ -169,6 +199,9 @@ public static class Ak47Animations
         var poses = new[] { ("Idle", 0f), ("Equipped", 0.35f), ("Firing", 0.3f), ("Reloading", 0.1f),
             ("Reloading", 0.22f), ("Reloading", 0.36f), ("Reloading", 0.5f), ("Reloading", 0.7f),
             ("ReloadingEmpty", 0.75f), ("ReloadingEmpty", 0.82f), ("ReloadingEmpty", 0.94f), ("Repairing", 0.33f) };
+        if (repairingOnly)
+            poses = new[] { 0f, 0.1f, 0.2f, 0.3f, 0.35f, 0.4f, 0.43f, 0.46f, 0.5f, 0.65f, 0.85f, 1f }
+                .Select(t => ("Repairing", t)).ToArray();
         var sheet = new Texture2D(4 * 480, 3 * 270, TextureFormat.RGB24, false);
         for (int i = 0; i < poses.Length; i++)
         {
@@ -434,17 +467,34 @@ public static class Ak47Animations
 
     static void Repair(AnimationClip clip, Context c, float duration)
     {
-        var tilt = new Vector3(-10f, 18f, -30f);
-        Position(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.18f, new Vector3(-0.035f, 0.02f, 0.035f)), (0.72f, new Vector3(-0.035f, 0.02f, 0.035f)), (1f, Vector3.zero));
-        Euler(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.18f, tilt), (0.72f, tilt), (1f, Vector3.zero));
-        var pulled = c.BoltRest + Vector3.back * 0.085f;
-        Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (0.25f, c.BoltRest), (0.34f, pulled), (0.38f, pulled), (0.405f, c.BoltRest), (0.53f, c.BoltRest), (0.62f, pulled), (0.66f, pulled), (0.685f, c.BoltRest), (1f, c.BoltRest));
-        var arc = Vector3.Lerp(c.Forend.P, c.BoltGrip.P, 0.5f) + new Vector3(-0.035f, 0.1f, -0.03f);
-        Position(clip, c, c.Free, duration, (0f, c.Forend.P), (0.03f, c.Forend.P), (0.14f, arc), (0.24f, c.BoltGrip.P), (0.38f, c.BoltGrip.P + Vector3.back * 0.085f), (0.44f, c.BoltGrip.P + new Vector3(-0.045f, 0.04f, -0.02f)), (0.52f, c.BoltGrip.P), (0.66f, c.BoltGrip.P + Vector3.back * 0.085f), (0.76f, arc), (0.9f, c.Forend.P), (1f, c.Forend.P));
-        Rotation(clip, c, c.Free, duration, (0f, c.Forend.R), (0.24f, c.BoltGrip.R), (0.66f, c.BoltGrip.R), (0.9f, c.Forend.R), (1f, c.Forend.R));
-        Weights(clip, c, duration, (0f, 0), (0.03f, 4), (0.24f, 3), (0.38f, 4), (0.52f, 3), (0.66f, 4), (0.9f, 0), (1f, 0));
-        var open = HandShape.Lerp(c.Forend.Shape, default, 0.8f);
-        Shape(clip, c, c.Left, duration, (0f, c.Forend.Shape), (0.1f, open), (0.24f, c.BoltGrip.Shape), (0.36f, c.BoltGrip.Shape), (0.4f, open), (0.52f, c.BoltGrip.Shape), (0.65f, c.BoltGrip.Shape), (0.7f, open), (0.92f, c.Forend.Shape), (1f, c.Forend.Shape));
+        var tilt = new Vector3(-10f, 25f, -20f);
+        var held = new Vector3(-0.035f, 0.07f, 0.035f);
+        Position(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.18f, held), (0.43f, held),
+            (0.455f, held + new Vector3(0.014f, -0.004f, 0.008f)), (0.50f, held + new Vector3(-0.003f, 0.002f, -0.001f)),
+            (0.58f, held), (0.78f, held * 0.65f), (1f, Vector3.zero));
+        Euler(clip, c, c.Motion, duration, (0f, Vector3.zero), (0.18f, tilt), (0.43f, tilt),
+            (0.455f, tilt + new Vector3(-1.5f, 4f, -3f)), (0.50f, tilt + new Vector3(0.5f, -1f, 0.8f)),
+            (0.58f, tilt), (0.78f, tilt * 0.65f), (1f, Vector3.zero));
+        Position(clip, c, c.Bolt, duration, (0f, c.BoltRest), (1f, c.BoltRest));
+        var hit = new Vector3(-0.05f, 0.07f, 0.15f);
+        var windup = hit + new Vector3(-0.18f, 0.055f, -0.035f);
+        var slapRotation = Quaternion.LookRotation(Vector3.up, Vector3.left);
+        Position(clip, c, c.Free, duration, (0f, c.Forend.P), (0.04f, c.Forend.P),
+            (0.16f, Vector3.Lerp(c.Forend.P, windup, 0.6f) + Vector3.up * 0.045f),
+            (0.27f, windup), (0.34f, windup), (0.43f, hit), (0.445f, hit),
+            (0.49f, hit + new Vector3(-0.08f, 0.02f, -0.01f)), (0.60f, hit + new Vector3(-0.13f, 0.015f, 0.045f)),
+            (0.74f, Vector3.Lerp(hit, c.Forend.P, 0.65f) + new Vector3(-0.055f, 0.025f, 0f)),
+            (0.88f, c.Forend.P), (1f, c.Forend.P));
+        Rotation(clip, c, c.Free, duration, (0f, c.Forend.R), (0.04f, c.Forend.R),
+            (0.25f, Quaternion.Euler(0f, 0f, -12f) * slapRotation), (0.34f, Quaternion.Euler(0f, 0f, -12f) * slapRotation),
+            (0.43f, slapRotation), (0.49f, slapRotation), (0.64f, slapRotation), (0.88f, c.Forend.R), (1f, c.Forend.R));
+        Weights(clip, c, duration, (0f, 0), (0.04f, 4), (0.88f, 0), (1f, 0));
+        var open = new HandShape {
+            Thumb = new FingerShape(0.18f, 0.25f), Index = new FingerShape(0.05f),
+            Middle = new FingerShape(0.08f), Ring = new FingerShape(0.1f), Little = new FingerShape(0.12f)
+        };
+        Shape(clip, c, c.Left, duration, (0f, c.Forend.Shape), (0.14f, open), (0.43f, open),
+            (0.60f, open), (0.75f, HandShape.Lerp(open, c.Forend.Shape, 0.35f)), (0.90f, c.Forend.Shape), (1f, c.Forend.Shape));
     }
 
     static void Weights(AnimationClip clip, Context c, float duration, params (float t, int source)[] keys)

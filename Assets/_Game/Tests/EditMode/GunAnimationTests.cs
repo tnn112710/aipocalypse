@@ -164,12 +164,15 @@ namespace Aipocalypse.Tests
         {
             var magazine = _root.Find("Motion/Weapon/Magazine");
             Vector3 rest = magazine.localPosition;
+            var bolt = _root.Find("Motion/Weapon/Bolt");
+            Vector3 boltRest = bolt.localPosition;
             _animation.StartAction(GunAction.ClearingJam, false);
             _animation.Tick(0.1f, 0.33f);
             Assert.That(_animation.State, Is.EqualTo(GunAnimation.Repairing));
             Assert.That(Vector3.Distance(magazine.localPosition, rest), Is.LessThan(0.0001f));
             Assert.That(Vector3.Distance(_root.Find("Motion/HandTargets/Left").position,
-                _root.Find("Motion/Weapon/Bolt/LeftGrip").position), Is.LessThan(0.0001f));
+                _root.Find("Motion/Controls/LeftFree").position), Is.LessThan(0.0001f));
+            Assert.That(Vector3.Distance(bolt.localPosition, boltRest), Is.LessThan(0.0001f));
         }
     }
 }
