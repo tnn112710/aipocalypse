@@ -2,7 +2,7 @@
 
 Guns (shooting, ammo, reloading, jams, recoil, aiming, bullets and their effects) and [melee](#melee) (swings, hits, knockback). Guns are ported from the old project's `WeaponSystem` and rebuilt on this project's rules (plain C# rules + one view, central ticks, pooling); melee is new, built the same way. Items, the hotbar and switching are in [EQUIPMENT.md](EQUIPMENT.md); script locations in [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
-Today: an **AK-47** (auto), a **pistol** (semi-auto) and a **fire axe** (melee), picked up from the table in `Scenes/Prototype.unity`, with a shooting range (backstop wall + two `TargetDummy` capsules) further ahead.
+Today: an **AK-47** (auto), a **pistol** (semi-auto), a **double-barrel shotgun** (break action), a **pump shotgun** and a **fire axe** (melee), picked up from the table in `Scenes/Prototype.unity`, with a shooting range (backstop wall + two `TargetDummy` capsules) further ahead.
 
 ## Controls
 
@@ -27,7 +27,9 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto) and a **fire axe** (melee),
 | Magazine | Rounds live on the gun (`GunInstance`), so they survive drop, pick up and swap. A new gun spawns full | Magazine → `Size` |
 | Shared ammo by type | The player carries an `AmmoReserve`: spare rounds per `AmmoType`. Guns of the same type reload from the same pool | `Data/Weapons/AmmoConfig.asset` (starting amounts, `Infinite`) |
 | Magazine reload | One timed reload; takes only what the reserve has | Magazine → `Reload = Magazine`, `ReloadTime` |
-| Per-round reload | One round per `ReloadTime` until full or the reserve is empty (shotgun style) | Magazine → `Reload = PerRound` |
+| Per-round reload | One round per `ReloadTime` until full or the reserve is empty (tube shotgun style). Pulling the trigger with a round in the gun stops loading and fires (the round being loaded is not added) | Magazine → `Reload = PerRound` |
+| Pump / bolt action | After each shot that leaves a round, the gun works its action for `CycleTime` (`GunAction.Cycling`) before it can fire again. Aiming stays up. A click during the pump is kept and fires when it's done. After the last round there's nothing to chamber, so it goes straight to the reload. Switching away mid-pump finishes the pump when the gun is raised again. 0 = self-loading | Fire → `CycleTime` |
+| Moving parts | Optional, on the held prefab: a **pump part** slides by `Pump Stroke` and back over the cycle (and racks while clearing a jam); a **break part** swings to `Break Open Euler` while reloading | Gun prefab → `HeldGun` → Moving parts |
 | Auto reload | Starts by itself when the magazine runs dry and there's ammo | Magazine → `AutoReload` |
 | Jams | Each shot has `Chance` to jam instead of firing (no round used). A jammed gun can't fire; clearing starts by itself and takes `ClearTime`, with a racking motion | Gun asset → Jam |
 | Recoil | Two parts per shot, along a random spray pattern that restarts after a 0.24 s pause. **Aim kick** turns the view (up, sideways, roll, shake), so the crosshair and the shots climb together. **Gun kick** is a small, fast extra tilt + push-back of the model only, on top of the view it's attached to, so the barrel stays near the crosshair. Both spring back. Hip-fire and aiming have separate values | Gun asset → Recoil → Aim kick / Aim response / Gun kick |
@@ -35,10 +37,10 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto) and a **fire axe** (melee),
 | Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
-| Reload / jam motion | Temporary procedural tilt (reload), dip per round (per-round reload), tilt + rack (jam) until there are animations | Gun prefab → `HeldGun` → Action motion |
+| Reload / jam / pump motion | Temporary procedural tilt (reload), dip per round (per-round reload), tilt + rack (jam), small dip and roll over the pump stroke until there are animations | Gun prefab → `HeldGun` → Action motion |
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
 | Effects | Muzzle flash, tracer, impact (removed after 3 s), bullet hole decal (removed after 20 s, at most 64). All pooled; no holes on things that take damage | `Data/Weapons/BulletEffects.asset`; lifetime / cap on each effect prefab's `PooledEffect` |
-| Sounds | Equip, fire, reload start / insert / end, jam, jam clear start / end as plain `AudioClip`s, played with `PlayOneShot` on the gun prefab's 2D `AudioSource` (BroAudio later). Clips come from the old project's samples (`Assets/_Samples/Audio/Weapons`): rifle / pistol equip, fire, mag out (reload start), mag in (reload end), sniper bolt pull / push (jam clear). Jam and per-round insert have no clip yet | Gun asset → Sounds (clips, volume) |
+| Sounds | Equip, fire, reload start / insert / end, jam, jam clear start / end, cycle start / end (pump back / home) as plain `AudioClip`s, played with `PlayOneShot` on the gun prefab's 2D `AudioSource` (BroAudio later). Clips come from the old project's samples (`Assets/_Samples/Audio/Weapons`): rifle / pistol equip, fire, mag out (reload start), mag in (reload end), sniper bolt pull / push (jam clear). The shotguns borrow sniper fire / equip, bolt pull / push (pump; break open / close) and pistol mag in (shell insert) until there are shotgun clips. Jam has no clip yet | Gun asset → Sounds (clips, volume) |
 | Crosshair | A 6 px dot at the screen centre (placeholder, to be polished) | `HUD` → `SafeFrame/Center/Crosshair` |
 | Ammo on the HUD | Magazine / reserve in the corner of each gun's hotbar slot (`30/90`; magazine only when the reserve is infinite), red when empty or jammed | [UI.md](UI.md#hotbar) |
 
@@ -86,6 +88,8 @@ AK47 (variant of Gun_Base)    HeldGun · AudioSource (2D, gun sounds)
       └─ Muzzle               bullets and the flash leave here, along its blue (Z) axis
 ```
 
+Shotguns add a moving part inside `Model`: `PumpShotgun` slides `ShotGun_C_BarrelGuard` (the forend) as its pump part; `DoubleBarrel` has its model unpacked so the barrels, rib and forend sit under a `Hinge` at the front of the receiver, its break part.
+
 Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera) and are stored relative to `Hand`.
 
 ## Adding a gun
@@ -96,7 +100,16 @@ Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera)
 4. **Pickup:** make a world prefab like `AK47_Pickup` (root with `WorldItem` + trigger `BoxCollider`, model lying flat) and assign it to the asset's `WorldPrefab`. Drop copies into a scene.
 5. **New ammo type?** Add its starting amount to `Data/Weapons/AmmoConfig.asset`.
 
-A shotgun is the same steps with `Pellets` > 1, `SpreadAngle` > 0 and `Reload = PerRound`.
+### Shotguns
+
+Same steps with `Pellets` > 1 and `SpreadAngle` > 0 (each pellet does `Damage`); they share `Data/Weapons/ShotgunShells.asset` (12 gauge). The kind of shotgun is just settings:
+
+| Kind | Example | Fire | Magazine | Held prefab |
+| --- | --- | --- | --- | --- |
+| Break action | `DoubleBarrel` (9 pellets, 6°) | `SemiAuto`, `CycleTime 0` (one barrel per click) | `Size 2`, `Reload = Magazine` (both shells at once) | break part = a hinge over the barrels |
+| Pump, tube-fed | `PumpShotgun` (8 pellets, 5°) | `SemiAuto`, `CycleTime` 0.55 s | `Size 6`, `Reload = PerRound` (firing cuts it short) | pump part = the forend |
+| Semi-auto, tube-fed (XM1014) | — | `SemiAuto`, `CycleTime 0` | `PerRound` | none |
+| Auto, box mag (Saiga-12) | — | `Auto`, `CycleTime 0` | `Reload = Magazine` | none |
 
 ## Melee
 
@@ -136,7 +149,7 @@ FireAxe                       HeldMelee · AudioSource (2D)
 | Which effects a gun uses, bullet hole layers / size | `Data/Weapons/BulletEffects.asset` |
 | How long an effect lives, how many at once | the effect prefab in `Prefabs/Effects/` → `PooledEffect` |
 | Where the gun sits, aims, sprints | gun prefab → `Poses/*` |
-| Reload / jam motion | gun prefab → `HeldGun` → Action motion |
+| Reload / jam / pump motion, pump stroke, break angle | gun prefab → `HeldGun` → Action motion / Moving parts |
 
 ## Known gaps
 
@@ -145,7 +158,7 @@ FireAxe                       HeldMelee · AudioSource (2D)
 - **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.
 - **No dry-fire click** when the magazine and reserve are empty.
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
-- **Per-round reload can't be interrupted by firing** (as in the old system).
-- Reload and jam motions are procedural placeholders; replace them with animations driven from `Gun.ActionStarted` / `ActionProgress`.
+- **Shotguns have no damage falloff**: each pellet does full damage until the bullet's `Range`; spread alone thins hits at distance. No shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
+- Reload, jam and pump motions are procedural placeholders; replace them with animations driven from `Gun.ActionStarted` / `ActionProgress`.
 - Held weapons and muzzle flashes render through the weapon overlay camera. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
 - **Melee:** no hit-stop, hit marker or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).

@@ -8,6 +8,8 @@ namespace Aipocalypse.Core.WeaponSystem
         None,
         Reloading,
         ClearingJam,
+        // Working a pump / bolt after a shot.
+        Cycling,
     }
 
     public struct GunInput
@@ -35,6 +37,8 @@ namespace Aipocalypse.Core.WeaponSystem
         readonly Func<float> _random;
 
         float _actionTime;
+        // Survives an interrupted cycle, so the pump finishes when the gun is raised again.
+        bool _needsCycle;
 
         // One per shot that used a round. A shotgun shot is one event; HeldGun spawns its pellets.
         public event Action Fired;
@@ -80,18 +84,23 @@ namespace Aipocalypse.Core.WeaponSystem
             }
 
             TickAction(deltaTime);
+            if (CanCutReload(input))
+                EndAction(false);
             if (Action == GunAction.None)
                 StartActionIfNeeded(input.Reload);
 
-            // Reloading and clearing a jam drop the aim.
-            IsAiming = input.Aim && input.CanAim && Action == GunAction.None;
+            // Reloading and clearing a jam drop the aim; working the pump doesn't.
+            IsAiming = input.Aim && input.CanAim && Action is GunAction.None or GunAction.Cycling;
 
             _trigger.Update(deltaTime, input.TriggerHeld, input.TriggerPressed);
-            if (Action != GunAction.None || !input.CanFire || _item.IsJammed)
+            if (Action is not (GunAction.None or GunAction.Cycling) || !input.CanFire || _item.IsJammed)
             {
                 _trigger.Cancel();
                 return;
             }
+            // A click during the pump is kept and fires once it's done.
+            if (Action == GunAction.Cycling)
+                return;
 
             while (_trigger.TryShot())
             {
@@ -111,10 +120,23 @@ namespace Aipocalypse.Core.WeaponSystem
 
                 _item.SetRounds(_item.Rounds - 1);
                 Fired?.Invoke();
+
+                // Nothing left to chamber after the last round: it goes straight to the reload.
+                if (_definition.Fire.CycleTime > 0f && _item.Rounds > 0)
+                {
+                    _needsCycle = true;
+                    StartAction(GunAction.Cycling);
+                    break;
+                }
             }
         }
 
-        // Holstered or switching: drops the aim and stops a reload or jam clear (it restarts next time).
+        // Per-round reload: pulling the trigger stops loading and fires what's in the gun.
+        bool CanCutReload(in GunInput input) =>
+            Action == GunAction.Reloading && _definition.Magazine.Reload == ReloadType.PerRound &&
+            input.TriggerPressed && input.CanFire && _item.Rounds > 0;
+
+        // Holstered or switching: drops the aim and stops a reload, jam clear or pump (it restarts next time).
         public void Interrupt()
         {
             IsAiming = false;
@@ -127,6 +149,8 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             if (_item.IsJammed)
                 StartAction(GunAction.ClearingJam);
+            else if (_needsCycle)
+                StartAction(GunAction.Cycling);
             else if ((reloadPressed || (_definition.Magazine.AutoReload && _item.Rounds == 0)) && CanReload)
                 StartAction(GunAction.Reloading);
         }
@@ -154,11 +178,14 @@ namespace Aipocalypse.Core.WeaponSystem
             _actionTime += deltaTime;
             float duration = ActionDuration();
 
-            if (Action == GunAction.ClearingJam)
+            if (Action is GunAction.ClearingJam or GunAction.Cycling)
             {
                 if (_actionTime >= duration)
                 {
-                    _item.SetJammed(false);
+                    if (Action == GunAction.ClearingJam)
+                        _item.SetJammed(false);
+                    else
+                        _needsCycle = false;
                     EndAction(true);
                 }
                 return;
@@ -194,6 +221,7 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             GunAction.Reloading => _definition.Magazine.ReloadTime,
             GunAction.ClearingJam => _definition.Jam.ClearTime,
+            GunAction.Cycling => _definition.Fire.CycleTime,
             _ => 0f,
         };
     }

@@ -15,7 +15,7 @@ namespace Aipocalypse.Core.WeaponSystem
     public enum ReloadType
     {
         Magazine, // one timed reload refills the magazine
-        PerRound, // one round at a time (shotgun style)
+        PerRound, // one round at a time (tube shotgun style); pulling the trigger stops it
     }
 
     // Where bullets start and which way they go.
@@ -37,6 +37,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Per bullet")] public float Damage = 20f;
         [Min(1), Tooltip("Bullets per shot; more than 1 is a shotgun. A shot uses one round")] public int Pellets = 1;
         [Range(0f, 45f), Tooltip("Each bullet leaves up to this many degrees off the aim")] public float SpreadAngle;
+        [Min(0f), Tooltip("Pump / bolt: seconds working the action after each shot before the next can fire. 0 = self-loading")]
+        public float CycleTime;
 
         public float SecondsPerShot => 60f / Mathf.Max(1f, RoundsPerMinute);
         bool IsBurst => Mode is FireMode.AutoBurst or FireMode.SingleBurst;
@@ -127,5 +129,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public AudioClip Jam;
         public AudioClip ClearJamStart;
         public AudioClip ClearJamEnd;
+        [Tooltip("Pump / bolt pulled back after a shot")] public AudioClip CycleStart;
+        [Tooltip("Pump / bolt pushed home")] public AudioClip CycleEnd;
     }
 }

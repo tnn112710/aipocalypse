@@ -112,18 +112,18 @@ Assets/_Game/
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root
 │     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom (Player implements it)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
-│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload, jam + clear, aim; events (+ GunAction, GunInput)
+│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round cut short by firing), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
 │     ├─ BulletSpread.cs                    random direction inside a cone
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
-│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, action motion, sounds (own AudioSource)
+│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, poses, recoil, action motion, pump / break parts, sounds (own AudioSource)
 │     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage, impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) in the root scope
 │     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun + 2D AudioSource skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
-│     ├─ Prefabs/Guns/AK47, Pistol.prefab   variants of Gun_Base with the store model and their poses / muzzle
+│     ├─ Prefabs/Guns/AK47, Pistol, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle
 │     ├─ Prefabs/Guns/*_Pickup.prefab       world prefabs: WorldItem + trigger box + model lying flat
 │     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
 │     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
@@ -133,9 +133,9 @@ Assets/_Game/
 ├─ Data/
 │  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/AK47, Pistol, FireAxe.asset      item definitions (held + world prefab; weapons hold all their numbers)
-│  ├─ Weapons/RifleAmmo, PistolAmmo.asset   ammo types
-│  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol), Infinite off
+│  ├─ Items/AK47, Pistol, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (held + world prefab; weapons hold all their numbers)
+│  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
+│  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
@@ -190,7 +190,7 @@ PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteract
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
 EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
-EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear, aim, trigger → Fired counts shots); pose + recoil pivots.
+EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots, pump / break parts.
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)

@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3}
+  m_Name: PumpShotgun
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunDefinition
+  <DisplayName>k__BackingField: Pump Shotgun
+  <Icon>k__BackingField: {fileID: 21300000, guid: 07e15889013d9604791f95dbcf24feb0, type: 3}
+  <WorldPrefab>k__BackingField: {fileID: 7900709533890227347, guid: 6333413d7aa8b0d449ae772c4154d5d3, type: 3}
+  <HeldPrefab>k__BackingField: {fileID: 2395441148089449006, guid: f9dafd94e35cde648b43c9345c68c588, type: 3}
+  <EquipTime>k__BackingField: 0.45
+  <HolsterTime>k__BackingField: 0.3
+  <Fire>k__BackingField:
+    Mode: 1
+    RoundsPerMinute: 300
+    BurstCount: 3
+    BurstCooldown: 0.25
+    Damage: 12
+    Pellets: 8
+    SpreadAngle: 5
+    CycleTime: 0.55
+  <Bullet>k__BackingField:
+    Speed: 120
+    Range: 40
+    GravityScale: 0
+  <Magazine>k__BackingField:
+    AmmoType: {fileID: 11400000, guid: 5c02020a12247d8478ebe7418ef9c131, type: 2}
+    Size: 6
+    Reload: 1
+    ReloadTime: 0.5
+    AutoReload: 1
+  <Jam>k__BackingField:
+    Chance: 0.01
+    ClearTime: 1.2
+  <Recoil>k__BackingField:
+    Hip:
+      Multiplier: 1
+      Vertical: 7
+      Horizontal: 1.5
+      Roll: 1
+      NoisePitch: 0.3
+      NoiseYaw: 0.3
+      CameraShake: 0.03
+      VerticalReturnSpeed: 8
+      HorizontalReturnSpeed: 8
+      VerticalSnappiness: 12
+      HorizontalSnappiness: 12
+      GunPitch: 5
+      GunYaw: 1
+      GunRoll: 2
+      KickBack: 0.12
+      GunReturnSpeed: 12
+      GunSnappiness: 20
+    Aim:
+      Multiplier: 1
+      Vertical: 4.9
+      Horizontal: 1.05
+      Roll: 0.7
+      NoisePitch: 0.21000001
+      NoiseYaw: 0.21000001
+      CameraShake: 0.021
+      VerticalReturnSpeed: 8
+      HorizontalReturnSpeed: 8
+      VerticalSnappiness: 12
+      HorizontalSnappiness: 12
+      GunPitch: 3.5
+      GunYaw: 0.7
+      GunRoll: 1.4
+      KickBack: 0.084
+      GunReturnSpeed: 12
+      GunSnappiness: 20
+    MovingMultiplier: 1.14
+    AirborneMultiplier: 1.65
+    AccurateShots: 0
+    AccurateShotsMultiplier: 1
+  <Handling>k__BackingField:
+    AimSpeed: 10
+    SprintPoseSpeed: 8
+  <Sounds>k__BackingField:
+    Volume: 1
+    Equip: {fileID: 8300000, guid: d643ae83db2aef746b8f8c0eff133b6b, type: 3}
+    Fire: {fileID: 8300000, guid: c5d5a6ea1c8c89343a5a43945f7bf1bf, type: 3}
+    ReloadStart: {fileID: 0}
+    ReloadInsert: {fileID: 8300000, guid: c6f742db31059134183c51cbd9faf8a5, type: 3}
+    ReloadEnd: {fileID: 0}
+    Jam: {fileID: 0}
+    ClearJamStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
+    ClearJamEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+    CycleStart: {fileID: 8300000, guid: 4802bedd34f55e7408bc933e82e2c297, type: 3}
+    CycleEnd: {fileID: 8300000, guid: f4005663007abb44da78ddbee13666b5, type: 3}
+  <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

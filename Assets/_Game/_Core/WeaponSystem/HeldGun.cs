@@ -6,8 +6,9 @@ using VContainer;
 namespace Aipocalypse.Core.WeaponSystem
 {
     // A gun in hand: runs its Gun rules from the holder's input and shows them — bullets from the muzzle, recoil,
-    // hip / aim / sprint poses, procedural reload and jam-clearing motion, sounds.
-    // Prefab layout: Poses (Hip, Aim, Sprint markers) and PosePivot > RecoilPivot > Model + Muzzle.
+    // hip / aim / sprint poses, procedural reload, jam-clearing and pump motion, sounds.
+    // Prefab layout: Poses (Hip, Aim, Sprint markers) and PosePivot > RecoilPivot > Model + Muzzle; optional pump /
+    // break parts inside Model.
     public sealed class HeldGun : HeldItem
     {
         [SerializeField, Tooltip("Moved to the active pose; parent of the recoil pivot")] Transform _posePivot;
@@ -27,7 +28,14 @@ namespace Aipocalypse.Core.WeaponSystem
         [BoxGroup("Action motion"), SerializeField] Vector3 _clearJamEuler = new(-5f, 25f, -50f);
         [BoxGroup("Action motion"), SerializeField, Tooltip("Pulling the action back while clearing a jam (m)")] float _rackDistance = 0.05f;
         [BoxGroup("Action motion"), SerializeField, Min(0f), Tooltip("Racks per jam clear")] int _racks = 2;
+        [BoxGroup("Action motion"), SerializeField, Tooltip("Gun offset at the middle of a pump / bolt stroke")] Vector3 _cycleOffset = new(0f, -0.01f, -0.015f);
+        [BoxGroup("Action motion"), SerializeField] Vector3 _cycleEuler = new(-3f, 0f, 4f);
         [BoxGroup("Action motion"), SerializeField, Min(0f)] float _actionBlendSpeed = 12f;
+
+        [BoxGroup("Moving parts"), SerializeField, Tooltip("Optional: slides back and home as the action is worked (pump forend, bolt)")] Transform _pumpPart;
+        [BoxGroup("Moving parts"), SerializeField, Tooltip("Pump part's local offset at full stroke")] Vector3 _pumpStroke = new(0f, 0f, -0.08f);
+        [BoxGroup("Moving parts"), SerializeField, Tooltip("Optional: swings open while reloading (break-action barrels)")] Transform _breakPart;
+        [BoxGroup("Moving parts"), SerializeField, Tooltip("Break part's local rotation when fully open")] Vector3 _breakOpenEuler = new(30f, 0f, 0f);
 
         BulletSystem _bullets;
         EffectPool _effects;
@@ -38,6 +46,8 @@ namespace Aipocalypse.Core.WeaponSystem
 
         Vector3 _restRecoilPosition;
         Quaternion _restRecoilRotation;
+        Vector3 _restPumpPosition;
+        Quaternion _restBreakRotation;
         Vector3 _posePosition;
         Quaternion _poseRotation;
         float _stateMultiplier = 1f;
@@ -62,6 +72,10 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             _restRecoilPosition = _recoilPivot.localPosition;
             _restRecoilRotation = _recoilPivot.localRotation;
+            if (_pumpPart != null)
+                _restPumpPosition = _pumpPart.localPosition;
+            if (_breakPart != null)
+                _restBreakRotation = _breakPart.localRotation;
         }
 
         protected override void OnBound()
@@ -227,7 +241,14 @@ namespace Aipocalypse.Core.WeaponSystem
         void OnActionStarted(GunAction action)
         {
             _shownAction = action;
-            Play(action == GunAction.Reloading ? _definition.Sounds.ReloadStart : _definition.Sounds.ClearJamStart);
+            GunSounds sounds = _definition.Sounds;
+            Play(action switch
+            {
+                GunAction.Reloading => sounds.ReloadStart,
+                GunAction.ClearingJam => sounds.ClearJamStart,
+                GunAction.Cycling => sounds.CycleStart,
+                _ => null,
+            });
         }
 
         void OnRoundLoaded()
@@ -238,8 +259,16 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnActionEnded(GunAction action, bool finished)
         {
-            if (finished)
-                Play(action == GunAction.Reloading ? _definition.Sounds.ReloadEnd : _definition.Sounds.ClearJamEnd);
+            if (!finished)
+                return;
+            GunSounds sounds = _definition.Sounds;
+            Play(action switch
+            {
+                GunAction.Reloading => sounds.ReloadEnd,
+                GunAction.ClearingJam => sounds.ClearJamEnd,
+                GunAction.Cycling => sounds.CycleEnd,
+                _ => null,
+            });
         }
 
         void Play(AudioClip clip)
@@ -262,7 +291,8 @@ namespace Aipocalypse.Core.WeaponSystem
                 _poseRotation = Quaternion.Slerp(_poseRotation, target.localRotation, t);
             }
 
-            float targetWeight = _gun.Action != GunAction.None ? 1f : 0f;
+            // The pump follows its own stroke curve, so it doesn't raise the blended action weight.
+            float targetWeight = _gun.Action is GunAction.None or GunAction.Cycling ? 0f : 1f;
             _actionWeight = Mathf.Lerp(_actionWeight, targetWeight, 1f - Mathf.Exp(-_actionBlendSpeed * deltaTime));
             _insertBump = Mathf.Lerp(_insertBump, 0f, 1f - Mathf.Exp(-15f * deltaTime));
             ApplyPose();
@@ -270,24 +300,42 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void ApplyPose()
         {
+            float progress = _gun != null && _gun.Action == _shownAction ? _gun.ActionProgress : 0f;
             Vector3 offset;
             Vector3 euler;
-            if (_shownAction == GunAction.ClearingJam)
+            float stroke = 0f;
+            switch (_shownAction)
             {
-                // Racks the action back and forth while tilted.
-                float progress = _gun != null && _gun.Action == GunAction.ClearingJam ? _gun.ActionProgress : 0f;
-                float rack = Mathf.Sin(progress * Mathf.PI * Mathf.Max(1, _racks));
-                offset = _clearJamOffset + Vector3.back * (_rackDistance * Mathf.Abs(rack));
-                euler = _clearJamEuler;
-            }
-            else
-            {
-                offset = _reloadOffset + _roundInsertOffset * _insertBump;
-                euler = _reloadEuler;
+                case GunAction.ClearingJam:
+                    // Racks the action back and forth while tilted.
+                    stroke = Mathf.Abs(Mathf.Sin(progress * Mathf.PI * Mathf.Max(1, _racks)));
+                    offset = (_clearJamOffset + Vector3.back * (_rackDistance * stroke)) * _actionWeight;
+                    euler = _clearJamEuler * _actionWeight;
+                    break;
+
+                case GunAction.Cycling:
+                    // Back, then home over the cycle time.
+                    stroke = Mathf.Sin(progress * Mathf.PI);
+                    offset = _cycleOffset * stroke;
+                    euler = _cycleEuler * stroke;
+                    break;
+
+                default:
+                    offset = (_reloadOffset + _roundInsertOffset * _insertBump) * _actionWeight;
+                    euler = _reloadEuler * _actionWeight;
+                    break;
             }
 
-            _posePivot.localPosition = _posePosition + offset * _actionWeight;
-            _posePivot.localRotation = _poseRotation * Quaternion.Euler(euler * _actionWeight);
+            _posePivot.localPosition = _posePosition + offset;
+            _posePivot.localRotation = _poseRotation * Quaternion.Euler(euler);
+
+            if (_pumpPart != null)
+                _pumpPart.localPosition = _restPumpPosition + _pumpStroke * stroke;
+            if (_breakPart != null)
+            {
+                float open = _shownAction == GunAction.Reloading ? _actionWeight : 0f;
+                _breakPart.localRotation = _restBreakRotation * Quaternion.Euler(_breakOpenEuler * open);
+            }
 
             if (_recoil != null)
             {

@@ -189,6 +189,109 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void PerRoundReload_FiringCutsItShort()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            _definition.Magazine.Size = 5;
+            _definition.Magazine.Reload = ReloadType.PerRound;
+            _definition.Magazine.ReloadTime = 0.5f;
+            _reserve.Add(_rifleAmmo, 10);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(1);
+            bool? finished = null;
+            gun.ActionEnded += (_, done) => finished = done;
+
+            gun.Tick(new GunInput { Reload = true, IsReady = true }, Frame);
+            Run(gun, Trigger(false), 0.7f);
+            Assert.AreEqual(2, gun.Item.Rounds);
+
+            gun.Tick(Trigger(true, pressed: true), Frame);
+
+            Assert.AreEqual(GunAction.None, gun.Action);
+            Assert.AreEqual(false, finished);
+            Assert.AreEqual(1, _shots);
+            Assert.AreEqual(1, gun.Item.Rounds);
+        }
+
+        [Test]
+        public void PerRoundReload_FromEmpty_ClickWaitsForTheFirstRound()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            _definition.Magazine.Size = 5;
+            _definition.Magazine.Reload = ReloadType.PerRound;
+            _definition.Magazine.ReloadTime = 0.5f;
+            _reserve.Add(_rifleAmmo, 10);
+            Gun gun = NewGun();
+            gun.Item.SetRounds(0);
+            gun.Tick(Trigger(false), Frame);
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+
+            gun.Tick(Trigger(true, pressed: true), Frame);
+
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+            Assert.AreEqual(0, _shots);
+        }
+
+        [Test]
+        public void Pump_WaitsForTheCycle_ThenFiresABufferedClick()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            _definition.Fire.RoundsPerMinute = 600f;
+            _definition.Fire.CycleTime = 0.5f;
+            Gun gun = NewGun();
+
+            gun.Tick(Trigger(true, pressed: true), Frame);
+            Assert.AreEqual(1, _shots);
+            Assert.AreEqual(GunAction.Cycling, gun.Action);
+
+            Run(gun, Trigger(false), 0.2f);
+            gun.Tick(Trigger(true, pressed: true), Frame);
+            Run(gun, Trigger(false), 0.2f);
+            Assert.AreEqual(1, _shots, "no shot while the pump is worked");
+
+            Run(gun, Trigger(false), 0.15f);
+            Assert.AreEqual(2, _shots, "the click made during the pump fires once it's done");
+        }
+
+        [Test]
+        public void Pump_KeepsTheAim_AndSkipsTheCycleAfterTheLastRound()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            _definition.Fire.CycleTime = 0.5f;
+            _definition.Magazine.AutoReload = false;
+            Gun gun = NewGun();
+            gun.Item.SetRounds(2);
+            var aimFire = new GunInput { Aim = true, TriggerHeld = true, TriggerPressed = true, IsReady = true, CanFire = true, CanAim = true };
+
+            gun.Tick(aimFire, Frame);
+            gun.Tick(new GunInput { Aim = true, IsReady = true, CanFire = true, CanAim = true }, Frame);
+            Assert.AreEqual(GunAction.Cycling, gun.Action);
+            Assert.IsTrue(gun.IsAiming);
+
+            Run(gun, Trigger(false), 0.6f);
+            gun.Tick(aimFire, Frame);
+
+            Assert.AreEqual(2, _shots);
+            Assert.AreEqual(0, gun.Item.Rounds);
+            Assert.AreEqual(GunAction.None, gun.Action);
+        }
+
+        [Test]
+        public void Pump_InterruptedBySwitching_FinishesWhenRaisedAgain()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            _definition.Fire.CycleTime = 0.5f;
+            Gun gun = NewGun();
+
+            gun.Tick(Trigger(true, pressed: true), Frame);
+            gun.Tick(new GunInput { IsReady = false }, 2f);
+            Assert.AreEqual(GunAction.None, gun.Action);
+
+            gun.Tick(Trigger(false), Frame);
+            Assert.AreEqual(GunAction.Cycling, gun.Action);
+        }
+
+        [Test]
         public void Jam_StopsTheShot_ThenClearsItself()
         {
             _definition.Jam.Chance = 0.5f;
