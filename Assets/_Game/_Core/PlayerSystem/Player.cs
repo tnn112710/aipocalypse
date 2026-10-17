@@ -14,7 +14,7 @@ using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The player's view: turns input into an intent and drives look → movement → stamina → head motion → interaction → equipment
+    // The player's view: turns input into an intent and drives look → movement → stamina → fatigue and breathing → head motion → interaction → equipment
     // (switching, then the item in hand: fire, aim, reload) → view kick and zoom, in that order.
     [RequireComponent(typeof(CharacterController))]
     public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner, IGunUser
@@ -44,9 +44,11 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerZoom _zoom;
         PlayerInteractor _interactor;
         HeldItemClearance _heldClearance;
+        PlayerBreathing _breathing;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
+        [ShowInInspector, ReadOnly, HideInEditorMode] public Fatigue Fatigue { get; private set; }
         public Equipment Equipment { get; private set; }
         public AmmoReserve Ammo { get; private set; }
         public PlayerInteractor Interactor => _interactor;
@@ -57,6 +59,10 @@ namespace Aipocalypse.Core.PlayerSystem
         Transform IWeaponUser.Root => transform;
         AimOrigin IGunUser.AimFrom => _tuning.HeldItem.AimFrom;
         float IGunUser.MotionSpreadScale => _stats.Get(StatId.MotionSpread, 1f);
+        float IGunUser.FatigueRecoilScale => Fatigue.RecoilMultiplier;
+        float IWeaponUser.MeleePower => Fatigue.MeleePower;
+
+        void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.Get(StatId.AttackStaminaCost, 1f), delaysRegen: false);
 
         [Inject]
         void Construct(InputService input, IStatProvider stats, DamageService damage, AudioService audio, IPublisher<PlayerDied> died,
@@ -71,6 +77,8 @@ namespace Aipocalypse.Core.PlayerSystem
 
             Health = new Health(stats.Get(StatId.MaxHealth, _tuning.Vitals.MaxHealth));
             Stamina = new Stamina(stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina), _tuning.Vitals.StaminaRegenDelay, _tuning.Vitals.ExhaustionRecoverFraction);
+            Fatigue = new Fatigue(_tuning.Vitals.Fatigue);
+            _breathing = new PlayerBreathing(_tuning.Sounds.Breathing);
             _motor = new PlayerMotor(_controller, _tuning.Movement, stats, Stamina);
             _look = new PlayerLook(transform, _cameraPitch, _tuning.Camera);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning.Camera);
@@ -82,6 +90,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _motor.Jumped += OnJumped;
             _motor.Landed += OnLanded;
             _headBob.Stepped += OnStepped;
+            _breathing.Breathed += OnBreathed;
             Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
 
             if (_equipmentConfig != null && _equipmentRig != null)
@@ -117,6 +126,8 @@ namespace Aipocalypse.Core.PlayerSystem
             _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond));
+            Fatigue.Tick(Stamina.Normalized, _stats.Get(StatId.FatiguePenalty, 1f), deltaTime);
+            _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
             _headBob.Tick(_motor, deltaTime);
             if (canAct)
                 _interactor.Tick(intent.Interact);
@@ -135,6 +146,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 _motor.Jumped -= OnJumped;
                 _motor.Landed -= OnLanded;
                 _headBob.Stepped -= OnStepped;
+                _breathing.Breathed -= OnBreathed;
             }
             Equipment?.Dispose();
         }
@@ -154,6 +166,7 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             Health?.Restore();
             Stamina?.Restore();
+            Fatigue?.Reset();
         }
 
         [Button, HideInEditorMode]
@@ -206,7 +219,7 @@ namespace Aipocalypse.Core.PlayerSystem
             TickHeldSway(intent, held, deltaTime);
             _look.SetKick(held != null ? held.ViewKick : default);
             _zoom.Tick(held != null ? held.Zoom : 1f);
-            _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.HeldItem.AimMoveSpeedMultiplier : 1f;
+            _motor.SpeedMultiplier = (held != null && held.IsAiming ? _tuning.HeldItem.AimMoveSpeedMultiplier : 1f) * Fatigue.MoveSpeed;
             // Apply the obstacle pose before shots use the final muzzle position.
             _heldClearance.Tick(held, deltaTime);
             if (held != null)
@@ -241,6 +254,12 @@ namespace Aipocalypse.Core.PlayerSystem
         void OnStepped() => _audio.Play(_tuning.Sounds.FootstepSound, _motor.IsSprinting ? 1f : _tuning.Sounds.WalkStepVolume);
 
         void OnJumped() => _audio.Play(_tuning.Sounds.JumpSound);
+
+        void OnBreathed(float volume)
+        {
+            if (!IsDead)
+                _audio.Play(_tuning.Sounds.BreathSound, volume);
+        }
 
         void OnLanded(LandingInfo landing)
         {

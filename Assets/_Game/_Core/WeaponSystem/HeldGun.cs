@@ -161,7 +161,7 @@ namespace Aipocalypse.Core.WeaponSystem
             {
                 Shoot();
                 // After the shot leaves: its kick shows from the next frame, as the bullet is already out of the barrel.
-                _recoil.Kick(_gun.IsAiming, _stateMultiplier);
+                _recoil.Kick(_gun.IsAiming, _stateMultiplier * _user.FatigueRecoilScale);
             }
         }
 
@@ -211,6 +211,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void OnFired()
         {
             _pendingShots++;
+            _user.Exert(_definition.Fire.StaminaPerShot);
             _animation.Fired();
             Play(_definition.Sounds.Fire);
         }

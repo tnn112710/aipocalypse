@@ -222,6 +222,9 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Survival meters (change daily): HP, Hunger, Stamina, Sanity
 - Growth (from XP → level points): Fitness (HP, stamina, carry — replaces "strength"), Gunsmanship (recoil, jams, reload), Luck
 - Stamina is for sprinting and fighting
+- Fighting tires you (user, 2026-10-17): each shot and swing costs stamina (per weapon, so spraying drains you); low stamina never blocks firing, it adds recoil and cuts melee damage in tiers (< 50%, < 25%, < 10%)
+  - Later growth: Fitness lowers the stamina cost of fighting; a Gunsmanship skill eases the low-stamina recoil penalty
+  - Ref: Kingdom Come: Deliverance — leveling the bow skill cuts both sway and the stamina spent per shot; the same two levers as here
 - Coins/currency; killing enemies gives coins and XP
 
 ### Real-time day

@@ -28,13 +28,15 @@ namespace Aipocalypse.Core.PlayerSystem
             _recoverFraction = Mathf.Clamp01(recoverFraction);
         }
 
-        public void Spend(float amount)
+        // `delaysRegen` false: regen keeps running (attacks), so only a cost above the regen rate drains the meter.
+        public void Spend(float amount, bool delaysRegen = true)
         {
             if (amount <= 0f)
                 return;
 
             _current = Mathf.Max(0f, _current - amount);
-            _regenDelayLeft = _regenDelay;
+            if (delaysRegen)
+                _regenDelayLeft = _regenDelay;
             if (_current <= 0f)
                 _exhausted = true;
         }

@@ -40,6 +40,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [Range(0f, 45f), Tooltip("Each bullet leaves up to this many degrees off the aim")] public float SpreadAngle;
         [Min(0f), Tooltip("Pump / bolt: seconds working the action after each shot before the next can fire. 0 = self-loading")]
         public float CycleTime;
+        [Min(0f), Tooltip("Stamina each shot costs (all pellets count as one). Regen keeps running, so only a fire rate × cost above the regen rate drains the meter")]
+        public float StaminaPerShot = 1f;
 
         public float SecondsPerShot => 60f / Mathf.Max(1f, RoundsPerMinute);
         bool IsBurst => Mode is FireMode.AutoBurst or FireMode.SingleBurst;

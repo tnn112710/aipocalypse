@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
@@ -13,6 +14,9 @@ namespace Aipocalypse.Core.PlayerSystem
         public float StaminaRegenDelay { get; private set; } = 1f;
         [field: SerializeField, Range(0f, 1f), Tooltip("Exhausted at 0: no sprint or jump until stamina refills to this fraction")]
         public float ExhaustionRecoverFraction { get; private set; } = 0.3f;
+
+        [field: Header("Fatigue (low stamina)"), SerializeField, InlineProperty, HideLabel]
+        public FatigueSettings Fatigue { get; private set; } = new();
 
         [field: Header("Fall damage (drop height, m)"), SerializeField, Min(0f)] public float SafeFallHeight { get; private set; } = 3.5f;
         [field: SerializeField, Min(0f), Tooltip("Drops this high deal max health")]

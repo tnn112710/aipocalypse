@@ -137,10 +137,10 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 `_Core/PlayerSystem/Prefabs/Player.prefab` works dropped into any scene; scenes need no camera of their own. Hierarchy: [CODE_STRUCTURE.md → Player prefab](CODE_STRUCTURE.md#player-prefab).
 
-- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
+- `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `Fatigue` + `PlayerBreathing` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
-- `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage (dealt through `DamageService`), linear between a safe and a lethal drop height. Dying publishes `PlayerDied`.
-- Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds (`PlayerSoundTuning`). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
+- `Stamina`: sprint drains, jump costs a chunk, shots and swings cost per weapon (without pausing regen); regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage (dealt through `DamageService`), linear between a safe and a lethal drop height. Dying publishes `PlayerDied`. `Fatigue`: under 50 / 25 / 10% stamina, eased multipliers raise gun recoil and lower melee damage, knockback and move speed; firing is never blocked ([WEAPONS.md → Fatigue](WEAPONS.md#fatigue)).
+- Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds and heavy breathing when out of breath (`PlayerSoundTuning`). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
 - First-person presentation: a HeldWeapon-only URP Overlay camera keeps held models visible. `HeldItemClearance` blends the hand back and tilts it near obstacles without moving the player; melee swings opt out. `WeaponOverlayCamera` synchronizes the overlay lens after Cinemachine places the world camera.
 - All numbers live in the `Data/Player/` tuning assets, linked from `PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
@@ -199,7 +199,7 @@ Assets/_Game/
 
 - `Aipocalypse.Core` and `Aipocalypse.Tests.EditMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
 - **Don't enable VContainer's source generator** for now: it has an open issue with injectors across multiple assemblies (hadashiA/VContainer#822), and reflection-based injection is fine on PC. Revisit only if profiling shows injection cost.
-- Rules are plain C# and get EditMode tests (today: `Stamina`, `Health`, `FallDamage`, directional speed).
+- Rules are plain C# and get EditMode tests (today: `Stamina`, `Fatigue`, `PlayerBreathing`, `Health`, `FallDamage`, directional speed).
 
 
 ## Time and QTE services

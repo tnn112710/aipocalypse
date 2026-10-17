@@ -7,5 +7,7 @@ namespace Aipocalypse.Core.WeaponSystem
         AimOrigin AimFrom { get; }
         // Scales the spread from moving and jumping: 1 = normal, lower = steadier.
         float MotionSpreadScale { get; }
+        // Recoil multiplier from fatigue: 1 = fresh, higher = shakier.
+        float FatigueRecoilScale { get; }
     }
 }

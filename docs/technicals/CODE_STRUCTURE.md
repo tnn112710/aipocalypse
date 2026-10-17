@@ -84,7 +84,7 @@ Assets/_Game/
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing sounds, fall damage through DamageService
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing / breath sounds, fall damage through DamageService
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
@@ -97,15 +97,17 @@ Assets/_Game/
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera aspect / viewport after Cinemachine; its own FOV (SetFieldOfView) so zoom doesn't swell the gun
-│  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
+│  │  ├─ Stamina.cs                         stamina meter: spend (with or without regen delay), regen delay, exhaustion
+│  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers; StatId.FatiguePenalty
+│  │  ├─ PlayerBreathing.cs                 out-of-breath timer (+ BreathingSettings): Breathed(volume), faster and louder as stamina drops
 │  │  ├─ FallDamage.cs                      drop height → damage
 │  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below; Player hands each rule only its group
 │  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, sprint / jump stamina costs → PlayerMotor
-│  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, fall damage heights → Player
+│  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, fatigue tiers, fall damage heights → Player
 │  │  ├─ Tuning/PlayerCameraTuning.cs       pitch limits, head bob, landing dip → PlayerLook, PlayerHeadBob
 │  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
 │  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, HeldSwaySettings → Player, HeldItemClearance, HeldItemSway
-│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep / jump / land SoundIDs and volumes → Player
+│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep / jump / land / breath SoundIDs and volumes, breathing timing → Player
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
@@ -137,8 +139,8 @@ Assets/_Game/
 │     ├─ Ammo/AmmoType.cs                   SO: a kind of round; guns of one type share a pool
 │     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
 │     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
-│     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root
-│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, MotionSpreadScale (Player implements it; StatId.MotionSpread)
+│     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root, MeleePower, Exert (stamina per attack; StatId.AttackStaminaCost)
+│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, MotionSpreadScale, FatigueRecoilScale (Player implements it; StatId.MotionSpread)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
@@ -173,7 +175,7 @@ Assets/_Game/
 ├─ Tests/PlayMode/PrototypeSmokeTests.cs  asmdef Aipocalypse.Tests.PlayMode: loads Prototype.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
-   ├─ PlayerRulesTests.cs                   Stamina, Health, FallDamage, directional speed
+   ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
@@ -224,7 +226,9 @@ intent = dead or gameplay input disabled ? default : read InputService
 PlayerLook.Tick      yaw + pitch                    (movement uses the new facing this frame)
 PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Landed event
                        └─ Player.OnJumped / OnLanded: jump / landing sound, head-bob dip, fall damage → DamageService → Health → DamageDealt / PlayerDied
-Stamina.Tick         regen (spending happened inside the motor)
+Stamina.Tick         regen (spending happened inside the motor, and in the held item last frame)
+Fatigue.Tick         tier for the stamina → eased recoil / melee power / move speed (used by this frame's held item and next frame's motor)
+PlayerBreathing.Tick out of breath → Breathed → breath sound
 PlayerHeadBob.Tick   camera root offset; Stepped → footstep sound
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)

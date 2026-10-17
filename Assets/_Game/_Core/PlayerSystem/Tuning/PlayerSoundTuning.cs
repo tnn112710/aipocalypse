@@ -1,4 +1,5 @@
 using Ami.BroAudio;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
@@ -16,5 +17,9 @@ namespace Aipocalypse.Core.PlayerSystem
         public float LandingSoundMinSpeed { get; private set; } = 2f;
         [field: SerializeField, Min(0.1f), Tooltip("Landings this fast (m/s) play at full volume")]
         public float LandingSoundFullSpeed { get; private set; } = 8f;
+
+        [field: Header("Out of breath"), SerializeField, Tooltip("One breath; repeated faster and louder as stamina drops")]
+        public SoundID BreathSound { get; private set; }
+        [field: SerializeField, InlineProperty, HideLabel] public BreathingSettings Breathing { get; private set; } = new();
     }
 }

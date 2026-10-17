@@ -131,6 +131,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _swingFromPosition = _posePosition;
             _swingFromRotation = _poseRotation;
             _mirrored = _alternateSides && index % 2 == 1;
+            _user.Exert(_definition.Swing.StaminaPerSwing);
             Play(_definition.Sounds.Swing);
         }
 
@@ -143,9 +144,10 @@ namespace Aipocalypse.Core.WeaponSystem
             if (!TryHit(eye.position, eye.forward, swing, out RaycastHit hit))
                 return;
 
-            Vector3 force = eye.forward * swing.Knockback;
+            float power = _user.MeleePower;
+            Vector3 force = eye.forward * (swing.Knockback * power);
             IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            _damage?.Deal(target, new DamageInfo(swing.Damage, DamageType.Melee, hit.point, force, _user.Root.gameObject));
+            _damage?.Deal(target, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
 
             Rigidbody body = hit.rigidbody;
             if (body != null && !body.isKinematic)

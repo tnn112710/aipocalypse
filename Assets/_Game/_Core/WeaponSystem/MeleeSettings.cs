@@ -15,6 +15,7 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Push on what it hits (N·s): rigidbodies move, damageables get it in DamageInfo.Force")]
         public float Knockback = 4f;
         [Tooltip("What swings can hit")] public LayerMask HitLayers = Physics.DefaultRaycastLayers;
+        [Min(0f), Tooltip("Stamina each swing costs, hit or miss. Regen keeps running")] public float StaminaPerSwing = 10f;
 
         public float Duration => WindUp + Recovery;
     }

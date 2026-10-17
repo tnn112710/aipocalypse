@@ -17,5 +17,20 @@ MonoBehaviour:
   <StaminaRegenPerSecond>k__BackingField: 18
   <StaminaRegenDelay>k__BackingField: 1
   <ExhaustionRecoverFraction>k__BackingField: 0.3
+  <Fatigue>k__BackingField:
+    Tiers:
+    - Below: 0.5
+      Recoil: 1.25
+      MeleePower: 0.85
+      MoveSpeed: 0.95
+    - Below: 0.25
+      Recoil: 1.6
+      MeleePower: 0.65
+      MoveSpeed: 0.85
+    - Below: 0.1
+      Recoil: 2.5
+      MeleePower: 0.4
+      MoveSpeed: 0.7
+    EaseTime: 0.35
   <SafeFallHeight>k__BackingField: 3.5
   <LethalFallHeight>k__BackingField: 14
