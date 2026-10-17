@@ -170,7 +170,7 @@ The model's own extras (position drift, roll) don't change where it points. Gun 
 | --- | --- |
 | Standing | Breathing: a slow figure-8, 0.15° sideways × 0.2° up / down, 0.28 breaths/s |
 | Walking forward / back | Bob in step with the head bob: 1° up / down each step, 0.35° sideways per two steps; the aim dips 0.08° per m/s |
-| Strafing | 1° sideways per two steps, 0.3° up / down; trails 0.12° per m/s against the move. Diagonals blend by direction |
+| Strafing | 1.6° sideways per two steps, 0.3° up / down; trails 0.2° per m/s against the move. Diagonals blend by direction |
 | Stopping | The drift springs back with a small overshoot (spring 90, damping 0.5): wait a beat for a steady shot |
 | Turning | Trails 0.6° per 100°/s, at most 1° |
 | Jump | Dips 1.2° on takeoff |
