@@ -24,6 +24,8 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Trail"), ShowIf(nameof(UseTrail))] public Color TrailColor = new(1f, 0.9f, 0.6f, 0.85f);
         [BoxGroup("Trail"), ShowIf(nameof(UseTrail)), Min(0f)] public float TrailDelay = 0.4f;
         [BoxGroup("Trail"), ShowIf(nameof(UseTrail)), Min(0.01f), Tooltip("Bar fractions per second")] public float TrailSpeed = 0.6f;
+        [BoxGroup("Trail"), ShowIf(nameof(UseTrail)), Range(0f, 1f), Tooltip("Only drops at least this big (bar fraction) restart the delay, so a steady drain (sprinting) is followed instead of frozen. 0 = every drop")]
+        public float TrailHoldMinDrop;
 
         [BoxGroup("Label")] public bool ShowLabel = true;
         [BoxGroup("Label"), ShowIf(nameof(ShowLabel))] public TMP_FontAsset Font;

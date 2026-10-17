@@ -78,7 +78,7 @@ API, called by a presenter:
 - `SetWarning(bool)`: swaps the fill to the style's `WarningColor`. Stamina uses it while exhausted.
 - `ApplyStyle()`: repaints from the style. Runs in `Awake` and on edit (also an Odin button).
 
-The trail (health only) holds for `TrailDelay`, then slides to the new value at `TrailSpeed`. The component's `Update` runs only while the trail is moving.
+The trail (health and stamina) holds for `TrailDelay`, then slides to the new value at `TrailSpeed`. Only drops of at least `TrailHoldMinDrop` (bar fraction) restart the hold, so a steady drain is followed instead of frozen: stamina uses 0.02, so a jump, shot or swing shows its chunk while sprint drain slides along; health uses 0 (every hit holds). The component's `Update` runs only while the trail is moving.
 
 ## Hotbar
 

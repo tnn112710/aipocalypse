@@ -37,10 +37,10 @@ namespace Aipocalypse.Core.UI
             float normalized = max > 0f ? Mathf.Clamp01(current / max) : 0f;
             if (normalized != _normalized)
             {
-                bool dropped = normalized < _normalized;
+                float drop = _normalized - normalized;
                 _normalized = normalized;
                 _fill.fillAmount = normalized;
-                UpdateTrail(dropped);
+                UpdateTrail(drop);
             }
 
             // Rounded up so a sliver of health never reads as 0.
@@ -95,14 +95,15 @@ namespace Aipocalypse.Core.UI
             }
         }
 
-        void UpdateTrail(bool dropped)
+        void UpdateTrail(float drop)
         {
             if (!TrailActive)
                 return;
 
-            if (dropped)
+            if (drop > 0f)
             {
-                _trailHoldLeft = _style.TrailDelay;
+                if (drop >= _style.TrailHoldMinDrop)
+                    _trailHoldLeft = _style.TrailDelay;
                 enabled = true;
             }
             else if (_trail.fillAmount < _normalized)
