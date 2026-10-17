@@ -54,11 +54,11 @@ namespace Aipocalypse.Core.PlayerSystem
         [Min(1f), Tooltip("Extra breath sway multiplier while winded (stamina just ran dry)")] public float WindedBreath = 1.5f;
 
         [Header("Walking (in step with the head bob)"), Tooltip("Degrees at walking speed, moving forward / back: sideways (once per two steps), up / down (each step)")]
-        public Vector2 WalkBob = new(0.2f, 0.6f);
-        [Tooltip("Degrees at walking speed, strafing")] public Vector2 StrafeBob = new(0.6f, 0.15f);
+        public Vector2 WalkBob = new(0.35f, 1f);
+        [Tooltip("Degrees at walking speed, strafing")] public Vector2 StrafeBob = new(1f, 0.3f);
         [Min(0f), Tooltip("Bob multiplier at full sprint (the crosshair is hidden; the gun swings)")] public float SprintBob = 2.5f;
         [Tooltip("Degrees the aim trails per m/s: against a strafe (sideways), down while moving forward. Springs back with a small overshoot when you stop")]
-        public Vector2 MoveDrift = new(0.08f, 0.05f);
+        public Vector2 MoveDrift = new(0.12f, 0.08f);
 
         [Header("Turning"), Min(0f), Tooltip("Degrees the aim trails per 100°/s of turning")] public float LookLag = 0.6f;
         [Min(0f)] public float MaxLookLag = 1f;
