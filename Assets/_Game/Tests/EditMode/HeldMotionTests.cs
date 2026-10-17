@@ -272,4 +272,38 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(1f, forward.z, 0.00001f, "pitch and yaw come from the aim offset, so the barrel stays on the crosshair");
         }
     }
+
+    public class PlayerAimTests
+    {
+        static readonly float Tan30 = Mathf.Tan(30f * Mathf.Deg2Rad);
+
+        [Test]
+        public void ScreenPosition_CentreIsZero_AndTheFovEdgeIsOne()
+        {
+            Assert.AreEqual(Vector2.zero, PlayerAim.ScreenPosition(Vector3.forward, Tan30));
+
+            Vector3 edgeUp = Quaternion.Euler(-30f, 0f, 0f) * Vector3.forward;
+            Assert.AreEqual(1f, PlayerAim.ScreenPosition(edgeUp, Tan30).y, 0.0001f);
+        }
+
+        [Test]
+        public void ScreenRadius_MatchesTheAngle_AndGrowsWithZoom()
+        {
+            Assert.AreEqual(1f, PlayerAim.ScreenRadius(30f, Tan30), 0.0001f);
+            Assert.AreEqual(0f, PlayerAim.ScreenRadius(0f, Tan30));
+            Assert.Greater(PlayerAim.ScreenRadius(5f, Tan30 * 0.8f), PlayerAim.ScreenRadius(5f, Tan30), "zoomed in, the same cone covers more screen");
+        }
+
+        [Test]
+        public void ModelRotation_TurnsFurtherWhenZoomed()
+        {
+            Vector3 aim = Quaternion.Euler(-1f, 2f, 0f) * Vector3.forward;
+
+            float unzoomed = Quaternion.Angle(Quaternion.identity, PlayerAim.ModelRotation(aim, 1f));
+            float zoomed = Quaternion.Angle(Quaternion.identity, PlayerAim.ModelRotation(aim, 0.8f));
+
+            Assert.AreEqual(Vector3.Angle(Vector3.forward, aim), unzoomed, 0.001f);
+            Assert.Greater(zoomed, unzoomed);
+        }
+    }
 }

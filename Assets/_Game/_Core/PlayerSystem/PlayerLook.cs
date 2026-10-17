@@ -32,6 +32,15 @@ namespace Aipocalypse.Core.PlayerSystem
             Apply();
         }
 
+        // A turn that stays (recoil the player pulls against): x = pitch (negative = up), y = yaw.
+        public void Turn(Vector2 euler)
+        {
+            if (euler.y != 0f)
+                _body.Rotate(0f, euler.y, 0f, Space.Self);
+            if (euler.x != 0f)
+                _pitch = Mathf.Clamp(_pitch + euler.x, _tuning.MinPitch, _tuning.MaxPitch);
+        }
+
         // After equipment ticks, so this frame's recoil shows this frame.
         public void SetKick(in ViewKick kick)
         {

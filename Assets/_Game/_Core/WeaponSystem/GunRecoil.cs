@@ -3,8 +3,9 @@ using UnityEngine;
 namespace Aipocalypse.Core.WeaponSystem
 {
     // Procedural recoil: each shot kicks the view (aim: moves the crosshair and where shots go) and adds a smaller kick
-    // to the gun model, along a random spray pattern; both spring back. The gun is attached to the view, so its offset
-    // is only the extra on top. HeldGun applies the gun's, the player's look applies the view's.
+    // to the gun model, along a random spray pattern. KeptShare of the aim kick turns the look for good (LookTurn, the
+    // player pulls down against it); the rest springs back. The gun is attached to the view, so its offset is only the
+    // extra on top. Hip and aiming values blend by the aim weight. HeldGun applies the gun's, the player's look the view's.
     public sealed class GunRecoil
     {
         const float SprayResetDelay = 0.24f;
@@ -14,6 +15,7 @@ namespace Aipocalypse.Core.WeaponSystem
         const float SprayRollFactor = 0.55f;
 
         readonly RecoilSettings _settings;
+        readonly RecoilValues _blend = new();
         readonly float _instanceNoise = Random.Range(0f, 100f);
 
         Vector3 _gunTarget;
@@ -24,6 +26,8 @@ namespace Aipocalypse.Core.WeaponSystem
         Vector3 _shake;
         float _kickTarget;
         float _kick;
+        // Kept aim kick not yet turned into the look (x = pitch, y = yaw).
+        Vector2 _keptLeft;
 
         int _shotIndex;
         float _sinceShot = float.MaxValue;
@@ -45,11 +49,13 @@ namespace Aipocalypse.Core.WeaponSystem
         // Euler offset for the view; negative x looks up.
         public Vector3 ViewEuler => _view;
         public Vector3 ViewShake => _shake;
+        // This frame's share of the kept kick, for the look to add: x = pitch (negative = up), y = yaw.
+        public Vector2 LookTurn { get; private set; }
 
-        // `stateMultiplier`: extra kick from moving or being airborne.
-        public void Kick(bool aiming, float stateMultiplier)
+        // `aimWeight`: 0 hip .. 1 aiming down sights. `stateMultiplier`: extra kick from moving, being airborne or tired.
+        public void Kick(float aimWeight, float stateMultiplier)
         {
-            RecoilValues values = _settings.For(aiming);
+            RecoilValues values = Values(aimWeight);
 
             if (_sinceShot > SprayResetDelay)
             {
@@ -69,20 +75,23 @@ namespace Aipocalypse.Core.WeaponSystem
             float pitch = Mathf.Max(0.01f, values.Vertical * pitchScale + pitchNoise * values.NoisePitch);
             float yaw = yawPattern * values.Horizontal + yawNoise * values.NoiseYaw;
 
-            _viewTarget += new Vector3(-pitch, yaw, rollPattern * values.Roll) * multiplier;
+            float kept = Mathf.Clamp01(_settings.KeptShare);
+            _viewTarget += new Vector3(-pitch * (1f - kept), yaw * (1f - kept), rollPattern * values.Roll) * multiplier;
+            _keptLeft += new Vector2(-pitch, yaw) * (kept * multiplier);
             _shakeTarget += new Vector3(yawNoise, pitchNoise + shakeNoise * 0.35f, 0f) * (values.CameraShake * stateMultiplier);
 
             _gunTarget += new Vector3(-values.GunPitch * pitchScale, values.GunYaw * yawPattern, values.GunRoll * rollPattern) * multiplier;
             _kickTarget += values.KickBack * multiplier;
         }
 
-        public void Tick(float deltaTime, bool aiming)
+        public void Tick(float deltaTime, float aimWeight)
         {
+            LookTurn = default;
             if (deltaTime <= 0f)
                 return;
             _sinceShot += deltaTime;
 
-            RecoilValues values = _settings.For(aiming);
+            RecoilValues values = Values(aimWeight);
             float verticalReturn = Damp(values.VerticalReturnSpeed, deltaTime);
             float horizontalReturn = Damp(values.HorizontalReturnSpeed, deltaTime);
             float verticalSnap = Damp(values.VerticalSnappiness, deltaTime);
@@ -98,14 +107,30 @@ namespace Aipocalypse.Core.WeaponSystem
             _shake = Vector3.Lerp(_shake, _shakeTarget, horizontalSnap);
             _kickTarget = Mathf.Lerp(_kickTarget, 0f, gunReturn);
             _kick = Mathf.Lerp(_kick, _kickTarget, gunSnap);
+
+            // The kept part rises at the snappiness rates, like the springing part.
+            LookTurn = new Vector2(_keptLeft.x * verticalSnap, _keptLeft.y * horizontalSnap);
+            _keptLeft -= LookTurn;
         }
 
         public void Reset()
         {
             _gunTarget = _gun = _viewTarget = _view = _shakeTarget = _shake = Vector3.zero;
             _kickTarget = _kick = 0f;
+            _keptLeft = LookTurn = Vector2.zero;
             _shotIndex = 0;
             _sinceShot = float.MaxValue;
+        }
+
+        RecoilValues Values(float aimWeight)
+        {
+            float t = Mathf.Clamp01(aimWeight);
+            if (t <= 0f)
+                return _settings.Hip;
+            if (t >= 1f)
+                return _settings.Aim;
+            RecoilValues.Lerp(_settings.Hip, _settings.Aim, t, _blend);
+            return _blend;
         }
 
         float AccurateShotsMultiplier(int shot) =>

@@ -23,6 +23,11 @@ MonoBehaviour:
     BurstCount: 3
     BurstCooldown: 0.25
     Damage: 12
+    Knockback: 0.8
+    Falloff:
+      Start: 10
+      End: 35
+      MinShare: 0.25
     Pellets: 9
     SpreadAngle: 6
     CycleTime: 0
@@ -81,6 +86,7 @@ MonoBehaviour:
       KickBack: 0.084
       GunReturnSpeed: 12
       GunSnappiness: 20
+    KeptShare: 0.3
     MovingMultiplier: 1.14
     AirborneMultiplier: 1.65
     AccurateShots: 0

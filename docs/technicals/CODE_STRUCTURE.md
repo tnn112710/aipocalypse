@@ -84,7 +84,7 @@ Assets/_Game/
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing / breath sounds (the breath loop pauses while time is stopped), aim / trigger end a sprint (HeldItem.StopsSprint), fall damage through DamageService
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing sounds, aim / trigger end a sprint (HeldItem.StopsSprint), held item's LookTurn → PlayerLook.Turn, fall damage through DamageService
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
@@ -94,6 +94,8 @@ Assets/_Game/
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
 │  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSway
 │  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps the weapon camera's FOV, LookScale, TanHalfFov
+│  │  ├─ PlayerAim.cs                       aim sway → CrosshairPosition and CrosshairSpread on screen (world FOV) + the rig's zoom-corrected turn; static ScreenPosition / ScreenRadius / ModelRotation
+│  │  ├─ PlayerBreathSound.cs               loops PlayerSoundTuning.BreathSound while out of breath (volume by Tiredness, fades), pauses it while time is stopped
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera aspect / viewport after Cinemachine; its own FOV (SetFieldOfView) so zoom doesn't swell the gun
@@ -141,15 +143,16 @@ Assets/_Game/
 │     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
 │     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root, MeleePower, Exert (stamina per attack; StatId.AttackStaminaCost)
-│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, MotionSpreadScale, FatigueRecoilScale (Player implements it; StatId.MotionSpread)
+│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, AirSpreadScale, FatigueRecoilScale, AimOffset (Player implements it; StatId.AirSpread)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim, sprint recovery (shots wait, clicks kept), empty click; events (+ GunAction, GunInput)
-│     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
+│     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view, springs back) + kept share (LookTurn) + small gun kick (model); hip / aim values blended by aim weight
 │     ├─ GunJolt.cs                         GunJolt (self-returning kick / wobble of the model) + GunJoltPlayer (runs one; HeldGun applies it on the recoil pivot)
 │     ├─ BulletSpread.cs                    random direction inside a cone
-│     ├─ GunAccuracy.cs                     spread from moving / jumping (AccuracySettings): grows with speed, less when aiming, × the holder's MotionSpreadScale, settles back
+│     ├─ GunAccuracy.cs                     spread while airborne (AccuracySettings): less when aiming, × the holder's AirSpreadScale, settles back after landing
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
-│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses + aim zoom, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, presents GunRepairFlow (sounds, jolts, beats, repair events), sounds (AudioService)
+│     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses + aim zoom, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, sprint recovery, empty click, forwards GunRepairFlow / jam events to GunRepairFeedback, sounds (AudioService)
+│     ├─ GunRepairFeedback.cs               presents one gun's jam / repair beats: sounds, gun jolts, GunJamBeat / GunRepairQteStarted / GunRepairCompleted
 │     ├─ GunRepairFlow.cs                   the jam repair's QTE rules: start at QteStartProgress, early finish, miss penalty, interrupt on cancel; QteStarted / Missed
 │     ├─ GunAnimation.cs                    every gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
 │     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested against each shot's HitLayers, damage through DamageService (source = shooter), impacts, holes (+ BulletShot)
@@ -238,9 +241,9 @@ EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots,
                        GunAnimation samples the controller and constraints (parts, hand targets, fingers).
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
-PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerZoom.Tick(held.Zoom)
+PlayerLook.Turn      held item's LookTurn (kept recoil) into yaw / pitch; PlayerLook.SetKick: its ViewKick on the camera pivot; PlayerZoom.Tick(held.Zoom)
 HeldItemSway.Tick    aim offset (breathing by Tiredness, bob in step with the head, spring lag / kicks) + model position / roll, calmed by held.AimWeight
-                       → EquipmentRig.ApplyHandMotion (model extras), Player.CrosshairPosition (world FOV), EquipmentRig.SetAimRotation (zoom-corrected)
+                       → EquipmentRig.ApplyHandMotion (model extras); PlayerAim.Tick → CrosshairPosition / CrosshairSpread (world FOV), EquipmentRig.SetAimRotation (zoom-corrected)
 PlayerMotor.SpeedMultiplier  from IsAiming × Fatigue.MoveSpeed
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, one GunAccuracy spread for the shot, BulletSystem.Fire per pellet)

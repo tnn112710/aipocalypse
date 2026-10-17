@@ -398,16 +398,76 @@ namespace Aipocalypse.Tests
         {
             var recoil = new GunRecoil(_definition.Recoil);
 
-            recoil.Kick(false, 1f);
+            recoil.Kick(0f, 1f);
             for (int i = 0; i < 6; i++)
-                recoil.Tick(Frame, false);
+                recoil.Tick(Frame, 0f);
             Assert.Less(recoil.ViewEuler.x, -0.5f);
             Assert.Less(recoil.GunEuler.x, 0f);
             Assert.Less(Mathf.Abs(recoil.GunEuler.x), Mathf.Abs(recoil.ViewEuler.x), "the gun's extra kick stays smaller than the aim kick");
 
             for (int i = 0; i < 180; i++)
-                recoil.Tick(Frame, false);
+                recoil.Tick(Frame, 0f);
             Assert.AreEqual(0f, recoil.ViewEuler.magnitude, 0.01f);
+        }
+
+        [Test]
+        public void Recoil_KeepsItsShareAsALookTurn_TheRestSpringsBack()
+        {
+            _definition.Recoil.KeptShare = 0.4f;
+            _definition.Recoil.Hip.NoisePitch = 0f;
+            var recoil = new GunRecoil(_definition.Recoil);
+
+            recoil.Kick(0f, 1f);
+            Vector2 turned = Vector2.zero;
+            for (int i = 0; i < 240; i++)
+            {
+                recoil.Tick(Frame, 0f);
+                turned += recoil.LookTurn;
+            }
+
+            Assert.AreEqual(0f, recoil.ViewEuler.magnitude, 0.01f, "the springing part settles");
+            Assert.Less(turned.x, -_definition.Recoil.Hip.Vertical * 0.4f * 0.5f, "the kept part turned the look up");
+            Assert.Greater(turned.x, -_definition.Recoil.Hip.Vertical * 0.4f * 2f);
+        }
+
+        [Test]
+        public void Recoil_NoKeptShare_NeverTurnsTheLook()
+        {
+            _definition.Recoil.KeptShare = 0f;
+            var recoil = new GunRecoil(_definition.Recoil);
+
+            recoil.Kick(0f, 1f);
+            for (int i = 0; i < 30; i++)
+            {
+                recoil.Tick(Frame, 0f);
+                Assert.AreEqual(Vector2.zero, recoil.LookTurn);
+            }
+        }
+
+        [Test]
+        public void RecoilValues_BlendBetweenHipAndAim()
+        {
+            var hip = new RecoilValues { Vertical = 4f, VerticalReturnSpeed = 10f };
+            var aim = new RecoilValues { Vertical = 2f, VerticalReturnSpeed = 20f };
+            var blend = new RecoilValues();
+
+            RecoilValues.Lerp(hip, aim, 0.5f, blend);
+
+            Assert.AreEqual(3f, blend.Vertical, 0.0001f);
+            Assert.AreEqual(15f, blend.VerticalReturnSpeed, 0.0001f);
+        }
+
+        [Test]
+        public void Falloff_FullUpToStart_EasesToTheMinimumAtEnd()
+        {
+            var falloff = new DamageFalloff { Start = 20f, End = 60f, MinShare = 0.4f };
+
+            Assert.AreEqual(1f, falloff.At(0f));
+            Assert.AreEqual(1f, falloff.At(20f));
+            Assert.AreEqual(0.7f, falloff.At(40f), 0.0001f);
+            Assert.AreEqual(0.4f, falloff.At(60f), 0.0001f);
+            Assert.AreEqual(0.4f, falloff.At(500f), 0.0001f);
+            Assert.Greater(falloff.At(30f), falloff.At(50f));
         }
 
         [Test]

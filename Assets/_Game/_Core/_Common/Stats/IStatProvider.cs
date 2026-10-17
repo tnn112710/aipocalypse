@@ -10,9 +10,9 @@ namespace Aipocalypse.Core.Stats
         StaminaRegen,
         SprintStaminaCost,
         JumpStaminaCost,
-        // Multipliers (base 1, lower = steadier): held-item sway and bob, and gun spread from moving / jumping.
+        // Multipliers (base 1, lower = steadier): held-item sway and bob, and gun spread while airborne.
         HeldItemSway,
-        MotionSpread,
+        AirSpread,
         // Multipliers (base 1): stamina spent per shot / swing, and how hard low stamina hits recoil, melee and speed (0 = not at all).
         AttackStaminaCost,
         FatiguePenalty,

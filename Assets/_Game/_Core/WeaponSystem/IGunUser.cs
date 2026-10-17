@@ -7,8 +7,8 @@ namespace Aipocalypse.Core.WeaponSystem
     {
         AmmoReserve Ammo { get; }
         AimOrigin AimFrom { get; }
-        // Scales the spread from moving and jumping: 1 = normal, lower = steadier.
-        float MotionSpreadScale { get; }
+        // Scales the spread while airborne: 1 = normal, lower = steadier.
+        float AirSpreadScale { get; }
         // Recoil multiplier from fatigue: 1 = fresh, higher = shakier.
         float FatigueRecoilScale { get; }
         // Where the crosshair is, as a turn from the eye's forward (aim sway). Camera and muzzle-to-crosshair shots follow it.

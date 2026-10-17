@@ -17,6 +17,8 @@ namespace Aipocalypse.Core.EquipmentSystem
         protected IEquipmentOwner Owner { get; private set; }
 
         public virtual ViewKick ViewKick => default;
+        // Degrees the holder's look turns this frame and keeps (recoil to pull against): x = pitch (negative = up), y = yaw.
+        public virtual Vector2 LookTurn => default;
         public virtual bool IsAiming => false;
         // 0 at rest, 1 fully aimed down sights; eases with the aim pose.
         public virtual float AimWeight => 0f;

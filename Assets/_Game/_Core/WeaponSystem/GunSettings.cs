@@ -36,6 +36,10 @@ namespace Aipocalypse.Core.WeaponSystem
         [ShowIf(nameof(IsBurst)), Min(0f), Tooltip("Seconds from a burst's last shot to the next burst (at least one shot interval)")]
         public float BurstCooldown = 0.25f;
         [Min(0f), Tooltip("Per bullet")] public float Damage = 20f;
+        [Min(0f), Tooltip("Push per bullet along its flight (N·s): rigidbodies move, damageables get it in DamageInfo.Force. Falls off with the damage")]
+        public float Knockback = 1f;
+        [InlineProperty, Tooltip("Damage and knockback drop with the distance the bullet travelled")]
+        public DamageFalloff Falloff = new();
         [Min(1), Tooltip("Bullets per shot; more than 1 is a shotgun. A shot uses one round")] public int Pellets = 1;
         [Range(0f, 45f), Tooltip("Each bullet leaves up to this many degrees off the aim")] public float SpreadAngle;
         [Min(0f), Tooltip("Pump / bolt: seconds working the action after each shot before the next can fire. 0 = self-loading")]
@@ -45,6 +49,22 @@ namespace Aipocalypse.Core.WeaponSystem
 
         public float SecondsPerShot => 60f / Mathf.Max(1f, RoundsPerMinute);
         bool IsBurst => Mode is FireMode.AutoBurst or FireMode.SingleBurst;
+    }
+
+    // Full damage up to Start metres, easing down to MinShare of it at End and beyond.
+    [Serializable]
+    public sealed class DamageFalloff
+    {
+        [Min(0f), Tooltip("Metres of full damage")] public float Start = 30f;
+        [Min(0f), Tooltip("Metres where it reaches the minimum")] public float End = 90f;
+        [Range(0f, 1f), Tooltip("Share of the damage left at End and beyond")] public float MinShare = 0.5f;
+
+        public float At(float distance)
+        {
+            if (distance <= Start || End <= Start)
+                return distance <= Start ? 1f : MinShare;
+            return Mathf.Lerp(1f, MinShare, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(Start, End, distance)));
+        }
     }
 
     [Serializable]
@@ -103,6 +123,28 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Metres pushed back per shot")] public float KickBack = 0.06f;
         [Min(0f), Tooltip("How fast the gun kick settles (higher = the barrel stays closer to the crosshair)")] public float GunReturnSpeed = 18f;
         [Min(0f)] public float GunSnappiness = 20f;
+
+        // Blends hip and aiming values into `into` (no allocation), so recoil eases with the aim pose.
+        public static void Lerp(RecoilValues hip, RecoilValues aim, float t, RecoilValues into)
+        {
+            into.Multiplier = Mathf.Lerp(hip.Multiplier, aim.Multiplier, t);
+            into.Vertical = Mathf.Lerp(hip.Vertical, aim.Vertical, t);
+            into.Horizontal = Mathf.Lerp(hip.Horizontal, aim.Horizontal, t);
+            into.Roll = Mathf.Lerp(hip.Roll, aim.Roll, t);
+            into.NoisePitch = Mathf.Lerp(hip.NoisePitch, aim.NoisePitch, t);
+            into.NoiseYaw = Mathf.Lerp(hip.NoiseYaw, aim.NoiseYaw, t);
+            into.CameraShake = Mathf.Lerp(hip.CameraShake, aim.CameraShake, t);
+            into.VerticalReturnSpeed = Mathf.Lerp(hip.VerticalReturnSpeed, aim.VerticalReturnSpeed, t);
+            into.HorizontalReturnSpeed = Mathf.Lerp(hip.HorizontalReturnSpeed, aim.HorizontalReturnSpeed, t);
+            into.VerticalSnappiness = Mathf.Lerp(hip.VerticalSnappiness, aim.VerticalSnappiness, t);
+            into.HorizontalSnappiness = Mathf.Lerp(hip.HorizontalSnappiness, aim.HorizontalSnappiness, t);
+            into.GunPitch = Mathf.Lerp(hip.GunPitch, aim.GunPitch, t);
+            into.GunYaw = Mathf.Lerp(hip.GunYaw, aim.GunYaw, t);
+            into.GunRoll = Mathf.Lerp(hip.GunRoll, aim.GunRoll, t);
+            into.KickBack = Mathf.Lerp(hip.KickBack, aim.KickBack, t);
+            into.GunReturnSpeed = Mathf.Lerp(hip.GunReturnSpeed, aim.GunReturnSpeed, t);
+            into.GunSnappiness = Mathf.Lerp(hip.GunSnappiness, aim.GunSnappiness, t);
+        }
     }
 
     [Serializable]
@@ -110,12 +152,12 @@ namespace Aipocalypse.Core.WeaponSystem
     {
         [LabelText("Hip fire"), InlineProperty] public RecoilValues Hip = new();
         [LabelText("Aiming"), InlineProperty] public RecoilValues Aim = new();
+        [Range(0f, 1f), Tooltip("Share of the aim kick (up / sideways) that turns the look for good, so the player pulls down against it; the rest springs back")]
+        public float KeptShare = 0.25f;
         [Min(0f), Tooltip("Recoil multiplier while moving")] public float MovingMultiplier = 1.15f;
         [Min(0f), Tooltip("Recoil multiplier while in the air")] public float AirborneMultiplier = 1.6f;
         [Min(0), Tooltip("The first shots of a spray kick less (0 or 1 = off)")] public int AccurateShots;
         [Range(0f, 1f)] public float AccurateShotsMultiplier = 1f;
-
-        public RecoilValues For(bool aiming) => aiming ? Aim : Hip;
     }
 
     // Spread while airborne, on top of SpreadAngle (walking shows as visible aim sway instead). It moves the whole shot,

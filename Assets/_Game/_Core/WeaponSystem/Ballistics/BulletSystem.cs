@@ -15,6 +15,10 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Range;
         public float GravityScale;
         public float Damage;
+        // Push (N·s) along the flight; falls off with the damage.
+        public float Knockback;
+        // Null = full damage at any range.
+        public DamageFalloff Falloff;
         // What it can hit (BulletSettings.HitLayers).
         public LayerMask Layers;
         // Anything under this is never hit (the shooter, its gun).
@@ -37,6 +41,8 @@ namespace Aipocalypse.Core.WeaponSystem
             public float Range;
             public float GravityScale;
             public float Damage;
+            public float Knockback;
+            public DamageFalloff Falloff;
             public int Layers;
             public Transform Ignore;
             public GameObject Source;
@@ -67,6 +73,8 @@ namespace Aipocalypse.Core.WeaponSystem
                 Range = shot.Range,
                 GravityScale = shot.GravityScale,
                 Damage = shot.Damage,
+                Knockback = shot.Knockback,
+                Falloff = shot.Falloff,
                 Layers = shot.Layers,
                 Ignore = shot.Ignore,
                 Source = shot.Source,
@@ -120,7 +128,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             if (TryHit(bullet.Position, step / distance, distance, bullet.Layers, bullet.Ignore, out RaycastHit hit))
             {
-                Impact(bullet, hit);
+                Impact(bullet, hit, bullet.Travelled + hit.distance);
                 return false;
             }
 
@@ -154,12 +162,18 @@ namespace Aipocalypse.Core.WeaponSystem
             return nearestDistance < float.MaxValue;
         }
 
-        void Impact(in Bullet bullet, in RaycastHit hit)
+        void Impact(in Bullet bullet, in RaycastHit hit, float travelled)
         {
             Vector3 normal = hit.normal != Vector3.zero ? hit.normal : -bullet.Velocity.normalized;
 
+            float share = bullet.Falloff != null ? bullet.Falloff.At(travelled) : 1f;
+            Vector3 force = bullet.Velocity.normalized * (bullet.Knockback * share);
             IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            _damage.Deal(target, new DamageInfo(bullet.Damage, DamageType.Gunshot, hit.point, default, bullet.Source));
+            _damage.Deal(target, new DamageInfo(bullet.Damage * share, DamageType.Gunshot, hit.point, force, bullet.Source));
+
+            Rigidbody body = hit.rigidbody;
+            if (body != null && !body.isKinematic && force != Vector3.zero)
+                body.AddForceAtPosition(force, hit.point, ForceMode.Impulse);
 
             BulletEffects effects = bullet.Effects;
             if (effects == null)
