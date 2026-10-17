@@ -94,8 +94,8 @@ Hand-painting: Terrain Tools brushes on a MicroVerse terrain are erased by the n
 
 The two content sets are made to stack: Rowlan packs give the **shape** (height stamps only), BK presets give the **surface** (texture/vegetation/object stamps under a `FalloffOverride` root, no heights in most biomes). `Prototype.unity` already does this: Rowlan `Valleys 01` (Add, 1000×240×1000) + BK Meadows "Green Grass Mixed" texture + "Flower Meadow Orange Blue" details.
 
-- Natural pairings (suggestions, the user picks the look): Rowlan Meadows or Valleys + BK Meadows/AsianValley surface, Alpine Mountains + BK Mountains, Swamp + BK Jungle/Redwood. BK Highlands art isn't installed, so pair Rowlan Highlands with another installed biome.
-- Only the **6 installed BK biomes** resolve: AsianValley, Jungle, Meadows, MesaDesert, Mountains, Redwood. `Presets` already filters out the rest.
+- Natural pairings (suggestions, the user picks the look): Rowlan Meadows or Valleys + BK Meadows/AsianValley surface, Alpine Mountains + BK Mountains, Swamp + BK Jungle. BK Highlands art isn't installed, so pair Rowlan Highlands with another installed biome.
+- Only the **4 installed BK biomes** resolve: AsianValley, Jungle, Meadows, Mountains. `Presets` already filters out the rest.
 - Presets carry height/slope filters tuned to their demo terrain. A preset that seems to do nothing is usually filtered out by height or slope. `Inspect` the child stamps and widen `filterSet.heightFilter` / `slopeFilter` with `Edit`.
 - Preset footprint = the `FalloffOverride` root's scale. `AddPreset` sizeX/Z sets it; the Content Browser default is 300×300.
 - BK `Biomes` presets are whole stacks (texture + trees + details + clear + objects). They're good for quick dressing, but they add many detail layers. Check GPUI cost (§6).

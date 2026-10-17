@@ -109,7 +109,7 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 | Low Poly Weapon Bundle Packs 1–3 | `Assets/_StoreAssets/Weapons`. Gun models: nest the store prefab as the `Model` child of a `Gun_Base` variant (`_Core/WeaponSystem/Prefabs/Guns/`), shadows off, no colliders ([WEAPONS.md](WEAPONS.md#adding-a-gun)). In use: AR_B (AK-47), Pistol_E |
 | VFX: Gabriel Aguiar Unique Projectiles Vol 1, Hovl Studio packs | `Assets/_StoreAssets/VFX`. Our effect prefabs (`_Core/WeaponSystem/Prefabs/Effects/`: muzzle flash, tracer, impact) use the Unique Projectiles materials; they're pooled through `EffectPool`, never instantiated per shot. Hovl Studio: not used yet |
 | Animpic Polygon Mega Survival (Kit, Construction, Tools, Medical, Weapons), Poly-Survival Food / Melee / Workshop | `Assets/_StoreAssets/Env/Animpic`. Melee models are used the same way as the gun models |
-| BK Pure Nature (Asian Valley, Jungle, Meadows, Mesa Desert, Mountains, Redwood) | `Assets/_StoreAssets/Env/BK` |
+| BK Pure Nature (Asian Valley, Jungle, Meadows, Mountains) | `Assets/_StoreAssets/Env/BK` |
 | ANGRY MESH Stylized Pack – Meadow | `Assets/_StoreAssets/Env/ANGRY MESH` |
 | NewLua Stylized Farm Crops | `Assets/_StoreAssets/Env/NewLua Studios` |
 | Malbers Animals Packs | `Assets/_StoreAssets/Animals/Malbers Animations` |
