@@ -35,9 +35,9 @@ namespace Aipocalypse.Core.PlayerSystem
         [Range(0.1f, 1f), Tooltip("Below 1 overshoots a little before settling")] public float DampingRatio = 0.6f;
 
         [Header("Aiming down sights (share kept)"), Range(0f, 1f)] public float AimBreath = 0.35f;
-        [Range(0f, 1f)] public float AimBob = 0.15f;
+        [Range(0f, 1f)] public float AimBob = 0.7f;
         [Range(0f, 1f)] public float AimLook = 0.3f;
-        [Range(0f, 1f)] public float AimMove = 0.25f;
+        [Range(0f, 1f)] public float AimMove = 0.7f;
     }
 
     // Where the item points, off the screen centre: the crosshair, the shots and the model all follow it.
@@ -75,14 +75,14 @@ namespace Aipocalypse.Core.PlayerSystem
         [Range(0.1f, 1f), Tooltip("Below 1 overshoots and wobbles before settling")] public float DampingRatio = 0.5f;
 
         [Header("Aiming down sights (share kept)"), Range(0f, 1f)] public float AimBreath = 0.7f;
-        [Range(0f, 1f)] public float AimBob = 0.3f;
-        [Range(0f, 1f), Tooltip("Move drift and air drift")] public float AimMove = 0.3f;
+        [Range(0f, 1f), Tooltip("Walking bob (aiming already walks slower, so it bobs less)")] public float AimBob = 1f;
+        [Range(0f, 1f), Tooltip("Move drift and air drift")] public float AimMove = 0.8f;
         [Range(0f, 1f)] public float AimLook = 0.5f;
         [Range(0f, 1f), Tooltip("Jump and landing kicks")] public float AimLanding = 0.5f;
         [Min(0f), Tooltip("Degrees the sights overshoot upwards when raised, then settle")] public float AimInKick = 0.5f;
 
         [Header("Limits"), Min(0f), Tooltip("Most degrees off the screen centre, at the hip")] public float MaxOffset = 4f;
-        [Min(0f)] public float AimMaxOffset = 2f;
+        [Min(0f)] public float AimMaxOffset = 3f;
     }
 
     public struct HeldSwayInput

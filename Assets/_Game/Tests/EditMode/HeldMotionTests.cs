@@ -114,13 +114,14 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void Aiming_CalmsTheSway()
+        public void Aiming_CalmsTheSway_ButKeepsMostOfTheMoveLag()
         {
             var input = new HeldSwayInput { LocalVelocity = new Vector3(3f, 0f, 3f), LookDegrees = new Vector2(1f, 0.5f) };
             float hip = SettledPosition(Calm(), input).magnitude;
             input.AimWeight = 1f;
             float aimed = SettledPosition(Calm(), input).magnitude;
-            Assert.Less(aimed, hip * 0.5f);
+            Assert.Less(aimed, hip * 0.9f);
+            Assert.Greater(aimed, hip * 0.4f, "moving while aiming still sways the model");
         }
 
         [Test]
@@ -230,13 +231,13 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void Aiming_CalmsTheAim_ButKeepsBreathing()
+        public void Aiming_KeepsTheWalkBob_AndBreathing()
         {
             var input = new HeldSwayInput { LocalVelocity = new Vector3(0f, 0f, 0.2f), BobIntensity = 1f };
             float hip = AimRange(new HeldItemSway(NoBreathing(), new AimSwaySettings(), new BaseStats()), input, 600, 0.2f).magnitude;
             input.AimWeight = 1f;
             float aimed = AimRange(new HeldItemSway(NoBreathing(), new AimSwaySettings(), new BaseStats()), input, 600, 0.2f).magnitude;
-            Assert.Less(aimed, hip * 0.6f);
+            Assert.Greater(aimed, hip * 0.8f, "the sights bob while walking, like at the hip");
 
             float breathing = AimRange(new HeldItemSway(NoBreathing(), new AimSwaySettings(), new BaseStats()), new HeldSwayInput { AimWeight = 1f }, 900).magnitude;
             Assert.Greater(breathing, 0.05f, "the sights still breathe");

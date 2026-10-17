@@ -185,7 +185,7 @@ The model's own extras (position drift, roll) don't change where it points. Gun 
 | Sprinting | Bob × 2.5; the crosshair is hidden (you can't fire) |
 | Out of breath | Breathing grows up to × 3 and speeds up to 0.75 breaths/s as `PlayerBreathing.Tiredness` builds (under 25% stamina, full when empty / exhausted); × 1.5 more while [winded](#fatigue) |
 
-**Aiming down sights** keeps 70% of the breathing, 30% of the bob and move / air drift, 50% of the turn lag and of jump / landing kicks. Raising the sights overshoots 0.5° upwards and settles. The offset is clamped to 4° at the hip, 2° aimed.
+**Aiming down sights** keeps 70% of the breathing, all of the walking bob, 80% of the move / air drift, 50% of the turn lag and of jump / landing kicks, so the sights still bob and drift when you move (aiming walks at 60% speed, so in practice the bob is about 60% of the hip's). The model-only extras keep 70% of their bob and move lag. Raising the sights overshoots 0.5° upwards and settles. The offset is clamped to 4° at the hip, 3° aimed.
 
 `StatId.HeldItemSway` (base 1) scales the aim sway and the model sway, for skills that steady the hands.
 
