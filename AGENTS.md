@@ -29,6 +29,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `tools-unity-cinemachine` | Player camera rig, FOV, shake, extra cameras (Cinemachine 3 API) |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks) |
 | `tools-unity-profiling` | Measuring or optimising performance, `Proto_Stress` |
+| `tools-unity-microverse` | Terrain creation, sculpting, texturing and vegetation (MicroVerse stamps, Rowlan height packs, BK presets; CLI kit in `scripts/`) |
 | `tools-unity-addressables` | Generic; Addressables is not used for game content (see ARCHITECTURE.md) |
 
 To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `description` frontmatter, and add a row here. The `tools-unity-*` skills started from [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, `.agents/skills/THIRD_PARTY_LICENSE-unity-gamedev.txt`).

@@ -190,6 +190,7 @@ Assets/_Game/
   Features/               (when the first feature lands) asmdef Aipocalypse.Features → references Core
   _Experimental/          (when the first experiment lands) asmdef Aipocalypse.Experimental → references Core + Features
   Data/                   ScriptableObject assets, one folder per system
+    Environment/          TerrainData + MicroVerse stamp assets per area, own heightmaps (skill tools-unity-microverse)
   Scenes/                 Prototype.unity
     Prototypes/           Proto_* scenes
   Tests/EditMode/         asmdef Aipocalypse.Tests.EditMode

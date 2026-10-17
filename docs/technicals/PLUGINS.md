@@ -79,10 +79,11 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 
 | Tool | Version | Location | Notes |
 |---|---|---|---|
-| MicroVerse (+ Ambiance, Objects, Splines, Vegetation, Demo) | 1.7.0 | `Packages/com.jbooth.microverse*` | Terrain authoring. Presets in `Assets/_StoreAssets/Env/MicroVerse-Presets`. |
+| MicroVerse (+ Ambiance, Objects, Splines, Vegetation, Demo) | 1.7.0 | `Packages/com.jbooth.microverse*` | Terrain authoring, stripped from builds (only baked TerrainData ships). BK Pure Nature 2 presets in `Assets/_StoreAssets/Env/MicroVerse-Presets` (only the 6 installed BK biomes resolve). Ambiance (`AmbientArea`/`AmbianceMgr`) runs at runtime as a static singleton: don't use it (BroAudio owns audio). Skill: `tools-unity-microverse`. |
 | Spline Spawner (Staggart) | 1.2.0 | `Packages/xyz.staggart-creations.spline-spawner` | Spawn objects along splines. |
 | Vegetation Spawner (Staggart) | — | `Assets/_StoreAssets/Rendering/Staggart Creations` | Terrain vegetation placement. |
-| Rowlan Genesis / Terrain tools | — | `Assets/_StoreAssets/Env/Rowlan`, `Assets/Rowlan` | Terrain helpers. |
+| Rowlan height stamps (Alpine Mountains, Highlands, Meadows, Swamp, Valleys) | — | `Assets/_StoreAssets/Env/Rowlan/Terrain/Stamps` | 4K R16 heightmaps with MicroVerse content collections. Keep `Brushes.zip` zipped (Terrain Tools loads every brush into memory). |
+| Rowlan Genesis for MicroVerse | 3.5.0 | `Assets/_StoreAssets/Env/Rowlan/Genesis` | MicroVerse wizards (heightmap → collection converter, stamp placement/validation, terraform). The Genesis wizard writes to `Assets/Rowlan/Genesis Data` and replaces MicroVerse setups. Gameplay (legacy Input rig) and Visual Ambience (built-in post-processing) must not be used. |
 | Rowlan Fullscreen Editor Play Mode | 1.9.0 | `Assets/Plugins/Rowlan` | |
 | Asset Usage Detector | 2.6.3 | UPM git (yasirkula) | Find asset references. |
 | Inspect Plus | 2.1.1 | UPM git (yasirkula) | |
