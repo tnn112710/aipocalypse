@@ -1,5 +1,6 @@
 using Aipocalypse.Core.WeaponSystem;
 using Ami.BroAudio;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
@@ -10,7 +11,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: Header("Movement (m/s)"), SerializeField, Min(0f)] public float WalkSpeed { get; private set; } = 3.5f;
         [field: SerializeField, Min(0f)] public float SprintSpeed { get; private set; } = 6f;
         [field: SerializeField, Range(0f, 1f)] public float StrafeSpeedMultiplier { get; private set; } = 0.9f;
-        [field: SerializeField, Range(0f, 1f)] public float BackwardSpeedMultiplier { get; private set; } = 0.7f;
+        [field: SerializeField, Range(0f, 1f)] public float BackwardSpeedMultiplier { get; private set; } = 0.6f;
         [field: SerializeField, Range(0f, 1f), Tooltip("Forward stick/key amount needed to sprint")]
         public float SprintMinForwardInput { get; private set; } = 0.5f;
         [field: SerializeField, Min(0f)] public float GroundAcceleration { get; private set; } = 10f;
@@ -83,6 +84,9 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Min(0f)] public float SprintBobAmplitude { get; private set; } = 0.055f;
         [field: SerializeField, Range(0f, 2f)] public float BobSideRatio { get; private set; } = 0.5f;
         [field: SerializeField, Min(0f)] public float BobFadeSpeed { get; private set; } = 8f;
+
+        [field: Header("Held item sway & bob"), SerializeField, InlineProperty, HideLabel]
+        public HeldSwaySettings HeldSway { get; private set; } = new();
 
         [field: Header("Landing dip"), SerializeField, Min(0f), Tooltip("Impacts slower than this (m/s) don't dip")]
         public float LandingDipMinSpeed { get; private set; } = 3f;

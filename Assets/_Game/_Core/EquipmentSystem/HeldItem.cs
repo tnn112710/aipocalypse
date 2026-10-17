@@ -18,6 +18,8 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         public virtual ViewKick ViewKick => default;
         public virtual bool IsAiming => false;
+        // 0 at rest, 1 fully aimed down sights; eases with the aim pose.
+        public virtual float AimWeight => 0f;
         // Field of view multiplier the holder applies (aiming down sights): 1 = none.
         public virtual float Zoom => 1f;
         // False while an obstacle pose would interfere with the item's motion.

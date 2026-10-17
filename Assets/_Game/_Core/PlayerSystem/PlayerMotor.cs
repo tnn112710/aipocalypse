@@ -42,6 +42,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool IsOnSteepSlope { get; private set; }
         public bool IsSprinting { get; private set; }
         public Vector3 HorizontalVelocity => _horizontalVelocity;
+        // Up is positive; on the ground it holds the small stick-down speed, not a real fall.
+        public float VerticalVelocity => _verticalVelocity;
         public float WalkSpeed => _stats.Get(StatId.WalkSpeed, _tuning.WalkSpeed);
         public float SprintSpeed => _stats.Get(StatId.SprintSpeed, _tuning.SprintSpeed);
         // Ground speed scale set by the player each frame (slower while aiming down sights).

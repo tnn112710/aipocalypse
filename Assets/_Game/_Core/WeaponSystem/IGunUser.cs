@@ -5,5 +5,7 @@ namespace Aipocalypse.Core.WeaponSystem
     {
         AmmoReserve Ammo { get; }
         AimOrigin AimFrom { get; }
+        // Scales the spread from moving and jumping: 1 = normal, lower = steadier.
+        float MotionSpreadScale { get; }
     }
 }

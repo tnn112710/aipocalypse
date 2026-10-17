@@ -33,6 +33,8 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Jams | Each shot has `Chance` to jam instead of firing (no round used). A jammed gun can't fire: it stays stuck for `JamPause` (0.6 s) while trigger pulls only dry-click, then all five guns automatically clear over 4-5 seconds, with an optional timing QTE; guns without a profile retain automatic clearing over `ClearTime` | Gun asset → Jam |
 | Recoil | Two parts per shot, along a random spray pattern that restarts after a 0.24 s pause. **Aim kick** turns the view (up, sideways, roll, shake), so the crosshair and the shots climb together. **Gun kick** is a small, fast extra tilt + push-back of the model only, on top of the view it's attached to, so the barrel stays near the crosshair. Both spring back. Hip-fire and aiming have separate values | Gun asset → Recoil → Aim kick / Aim response / Gun kick |
 | Recoil modifiers | Extra kick while moving / airborne; the first `AccurateShots` of a spray kick less | Recoil |
+| Moving inaccuracy | Firing on the move sends the shot up to `MovingSpread`° off the aim at walking speed (scaled by speed, so backing up or walking while aiming is steadier), `AirborneSpread`° in the air. Aiming down sights keeps `AimMultiplier` of it. It rises at once and settles at `SettleSpeed` after stopping or landing. The whole shot moves, so a shotgun's pattern shifts as one. Standing still adds nothing. The player's `StatId.MotionSpread` (base 1) scales it, for skills | Gun asset → Accuracy (all five guns: 2.5° / 5° / 0.4 / 6) |
+| Sway and bob | The held item breathes at rest, bobs in step with the footsteps (bigger when sprinting), trails behind turning, moving and jumping, and dips on landing, on springs that overshoot slightly and settle. Aiming calms each part. Visual only with `MuzzleToCrosshair` / `Camera` aim (in `Muzzle` mode it tilts the barrel, so the shots). `StatId.HeldItemSway` (base 1) scales it all, for skills | `PlayerTuning` → Held item sway & bob |
 | Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerTuning` → Guns |
@@ -159,6 +161,8 @@ FireAxe                       HeldMelee
 | A melee weapon's numbers, sounds | `Data/Items/<Melee>.asset` (live in Play mode) |
 | How a melee swing looks | melee prefab → `Poses/*`, `HeldMelee` → Swing motion |
 | Muzzle vs camera aiming, slower walk while aiming | `Data/Player/PlayerTuning.asset` → Guns |
+| Spread from moving / jumping | `Data/Items/<Gun>.asset` → Accuracy |
+| Weapon sway, bob, look / move lag (all held items) | `Data/Player/PlayerTuning.asset` → Held item sway & bob |
 | Starting ammo, infinite ammo | `Data/Weapons/AmmoConfig.asset` (read at spawn). In Play mode, `Player` → **Add Ammo** gives more |
 | Which effects a gun uses, bullet hole layers / size | `Data/Weapons/BulletEffects.asset` |
 | How long an effect lives, how many at once | the effect prefab in `Prefabs/Effects/` → `PooledEffect` |
@@ -168,7 +172,7 @@ FireAxe                       HeldMelee
 ## Known gaps
 
 - **Sound placeholders:** every gun sound is a stand-in clip (see Sounds above); swap the clips on the BroAudio entities, no code or gun asset changes needed.
-- **Crosshair is a plain dot** with a hit marker round it (no spread indicator). It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
+- **Crosshair is a plain dot** with a hit marker round it (no spread indicator yet; `HeldGun.MotionSpread` is the current moving spread). It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
 - **Nothing in `Prototype.unity` takes damage yet:** the wander capsules aren't damageable and the scene has no `TargetDummy`, so hit feedback only shows on a dummy you add (`_Debug/TargetDummy`).
 - **Clip authoring gaps** (their tests are marked `[Ignore]` with the reason): MP5 / pistol left-hand free control is ~1° off the magazine grip at the 0.145 switch; the AK47's is ~5.5° off the forend at 0.02; the DoubleBarrel's free hand is ~5 cm / 9° off the shell grip at 0.28 and its hinge curve overshoots ~0.5° after closing. Fix the keys in the Animation window (script edits of these clips re-tangent or rebind them), then drop the `Ignore`s in `WeaponAnimationTests`.
 - **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.

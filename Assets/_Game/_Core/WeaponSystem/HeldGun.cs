@@ -39,6 +39,7 @@ namespace Aipocalypse.Core.WeaponSystem
         GunDefinition _definition;
         Gun _gun;
         GunRecoil _recoil;
+        GunAccuracy _accuracy;
         GunRepairFlow _repair;
 
         Vector3 _restRecoilPosition;
@@ -57,6 +58,9 @@ namespace Aipocalypse.Core.WeaponSystem
         public override bool IsAiming => _gun != null && _gun.IsAiming;
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
         public override float Zoom => _gun != null ? Mathf.Lerp(1f, _definition.Handling.AimZoom, _aimWeight) : 1f;
+        public override float AimWeight => _aimWeight;
+        // Degrees the next shot may go off the aim from moving / jumping (on top of the gun's pellet spread).
+        public float MotionSpread => _accuracy != null ? _accuracy.Spread : 0f;
 
         RepairFeedbackSettings Feedback => _definition.Jam.Feedback;
 
@@ -105,6 +109,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             _gun = new Gun(item, _user.Ammo);
             _recoil = new GunRecoil(_definition.Recoil);
+            _accuracy = new GunAccuracy(_definition.Accuracy);
             _repair = new GunRepairFlow(_gun, _definition.Jam.Repair, _qte, this);
             _repair.QteStarted += OnRepairQteStarted;
             _repair.Missed += OnRepairMissed;
@@ -146,6 +151,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _jolt.Tick(deltaTime);
             _recoil.Tick(deltaTime, _gun.IsAiming);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
+            _accuracy.Tick(input.Movement, input.IsAirborne, _aimWeight, _user.MotionSpreadScale, deltaTime);
             _animation.Tick(deltaTime, _gun.ActionProgress);
         }
 
@@ -181,6 +187,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _pendingShots = 0;
             _gun?.Interrupt();
             _recoil?.Reset();
+            _accuracy?.Reset();
         }
 
         void OnDestroy()
@@ -222,6 +229,8 @@ namespace Aipocalypse.Core.WeaponSystem
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
             AimShot(bullet.Range, out Vector3 origin, out Vector3 direction);
+            // Motion spread moves the whole shot; pellets then spread around it.
+            direction = BulletSpread.Apply(direction, _accuracy.Spread);
             for (int i = 0; i < fire.Pellets; i++)
             {
                 _bullets.Fire(new BulletShot

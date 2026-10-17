@@ -91,7 +91,8 @@ Assets/_Game/
 │  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop, Fire, FirePressed, Aim, Reload
 │  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); Jumped / Landed events; SpeedMultiplier (aiming)
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
-│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob
+│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
+│  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ HeldSwaySettings, HeldSwayInput): breathing, footstep bob in step with the head, spring lag behind look / move / jump / landing; calmed by AimWeight, scaled by StatId.HeldItemSway
 │  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps the weapon camera's FOV, LookScale
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
@@ -120,7 +121,7 @@ Assets/_Game/
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
 │  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled), font Data/UI/DamageNumberFont.asset
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
-│     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, handling, sounds, effects
+│     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, accuracy, handling, sounds, effects
 │     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
 │     ├─ GunInstance.cs                     one owned gun: Rounds, IsJammed, Changed (survives drop / swap)
 │     ├─ MeleeDefinition.cs                 EquippableDefinition, Category Melee: Swing, Sounds, ImpactEffect
@@ -131,12 +132,13 @@ Assets/_Game/
 │     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
 │     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root
-│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom (Player implements it)
+│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, MotionSpreadScale (Player implements it; StatId.MotionSpread)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
 │     ├─ GunJolt.cs                         GunJolt (self-returning kick / wobble of the model) + GunJoltPlayer (runs one; HeldGun applies it on the recoil pivot)
 │     ├─ BulletSpread.cs                    random direction inside a cone
+│     ├─ GunAccuracy.cs                     spread from moving / jumping (AccuracySettings): grows with speed, less when aiming, × the holder's MotionSpreadScale, settles back
 │     ├─ GunAim.cs                          muzzle-to-crosshair direction (with the too-close fallback)
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses + aim zoom, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, presents GunRepairFlow (sounds, jolts, beats, repair events), sounds (AudioService)
 │     ├─ GunRepairFlow.cs                   the jam repair's QTE rules: start at QteStartProgress, early finish, miss penalty, interrupt on cancel; QteStarted / Missed
@@ -173,6 +175,7 @@ Assets/_Game/
    ├─ HandRigTests.cs                       normal grip compatibility, bounded fist calibration/blending, safe fallback and all guns' punch-contact finger shapes/closure timing
    ├─ ItemPrefabTests.cs                    every item has one prefab for world + hand; world layout; rig strips world parts
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
+   ├─ HeldMotionTests.cs                    GunAccuracy (speed, airborne, aiming, steadiness, settling); HeldItemSway (look / move lag, aiming, sway stat, landing)
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
 
@@ -188,11 +191,11 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
          Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
-             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), PlayerZoom(Cinemachine camera, weapon camera), PlayerInteractor(cameraPitch, gameObject),
+             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), HeldItemSway(tuning.HeldSway, stats), PlayerZoom(Cinemachine camera, weapon camera), PlayerInteractor(cameraPitch, gameObject),
              AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
                rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, QuickTimeService, publishers), HeldMelee.Construct(EffectPool, DamageService, AudioService)
-               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil + GunRepairFlow; HeldMelee builds MeleeAttack
+               HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil + GunAccuracy + GunRepairFlow; HeldMelee builds MeleeAttack
            last: PlayerRegistry.Register(this) → ActivePlayerChanged   (OnDestroy: Unregister)
 
 HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
@@ -224,9 +227,10 @@ EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots,
                        GunAnimation samples the controller and constraints (parts, hand targets, fingers).
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
+HeldItemSway.Tick    breathing + bob (head-bob phase) + spring lag from look / velocity / landing, calmed by held.AimWeight → EquipmentRig.ApplyHandMotion
 PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerZoom.Tick(held.Zoom); PlayerMotor.SpeedMultiplier from IsAiming
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
-HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, BulletSystem.Fire per pellet)
+HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, one GunAccuracy spread for the shot, BulletSystem.Fire per pellet)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
 FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip

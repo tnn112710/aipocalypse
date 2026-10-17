@@ -23,6 +23,9 @@ namespace Aipocalypse.Core.WeaponSystem
         [field: SerializeField, FoldoutGroup("Recoil"), HideLabel, InlineProperty]
         public RecoilSettings Recoil { get; private set; } = new();
 
+        [field: SerializeField, FoldoutGroup("Accuracy"), HideLabel, InlineProperty]
+        public AccuracySettings Accuracy { get; private set; } = new();
+
         [field: SerializeField, FoldoutGroup("Handling"), HideLabel, InlineProperty]
         public HandlingSettings Handling { get; private set; } = new();
 

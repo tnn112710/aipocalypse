@@ -14,6 +14,8 @@ namespace Aipocalypse.Core.EquipmentSystem
         public bool IsReady;
         public bool IsSprinting;
         public bool IsMoving;
+        // Horizontal speed as a share of walking speed, 0..1.
+        public float Movement;
         public bool IsAirborne;
     }
 

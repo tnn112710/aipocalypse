@@ -118,6 +118,8 @@ Held models use the `HeldWeapon` layer, rendered by `PlayerCamera/WeaponCamera`,
 - Penetration determines the obstacle pose weight. The hand blends back and tilts, then smoothly returns when clear. Switching to another item resets the weight.
 - Melee opts out during swings so the obstacle pose does not change the swing arc. Damage checks remain in world space.
 
+The hand also carries the held item's sway and bob (`HeldItemSway`, applied by `EquipmentRig.ApplyHandMotion` before the obstacle pose): breathing, footstep bob, lag behind look / movement / jumps, a landing dip, all calmed by `HeldItem.AimWeight`. Rules and settings: [WEAPONS.md → Features](WEAPONS.md#features).
+
 Settings: `PlayerTuning` → Held item obstacle pose (on/off, margin, radius, retract distance, tilt, blend speed, layers). The overlay guarantees visibility even when an item is longer than the maximum retraction. Gun shots check the eye-to-muzzle segment before using a muzzle origin so a displayed barrel beyond cover cannot fire through it.
 
 ## Temporary animation

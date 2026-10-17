@@ -40,6 +40,7 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerMotor _motor;
         PlayerLook _look;
         PlayerHeadBob _headBob;
+        HeldItemSway _heldSway;
         PlayerZoom _zoom;
         PlayerInteractor _interactor;
         HeldItemClearance _heldClearance;
@@ -55,6 +56,7 @@ namespace Aipocalypse.Core.PlayerSystem
         Transform IWeaponUser.Eye => _cameraPitch;
         Transform IWeaponUser.Root => transform;
         AimOrigin IGunUser.AimFrom => _tuning.AimFrom;
+        float IGunUser.MotionSpreadScale => _stats.Get(StatId.MotionSpread, 1f);
 
         [Inject]
         void Construct(InputService input, IStatProvider stats, DamageService damage, AudioService audio, IPublisher<PlayerDied> died,
@@ -72,6 +74,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _motor = new PlayerMotor(_controller, _tuning, stats, Stamina);
             _look = new PlayerLook(transform, _cameraPitch, _tuning);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning);
+            _heldSway = new HeldItemSway(_tuning.HeldSway, stats);
             _zoom = new PlayerZoom(_camera, _weaponCamera);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning, _equipmentRig);
@@ -195,10 +198,12 @@ namespace Aipocalypse.Core.PlayerSystem
                 ReloadPressed = intent.Reload,
                 IsSprinting = _motor.IsSprinting,
                 IsMoving = _motor.HorizontalVelocity.sqrMagnitude > 0.25f,
+                Movement = Mathf.Clamp01(_motor.HorizontalVelocity.magnitude / Mathf.Max(_motor.WalkSpeed, 0.01f)),
                 IsAirborne = !_motor.IsGrounded,
             }, deltaTime);
 
             HeldItem held = _equipmentRig.Current;
+            TickHeldSway(intent, held, deltaTime);
             _look.SetKick(held != null ? held.ViewKick : default);
             _zoom.Tick(held != null ? held.Zoom : 1f);
             _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.AimMoveSpeedMultiplier : 1f;
@@ -208,6 +213,22 @@ namespace Aipocalypse.Core.PlayerSystem
                 held.LateTick();
             if (_hands != null)
                 _hands.Tick(held != null ? held.Hands : null);
+        }
+
+        void TickHeldSway(in PlayerIntent intent, HeldItem held, float deltaTime)
+        {
+            Vector3 velocity = transform.InverseTransformDirection(_motor.HorizontalVelocity);
+            velocity.y = _motor.IsGrounded ? 0f : _motor.VerticalVelocity;
+            _heldSway.Tick(new HeldSwayInput
+            {
+                LookDegrees = intent.LookDegrees,
+                LocalVelocity = velocity,
+                BobPhase = _headBob.Phase,
+                BobIntensity = _headBob.Intensity,
+                SprintBlend = _headBob.SprintBlend,
+                AimWeight = held != null ? held.AimWeight : 0f,
+            }, deltaTime);
+            _equipmentRig.ApplyHandMotion(_heldSway.Position, _heldSway.Rotation);
         }
 
         void DropSelected()
@@ -224,6 +245,7 @@ namespace Aipocalypse.Core.PlayerSystem
         void OnLanded(LandingInfo landing)
         {
             _headBob.OnLanded(landing.ImpactSpeed);
+            _heldSway.OnLanded(landing.ImpactSpeed);
             if (landing.ImpactSpeed >= _tuning.LandingSoundMinSpeed)
                 _audio.Play(_tuning.LandSound, Mathf.Clamp01(landing.ImpactSpeed / _tuning.LandingSoundFullSpeed));
 

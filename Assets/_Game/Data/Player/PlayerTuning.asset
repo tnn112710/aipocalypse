@@ -15,7 +15,7 @@ MonoBehaviour:
   <WalkSpeed>k__BackingField: 3.5
   <SprintSpeed>k__BackingField: 6
   <StrafeSpeedMultiplier>k__BackingField: 0.9
-  <BackwardSpeedMultiplier>k__BackingField: 0.7
+  <BackwardSpeedMultiplier>k__BackingField: 0.6
   <SprintMinForwardInput>k__BackingField: 0.5
   <GroundAcceleration>k__BackingField: 10
   <GroundDeceleration>k__BackingField: 12
@@ -63,6 +63,30 @@ MonoBehaviour:
   <SprintBobAmplitude>k__BackingField: 0.05
   <BobSideRatio>k__BackingField: 0.5
   <BobFadeSpeed>k__BackingField: 8
+  <HeldSway>k__BackingField:
+    BreathPosition: {x: 0.0025, y: 0.003, z: 0}
+    BreathEuler: {x: 0.35, y: 0.25, z: 0.3}
+    BreathRate: 0.28
+    WalkBobPosition: {x: 0.011, y: 0.007, z: 0.004}
+    WalkBobEuler: {x: 0.7, y: 0.6, z: 1.2}
+    SprintBobPosition: {x: 0.028, y: 0.02, z: 0.01}
+    SprintBobEuler: {x: 2.2, y: 2, z: 4}
+    LookTilt: 1.5
+    LookRoll: 1.2
+    MaxLookTilt: 4
+    LookShift: 0.008
+    MaxLookShift: 0.025
+    MoveShift: 0.004
+    StrafeRoll: 0.8
+    VerticalShift: 0.003
+    MaxVerticalShift: 0.04
+    LandingKick: 0.03
+    Stiffness: 120
+    DampingRatio: 0.6
+    AimBreath: 0.35
+    AimBob: 0.15
+    AimLook: 0.3
+    AimMove: 0.25
   <LandingDipMinSpeed>k__BackingField: 3
   <LandingDipPerSpeed>k__BackingField: 0.35
   <LandingDipMax>k__BackingField: 0.25

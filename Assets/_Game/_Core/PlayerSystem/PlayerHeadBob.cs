@@ -22,6 +22,11 @@ namespace Aipocalypse.Core.PlayerSystem
 
         public event Action Stepped;
 
+        // Read by the held item's bob so it moves in step: phase advances π per step, intensity is 0 standing .. 1 walking.
+        public float Phase => _phase;
+        public float Intensity => _intensity;
+        public float SprintBlend => _sprintBlend;
+
         public PlayerHeadBob(Transform root, PlayerTuning tuning)
         {
             _root = root;

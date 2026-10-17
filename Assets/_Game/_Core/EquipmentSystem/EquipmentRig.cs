@@ -74,6 +74,13 @@ namespace Aipocalypse.Core.EquipmentSystem
             _current.Tick(input, deltaTime);
         }
 
+        // Sway and bob on top of this frame's hand pose: offset in the camera's space, rotation around the hand.
+        public void ApplyHandMotion(Vector3 offset, Quaternion rotation)
+        {
+            _hand.localPosition += offset;
+            _hand.localRotation *= rotation;
+        }
+
         public void ApplyObstaclePose(float weight, float distance, Vector3 euler)
         {
             _hand.localPosition += Vector3.back * (weight * distance);
