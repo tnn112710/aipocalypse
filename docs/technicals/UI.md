@@ -36,6 +36,7 @@ HUD                          Canvas · CanvasScaler
    ├─ BottomRight
    └─ Center
       ├─ Crosshair           nested Canvas · CrosshairHud; 6×6 dot (built-in Knob sprite, white 90 %, thin dark outline)
+      │  ├─ SpreadUp/Right/Down/Left   2×7 px ticks pushed out to the spread cone (pivot on the inner end)
       │  └─ HitMarker        HitFeedbackHud
       └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
          └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
@@ -131,7 +132,7 @@ InteractPrompt               InteractPromptView component
 | Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
 | Interact prompt position | `HUD` → `Center/Interact` anchored position |
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
-| Crosshair sprint fade speed | `HUD` → `Center/Crosshair` → `CrosshairHud` |
+| Crosshair sprint fade speed, spread tick threshold / speed | `HUD` → `Center/Crosshair` → `CrosshairHud` |
 | How the crosshair moves | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway ([WEAPONS.md](WEAPONS.md#aim-sway)) |
 | Spacing between bars | `Vitals` → VerticalLayoutGroup spacing |
 | Distance from the screen edge | `HUD` → `SafeFrame` offsets |
@@ -156,6 +157,7 @@ InteractPrompt               InteractPromptView component
 
 - **Position:** `Player.CrosshairPosition` (the aim sway, in half-screen-heights) × half the root canvas height. Shots go exactly there with `Camera` / `MuzzleToCrosshair` aim. Moves under half a pixel are skipped; its own nested Canvas keeps the per-frame move from rebuilding the HUD.
 - **Fade:** only the dot (its `CanvasRenderer` alpha), so the hit marker child still shows. Hidden in proportion to the held item's `AimWeight` (the gun's sights take over) and faded out at `_fadeSpeed` while sprinting.
+- **Spread ticks:** `Player.CrosshairSpread` (the held item's `Spread` cone, in half-screen-heights) × half the canvas height, eased at `_spreadSpeed`. They hide under `_minSpread` px (8) and fade in over `_spreadFade` px, so a rifle shows them only while airborne and a shotgun always; they share the dot's fade.
 - On unbind it snaps back to the centre, fully visible.
 
 ## Hit feedback

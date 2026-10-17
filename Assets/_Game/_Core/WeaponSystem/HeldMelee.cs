@@ -76,6 +76,8 @@ namespace Aipocalypse.Core.WeaponSystem
                 _effects.Prewarm(_definition.ImpactEffect, 4);
         }
 
+        public override bool StopsSprint(bool useHeld, bool aimHeld) => _attack != null && useHeld;
+
         public override void Tick(in HeldItemInput input, float deltaTime)
         {
             if (_attack == null)

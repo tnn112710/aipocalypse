@@ -53,6 +53,8 @@ namespace Aipocalypse.Core.WeaponSystem
         int _pendingShots;
         // Seconds until the "action snaps home" sound after a QTE success; negative = none due.
         float _mechanismIn = -1f;
+        // Seconds until it can fire after a sprint.
+        float _sprintRecoveryLeft;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
@@ -61,6 +63,10 @@ namespace Aipocalypse.Core.WeaponSystem
         public override float AimWeight => _aimWeight;
         // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
         public float MotionSpread => _accuracy != null ? _accuracy.Spread : 0f;
+        public override float Spread => _gun != null ? MotionSpread + _definition.Fire.SpreadAngle : 0f;
+
+        // Aiming or pulling the trigger ends a sprint.
+        public override bool StopsSprint(bool useHeld, bool aimHeld) => _gun != null && (useHeld || aimHeld);
 
         RepairFeedbackSettings Feedback => _definition.Jam.Feedback;
 
@@ -116,6 +122,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _gun.Fired += OnFired;
             _gun.Jammed += OnJammed;
             _gun.DryFired += OnDryFired;
+            _gun.EmptyFired += OnEmptyFired;
             _gun.ActionStarted += OnActionStarted;
             _gun.RoundLoaded += OnRoundLoaded;
             _gun.ActionEnded += OnActionEnded;
@@ -133,6 +140,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             RecoilSettings recoil = _definition.Recoil;
             _stateMultiplier = input.IsAirborne ? recoil.AirborneMultiplier : input.IsMoving ? recoil.MovingMultiplier : 1f;
+            _sprintRecoveryLeft = input.IsSprinting ? _definition.Handling.SprintRecoveryTime : _sprintRecoveryLeft - deltaTime;
 
             _gun.Tick(new GunInput
             {
@@ -143,6 +151,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 IsReady = input.IsReady,
                 CanFire = !input.IsSprinting,
                 CanAim = !input.IsSprinting,
+                Recovering = _sprintRecoveryLeft > 0f,
             }, deltaTime);
 
             if (input.IsReady)
@@ -184,6 +193,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _jolt.Stop();
             _aimWeight = 0f;
             _mechanismIn = -1f;
+            _sprintRecoveryLeft = 0f;
             _pendingShots = 0;
             _gun?.Interrupt();
             _recoil?.Reset();
@@ -201,6 +211,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _gun.Fired -= OnFired;
             _gun.Jammed -= OnJammed;
             _gun.DryFired -= OnDryFired;
+            _gun.EmptyFired -= OnEmptyFired;
             _gun.ActionStarted -= OnActionStarted;
             _gun.RoundLoaded -= OnRoundLoaded;
             _gun.ActionEnded -= OnActionEnded;
@@ -229,7 +240,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
-            AimShot(bullet.Range, out Vector3 origin, out Vector3 direction);
+            AimShot(bullet, out Vector3 origin, out Vector3 direction);
             // Airborne spread moves the whole shot; pellets then spread around it.
             direction = BulletSpread.Apply(direction, _accuracy.Spread);
             for (int i = 0; i < fire.Pellets; i++)
@@ -243,6 +254,7 @@ namespace Aipocalypse.Core.WeaponSystem
                     Range = bullet.Range,
                     GravityScale = bullet.GravityScale,
                     Damage = fire.Damage,
+                    Layers = bullet.HitLayers,
                     Ignore = _user.Root,
                     Source = _user.Root.gameObject,
                     Effects = effects,
@@ -250,14 +262,15 @@ namespace Aipocalypse.Core.WeaponSystem
             }
         }
 
-        void AimShot(float range, out Vector3 origin, out Vector3 direction)
+        void AimShot(BulletSettings bullet, out Vector3 origin, out Vector3 direction)
         {
             Transform eye = _user.Eye;
+            int layers = bullet.HitLayers;
             Vector3 aim = eye.rotation * (_user.AimOffset * Vector3.forward);
             Vector3 toMuzzle = _muzzle.position - eye.position;
             // The view model draws over cover, but a barrel beyond cover must still hit its near face.
             if (_user.AimFrom != AimOrigin.Camera && toMuzzle.sqrMagnitude > 0.000001f &&
-                _bullets.TryHit(eye.position, toMuzzle.normalized, toMuzzle.magnitude, _user.Root, out _))
+                _bullets.TryHit(eye.position, toMuzzle.normalized, toMuzzle.magnitude, layers, _user.Root, out _))
             {
                 direction = toMuzzle.normalized;
                 origin = eye.position;
@@ -271,9 +284,9 @@ namespace Aipocalypse.Core.WeaponSystem
                     return;
 
                 case AimOrigin.MuzzleToCrosshair:
-                    Vector3 aimPoint = _bullets.TryHit(eye.position, aim, range, _user.Root, out RaycastHit hit)
+                    Vector3 aimPoint = _bullets.TryHit(eye.position, aim, bullet.Range, layers, _user.Root, out RaycastHit hit)
                         ? hit.point
-                        : eye.position + aim * range;
+                        : eye.position + aim * bullet.Range;
                     origin = _muzzle.position;
                     direction = GunAim.MuzzleToPoint(origin, aim, aimPoint);
                     return;
@@ -340,6 +353,12 @@ namespace Aipocalypse.Core.WeaponSystem
             if (feedback != null)
                 _jolt.Play(feedback.DryFireJolt);
             Beat(GunJamBeatKind.DryFire);
+        }
+
+        void OnEmptyFired()
+        {
+            GunSounds sounds = _definition.Sounds;
+            Play(sounds.Empty.IsValid() ? sounds.Empty : sounds.DryFire);
         }
 
         // A slap or punch keyed in the repair clip landed.

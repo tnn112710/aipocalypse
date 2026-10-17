@@ -24,6 +24,11 @@ namespace Aipocalypse.Core.EquipmentSystem
         public virtual float Zoom => 1f;
         // False while an obstacle pose would interfere with the item's motion.
         public virtual bool KeepsClear => true;
+        // Degrees shots may go off the aim (airborne spread plus pellet spread); the crosshair shows it.
+        public virtual float Spread => 0f;
+
+        // Whether the holder's attack / aim input ends a sprint.
+        public virtual bool StopsSprint(bool useHeld, bool aimHeld) => false;
 
         public void Bind(ItemInstance item, IEquipmentOwner owner)
         {

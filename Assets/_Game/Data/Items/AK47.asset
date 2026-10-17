@@ -26,11 +26,14 @@ MonoBehaviour:
     Pellets: 1
     SpreadAngle: 0
     CycleTime: 0
-    StaminaPerShot: 4
+    StaminaPerShot: 3
   <Bullet>k__BackingField:
-    Speed: 120
+    Speed: 300
     Range: 150
     GravityScale: 0
+    HitLayers:
+      serializedVersion: 2
+      m_Bits: 4294966971
   <Magazine>k__BackingField:
     AmmoType: {fileID: 11400000, guid: 37c465915d6cf49428a6cc5810a1bfb9, type: 2}
     Size: 30
@@ -87,9 +90,10 @@ MonoBehaviour:
     AimMultiplier: 0.4
     SettleSpeed: 6
   <Handling>k__BackingField:
-    AimSpeed: 10
-    SprintPoseSpeed: 8
-    AimZoom: 0.87
+    AimSpeed: 8
+    SprintPoseSpeed: 7
+    AimZoom: 0.85
+    SprintRecoveryTime: 0.25
   <Sounds>k__BackingField:
     Volume: 1
     Equip:
@@ -118,6 +122,10 @@ MonoBehaviour:
       <DebugObject>k__BackingField: {fileID: 0}
     DryFire:
       _entity: {fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Empty:
+      _entity: {fileID: 0}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
     ClearJamStart:

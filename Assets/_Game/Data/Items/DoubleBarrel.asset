@@ -28,9 +28,12 @@ MonoBehaviour:
     CycleTime: 0
     StaminaPerShot: 9
   <Bullet>k__BackingField:
-    Speed: 120
+    Speed: 200
     Range: 40
     GravityScale: 0
+    HitLayers:
+      serializedVersion: 2
+      m_Bits: 4294966971
   <Magazine>k__BackingField:
     AmmoType: {fileID: 11400000, guid: 5c02020a12247d8478ebe7418ef9c131, type: 2}
     Size: 2
@@ -87,9 +90,10 @@ MonoBehaviour:
     AimMultiplier: 0.4
     SettleSpeed: 6
   <Handling>k__BackingField:
-    AimSpeed: 10
+    AimSpeed: 9
     SprintPoseSpeed: 8
-    AimZoom: 0.87
+    AimZoom: 0.9
+    SprintRecoveryTime: 0.2
   <Sounds>k__BackingField:
     Volume: 1
     Equip:
@@ -118,6 +122,10 @@ MonoBehaviour:
       <DebugObject>k__BackingField: {fileID: 0}
     DryFire:
       _entity: {fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Empty:
+      _entity: {fileID: 0}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
     ClearJamStart:

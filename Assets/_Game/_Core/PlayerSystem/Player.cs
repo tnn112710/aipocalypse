@@ -48,6 +48,7 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerBreathing _breathing;
         IAudioPlayer _breathLoop;
         float _breathVolume;
+        bool _breathPaused;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -60,6 +61,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool IsSprinting => _motor != null && _motor.IsSprinting;
         // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
         public Vector2 CrosshairPosition { get; private set; }
+        // Radius of the held item's spread cone on screen, in the same units.
+        public float CrosshairSpread { get; private set; }
 
         Transform IWeaponUser.Eye => _cameraPitch;
         Transform IWeaponUser.Root => transform;
@@ -124,11 +127,16 @@ namespace Aipocalypse.Core.PlayerSystem
         void Update()
         {
             float deltaTime = Time.deltaTime;
+            // Time stopped (paused): a loop would keep playing over the pause menu.
+            PauseBreathSound(deltaTime <= 0f);
             if (_motor == null || deltaTime <= 0f)
                 return;
 
             bool canAct = !IsDead && _input.GameplayEnabled;
             PlayerIntent intent = canAct ? ReadIntent(deltaTime) : default;
+            HeldItem held = HeldItem;
+            if (intent.Sprint && held != null && held.StopsSprint(intent.Fire, intent.Aim))
+                intent.Sprint = false;
 
             _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
@@ -260,6 +268,7 @@ namespace Aipocalypse.Core.PlayerSystem
             Vector3 aim = _heldSway.AimRotation * Vector3.forward;
             CrosshairPosition = new Vector2(aim.x, aim.y) / (aim.z * _zoom.TanHalfFov);
             _equipmentRig.SetAimRotation(ModelAimRotation(aim, _zoom.LookScale));
+            CrosshairSpread = held != null ? Mathf.Tan(Mathf.Clamp(held.Spread, 0f, 60f) * Mathf.Deg2Rad) / _zoom.TanHalfFov : 0f;
         }
 
         // The weapon camera keeps the unzoomed field of view while the world zooms, so the same angle lands on different
@@ -293,6 +302,17 @@ namespace Aipocalypse.Core.PlayerSystem
                 _audio.SetVolume(_breathLoop, volume, 0.2f);
                 _breathVolume = volume;
             }
+        }
+
+        void PauseBreathSound(bool paused)
+        {
+            if (paused == _breathPaused)
+                return;
+            _breathPaused = paused;
+            if (paused)
+                _audio?.Pause(_breathLoop);
+            else
+                _audio?.UnPause(_breathLoop);
         }
 
         void DropSelected()

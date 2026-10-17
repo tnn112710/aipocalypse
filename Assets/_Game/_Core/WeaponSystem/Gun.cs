@@ -24,6 +24,8 @@ namespace Aipocalypse.Core.WeaponSystem
         // False while sprinting.
         public bool CanFire;
         public bool CanAim;
+        // Just out of a sprint: shots wait, and a click meanwhile is kept until they can go.
+        public bool Recovering;
     }
 
     // A held gun's rules: shooting, magazine, reloading, jams and aiming. Plain C#; HeldGun turns its events into
@@ -51,6 +53,8 @@ namespace Aipocalypse.Core.WeaponSystem
         public event Action Jammed;
         // The trigger was pulled on a jammed gun before clearing started.
         public event Action DryFired;
+        // The trigger was pulled on an empty magazine with nothing being reloaded.
+        public event Action EmptyFired;
         public event Action<GunAction> ActionStarted;
         // Per-round reload: each round going in.
         public event Action RoundLoaded;
@@ -105,7 +109,8 @@ namespace Aipocalypse.Core.WeaponSystem
             IsAiming = input.Aim && input.CanAim && Action is GunAction.None or GunAction.Cycling;
 
             _trigger.Update(deltaTime, input.TriggerHeld, input.TriggerPressed);
-            bool keepsClick = Action == GunAction.Cycling || (Action == GunAction.Reloading && _stopReload);
+            bool keepsClick = Action == GunAction.Cycling || (Action == GunAction.Reloading && _stopReload) ||
+                              (Action == GunAction.None && input.Recovering);
             if ((Action != GunAction.None && !keepsClick) || !input.CanFire || _item.IsJammed)
             {
                 if (_item.IsJammed && Action == GunAction.None && input.TriggerPressed && input.CanFire)
@@ -113,9 +118,16 @@ namespace Aipocalypse.Core.WeaponSystem
                 _trigger.Cancel();
                 return;
             }
-            // A click during the pump, or one that stops a per-round reload, fires once that's done.
+            // A click during the pump, out of a sprint, or one that stops a per-round reload, fires once that's done.
             if (keepsClick)
                 return;
+            if (_item.Rounds <= 0)
+            {
+                if (input.TriggerPressed)
+                    EmptyFired?.Invoke();
+                _trigger.Cancel();
+                return;
+            }
 
             while (_trigger.TryShot())
             {

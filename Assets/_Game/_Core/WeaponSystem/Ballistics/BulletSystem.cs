@@ -15,6 +15,8 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Range;
         public float GravityScale;
         public float Damage;
+        // What it can hit (BulletSettings.HitLayers).
+        public LayerMask Layers;
         // Anything under this is never hit (the shooter, its gun).
         public Transform Ignore;
         // Who fired it, for DamageInfo.Source.
@@ -35,6 +37,7 @@ namespace Aipocalypse.Core.WeaponSystem
             public float Range;
             public float GravityScale;
             public float Damage;
+            public int Layers;
             public Transform Ignore;
             public GameObject Source;
             public BulletEffects Effects;
@@ -44,7 +47,8 @@ namespace Aipocalypse.Core.WeaponSystem
         readonly EffectPool _effects;
         readonly DamageService _damage;
         readonly List<Bullet> _bullets = new(64);
-        readonly RaycastHit[] _hits = new RaycastHit[16];
+        // Raycast hits come back unordered and cut at the buffer's size, so it's sized for long aim rays through crowds.
+        readonly RaycastHit[] _hits = new RaycastHit[64];
 
         public BulletSystem(EffectPool effects, DamageService damage)
         {
@@ -63,6 +67,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 Range = shot.Range,
                 GravityScale = shot.GravityScale,
                 Damage = shot.Damage,
+                Layers = shot.Layers,
                 Ignore = shot.Ignore,
                 Source = shot.Source,
                 Effects = shot.Effects,
@@ -113,7 +118,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 distance = remaining;
             }
 
-            if (TryHit(bullet.Position, step / distance, distance, bullet.Ignore, out RaycastHit hit))
+            if (TryHit(bullet.Position, step / distance, distance, bullet.Layers, bullet.Ignore, out RaycastHit hit))
             {
                 Impact(bullet, hit);
                 return false;
@@ -133,9 +138,9 @@ namespace Aipocalypse.Core.WeaponSystem
         }
 
         // Nearest hit that isn't the shooter. Triggers (pickups) are ignored. Also what aiming uses to find the crosshair point.
-        public bool TryHit(Vector3 origin, Vector3 direction, float distance, Transform ignore, out RaycastHit nearest)
+        public bool TryHit(Vector3 origin, Vector3 direction, float distance, int layers, Transform ignore, out RaycastHit nearest)
         {
-            int count = Physics.RaycastNonAlloc(origin, direction, _hits, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            int count = Physics.RaycastNonAlloc(origin, direction, _hits, distance, layers, QueryTriggerInteraction.Ignore);
             nearest = default;
             float nearestDistance = float.MaxValue;
             for (int i = 0; i < count; i++)

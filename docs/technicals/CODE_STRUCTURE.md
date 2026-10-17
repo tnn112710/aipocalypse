@@ -52,7 +52,7 @@ Assets/_Game/
 │  │  └─ TransformExtensions.cs             Aipocalypse.Core — SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
-│  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
+│  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
@@ -66,7 +66,7 @@ Assets/_Game/
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world (on the item prefab's root): IInteractable, picks up / swaps; Spawn for drops; Awake shows only the World child; StripForHand
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, Zoom (field of view multiplier), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, Zoom (field of view multiplier), Spread (shot cone for the crosshair), StopsSprint(use, aim), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
@@ -84,7 +84,7 @@ Assets/_Game/
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing / breath sounds, fall damage through DamageService
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing / breath sounds (the breath loop pauses while time is stopped), aim / trigger end a sprint (HeldItem.StopsSprint), fall damage through DamageService
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
@@ -122,7 +122,7 @@ Assets/_Game/
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment + gun ammo counts (events, no polling)
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
-│  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting
+│  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker, hit / kill sound, pooled damage numbers
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
@@ -143,7 +143,7 @@ Assets/_Game/
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root, MeleePower, Exert (stamina per attack; StatId.AttackStaminaCost)
 │     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, MotionSpreadScale, FatigueRecoilScale (Player implements it; StatId.MotionSpread)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
-│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim; events (+ GunAction, GunInput)
+│     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear, pump cycle, aim, sprint recovery (shots wait, clicks kept), empty click; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view) + small gun kick (model), spring return
 │     ├─ GunJolt.cs                         GunJolt (self-returning kick / wobble of the model) + GunJoltPlayer (runs one; HeldGun applies it on the recoil pivot)
 │     ├─ BulletSpread.cs                    random direction inside a cone
@@ -152,7 +152,7 @@ Assets/_Game/
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets, aim / sprint poses + aim zoom, recoil + jolts on the recoil pivot, drives its (required) GunAnimation, presents GunRepairFlow (sounds, jolts, beats, repair events), sounds (AudioService)
 │     ├─ GunRepairFlow.cs                   the jam repair's QTE rules: start at QteStartProgress, early finish, miss penalty, interrupt on cancel; QteStarted / Missed
 │     ├─ GunAnimation.cs                    every gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
-│     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested, damage through DamageService (source = shooter), impacts, holes (+ BulletShot)
+│     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested against each shot's HitLayers, damage through DamageService (source = shooter), impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings

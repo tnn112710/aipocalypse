@@ -440,5 +440,71 @@ namespace Aipocalypse.Tests
             }
             Assert.AreEqual(Vector3.forward, BulletSpread.Apply(Vector3.forward, 0f));
         }
+
+        [Test]
+        public void Empty_ClicksOncePerPull_WhenThereIsNothingToReload()
+        {
+            _definition.Magazine.Size = 2;
+            Gun gun = NewGun();
+            int clicks = 0;
+            gun.EmptyFired += () => clicks++;
+
+            Run(gun, Trigger(true), 1f);
+            Assert.AreEqual(2, _shots);
+            Assert.AreEqual(0, clicks, "holding the trigger past the last round doesn't click");
+
+            gun.Tick(Trigger(true, true), Frame);
+            Run(gun, Trigger(true), 0.5f);
+            gun.Tick(Trigger(true, true), Frame);
+            Assert.AreEqual(2, clicks);
+            Assert.AreEqual(GunAction.None, gun.Action);
+        }
+
+        [Test]
+        public void Empty_DoesntClick_WhileItAutoReloads()
+        {
+            _definition.Magazine.Size = 2;
+            _reserve.Add(_rifleAmmo, 10);
+            Gun gun = NewGun();
+            int clicks = 0;
+            gun.EmptyFired += () => clicks++;
+
+            Run(gun, Trigger(true), 0.5f);
+            gun.Tick(Trigger(true, true), Frame);
+
+            Assert.AreEqual(GunAction.Reloading, gun.Action);
+            Assert.AreEqual(0, clicks);
+        }
+
+        [Test]
+        public void SprintRecovery_HoldsShots_AndKeepsTheClick()
+        {
+            _definition.Fire.Mode = FireMode.SemiAuto;
+            Gun gun = NewGun();
+            GunInput recovering = Trigger(false);
+            recovering.Recovering = true;
+
+            GunInput click = recovering;
+            click.TriggerPressed = true;
+            gun.Tick(click, Frame);
+            Run(gun, recovering, 0.2f);
+            Assert.AreEqual(0, _shots, "no shot while coming out of the sprint");
+
+            gun.Tick(Trigger(false), Frame);
+            Assert.AreEqual(1, _shots, "the click fires once it's ready");
+        }
+
+        [Test]
+        public void SprintRecovery_StillLetsItAim()
+        {
+            Gun gun = NewGun();
+            GunInput input = Trigger(false);
+            input.Aim = true;
+            input.Recovering = true;
+
+            gun.Tick(input, Frame);
+
+            Assert.IsTrue(gun.IsAiming);
+        }
     }
 }

@@ -107,7 +107,7 @@ AK47                 HeldGun, ItemHands                first-person side
 
 ## First-person rendering and obstacle pose
 
-Held models use the `HeldWeapon` layer, rendered by `PlayerCamera/WeaponCamera`, a URP Overlay camera in the world camera's stack with Clear Depth enabled. The world camera excludes that layer; world pickups remain on their original layers. `EquipmentRig` assigns the hand's layer recursively when it creates held models. Muzzle flashes use the held gun's layer; tracers, impacts and decals stay in the world.
+Held models use the `HeldWeapon` layer, rendered by `PlayerCamera/WeaponCamera`, a URP Overlay camera in the world camera's stack with Clear Depth enabled. The world camera excludes that layer; world pickups remain on their original layers. `EquipmentRig` assigns the hand's layer recursively when it creates held models. Muzzle flashes use the held gun's layer; tracers, impacts and decals stay in the world. Dropped magazines use the `Debris` layer (6): guns leave it out of `HitLayers`, the player's CharacterController excludes it, and the obstacle-pose and interaction masks don't include it.
 
 `WeaponOverlayCamera` matches the world camera's FOV, aspect and viewport before rendering, after Cinemachine has placed it. The overlay camera is a child of the world camera, with a 0.01 m near plane and no separate Cinemachine rig or AudioListener. Held models remain visible against walls and enemies.
 

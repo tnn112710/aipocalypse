@@ -34,6 +34,18 @@ namespace Aipocalypse.Core.AudioSystem
                 player.SetVolume(volume, fadeTime);
         }
 
+        public void Pause(IAudioPlayer player)
+        {
+            if (player != null && player.IsActive)
+                player.Pause();
+        }
+
+        public void UnPause(IAudioPlayer player)
+        {
+            if (player != null && player.IsActive)
+                player.UnPause();
+        }
+
         public void Stop(IAudioPlayer player, float fadeOut = 0f)
         {
             if (player != null && player.IsActive)

@@ -53,6 +53,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(1f), Tooltip("m/s")] public float Speed = 120f;
         [Min(1f), Tooltip("Bullets vanish after this distance (m)")] public float Range = 150f;
         [Min(0f), Tooltip("0 = flies straight, 1 = normal gravity")] public float GravityScale;
+        [Tooltip("What bullets and the crosshair's aim ray can hit. Leave out Debris (dropped magazines) and HeldWeapon")]
+        public LayerMask HitLayers = Physics.DefaultRaycastLayers;
     }
 
     [Serializable]
@@ -132,6 +134,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("How fast the gun moves between the hip and aim poses")] public float AimSpeed = 10f;
         [Min(0f), Tooltip("How fast it moves into and out of the sprint pose")] public float SprintPoseSpeed = 8f;
         [Range(0.5f, 1f), Tooltip("Field of view multiplier while aiming down sights: 0.87 = 13% zoom")] public float AimZoom = 0.87f;
+        [Min(0f), Tooltip("Seconds after a sprint ends before it can fire (a click meanwhile is kept and fires then)")]
+        public float SprintRecoveryTime = 0.2f;
     }
 
     // BroAudio entities (Data/Audio/Guns), played 2D for the holder. Unset ids stay silent.
@@ -146,6 +150,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public SoundID ReloadEnd;
         [Tooltip("The trigger falls on a jammed round")] public SoundID Jam;
         [Tooltip("Each trigger pull while the gun is stuck before clearing")] public SoundID DryFire;
+        [Tooltip("Each trigger pull on an empty magazine; empty = the dry fire click")] public SoundID Empty;
         public SoundID ClearJamStart;
         [Tooltip("Guns without repair feedback only")] public SoundID ClearJamEnd;
         [Tooltip("Each clip-authored repair slap (a random-clip entity)")] public SoundID RepairSlap;

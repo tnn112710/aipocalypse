@@ -26,11 +26,14 @@ MonoBehaviour:
     Pellets: 1
     SpreadAngle: 0
     CycleTime: 0
-    StaminaPerShot: 0.7
+    StaminaPerShot: 1
   <Bullet>k__BackingField:
-    Speed: 120
+    Speed: 200
     Range: 150
     GravityScale: 0
+    HitLayers:
+      serializedVersion: 2
+      m_Bits: 4294966971
   <Magazine>k__BackingField:
     AmmoType: {fileID: 11400000, guid: 824935d59cad2c84d8b89c7a7268c247, type: 2}
     Size: 12
@@ -44,52 +47,53 @@ MonoBehaviour:
   <Recoil>k__BackingField:
     Hip:
       Multiplier: 1
-      Vertical: 3.5
-      Horizontal: 2.5
+      Vertical: 2.4
+      Horizontal: 0.9
       Roll: 0.3
       NoisePitch: 0.11
       NoiseYaw: 0.08
-      CameraShake: 0.01
-      VerticalReturnSpeed: 10
-      HorizontalReturnSpeed: 10
-      VerticalSnappiness: 10
-      HorizontalSnappiness: 10
-      GunPitch: 1
+      CameraShake: 0.006
+      VerticalReturnSpeed: 14
+      HorizontalReturnSpeed: 14
+      VerticalSnappiness: 16
+      HorizontalSnappiness: 16
+      GunPitch: 3
       GunYaw: 0.5
       GunRoll: 1
-      KickBack: 0.06
+      KickBack: 0.035
       GunReturnSpeed: 18
       GunSnappiness: 20
     Aim:
       Multiplier: 1
-      Vertical: 2.1
-      Horizontal: 1.9
+      Vertical: 1.6
+      Horizontal: 0.6
       Roll: 0.3
       NoisePitch: 0.11
       NoiseYaw: 0.08
-      CameraShake: 0.01
-      VerticalReturnSpeed: 15
-      HorizontalReturnSpeed: 15
-      VerticalSnappiness: 10
-      HorizontalSnappiness: 10
-      GunPitch: 0.6
+      CameraShake: 0.004
+      VerticalReturnSpeed: 16
+      HorizontalReturnSpeed: 16
+      VerticalSnappiness: 16
+      HorizontalSnappiness: 16
+      GunPitch: 2
       GunYaw: 0.3
       GunRoll: 0.5
-      KickBack: 0.04
+      KickBack: 0.025
       GunReturnSpeed: 18
       GunSnappiness: 20
     MovingMultiplier: 1.14
     AirborneMultiplier: 1.65
-    AccurateShots: 2
+    AccurateShots: 0
     AccurateShotsMultiplier: 0.5
   <Accuracy>k__BackingField:
     AirborneSpread: 2
     AimMultiplier: 0.4
     SettleSpeed: 6
   <Handling>k__BackingField:
-    AimSpeed: 10
-    SprintPoseSpeed: 8
-    AimZoom: 0.87
+    AimSpeed: 14
+    SprintPoseSpeed: 12
+    AimZoom: 0.9
+    SprintRecoveryTime: 0.1
   <Sounds>k__BackingField:
     Volume: 1
     Equip:
@@ -118,6 +122,10 @@ MonoBehaviour:
       <DebugObject>k__BackingField: {fileID: 0}
     DryFire:
       _entity: {fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Empty:
+      _entity: {fileID: 0}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
     ClearJamStart:
