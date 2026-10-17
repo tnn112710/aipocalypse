@@ -12,7 +12,7 @@ namespace Aipocalypse.Tests
         GameObject _wall;
         Transform _hand;
         HeldItem _held;
-        PlayerTuning _tuning;
+        PlayerHeldItemTuning _tuning;
         HeldItemClearance _clearance;
         readonly Vector3 _handRest = new(0f, 0f, 0.5f);
 
@@ -31,7 +31,7 @@ namespace Aipocalypse.Tests
             model.transform.localScale = new Vector3(0.1f, 0.1f, 1f);
             _held = model.AddComponent<HeldItem>();
             _held.Bind(null, null);
-            _tuning = ScriptableObject.CreateInstance<PlayerTuning>();
+            _tuning = ScriptableObject.CreateInstance<PlayerHeldItemTuning>();
             _clearance = new HeldItemClearance(_player.transform, _player.transform, _tuning, rig);
             _wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
             _wall.transform.position = _player.transform.position + Vector3.forward * 0.75f;

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6f5e19a5b0ab6540b5da8178bffd47a, type: 3}
+  m_Name: PlayerMovementTuning
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerMovementTuning
+  <WalkSpeed>k__BackingField: 3.5
+  <SprintSpeed>k__BackingField: 6
+  <StrafeSpeedMultiplier>k__BackingField: 0.9
+  <BackwardSpeedMultiplier>k__BackingField: 0.6
+  <SprintMinForwardInput>k__BackingField: 0.5
+  <GroundAcceleration>k__BackingField: 10
+  <GroundDeceleration>k__BackingField: 12
+  <AirAcceleration>k__BackingField: 1.5
+  <JumpHeight>k__BackingField: 1.1
+  <Gravity>k__BackingField: 22
+  <MaxFallSpeed>k__BackingField: 50
+  <GroundStickSpeed>k__BackingField: 5
+  <CoyoteTime>k__BackingField: 0.12
+  <JumpBufferTime>k__BackingField: 0.12
+  <SteepSlopeSlideAcceleration>k__BackingField: 12
+  <HeavyLandingHeight>k__BackingField: 2
+  <HeavyLandingSpeedMultiplier>k__BackingField: 0.5
+  <HeavyLandingRecoveryTime>k__BackingField: 0.4
+  <SprintStaminaPerSecond>k__BackingField: 12
+  <JumpStaminaCost>k__BackingField: 12

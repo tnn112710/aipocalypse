@@ -72,7 +72,7 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 | **G** | Something is selected | **Drop**: the held item lands on the ground about `DropDistance` in front of you (short of walls). Hands are empty until you select another slot |
 
 - The prompt ("[E] Pick up Rifle" / "[E] Swap for Rifle") comes from `WorldItem.TryGetPrompt`, using the same `Equipment.GetPickUpAction` the pickup uses, so the prompt always matches what E will do.
-- **Looking at items:** `PlayerInteractor` sphere-casts from the eye each frame (`PlayerTuning` → `InteractRange` 2.5 m, `InteractRadius` 0.12 m, `InteractMask`). Walls block it; trigger colliders are hit. Pickups have a trigger box, so you walk through them.
+- **Looking at items:** `PlayerInteractor` sphere-casts from the eye each frame (`PlayerInteractionTuning` → `InteractRange` 2.5 m, `InteractRadius` 0.12 m, `InteractMask`). Walls block it; trigger colliders are hit. Pickups have a trigger box, so you walk through them.
 - **The same item object** goes world → hotbar → world. Per-copy state (a gun's rounds and jam) survives drops and swaps. A scene-placed `WorldItem` creates its instance from `_definition` the first time it's used.
 - Rules live in `Equipment` (`GetPickUpAction`, `TryPickUp`, `DropSelected`) and are covered by EditMode tests. `WorldItem` only does the world side: it destroys itself and spawns the swapped-out item.
 
@@ -99,7 +99,7 @@ AK47                 HeldGun, ItemHands                first-person side
 | Switch speed for everything | `Data/Equipment/EquipmentConfig.asset` → `SwitchSpeed` (live in Play mode) |
 | One item's equip / holster time | `Data/Items/<Item>.asset` → `EquipTime` / `HolsterTime` |
 | Which slots exist, what they accept, starting items | `EquipmentConfig` → `Slots` (order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
-| Reach and thickness of the look ray, drop distance | `Data/Player/PlayerTuning.asset` → Interaction |
+| Reach and thickness of the look ray, drop distance | `Data/Player/PlayerInteractionTuning.asset` |
 | How a pickup lies on the ground, its pickup box | the item prefab → `World/Model` transform, root `BoxCollider` |
 | The temporary lower/raise motion | `Player.prefab` → `CameraRoot/CameraPitch/HeldItems` → `EquipmentRig` (lowered offset, tilt, curve) |
 | Where the hand sits on screen | `HeldItems/Hand` local position |
@@ -120,7 +120,7 @@ Held models use the `HeldWeapon` layer, rendered by `PlayerCamera/WeaponCamera`,
 
 The hand also carries the held item's sway and bob (`HeldItemSway`, applied by `EquipmentRig.ApplyHandMotion` before the obstacle pose): breathing, footstep bob, lag behind look / movement / jumps, a landing dip, all calmed by `HeldItem.AimWeight`. Rules and settings: [WEAPONS.md → Features](WEAPONS.md#features).
 
-Settings: `PlayerTuning` → Held item obstacle pose (on/off, margin, radius, retract distance, tilt, blend speed, layers). The overlay guarantees visibility even when an item is longer than the maximum retraction. Gun shots check the eye-to-muzzle segment before using a muzzle origin so a displayed barrel beyond cover cannot fire through it.
+Settings: `PlayerHeldItemTuning` → Obstacle pose (on/off, margin, radius, retract distance, tilt, blend speed, layers). The overlay guarantees visibility even when an item is longer than the maximum retraction. Gun shots check the eye-to-muzzle segment before using a muzzle origin so a displayed barrel beyond cover cannot fire through it.
 
 ## Temporary animation
 

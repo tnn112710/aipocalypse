@@ -7,13 +7,13 @@ namespace Aipocalypse.Core.PlayerSystem
     {
         readonly Transform _eye;
         readonly Transform _root;
-        readonly PlayerTuning _tuning;
+        readonly PlayerHeldItemTuning _tuning;
         readonly EquipmentRig _rig;
         readonly RaycastHit[] _hits = new RaycastHit[16];
         HeldItem _previous;
         float _weight;
 
-        public HeldItemClearance(Transform eye, Transform root, PlayerTuning tuning, EquipmentRig rig)
+        public HeldItemClearance(Transform eye, Transform root, PlayerHeldItemTuning tuning, EquipmentRig rig)
         {
             _eye = eye;
             _root = root;

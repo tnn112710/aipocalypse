@@ -25,7 +25,7 @@ VIEWS     MonoBehaviours (Player). Physics, camera, input -> intents. [Serialize
 RULES     Plain C# that owns the rules (PlayerMotor, Stamina, Health, InputService). Services registered in VContainer
           publish gameplay events and never reference MonoBehaviours directly — use an interface.
 STATE     Plain [Serializable] classes, no Unity refs (meters today: Health, Stamina).
-DATA      ScriptableObjects: defs, tuning, tables (PlayerTuning). Read-only at runtime.
+DATA      ScriptableObjects: defs, tuning, tables (PlayerTuning and its groups). Read-only at runtime.
 ```
 
 Dependencies point down only.
@@ -47,7 +47,7 @@ Core **announces** what happens; features **react**. New rules are new subscribe
 
 **Every number lives in data.**
 
-- ScriptableObjects under `Assets/_Game/Data/<System>/` (today: `Player/PlayerTuning.asset`). SO edits made in Play mode persist, so tune by feel while playing.
+- ScriptableObjects under `Assets/_Game/Data/<System>/` (today: `Player/PlayerTuning.asset`, which links one asset per group: movement, vitals, camera, interaction, held item, sounds). SO edits made in Play mode persist, so tune by feel while playing.
 - Rules that are really tables are data tables, not `if` chains.
 
 ## Scopes and app flow
@@ -116,7 +116,7 @@ Any entity prefab works when dropped into any scene — World, a prototype, an e
 ```text
 Unique entity root: PlayerScope : EntityScope
   ├─ own components, wired with [SerializeField]  (camera rig, CinemachineBrain, AudioListener live inside the Player)
-  ├─ data: PlayerTuning (ScriptableObject)
+  ├─ data: PlayerTuning (ScriptableObject → one per group)
   └─ needs from outside = small interfaces (IStatProvider…)
 
 Parent lookup:  scene's GameLifetimeScope  →  if none: root ProjectLifetimeScope
@@ -140,10 +140,10 @@ How `EntityScope` does it (VContainer API checked in package source):
 - `Player` is the only gameplay MonoBehaviour with an `Update` (HUD views read it in `LateUpdate`). Each frame it builds a `PlayerIntent` from `InputService`, then ticks plain C# parts in a fixed order: `PlayerLook` → `PlayerMotor` → `Stamina` → `PlayerHeadBob` → `Equipment` + `EquipmentRig`. Tests or cutscenes can drive the motor with an intent directly.
 - `PlayerMotor`: walk/sprint (sprint forward only; backpedal and strafe slower), jump with coyote time and buffering, momentum kept in the air, sliding on slopes past the controller's slope limit, landing tracking (drop height, impact speed). Speeds and costs are read through `IStatProvider`.
 - `Stamina`: sprint drains, jump costs a chunk; regen after a delay; at 0 the player is exhausted (no sprint or jump) until it refills to a fraction. `Health` takes fall damage (dealt through `DamageService`), linear between a safe and a lethal drop height. Dying publishes `PlayerDied`.
-- Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds (`PlayerTuning` → Sounds). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
+- Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds (`PlayerSoundTuning`). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
 - First-person presentation: a HeldWeapon-only URP Overlay camera keeps held models visible. `HeldItemClearance` blends the hand back and tilts it near obstacles without moving the player; melee swings opt out. `WeaponOverlayCamera` synchronizes the overlay lens after Cinemachine places the world camera.
-- All numbers live in `Data/Player/PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
+- All numbers live in the `Data/Player/` tuning assets, linked from `PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
 
 ## AI
 

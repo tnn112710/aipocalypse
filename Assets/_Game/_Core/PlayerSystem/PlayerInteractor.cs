@@ -9,13 +9,13 @@ namespace Aipocalypse.Core.PlayerSystem
     {
         readonly Transform _eye;
         readonly GameObject _actor;
-        readonly PlayerTuning _tuning;
+        readonly PlayerInteractionTuning _tuning;
         readonly RaycastHit[] _hits = new RaycastHit[16];
 
         Collider _focusCollider;
         IInteractable _focus;
 
-        public PlayerInteractor(Transform eye, GameObject actor, PlayerTuning tuning)
+        public PlayerInteractor(Transform eye, GameObject actor, PlayerInteractionTuning tuning)
         {
             _eye = eye;
             _actor = actor;

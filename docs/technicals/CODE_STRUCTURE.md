@@ -99,7 +99,13 @@ Assets/_Game/
 │  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera aspect / viewport after Cinemachine; its own FOV (SetFieldOfView) so zoom doesn't swell the gun
 │  │  ├─ Stamina.cs                         stamina meter: spend, regen delay, exhaustion
 │  │  ├─ FallDamage.cs                      drop height → damage
-│  │  ├─ PlayerTuning.cs                    ScriptableObject type for every player number + its sounds (footstep, jump, land SoundIDs)
+│  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below; Player hands each rule only its group
+│  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, sprint / jump stamina costs → PlayerMotor
+│  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, fall damage heights → Player
+│  │  ├─ Tuning/PlayerCameraTuning.cs       pitch limits, head bob, landing dip → PlayerLook, PlayerHeadBob
+│  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
+│  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, HeldSwaySettings → Player, HeldItemClearance, HeldItemSway
+│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep / jump / land SoundIDs and volumes → Player
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
@@ -157,7 +163,7 @@ Assets/_Game/
 ├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
 ├─ Data/
 │  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat .asset) + one folder of entities each
-│  ├─ Player/PlayerTuning.asset             the tuning values used in every scene
+│  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound}Tuning.asset beside it
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
 │  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (one prefab each; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
@@ -190,8 +196,8 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
    └─ injects the Player GameObject (whole hierarchy)
          Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
            creates (plain C#, owned by Player):
-             Health, Stamina, PlayerMotor(CharacterController, tuning, stats, stamina),
-             PlayerLook(body, cameraPitch), PlayerHeadBob(cameraRoot), HeldItemSway(tuning.HeldSway, stats), PlayerZoom(Cinemachine camera, weapon camera), PlayerInteractor(cameraPitch, gameObject),
+             Health, Stamina, PlayerMotor(CharacterController, tuning.Movement, stats, stamina),
+             PlayerLook(body, cameraPitch, tuning.Camera), PlayerHeadBob(cameraRoot, tuning.Camera), HeldItemSway(tuning.HeldItem.HeldSway, stats), PlayerZoom(Cinemachine camera, weapon camera), PlayerInteractor(cameraPitch, gameObject, tuning.Interaction),
              AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
                rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, QuickTimeService, publishers), HeldMelee.Construct(EffectPool, DamageService, AudioService)

@@ -55,7 +55,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
         Transform IWeaponUser.Eye => _cameraPitch;
         Transform IWeaponUser.Root => transform;
-        AimOrigin IGunUser.AimFrom => _tuning.AimFrom;
+        AimOrigin IGunUser.AimFrom => _tuning.HeldItem.AimFrom;
         float IGunUser.MotionSpreadScale => _stats.Get(StatId.MotionSpread, 1f);
 
         [Inject]
@@ -69,15 +69,15 @@ namespace Aipocalypse.Core.PlayerSystem
             _audio = audio;
             _died = died;
 
-            Health = new Health(stats.Get(StatId.MaxHealth, _tuning.MaxHealth));
-            Stamina = new Stamina(stats.Get(StatId.MaxStamina, _tuning.MaxStamina), _tuning.StaminaRegenDelay, _tuning.ExhaustionRecoverFraction);
-            _motor = new PlayerMotor(_controller, _tuning, stats, Stamina);
-            _look = new PlayerLook(transform, _cameraPitch, _tuning);
-            _headBob = new PlayerHeadBob(_cameraRoot, _tuning);
-            _heldSway = new HeldItemSway(_tuning.HeldSway, stats);
+            Health = new Health(stats.Get(StatId.MaxHealth, _tuning.Vitals.MaxHealth));
+            Stamina = new Stamina(stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina), _tuning.Vitals.StaminaRegenDelay, _tuning.Vitals.ExhaustionRecoverFraction);
+            _motor = new PlayerMotor(_controller, _tuning.Movement, stats, Stamina);
+            _look = new PlayerLook(transform, _cameraPitch, _tuning.Camera);
+            _headBob = new PlayerHeadBob(_cameraRoot, _tuning.Camera);
+            _heldSway = new HeldItemSway(_tuning.HeldItem.HeldSway, stats);
             _zoom = new PlayerZoom(_camera, _weaponCamera);
-            _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning);
-            _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning, _equipmentRig);
+            _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
+            _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);
 
             _motor.Jumped += OnJumped;
             _motor.Landed += OnLanded;
@@ -116,7 +116,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
-            Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.StaminaRegenPerSecond));
+            Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond));
             _headBob.Tick(_motor, deltaTime);
             if (canAct)
                 _interactor.Tick(intent.Interact);
@@ -206,7 +206,7 @@ namespace Aipocalypse.Core.PlayerSystem
             TickHeldSway(intent, held, deltaTime);
             _look.SetKick(held != null ? held.ViewKick : default);
             _zoom.Tick(held != null ? held.Zoom : 1f);
-            _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.AimMoveSpeedMultiplier : 1f;
+            _motor.SpeedMultiplier = held != null && held.IsAiming ? _tuning.HeldItem.AimMoveSpeedMultiplier : 1f;
             // Apply the obstacle pose before shots use the final muzzle position.
             _heldClearance.Tick(held, deltaTime);
             if (held != null)
@@ -238,18 +238,18 @@ namespace Aipocalypse.Core.PlayerSystem
                 WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, transform.eulerAngles.y + 90f, 0f), null);
         }
 
-        void OnStepped() => _audio.Play(_tuning.FootstepSound, _motor.IsSprinting ? 1f : _tuning.WalkStepVolume);
+        void OnStepped() => _audio.Play(_tuning.Sounds.FootstepSound, _motor.IsSprinting ? 1f : _tuning.Sounds.WalkStepVolume);
 
-        void OnJumped() => _audio.Play(_tuning.JumpSound);
+        void OnJumped() => _audio.Play(_tuning.Sounds.JumpSound);
 
         void OnLanded(LandingInfo landing)
         {
             _headBob.OnLanded(landing.ImpactSpeed);
             _heldSway.OnLanded(landing.ImpactSpeed);
-            if (landing.ImpactSpeed >= _tuning.LandingSoundMinSpeed)
-                _audio.Play(_tuning.LandSound, Mathf.Clamp01(landing.ImpactSpeed / _tuning.LandingSoundFullSpeed));
+            if (landing.ImpactSpeed >= _tuning.Sounds.LandingSoundMinSpeed)
+                _audio.Play(_tuning.Sounds.LandSound, Mathf.Clamp01(landing.ImpactSpeed / _tuning.Sounds.LandingSoundFullSpeed));
 
-            float damage = FallDamage.For(landing.DropHeight, _tuning.SafeFallHeight, _tuning.LethalFallHeight, Health.Max);
+            float damage = FallDamage.For(landing.DropHeight, _tuning.Vitals.SafeFallHeight, _tuning.Vitals.LethalFallHeight, Health.Max);
             if (damage > 0f)
                 _damage.Deal(this, new DamageInfo(damage, DamageType.Fall, landing.Point, default, gameObject));
         }

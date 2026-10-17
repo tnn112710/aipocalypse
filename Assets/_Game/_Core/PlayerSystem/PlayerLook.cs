@@ -8,12 +8,12 @@ namespace Aipocalypse.Core.PlayerSystem
     {
         readonly Transform _body;
         readonly Transform _pitchPivot;
-        readonly PlayerTuning _tuning;
+        readonly PlayerCameraTuning _tuning;
         readonly Vector3 _pivotPosition;
         float _pitch;
         ViewKick _kick;
 
-        public PlayerLook(Transform body, Transform pitchPivot, PlayerTuning tuning)
+        public PlayerLook(Transform body, Transform pitchPivot, PlayerCameraTuning tuning)
         {
             _body = body;
             _pitchPivot = pitchPivot;

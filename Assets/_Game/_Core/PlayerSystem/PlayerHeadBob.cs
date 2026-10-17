@@ -10,7 +10,7 @@ namespace Aipocalypse.Core.PlayerSystem
         const float MaxSpringStep = 0.05f;
 
         readonly Transform _root;
-        readonly PlayerTuning _tuning;
+        readonly PlayerCameraTuning _tuning;
         readonly Vector3 _basePosition;
         readonly Quaternion _baseRotation;
 
@@ -27,7 +27,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public float Intensity => _intensity;
         public float SprintBlend => _sprintBlend;
 
-        public PlayerHeadBob(Transform root, PlayerTuning tuning)
+        public PlayerHeadBob(Transform root, PlayerCameraTuning tuning)
         {
             _root = root;
             _tuning = tuning;

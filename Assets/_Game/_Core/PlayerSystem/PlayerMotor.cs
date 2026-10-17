@@ -24,7 +24,7 @@ namespace Aipocalypse.Core.PlayerSystem
     {
         readonly CharacterController _controller;
         readonly Transform _body;
-        readonly PlayerTuning _tuning;
+        readonly PlayerMovementTuning _tuning;
         readonly IStatProvider _stats;
         readonly Stamina _stamina;
 
@@ -52,7 +52,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public event Action Jumped;
         public event Action<LandingInfo> Landed;
 
-        public PlayerMotor(CharacterController controller, PlayerTuning tuning, IStatProvider stats, Stamina stamina)
+        public PlayerMotor(CharacterController controller, PlayerMovementTuning tuning, IStatProvider stats, Stamina stamina)
         {
             _controller = controller;
             _body = controller.transform;
