@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Aipocalypse.Core.WeaponSystem
 {
     // Whoever holds a gun: where its ammo comes from and how it aims.
@@ -9,5 +11,7 @@ namespace Aipocalypse.Core.WeaponSystem
         float MotionSpreadScale { get; }
         // Recoil multiplier from fatigue: 1 = fresh, higher = shakier.
         float FatigueRecoilScale { get; }
+        // Where the crosshair is, as a turn from the eye's forward (aim sway). Camera and muzzle-to-crosshair shots follow it.
+        Quaternion AimOffset { get; }
     }
 }

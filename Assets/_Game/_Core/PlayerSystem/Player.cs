@@ -6,6 +6,7 @@ using Aipocalypse.Core.HandSystem;
 using Aipocalypse.Core.Stats;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
+using Ami.BroAudio;
 using MessagePipe;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
@@ -45,6 +46,8 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerInteractor _interactor;
         HeldItemClearance _heldClearance;
         PlayerBreathing _breathing;
+        IAudioPlayer _breathLoop;
+        float _breathVolume;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -54,12 +57,16 @@ namespace Aipocalypse.Core.PlayerSystem
         public PlayerInteractor Interactor => _interactor;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => Health != null && Health.IsDead;
+        public bool IsSprinting => _motor != null && _motor.IsSprinting;
+        // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
+        public Vector2 CrosshairPosition { get; private set; }
 
         Transform IWeaponUser.Eye => _cameraPitch;
         Transform IWeaponUser.Root => transform;
         AimOrigin IGunUser.AimFrom => _tuning.HeldItem.AimFrom;
         float IGunUser.MotionSpreadScale => _stats.Get(StatId.MotionSpread, 1f);
         float IGunUser.FatigueRecoilScale => Fatigue.RecoilMultiplier;
+        Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
         float IWeaponUser.MeleePower => Fatigue.MeleePower;
 
         void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.Get(StatId.AttackStaminaCost, 1f), delaysRegen: false);
@@ -76,13 +83,14 @@ namespace Aipocalypse.Core.PlayerSystem
             _died = died;
 
             Health = new Health(stats.Get(StatId.MaxHealth, _tuning.Vitals.MaxHealth));
-            Stamina = new Stamina(stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina), _tuning.Vitals.StaminaRegenDelay, _tuning.Vitals.ExhaustionRecoverFraction);
+            Stamina = new Stamina(stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina), _tuning.Vitals.StaminaRegenDelay,
+                _tuning.Vitals.ExhaustionRecoverFraction, _tuning.Vitals.WindedTime);
             Fatigue = new Fatigue(_tuning.Vitals.Fatigue);
             _breathing = new PlayerBreathing(_tuning.Sounds.Breathing);
             _motor = new PlayerMotor(_controller, _tuning.Movement, stats, Stamina);
             _look = new PlayerLook(transform, _cameraPitch, _tuning.Camera);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning.Camera);
-            _heldSway = new HeldItemSway(_tuning.HeldItem.HeldSway, stats);
+            _heldSway = new HeldItemSway(_tuning.HeldItem.HeldSway, _tuning.HeldItem.AimSway, stats);
             _zoom = new PlayerZoom(_camera, _weaponCamera);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);
@@ -90,7 +98,6 @@ namespace Aipocalypse.Core.PlayerSystem
             _motor.Jumped += OnJumped;
             _motor.Landed += OnLanded;
             _headBob.Stepped += OnStepped;
-            _breathing.Breathed += OnBreathed;
             Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
 
             if (_equipmentConfig != null && _equipmentRig != null)
@@ -126,8 +133,9 @@ namespace Aipocalypse.Core.PlayerSystem
             _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond));
-            Fatigue.Tick(Stamina.Normalized, _stats.Get(StatId.FatiguePenalty, 1f), deltaTime);
+            Fatigue.Tick(Stamina.Normalized, _stats.Get(StatId.FatiguePenalty, 1f), deltaTime, Stamina.IsWinded);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
+            TickBreathSound();
             _headBob.Tick(_motor, deltaTime);
             if (canAct)
                 _interactor.Tick(intent.Interact);
@@ -146,8 +154,8 @@ namespace Aipocalypse.Core.PlayerSystem
                 _motor.Jumped -= OnJumped;
                 _motor.Landed -= OnLanded;
                 _headBob.Stepped -= OnStepped;
-                _breathing.Breathed -= OnBreathed;
             }
+            _audio?.Stop(_breathLoop);
             Equipment?.Dispose();
         }
 
@@ -167,6 +175,7 @@ namespace Aipocalypse.Core.PlayerSystem
             Health?.Restore();
             Stamina?.Restore();
             Fatigue?.Reset();
+            _breathing?.Reset();
         }
 
         [Button, HideInEditorMode]
@@ -211,14 +220,14 @@ namespace Aipocalypse.Core.PlayerSystem
                 ReloadPressed = intent.Reload,
                 IsSprinting = _motor.IsSprinting,
                 IsMoving = _motor.HorizontalVelocity.sqrMagnitude > 0.25f,
-                Movement = Mathf.Clamp01(_motor.HorizontalVelocity.magnitude / Mathf.Max(_motor.WalkSpeed, 0.01f)),
                 IsAirborne = !_motor.IsGrounded,
             }, deltaTime);
 
             HeldItem held = _equipmentRig.Current;
-            TickHeldSway(intent, held, deltaTime);
             _look.SetKick(held != null ? held.ViewKick : default);
+            // Before the sway: the model's aim turn depends on this frame's zoom.
             _zoom.Tick(held != null ? held.Zoom : 1f);
+            TickHeldSway(intent, held, deltaTime);
             _motor.SpeedMultiplier = (held != null && held.IsAiming ? _tuning.HeldItem.AimMoveSpeedMultiplier : 1f) * Fatigue.MoveSpeed;
             // Apply the obstacle pose before shots use the final muzzle position.
             _heldClearance.Tick(held, deltaTime);
@@ -236,12 +245,54 @@ namespace Aipocalypse.Core.PlayerSystem
             {
                 LookDegrees = intent.LookDegrees,
                 LocalVelocity = velocity,
+                IsAirborne = !_motor.IsGrounded,
                 BobPhase = _headBob.Phase,
                 BobIntensity = _headBob.Intensity,
                 SprintBlend = _headBob.SprintBlend,
                 AimWeight = held != null ? held.AimWeight : 0f,
+                IsAiming = held != null && held.IsAiming,
+                Tiredness = _breathing.Tiredness,
+                IsWinded = Stamina.IsWinded,
             }, deltaTime);
             _equipmentRig.ApplyHandMotion(_heldSway.Position, _heldSway.Rotation);
+
+            // The aim sway as a direction in the eye's space, on screen (world camera) and for the model (weapon camera).
+            Vector3 aim = _heldSway.AimRotation * Vector3.forward;
+            CrosshairPosition = new Vector2(aim.x, aim.y) / (aim.z * _zoom.TanHalfFov);
+            _equipmentRig.SetAimRotation(ModelAimRotation(aim, _zoom.LookScale));
+        }
+
+        // The weapon camera keeps the unzoomed field of view while the world zooms, so the same angle lands on different
+        // pixels in each. Turning the model further by the zoom keeps its sights on the crosshair's pixel.
+        static Quaternion ModelAimRotation(Vector3 aim, float zoomScale)
+        {
+            float scale = Mathf.Max(zoomScale, 0.01f);
+            return Quaternion.FromToRotation(Vector3.forward, new Vector3(aim.x / scale, aim.y / scale, aim.z));
+        }
+
+        // Loops the breath sound while out of breath, louder the more tired.
+        void TickBreathSound()
+        {
+            BreathingSettings settings = _tuning.Sounds.Breathing;
+            if (!_breathing.IsActive || IsDead)
+            {
+                if (_breathLoop != null)
+                    _audio.Stop(_breathLoop, settings.FadeOut);
+                _breathLoop = null;
+                return;
+            }
+
+            float volume = _breathing.Volume;
+            if (_breathLoop == null || !_breathLoop.IsActive)
+            {
+                _breathLoop = _audio.Start(_tuning.Sounds.BreathSound, volume, settings.FadeIn);
+                _breathVolume = volume;
+            }
+            else if (Mathf.Abs(volume - _breathVolume) > 0.03f)
+            {
+                _audio.SetVolume(_breathLoop, volume, 0.2f);
+                _breathVolume = volume;
+            }
         }
 
         void DropSelected()
@@ -253,12 +304,10 @@ namespace Aipocalypse.Core.PlayerSystem
 
         void OnStepped() => _audio.Play(_tuning.Sounds.FootstepSound, _motor.IsSprinting ? 1f : _tuning.Sounds.WalkStepVolume);
 
-        void OnJumped() => _audio.Play(_tuning.Sounds.JumpSound);
-
-        void OnBreathed(float volume)
+        void OnJumped()
         {
-            if (!IsDead)
-                _audio.Play(_tuning.Sounds.BreathSound, volume);
+            _heldSway.OnJumped();
+            _audio.Play(_tuning.Sounds.JumpSound);
         }
 
         void OnLanded(LandingInfo landing)

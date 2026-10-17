@@ -52,7 +52,7 @@ Assets/_Game/
 │  │  └─ TransformExtensions.cs             Aipocalypse.Core — SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
-│  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, over BroAudio (unset ids are silent)
+│  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
@@ -92,22 +92,22 @@ Assets/_Game/
 │  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); Jumped / Landed events; SpeedMultiplier (aiming)
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
-│  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ HeldSwaySettings, HeldSwayInput): breathing, footstep bob in step with the head, spring lag behind look / move / jump / landing; calmed by AimWeight, scaled by StatId.HeldItemSway
-│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps the weapon camera's FOV, LookScale
+│  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSway
+│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps the weapon camera's FOV, LookScale, TanHalfFov
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera aspect / viewport after Cinemachine; its own FOV (SetFieldOfView) so zoom doesn't swell the gun
-│  │  ├─ Stamina.cs                         stamina meter: spend (with or without regen delay), regen delay, exhaustion
-│  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers; StatId.FatiguePenalty
-│  │  ├─ PlayerBreathing.cs                 out-of-breath timer (+ BreathingSettings): Breathed(volume), faster and louder as stamina drops
+│  │  ├─ Stamina.cs                         stamina meter: spend (with or without regen delay), regen delay, exhaustion, winded wait after running dry
+│  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers, slower still while winded; StatId.FatiguePenalty
+│  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings): IsActive, eased Tiredness and Volume for the breath loop and the aim sway
 │  │  ├─ FallDamage.cs                      drop height → damage
 │  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below; Player hands each rule only its group
 │  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, sprint / jump stamina costs → PlayerMotor
-│  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, fatigue tiers, fall damage heights → Player
+│  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, fatigue tiers, fall damage heights → Player
 │  │  ├─ Tuning/PlayerCameraTuning.cs       pitch limits, head bob, landing dip → PlayerLook, PlayerHeadBob
 │  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
-│  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, HeldSwaySettings → Player, HeldItemClearance, HeldItemSway
-│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep / jump / land / breath SoundIDs and volumes, breathing timing → Player
+│  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, AimSwaySettings, HeldSwaySettings → Player, HeldItemClearance, HeldItemSway
+│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep / jump / land / breath SoundIDs and volumes, breathing threshold / volume / fades → Player
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
@@ -122,6 +122,7 @@ Assets/_Game/
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment + gun ammo counts (events, no polling)
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
+│  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker, hit / kill sound, pooled damage numbers
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
@@ -209,7 +210,7 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
 HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same parent lookup
    └─ injects the HUD GameObject
          PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active player
-           PlayerVitalsHud, HotbarHud, InteractPromptHud (+ InputService for key labels), HitFeedbackHud (+ AudioService, DamageDealt),
+           PlayerVitalsHud, CrosshairHud, HotbarHud, InteractPromptHud (+ InputService for key labels), HitFeedbackHud (+ AudioService, DamageDealt),
            RepairQteHud (gun repair events)
 ```
 
@@ -227,8 +228,8 @@ PlayerLook.Tick      yaw + pitch                    (movement uses the new facin
 PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Landed event
                        └─ Player.OnJumped / OnLanded: jump / landing sound, head-bob dip, fall damage → DamageService → Health → DamageDealt / PlayerDied
 Stamina.Tick         regen (spending happened inside the motor, and in the held item last frame)
-Fatigue.Tick         tier for the stamina → eased recoil / melee power / move speed (used by this frame's held item and next frame's motor)
-PlayerBreathing.Tick out of breath → Breathed → breath sound
+Fatigue.Tick         tier for the stamina (+ winded) → eased recoil / melee power / move speed (used by this frame's held item and next frame's motor)
+PlayerBreathing.Tick out of breath → eased Tiredness → Player starts / fades / stops the breath loop (AudioService.Start)
 PlayerHeadBob.Tick   camera root offset; Stepped → footstep sound
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
@@ -237,8 +238,10 @@ EquipmentRig.Tick    restore hand pose from Raise before measuring obstacles
 EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots); pose + recoil pivots,
                        GunAnimation samples the controller and constraints (parts, hand targets, fingers).
                        HeldMelee → MeleeAttack.Tick (Struck marks a hit to check); swing pose
-HeldItemSway.Tick    breathing + bob (head-bob phase) + spring lag from look / velocity / landing, calmed by held.AimWeight → EquipmentRig.ApplyHandMotion
-PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerZoom.Tick(held.Zoom); PlayerMotor.SpeedMultiplier from IsAiming
+PlayerLook.SetKick   held item's ViewKick on the camera pivot; PlayerZoom.Tick(held.Zoom)
+HeldItemSway.Tick    aim offset (breathing by Tiredness, bob in step with the head, spring lag / kicks) + model position / roll, calmed by held.AimWeight
+                       → EquipmentRig.ApplyHandMotion (model extras), Player.CrosshairPosition (world FOV), EquipmentRig.SetAimRotation (zoom-corrected)
+PlayerMotor.SpeedMultiplier  from IsAiming × Fatigue.MoveSpeed
 HeldItemClearance    eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
 HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's shots (muzzle flash, one GunAccuracy spread for the shot, BulletSystem.Fire per pellet)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
@@ -248,6 +251,7 @@ VContainer ticks     BulletSystem moves and ray-tests bullets → DamageService 
                      EffectPool returns expired effects; EnemyManager ticks registered enemy trees (scene scope)
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
+                     CrosshairHud reads Player.CrosshairPosition / AimWeight / IsSprinting → moves and fades the dot
                      InteractPromptHud reads Player.Interactor → InteractPromptView
 StatBar.Update       only while a trail is catching up, otherwise disabled
 ```

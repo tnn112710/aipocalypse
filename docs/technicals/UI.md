@@ -35,7 +35,8 @@ HUD                          Canvas · CanvasScaler
    │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
    └─ Center
-      ├─ Crosshair           6×6 dot (built-in Knob sprite, white 90 %, thin dark outline); placeholder, no script
+      ├─ Crosshair           nested Canvas · CrosshairHud; 6×6 dot (built-in Knob sprite, white 90 %, thin dark outline)
+      │  └─ HitMarker        HitFeedbackHud
       └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
          └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
 ```
@@ -55,7 +56,8 @@ The HUD is **standalone**, not part of the player. It holds info that isn't the 
 ```text
 PlayerRegistry (root) ── ActivePlayerChanged ──> PlayerHudView.Rebind → Unbind(old) / Bind(new)
    ▲ Register / Unregister                         ├─ PlayerVitalsHud   polls the bound player in LateUpdate
-Player (Construct / OnDestroy)                    └─ HotbarHud         spawns slot views, listens to Hotbar / Equipment
+Player (Construct / OnDestroy)                    ├─ CrosshairHud      polls Player.CrosshairPosition in LateUpdate
+                                                  └─ HotbarHud         spawns slot views, listens to Hotbar / Equipment
 
 ## StatBar widget
 
@@ -129,6 +131,8 @@ InteractPrompt               InteractPromptView component
 | Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
 | Interact prompt position | `HUD` → `Center/Interact` anchored position |
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
+| Crosshair sprint fade speed | `HUD` → `Center/Crosshair` → `CrosshairHud` |
+| How the crosshair moves | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway ([WEAPONS.md](WEAPONS.md#aim-sway)) |
 | Spacing between bars | `Vitals` → VerticalLayoutGroup spacing |
 | Distance from the screen edge | `HUD` → `SafeFrame` offsets |
 | Overall HUD scale | `HUD` → CanvasScaler reference resolution / match |
@@ -145,6 +149,14 @@ InteractPrompt               InteractPromptView component
 3. **New data to show:** add a presenter under `_Core/UI/Hud/` that injects its source (a service; for player data derive from `PlayerHudView`) and pushes values into widgets. Use polling for values that change continuously. For rare changes (currency, objectives), subscribe to MessagePipe events.
 4. Add the scripts to [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
+
+## Crosshair
+
+`CrosshairHud` (presenter on `SafeFrame/Center/Crosshair`) polls the active player in `LateUpdate`:
+
+- **Position:** `Player.CrosshairPosition` (the aim sway, in half-screen-heights) × half the root canvas height. Shots go exactly there with `Camera` / `MuzzleToCrosshair` aim. Moves under half a pixel are skipped; its own nested Canvas keeps the per-frame move from rebuilding the HUD.
+- **Fade:** only the dot (its `CanvasRenderer` alpha), so the hit marker child still shows. Hidden in proportion to the held item's `AimWeight` (the gun's sights take over) and faded out at `_fadeSpeed` while sprinting.
+- On unbind it snaps back to the centre, fully visible.
 
 ## Hit feedback
 

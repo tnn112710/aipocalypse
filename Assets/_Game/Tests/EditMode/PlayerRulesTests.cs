@@ -59,6 +59,45 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void RunningDry_WindsYou_BeforeRegenStarts()
+        {
+            var stamina = new Stamina(100f, regenDelay: 0f, recoverFraction: 0.3f, windedTime: 2f);
+            stamina.Spend(100f, delaysRegen: false);
+            Assert.IsTrue(stamina.IsWinded);
+
+            stamina.Tick(1.5f, regenPerSecond: 20f);
+            Assert.AreEqual(0f, stamina.Current, "no regen while winded");
+            Assert.IsTrue(stamina.IsWinded);
+
+            stamina.Tick(0.6f, regenPerSecond: 20f);
+            Assert.IsFalse(stamina.IsWinded);
+            stamina.Tick(1f, regenPerSecond: 20f);
+            Assert.AreEqual(20f, stamina.Current, 0.001f);
+        }
+
+        [Test]
+        public void DrainingAnExhaustedMeter_DoesNotRestartTheWind()
+        {
+            var stamina = new Stamina(100f, regenDelay: 0f, recoverFraction: 0.3f, windedTime: 2f);
+            stamina.Spend(100f);
+            stamina.Tick(2.1f, regenPerSecond: 20f);
+            stamina.Tick(0.25f, regenPerSecond: 20f);
+
+            stamina.Spend(10f, delaysRegen: false);
+            Assert.AreEqual(0f, stamina.Current);
+            Assert.IsFalse(stamina.IsWinded, "still exhausted, so no new wait");
+        }
+
+        [Test]
+        public void Restore_ClearsTheWind()
+        {
+            var stamina = new Stamina(100f, regenDelay: 0f, recoverFraction: 0.3f, windedTime: 2f);
+            stamina.Spend(100f);
+            stamina.Restore();
+            Assert.IsFalse(stamina.IsWinded);
+        }
+
+        [Test]
         public void SpendWithoutRegenDelay_KeepsRegenRunning()
         {
             var stamina = new Stamina(100f, regenDelay: 1f, recoverFraction: 0.3f);
@@ -121,6 +160,20 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void Winded_SlowsMovementFurther()
+        {
+            FatigueSettings settings = Settings();
+            settings.WindedMoveSpeed = 0.5f;
+            var fatigue = new Fatigue(settings);
+
+            fatigue.Tick(0f, penaltyScale: 1f, deltaTime: 0.016f, winded: true);
+            Assert.AreEqual(0.35f, fatigue.MoveSpeed, 0.001f);
+
+            fatigue.Tick(0f, penaltyScale: 1f, deltaTime: 0.016f);
+            Assert.AreEqual(0.7f, fatigue.MoveSpeed, 0.001f);
+        }
+
+        [Test]
         public void PenaltyScale_ShrinksOrRemovesThePenalty()
         {
             var fatigue = new Fatigue(Settings());
@@ -137,28 +190,39 @@ namespace Aipocalypse.Tests
 
     public class BreathingTests
     {
+        static BreathingSettings Settings() => new() { Below = 0.25f, MinVolume = 0.4f, EaseTime = 0f };
+
         [Test]
-        public void Breathes_OnlyWhenLowOrExhausted_FasterWhenEmptier()
+        public void Active_OnlyWhenLowOrExhausted()
         {
-            var breathing = new PlayerBreathing(new BreathingSettings { Below = 0.25f, SlowInterval = 1.6f, FastInterval = 0.8f, MinVolume = 0.4f });
-            int breaths = 0;
-            float lastVolume = 0f;
-            breathing.Breathed += volume => { breaths++; lastVolume = volume; };
+            var breathing = new PlayerBreathing(Settings());
 
             breathing.Tick(0.5f, exhausted: false, deltaTime: 0.1f);
-            Assert.AreEqual(0, breaths);
+            Assert.IsFalse(breathing.IsActive);
+            Assert.AreEqual(0f, breathing.Tiredness);
 
-            breathing.Tick(0f, exhausted: false, deltaTime: 0.1f);
-            Assert.AreEqual(1, breaths, "first breath right away");
-            Assert.AreEqual(1f, lastVolume, 0.001f);
+            breathing.Tick(0.2f, exhausted: false, deltaTime: 0.1f);
+            Assert.IsTrue(breathing.IsActive);
 
-            breathing.Tick(0f, false, 0.7f);
-            Assert.AreEqual(1, breaths);
-            breathing.Tick(0f, false, 0.15f);
-            Assert.AreEqual(2, breaths, "0.8 s apart at empty");
+            breathing.Tick(0.5f, exhausted: true, deltaTime: 0.1f);
+            Assert.IsTrue(breathing.IsActive, "exhausted keeps breathing above the threshold");
+            Assert.AreEqual(1f, breathing.Tiredness);
+            Assert.AreEqual(1f, breathing.Volume, 0.001f);
+        }
 
-            breathing.Tick(0.5f, exhausted: true, deltaTime: 0.9f);
-            Assert.AreEqual(3, breaths, "exhausted keeps breathing above the threshold");
+        [Test]
+        public void Tiredness_BuildsAsStaminaDrops_AndEases()
+        {
+            var breathing = new PlayerBreathing(Settings());
+            breathing.Tick(0.125f, exhausted: false, deltaTime: 0.1f);
+            Assert.AreEqual(0.5f, breathing.Tiredness, 0.001f);
+            Assert.AreEqual(0.7f, breathing.Volume, 0.001f);
+
+            BreathingSettings eased = Settings();
+            eased.EaseTime = 0.6f;
+            var slow = new PlayerBreathing(eased);
+            slow.Tick(0f, exhausted: true, deltaTime: 0.1f);
+            Assert.That(slow.Tiredness, Is.InRange(0.05f, 0.5f), "builds up, doesn't snap");
         }
     }
 

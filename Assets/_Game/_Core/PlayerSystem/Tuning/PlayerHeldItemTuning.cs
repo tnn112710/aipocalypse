@@ -24,7 +24,10 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Tooltip("What the model is kept out of")]
         public LayerMask ClearanceLayers { get; private set; } = Physics.DefaultRaycastLayers;
 
-        [field: Header("Sway & bob"), SerializeField, InlineProperty, HideLabel]
+        [field: Header("Aim sway (crosshair, shots and model)"), SerializeField, InlineProperty, HideLabel]
+        public AimSwaySettings AimSway { get; private set; } = new();
+
+        [field: Header("Sway & bob (model only)"), SerializeField, InlineProperty, HideLabel]
         public HeldSwaySettings HeldSway { get; private set; } = new();
     }
 }

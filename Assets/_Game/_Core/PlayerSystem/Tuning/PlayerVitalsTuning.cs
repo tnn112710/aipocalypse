@@ -14,6 +14,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public float StaminaRegenDelay { get; private set; } = 1f;
         [field: SerializeField, Range(0f, 1f), Tooltip("Exhausted at 0: no sprint or jump until stamina refills to this fraction")]
         public float ExhaustionRecoverFraction { get; private set; } = 0.3f;
+        [field: SerializeField, Min(0f), Tooltip("Seconds stamina stays at 0 after running dry before it starts to recover: heavy breathing, slower moves, shakier aim")]
+        public float WindedTime { get; private set; } = 2f;
 
         [field: Header("Fatigue (low stamina)"), SerializeField, InlineProperty, HideLabel]
         public FatigueSettings Fatigue { get; private set; } = new();

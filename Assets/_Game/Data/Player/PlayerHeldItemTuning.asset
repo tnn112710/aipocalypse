@@ -23,17 +23,44 @@ MonoBehaviour:
   <ClearanceLayers>k__BackingField:
     serializedVersion: 2
     m_Bits: 1083211827
+  <AimSway>k__BackingField:
+    Breath: {x: 0.15, y: 0.2}
+    BreathRate: 0.28
+    TiredBreathRate: 0.75
+    TiredBreath: 3
+    WindedBreath: 1.5
+    WalkBob: {x: 0.2, y: 0.6}
+    StrafeBob: {x: 0.6, y: 0.15}
+    SprintBob: 2.5
+    MoveDrift: {x: 0.08, y: 0.05}
+    LookLag: 0.6
+    MaxLookLag: 1
+    JumpDip: 1.2
+    AirDrift: 2.5
+    AirDriftRate: 0.6
+    MinLandingSpeed: 2
+    LandingDip: 0.4
+    MaxLandingDip: 4
+    LandingJolt: 0.3
+    Stiffness: 90
+    DampingRatio: 0.5
+    AimBreath: 0.7
+    AimBob: 0.3
+    AimMove: 0.3
+    AimLook: 0.5
+    AimLanding: 0.5
+    AimInKick: 0.5
+    MaxOffset: 4
+    AimMaxOffset: 2
   <HeldSway>k__BackingField:
     BreathPosition: {x: 0.0025, y: 0.003, z: 0}
-    BreathEuler: {x: 0.35, y: 0.25, z: 0.3}
-    BreathRate: 0.28
+    BreathRoll: 0.3
     WalkBobPosition: {x: 0.011, y: 0.007, z: 0.004}
-    WalkBobEuler: {x: 0.7, y: 0.6, z: 1.2}
+    WalkBobRoll: 1.2
     SprintBobPosition: {x: 0.028, y: 0.02, z: 0.01}
-    SprintBobEuler: {x: 2.2, y: 2, z: 4}
-    LookTilt: 1.5
+    SprintBobRoll: 4
     LookRoll: 1.2
-    MaxLookTilt: 4
+    MaxLookRoll: 4
     LookShift: 0.008
     MaxLookShift: 0.025
     MoveShift: 0.004

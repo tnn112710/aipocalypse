@@ -116,14 +116,14 @@ namespace Aipocalypse.Core.WeaponSystem
         public RecoilValues For(bool aiming) => aiming ? Aim : Hip;
     }
 
-    // Spread from the holder's motion, on top of SpreadAngle. It moves the whole shot, so a shotgun's pattern shifts as one.
+    // Spread while airborne, on top of SpreadAngle (walking shows as visible aim sway instead). It moves the whole shot,
+    // so a shotgun's pattern shifts as one.
     [Serializable]
     public sealed class AccuracySettings
     {
-        [Min(0f), Tooltip("Degrees off the aim at walking speed; scales with speed, none standing still")] public float MovingSpread = 2.5f;
-        [Min(0f), Tooltip("Degrees off the aim while in the air")] public float AirborneSpread = 5f;
-        [Range(0f, 1f), Tooltip("Share of the moving / airborne spread kept while aiming down sights")] public float AimMultiplier = 0.4f;
-        [Min(0f), Tooltip("How fast the spread settles after stopping or landing (higher = sooner)")] public float SettleSpeed = 6f;
+        [Min(0f), Tooltip("Degrees off the aim while in the air, on top of the visible air drift")] public float AirborneSpread = 2f;
+        [Range(0f, 1f), Tooltip("Share of the airborne spread kept while aiming down sights")] public float AimMultiplier = 0.4f;
+        [Min(0f), Tooltip("How fast the spread settles after landing (higher = sooner)")] public float SettleSpeed = 6f;
     }
 
     [Serializable]

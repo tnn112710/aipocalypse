@@ -59,7 +59,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
         public override float Zoom => _gun != null ? Mathf.Lerp(1f, _definition.Handling.AimZoom, _aimWeight) : 1f;
         public override float AimWeight => _aimWeight;
-        // Degrees the next shot may go off the aim from moving / jumping (on top of the gun's pellet spread).
+        // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
         public float MotionSpread => _accuracy != null ? _accuracy.Spread : 0f;
 
         RepairFeedbackSettings Feedback => _definition.Jam.Feedback;
@@ -151,7 +151,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _jolt.Tick(deltaTime);
             _recoil.Tick(deltaTime, _gun.IsAiming);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
-            _accuracy.Tick(input.Movement, input.IsAirborne, _aimWeight, _user.MotionSpreadScale, deltaTime);
+            _accuracy.Tick(input.IsAirborne, _aimWeight, _user.MotionSpreadScale, deltaTime);
             _animation.Tick(deltaTime, _gun.ActionProgress);
         }
 
@@ -230,7 +230,7 @@ namespace Aipocalypse.Core.WeaponSystem
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
             AimShot(bullet.Range, out Vector3 origin, out Vector3 direction);
-            // Motion spread moves the whole shot; pellets then spread around it.
+            // Airborne spread moves the whole shot; pellets then spread around it.
             direction = BulletSpread.Apply(direction, _accuracy.Spread);
             for (int i = 0; i < fire.Pellets; i++)
             {
@@ -253,6 +253,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void AimShot(float range, out Vector3 origin, out Vector3 direction)
         {
             Transform eye = _user.Eye;
+            Vector3 aim = eye.rotation * (_user.AimOffset * Vector3.forward);
             Vector3 toMuzzle = _muzzle.position - eye.position;
             // The view model draws over cover, but a barrel beyond cover must still hit its near face.
             if (_user.AimFrom != AimOrigin.Camera && toMuzzle.sqrMagnitude > 0.000001f &&
@@ -266,15 +267,15 @@ namespace Aipocalypse.Core.WeaponSystem
             {
                 case AimOrigin.Camera:
                     origin = eye.position;
-                    direction = eye.forward;
+                    direction = aim;
                     return;
 
                 case AimOrigin.MuzzleToCrosshair:
-                    Vector3 aimPoint = _bullets.TryHit(eye.position, eye.forward, range, _user.Root, out RaycastHit hit)
+                    Vector3 aimPoint = _bullets.TryHit(eye.position, aim, range, _user.Root, out RaycastHit hit)
                         ? hit.point
-                        : eye.position + eye.forward * range;
+                        : eye.position + aim * range;
                     origin = _muzzle.position;
-                    direction = GunAim.MuzzleToPoint(origin, eye.forward, aimPoint);
+                    direction = GunAim.MuzzleToPoint(origin, aim, aimPoint);
                     return;
 
                 default:

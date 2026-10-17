@@ -81,6 +81,9 @@ namespace Aipocalypse.Core.EquipmentSystem
             _hand.localRotation *= rotation;
         }
 
+        // Turns the whole rig (it sits at the eye) so the held model points where the aim sway does.
+        public void SetAimRotation(Quaternion rotation) => transform.localRotation = rotation;
+
         public void ApplyObstaclePose(float weight, float distance, Vector3 euler)
         {
             _hand.localPosition += Vector3.back * (weight * distance);

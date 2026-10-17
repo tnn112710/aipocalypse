@@ -12,20 +12,26 @@ namespace Aipocalypse.Core.PlayerSystem
 
         readonly float _regenDelay;
         readonly float _recoverFraction;
+        readonly float _windedTime;
         float _regenDelayLeft;
+        float _windedLeft;
 
         public float Max => _max;
         public float Current => _current;
         public float Normalized => _current / _max;
         public bool IsExhausted => _exhausted;
+        // Just ran dry: catching breath before regen starts.
+        public bool IsWinded => _windedLeft > 0f;
         public bool CanExert => !_exhausted && _current > 0f;
 
-        public Stamina(float max, float regenDelay, float recoverFraction)
+        // `windedTime`: seconds of no regen after running dry.
+        public Stamina(float max, float regenDelay, float recoverFraction, float windedTime = 0f)
         {
             _max = Mathf.Max(1f, max);
             _current = _max;
             _regenDelay = regenDelay;
             _recoverFraction = Mathf.Clamp01(recoverFraction);
+            _windedTime = Mathf.Max(0f, windedTime);
         }
 
         // `delaysRegen` false: regen keeps running (attacks), so only a cost above the regen rate drains the meter.
@@ -37,17 +43,21 @@ namespace Aipocalypse.Core.PlayerSystem
             _current = Mathf.Max(0f, _current - amount);
             if (delaysRegen)
                 _regenDelayLeft = _regenDelay;
-            if (_current <= 0f)
+            // Only running dry winds you; draining an already exhausted meter again doesn't restart the wait.
+            if (_current <= 0f && !_exhausted)
+            {
                 _exhausted = true;
+                _windedLeft = _windedTime;
+            }
         }
 
         public void Tick(float deltaTime, float regenPerSecond)
         {
-            if (_regenDelayLeft > 0f)
-            {
-                _regenDelayLeft -= deltaTime;
+            bool waiting = _regenDelayLeft > 0f || _windedLeft > 0f;
+            _regenDelayLeft -= deltaTime;
+            _windedLeft -= deltaTime;
+            if (waiting)
                 return;
-            }
 
             _current = Mathf.Min(_max, _current + regenPerSecond * deltaTime);
             if (_exhausted && _current >= _max * _recoverFraction)
@@ -59,6 +69,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _current = _max;
             _exhausted = false;
             _regenDelayLeft = 0f;
+            _windedLeft = 0f;
         }
     }
 }

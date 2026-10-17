@@ -23,7 +23,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Travelling bullets | Plain data moved each frame and ray-tested along their path: speed, range (then they vanish), optional gravity. No rigidbodies, no GameObject per bullet (only its pooled tracer) | Gun asset → Bullet |
 | Damage | Each bullet hurts what it hits through `DamageService.Deal` (`DamageType.Gunshot`, source = the shooter); the service publishes `DamageDealt` with what landed and whether it killed, which drives the hit marker and damage numbers ([UI.md](UI.md#hit-feedback)) | Fire → `Damage` |
 | Never hits the shooter | Anything under the shooter's root is skipped (body, held gun). Triggers (pickups) are ignored | `IGunUser.Root` |
-| Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path. **MuzzleToCrosshair**: a ray from the screen centre finds what the crosshair is on (or the point at full range), and bullets leave the muzzle towards it (`GunAim.MuzzleToPoint`); closer than 1 m or behind the muzzle, they use the camera direction. The aim kick (the view) moves the shots in every mode; the gun's small extra kick only moves them in Muzzle mode | `PlayerHeldItemTuning` → Guns → `AimFrom` (live in Play mode). Set to MuzzleToCrosshair |
+| Aim origin switch | **Muzzle**: bullets leave the muzzle along the barrel (follows pose and gun kick, the old behaviour). **Camera**: they leave the screen centre; the tracer still starts at the muzzle and slides onto the real path. **MuzzleToCrosshair**: a ray from the screen centre finds what the crosshair is on (or the point at full range), and bullets leave the muzzle towards it (`GunAim.MuzzleToPoint`); closer than 1 m or behind the muzzle, they use the camera direction. The aim kick (the view) moves the shots in every mode; the gun's small extra kick only moves them in Muzzle mode. Camera and MuzzleToCrosshair aim along the [aim sway](#aim-sway) (the crosshair's direction), not the exact screen centre | `PlayerHeldItemTuning` → Guns → `AimFrom` (live in Play mode). Set to MuzzleToCrosshair |
 | Magazine | Rounds live on the gun (`GunInstance`), so they survive drop, pick up and swap. A new gun spawns full | Magazine → `Size` |
 | Shared ammo by type | The player carries an `AmmoReserve`: spare rounds per `AmmoType`. Guns of the same type reload from the same pool | `Data/Weapons/AmmoConfig.asset` (starting amounts, `Infinite`) |
 | Magazine reload | One timed reload; takes only what the reserve has | Magazine → `Reload = Magazine`, `ReloadTime` |
@@ -34,8 +34,9 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Recoil | Two parts per shot, along a random spray pattern that restarts after a 0.24 s pause. **Aim kick** turns the view (up, sideways, roll, shake), so the crosshair and the shots climb together. **Gun kick** is a small, fast extra tilt + push-back of the model only, on top of the view it's attached to, so the barrel stays near the crosshair. Both spring back. Hip-fire and aiming have separate values | Gun asset → Recoil → Aim kick / Aim response / Gun kick |
 | Recoil modifiers | Extra kick while moving / airborne; the first `AccurateShots` of a spray kick less | Recoil |
 | Stamina and fatigue | Each shot spends `StaminaPerShot` (pellets count as one) without pausing regen (18/s), so only fire rate × cost above the regen rate drains you: an AK spray does, pistol shots barely register. Low stamina never blocks firing: it multiplies recoil (aim kick, gun kick and shake) by the player's fatigue tier, eased in. See [Fatigue](#fatigue) | Fire → `StaminaPerShot` (AK47 4, MP5 2.6, Pistol 0.7, PumpShotgun 8, DoubleBarrel 9) |
-| Moving inaccuracy | Firing on the move sends the shot up to `MovingSpread`° off the aim at walking speed (scaled by speed, so backing up or walking while aiming is steadier), `AirborneSpread`° in the air. Aiming down sights keeps `AimMultiplier` of it. It rises at once and settles at `SettleSpeed` after stopping or landing. The whole shot moves, so a shotgun's pattern shifts as one. Standing still adds nothing. The player's `StatId.MotionSpread` (base 1) scales it, for skills | Gun asset → Accuracy (all five guns: 2.5° / 5° / 0.4 / 6) |
-| Sway and bob | The held item breathes at rest, bobs in step with the footsteps (bigger when sprinting), trails behind turning, moving and jumping, and dips on landing, on springs that overshoot slightly and settle. Aiming calms each part. Visual only with `MuzzleToCrosshair` / `Camera` aim (in `Muzzle` mode it tilts the barrel, so the shots). `StatId.HeldItemSway` (base 1) scales it all, for skills | `PlayerHeldItemTuning` → Sway & bob |
+| Airborne inaccuracy | Firing in the air sends the shot up to `AirborneSpread`° (2) off the aim, on top of the visible air drift. Aiming down sights keeps `AimMultiplier` of it. It rises at once and settles at `SettleSpeed` after landing. The whole shot moves, so a shotgun's pattern shifts as one. Walking adds no hidden spread: it shows as aim sway. The player's `StatId.MotionSpread` (base 1) scales it, for skills | Gun asset → Accuracy (all five guns: 2° / 0.4 / 6) |
+| Aim sway | The crosshair, the shots and the gun move together off the screen centre: breathing, walking bob, move / turn lag, jump, air drift, landing, heavier when out of breath. See [Aim sway](#aim-sway) | `PlayerHeldItemTuning` → Aim sway |
+| Model sway and bob | Extra motion of the held model only, which never changes where it points: position drift (breathing, bob, look / move lag, jump sink, landing dip) and roll around the barrel. Aiming calms each part. `StatId.HeldItemSway` (base 1) scales it and the aim sway, for skills | `PlayerHeldItemTuning` → Sway & bob (model only) |
 | Poses | Hip, Aim and Sprint pose markers in the gun prefab; the gun blends between them. The Hip pose is turned so the barrel points at the screen centre 20 m ahead (bullets from the muzzle don't cross the crosshair at an angle) | Prefab → `Poses/*`; blend speeds: Gun asset → Handling |
 | Aiming rules | Sprinting blocks fire and aim. Reloading and clearing a jam drop the aim (sprinting is allowed while reloading). Switching away cancels a reload or jam clear (it restarts next time) | `Gun.Tick` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerHeldItemTuning` → Guns |
@@ -45,7 +46,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
 | Effects | Muzzle flash, tracer, impact (removed after 3 s), bullet hole decal (removed after 20 s, at most 64). All pooled; no holes on things that take damage | `Data/Weapons/BulletEffects.asset`; lifetime / cap on each effect prefab's `PooledEffect` |
 | Sounds | Equip, fire, reload start / insert / end, jam (trigger falls on the jammed round), dry fire (each pull while stuck), jam clear start / end, repair slap / punch, cycle start / end (pump back / home) as BroAudio `SoundID`s, played 2D through `AudioService` (pooled by BroAudio, so a sound isn't cut when the gun is holstered). Entities live in `Data/Audio/Guns/` (one per purpose and clip, e.g. `Fire_AssaultRifle1Fire`); each entity holds its own volume, random clips (`RepairSlap`, `RepairPunch`) and pitch variation. `Sounds.Volume` scales a whole gun. Clips are placeholders from the old project's samples (`Assets/_Samples/Audio/Weapons`) and Malbers / Highlands store audio; the shotguns borrow sniper and pistol clips | Gun asset → Sounds; entities in `Data/Audio/` (BroAudio Library Manager) |
-| Crosshair | A 6 px dot at the screen centre (placeholder, to be polished) | `HUD` → `SafeFrame/Center/Crosshair` |
+| Crosshair | A 6 px dot that follows the aim sway (`CrosshairHud`), fades while aiming down sights (the sights take over) and while sprinting. The hit marker is its child, so it follows the dot | `HUD` → `SafeFrame/Center/Crosshair` |
 | Ammo on the HUD | Magazine / reserve in the corner of each gun's hotbar slot (`30/90`; magazine only when the reserve is infinite), red when empty or jammed | [UI.md](UI.md#hotbar) |
 
 Cut from the old system: built-in fallback recoil assets, legacy Animator triggers, the laser sight, the `Item` / `Weapon` / `IEquipable` bases (replaced by the item definitions and `EquipmentSwitcher`), and the hidden "legacy" stat copies. AK47 now has its own clip/constraint presentation, described below.
@@ -155,6 +156,33 @@ FireAxe                       HeldMelee
 
 **Adding a melee weapon:** duplicate `Prefabs/Melee/FireAxe.prefab`, swap the `Model`, and move the pose markers using the preview buttons (the hit doesn't depend on them, only the look does). Duplicate `Data/Items/FireAxe.asset` (or Create → Aipocalypse → Items → Melee), set `Prefab`, Swing, Sounds and `ImpactEffect`, and point the root `WorldItem._definition` at the new asset (swap `World/Model` too).
 
+## Aim sway
+
+`HeldItemSway` (player part) turns the movement state into one **aim offset**: degrees off the screen centre (x right, y up). Everything that points uses it, so the barrel can't point one way while the crosshair shows another:
+
+- **Shots:** `IGunUser.AimOffset` turns the eye's forward; `Camera` and `MuzzleToCrosshair` aim along it.
+- **Crosshair:** `Player.CrosshairPosition` projects it with the world camera's current field of view; `CrosshairHud` moves the dot there.
+- **Model:** `EquipmentRig.SetAimRotation` turns the whole rig, which sits at the eye, so the gun pivots around the eye. The weapon camera keeps the unzoomed field of view while aiming zooms the world, so the rig turns further by the zoom (`Player.ModelAimRotation`): the sights land on the crosshair's pixel at any zoom.
+
+The model's own extras (position drift, roll) don't change where it points. Gun kick (recoil, model only) and the reload / jam / pump clips do: the barrel leaves the crosshair briefly, while you can't fire anyway.
+
+| Situation | Aim motion (hip defaults) |
+| --- | --- |
+| Standing | Breathing: a slow figure-8, 0.15° sideways × 0.2° up / down, 0.28 breaths/s |
+| Walking forward / back | Bob in step with the head bob: 0.6° up / down each step, 0.2° sideways per two steps; the aim dips 0.05° per m/s |
+| Strafing | 0.6° sideways per two steps, 0.15° up / down; trails 0.08° per m/s against the move. Diagonals blend by direction |
+| Stopping | The drift springs back with a small overshoot (spring 90, damping 0.5): wait a beat for a steady shot |
+| Turning | Trails 0.6° per 100°/s, at most 1° |
+| Jump | Dips 1.2° on takeoff |
+| Airborne | Slow random drift up to 2.5°, plus the gun's `AirborneSpread` |
+| Landing (from 2 m/s) | Dips 0.4° per m/s of landing speed (at most 4°) with a random sideways jolt (30% of the dip), then wobbles and settles in about half a second |
+| Sprinting | Bob × 2.5; the crosshair is hidden (you can't fire) |
+| Out of breath | Breathing grows up to × 3 and speeds up to 0.75 breaths/s as `PlayerBreathing.Tiredness` builds (under 25% stamina, full when empty / exhausted); × 1.5 more while [winded](#fatigue) |
+
+**Aiming down sights** keeps 70% of the breathing, 30% of the bob and move / air drift, 50% of the turn lag and of jump / landing kicks. Raising the sights overshoots 0.5° upwards and settles. The offset is clamped to 4° at the hip, 2° aimed.
+
+`StatId.HeldItemSway` (base 1) scales the aim sway and the model sway, for skills that steady the hands.
+
 ## Fatigue
 
 Low stamina makes fighting and moving worse, never impossible. `Fatigue` (player part, ticked after `Stamina`) picks the lowest tier whose threshold is above current stamina and eases its multipliers in over `EaseTime` (0.35 s), so crossing a threshold never snaps mid-spray.
@@ -165,7 +193,11 @@ Low stamina makes fighting and moving worse, never impossible. `Fatigue` (player
 | 25% | ×1.6 | ×0.65 | ×0.85 |
 | 10% | ×2.5 | ×0.4 | ×0.7 |
 
-Exhaustion (stamina hit 0, until it refills to 30%) still blocks only sprint and jump; shots and swings can drain stamina to 0 and exhaust you. Out of breath (under 25%, or exhausted), `PlayerBreathing` plays `BreathSound` faster and louder as stamina drops.
+Exhaustion (stamina hit 0, until it refills to 30%) still blocks only sprint and jump; shots and swings can drain stamina to 0 and exhaust you.
+
+**Winded:** running dry stops regen for `WindedTime` (2 s, `PlayerVitalsTuning`) before recovery starts. Meanwhile walk and sprint speed drop by a further `WindedMoveSpeed` (× 0.75, eased with the tiers) and the aim breathes harder. Draining an already exhausted meter to 0 again doesn't restart the wait.
+
+**Out of breath** (under 25%, or exhausted): `PlayerBreathing.Tiredness` builds as stamina drops (1 at empty / exhausted) and eases over `EaseTime` (0.6 s). The player loops `BreathSound` at `MinVolume`..1 by tiredness (fades in 0.4 s, out 1.5 s once you've caught your breath), and the aim sway breathes harder and faster with it.
 
 Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCost` scales every shot and swing cost; `StatId.FatiguePenalty` scales how far the tiers move from 1 (0 = no penalty). Weapons reach all of this through `IWeaponUser.Exert` / `MeleePower` and `IGunUser.FatigueRecoilScale`.
 
@@ -177,10 +209,12 @@ Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCost` sc
 | A melee weapon's numbers, sounds | `Data/Items/<Melee>.asset` (live in Play mode) |
 | How a melee swing looks | melee prefab → `Poses/*`, `HeldMelee` → Swing motion |
 | Muzzle vs camera aiming, slower walk while aiming | `Data/Player/PlayerHeldItemTuning.asset` → Guns |
-| Spread from moving / jumping | `Data/Items/<Gun>.asset` → Accuracy |
-| Weapon sway, bob, look / move lag (all held items) | `Data/Player/PlayerHeldItemTuning.asset` → Sway & bob |
-| Fatigue tiers, ease time | `Data/Player/PlayerVitalsTuning.asset` → Fatigue |
-| Breath sound, when and how often it plays | `Data/Player/PlayerSoundTuning.asset` → Out of breath |
+| Spread in the air | `Data/Items/<Gun>.asset` → Accuracy |
+| Aim sway: crosshair / shot / gun motion per situation, ADS shares, limits | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway |
+| Model-only sway, bob, look / move lag (all held items) | `Data/Player/PlayerHeldItemTuning.asset` → Sway & bob (model only) |
+| Fatigue tiers, winded speed, ease time | `Data/Player/PlayerVitalsTuning.asset` → Fatigue |
+| How long you stay winded at 0 stamina | `Data/Player/PlayerVitalsTuning.asset` → `WindedTime` |
+| Breath sound, threshold, volume, fades | `Data/Player/PlayerSoundTuning.asset` → Out of breath |
 | Starting ammo, infinite ammo | `Data/Weapons/AmmoConfig.asset` (read at spawn). In Play mode, `Player` → **Add Ammo** gives more |
 | Which effects a gun uses, bullet hole layers / size | `Data/Weapons/BulletEffects.asset` |
 | How long an effect lives, how many at once | the effect prefab in `Prefabs/Effects/` → `PooledEffect` |
@@ -189,9 +223,9 @@ Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCost` sc
 
 ## Known gaps
 
-- **No breath clip yet:** `PlayerSoundTuning` → `BreathSound` is unset (silent) until a BroAudio entity with a breathing clip is added to `Data/Audio/Player`. Keep `SlowInterval` at least the clip's length.
+- **No breath clip yet:** `PlayerSoundTuning` → `BreathSound` is unset (silent) until a BroAudio entity with a breathing clip (Loop on) is added to `Data/Audio/Player`. The visual breathing rate (`TiredBreathRate`) isn't synced to the clip; tune it by ear.
 - **Sound placeholders:** every gun sound is a stand-in clip (see Sounds above); swap the clips on the BroAudio entities, no code or gun asset changes needed.
-- **Crosshair is a plain dot** with a hit marker round it (no spread indicator yet; `HeldGun.MotionSpread` is the current moving spread). It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle`.
+- **Crosshair is a plain dot** with a hit marker round it (no spread indicator for the airborne spread, `HeldGun.MotionSpread`). It matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle` (there the model's zoom correction also turns the barrel a little more than the view while aiming).
 - **Nothing in `Prototype.unity` takes damage yet:** the wander capsules aren't damageable and the scene has no `TargetDummy`, so hit feedback only shows on a dummy you add (`_Debug/TargetDummy`).
 - **Clip authoring gaps** (their tests are marked `[Ignore]` with the reason): MP5 / pistol left-hand free control is ~1° off the magazine grip at the 0.145 switch; the AK47's is ~5.5° off the forend at 0.02; the DoubleBarrel's free hand is ~5 cm / 9° off the shell grip at 0.28 and its hinge curve overshoots ~0.5° after closing. Fix the keys in the Animation window (script edits of these clips re-tangent or rebind them), then drop the `Ignore`s in `WeaponAnimationTests`.
 - **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.

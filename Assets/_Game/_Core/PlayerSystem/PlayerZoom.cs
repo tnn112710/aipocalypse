@@ -22,6 +22,8 @@ namespace Aipocalypse.Core.PlayerSystem
 
         // Look speed scale that keeps aim feel the same at any zoom (1 unzoomed, < 1 zoomed in).
         public float LookScale { get; private set; } = 1f;
+        // tan(half the world camera's vertical field of view): maps eye-space directions to the screen.
+        public float TanHalfFov => _baseTan * LookScale;
 
         // `zoom` multiplies the base field of view: 1 = none, 0.85 = 15% narrower.
         public void Tick(float zoom)

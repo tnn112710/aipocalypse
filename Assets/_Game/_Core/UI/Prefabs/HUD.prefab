@@ -1177,6 +1177,8 @@ GameObject:
   - component: {fileID: 5718055355726111371}
   - component: {fileID: 1923351672052181922}
   - component: {fileID: 6736184967078468311}
+  - component: {fileID: 5193426974176291696}
+  - component: {fileID: 5871467643585503258}
   m_Layer: 0
   m_Name: Crosshair
   m_TagString: Untagged
@@ -1257,6 +1259,45 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!223 &5193426974176291696
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4598766766952271008}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
+--- !u!114 &5871467643585503258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4598766766952271008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfe9f9fdaf315f74dbb3559ac33b1c7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.UI.CrosshairHud
+  _crosshair: {fileID: 2862650935534389514}
+  _dot: {fileID: 1923351672052181922}
+  _fadeSpeed: 8
 --- !u!1 &4978022557993326069
 GameObject:
   m_ObjectHideFlags: 0
