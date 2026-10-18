@@ -2,7 +2,25 @@
 
 Date: 2026-10-18. Status: visual concept with approximate scale. This records the layout developed with the user; it is not a Unity scene or a finalized gameplay specification.
 
-![Version 7 world layout: continuous rolling pine forest with narrow trails and a smaller northeast swamp](meadow-home-top-down-v7.png)
+![Version 10 world layout: additional forest footpaths and eastern boundary mountains](meadow-home-top-down-v10.png)
+
+## Revision 10
+
+Following the user's yellow annotations, additional narrow footpaths branch through the forest hills, follow the swamp fringe and reach the southern forest shoreline. Grey annotations become a rocky mountain boundary along the eastern edge, connecting the northern and southern mountain rim beside the swamp and lake. The highland ponds, streams, expanded swamp and southwest home meadow remain.
+
+Generation prompt: [Version 10 prompt](meadow-home-v10-prompts.md). Previous image: [Version 9 overview](meadow-home-top-down-v9.png). Exact path routes, stream crossings and terrain dimensions remain blockout decisions.
+
+## Revision 9
+
+Following the user's blue annotations, two ponds sit among the highland rocks: one near the northern ridges and one on the western highland edge. Small streams follow the marked routes beneath the highlands, along the swamp margins and southeast through the forest toward the lake. The northeastern swamp expands slightly south and west. Forest trails, rolling hills, the mountain enclosure and the compact southwest home meadow remain.
+
+Generation prompt: [Version 9 prompt](meadow-home-v9-prompts.md). Previous image: [Version 8 overview](meadow-home-top-down-v8.png). Stream widths, connections and water levels are illustrative and require measured blockout verification.
+
+## Revision 8
+
+The northeastern swamp expands moderately into the neighboring forest, mainly southward. A connected mountain ridge extends from the northwest highlands across the northern edge, enclosing the forest and swamp from behind. The proposed 2000 × 2000 m footprint, compact southwest home meadow, southern river, forest trails and rolling hills remain the reference layout.
+
+Generation prompt: [Version 8 prompt](meadow-home-v8-prompts.md). Previous image: [Version 7 overview](meadow-home-top-down-v7.png). Terrain dimensions, slopes and routes remain approximate concept guidance.
 
 ## Revision 7
 
