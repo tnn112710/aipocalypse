@@ -46,7 +46,7 @@ Raw and still-open ideas.
 - Style: stylized/toon low poly. BK environment packs + MicroVerse presets for terrain and vegetation; Synty for props and characters; Cozy Stylized Weather 3; Stylized Water 3 (its River Modeler follows MicroVerse splines)
 - Terrain size (???): 1000×1000 to 2000×2000
   - Suggested: ~1 km playable (2×2 tiles of 512 m) inside a ring of mountains you can see but can't walk on. Walking at ~5 m/s, center → edge takes ~100 s on 1 km but ~200 s on 2 km, so on 2 km one far trip eats most of a ~10 min day
-  - Decided (user, 2026-10-19): 1000 × 1000 m, the 2000 m world layout scaled down by half (concept v11 in `docs/concepts/meadow-home-map.md`). Fenced base (cabin, yard, campfire, garden) ~30 × 30 m; base → broken bridge 80–100 m
+  - Decided (user, 2026-10-19): 1000 × 1000 m terrain; the map itself is 800 × 800 m in the middle, with unwalkable boundary mountains in the outer ~100 m (concept v12 in `docs/concepts/meadow-home-map.md`). Fenced base (cabin, yard, campfire, garden) ~30 × 30 m; base → broken bridge 80–100 m
 - Base position (???): middle of the meadow (open 360°) or against a mountain (open 180°)
   - Suggested: near the center, backed by a cliff or a river bend. Every direction stays the same distance away, nights come from 1–2 readable sides (in first person you can't watch behind you), and there are fewer spawn lanes. Bonfire nights can open the back ("they climb down the cliff")
   - Ref: Kingdom Two Crowns — Greed attack from both ends of the island; two readable fronts keep night defense manageable
