@@ -1,12 +1,38 @@
 # Meadow home map concept
 
-Date: 2026-10-18. Status: visual concept, not to scale. This records the layout developed with the user; it is not a Unity scene or a finalized gameplay specification.
+Date: 2026-10-18. Status: visual concept with approximate scale. This records the layout developed with the user; it is not a Unity scene or a finalized gameplay specification.
 
-![Version 3 overview with the forest expanded farther east and most of the great lake beyond the right edge](meadow-home-top-down-v3.png)
+![Version 7 world layout: continuous rolling pine forest with narrow trails and a smaller northeast swamp](meadow-home-top-down-v7.png)
+
+## Revision 7
+
+Based on the user's annotated version 6 image, retaining its proposed **2000 × 2000 m** footprint. The two green-marked river routes through the central and eastern forest are filled with woodland, including their southbound outlet. The swamp's southern fringe becomes forest, leaving a smaller northeastern wetland. The original western waterfall, pond, southern river and broken bridge remain.
+
+Narrow winding footpaths extend from the forest side of the bridge toward the highlands and swamp fringe. Low wooded hills, grassy slopes, shallow saddles and scattered outcrops give the forest visible relief. These are visual exploration proposals; exact routes and elevations remain blockout decisions.
+
+Generation deviation: the unmarked stream along the southern highlands edge was shortened to a small western reach, despite the prompt requesting its preservation.
+
+Generation prompt: [Version 7 prompt](meadow-home-v7-prompts.md). Previous image: [Version 6 overview](meadow-home-top-down-v6.png).
+
+## Revision 6
+
+The user increased the proposed total footprint to **2000 × 2000 m**, including lake and boundary mountains, while retaining a compact meadow below approximately **600 × 300 m**. Version 6 targets **560 × 260 m including the home compound**. The meadow's elongated southwest shape follows the yellow annotation; the cabin, campfire, fenced yard and garden move together toward the red-marked position along its southern edge. The surrounding southern land becomes woodland and rocky terrain, with paths toward the broken bridge and lakeside viewpoint.
+
+The highlands remain northwest, swamps northeast, pine forest central and northern, and lake east and southeast. Both edge rulers now run from 0 to 2000 m in 250-m increments. The image remains an approximate concept rather than a measured plan; verify actual meadow and compound dimensions in a blockout.
+
+Generation prompts: [Version 6 prompts](meadow-home-v6-prompts.md). Previous image: [Version 5 overview](meadow-home-top-down-v5.png).
+
+## Revision 5
+
+Redrawn from the user's resketched world layout. The original home and meadow remain in the southwest, with a broad central pine forest, highlands in the northwest, swamps in the northeast, and the great lake extending along the eastern edge. Branching swamp channels connect to the main river, while a winding forest tributary joins the southern water system. Mountains frame the west and south.
+
+At this revision, the user's proposed total footprint was **1500 × 1500 m**, including lake and boundary mountains. The image adds horizontal and vertical rulers marked every 250 m, a light grid, a north arrow and a small scale bar. These are generated concept guides, not surveyed measurements; landmark symbols are enlarged. Exact geography, slopes, water levels, crossings and travel distances remain blockout decisions.
+
+Generation prompts: [Version 5 prompts](meadow-home-v5-prompts.md). Earlier visual reference: [Version 4 nature study](meadow-home-top-down-v4.png).
 
 ## Revision 3
 
-The forest expands again into the additional green-marked lake area, reaching across most of the upper map. The great lake moves farther east, with only its western portion visible in this overview. The southern river channel stays open between the forest and meadow. The base, garden, bridge, and meadow remain the established near-bank destinations.
+The forest expands again into the additional green-marked lake area, reaching across most of the upper map. The great lake moves farther east, with only its western portion visible in this overview. The southern river channel stays open between the forest and meadow. The base, garden, bridge, and meadow remain the established near-bank destinations. [Version 3 overview](meadow-home-top-down-v3.png).
 
 Previous revision: [Version 2 overview](meadow-home-top-down-v2.png).
 
@@ -18,26 +44,28 @@ Previous image: [Version 1 top-down plan](meadow-home-top-down.png).
 
 ## Layout
 
-- **Home base:** southwest corner, backed by mountains on the west and south. The base sits on a smooth, gently raised grassy hill, with a usable yard rather than a rocky terrace.
+- **Home base:** southwest region, along the compact meadow's southern edge at the mountain foot, relocated together with the garden in version 6. The base sits on a smooth, gently raised grassy hill, with a usable yard rather than a rocky terrace.
 - **Cabin and yard:** a wooden log cabin faces diagonally northeast toward the central campfire and main gate. A wooden defensive fence encloses the cabin, yard, and garden. The garden sits to the right of the cabin, rotated farther clockwise.
-- **Meadow:** open, gently rolling flower hills surround the base and extend east along the near bank. Keep space for movement and later additions.
+- **Meadow:** a compact elongated flower clearing around and east of the base, below approximately 600 × 300 m; version 6 targets 560 × 260 m including the compound. Woodland and rocky slopes surround it, with narrow paths continuing outside the clearing.
 - **Waterfall and pond:** the western mountains feed a small scenic pond, which drains into the river.
 - **River and crossing:** the river separates the home meadow from the forest. A broken wooden bridge needs repair to cross; its central span is missing.
-- **Forest:** a large pine forest covers the far bank and now extends across most of the upper map into the former eastern lake area, forming the dominant land zone in the concept.
-- **Mountain lake:** the river opens directly into a large lake shifted farther east to accommodate the expanded forest. Only its western portion appears in version 3; its enclosing far-shore mountains lie mostly outside this view. This replaces the earlier river-gorge proposal.
-- **Lakeside viewpoint:** a meadow path leads east to a natural rocky viewpoint beside the lake.
+- **Forest:** a continuous pine forest covers the far bank and central/eastern map, with narrow footpaths, low wooded hills and small grassy slopes. Version 7 removes the two annotated river routes that divided it.
+- **Highlands:** a rugged elevated region in the northwest, backed by the western mountain boundary.
+- **Swamps:** a reduced northeastern wetland with internal channels and pools; its former southern fringe becomes forest in version 7. Exact drainage and elevations are not specified.
+- **Mountain lake:** the southern rivers open into a large southeastern lake with a long northern arm along the eastern edge. This replaces the earlier river-gorge proposal.
+- **Lakeside viewpoint:** a path leaves the meadow and continues east through wooded shore terrain to a natural rocky viewpoint beside the lake.
 
 ## Reading the image
 
-North points toward the top of this overview. Earlier perspective concepts look diagonally outward from home toward the river and lake opening. Version 3 is an illustrated overhead concept with some angled object rendering; use its shorelines and area relationships as guidance rather than a measured orthographic drawing.
+North points toward the top of this overview. Earlier perspective concepts look diagonally outward from home toward the river and lake opening. Version 7 is an illustrated overhead concept with some angled object rendering; use its shorelines and area relationships as guidance rather than a measured orthographic drawing.
 
-The paths and vegetation illustrate spatial relationships. Map dimensions, travel times, slopes, collision boundaries, forest contents, and encounter placement still need to be designed and tested in a blockout. Decorative details do not establish additional mechanics.
+The paths and vegetation illustrate spatial relationships. The proposed footprint is 2000 × 2000 m, with the meadow below approximately 600 × 300 m; final dimensions, travel times, slopes, collision boundaries, forest contents, and encounter placement still need to be designed and tested in a blockout. Decorative details do not establish additional mechanics.
 
 Related design context: [Core GDD](../gdd/CORE.md). This concept follows the user's mountain-backed home direction rather than the GDD's earlier sea-facing ridge description.
 
 ## Image generation
 
-Created with the built-in image generation tool. All three PNG versions are preserved here as concept references, outside Unity's asset folders. Versions 2 and 3 use the user's corresponding annotated maps as references.
+Created with the built-in image generation tool. All seven PNG versions are preserved here as concept references, outside Unity's asset folders. Versions 2 and 3 use the user's corresponding annotated maps as references; version 5 uses the user's resketched biome and waterway layout; version 6 uses the user's annotated meadow and home relocation image; version 7 uses the user's green river-removal annotation and requests for trails and forest relief.
 
 <details>
 <summary>Version 3 image generation prompt</summary>
