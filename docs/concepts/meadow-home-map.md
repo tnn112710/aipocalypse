@@ -2,7 +2,13 @@
 
 Date: 2026-10-19. Status: visual concept with approximate scale. This records the layout developed with the user; it is not a Unity scene or a finalized gameplay specification.
 
-![Version 12 world layout: 800 × 800 m map centred on a 1000 × 1000 m terrain](meadow-home-top-down-v12.png)
+![Version 13 world layout: 700 × 700 m map centred on a 1000 × 1000 m terrain](meadow-home-top-down-v13.png)
+
+## Revision 13
+
+The terrain stays **1000 × 1000 m**; the whole map now fits in the central **700 × 700 m** (about 150 m to 850 m on both axes), so every distance from version 12 shrinks to 87.5% and the outer 150-m band is unwalkable boundary mountains. The meadow was also too big next to the base, so, following the user's marked-up v12, the southern mountains push north over the south half of the meadow, from the waterfall to the lake's south shore, with a band of pine foothills at their foot. The meadow is now roughly **200 × 70 m**.
+
+The fenced base stays **about 30 × 30 m**, backed against the new mountain foot. It sits just east of the user's mark, **about 85 m from the broken bridge**; exactly on the mark it would be about 65 m, below the 80–100 m target.
 
 ## Revision 12
 
@@ -76,9 +82,9 @@ Previous image: [Version 1 top-down plan](meadow-home-top-down.png).
 
 ## Layout
 
-- **Home base:** southwest region, in the meadow about 90 m south of the broken bridge (80–100 m target, version 11). The base sits on a smooth, gently raised grassy hill, with a usable yard rather than a rocky terrace.
+- **Home base:** southwest region, in the meadow against the southern mountain foot, about 85 m from the broken bridge (80–100 m target, version 13). The base sits on a smooth, gently raised grassy hill, with a usable yard rather than a rocky terrace.
 - **Cabin and yard:** a wooden log cabin faces diagonally northeast toward the central campfire and main gate. A wooden defensive fence encloses the cabin, yard, and garden in about **30 × 30 m**. The garden sits to the right of the cabin, rotated farther clockwise.
-- **Meadow:** a compact elongated flower clearing around and east of the base, roughly 225 × 105 m including the compound (version 12). Woodland and rocky slopes surround it, with narrow paths continuing outside the clearing.
+- **Meadow:** a compact elongated flower clearing around and east of the base, roughly 200 × 70 m including the compound (version 13), hemmed in by the southern mountains. Woodland and rocky slopes surround it, with narrow paths continuing outside the clearing.
 - **Waterfall and pond:** the western mountains feed a small scenic pond, which drains into the river.
 - **River and crossing:** the river separates the home meadow from the forest. A broken wooden bridge needs repair to cross; its central span is missing.
 - **Forest:** a continuous pine forest covers the far bank and central/eastern map, with narrow footpaths, low wooded hills and small grassy slopes. Version 7 removes the two annotated river routes that divided it.
@@ -91,7 +97,7 @@ Previous image: [Version 1 top-down plan](meadow-home-top-down.png).
 
 North points toward the top of this overview. Earlier perspective concepts look diagonally outward from home toward the river and lake opening. Version 7 is an illustrated overhead concept with some angled object rendering; use its shorelines and area relationships as guidance rather than a measured orthographic drawing.
 
-The paths and vegetation illustrate spatial relationships. The proposed map is 800 × 800 m inside a 1000 × 1000 m terrain whose outer band is unwalkable boundary mountains, with the meadow roughly 225 × 105 m, a 30 × 30 m fenced base and about 90 m from base to bridge; final dimensions, travel times, slopes, collision boundaries, forest contents, and encounter placement still need to be designed and tested in a blockout. Decorative details do not establish additional mechanics.
+The paths and vegetation illustrate spatial relationships. The proposed map is 700 × 700 m inside a 1000 × 1000 m terrain whose outer band is unwalkable boundary mountains, with the meadow roughly 200 × 70 m, a 30 × 30 m fenced base and about 85 m from base to bridge; final dimensions, travel times, slopes, collision boundaries, forest contents, and encounter placement still need to be designed and tested in a blockout. Decorative details do not establish additional mechanics.
 
 Related design context: [Core GDD](../gdd/CORE.md). This concept follows the user's mountain-backed home direction rather than the GDD's earlier sea-facing ridge description.
 
