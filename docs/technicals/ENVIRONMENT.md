@@ -20,6 +20,10 @@ The first-party terrain material uses splat-weight blending rather than height b
 
 `Lighting - Komorebi colour grade` holds a global URP Volume referencing a first-party copy of `KomorebiNature_Demo_Post-Processing.asset`. It retains the demo's colour/tone treatment; motion blur and screen-space lens flares are disabled. The scene references Komorebi's skybox and matches its sun direction/intensity. Scene view image effects must be enabled to see the grading; gameplay cameras need their own post-processing flag enabled when introduced.
 
+## Layout targets (concept v11)
+
+The current sculpt follows the v4 concept. The latest concept, `docs/concepts/meadow-home-top-down-v11.png` (1000 × 1000 m), adds new targets that the scene does not meet yet: a **garden of about 30 × 30 m** and **80–100 m from the home base to the broken bridge**. Today's markers put the base about 178 m from the bridge. Move the home clearing or bridge markers and the home-clearing stamp when the terrain is updated to v11.
+
 ## Coordinates and markers
 
 North is +Z; east is +X. Region markers are layout guides, not gameplay boundaries.
