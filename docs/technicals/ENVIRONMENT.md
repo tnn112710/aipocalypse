@@ -20,9 +20,9 @@ The first-party terrain material uses splat-weight blending rather than height b
 
 `Lighting - Komorebi colour grade` holds a global URP Volume referencing a first-party copy of `KomorebiNature_Demo_Post-Processing.asset`. It retains the demo's colour/tone treatment; motion blur and screen-space lens flares are disabled. The scene references Komorebi's skybox and matches its sun direction/intensity. Scene view image effects must be enabled to see the grading; gameplay cameras need their own post-processing flag enabled when introduced.
 
-## Layout targets (concept v12)
+## Layout targets (concept v13)
 
-The current sculpt follows the v4 concept. The latest concept, `docs/concepts/meadow-home-top-down-v12.png`, keeps the 1000 × 1000 m terrain but fits the whole map into the central **800 × 800 m** (about X/Z 100–900), with unwalkable boundary mountains in the outer ~100 m. It also adds targets that the scene does not meet yet: a **fenced base of about 30 × 30 m** (the current home clearing is about 70 × 60 m) and **80–100 m from the home base to the broken bridge**. Today's markers put the base about 178 m from the bridge. Move the home clearing or bridge markers and the home-clearing stamp when the terrain is updated to v11.
+The current sculpt follows the v4 concept. The latest concept, `docs/concepts/meadow-home-top-down-v13.png`, keeps the 1000 × 1000 m terrain but fits the whole map into the central **700 × 700 m** (about X/Z 150–850), with unwalkable boundary mountains in the outer ~150 m. The southern mountains extend north over the south half of the meadow, leaving a meadow of about 200 × 70 m. It also adds targets that the scene does not meet yet: a **fenced base of about 30 × 30 m** (the current home clearing is about 70 × 60 m) and **80–100 m from the home base to the broken bridge**. Today's markers put the base about 178 m from the bridge. Move the home clearing or bridge markers and the home-clearing stamp when the terrain is updated to v13.
 
 ## Coordinates and markers
 
