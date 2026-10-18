@@ -6,7 +6,7 @@ Date: 2026-10-19. Status: visual concept with approximate scale. This records th
 
 ## Revision 11
 
-The user scaled the whole layout down to **1000 × 1000 m**, including lake and boundary mountains, so every distance from version 10 halves (the meadow becomes roughly **280 × 130 m**). The home compound shrinks to true scale with a **garden of about 30 × 30 m** (compound roughly 90 × 55 m) and moves north into the meadow, so the base is **about 90 m from the broken bridge** (user target: 80–100 m). Its old spot at the mountain foot becomes forest. An inset shows the compound at readable size with a 30 m scale bar.
+The user scaled the whole layout down to **1000 × 1000 m**, including lake and boundary mountains, so every distance from version 10 halves (the meadow becomes roughly **280 × 130 m**). The fenced home base (cabin, yard, campfire and garden) shrinks to true scale at **about 30 × 30 m** and moves north into the meadow, so the base is **about 90 m from the broken bridge** (user target: 80–100 m). Its old spot at the mountain foot becomes forest. At map scale the base is tiny, so an inset shows it at readable size with a 30 m bar across the fence.
 
 Version 11 is an edit of the version 10 image, not a new generation: rulers relabelled 0–1000 m in 125-m steps, compound cut out, scaled and moved, old spot filled with nearby forest texture. Geography, biomes and trails are unchanged. Previous image: [Version 10 overview](meadow-home-top-down-v10.png).
 
@@ -69,7 +69,7 @@ Previous image: [Version 1 top-down plan](meadow-home-top-down.png).
 ## Layout
 
 - **Home base:** southwest region, in the meadow about 90 m south of the broken bridge (80–100 m target, version 11). The base sits on a smooth, gently raised grassy hill, with a usable yard rather than a rocky terrace.
-- **Cabin and yard:** a wooden log cabin faces diagonally northeast toward the central campfire and main gate. A wooden defensive fence encloses the cabin, yard, and garden (compound roughly 90 × 55 m). The garden, about **30 × 30 m**, sits to the right of the cabin, rotated farther clockwise.
+- **Cabin and yard:** a wooden log cabin faces diagonally northeast toward the central campfire and main gate. A wooden defensive fence encloses the cabin, yard, and garden in about **30 × 30 m**. The garden sits to the right of the cabin, rotated farther clockwise.
 - **Meadow:** a compact elongated flower clearing around and east of the base, roughly 280 × 130 m including the compound after the version 11 scale-down. Woodland and rocky slopes surround it, with narrow paths continuing outside the clearing.
 - **Waterfall and pond:** the western mountains feed a small scenic pond, which drains into the river.
 - **River and crossing:** the river separates the home meadow from the forest. A broken wooden bridge needs repair to cross; its central span is missing.
@@ -83,7 +83,7 @@ Previous image: [Version 1 top-down plan](meadow-home-top-down.png).
 
 North points toward the top of this overview. Earlier perspective concepts look diagonally outward from home toward the river and lake opening. Version 7 is an illustrated overhead concept with some angled object rendering; use its shorelines and area relationships as guidance rather than a measured orthographic drawing.
 
-The paths and vegetation illustrate spatial relationships. The proposed footprint is 1000 × 1000 m, with the meadow roughly 280 × 130 m, a 30 × 30 m garden and about 90 m from base to bridge; final dimensions, travel times, slopes, collision boundaries, forest contents, and encounter placement still need to be designed and tested in a blockout. Decorative details do not establish additional mechanics.
+The paths and vegetation illustrate spatial relationships. The proposed footprint is 1000 × 1000 m, with the meadow roughly 280 × 130 m, a 30 × 30 m fenced base and about 90 m from base to bridge; final dimensions, travel times, slopes, collision boundaries, forest contents, and encounter placement still need to be designed and tested in a blockout. Decorative details do not establish additional mechanics.
 
 Related design context: [Core GDD](../gdd/CORE.md). This concept follows the user's mountain-backed home direction rather than the GDD's earlier sea-facing ridge description.
 

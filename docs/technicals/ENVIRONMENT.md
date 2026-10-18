@@ -22,7 +22,7 @@ The first-party terrain material uses splat-weight blending rather than height b
 
 ## Layout targets (concept v11)
 
-The current sculpt follows the v4 concept. The latest concept, `docs/concepts/meadow-home-top-down-v11.png` (1000 × 1000 m), adds new targets that the scene does not meet yet: a **garden of about 30 × 30 m** and **80–100 m from the home base to the broken bridge**. Today's markers put the base about 178 m from the bridge. Move the home clearing or bridge markers and the home-clearing stamp when the terrain is updated to v11.
+The current sculpt follows the v4 concept. The latest concept, `docs/concepts/meadow-home-top-down-v11.png` (1000 × 1000 m), adds new targets that the scene does not meet yet: a **fenced base of about 30 × 30 m** (the current home clearing is about 70 × 60 m) and **80–100 m from the home base to the broken bridge**. Today's markers put the base about 178 m from the bridge. Move the home clearing or bridge markers and the home-clearing stamp when the terrain is updated to v11.
 
 ## Coordinates and markers
 
