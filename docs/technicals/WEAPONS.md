@@ -45,7 +45,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 | Handling per gun | Aim speed / sprint pose speed / aim zoom: AK47 8 / 7 / 0.85 (slow, heavy), MP5 11 / 9 / 0.87, Pistol 14 / 12 / 0.9 (quick), PumpShotgun 8 / 7 / 0.88, DoubleBarrel 9 / 8 / 0.9. The Pistol has its own light recoil: 2.4° up / 0.9° sideways at the hip (1.6 / 0.6 aiming), snappy return, a bigger muzzle flip on the model, no accurate-shots discount | Gun asset → Handling, Recoil |
 | Empty click | Pulling the trigger on an empty magazine with nothing being reloaded (no spare ammo, or `AutoReload` off) clicks once per pull: the `Empty` sound, or `DryFire` when unset. Holding the trigger past the last round doesn't click | `Gun.EmptyFired`; Sounds → `Empty` |
 | Slower while aiming | Move speed × `AimMoveSpeedMultiplier` | `PlayerHeldItemTuning` → Guns |
-| Aim zoom | Aiming down sights narrows the world camera to `AimZoom` × its field of view (0.87 = 13%), easing with the aim pose; the held gun keeps the unzoomed field of view on its overlay camera, and look speed scales with the zoom so aim feel stays the same | Gun asset → Handling → `AimZoom` |
+| Aim zoom | Aiming down sights narrows the world camera to `AimZoom` × its field of view (0.87 = 13%), easing with the aim pose; the held gun keeps the unzoomed field of view (`FirstPersonView`), and look speed scales with the zoom so aim feel stays the same | Gun asset → Handling → `AimZoom` |
 | Hands | Floating hands follow each gun's two hand targets; the clips move the gun's own parts (mag, bolt, slide, pump, hinge, shells) and switch the left hand's contact between them | Gun prefab → `ItemHands`, clips; [HANDS.md](HANDS.md) |
 | Reload / jam / pump motion | Every gun plays editable clips with hand contact constraints (`GunAnimation`, required on a gun prefab). One clip per `GunAction`, sampled at `Gun.ActionProgress`, so it always fits `ReloadTime` / the repair time / `CycleTime` | Gun prefab → AnimationRoot / clips |
 | Pose preview | Hip / Aim / Sprint buttons on `HeldGun` snap the model to a pose in the prefab | `HeldGun` inspector |
@@ -168,7 +168,7 @@ FireAxe                       HeldMelee
 
 - **Shots:** `IGunUser.AimOffset` turns the eye's forward; `Camera` and `MuzzleToCrosshair` aim along it.
 - **Crosshair:** `Player.CrosshairPosition` projects it with the world camera's current field of view; `CrosshairHud` moves the dot there.
-- **Model:** `EquipmentRig.SetAimRotation` turns the whole rig, which sits at the eye, so the gun pivots around the eye. The weapon camera keeps the unzoomed field of view while aiming zooms the world, so the rig turns further by the zoom (`Player.ModelAimRotation`): the sights land on the crosshair's pixel at any zoom.
+- **Model:** `EquipmentRig.SetAimRotation` turns the whole rig, which sits at the eye, so the gun pivots around the eye. The held model keeps the unzoomed field of view while aiming zooms the world, so the rig turns further by the zoom (`Player.ModelAimRotation`): the sights land on the crosshair's pixel at any zoom.
 
 The model's own extras (position drift, roll) don't change where it points. Gun kick (recoil, model only) and the reload / jam / pump clips do: the barrel leaves the crosshair briefly, while you can't fire anyway.
 
@@ -240,7 +240,7 @@ Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCost` sc
 - **Ammo only from `AmmoConfig`:** there are no ammo pickups or inventory yet.
 - **Shotguns:** no shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
 - **Knockback only shows on rigidbodies and `TargetDummy`:** nothing else reads `DamageInfo.Force` yet.
-- Held weapons and muzzle flashes render through the weapon overlay camera. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
+- Held weapons and muzzle flashes render through `FirstPersonRenderFeature` on the HeldWeapon layer. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
 - **Melee:** no hit-stop or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (nothing hits the player yet).
 
 

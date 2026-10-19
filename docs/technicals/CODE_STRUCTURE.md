@@ -96,12 +96,13 @@ Assets/_Game/
 │  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
 │  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSway
-│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps the weapon camera's FOV, LookScale, TanHalfFov
+│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps FirstPersonView's FOV unzoomed, LookScale, TanHalfFov
 │  │  ├─ PlayerAim.cs                       aim sway → CrosshairPosition and CrosshairSpread on screen (world FOV) + the rig's zoom-corrected turn; static ScreenPosition / ScreenRadius / ModelRotation
 │  │  ├─ PlayerBreathSound.cs               loops PlayerSoundTuning.BreathSound while out of breath (volume by Tiredness, fades), pauses it while time is stopped
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
-│  │  ├─ WeaponOverlayCamera.cs             render callback synchronizes weapon camera aspect / viewport after Cinemachine; its own FOV (SetFieldOfView) so zoom doesn't swell the gun
+│  │  ├─ FirstPersonView.cs                 on the world camera: the lens held models draw with (own FOV via SetFieldOfView so zoom doesn't swell the gun, near 0.01 / far 10 m)
+│  │  ├─ FirstPersonRenderFeature.cs        URP renderer feature on PC_Renderer: draws the HeldWeapon layer in the world camera after transparents, depth cleared, with FirstPersonView's lens (replaces the overlay camera)
 │  │  ├─ Stamina.cs                         stamina meter: spend (with or without regen delay), regen delay, exhaustion, winded wait after running dry
 │  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers, slower still while winded; StatId.FatiguePenalty
 │  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings): IsActive, eased Tiredness and Volume for the breath loop and the aim sway
@@ -206,7 +207,7 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
          Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning.Movement, stats, stamina),
-             PlayerLook(body, cameraPitch, tuning.Camera), PlayerHeadBob(cameraRoot, tuning.Camera), HeldItemSway(tuning.HeldItem.HeldSway, stats), PlayerZoom(Cinemachine camera, weapon camera), PlayerInteractor(cameraPitch, gameObject, tuning.Interaction),
+             PlayerLook(body, cameraPitch, tuning.Camera), PlayerHeadBob(cameraRoot, tuning.Camera), HeldItemSway(tuning.HeldItem.HeldSway, stats), PlayerZoom(Cinemachine camera, FirstPersonView), PlayerInteractor(cameraPitch, gameObject, tuning.Interaction),
              AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
                rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, QuickTimeService, publishers), HeldMelee.Construct(EffectPool, DamageService, AudioService)
@@ -271,8 +272,7 @@ Player                       CharacterController (h 1.8, r 0.35, step 0.35, slop
 │     └─ HeldItems           EquipmentRig
 │        ├─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig (guns add their own poses on top)
 │        └─ Hands            FirstPersonHands (HandSet); HeldWeapon layer; spawns FPHand_Left / FPHand_Right
-├─ PlayerCamera              Camera (tag MainCamera, excludes HeldWeapon) · URP camera data · CinemachineBrain · AudioListener · WeaponOverlayCamera
-│  └─ WeaponCamera           URP Overlay (Clear Depth), HeldWeapon only, same FOV, near 0.01 m
+├─ PlayerCamera              Camera (tag MainCamera, all layers, no camera stack) · URP camera data · CinemachineBrain · AudioListener · FirstPersonView
 └─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
 ```
 

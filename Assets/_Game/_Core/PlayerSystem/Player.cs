@@ -10,6 +10,7 @@ using MessagePipe;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
@@ -24,7 +25,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Tooltip("At eye height; head bob and landing dip move it")] Transform _cameraRoot;
         [SerializeField, Tooltip("Child of the camera root; pitch rotates it and the Cinemachine camera tracks it")] Transform _cameraPitch;
         [SerializeField, Tooltip("Its lens narrows while the held item zooms (aiming down sights)")] CinemachineCamera _camera;
-        [SerializeField, Tooltip("Keeps the held model's field of view while the world zooms")] WeaponOverlayCamera _weaponCamera;
+        [SerializeField, FormerlySerializedAs("_weaponCamera"), Tooltip("Keeps the held model's field of view while the world zooms")] FirstPersonView _firstPersonView;
         [SerializeField] EquipmentConfig _equipmentConfig;
         [SerializeField] EquipmentRig _equipmentRig;
         [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
@@ -93,7 +94,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _look = new PlayerLook(transform, _cameraPitch, _tuning.Camera);
             _headBob = new PlayerHeadBob(_cameraRoot, _tuning.Camera);
             _heldSway = new HeldItemSway(_tuning.HeldItem.HeldSway, _tuning.HeldItem.AimSway, stats);
-            _zoom = new PlayerZoom(_camera, _weaponCamera);
+            _zoom = new PlayerZoom(_camera, _firstPersonView);
             _aim = new PlayerAim(_equipmentRig, _zoom);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);

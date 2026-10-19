@@ -59,7 +59,7 @@ Default Unity modules are omitted. Full list: `Packages/manifest.json`.
 | Package | Version | Status | Notes |
 |---|---|---|---|
 | Input System | 1.20.0 | Core | New Input System only. `Assets/Settings/InputSystem_Actions.inputactions`, read only through `InputService` via the generated wrapper `GameInputActions` (`_Core/InputSystem/`, regenerated on import). The asset is also the project-wide actions, which only feed UI for now. Editor: keyboard/mouse reach the game only while the Game view has focus. |
-| URP / Shader Graph / VFX Graph | 17.6.0 | Core | Rendering. First-person held models / muzzle flashes use a HeldWeapon-only Overlay camera with Clear Depth in the player camera stack; world effects keep normal depth. |
+| URP / Shader Graph / VFX Graph | 17.6.0 | Core | Rendering. First-person held models / muzzle flashes are drawn by a custom renderer feature (`FirstPersonRenderFeature`, HeldWeapon layer, depth cleared, own FOV) in the world camera, with no overlay camera; world effects keep normal depth. GPU Resident Drawer is on, static batching off. |
 | Cinemachine | 6.6.0 | Core | Owns the camera. The player rig (`CinemachineBrain` + a `CinemachineCamera` hard-locked to the player's camera pivot) lives inside the Player prefab; scenes have no camera of their own. |
 | Test Framework | 1.8.0 | Core | `unity command run_tests`. |
 | Unity Pipeline (`com.unity.pipeline`) | 0.8.0-exp.1 | Editor | Unity CLI bridge. Skill: `unity-pipeline`. |

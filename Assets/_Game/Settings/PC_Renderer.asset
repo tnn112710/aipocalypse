@@ -1,5 +1,22 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7062686586378992764
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b353fd909279ff944b67ca6430ddc421, type: 3}
+  m_Name: First Person
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.FirstPersonRenderFeature
+  m_Active: 1
+  _layerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _passEvent: 500
 --- !u!114 &-1996619760729079852
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -117,18 +134,19 @@ MonoBehaviour:
   - {fileID: -957601416443136380}
   - {fileID: -1996619760729079852}
   - {fileID: -1162199858321035771}
-  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2l
+  - {fileID: -7062686586378992764}
+  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f284c3f62af84bfc9dl
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294967039
   m_OpaqueLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294967039
   m_TransparentLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294967039
   m_DefaultStencilState:
     overrideStencilState: 0
     stencilReference: 1

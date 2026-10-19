@@ -4,20 +4,20 @@ using UnityEngine;
 namespace Aipocalypse.Core.PlayerSystem
 {
     // Narrows the Cinemachine lens by the held item's zoom (aiming down sights). The held model keeps the unzoomed field
-    // of view on its overlay camera, so the gun doesn't swell on screen.
+    // of view (FirstPersonView), so the gun doesn't swell on screen.
     public sealed class PlayerZoom
     {
         readonly CinemachineCamera _camera;
         readonly float _baseFov;
         readonly float _baseTan;
 
-        public PlayerZoom(CinemachineCamera camera, WeaponOverlayCamera weaponCamera)
+        public PlayerZoom(CinemachineCamera camera, FirstPersonView firstPersonView)
         {
             _camera = camera;
             _baseFov = camera != null ? camera.Lens.FieldOfView : 60f;
             _baseTan = Mathf.Tan(_baseFov * 0.5f * Mathf.Deg2Rad);
-            if (weaponCamera != null)
-                weaponCamera.SetFieldOfView(_baseFov);
+            if (firstPersonView != null)
+                firstPersonView.SetFieldOfView(_baseFov);
         }
 
         // Look speed scale that keeps aim feel the same at any zoom (1 unzoomed, < 1 zoomed in).
