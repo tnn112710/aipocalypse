@@ -6,7 +6,13 @@ Date: 2026-10-19. Status: visual concept with approximate scale. This records th
 
 ## Built scene
 
-Revision 13 is built in `Assets/_Game/Scenes/Prototype/Prototype_Environment.unity`; see [ENVIRONMENT.md](../technicals/ENVIRONMENT.md) for how it is generated. Differences from the drawing, as requested by the user: the bridge is complete (not broken), and the boundary mountains are rock and mountain models (the terrain is not raised) with invisible walls along the playable edge. Each side uses a different family (HIGHLANDS south, Komorebi rock side west, Grasslands north, Lakefell/BK east), layered so the snow peaks rise above low edge rocks and a tree belt. The meadow follows the BK Pure Nature Meadows look. Style references are in [refs/](refs/README.md).
+Revision 13 is built in `Assets/_Game/Scenes/Prototype/Prototype_Environment.unity`; see [ENVIRONMENT.md](../technicals/ENVIRONMENT.md) for how it is generated. Differences from the drawing, as requested by the user: the bridge is complete (not broken), and the boundary mountains are rock and mountain models (the terrain is not raised) with invisible walls along the playable edge. The meadow follows the BK Pure Nature Meadows look. Style references are in [refs/](refs/README.md).
+
+Later rounds with the user changed the built scene further:
+
+- The Great Lake is rounder and bigger, with five dressed islands, and an outlet river leaves its north-east tip. The swamp and forest are bigger. The river widens into a flared mouth where it meets the lake.
+- Rivers and streams are wider and deeper, with noise in their width and depth. The ponds are 2.5–3 times bigger. The home pond copies the Komorebi demo pond's outline, with a central island.
+- As in the concept, grey rocky mountains enclose the valley right at its edge: a near range of massifs (ANGRY MESH granite domes south, behind the home and the meadow, and along the lake's south shore; Grasslands cliffs east and north; Komorebi stones west), with pines on their slopes and the snow peaks behind. The meadow's south edge moved north to about z 212 to bring the mountains 70–100 m from the house.
 
 ## Revision 13
 

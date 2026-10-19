@@ -144,12 +144,12 @@ public static class Atmosphere
         var mist = Grp("Mist");
         foreach (var (x, z) in new[] { (344f, 435f), (371f, 541f), (431f, 512f), (521f, 471f), (599f, 421f), (432f, 620f), (233f, 658f), (397f, 713f) })
             Put(mist, KNP + "Fog_1.prefab", new Vector3(x, G(x, z) + 0.3f, z), new Vector3(0, rng.Next(360), 0), new Vector3(2f, 0.56f, 2f));
-        foreach (var (x, z) in new[] { (548f, 298f), (645f, 345f), (600f, 280f), (700f, 330f), (760f, 360f), (815f, 470f), (640f, 252f) })
+        foreach (var (x, z) in new[] { (534f, 287f), (600f, 250f), (660f, 300f), (730f, 190f), (780f, 265f), (845f, 300f), (700f, 145f), (820f, 440f), (615f, 185f), (880f, 230f), (760f, 380f) })
             Put(mist, KNP + "Fog_1.prefab", new Vector3(x, 20.1f, z), new Vector3(0, rng.Next(360), 0), new Vector3(2.5f, 0.56f, 2.5f));
-        foreach (var (x, y, z) in new[] { (290f, 22.85f, 371f), (348f, 22.25f, 339f), (430f, 21.4f, 303f), (468f, 20.9f, 289f), (668f, 20.2f, 362f), (796f, 19.9f, 541f), (192f, 50.4f, 640f), (386f, 44.4f, 806f) })
+        foreach (var (x, y, z) in new[] { (290f, 22.85f, 371f), (348f, 22.25f, 339f), (430f, 21.4f, 303f), (468f, 20.9f, 289f), (668f, 20.2f, 362f), (782f, 19.9f, 452f), (826f, 19.9f, 548f), (192f, 50.4f, 640f), (386f, 44.4f, 806f) })
             Put(mist, KNP + "Fog_1.prefab", new Vector3(x, y, z), new Vector3(0, rng.Next(360), 0), new Vector3(1.3f, 0.5f, 1.3f));
         var swamp = Grp("Swamp Fog");
-        foreach (var (x, z) in new[] { (575f, 700f), (612f, 742f), (655f, 702f), (700f, 762f), (735f, 690f), (762f, 652f), (690f, 640f), (560f, 735f) })
+        foreach (var (x, z) in new[] { (580f, 775f), (612f, 830f), (655f, 872f), (715f, 880f), (770f, 845f), (800f, 790f), (790f, 730f), (730f, 700f), (660f, 705f), (700f, 790f) })
             Put(swamp, HLP + "Fog.prefab", new Vector3(x, 24.9f, z), new Vector3(270, rng.Next(360), 0), Vector3.one * 1.8f);
         var clouds = Grp("Clouds");
         foreach (var (x, y, z, yaw, kind, sc) in new[] { (666f, 160f, 1119f, 15f, 3, 2.6f), (1033f, 190f, 948f, 51f, 1, 2.8f), (1144f, 150f, 554f, 87f, 3, 2.4f), (1092f, 210f, 139f, 123f, 1, 3.0f), (727f, 140f, -59f, 159f, 3, 2.2f), (334f, 180f, -118f, 195f, 3, 2.8f), (-39f, 160f, 80f, 231f, 1, 2.6f), (-134f, 200f, 487f, 267f, 3, 3.2f), (-65f, 170f, 890f, 303f, 1, 2.6f), (283f, 140f, 1099f, 339f, 3, 2.4f) })
@@ -160,7 +160,7 @@ public static class Atmosphere
         foreach (var (x, y, z, yaw) in new[] { (300f, 40f, 290f, 45f), (360f, 50f, 410f, 200f), (520f, 36f, 320f, 110f) })
             Put(birds, HLP + "Birds.prefab", new Vector3(x, y, z), new Vector3(0, yaw, 0), Vector3.one * 2.75f);
         var bugs = Grp("Butterflies");
-        foreach (var (x, z) in new[] { (322f, 252f), (352f, 270f), (300f, 300f), (390f, 262f), (450f, 255f), (505f, 248f), (280f, 340f), (305f, 330f), (540f, 242f) })
+        foreach (var (x, z) in new[] { (322f, 252f), (352f, 270f), (300f, 300f), (390f, 262f), (450f, 255f), (495f, 230f), (280f, 340f), (305f, 330f), (300f, 228f), (395f, 226f), (470f, 230f), (350f, 232f) })
             Put(bugs, BKP + "Butterflies.prefab", new Vector3(x, G(x, z) + 1.8f, z), Vector3.zero, Vector3.one);
         var leaves = Grp("Leaf Fall");
         foreach (var (x, z) in new[] { (330f, 300f), (296f, 280f), (300f, 352f), (420f, 280f), (360f, 400f), (560f, 320f), (548f, 236f) })

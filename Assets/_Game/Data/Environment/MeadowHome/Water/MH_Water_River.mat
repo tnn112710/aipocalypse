@@ -20,8 +20,6 @@ Material:
   - _REFRACTION
   - _RIVER
   - _SURFACE_FOAM_SINGLE
-  - _TRANSLUCENCY
-  - _WAVES
   m_InvalidKeywords:
   - ADVANCED_LIGHTING
   - _DEPTHEXP_ON
@@ -34,7 +32,6 @@ Material:
   - _RECEIVEDYNAMICEFFECTSHEIGHT_ON
   - _RECEIVEDYNAMICEFFECTSNORMAL_ON
   - _RECEIVEDYNAMICEFFECTS_ON
-  - _SCREENSPACEREFLECTIONSENABLED_ON
   - _SMOOTH_INTERSECTION
   - _SURFACE_FOAM
   - _VERTEXCOLORFOAM_ON
@@ -156,7 +153,7 @@ Material:
     - _DistanceNormalsOn: 1
     - _DistanceNormalsTiling: 0.020000007
     - _DstBlend: 0
-    - _EdgeFade: 21.89
+    - _EdgeFade: 15
     - _EnableDirectionalCaustics: 1
     - _EnvironmentReflections: 1
     - _EnvironmentReflectionsOn: 1
@@ -186,7 +183,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _HorizonDistance: 7.7
+    - _HorizonDistance: 12
     - _IntersectionClipping: 0.6
     - _IntersectionDistortion: 0.2
     - _IntersectionFalloff: 0.355
@@ -224,18 +221,18 @@ Material:
     - _ReceiveDynamicEffectsNormal: 1
     - _ReceiveShadows: 1
     - _ReflectionBlur: 0
-    - _ReflectionDistortion: 0.268
-    - _ReflectionFresnel: 8
+    - _ReflectionDistortion: 0
+    - _ReflectionFresnel: 5
     - _ReflectionLighting: 0
     - _ReflectionStrength: 1
     - _RefractionChromaticAberration: 1
     - _RefractionOn: 1
-    - _RefractionStrength: 1
+    - _RefractionStrength: 0.15
     - _RiverModeLegacy: 0
     - _RiverModeOn: 1
-    - _ScreenSpaceReflectionsEnabled: 1
+    - _ScreenSpaceReflectionsEnabled: 0
     - _ShadingMode: 1
-    - _ShadowStrength: 1
+    - _ShadowStrength: 0.554
     - _SlopeAngleFalloff: 26.7
     - _SlopeAngleThreshold: 22.2
     - _SlopeFoam: 1
@@ -251,14 +248,14 @@ Material:
     - _SpecularReflectionsOn: 1
     - _Speed: 6
     - _SrcBlend: 1
-    - _SunReflectionDistortion: 0.705
+    - _SunReflectionDistortion: 0
     - _SunReflectionSharp: 0
-    - _SunReflectionSize: 0.845
+    - _SunReflectionSize: 0.631
     - _SunReflectionStrength: 10
     - _Surface: 0
     - _TranslucencyCurvatureMask: 0.825
     - _TranslucencyExp: 1
-    - _TranslucencyOn: 1
+    - _TranslucencyOn: 0
     - _TranslucencyReflectionMask: 0
     - _TranslucencyStrength: 0.8
     - _TranslucencyStrengthDirect: 0.018
@@ -276,14 +273,14 @@ Material:
     - _WaveNormalStr: 32
     - _WaveSpeed: 0.025
     - _WaveSteepness: 0
-    - _WaveTint: 0.1
-    - _WavesOn: 1
+    - _WaveTint: 0
+    - _WavesOn: 0
     - _WorkflowMode: 1
     - _WorldSpaceUV: 1
     - _ZClip: 1
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0, g: 0.41, b: 0.5, a: 0.98}
+    - _BaseColor: {r: 0, g: 0.41, b: 0.5, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Direction: {r: 0, g: -1, b: 0, a: 0}
     - _DistanceFoamFadeDist: {r: 10, g: 260, b: 0, a: 0}
@@ -292,10 +289,10 @@ Material:
     - _FoamColor: {r: 1, g: 1, b: 1, a: 1}
     - _FoamCrestMinMaxHeight: {r: 2.0000002, g: 3, b: 0, a: 0}
     - _FoamTiling: {r: 0.099999994, g: 0.099999994, b: 0, a: 0}
-    - _HorizonColor: {r: 0.68, g: 1, b: 0.99, a: 0}
+    - _HorizonColor: {r: 0.62, g: 0.96, b: 0.95, a: 0.12}
     - _IntersectionColor: {r: 1, g: 1, b: 1, a: 0.22}
     - _NormalTiling: {r: 0.06000001, g: 0.06000001, b: 0, a: 0}
-    - _ShallowColor: {r: 0.1, g: 0.78, b: 0.75, a: 0.3}
+    - _ShallowColor: {r: 0.1, g: 0.78, b: 0.75, a: 0.6}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _WaveDirection: {r: 2, g: 1, b: 2, a: 1}
     - _WaveFadeDistance: {r: 0, g: 150, b: 0, a: 0}

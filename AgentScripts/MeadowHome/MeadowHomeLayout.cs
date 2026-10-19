@@ -32,11 +32,12 @@ public static class MeadowHomeLayout
     // Foot of the boundary mountains (inside = playable).
     public static readonly Vector2[] Playable = SmoothClosed(new[]
     {
-        V(238,240), V(300,236), V(360,234), V(420,236), V(480,232), V(520,226), V(560,214), V(620,200), V(700,192), V(780,190),
-        V(835,200), V(852,240), V(854,330), V(852,430), V(848,520), V(832,556), V(808,572), V(798,620), V(796,700), V(800,780),
-        V(792,832), V(740,846), V(660,850), V(580,852), V(500,852), V(420,854), V(340,854), V(260,852), V(200,848), V(162,826),
-        V(154,760), V(156,690), V(158,640), V(162,600), V(170,560), V(176,520), V(182,486), V(184,456), V(186,430), V(194,404),
-        V(212,384), V(226,362), V(236,334), V(238,300),
+        V(234,334), V(232,290), V(230,245), V(238,214), V(262,200), V(310,194), V(370,192), V(430,194), V(485,190), V(520,172),
+        V(548,138), V(584,104), V(630,80), V(690,68), V(760,66), V(830,72), V(884,88), V(924,116), V(948,160), V(958,220), V(963,290),
+        V(964,360), V(962,440), V(958,520), V(954,600), V(950,680), V(947,760), V(942,830), V(930,880), V(906,918), V(870,936),
+        V(820,942), V(750,943), V(680,940), V(612,930), V(558,910), V(515,884), V(474,864), V(420,856), V(340,854), V(260,852),
+        V(200,848), V(162,826), V(154,760), V(156,690), V(158,640), V(162,600), V(170,560), V(176,520), V(182,486), V(184,456),
+        V(186,430), V(194,404), V(212,384), V(226,362),
     }, 4);
 
     public static readonly Vector2[] HighlandsArea = SmoothClosed(new[]
@@ -44,23 +45,25 @@ public static class MeadowHomeLayout
         V(140,600), V(230,590), V(300,600), V(360,615), V(420,635), V(470,655), V(505,690), V(515,750), V(500,800), V(520,870), V(140,870),
     }, 4);
 
+    // A round meadow from the home pond along the river to the lake; like the concept, the rocky mountains rise just past
+    // its south edge, 70-100 m behind the home.
     public static readonly Vector2[] MeadowArea = SmoothClosed(new[]
     {
-        V(236,236), V(520,228), V(545,250), V(530,268), V(505,276), V(470,286), V(430,298), V(390,312), V(350,330), V(310,350),
-        V(275,368), V(245,385), V(236,330),
+        V(244,372), V(238,330), V(238,275), V(246,240), V(268,222), V(310,214), V(370,212), V(430,214), V(480,212), V(506,222),
+        V(512,240), V(500,256), V(470,272), V(430,286), V(390,302), V(350,320), V(310,338), V(275,358),
     }, 4);
 
     public static readonly Vector2[] SwampArea = SmoothClosed(new[]
     {
-        V(528,752), V(533,790), V(600,803), V(680,795), V(748,770), V(784,725), V(790,668), V(772,628), V(735,612), V(690,616),
-        V(650,626), V(605,642), V(568,668), V(540,700),
+        V(545,782), V(558,835), V(586,872), V(630,900), V(695,908), V(755,896), V(800,866), V(820,820), V(824,765), V(812,718),
+        V(786,688), V(748,670), V(705,668), V(662,674), V(622,688), V(578,706), V(546,738),
     }, 4);
 
     public const float SwampWater = 24.5f, SwampGround = 24.85f;
     public static readonly Vector2 HomeBase = V(326, 274);
     public const float HomeBaseHeight = 28.5f;
     public static readonly Vector2 Bridge = V(312, 362);
-    public static readonly Vector2 Viewpoint = V(540, 242);
+    public static readonly Vector2 Viewpoint = V(526, 196);
 
     public class Basin
     {
@@ -69,58 +72,121 @@ public static class MeadowHomeLayout
 
     public static readonly Basin[] Basins =
     {
-        new Basin { name = "GreatLake", level = 19.5f, depth = 9.5f, deepDistance = 70f, bankSlope = 0.2f, shore = SmoothClosed(new[]
+        // a round lake: the forest-side shore (north-west) as before, a wide arc to the south and east; the river mouth is a
+        // blunt opening as wide as the flared channel (a pointed tip read as a wedge of water)
+        new Basin { name = "GreatLake", level = 19.5f, depth = 10f, deepDistance = 90f, bankSlope = 0.2f, shore = SmoothClosed(new[]
         {
-            V(510,284), V(544,298), V(599,316), V(637,344), V(670,362), V(703,370), V(730,403), V(758,438), V(780,473), V(790,508),
-            V(797,536), V(812,544), V(830,540), V(840,520), V(843,450), V(843,350), V(840,262), V(826,226), V(790,212), V(740,212),
-            V(690,220), V(654,226), V(600,240), V(556,252), V(530,258), V(512,268),
+            V(512,309), V(530,316), V(552,316), V(576,318), V(599,322), V(637,344), V(670,362), V(703,370), V(730,403), V(758,438),
+            V(780,473), V(790,508), V(797,536), V(812,548), V(832,550), V(858,532), V(884,502), V(904,462), V(918,412), V(920,372),
+            V(906,352), V(888,336), V(896,318), V(916,300), V(908,252), V(884,206), V(852,166), V(814,138), V(772,124), V(742,104),
+            V(705,96), V(660,104), V(622,112), V(590,130), V(566,154), V(545,185), V(534,220), V(522,248), V(506,262),
         }, 4) },
-        new Basin { name = "WaterfallPond", level = 23.0f, depth = 3.5f, deepDistance = 10f, bankSlope = 0.3f, shore = Ellipse(V(219,428), 22, 15, -35, 14, 11) },
-        new Basin { name = "WestPond", level = 50.0f, depth = 2.5f, deepDistance = 8f, bankSlope = 0.35f, shore = Ellipse(V(192,640), 17, 14, 20, 12, 21) },
-        new Basin { name = "NorthPond", level = 44.0f, depth = 2.5f, deepDistance = 8f, bankSlope = 0.35f, shore = Ellipse(V(386,806), 33, 12, 12, 16, 31) },
+        // the home pond: the Komorebi demo pond's shore traced from its terrain (research4/komorebi_pond.md), scaled 0.88 and
+        // laid along our waterfall (206, 433) heading 100: a funnel from the fall, a back basin with two islets, two arms
+        // around the central island and two front bays; the river leaves from the right-front bay
+        new Basin { name = "WaterfallPond", level = 23.0f, depth = 2.8f, deepDistance = 10f, bankSlope = 0.3f, shore = SmoothClosed(new[]
+        {
+            V(203.0f,432.0f), V(204.1f,427.5f), V(215.3f,410.5f), V(230.4f,396.9f), V(242.9f,390.0f), V(250.8f,390.0f), V(263.4f,386.2f), V(275.5f,388.1f),
+            V(281.4f,391.3f), V(283.4f,395.9f), V(283.5f,400.9f), V(282.9f,404.9f), V(279.0f,413.5f), V(280.3f,416.3f), V(284.7f,420.0f), V(285.6f,424.1f),
+            V(283.8f,433.1f), V(279.9f,438.6f), V(270.3f,438.5f), V(259.6f,441.9f), V(246.3f,451.5f), V(237.7f,452.6f), V(231.7f,450.6f), V(224.7f,442.9f),
+            V(219.6f,443.5f), V(211.9f,441.5f), V(204.4f,437.3f),
+        }, 4) },
+        new Basin { name = "WestPond", level = 50.0f, depth = 3.0f, deepDistance = 10f, bankSlope = 0.35f, shore = Ellipse(V(196,640), 28, 23, 20, 12, 21) },
+        new Basin { name = "NorthPond", level = 44.0f, depth = 3.0f, deepDistance = 10f, bankSlope = 0.35f, shore = Ellipse(V(386,806), 52, 20, 12, 16, 31) },
     };
 
-    // Water lines: (x, z, surface height, half width). depth = deepest point below the surface.
+    // Water lines: knots (x, z, surface height, half width) smoothed with a gentle meander. Width and depth vary along the
+    // line with noise (pools and runs: deeper where narrower), so no river reads as a uniform canal. depth = mean deepest
+    // point below the surface. narrowAt pinches the channel to narrowTo of its width (the river at the bridge).
     public class Line
     {
-        public string name; public Vector4[] pts; public float depth, bankSlope; public bool fixedSlope; public Rect bounds;
+        public string name; public Vector4[] knots; public float depth, bankSlope, meander; public int seed; public bool fixedSlope; public Rect bounds;
+        public Vector2 narrowAt; public float narrowTo = 1f;
+        public int endsInBasin = -1;   // bit 0: first knot in a lake or pond, bit 1: last knot (computed on first use)
+        volatile Vector4[] pts_; float[] depth_;
+
+        public Vector4[] pts
+        {
+            get
+            {
+                var p = pts_;
+                if (p != null) return p;
+                lock (this) { if (pts_ == null) Build(); return pts_; }
+            }
+        }
+
+        // Deepest point below the surface at segment i, fraction t.
+        public float DepthAt(int i, float t)
+        {
+            _ = pts;
+            return Mathf.Lerp(depth_[i], depth_[Mathf.Min(i + 1, depth_.Length - 1)], t);
+        }
+
+        void Build()
+        {
+            var p = Smooth(knots, 6, meander, seed);
+            var arc = new float[p.Length];
+            for (int i = 1; i < p.Length; i++) arc[i] = arc[i - 1] + Vector2.Distance(new Vector2(p[i - 1].x, p[i - 1].y), new Vector2(p[i].x, p[i].y));
+            float total = arc[^1];
+            var d = new float[p.Length];
+            for (int i = 0; i < p.Length; i++)
+            {
+                float env = SmoothStep(0, 35, Mathf.Min(arc[i], total - arc[i]));   // ends keep their designed width (mouths, pond outlets)
+                float wv = Mathf.Clamp(1f + env * (0.26f * Noise(arc[i] / 85f + seed * 2.31f, seed * 0.71f) + 0.1f * Noise(arc[i] / 27f + seed * 1.13f, seed * 1.93f + 5f)), 0.7f, 1.38f);
+                if (narrowTo < 1f) wv *= Mathf.Lerp(narrowTo, 1f, SmoothStep(12, 45, Vector2.Distance(new Vector2(p[i].x, p[i].y), narrowAt)));
+                p[i].w *= wv;
+                d[i] = depth * Mathf.Clamp(1f + env * (0.5f * (1f - wv) + 0.15f * Noise(arc[i] / 45f + seed * 3.7f, seed * 2.9f + 11f)), 0.7f, 1.35f);
+            }
+            depth_ = d;
+            pts_ = p;   // last: readers test pts_
+        }
     }
 
+    // Rivers about twice and streams about 2.5 times their first width, each about 0.3-0.5 m deeper.
     public static readonly Line[] Lines =
     {
-        new Line { name = "River", depth = 2.8f, bankSlope = 0.3f, pts = Smooth(new[]
+        new Line { name = "River", depth = 3.3f, bankSlope = 0.3f, meander = 4f, seed = 5, narrowAt = V(312, 362), narrowTo = 0.85f, knots = new[]
         {
-            P(232,412,23.0f,6), P(240,406,22.95f,6), P(266,385,22.7f,6.5f), P(290,371,22.45f,6.5f), P(312,362,22.2f,6.5f),
-            P(348,339,21.85f,7), P(386,321,21.45f,7), P(430,303,21.0f,7.5f), P(468,289,20.5f,8), P(490,284,20.1f,8.5f),
-            P(512,282,19.6f,9), P(535,292,19.5f,10),
-        }, 6, 3.0f, 5) },
-        new Line { name = "WestStream", depth = 0.9f, bankSlope = 0.45f, pts = Smooth(new[]
+            P(264,402,23.0f,10), P(277,397,23.0f,10.5f), P(292,384,22.8f,12.5f), P(312,362,22.2f,13.5f), P(348,339,21.85f,14.5f), P(386,321,21.45f,15),
+            P(430,303,21.0f,15.5f), P(468,289,20.5f,16.5f), P(490,284,20.1f,18), P(508,283,19.65f,21), P(524,285,19.5f,23), P(542,289,19.5f,24),
+        } },
+        new Line { name = "WestStream", depth = 1.2f, bankSlope = 0.45f, meander = 2.5f, seed = 10, knots = new[]
         {
-            P(198,628,50.0f,1.6f), P(201,621,49.75f,1.6f), P(205,611,45.5f,1.7f), P(209,600,41.0f,1.8f), P(218,584,36.0f,1.8f), P(232,570,33.2f,2.0f),
-            P(277,561,32.0f,2.2f), P(331,571,30.8f,2.4f), P(375,590,29.6f,2.4f), P(414,612,28.5f,2.5f), P(446,630,27.5f,2.5f),
-            P(496,650,25.8f,2.6f), P(528,656,24.8f,2.6f), P(566,657,24.0f,2.8f),
-        }, 6, 1.5f, 10) },
-        new Line { name = "ForestStream", depth = 0.8f, bankSlope = 0.45f, pts = Smooth(new[]
+            P(198,628,50.0f,4), P(201,621,50.0f,4), P(205,611,45.5f,4.2f), P(209,600,41.0f,4.5f), P(218,584,36.0f,4.5f), P(232,570,33.2f,5),
+            P(277,561,32.0f,5.5f), P(331,571,30.8f,6), P(375,590,29.6f,6), P(414,612,28.5f,6.2f), P(446,630,27.5f,6.2f),
+            P(496,650,25.8f,6.5f), P(528,656,24.8f,6.5f), P(566,657,24.0f,7),
+        } },
+        new Line { name = "ForestStream", depth = 1.1f, bankSlope = 0.45f, meander = 2.5f, seed = 12, knots = new[]
         {
-            P(331,571,30.8f,2.0f), P(352,550,30.0f,2.0f), P(375,531,29.2f,2.1f), P(424,508,27.8f,2.2f), P(468,490,26.6f,2.3f),
-            P(517,470,25.4f,2.4f), P(555,444,24.2f,2.5f), P(599,420,22.9f,2.6f), P(637,397,21.6f,2.8f), P(659,373,20.3f,3.0f),
-            P(672,356,19.5f,3.5f),
-        }, 6, 1.5f, 12) },
-        new Line { name = "NorthStream", depth = 0.7f, bankSlope = 0.45f, pts = Smooth(new[]
+            P(331,571,30.8f,5), P(352,550,30.0f,5), P(375,531,29.2f,5.2f), P(424,508,27.8f,5.5f), P(468,490,26.6f,5.8f),
+            P(517,470,25.4f,6), P(555,444,24.2f,6.2f), P(599,420,22.9f,6.5f), P(637,397,21.6f,7), P(659,373,20.3f,7.5f),
+            P(672,356,19.6f,8.5f), P(684,342,19.5f,9.5f),
+        } },
+        new Line { name = "NorthStream", depth = 1.0f, bankSlope = 0.45f, meander = 2f, seed = 11, knots = new[]
         {
-            P(405,800,44.0f,1.5f), P(419,795,43.6f,1.6f), P(440,786,41.0f,1.6f), P(460,778,36.5f,1.8f), P(480,772,31.5f,1.9f),
-            P(500,769,27.0f,2.0f), P(518,768,25.0f,2.2f), P(536,770,24.5f,2.4f),
-        }, 6, 1.2f, 11) },
-        new Line { name = "SwampOutlet", depth = 0.8f, bankSlope = 0.4f, pts = Smooth(new[]
+            P(405,800,44.0f,3.8f), P(419,795,44.0f,4), P(440,786,43.0f,4), P(450,782,40.0f,4.2f), P(460,778,36.5f,4.5f), P(480,772,31.5f,4.8f),
+            P(500,769,27.0f,5), P(518,768,25.0f,5.5f), P(540,772,24.6f,6), P(562,777,24.5f,6.2f),
+        } },
+        new Line { name = "SwampOutlet", depth = 1.1f, bankSlope = 0.4f, meander = 1.5f, seed = 11, knots = new[]
         {
-            P(556,690,24.5f,2.0f), P(562,672,24.25f,2.2f), P(566,657,24.0f,2.5f),
-        }, 6, 0.0f, 11) },
-        new Line { name = "MarginStream", depth = 1.0f, bankSlope = 0.4f, pts = Smooth(new[]
+            P(586,730,24.5f,5), P(579,707,24.4f,5.2f), P(572,683,24.25f,5.8f), P(566,657,24.0f,6.2f),
+        } },
+        new Line { name = "MarginStream", depth = 1.3f, bankSlope = 0.4f, meander = 2.5f, seed = 12, knots = new[]
         {
-            P(566,657,24.0f,2.8f), P(610,626,23.5f,3.0f), P(654,598,22.9f,3.0f), P(681,568,22.2f,3.2f), P(719,547,21.3f,3.2f),
-            P(769,541,20.3f,3.5f), P(800,541,19.5f,4.0f),
-        }, 6, 1.5f, 12) },
+            P(566,657,24.0f,7), P(610,626,23.5f,7.5f), P(654,598,22.9f,7.5f), P(690,566,22.1f,8), P(716,534,21.0f,8.5f),
+            P(738,506,20.1f,9), P(760,476,19.6f,10), P(778,456,19.5f,11), P(794,440,19.5f,12),
+        } },
+        // the lake's outflow: north from the lake's north-east tip between the swamp and the east edge, off the north edge
+        new Line { name = "Outlet", depth = 2.7f, bankSlope = 0.3f, meander = 5f, seed = 13, knots = new[]
+        {
+            P(818,520,19.5f,16), P(828,556,19.48f,15), P(846,600,19.42f,15), P(866,648,19.34f,15.5f), P(884,700,19.26f,16),
+            P(896,756,19.18f,16), P(902,812,19.08f,16), P(906,866,18.96f,16), P(910,912,18.84f,16), P(916,950,18.68f,16.5f),
+            P(922,980,18.55f,17), P(928,1006,18.42f,17),
+        } },
     };
+
+    // Lines drawn as wide rivers (river ribbon and bank dressing), the others are streams.
+    public static bool IsRiver(Line l) => l.name == "River" || l.name == "Outlet";
 
 
     // Regional elevation anchors (x, z, height, radius) blended with Gaussian weights.
@@ -128,9 +194,13 @@ public static class MeadowHomeLayout
     {
         // meadow
         A(262,300,26,40), A(300,330,25,35), A(326,274,28.5f,35), A(370,260,28,40), A(420,250,29,45), A(470,250,27.5f,40),
-        A(500,262,25.5f,35), A(380,300,25.5f,35), A(440,285,25,35), A(330,245,31,30),
-        // lake south strip
-        A(530,240,26,30), A(600,215,25,30), A(700,205,25,30), A(790,205,26,30),
+        A(500,262,25.5f,35), A(380,300,25.5f,35), A(440,285,25,35), A(330,245,29.5f,30),
+        // meadow south, rising gently to the foothills
+        A(280,200,27,40), A(350,190,27.5f,45), A(430,185,27,45), A(500,200,25.5f,35), A(300,135,30,35), A(390,125,30.5f,40),
+        A(470,130,29,35), A(540,128,27,30),
+        // lake south beach and rim
+        A(600,85,24.5f,30), A(700,75,24.5f,30), A(800,78,24.5f,30), A(880,98,25,30), A(940,150,25.5f,30), A(560,60,27,35),
+        A(650,25,28,40), A(800,25,28,40), A(930,50,28,40),
         // forest by the river and lake
         A(280,395,27,40), A(340,380,27.5f,40), A(400,355,27,45), A(460,330,25.5f,40), A(520,315,24,35), A(570,330,24,40),
         A(630,375,24.5f,40), A(690,395,25,35), A(735,440,25,35), A(770,500,25,35),
@@ -145,18 +215,39 @@ public static class MeadowHomeLayout
         A(190,690,60,45), A(250,690,58,55), A(330,690,54,55), A(400,700,50,50), A(200,820,78,45), A(290,825,72,50),
         A(386,806,50,40), A(440,830,52,40), A(186,640,54,35),
         // north strip behind the swamp
-        A(520,830,40,40), A(600,830,30,35), A(700,825,30,35), A(770,810,32,30),
+        A(505,838,35,36), A(560,950,36,40), A(640,962,32,38), A(730,966,31,38), A(810,958,30,35), A(660,935,29,28), A(760,925,29,28),
+        // forest east of the swamp and north-east of the lake, either side of the outlet
+        A(640,655,28,30), A(700,648,27.5f,30), A(760,640,26.5f,28), A(822,712,26.5f,22), A(850,770,28,26), A(852,850,29,28),
+        A(930,760,27,32), A(935,850,29,32), A(960,930,31,35), A(870,580,26,30), A(925,600,26.5f,30), A(820,650,27.5f,26), A(930,700,27,30),
+        // east lake shore
+        A(966,300,24.5f,34), A(968,450,25,34), A(964,600,25.5f,34), A(990,230,27,40), A(995,380,28,40), A(995,520,28,40), A(990,660,29,40),
     };
 
     // Extra knolls (x, z, height, radius) added on top of the regional field.
     static readonly Vector4[] Knolls =
     {
-        A(410,470,9,32), A(642,526,8,26), A(669,462,7,24), A(519,443,7,28), A(753,583,8,26), A(335,520,6,28), A(590,560,7,30),
-        A(470,420,6,30), A(720,500,5,25), A(300,440,5,30), A(420,262,2.5f,30), A(470,255,2,25), A(280,300,2,25), A(540,240,4,18),
+        A(410,470,9,32), A(642,526,8,26), A(669,462,7,24), A(519,443,7,28), A(745,612,7,26), A(335,520,6,28), A(590,560,7,30),
+        A(470,420,6,30), A(720,500,5,25), A(300,440,5,30), A(420,262,2.5f,30), A(470,255,2,25), A(280,300,2,25), A(522,200,3,16),
+        A(856,805,5,24), A(450,175,2,30),
     };
 
-    // Lake islands (x, z, top above water, radius).
-    static readonly Vector4[] Islands = { A(675,270,2.4f,12), A(726,247,1.8f,9), A(763,394,2.2f,11), A(808,428,1.6f,8) };
+    // Islands (x, z, top above the water, radius) in the lake and the home pond; the water level comes from the basin
+    // that holds them.
+    public static readonly Vector4[] Islands =
+    {
+        A(690,240,3.0f,26), A(810,190,2.2f,18), A(860,380,2.6f,22), A(760,330,1.2f,13), A(620,170,0.8f,14),
+        // home pond (Komorebi demo): the central island as two overlapping bumps along the flow, islets W and NE at the back,
+        // the flower islet in the left-front bay (the demo's sits in the right-front bay, where our river leaves)
+        A(250.9f,419.7f,2.1f,12.6f), A(265.2f,417.5f,1.9f,11.8f), A(230.7f,414.5f,1.1f,8.3f), A(240.7f,438.5f,0.8f,7.3f), A(276f,428f,0.6f,6f),
+    };
+
+    static float[] islandLevels;
+
+    public static float IslandLevel(int i)
+    {
+        islandLevels ??= Islands.Select(isl => Basins.FirstOrDefault(b => SignedDistance(new Vector2(isl.x, isl.y), b.shore) < 0)?.level ?? 19.5f).ToArray();
+        return islandLevels[i];
+    }
 
     // Rowlan detail stamps (Add, Y = 0, masked). The shader clamps stamp heights at 0, so Add can only raise:
     // Generate() lowers the macro by median * amplitude * mask instead, which makes each stamp zero-mean.
@@ -167,8 +258,10 @@ public static class MeadowHomeLayout
         new DetailStamp { name = "Highlands 07", texture = "Highlands/Heightmaps/Highlands 07.png", mask = "Highlands", center = V(260,700), size = 300, amplitude = 10, median = 0.68f },
         new DetailStamp { name = "Forest Meadows 05", texture = "Meadows/Heightmaps/Meadows 05.png", mask = "Forest", center = V(540,470), size = 640, amplitude = 9, median = 0.45f },
         new DetailStamp { name = "Forest Meadows 16", texture = "Meadows/Heightmaps/Meadows 16.png", mask = "Forest", center = V(430,500), size = 300, amplitude = 4, median = 0.39f },
-        new DetailStamp { name = "Meadow Meadows 26", texture = "Meadows/Heightmaps/Meadows 26.png", mask = "Meadow", center = V(390,285), size = 330, amplitude = 3.5f, median = 0.43f },
-        new DetailStamp { name = "Swamp 12", texture = "Swamp/Heightmaps/Swamp 12.png", mask = "Swamp", center = V(660,705), size = 340, amplitude = 3.5f, median = 0.40f },
+        new DetailStamp { name = "Forest NE Meadows 05", texture = "Meadows/Heightmaps/Meadows 05.png", mask = "Forest", center = V(860,790), size = 300, amplitude = 6, median = 0.45f },
+        new DetailStamp { name = "Forest E Meadows 16", texture = "Meadows/Heightmaps/Meadows 16.png", mask = "Forest", center = V(900,580), size = 240, amplitude = 4, median = 0.39f },
+        new DetailStamp { name = "Meadow Meadows 26", texture = "Meadows/Heightmaps/Meadows 26.png", mask = "Meadow", center = V(380,262), size = 380, amplitude = 3.5f, median = 0.43f },
+        new DetailStamp { name = "Swamp 12", texture = "Swamp/Heightmaps/Swamp 12.png", mask = "Swamp", center = V(685,790), size = 380, amplitude = 3.5f, median = 0.40f },
     };
 
     static float MaskValue(DetailStamp d, float x, float z)
@@ -256,6 +349,23 @@ public static class MeadowHomeLayout
         return new { seconds = (DateTime.Now - t0).TotalSeconds, min, max, files = Directory.GetFiles(MapFolder, "*.png").Select(Path.GetFileName).ToArray() };
     }
 
+    // Layout preview that writes no asset: shaded heights, water and region outlines (north up, res a multiple of 1024).
+    public static async Task<object> Preview(int res, string path)
+    {
+        var heights = new float[res * res];
+        var water = new float[res * res];
+        await Task.Run(() => Parallel.For(0, res, j =>
+        {
+            for (int i = 0; i < res; i++)
+            {
+                float x = (i + 0.5f) / res * Size, z = (j + 0.5f) / res * Size;
+                heights[j * res + i] = HeightAt(x, z, out water[j * res + i]);
+            }
+        }));
+        WritePreview(path, heights, water, res);
+        return path;
+    }
+
     // Water surface heights for the water pass: basins and line knots.
     public static object WaterData()
     {
@@ -310,7 +420,7 @@ public static class MeadowHomeLayout
                     minBed = Mathf.Min(minBed, h);
                 }
             // rim check: ground in a band just outside the (noisy) shore must stay above the level, except at inlets/outlets
-            float bandIn = b.name == "Swamp" ? 9 : 5, bandOut = bandIn + 8;
+            float bandIn = b.name == "Swamp" ? 9 : 3, bandOut = b.name == "Swamp" ? 17 : 6;
             int leak = 0, ringCells = 0; float ringMin = float.MaxValue; var leakPts = new List<string>();
             for (int z = z0; z <= z1; z++)
                 for (int x = x0; x <= x1; x++)
@@ -559,12 +669,14 @@ public static class MeadowHomeLayout
         // never sink under the water surface (that would leave a dry strip beside the river ribbon)
         if (!float.IsPositiveInfinity(cap)) h = Mathf.Max(SmoothMin(h, cap, 1.2f), Mathf.Min(h, cap) - 0.03f);
 
-        // lake islands
-        foreach (var isl in Islands)
+        // islands in the lake and the home pond
+        for (int i = 0; i < Islands.Length; i++)
         {
+            var isl = Islands[i];
             float d = Vector2.Distance(p, new Vector2(isl.x, isl.y));
+            if (d > isl.w * 2f) continue;
             float n = 1f + 0.25f * Fbm(x / 9f, z / 9f, 2);
-            float top = 19.5f + isl.z - 9f * Mathf.Pow(Mathf.Max(0, d * n / isl.w - 0.35f), 1.6f);
+            float top = IslandLevel(i) + isl.z - 9f * Mathf.Pow(Mathf.Max(0, d * n / isl.w - 0.35f), 1.6f);
             h = Mathf.Max(h, top);
         }
 
@@ -589,23 +701,24 @@ public static class MeadowHomeLayout
         else
         {
             cap = Mathf.Min(cap, b.level + 0.05f + slope * d);
-            if (d < 10) levee = Mathf.Max(levee, b.level + Mathf.Min(0.35f, slope * d) - (d > 6 ? (d - 6) * 10 : 0));
+            // a lip 0.35 m above the water to 6 m out, then falling away at about 19 deg, so a pond on a slope sits in a bowl
+            if (d < 30) levee = Mathf.Max(levee, b.level + Mathf.Min(0.35f, slope * d) - (d > 6 ? (d - 6) * 0.35f : 0));
         }
     }
 
     static void WaterLine(Vector2 p, Line l, ref float levee, ref float cap, ref float surface)
     {
-        if (l.bounds.width == 0) l.bounds = Bounds(l.pts, 150);
-        if (!l.bounds.Contains(p)) return;
-        float best = float.MaxValue; Vector4 hit = default;
-        for (int i = 0; i < l.pts.Length - 1; i++)
+        if (!LineBounds(l).Contains(p)) return;
+        float best = float.MaxValue; Vector4 hit = default; int hitI = 0; float hitT = 0;
+        var pts = l.pts;
+        for (int i = 0; i < pts.Length - 1; i++)
         {
-            Vector4 a = l.pts[i], b = l.pts[i + 1];
+            Vector4 a = pts[i], b = pts[i + 1];
             var ab = new Vector2(b.x - a.x, b.y - a.y);
             float t = Mathf.Clamp01(Vector2.Dot(p - new Vector2(a.x, a.y), ab) / Mathf.Max(1e-4f, ab.sqrMagnitude));
             var q = new Vector2(a.x, a.y) + ab * t;
             float d = Vector2.Distance(p, q);
-            if (d < best) { best = d; hit = Vector4.Lerp(a, b, t); }
+            if (d < best) { best = d; hit = Vector4.Lerp(a, b, t); hitI = i; hitT = t; }
         }
         if (best > 150) return;
         float s = hit.z, w = hit.w * (l.fixedSlope ? 1f : 1f + 0.15f * Fbm(p.x / 25f, p.y / 25f + 9f, 2));
@@ -613,7 +726,7 @@ public static class MeadowHomeLayout
         {
             float u = best / w;
             // flat deep middle, easing up to a shallow shelf at the bank (a parabola is steepest right at the waterline)
-            float bed = s - 0.05f - (l.depth - 0.05f) * (1 - SmoothStep(0.25f, 1f, u));
+            float bed = s - 0.05f - (l.DepthAt(hitI, hitT) - 0.05f) * MouthTaper(p, l) * (1 - SmoothStep(0.25f, 1f, u));
             cap = Mathf.Min(cap, bed);
             surface = Mathf.Max(surface, s);
         }
@@ -624,6 +737,29 @@ public static class MeadowHomeLayout
             cap = Mathf.Min(cap, s - 0.05f + slope * e);
             if (e < 8) levee = Mathf.Max(levee, s + Mathf.Min(0.3f, slope * e) - (e > 5 ? (e - 5) * 10 : 0));
         }
+    }
+
+    // Channel depth factor: 0 at a line end that lies inside a lake or pond, 1 from ~28 m (rivers) or ~10 m (streams) back.
+    // The bed then meets the basin's shelf (the deeper of the two wins) instead of ending in a pit or cutting a trench
+    // through the shallows.
+    static float MouthTaper(Vector2 p, Line l)
+    {
+        if (l.endsInBasin < 0)
+        {
+            bool In(Vector4 k) => Basins.Any(b => SignedDistance(new Vector2(k.x, k.y), b.shore) < -3f);
+            l.endsInBasin = (In(l.pts[0]) ? 1 : 0) | (In(l.pts[^1]) ? 2 : 0);   // benign race: every thread computes the same value
+        }
+        if (l.endsInBasin == 0) return 1f;
+        float length = Mathf.Clamp(l.depth * 10f, 8f, 28f), t = 1f;
+        if ((l.endsInBasin & 1) != 0) t = Mathf.Min(t, SmoothStep(0, length, Vector2.Distance(p, new Vector2(l.pts[0].x, l.pts[0].y))));
+        if ((l.endsInBasin & 2) != 0) t = Mathf.Min(t, SmoothStep(0, length, Vector2.Distance(p, new Vector2(l.pts[^1].x, l.pts[^1].y))));
+        return t;
+    }
+
+    static Rect LineBounds(Line l)
+    {
+        if (l.bounds.width == 0) l.bounds = Bounds(l.pts, 150);
+        return l.bounds;
     }
 
     // Distance from p to the nearest water edge (0 in water).
@@ -655,7 +791,8 @@ public static class MeadowHomeLayout
         float wMeadow = Weight(SignedDistance(p, MeadowArea), 20);
         float wSwamp = Weight(SignedDistance(p, SwampArea) + 6f * Fbm(x / 30f, z / 30f + 3f, 3), 18);
         float wForest = Mathf.Clamp01(1 - wHigh - wMeadow - wSwamp);
-        float waterFade = SmoothStep(3, 26, WaterEdgeDistance(p));
+        // keep the stamps off water edges and the swamp rim: a stamp dip there drops the bank below the water surface
+        float waterFade = SmoothStep(3, 26, WaterEdgeDistance(p)) * SmoothStep(6f, 30f, SignedDistance(p, SwampArea));
         float home = SmoothStep(22, 45, Vector2.Distance(p, HomeBase));
         return new Vector3(wHigh * waterFade * inside, wForest * waterFade * inside, wMeadow * waterFade * home * inside);
     }
@@ -817,12 +954,12 @@ public static class MeadowHomeLayout
     }
 
     // ---------------- Boundary (models, not terrain) ----------------
-    // One asset family per side, layered so that each layer rises above the one in front of it as seen from the yard,
-    // the bridge, the ponds and the vista points:
-    //   foot rocks at the edge (2-14 m above the ground) -> MicroVerse "Rim" tree belt -> ridges -> snow peaks.
-    // The terrain is never raised; mountain meshes stand in for raised far ground. Invisible walls follow the playable edge.
-    //   South: HIGHLANDS rocks, green M4 ridges, snow peaks.   West: Komorebi cliff terraces and snow plateaus (the waterfall's family).
-    //   North: Grasslands slabs, flattened BK Meadows hills, Grasslands peaks.   East: Lakefell shore rocks, BK hills, a HIGHLANDS peak, BK far range.
+    // Like the concept, the valley is enclosed by grey rocky mountains right at its edge, layered so the far snow peaks still
+    // show over them: low foot rocks (0-12 m out) -> near range massifs with pines (row A 50-100 m out, back row 150-200 m)
+    // -> snow peaks -> far range. The terrain is never raised; meshes stand in for raised ground. Invisible walls follow
+    // the playable edge. One pack per side: south and the lake's south shore ANGRY MESH granite domes and mountains (grey
+    // first-party material copies), east and north Grasslands cliff massifs, north-west and west Komorebi stones (the
+    // waterfall's pack), snow from Komorebi's snow variants; peaks HIGHLANDS and Grasslands, far range BK Mountains.
 
     const string Env = "Assets/_StoreAssets/Env/";
     const string HLM = Env + "Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/Mountains/";
@@ -850,7 +987,8 @@ public static class MeadowHomeLayout
 
     static readonly Rock[] HighlandRocks =
     {
-        new(HLR + "Rock_1(Grass).prefab", 2.4f, 2.9f), new(HLR + "Rock_2(Grass).prefab", 2.1f, 3.2f), new(HLR + "Rock_1(Grass).prefab", 2.4f, 2.9f),
+        // bare stone only: the pack's grass-topped variants render teal against the meadow (HIGHLANDS' own grass palette)
+        new(HLR + "Rock_1.prefab", 2.4f, 2.9f), new(HLR + "Rock_2.prefab", 2.1f, 3.2f), new(HLR + "Rock_1.prefab", 2.4f, 2.9f),
         new(HLR + "Rock_1.prefab", 2.4f, 2.9f), new(HLR + "Rock_2.prefab", 2.1f, 3.2f),
     };
     static readonly Rock[] KomorebiCliffs =
@@ -875,14 +1013,10 @@ public static class MeadowHomeLayout
 
     static readonly Dictionary<Side, RockBand[]> FootRocks = new()
     {
-        { Side.South, new[] { new RockBand { rocks = HighlandRocks, dMin = 2, dMax = 26, sMin = 1.5f, sMax = 3.0f, topMin = 2, topMax = 6, nMin = 2, nMax = 4, gapMin = 25, gapMax = 70, bare = 0.35f, tilt = 12 } } },
-        { Side.West, new[]
-        {
-            new RockBand { rocks = KomorebiCliffs, dMin = 0, dMax = 40, sMin = 0.9f, sMax = 1.6f, topMin = 6, topMax = 14, nMin = 3, nMax = 6, gapMin = 30, gapMax = 60, bare = 0.15f, tilt = 6 },
-            new RockBand { rocks = KomorebiCliffs, dMin = 40, dMax = 130, sMin = 1.6f, sMax = 2.6f, topMin = 18, topMax = 30, nMin = 3, nMax = 5, gapMin = 40, gapMax = 80, bare = 0.2f, tilt = 8 },
-        } },
-        { Side.North, new[] { new RockBand { rocks = GrasslandsSlabs, dMin = 2, dMax = 30, sMin = 1.2f, sMax = 2.5f, topMin = 3, topMax = 8, nMin = 2, nMax = 4, gapMin = 25, gapMax = 70, bare = 0.35f, tilt = 20 } } },
-        { Side.East, new[] { new RockBand { rocks = LakefellRocks, dMin = 0, dMax = 18, sMin = 3, sMax = 7, topMin = 3, topMax = 8, nMin = 2, nMax = 4, gapMin = 30, gapMax = 80, bare = 0.6f, tilt = 10 } } },
+        { Side.South, new[] { new RockBand { rocks = HighlandRocks, dMin = 2, dMax = 12, sMin = 1.5f, sMax = 3.0f, topMin = 2, topMax = 6, nMin = 2, nMax = 4, gapMin = 25, gapMax = 70, bare = 0.35f, tilt = 12 } } },
+        { Side.West, new[] { new RockBand { rocks = KomorebiCliffs, dMin = 0, dMax = 12, sMin = 0.6f, sMax = 1.0f, topMin = 3, topMax = 7, nMin = 2, nMax = 4, gapMin = 30, gapMax = 60, bare = 0.25f, tilt = 6 } } },
+        { Side.North, new[] { new RockBand { rocks = GrasslandsSlabs, dMin = 2, dMax = 12, sMin = 1.2f, sMax = 2.2f, topMin = 2, topMax = 6, nMin = 2, nMax = 4, gapMin = 25, gapMax = 70, bare = 0.35f, tilt = 20 } } },
+        { Side.East, new[] { new RockBand { rocks = LakefellRocks, dMin = 0, dMax = 12, sMin = 3, sMax = 7, topMin = 3, topMax = 6, nMin = 2, nMax = 4, gapMin = 30, gapMax = 80, bare = 0.6f, tilt = 10 } } },
     };
 
     // Ridges and peaks: (prefab, x, z, scale across, scale up, yaw, group). HIGHLANDS tiles are whole ranges with a low side
@@ -890,34 +1024,167 @@ public static class MeadowHomeLayout
     // BK meshes are tiny (about 0.028 m across at scale 1), hence the large scales; flattened they read as green hills.
     static readonly (string path, float x, float z, float sxz, float sy, float yaw, string group)[] Backdrop =
     {
-        (HLM + "Mountain_4.prefab", 190, -110, 0.40f, 0.60f, 180, "Ridges"),
-        (HLM + "Mountain_4.prefab", 470, -140, 0.42f, 0.55f, 195, "Ridges"),
-        (HLM + "Mountain_4.prefab", 760, -120, 0.38f, 0.65f, 165, "Ridges"),
         (HLM + "Mountain_1.prefab", 240, -400, 0.70f, 1.05f, 180, "Peaks"),
         (HLM + "Mountain_3.prefab", 600, -430, 0.68f, 1.00f, 270, "Peaks"),
         (HLM + "Mountain_2.prefab", 930, -330, 0.62f, 1.00f, 0, "Peaks"),
         (HLM + "Mountain_3.prefab", -260, -170, 0.62f, 1.00f, 315, "Peaks"),
         (HLM + "Mountain_2.prefab", -420, 520, 0.80f, 1.25f, 90, "Peaks"),
         (HLM + "Mountain_1.prefab", -300, 930, 0.70f, 1.10f, 315, "Peaks"),
-        (BKH + "Mountain1.prefab", 300, 1230, 22000, 10500, 10, "Ridges"),
-        (BKH + "Mountain2.prefab", 680, 1220, 22000, 9500, 200, "Ridges"),
         (GLM + "Mountain_1.prefab", 180, 1450, 1.3f, 1.7f, 40, "Peaks"),
         (GLM + "Mountain_2.prefab", 520, 1480, 1.4f, 1.9f, 130, "Peaks"),
         (GLM + "Mountain_1.prefab", 850, 1420, 1.2f, 1.5f, 250, "Peaks"),
-        (BKH + "Mountain2.prefab", 1180, 300, 20000, 8000, 90, "Ridges"),
-        (BKH + "Mountain1.prefab", 1150, 700, 20000, 7500, 300, "Ridges"),
         (HLM + "Mountain_3.prefab", 1320, 430, 0.60f, 1.00f, 180, "Peaks"),
         (BKF + "Mountain1.prefab", 1600, 150, 45000, 40000, 20, "Far Range"),
         (BKF + "Mountain2.prefab", 1650, 600, 45000, 38000, 110, "Far Range"),
         (BKF + "Mountain1.prefab", 1550, 1000, 42000, 42000, 250, "Far Range"),
     };
 
+    const string AMR = Env + "ANGRY MESH/Stylized Pack - Meadow Environment/Prefabs/Rocks/Rocks - Summer/";
+    const string AMM = Env + "ANGRY MESH/Stylized Pack - Meadow Environment/Prefabs/Background/Background - Summer/";
+
+    // Near range anchors: (id, x, z, footprint radius, crest height above the ground, yaw, yaw jitter, prefab). Ids: side
+    // (S south, L lake south, E east, N north, W west), row (A near, F fill knob, B back). South rows sit 80 m further north
+    // than in the research table, with the meadow's south edge.
+    static readonly (string id, float x, float z, float r, float h, float yaw, float jit, string prefab)[] NearRange =
+    {
+        ("S-A1", 215, 175, 46, 41, 42, 8, AMR + "P_Rock_01_Summer.prefab"),
+        ("S-A2", 318, 138, 42, 40, 16, -15, AMR + "P_Rock_03_Summer.prefab"),
+        ("S-A3", 412, 130, 48, 42, 352, 22, AMR + "P_Rock_04_Summer.prefab"),
+        ("S-A4", 488, 132, 40, 34, 335, -14, AMR + "P_Rock_01_Summer.prefab"),
+        ("S-B0", 40, 180, 70, 59, 62, 21, AMM + "P_Mountain_03_Summer.prefab"),
+        ("S-B1", 175, 65, 80, 80, 35, -13, KNR + "Rocks Snow/Stone_5_Snow Variant.prefab"),
+        ("S-B2", 300, 25, 82, 68, 13, 20, AMM + "P_Mountain_03_Summer.prefab"),
+        ("S-B3", 505, 20, 80, 57, 340, -12, AMM + "P_Mountain_03_Summer.prefab"),
+        ("L-A5", 565, 62, 46, 41, 28, 19, AMR + "P_Rock_01_Summer.prefab"),
+        ("L-A6", 640, 8, 52, 49, 14, -11, AMR + "P_Rock_02_Summer.prefab"),
+        ("L-A7", 722, 0, 48, 46, 0, 18, AMR + "P_Rock_03_Summer.prefab"),
+        ("L-A8", 818, 4, 52, 49, 343, -10, AMR + "P_Rock_01_Summer.prefab"),
+        ("L-A9", 905, 32, 50, 48, 328, 17, AMR + "P_Rock_02_Summer.prefab"),
+        ("L-B4", 610, -85, 88, 88, 15, -9, AMM + "P_Mountain_04_Summer.prefab"),
+        ("L-B5", 722, -100, 82, 86, 0, 16, AMM + "P_Mountain_03_Summer.prefab"),
+        ("L-B6", 935, -72, 95, 105, 332, -8, KNR + "Rocks Snow/Stone_5_Snow Variant.prefab"),
+        ("E-A10", 990, 110, 44, 40, 316, 15, GLR + "Clif_1_(no_grass).prefab"),
+        ("E-A11", 1018, 205, 46, 44, 298, -22, GLR + "Clif_2_(no_grass).prefab"),
+        ("E-A12", 1030, 255, 40, 36, 287, 14, GLR + "Clif_3_(no_grass).prefab"),
+        ("E-A13", 1030, 405, 50, 50, 253, -21, GLR + "Clif_1_(no_grass).prefab"),
+        ("E-A14", 1022, 490, 46, 44, 237, 13, GLR + "Clif_2_(no_grass).prefab"),
+        ("E-B7", 1090, 60, 90, 94, 311, -20, AMM + "P_Mountain_03_Summer.prefab"),
+        ("E-B8", 1130, 175, 85, 94, 294, 12, AMM + "P_Mountain_04_Summer.prefab"),
+        ("E-B9", 1150, 470, 95, 105, 249, -19, KNR + "Rocks Snow/Stone_5_Snow Variant.prefab"),
+        ("E-A15", 1018, 575, 48, 46, 296, 11, GLR + "Clif_3_(no_grass).prefab"),
+        ("E-A16", 1012, 662, 46, 44, 279, -18, GLR + "Clif_1_(no_grass).prefab"),
+        ("E-A17", 1006, 750, 48, 46, 259, 10, GLR + "Clif_2_(no_grass).prefab"),
+        ("E-A18", 992, 838, 40, 36, 239, -17, GLR + "Clif_3_(no_grass).prefab"),
+        ("E-A19", 1000, 950, 44, 42, 224, 9, GLR + "Clif_1_(no_grass).prefab"),
+        ("E-B10", 1135, 640, 95, 100, 279, -16, AMM + "P_Mountain_03_Summer.prefab"),
+        ("E-B11", 1110, 830, 90, 94, 250, 8, AMM + "P_Mountain_04_Summer.prefab"),
+        ("N-A20", 852, 1018, 38, 36, 215, -15, GLR + "Clif_1.prefab"),
+        ("N-A21", 800, 1000, 44, 42, 208, 22, GLR + "Clif_2.prefab"),
+        ("N-A22", 690, 998, 44, 42, 180, -14, GLR + "Clif_3.prefab"),
+        ("N-A23", 585, 980, 42, 40, 151, 21, GLR + "Clif_1.prefab"),
+        ("N-B12", 885, 1115, 90, 94, 211, -13, AMM + "P_Mountain_01_Summer.prefab"),
+        ("N-B13", 690, 1105, 70, 74, 180, 20, AMM + "P_Mountain_01_Summer.prefab"),
+        ("N-B14", 538, 1088, 72, 72, 153, -12, AMM + "P_Mountain_01_Summer.prefab"),
+        ("N-A24", 470, 928, 42, 36, 220, 19, GLR + "Clif_2.prefab"),
+        ("N-A25", 385, 918, 44, 37, 199, -11, KNR + "Rocks Grass/Stone_2.prefab"),
+        ("N-A26", 300, 920, 46, 39, 169, 18, KNR + "Rocks Grass/Stone_5.prefab"),
+        ("N-A27", 215, 915, 44, 37, 143, -10, KNR + "Rocks Grass/Stone_8.prefab"),
+        ("N-A28", 135, 885, 46, 30, 123, 17, KNR + "Rocks Grass/Stone_2.prefab"),
+        ("N-B15", 400, 1015, 80, 76, 195, -9, KNR + "Rocks Grass/Stone_5.prefab"),
+        ("N-B16", 240, 1005, 85, 85, 160, 16, KNR + "Rocks Snow/Stone_5_Snow Variant.prefab"),
+        ("N-B17", 75, 955, 85, 85, 127, -8, KNR + "Rocks Grass/Stone_5.prefab"),
+        ("W-A29", 98, 795, 50, 41, 122, 15, KNR + "Rocks/Stone_1_NoGrass.prefab"),
+        ("W-A30", 102, 645, 46, 34, 89, -22, KNR + "Rocks Grass/Stone_2.prefab"),
+        ("W-A31", 112, 552, 46, 41, 66, 14, KNR + "Rocks/Stone_5_NoGrass.prefab"),
+        ("W-B18", 10, 815, 90, 90, 117, -21, KNR + "Rocks Grass/Stone_5.prefab"),
+        ("W-B19", 5, 570, 80, 80, 76, 13, KNR + "Rocks Grass/Stone_2.prefab"),
+        ("W-A32", 133, 493, 40, 38, 51, -20, KNR + "Rocks/Rock_2_NoGrass.prefab"),
+        ("W-A33", 158, 372, 42, 40, 104, 12, KNR + "Rocks/Rock_2_NoGrass.prefab"),
+        ("W-A34", 172, 292, 46, 35, 76, -19, KNR + "Rocks Grass/Stone_6.prefab"),
+        ("W-A35", 172, 222, 42, 38, 56, 11, KNR + "Rocks/Stone_8_NoGrass.prefab"),
+        ("W-B20", 40, 440, 80, 77, 111, -18, KNR + "Rocks Snow/Stone_5_Snow Variant.prefab"),
+        ("W-B21", 75, 250, 75, 75, 73, 10, KNR + "Rocks Grass/Stone_5.prefab"),
+        ("S-F1", 195, 239, 30, 24, 57, -17, AMR + "P_Rock_04_Summer.prefab"),
+        ("S-F2", 271, 168, 30, 24, 30, 9, AMR + "P_Rock_05_Summer.prefab"),
+        ("L-F3", 940, 81, 30, 24, 319, -16, AMR + "P_Rock_04_Summer.prefab"),
+        ("E-F4", 987, 162, 30, 24, 309, 8, GLR + "Clif_2_(no_grass).prefab"),
+        ("N-F5", 746, 979, 30, 24, 197, -15, GLR + "Clif_3.prefab"),
+        ("N-F6", 641, 973, 30, 24, 165, 22, GLR + "Clif_1.prefab"),
+        ("N-F7", 535, 940, 30, 24, 134, -14, GLR + "Clif_2.prefab"),
+        ("W-F8", 118, 722, 30, 24, 109, 21, KNR + "Rocks Grass/Stone_1.prefab"),
+    };
+
+    // LOD0 footprint radius (vertices at least 1 m above the lowest), height, lowest point and summit (xz) at scale 1.
+    static readonly Dictionary<string, (float R, float Hm, float minY, Vector2 summit)> massifInfo = new();
+    static (float R, float Hm, float minY, Vector2 summit) MassifInfo(string path)
+    {
+        if (massifInfo.TryGetValue(path, out var info)) return info;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path) ?? throw new ArgumentException("Missing prefab " + path);
+        var pts = new List<Vector3>();
+        var lod = prefab.GetComponentInChildren<LODGroup>();
+        var lod0 = lod != null && lod.GetLODs().Length > 0 ? lod.GetLODs()[0].renderers : null;
+        foreach (var mf in prefab.GetComponentsInChildren<MeshFilter>())
+        {
+            if (mf.sharedMesh == null || (lod0 != null && !lod0.Contains(mf.GetComponent<Renderer>()))) continue;
+            var m = prefab.transform.worldToLocalMatrix * mf.transform.localToWorldMatrix;
+            pts.AddRange(mf.sharedMesh.vertices.Select(v => m.MultiplyPoint3x4(v)));
+        }
+        float minY = pts.Min(p => p.y), maxY = pts.Max(p => p.y);
+        var top = pts.First(p => p.y == maxY);
+        float R = Mathf.Sqrt(pts.Where(p => p.y >= minY + 1f).Max(p => p.x * p.x + p.z * p.z));
+        info = (R, maxY - minY, minY, new Vector2(top.x, top.z));
+        massifInfo[path] = info;
+        return info;
+    }
+
+    // No visible vertex of a near massif may come within `margin` of the playable edge, 37 m of the outlet river or 25 m of
+    // the waterfall's pool (vertices under the terrain do not count).
+    static bool MassifClear(GameObject go, float margin, Line outlet)
+    {
+        var terrain = Terrain.activeTerrain;
+        foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+        {
+            if (mf.sharedMesh == null) continue;
+            var verts = mf.sharedMesh.vertices;
+            var m = mf.transform.localToWorldMatrix;
+            int stride = Mathf.Max(1, verts.Length / 4000);
+            for (int k = 0; k < verts.Length; k += stride)
+            {
+                var w = m.MultiplyPoint3x4(verts[k]);
+                var p = new Vector2(w.x, w.z);
+                bool onTerrain = w.x >= 0 && w.z >= 0 && w.x <= Size && w.z <= Size;
+                if (onTerrain && w.y < terrain.SampleHeight(w) - 0.5f) continue;
+                if (onTerrain && SignedDistance(p, Playable) < margin) return false;
+                if (LineDistance(p, outlet) < 37f || Vector2.Distance(p, new Vector2(190, 435)) < 25f) return false;
+            }
+        }
+        return true;
+    }
+
+    // Grey first-party copies of the ANGRY MESH materials: the vendor tint is beige (rocks) or mauve (mountains), and the
+    // grass top layer needs the pack's global shader values, so it is switched off.
+    static Material AngryMeshMaterial(Material vendor, bool mountain)
+    {
+        EnsureFolder(BoundaryFolder);
+        string dest = BoundaryFolder + "/MH_Boundary_AM_" + vendor.name + ".mat";
+        var m = AssetDatabase.LoadAssetAtPath<Material>(dest);
+        if (m == null) { m = new Material(vendor) { name = Path.GetFileNameWithoutExtension(dest) }; AssetDatabase.CreateAsset(m, dest); }
+        else m.CopyPropertiesFromMaterial(vendor);
+        if (mountain) { m.SetFloat("_BaseAlbedoDesaturation", 0.7f); m.SetFloat("_BaseAlbedoBrightness", 1.3f); }
+        else { m.SetColor("_BaseAlbedoColor", new Color(0.47f, 0.49f, 0.52f, 0)); m.SetFloat("_BaseAlbedoBrightness", 1.1f); }
+        m.SetFloat("_EnableTopLayerBlend", 0f);
+        foreach (var kw in m.shaderKeywords.Where(k => k.Contains("TOPLAYER")).ToArray()) m.DisableKeyword(kw);
+        EditorUtility.SetDirty(m);
+        AssetDatabase.SaveAssetIfDirty(m);
+        return m;
+    }
+
     // Gameplay spots the boundary rocks must leave clear: (centre, radius).
     static readonly (Vector2 c, float r)[] KeepOut =
     {
         (HomeBase, 38f),              // 30 x 30 fence + margin
         (Viewpoint, 14f),
-        (new Vector2(228, 424), 24f), // waterfall pond east of the cliff line
+        (new Vector2(247, 420), 50f), // home pond east of the cliff line
         (new Vector2(190, 435), 26f), // waterfall lip and its source pool
         (Bridge, 30f),
     };
@@ -1070,30 +1337,142 @@ public static class MeadowHomeLayout
             }
         }
 
-        // West L2: Komorebi snow plateaus behind the cliff terraces, tilted slabs sunk deep into the ground
-        var plateaus = Child("Snow Plateaus");
-        int plateauCount = 0;
-        foreach (var (cx, cz, n) in new[] { (-95f, 330f, 4), (-150f, 500f, 5), (-110f, 660f, 4), (-170f, 800f, 4) })
-            for (int k = 0; k < n; k++)
-            {
-                var rock = SnowPlateaus[rng.Next(SnowPlateaus.Length)];
-                float sc = R(4f, 7f), sy = sc * R(0.85f, 1.1f);
-                var c = new Vector2(cx + R(-45, 45), cz + R(-55, 55));
-                // crest 120-160 m above the play ground, but never so high that the base lifts off the ground (height ~ 1.9 x top)
-                float top = Mathf.Min(30f + R(120f, 160f), Ground(c.x, c.y) - 3f + rock.top * 1.9f * sy);
-                var go = Put(plateaus, rock.path, new Vector3(c.x, top - rock.top * sy, c.y), Quaternion.Euler(R(-25, 25), R(0, 360), R(-25, 25)), new Vector3(sc, sy, sc * R(0.9f, 1.2f)));
-                go.GetComponentsInChildren<Renderer>().ToList().ForEach(r => r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off);
-                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
-                plateauCount++;
-            }
+        // outlet gorge: big Grasslands slabs on both banks where the outlet river leaves the playable area and one across its
+        // end at the terrain corner, so the river seems to run on between rocks instead of stopping at the terrain edge
+        var gorge = Child("Outlet Gorge");
+        var outlet = Lines.First(l => l.name == "Outlet").pts;
+        var arc = new float[outlet.Length];
+        for (int i = 1; i < outlet.Length; i++) arc[i] = arc[i - 1] + Vector2.Distance(new Vector2(outlet[i - 1].x, outlet[i - 1].y), new Vector2(outlet[i].x, outlet[i].y));
+        int exit = Array.FindIndex(outlet, k => SignedDistance(new Vector2(k.x, k.y), poly) > 0);
+        Vector4 OutletAt(float s) { int i = Mathf.Clamp(Array.FindLastIndex(arc, a => a <= s), 0, outlet.Length - 2); return Vector4.Lerp(outlet[i], outlet[i + 1], (s - arc[i]) / Mathf.Max(1e-3f, arc[i + 1] - arc[i])); }
+        Vector2 OutletTangent(float s) { var a = OutletAt(s - 3); var b = OutletAt(s + 3); return new Vector2(b.x - a.x, b.y - a.y).normalized; }
+        void Slab(Vector2 c, float scale, float top)
+        {
+            var rock = GrasslandsSlabs[rng.Next(GrasslandsSlabs.Length)];
+            float sy = scale * R(0.9f, 1.1f);
+            var go = Put(gorge, rock.path, new Vector3(c.x, GroundMin(c.x, c.y, rock.radius * scale * 0.5f) + top - rock.top * sy, c.y), Quaternion.Euler(R(-8, 8), R(0, 360), R(-8, 8)), new Vector3(scale, sy, scale * R(0.9f, 1.15f)));
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic);
+        }
+        if (exit > 0)
+        {
+            foreach (float along in new[] { 22f, 48f, 74f })
+                foreach (int side in new[] { 1, -1 })
+                {
+                    float s = arc[exit] + along + R(-5, 5);
+                    if (s > arc[^1]) continue;
+                    var k = OutletAt(s); var t = OutletTangent(s); var n = new Vector2(-t.y, t.x) * side;
+                    float scale = R(1.8f, 2.5f);
+                    Slab(new Vector2(k.x, k.y) + n * (k.w + 4f + 9.8f * scale * 0.5f), scale, R(9f, 16f));
+                }
+            var end = outlet[^1]; var te = OutletTangent(arc[^1] - 4);
+            Slab(new Vector2(end.x, end.y) + te * 22f, 3.0f, 22f);
+        }
 
-        // L2 ridges, L3 peaks, east far range: skirts sunk below the lowest ground they cover, pushed out if they reach the play area
+        // near range (after the concept: a valley enclosed by grey rocky mountains right at its edge; anchors from
+        // scratchpad research6/brief.md): massifs 50-100 m beyond the edge (row A, crests 30-50 m above the ground), fill
+        // knobs between them, and a back row 150-200 m out (crests 57-105 m, a few snow-dusted). Each is scaled to its
+        // footprint radius and crest height from the prefab's measured LOD0 mesh, sunk below the lowest ground around it,
+        // pushed out (then shrunk) until no visible part comes within 6 m (back row 40 m) of the playable edge, and kept
+        // clear of the outlet river and the waterfall pool. Pines grow on the slopes that face the valley.
+        var near = Child("Near Range");
+        var nearPines = new GameObject("Pines").transform; nearPines.SetParent(near, false);
+        var outletLine = Lines.First(l => l.name == "Outlet");
+        var nearMats = new Dictionary<Material, Material>();
+        var uses = new Dictionary<string, int>();
+        string lastPrefab = null;
+        int nearCount = 0, nearSkipped = 0, pineCount = 0;
+        var mapCentre = new Vector2(505, 520);
+        foreach (var a0 in NearRange)
+        {
+            bool back = a0.id.Contains("-B");
+            // the research table's heights kept every far peak clear but read as low knobs behind the tree belt: taller and
+            // wider (so neighbours overlap into a range), as the concept's mountains loom over the valley
+            var a = (a0.id, a0.x, a0.z, r: a0.r * 1.15f, h: a0.h * (back ? 1.15f : 1.3f), a0.yaw, a0.jit, a0.prefab);
+            string path = a.prefab;
+            var info = MassifInfo(path);
+            uses.TryGetValue(path, out int used); uses[path] = used + 1;
+            var anchor = new Vector2(a.x, a.z);
+            var outward = (anchor - mapCentre).normalized;
+            float shrink = 1f;
+            GameObject go = null;
+            for (int attempt = 0; attempt < 14; attempt++)
+            {
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                float r = a.r * shrink;
+                float sxz = r / info.R;
+                float sx = sxz * R(0.85f, 1.15f) * (used % 2 == 1 ? -1f : 1f), sz = sxz * R(0.85f, 1.15f);   // mirror every second use
+                float ground = Ground(anchor.x, anchor.y);
+                float low = ground;
+                for (int k = 0; k < 16; k++)
+                {
+                    float ang = k * Mathf.PI / 8;
+                    foreach (float f in new[] { 0.35f, 0.7f, 1f }) low = Mathf.Min(low, Ground(anchor.x + Mathf.Cos(ang) * r * f, anchor.y + Mathf.Sin(ang) * r * f));
+                }
+                float baseY = low - Mathf.Max(4f, 0.08f * a.h);
+                float sy = (ground + a.h - baseY) / info.Hm;
+                var rot = Quaternion.Euler(0, a.yaw + a.jit, 0);
+                var summit = rot * new Vector3(info.summit.x * sx, 0, info.summit.y * sz);
+                go = Put(near, path, new Vector3(anchor.x - summit.x, baseY - info.minY * sy, anchor.y - summit.z), rot, new Vector3(sx, sy, sz));
+                go.name = a.id + " " + go.name;
+                if (MassifClear(go, back ? 40f : 6f, outletLine)) break;
+                if (attempt < 10) anchor += outward * 3f;
+                else shrink *= 0.95f;
+                if (attempt == 13) { UnityEngine.Object.DestroyImmediate(go); go = null; }
+            }
+            if (go == null) { nearSkipped++; continue; }
+            if (path == lastPrefab) go.transform.Rotate(0, 137f, 0);   // never the same face twice in a row
+            lastPrefab = path;
+            // first-party grey copies for the ANGRY MESH meshes (vendor tint is beige / mauve; no grass top layer)
+            foreach (var rend in go.GetComponentsInChildren<Renderer>())
+            {
+                rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                var mats = rend.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null || !mats[i].shader.name.StartsWith("ANGRYMESH")) continue;
+                    if (!nearMats.TryGetValue(mats[i], out var copy)) nearMats[mats[i]] = copy = AngryMeshMaterial(mats[i], path.Contains("Mountain"));
+                    mats[i] = copy;
+                }
+                rend.sharedMaterials = mats;
+            }
+            // pines on the slopes facing the valley (row A and fill knobs), in clumps, from raycasts on the massif itself
+            if (!back)
+            {
+                Physics.SyncTransforms();
+                var cols = go.GetComponentsInChildren<Collider>();
+                var facing = (mapCentre - new Vector2(go.transform.position.x, go.transform.position.z)).normalized;
+                float faceAng = Mathf.Atan2(facing.y, facing.x);
+                for (int clump = 0; clump < 5; clump++)
+                {
+                    float ang = faceAng + R(-1.7f, 1.7f), rho = R(0.45f, 0.95f) * a.r * shrink;
+                    var cc = new Vector2(a.x, a.z) + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * rho;
+                    int want = 5 + rng.Next(8);
+                    for (int t = 0, made = 0; t < want * 4 && made < want; t++)
+                    {
+                        var q = cc + new Vector2(R(-7, 7), R(-7, 7));
+                        if (SignedDistance(q, poly) < 8f) continue;
+                        if (!Physics.Raycast(new Vector3(q.x, 400, q.y), Vector3.down, out var hit, 600f)) continue;
+                        if (!cols.Contains(hit.collider) || hit.normal.y < 0.7f || hit.point.y > Ground(q.x, q.y) + 0.6f * a.h) continue;
+                        var pine = Put(nearPines, KNR + "Nature/PineTree_" + (3 + rng.Next(4)) + ".prefab", hit.point - Vector3.up * 0.3f, Quaternion.Euler(0, R(0, 360), 0), Vector3.one * R(0.8f, 1.2f));
+                        foreach (var rend in pine.GetComponentsInChildren<Renderer>()) rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                        foreach (var c in pine.GetComponentsInChildren<Collider>()) UnityEngine.Object.DestroyImmediate(c);
+                        made++; pineCount++;
+                    }
+                }
+            }
+            foreach (var c in go.GetComponentsInChildren<Collider>()) UnityEngine.Object.DestroyImmediate(c);   // beyond the walls; AM mountains carry 14k-triangle mesh colliders
+            nearCount++;
+        }
+
+        // peaks and the east far range: skirts sunk below the lowest ground they cover, pushed out if they reach the play area
         var groups = new Dictionary<string, Transform>();
         var materials = new Dictionary<Material, Material>();
         int mountainCount = 0;
         var centre = new Vector2(505, 520);
-        foreach (var b in Backdrop)
+        var placedAt = new Dictionary<int, Vector2>();
+        for (int bi = 0; bi < Backdrop.Length; bi++)
         {
+            var b = Backdrop[bi];
             if (!groups.TryGetValue(b.group, out var parent)) groups[b.group] = parent = Child(b.group);
             var go = Put(parent, b.path, Vector3.zero, Quaternion.Euler(0, b.yaw + R(-8, 8), 0), new Vector3(b.sxz, b.sy, b.sxz * (b.path.StartsWith(Env + "BK") ? R(0.95f, 1.25f) : 1f)));
             var c = new Vector2(b.x, b.z);
@@ -1123,15 +1502,17 @@ public static class MeadowHomeLayout
                 r.sharedMaterials = mats;
             }
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            placedAt[bi] = new Vector2(go.transform.position.x, go.transform.position.z);
             mountainCount++;
         }
 
         // haze banks at the feet of ridges and peaks (Komorebi demo: fog banks out to about 700 m)
         var haze = Child("Haze");
         int hazeCount = 0;
-        foreach (var b in Backdrop.Where(b => b.group != "Far Range"))
+        for (int bi = 0; bi < Backdrop.Length; bi++)
         {
-            var c = new Vector2(b.x, b.z);
+            if (Backdrop[bi].group == "Far Range") continue;
+            var c = placedAt[bi];
             var toMap = (centre - c).normalized;
             for (int k = 0; k < 2; k++)
             {
@@ -1171,7 +1552,7 @@ public static class MeadowHomeLayout
         }
 
         EditorSceneManager.MarkSceneDirty(scene);
-        return new { rocks = rockCount, plateaus = plateauCount, mountains = mountainCount, haze = hazeCount, walls = poly.Length, perimeter };
+        return new { rocks = rockCount, nearRange = nearCount, nearSkipped, nearPines = pineCount, mountains = mountainCount, haze = hazeCount, walls = poly.Length, perimeter };
     }
 
     // Ring from the terrain border out to 2.5 km: inner edge just under the border heights, sloping a few metres down outward.
@@ -1183,7 +1564,9 @@ public static class MeadowHomeLayout
         for (float t = 0; t < Size; t += step) border.Add(new Vector2(Size, t));
         for (float t = Size; t > 0; t -= step) border.Add(new Vector2(t, Size));
         for (float t = Size; t > 0; t -= step) border.Add(new Vector2(0, t));
-        float minBorder = border.Min(b => ground(b.x, b.y));
+        // a low percentile, not the minimum: the outlet's channel crosses the border and would drag the whole ring down
+        var borderHeights = border.Select(b => ground(b.x, b.y)).OrderBy(h => h).ToArray();
+        float minBorder = borderHeights[borderHeights.Length / 10];
         var rings = new[] { (0f, 0.6f), (60f, 2.5f), (400f, 6f), (2500f, 10f) };   // (distance beyond the border, drop below the border height)
         var c = new Vector2(Size / 2, Size / 2);
         var verts = new List<Vector3>(); var uvs = new List<Vector2>(); var tris = new List<int>();
@@ -1231,13 +1614,15 @@ public static class MeadowHomeLayout
     {
         var env = SceneManager.GetActiveScene().GetRootGameObjects().First(g => g.name == "Environment");
         var root = env.transform.Find("Boundary");
-        var layers = new[] { "Foot Rocks", "Snow Plateaus", "Ridges", "Peaks" };
+        var layers = new[] { "Foot Rocks", "Near Range", "Peaks" };
+        var terrain = Terrain.activeTerrain;
+        Vector3 Eye(float x, float z) => new Vector3(x, Mathf.Max(terrain.SampleHeight(new Vector3(x, 0, z)), WaterSurfaceAt(new Vector2(x, z)).surface) + 1.7f, z);
         var views = new (string name, Vector3 p)[]
         {
-            ("home", new Vector3(326, 30.2f, 274)), ("meadow", new Vector3(450, 27.1f, 262)), ("viewpoint", new Vector3(546, 22.5f, 246)),
+            ("home", new Vector3(326, 30.2f, 274)), ("meadow", new Vector3(450, 27.1f, 262)), ("viewpoint", Eye(Viewpoint.x, Viewpoint.y)),
             ("bridge", new Vector3(312, 24.8f, 372)), ("waterfall pond", new Vector3(232, 25.0f, 430)), ("west pond", new Vector3(200, 50.5f, 640)),
-            ("highland vista", new Vector3(250, 69.8f, 760)), ("north pond", new Vector3(386, 43.3f, 806)), ("swamp", new Vector3(660, 25.4f, 700)),
-            ("lake beach", new Vector3(790, 17.4f, 240)), ("forest", new Vector3(500, 35.5f, 500)),
+            ("highland vista", new Vector3(250, 69.8f, 760)), ("north pond", new Vector3(386, 43.3f, 806)), ("swamp", Eye(690, 790)),
+            ("lake beach", Eye(760, 90)), ("forest", new Vector3(500, 35.5f, 500)), ("east beach", Eye(953, 400)), ("outlet", Eye(862, 780)),
         };
         // gather sampled vertices per layer once
         var pts = layers.ToDictionary(l => l, l => new List<Vector3>());
@@ -1271,12 +1656,12 @@ public static class MeadowHomeLayout
             var issues = new List<string>();
             for (int i = 0; i < 36; i++)
             {
-                float front = Mathf.Max(best["Foot Rocks"][i], best["Snow Plateaus"][i]);
-                float ridge = best["Ridges"][i], peak = best["Peaks"][i];
+                float front = best["Foot Rocks"][i];
+                float ridge = best["Near Range"][i], peak = best["Peaks"][i];
                 if (peak > -90 && peak < Mathf.Max(front, ridge) + margin) issues.Add($"{i * 10}deg peak {peak:0.0} vs front {front:0.0} ridge {ridge:0.0}");
             }
             string Max(string l) => best[l].Max().ToString("0.0");
-            report.Add($"{name}: max foot {Max("Foot Rocks")} plateau {Max("Snow Plateaus")} ridge {Max("Ridges")} peak {Max("Peaks")}; hidden peak bins: {(issues.Count == 0 ? "none" : string.Join("; ", issues.Take(8)))}");
+            report.Add($"{name}: max foot {Max("Foot Rocks")} near {Max("Near Range")} peak {Max("Peaks")}; hidden peak bins: {(issues.Count == 0 ? "none" : string.Join("; ", issues.Take(8)))}");
         }
         return string.Join("\n", report);
     }
@@ -1286,35 +1671,62 @@ public static class MeadowHomeLayout
     const string WaterFolder = DataFolder + "/Water";
 
     // Grid mesh (cell metres) covering a polygon grown by margin, at local Y 0 with the pivot at the polygon centroid.
-    // The margin tucks the edge under the banks: outside the shore the terrain rises above the water level.
-    public static Mesh FlatWaterMesh(string name, Vector2[] outline, float margin, float cell, Func<float, float, bool> wet)
+    // The margin tucks the edge under the banks: outside the shore the terrain rises above the water level. Only cells
+    // connected to the interior through wet nodes are kept, so low ground beyond the rim never gets a sheet of water.
+    // feather (0..1) goes to the green vertex channel, which the water material reads as transparency (-1 = untouched).
+    public static Mesh FlatWaterMesh(string name, Vector2[] outline, float margin, float cell, Func<float, float, bool> wet, Func<float, float, float> feather = null)
     {
         var bb = Bounds(outline.Select(v => new Vector4(v.x, v.y, 0, 0)), margin + cell);
         var centre = Centroid(outline);
         int nx = Mathf.CeilToInt(bb.width / cell) + 1, nz = Mathf.CeilToInt(bb.height / cell) + 1;
-        var inside = new bool[nx, nz];
+        var sd = new float[nx, nz];
+        var wetNode = new bool[nx, nz];
         for (int i = 0; i < nx; i++)
             for (int j = 0; j < nz; j++)
-                inside[i, j] = SignedDistance(new Vector2(bb.xMin + i * cell, bb.yMin + j * cell), outline) < margin;
-        var verts = new List<Vector3>(); var index = new Dictionary<int, int>(); var tris = new List<int>();
+            {
+                float x = bb.xMin + i * cell, z = bb.yMin + j * cell;
+                sd[i, j] = SignedDistance(new Vector2(x, z), outline);
+                wetNode[i, j] = sd[i, j] < margin && wet(x, z);
+            }
+        var reached = new bool[nx, nz];
+        var queue = new Queue<(int, int)>();
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < nz; j++)
+                if (wetNode[i, j] && sd[i, j] < -cell) { reached[i, j] = true; queue.Enqueue((i, j)); }
+        while (queue.Count > 0)
+        {
+            var (i, j) = queue.Dequeue();
+            foreach (var (di, dj) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+            {
+                int a = i + di, b = j + dj;
+                if (a < 0 || b < 0 || a >= nx || b >= nz || reached[a, b] || !wetNode[a, b]) continue;
+                reached[a, b] = true; queue.Enqueue((a, b));
+            }
+        }
+        var verts = new List<Vector3>(); var colors = new List<Color>(); var index = new Dictionary<int, int>(); var tris = new List<int>();
         int V(int i, int j)
         {
             int key = j * nx + i;
-            if (!index.TryGetValue(key, out int v)) { v = verts.Count; index[key] = v; verts.Add(new Vector3(bb.xMin + i * cell - centre.x, 0, bb.yMin + j * cell - centre.y)); }
+            if (!index.TryGetValue(key, out int v))
+            {
+                v = verts.Count; index[key] = v;
+                float x = bb.xMin + i * cell, z = bb.yMin + j * cell;
+                verts.Add(new Vector3(x - centre.x, 0, z - centre.y));
+                colors.Add(new Color(0, feather == null ? -1f : Mathf.Lerp(-1f, 1f, feather(x, z)), 0, 1));
+            }
             return v;
         }
         for (int i = 0; i < nx - 1; i++)
             for (int j = 0; j < nz - 1; j++)
             {
-                // keep a quad when any corner is inside: the grown outline is covered without holes
-                if (!(inside[i, j] || inside[i + 1, j] || inside[i, j + 1] || inside[i + 1, j + 1])) continue;
-                float x0 = bb.xMin + i * cell, z0 = bb.yMin + j * cell;
-                if (!(wet(x0, z0) || wet(x0 + cell, z0) || wet(x0, z0 + cell) || wet(x0 + cell, z0 + cell))) continue;   // dry: the terrain covers it
+                // keep a quad when any corner is reached: the wet area is covered without holes, its edge tucks under the banks
+                if (!(reached[i, j] || reached[i + 1, j] || reached[i, j + 1] || reached[i + 1, j + 1])) continue;
                 int a = V(i, j), b = V(i + 1, j), c = V(i + 1, j + 1), d = V(i, j + 1);
                 tris.AddRange(new[] { a, d, c, a, c, b });
             }
         var mesh = new Mesh { name = name, indexFormat = verts.Count > 65000 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16 };
         mesh.SetVertices(verts);
+        mesh.SetColors(colors);
         mesh.SetTriangles(tris, 0);
         mesh.SetNormals(Enumerable.Repeat(Vector3.up, verts.Count).ToList());
         mesh.SetUVs(0, verts.Select(v => new Vector2(v.x, v.z)).ToList());
@@ -1337,6 +1749,7 @@ public static class MeadowHomeLayout
         existing.indexFormat = mesh.indexFormat;
         existing.SetVertices(mesh.vertices);
         existing.SetNormals(mesh.normals);
+        if (mesh.colors.Length == mesh.vertexCount) existing.SetColors(mesh.colors);
         existing.SetUVs(0, mesh.uv);
         existing.SetTriangles(mesh.triangles, 0);
         existing.RecalculateBounds();
@@ -1398,12 +1811,18 @@ public static class MeadowHomeLayout
         WaterToggle(still, "_RefractionOn", "_REFRACTION", true);
         still.SetFloat("_RefractionStrength", 0.15f);
         still.SetFloat("_ShadingMode", 1f); CoreUtils.SetKeyword(still, "_ADVANCED_SHADING", true);
+        still.SetFloat("_VertexColorTransparency", 1f);   // the flat meshes feather out under river ribbons (green channel)
 
         var river = CopyMaterial(SW3 + "Materials/RiverModeler/StylizedWater3_SplineRiver (Default).mat", WaterFolder + "/MH_Water_River.mat");
-        river.SetColor("_BaseColor", new Color(0.00f, 0.41f, 0.50f, 0.98f));
-        river.SetColor("_ShallowColor", new Color(0.10f, 0.78f, 0.75f, 0.30f));
-        river.SetFloat("_DepthVertical", 7f);
-        river.SetFloat("_DepthHorizontal", 0.5f);
+        // shaded like the still water (colours, horizon, no waves, refraction, reflections, translucency), so the ribbon
+        // fading out over the lake shows no seam; only the flow normals, speeds and river foam stay river-specific
+        foreach (var c in new[] { "_BaseColor", "_ShallowColor", "_HorizonColor" }) river.SetColor(c, still.GetColor(c));
+        foreach (var f in new[] { "_HorizonDistance", "_DepthVertical", "_DepthHorizontal", "_RefractionStrength", "_ReflectionFresnel", "_ReflectionDistortion",
+            "_ScreenSpaceReflectionsEnabled", "_SunReflectionSize", "_SunReflectionDistortion", "_ShadowStrength", "_EdgeFade" })
+            if (river.HasProperty(f) && still.HasProperty(f)) river.SetFloat(f, still.GetFloat(f));
+        WaterToggle(river, "_WavesOn", "_WAVES", false);
+        river.SetFloat("_WaveTint", 0f);
+        WaterToggle(river, "_TranslucencyOn", "_TRANSLUCENCY", still.GetFloat("_TranslucencyOn") > 0.5f);
         WaterToggle(river, "_RiverModeOn", "_RIVER", true);
         river.SetFloat("_RiverModeLegacy", 0f);
         river.SetFloat("_ZWrite", 0f);
@@ -1425,8 +1844,14 @@ public static class MeadowHomeLayout
         still.SetFloat("_NormalSpeed", 1.0f);
         still.SetFloat("_NormalSubSpeed", -0.5f);
 
-        foreach (var m in new[] { still, river }) { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
-        return new[] { AssetDatabase.GetAssetPath(still), AssetDatabase.GetAssetPath(river) };
+        // the home pond after Komorebi's Water_1: warm cream shallows over the sand, the same teal in the deep
+        var pond = CopyMaterial(SW3 + "Materials/StylizedWater3_Smooth.mat", WaterFolder + "/MH_Water_Pond.mat");
+        pond.CopyPropertiesFromMaterial(still);
+        pond.SetColor("_ShallowColor", new Color(0.98f, 0.93f, 0.84f, 0.45f));
+        pond.SetFloat("_DepthVertical", 5.7f);
+
+        foreach (var m in new[] { still, river, pond }) { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
+        return new[] { AssetDatabase.GetAssetPath(still), AssetDatabase.GetAssetPath(river), AssetDatabase.GetAssetPath(pond) };
     }
 
     static void WaterToggle(Material m, string property, string keyword, bool on)
@@ -1452,10 +1877,12 @@ public static class MeadowHomeLayout
         var water = env.transform.Find("Water");
         if (water == null) { water = new GameObject("Water").transform; water.SetParent(env.transform, false); }
         var old = water.Find(child);
+        int sibling = old != null ? old.GetSiblingIndex() : -1;
         if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
         var go = new GameObject(child);
         Undo.RegisterCreatedObjectUndo(go, "Water");
         go.transform.SetParent(water, false);
+        if (sibling >= 0) go.transform.SetSiblingIndex(sibling);
         return go.transform;
     }
 
@@ -1464,19 +1891,42 @@ public static class MeadowHomeLayout
     {
         var terrain = Terrain.activeTerrain;
         var mat = AssetDatabase.LoadAssetAtPath<Material>(WaterFolder + "/MH_Water_Still.mat") ?? throw new InvalidOperationException("Run BuildWaterMaterials first.");
+        var pondMat = AssetDatabase.LoadAssetAtPath<Material>(WaterFolder + "/MH_Water_Pond.mat");
         var group = WaterGroup("Still Water");
         var bodies = Basins.Select(b => (b.name, b.shore, b.level)).Concat(new[] { (name: "Swamp", shore: SwampArea, level: SwampWater) });
         var report = new List<string>();
         foreach (var b in bodies)
         {
-            // wet = low enough to hold this water, and not inside a lower river/stream channel (those carry their own ribbon)
-            bool Wet(float x, float z) => terrain.SampleHeight(new Vector3(x, 0, z)) <= b.level - 0.02f && !LowerChannel(new Vector2(x, z), b.level);
-            var mesh = FlatWaterMesh("MH_" + b.name, b.shore, 8f, 2f, Wet);
+            // wet = low enough to hold this water and, beyond the shore, not inside a lower river/stream channel nor up the
+            // channel of a line that runs on into this body (that line's ribbon carries the water; a flat sheet running up the
+            // river ended in an arc across it). Inside the shore the basin's surface always holds: the lower-channel test
+            // reaches a wide outflow's half width + 3 m and cut the home pond's sheet in a hard grid staircase 8 m inside.
+            var feeding = Lines.Where(l => SignedDistance(new Vector2(l.pts[0].x, l.pts[0].y), b.shore) < -5f || SignedDistance(new Vector2(l.pts[^1].x, l.pts[^1].y), b.shore) < -5f).ToArray();
+            bool Wet(float x, float z)
+            {
+                var p = new Vector2(x, z);
+                if (terrain.SampleHeight(new Vector3(x, 0, z)) > b.level - 0.02f) return false;
+                if (SignedDistance(p, b.shore) <= 0) return true;
+                return !LowerChannel(p, b.level) && !feeding.Any(l => LineBounds(l).Contains(p) && TrueLineEdge(p, l) < 0.5f);
+            }
+            // fade the sheet out under a channel that runs on into it, near the shore crossing: the ribbon is opaque there,
+            // and neither surface then ends in a hard edge the other shows through
+            float Feather(float x, float z)
+            {
+                var p = new Vector2(x, z);
+                float e = float.MaxValue;
+                foreach (var l in feeding) if (LineBounds(l).Contains(p)) e = Mathf.Min(e, TrueLineEdge(p, l));
+                return e > 2f ? 0 : (1 - SmoothStep(-1f, 1.5f, e)) * SmoothStep(-9f, -1f, SignedDistance(p, b.shore));
+            }
+            var mesh = FlatWaterMesh("MH_" + b.name, b.shore, 8f, 2f, Wet, Feather);
             mesh = SaveMesh(mesh);
-            var wo = WaterObject.New(mat, mesh);
+            var wo = WaterObject.New(b.name == "WaterfallPond" && pondMat != null ? pondMat : mat, mesh);
             Undo.RegisterCreatedObjectUndo(wo.gameObject, "Water");
             wo.name = b.name;
             wo.transform.SetParent(group, false);
+            // ribbons must draw over flat water where they fade out; the river material's queue (3002) does that today, this
+            // keeps it true if the queue changes
+            foreach (var r in wo.GetComponentsInChildren<Renderer>()) r.sortingOrder = -10;
             var c = Centroid(b.shore);
             wo.transform.position = new Vector3(c.x, b.level, c.y);   // transform Y = water level (SW3 height queries read it)
             report.Add($"{b.name}: level {b.level}, {mesh.vertexCount} verts");
@@ -1500,40 +1950,58 @@ public static class MeadowHomeLayout
         return false;
     }
 
-    // Rivers and streams as RiverModeler ribbons. Each line is trimmed to start/end a few metres inside the pond, lake or
-    // swamp it connects to, so the faded ends blend into the flat water instead of stacking two transparent surfaces.
+    // Rivers and streams as RiverModeler ribbons. Where a line runs on into a lake, pond or swamp, its ribbon stops a few
+    // metres past the shore and fades out over that water (rivers 13 m, streams 5 m), so the two surfaces blend.
+    // West and Margin streams meet end to end and are one ribbon, so their junction with the swamp outlet stays opaque; the
+    // forest stream and the swamp outlet fade in and out over it. (Linking their knots made SW3 blend away a whole segment.)
     public static object BuildRivers()
     {
         var mat = AssetDatabase.LoadAssetAtPath<Material>(WaterFolder + "/MH_Water_River.mat") ?? throw new InvalidOperationException("Run BuildWaterMaterials first.");
         var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(SW3 + "Runtime/RiverModeler/VFX/River Foam VFX.vfx");
         var group = WaterGroup("Rivers");
         var built = new List<string>();
-        var river = Lines.First(l => l.name == "River");
-        built.Add(BuildRiverGroup(group, "River", new[] { Trim(river) }, mat, vfx, 16f, 2f, 2f, 0f, 1.5f, false));
-        var streams = Lines.Where(l => l.name != "River").Select(Trim).Where(k => k.Length >= 2).ToArray();
-        built.Add(BuildRiverGroup(group, "Streams", streams, mat, vfx, 5f, 0.75f, 1f, 0.15f, 0.75f, true));
+        Line L(string n) => Lines.First(l => l.name == n);
+        // the river starts well inside the home pond and fades in over 8 m, so its opaque part covers the pond sheet's grid edge across the outlet
+        built.Add(BuildRiverGroup(group, "River", new[] { Trim(L("River").pts, 13f, 16f) }, mat, vfx, 30f, 2.5f, 2f, 0f, 2f, false, 8f, 13f, 100f));
+        built.Add(BuildRiverGroup(group, "Outlet", new[] { Trim(L("Outlet").pts, 16f, 3f) }, mat, vfx, 30f, 2.5f, 2f, 0f, 2f, false, 13f, 4f, 100f));
+        var westMargin = Trim(L("WestStream").pts.Concat(L("MarginStream").pts.Skip(1)).ToArray(), 8f, 8f);
+        var streams = new[] { westMargin, Trim(L("ForestStream").pts, 8f, 8f), Trim(L("NorthStream").pts, 8f, 8f), Trim(L("SwampOutlet").pts, 8f, 8f) };
+        // one segment pair per stream (SW3 splits every spline into max(2, length / maxSegmentLength) segments and scales the
+        // tip fade by that count), so the fades are the same 5 m on every stream
+        built.Add(BuildRiverGroup(group, "Streams", streams, mat, vfx, 12f, 1.5f, 1f, 0.15f, 1f, true, 5f, 5f, 1000f));
         EditorSceneManager.MarkSceneDirty(group.gameObject.scene);
         return built;
     }
 
-    // Drops knots that lie more than `overlap` metres inside a flat water body (ponds, lake, swamp), keeping one knot inside.
-    static Vector4[] Trim(Line l)
+    // Ribbon knots for a line. Where an end lies inside a lake, pond or swamp, the ribbon stops keepStart/keepEnd metres
+    // (along the line) past the shoreline crossing. Distance to the nearest shore is no good here: the flared river mouth
+    // runs along the north shore and stayed "near the shore" 36 m out into the lake.
+    static Vector4[] Trim(Vector4[] pts, float keepStart, float keepEnd)
     {
-        const float overlap = 3f;
-        bool Deep(Vector4 k)
+        bool Inside(Vector4 k) { var p = new Vector2(k.x, k.y); return Basins.Any(b => SignedDistance(p, b.shore) < 0) || SignedDistance(p, SwampArea) < 0; }
+        var arc = new float[pts.Length];
+        for (int i = 1; i < pts.Length; i++) arc[i] = arc[i - 1] + Vector2.Distance(new Vector2(pts[i - 1].x, pts[i - 1].y), new Vector2(pts[i].x, pts[i].y));
+        int first = 0, last = pts.Length - 1;
+        if (Inside(pts[^1]))
         {
-            var p = new Vector2(k.x, k.y);
-            return Basins.Any(b => SignedDistance(p, b.shore) < -overlap) || SignedDistance(p, SwampArea) < -overlap;
+            int c = pts.Length - 1;
+            while (c > 0 && Inside(pts[c - 1])) c--;                                  // first knot in the water: the crossing
+            while (last > c && arc[last - 1] >= arc[c] + keepEnd) last--;
         }
-        int first = 0, last = l.pts.Length - 1;
-        while (first < last && Deep(l.pts[first + 1]) && Deep(l.pts[first])) first++;
-        while (last > first && Deep(l.pts[last - 1]) && Deep(l.pts[last])) last--;
-        // every carved knot: a decimated spline drifts off the channel on curves and exposes a strip of bed
-        return l.pts.Skip(first).Take(last - first + 1).ToArray();
+        if (Inside(pts[0]))
+        {
+            int c = 0;
+            while (c < pts.Length - 1 && Inside(pts[c + 1])) c++;
+            while (first < c && arc[first + 1] <= arc[c] - keepStart) first++;
+        }
+        // every carved knot in between: a decimated spline drifts off the channel on curves and exposes a strip of bed
+        return pts.Skip(first).Take(last - first + 1).ToArray();
     }
 
+    // startFade/endFade: metres of alpha fade at the first and last knot.
     static string BuildRiverGroup(Transform parent, string name, Vector4[][] lines, Material mat, VisualEffectAsset vfx,
-        float baseWidth, float widthEdge, float minEdge, float displacement, float widthFalloff, bool cascadeParticles)
+        float baseWidth, float widthEdge, float minEdge, float displacement, float widthFalloff, bool cascadeParticles, float startFade, float endFade,
+        float maxSegmentLength)
     {
         var go = new GameObject(name);
         Undo.RegisterCreatedObjectUndo(go, "Water");
@@ -1564,10 +2032,13 @@ public static class MeadowHomeLayout
         s.foam.cascadeParticleSize = 1f;
         s.foam.enableSplashParticles = false;
         s.foam.velocityStrength = 0.45f;   // foam VFX drift, matches the slower material flow
-        s.output.maxSegmentLength = 100f;
-        int segments = Mathf.Max(2, Mathf.CeilToInt(container.Splines.Max(sp => sp.GetLength()) / s.output.maxSegmentLength));
-        s.transparency.startGradientFalloff = 3f / segments;       // applied per segment: ~3 m visible fade at each end
-        s.transparency.endGradientFalloff = 3f / segments;
+        s.output.maxSegmentLength = maxSegmentLength;
+        // SW3 evaluates the tip fade per segment against the whole spline's t, so one unit spans `segments` metres
+        // (its own count: max(2, rounded strip length / max segment length), RiverModeler.Rebuild)
+        float strip = Mathf.Clamp(minEdge, 0.1f, maxSegmentLength);
+        int segments = Mathf.Max(2, Mathf.CeilToInt(Mathf.Round(container.Splines.Max(sp => sp.GetLength()) / strip) * strip / Mathf.Max(maxSegmentLength, strip)));
+        s.transparency.startGradientFalloff = startFade / segments;
+        s.transparency.endGradientFalloff = endFade / segments;
         s.transparency.widthGradientFalloff = widthFalloff;
         s.output.boxTriggers = false;
         s.output.collider = false;
@@ -1611,14 +2082,18 @@ public static class MeadowHomeLayout
     public static readonly Vector2[][] Trails =
     {
         new[] { V(338,292), V(335,312), V(324,336), V(311,352) },                                                  // home gate -> bridge
-        new[] { V(316,371), V(324,392), V(344,428), V(372,462), V(404,489), V(440,506), V(480,532), V(520,560), V(552,592), V(574,620) }, // forest -> swamp fringe
-        new[] { V(344,428), V(318,468), V(298,506), V(286,540), V(278,566), V(268,592), V(248,614), V(216,628) },   // highlands spur -> west pond
-        new[] { V(352,262), V(392,253), V(440,249), V(488,246), V(528,244) },                                       // meadow -> lakeside viewpoint
+        new[] { V(316,371), V(324,392), V(344,428), V(372,462), V(404,489), V(440,506), V(480,532), V(520,560), V(552,592), V(574,620), V(588,644), V(598,668), V(606,692) }, // forest -> swamp fringe
+        new[] { V(344,428), V(318,468), V(298,506), V(286,540), V(278,566), V(268,592), V(248,612), V(232,614) },   // highlands spur -> west pond
+        new[] { V(352,262), V(392,252), V(440,240), V(480,224), V(512,206) },                                       // meadow -> lakeside viewpoint
         new[] { V(372,462), V(420,446), V(470,430), V(520,410), V(565,392), V(600,378), V(626,362) },               // forest -> north lake shore
     };
 
-    // Lake beach coves (sand instead of pebbles): (centre, radius).
-    static readonly (Vector2 c, float r)[] SandCoves = { (V(540,262), 42f), (V(612,236), 30f), (V(700,214), 34f), (V(222,412), 16f) };
+    // Lake beach coves (sand instead of pebbles): (centre, radius). None at the river mouth: a pale sandbar there made the
+    // dark river channel look as if it stopped short of the lake.
+    static readonly (Vector2 c, float r)[] SandCoves =
+    {
+        (V(548,172), 24f), (V(700,106), 40f), (V(830,136), 32f), (V(922,330), 30f), (V(612,128), 26f), (V(282,433), 17f), (V(262,418), 9f), (V(620,170), 14f),
+    };
 
     public static float SandWeight(Vector2 p)
     {
@@ -1661,13 +2136,14 @@ public static class MeadowHomeLayout
                 maps["Swamp"][k] = Weight(SignedDistance(p, SwampArea) + 6f * Fbm(x / 30f, z / 30f + 3f, 3), 14);
 
                 // water bodies: same noisy shoreline as the height field
-                float shore = 0, bed = 0, sand = 0;
+                float shore = 0, bed = 0, sand = 0, inBasin = 1;
                 float groundH = HeightAt(x, z, out _);
                 foreach (var b in Basins)
                 {
                     if (b.bounds.width == 0) b.bounds = Bounds(b.shore.Select(v => new Vector4(v.x, v.y, 0, 0)), 120);
                     if (!b.bounds.Contains(p)) continue;
                     float d = SignedDistance(p, b.shore) + 3.5f * Fbm(x / 22f + b.level, z / 22f, 3);
+                    inBasin = Mathf.Min(inBasin, SmoothStep(-6f, 1f, d));
                     if (d > 12f) continue;
                     // by height, so islands and coves follow the real waterline
                     float rel = groundH - b.level;
@@ -1677,7 +2153,9 @@ public static class MeadowHomeLayout
                 }
                 foreach (var cove in SandCoves)
                     sand = Mathf.Max(sand, 1 - SmoothStep(cove.r * 0.55f, cove.r, Vector2.Distance(p, cove.c) + 6f * Fbm(x / 14f, z / 14f, 2)));
-                maps["Shore"][k] = shore;
+                // pebbles in patches only: grass meets the water on most of the shore, as in the Raygeas demos
+                float pebblePatch = SmoothStep(-0.05f, 0.2f, Fbm(x / 16f, z / 16f + 61f, 2));
+                maps["Shore"][k] = shore * pebblePatch;
                 maps["Bed"][k] = bed;
                 maps["Sand"][k] = shore * sand;
 
@@ -1685,10 +2163,11 @@ public static class MeadowHomeLayout
                 float edge = float.MaxValue;
                 foreach (var l in Lines) edge = Mathf.Min(edge, TrueLineEdge(p, l));
                 float wobble = 1.2f * Fbm(x / 7f + 2f, z / 7f, 2);
-                maps["Channel"][k] = 1 - SmoothStep(-1.6f, 0.1f + 0.4f * wobble, edge);
+                // channel textures stop at the shore (inBasin): a dark mud finger through the pale shelf marked where the river ended
+                maps["Channel"][k] = (1 - SmoothStep(-1.6f, 0.1f + 0.4f * wobble, edge)) * inBasin;
                 // banks: a thin ragged wet band that breaks up, so grass reaches the water on long stretches
                 float patch = SmoothStep(-0.15f, 0.3f, Fbm(x / 16f, z / 16f + 40f, 3));
-                float bankBand = SmoothStep(-0.6f, 0.2f, edge) * (1 - SmoothStep(0.5f + 0.5f * wobble, 1.4f + 1.0f * Mathf.Abs(wobble) + 1.2f * patch, edge));
+                float bankBand = SmoothStep(-0.6f, 0.2f, edge) * (1 - SmoothStep(0.5f + 0.5f * wobble, 1.4f + 1.0f * Mathf.Abs(wobble) + 1.2f * patch, edge)) * inBasin;
                 maps["Bank"][k] = bankBand * (0.35f + 0.65f * patch);
                 maps["BankPebble"][k] = bankBand * SmoothStep(0.1f, 0.35f, Fbm(x / 9f, z / 9f + 77f, 2));
 
@@ -1874,7 +2353,7 @@ public static class MeadowHomeLayout
                 float d = Vector2.Distance(p, new Vector2(a.x, a.y) + ab * t) - Mathf.Lerp(a.w, b.w, t);
                 if (d < e) { e = d; s = Mathf.Lerp(a.z, b.z, t); }
             }
-            if (e < 6f && e < best) { best = e; surface = s; kind = l.name == "River" ? 1 : 2; }
+            if (e < 6f && e < best) { best = e; surface = s; kind = IsRiver(l) ? 1 : 2; }
         }
         return (surface, kind);
     }
@@ -1892,12 +2371,42 @@ public static class MeadowHomeLayout
         return new Vector4(wForest, wMeadow, wHigh, wSwamp);
     }
 
-    // Distance to the real waterline (noisy basin shores and channel widths) for masks and dressing.
+    // Distance to the real waterline (noisy basin shores, islands and channel widths) for masks and dressing.
     public static float WaterEdgeDistancePublic(Vector2 p)
     {
-        float best = float.MaxValue;
-        foreach (var b in Basins) best = Mathf.Min(best, Mathf.Max(0, SignedDistance(p, b.shore) + 3.5f * Fbm(p.x / 22f + b.level, p.y / 22f, 3)));
+        float best = BasinEdgeDistance(p);
         foreach (var l in Lines) best = Mathf.Min(best, Mathf.Max(0, TrueLineEdge(p, l)));
+        return best;
+    }
+
+    // Radius at which an island meets its water (the island profile in HeightAt without its shoreline noise).
+    public static float IslandWaterline(int i) => Islands[i].w * (0.35f + Mathf.Pow(Islands[i].z / 9f, 1f / 1.6f));
+
+    // Index of the island whose land holds p, or -1.
+    public static int IslandAt(Vector2 p)
+    {
+        for (int i = 0; i < Islands.Length; i++)
+            if (Vector2.Distance(p, new Vector2(Islands[i].x, Islands[i].y)) < IslandWaterline(i)) return i;
+        return -1;
+    }
+
+    // Distance from p to the nearest lake or pond waterline, 0 in the water. On an island it is the distance to the island's
+    // own waterline, so islands get shore grass, flowers and bushes like any bank (they used to count as open water).
+    public static float BasinEdgeDistance(Vector2 p)
+    {
+        float best = float.MaxValue;
+        foreach (var b in Basins)
+        {
+            if (b.bounds.width == 0) b.bounds = Bounds(b.shore.Select(v => new Vector4(v.x, v.y, 0, 0)), 120);
+            if (!b.bounds.Contains(p)) continue;
+            float sd = SignedDistance(p, b.shore) + 3.5f * Fbm(p.x / 22f + b.level, p.y / 22f, 3);
+            if (sd < 0)
+            {
+                int i = IslandAt(p);
+                sd = i >= 0 && IslandLevel(i) == b.level ? IslandWaterline(i) - Vector2.Distance(p, new Vector2(Islands[i].x, Islands[i].y)) : 0;
+            }
+            best = Mathf.Min(best, sd);
+        }
         return best;
     }
 
@@ -1972,8 +2481,13 @@ public static class MeadowHomeLayout
                 if (Mathf.Repeat(c, 5f) < 0.25f && ws <= c) col *= 0.8f;
                 tex.SetPixel(i, j, col);
             }
-        // playable outline + home base + bridge
+        // playable outline, regions, trails + home base + bridge
         DrawPoly(tex, Playable, o, Color.red);
+        DrawPoly(tex, SwampArea, o, new Color(0.55f, 0.32f, 0.12f));
+        DrawPoly(tex, HighlandsArea, o, Color.white);
+        DrawPoly(tex, MeadowArea, o, Color.yellow);
+        foreach (var t in Trails)
+            for (int k = 0; k < t.Length - 1; k++) DrawPoly(tex, new[] { t[k], t[k + 1] }, o, new Color(0.9f, 0.5f, 0.2f));
         Dot(tex, HomeBase, o, Color.yellow, 4);
         Dot(tex, Bridge, o, Color.magenta, 3);
         Dot(tex, Viewpoint, o, Color.cyan, 3);
@@ -2249,15 +2763,18 @@ public static class Landmarks
 
         // ---- bridge over the river, square to the flow ----
         var bridgeRoot = Child(root, "River Bridge");
-        var (pos, along) = RiverPoint(new Vector2(312, 362));
+        var (pos, along, width) = RiverPoint(MeadowHomeLayout.Bridge);
         var axis = new Vector2(-along.y, along.x);              // across the river
         float yaw = Mathf.Atan2(axis.x, axis.y) * Mathf.Rad2Deg;
-        const float scale = 1.25f;                              // 20 m span lands on the banks
-        float half = 16.1f * scale * 0.5f - 1.2f;
+        // the 16.1 m Grasslands bridge stretched along its span (local Z) to land 2 m up each bank; deck and rails keep 1.3
+        float span = 2f * (width * 1.15f + 0.8f) + 4f;
+        float spanScale = Mathf.Max(1.3f, span / 16.1f);
+        float half = 16.1f * spanScale * 0.5f - 1.2f;
         float bankA = Ground(pos + axis * half), bankB = Ground(pos - axis * half);
-        var bridge = Put(bridgeRoot, GL + "Environment/Bridge.prefab", pos, yaw, scale, 0);
+        var bridge = Put(bridgeRoot, GL + "Environment/Bridge.prefab", pos, yaw, 1.3f, 0);
+        bridge.transform.localScale = new Vector3(1.3f, 1.3f, spanScale);
         bridge.transform.position = new Vector3(pos.x, Mathf.Max(bankA, bankB) - 0.15f, pos.y);
-        log.Add($"bridge at {bridge.transform.position:F1} yaw {yaw:0} banks {bankA:0.0}/{bankB:0.0} river {pos}");
+        log.Add($"bridge at {bridge.transform.position:F1} yaw {yaw:0} span {span:0.0} m banks {bankA:0.0}/{bankB:0.0} river {pos}");
 
         // trail sign at the forest fork
         Put(Child(root, "Trail Signs"), LV + "Environment/SignPost_1.prefab", new Vector2(339, 421), 200, 1f, 0);
@@ -2435,26 +2952,26 @@ public static class Landmarks
         return new Vector2(v.x * Mathf.Cos(a) + v.y * Mathf.Sin(a), -v.x * Mathf.Sin(a) + v.y * Mathf.Cos(a));
     }
 
-    // Closest point on the river polyline (the same smoothed knots the terrain was carved with) and the flow direction there.
-    static (Vector2 pos, Vector2 along) RiverPoint(Vector2 near)
+    // Closest point on the river polyline (the same smoothed knots the terrain was carved with), the flow direction and half width there.
+    static (Vector2 pos, Vector2 along, float halfWidth) RiverPoint(Vector2 near)
     {
-        var river = MeadowHomeLayout.Lines.First(l => l.name == "River").pts.Select(k => new Vector2(k.x, k.y)).ToArray();
-        float best = float.MaxValue; Vector2 bp = near, bd = Vector2.right;
+        var river = MeadowHomeLayout.Lines.First(l => l.name == "River").pts;
+        float best = float.MaxValue, bw = 0; Vector2 bp = near, bd = Vector2.right;
         for (int i = 0; i < river.Length - 1; i++)
         {
-            var a = river[i]; var b = river[i + 1];
+            var a = new Vector2(river[i].x, river[i].y); var b = new Vector2(river[i + 1].x, river[i + 1].y);
             var ab = b - a;
             float t = Mathf.Clamp01(Vector2.Dot(near - a, ab) / ab.sqrMagnitude);
             var q = a + ab * t;
             float d = Vector2.Distance(near, q);
-            if (d < best) { best = d; bp = q; bd = ab.normalized; }
+            if (d < best) { best = d; bp = q; bd = ab.normalized; bw = Mathf.Lerp(river[i].w, river[i + 1].w, t); }
         }
-        return (bp, bd);
+        return (bp, bd, bw);
     }
 }
 
 // ---------------- Water-edge dressing (third class; same reason as Landmarks) ----------------
-// Shore stone clusters and lily groups, deterministic from a seed. Rebuilding replaces Environment/Dressing/<group>.
+// Lake, pond, swamp, bank, home pond and meadow dressing, deterministic from a seed. Rebuilding replaces Environment/Dressing/<group>.
 public static class Dressing
 {
     const string KN = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/";
@@ -2463,103 +2980,235 @@ public static class Dressing
     static float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
     static float H(Vector2 p) => terrain.SampleHeight(new Vector3(p.x, 0, p.y));
 
+    // Lake, pond and swamp shores (vendor-demo measurements in scratchpad research5/lake_shore_islands.md). The lake and the
+    // highland ponds are walked along their real waterline and each stretch is classed as cove, straight, point or beach:
+    // stones come in groups of 2-5 with about half of each stretch bare (Grasslands, ref 7), coves get more stones, reeds
+    // and lilies, points get a few big rocks standing in the water, beaches only pebbles and driftwood. Lilies (and two
+    // Grasslands lotus clusters) grow in clusters, mostly in coves; a few hero trees lean over the water from coves and
+    // points. The swamp keeps loose stone clusters and scattered lilies. The home pond has its own builder (BuildHomePond).
     public static object BuildWaterEdges(int seed)
     {
         terrain = Terrain.activeTerrain;
         rng = new System.Random(seed);
+        const string GLR = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Rocks/";
+        const string GV = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
+        const string HLF = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/Forest/";
         var root = Group("Water Edges");
-        var stones = new GameObject("Shore Stones").transform; stones.SetParent(root, false);
-        var lilies = new GameObject("Lilies").transform; lilies.SetParent(root, false);
-        var pebbles = new GameObject("Pebbles").transform; pebbles.SetParent(root, false);
+        Transform Sub(string n) { var t = new GameObject(n).transform; t.SetParent(root, false); return t; }
+        var stones = Sub("Shore Stones"); var lilies = Sub("Lilies"); var pebbles = Sub("Pebbles"); var trees = Sub("Shore Trees"); var wood = Sub("Driftwood");
         var placed = new List<Vector3>();   // x, z, radius
         bool Free(Vector2 p, float r) => placed.All(q => (new Vector2(q.x, q.y) - p).sqrMagnitude > (q.z + r) * (q.z + r));
-        int nStones = 0, nLilies = 0, nPebbles = 0;
+        Quaternion Tilted(float lo, float hi) => Quaternion.Euler(R(-1, 1) * R(lo, hi), R(0, 360), R(-1, 1) * R(lo, hi));
+        Quaternion Upright() => Quaternion.Euler(0, R(0, 360), 0);
+        int nStones = 0, nLilies = 0, nPebbles = 0, nTrees = 0, nWood = 0;
+        var fallAt = new Vector2(206, 433);
 
-        // shoreline samples: points where the terrain crosses the local water surface
-        var shore = new List<(Vector2 p, float s, float scale)>();
-        for (int i = 0; i < 260000 && shore.Count < 9000; i++)
+        // ---- walked shores: (point on the waterline, direction into the water, class, arc position) ----
+        float LandFraction(Vector2 p, float level)
         {
-            var p = new Vector2(R(160, 860), R(190, 860));
-            var (s, kind) = MeadowHomeLayout.WaterSurfaceAt(p);
-            if (float.IsNegativeInfinity(s)) continue;
-            float h = H(p);
-            if (h < s - 0.45f || h > s + 0.35f) continue;
-            if (kind != 0) continue;                                     // rivers and streams: BuildBanks walks their banks
-            float scale = 1f;
-            shore.Add((p, s, scale));
+            int land = 0;
+            for (int k = 0; k < 12; k++) { float a = k * Mathf.PI / 6; if (H(p + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 15f) > level) land++; }
+            return land / 12f;
         }
-
-        // stone clusters: 1 anchor + 3-12 companions within ~6 m, every 25-45 m of shoreline on average
-        var centres = new List<Vector2>();
-        foreach (var c in shore.OrderBy(_ => rng.Next()))
+        var walked = new List<(Vector2 p, Vector2 n, string body, float level, char cls, float arc)>();
+        foreach (var b in MeadowHomeLayout.Basins.Where(b => b.name != "WaterfallPond"))
         {
-            if (centres.Any(q => (q - c.p).sqrMagnitude < 26f * 26f)) continue;
-            if (rng.NextDouble() < 0.35) { centres.Add(c.p); continue; }   // leave some shore bare
-            centres.Add(c.p);
-            int n = 3 + rng.Next(10);
-            var members = shore.Where(q => (q.p - c.p).sqrMagnitude < 7f * 7f).OrderBy(_ => rng.Next()).Take(n + 1).ToList();
-            for (int k = 0; k < members.Count; k++)
+            var poly = b.shore;
+            var cum = new float[poly.Length + 1];
+            for (int i = 0; i < poly.Length; i++) cum[i + 1] = cum[i] + Vector2.Distance(poly[i], poly[(i + 1) % poly.Length]);
+            for (float s = 0; s < cum[^1]; s += 1.5f)
             {
-                var m = members[k];
-                float sc = (k == 0 ? R(2.6f, 4.4f) : R(1.3f, 2.8f)) * m.scale;
-                float rad = 0.45f * sc;
-                if (!Free(m.p, rad * 0.8f)) continue;
-                string path = KN + "Rocks/SmallStone_" + (1 + rng.Next(4)) + ".prefab";
-                var go = Put(stones, path, new Vector3(m.p.x, H(m.p) - R(0.05f, 0.35f) * sc * 0.4f, m.p.y), Quaternion.Euler(R(-18, 18), R(0, 360), R(-18, 18)), sc);
-                placed.Add(new Vector3(m.p.x, m.p.y, rad));
-                nStones++;
-                // a few pebbles around each stone
-                for (int j = 0; j < 2 + rng.Next(3); j++)
+                int i = Mathf.Clamp(Array.FindLastIndex(cum, c => c <= s), 0, poly.Length - 1);
+                var a = poly[i]; var bb = poly[(i + 1) % poly.Length];
+                var q = Vector2.Lerp(a, bb, (s - cum[i]) / Mathf.Max(1e-3f, cum[i + 1] - cum[i]));
+                var tan = (bb - a).normalized; var outward = new Vector2(tan.y, -tan.x);
+                if (MeadowHomeLayout.SignedDistance(q + outward * 2f, poly) < 0) outward = -outward;
+                for (float d = -9f; d <= 9f; d += 0.25f)
                 {
-                    var q = m.p + new Vector2(R(-2.2f, 2.2f), R(-2.2f, 2.2f)) * m.scale;
-                    float qs = R(0.6f, 1.2f) * m.scale;
-                    if (!Free(q, 0.2f * qs)) continue;
-                    Put(pebbles, KN + "Rocks/SmallStone_" + (5 + rng.Next(2)) + ".prefab", new Vector3(q.x, H(q) - 0.04f, q.y), Quaternion.Euler(R(-6, 6), R(0, 360), R(-6, 6)), qs);
-                    nPebbles++;
+                    var w = q + outward * d;
+                    if (H(w) <= b.level) continue;
+                    if (d > -9f && MeadowHomeLayout.WaterSurfaceAt(w).kind == 0)          // not a river or stream mouth
+                    {
+                        float lf = LandFraction(w, b.level);
+                        char cls = MeadowHomeLayout.SandWeight(w) > 0.4f ? 'b' : lf > 0.6f ? 'c' : lf < 0.4f ? 'p' : 's';
+                        walked.Add((w, -outward, b.name, b.level, cls, s));
+                    }
+                    break;
                 }
             }
         }
 
-        // lilies: calm water 0.9-2.2 m deep, as in the Komorebi demo, so the hanging stems end in the bed; clustered,
-        // none near the waterfall plunge. The river mouth is slow enough for a few groups.
-        var fallAt = new Vector2(206, 433);
-        foreach (var (name, centre, radius, count) in new[] { ("pond", new Vector2(222, 426), 24f, 7), ("swamp", new Vector2(660, 705), 140f, 34), ("lake", new Vector2(640, 330), 170f, 16), ("westpond", new Vector2(192, 640), 18f, 4), ("northpond", new Vector2(386, 806), 34f, 6), ("mouth", new Vector2(512, 291), 24f, 10) })
+        // ---- stone groups (lake: Grasslands round stones as anchors; highland ponds: HIGHLANDS stones) ----
+        var centres = new List<Vector2>();
+        foreach (var (p, n, body, level, cls, arc) in walked.OrderBy(_ => rng.Next()))
         {
-            int made = 0;
-            for (int i = 0; i < 4000 && made < count; i++)
+            bool highland = body != "GreatLake";
+            float spacing = highland ? R(8, 12) : R(12, 16);
+            if (centres.Any(c => (c - p).sqrMagnitude < spacing * spacing)) continue;
+            centres.Add(p);
+            double skip = cls == 'c' ? 0.2 : cls == 'b' ? 1.0 : cls == 'p' ? 0.6 : highland ? 0.3 : 0.45;
+            if (rng.NextDouble() < skip) continue;
+            if (cls == 'p' && !highland)
+            {
+                // points: 1-3 big rocks standing in 0.3-1.5 m of water
+                for (int k = 0, t = 0; k < 1 + rng.Next(3) && t < 30; t++)
+                {
+                    var q = p + n * R(1f, 6f) + new Vector2(-n.y, n.x) * R(-4, 4);
+                    float depth = level - H(q);
+                    if (depth < 0.3f || depth > 1.5f || !Free(q, 1.8f)) continue;
+                    bool kn = rng.Next(2) == 0;
+                    float sc = kn ? R(0.9f, 1.4f) : R(1.3f, 1.8f);
+                    string path = kn ? KN + "Rocks Grass/Stone_" + new[] { 2, 5, 6, 8 }[rng.Next(4)] + ".prefab" : GLR + (rng.Next(2) == 0 ? "Stone_9.prefab" : "Stone_7.prefab");
+                    Put(stones, path, new Vector3(q.x, H(q) - R(0.3f, 0.6f) * sc, q.y), Tilted(4, 14), sc);
+                    placed.Add(new Vector3(q.x, q.y, 1.6f * sc)); k++; nStones++;
+                }
+                continue;
+            }
+            int count = cls == 'c' ? 3 + rng.Next(4) : 2 + rng.Next(4);
+            for (int k = 0, t = 0; k < count && t < 40; t++)
+            {
+                double u = rng.NextDouble();
+                float off = u < 0.55 ? R(-0.5f, 0.6f) : u < 0.85 ? R(1f, 4f) : R(-3f, -0.5f);   // + = into the water
+                var q = p + n * off + new Vector2(-n.y, n.x) * R(-2.5f, 2.5f);
+                string path; float sc;
+                if (highland) { path = HLF + "Stone_" + (2 + rng.Next(3)) + ".prefab"; sc = R(1.0f, 1.6f); }
+                else if (k == 0 && rng.NextDouble() < 0.6) { path = GLR + "Stone_" + (7 + rng.Next(3)) + ".prefab"; sc = R(0.7f, 1.3f); }
+                else { path = KN + "Rocks/SmallStone_" + (1 + rng.Next(3)) + ".prefab"; sc = R(1.5f, 2.8f); }
+                float r = 0.4f * sc;
+                if (!Free(q, r * 0.8f)) continue;
+                Put(stones, path, new Vector3(q.x, H(q) - R(0.15f, 0.35f) * (path.Contains("Small") ? 1f : sc), q.y), Tilted(9, 20), sc);
+                placed.Add(new Vector3(q.x, q.y, r)); k++; nStones++;
+            }
+            // a pebble group in coves and on beaches
+            if (cls == 'c' || rng.NextDouble() < 0.3)
+                for (int j = 0; j < 5 + rng.Next(7); j++)
+                {
+                    var q = p + new Vector2(R(-2.5f, 2.5f), R(-2.5f, 2.5f));
+                    float qs = R(1.2f, 1.6f);
+                    if (!Free(q, 0.2f * qs)) continue;
+                    Put(pebbles, highland ? KN + "Rocks/SmallStone_" + (5 + rng.Next(2)) + ".prefab" : GLR + "Small_Stone_" + (6 + rng.Next(3)) + ".prefab", new Vector3(q.x, H(q) - 0.04f, q.y), Tilted(0, 6), qs);
+                    nPebbles++;
+                }
+        }
+
+        // ---- hero shore trees: one per ~200 m of lake shore, 2-5 m from the water, on coves and points ----
+        var lakeShore = walked.Where(w => w.body == "GreatLake" && w.cls != 'b').OrderBy(w => w.cls == 's' ? 1 : 0).ThenBy(_ => rng.Next()).ToList();   // coves and points first
+        var heroes = new List<Vector2>();
+        foreach (var (p, n, body, level, cls, arc) in lakeShore)
+        {
+            if (heroes.Count >= 8) break;
+            if (heroes.Any(h => (h - p).sqrMagnitude < 90f * 90f)) continue;
+            var q = p - n * R(2f, 5f);
+            if (H(q) < level + 0.3f || MeadowHomeLayout.TrailDistancePublic(q) < 3f || !Free(q, 3f)) continue;
+            int kind = rng.Next(10);
+            string path = kind < 4 ? KN + "Nature/PineTree_4.prefab" : kind < 8 ? GV + "Broadleaf_Medium_2.prefab" : KN + "Nature/Sakura_" + (1 + rng.Next(2)) + ".prefab";
+            // lean the crown out over the water
+            var lean = Quaternion.AngleAxis(R(4f, 9f), new Vector3(n.y, 0, -n.x)) * Upright();
+            Put(trees, path, new Vector3(q.x, H(q) - 0.2f, q.y), lean, R(1.0f, 1.25f));
+            heroes.Add(p); placed.Add(new Vector3(q.x, q.y, 3f)); nTrees++;
+        }
+
+        // ---- driftwood: one spot per ~250 m of lake shore, a log and branches, half in the water ----
+        var spots = new List<Vector2>();
+        foreach (var (p, n, body, level, cls, arc) in walked.Where(w => w.body == "GreatLake" && w.cls != 'c').OrderBy(_ => rng.Next()))
+        {
+            if (spots.Count >= 6) break;
+            if (spots.Any(s => (s - p).sqrMagnitude < 200f * 200f) || !Free(p, 3f)) continue;
+            spots.Add(p);
+            var q = p + n * R(-1f, 1f);
+            Put(wood, HLF + "Log_" + (1 + rng.Next(2)) + ".prefab", new Vector3(q.x, H(q) - 0.1f, q.y), Quaternion.Euler(R(-3, 3), R(0, 360), R(-3, 3)), R(0.9f, 1.2f));
+            for (int k = 0; k < 3 + rng.Next(3); k++)
+            {
+                var b = p + n * R(-2f, 6f) + new Vector2(-n.y, n.x) * R(-4f, 4f);
+                Put(wood, GV + new[] { "Branch_1.prefab", "Big_Branch_1.prefab", "Big_Branch_2.prefab", "Branch_2.prefab" }[rng.Next(4)], new Vector3(b.x, Mathf.Max(H(b) - 0.05f, level - 0.15f), b.y), Quaternion.Euler(R(-4, 4), R(0, 360), R(-4, 4)), R(0.8f, 1.1f));
+            }
+            placed.Add(new Vector3(p.x, p.y, 4f)); nWood++;
+        }
+
+        // ---- lilies in clusters: 2-7 m out in 0.9-2.2 m of water, 60% in coves; two lake clusters are Grasslands lotus ----
+        void Clusters(string body, int wanted, int lotusClusters, int minGroups, int maxGroups)
+        {
+            var pool = walked.Where(w => w.body == body).ToList();
+            if (pool.Count == 0) return;
+            var made = new List<Vector2>();
+            for (int tries = 0; tries < 4000 && made.Count < wanted; tries++)
+            {
+                var (p, n, _, level, cls, _) = pool[rng.Next(pool.Count)];
+                if (cls != 'c' && rng.NextDouble() < 0.6) continue;
+                var c = p + n * R(2f, 7f);
+                float depth = level - H(c);
+                if (depth < 0.9f || depth > 2.2f || MeadowHomeLayout.IslandAt(c) >= 0 || made.Any(m => (m - c).sqrMagnitude < 25f * 25f) || !Free(c, 1f)) continue;
+                bool lotus = made.Count < lotusClusters;
+                made.Add(c);
+                int count = minGroups + rng.Next(maxGroups - minGroups + 1);
+                float radius = R(3f, 6f);
+                for (int k = 0, t = 0; k < count && t < 120; t++)
+                {
+                    var q = c + new Vector2(R(-radius, radius), R(-radius, radius));
+                    float dq = level - H(q);
+                    if (dq < 0.8f || dq > 2.4f || !Free(q, 1.25f)) continue;
+                    string path = lotus ? GV + "Lotus_Group_" + (1 + rng.Next(2)) + ".prefab" : KN + "Nature/WaterLily_Group_" + (rng.NextDouble() < 0.55 ? 2 : 3) + ".prefab";
+                    Put(lilies, path, new Vector3(q.x, level + 0.028f, q.y), Upright(), R(1.0f, 1.2f));
+                    placed.Add(new Vector3(q.x, q.y, 1.3f)); k++; nLilies++;
+                }
+            }
+        }
+        Clusters("GreatLake", 13, 2, 3, 8);
+        Clusters("WestPond", 3, 0, 3, 6);
+        Clusters("NorthPond", 4, 0, 3, 6);
+
+        // ---- swamp: loose stone clusters on its sampled shore, lilies in calm open water; and a few at the river mouth ----
+        var swampShore = new List<Vector2>();
+        for (int i = 0; i < 120000 && swampShore.Count < 2500; i++)
+        {
+            var p = new Vector2(R(530, 840), R(650, 920));
+            if (MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.SwampArea) > 8f) continue;
+            float h = H(p);
+            if (h < MeadowHomeLayout.SwampWater - 0.45f || h > MeadowHomeLayout.SwampWater + 0.35f) continue;
+            swampShore.Add(p);
+        }
+        var swampCentres = new List<Vector2>();
+        foreach (var c in swampShore.OrderBy(_ => rng.Next()))
+        {
+            if (swampCentres.Any(q => (q - c).sqrMagnitude < 26f * 26f)) continue;
+            swampCentres.Add(c);
+            if (rng.NextDouble() < 0.4) continue;
+            foreach (var m in swampShore.Where(q => (q - c).sqrMagnitude < 6f * 6f).OrderBy(_ => rng.Next()).Take(3 + rng.Next(6)))
+            {
+                float sc = R(1.3f, 2.6f);
+                if (!Free(m, 0.35f * sc)) continue;
+                Put(stones, KN + "Rocks/SmallStone_" + (1 + rng.Next(4)) + ".prefab", new Vector3(m.x, H(m) - R(0.05f, 0.3f), m.y), Tilted(0, 18), sc);
+                placed.Add(new Vector3(m.x, m.y, 0.35f * sc)); nStones++;
+            }
+        }
+        foreach (var (name, centre, radius, count, kindOk) in new[] { ("swamp", new Vector2(688, 790), 150f, 40, 0), ("mouth", new Vector2(520, 290), 30f, 8, 1) })
+        {
+            for (int i = 0, made = 0; i < 4000 && made < count; i++)
             {
                 var p = centre + new Vector2(R(-radius, radius), R(-radius, radius));
                 var (s, kind) = MeadowHomeLayout.WaterSurfaceAt(p);
-                if (float.IsNegativeInfinity(s) || (kind != 0 && !(name == "mouth" && kind == 1))) continue;
+                if (float.IsNegativeInfinity(s) || (kind != 0 && kind != kindOk)) continue;
+                if (name == "swamp" && MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.SwampArea) > 0) continue;
                 float depth = s - H(p);
-                if (depth < 0.9f || depth > 2.2f) continue;
+                if (depth < 0.9f || depth > 2.2f || !Free(p, 1.6f)) continue;
                 if (name == "mouth" && MeadowHomeLayout.WaterEdgeDistancePublic(p) > 0) continue;
-                if ((p - fallAt).sqrMagnitude < 12f * 12f) continue;
-                if (name == "lake" && MeadowHomeLayout.BasinShoreDistance(p) > 22f) continue;   // keep to the coves
-                if (!Free(p, 1.6f)) continue;
-                int g = 1 + rng.Next(4);
-                Put(lilies, KN + "Nature/WaterLily_Group_" + g + ".prefab", new Vector3(p.x, s + 0.015f, p.y), Quaternion.Euler(0, R(0, 360), 0), R(0.8f, 1.0f));
+                Put(lilies, KN + "Nature/WaterLily_Group_" + (1 + rng.Next(4)) + ".prefab", new Vector3(p.x, s + 0.015f, p.y), Upright(), R(0.8f, 1.0f));
                 placed.Add(new Vector3(p.x, p.y, 1.4f));
                 made++; nLilies++;
-                if (rng.NextDouble() < 0.5)   // a flower next to some groups
-                {
-                    var q = p + new Vector2(R(-1.6f, 1.6f), R(-1.6f, 1.6f));
-                    float dq = s - H(q);
-                    if (dq > 0.9f && dq < 2.2f) Put(lilies, KN + "Nature/WaterLily_Flower_1.prefab", new Vector3(q.x, s + 0.02f, q.y), Quaternion.Euler(0, R(0, 360), 0), R(0.9f, 1.2f));
-                }
             }
         }
 
         foreach (var t in root.GetComponentsInChildren<Transform>(true))
             GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
         EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
-        return new { shoreSamples = shore.Count, stones = nStones, pebbles = nPebbles, lilies = nLilies };
+        var classes = walked.GroupBy(w => w.cls).ToDictionary(g => g.Key.ToString(), g => g.Count());
+        return new { shoreSamples = walked.Count, classes, stones = nStones, pebbles = nPebbles, lilies = nLilies, heroTrees = nTrees, driftwood = nWood };
     }
 
-    // River and stream banks, walked along each water line (vendor demos line 33-145 stones per 100 m of bank; we had ~7).
-    // Each bank sample gets a character c: +1 cut bank (outer bend, steep, rock-lined), -1 bar (inner bend, low, few stones).
-    // Lining stones come in runs with gaps; set-back boulders, stones in the channel, driftwood, a rock wall at the bridge,
-    // and two fallen-log footbridges where trails cross streams.
+    // River and stream banks, walked along each water line metre by metre. Each bank sample gets a bend character cc
+    // (+1 cut bank: outer bend, rock-lined; -1 bar: inner bend, low, few stones) and a stream character (rocky highland,
+    // boulder-lined, calm lotus; see the walk). Plus a rock wall on the cut bank by the bridge and three fallen-log
+    // footbridges where trails cross streams.
     public static object BuildBanks(int seed)
     {
         terrain = Terrain.activeTerrain;
@@ -2568,12 +3217,16 @@ public static class Dressing
         const string GV = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
         var root = Group("Bank Rocks");
         Transform Sub(string n) { var t = new GameObject(n).transform; t.SetParent(root, false); return t; }
-        var lining = Sub("Lining"); var boulders = Sub("Boulders"); var inChannel = Sub("In Channel"); var wood = Sub("Driftwood"); var hero = Sub("Hero");
+        var lining = Sub("Lining"); var boulders = Sub("Boulders"); var inChannel = Sub("In Channel"); var wood = Sub("Driftwood"); var hero = Sub("Hero"); var lotus = Sub("Lotus");
+        const string GLR = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Rocks/";
+        const string BKAV = "Assets/_StoreAssets/Env/BK/PureNature_AsianValley/Prefabs/Plants/";   // lotus and astilbe (BK/Grass, needs BKFoliageGlobals)
+        // Grasslands round boulders: (path, mesh bottom, mesh top) at scale 1 - their pivots are not at the bottom
+        var glBoulders = new[] { (GLR + "Stone_7.prefab", -0.58f, 1.58f), (GLR + "Stone_9.prefab", -0.94f, 1.70f), (GLR + "Stone_2.prefab", -0.13f, 0.99f), (GLR + "Stone_8.prefab", -0.67f, 1.40f) };
         var td = terrain.terrainData;
         Vector3 Normal(Vector2 p) => td.GetInterpolatedNormal(p.x / td.size.x, p.y / td.size.z);
         Quaternion OnGround(Vector2 p, float tilt) => Quaternion.FromToRotation(Vector3.up, Normal(p)) * Quaternion.Euler(R(-tilt, tilt), R(0, 360), R(-tilt, tilt));
         var bridge = MeadowHomeLayout.Bridge;
-        int nLining = 0, nBoulder = 0, nChannel = 0, nWood = 0;
+        int nLining = 0, nBoulder = 0, nChannel = 0, nWood = 0, nLotus = 0;
 
         string[] knSmall = { KN + "Rocks/SmallStone_1.prefab", KN + "Rocks/SmallStone_2.prefab", KN + "Rocks/SmallStone_3.prefab" };
         string[] hlStones = { HL + "Stone_2.prefab", HL + "Stone_3.prefab", HL + "Stone_4.prefab", HL + "Stone_4.prefab" };
@@ -2582,7 +3235,7 @@ public static class Dressing
         for (int li = 0; li < MeadowHomeLayout.Lines.Length; li++)
         {
             var l = MeadowHomeLayout.Lines[li];
-            bool river = l.name == "River";
+            bool river = MeadowHomeLayout.IsRiver(l);
             var pts = l.pts;
             var cum = new float[pts.Length];
             for (int i = 1; i < pts.Length; i++) cum[i] = cum[i - 1] + Vector2.Distance(new Vector2(pts[i - 1].x, pts[i - 1].y), new Vector2(pts[i].x, pts[i].y));
@@ -2598,11 +3251,26 @@ public static class Dressing
             }
             float Heading(float s) { var (_, tan, _, _) = At(s); return Mathf.Atan2(tan.y, tan.x); }
 
+            // character per stretch (scratchpad research5/stream_dressing.md): A rocky highland stream (steep or in the
+            // highlands, HIGHLANDS stones), B boulder-lined stream (Grasslands round boulders, half of them in the channel),
+            // C calm lotus stream (flat: BK lotus runs along the banks, astilbe on them). The river keeps its cut banks and
+            // bars plus a few boulders in the channel; the outlet is a calm wide river with lotus on its inner bends.
+            float SlopeAt(float s) { var (_, _, _, s0) = At(s - 6); var (_, _, _, s1) = At(s + 6); return (s0 - s1) / 12f; }
+            char Character(float s, Vector2 at)
+            {
+                if (l.name == "River") return 'R';
+                if (l.name == "Outlet") return 'O';
+                float slope = SlopeAt(s);
+                if (slope > 0.05f || MeadowHomeLayout.VegWeights(at).z > 0.5f) return 'A';
+                return slope < 0.01f ? 'C' : 'B';
+            }
+
             foreach (int side in new[] { 1, -1 })
             {
                 bool inRun = rng.NextDouble() < 0.5; float left = R(2, 8);
-                float s = R(1, 3);
-                while (s < total - 2)
+                bool lotusRun = rng.NextDouble() < 0.4; float lotusLeft = R(5, 30);
+                const float step = 1f;
+                for (float s = R(1, 3); s < total - 2; s += step)
                 {
                     var (c, tan, w, surf) = At(s);
                     var n = new Vector2(-tan.y, tan.x) * side;                       // from the channel centre toward this bank
@@ -2618,98 +3286,184 @@ public static class Dressing
                     float bend = Mathf.Clamp(-side * kappa * width / 0.2f, -1, 1);
                     float bar = side * Mathf.Clamp(2.5f * MeadowHomeLayout.Fbm(s / (3.5f * width) + 3.1f, 7.7f + li, 2), -1, 1);
                     float cc = Mathf.Clamp(0.6f * bend + 0.9f * bar, -1, 1);
-                    if (river && Vector2.Distance(edgeP, new Vector2(320, 364)) < 25f) cc = 1f;                                   // cut bank at the bridge
-                    if (river && edgeP.x > 483 && edgeP.x < 529 && edgeP.y > 288) cc = -1f;                                     // reed bar at the mouth
-                    bool skip = !found || Vector2.Distance(edgeP, bridge) < 9f || MeadowHomeLayout.BasinShoreDistance(edgeP) < 4f || MeadowHomeLayout.TrailDistancePublic(edgeP) < 1.8f;
-                    bool highland = MeadowHomeLayout.VegWeights(edgeP).z > 0.5f;
-                    float density = cc > 0.3f ? (river ? 60 : 70) : cc < -0.3f ? (river ? 10 : 20) : (river ? 40 : 45);   // stones per 100 m
+                    if (l.name == "River" && Vector2.Distance(edgeP, new Vector2(320, 364)) < 25f) cc = 1f;                    // cut bank at the bridge
+                    if (l.name == "River" && edgeP.x > 483 && edgeP.x < 529 && edgeP.y > 288) cc = -1f;                      // reed bar at the mouth
+                    bool skip = !found || Vector2.Distance(edgeP, bridge) < 9f + w * 0.5f || MeadowHomeLayout.BasinShoreDistance(edgeP) < 4f || MeadowHomeLayout.TrailDistancePublic(edgeP) < 1.8f;
+                    if (skip) continue;
+                    char ch = Character(s, edgeP);
+                    float bendMul = cc > 0.3f ? 1.25f : cc < -0.3f ? 0.5f : 1f;
+                    bool P(float perMetre) => rng.NextDouble() < perMetre * step;
 
-                    // runs 4-14 m with 1-5 m gaps (longer gaps on bars)
-                    float step = 100f / (density / 0.72f);
-                    if (!skip && inRun)
+                    // lotus runs (calm stretches, the outlet's inner bends): 10-40 m runs on ~40% of the bank, 1.5 m in from it
+                    bool lotusHere = ch == 'C' || (ch == 'O' && cc < -0.3f);
+                    if (lotusHere)
                     {
-                        float u = (float)rng.NextDouble();
-                        float d = u < 0.2f ? R(-2.5f, -1f) : u < 0.7f ? R(-1f, 0.4f) : u < 0.9f ? R(0.4f, 2f) : R(2f, 4f);
-                        if (!river) d *= 0.6f;
-                        var p = edgeP + n * d + tan * R(-0.6f, 0.6f);
-                        if (highland && !river)
+                        lotusLeft -= step;
+                        if (lotusLeft <= 0) { lotusRun = !lotusRun; lotusLeft = lotusRun ? R(10, 40) : R(15, 60); }
+                        if (lotusRun && P(ch == 'C' ? 0.7f : 0.5f))
                         {
-                            float sc = R(0.8f, 1.7f);
-                            Put(lining, hlStones[rng.Next(hlStones.Length)], new Vector3(p.x, H(p) - 0.5f * sc / 1.2f, p.y), OnGround(p, 3), sc);
+                            var q = edgeP - n * R(0.7f, 2.5f) + tan * R(-0.4f, 0.4f);
+                            if (surf - H(q) > 0.15f)
+                            {
+                                int r100 = rng.Next(100);
+                                int k = r100 < 22 ? 5 : r100 < 43 ? 2 : r100 < 62 ? 1 : r100 < 79 ? 3 : r100 < 96 ? 4 : 6;
+                                float sc = k == 2 || k == 3 || k == 4 ? R(1.8f, 3.6f) : R(1.2f, 2.0f);
+                                Put(lotus, BKAV + "Lotus_" + k + ".prefab", new Vector3(q.x, surf, q.y), Quaternion.Euler(0, R(0, 360), 0), sc);
+                                nLotus++;
+                            }
                         }
-                        else
+                        if (lotusRun && P(0.3f))
                         {
-                            float sc = river ? R(1.8f, 3.0f) : R(1.3f, 2.2f);
-                            Put(lining, KnSmall(), new Vector3(p.x, H(p) - 0.06f * sc - R(0.02f, 0.1f), p.y), OnGround(p, 5), sc);
+                            var q = edgeP + n * R(0.5f, 4f);
+                            if (H(q) > surf + 0.1f) { Put(lotus, BKAV + "Astilb_" + (1 + rng.Next(3)) + ".prefab", new Vector3(q.x, H(q) - 0.05f, q.y), Quaternion.Euler(0, R(0, 360), 0), R(1.0f, 1.6f)); nLotus++; }
                         }
-                        nLining++;
-                    }
-                    left -= step;
-                    if (left <= 0) { inRun = !inRun; left = inRun ? R(4, 14) : (cc < -0.3f ? R(4, 12) : R(1, 5)); }
-
-                    // set-back boulders: a few per 100 m, more on cut banks
-                    float bDensity = cc > 0.3f ? (river ? 4 : 3) : cc < -0.3f ? (river ? 0.5f : 1) : 2;
-                    if (!skip && rng.NextDouble() < bDensity * step / 100f)
-                    {
-                        if (river || !highland)
-                        {
-                            var p = edgeP + n * R(-1f, 1.5f);
-                            string[] big = { KN + "Rocks/Stone_3_NoGrass.prefab", KN + "Rocks/Stone_4_NoGrass.prefab", KN + "Rocks/Stone_7_NoGrass.prefab" };
-                            float[] tops = { 1.7f, 1.4f, 2.7f };
-                            int k = rng.Next(big.Length);
-                            float sc = R(0.5f, 0.9f);
-                            Put(boulders, big[k], new Vector3(p.x, H(p) - 0.42f * tops[k] * sc, p.y), Quaternion.FromToRotation(Vector3.up, Normal(p)) * Quaternion.Euler(R(-13, 13), R(0, 360), R(-13, 13)), sc);
-                        }
-                        else
-                        {
-                            var p = edgeP + n * R(1.5f, 7f);
-                            float sc = R(0.8f, 1.4f);
-                            Put(boulders, HL + (rng.Next(2) == 0 ? "Rock_1.prefab" : "Rock_2.prefab"), new Vector3(p.x, H(p) - 1.4f * sc * 0.5f, p.y), OnGround(p, 22), sc);
-                        }
-                        nBoulder++;
                     }
 
-                    // driftwood: more on bars
-                    float wDensity = cc < -0.3f ? 3 : 1;
-                    if (!skip && rng.NextDouble() < wDensity * step / 100f)
+                    switch (ch)
                     {
-                        var p = edgeP + n * (river ? R(-0.5f, 1.5f) : R(0f, 4f));
-                        string[] logs = river ? new[] { HL + "Branch_2.prefab", HL + "Branches_2.prefab", GV + "Big_Branch_1.prefab" }
-                                              : new[] { HL + "Branch_1.prefab", HL + "Branch_2.prefab", HL + "Branch_3.prefab", HL + "Branches_1.prefab", HL + "Branches_2.prefab", HL + "Log_1.prefab" };
-                        Put(wood, logs[rng.Next(logs.Length)], new Vector3(p.x, H(p) - 0.05f, p.y), OnGround(p, 4), R(0.9f, 1.4f));
-                        nWood++;
+                        case 'A':
+                        {
+                            if (P(0.9f * bendMul))
+                            {
+                                double u = rng.NextDouble();
+                                float d = u < 0.22 ? -R(0.5f, Mathf.Max(0.6f, 0.7f * w)) : u < 0.74 ? R(-0.3f, 1f) : R(1f, 8f);
+                                var q = edgeP + n * d + tan * R(-0.4f, 0.4f);
+                                int r100 = rng.Next(100);
+                                string path = HL + "Stone_" + (r100 < 40 ? 4 : r100 < 69 ? 3 : r100 < 96 ? 2 : 1) + ".prefab";
+                                float sc = R(0.9f, 2.0f);
+                                Put(lining, path, new Vector3(q.x, H(q) - R(0.25f, 0.5f), q.y), OnGround(q, 8), sc);
+                                nLining++;
+                            }
+                            if (P(cc < -0.3f ? 0.7f : 0.33f))
+                            {
+                                var q = edgeP + n * R(-0.5f, 2f) + tan * R(-0.5f, 0.5f);
+                                Put(lining, HL + "Stones.prefab", new Vector3(q.x, H(q) - 0.05f, q.y), OnGround(q, 4), R(1.0f, 1.6f));
+                                nLining++;
+                            }
+                            if (P(0.075f))
+                            {
+                                var q = edgeP + n * R(2.3f, 7.5f);
+                                float sc = R(0.6f, 1.0f);
+                                Put(boulders, HL + new[] { "Rock_1.prefab", "Rock_2.prefab", "Rock_1(Grass).prefab", "Rock_2(Grass).prefab" }[rng.Next(4)], new Vector3(q.x, H(q) - 0.7f * 3f * sc, q.y), OnGround(q, 15), sc);
+                                nBoulder++;
+                            }
+                            if (side == 1 && SlopeAt(s) > 0.05f && P(0.1f))
+                            {
+                                var q = c + n * R(-0.3f, 0.3f) * w;
+                                Put(inChannel, HL + (rng.Next(2) == 0 ? "Stone_1.prefab" : "Stone_2.prefab"), new Vector3(q.x, H(q) - 0.4f, q.y), OnGround(q, 10), R(1.5f, 2.2f));
+                                nChannel++;
+                            }
+                            break;
+                        }
+                        case 'B':
+                        case 'O':
+                        case 'R':
+                        {
+                            // round grey boulders (Grasslands): about half stand in the channel 15-50% of the way to the centre,
+                            // tops within 0.9 m of the surface; the rest sit on the bank, half sunk
+                            float rate = ch == 'B' ? 0.5f * bendMul : ch == 'O' ? (cc > 0.3f ? 0.3f : 0.06f) : 0.2f;
+                            if (P(rate))
+                            {
+                                var (path, minY, maxY) = glBoulders[rng.Next(glBoulders.Length)];
+                                float sc = R(0.65f, 1.4f);
+                                if (rng.NextDouble() < 0.56)
+                                {
+                                    var q = edgeP - n * (R(0.15f, 0.5f) * w);
+                                    float y = Mathf.Min(surf + R(-0.9f, 0.9f) - maxY * sc, H(q) - minY * sc - 0.15f);
+                                    if (surf - H(q) > 0.2f) { Put(inChannel, path, new Vector3(q.x, y, q.y), Quaternion.Euler(R(-12, 12), R(0, 360), R(-12, 12)), sc); nChannel++; }
+                                }
+                                else
+                                {
+                                    var q = edgeP + n * R(-0.3f, 2f);
+                                    Put(boulders, path, new Vector3(q.x, H(q) - minY * sc - R(0.25f, 0.5f) * (maxY - minY) * sc, q.y), OnGround(q, 14), sc);
+                                    nBoulder++;
+                                }
+                            }
+                            if (ch == 'B' && P(0.4f))
+                            {
+                                var q = rng.NextDouble() < 0.4 ? edgeP - n * R(0.2f, 0.4f * w) : edgeP + n * R(0f, 1.5f);
+                                Put(lining, GLR + "Small_Stone_" + new[] { 7, 8, 6 }[rng.Next(3)] + ".prefab", new Vector3(q.x, H(q) - 0.05f, q.y), OnGround(q, 6), R(1.3f, 1.5f));
+                                nLining++;
+                            }
+                            if (ch == 'R')
+                            {
+                                // the river's own lining: runs of Komorebi stones (4-14 m) with gaps, dense on cut banks, sparse on bars
+                                float density = cc > 0.3f ? 0.6f : cc < -0.3f ? 0.1f : 0.4f;
+                                if (inRun && P(density / 0.72f))
+                                {
+                                    float u = (float)rng.NextDouble();
+                                    float d = u < 0.2f ? R(-2.5f, -1f) : u < 0.7f ? R(-1f, 0.4f) : u < 0.9f ? R(0.4f, 2f) : R(2f, 4f);
+                                    var q = edgeP + n * d + tan * R(-0.6f, 0.6f);
+                                    float sc = R(1.8f, 3.0f);
+                                    Put(lining, KnSmall(), new Vector3(q.x, H(q) - 0.06f * sc - R(0.02f, 0.1f), q.y), OnGround(q, 5), sc);
+                                    nLining++;
+                                }
+                                left -= step;
+                                if (left <= 0) { inRun = !inRun; left = inRun ? R(4, 14) : (cc < -0.3f ? R(4, 12) : R(1, 5)); }
+                                float bDensity = cc > 0.3f ? 0.04f : cc < -0.3f ? 0.005f : 0.02f;
+                                if (P(bDensity))
+                                {
+                                    var q = edgeP + n * R(-1f, 1.5f);
+                                    string[] big = { KN + "Rocks/Stone_3_NoGrass.prefab", KN + "Rocks/Stone_4_NoGrass.prefab", KN + "Rocks/Stone_7_NoGrass.prefab" };
+                                    float[] tops = { 1.7f, 1.4f, 2.7f };
+                                    int k = rng.Next(big.Length);
+                                    float sc = R(0.5f, 0.9f);
+                                    Put(boulders, big[k], new Vector3(q.x, H(q) - 0.42f * tops[k] * sc, q.y), Quaternion.FromToRotation(Vector3.up, Normal(q)) * Quaternion.Euler(R(-13, 13), R(0, 360), R(-13, 13)), sc);
+                                    nBoulder++;
+                                }
+                            }
+                            // driftwood: more on bars
+                            if (ch != 'O' && P(cc < -0.3f ? 0.03f : 0.01f))
+                            {
+                                var q = edgeP + n * (ch == 'R' ? R(-0.5f, 1.5f) : R(0f, 4f));
+                                string[] logs = ch == 'R' ? new[] { HL + "Branch_2.prefab", HL + "Branches_2.prefab", GV + "Big_Branch_1.prefab" }
+                                                          : new[] { HL + "Branch_1.prefab", HL + "Branch_2.prefab", HL + "Branch_3.prefab", HL + "Branches_1.prefab", HL + "Branches_2.prefab", HL + "Log_1.prefab" };
+                                Put(wood, logs[rng.Next(logs.Length)], new Vector3(q.x, H(q) - 0.05f, q.y), OnGround(q, 4), R(0.9f, 1.4f));
+                                nWood++;
+                            }
+                            break;
+                        }
+                        case 'C':
+                            if (P(0.08f))
+                            {
+                                var q = edgeP + n * R(0f, 1.5f);
+                                Put(lining, GLR + "Small_Stone_" + new[] { 7, 8, 6 }[rng.Next(3)] + ".prefab", new Vector3(q.x, H(q) - 0.05f, q.y), OnGround(q, 6), R(1.2f, 1.5f));
+                                nLining++;
+                            }
+                            break;
                     }
-                    s += step;
                 }
             }
 
-            // stones in the channel: river ~6 per 100 m (biased below the bridge), streams ~15
-            int want = Mathf.RoundToInt(total / 100f * (river ? 6 : 15));
-            for (int i = 0, made = 0; i < want * 30 && made < want; i++)
+            // the river's stones in the channel: ~6 per 100 m, biased below the bridge
+            if (l.name == "River")
             {
-                float s = river && rng.NextDouble() < 0.4 ? R(100, 220) : R(3, total - 3);
-                var (c, tan, w, surf) = At(s);
-                var p = c + new Vector2(-tan.y, tan.x) * R(-0.85f, 0.85f) * w;
-                if (Vector2.Distance(p, bridge) < 9f || MeadowHomeLayout.BasinShoreDistance(p) < 4f) continue;
-                float depth = surf - H(p);
-                bool highland = MeadowHomeLayout.VegWeights(p).z > 0.5f;
-                if (river ? (depth < 0.3f || depth > 1.2f) : (depth < 0.15f || depth > 0.8f)) continue;
-                if (highland && !river)
+                int want = Mathf.RoundToInt(total / 100f * 6);
+                for (int i = 0, made = 0; i < want * 30 && made < want; i++)
                 {
-                    float sc = R(1.0f, 1.6f);
-                    Put(inChannel, hlStones[rng.Next(hlStones.Length)], new Vector3(p.x, H(p) - 0.3f * sc, p.y), OnGround(p, 8), sc);
+                    float s = rng.NextDouble() < 0.4 ? R(100, 220) : R(3, total - 3);
+                    var (c, tan, w, surf) = At(s);
+                    var p = c + new Vector2(-tan.y, tan.x) * R(-0.85f, 0.85f) * w;
+                    if (Vector2.Distance(p, bridge) < 9f + w * 0.5f || MeadowHomeLayout.BasinShoreDistance(p) < 4f) continue;
+                    float depth = surf - H(p);
+                    if (depth < 0.3f || depth > 1.2f) continue;
+                    Put(inChannel, KnSmall(), new Vector3(p.x, H(p) - 0.04f * 3f, p.y), OnGround(p, 8), R(2.5f, 3.5f));
+                    made++; nChannel++;
                 }
-                else
-                {
-                    float sc = river ? R(2.5f, 3.5f) : R(1.6f, 2.4f);
-                    Put(inChannel, KnSmall(), new Vector3(p.x, H(p) - 0.04f * sc, p.y), OnGround(p, 8), sc);
-                }
-                made++; nChannel++;
             }
         }
 
         // cut bank at the bridge: a grass-topped rock wall on the outer bank just downstream, toe boulders below it
-        var wallAt = new[] { new Vector2(326, 368), new Vector2(334, 364), new Vector2(342, 360) };
+        var riverPts = MeadowHomeLayout.Lines.First(x => x.name == "River").pts;
+        int bi = 0;
+        for (int i = 1; i < riverPts.Length; i++) if ((new Vector2(riverPts[i].x, riverPts[i].y) - bridge).sqrMagnitude < (new Vector2(riverPts[bi].x, riverPts[bi].y) - bridge).sqrMagnitude) bi = i;
+        var wallAt = new List<Vector2>();
+        for (int k = 3; k <= 7; k += 2)   // 15-35 m downstream, on the north (outer) bank
+        {
+            int i = Mathf.Min(riverPts.Length - 2, bi + k);
+            var tan = new Vector2(riverPts[i + 1].x - riverPts[i].x, riverPts[i + 1].y - riverPts[i].y).normalized;
+            wallAt.Add(new Vector2(riverPts[i].x, riverPts[i].y) + new Vector2(-tan.y, tan.x) * (riverPts[i].w + 1.5f));
+        }
         var wallKinds = new[] { (KN + "Rocks Grass/Stone_1.prefab", 1.6f), (KN + "Rocks Grass/Stone_2.prefab", 3.2f), (KN + "Rocks Grass/Stone_5.prefab", 3.9f) };
         foreach (var q in wallAt)
         {
@@ -2721,8 +3475,8 @@ public static class Dressing
             go.transform.localScale = new Vector3(sc, sy, sc * R(0.9f, 1.2f));
         }
 
-        // fallen-log footbridges where the forest->swamp and highland-spur trails cross streams
-        foreach (var (lineName, near) in new[] { ("ForestStream", new Vector2(434.1f, 503.2f)), ("WestStream", new Vector2(279.4f, 561.6f)) })
+        // fallen-log footbridges where the forest->swamp trail (twice) and the highland-spur trail cross streams
+        foreach (var (lineName, near) in new[] { ("ForestStream", new Vector2(434.1f, 503.2f)), ("WestStream", new Vector2(279.4f, 561.6f)), ("MarginStream", new Vector2(586f, 643f)) })
         {
             var l = MeadowHomeLayout.Lines.First(x => x.name == lineName);
             int best = 0;
@@ -2730,13 +3484,15 @@ public static class Dressing
             var a = l.pts[Mathf.Max(0, best - 1)]; var b = l.pts[Mathf.Min(l.pts.Length - 1, best + 1)];
             var c = new Vector2(l.pts[best].x, l.pts[best].y); float surf = l.pts[best].z;
             var tan = new Vector2(b.x - a.x, b.y - a.y).normalized; var n = new Vector2(-tan.y, tan.x);
-            float half = 3.6f;
+            float half = l.pts[best].w + 1.6f;                                     // bank to bank
             var e1 = c + n * half; var e2 = c - n * half;
             float h1 = H(e1), h2 = H(e2);
             float yaw = Mathf.Atan2(-n.y, n.x) * Mathf.Rad2Deg;                  // the log's long axis (local X) across the flow
             float pitch = Mathf.Atan2(h1 - h2, 2 * half) * Mathf.Rad2Deg;
             float y = Mathf.Max(surf + 0.45f, (h1 + h2) * 0.5f + 0.25f);
             var log = Put(hero, KN + "Nature/Log_2.prefab", new Vector3(c.x, y + 0.4f, c.y), Quaternion.Euler(0, yaw, 0) * Quaternion.Euler(0, 0, pitch), 1.05f);
+            float sx = 1.05f * half / 3.6f;                                             // Log_2 spans 3.6 m each side at 1.05
+            log.transform.localScale = new Vector3(sx, 1.05f * Mathf.Lerp(1f, sx / 1.05f, 0.35f), 1.05f * Mathf.Lerp(1f, sx / 1.05f, 0.35f));
             foreach (var end in new[] { e1, e2 })
                 for (int k = 0; k < 2; k++)
                 {
@@ -2748,7 +3504,7 @@ public static class Dressing
         foreach (var t in root.GetComponentsInChildren<Transform>(true))
             GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
         EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
-        return new { lining = nLining, boulders = nBoulder, inChannel = nChannel, driftwood = nWood };
+        return new { lining = nLining, boulders = nBoulder, inChannel = nChannel, driftwood = nWood, lotusAndAstilbe = nLotus };
     }
 
     // Meadow as in the BK Meadows demo: low stones half-sunk in the lawn in clusters of 3-7, and a few lone hero broadleafs.
@@ -2777,7 +3533,7 @@ public static class Dressing
 
         // lone hero trees first, so the stones keep their distance from them too
         int nTrees = 0;
-        foreach (var spot in new[] { new Vector2(268, 300), new Vector2(410, 288), new Vector2(470, 272), new Vector2(285, 340), new Vector2(505, 262) })
+        foreach (var spot in new[] { new Vector2(268, 300), new Vector2(410, 268), new Vector2(470, 250), new Vector2(285, 340), new Vector2(300, 228), new Vector2(420, 226), new Vector2(470, 232) })
         {
             var p = spot;
             for (int tries = 0; tries < 60 && !(Ok(p, 9f, 8f) && Vector2.Distance(p, home) > 40f); tries++) p = spot + new Vector2(R(-15, 15), R(-15, 15));
@@ -2791,9 +3547,9 @@ public static class Dressing
         string Pick() { int r = rng.Next(100); foreach (var (path, w) in kinds) { if (r < w) return path; r -= w; } return kinds[0].Item1; }
         var centres = new List<Vector2>();
         int nStones = 0;
-        for (int i = 0; i < 8000 && centres.Count < 18; i++)
+        for (int i = 0; i < 12000 && centres.Count < 26; i++)
         {
-            var c = new Vector2(R(236, 545), R(222, 345));
+            var c = new Vector2(R(236, 520), R(205, 345));
             if (!Ok(c, 12f, 3f) || centres.Any(q => (q - c).sqrMagnitude < 22f * 22f)) continue;
             centres.Add(c);
             int k = 3 + rng.Next(5);
@@ -2807,9 +3563,9 @@ public static class Dressing
         }
         // two or three larger grass-topped stones, half sunk
         int nBig = 0;
-        for (int i = 0; i < 3000 && nBig < 3; i++)
+        for (int i = 0; i < 3000 && nBig < 4; i++)
         {
-            var p = new Vector2(R(250, 530), R(225, 340));
+            var p = new Vector2(R(250, 510), R(210, 340));
             if (!Ok(p, 12f, 4f) || centres.Any(q => (q - p).sqrMagnitude < 15f * 15f)) continue;
             centres.Add(p);
             Put(stonesRoot, "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/Rocks Grass/Stone_" + (3 + rng.Next(2)) + ".prefab", new Vector3(p.x, H(p) - R(0.6f, 0.9f), p.y), OnGround(p, 0.6f), R(0.8f, 1.1f));
@@ -2820,6 +3576,281 @@ public static class Dressing
             GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
         EditorSceneManager.MarkSceneDirty(stonesRoot.gameObject.scene);
         return new { heroTrees = nTrees, stoneClusters = centres.Count - nBig, stones = nStones, bigStones = nBig };
+    }
+
+    // The home pond after the Komorebi demo (measured in scratchpad research4/komorebi_pond.md): a near-continuous ring of
+    // grey stones, half of them breaking the surface, around every shore; a few boulders in the water; lily clusters beside
+    // the island, the islets and the front bays (none near the fall); pines, Sakura and flowering bushes on the island and
+    // islets; Sakura and pines on the banks, bushes on the waterfall rocks, rock terraces on the back-right and a small
+    // outcrop framing the river outlet. Positions use the demo's flow frame (s downstream, t to the right) scaled by 0.88.
+    public static object BuildHomePond(int seed)
+    {
+        terrain = Terrain.activeTerrain;
+        rng = new System.Random(seed);
+        Physics.SyncTransforms();
+        var pond = MeadowHomeLayout.Basins.First(b => b.name == "WaterfallPond");
+        float level = pond.level;
+        var root = Group("Home Pond");
+        Transform Sub(string n) { var t = new GameObject(n).transform; t.SetParent(root, false); return t; }
+        var stonesRoot = Sub("Shore Stones"); var inWater = Sub("In Water"); var lilyRoot = Sub("Lilies"); var islRoot = Sub("Islands"); var banks = Sub("Banks");
+        var td = terrain.terrainData;
+        Quaternion Tilted(float lo, float hi) => Quaternion.Euler(R(-1, 1) * R(lo, hi), R(0, 360), R(-1, 1) * R(lo, hi));
+        Quaternion Upright() => Quaternion.Euler(0, R(0, 360), 0);
+        var fall = new Vector2(206, 433);
+        float hd = 100f * Mathf.Deg2Rad;
+        var f = new Vector2(Mathf.Sin(hd), Mathf.Cos(hd)); var right = new Vector2(f.y, -f.x);
+        Vector2 W(float s, float t) => fall + f * (0.88f * s) + right * (0.88f * t);
+        float Sof(Vector2 p) => Vector2.Dot(p - fall, f) / 0.88f;
+        float Tof(Vector2 p) => Vector2.Dot(p - fall, right) / 0.88f;
+        var river = MeadowHomeLayout.Lines.First(l => l.name == "River");
+        bool InOutflow(Vector2 p) => MeadowHomeLayout.TrueLineEdge(p, river) < 3f;
+        var placed = new List<Vector3>();
+        bool Free(Vector2 p, float r) => placed.All(q => (new Vector2(q.x, q.y) - p).sqrMagnitude > (q.z + r) * (q.z + r));
+        string Stone() { int r = rng.Next(100); return KN + "Rocks/SmallStone_" + (r < 24 ? 1 : r < 61 ? 2 : r < 97 ? 3 : 4) + ".prefab"; }
+        var pondIslands = Enumerable.Range(0, MeadowHomeLayout.Islands.Length).Where(i => MeadowHomeLayout.IslandLevel(i) == level).ToArray();
+        bool OnLand(Vector2 p, float above) => H(p) > level + above;
+        int nStones = 0, nLilies = 0, nPlants = 0;
+
+        // ---- waterline samples (point on the real waterline, normal pointing into the water) ----
+        var shore = new List<(Vector2 p, Vector2 n, bool island)>();
+        var poly = pond.shore;
+        var cum = new float[poly.Length + 1];
+        for (int i = 0; i < poly.Length; i++) cum[i + 1] = cum[i] + Vector2.Distance(poly[i], poly[(i + 1) % poly.Length]);
+        for (float s = 0; s < cum[^1]; s += R(1.1f, 2.5f))
+        {
+            int i = Mathf.Clamp(Array.FindLastIndex(cum, c => c <= s), 0, poly.Length - 1);
+            var a = poly[i]; var b = poly[(i + 1) % poly.Length];
+            var q = Vector2.Lerp(a, b, (s - cum[i]) / Mathf.Max(1e-3f, cum[i + 1] - cum[i]));
+            var tan = (b - a).normalized; var outward = new Vector2(tan.y, -tan.x);
+            if (MeadowHomeLayout.SignedDistance(q + outward * 2f, poly) < 0) outward = -outward;
+            for (float d = -7f; d <= 7f; d += 0.25f)          // from the water side out: first ground above the water
+                if (H(q + outward * d) > level) { if (d > -7f) shore.Add((q + outward * d, -outward, false)); break; }
+        }
+        foreach (int i in pondIslands)
+        {
+            var c = new Vector2(MeadowHomeLayout.Islands[i].x, MeadowHomeLayout.Islands[i].y);
+            float rw = MeadowHomeLayout.IslandWaterline(i);
+            for (float arc = 0; arc < 2 * Mathf.PI * (rw + 2); arc += R(1.1f, 2.5f))
+            {
+                float ang = arc / (rw + 2);
+                var dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+                for (float d = 0; d < rw + 7f; d += 0.25f)
+                    if (H(c + dir * d) < level) { if (MeadowHomeLayout.IslandAt(c + dir * d) < 0 || d > 0) shore.Add((c + dir * d, dir, true)); break; }
+            }
+        }
+
+        // ---- 1. stone ring: ~8 per 10 m, 5-7% left bare in short gaps; 55% straddle the surface ----
+        float gap = 0;
+        foreach (var (p, n, island) in shore)
+        {
+            if (gap > 0) { gap -= 1.8f; continue; }
+            if (rng.NextDouble() < 0.03) { gap = R(2, 5); continue; }
+            if (InOutflow(p)) continue;
+            double u = rng.NextDouble();
+            float off = u < 0.30 ? R(1f, 3f) : u < 0.52 ? R(0f, 1f) : u < 0.70 ? R(-1f, 0f) : R(-3f, -1f);   // + = into the water
+            var q = p + n * off;
+            float sc = rng.NextDouble() < 0.03 ? R(3.5f, 4.5f) : R(1.5f, 3.0f);
+            if (!Free(q, 0.3f * sc)) continue;
+            Put(stonesRoot, Stone(), new Vector3(q.x, H(q) - R(0.15f, 0.35f), q.y), Tilted(9, 25), sc);
+            placed.Add(new Vector3(q.x, q.y, 0.35f * sc)); nStones++;
+        }
+        // deeper stones (tops under the surface) and set-back stones on the banks
+        for (int k = 0, tries = 0; k < 35 && tries < 600; tries++)
+        {
+            var (p, n, _) = shore[rng.Next(shore.Count)];
+            var q = p + n * R(2f, 4f);
+            if (InOutflow(q) || level - H(q) < 0.8f || !Free(q, 0.8f)) continue;
+            Put(stonesRoot, Stone(), new Vector3(q.x, H(q) - R(0.2f, 0.4f), q.y), Tilted(9, 25), R(1.5f, 2.6f));
+            placed.Add(new Vector3(q.x, q.y, 0.8f)); k++; nStones++;
+        }
+        for (int k = 0, tries = 0; k < 40 && tries < 600; tries++)
+        {
+            var (p, n, island) = shore[rng.Next(shore.Count)];
+            var q = p - n * R(3f, island ? 5f : 12f);
+            if (!OnLand(q, 0.2f) || InOutflow(q) || MeadowHomeLayout.TrailDistancePublic(q) < 2.5f || !Free(q, 0.9f)) continue;
+            Put(stonesRoot, Stone(), new Vector3(q.x, H(q) - R(0.2f, 0.35f), q.y), Tilted(9, 25), R(2.0f, 2.8f));
+            placed.Add(new Vector3(q.x, q.y, 0.9f)); k++; nStones++;
+        }
+
+        // ---- 2. boulders in the water: three break the surface, the rest show through it ----
+        for (int k = 0, tries = 0; k < 6 && tries < 800; tries++)
+        {
+            var (p, n, _) = shore[rng.Next(shore.Count)];
+            var q = p + n * R(1f, 10f);
+            float depth = level - H(q);
+            if (depth < 1f || depth > 2.8f || InOutflow(q) || Vector2.Distance(q, fall) < 10f || !Free(q, 2f)) continue;
+            bool breaks = k < 3;
+            string path = breaks ? KN + "Rocks/Stone_2_NoGrass.prefab" : KN + (rng.Next(2) == 0 ? "Rocks/Stone_1_NoGrass.prefab" : "Rocks/Stone_7_NoGrass.prefab");
+            float sc = breaks ? R(0.85f, 1.1f) : R(1.0f, 1.4f);
+            float top = breaks ? level + R(0.5f, 1.0f) : level - R(0.8f, 2.0f);
+            float meshTop = breaks ? 3.2f : 1.6f;                          // pivot to top at scale 1 (Stone_2 / Stone_1, 7)
+            Put(inWater, path, new Vector3(q.x, Mathf.Min(top - meshTop * sc, H(q) - 0.2f + 0.6f * meshTop * sc), q.y), Tilted(4, 14), sc);
+            placed.Add(new Vector3(q.x, q.y, 2f)); k++;
+        }
+
+        // ---- 3. lilies: 7-9 clusters of 3-11 groups, 2.5-7 m from a shore, none within ~36 m of the fall, 60% right arm ----
+        int clusters = 0;
+        var lilyCentres = new List<Vector2>();
+        for (int tries = 0; tries < 3000 && clusters < 9; tries++)
+        {
+            var (p, n, island) = shore[rng.Next(shore.Count)];
+            var c = p + n * R(2.5f, 7f);
+            float depth = level - H(c);
+            if (depth < 0.8f || depth > 2.2f || Sof(c) < 41f || InOutflow(c)) continue;
+            if (Tof(c) < 0 && rng.NextDouble() < 0.4) continue;            // weight toward the wider right arm
+            if (!Free(c, 1.5f) || lilyCentres.Any(o => (o - c).sqrMagnitude < 12f * 12f)) continue;
+            lilyCentres.Add(c);
+            clusters++;
+            int count = 3 + rng.Next(9);
+            float radius = R(2.5f, 6.5f);
+            var group = new List<Vector2>();
+            for (int k = 0, t2 = 0; k < count && t2 < 200; t2++)
+            {
+                var q = c + new Vector2(R(-radius, radius), R(-radius, radius));
+                float dq = level - H(q);
+                if (dq < 0.7f || dq > 2.6f || InOutflow(q) || !Free(q, 0.6f) || group.Any(g => (g - q).sqrMagnitude < 2.6f * 2.6f)) continue;
+                Put(lilyRoot, KN + "Nature/WaterLily_Group_" + (rng.NextDouble() < 0.55 ? 2 : 3) + ".prefab", new Vector3(q.x, level + 0.028f, q.y), Upright(), R(1.0f, 1.1f));
+                group.Add(q); k++; nLilies++;
+            }
+            foreach (var g in group) placed.Add(new Vector3(g.x, g.y, 1.4f));
+        }
+
+        // ---- 4. island and islets ----
+        GameObject Plant(Transform parent, string path, Vector2 at, float scale, float sink = 0.15f)
+        {
+            nPlants++;
+            placed.Add(new Vector3(at.x, at.y, 1.2f));
+            return Put(parent, KN + path, new Vector3(at.x, H(at) - sink, at.y), Upright(), scale);
+        }
+        Vector2 OnIsland(Vector2 want, float minAbove, float jitter)
+        {
+            for (int t = 0; t < 40; t++)
+            {
+                var q = want + new Vector2(R(-jitter, jitter), R(-jitter, jitter));
+                if (OnLand(q, minAbove)) return q;
+            }
+            return new Vector2(float.NaN, 0);
+        }
+        void Try(Transform parent, string path, Vector2 want, float scale, float minAbove, float jitter)
+        {
+            var q = OnIsland(want, minAbove, jitter);
+            if (!float.IsNaN(q.x)) Plant(parent, path, q, scale);
+        }
+        var central = Sub2(islRoot, "Central Island");
+        Try(central, "Nature/PineTree_4.prefab", W(55, 7), R(1.2f, 1.3f), 1.2f, 2f);
+        Try(central, "Nature/PineTree_3.prefab", W(47, 3), 1.0f, 0.8f, 2f);
+        Try(central, "Nature/Sakura_2.prefab", W(70, 4), 0.95f, 0.9f, 2f);
+        for (int k = 0; k < 3; k++) Try(central, "Nature/Bush_" + (k == 1 ? 3 : 1) + "_Flowers.prefab", W(65, 8), R(0.92f, 1.02f), 1.0f, 2.5f);
+        for (int k = 0; k < 4; k++) Try(central, "Nature/Bush_" + (1 + rng.Next(3)) + "_Flowers.prefab", W(R(62, 76), R(0, 12)), R(0.92f, 1.02f), 0.5f, 1f);
+        for (int k = 0; k < 6; k++) Try(central, "Nature/Bush_" + (1 + rng.Next(3)) + ".prefab", W(R(45, 60), R(-2, 15)), R(0.97f, 1.1f), 0.5f, 1f);
+        for (int k = 0; k < 10; k++) Try(central, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", W(R(44, 78), R(-4, 16)), R(0.9f, 1.2f), 0.25f, 1f);
+        for (int k = 0; k < 4; k++) Try(central, "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", W(R(50, 76), R(-3, 15)), R(0.9f, 1.1f), 0.3f, 1f);
+        var isletW = Sub2(islRoot, "Islet W");
+        Try(isletW, "Nature/Sakura_5.prefab", new Vector2(230.7f, 414.5f), 1.0f, 0.6f, 1f);
+        for (int k = 0; k < 4; k++) Try(isletW, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", new Vector2(230.7f, 414.5f), R(0.8f, 1.1f), 0.2f, 4f);
+        var isletNE = Sub2(islRoot, "Islet NE");
+        Try(isletNE, "Nature/Sakura_3.prefab", new Vector2(240.7f, 438.5f), 1.0f, 0.4f, 1f);
+        for (int k = 0; k < 3; k++) Try(isletNE, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", new Vector2(240.7f, 438.5f), R(0.8f, 1.1f), 0.15f, 3.5f);
+        var isletS = Sub2(islRoot, "Flower Islet");
+        Try(isletS, "Nature/Bush_3_Flowers.prefab", new Vector2(276f, 428f), 1.0f, 0.3f, 0.8f);
+        Try(isletS, "Nature/Bush_1_Flowers.prefab", new Vector2(276f, 428f), 1.1f, 0.1f, 3f);
+        for (int k = 0; k < 8; k++) Try(isletS, "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", new Vector2(276f, 428f), R(0.9f, 1.1f), 0.08f, 3.2f);
+        for (int k = 0; k < 2; k++) Try(isletS, "Nature/Salvia_Group_1.prefab", new Vector2(276f, 428f), R(0.9f, 1.1f), 0.1f, 2.5f);
+
+        // ---- 5. banks ----
+        // a point on the bank `back` metres past the waterline, walking from a point in the water along dir
+        Vector2 Bank(Vector2 from, Vector2 dir, float back)
+        {
+            for (float d = 0; d < 40f; d += 0.5f) if (H(from + dir * d) > level + 0.2f) return from + dir * (d + back);
+            return new Vector2(float.NaN, 0);
+        }
+        void BankPlant(string path, Vector2 at, float scale)
+        {
+            if (float.IsNaN(at.x) || InOutflow(at) || MeadowHomeLayout.TrailDistancePublic(at) < 3f || !Free(at, 1.5f)) return;
+            Plant(banks, path, at, scale);
+        }
+        BankPlant("Nature/Sakura_1.prefab", Bank(W(52, -20), -right, R(2, 5)), R(1.0f, 1.15f));          // left arm (north)
+        BankPlant("Nature/Sakura_2.prefab", Bank(W(58, 30), right, R(2, 5)), R(1.1f, 1.25f));            // right arm (south)
+        BankPlant("Nature/Sakura_5.prefab", Bank(W(72, 30), right, 12), 0.9f);
+        for (int k = 0, tries = 0; k < 7 && tries < 300; tries++)                                          // pines on the sides and front
+        {
+            float s = R(30, 100), t = rng.Next(2) == 0 ? R(-60, -30) : R(38, 62);
+            var q = W(s, t);
+            float dw = MeadowHomeLayout.BasinEdgeDistance(q);
+            if (dw < 5f || dw > 20f || !OnLand(q, 0.5f) || InOutflow(q) || MeadowHomeLayout.TrailDistancePublic(q) < 3.5f || !Free(q, 4f)) continue;
+            Plant(banks, "Nature/PineTree_" + new[] { 1, 2, 3, 5, 6 }[rng.Next(5)] + ".prefab", q, R(0.9f, 1.1f));
+            k++;
+        }
+        for (int k = 0, tries = 0; k < 10 && tries < 400; tries++)                                         // bushes at the water, front and left beach
+        {
+            var (p, n, island) = shore[rng.Next(shore.Count)];
+            if (island || Sof(p) < 40f) continue;
+            var q = p - n * R(1.5f, 8f);
+            if (!OnLand(q, 0.15f) || InOutflow(q) || MeadowHomeLayout.TrailDistancePublic(q) < 2.5f || !Free(q, 1.3f)) continue;
+            Plant(banks, "Nature/Bush_" + (1 + rng.Next(3)) + (rng.NextDouble() < 0.5 ? "_Flowers" : "") + ".prefab", q, R(0.9f, 1.1f));
+            k++;
+        }
+        // the pink frame behind the fall and plain bushes on the waterfall rocks: drop onto whatever is there (rock or ground)
+        var lm = GameObject.Find("Environment/Landmarks/Waterfall");
+        bool Drop(Vector2 at, out Vector3 hitPoint)
+        {
+            hitPoint = default;
+            if (!Physics.Raycast(new Vector3(at.x, 300f, at.y), Vector3.down, out var hit, 400f)) return false;
+            if (Vector3.Dot(hit.normal, Vector3.up) < 0.75f) return false;
+            hitPoint = hit.point;
+            return true;
+        }
+        int frame = 0;
+        for (int tries = 0; tries < 200 && frame < 4; tries++)
+        {
+            var q = W(R(-33, -14), R(-22, 22));
+            if (!Drop(q, out var hp) || hp.y < level + 10f || !Free(q, 5f)) continue;
+            Put(banks, KN + "Nature/Sakura_" + (1 + frame) + ".prefab", hp - Vector3.up * 0.2f, Upright(), R(1.15f, 1.3f));
+            placed.Add(new Vector3(q.x, q.y, 5f)); frame++; nPlants++;
+        }
+        int rockBushes = 0;
+        if (lm != null)
+        {
+            var rb = lm.GetComponentsInChildren<Renderer>().Select(r => r.bounds).Aggregate((a, x) => { a.Encapsulate(x); return a; });
+            for (int tries = 0; tries < 600 && rockBushes < 24; tries++)
+            {
+                var q = new Vector2(R(rb.min.x, rb.max.x), R(rb.min.z, rb.max.z));
+                if (!Drop(q, out var hp) || hp.y < level + 4f || hp.y < H(q) + 1.5f || !Free(q, 1.2f)) continue;   // on a rock top, not the ground
+                Put(banks, KN + "Nature/Bush_" + (1 + rng.Next(4)) + ".prefab", hp - Vector3.up * 0.15f, Upright(), R(0.9f, 1.1f));
+                placed.Add(new Vector3(q.x, q.y, 1.2f)); rockBushes++; nPlants++;
+            }
+        }
+        // back-right terraces and the outcrop framing the river outlet
+        for (int k = 0, tries = 0; k < 6 && tries < 200; tries++)
+        {
+            var q = W(R(7, 30), R(42, 58));
+            if (!Free(q, 4f) || InOutflow(q)) continue;
+            float sc = R(0.45f, 0.7f);
+            string path = KN + (rng.Next(3) == 0 ? "Rocks/Rock_3_NoGrass.prefab" : "Rocks/Rock_1_NoGrass.prefab");
+            float meshTop = path.Contains("Rock_3") ? 17.9f : 13.8f;
+            Put(banks, path, new Vector3(q.x, H(q) + R(4f, 11f) - meshTop * sc, q.y), Quaternion.Euler(R(-4, 4), R(0, 360), R(-4, 4)), sc);
+            placed.Add(new Vector3(q.x, q.y, 9f * sc)); k++;
+        }
+        for (int k = 0, tries = 0; k < 6 && tries < 200; tries++)
+        {
+            var q = W(R(98, 108), R(14, 26));
+            if (InOutflow(q) || MeadowHomeLayout.TrueLineEdge(q, river) < 5f || MeadowHomeLayout.TrailDistancePublic(q) < 3f || !Free(q, 2.5f)) continue;
+            float sc = R(0.3f, 0.5f);
+            Put(banks, KN + "Rocks Grass/Rock_1.prefab", new Vector3(q.x, H(q) + R(0.5f, 2.0f) - 13.8f * sc, q.y), Quaternion.Euler(R(-5, 5), R(0, 360), R(-5, 5)), sc);
+            placed.Add(new Vector3(q.x, q.y, 9f * sc)); k++;
+        }
+
+        foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
+        EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+        return new { shoreSamples = shore.Count, stones = nStones, lilyClusters = clusters, lilies = nLilies, plants = nPlants, frameSakura = frame, rockBushes };
+    }
+
+    static Transform Sub2(Transform parent, string name)
+    {
+        var t = new GameObject(name).transform;
+        t.SetParent(parent, false);
+        return t;
     }
 
     static Transform Group(string name)
@@ -2928,7 +3959,7 @@ public static class Outcrops
         }
 
         // lakeside viewpoint (concept): a raised rocky promontory by the lake's south-west shore
-        var vp = new Vector2(546, 246);
+        var vp = MeadowHomeLayout.Viewpoint;
         float vpGround = H(vp);
         Put(viewpoint, Cliffs[1].path, new Vector3(vp.x, vpGround + 3.2f - Cliffs[1].top * 0.55f, vp.y), Quaternion.Euler(0, 35, 0), 0.55f);
         Put(viewpoint, Cliffs[0].path, new Vector3(vp.x + 6.5f, vpGround + 1.4f - Cliffs[0].top * 0.42f, vp.y - 4.5f), Quaternion.Euler(0, 160, 0), 0.42f);
@@ -2937,9 +3968,9 @@ public static class Outcrops
         placed.Add(new Vector3(vp.x, vp.y, 12f));
 
         // boulder clusters: forest-heavy, a few on meadow edges; 1 large + 1-3 smaller within ~5 m
-        for (int i = 0; i < 8000 && nBoulder < 95; i++)
+        for (int i = 0; i < 10000 && nBoulder < 115; i++)
         {
-            var p = new Vector2(R(170, 840), R(200, 840));
+            var p = new Vector2(R(170, 960), R(70, 940));
             bool meadow = MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.MeadowArea) < 0;
             bool highland = MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.HighlandsArea) < 0;
             if (meadow && rng.NextDouble() > 0.25) continue;                     // sparse in the meadow
@@ -3139,7 +4170,7 @@ public static class Vegetation
     public static async Task<object> GenerateMasks(int res)
     {
         var t0 = DateTime.Now;
-        string[] names = { "Forest", "Meadow", "Highlands", "Swamp", "Foothills", "Wild", "Reeds", "WaterEdge", "MeadowFlowers", "Hedge", "Rim", "RimBroadleaf", "RimShort", "RimBushes" };
+        string[] names = { "Forest", "Meadow", "Highlands", "Swamp", "Foothills", "Wild", "Reeds", "WaterEdge", "MeadowFlowers", "Hedge", "Rim", "RimBroadleaf", "RimShort", "RimBushes", "LakeShore", "LakeTrees", "LakeLip", "LakeFlowers" };
         var maps = names.ToDictionary(n => n, n => new float[res * res]);
         var home = MeadowHomeLayout.HomeBase;
         var centre = new Vector2(505, 520);
@@ -3159,16 +4190,18 @@ public static class Vegetation
                 bool wet = !float.IsNegativeInfinity(surface) && ground < surface - 0.02f;
                 float reach = 0.5f + 0.5f * MeadowHomeLayout.Fbm(x / 14f, z / 14f + 19f, 2);   // grass reaches the water on some stretches
                 float landFade = wet ? 0 : MeadowHomeLayout.SmoothStep(0.15f + 0.9f * reach, 1.2f + 1.8f * reach, dWater);
-                float treeFade = wet ? 0 : MeadowHomeLayout.SmoothStep(5f, 12f, dWater);
+                // islands are dressed by Finishing.Islands; terrain trees stay off them
+                float treeFade = wet || MeadowHomeLayout.IslandAt(p) >= 0 ? 0 : MeadowHomeLayout.SmoothStep(5f, 12f, dWater);
                 maps["Forest"][k] = w.x * inside * treeFade;
                 maps["Meadow"][k] = w.y * inside * landFade;
                 maps["Highlands"][k] = w.z * inside * treeFade;
                 maps["Swamp"][k] = w.w * inside;
-                maps["Foothills"][k] = MeadowHomeLayout.SmoothStep(-48, -30, dPlay) * (1 - MeadowHomeLayout.SmoothStep(-7, -2, dPlay)) * treeFade * (1 - w.w);
+                // only a sparse fringe where the meadow runs up to the edge, so the near range shows from the meadow (concept)
+                maps["Foothills"][k] = MeadowHomeLayout.SmoothStep(-48, -30, dPlay) * (1 - MeadowHomeLayout.SmoothStep(-7, -2, dPlay)) * treeFade * (1 - w.w) * (1 - 0.85f * MeadowHomeLayout.SmoothStep(0.2f, 0.7f, w.y));
                 maps["Wild"][k] = inside * landFade * (1 - w.y) * (1 - w.w * 0.7f);
                 float depth = float.IsNegativeInfinity(surface) ? -9 : surface - ground;
-                // lakes, ponds, swamp, the river away from the bridge, and the slow margin stream below the swamp
-                bool reedWater = kind == 0 || (kind == 1 && Vector2.Distance(p, MeadowHomeLayout.Bridge) > 12f) || (kind == 2 && x > 556 && z > 530 && z < 700);
+                // lakes, ponds, swamp, the rivers (not by the bridge), and the slow margin stream and swamp outlet
+                bool reedWater = kind == 0 || (kind == 1 && Vector2.Distance(p, MeadowHomeLayout.Bridge) > 12f) || (kind == 2 && x > 556 && z > 530 && z < 745);
                 maps["Reeds"][k] = reedWater ? MeadowHomeLayout.SmoothStep(-0.35f, -0.05f, depth) * (1 - MeadowHomeLayout.SmoothStep(0.5f, 0.85f, depth)) * inside * (1 - MeadowHomeLayout.SandWeight(p)) : 0;
                 maps["WaterEdge"][k] = wet ? 0 : MeadowHomeLayout.SmoothStep(0.3f, 1.2f, dWater) * (1 - MeadowHomeLayout.SmoothStep(4f, 7f, dWater)) * inside;
 
@@ -3190,12 +4223,34 @@ public static class Vegetation
                 float wS = Mathf.Max(0, -Mathf.Sin(a)), wE = Mathf.Max(0, Mathf.Cos(a)), wN = Mathf.Max(0, Mathf.Sin(a));
                 float broad = Mathf.Clamp01((0.25f * wS * wS + 0.35f * wE * wE + (x > 450 ? 0.6f : 0.1f) * wN * wN) / Mathf.Max(0.3f, wS * wS + wE * wE + wN * wN + Mathf.Max(0, -Mathf.Cos(a)) * Mathf.Max(0, -Mathf.Cos(a)))
                     + 0.2f * MeadowHomeLayout.Fbm(x / 60f, z / 60f + 9f, 2));
-                // behind the home the belt stays short so the ridges and peaks show over it
-                float shortTrees = (1 - MeadowHomeLayout.SmoothStep(80f, 140f, Vector2.Distance(p, home))) * (1 - MeadowHomeLayout.SmoothStep(35f, 70f, dPlay));
+                // the first 30-55 m of the belt stays short so the near range's rock rises over it (and behind the home the
+                // ridges and peaks show)
+                float shortTrees = Mathf.Max(1 - MeadowHomeLayout.SmoothStep(30f, 55f, dPlay), (1 - MeadowHomeLayout.SmoothStep(80f, 140f, Vector2.Distance(p, home))) * (1 - MeadowHomeLayout.SmoothStep(35f, 70f, dPlay)));
                 maps["Rim"][k] = rim * (1 - broad) * (1 - shortTrees);
                 maps["RimBroadleaf"][k] = rim * broad * (1 - shortTrees);
                 maps["RimShort"][k] = rim * shortTrees;
                 maps["RimBushes"][k] = MeadowHomeLayout.SmoothStep(2f, 5f, dPlay) * (1 - MeadowHomeLayout.SmoothStep(30f, 45f, dPlay)) * treeFade;
+
+                // lake and pond shores (and islands), after the vendor demos (scratchpad research5/lake_shore_islands.md):
+                // a lip of lush grass and clover 0.3-3 m from the water, bushes in clumps and flowers from 3 m, trees from 7 m.
+                // Coves (land on most of a 15 m disc around the point) get the most bushes, trees and reeds, points the least.
+                float dBasin = MeadowHomeLayout.BasinEdgeDistance(p);
+                float beach = MeadowHomeLayout.SandWeight(p);
+                float cove = 0.5f;
+                bool lakeWater = wet && kind == 0 && MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.Basins[0].shore) < 0;
+                if ((!wet && dBasin < 28f) || lakeWater)
+                {
+                    int land = 0;
+                    for (int a12 = 0; a12 < 12; a12++) { float ang = a12 * Mathf.PI / 6; if (MeadowHomeLayout.BasinEdgeDistance(p + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * 15f) > 0) land++; }
+                    cove = MeadowHomeLayout.SmoothStep(0.35f, 0.7f, land / 12f);
+                }
+                float shoreBase = wet ? 0 : inside * (1 - beach) * (1 - w.w);
+                maps["LakeLip"][k] = shoreBase * MeadowHomeLayout.SmoothStep(0.2f, 0.8f, dBasin) * (1 - MeadowHomeLayout.SmoothStep(2.5f, 3.5f, dBasin));
+                maps["LakeShore"][k] = shoreBase * MeadowHomeLayout.SmoothStep(2f, 3.5f, dBasin) * (1 - MeadowHomeLayout.SmoothStep(9f, 13f, dBasin)) * Mathf.Lerp(0.15f, 1f, cove);
+                maps["LakeFlowers"][k] = shoreBase * MeadowHomeLayout.SmoothStep(2.5f, 3.5f, dBasin) * (1 - MeadowHomeLayout.SmoothStep(9f, 12f, dBasin));
+                maps["LakeTrees"][k] = MeadowHomeLayout.IslandAt(p) >= 0 ? 0 : shoreBase * MeadowHomeLayout.SmoothStep(7f, 10f, dBasin) * (1 - MeadowHomeLayout.SmoothStep(22f, 28f, dBasin)) * (1 - 0.7f * w.y) * (0.6f + 0.4f * cove);
+                // reeds on the lake only in coves (open green banks stay clear, as in ref 7 and the Raygeas demos)
+                if (lakeWater) maps["Reeds"][k] *= MeadowHomeLayout.SmoothStep(0.3f, 0.6f, cove);
             }
         }));
         foreach (var kv in maps) MeadowHomeLayout.WriteMask(Maps + "MH_Veg_" + kv.Key + ".png", kv.Value, res);
@@ -3208,7 +4263,7 @@ public static class Vegetation
         var scene = SceneManager.GetActiveScene();
         var env = scene.GetRootGameObjects().First(g => g.name == "Environment");
         var rocks = new List<Vector3>();   // x, z, radius
-        foreach (var path in new[] { "Rock Outcrops", "Landmarks/Waterfall", "Boundary/Foot Rocks", "Dressing/Meadow Stones", "Dressing/Bank Rocks", "Dressing/Water Edges" })
+        foreach (var path in new[] { "Rock Outcrops", "Landmarks/Waterfall", "Boundary/Foot Rocks", "Boundary/Near Range", "Boundary/Outlet Gorge", "Dressing/Meadow Stones", "Dressing/Bank Rocks", "Dressing/Water Edges", "Dressing/Home Pond" })
         {
             var root = env.transform.Find(path);
             if (root == null) continue;
@@ -3373,6 +4428,10 @@ public static class Vegetation
         var rimS = T(trees, "Rim Short Trees", new[] { KN + "PineTree_1.prefab", KN + "PineTree_2.prefab", GV + "Broadleaf_Small_2.prefab", GV + "Birch_Small_1.prefab", GV + "Broadleaf_Medium_1.prefab" },
             new[] { 25f, 15f, 25f, 15f, 20f }, new Vector2(0.6f, 0.85f), 1.8f, "RimShort");
         Veg.Slope(rimS.filterSet, 0, 45, 0, 6); Veg.Noise(rimS.filterSet.weightNoise, 2, 14, 3f, 0.0f);
+        // lake and pond shores (ref: Raygeas key art): broadleafs and pines leaning over the water in loose groups
+        var shoreTrees = T(trees, "Shore Trees", new[] { GV + "Broadleaf_Medium_1.prefab", GV + "Broadleaf_Medium_2.prefab", GV + "Broadleaf_Large_1.prefab", GV + "Birch_Medium_1.prefab", KN + "PineTree_4.prefab", KN + "PineTree_5.prefab" },
+            new[] { 24f, 24f, 10f, 12f, 15f, 15f }, new Vector2(0.85f, 1.2f), 2.8f, "LakeTrees");
+        Veg.Slope(shoreTrees.filterSet, 0, 40, 0, 6); Veg.Noise(shoreTrees.filterSet.weightNoise, 2, 16, 3f, 0.1f, 0.6f);
         var sdead = T(trees, "Swamp Dead Trees", new[] { GV + "Birch_Dead_1.prefab", GV + "Birch_Dead_2.prefab", GV + "Broadleaf_Dead_1.prefab", GV + "Broadleaf_Dead_2.prefab" }, new[] { 27f, 27f, 23f, 23f }, new Vector2(0.7f, 1.1f), 2.4f, "Swamp");
         Veg.Height(sdead.filterSet, MeadowHomeLayout.SwampWater - 0.6f, 26.5f, 0.2f, 1f);
         var sliving = T(trees, "Swamp Living Trees", new[] { GV + "Birch_Small_1.prefab", GV + "Birch_Small_2.prefab", GV + "Broadleaf_Small_2.prefab", KN + "PineTree_1.prefab" }, new[] { 30f, 30f, 20f, 20f }, new Vector2(0.65f, 0.95f), 1.7f, "Swamp");
@@ -3384,6 +4443,9 @@ public static class Vegetation
         Veg.Slope(mb.filterSet, 0, 35, 0, 6); Veg.Noise(mb.filterSet.weightNoise, 2, 35, 6f, 0.2f);   // clumps of 2-4, not a sprinkle
         var hedge = T(bushes, "Meadow Hedgerows", new[] { GV + "Bush_Large.prefab", GV + "Bush_Medium.prefab", KN + "Bush_1.prefab", KN + "Bush_2.prefab" }, new[] { 35f, 30f, 18f, 17f }, new Vector2(0.75f, 1.1f), 8f, "Hedge");
         Veg.Slope(hedge.filterSet, 0, 35, 0, 6);
+        var shoreBu = T(bushes, "Shore Bushes", new[] { GV + "Bush_Large.prefab", GV + "Bush_Medium.prefab", KN + "Bush_1.prefab", KN + "Bush_2.prefab", KN + "Bush_1_Flowers.prefab", KN + "Bush_3_Flowers.prefab" },
+            new[] { 30f, 30f, 12f, 12f, 8f, 8f }, new Vector2(0.8f, 1.15f), 14f, "LakeShore");   // clumps of 3-5 with crowns touching
+        Veg.Slope(shoreBu.filterSet, 0, 40, 0, 6); Veg.Noise(shoreBu.filterSet.weightNoise, 2, 16, 8f, 0.16f, 1.3f);
         var rimBu = T(bushes, "Rim Bushes", new[] { KN + "Bush_1.prefab", KN + "Bush_2.prefab", KN + "Bush_3.prefab", GV + "Bush_Large.prefab", GV + "Bush_Medium.prefab" }, new[] { 22f, 22f, 18f, 20f, 18f }, new Vector2(0.8f, 1.2f), 3.0f, "RimBushes");
         Veg.Noise(rimBu.filterSet.weightNoise, 2, 30, 3f, 0.2f);
         var fb = T(bushes, "Forest Understory", new[] { KN + "Bush_1.prefab", KN + "Bush_2.prefab", KN + "Bush_3.prefab", KN + "Bush_4.prefab", KN + "Bush_2_Flowers.prefab" }, new[] { 24f, 24f, 20f, 17f, 15f }, new Vector2(0.7f, 1.1f), 3.0f, "Forest");
@@ -3445,6 +4507,12 @@ public static class Vegetation
         Veg.Noise(wefe3.filterSet.weightNoise, 2, 45, 3f, 0.35f, 0.8f);
         var wefa = D("Waterside Farfugium", KN + "Farfugium_2.prefab", new Vector2(1.0f, 1.3f), new Vector2(1.0f, 1.3f), 0.6f, "WaterEdge");
         Veg.Noise(wefa.filterSet.weightNoise, 2, 45, 3f, 0.45f);
+        // lush shore grass and orange flowers down to the water (ref 7)
+        var shoreGrass = D("Shore Grass", KN + "Grass_1.prefab", new Vector2(1.0f, 1.3f), new Vector2(1.0f, 1.35f), 2.0f, "LakeLip"); TexFilter(shoreGrass.filterSet, grassLayers);
+        var shoreClover = D("Shore Clovers", KN + "Clovers_1.prefab", new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 1.0f, "LakeLip");
+        Veg.Noise(shoreClover.filterSet.weightNoise, 2, 30, 3f, 0.15f, 2.2f);
+        var shoreFl = D("Shore Flowers", BKP + "FlowerMeadow1.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 0.9f, "LakeFlowers"); TexFilter(shoreFl.filterSet, grassLayers);
+        Proto(shoreFl, 0.5f, 0.7f, 0.5f); Veg.Noise(shoreFl.filterSet.weightNoise, 2, 18, 8f, 0.16f, 9f);
         var sc = D("Highland Scree", HF + "Stones.prefab", new Vector2(0.5f, 0.9f), new Vector2(0.5f, 0.9f), 0.35f, "Highlands");
         Veg.Noise(sc.filterSet.weightNoise, 2, 40, 3f, 0.35f);   // scattered patches, not a carpet
         TexFilter(sc.filterSet, new[] { "MH_Pebbles", "MH_Rock", "MH_Dirt" });
@@ -3536,9 +4604,20 @@ public static class Finishing
 {
     const string KN = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/";
 
-    // Lake islands: a framing pine or two, bushes, a stone ring (terrain trees skip them: too close to water).
+    // Lake islands as four archetypes (scratchpad research5/lake_shore_islands.md, from the Komorebi, Grasslands and AZURE
+    // demos), picked by size and height:
+    //   wooded isle (land radius >= 16 m): a hero broadleaf, a loose ring of broadleafs and pines with the side facing the
+    //     meadow left open, bush clumps, a rocky point, a stone ring with one bare beach arc, a driftwood point, lily arcs;
+    //   pine knoll (top > 1.3 m): a big pine, a pine at the shore and a Sakura, bush clumps, big rocks standing in the water
+    //     on one side, a continuous stone ring;
+    //   flower islet (top 1.0-1.3 m): one Sakura at the centre, flowering bushes, Farfugium, a dense stone ring;
+    //   sand bar (top <= 1.0 m): no trees, a log half in the water, rocks off the shore, a ring broken by a beach arc.
+    // Grass and shore flowers come from the vegetation masks; terrain trees stay off islands.
     public static object Islands(int seed)
     {
+        const string GV = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
+        const string GLR = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Rocks/";
+        const string HLF = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/Forest/";
         var terrain = Terrain.activeTerrain;
         var rng = new System.Random(seed);
         float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
@@ -3550,37 +4629,191 @@ public static class Finishing
         if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
         var root = new GameObject("Islands").transform; root.SetParent(dressing, false);
         Undo.RegisterCreatedObjectUndo(root.gameObject, "Islands");
-        GameObject Put(string path, Vector2 at, float yOff, Vector3 euler, float scale)
+        int n = 0;
+        GameObject Put(Transform parent, string path, Vector3 pos, Quaternion rot, float scale)
         {
-            var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path), root);
-            go.transform.SetPositionAndRotation(new Vector3(at.x, H(at) + yOff, at.y), Quaternion.Euler(euler));
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path), parent);
+            go.transform.SetPositionAndRotation(pos, rot);
             go.transform.localScale = Vector3.one * scale;
+            n++;
             return go;
         }
-        int n = 0;
-        foreach (var (x, z, top, radius) in new[] { (675f, 270f, 2.4f, 12f), (726f, 247f, 1.8f, 9f), (763f, 394f, 2.2f, 11f), (808f, 428f, 1.6f, 8f) })
+        Quaternion Upright() => Quaternion.Euler(0, R(0, 360), 0);
+        Quaternion Tilted(float a) => Quaternion.Euler(R(-a, a), R(0, 360), R(-a, a));
+        Vector2 Dir(float ang) => new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+        float AngleDiff(float a, float b) => Mathf.Abs(Mathf.DeltaAngle(a * Mathf.Rad2Deg, b * Mathf.Rad2Deg)) * Mathf.Deg2Rad;
+        var view = MeadowHomeLayout.HomeBase;
+
+        for (int ii = 0; ii < MeadowHomeLayout.Islands.Length; ii++)
         {
-            var c = new Vector2(x, z);
-            int pines = radius > 10 ? 2 : 1;
-            for (int i = 0; i < pines; i++)
+            float level = MeadowHomeLayout.IslandLevel(ii);
+            if (level > 20f) continue;                                    // the home pond's islands: Dressing.BuildHomePond
+            var isl = MeadowHomeLayout.Islands[ii];
+            var c = new Vector2(isl.x, isl.y);
+            float rw = MeadowHomeLayout.IslandWaterline(ii);
+            char kind = rw >= 16f ? 'A' : isl.z > 1.3f ? 'B' : isl.z > 1.0f ? 'C' : 'D';
+            float amount = kind == 'A' && rw < 20f ? 0.65f : 1f;
+            var g = new GameObject($"Island {ii} ({(kind == 'A' ? "wooded" : kind == 'B' ? "pine knoll" : kind == 'C' ? "flower islet" : "sand bar")})").transform;
+            g.SetParent(root, false);
+            var placed = new List<Vector3>();
+            bool Free(Vector2 p, float r) => placed.All(q => (new Vector2(q.x, q.y) - p).sqrMagnitude > (q.z + r) * (q.z + r));
+            bool Land(Vector2 p, float above) => H(p) > level + above;
+            float viewAng = Mathf.Atan2(view.y - c.y, view.x - c.x);       // the side people see it from
+            float a0 = viewAng + Mathf.PI + R(-0.8f, 0.8f);                 // rocky point / beach directions are random around the far side
+            float beachAng = a0 + Mathf.PI + R(-0.6f, 0.6f);
+            bool Place(string path, Vector2 p, float scale, float keep, float sink = 0.15f, Quaternion? rot = null)
             {
-                var p = c + new Vector2(R(-1, 1), R(-1, 1)) * radius * 0.2f;
-                Put(KN + "Nature/PineTree_" + (3 + rng.Next(2)) + ".prefab", p, -0.2f, new Vector3(0, R(0, 360), 0), R(0.6f, 0.85f)); n++;
+                if (!Free(p, keep)) return false;
+                Put(g, path, new Vector3(p.x, H(p) - sink, p.y), rot ?? Upright(), scale);
+                placed.Add(new Vector3(p.x, p.y, keep));
+                return true;
             }
-            for (int i = 0; i < 3 + rng.Next(2); i++)
+            bool Ring(string path, float rMin, float rMax, float scale, float above, float keep, float avoidAng = float.NaN, float avoidWidth = 0, float sink = 0.15f)
             {
-                float a = R(0, Mathf.PI * 2);
-                var p = c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius * R(0.25f, 0.45f);
-                string bush = rng.NextDouble() < 0.5 ? "Nature/Bush_" + (1 + rng.Next(2)) + "_Flowers.prefab" : "Nature/Bush_" + (1 + rng.Next(3)) + ".prefab";
-                Put(KN + bush, p, -0.1f, new Vector3(0, R(0, 360), 0), R(0.8f, 1.05f)); n++;
+                for (int t = 0; t < 50; t++)
+                {
+                    float ang = R(0, 2 * Mathf.PI);
+                    if (!float.IsNaN(avoidAng) && AngleDiff(ang, avoidAng) < avoidWidth) continue;
+                    var p = c + Dir(ang) * rw * R(rMin, rMax);
+                    if (Land(p, above) && Place(path, p, scale, keep, sink)) return true;
+                }
+                return false;
             }
-            int stones = 8 + rng.Next(6);
-            for (int i = 0; i < stones; i++)
+            void Clump(string[] paths, float[] weights, int count, float rMin, float rMax, float above)
             {
-                float a = i / (float)stones * Mathf.PI * 2 + R(-0.2f, 0.2f);
-                var p = c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius * R(0.5f, 0.68f);
-                float sc = R(1.4f, 3.2f);
-                Put(KN + "Rocks/SmallStone_" + (1 + rng.Next(4)) + ".prefab", p, -0.12f * sc, new Vector3(R(-15, 15), R(0, 360), R(-15, 15)), sc); n++;
+                for (int t = 0; t < 40; t++)
+                {
+                    var cc = c + Dir(R(0, 2 * Mathf.PI)) * rw * R(rMin, rMax);
+                    if (!Land(cc, above)) continue;
+                    for (int k = 0, t2 = 0; k < count && t2 < 40; t2++)
+                    {
+                        var p = cc + new Vector2(R(-2.5f, 2.5f), R(-2.5f, 2.5f));
+                        if (!Land(p, above * 0.5f)) continue;
+                        float w = R(0, weights.Sum()); int pick = 0; for (; pick < weights.Length - 1 && w > weights[pick]; pick++) w -= weights[pick];
+                        if (Place(paths[pick], p, R(0.85f, 1.1f), 0.75f)) k++;
+                    }
+                    return;
+                }
+            }
+            string[] bushes = { GV + "Bush_Large.prefab", GV + "Bush_Medium.prefab", KN + "Nature/Bush_1.prefab", KN + "Nature/Bush_2.prefab", KN + "Nature/Bush_3.prefab" };
+            float[] bushW = { 30, 30, 13, 13, 14 };
+            string[] flowering = { KN + "Nature/Bush_1_Flowers.prefab", KN + "Nature/Bush_3_Flowers.prefab" };
+            float[] flowW = { 1, 1 };
+
+            if (kind == 'A')
+            {
+                var hero = c + Dir(viewAng + Mathf.PI) * rw * R(0.15f, 0.3f);
+                Place(GV + (rng.Next(2) == 0 ? "Broadleaf_Large_1.prefab" : "Broadleaf_Large_2.prefab"), hero, R(1.1f, 1.25f), 5f, 0.2f);
+                int ringTrees = Mathf.RoundToInt(R(5, 8) * amount);
+                for (int k = 0; k < ringTrees; k++)
+                {
+                    int r = rng.Next(10);
+                    string path = r < 4 ? GV + "Broadleaf_Medium_" + (1 + rng.Next(2)) + ".prefab" : r < 9 ? KN + "Nature/PineTree_" + (3 + rng.Next(3)) + ".prefab" : (k == 0 ? KN + "Nature/Sakura_" + (1 + rng.Next(2)) + ".prefab" : GV + "Birch_Medium_1.prefab");
+                    Ring(path, 0.5f, 0.85f, path.Contains("Pine") ? R(1.0f, 1.25f) : R(0.9f, 1.15f), 0.8f, 3.5f, viewAng, Mathf.PI / 3f, 0.2f);
+                }
+                int clumps = Mathf.RoundToInt(R(5, 7) * amount);
+                for (int k = 0; k < clumps; k++) Clump(k == 0 ? flowering : bushes, k == 0 ? flowW : bushW, 3 + rng.Next(4), 0.35f, 0.8f, 0.4f);
+                for (int k = 0; k < 8 * amount; k++) Ring(KN + "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", 0.4f, 0.85f, R(0.9f, 1.2f), 0.25f, 0.9f, sink: 0.1f);
+                for (int k = 0; k < 4 * amount; k++) Ring(KN + "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", 0.45f, 0.85f, R(0.9f, 1.1f), 0.25f, 0.9f, sink: 0.1f);
+            }
+            else if (kind == 'B')
+            {
+                Place(KN + "Nature/PineTree_4.prefab", c + Dir(R(0, 2 * Mathf.PI)) * rw * R(0f, 0.3f), R(1.2f, 1.3f), 4f, 0.2f);
+                var shoreAng = R(0, 2 * Mathf.PI);
+                Place(KN + "Nature/PineTree_3.prefab", c + Dir(shoreAng) * Mathf.Max(0f, rw - 4f), 1.0f, 3f, 0.2f);
+                Place(KN + "Nature/Sakura_2.prefab", c + Dir(shoreAng + Mathf.PI) * Mathf.Max(0f, rw - 5f), 0.95f, 3f, 0.2f);
+                for (int k = 0; k < 3; k++) Clump(k == 0 ? flowering : bushes, k == 0 ? flowW : bushW, 3 + rng.Next(2), 0.3f, 0.75f, 0.4f);
+                for (int k = 0; k < 6; k++) Ring(KN + "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", 0.3f, 0.9f, R(0.9f, 1.1f), 0.2f, 0.9f, sink: 0.1f);
+            }
+            else if (kind == 'C')
+            {
+                Place(KN + "Nature/Sakura_" + (rng.Next(2) == 0 ? 3 : 5) + ".prefab", c + new Vector2(R(-1, 1), R(-1, 1)), 1.0f, 3f, 0.2f);
+                for (int k = 0; k < 3; k++) Ring(flowering[rng.Next(2)], 0.45f, 0.8f, R(0.95f, 1.1f), 0.2f, 1.1f);
+                Clump(bushes, bushW, 3 + rng.Next(3), 0.3f, 0.6f, 0.3f);
+                for (int k = 0; k < 12; k++) Ring(KN + "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", 0.2f, 0.85f, R(0.9f, 1.1f), 0.12f, 0.7f, sink: 0.08f);
+            }
+            else
+            {
+                // a log half in the water on the beach side, a bush or two at most
+                var logAt = c + Dir(beachAng) * rw * R(0.85f, 1.05f);
+                Put(g, HLF + "Log_" + (1 + rng.Next(2)) + ".prefab", new Vector3(logAt.x, Mathf.Max(H(logAt), level - 0.25f) - 0.1f, logAt.y), Quaternion.Euler(R(-3, 3), R(0, 360), R(-3, 3)), R(1.0f, 1.3f));
+                placed.Add(new Vector3(logAt.x, logAt.y, 2.5f));
+                Ring(KN + "Nature/Bush_" + (1 + rng.Next(2)) + ".prefab", 0.1f, 0.5f, R(0.7f, 0.9f), 0.25f, 1.2f);
+                for (int k = 0; k < 5; k++)
+                {
+                    float ang = a0 + R(-1.2f, 1.2f);
+                    var p = c + Dir(ang) * (rw + R(2f, 5f));
+                    float depth = level - H(p);
+                    if (depth < 0.3f || depth > 2.2f || !Free(p, 1.5f)) continue;
+                    var (path, minY, maxY) = new[] { (GLR + "Stone_2.prefab", -0.13f, 0.99f), (GLR + "Stone_7.prefab", -0.58f, 1.58f), (GLR + "Stone_9.prefab", -0.94f, 1.70f) }[rng.Next(3)];
+                    float sc = R(1.1f, 1.5f);
+                    Put(g, path, new Vector3(p.x, Mathf.Min(level + R(-1f, 0.6f) - maxY * sc, H(p) - minY * sc - 0.1f), p.y), Tilted(10), sc);
+                    placed.Add(new Vector3(p.x, p.y, 1.2f * sc));
+                }
+            }
+
+            // rocky point (wooded isle and pine knoll): grass-topped rocks standing in 0.3-1.5 m of water on one side
+            if (kind == 'A' || kind == 'B')
+                for (int k = 0, t = 0; k < (kind == 'B' ? 4 : 3) && t < 40; t++)
+                {
+                    var p = c + Dir(a0 + R(-0.35f, 0.35f)) * (rw + R(-1.5f, 2.5f));
+                    float depth = level - H(p);
+                    if (depth > 1.5f || !Free(p, 2.2f)) continue;
+                    bool gl = kind == 'B' && rng.Next(3) == 0;
+                    float sc = gl ? R(1.5f, 1.8f) : R(0.9f, 1.4f);
+                    string path = gl ? GLR + "Stone_9.prefab" : KN + "Rocks Grass/Stone_" + new[] { 2, 5, 6, 8 }[rng.Next(4)] + ".prefab";
+                    Put(g, path, new Vector3(p.x, Mathf.Max(H(p), level - 1.2f) - R(0.4f, 0.8f) * sc, p.y), Tilted(10), sc);
+                    placed.Add(new Vector3(p.x, p.y, 2f * sc)); k++;
+                }
+
+            // stone ring at the waterline: wooded 5-6 per 10 m, knoll/islet/bar 8-11; the beach arc (wooded, bar) and the
+            // rocky point are left out
+            float spacing = kind == 'A' ? 1.8f : 1.1f;
+            float beachWidth = kind == 'A' ? Mathf.PI * 0.25f : kind == 'D' ? 18f / Mathf.Max(1f, rw) * 0.5f : 0f;
+            float circ = 2 * Mathf.PI * rw;
+            for (float s = 0; s < circ; s += R(spacing * 0.7f, spacing * 1.3f))
+            {
+                float ang = s / rw;
+                if (beachWidth > 0 && AngleDiff(ang, beachAng) < beachWidth) continue;
+                if ((kind == 'A' || kind == 'B') && AngleDiff(ang, a0) < 0.4f) continue;
+                var dir = Dir(ang);
+                Vector2 wl = c + dir * rw;
+                for (float d = rw * 0.5f; d < rw + 6f; d += 0.25f) if (H(c + dir * d) < level) { wl = c + dir * d; break; }
+                var p = wl + dir * R(-1.0f, 2.5f);
+                float sc = R(1.5f, 2.8f);
+                if (!Free(p, 0.3f * sc)) continue;
+                Put(g, KN + "Rocks/SmallStone_" + (1 + rng.Next(3)) + ".prefab", new Vector3(p.x, H(p) - R(0.15f, 0.35f), p.y), Tilted(20), sc);
+                placed.Add(new Vector3(p.x, p.y, 0.3f * sc));
+            }
+
+            // driftwood point on the wooded isle's beach arc: a log and branches, half in the water
+            if (kind == 'A')
+            {
+                var dp = c + Dir(beachAng) * rw;
+                Put(g, HLF + "Log_" + (1 + rng.Next(2)) + ".prefab", new Vector3(dp.x, Mathf.Max(H(dp), level - 0.2f) - 0.1f, dp.y), Quaternion.Euler(R(-3, 3), R(0, 360), R(-3, 3)), R(0.9f, 1.2f));
+                for (int k = 0; k < 4; k++)
+                {
+                    var b = dp + Dir(beachAng + R(-0.4f, 0.4f)) * R(-2f, 6f) + new Vector2(R(-2, 2), R(-2, 2));
+                    Put(g, GV + new[] { "Branch_1.prefab", "Big_Branch_1.prefab", "Big_Branch_2.prefab" }[rng.Next(3)], new Vector3(b.x, Mathf.Max(H(b) - 0.05f, level - 0.15f), b.y), Quaternion.Euler(R(-4, 4), R(0, 360), R(-4, 4)), R(0.8f, 1.1f));
+                }
+            }
+
+            // lily arcs on the lee side (toward the beach), 3-6 m out in 0.8-2.4 m of water
+            int arcs = kind == 'A' ? 3 : kind == 'D' ? 1 : 2, perArc = kind == 'A' ? 7 : kind == 'B' ? 6 : 5;
+            for (int a = 0, t = 0; a < arcs && t < 60; t++)
+            {
+                float ang = beachAng + R(-1.2f, 1.2f);
+                int made = 0;
+                for (int k = 0; k < perArc * 3 && made < perArc; k++)
+                {
+                    var q = c + Dir(ang + R(-0.25f, 0.25f)) * (rw + R(3f, 6f));
+                    float dq = level - H(q);
+                    if (dq < 0.8f || dq > 2.4f || !Free(q, 1.25f)) continue;
+                    string path = kind == 'D' ? GV + "Lotus_Group_" + (1 + rng.Next(2)) + ".prefab" : KN + "Nature/WaterLily_Group_" + (rng.NextDouble() < 0.55 ? 2 : 3) + ".prefab";
+                    Put(g, path, new Vector3(q.x, level + 0.028f, q.y), Upright(), R(1.0f, 1.15f));
+                    placed.Add(new Vector3(q.x, q.y, 1.25f)); made++;
+                }
+                if (made > 0) a++;
             }
         }
         foreach (var t in root.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
