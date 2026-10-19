@@ -1965,8 +1965,6 @@ public static class MeadowHomeLayout
         still.SetFloat("_RefractionStrength", 0.15f);
         still.SetFloat("_ShadingMode", 1f); CoreUtils.SetKeyword(still, "_ADVANCED_SHADING", true);
         still.SetFloat("_VertexColorTransparency", 1f);
-        // the render feature allows SSR but the vendor Smooth material has it off: the water only reflected the sky cubemap
-        still.SetFloat("_ScreenSpaceReflectionsEnabled", 1f);
         still.SetFloat("_ReflectionStrength", 1f);
         still.SetFloat("_ReflectionFresnel", 4f);
         still.SetFloat("_ReflectionDistortion", 0.12f);
@@ -2040,8 +2038,16 @@ public static class MeadowHomeLayout
         swamp.SetFloat("_SparkleIntensity", 0.5f);
         WaterToggle(swamp, "_CausticsOn", "_CAUSTICS", false);
 
-        foreach (var m in new[] { still, river, pond, swamp }) { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
+        foreach (var m in new[] { still, river, pond, swamp }) { WaterReflectionsOff(m); EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
         return new[] { still, river, pond, swamp }.Select(m => AssetDatabase.GetAssetPath(m)).ToArray();
+    }
+
+    // Performance: no environment reflections (sky, probes, SSR). The sun's specular highlight is lighting and stays.
+    public static void WaterReflectionsOff(Material m)
+    {
+        m.SetFloat("_EnvironmentReflectionsOn", 0f);
+        CoreUtils.SetKeyword(m, "_ENVIRONMENTREFLECTIONS_OFF", true);   // [ToggleOff] drawer: off = keyword on
+        m.SetFloat("_ScreenSpaceReflectionsEnabled", 0f);
     }
 
     static void WaterToggle(Material m, string property, string keyword, bool on)

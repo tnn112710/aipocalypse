@@ -6824,7 +6824,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &28732467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -313653,7 +313653,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1263937119
 Transform:
   m_ObjectHideFlags: 0
@@ -529186,6 +529186,7 @@ GameObject:
   - component: {fileID: 2061627887}
   - component: {fileID: 2061627889}
   - component: {fileID: 2061627888}
+  - component: {fileID: 2061627890}
   m_Layer: 0
   m_Name: Terrain_0_0
   m_TagString: Untagged
@@ -529269,6 +529270,30 @@ Terrain:
   m_EnableTreesAndDetailsRayTracing: 0
   m_EnableHeightmapLODFrustumCulling: 1
   m_TreeMotionVectorModeOverride: 3
+--- !u!114 &2061627890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2061627886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b7ec84d136d88e4398d563cb01a9cf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GPUInstancerPro.TerrainModule::GPUInstancerPro.TerrainModule.GPUITerrainBuiltin
+  _bounds:
+    m_Center: {x: 500, y: 150, z: 500}
+    m_Extent: {x: 500, y: 150, z: 500}
+  _bakedDetailTextures: []
+  isAutoFindTreeManager: 1
+  isAutoFindDetailManager: 1
+  terrainHolesSampleMode: 0
+  enableDetailDensityReduction: 1
+  _terrainTreeDistance: 5000
+  _isBakedDetailTextures: 0
+  _isCustomBakedDetailTextures: 0
+  _terrain: {fileID: 2061627889}
 --- !u!1001 &2061961631
 PrefabInstance:
   m_ObjectHideFlags: 0

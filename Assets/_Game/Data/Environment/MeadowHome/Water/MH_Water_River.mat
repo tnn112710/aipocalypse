@@ -15,6 +15,7 @@ Material:
   - _ADVANCED_SHADING
   - _CAUSTICS
   - _DISTANCE_NORMALS
+  - _ENVIRONMENTREFLECTIONS_OFF
   - _INTERSECTION_FOAM
   - _NORMALMAP
   - _REFRACTION
@@ -32,6 +33,7 @@ Material:
   - _RECEIVEDYNAMICEFFECTSHEIGHT_ON
   - _RECEIVEDYNAMICEFFECTSNORMAL_ON
   - _RECEIVEDYNAMICEFFECTS_ON
+  - _SCREENSPACEREFLECTIONSENABLED_ON
   - _SMOOTH_INTERSECTION
   - _SURFACE_FOAM
   - _VERTEXCOLORFOAM_ON
@@ -156,7 +158,7 @@ Material:
     - _EdgeFade: 15
     - _EnableDirectionalCaustics: 1
     - _EnvironmentReflections: 1
-    - _EnvironmentReflectionsOn: 1
+    - _EnvironmentReflectionsOn: 0
     - _FlatShadingOn: 0
     - _FoamBaseAmount: 0
     - _FoamBubblesSpread: 0
@@ -230,7 +232,7 @@ Material:
     - _RefractionStrength: 0.15
     - _RiverModeLegacy: 0
     - _RiverModeOn: 1
-    - _ScreenSpaceReflectionsEnabled: 1
+    - _ScreenSpaceReflectionsEnabled: 0
     - _ShadingMode: 1
     - _ShadowStrength: 0.554
     - _SlopeAngleFalloff: 26.7

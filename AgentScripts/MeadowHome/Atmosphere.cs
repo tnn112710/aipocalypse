@@ -111,8 +111,10 @@ public static class Atmosphere
         return new { sun = sun.transform.eulerAngles.ToString(), sky = skyPath, fog = RenderSettings.fogDensity };
     }
 
-    // Project URP settings for open vistas: sun shadows to 150 m (URP template 50; Komorebi demo 500, HIGHLANDS 120) and
-    // SSAO with the Komorebi demo values, so trunks, rocks and posts sit in the grass.
+    // Project URP settings for open vistas: sun shadows to 150 m (URP template 50; Komorebi demo 500, HIGHLANDS 120).
+    // Performance: SSAO off and screen-space decals, because SSAO's depth-normals source and DBuffer decals each force a
+    // depth-normals prepass that re-draws every grass blade (~4k draws, 2-4 ms GPU at the spawn). LOD bias 1: bias 2 doubled
+    // every LOD and cull distance (~4k extra draws).
     public static object RenderQuality()
     {
         var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
@@ -125,20 +127,21 @@ public static class Atmosphere
         AssetDatabase.SaveAssetIfDirty(asset);
 
         var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/Settings/PC_Renderer.asset");
+        var rs = new SerializedObject(renderer);
+        rs.FindProperty("m_DepthPrimingMode").intValue = (int)DepthPrimingMode.Forced;
+        rs.ApplyModifiedPropertiesWithoutUndo();
         var ssao = renderer.rendererFeatures.First(f => f is ScreenSpaceAmbientOcclusion);
-        var fs = new SerializedObject(ssao);
-        fs.FindProperty("m_Settings.AOMethod").intValue = 1;
-        fs.FindProperty("m_Settings.Source").intValue = 1;
-        fs.FindProperty("m_Settings.Intensity").floatValue = 0.6f;
-        fs.FindProperty("m_Settings.DirectLightingStrength").floatValue = 0.3f;
-        fs.FindProperty("m_Settings.Radius").floatValue = 1.2f;
-        fs.FindProperty("m_Settings.BlurQuality").intValue = 1;
-        fs.FindProperty("m_Settings.Falloff").floatValue = 150f;
-        fs.ApplyModifiedPropertiesWithoutUndo();
-        ssao.SetActive(true);
-        EditorUtility.SetDirty(ssao); EditorUtility.SetDirty(renderer);
+        ssao.SetActive(false);
+        var decal = renderer.rendererFeatures.First(f => f is DecalRendererFeature);
+        var ds = new SerializedObject(decal);
+        ds.FindProperty("m_Settings.technique").intValue = 2;   // ScreenSpace (Automatic picks DBuffer on desktop)
+        ds.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(ssao); EditorUtility.SetDirty(decal); EditorUtility.SetDirty(renderer);
         AssetDatabase.SaveAssetIfDirty(renderer);
-        return new { asset.shadowDistance, asset.shadowCascadeCount, asset.mainLightShadowmapResolution, ssao = ssao.isActive };
+
+        QualitySettings.lodBias = 1f;
+        AssetDatabase.SaveAssets();
+        return new { asset.shadowDistance, asset.shadowCascadeCount, asset.mainLightShadowmapResolution, ssao = ssao.isActive, renderer.depthPrimingMode, QualitySettings.lodBias };
     }
 
     const string KNP = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/Particle Systems/";

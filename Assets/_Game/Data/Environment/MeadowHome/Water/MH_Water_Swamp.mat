@@ -14,6 +14,7 @@ Material:
   m_ValidKeywords:
   - _ADVANCED_SHADING
   - _DISTANCE_NORMALS
+  - _ENVIRONMENTREFLECTIONS_OFF
   - _INTERSECTION_FOAM
   - _NORMALMAP
   - _REFRACTION
@@ -27,6 +28,7 @@ Material:
   - _RECEIVEDYNAMICEFFECTSNORMAL_ON
   - _RECEIVEDYNAMICEFFECTS_ON
   - _RIVERMODELEGACY_ON
+  - _SCREENSPACEREFLECTIONSENABLED_ON
   - _SIMPLE_LIGHTING
   - _SMOOTH_INTERSECTION
   - _VERTEXCOLORTRANSPARENCY_ON
@@ -179,7 +181,7 @@ Material:
     - _EdgeFade: 20
     - _EnableDirectionalCaustics: 0
     - _EnvironmentReflections: 1
-    - _EnvironmentReflectionsOn: 1
+    - _EnvironmentReflectionsOn: 0
     - _FlatShadingOn: 0
     - _FlowSpeed: 1
     - _FoamBaseAmount: 0.824
@@ -265,7 +267,7 @@ Material:
     - _RiverModeLegacy: 1
     - _RiverModeOn: 0
     - _SHARP_INERSECTIONOn: 1
-    - _ScreenSpaceReflectionsEnabled: 1
+    - _ScreenSpaceReflectionsEnabled: 0
     - _ShadingMode: 1
     - _ShadowStrength: 0.554
     - _ShoreLineLength: 0
