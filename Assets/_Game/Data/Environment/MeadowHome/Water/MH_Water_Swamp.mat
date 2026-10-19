@@ -17,7 +17,9 @@ Material:
   - _ENVIRONMENTREFLECTIONS_OFF
   - _INTERSECTION_FOAM
   - _NORMALMAP
+  - _RECEIVE_SHADOWS_OFF
   - _REFRACTION
+  - _SPECULARHIGHLIGHTS_OFF
   m_InvalidKeywords:
   - ADVANCED_LIGHTING
   - _DEPTHEXP_ON
@@ -28,7 +30,6 @@ Material:
   - _RECEIVEDYNAMICEFFECTSNORMAL_ON
   - _RECEIVEDYNAMICEFFECTS_ON
   - _RIVERMODELEGACY_ON
-  - _SCREENSPACEREFLECTIONSENABLED_ON
   - _SIMPLE_LIGHTING
   - _SMOOTH_INTERSECTION
   - _VERTEXCOLORTRANSPARENCY_ON
@@ -178,7 +179,7 @@ Material:
     - _DistanceNormalsOn: 1
     - _DistanceNormalsTiling: 0.10000002
     - _DstBlend: 0
-    - _EdgeFade: 20
+    - _EdgeFade: 15
     - _EnableDirectionalCaustics: 0
     - _EnvironmentReflections: 1
     - _EnvironmentReflectionsOn: 0
@@ -207,6 +208,7 @@ Material:
     - _FoamWaveMask: 0.663
     - _FoamWaveMaskExp: 1
     - _FogSource: 0
+    - _GigaLightsDirectLighting: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
@@ -250,7 +252,7 @@ Material:
     - _ReceiveDynamicEffectsFoam: 1
     - _ReceiveDynamicEffectsHeight: 1
     - _ReceiveDynamicEffectsNormal: 1
-    - _ReceiveShadows: 1
+    - _ReceiveShadows: 0
     - _ReflectionBlur: 0
     - _ReflectionDistortion: 0.08
     - _ReflectionFresnel: 3
@@ -285,7 +287,7 @@ Material:
     - _SparkleIntensity: 0.5
     - _SparkleSize: 0.759
     - _SpecularHighlights: 1
-    - _SpecularReflectionsOn: 1
+    - _SpecularReflectionsOn: 0
     - _Speed: 1
     - _SrcBlend: 1
     - _SunReflectionDistortion: 0

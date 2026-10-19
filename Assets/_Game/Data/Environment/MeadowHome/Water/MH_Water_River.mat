@@ -18,8 +18,10 @@ Material:
   - _ENVIRONMENTREFLECTIONS_OFF
   - _INTERSECTION_FOAM
   - _NORMALMAP
+  - _RECEIVE_SHADOWS_OFF
   - _REFRACTION
   - _RIVER
+  - _SPECULARHIGHLIGHTS_OFF
   - _SURFACE_FOAM_SINGLE
   m_InvalidKeywords:
   - ADVANCED_LIGHTING
@@ -33,7 +35,6 @@ Material:
   - _RECEIVEDYNAMICEFFECTSHEIGHT_ON
   - _RECEIVEDYNAMICEFFECTSNORMAL_ON
   - _RECEIVEDYNAMICEFFECTS_ON
-  - _SCREENSPACEREFLECTIONSENABLED_ON
   - _SMOOTH_INTERSECTION
   - _SURFACE_FOAM
   - _VERTEXCOLORFOAM_ON
@@ -42,7 +43,7 @@ Material:
   - _WORLDSPACEUV_ON
   - _ZCLIP_ON
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3002
   stringTagMap: {}
@@ -182,6 +183,7 @@ Material:
     - _FoamWaveMask: 0
     - _FoamWaveMaskExp: 1
     - _FogSource: 0
+    - _GigaLightsDirectLighting: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
@@ -221,7 +223,7 @@ Material:
     - _ReceiveDynamicEffectsFoam: 1
     - _ReceiveDynamicEffectsHeight: 1
     - _ReceiveDynamicEffectsNormal: 1
-    - _ReceiveShadows: 1
+    - _ReceiveShadows: 0
     - _ReflectionBlur: 0
     - _ReflectionDistortion: 0.25
     - _ReflectionFresnel: 5
@@ -247,7 +249,7 @@ Material:
     - _SparkleIntensity: 0
     - _SparkleSize: 0.487
     - _SpecularHighlights: 1
-    - _SpecularReflectionsOn: 1
+    - _SpecularReflectionsOn: 0
     - _Speed: 6
     - _SrcBlend: 1
     - _SunReflectionDistortion: 0
