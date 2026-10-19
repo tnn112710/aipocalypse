@@ -6,6 +6,7 @@
 // • Uploading this file or any derivative of it to a public GitHub or similar repository will trigger an automated DMCA takedown request.
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 
 namespace sc.stylizedgrass.runtime
@@ -21,6 +22,7 @@ namespace sc.stylizedgrass.runtime
         public bool overrideTexture;
         public Texture2D customTex;
 
+        [NoAutoStaticsCleanup]
         public static GrassColorMap Active;
 
         private static readonly int _ColorMap = Shader.PropertyToID("_ColorMap"); 

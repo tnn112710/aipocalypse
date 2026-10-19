@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Scripting.LifecycleManagement;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -11,10 +12,12 @@ namespace sc.stylizedgrass.runtime
         private readonly GrassRenderFeature.Settings settings;
                     
         private static readonly int _CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
+        [NoAutoStaticsCleanup]
         private static Vector4 cameraForwardVector;
         private static readonly int _TerrainDetailDistance = Shader.PropertyToID("_TerrainDetailDistance");
         
         private readonly int _DitheringScaleOffset = Shader.PropertyToID("_DitheringScaleOffset");
+        [NoAutoStaticsCleanup]
         private static Vector4 ditheringScaleOffset;
         
         private readonly int _DitheringNoise = Shader.PropertyToID("_DitheringNoise");

@@ -100,11 +100,7 @@ namespace StylizedWater3.RiverModeler
 
             materialSelector = new StylizedWaterEditor.MaterialSelector(new[]
             {
-                "bc0e4b60f99d22e47ac795dbaba30831",
-                "b3309031c6d4cfd44abd9de3599ae9c6",
-                "22c31d4ae9838734e86e537ba06e4cab",
-                "7d308e88c4061974d972bbdc6812bdaf",
-                "511de524572743043baf7ed1ac87e44f",
+                "d2a358901c7ad80418593cbcc0b06713"
             });         
             
             Validate();

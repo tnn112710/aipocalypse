@@ -10,6 +10,7 @@
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 //#define DEBUG_BEND_AREA
 //#define DEBUG_BEND_VECTORS
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 #if UNITY_VERSION >= 60010000
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
@@ -352,7 +353,7 @@ void LightingPassFragment(Varyings input, out half4 outColor : SV_Target0
 
 	//Get main light first, need attenuation to mask wind gust
 	Light mainLight = GetMainLight(inputData.shadowCoord);
-	mainLight.shadowAttenuation *= inputData.shadowMask;
+	mainLight.shadowAttenuation *= inputData.shadowMask.r;
 
 	//Tint by wind gust
 	if(_WindGustTint > 0)

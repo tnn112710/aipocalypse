@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 
 namespace StylizedWater3
@@ -50,7 +51,9 @@ namespace StylizedWater3
         private Vector3 targetPosition;
 
         #if UNITY_EDITOR
+        [NoAutoStaticsCleanup]
         public static bool DisplayGrid = true;
+        [NoAutoStaticsCleanup]
         public static bool DisplayWireframe;
         #endif
 

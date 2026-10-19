@@ -9,6 +9,7 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 
 namespace StylizedWater3
 {
@@ -150,8 +151,10 @@ namespace StylizedWater3
         /// <summary>
         /// List of queries being submitted the next frame
         /// </summary>
+        [AutoStaticsCleanup]
         public static readonly List<Query> queries = new List<Query>();
 
+        [AutoStaticsCleanup]
         public static int QueryCount { get; private set; }
         
         /// <summary>

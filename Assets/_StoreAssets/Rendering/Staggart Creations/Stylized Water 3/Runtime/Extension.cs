@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR
@@ -17,6 +18,7 @@ namespace StylizedWater3
 {
     public class Extension
     {
+        [NoAutoStaticsCleanup]
         private static readonly Extension[] catalogue = new Extension[]
         {
             new Extension(ID.DynamicEffects, "Dynamic Effects", "Enables advanced effects to be projected onto the water surface. Such as boat wakes, ripples and shoreline waves.", 299321), 
@@ -84,7 +86,9 @@ namespace StylizedWater3
         public string version;
         public string minBaseVersion;
         
+        [NoAutoStaticsCleanup]
         private static Extension[] _installed;
+        [NoAutoStaticsCleanup]
         private static Extension[] _available;
 
         public static Extension[] installed
@@ -108,8 +112,11 @@ namespace StylizedWater3
         //Deprecated since 3.2.9
         public void CreateIcon(string data) { }
 
+        [NoAutoStaticsCleanup]
         private static readonly Dictionary<int, Texture2D> DownloadedAssetIcons = new();
+        [NoAutoStaticsCleanup]
         private static readonly HashSet<int> AssetIconsBeingDownloaded = new();
+        [NoAutoStaticsCleanup]
         private static Texture2D TemporaryAssetIcon;
         
         public static Texture2D DownloadAssetIcon(int id)

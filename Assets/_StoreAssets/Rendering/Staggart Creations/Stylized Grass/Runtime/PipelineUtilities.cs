@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
@@ -86,6 +87,7 @@ namespace sc.stylizedgrass.runtime
             }
         }
 
+        [NoAutoStaticsCleanup]
         private static GUIContent[] _rendererDisplayList;
         public static GUIContent[] rendererDisplayList
         {
@@ -96,6 +98,7 @@ namespace sc.stylizedgrass.runtime
             }
         }
 
+        [NoAutoStaticsCleanup]
         private static int[] _rendererIndexList;
         public static int[] rendererIndexList
         {

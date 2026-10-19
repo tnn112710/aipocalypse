@@ -9,9 +9,21 @@
 // • Uploading this file or any derivative of it to a public GitHub or similar repository will trigger an automated DMCA takedown request.
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 
+#if !UNITY_6000_0_OR_NEWER
+#define INCOMPATIBLE_VERSION
+#endif
+#if !UNITY_6000_0_OR_NEWER || UNITY_7000_0_OR_NEWER
+#define UNSUPPORTED_MAJOR_VERSION
+#endif
+#if UNITY_6000_1 || UNITY_6000_2
+#define NON_LTS_VERSION
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Net;
+using sc.stylizedgrass.runtime;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -30,8 +42,9 @@ namespace sc.stylizedgrass.editor
         public const string ASSET_ID = "357954";
         public const string ASSET_ABRV = "SGS";
 
-        public const string INSTALLED_VERSION = "2.1.2";
+        public const string INSTALLED_VERSION = "2.1.3";
         
+        [NoAutoStaticsCleanup]
         private static readonly Dictionary<string, int> REQUIRED_PATCH_VERSIONS = new Dictionary<string, int>()
         {
             { "6000.0", 22 },
@@ -89,6 +102,8 @@ namespace sc.stylizedgrass.editor
         {
             private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromPath)
             {
+                if (Application.isBatchMode || BuildPipeline.isBuildingPlayer) return;
+                
                 for (int i = 0; i < importedAssets.Length; i++)
                 {
                     OnPreProcessAsset(importedAssets[i]);
@@ -108,6 +123,7 @@ namespace sc.stylizedgrass.editor
         
         public static class VersionChecking
         {
+            [NoAutoStaticsCleanup]
             public static string MinRequiredUnityVersion = "undefined";
 
             public enum UnityVersionType
@@ -116,6 +132,7 @@ namespace sc.stylizedgrass.editor
                 Beta,
                 Alpha
             }
+            [NoAutoStaticsCleanup]
             public static UnityVersionType unityVersionType;
             
             [InitializeOnLoadMethod]
@@ -153,9 +170,13 @@ namespace sc.stylizedgrass.editor
                 return version.Substring(0, version.LastIndexOf(" ("));
             }
             
+            [NoAutoStaticsCleanup]
             public static bool supportedMajorVersion = true;
+            [NoAutoStaticsCleanup]
             public static bool supportedPatchVersion = true;
+            [NoAutoStaticsCleanup]
             public static bool compatibleVersion = true;
+            [NoAutoStaticsCleanup]
             public static bool ltsVersion = true;
             
             private static void ParseUnityVersion(string versionString, out int major, out int minor, out int patch, out UnityVersionType type)
@@ -190,16 +211,16 @@ namespace sc.stylizedgrass.editor
             {
                 string unityVersion = GetUnityVersion();
                 
-                #if !UNITY_6000_0_OR_NEWER
+                #if INCOMPATIBLE_VERSION
                 compatibleVersion = false;
                 #endif
                 
-                #if !UNITY_6000_0_OR_NEWER || UNITY_7000_OR_NEWER
+                #if UNSUPPORTED_MAJOR_VERSION
                 supportedMajorVersion = false;
                 #endif
                 
-                #if UNITY_6000_1 || UNITY_6000_2
-				ltsVersion = false;
+                #if NON_LTS_VERSION
+                ltsVersion = false;
                 #endif
                 
                 ParseUnityVersion(unityVersion, out int major, out int minor, out int patch, out unityVersionType);
@@ -218,7 +239,9 @@ namespace sc.stylizedgrass.editor
                 MinRequiredUnityVersion = $"{major}.{minor}.{minPatchVersion}";
             }
 
+            [NoAutoStaticsCleanup]
             public static string apiResult;
+            [NoAutoStaticsCleanup]
             private static bool showPopup;
 
             public enum VersionStatus
@@ -233,6 +256,7 @@ namespace sc.stylizedgrass.editor
                 Completed,
                 Failed
             }
+            [NoAutoStaticsCleanup]
             public static QueryStatus queryStatus = QueryStatus.Completed;
 
 #if SGS_DEV
@@ -243,6 +267,8 @@ namespace sc.stylizedgrass.editor
                 CheckForUpdate(true);
             }
 
+            private static DateTime lastUpdateCheckTime;
+            
             public static void CheckForUpdate(bool showPopup = false)
             {
                 //UPDATE_AVAILABLE = true; return;
@@ -253,7 +279,12 @@ namespace sc.stylizedgrass.editor
                     UPDATE_AVAILABLE = false;
                     return;
                 }
-                
+                                
+                //Prevent frequent calls from checking the latest version
+                DateTime now = DateTime.Now;
+                if (now.Subtract(lastUpdateCheckTime).TotalSeconds < 1) return;
+                lastUpdateCheckTime = now;
+
                 VersionChecking.showPopup = showPopup;
 
                 queryStatus = QueryStatus.Fetching;

@@ -47,13 +47,15 @@ namespace StylizedWater3
         {
             public bool underwaterRendering;
             public bool dynamicEffects;
-            public FogIntegration.Integration fogIntegration;
+            public Integrations.FogAssets fogIntegration;
+            public Integrations.RenderingAssets renderingIntegration;
 
             public void Reset()
             {
                 underwaterRendering = false;
                 dynamicEffects = false;
-                fogIntegration = FogIntegration.GetIntegration(FogIntegration.Assets.None);
+                fogIntegration = (Integrations.FogAssets.None);
+                renderingIntegration = (Integrations.RenderingAssets.None);
             }
         }
         public ConfigurationState configurationState = new ConfigurationState();
@@ -158,13 +160,12 @@ namespace StylizedWater3
         
         public bool RequiresRecompilation(out string message)
         {
-            bool isValid = true;
-                
             var underwaterInstalled = configurationState.underwaterRendering == StylizedWaterEditor.UnderwaterRenderingInstalled();
             var dynamicEffectsInstalled = configurationState.dynamicEffects == StylizedWaterEditor.DynamicEffectsInstalled();
-            var fogIntegration = configurationState.fogIntegration.asset == GetFogIntegration().asset;
+            var fogIntegrationMatches = configurationState.fogIntegration == GetFogIntegration().asset;
+            var renderingIntegrationMatches = configurationState.renderingIntegration == GetRenderingIntegration().asset;
 
-            isValid = underwaterInstalled & dynamicEffectsInstalled & fogIntegration;
+            bool isValid = underwaterInstalled && dynamicEffectsInstalled && fogIntegrationMatches && renderingIntegrationMatches;
 
             message = string.Empty;
             
@@ -172,7 +173,8 @@ namespace StylizedWater3
             {
                 if (!underwaterInstalled) message += "\nUnderwater Rendering extension installed, but not activated";
                 if (!dynamicEffectsInstalled) message += "\nDynamic Effects extension installed, but not activated";
-                if (!fogIntegration) message += $"\nFog integration does not match.\nInstalled: {configurationState.fogIntegration.name} - Detected in project: {GetFogIntegration().name}";
+                if (!fogIntegrationMatches) message += $"\n\nFog integration does not match.\nInstalled: {configurationState.fogIntegration} - Detected in project: {GetFogIntegration().name}";
+                if (!renderingIntegrationMatches) message += $"\n\nRendering integration does not match.\nInstalled: {configurationState.renderingIntegration} - Detected in project: {GetRenderingIntegration().name}";
             }
             
             return !isValid;
@@ -331,9 +333,14 @@ namespace StylizedWater3
             }
         }
 
-        public FogIntegration.Integration GetFogIntegration()
+        public Integrations.Integration<Integrations.FogAssets> GetFogIntegration()
         {
-            return settings != null && settings.autoIntegration ? FogIntegration.GetFirstInstalled() : FogIntegration.GetIntegration(settings.fogIntegration);
+            return settings != null && settings.autoIntegration ? Integrations.GetFirstInstalledFogAsset() : Integrations.GetFogIntegration(settings.fogIntegration);
+        }
+        
+        public Integrations.Integration<Integrations.RenderingAssets> GetRenderingIntegration()
+        {
+            return settings != null && settings.autoIntegration ? Integrations.GetFirstInstalledRenderingAsset() : Integrations.GetRenderingIntegration(settings.renderingIntegration);
         }
 
         [Serializable]
@@ -368,7 +375,8 @@ namespace StylizedWater3
             
             [Tooltip("Before compiling the shader, check whichever asset is present in the project and activate its integration")]
             public bool autoIntegration = true;
-            public FogIntegration.Assets fogIntegration = FogIntegration.Assets.UnityFog;
+            public Integrations.FogAssets fogIntegration = Integrations.FogAssets.UnityFog;
+            public Integrations.RenderingAssets renderingIntegration = Integrations.RenderingAssets.None;
 
             [Tooltip("Add support for native light cookies. Disabled by default to allow for cookies to act as caustics projectors that ignore the water surface")]
             public bool lightCookies = false;

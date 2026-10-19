@@ -5,6 +5,7 @@
 
 #if URP
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -16,9 +17,10 @@ namespace StylizedWater3
     public class WaterDepthPrePass : ScriptableRenderPass
     {
         private const string profilerTag = "Water Depth Prepass";
+        [NoAutoStaticsCleanup]
         private static readonly ProfilingSampler profilerSampler = new ProfilingSampler(profilerTag);
-        
-        FilteringSettings m_FilteringSettings;
+
+        private FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
         private readonly List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>()
         {

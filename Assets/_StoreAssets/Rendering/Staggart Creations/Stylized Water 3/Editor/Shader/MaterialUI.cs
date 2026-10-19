@@ -648,6 +648,12 @@ namespace StylizedWater3
             material.SetTexture("_SlopeFoamTex", _SlopeFoamTex.textureValue);
             material.SetTexture("_IntersectionNoise", _IntersectionNoise.textureValue);
 
+            if(_DisableDepthTexture.floatValue < 0.5 && _ZClip.floatValue < 0.5)
+            {
+                Debug.LogWarning($"The ZClip option was re-enabled on {material.name}, which is required if the Disable Depth Texture option is off.");
+                material.SetFloat("_ZClip", 1);
+            }
+
             if(_WaveFrequency.hasMixedValue == false) _WaveFrequency.floatValue = Mathf.Max(_WaveFrequency.floatValue, 0.1f);
             
             if (dynamicEffectsInstalled)
@@ -739,9 +745,9 @@ namespace StylizedWater3
             
             DrawNotifications();
 
-            if (importer.configurationState.fogIntegration.asset != FogIntegration.Assets.UnityFog)
+            if (importer.configurationState.fogIntegration != Integrations.FogAssets.UnityFog)
             {
-                EditorGUILayout.LabelField($"Active fog integration: {importer.configurationState.fogIntegration.name}" + (importer.settings.autoIntegration ? " (Automatic)" : ""), EditorStyles.miniLabel);
+                EditorGUILayout.LabelField($"Active fog integration: {importer.configurationState.fogIntegration}" + (importer.settings.autoIntegration ? " (Automatic)" : ""), EditorStyles.miniLabel);
             }
         }
         
@@ -814,6 +820,11 @@ namespace StylizedWater3
 
             if (EditorGUILayout.BeginFadeGroup(renderingSection.anim.faded))
             {
+                if (importer.configurationState.renderingIntegration != Integrations.RenderingAssets.None)
+                {
+                    EditorGUILayout.LabelField($"Active rendering integration: {importer.configurationState.renderingIntegration}" + (importer.settings.autoIntegration ? " (Automatic)" : ""), EditorStyles.miniLabel);
+                }
+                
                 EditorGUILayout.Space();
                 
                 using (new EditorGUILayout.HorizontalScope())
@@ -880,9 +891,6 @@ namespace StylizedWater3
                 DrawShaderProperty(_Cull, new GUIContent(_Cull.displayName, "Controls which sides of the water mesh surface are rendered invisible (culled)"));
                 DrawShaderProperty(_ZWrite, new GUIContent("Depth writing (ZWrite)", "Enable to have the water perform depth-based sorting on itself. Allows for intersecting transparent geometry. Advisable with high waves." +
                                                                                                 "\n\nIf this is disabled, other transparent materials will either render behind or in front of the water, depending on their render queue/priority set in their materials"));
-                DrawShaderProperty(_ZClip, new GUIContent("Frustum clipping (ZClip)", "Enable to clip the surface when it extends beyond the camera's far clipping plane. This is default for all shaders." +
-                                                                                                 "\n\nDisable to aid in creating water that expands towards the horizon." +
-                                                                                                 "\n\nNote: Effects such as edge fading and intersection foam still consider the camera's far clipping plane, this is normal."));
                 DrawShaderProperty(_DepthOffset, new GUIContent("Depth Offset", "Use this to avoid Z-Fighting issues with the underlying geometry." +
                     "\n" +
                     "A negative value means that the GPU draws the polygon closer to the camera. A positive value means that the GPU draws the polygon further away from the camera."));
@@ -891,7 +899,12 @@ namespace StylizedWater3
                 DrawShaderProperty(_DisableDepthTexture, new GUIContent("Disable depth texture", "Depth texture is made available by the render pipeline and is used to measure the distance between the water surface and opaque geometry behind/in front of it, as well as their position.\n\n" +
                                                                                                             "This is used for a variety of effects, such as the color gradient, intersection effects, caustics and refraction." +
                                                                                                             "\n\nDisable if targeting a bare bones rendering set up without a depth pre-pass present."));
-
+                if (_DisableDepthTexture.floatValue > 0.5 || _DisableDepthTexture.hasMixedValue)
+                {
+                    DrawShaderProperty(_ZClip, new GUIContent("Frustum clipping (ZClip)", "Enable to clip the surface when it extends beyond the camera's far clipping plane. This is default for all shaders." +
+                        "\n\nDisable to aid in creating water that expands towards the horizon." +
+                        "\n\nNote: Effects such as edge fading and intersection foam still consider the camera's far clipping plane, this is normal."));
+                }
                 EditorGUILayout.Space();
                 
                 EditorGUI.BeginChangeCheck();
@@ -983,7 +996,7 @@ namespace StylizedWater3
                 EditorGUILayout.Space();
                 
                 DrawShaderProperty(_LightingOn, new GUIContent("Enable lighting", "Color from lights and ambient light (Flat/Gradient/Skybox) will affect the material. If using overall Unlit shaders in the scene, or fixed lighting, disable to skip lighting calculations."));
-
+                
                 DrawShaderProperty(_FlatShadingOn, new GUIContent("Flat/low-poly shading", "When enabled, normals are calculated per mesh face, resulting in a faceted appearance (low poly look). The mesh needs sufficient vertices to really sell the effect (eg. a quad mesh won't do)"));
                 UI.DrawNotification(_FlatShadingOn.floatValue > 0 && tesselationEnabled, "Tessellation is enabled, it should not be used to achieve the desired effect", MessageType.Warning);
 

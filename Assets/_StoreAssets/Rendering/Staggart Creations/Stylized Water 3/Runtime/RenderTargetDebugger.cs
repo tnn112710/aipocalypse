@@ -6,12 +6,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace StylizedWater3
 {
-    public static class RenderTargetDebugger
+    public static partial class RenderTargetDebugger
     {
         public class RenderTarget
         {
@@ -24,12 +25,17 @@ namespace StylizedWater3
             public int propertyID;
         }
         
+        [AutoStaticsCleanup]
         public static List<RenderTarget> renderTargets = new List<RenderTarget>();
         //For dropdown menus
+        [AutoStaticsCleanup]
         public static string[] renderTargetNames;
 
+        [NoAutoStaticsCleanup]
         public static int InspectedProperty = -1;
+        [NoAutoStaticsCleanup]
         public static RTHandle CurrentRT;
+        [NoAutoStaticsCleanup]
         public static string CurrentCameraName;
 
         public static void Initialize()

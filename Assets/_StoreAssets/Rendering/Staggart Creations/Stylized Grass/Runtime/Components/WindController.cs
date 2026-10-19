@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if ENVIRO_3
@@ -23,8 +24,9 @@ namespace sc.stylizedgrass.runtime
 {
     [ExecuteInEditMode]
     [AddComponentMenu("Stylized Grass/Stylized Grass Wind Controller")]
-    public class WindController : MonoBehaviour
+    public partial class WindController : MonoBehaviour
     {
+        [AutoStaticsCleanup]
         public static WindController Instance;
         
         [Tooltip("When enabled the grass Ambient and Gust strength values are multiplied by the WindZone's Main value")]
@@ -86,6 +88,7 @@ namespace sc.stylizedgrass.runtime
         private double timeOffset;
         private Vector3 windDirection;
         private Vector3 gustOffset;
+        [AutoStaticsCleanup]
         private static Vector4 globalWindParams;
 
         private float m_windMain;
@@ -145,15 +148,30 @@ namespace sc.stylizedgrass.runtime
             #endif
         }
         
+        private static float GetCurrentTime()
+        {
+            float time = Time.time;
+            
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                time = (float)UnityEditor.EditorApplication.timeSinceStartup;
+            }
+#endif
+            
+            return time;
+        }
+        
         private void UpdateWind()
         {
             if ((windZone && windZone.gameObject.activeInHierarchy) || UsingEnviro())
             {
                 //This is used as a boolean in the wind shader function, to indicate that the values passed on here should be used.
                 globalWindParams.w = 1;
-                
-                double deltaTime = Time.time - lastFrameTime;
-                lastFrameTime = Time.time;
+
+                float time = GetCurrentTime();
+                double deltaTime = time - lastFrameTime;
+                lastFrameTime = time;
                 
                 GetWindParameters(out m_windMain, out m_windTurbulence, out windDirection);
 

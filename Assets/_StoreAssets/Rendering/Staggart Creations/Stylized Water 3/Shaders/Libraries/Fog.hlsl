@@ -56,7 +56,7 @@ void ApplyFog(inout float3 color, float fogFactor, float4 screenPos, float3 posi
 	}
 #endif
 
-#ifdef SCPostEffects
+#ifdef SCScreenEffects
 	ApplyTransparencyFog(positionWS, normalizedUV, foggedColor.rgb);
 #endif
 

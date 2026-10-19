@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -18,7 +19,7 @@ using UnityEngine.Rendering.Universal;
 namespace sc.stylizedgrass.runtime
 {
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "StylizedGrass", "sc.stylizedgrass.runtime", "GrassBendingFeature")]
-    public class GrassRenderFeature : ScriptableRendererFeature
+    public partial class GrassRenderFeature : ScriptableRendererFeature
     {
         /// <summary>
         /// Returns the render feature instance on the default renderer. Null if not found.
@@ -157,8 +158,9 @@ namespace sc.stylizedgrass.runtime
         }
 
         [Obsolete("As of version 2.0.0+ this no longer exists. It it kept around to avoid a compile error when upgrading to Version 2. Delete any scripts that use this.")]
-        public class RenderBendVectors
+        public partial class RenderBendVectors
         {
+            [AutoStaticsCleanup]
             public static int CurrentResolution;
             public static void DrawOrthographicViewGizmo() {}
         }

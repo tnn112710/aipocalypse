@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using sc.stylizedgrass.runtime;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -85,6 +86,7 @@ namespace sc.stylizedgrass.editor
             }
         }
         
+        [NoAutoStaticsCleanup]
         static Constants constants = null;
         private Section installationSection;
         private void OnEnable()
@@ -181,6 +183,7 @@ namespace sc.stylizedgrass.editor
             } 
         }
 
+        [NoAutoStaticsCleanup]
         private static Color defaultColor;
         
         private delegate void OnGUIDelegate();
@@ -213,6 +216,7 @@ namespace sc.stylizedgrass.editor
         private Section selectedSection => sections[_selectedSectionIndex];
 
         private Vector2 menuScrollPos;
+        [NoAutoStaticsCleanup]
         private static Vector2 sectionScrollPos = Vector2.zero;
         
         private void OnGUI()

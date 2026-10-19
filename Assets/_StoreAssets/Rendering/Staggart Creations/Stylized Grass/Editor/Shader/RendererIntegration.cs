@@ -12,6 +12,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Scripting.LifecycleManagement;
+using sc.stylizedgrass.runtime;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -71,8 +73,11 @@ namespace sc.stylizedgrass.editor
             }
         }
         
+        [NoAutoStaticsCleanup]
         private static readonly Dictionary<int, Texture2D> DownloadedAssetIcons = new();
+        [NoAutoStaticsCleanup]
         private static readonly HashSet<int> AssetIconsBeingDownloaded = new();
+        [NoAutoStaticsCleanup]
         private static Texture2D TemporaryAssetIcon;
         
         public static Texture2D DownloadAssetIcon(int id)
@@ -139,6 +144,7 @@ namespace sc.stylizedgrass.editor
             }
         }
 
+        [NoAutoStaticsCleanup]
         private static Integration[] _RenderingIntegrations;
         public static Integration[] RenderingIntegrations
         {
@@ -154,10 +160,10 @@ namespace sc.stylizedgrass.editor
             Integration[] integrationsArray = new[]
             {
                 new Integration("Default Unity", RenderingAssets.None, 0, "", false,string.Empty),
-                new Integration("Vegetation Studio (Beyond)", RenderingAssets.VegetationStudio, 0, "a9324aff8d6fb7746847dbf6108e0382", false, "assumeuniformscaling renderinglayer procedural:setupVSPro"),
                 new Integration("Nature Renderer 6", RenderingAssets.NatureRenderer, 285950,"ca4c4574fc8ceab448f85800842a6cee", false, "procedural:SetupNatureRenderer"),
                 new Integration("GPU Instancer Pro", RenderingAssets.GPUInstancer, 290293, "01c16f02afaf429591046b0d8007c478", true, "procedural:setupGPUI"),
                 new Integration("Foliage Renderer", RenderingAssets.FoliageRenderer, 307081, "7f684950130464f4c86c65052b7c92c8", false, "procedural:setupFoliageRenderer forwardadd"),
+                new Integration("Vegetation Studio (Beyond)", RenderingAssets.VegetationStudio, 0, "a9324aff8d6fb7746847dbf6108e0382", false, "assumeuniformscaling renderinglayer procedural:setupVSPro"),
             };
 
             for (int i = 0; i < integrationsArray.Length; i++)
@@ -168,6 +174,7 @@ namespace sc.stylizedgrass.editor
             return integrationsArray;
         }
         
+        [NoAutoStaticsCleanup]
         private static Integration[] _WeatherIntegrations;
         public static Integration[] WeatherIntegrations
         {
@@ -183,10 +190,10 @@ namespace sc.stylizedgrass.editor
             Integration[] integrationsArray = new[]
             {
                 new Integration("Enviro", RenderingAssets.None, 0, "", false,string.Empty),
-                new Integration("Vegetation Studio (Beyond)", RenderingAssets.VegetationStudio, 0, "a9324aff8d6fb7746847dbf6108e0382", false, "assumeuniformscaling renderinglayer procedural:setupVSPro"),
                 new Integration("Nature Renderer 6", RenderingAssets.NatureRenderer, 285950,"ca4c4574fc8ceab448f85800842a6cee", false, "procedural:SetupNatureRenderer"),
                 new Integration("GPU Instancer Pro", RenderingAssets.GPUInstancer, 290293, "01c16f02afaf429591046b0d8007c478", true, "procedural:setupGPUI"),
                 new Integration("Foliage Renderer", RenderingAssets.FoliageRenderer, 307081, "7f684950130464f4c86c65052b7c92c8", false, "procedural:setupFoliageRenderer forwardadd"),
+                new Integration("Vegetation Studio (Beyond)", RenderingAssets.VegetationStudio, 0, "a9324aff8d6fb7746847dbf6108e0382", false, "assumeuniformscaling renderinglayer procedural:setupVSPro"),
             };
 
             for (int i = 0; i < integrationsArray.Length; i++)

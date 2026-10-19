@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using sc.stylizedgrass.runtime;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -69,17 +70,20 @@ namespace sc.stylizedgrass.editor
             }
         }
         
+        [NoAutoStaticsCleanup]
         public static List<SetupItem> SetupItems = new List<SetupItem>();
 
         public static int ErrorCount
         {
             get => m_errorCount;
         }
+        [NoAutoStaticsCleanup]
         private static int m_errorCount;
         public static int WarningCount
         {
             get => m_warningCount;
         }
+        [NoAutoStaticsCleanup]
         private static int m_warningCount;
         
         public static bool HasError => ErrorCount > 0;
@@ -97,6 +101,8 @@ namespace sc.stylizedgrass.editor
             SetupItems.Clear();
             m_errorCount = 0;
             m_warningCount = 0;
+            
+            if (Application.isBatchMode || BuildPipeline.isBuildingPlayer) return;
 
             AssetInfo.VersionChecking.CheckUnityVersion();
             SetupItem unityVersion = new SetupItem(AssetInfo.VersionChecking.GetUnityVersion());
@@ -491,6 +497,12 @@ namespace sc.stylizedgrass.editor
 
         public static void InstallPackage(string id)
         {
+            if (Environment.GetCommandLineArgs().Any(arg => string.Equals(arg, "-noUpm", StringComparison.OrdinalIgnoreCase) || string.Equals(arg, "noUpm", StringComparison.OrdinalIgnoreCase)))
+            {
+                Debug.LogError($"Failed to install package {id} using the Package Manager. Editor was launched using the -noUpm command line argument.");
+                return;
+            }
+            
             SearchRequest request = Client.Search(id, false);
 
             while (request.Status == StatusCode.InProgress)

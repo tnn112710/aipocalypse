@@ -31,6 +31,7 @@ Material:
   - _RECEIVEDYNAMICEFFECTSHEIGHT_ON
   - _RECEIVEDYNAMICEFFECTSNORMAL_ON
   - _RECEIVEDYNAMICEFFECTS_ON
+  - _RIVERMODELEGACY_ON
   - _SIMPLE_LIGHTING
   - _SMOOTH_INTERSECTION
   - _SURFACE_FOAM
@@ -43,8 +44,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: _BaseColor _ColorAbsorption _Direction _LightingOn _ShallowColor
-    _Speed _WaveFadeDistance _WaveHeight _WaveMaxLayers _WaveSpeed _WavesOn _WorldSpaceUV
+  m_LockedProperties: _BaseColor _ColorAbsorption _Direction _LightingOn _ShallowColor _Speed _WaveFadeDistance _WaveHeight _WaveMaxLayers _WaveSpeed _WavesOn _WorldSpaceUV
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -116,6 +116,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SlopeFoamTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -169,6 +173,7 @@ Material:
     - _DepthExp: 1
     - _DepthHorizontal: 0.29
     - _DepthMode: 0
+    - _DepthOffset: 0
     - _DepthTexture: 1
     - _DepthVertical: 4
     - _DisableDepthTexture: 0
@@ -261,6 +266,7 @@ Material:
     - _RefractionStrength: 0
     - _RimRize: 1
     - _RimTiling: 0.025
+    - _RiverModeLegacy: 1
     - _RiverModeOn: 0
     - _SHARP_INERSECTIONOn: 1
     - _ScreenSpaceReflectionsEnabled: 0

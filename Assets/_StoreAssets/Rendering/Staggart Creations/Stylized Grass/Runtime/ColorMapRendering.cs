@@ -9,6 +9,7 @@
 // • Uploading this file or any derivative of it to a public GitHub or similar repository will trigger an automated DMCA takedown request.
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if URP
@@ -37,25 +38,38 @@ namespace sc.stylizedgrass.runtime
         private static readonly Color backgroundColor = Color.red;
         
         //Get all terrains
-        private static List<Terrain> terrains = new List<Terrain>();
+        [NoAutoStaticsCleanup]
+        private static readonly List<Terrain> terrains = new List<Terrain>();
         
         //Scene lighting state
+        [NoAutoStaticsCleanup]
         private static List<Light> dirLights;
-        private static Dictionary<Light, bool> originalLightStates = new Dictionary<Light, bool>();
+        [NoAutoStaticsCleanup]
+        private static readonly Dictionary<Light, bool> originalLightStates = new Dictionary<Light, bool>();
+        [NoAutoStaticsCleanup]
         private static AmbientMode ambientMode;
+        [NoAutoStaticsCleanup]
         private static float reflectionIntensity;
+        [NoAutoStaticsCleanup]
         private static bool fogEnabled;
+        [NoAutoStaticsCleanup]
         private static Color ambientColor;
         
+        [NoAutoStaticsCleanup]
         private static Material splatExtractionMat;
+        [NoAutoStaticsCleanup]
         private static Material unlitTerrainMat;
         
         #if URP
+        [NoAutoStaticsCleanup]
         private static UniversalRendererData rendererData;
         #endif
+        [NoAutoStaticsCleanup]
         private static Camera renderCam;
 
+        [NoAutoStaticsCleanup]
         private static RenderTexture renderTarget;
+        [NoAutoStaticsCleanup]
         private static Texture2D bakedTexture;
 
         private struct TerrainState
@@ -66,7 +80,8 @@ namespace sc.stylizedgrass.runtime
             public Material material;
             public bool renderFoliage;
         }
-        private static Dictionary<GameObject, TerrainState> originalTerrainStates = new Dictionary<GameObject, TerrainState>();
+        [NoAutoStaticsCleanup]
+        private static readonly Dictionary<GameObject, TerrainState> originalTerrainStates = new Dictionary<GameObject, TerrainState>();
         
         //Copy the RenderTexture (GPU) to a Texture2D (CPU), with the intent on saving the data to disk.
         private static bool CopyBuffer => Application.isPlaying == false;

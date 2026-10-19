@@ -4,28 +4,41 @@
 //    • Uploading this file to a public repository will subject it to an automated DMCA takedown request.
 
 #if !UNITY_6000_0_OR_NEWER
+#define INCOMPATIBLE_VERSION
+#endif
+#if !UNITY_6000_0_OR_NEWER || UNITY_7000_0_OR_NEWER
+#define UNSUPPORTED_MAJOR_VERSION
+#endif
+#if UNITY_6000_1 || UNITY_6000_2
+#define NON_LTS_VERSION
+#endif
+
+#if !UNITY_6000_0_OR_NEWER
 #error [Stylized Water 3] Imported in a version older than Unity 6, all present script and shader compile errors are valid and not something to simply be fixed. Upgrade the project to Unity 6 to resolve them.
 #endif
 
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace StylizedWater3
 {
-    public static class AssetInfo
+    public static partial class AssetInfo
     {
         private const string THIS_FILE_GUID = "b15801d8ff7e9574288149dd4cebaa68";
+        private const string PACKAGE_REGISTRY_GUID = "57a60847d1f91e14c9e65430ffc7c71c"; //.json file
         
         public const string ASSET_NAME = "Stylized Water 3";
         public const string ASSET_ID = "287769";
         public const string ASSET_ABRV = "SW3";
 
-        public const string INSTALLED_VERSION = "3.3.1";
+        public const string INSTALLED_VERSION = "3.3.3";
         
+        [NoAutoStaticsCleanup]
         private static readonly Dictionary<string, int> REQUIRED_PATCH_VERSIONS = new Dictionary<string, int>()
         {
             { "6000.0", 22 },
@@ -130,6 +143,8 @@ namespace StylizedWater3
         {
             private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromPath)
             {
+                if (Application.isBatchMode || BuildPipeline.isBuildingPlayer) return;
+                
                 for (int i = 0; i < importedAssets.Length; i++)
                 {
                     OnPreProcessAsset(importedAssets[i]);
@@ -216,9 +231,10 @@ namespace StylizedWater3
             return rootFolder;
         }
 
-        public static class VersionChecking
+        public static partial class VersionChecking
         {
-            public static string MinRequiredUnityVersion = "undefined";
+            [NoAutoStaticsCleanup]
+            public static string MinRequiredUnityVersion = "Unity 6.3";
 
             public enum UnityVersionType
             {
@@ -226,6 +242,7 @@ namespace StylizedWater3
                 Beta,
                 Alpha
             }
+            [NoAutoStaticsCleanup]
             public static UnityVersionType unityVersionType;
             
             [InitializeOnLoadMethod]
@@ -240,14 +257,14 @@ namespace StylizedWater3
             
             private static bool CHECK_PERFORMED
             {
-                get => SessionState.GetBool("SW3_VERSION_CHECK_PERFORMED", false);
-                set => SessionState.SetBool("SW3_VERSION_CHECK_PERFORMED", value);
+                get => SessionState.GetBool(ASSET_ABRV + "_VERSION_CHECK_PERFORMED", false);
+                set => SessionState.SetBool(ASSET_ABRV + "_VERSION_CHECK_PERFORMED", value);
             }
             
             public static string LATEST_VERSION
             {
-                get => SessionState.GetString("SW3_LATEST_VERSION", INSTALLED_VERSION);
-                set => SessionState.SetString("SW3_LATEST_VERSION", value);
+                get => SessionState.GetString(ASSET_ABRV + "_LATEST_VERSION", INSTALLED_VERSION);
+                set => SessionState.SetString(ASSET_ABRV + "_LATEST_VERSION", value);
             }
             public static bool UPDATE_AVAILABLE => new Version(LATEST_VERSION) > new Version(INSTALLED_VERSION);
             
@@ -259,9 +276,13 @@ namespace StylizedWater3
                 return version.Substring(0, version.LastIndexOf(" ("));
             }
             
+            [NoAutoStaticsCleanup]
             public static bool supportedMajorVersion = true;
+            [NoAutoStaticsCleanup]
             public static bool supportedPatchVersion = true;
+            [NoAutoStaticsCleanup]
             public static bool compatibleVersion = true;
+            [NoAutoStaticsCleanup]
             public static bool ltsVersion = true;
             
             private static void ParseUnityVersion(string versionString, out int major, out int minor, out int patch, out UnityVersionType type)
@@ -296,17 +317,17 @@ namespace StylizedWater3
             {
                 string unityVersion = GetUnityVersion();
                 
-                #if !UNITY_6000_0_OR_NEWER
+                #if INCOMPATIBLE_VERSION
                 compatibleVersion = false;
                 #endif
                 
-                #if !UNITY_6000_0_OR_NEWER || UNITY_7000_OR_NEWER
+                #if UNSUPPORTED_MAJOR_VERSION
                 supportedMajorVersion = false;
                 #endif
-				
-				#if UNITY_6000_1 || UNITY_6000_2
-				ltsVersion = false;
-				#endif
+                
+                #if NON_LTS_VERSION
+                ltsVersion = false;
+                #endif
                 
                 ParseUnityVersion(unityVersion, out int major, out int minor, out int patch, out unityVersionType);
 
@@ -324,25 +345,22 @@ namespace StylizedWater3
                 MinRequiredUnityVersion = $"{major}.{minor}.{minPatchVersion}";
             }
 
+            [AutoStaticsCleanup]
             public static string apiResult;
+            [AutoStaticsCleanup]
             private static bool showPopup;
-
-            public enum VersionStatus
-            {
-                UpToDate,
-                Outdated
-            }
-
+            
             public enum QueryStatus
             {
                 Fetching,
                 Completed,
                 Failed
             }
+            [AutoStaticsCleanup]
             public static QueryStatus queryStatus = QueryStatus.Completed;
 
 #if SWS_DEV
-            [MenuItem("SWS/Check for update")]
+            [MenuItem(ASSET_ABRV + "/Check for update")]
 #endif
             public static void GetLatestVersionPopup()
             {
@@ -357,6 +375,8 @@ namespace StylizedWater3
                 return int.Parse(input, System.Globalization.NumberStyles.Any);
             }
 
+            private static DateTime lastUpdateCheckTime;
+            
             public static void CheckForUpdate(bool showPopup = false)
             {
                 //Offline
@@ -365,6 +385,11 @@ namespace StylizedWater3
                     LATEST_VERSION = INSTALLED_VERSION;
                     return;
                 }
+                
+                //Prevent frequent calls from checking the latest version
+                DateTime now = DateTime.Now;
+                if (now.Subtract(lastUpdateCheckTime).TotalSeconds < 1) return;
+                lastUpdateCheckTime = now;
                 
                 VersionChecking.showPopup = showPopup;
 

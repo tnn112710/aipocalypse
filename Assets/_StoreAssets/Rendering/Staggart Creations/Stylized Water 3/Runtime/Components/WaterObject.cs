@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -17,7 +18,7 @@ namespace StylizedWater3
     [ExecuteInEditMode]
     [AddComponentMenu("Stylized Water 3/Water Object")]
     [DisallowMultipleComponent]
-    public class WaterObject : MonoBehaviour
+    public partial class WaterObject : MonoBehaviour
     {
         /// <summary>
         /// The default Water layer index in Unity
@@ -27,12 +28,14 @@ namespace StylizedWater3
         /// <summary>
         /// Collection of all available WaterObject instances. Instances (un)register themselves in the OnEnable/OnDisable functions.
         /// </summary>
+        [AutoStaticsCleanup]
         public static readonly List<WaterObject> Instances = new List<WaterObject>();
         
         public Material material;
         public MeshFilter meshFilter;
         public MeshRenderer meshRenderer;
 
+        [NoAutoStaticsCleanup]
         private static Vector3 s_PositionOffset;
         private static readonly int _WaterPositionOffset = Shader.PropertyToID("_WaterPositionOffset");
         
@@ -50,6 +53,7 @@ namespace StylizedWater3
             internal get => s_PositionOffset;
         }
         
+        [NoAutoStaticsCleanup]
         private static float m_customTimeValue = -1f;
         private static readonly int CustomTimeID = Shader.PropertyToID("_CustomTime");
 

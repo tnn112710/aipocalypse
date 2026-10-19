@@ -11,7 +11,8 @@ bool _CausticsProjectionAvailable;
 float4x4 CausticsProjection;
 
 TEXTURE2D(_CausticsTex);
-SAMPLER(sampler_CausticsTex);
+//Using a shared sampler. Name is kept to not require a breaking change to Underwater Rendering
+#define sampler_CausticsTex sampler_LinearRepeat
 
 float2 CalculateTriPlanarProjection(in float3 positionWS, in float3 normalWS)
 {
@@ -43,8 +44,7 @@ float2 GetCausticsProjection(in float4 positionCS, in float3 lightDir, float3 po
 		return mul(CausticsProjection, float4(positionWS, 1.0)).xy;
 	}
 	#endif
-
-
+	
 	return positionWS.xz;
 }
 

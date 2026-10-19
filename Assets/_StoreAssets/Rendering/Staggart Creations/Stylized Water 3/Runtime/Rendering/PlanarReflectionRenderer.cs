@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -17,12 +18,12 @@ namespace StylizedWater3
     [ExecuteInEditMode]
     [AddComponentMenu("Stylized Water 3/Planar Reflection Renderer")]
     [HelpURL("https://staggart.xyz/unity/stylized-water-3/sw3-docs/?section=reflection-rendering")]
-    public class PlanarReflectionRenderer : MonoBehaviour
+    public partial class PlanarReflectionRenderer : MonoBehaviour
     {
 #if URP
+        [AutoStaticsCleanup]
         public static List<PlanarReflectionRenderer> Instances = new List<PlanarReflectionRenderer>();
-        [NonSerialized]
-        public Dictionary<Camera, Camera> reflectionCameras = new Dictionary<Camera, Camera>();
+        [NonSerialized] private readonly Dictionary<Camera, Camera> reflectionCameras = new Dictionary<Camera, Camera>();
         
         //Rendering
         [Tooltip("If enabled, the reflection plane will be based on this transform's up vector (green arrow).\n\nOtherwise the world's upwards direction is assumed")]
@@ -67,6 +68,7 @@ namespace StylizedWater3
         /// <summary>
         /// Reflections will only render if this is true. Value can be set through the static SetQuality function
         /// </summary>
+        [NoAutoStaticsCleanup]
         public static bool AllowReflections { get; private set; } = true;
 
         private static readonly int _PlanarReflectionsEnabledID = Shader.PropertyToID("_PlanarReflectionsEnabled");
@@ -78,6 +80,7 @@ namespace StylizedWater3
         public bool isRendering;
 
         private Camera m_reflectionCamera;
+        [AutoStaticsCleanup]
 		private static UniversalAdditionalCameraData m_cameraData;
 
         private bool isUnderwater;
@@ -488,14 +491,14 @@ namespace StylizedWater3
             }
         }
 
-        private static Vector4 reflectionPlane;
-        private static Matrix4x4 reflectionBase;
-        private static Vector3 oldCamPos;
+        private Vector4 reflectionPlane;
+        private Matrix4x4 reflectionBase;
+        private Vector3 oldCamPos;
 
-        private static Matrix4x4 worldToCamera;
-        private static Matrix4x4 viewMatrix;
-        private static Matrix4x4 projectionMatrix;
-        private static Vector4 clipPlane;
+        private Matrix4x4 worldToCamera;
+        private Matrix4x4 viewMatrix;
+        private Matrix4x4 projectionMatrix;
+        private Vector4 clipPlane;
         private static readonly float[] layerCullDistances = new float[32];
 
         private void UpdateCameraProperties(Camera source, Camera reflectionCam)

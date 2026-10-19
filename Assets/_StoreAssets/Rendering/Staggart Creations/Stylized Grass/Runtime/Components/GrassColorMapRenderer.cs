@@ -12,6 +12,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -22,6 +23,7 @@ namespace sc.stylizedgrass.runtime
     [HelpURL(("http://staggart.xyz/unity/stylized-grass-shader/sgs-docs/?section=blending-with-terrain-colors"))]
     public class GrassColorMapRenderer : MonoBehaviour
     {
+        [NoAutoStaticsCleanup]
         public static GrassColorMapRenderer Instance;
 
         public GrassColorMap colorMap;

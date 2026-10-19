@@ -1,3 +1,12 @@
+2.1.3 (October 15th 2026)
+
+Fixed:
+- (Pre-emptive) Shader errors due to API changes in Unity 7.0
+- Resolved UAL0010 and UAL0013 warnings related to static field behavior in Unity 6.7 and newer, improving compatibility in preparation for CoreCLR.
+
+Changed:
+- WindController now animates smoothly when not in Play-mode.
+
 2.1.2 (September 24th 2026)
 
 Fixed:

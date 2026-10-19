@@ -5,6 +5,7 @@
 
 #if URP
 using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -77,9 +78,11 @@ namespace StylizedWater3
         /// <summary>
         /// Set this to true from a render pass if it requires the displacement pre-pass, despite it being disabled in the render feature settings.
         /// </summary>
+        [AutoStaticsCleanup]
         public static bool RequireHeightPrePass;
         protected bool WillExecuteHeightPrePass => RequireHeightPrePass || heightPrePassSettings.enable || HeightQuerySystem.RequiresHeightPrepass;
         
+        [AutoStaticsCleanup]
         public static bool RequireDepthPrePass;
         protected bool WillExecuteDepthPrePass => RequireDepthPrePass || enableDepthPrePass || underwaterRenderingRequiresDepth;
 
@@ -133,15 +136,18 @@ namespace StylizedWater3
         
         public override void Create()
         {
-            GraphicsDeviceType currentGraphicsAPI = SystemInfo.graphicsDeviceType;
             //https://issuetracker.unity3d.com/issues/crash-on-gfxdeviced3d12base-drawbufferscommon-when-adding-specific-custom-render-pass-feature-to-renderer
             //Now fixed in Unity 6000.0.60f1
             #if !UNITY_6000_1_OR_NEWER
+            //Uncomment if you must use an older version (eg. Tuanjie engine)
+            /*
+            GraphicsDeviceType currentGraphicsAPI = SystemInfo.graphicsDeviceType;
             if (currentGraphicsAPI == GraphicsDeviceType.Direct3D12 || currentGraphicsAPI == GraphicsDeviceType.XboxOneD3D12)
             {
                 //Using the "BeforeRendering" point causes a fatal crash when using DX12 when allocating a RT
-                //defaultInjectionPoint = RenderPassEvent.BeforeRenderingShadows;
+                defaultInjectionPoint = RenderPassEvent.BeforeRenderingShadows;
             }
+            */
             #endif
             
             constantsSetup = new SetupConstants
@@ -191,6 +197,7 @@ namespace StylizedWater3
         //Restoring the view/projection to that of the camera also breaks VR. Required functions are internal URP code
         
         //In some cases, if no pre-passes render (depth, shadows, etc) then the projection does not get reset when rendering the opaque objects pass. Hence, things must render as early as possible.
+        [NoAutoStaticsCleanup]
         private static RenderPassEvent defaultInjectionPoint = RenderPassEvent.BeforeRendering;
         
         //Dynamic Effects

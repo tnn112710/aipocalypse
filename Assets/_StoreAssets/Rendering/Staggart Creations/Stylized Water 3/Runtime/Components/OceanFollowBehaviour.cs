@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -12,8 +13,9 @@ namespace StylizedWater3
 {
     [ExecuteAlways]
     [AddComponentMenu("")] //Hide, only to be used with the prefab
-    public class OceanFollowBehaviour : MonoBehaviour
+    public partial class OceanFollowBehaviour : MonoBehaviour
     {
+        [AutoStaticsCleanup]
         public static OceanFollowBehaviour Instance;
         
         const int LODCount = 7;
@@ -43,6 +45,7 @@ namespace StylizedWater3
 
         [Space]
         
+        [NoAutoStaticsCleanup]
         public static bool ShowWireFrame = true;
 
         [Serializable]

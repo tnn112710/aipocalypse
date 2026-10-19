@@ -1,3 +1,23 @@
+3.3.3 (October 15th 2026)
+
+Added:
+- Lighting integration for GigaLights
+- Fog integration for SC Screen Effects
+- New preset material: Top-down Ocean
+
+Fixed:
+- Resolved UAL0010 and UAL0013 warnings related to static field behavior in Unity 6.7 and newer, improving compatibility in preparation for CoreCLR.
+- Errors related to Package Manager if the editor was running with the "-noNPM" command line argument.
+
+3.3.2 (September 24th 2026)
+
+Changed:
+- Further optimized the use of texture samplers in the shader. To prevent the "maximum ps_5_0 sampler register index (16) exceeded" error on some platforms and configurations.
+- Depth Writing option on Material is now hidden unless the "Disable Depth Texture" option is enabled.
+
+Fixed:
+- Water appearing invisible on MacOS if the "Disable Depth Texture" option was enabled.
+
 3.3.1 (September 16th 2026)
 
 Fixed:

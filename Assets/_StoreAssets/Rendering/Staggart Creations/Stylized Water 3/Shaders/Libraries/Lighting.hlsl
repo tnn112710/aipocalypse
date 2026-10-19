@@ -216,6 +216,16 @@ float3 ApplyLighting(inout SurfaceData surfaceData, inout float3 sceneColor, Lig
 	float translucencyExp = translucencyData.exponent;
 	#endif
 	
+	#ifdef TND_GIGALIGHTS_LIGHTING_INCLUDED
+	//Metallic and smoothness to 0 to get soft diffuse lights
+	float3 gigaLights = ApplyGigaLights(inputData.positionWS, water.diffuseNormal, water.viewDir, half3(1,1,1), 0, 0);
+	diffuseColor += gigaLights;
+	#endif
+	
+	#ifndef _SPECULARHIGHLIGHTS_OFF
+	half spotLightSpecularSize = lerp(4096, 64, _PointSpotLightReflectionSize);
+	#endif
+	
 	LIGHT_LOOP_BEGIN(pixelLightCount)
 
 		Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowStrength.xxxx);	
@@ -254,11 +264,17 @@ float3 ApplyLighting(inout SurfaceData surfaceData, inout float3 sceneColor, Lig
 
 			#ifndef _SPECULARHIGHLIGHTS_OFF
 			//Note: View direction fetched again using the function that takes orthographic projection into account
-			surfaceData.specular += SpecularReflection(light, normalize(GetWorldSpaceViewDir(inputData.positionWS)), water.waveNormal, water.tangentWorldNormal, _PointSpotLightReflectionDistortion, lerp(4096, 64, _PointSpotLightReflectionSize), specularPower, _PointSpotLightReflectionSharp);
+			surfaceData.specular += SpecularReflection(light, normalize(GetWorldSpaceViewDir(inputData.positionWS)), water.waveNormal, water.tangentWorldNormal, _PointSpotLightReflectionDistortion, spotLightSpecularSize, specularPower, _PointSpotLightReflectionSharp);
 		#endif
 	}
 	LIGHT_LOOP_END
 #endif
+	
+	#ifdef TND_GIGALIGHTS_LIGHTING_INCLUDED
+	#ifndef _SPECULARHIGHLIGHTS_OFF
+	surfaceData.specular += ApplyGigaLights(inputData.positionWS, lerp(water.waveNormal, water.tangentWorldNormal, _PointSpotLightReflectionDistortion), water.viewDir, half3(1,1,1), 1, _PointSpotLightReflectionSize + 0.1);
+	#endif
+	#endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX //Previous calculated in vertex stage
 	diffuseColor += inputData.vertexLighting;

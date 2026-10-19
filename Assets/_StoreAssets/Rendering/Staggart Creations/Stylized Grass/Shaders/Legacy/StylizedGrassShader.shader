@@ -116,6 +116,7 @@ Shader "Universal Render Pipeline/Nature/Stylized Grass"
 			#pragma vertex vert
 			#pragma fragment frag
 						
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 			
 			struct appdata

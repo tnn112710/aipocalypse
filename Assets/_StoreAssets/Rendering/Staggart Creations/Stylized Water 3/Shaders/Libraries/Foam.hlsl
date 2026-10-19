@@ -14,10 +14,9 @@
 TEXTURE2D(_FoamTex);
 SAMPLER(sampler_FoamTex);
 TEXTURE2D(_SlopeFoamTex);
-SAMPLER(sampler_SlopeFoamTex);
 
-//WIP
-//#define DISTANCE_FOAM 1
+//Both foam textures will share the same sampler
+SAMPLER(sampler_SlopeFoamTex);
 
 float CalculateFoamWeight(float gradient, float input)
 {
@@ -81,7 +80,7 @@ float2 SampleFoamTexture(TEXTURE2D_PARAM(tex, samplerName), float3 positionWS, f
 		//Stretch UV vertically on slope
 		slopeUV.y *= 1-slopeStretch;
 		
-		const half2 slopeFoam = SampleFoamLayer(TEXTURE2D_ARGS(_SlopeFoamTex, sampler_SlopeFoamTex), slopeUV, tiling, time, speed * slopeSpeed, subTiling, subSpeed * slopeSpeed);
+		const half2 slopeFoam = SampleFoamLayer(TEXTURE2D_ARGS(_SlopeFoamTex, samplerName), slopeUV, tiling, time, speed * slopeSpeed, subTiling, subSpeed * slopeSpeed);
 	
 		foam = lerp(foam, slopeFoam, slopeMask);
 	}
@@ -93,7 +92,7 @@ float2 SampleFoamTexture(TEXTURE2D_PARAM(tex, samplerName), float3 positionWS, f
 float2 SampleFoamTexture(TEXTURE2D_PARAM(tex, samplerName), float3 positionWS, float2 uv, float2 tiling, float subTiling, float2 time, float speed, float subSpeed, float slopeMask, float slopeSpeed, float slopeStretch,
 	bool slopeFoamOn, bool distanceFoamOn)
 {
-	return SampleFoamTexture(TEXTURE2D_ARGS(_FoamTex, sampler_FoamTex), positionWS, uv, tiling, subTiling, time, speed, subSpeed, slopeMask, slopeSpeed, slopeStretch, slopeFoamOn, distanceFoamOn, 100, 350, 0.1);
+	return SampleFoamTexture(TEXTURE2D_ARGS(_FoamTex, samplerName), positionWS, uv, tiling, subTiling, time, speed, subSpeed, slopeMask, slopeSpeed, slopeStretch, slopeFoamOn, distanceFoamOn, 100, 350, 0.1);
 }
 
 float2 SampleFoamTexture(float3 positionWS, float2 uv, float2 tiling, float subTiling, float2 time, float speed, float subSpeed, float slopeMask, float slopeSpeed, half slopeStretch, bool slopeFoamOn, bool distanceFoamOn, float distanceStart, float distanceEnd, float distanceTiling)

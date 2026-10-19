@@ -28,6 +28,7 @@ namespace StylizedWater3
         private SerializedProperty forceSimpleShadingOnHardware;
         private SerializedProperty autoIntegration;
         private SerializedProperty fogIntegration;
+        private SerializedProperty renderingIntegration;
 
         private SerializedProperty lightCookies;
         private SerializedProperty additionalLightCaustics;
@@ -42,7 +43,8 @@ namespace StylizedWater3
         private bool underwaterRenderingInstalled;
         private bool dynamicEffectsInstalled;
         private bool riverModelerInstalled;
-        private FogIntegration.Integration firstIntegration;
+        private Integrations.Integration<Integrations.FogAssets> firstFogIntegration;
+        private Integrations.Integration<Integrations.RenderingAssets> firstRenderingIntegration;
         private bool curvedWorldInstalled;
 
         private bool showDependencies;
@@ -56,7 +58,8 @@ namespace StylizedWater3
             underwaterRenderingInstalled = StylizedWaterEditor.UnderwaterRenderingInstalled();
             dynamicEffectsInstalled = StylizedWaterEditor.DynamicEffectsInstalled();
             riverModelerInstalled = StylizedWaterEditor.RiverModelerInstalled();
-            firstIntegration = FogIntegration.GetFirstInstalled();
+            firstFogIntegration = Integrations.GetFirstInstalledFogAsset();
+            firstRenderingIntegration = Integrations.GetFirstInstalledRenderingAsset();
             curvedWorldInstalled = StylizedWaterEditor.CurvedWorldInstalled(out var _);
 
             importer = (WaterShaderImporter)target;
@@ -78,6 +81,7 @@ namespace StylizedWater3
 
             autoIntegration = settings.FindPropertyRelative("autoIntegration");
             fogIntegration = settings.FindPropertyRelative("fogIntegration");
+            renderingIntegration = settings.FindPropertyRelative("renderingIntegration");
 
             customIncludeDirectives = settings.FindPropertyRelative("customIncludeDirectives");
             additionalPasses = settings.FindPropertyRelative("additionalPasses");
@@ -189,7 +193,22 @@ namespace StylizedWater3
                         using (new EditorGUILayout.HorizontalScope(EditorStyles.textField))
                         {
                             GUI.contentColor = Color.green;
-                            EditorGUILayout.LabelField(firstIntegration.name);
+                            EditorGUILayout.LabelField(firstFogIntegration.name);
+
+                            GUI.contentColor = defaultColor;
+                        }
+                    }
+                    
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Rendering", GUILayout.MaxWidth(EditorGUIUtility.labelWidth));
+                        EditorGUI.indentLevel--;
+
+                        using (new EditorGUILayout.HorizontalScope(EditorStyles.textField))
+                        {
+                            GUI.contentColor = Color.green;
+                            EditorGUILayout.LabelField(firstRenderingIntegration.name);
 
                             GUI.contentColor = defaultColor;
                         }
@@ -198,6 +217,7 @@ namespace StylizedWater3
                 else
                 {
                     EditorGUILayout.PropertyField(fogIntegration);
+                    EditorGUILayout.PropertyField(renderingIntegration);
                 }
                 if (curvedWorldInstalled)
                 {
@@ -339,7 +359,8 @@ namespace StylizedWater3
                 //When switching a different project, the file will be seen as changed and will be re-imported, in turn applying the project-specific integration.
                 if (autoIntegration.boolValue)
                 {
-                    fogIntegration.intValue = (int)firstIntegration.asset;
+                    fogIntegration.intValue = (int)firstFogIntegration.asset;
+                    renderingIntegration.intValue = (int)firstRenderingIntegration.asset;
                 }
 
                 serializedObject.ApplyModifiedProperties();

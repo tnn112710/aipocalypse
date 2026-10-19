@@ -11,8 +11,38 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+
+#if UNITY_VERSION < 60700000
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#else
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+TEXTURE2D(_BaseMap);
+SAMPLER(sampler_BaseMap);
+//UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_BaseMap);
+TEXTURE2D(_BumpMap);
+SAMPLER(sampler_BumpMap);
+
+half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))
+{
+    return half4(SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv));
+}
+
+half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = half(1.0))
+{
+    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+
+    half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
+    #if BUMP_SCALE_NOT_SUPPORTED
+    normalTS = UnpackNormal(n);
+    #else
+    normalTS = UnpackNormalScale(n, scale);
+    #endif
+    
+    return normalTS;
+}
+#endif
 
 uniform half _GrassWetness;
 uniform half _GrassSnowCoverage;

@@ -9,6 +9,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 #if URP
 using UnityEngine.Rendering.Universal;
@@ -21,8 +22,9 @@ namespace sc.stylizedgrass.runtime
     [ExecuteInEditMode]
     [AddComponentMenu("Stylized Grass/Grass Bender")]
     [HelpURL(("http://staggart.xyz/unity/stylized-grass-shader/sgs-docs/?section=using-grass-bending"))]
-    public class GrassBender : MonoBehaviour
+    public partial class GrassBender : MonoBehaviour
     {
+        [AutoStaticsCleanup]
         private static readonly List<GrassBender> instances = new List<GrassBender>();
         public static List<GrassBender> Instances => instances;
         
@@ -219,7 +221,7 @@ namespace sc.stylizedgrass.runtime
         }
 
         private Vector3 targetPosition;
-        private static Vector3 TrailRotation = new Vector3(-90f, 0f, 0f);
+        private static readonly Vector3 TrailRotation = new Vector3(-90f, 0f, 0f);
         
         private void Update()
         {
@@ -249,6 +251,7 @@ namespace sc.stylizedgrass.runtime
         private const string TRAIL_KEYWORD = "_TRAIL";
         public const string BEND_SHADER_NAME = "Hidden/Nature/Grass Bend Mesh";
 
+        [NoAutoStaticsCleanup]
 		private static Shader _BendingShader;
 		private static Shader BendingShader
 		{
@@ -266,6 +269,7 @@ namespace sc.stylizedgrass.runtime
 			}
 		}
         
+        [NoAutoStaticsCleanup]
         private static Material _TrailMaterial;
         private static Material TrailMaterial
         {
@@ -283,6 +287,7 @@ namespace sc.stylizedgrass.runtime
             }
         }
         
+        [NoAutoStaticsCleanup]
         private static Material _MeshMaterial;
         private static Material MeshMaterial
         {

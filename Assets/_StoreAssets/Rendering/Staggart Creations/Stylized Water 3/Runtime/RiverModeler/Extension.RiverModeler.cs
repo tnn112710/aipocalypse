@@ -25,7 +25,7 @@ namespace StylizedWater3.RiverModeler
             this.assetStoreID = 400836;
             docUrl = "https://staggart.xyz/unity/stylized-water-3/sw3-river-modeler-docs/";
             
-            this.version = "1.0.0";
+            this.version = "1.0.1";
             this.minBaseVersion = "3.3.0";
             
             packageDependencies = new string[]

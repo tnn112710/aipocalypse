@@ -107,7 +107,6 @@ void RaymarchSSR(float3 positionVS, float3 direction, uint samples, half stepSiz
 }
 
 TEXTURE2D_X(_PlanarReflection);
-SAMPLER(sampler_PlanarReflection);
 
 float3 SampleReflectionProbes(float3 reflectionVector, float3 positionWS, float smoothness, float2 screenPos)
 {
@@ -158,7 +157,7 @@ float3 SampleReflections(float3 reflectionVector, float smoothness, float4 scree
 	#if !_RIVER //Planar reflections are pointless on curved surfaces, skip
 	if(planarReflectionsEnabled)
 	{
-		float4 planarReflections = SAMPLE_TEXTURE2D_X_LOD(_PlanarReflection, sampler_PlanarReflection, screenPos.xy, 0);
+		float4 planarReflections = SAMPLE_TEXTURE2D_X_LOD(_PlanarReflection, sampler_LinearClamp, screenPos.xy, 0);
 		//Terrain add-pass can output negative alpha values. Clamp as a safeguard against this
 		planarReflections.a = saturate(planarReflections.a);
 	

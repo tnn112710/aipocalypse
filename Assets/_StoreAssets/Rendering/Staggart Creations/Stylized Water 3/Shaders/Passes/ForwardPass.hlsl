@@ -42,7 +42,7 @@ void PopulateSceneData(inout SceneData scene, Varyings input, WaterSurface water
 	//Default for disabled depth texture
 	scene.viewDepth = 1;
 	scene.verticalDepth = 1;
-
+	
 	scene.refractionMask = 1.0;
 	#if !_DISABLE_DEPTH_TEX
 	SceneDepth depth = SampleDepth(scene.positionSS);
@@ -514,7 +514,7 @@ float4 ForwardPass(Varyings input, FRONT_FACE_TYPE_REAL vertexFace : FRONT_FACE_
 	#endif
 	//interSecGradient = terrainDepth;
 	
-	water.intersection = SampleIntersection(_IntersectionNoise, sampler_IntersectionNoise, uv.xy + (offsetVector * _IntersectionDistortion), (TIME * -_Direction),
+	water.intersection = SampleIntersection(_IntersectionNoise, sampler_LinearRepeat, uv.xy + (offsetVector * _IntersectionDistortion), (TIME * -_Direction),
 		_IntersectionTiling, interSecGradient, _IntersectionFalloff, _IntersectionSpeed, _IntersectionRippleDist, _IntersectionRippleStrength, _IntersectionRippleSpeed, _IntersectionClipping, _IntersectionSharp) * _IntersectionColor.a;
 
 	#if UNDERWATER_ENABLED
@@ -819,6 +819,7 @@ float4 ForwardPass(Varyings input, FRONT_FACE_TYPE_REAL vertexFace : FRONT_FACE_
 	//water.albedo.rgb = LinearToSRGB(water.albedo.rgb);
 	#endif
 	
+	water.edgeFade = 1.0;
 	#if !_DISABLE_DEPTH_TEX
 	//Final alpha
 	water.edgeFade = saturate(scene.verticalDepth / (_EdgeFade * 0.01));

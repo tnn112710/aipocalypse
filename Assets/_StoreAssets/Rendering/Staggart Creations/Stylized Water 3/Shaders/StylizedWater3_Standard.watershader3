@@ -201,6 +201,9 @@
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+        
+        //GigaLights integration. Excludes the materials from the transparent pass, otherwise lighting gets calculated twice.
+        [HideInInspector] _GigaLightsDirectLighting("GigaLights Direct Lighting", Float) = 1
 	}
 
 	SubShader
@@ -230,7 +233,7 @@
         Pass
 		{	
 			Name "ForwardLit"
-			Tags { "LightMode"="UniversalForwardOnly" }
+			Tags { "LightMode"="UniversalForward" }
 			
 			Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
 			ZWrite [_ZWrite]
@@ -286,6 +289,9 @@
 
             #include_library "Libraries/URP.hlsl"
             //#include "Assets/Amazing Assets/Curved World/Shaders/Core/CurvedWorldTransform.cginc"
+
+            %define_rendering_integration%
+            %include_rendering_integration_library%
             
             %mobile_keyword_modifiers%
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -9,8 +10,10 @@ namespace sc.stylizedgrass.runtime
     public class BendVectorPass : ScriptableRenderPass
     {
         private const string profilerTag = "Render Grass Bending Vectors";
+        [NoAutoStaticsCleanup]
         private static ProfilingSampler profilerSampler = new ProfilingSampler(profilerTag);
         private const string profilerTagPass = "Geometry to vectors";
+        [NoAutoStaticsCleanup]
         private static ProfilingSampler profilerSamplerRendering = new ProfilingSampler(profilerTagPass);
 
         private readonly GrassRenderFeature.Settings settings;
@@ -24,25 +27,24 @@ namespace sc.stylizedgrass.runtime
         private static readonly int vectorMapID = Shader.PropertyToID("_GrassOffsetVectors");
         private static readonly int vectorUVID = Shader.PropertyToID("_GrassBendCoords");
 
-        private static Vector4 rendererCoords;
+        private Vector4 rendererCoords;
+        [NoAutoStaticsCleanup]
+        private static Matrix4x4 projection;
+        [NoAutoStaticsCleanup]
+        private static Matrix4x4 view;
 
-        private static Matrix4x4 projection { set; get; }
-        private static Matrix4x4 view { set; get; }
-
-        private static Vector3 centerPosition;
-        private static int resolution;
-        public static int CurrentResolution;
-        private static float orthoSize;
-        private static Bounds bounds;
+        private Vector3 centerPosition;
+        private int resolution;
+        private float orthoSize;
+        private Bounds bounds;
 
         private static readonly Quaternion viewRotation = Quaternion.Euler(new Vector3(-90f, 0f, 0f));
         private static readonly Vector3 viewScale = new Vector3(1, 1, -1);
         private static readonly Color neutralVector = new Color(0.5f, 0f, 0.5f, 0f);
-        private static Rect viewportRect;
+        private Rect viewportRect;
 
         //Render pass
-        FilteringSettings m_FilteringSettings;
-        RenderStateBlock m_RenderStateBlock;
+        private FilteringSettings m_FilteringSettings;
 
         private readonly List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>()
         {
@@ -55,7 +57,6 @@ namespace sc.stylizedgrass.runtime
         {
             this.settings = settings;
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.all, -1);
-            m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
         }
 
         private static int CalculateResolution(float size)
@@ -135,7 +136,6 @@ namespace sc.stylizedgrass.runtime
 
             orthoSize = Mathf.Max(5, settings.bendingRenderRange) * 0.5f;
             resolution = CalculateResolution(orthoSize);
-            CurrentResolution = resolution;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilerTag, out var passData, profilerSampler))
             {
@@ -170,8 +170,7 @@ namespace sc.stylizedgrass.runtime
                 builder.SetRenderAttachment(renderTarget, 0);
                 builder.AllowGlobalStateModification(true);
                 builder.SetGlobalTextureAfterPass(renderTarget, vectorMapID);
-
-                //TODO: Count benders active
+                
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

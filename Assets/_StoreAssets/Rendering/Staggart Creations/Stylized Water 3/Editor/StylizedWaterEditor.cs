@@ -174,7 +174,7 @@ namespace StylizedWater3
             {
                 this.guids = guids;
             }
-
+            
             public void ShowDropDown(Action<Material> onMaterialPicked)
             {
                 GenericMenu menu = new GenericMenu();
@@ -186,8 +186,18 @@ namespace StylizedWater3
 
                 if (guids.Length == 0)
                 {
-                    menu.AddDisabledItem(new GUIContent("No materials found"));
+                    menu.AddDisabledItem(new GUIContent("No preset materials found"));
                 }
+                
+                void AddMaterial(Material mat)
+                {
+                    if (mat)
+                    {
+                        string name = mat.name.Replace("StylizedWater3_", string.Empty);
+                        menu.AddItem(new GUIContent(name), false, () => PickMaterial(mat));
+                    }
+                }
+
                 for (int i = 0; i < guids.Length; i++)
                 {
                     string guid = guids[i];
@@ -195,11 +205,25 @@ namespace StylizedWater3
                     
                     if(string.IsNullOrEmpty(path)) continue;
                     
-                    Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-                    if (mat)
+                    Object targetObject = AssetDatabase.LoadAssetAtPath(path, typeof(Object));
+
+                    if (targetObject.GetType() == typeof(Material))
                     {
-                        string name = mat.name.Replace("StylizedWater3_", string.Empty);
-                        menu.AddItem(new GUIContent(name), false, () => PickMaterial(mat));
+                        Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                        AddMaterial(mat);
+                    }
+                    //Not a material, assume it's a folder
+                    else
+                    {
+                        //Load all materials in folder
+                        string[] materialGUIDs = AssetDatabase.FindAssets("t:Material", new[] { path });
+
+                        for (int j = 0; j < materialGUIDs.Length; j++)
+                        {
+                            string matPath = AssetDatabase.GUIDToAssetPath(materialGUIDs[j]);
+                            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                            AddMaterial(mat);
+                        }
                     }
                 }
                 
@@ -287,6 +311,13 @@ namespace StylizedWater3
         {
             //Checking for "CurvedWorldTransform.cginc"
             libraryPath = AssetDatabase.GUIDToAssetPath("208a98c9ab72b9f4bb8735c6a229e807");
+            return libraryPath != string.Empty;
+        }
+        
+        public static bool GigaLightsInstalled(out string libraryPath)
+        {
+            //Checking for "Packages/com.tnd.gigalights/Runtime/Shaders/GigaLightsLighting.hlsl"
+            libraryPath = AssetDatabase.GUIDToAssetPath("50d3c93cc3614a90a9379d1d52ed6bdb");
             return libraryPath != string.Empty;
         }
 

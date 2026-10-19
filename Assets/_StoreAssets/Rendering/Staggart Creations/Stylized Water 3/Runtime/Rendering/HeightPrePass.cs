@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -18,6 +19,7 @@ namespace StylizedWater3
     public class HeightPrePass : ScriptableRenderPass
     {
         private const string profilerTag = "Water Height Prepass";
+        [NoAutoStaticsCleanup]
         private static readonly ProfilingSampler profilerSampler = new ProfilingSampler(profilerTag);
 
         /// <summary>
@@ -48,7 +50,7 @@ namespace StylizedWater3
         }
         
         //Render pass
-        FilteringSettings m_FilteringSettings;
+        private FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
         private readonly List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>()
         {

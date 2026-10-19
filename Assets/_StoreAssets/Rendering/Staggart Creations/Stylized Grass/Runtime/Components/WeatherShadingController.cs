@@ -7,6 +7,7 @@
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 
 using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 #if ENVIRO_3
 using Enviro;
@@ -16,8 +17,9 @@ namespace sc.stylizedgrass.runtime
 {
     [ExecuteInEditMode]
     [AddComponentMenu("Stylized Grass/Stylized Grass Weather Controller")]
-    public class WeatherShadingController : MonoBehaviour
+    public partial class WeatherShadingController : MonoBehaviour
     {
+        [AutoStaticsCleanup]
         public static WeatherShadingController Instance;
         
         [Range(0f, 1f)]

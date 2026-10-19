@@ -8,6 +8,7 @@
 
 
 using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -47,6 +48,7 @@ namespace StylizedWater3.Demo
             public float fogDensity = 0.002f;
         }
 
+        [NoAutoStaticsCleanup]
         public static bool ShowGUI = true;
 
         [Min(0)]

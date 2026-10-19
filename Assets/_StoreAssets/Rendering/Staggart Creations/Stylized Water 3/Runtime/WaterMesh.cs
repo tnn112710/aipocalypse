@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -14,7 +15,7 @@ using Random = System.Random;
 namespace StylizedWater3
 {
     [Serializable]
-    public class WaterMesh
+    public partial class WaterMesh
     {
         public enum Shape
         {
@@ -45,6 +46,7 @@ namespace StylizedWater3
         /// </summary>
         public Mesh mesh;
         
+        [AutoStaticsCleanup]
         private static Vector4 defaultTangent = new Vector4(-1f, 0f, 0f, -1f);
         
         public Mesh Rebuild()

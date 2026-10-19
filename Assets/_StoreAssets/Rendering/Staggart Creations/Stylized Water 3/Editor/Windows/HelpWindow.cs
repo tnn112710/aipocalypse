@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.SceneManagement;
@@ -83,8 +84,10 @@ namespace StylizedWater3
             }
         }
         
+        [NoAutoStaticsCleanup]
         static Constants constants = null;
         private Section installationSection;
+        
         private void OnEnable()
         {
             AssetInfo.VersionChecking.CheckForUpdate(false);
@@ -183,6 +186,7 @@ namespace StylizedWater3
             } 
         }
 
+        [NoAutoStaticsCleanup]
         private static Color defaultColor;
         
         private delegate void OnGUIDelegate();
@@ -215,6 +219,7 @@ namespace StylizedWater3
         private Section selectedSection => sections[_selectedSectionIndex];
 
         private Vector2 menuScrollPos;
+        [NoAutoStaticsCleanup]
         private static Vector2 sectionScrollPos = Vector2.zero;
         
         private void OnGUI()
@@ -348,6 +353,8 @@ namespace StylizedWater3
                     }
                 }
             }
+            
+            Repaint();
         }
 
         void DrawDemos()
@@ -419,9 +426,9 @@ namespace StylizedWater3
         {   
             UI.DrawH2("Fog integrations");
 
-            foreach (FogIntegration.Integration integration in FogIntegration.Integrations)
+            foreach (Integrations.Integration<Integrations.FogAssets> integration in Integrations.FogIntegrations)
             {
-                if(integration.asset == FogIntegration.Assets.None || integration.asset == FogIntegration.Assets.UnityFog) continue;
+                if(integration.asset == Integrations.FogAssets.None || integration.asset == Integrations.FogAssets.UnityFog) continue;
                 
                 UI.DrawIntegration(integration);
                 EditorGUILayout.Space();
@@ -429,6 +436,21 @@ namespace StylizedWater3
                 if (underwaterExtensionInstalled && (integration.underwaterCompatible == false))
                 {
                     UI.DrawNotification("Editing of shader files for this asset is required to incorporate support for the Underwater Rendering extension. (See documentation section called \"Transparent Materials\")", MessageType.Warning);
+                }
+            }
+            
+            UI.DrawH2("Rendering integrations");
+
+            foreach (Integrations.Integration<Integrations.RenderingAssets> integration in Integrations.RenderingIntegrations)
+            {
+                if(integration.asset == Integrations.RenderingAssets.None) continue;
+                
+                UI.DrawIntegration(integration);
+                EditorGUILayout.Space();
+                
+                if (underwaterExtensionInstalled && (integration.underwaterCompatible == false))
+                {
+                    UI.DrawNotification("This integration is not compatible with Underwater rendering", MessageType.Warning);
                 }
             }
             
@@ -604,7 +626,7 @@ namespace StylizedWater3
             
             stringBuilder.AppendLine($"");
             
-            stringBuilder.AppendLine($"First available fog integration: {FogIntegration.GetFirstInstalled().name}");
+            stringBuilder.AppendLine($"First available fog integration: {Integrations.GetFirstInstalledFogAsset().name}");
             stringBuilder.AppendLine($"Underwater Rendering installed: {StylizedWaterEditor.UnderwaterRenderingInstalled()}");
             stringBuilder.AppendLine($"Dynamic Effects installed: {StylizedWaterEditor.DynamicEffectsInstalled()}");
             stringBuilder.AppendLine($"River Modeler installed: {StylizedWaterEditor.RiverModelerInstalled()}");

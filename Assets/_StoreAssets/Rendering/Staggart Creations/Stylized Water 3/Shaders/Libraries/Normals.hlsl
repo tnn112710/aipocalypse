@@ -6,9 +6,11 @@
 //#include "../Flowmaps/Flowmap.hlsl"
 
 TEXTURE2D(_BumpMap);
-SAMPLER(sampler_BumpMap);
 TEXTURE2D(_BumpMapLarge);
 TEXTURE2D(_BumpMapSlope);
+
+//All textures will share this sampler
+SAMPLER(sampler_BumpMap);
 
 float3 BlendTangentNormals(float3 a, float3 b)
 {

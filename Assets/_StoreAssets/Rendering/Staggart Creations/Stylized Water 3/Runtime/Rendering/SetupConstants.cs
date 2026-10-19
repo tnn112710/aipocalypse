@@ -3,6 +3,7 @@
 //    • Copying or referencing source code for the production of new asset store, or public, content is strictly prohibited!
 //    • Uploading this file to a public repository will subject it to an automated DMCA takedown request.
 
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if URP
@@ -12,7 +13,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace StylizedWater3
 {
-    public class SetupConstants : ScriptableRenderPass
+    public partial class SetupConstants : ScriptableRenderPass
     {
         private ProfilingSampler m_ProfilingSampler;
         
@@ -21,6 +22,7 @@ namespace StylizedWater3
         private static readonly int _WaterSSRParams = Shader.PropertyToID("_WaterSSRParams");
         private static readonly int _WaterSSRSettings = Shader.PropertyToID("_WaterSSRSettings");
 
+        [AutoStaticsCleanup]
         private static VisibleLight mainLight;
         private Matrix4x4 causticsProjection;
 

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using UnityEditor.PackageManager.UI;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -56,25 +59,31 @@ namespace StylizedWater3
             }
         }
         
+        [NoAutoStaticsCleanup]
         public static List<SetupItem> SetupItems = new List<SetupItem>();
 
         public static int ErrorCount
         {
             get => m_errorCount;
         }
+        [NoAutoStaticsCleanup]
         private static int m_errorCount;
         public static int WarningCount
         {
             get => m_warningCount;
         }
+        [NoAutoStaticsCleanup]
         private static int m_warningCount;
         
         public static bool HasError => ErrorCount > 0;
+
+        [NoAutoStaticsCleanup]
+        private static ShaderMessage[] shaderErrors;
         
         private static bool PerformedStartupCheck
         {
-            get => SessionState.GetBool("SW3_Installer_Started", false);
-            set => SessionState.SetBool("SW3_Installer_Started", value);
+            get => SessionState.GetBool(AssetInfo.ASSET_ABRV + "_Installer_Started", false);
+            set => SessionState.SetBool(AssetInfo.ASSET_ABRV + "_Installer_Started", value);
         }
 
         private static void AddItem(SetupItem item)
@@ -97,6 +106,8 @@ namespace StylizedWater3
             SetupItems.Clear();
             m_errorCount = 0;
             m_warningCount = 0;
+
+            if (Application.isBatchMode || BuildPipeline.isBuildingPlayer) return;
 
             SetupItem unityVersion = new SetupItem(AssetInfo.VersionChecking.GetUnityVersion());
             {
@@ -228,9 +239,9 @@ namespace StylizedWater3
                 }
             }
             AddItem(colorSpace);
-
-            /*
+            
             //Also counts non-script related errors!
+            /*
             SetupItem compileErrors = new SetupItem("Script compilation");
             {
                 ConsoleWindowUtility.GetConsoleLogCounts(out var errors, out var _, out var _);
@@ -238,7 +249,9 @@ namespace StylizedWater3
                 if (errors > 0)
                 {
                     compileErrors.state = MessageType.Error;
-                    compileErrors.description = "Your project has one or more script compilation errors. These can prevent the water shader from working, or components from being available!";
+                    compileErrors.description = "Your project has one or more script compilation errors." +
+                                                "\n\n" +
+                                                "These can prevent the water shader from working, or components/menu options from being available!";
                 }
                 else
                 {
@@ -248,7 +261,7 @@ namespace StylizedWater3
                 AddItem(compileErrors);
             }
             */
-
+            
             SetupItem shaderCompiler = new SetupItem("Shader Compiler");
             {
                 Shader defaultShader = ShaderConfigurator.GetDefaultShader();
@@ -261,7 +274,7 @@ namespace StylizedWater3
                     shaderCompiler.state = MessageType.None;
                     shaderCompiler.description = "Shader compiled without any errors";
 
-                    ShaderMessage[] shaderErrors = ShaderConfigurator.GetErrorMessages(defaultShader);
+                    shaderErrors = ShaderConfigurator.GetErrorMessages(defaultShader);
 
                     //Compiled with errors
                     if (shaderErrors != null && shaderErrors.Length > 0)
@@ -275,6 +288,13 @@ namespace StylizedWater3
                         }
 
                         shaderCompiler.description += "\n\nThese messages may provide a clue as to what went wrong";
+                        
+                        ConsoleWindowUtility.GetConsoleLogCounts(out var errors, out var _, out var _);
+
+                        if (errors > shaderErrors.Length)
+                        {
+                            shaderCompiler.description += "\n\nScript compile errors in the console can prevent the shader from compiling! Resolve any console errors before proceeding...";
+                        }
                         
                         shaderCompiler.actionName = "Try recompiling";
                         shaderCompiler.action = () =>
@@ -591,7 +611,7 @@ namespace StylizedWater3
                 else
                 {
                     splinesPackage.state = MessageType.Warning;
-                    splinesPackage.description = "Splines package not installed. Some functionality won't be available.";
+                    splinesPackage.description = "Splines package not installed. Some Dynamic Effects functionality won't be available.";
 
                     splinesPackage.actionName = "Install";
                     splinesPackage.action = () =>
@@ -737,6 +757,42 @@ namespace StylizedWater3
                     AddItem(canvasses);
                 }
             };
+
+            #if UNITY_6000_7_OR_NEWER || (UNITY_6000_6_OR_NEWER && URP_SCREEN_SPACE_REFLECTION)
+            if(StylizedWaterEditor.UnderwaterRenderingInstalled())
+            {
+                URPDefaultVolumeProfileSettings defaultVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
+
+                if (defaultVolumeSettings != null)
+                {
+                    ScreenSpaceReflectionVolumeSettings ssrSettings = defaultVolumeSettings.volumeProfile.components.Find(o => o is ScreenSpaceReflectionVolumeSettings) as ScreenSpaceReflectionVolumeSettings;
+
+                    if (ssrSettings && ssrSettings.mode == ScreenSpaceReflectionVolumeSettings.ReflectionMode.OpaquesOnly)
+                    {
+                        SetupItem SSRUnderwater = new SetupItem("Screen Space Reflections conflict");
+                        {
+                            SSRUnderwater.state = MessageType.Error;
+                            SSRUnderwater.description =
+                                "Screen Space Reflections is configured to use the \"OpaquesOnly\" mode." +
+                                "\n\n" +
+                                "This causes the water to also rendering into the Opaque texture. Underwater Rendering won't see objects above the water (eg. skybox).";
+
+                            SSRUnderwater.actionName = "Fix";
+                            SSRUnderwater.action = () =>
+                            {
+                                EnumParameter<ScreenSpaceReflectionVolumeSettings.ReflectionMode> param = ssrSettings.mode;
+                                param.value = ScreenSpaceReflectionVolumeSettings.ReflectionMode.OpaquesAndTransparents;
+                                ssrSettings.mode = param;
+                                
+                                EditorUtility.SetDirty(ssrSettings);
+                                VolumeManager.instance.OnVolumeProfileChanged(defaultVolumeSettings.volumeProfile);
+                            };
+                        }
+                        AddItem(SSRUnderwater);
+                    }
+                }
+            }
+            #endif
             
             #if ENVIRO
             
@@ -784,9 +840,20 @@ namespace StylizedWater3
                 HelpWindow.ShowWindow(true);
             }
         }
+
+        public static bool IsPackageManagerDisabled()
+        {
+            return Environment.GetCommandLineArgs().Any(arg => string.Equals(arg, "-noUpm", StringComparison.OrdinalIgnoreCase) || string.Equals(arg, "noUpm", StringComparison.OrdinalIgnoreCase));
+        }
         
         public static PackageInfo GetPackage(string packageName)
         {
+            if (IsPackageManagerDisabled())
+            {
+                Debug.LogWarning($"Failed to retrieve package {packageName} from Package Manager. Editor was launched using the -noUpm command line argument.");
+                return null;
+            }
+
             SearchRequest request = Client.Search(packageName);
                 
             while (request.Status == StatusCode.InProgress) { /* Waiting... */ }
@@ -886,6 +953,8 @@ namespace StylizedWater3
 
         public static void InstallPackage(string id)
         {
+            if (IsPackageManagerDisabled()) return;
+            
             SearchRequest request = Client.Search(id, false);
 
             while (request.Status == StatusCode.InProgress)

@@ -16,7 +16,7 @@ namespace StylizedWater3
     {
         public const int SHADER_GENERATOR_VERSION_MAJOR = 5;
         public const int SHADER_GENERATOR_MINOR = 1;
-        public const int SHADER_GENERATOR_PATCH = 3;
+        public const int SHADER_GENERATOR_PATCH = 4;
         
         //Stencil mask used by water shader. Currently used for underwater rendering
         //Values 1-65 are used by deferred rendering
@@ -118,7 +118,10 @@ namespace StylizedWater3
             var underwaterInstalled = StylizedWaterEditor.UnderwaterRenderingInstalled();
             var dynamicEffectsInstalled = StylizedWaterEditor.DynamicEffectsInstalled();
             
-            FogIntegration.Integration fogIntegration = importer.GetFogIntegration();
+            Integrations.Integration<Integrations.FogAssets> fogIntegration = importer.GetFogIntegration();
+            Integrations.Integration<Integrations.RenderingAssets> renderingIntegration = importer.GetRenderingIntegration();
+            
+            StylizedWaterEditor.GigaLightsInstalled(out string gigaLightsIncludePath);
 
             AssetInfo.VersionChecking.CheckUnityVersion();
             
@@ -291,7 +294,7 @@ namespace StylizedWater3
                 {
                     int stencilID = STENCIL_REF;
                     
-                    if (importer.settings.fogIntegration == FogIntegration.Assets.COZY)
+                    if (importer.settings.fogIntegration == Integrations.FogAssets.COZY)
                     {
                         
                     }
@@ -333,7 +336,7 @@ namespace StylizedWater3
 
                     switch (fogIntegration.asset)
                     {
-                        //case FogIntegration.Assets.COZY: offset = 2;
+                        //case Integration.Assets.COZY: offset = 2;
                             //break;
                         //case Fog.Assets.AtmosphericHeightFog : offset = 2; //Should actually render after the fog sphere, but asset inherently relies on double fog shading it seems?
                         //break;
@@ -465,11 +468,56 @@ namespace StylizedWater3
 
                 if (importer.settings.type == WaterShaderImporter.WaterShaderSettings.ShaderType.WaterSurface)
                 {
+                    if(Matches("%define_rendering_integration%"))
+                    {
+                        if (renderingIntegration.asset != Integrations.RenderingAssets.None)
+                        {
+                            AddLine($"#define {renderingIntegration.asset.ToString()}");
+                        }
+
+                        continue;
+                    }
+
+                    if (Matches("%include_rendering_integration_library%"))
+                    {
+                        //Default until otherwise valid
+                        line = string.Empty;
+
+                        //Mark the asset integration as being compiled in
+                        importer.configurationState.renderingIntegration = renderingIntegration.asset;
+                        
+                        if (renderingIntegration.asset != Integrations.RenderingAssets.None)
+                        {
+                            string includePath = AssetDatabase.GUIDToAssetPath(renderingIntegration.libraryGUID);
+
+                            importer.RegisterDependency(includePath);
+
+                            //Not found error
+                            if (includePath == string.Empty)
+                            {
+                                if (EditorUtility.DisplayDialog(AssetInfo.ASSET_NAME,
+                                        renderingIntegration.name + " rendering shader library could not be found with the GUID \"" + renderingIntegration.libraryGUID + "\".\n\n" +
+                                        "This means it was changed by the author (rare!), you deleted the \".meta\" file at some point, or the asset simply isn't installed.", "Ok"))
+                                {
+
+                                }
+                            }
+                            else
+                            {
+                                var pragma = renderingIntegration.includeWithPragmas ? "include_with_pragmas" : "include";
+                                line = $"#{pragma} \"{includePath}\"";
+
+                                AddLine(line);
+                                continue;
+                            }
+                        }
+                    }
+
                     if (Matches("%define_fog_integration%"))
                     {
                         AddLine($"#define {fogIntegration.asset.ToString()}");
                         
-                        if (fogIntegration.asset == FogIntegration.Assets.UnityFog)
+                        if (fogIntegration.asset == Integrations.FogAssets.UnityFog)
                         {
                             AddLine("#pragma multi_compile_fog");
                         }
@@ -484,9 +532,9 @@ namespace StylizedWater3
                         line = string.Empty;
 
                         //Mark the asset integration as being compiled in
-                        importer.configurationState.fogIntegration = fogIntegration;
+                        importer.configurationState.fogIntegration = fogIntegration.asset;
                         
-                        if (fogIntegration.asset != FogIntegration.Assets.None && fogIntegration.asset != FogIntegration.Assets.UnityFog)
+                        if (fogIntegration.asset != Integrations.FogAssets.None && fogIntegration.asset != Integrations.FogAssets.UnityFog)
                         {
                             string includePath = AssetDatabase.GUIDToAssetPath(fogIntegration.libraryGUID);
 

@@ -4,6 +4,7 @@
 //    • Uploading this file to a public repository will subject it to an automated DMCA takedown request.
 
 using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -19,7 +20,9 @@ namespace StylizedWater3
             
             private const string PROFILER_PREFIX = "[GPU] Water Height Query:";
             
+            [NoAutoStaticsCleanup]
             private static readonly ProfilingSampler computeProfilerSampler = new ProfilingSampler( $"{PROFILER_PREFIX} Dispatch");
+            [NoAutoStaticsCleanup]
             private static readonly ProfilingSampler readbackAsyncProfilerSampler = new ProfilingSampler( $"{PROFILER_PREFIX} Readback Async");
 
             private ComputeShader cs;

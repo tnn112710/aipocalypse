@@ -142,7 +142,7 @@
         //Custom directives:
         %custom_directives%
         //%global_defines%
-		#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
+		//#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 
 		//Hard coded features
 		#define _ALPHATEST_ON 1
@@ -212,7 +212,6 @@
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _LIGHT_COOKIES
             %forward_plus_keyword%
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
@@ -244,10 +243,10 @@
 				
             // -------------------------------------
             // Includes
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
             %curvedworld_include%
 
             %zephyr%
@@ -382,10 +381,10 @@
 			//Constants
 			#define SHADERPASS_DEFERRED
 
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
             %curvedworld_include%
 
 			#include_library "Libraries/Input.hlsl"
