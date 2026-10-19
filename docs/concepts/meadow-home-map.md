@@ -4,6 +4,10 @@ Date: 2026-10-19. Status: visual concept with approximate scale. This records th
 
 ![Version 13 world layout: 700 × 700 m map centred on a 1000 × 1000 m terrain](meadow-home-top-down-v13.png)
 
+## Built scene
+
+Revision 13 is built in `Assets/_Game/Scenes/Prototype/Prototype_Environment.unity`; see [ENVIRONMENT.md](../technicals/ENVIRONMENT.md) for how it is generated. Differences from the drawing, as requested by the user: the bridge is complete (not broken), and the boundary mountains are rock and mountain models (the terrain is not raised) with invisible walls along the playable edge. Each side uses a different family (HIGHLANDS south, Komorebi rock side west, Grasslands north, Lakefell/BK east), layered so the snow peaks rise above low edge rocks and a tree belt. The meadow follows the BK Pure Nature Meadows look. Style references are in [refs/](refs/README.md).
+
 ## Revision 13
 
 The terrain stays **1000 × 1000 m**; the whole map now fits in the central **700 × 700 m** (about 150 m to 850 m on both axes), so every distance from version 12 shrinks to 87.5% and the outer 150-m band is unwalkable boundary mountains. The meadow was also too big next to the base, so, following the user's marked-up v12, the southern mountains push north over the south half of the meadow, from the waterfall to the lake's south shore, with a band of pine foothills at their foot. The meadow is now roughly **200 × 70 m**.

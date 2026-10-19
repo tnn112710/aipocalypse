@@ -1,0 +1,188 @@
+// Meadow Home atmosphere: post-processing profile (clone of Komorebi's), sun, sky, fog. Run via `unity command run_script`.
+using System.Linq;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
+
+public static class Atmosphere
+{
+    const string Folder = "Assets/_Game/Data/Environment/MeadowHome";
+    const string KomorebiProfile = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Demo/Settings/KomorebiNature_Demo_Post-Processing.asset";
+
+    public static object Report()
+    {
+        var sun = RenderSettings.sun != null ? RenderSettings.sun : Object.FindObjectsByType<Light>().FirstOrDefault(l => l.type == LightType.Directional);
+        return new
+        {
+            skybox = RenderSettings.skybox ? AssetDatabase.GetAssetPath(RenderSettings.skybox) + " / " + RenderSettings.skybox.shader.name : "none",
+            ambientMode = RenderSettings.ambientMode.ToString(), ambientSky = RenderSettings.ambientSkyColor.ToString(), ambientEquator = RenderSettings.ambientEquatorColor.ToString(), ambientGround = RenderSettings.ambientGroundColor.ToString(), ambientIntensity = RenderSettings.ambientIntensity,
+            fog = RenderSettings.fog, fogMode = RenderSettings.fogMode.ToString(), fogColor = RenderSettings.fogColor.ToString(), fogDensity = RenderSettings.fogDensity, fogStart = RenderSettings.fogStartDistance, fogEnd = RenderSettings.fogEndDistance,
+            sun = sun ? $"{sun.name} rot {sun.transform.eulerAngles} color {sun.color} intensity {sun.intensity} temp {sun.useColorTemperature}/{sun.colorTemperature} shadows {sun.shadows}" : "none",
+            volumes = Object.FindObjectsByType<Volume>().Select(v => $"{v.name} global {v.isGlobal} profile {(v.sharedProfile ? AssetDatabase.GetAssetPath(v.sharedProfile) : "MISSING")}").ToArray(),
+        };
+    }
+
+    // Clones Komorebi's demo post-processing profile and assigns it to the scene's global volume.
+    public static object ClonePostProcessing()
+    {
+        string dest = Folder + "/MH_PostProcessing.asset";
+        if (AssetDatabase.LoadAssetAtPath<VolumeProfile>(dest) == null && !AssetDatabase.CopyAsset(KomorebiProfile, dest))
+            throw new System.InvalidOperationException("Copy failed");
+        var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(dest);
+        var vol = Object.FindObjectsByType<Volume>().FirstOrDefault(v => v.isGlobal);
+        if (vol == null)
+        {
+            var go = new GameObject("Post-Processing");
+            vol = go.AddComponent<Volume>();
+            vol.isGlobal = true;
+        }
+        Undo.RecordObject(vol, "Assign post-processing");
+        vol.sharedProfile = profile;
+        vol.gameObject.name = "Post-Processing (Komorebi grade)";
+        EditorUtility.SetDirty(vol);
+        EditorSceneManager.MarkSceneDirty(vol.gameObject.scene);
+        return new { volume = vol.name, profile = dest, components = profile.components.Select(c => c.GetType().Name + (c.active ? "" : " (off)")).ToArray() };
+    }
+    // Softer grade than the Komorebi demo (its contrast 50 / saturation +10 crush our cliffs and push grass to neon).
+    // Keeps its warm split-tone (cool lift, warm gain) and white balance.
+    public static object TunePost(float contrast, float saturation, float exposure, float bloomIntensity, float bloomThreshold, float vignette, float temperature)
+    {
+        var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(Folder + "/MH_PostProcessing.asset");
+        if (profile.TryGet<ColorAdjustments>(out var ca)) { ca.contrast.Override(contrast); ca.saturation.Override(saturation); ca.postExposure.Override(exposure); }
+        if (profile.TryGet<Bloom>(out var bloom)) { bloom.intensity.Override(bloomIntensity); bloom.threshold.Override(bloomThreshold); }
+        if (profile.TryGet<Vignette>(out var v)) v.intensity.Override(vignette);
+        if (profile.TryGet<WhiteBalance>(out var wb)) wb.temperature.Override(temperature);
+        if (profile.TryGet<ScreenSpaceLensFlare>(out var flare)) flare.active = false;   // screen-space flares read as noise in an FPS
+        EditorUtility.SetDirty(profile);
+        AssetDatabase.SaveAssetIfDirty(profile);
+        return profile.components.Select(c => c.GetType().Name + (c.active ? "" : " (off)")).ToArray();
+    }
+    // Cozy late-morning light (values from the atmosphere research; Komorebi demo as the base).
+    public static object Apply()
+    {
+        var scene = SceneManager.GetActiveScene();
+        var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(Folder + "/MH_PostProcessing.asset");
+        if (profile.TryGet<WhiteBalance>(out var wb)) { wb.temperature.Override(10f); wb.tint.Override(2f); }
+        if (profile.TryGet<ColorAdjustments>(out var ca)) { ca.contrast.Override(20f); ca.saturation.Override(2f); ca.postExposure.Override(0.1f); }
+        if (profile.TryGet<Bloom>(out var bloom)) { bloom.threshold.Override(0.8f); bloom.intensity.Override(0.3f); bloom.scatter.Override(0.7f); bloom.tint.Override(new Color(1f, 0.958f, 0.902f)); }
+        if (profile.TryGet<Vignette>(out var vg)) { vg.intensity.Override(0.25f); vg.smoothness.Override(0.4f); }
+        EditorUtility.SetDirty(profile); AssetDatabase.SaveAssetIfDirty(profile);
+
+        var sun = Object.FindObjectsByType<Light>().First(l => l.type == LightType.Directional);
+        Undo.RecordObject(sun, "Sun"); Undo.RecordObject(sun.transform, "Sun");
+        sun.transform.rotation = Quaternion.Euler(48f, 300f, 0f);
+        sun.useColorTemperature = true; sun.colorTemperature = 5400f;
+        sun.color = new Color(1f, 0.97f, 0.92f);
+        sun.intensity = 2.5f;
+        sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.8f;
+        sun.cookie = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Textures/Nature/CloudShadows_Cookie.png");
+        var urpLight = sun.GetComponent<UniversalAdditionalLightData>();
+        if (urpLight == null) urpLight = sun.gameObject.AddComponent<UniversalAdditionalLightData>();
+        urpLight.lightCookieSize = new Vector2(500, 500);
+        var moverType = System.AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("Raygeas.CloudMover")).First(t => t != null);
+        var mover = sun.GetComponent(moverType);
+        if (mover == null) mover = sun.gameObject.AddComponent(moverType);
+        var so = new SerializedObject(mover); so.FindProperty("speed").floatValue = 6f; so.ApplyModifiedPropertiesWithoutUndo();
+        RenderSettings.sun = sun;
+
+        string skyPath = Folder + "/MH_Skybox.mat";
+        if (AssetDatabase.LoadAssetAtPath<Material>(skyPath) == null)
+            AssetDatabase.CopyAsset("Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Materials/Nature/Skybox_1.mat", skyPath);
+        var sky = AssetDatabase.LoadAssetAtPath<Material>(skyPath);
+        sky.SetFloat("_Rotation", 17f);
+        EditorUtility.SetDirty(sky); AssetDatabase.SaveAssetIfDirty(sky);
+        RenderSettings.skybox = sky;
+
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.ExponentialSquared;
+        RenderSettings.fogDensity = 0.0011f;   // thinner than Komorebi: the Raygeas mountain shaders skip scene fog, so near layers must not out-haze the peaks
+        RenderSettings.fogColor = new Color(0.58f, 0.76f, 0.94f);
+        RenderSettings.ambientMode = AmbientMode.Trilight;
+        RenderSettings.ambientSkyColor = new Color(0.64f, 0.73f, 0.86f);
+        RenderSettings.ambientEquatorColor = new Color(0.56f, 0.57f, 0.50f);
+        RenderSettings.ambientGroundColor = new Color(0.42f, 0.39f, 0.31f);
+        DynamicGI.UpdateEnvironment();
+        EditorSceneManager.MarkSceneDirty(scene);
+        return new { sun = sun.transform.eulerAngles.ToString(), sky = skyPath, fog = RenderSettings.fogDensity };
+    }
+
+    const string KNP = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/Particle Systems/";
+    const string GLP = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Particle Effects/";
+    const string HLP = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/FX/";
+    const string BKP = "Assets/_StoreAssets/Env/BK/PureNature_Meadows/Prefabs/Fx/";
+
+    // Ambient particles under Environment/Atmosphere (rebuilt each run). Heights are sampled from the terrain.
+    public static object Particles()
+    {
+        var scene = SceneManager.GetActiveScene();
+        var env = scene.GetRootGameObjects().First(g => g.name == "Environment");
+        var old = env.transform.Find("Atmosphere");
+        if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+        var root = new GameObject("Atmosphere").transform; root.SetParent(env.transform, false);
+        Undo.RegisterCreatedObjectUndo(root.gameObject, "Atmosphere");
+        var terrain = Terrain.activeTerrain;
+        float G(float x, float z) => terrain.SampleHeight(new Vector3(x, 0, z));
+        var rng = new System.Random(3);
+        int n = 0;
+        Transform Grp(string name) { var t = new GameObject(name).transform; t.SetParent(root, false); return t; }
+        void Put(Transform parent, string path, Vector3 pos, Vector3 euler, Vector3 scale)
+        {
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path), parent);
+            go.transform.SetPositionAndRotation(pos, Quaternion.Euler(euler));
+            go.transform.localScale = scale;
+            foreach (var r in go.GetComponentsInChildren<ParticleSystemRenderer>()) r.shadowCastingMode = ShadowCastingMode.Off;
+            n++;
+        }
+        var rays = Grp("God Rays");
+        foreach (var (x, z) in new[] { (332f, 430f), (346f, 437f), (357f, 425f), (340f, 448f), (362f, 556f), (384f, 544f), (368f, 522f), (416f, 522f), (434f, 498f), (444f, 516f), (508f, 484f), (520f, 448f), (536f, 480f), (598f, 436f), (616f, 424f), (584f, 404f), (420f, 598f), (444f, 642f) })
+            Put(rays, GLP + "GodRays.prefab", new Vector3(x, G(x, z) - 0.5f, z), new Vector3(318, 300, 0), Vector3.one * 1.3f);
+        foreach (var (x, z) in new[] { (214f, 660f), (236f, 646f), (248f, 668f), (300f, 720f), (420f, 720f), (470f, 700f) })
+            Put(rays, HLP + "GodRays.prefab", new Vector3(x, G(x, z) - 0.5f, z), new Vector3(318, 300, 0), Vector3.one * 1.1f);
+        var mist = Grp("Mist");
+        foreach (var (x, z) in new[] { (344f, 435f), (371f, 541f), (431f, 512f), (521f, 471f), (599f, 421f), (432f, 620f), (233f, 658f), (397f, 713f) })
+            Put(mist, KNP + "Fog_1.prefab", new Vector3(x, G(x, z) + 0.3f, z), new Vector3(0, rng.Next(360), 0), new Vector3(2f, 0.56f, 2f));
+        foreach (var (x, z) in new[] { (548f, 298f), (645f, 345f), (600f, 280f), (700f, 330f), (760f, 360f), (815f, 470f), (640f, 252f) })
+            Put(mist, KNP + "Fog_1.prefab", new Vector3(x, 20.1f, z), new Vector3(0, rng.Next(360), 0), new Vector3(2.5f, 0.56f, 2.5f));
+        foreach (var (x, y, z) in new[] { (290f, 22.85f, 371f), (348f, 22.25f, 339f), (430f, 21.4f, 303f), (468f, 20.9f, 289f), (668f, 20.2f, 362f), (796f, 19.9f, 541f), (192f, 50.4f, 640f), (386f, 44.4f, 806f) })
+            Put(mist, KNP + "Fog_1.prefab", new Vector3(x, y, z), new Vector3(0, rng.Next(360), 0), new Vector3(1.3f, 0.5f, 1.3f));
+        var swamp = Grp("Swamp Fog");
+        foreach (var (x, z) in new[] { (575f, 700f), (612f, 742f), (655f, 702f), (700f, 762f), (735f, 690f), (762f, 652f), (690f, 640f), (560f, 735f) })
+            Put(swamp, HLP + "Fog.prefab", new Vector3(x, 24.9f, z), new Vector3(270, rng.Next(360), 0), Vector3.one * 1.8f);
+        var clouds = Grp("Clouds");
+        foreach (var (x, y, z, yaw, kind, sc) in new[] { (666f, 160f, 1119f, 15f, 3, 2.6f), (1033f, 190f, 948f, 51f, 1, 2.8f), (1144f, 150f, 554f, 87f, 3, 2.4f), (1092f, 210f, 139f, 123f, 1, 3.0f), (727f, 140f, -59f, 159f, 3, 2.2f), (334f, 180f, -118f, 195f, 3, 2.8f), (-39f, 160f, 80f, 231f, 1, 2.6f), (-134f, 200f, 487f, 267f, 3, 3.2f), (-65f, 170f, 890f, 303f, 1, 2.6f), (283f, 140f, 1099f, 339f, 3, 2.4f) })
+            Put(clouds, KNP + "Cloud_" + kind + ".prefab", new Vector3(x, y, z), new Vector3(0, yaw, 0), Vector3.one * sc);
+        var birds = Grp("Birds");
+        foreach (var (x, y, z, yaw) in new[] { (190f, 175f, 300f, 75f), (840f, 165f, 260f, 285f), (320f, 190f, 840f, 150f), (800f, 180f, 820f, 230f) })
+            Put(birds, KNP + "Birds.prefab", new Vector3(x, y, z), new Vector3(0, yaw, 0), Vector3.one);
+        foreach (var (x, y, z, yaw) in new[] { (300f, 40f, 290f, 45f), (360f, 50f, 410f, 200f), (520f, 36f, 320f, 110f) })
+            Put(birds, HLP + "Birds.prefab", new Vector3(x, y, z), new Vector3(0, yaw, 0), Vector3.one * 2.75f);
+        var bugs = Grp("Butterflies");
+        foreach (var (x, z) in new[] { (322f, 252f), (352f, 270f), (300f, 300f), (390f, 262f), (450f, 255f), (505f, 248f), (280f, 340f), (305f, 330f), (540f, 242f) })
+            Put(bugs, BKP + "Butterflies.prefab", new Vector3(x, G(x, z) + 1.8f, z), Vector3.zero, Vector3.one);
+        var leaves = Grp("Leaf Fall");
+        foreach (var (x, z) in new[] { (330f, 300f), (296f, 280f), (300f, 352f), (420f, 280f), (360f, 400f), (560f, 320f), (548f, 236f) })
+            Put(leaves, GLP + "Leaffall_Green.prefab", new Vector3(x, G(x, z) + 7f, z), Vector3.zero, Vector3.one);
+        Put(leaves, GLP + "Leaffall_Yellow.prefab", new Vector3(318, G(318, 296) + 7f, 296), Vector3.zero, Vector3.one);
+        EditorSceneManager.MarkSceneDirty(scene);
+        return new { particleSystems = n };
+    }
+
+    // Shared Raygeas wind (Grasslands/Lakefell shaders, incl. the house ivy and the meadow birches), aligned with the other drivers.
+    public static object SharedWind()
+    {
+        var env = SceneManager.GetActiveScene().GetRootGameObjects().First(g => g.name == "Environment");
+        var wind = env.transform.Find("Wind");
+        var type = System.AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("Raygeas.WindSettings")).First(t => t != null);
+        var existing = wind.Find("Shared Wind Settings");
+        if (existing != null) Object.DestroyImmediate(existing.gameObject);
+        var go = new GameObject("Shared Wind Settings");
+        go.transform.SetParent(wind, false);
+        go.AddComponent(type);
+        foreach (Transform t in wind) t.SetPositionAndRotation(new Vector3(505, 40, 520), Quaternion.Euler(0, 30, 0));   // sun yaw + 90, as Komorebi does
+        EditorSceneManager.MarkSceneDirty(env.scene);
+        return wind.GetComponentsInChildren<MonoBehaviour>().Select(m => m.GetType().FullName).ToArray();
+    }
+}

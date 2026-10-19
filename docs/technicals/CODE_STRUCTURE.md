@@ -54,6 +54,8 @@ Assets/_Game/
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
+│  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment helpers, see ENVIRONMENT.md
+│  │  └─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in Meadow Home
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, Prefab (one per item: world + hand), CreateInstance
