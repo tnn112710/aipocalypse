@@ -85,7 +85,7 @@ Any scene (World, Proto_*, test arenas)
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo` / `DamageResult`, `DamageService`, `Health`), Events, Stats (`IStatProvider`), Interaction (`IInteractable`) |
 | AudioSystem | `AudioService` (root): plays BroAudio `SoundID`s 2D or at a point. Libraries in `Data/Audio/` |
-| EnvironmentSystem | Scene-level environment helpers with no gameplay rules: `BKFoliageGlobals` (BK plant shader globals). Environment content and its generator: [ENVIRONMENT.md](ENVIRONMENT.md) |
+| EnvironmentSystem | Scene-level environment helpers with no gameplay rules: `BKFoliageGlobals` (BK plant shader globals), `ASPTopLayerGlobals` (ANGRY MESH top-layer shader globals). Environment content and its generator: [ENVIRONMENT.md](ENVIRONMENT.md) |
 | UI | Standalone HUD canvas with its own `HudScope` (placed in the scene; player views follow `PlayerRegistry`), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`). Rules and how-tos: [UI.md](UI.md) |
 
 **Features** (`Assets/_Game/Features/`): *none yet.* Each system or feature gets a row here when it lands.

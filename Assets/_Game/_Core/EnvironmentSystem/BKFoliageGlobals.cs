@@ -12,7 +12,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         static readonly int MicroSpeedId = Shader.PropertyToID("MicroSpeed");
         static readonly int MicroFrequencyId = Shader.PropertyToID("MicroFrequency");
 
-        [SerializeField, Min(0f), Tooltip("Plants start fading at half this distance; keep it at 2x the terrain detail distance")] float _renderDistance = 160f;
+        [SerializeField, Min(0f), Tooltip("Plants start fading at half this distance; keep it at 2x the terrain detail distance")] float _renderDistance = 240f;
         [SerializeField, Range(0f, 1f)] float _microPower = 0.1f;
         [SerializeField, Min(0f)] float _microSpeed = 0.5f;
         [SerializeField, Min(0f)] float _microFrequency = 5f;

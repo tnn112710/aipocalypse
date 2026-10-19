@@ -12,7 +12,9 @@ Later rounds with the user changed the built scene further:
 
 - The Great Lake is rounder and bigger, with five dressed islands, and an outlet river leaves its north-east tip. The swamp and forest are bigger. The river widens into a flared mouth where it meets the lake.
 - Rivers and streams are wider and deeper, with noise in their width and depth. The ponds are 2.5–3 times bigger. The home pond copies the Komorebi demo pond's outline, with a central island.
-- As in the concept, grey rocky mountains enclose the valley right at its edge: a near range of massifs (ANGRY MESH granite domes south, behind the home and the meadow, and along the lake's south shore; Grasslands cliffs east and north; Komorebi stones west), with pines on their slopes and the snow peaks behind. The meadow's south edge moved north to about z 212 to bring the mountains 70–100 m from the house.
+- As in the concept, grey rocky mountains enclose the valley right at its edge: a near range of massifs (ANGRY MESH granite domes south of the meadow and along the lake's south shore; Grasslands cliffs east and north; Komorebi stones west), with pines on their slopes and the snow peaks behind. The home backs onto the west and south-west massifs.
+- The home base moved to the meadow's west end at (267, 282), turned 50° so the door, an open gate and the spawn face the bridge (92 m away); the 34 × 27 m yard sits on a rise (pad 29.5 m) with a few trees and bushes around it. The meadow runs south again to the foot rocks, the tree band along its old south edge is gone, and knolls and hollows make it roll; the old yard site is a meadow hollow.
+- A beauty pass: a lower, warmer sun, sun shadows to 150 m and ambient occlusion; a taller, two-tone lawn with knee-high clumps, flower drifts and lupine-like spikes; a palette per kind of water with reflections, reed beds on the lake shore and a wider waterfall with spray; green-tinted highland firs; grass caps and planted feet on the grey rock walls; seed fluff, sunbeam motes and fireflies; frayed trails with tufts and pebbles.
 
 ## Revision 13
 

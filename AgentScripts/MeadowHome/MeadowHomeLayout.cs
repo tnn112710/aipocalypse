@@ -45,12 +45,12 @@ public static class MeadowHomeLayout
         V(140,600), V(230,590), V(300,600), V(360,615), V(420,635), V(470,655), V(505,690), V(515,750), V(500,800), V(520,870), V(140,870),
     }, 4);
 
-    // A round meadow from the home pond along the river to the lake; like the concept, the rocky mountains rise just past
-    // its south edge, 70-100 m behind the home.
+    // A round meadow from the home pond along the river to the lake, south to the foot of the near range (about 8 m inside
+    // the playable edge); the home sits on a rise at its west end.
     public static readonly Vector2[] MeadowArea = SmoothClosed(new[]
     {
-        V(244,372), V(238,330), V(238,275), V(246,240), V(268,222), V(310,214), V(370,212), V(430,214), V(480,212), V(506,222),
-        V(512,240), V(500,256), V(470,272), V(430,286), V(390,302), V(350,320), V(310,338), V(275,358),
+        V(244,372), V(238,330), V(238,275), V(239,242), V(243,224), V(254,212), V(272,206), V(310,202), V(370,200), V(430,202),
+        V(470,201), V(492,199), V(505,214), V(512,240), V(500,256), V(470,272), V(430,286), V(390,302), V(350,320), V(310,338), V(275,358),
     }, 4);
 
     public static readonly Vector2[] SwampArea = SmoothClosed(new[]
@@ -60,10 +60,68 @@ public static class MeadowHomeLayout
     }, 4);
 
     public const float SwampWater = 24.5f, SwampGround = 24.85f;
-    public static readonly Vector2 HomeBase = V(326, 274);
-    public const float HomeBaseHeight = 28.5f;
+    public static readonly Vector2 HomeBase = V(267, 282);
+    public const float HomeBaseHeight = 29.5f;
     public static readonly Vector2 Bridge = V(312, 362);
     public static readonly Vector2 Viewpoint = V(526, 196);
+
+    // Home yard frame: local +Z (house door, gate, spawn view) faces bearing HomeYaw, toward the meadow and the bridge.
+    public const float HomeYaw = 50f;
+    public static readonly Vector2 FenceHalf = V(17f, 13.5f);         // half extents along local X, Z (the drawn 34 x 27 m yard)
+    public const float FencePanel = 2.25f;                            // Lakefell Fence_1-3 length
+    public static readonly int GateSlot = BridgeGateSlot();           // panel slot of the +Z fence, counted from its +X corner
+    public static readonly float GateLocalX = FenceHalf.x - FenceSeg(2 * FenceHalf.x) * (GateSlot + 0.5f);
+    public static readonly Vector2 HomeGate = Yard(GateLocalX, FenceHalf.y);
+    public static readonly Vector2 HomeSpawn = HomeGate - 5f * (Bridge - HomeGate).normalized;
+
+    // Unity yaw: local +X -> (cos, -sin), local +Z -> (sin, cos).
+    public static Vector2 Rot(Vector2 v, float yawDeg)
+    {
+        float a = yawDeg * Mathf.Deg2Rad;
+        return new Vector2(v.x * Mathf.Cos(a) + v.y * Mathf.Sin(a), -v.x * Mathf.Sin(a) + v.y * Mathf.Cos(a));
+    }
+    public static Vector2 Yard(float x, float z) => HomeBase + Rot(new Vector2(x, z), HomeYaw);
+    public static Vector2 YardLocal(Vector2 p) => Rot(p - HomeBase, -HomeYaw);
+    public static float FenceSeg(float length) => length / Mathf.Max(1, Mathf.RoundToInt(length / FencePanel));
+
+    // Signed distance to the fence rectangle (negative inside).
+    public static float FenceDistance(Vector2 p)
+    {
+        var l = YardLocal(p);
+        float dx = Mathf.Abs(l.x) - FenceHalf.x, dz = Mathf.Abs(l.y) - FenceHalf.y;
+        return dx > 0 || dz > 0 ? new Vector2(Mathf.Max(dx, 0), Mathf.Max(dz, 0)).magnitude : Mathf.Max(dx, dz);
+    }
+
+    // The front-fence slot that the gate->bridge line crosses, kept off the corner slots.
+    static int BridgeGateSlot()
+    {
+        var b = YardLocal(Bridge);
+        int n = Mathf.RoundToInt(2 * FenceHalf.x / FencePanel);
+        return Mathf.Clamp(Mathf.FloorToInt((FenceHalf.x - FenceHalf.y * b.x / b.y) / FenceSeg(2 * FenceHalf.x)), 1, n - 2);
+    }
+
+    const string HomeGL = RaygeasEnv + "Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
+    const string HomeKN = RaygeasEnv + "Komorebi Nature/Assets/Prefabs/Nature/";
+    // Trees around the home base in yard-local metres (Yard(x, z)); the bridge, east and waterfall views stay open
+    public static readonly (Vector2 at, string prefab, float scale, float yaw, float sink)[] HomeTrees =
+    {
+        (V(5, -19), HomeGL + "Broadleaf_Large_1.prefab", 0.85f, 250f, 0.2f),    // H1 behind the house, seen from the bridge
+        (V(-9, -21), HomeGL + "Broadleaf_Medium_2.prefab", 0.95f, 80f, 0.2f),   // H2
+        (V(-22, -6), HomeGL + "Birch_Medium_1.prefab", 0.9f, 210f, 0.2f),       // H3 autumn birch, west
+        (V(23, -1), HomeGL + "Broadleaf_Medium_2.prefab", 1.0f, 300f, 0.2f),    // H4 shade tree, east gable side
+        (V(20, 12), HomeGL + "Broadleaf_Small_2.prefab", 1.0f, 160f, 0.2f),     // H5 right edge of the east view
+    };
+    public static readonly (Vector2 at, string prefab, float scale, float yaw)[] HomeBushes =
+    {
+        (V(-18.6f, -15.6f), HomeKN + "Bush_2_Flowers.prefab", 1.0f, 20f), (V(-16.2f, -16.6f), HomeKN + "Bush_1.prefab", 0.9f, 140f),
+        (V(18.6f, -15.4f), HomeGL + "Bush_Medium.prefab", 1.0f, 70f), (V(16.4f, -16.4f), HomeKN + "Bush_3_Flowers.prefab", 0.85f, 250f),
+        (V(19.0f, 15.6f), HomeKN + "Bush_1_Flowers.prefab", 1.0f, 300f), (V(-24.5f, -1.5f), HomeGL + "Bush_Medium.prefab", 0.9f, 190f),
+    };
+    // spike drifts across the sight lines from the spawn: (bearing from HomeSpawn, distance, half length, half width); long axis = bearing + 90
+    public static readonly (float brg, float dist, float len, float wid)[] SpikeDrifts =
+    {
+        (0f, 26f, 10f, 4f), (55f, 27f, 9f, 4f), (118f, 28f, 10f, 4.5f), (292f, 27f, 12f, 4f), (168f, 30f, 10f, 4f),
+    };
 
     public class Basin
     {
@@ -193,7 +251,7 @@ public static class MeadowHomeLayout
     static readonly Vector4[] Anchors =
     {
         // meadow
-        A(262,300,26,40), A(300,330,25,35), A(326,274,28.5f,35), A(370,260,28,40), A(420,250,29,45), A(470,250,27.5f,40),
+        A(267,282,26.5f,55), A(302,346,23.5f,18), A(370,260,28,40), A(420,250,29,45), A(470,250,27.5f,40),
         A(500,262,25.5f,35), A(380,300,25.5f,35), A(440,285,25,35), A(330,245,29.5f,30),
         // meadow south, rising gently to the foothills
         A(280,200,27,40), A(350,190,27.5f,45), A(430,185,27,45), A(500,200,25.5f,35), A(300,135,30,35), A(390,125,30.5f,40),
@@ -227,8 +285,21 @@ public static class MeadowHomeLayout
     static readonly Vector4[] Knolls =
     {
         A(410,470,9,32), A(642,526,8,26), A(669,462,7,24), A(519,443,7,28), A(745,612,7,26), A(335,520,6,28), A(590,560,7,30),
-        A(470,420,6,30), A(720,500,5,25), A(300,440,5,30), A(420,262,2.5f,30), A(470,255,2,25), A(280,300,2,25), A(522,200,3,16),
+        A(470,420,6,30), A(720,500,5,25), A(300,440,5,30), A(522,200,3,16),
         A(856,805,5,24), A(450,175,2,30),
+    };
+
+    // Rolling meadow (x, z, height, radius): hills (+) and hollows (-) added to the field; see HeightAt.
+    static readonly Vector4[] MeadowHills =
+    {
+        A(258,272,3,50),       // Home Rise, behind the house: the yard sits on its front shoulder, the ground falls away past the gate
+        A(298,226,3.5f,30),    // South Knoll
+        A(350,270,-2.5f,30),   // Meadow Hollow (the old yard)
+        A(384,228,5,36),       // Middle Knoll
+        A(420,262,-2.5f,28),   // Middle Hollow
+        A(442,214,3,26),       // East Knoll: hides the viewpoint until the trail rounds it
+        A(484,226,-2,24),      // Lakeside Hollow
+        A(382,286,-1.5f,22),   // River Hollow: opens the lake band from the yard
     };
 
     // Islands (x, z, top above the water, radius) in the lake and the home pond; the water level comes from the basin
@@ -513,8 +584,8 @@ public static class MeadowHomeLayout
 
         // home pad and bridge
         float padMin = float.MaxValue, padMax = 0;
-        for (float z = HomeBase.y - 17; z <= HomeBase.y + 17; z += 1) for (float x = HomeBase.x - 17; x <= HomeBase.x + 17; x += 1) { float h = H(x, z); padMin = Mathf.Min(padMin, h); padMax = Mathf.Max(padMax, h); }
-        report["homePad"] = new { center = Round(H(HomeBase.x, HomeBase.y)), min34 = Round(padMin), max34 = Round(padMax), distanceToBridge = Round(Vector2.Distance(HomeBase, Bridge)) };
+        for (float lz = -FenceHalf.y; lz <= FenceHalf.y; lz += 1) for (float lx = -FenceHalf.x; lx <= FenceHalf.x; lx += 1) { var q = Yard(lx, lz); float h = H(q.x, q.y); padMin = Mathf.Min(padMin, h); padMax = Mathf.Max(padMax, h); }
+        report["homePad"] = new { center = Round(H(HomeBase.x, HomeBase.y)), minYard = Round(padMin), maxYard = Round(padMax), distanceToBridge = Round(Vector2.Distance(HomeBase, Bridge)) };
         report["bridge"] = new { riverSurface = 22.2f, banks = Enumerable.Range(-24, 13).Select(o => $"{o * 2}m:{H(Bridge.x + o * 2 * 0.55f, Bridge.y + o * 2 * 0.83f):0.0}").ToArray() };
 
         // lightweight CSV height grid (5 m) for offline review
@@ -631,6 +702,14 @@ public static class MeadowHomeLayout
             float dx = x - k.x, dz = z - k.y;
             h += k.z * Mathf.Exp(-(dx * dx + dz * dz) / (k.w * k.w));
         }
+        float hills = 0;
+        foreach (var k in MeadowHills)
+        {
+            float dx = x - k.x, dz = z - k.y;
+            hills += k.z * Mathf.Exp(-(dx * dx + dz * dz) / (k.w * k.w));
+        }
+        // a raised field near water lets the bank caps draw long straight slopes: hills fade out 25-55 m from water, hollows 6-25 m
+        if (Mathf.Abs(hills) > 0.01f) h += hills * (hills > 0 ? SmoothStep(25, 55, WaterEdgeDistance(p)) : SmoothStep(6, 25, WaterEdgeDistance(p)));
 
         // rolling ground: gentle fbm everywhere, ridged in the highlands
         float wx = x + 40f * Fbm(x / 260f + 11.3f, z / 260f - 4.1f, 3), wz = z + 40f * Fbm(x / 260f - 7.7f, z / 260f + 2.9f, 3);
@@ -971,6 +1050,35 @@ public static class MeadowHomeLayout
     const string BKH = Env + "BK/PureNature_Meadows/Prefabs/Mountains/";
     const string BKF = Env + "BK/PureNature_Mountains/Prefabs/Mountains/";
     const string BoundaryFolder = DataFolder + "/Boundary";
+    const string KNM = Env + "Raygeas/Komorebi Nature/Assets/Materials/";
+
+    // Near-range Komorebi stones that face the home and the meadow; the waterfall flank (W-A32) stays bare.
+    static readonly HashSet<string> GrassCapped = new() { "W-A33", "W-A35" };
+
+    // Komorebi Rocks/*_NoGrass prefabs only override materials of Rocks Grass/*: swap each LOD's material for its grass-topped twin.
+    static void KomorebiGrassTop(GameObject go)
+    {
+        foreach (var rend in go.GetComponentsInChildren<Renderer>())
+            rend.sharedMaterials = rend.sharedMaterials.Select(m => m == null || !m.name.Contains("_NoGrass") ? m
+                : AssetDatabase.LoadAssetAtPath<Material>(KNM + "Rocks Grass/" + m.name.Replace("_NoGrass", "") + ".mat") ?? m).ToArray();
+    }
+
+    public const string RockFolder = DataFolder + "/Rocks";
+    public static string HighlandGrassRock(int i) => RockFolder + "/MH_HL_Rock_" + i + "_Grass.prefab";
+
+    // HIGHLANDS Rock_1/2(Grass) with the Grasslands lawn texture as coverage: the pack's own coverage grass is teal.
+    public static void MakeHighlandGrassRocks()
+    {
+        const string hl = Env + "Raygeas/HIGHLANDS - Stylized Environment/Assets/";
+        var vendor = AssetDatabase.LoadAssetAtPath<Material>(hl + "Materials/Forest/Stones_Rocks(Grass).mat") ?? throw new ArgumentException("Missing Stones_Rocks(Grass).mat");
+        var lawn = AssetDatabase.LoadAssetAtPath<Texture2D>(Env + "Raygeas/Grasslands - Stylized Nature/Assets/Textures/Terrain/Grass_AlbedoSmoothness.png");
+        var copy = MaterialCopy(vendor, RockFolder + "/MH_HL_Stones_Rocks_Grass.mat", m => { m.SetTexture("_CoverageAlbedo", lawn); m.SetColor("_CoverageColor", new Color(0.95f, 0.95f, 0.95f, 0)); });
+        for (int i = 1; i <= 2; i++) MaterialVariant(hl + "Prefabs/Forest/Rock_" + i + "(Grass).prefab", HighlandGrassRock(i), new Dictionary<Material, Material> { { vendor, copy } });
+    }
+
+    const string GLV = Env + "Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
+    static readonly string[] FeetTrees = { KNR + "Nature/PineTree_1.prefab", KNR + "Nature/PineTree_2.prefab", GLV + "Broadleaf_Small_2.prefab", GLV + "Birch_Small_1.prefab" };
+    static readonly string[] FeetBushes = { GLV + "Bush_Large.prefab", GLV + "Bush_Medium.prefab", KNR + "Nature/Bush_1.prefab", KNR + "Nature/Bush_2.prefab", KNR + "Nature/Bush_3.prefab" };
 
     public enum Side { South, East, North, West }
 
@@ -987,9 +1095,9 @@ public static class MeadowHomeLayout
 
     static readonly Rock[] HighlandRocks =
     {
-        // bare stone only: the pack's grass-topped variants render teal against the meadow (HIGHLANDS' own grass palette)
-        new(HLR + "Rock_1.prefab", 2.4f, 2.9f), new(HLR + "Rock_2.prefab", 2.1f, 3.2f), new(HLR + "Rock_1.prefab", 2.4f, 2.9f),
-        new(HLR + "Rock_1.prefab", 2.4f, 2.9f), new(HLR + "Rock_2.prefab", 2.1f, 3.2f),
+        // most grass-topped: first-party variants with a lawn-textured coverage layer (the pack's own grass renders teal)
+        new(HighlandGrassRock(1), 2.4f, 2.9f), new(HLR + "Rock_2.prefab", 2.1f, 3.2f), new(HighlandGrassRock(1), 2.4f, 2.9f),
+        new(HLR + "Rock_1.prefab", 2.4f, 2.9f), new(HighlandGrassRock(2), 2.1f, 3.2f),
     };
     static readonly Rock[] KomorebiCliffs =
     {
@@ -1161,8 +1269,7 @@ public static class MeadowHomeLayout
         return true;
     }
 
-    // Grey first-party copies of the ANGRY MESH materials: the vendor tint is beige (rocks) or mauve (mountains), and the
-    // grass top layer needs the pack's global shader values, so it is switched off.
+    // First-party copies of the ANGRY MESH materials (vendor tint beige / mauve): rocks keep a grass top layer, mountains none.
     static Material AngryMeshMaterial(Material vendor, bool mountain)
     {
         EnsureFolder(BoundaryFolder);
@@ -1170,10 +1277,20 @@ public static class MeadowHomeLayout
         var m = AssetDatabase.LoadAssetAtPath<Material>(dest);
         if (m == null) { m = new Material(vendor) { name = Path.GetFileNameWithoutExtension(dest) }; AssetDatabase.CreateAsset(m, dest); }
         else m.CopyPropertiesFromMaterial(vendor);
-        if (mountain) { m.SetFloat("_BaseAlbedoDesaturation", 0.7f); m.SetFloat("_BaseAlbedoBrightness", 1.3f); }
-        else { m.SetColor("_BaseAlbedoColor", new Color(0.47f, 0.49f, 0.52f, 0)); m.SetFloat("_BaseAlbedoBrightness", 1.1f); }
-        m.SetFloat("_EnableTopLayerBlend", 0f);
-        foreach (var kw in m.shaderKeywords.Where(k => k.Contains("TOPLAYER")).ToArray()) m.DisableKeyword(kw);
+        if (mountain)
+        {
+            m.SetFloat("_BaseAlbedoDesaturation", 0.7f); m.SetFloat("_BaseAlbedoBrightness", 1.3f);
+            m.SetFloat("_EnableTopLayerBlend", 0f);
+            foreach (var kw in m.shaderKeywords.Where(k => k.Contains("TOPLAYER")).ToArray()) m.DisableKeyword(kw);
+        }
+        else
+        {
+            m.SetColor("_BaseAlbedoColor", new Color(0.51f, 0.51f, 0.48f, 0)); m.SetFloat("_BaseAlbedoBrightness", 1.1f);
+            // grass caps on faces under ~50 degrees (the pack's meadow grass is close to our lawn); the top layer reads the
+            // ASPTopLayerGlobals values. The domes are scaled x14-25 and the layer is mesh-UV mapped, hence the raised tiling.
+            m.SetFloat("_EnableTopLayerBlend", 1f); m.EnableKeyword("_ENABLETOPLAYERBLEND_ON");
+            m.SetFloat("_TopLayerUVScale", 20f); m.SetFloat("_TopLayerOffset", 0.3f);
+        }
         EditorUtility.SetDirty(m);
         AssetDatabase.SaveAssetIfDirty(m);
         return m;
@@ -1182,7 +1299,7 @@ public static class MeadowHomeLayout
     // Gameplay spots the boundary rocks must leave clear: (centre, radius).
     static readonly (Vector2 c, float r)[] KeepOut =
     {
-        (HomeBase, 38f),              // 30 x 30 fence + margin
+        (HomeBase, 38f),              // rotated 34 x 27 fence (corner 21.7 m) + margin
         (Viewpoint, 14f),
         (new Vector2(247, 420), 50f), // home pond east of the cliff line
         (new Vector2(190, 435), 26f), // waterfall lip and its source pool
@@ -1262,6 +1379,8 @@ public static class MeadowHomeLayout
         root.SetParent(env.transform, false);
         var rng = new System.Random(seed);
         float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+        var topLayerGlobals = Type.GetType("Aipocalypse.Core.EnvironmentSystem.ASPTopLayerGlobals, Aipocalypse.Core") ?? throw new InvalidOperationException("ASPTopLayerGlobals not compiled");
+        MakeHighlandGrassRocks();
         float Ground(float x, float z) => terrain.SampleHeight(new Vector3(Mathf.Clamp(x, 0, Size), 0, Mathf.Clamp(z, 0, Size)));
         float GroundMin(float x, float z, float r)
         {
@@ -1331,6 +1450,7 @@ public static class MeadowHomeLayout
                     var rot = Quaternion.Euler(R(-spec.tilt, spec.tilt), R(0, 360), R(-spec.tilt, spec.tilt));
                     var go = Put(sideRoots[side], rock.path, new Vector3(c.x, ground + top - rock.top * sy, c.y), rot, new Vector3(sc * R(0.9f, 1.1f), sy, sc * R(0.9f, 1.1f)));
                     GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ContributeGI);
+                    if (Vector2.Distance(c, HomeBase) < 100f) KomorebiGrassTop(go);   // the capped rocks behind the home show only their tops
                     rockCount++;
                 }
                 s += along + gap;
@@ -1375,6 +1495,8 @@ public static class MeadowHomeLayout
         // pushed out (then shrunk) until no visible part comes within 6 m (back row 40 m) of the playable edge, and kept
         // clear of the outlet river and the waterfall pool. Pines grow on the slopes that face the valley.
         var near = Child("Near Range");
+        var feet = Child("Rock Feet");                  // not under Near Range: GenerateClearMasks would read these plants as rocks
+        var feetRng = new System.Random(seed + 7919);   // own sequence: the near range, peaks and haze keep their layout
         var nearPines = new GameObject("Pines").transform; nearPines.SetParent(near, false);
         var outletLine = Lines.First(l => l.name == "Outlet");
         var nearMats = new Dictionary<Material, Material>();
@@ -1422,7 +1544,9 @@ public static class MeadowHomeLayout
             if (go == null) { nearSkipped++; continue; }
             if (path == lastPrefab) go.transform.Rotate(0, 137f, 0);   // never the same face twice in a row
             lastPrefab = path;
-            // first-party grey copies for the ANGRY MESH meshes (vendor tint is beige / mauve; no grass top layer)
+            // by material, not prefab path: the mirror (uses) and 137-degree turn (lastPrefab) rules are keyed by path
+            if (GrassCapped.Contains(a.id)) KomorebiGrassTop(go);
+            // first-party copies for the ANGRY MESH meshes (vendor tint is beige / mauve; grass caps on the rocks)
             foreach (var rend in go.GetComponentsInChildren<Renderer>())
             {
                 rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -1458,6 +1582,32 @@ public static class MeadowHomeLayout
                         foreach (var c in pine.GetComponentsInChildren<Collider>()) UnityEngine.Object.DestroyImmediate(c);
                         made++; pineCount++;
                     }
+                }
+            }
+            // young trees and bushes where a massif facing the meadow meets the ground on its valley side
+            if (!back && SignedDistance(anchor, MeadowArea) < 160f)
+            {
+                var massif = go.GetComponentsInChildren<Collider>();
+                var toValley = (mapCentre - anchor).normalized;
+                float valleyAng = Mathf.Atan2(toValley.y, toValley.x);
+                for (int k = 0; k < 26; k++)
+                {
+                    float ang = valleyAng + ((float)feetRng.NextDouble() * 2f - 1f) * 1.3f;
+                    var dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+                    float out0 = 0.25f;
+                    for (; out0 < 1.8f; out0 += 0.03f)   // walk out from the summit until the ray misses the massif: its foot on this bearing
+                    {
+                        var q0 = anchor + dir * (out0 * a.r * shrink);
+                        if (!Physics.Raycast(new Vector3(q0.x, 400, q0.y), Vector3.down, out var h0, 600f) || !massif.Contains(h0.collider)) break;
+                    }
+                    var qf = anchor + dir * (out0 * a.r * shrink + (float)feetRng.NextDouble() * 7f);
+                    if (SignedDistance(qf, poly) < 4f) continue;
+                    bool tree = feetRng.NextDouble() < 0.4;
+                    string plantPath = tree ? FeetTrees[feetRng.Next(FeetTrees.Length)] : FeetBushes[feetRng.Next(FeetBushes.Length)];
+                    float ps = tree ? 0.55f + 0.35f * (float)feetRng.NextDouble() : 0.9f + 0.4f * (float)feetRng.NextDouble();
+                    var plant = Put(feet, plantPath, new Vector3(qf.x, Ground(qf.x, qf.y) - 0.15f, qf.y), Quaternion.Euler(0, (float)feetRng.NextDouble() * 360f, 0), Vector3.one * ps);
+                    foreach (var rend in plant.GetComponentsInChildren<Renderer>()) rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    foreach (var col in plant.GetComponentsInChildren<Collider>()) UnityEngine.Object.DestroyImmediate(col);
                 }
             }
             foreach (var c in go.GetComponentsInChildren<Collider>()) UnityEngine.Object.DestroyImmediate(c);   // beyond the walls; AM mountains carry 14k-triangle mesh colliders
@@ -1551,6 +1701,8 @@ public static class MeadowHomeLayout
             GameObjectUtility.SetStaticEditorFlags(w, StaticEditorFlags.BatchingStatic);
         }
 
+        // the ANGRY MESH rock copies' grass top layer multiplies by the pack's shader globals
+        Child("ASP Top Layer Globals").gameObject.AddComponent(topLayerGlobals);
         EditorSceneManager.MarkSceneDirty(scene);
         return new { rocks = rockCount, nearRange = nearCount, nearSkipped, nearPines = pineCount, mountains = mountainCount, haze = hazeCount, walls = poly.Length, perimeter };
     }
@@ -1619,7 +1771,7 @@ public static class MeadowHomeLayout
         Vector3 Eye(float x, float z) => new Vector3(x, Mathf.Max(terrain.SampleHeight(new Vector3(x, 0, z)), WaterSurfaceAt(new Vector2(x, z)).surface) + 1.7f, z);
         var views = new (string name, Vector3 p)[]
         {
-            ("home", new Vector3(326, 30.2f, 274)), ("meadow", new Vector3(450, 27.1f, 262)), ("viewpoint", Eye(Viewpoint.x, Viewpoint.y)),
+            ("home", new Vector3(HomeSpawn.x, HomeBaseHeight + 1.7f, HomeSpawn.y)), ("meadow", new Vector3(450, 27.1f, 262)), ("viewpoint", Eye(Viewpoint.x, Viewpoint.y)),
             ("bridge", new Vector3(312, 24.8f, 372)), ("waterfall pond", new Vector3(232, 25.0f, 430)), ("west pond", new Vector3(200, 50.5f, 640)),
             ("highland vista", new Vector3(250, 69.8f, 760)), ("north pond", new Vector3(386, 43.3f, 806)), ("swamp", Eye(690, 790)),
             ("lake beach", Eye(760, 90)), ("forest", new Vector3(500, 35.5f, 500)), ("east beach", Eye(953, 400)), ("outlet", Eye(862, 780)),
@@ -1780,17 +1932,18 @@ public static class MeadowHomeLayout
         };
     }
 
-    // Copies of SW3 materials (vendor .mat files stay untouched), tinted toward Komorebi's turquoise water.
+    // Copies of SW3 materials (vendor .mat files stay untouched), one palette per kind of water: lake and highland ponds
+    // (Still), rivers and streams, the home pond (Komorebi's look) and the swamp.
     public static object BuildWaterMaterials()
     {
         EnsureFolder(WaterFolder);
         var still = CopyMaterial(SW3 + "Materials/StylizedWater3_Smooth.mat", WaterFolder + "/MH_Water_Still.mat");
-        still.SetColor("_BaseColor", new Color(0.00f, 0.41f, 0.50f, 1.00f));      // Komorebi Water_1 deep colour
-        still.SetColor("_ShallowColor", new Color(0.10f, 0.78f, 0.75f, 0.60f));
-        still.SetColor("_HorizonColor", new Color(0.62f, 0.96f, 0.95f, 0.12f));
-        still.SetFloat("_HorizonDistance", 12f);
-        still.SetFloat("_DepthVertical", 7f);
-        still.SetFloat("_DepthHorizontal", 0.5f);
+        still.SetColor("_BaseColor", new Color(0.02f, 0.26f, 0.32f, 1.00f));
+        still.SetColor("_ShallowColor", new Color(0.30f, 0.66f, 0.58f, 0.30f));
+        still.SetColor("_HorizonColor", new Color(0.58f, 0.78f, 0.88f, 0.15f));   // the scene fog colour
+        still.SetFloat("_HorizonDistance", 10f);
+        still.SetFloat("_DepthVertical", 4f);
+        still.SetFloat("_DepthHorizontal", 0.35f);
         still.SetFloat("_EdgeFade", 15f);
         still.SetFloat("_WaveTint", 0f);
         WaterToggle(still, "_IntersectionFoamOn", "_INTERSECTION_FOAM", true);
@@ -1811,12 +1964,21 @@ public static class MeadowHomeLayout
         WaterToggle(still, "_RefractionOn", "_REFRACTION", true);
         still.SetFloat("_RefractionStrength", 0.15f);
         still.SetFloat("_ShadingMode", 1f); CoreUtils.SetKeyword(still, "_ADVANCED_SHADING", true);
-        still.SetFloat("_VertexColorTransparency", 1f);   // the flat meshes feather out under river ribbons (green channel)
+        still.SetFloat("_VertexColorTransparency", 1f);
+        // the render feature allows SSR but the vendor Smooth material has it off: the water only reflected the sky cubemap
+        still.SetFloat("_ScreenSpaceReflectionsEnabled", 1f);
+        still.SetFloat("_ReflectionStrength", 1f);
+        still.SetFloat("_ReflectionFresnel", 4f);
+        still.SetFloat("_ReflectionDistortion", 0.12f);
+        still.SetFloat("_CausticsBrightness", 1f);
+        still.SetFloat("_SparkleIntensity", 3f);   // the flat meshes feather out under river ribbons (green channel)
 
         var river = CopyMaterial(SW3 + "Materials/RiverModeler/StylizedWater3_SplineRiver (Default).mat", WaterFolder + "/MH_Water_River.mat");
-        // shaded like the still water (colours, horizon, no waves, refraction, reflections, translucency), so the ribbon
-        // fading out over the lake shows no seam; only the flow normals, speeds and river foam stay river-specific
-        foreach (var c in new[] { "_BaseColor", "_ShallowColor", "_HorizonColor" }) river.SetColor(c, still.GetColor(c));
+        // shaded like the still water (horizon, no waves, refraction, reflections, translucency) with its own clearer
+        // palette; where a ribbon fades out over a lake or pond its end fade blends the two colours
+        river.SetColor("_BaseColor", new Color(0.06f, 0.36f, 0.38f, 1.00f));
+        river.SetColor("_ShallowColor", new Color(0.45f, 0.80f, 0.72f, 0.18f));
+        river.SetColor("_HorizonColor", new Color(0.60f, 0.82f, 0.88f, 0.10f));
         foreach (var f in new[] { "_HorizonDistance", "_DepthVertical", "_DepthHorizontal", "_RefractionStrength", "_ReflectionFresnel", "_ReflectionDistortion",
             "_ScreenSpaceReflectionsEnabled", "_SunReflectionSize", "_SunReflectionDistortion", "_ShadowStrength", "_EdgeFade" })
             if (river.HasProperty(f) && still.HasProperty(f)) river.SetFloat(f, still.GetFloat(f));
@@ -1841,17 +2003,45 @@ public static class MeadowHomeLayout
         river.SetFloat("_SlopeSpeed", 1.5f);
         river.SetFloat("_FoamSpeed", 0.7f);
         river.SetFloat("_NormalSpeed", 0.8f);
+        river.SetFloat("_DepthVertical", 3f);
+        river.SetFloat("_DepthHorizontal", 0.3f);
+        river.SetFloat("_ReflectionFresnel", 5f);
+        river.SetFloat("_ReflectionDistortion", 0.25f);
         still.SetFloat("_NormalSpeed", 1.0f);
         still.SetFloat("_NormalSubSpeed", -0.5f);
 
-        // the home pond after Komorebi's Water_1: warm cream shallows over the sand, the same teal in the deep
+        // the home pond keeps Komorebi's Water_1 look (warm cream shallows, teal deep) with the lake's reflections
         var pond = CopyMaterial(SW3 + "Materials/StylizedWater3_Smooth.mat", WaterFolder + "/MH_Water_Pond.mat");
         pond.CopyPropertiesFromMaterial(still);
         pond.SetColor("_ShallowColor", new Color(0.98f, 0.93f, 0.84f, 0.45f));
         pond.SetFloat("_DepthVertical", 5.7f);
+        pond.SetColor("_BaseColor", new Color(0.00f, 0.41f, 0.50f, 1.00f));
+        pond.SetColor("_HorizonColor", new Color(0.62f, 0.96f, 0.95f, 0.12f));
+        pond.SetFloat("_HorizonDistance", 12f);
+        pond.SetFloat("_DepthHorizontal", 0.5f);
+        pond.SetFloat("_CausticsBrightness", 2f);
 
-        foreach (var m in new[] { still, river, pond }) { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
-        return new[] { AssetDatabase.GetAssetPath(still), AssetDatabase.GetAssetPath(river), AssetDatabase.GetAssetPath(pond) };
+        // swamp: murky tea over the mud, nearly opaque from 1 m, a dark mirror at grazing angles, no caustics
+        var swamp = CopyMaterial(SW3 + "Materials/StylizedWater3_Smooth.mat", WaterFolder + "/MH_Water_Swamp.mat");
+        swamp.CopyPropertiesFromMaterial(still);
+        swamp.SetColor("_BaseColor", new Color(0.13f, 0.17f, 0.07f, 1.00f));
+        swamp.SetColor("_ShallowColor", new Color(0.40f, 0.38f, 0.17f, 0.80f));
+        swamp.SetColor("_HorizonColor", new Color(0.50f, 0.58f, 0.45f, 0.10f));
+        swamp.SetColor("_IntersectionColor", new Color(0.55f, 0.55f, 0.42f, 0.35f));
+        swamp.SetFloat("_DepthVertical", 12f);
+        swamp.SetFloat("_DepthHorizontal", 2.5f);
+        swamp.SetFloat("_EdgeFade", 20f);
+        swamp.SetFloat("_ColorAbsorption", 0.1f);
+        swamp.SetFloat("_RefractionStrength", 0.05f);
+        swamp.SetFloat("_NormalStrength", 0.12f);
+        swamp.SetFloat("_NormalSpeed", 0.4f);
+        swamp.SetFloat("_ReflectionFresnel", 3f);
+        swamp.SetFloat("_ReflectionDistortion", 0.08f);
+        swamp.SetFloat("_SparkleIntensity", 0.5f);
+        WaterToggle(swamp, "_CausticsOn", "_CAUSTICS", false);
+
+        foreach (var m in new[] { still, river, pond, swamp }) { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
+        return new[] { still, river, pond, swamp }.Select(m => AssetDatabase.GetAssetPath(m)).ToArray();
     }
 
     static void WaterToggle(Material m, string property, string keyword, bool on)
@@ -1892,6 +2082,7 @@ public static class MeadowHomeLayout
         var terrain = Terrain.activeTerrain;
         var mat = AssetDatabase.LoadAssetAtPath<Material>(WaterFolder + "/MH_Water_Still.mat") ?? throw new InvalidOperationException("Run BuildWaterMaterials first.");
         var pondMat = AssetDatabase.LoadAssetAtPath<Material>(WaterFolder + "/MH_Water_Pond.mat");
+        var swampMat = AssetDatabase.LoadAssetAtPath<Material>(WaterFolder + "/MH_Water_Swamp.mat");
         var group = WaterGroup("Still Water");
         var bodies = Basins.Select(b => (b.name, b.shore, b.level)).Concat(new[] { (name: "Swamp", shore: SwampArea, level: SwampWater) });
         var report = new List<string>();
@@ -1920,7 +2111,8 @@ public static class MeadowHomeLayout
             }
             var mesh = FlatWaterMesh("MH_" + b.name, b.shore, 8f, 2f, Wet, Feather);
             mesh = SaveMesh(mesh);
-            var wo = WaterObject.New(b.name == "WaterfallPond" && pondMat != null ? pondMat : mat, mesh);
+            var bodyMat = b.name == "WaterfallPond" && pondMat != null ? pondMat : b.name == "Swamp" && swampMat != null ? swampMat : mat;
+            var wo = WaterObject.New(bodyMat, mesh);
             Undo.RegisterCreatedObjectUndo(wo.gameObject, "Water");
             wo.name = b.name;
             wo.transform.SetParent(group, false);
@@ -1933,6 +2125,37 @@ public static class MeadowHomeLayout
         }
         EditorSceneManager.MarkSceneDirty(group.gameObject.scene);
         return report;
+    }
+
+    // One realtime probe over the Great Lake, rendered once when it first becomes visible: the lake reflects its shores, the
+    // near range and the peaks (fogged like the scene) instead of the sky cubemap; SSR takes over wherever the reflected
+    // object is on screen. Planar reflections would re-render the whole terrain (trees included) every frame.
+    public static object BuildLakeReflection()
+    {
+        var lake = Basins.First(b => b.name == "GreatLake");
+        var min = new Vector2(lake.shore.Min(v => v.x), lake.shore.Min(v => v.y));
+        var max = new Vector2(lake.shore.Max(v => v.x), lake.shore.Max(v => v.y));
+        var c = (min + max) * 0.5f;
+        var group = WaterGroup("Lake Reflection");
+        group.position = new Vector3(c.x, lake.level + 3f, c.y);   // capture point 3 m above the water
+        var probe = group.gameObject.AddComponent<ReflectionProbe>();
+        probe.mode = ReflectionProbeMode.Realtime;
+        probe.refreshMode = ReflectionProbeRefreshMode.OnAwake;
+        probe.timeSlicingMode = ReflectionProbeTimeSlicingMode.IndividualFaces;
+        probe.resolution = 256;
+        probe.hdr = true;
+        probe.boxProjection = false;                                 // the peaks are far: an infinite projection fits them
+        probe.size = new Vector3(max.x - min.x + 20f, 40f, max.y - min.y + 20f);
+        probe.center = new Vector3(0f, 7f, 0f);                      // lake floor to the shore canopy
+        probe.blendDistance = 10f;
+        probe.importance = 1;
+        probe.cullingMask = ~LayerMask.GetMask("Water", "UI");
+        probe.clearFlags = ReflectionProbeClearFlags.Skybox;
+        probe.shadowDistance = 150f;
+        probe.nearClipPlane = 0.3f;
+        probe.farClipPlane = 1500f;
+        EditorSceneManager.MarkSceneDirty(group.gameObject.scene);
+        return $"lake probe at {group.position:F1}, box {probe.size:F0}";
     }
 
     // True when p is within 3 m of a river/stream whose surface there is lower than `level`.
@@ -2081,10 +2304,10 @@ public static class MeadowHomeLayout
     // Footpaths (x, z), traced from the concept; width is set by the trail mask.
     public static readonly Vector2[][] Trails =
     {
-        new[] { V(338,292), V(335,312), V(324,336), V(311,352) },                                                  // home gate -> bridge
+        new[] { HomeGate, Yard(GateLocalX, FenceHalf.y + 4f), V(281,309), V(286.5f,322), V(292,334), V(297,345.3f), V(301.8f,350.7f) },   // home gate -> bridge
         new[] { V(316,371), V(324,392), V(344,428), V(372,462), V(404,489), V(440,506), V(480,532), V(520,560), V(552,592), V(574,620), V(588,644), V(598,668), V(606,692) }, // forest -> swamp fringe
         new[] { V(344,428), V(318,468), V(298,506), V(286,540), V(278,566), V(268,592), V(248,612), V(232,614) },   // highlands spur -> west pond
-        new[] { V(352,262), V(392,252), V(440,240), V(480,224), V(512,206) },                                       // meadow -> lakeside viewpoint
+        new[] { HomeGate, Yard(GateLocalX, FenceHalf.y + 4f), V(292,294.5f), V(312,287.5f), V(332,276), V(352,262), V(392,252), V(440,240), V(480,224), V(512,206) },   // home gate -> lakeside viewpoint
         new[] { V(372,462), V(420,446), V(470,430), V(520,410), V(565,392), V(600,378), V(626,362) },               // forest -> north lake shore
     };
 
@@ -2105,6 +2328,9 @@ public static class MeadowHomeLayout
 
     public static float TrailDistancePublic(Vector2 p) => TrailDistance(p);
 
+    // Half-width of a trail's bare core: 0.9-1.7 m (p5-p95), fraying into the grass in tongues about 3 m long.
+    public static float TrailHalfWidth(float x, float z) => Mathf.Max(0.5f, 1.3f + 0.45f * Fbm(x / 10f, z / 10f + 31f, 2) + 0.9f * Fbm(x / 3f, z / 3f + 11f, 2));
+
     static float TrailDistance(Vector2 p)
     {
         float best = float.MaxValue;
@@ -2122,7 +2348,7 @@ public static class MeadowHomeLayout
     public static async Task<object> GenerateTextureMasks(int res)
     {
         var t0 = DateTime.Now;
-        var names = new[] { "Meadow", "Highlands", "Swamp", "Shore", "Sand", "Bed", "Channel", "Bank", "BankPebble", "Trails" };
+        var names = new[] { "Meadow", "Highlands", "Swamp", "Shore", "Sand", "Bed", "Channel", "Bank", "BankPebble", "Trails", "TrailWear", "TrailCentre" };
         var maps = names.ToDictionary(n => n, n => new float[res * res]);
         await Task.Run(() => Parallel.For(0, res, j =>
         {
@@ -2171,9 +2397,12 @@ public static class MeadowHomeLayout
                 maps["Bank"][k] = bankBand * (0.35f + 0.65f * patch);
                 maps["BankPebble"][k] = bankBand * SmoothStep(0.1f, 0.35f, Fbm(x / 9f, z / 9f + 77f, 2));
 
-                // trails: ~2 m core with ragged soft edges, kept off the water
-                float tw = 1.0f + 0.35f * Fbm(x / 6f, z / 6f + 11f, 2);
-                maps["Trails"][k] = (1 - SmoothStep(tw, tw + 1.4f, TrailDistance(p))) * SmoothStep(0f, 1.5f, edge);
+                // trails: a frayed bare core, a patchy trampled verge and darker wear down the middle; kept off the water
+                float td = TrailDistance(p), hw = TrailHalfWidth(x, z), dry = SmoothStep(0f, 1.5f, edge);
+                float core = 1 - SmoothStep(hw - 0.2f, hw + 0.8f, td);
+                maps["Trails"][k] = core * dry;
+                maps["TrailWear"][k] = (1 - SmoothStep(hw + 0.3f, hw + 3.0f, td)) * (1 - core) * dry;
+                maps["TrailCentre"][k] = core * (1 - SmoothStep(0.2f, 0.75f, td / hw)) * SmoothStep(-0.1f, 0.25f, Fbm(x / 5f, z / 5f + 83f, 2)) * dry;
             }
         }));
         foreach (var kv in maps) WriteR16(MapFolder + "/MH_Tex_" + kv.Key + ".png", kv.Value, res, 1f);
@@ -2254,6 +2483,9 @@ public static class MeadowHomeLayout
         var meadow = Masked(Stamp(g, "05 Meadow Warm Grass", L("MH_GrassMeadow")), M("Meadow"));
         Range(meadow.filterSet.slopeFilter, 0, 32, 0, 8);
         NoiseOn(meadow.filterSet.weightNoise, 2, 14, 3f, 0.0f);
+        var meadowCool = Masked(Stamp(g, "05b Meadow Cool Patches", L("MH_GrassCool")), M("Meadow"));   // blue-green patches 10-30 m, as in the Grasslands demo
+        Range(meadowCool.filterSet.slopeFilter, 0, 32, 0, 8);
+        NoiseOn(meadowCool.filterSet.weightNoise, 2, 16, 8f, 0.14f);
         var scree = Masked(Stamp(g, "06 Highland Scree", L("MH_Pebbles")), M("Highlands"));
         Range(scree.filterSet.slopeFilter, 40, 56, 5, 5);
         NoiseOn(scree.filterSet.weightNoise, 2, 35, 2.5f, 0.35f);
@@ -2275,7 +2507,12 @@ public static class MeadowHomeLayout
         var shelves = Masked(Stamp(g, "14 Highland Rock Shelves", L("MH_Rock")), M("Highlands"));
         Range(shelves.filterSet.slopeFilter, 48, 95, 4, 0);
         NoiseOn(shelves.filterSet.weightNoise, 2, 25, 2f, 0.2f);
+        var verge = Masked(Stamp(g, "15a Trail Verge", L("MH_Dirt")), M("TrailWear"));
+        verge.filterSet.weight = 0.55f;
+        NoiseOn(verge.filterSet.weightNoise, 2, 450, 6f, 0.05f);   // ~2 m patches of thin, trampled grass
         Masked(Stamp(g, "15 Trails", L("MH_Dirt")), M("Trails"));
+        var wear = Masked(Stamp(g, "15b Trail Centre Wear", L("MH_WetMud")), M("TrailCentre"));   // last, so it claims its share before Trails
+        wear.filterSet.weight = 0.3f;
 
         foreach (var st in g.GetComponentsInChildren<Stamp>(true)) EditorUtility.SetDirty(st);
         mv.Invalidate(null, MicroVerse.InvalidateType.Splats);
@@ -2419,6 +2656,38 @@ public static class MeadowHomeLayout
 
     public static void EnsureFolderPublic(string path) => EnsureFolder(path);
 
+    // _Game copy of a vendor material, refreshed from the vendor and re-tuned on every call; vendor files stay untouched.
+    public static Material MaterialCopy(Material vendor, string dest, Action<Material> tune)
+    {
+        EnsureFolder(dest.Substring(0, dest.LastIndexOf('/')));
+        var m = AssetDatabase.LoadAssetAtPath<Material>(dest);
+        if (m == null) { m = new Material(vendor) { name = Path.GetFileNameWithoutExtension(dest) }; AssetDatabase.CreateAsset(m, dest); }
+        else m.CopyPropertiesFromMaterial(vendor);
+        tune(m);
+        EditorUtility.SetDirty(m);
+        AssetDatabase.SaveAssetIfDirty(m);
+        return m;
+    }
+
+    // Vendor-prefab variant with materials swapped on every renderer (all LODs); an existing variant keeps its GUID.
+    public static string MaterialVariant(string src, string dest, Dictionary<Material, Material> swap)
+    {
+        EnsureFolder(dest.Substring(0, dest.LastIndexOf('/')));
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(dest) == null)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(src ?? "") ?? throw new ArgumentException("Missing " + (src ?? dest));
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            PrefabUtility.SaveAsPrefabAsset(inst, dest);   // a connected instance saves as a variant of the vendor prefab
+            UnityEngine.Object.DestroyImmediate(inst);
+        }
+        var root = PrefabUtility.LoadPrefabContents(dest);
+        foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+            r.sharedMaterials = r.sharedMaterials.Select(m => m != null && swap.TryGetValue(m, out var c) ? c : m).ToArray();
+        PrefabUtility.SaveAsPrefabAsset(root, dest);
+        PrefabUtility.UnloadPrefabContents(root);
+        return dest;
+    }
+
     // ---------------- Output ----------------
 
     static void WriteR16(string path, float[] values, int res, float scale)
@@ -2488,6 +2757,7 @@ public static class MeadowHomeLayout
         DrawPoly(tex, MeadowArea, o, Color.yellow);
         foreach (var t in Trails)
             for (int k = 0; k < t.Length - 1; k++) DrawPoly(tex, new[] { t[k], t[k + 1] }, o, new Color(0.9f, 0.5f, 0.2f));
+        DrawPoly(tex, new[] { Yard(-FenceHalf.x, -FenceHalf.y), Yard(FenceHalf.x, -FenceHalf.y), Yard(FenceHalf.x, FenceHalf.y), Yard(-FenceHalf.x, FenceHalf.y) }, o, Color.yellow);
         Dot(tex, HomeBase, o, Color.yellow, 4);
         Dot(tex, Bridge, o, Color.magenta, 3);
         Dot(tex, Viewpoint, o, Color.cyan, 3);
@@ -2688,12 +2958,10 @@ public static class Landmarks
     const string GL = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/";
     const string KN = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/";
 
-    static readonly Vector2 Home = new Vector2(326, 274);
-    const float FenceHalf = 15f;
-    static readonly Vector2 HouseAt = new Vector2(319.5f, 267f);
-    const float HouseYaw = 45f;                       // door (local +Z) faces north-east, toward the campfire and the gate
-    static readonly Vector2 Campfire = new Vector2(329.5f, 277.5f);
-    const float GateX = 334f, GateWidth = 3.6f;      // gate in the north fence, near the north-east corner
+    static readonly Vector2 HouseAt = MeadowHomeLayout.Yard(1.5f, -4f);
+    const float HouseYaw = MeadowHomeLayout.HomeYaw;                  // door (local +Z) faces the gate and the bridge
+    static readonly Vector2 Campfire = MeadowHomeLayout.Yard(3.5f, 6.5f);
+    const float GateOpen = 105f;                                      // leaf swung out from its closed line (0 = closed, 90 = straight out)
 
     static Terrain terrain;
     static System.Random rng;
@@ -2732,16 +3000,16 @@ public static class Landmarks
             var p = Campfire + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * R(0.85f, 0.95f);
             Put(fire, KN + "Rocks/SmallStone_" + (1 + rng.Next(4)) + ".prefab", p, R(0, 360), R(0.55f, 0.75f), -0.08f);
         }
-        Seat(fire, LV + "Environment/Bench_1.prefab", 205, 2.5f);
-        Seat(fire, LV + "Environment/Bench_1.prefab", 295, 2.5f);
-        Seat(fire, LV + "Environment/Bench_1.prefab", 40, 2.5f);
-        Put(fire, LV + "Environment/Log_2.prefab", Campfire + new Vector2(2.9f, -2.6f), 75, 1f, 0);   // firewood pile
-        Put(fire, HL + "Camp/Log_1.prefab", Campfire + new Vector2(1.6f, -1.2f), R(0, 360), 1f, 0);
-        Put(fire, HL + "Camp/Log_3.prefab", Campfire + new Vector2(1.9f, -0.9f), R(0, 360), 1f, 0);
+        Seat(fire, LV + "Environment/Bench_1.prefab", HouseYaw + 160, 2.5f);
+        Seat(fire, LV + "Environment/Bench_1.prefab", HouseYaw + 250, 2.5f);
+        Seat(fire, LV + "Environment/Bench_1.prefab", HouseYaw + 355, 2.5f);
+        Put(fire, LV + "Environment/Log_2.prefab", Campfire + MeadowHomeLayout.Rot(new Vector2(3.9f, 0.2f), HouseYaw), HouseYaw + 30, 1f, 0);   // firewood pile
+        Put(fire, HL + "Camp/Log_1.prefab", Campfire + MeadowHomeLayout.Rot(new Vector2(1.98f, 0.28f), HouseYaw), R(0, 360), 1f, 0);
+        Put(fire, HL + "Camp/Log_3.prefab", Campfire + MeadowHomeLayout.Rot(new Vector2(1.98f, 0.71f), HouseYaw), R(0, 360), 1f, 0);
 
         // door dressing: flower pots either side of the entrance stairs
         var yard = Child(home, "Yard Props");
-        Vector2 Local(float x, float z) => HouseAt + Rot(new Vector2(x, z), HouseYaw);
+        Vector2 Local(float x, float z) => HouseAt + MeadowHomeLayout.Rot(new Vector2(x, z), HouseYaw);
         Put(yard, LV + "Environment/Pot_1_Red_Flowers_1.prefab", Local(-1.5f, 4.6f), R(0, 360), 1f, 0);
         Put(yard, LV + "Environment/Pot_1_Blue_Flowers_1.prefab", Local(1.5f, 4.7f), R(0, 360), 1f, 0);
         Put(yard, LV + "Environment/Pot_2_Red_Flowers_1.prefab", Local(2.2f, 4.3f), R(0, 360), 1f, 0);
@@ -2756,10 +3024,10 @@ public static class Landmarks
         Put(yard, LV + "Environment/Box_1.prefab", Local(-7.2f, 0.2f), HouseYaw + R(-8, 8), 1f, 0);
         Put(yard, LV + "Environment/Sack_3.prefab", Local(-6.6f, -0.6f), R(0, 360), 1f, 0);
         Put(yard, LV + "Environment/Sack_2.prefab", Local(-7.3f, -1.2f), R(0, 360), 1f, 0);
-        Put(yard, LV + "Environment/Cart_1.prefab", new Vector2(Home.x - 11.5f, Home.y + 9.5f), 110, 1f, 0);
+        Put(yard, LV + "Environment/Cart_1.prefab", MeadowHomeLayout.Yard(-11.5f, 8.5f), MeadowHomeLayout.HomeYaw + 110, 1f, 0);
         Put(yard, LV + "Environment/Chest_1.prefab", Local(4.8f, 3.4f), HouseYaw + 180, 1f, 0);
-        Put(yard, LV + "Environment/Trough_1.prefab", new Vector2(Home.x + 10.5f, Home.y - 10.0f), 30, 1f, 0);
-        Put(yard, LV + "Environment/StreetLamp_1.prefab", new Vector2(GateX - GateWidth / 2 - 0.9f, Home.y + FenceHalf - 1.2f), 180, 1f, 0);
+        Put(yard, LV + "Environment/Trough_1.prefab", MeadowHomeLayout.Yard(10.5f, -10f), MeadowHomeLayout.HomeYaw + 30, 1f, 0);
+        Put(yard, LV + "Environment/StreetLamp_1.prefab", MeadowHomeLayout.Yard(MeadowHomeLayout.GateLocalX - MeadowHomeLayout.FenceSeg(2 * MeadowHomeLayout.FenceHalf.x) / 2 - 0.9f, MeadowHomeLayout.FenceHalf.y - 1.2f), MeadowHomeLayout.HomeYaw + 180, 1f, 0);
 
         // ---- bridge over the river, square to the flow ----
         var bridgeRoot = Child(root, "River Bridge");
@@ -2788,6 +3056,8 @@ public static class Landmarks
 
     // ---- waterfall (Komorebi kit on rock meshes; recipe scaled from the Komorebi demo's falls) ----
     const string KNP = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/";
+    const string SW3P = "Assets/_StoreAssets/Rendering/Staggart Creations/Stylized Water 3/Prefabs/Particles/";
+    const string BKFX = "Assets/_StoreAssets/Env/BK/PureNature_AsianValley/Prefabs/Fx/";
 
     // (px, pz) = where the sheet meets the pond (pivot), heading = flow direction (deg), top = source water surface, pond = pond surface.
     public static object BuildWaterfall(float px, float pz, float heading, float top, float pond)
@@ -2806,7 +3076,7 @@ public static class Landmarks
         var f = new Vector2(Mathf.Sin(a), Mathf.Cos(a));
         var right = new Vector2(f.y, -f.x);
         var P = new Vector2(px, pz);
-        float sy = (top - pond) / (6.47f - 0.27f), sx = 1.15f, sz = 3f;
+        float sy = (top - pond) / (6.47f - 0.27f), sx = 1.6f, sz = 3f;
         var log = new List<string>();
 
         // falling sheet: Waterfall_1 with a material copy drawn after the SW3 water (both default to queue 3000)
@@ -2835,11 +3105,35 @@ public static class Landmarks
         var leftLow = P + f * 8f - right * 11f;
         Spawn(root, KNP + "Rocks Grass/Rock_2.prefab", new Vector3(leftLow.x, pond + 1.4f - 8.2f * 0.9f, leftLow.y), Quaternion.Euler(R(-4, 4), heading - 40f, R(-4, 4)), Vector3.one * 0.9f);
 
-        // foot of the fall: ripples, splash, fog, and Komorebi's blue light sunk in the pool floor
+        // foot of the fall: ripples, splash, impact puffs, mist, rings, fog, and Komorebi's blue light sunk in the pool floor
         var rip = P - f * (0.52f * sz);
-        Spawn(root, KNP + "Nature/Waterfall_Ripples_1.prefab", new Vector3(rip.x, pond + 0.05f, rip.y), Quaternion.Euler(0, heading + 180f, 0), Vector3.one * 1.9f);
+        Spawn(root, KNP + "Nature/Waterfall_Ripples_1.prefab", new Vector3(rip.x, pond + 0.05f, rip.y), Quaternion.Euler(0, heading + 180f, 0), Vector3.one * 2.3f);
         var spl = P + f * 0.1f + right * 0.25f;
-        Spawn(root, KNP + "Particle Systems/Waterfall_Splash_1.prefab", new Vector3(spl.x, pond - 0.35f, spl.y), Quaternion.Euler(0, heading, 0), Vector3.one * 1.35f);
+        Spawn(root, KNP + "Particle Systems/Waterfall_Splash_1.prefab", new Vector3(spl.x, pond - 0.35f, spl.y), Quaternion.Euler(0, heading, 0), Vector3.one * 1.35f * sx / 1.15f);
+        // SW3 puffs and the BK mist are transparent at queue 3000 with no depth write: sortingOrder 1 draws them after the sheet (3001)
+        var puffs = Spawn(root, SW3P + "Waterfall Impact Splashes.prefab", new Vector3(spl.x, pond + 0.15f, spl.y), Quaternion.Euler(0, heading, 0), Vector3.one).GetComponent<ParticleSystem>();
+        var puffShape = puffs.shape; puffShape.scale = new Vector3(3.83f * sx * 1.05f, 2.5f, 1f);
+        var puffMain = puffs.main; puffMain.startSize = new ParticleSystem.MinMaxCurve(2.5f, 5f);
+        var puffRate = puffs.emission; puffRate.rateOverTime = 30f;
+        var mistAt = P + f * 1.8f;
+        var mist = Spawn(root, BKFX + "WaterSplash.prefab", new Vector3(mistAt.x, pond + 0.6f, mistAt.y), Quaternion.Euler(-90f, heading, 0), Vector3.one * 0.6f).GetComponent<ParticleSystem>();
+        var mistMain = mist.main;
+        mistMain.startLifetime = new ParticleSystem.MinMaxCurve(2f, 5f);
+        mistMain.startColor = new Color(1f, 1f, 1f, 0.35f);
+        var mistRate = mist.emission; mistRate.rateOverTime = 15f;
+        foreach (var ps in new[] { puffs, mist })
+        {
+            var pr = ps.GetComponent<ParticleSystemRenderer>();
+            pr.sortingOrder = 1;
+            pr.shadowCastingMode = ShadowCastingMode.Off;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(ps);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(pr);
+        }
+        foreach (float side in new[] { -0.3f, 0.3f })
+        {
+            var ringAt = P + f * 1.2f + right * (side * 3.83f * sx);
+            Spawn(root, SW3P + "WaterRipples_Stationairy.prefab", new Vector3(ringAt.x, pond + 0.03f, ringAt.y), Quaternion.identity, Vector3.one * 4f);
+        }
         var fogAt = P + f * 2.4f;
         Spawn(root, KNP + "Particle Systems/Fog_1.prefab", new Vector3(fogAt.x, pond + 0.7f, fogAt.y), Quaternion.Euler(0, R(0, 360), 0), new Vector3(1.7f, 0.56f, 1.7f));
         var lightPos = P + f * 7.5f;
@@ -2894,33 +3188,48 @@ public static class Landmarks
     static void BuildFence(Transform parent, List<string> log)
     {
         string[] panels = { LV + "Environment/Fence_1.prefab", LV + "Environment/Fence_2.prefab", LV + "Environment/Fence_3.prefab" };
-        var corners = new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) }.Select(c => Home + c * FenceHalf).ToArray();
-        int count = 0;
+        var half = MeadowHomeLayout.FenceHalf;
+        var corners = new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) }.Select(c => MeadowHomeLayout.Yard(c.x * half.x, c.y * half.y)).ToArray();
+        int count = 0, gate = MeadowHomeLayout.GateSlot;
         for (int side = 0; side < 4; side++)
         {
             var a = corners[side]; var b = corners[(side + 1) % 4];
             float len = Vector2.Distance(a, b);
             var dir = (b - a) / len;
-            int n = Mathf.RoundToInt(len / 2.25f);
+            int n = Mathf.RoundToInt(len / MeadowHomeLayout.FencePanel);
             float seg = len / n;
             float yaw = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg - 90;   // panel length runs along local X
+            bool front = side == 2;                                        // local +Z side, from the +X corner to the -X corner
             for (int i = 0; i < n; i++)
             {
-                var mid = a + dir * (seg * (i + 0.5f));
-                bool north = side == 2;
-                if (north && Mathf.Abs(mid.x - GateX) < GateWidth / 2) continue;   // gate opening
-                var p = Put(parent, panels[rng.Next(panels.Length)], mid, yaw + (rng.Next(2) == 0 ? 0 : 180), 1f, -0.05f);
-                p.transform.localScale = new Vector3(seg / 2.25f, 1f, 1f);
+                if (front && i == gate) continue;
+                var p = Put(parent, panels[rng.Next(panels.Length)], a + dir * (seg * (i + 0.5f)), yaw + (rng.Next(2) == 0 ? 0 : 180), 1f, -0.05f);
+                p.transform.localScale = new Vector3(seg / MeadowHomeLayout.FencePanel, 1f, 1f);
                 count++;
             }
-            for (int i = 0; i <= n; i++)
+            for (int i = 0; i < n; i++)                                      // the next side's first post closes each corner
             {
-                var at = a + dir * (seg * i);
-                if (side == 2 && Mathf.Abs(at.x - GateX) < GateWidth / 2 - 0.2f) continue;
-                Put(parent, LV + "Environment/FenceEnd_1.prefab", at, R(0, 360), 1.15f, -0.05f);
+                bool jamb = front && (i == gate || i == gate + 1);
+                Put(parent, LV + "Environment/FenceEnd_1.prefab", a + dir * (seg * i), jamb ? yaw : R(0, 360), jamb ? 1.35f : 1.15f, -0.05f);
             }
+            if (front) BuildGate(parent, a, dir, seg);
         }
-        log.Add($"fence: {count} panels around {FenceHalf * 2} m square, gate at x {GateX}");
+        log.Add($"fence: {count} panels, {half.x * 2} x {half.y * 2} m yard turned {MeadowHomeLayout.HomeYaw}, gate in slot {gate} (local x {MeadowHomeLayout.GateLocalX:0.00})");
+    }
+
+    // Open board gate: a Lakefell railing leaf on a hinge just outside the +X jamb, swung out GateOpen degrees.
+    static void BuildGate(Transform parent, Vector2 a, Vector2 dir, float seg)
+    {
+        var gate = Child(parent, "Gate");
+        var hingeAt = a + dir * (seg * MeadowHomeLayout.GateSlot + 0.03f) + MeadowHomeLayout.Rot(Vector2.up, MeadowHomeLayout.HomeYaw) * 0.2f;
+        float sx = (seg - 0.2f) / 1.606f, yaw = MeadowHomeLayout.HomeYaw + 180 + GateOpen;   // 1.606 m = Extension_1_Fence mesh length
+        var tip = hingeAt + MeadowHomeLayout.Rot(Vector2.right, yaw) * (0.02f + 1.606f * sx);
+        var hinge = Child(gate, "Hinge");
+        hinge.SetPositionAndRotation(new Vector3(hingeAt.x, Mathf.Max(Ground(hingeAt), Ground(tip)) + 0.08f, hingeAt.y), Quaternion.Euler(0, yaw, 0));
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(LV + "Modules/Extension_1_Fence.prefab") ?? throw new ArgumentException("Missing gate leaf");
+        var leaf = (GameObject)PrefabUtility.InstantiatePrefab(prefab, hinge);
+        leaf.transform.SetLocalPositionAndRotation(new Vector3(0.02f + 0.803f * sx, 0, 0), Quaternion.identity);
+        leaf.transform.localScale = new Vector3(sx, 1.25f, 1.3f);
     }
 
     static void Seat(Transform parent, string path, float angleDeg, float radius)
@@ -2944,12 +3253,6 @@ public static class Landmarks
         var t = new GameObject(name).transform;
         t.SetParent(parent, false);
         return t;
-    }
-
-    static Vector2 Rot(Vector2 v, float yawDeg)
-    {
-        float a = yawDeg * Mathf.Deg2Rad;
-        return new Vector2(v.x * Mathf.Cos(a) + v.y * Mathf.Sin(a), -v.x * Mathf.Sin(a) + v.y * Mathf.Cos(a));
     }
 
     // Closest point on the river polyline (the same smoothed knots the terrain was carved with), the flow direction and half width there.
@@ -3198,11 +3501,54 @@ public static class Dressing
             }
         }
 
+        // lake reed beds: runs of BK cattails standing in the shallows, mostly in coves, some along straight shore, none on
+        // points, beaches or by the viewpoint; half the beds get a lily cluster just outside them. GameObjects, not the
+        // detail stamp, so they carry past the detail distance.
+        var reedRoot = Sub("Reed Beds");
+        string[] reedKinds = { "Assets/_StoreAssets/Env/BK/PureNature_Meadows/Prefabs/Plants/Reeds.prefab", "Assets/_StoreAssets/Env/BK/PureNature_Mountains/Prefabs/Plants/Reeds.prefab" };
+        var beds = new List<(Vector2 p, Vector2 n, float level)>();
+        bool inBed = false; float bedLeft = R(3, 12);
+        int nReeds = 0;
+        foreach (var (p, n, body, level, cls, arc) in walked.Where(w => w.body == "GreatLake"))
+        {
+            bedLeft -= 1.5f;
+            if (bedLeft <= 0)
+            {
+                if (inBed) { inBed = false; bedLeft = R(10, 35); }
+                else if (rng.NextDouble() < (cls == 'c' ? 0.85 : cls == 's' ? 0.4 : 0.0)) { inBed = true; bedLeft = R(6, 18); beds.Add((p, n, level)); }
+                else bedLeft = R(3, 8);
+            }
+            if (!inBed || cls == 'b' || cls == 'p') continue;
+            if (Vector2.Distance(p, MeadowHomeLayout.Viewpoint) < 18f || MeadowHomeLayout.TrailDistancePublic(p) < 2.5f) continue;
+            for (int k = 0; k < (cls == 'c' ? 2 : 1); k++)
+            {
+                var q = p + n * R(-0.3f, 2.5f) + new Vector2(-n.y, n.x) * R(-0.75f, 0.75f);
+                float depth = level - H(q);
+                if (depth < -0.15f || depth > 0.7f || !Free(q, 0.45f)) continue;
+                Put(reedRoot, reedKinds[rng.NextDouble() < 0.7 ? 0 : 1], new Vector3(q.x, H(q) - 0.05f, q.y), Quaternion.Euler(R(-4, 4), R(0, 360), R(-4, 4)), R(1.1f, 1.6f));
+                placed.Add(new Vector3(q.x, q.y, 0.45f)); nReeds++;
+            }
+        }
+        foreach (var (p, n, level) in beds)
+        {
+            if (rng.NextDouble() < 0.5) continue;
+            var c = p + n * R(3.5f, 6f);
+            if (MeadowHomeLayout.IslandAt(c) >= 0) continue;
+            for (int k = 0, t = 0, want = 3 + rng.Next(4); k < want && t < 40; t++)
+            {
+                var q = c + new Vector2(R(-3f, 3f), R(-3f, 3f));
+                float d = level - H(q);
+                if (d < 0.6f || d > 1.8f || !Free(q, 1.25f)) continue;
+                Put(lilies, KN + "Nature/WaterLily_Group_" + (rng.NextDouble() < 0.55 ? 2 : 3) + ".prefab", new Vector3(q.x, level + 0.028f, q.y), Upright(), R(0.9f, 1.15f));
+                placed.Add(new Vector3(q.x, q.y, 1.3f)); k++; nLilies++;
+            }
+        }
+
         foreach (var t in root.GetComponentsInChildren<Transform>(true))
             GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
         EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
         var classes = walked.GroupBy(w => w.cls).ToDictionary(g => g.Key.ToString(), g => g.Count());
-        return new { shoreSamples = walked.Count, classes, stones = nStones, pebbles = nPebbles, lilies = nLilies, heroTrees = nTrees, driftwood = nWood };
+        return new { shoreSamples = walked.Count, classes, stones = nStones, pebbles = nPebbles, lilies = nLilies, heroTrees = nTrees, driftwood = nWood, reeds = nReeds, reedBeds = beds.Count };
     }
 
     // River and stream banks, walked along each water line metre by metre. Each bank sample gets a bend character cc
@@ -3216,6 +3562,7 @@ public static class Dressing
         const string HL = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/Forest/";
         const string GV = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
         var root = Group("Bank Rocks");
+        MeadowHomeLayout.MakeHighlandGrassRocks();
         Transform Sub(string n) { var t = new GameObject(n).transform; t.SetParent(root, false); return t; }
         var lining = Sub("Lining"); var boulders = Sub("Boulders"); var inChannel = Sub("In Channel"); var wood = Sub("Driftwood"); var hero = Sub("Hero"); var lotus = Sub("Lotus");
         const string GLR = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Rocks/";
@@ -3344,7 +3691,7 @@ public static class Dressing
                             {
                                 var q = edgeP + n * R(2.3f, 7.5f);
                                 float sc = R(0.6f, 1.0f);
-                                Put(boulders, HL + new[] { "Rock_1.prefab", "Rock_2.prefab", "Rock_1(Grass).prefab", "Rock_2(Grass).prefab" }[rng.Next(4)], new Vector3(q.x, H(q) - 0.7f * 3f * sc, q.y), OnGround(q, 15), sc);
+                                Put(boulders, new[] { HL + "Rock_1.prefab", HL + "Rock_2.prefab", MeadowHomeLayout.HighlandGrassRock(1), MeadowHomeLayout.HighlandGrassRock(2) }[rng.Next(4)], new Vector3(q.x, H(q) - 0.7f * 3f * sc, q.y), OnGround(q, 15), sc);
                                 nBoulder++;
                             }
                             if (side == 1 && SlopeAt(s) > 0.05f && P(0.1f))
@@ -3507,6 +3854,27 @@ public static class Dressing
         return new { lining = nLining, boulders = nBoulder, inChannel = nChannel, driftwood = nWood, lotusAndAstilbe = nLotus };
     }
 
+    // Trees and bush clumps around the home base, from the yard-local tables in MeadowHomeLayout.
+    public static object BuildHomeTrees()
+    {
+        terrain = Terrain.activeTerrain;
+        var td = terrain.terrainData;
+        var root = Group("Home Trees");   // never under Landmarks/Home Base: the clear-mask pass would mow around each canopy
+        foreach (var t in MeadowHomeLayout.HomeTrees)
+        {
+            var p = MeadowHomeLayout.Yard(t.at.x, t.at.y);
+            float slope = Vector3.Angle(Vector3.up, td.GetInterpolatedNormal(p.x / td.size.x, p.y / td.size.z));
+            Put(root, t.prefab, new Vector3(p.x, H(p) - t.sink - 0.015f * slope, p.y), Quaternion.Euler(0, t.yaw, 0), t.scale);
+        }
+        foreach (var b in MeadowHomeLayout.HomeBushes)
+        {
+            var p = MeadowHomeLayout.Yard(b.at.x, b.at.y);
+            Put(root, b.prefab, new Vector3(p.x, H(p) - 0.1f, p.y), Quaternion.Euler(0, b.yaw, 0), b.scale);
+        }
+        EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+        return new { trees = MeadowHomeLayout.HomeTrees.Length, bushes = MeadowHomeLayout.HomeBushes.Length };
+    }
+
     // Meadow as in the BK Meadows demo: low stones half-sunk in the lawn in clusters of 3-7, and a few lone hero broadleafs.
     public static object BuildMeadow(int seed)
     {
@@ -3520,6 +3888,7 @@ public static class Dressing
         var home = MeadowHomeLayout.HomeBase;
         var trees = td.treeInstances.Select(t => new Vector2(t.position.x * td.size.x, t.position.z * td.size.z))
             .Where(q => MeadowHomeLayout.SignedDistance(q, MeadowHomeLayout.MeadowArea) < 30).ToList();
+        trees.AddRange(MeadowHomeLayout.HomeTrees.Select(t => MeadowHomeLayout.Yard(t.at.x, t.at.y)));
         Quaternion OnGround(Vector2 p, float follow) =>
             Quaternion.FromToRotation(Vector3.up, Vector3.Lerp(Vector3.up, td.GetInterpolatedNormal(p.x / td.size.x, p.y / td.size.z), follow)) * Quaternion.Euler(0, R(0, 360), 0);
         bool Ok(Vector2 p, float treeGap, float trailGap)
@@ -3527,13 +3896,13 @@ public static class Dressing
             if (MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.MeadowArea) > -6) return false;
             if (MeadowHomeLayout.WaterEdgeDistancePublic(p) < 6f) return false;
             if (MeadowHomeLayout.TrailDistancePublic(p) < trailGap) return false;
-            if (Mathf.Max(Mathf.Abs(p.x - home.x), Mathf.Abs(p.y - home.y)) < 24f) return false;
+            if (MeadowHomeLayout.FenceDistance(p) < 9f) return false;
             return trees.All(t => (t - p).sqrMagnitude > treeGap * treeGap);
         }
 
         // lone hero trees first, so the stones keep their distance from them too
         int nTrees = 0;
-        foreach (var spot in new[] { new Vector2(268, 300), new Vector2(410, 268), new Vector2(470, 250), new Vector2(285, 340), new Vector2(300, 228), new Vector2(420, 226), new Vector2(470, 232) })
+        foreach (var spot in new[] { new Vector2(340, 250), new Vector2(410, 268), new Vector2(470, 250), new Vector2(285, 340), new Vector2(300, 228), new Vector2(470, 232) })
         {
             var p = spot;
             for (int tries = 0; tries < 60 && !(Ok(p, 9f, 8f) && Vector2.Distance(p, home) > 40f); tries++) p = spot + new Vector2(R(-15, 15), R(-15, 15));
@@ -3913,7 +4282,7 @@ public static class Outcrops
         var (s, kind) = MeadowHomeLayout.WaterSurfaceAt(p);
         if (!float.IsNegativeInfinity(s)) return false;                                               // not in or by water
         if (MeadowHomeLayout.TrailDistancePublic(p) < r + 3f) return false;                           // keep trails open
-        if (Vector2.Distance(p, new Vector2(326, 274)) < 40f + r) return false;                       // home base
+        if (Vector2.Distance(p, MeadowHomeLayout.HomeBase) < 40f + r) return false;                     // home base
         return true;
     }
 
@@ -4164,15 +4533,18 @@ public static class Vegetation
     const string HF = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/Forest/";
     const string GV = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Vegetation/";
     const string BKP = "Assets/_StoreAssets/Env/BK/PureNature_Meadows/Prefabs/Plants/";
+    const string KR = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/Rocks/";
     const string Layers = MeadowHomeLayout.DataFolder + "/TerrainLayers/";
 
     // ---- masks from the analytic layout (terrain space, north up) ----
     public static async Task<object> GenerateMasks(int res)
     {
         var t0 = DateTime.Now;
-        string[] names = { "Forest", "Meadow", "Highlands", "Swamp", "Foothills", "Wild", "Reeds", "WaterEdge", "MeadowFlowers", "Hedge", "Rim", "RimBroadleaf", "RimShort", "RimBushes", "LakeShore", "LakeTrees", "LakeLip", "LakeFlowers" };
+        string[] names = { "Forest", "Meadow", "Highlands", "Swamp", "Foothills", "Wild", "Reeds", "WaterEdge", "MeadowFlowers", "Hedge", "Rim", "RimBroadleaf", "RimShort", "RimBushes", "LakeShore", "LakeTrees", "LakeLip", "LakeFlowers",
+            "MeadowTrees", "Yard", "MeadowLawn", "MeadowTall", "MeadowCover", "MeadowSpikes", "TrailEdge", "TrailPebbles" };
         var maps = names.ToDictionary(n => n, n => new float[res * res]);
         var home = MeadowHomeLayout.HomeBase;
+        var homeTrees = MeadowHomeLayout.HomeTrees.Select(t => MeadowHomeLayout.Yard(t.at.x, t.at.y)).ToArray();
         var centre = new Vector2(505, 520);
         await Task.Run(() => Parallel.For(0, res, j =>
         {
@@ -4192,13 +4564,19 @@ public static class Vegetation
                 float landFade = wet ? 0 : MeadowHomeLayout.SmoothStep(0.15f + 0.9f * reach, 1.2f + 1.8f * reach, dWater);
                 // islands are dressed by Finishing.Islands; terrain trees stay off them
                 float treeFade = wet || MeadowHomeLayout.IslandAt(p) >= 0 ? 0 : MeadowHomeLayout.SmoothStep(5f, 12f, dWater);
-                maps["Forest"][k] = w.x * inside * treeFade;
+                // the meadow runs to the foot rocks: no forest or foothill trees in it or within 10-22 m of its rim
+                float openMeadow = 1 - MeadowHomeLayout.SmoothStep(10f, 22f, MeadowHomeLayout.SignedDistance(p, MeadowHomeLayout.MeadowArea));
+                maps["Forest"][k] = w.x * inside * treeFade * (1 - openMeadow);
                 maps["Meadow"][k] = w.y * inside * landFade;
+                maps["MeadowTrees"][k] = maps["Meadow"][k] * MeadowHomeLayout.SmoothStep(32f, 44f, -dPlay);   // meadow trees keep 32-44 m off the foot rocks
                 maps["Highlands"][k] = w.z * inside * treeFade;
                 maps["Swamp"][k] = w.w * inside;
-                // only a sparse fringe where the meadow runs up to the edge, so the near range shows from the meadow (concept)
-                maps["Foothills"][k] = MeadowHomeLayout.SmoothStep(-48, -30, dPlay) * (1 - MeadowHomeLayout.SmoothStep(-7, -2, dPlay)) * treeFade * (1 - w.w) * (1 - 0.85f * MeadowHomeLayout.SmoothStep(0.2f, 0.7f, w.y));
-                maps["Wild"][k] = inside * landFade * (1 - w.y) * (1 - w.w * 0.7f);
+                // none where the meadow runs up to the edge, so the near range shows from the meadow (concept)
+                maps["Foothills"][k] = MeadowHomeLayout.SmoothStep(-48, -30, dPlay) * (1 - MeadowHomeLayout.SmoothStep(-7, -2, dPlay)) * treeFade * (1 - w.w) * (1 - openMeadow);
+                // wild grass runs on 1-30 m past the playable edge, so the lawn doesn't end at the invisible wall and the foot rocks
+                // stand in grass ("Wild" feeds detail stamps only)
+                float verge = MeadowHomeLayout.SmoothStep(-6f, -1f, dPlay) * (1 - MeadowHomeLayout.SmoothStep(20f, 30f, dPlay)) * landFade * (1 - w.w);
+                maps["Wild"][k] = Mathf.Max(inside * landFade * (1 - w.y) * (1 - w.w * 0.7f), verge);
                 float depth = float.IsNegativeInfinity(surface) ? -9 : surface - ground;
                 // lakes, ponds, swamp, the rivers (not by the bridge), and the slow margin stream and swamp outlet
                 bool reedWater = kind == 0 || (kind == 1 && Vector2.Distance(p, MeadowHomeLayout.Bridge) > 12f) || (kind == 2 && x > 556 && z > 530 && z < 745);
@@ -4207,15 +4585,61 @@ public static class Vegetation
 
                 // meadow flowers keep off the yard and the trail edges, so those stay plain lawn
                 float trail = MeadowHomeLayout.TrailDistancePublic(p);
-                float yard = Mathf.Max(Mathf.Abs(x - home.x), Mathf.Abs(z - home.y));
+                // trail verges: tufts in clumps where the bare core frays out, pebbles on the core and just past it
+                float hw = MeadowHomeLayout.TrailHalfWidth(x, z), onLand = wet ? 0 : MeadowHomeLayout.SmoothStep(0.5f, 2f, dWater) * inside;
+                maps["TrailEdge"][k] = MeadowHomeLayout.SmoothStep(hw - 0.1f, hw + 0.4f, trail) * (1 - MeadowHomeLayout.SmoothStep(hw + 1.0f, hw + 1.8f, trail))
+                    * MeadowHomeLayout.SmoothStep(-0.1f, 0.15f, MeadowHomeLayout.Fbm(x / 3f, z / 3f + 67f, 2)) * onLand
+                    * MeadowHomeLayout.SmoothStep(28f, 34f, Vector2.Distance(p, MeadowHomeLayout.HomeSpawn));   // mown lawn and bridge sight line by the spawn
+                maps["TrailPebbles"][k] = (1 - MeadowHomeLayout.SmoothStep(hw + 0.1f, hw + 1.0f, trail)) * MeadowHomeLayout.SmoothStep(0.1f, 0.3f, MeadowHomeLayout.Fbm(x / 6f, z / 6f + 29f, 2))
+                    * onLand * MeadowHomeLayout.SmoothStep(16f, 20f, Vector2.Distance(p, MeadowHomeLayout.Bridge));   // none under the bridge deck ends
+                float fd = MeadowHomeLayout.FenceDistance(p);
+                // view lanes from the spawn: the gate->bridge sight line and the east wedge (river mouth, lake band, far range)
+                var toP = p - MeadowHomeLayout.HomeSpawn; float dS = toP.magnitude;
+                float brg = (Mathf.Atan2(toP.x, toP.y) * Mathf.Rad2Deg + 360f) % 360f;
+                float bridgeLane = (1 - MeadowHomeLayout.SmoothStep(4f, 8f, Seg(p, MeadowHomeLayout.HomeSpawn, MeadowHomeLayout.Bridge))) * MeadowHomeLayout.SmoothStep(6f, 9f, dS);
+                float eastLane = MeadowHomeLayout.SmoothStep(74f, 80f, brg) * (1 - MeadowHomeLayout.SmoothStep(96f, 102f, brg)) * MeadowHomeLayout.SmoothStep(8f, 12f, dS) * (1 - MeadowHomeLayout.SmoothStep(70f, 85f, dS));
+                float lane = Mathf.Max(bridgeLane, eastLane);
+                // the line to the bridge deck clears the flat pad by only 0.4-0.6 m at 15-22 m: mown until the ground falls away
+                float mown = bridgeLane * (1 - MeadowHomeLayout.SmoothStep(28f, 34f, dS));
+                float yardIn = 1 - MeadowHomeLayout.SmoothStep(-0.4f, 0.2f, fd);
+                float trailFade = MeadowHomeLayout.SmoothStep(1.6f, 3.0f, trail);
+                float gateClear = MeadowHomeLayout.SmoothStep(3.5f, 5.5f, Vector2.Distance(p, MeadowHomeLayout.HomeGate));
+                float meadow = maps["Meadow"][k];
+                float shortLawn = Mathf.Max(yardIn, mown);
+                maps["Yard"][k] = meadow * shortLawn;
+                maps["MeadowLawn"][k] = meadow * (1 - shortLawn);
+                // knee-high clumps: 10-25 m drifts, a ragged band along both sides of the fence (not in the gate), rings at the home trees' feet
+                float blobs = MeadowHomeLayout.SmoothStep(0.17f, 0.33f, MeadowHomeLayout.Fbm(x / 20f, z / 20f + 71f, 2)) * (1 - yardIn);
+                float fence = (fd < 0 ? 1 - MeadowHomeLayout.SmoothStep(0.5f, 1.1f, -fd) : 1 - MeadowHomeLayout.SmoothStep(1.5f, 3.5f, fd))
+                    * MeadowHomeLayout.SmoothStep(-0.15f, 0.05f, MeadowHomeLayout.Fbm(x / 6f, z / 6f + 7f, 2));
+                float feet = 0;
+                foreach (var ht in homeTrees) { float dt = Vector2.Distance(p, ht); feet = Mathf.Max(feet, MeadowHomeLayout.SmoothStep(0.8f, 1.5f, dt) * (1 - MeadowHomeLayout.SmoothStep(4f, 6.5f, dt))); }
+                feet *= MeadowHomeLayout.SmoothStep(-0.2f, 0.1f, MeadowHomeLayout.Fbm(x / 4f, z / 4f + 3f, 2)) * (1 - yardIn);
+                maps["MeadowTall"][k] = meadow * Mathf.Max(blobs, Mathf.Max(fence, feet)) * trailFade * (1 - lane) * gateClear;
+                // dark leafy patches 2-6 m on about 10 % of the lawn (yard included: clover patches)
+                maps["MeadowCover"][k] = meadow * MeadowHomeLayout.SmoothStep(0.25f, 0.42f, MeadowHomeLayout.Fbm(x / 7f, z / 7f + 91f, 2)) * MeadowHomeLayout.SmoothStep(0.9f, 1.6f, trail);
+                // upright spikes: drifts laid across the sight lines from the spawn, plus a low sprinkle beyond 50-70 m
+                float spikes = 0;
+                for (int s = 0; s < MeadowHomeLayout.SpikeDrifts.Length; s++)
+                {
+                    var dr = MeadowHomeLayout.SpikeDrifts[s];
+                    float a0 = dr.brg * Mathf.Deg2Rad, ang = (dr.brg + 90f) * Mathf.Deg2Rad;
+                    var c0 = MeadowHomeLayout.HomeSpawn + dr.dist * new Vector2(Mathf.Sin(a0), Mathf.Cos(a0));
+                    var ax = new Vector2(Mathf.Sin(ang), Mathf.Cos(ang)); var q = p - c0;
+                    float u = Vector2.Dot(q, ax) / dr.len, v = (q.x * ax.y - q.y * ax.x) / dr.wid;
+                    spikes = Mathf.Max(spikes, 1 - MeadowHomeLayout.SmoothStep(0.65f, 1.15f, Mathf.Sqrt(u * u + v * v) + 0.3f * MeadowHomeLayout.Fbm(x / 5f, z / 5f + 13f * s, 2)));
+                }
+                float far = 0.4f * MeadowHomeLayout.SmoothStep(0.22f, 0.40f, MeadowHomeLayout.Fbm(x / 35f, z / 35f + 23f, 2)) * MeadowHomeLayout.SmoothStep(50f, 70f, dS);
+                maps["MeadowSpikes"][k] = meadow * (1 - yardIn) * Mathf.Max(spikes, far) * trailFade * (1 - lane) * gateClear;
                 // a wide, ragged round fade: a square cut makes flower drifts run parallel to the fence like a planted border
                 float yardFade = MeadowHomeLayout.SmoothStep(22f, 38f, Vector2.Distance(p, home) + 6f * MeadowHomeLayout.Fbm(x / 12f, z / 12f + 33f, 2));
-                maps["MeadowFlowers"][k] = maps["Meadow"][k] * yardFade * MeadowHomeLayout.SmoothStep(1.6f, 3.0f, trail);
+                float near = MeadowHomeLayout.SmoothStep(1f, 9f, fd + 4f * MeadowHomeLayout.Fbm(x / 9f, z / 9f + 41f, 2));
+                maps["MeadowFlowers"][k] = maps["Meadow"][k] * Mathf.Max(yardFade, near * (1 - eastLane)) * (1 - bridgeLane) * (1 - yardIn) * trailFade;
                 // hedgerows: the meadow's outer rim (against the southern foot) and both sides of the viewpoint path, with gaps
                 float edgeBand = MeadowHomeLayout.SmoothStep(0.12f, 0.3f, w.y) * (1 - MeadowHomeLayout.SmoothStep(0.45f, 0.65f, w.y));
                 float pathBand = MeadowHomeLayout.SmoothStep(2.6f, 3.2f, trail) * (1 - MeadowHomeLayout.SmoothStep(5.0f, 5.8f, trail)) * w.y;
                 float gaps = MeadowHomeLayout.SmoothStep(-0.05f, 0.05f, MeadowHomeLayout.Fbm(x / 22f, z / 22f + 51f, 2));
-                maps["Hedge"][k] = Mathf.Max(edgeBand * (z < 300 ? 1 : 0.3f), pathBand * (z < 262 ? 1 : 0)) * gaps * inside * landFade * MeadowHomeLayout.SmoothStep(18f, 24f, yard);
+                maps["Hedge"][k] = Mathf.Max(edgeBand * (z < 300 ? 1 : 0.3f), pathBand * (z < 262 ? 1 : 0)) * gaps * inside * landFade * MeadowHomeLayout.SmoothStep(3f, 9f, fd);
 
                 // tree belt outside the playable edge (behind the foot rocks, in front of the ridges)
                 float rim = MeadowHomeLayout.SmoothStep(4f, 10f, dPlay) * (1 - MeadowHomeLayout.SmoothStep(150f, 175f, dPlay)) * treeFade;
@@ -4284,7 +4708,6 @@ public static class Vegetation
         var bridge = env.transform.Find("Landmarks/River Bridge");
         Bounds? bridgeB = null;
         if (bridge != null) { var rs = bridge.GetComponentsInChildren<Renderer>(); if (rs.Length > 0) { var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); bridgeB = b; } }
-        var homeC = MeadowHomeLayout.HomeBase;
         var trees = new float[res * res]; var details = new float[res * res];
         await Task.Run(() => Parallel.For(0, res, j =>
         {
@@ -4300,8 +4723,10 @@ public static class Vegetation
                     cd = Mathf.Max(cd, 1 - MeadowHomeLayout.SmoothStep(r.z * 0.7f, r.z * 0.85f, d));
                 }
                 foreach (var r in props) cd = Mathf.Max(cd, 1 - MeadowHomeLayout.SmoothStep(r.z * 0.8f, r.z + 0.3f, Vector2.Distance(p, new Vector2(r.x, r.y))));
-                // fenced yard: no trees within 24 m of the centre; trimmed lawn handled by the meadow masks
-                ct = Mathf.Max(ct, 1 - MeadowHomeLayout.SmoothStep(22f, 28f, Mathf.Max(Mathf.Abs(x - homeC.x), Mathf.Abs(z - homeC.y))));
+                // fenced yard: no trees within 7-13 m of the fence; trimmed lawn handled by the meadow masks
+                ct = Mathf.Max(ct, 1 - MeadowHomeLayout.SmoothStep(7f, 13f, MeadowHomeLayout.FenceDistance(p)));
+                // no tree crowns on the spawn->bridge sight line
+                ct = Mathf.Max(ct, (1 - MeadowHomeLayout.SmoothStep(8f, 11f, Seg(p, MeadowHomeLayout.HomeSpawn, MeadowHomeLayout.Bridge))) * MeadowHomeLayout.SmoothStep(8f, 10f, Vector2.Distance(p, MeadowHomeLayout.HomeSpawn)));
                 if (bridgeB.HasValue)
                 {
                     var b = bridgeB.Value;
@@ -4310,9 +4735,9 @@ public static class Vegetation
                     ct = Mathf.Max(ct, 1 - MeadowHomeLayout.SmoothStep(6f, 9f, db));
                     cd = Mathf.Max(cd, 1 - MeadowHomeLayout.SmoothStep(0.2f, 1.2f, db));
                 }
-                float tr = MeadowHomeLayout.TrailDistancePublic(p);
+                float tr = MeadowHomeLayout.TrailDistancePublic(p), hw = MeadowHomeLayout.TrailHalfWidth(x, z);
                 ct = Mathf.Max(ct, 1 - MeadowHomeLayout.SmoothStep(3.0f, 4.5f, tr));
-                cd = Mathf.Max(cd, 1 - MeadowHomeLayout.SmoothStep(0.9f, 1.6f, tr));
+                cd = Mathf.Max(cd, 1 - MeadowHomeLayout.SmoothStep(hw - 0.35f, hw + 0.05f, tr));   // blades stop where the frayed dirt core does
                 trees[j * res + i] = ct; details[j * res + i] = cd;
             }
         }));
@@ -4320,6 +4745,8 @@ public static class Vegetation
         MeadowHomeLayout.WriteMask(Maps + "MH_Veg_ClearDetails.png", details, res);
         return new { rocks = rocks.Count, props = props.Count, bridge = bridgeB.HasValue };
     }
+
+    static float Seg(Vector2 p, Vector2 a, Vector2 b) { var ab = b - a; float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / ab.sqrMagnitude); return Vector2.Distance(p, a + ab * t); }
 
     // ---- prefab variants: capsule colliders on the tall firs (terrain trees ignore MeshColliders) ----
     public static object MakeVariants()
@@ -4364,6 +4791,49 @@ public static class Vegetation
         return dest;
     }
 
+    // Plain detail prefab (vendor mesh) with a _Game copy of its material, re-tuned on every run; vendor files stay untouched.
+    static string TintedDetail(string vendorPrefab, string name, Action<Material> tune, bool shadows)
+    {
+        string matDir = Folder + "/Materials", detDir = Folder + "/Details";
+        MeadowHomeLayout.EnsureFolderPublic(matDir); MeadowHomeLayout.EnsureFolderPublic(detDir);
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>(vendorPrefab) ?? throw new ArgumentException("Missing " + vendorPrefab);
+        var r = src.GetComponentInChildren<MeshRenderer>();
+        string matPath = matDir + "/MH_" + name + ".mat";
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+        if (mat == null) { mat = new Material(r.sharedMaterial); AssetDatabase.CreateAsset(mat, matPath); }
+        else mat.CopyPropertiesFromMaterial(r.sharedMaterial);
+        tune(mat); EditorUtility.SetDirty(mat); AssetDatabase.SaveAssetIfDirty(mat);
+        string dest = detDir + "/" + name + "_Detail.prefab";
+        var go = new GameObject(name + "_Detail");
+        go.AddComponent<MeshFilter>().sharedMesh = r.GetComponent<MeshFilter>().sharedMesh;
+        var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
+        mr.shadowCastingMode = shadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+        PrefabUtility.SaveAsPrefabAsset(go, dest);
+        UnityEngine.Object.DestroyImmediate(go);
+        return dest;
+    }
+
+    // Same mean as BK's _Grass.mat (no tone step where the details end), with a wider sunlit/cool spread in 10-15 m blobs.
+    static void MeadowGrass(Material m) { m.SetColor("_Color01", new Color(0.58f, 0.72f, 0.30f)); m.SetColor("_Color02", new Color(0.27f, 0.51f, 0.18f)); m.SetFloat("_NoiseTiling", 0.04f); }
+    static void TallGrass(Material m) { m.SetColor("_Color01", new Color(0.66f, 0.73f, 0.33f)); m.SetColor("_Color02", new Color(0.46f, 0.60f, 0.22f)); m.SetFloat("_NoiseTiling", 0.04f); }
+
+    // Detail draw distance and the matching BK fade distance (keep bk = 2x detail).
+    public static object DrawDistances(float detail, float bk)
+    {
+        var t = Terrain.activeTerrain ?? throw new InvalidOperationException("No terrain.");
+        Undo.RecordObject(t, "Detail distance");
+        t.detailObjectDistance = detail;   // QualitySettings overrides are off, so the per-terrain value is used
+        t.detailObjectDensity = 1f;
+        EditorUtility.SetDirty(t);
+        var type = Type.GetType("Aipocalypse.Core.EnvironmentSystem.BKFoliageGlobals, Aipocalypse.Core") ?? throw new InvalidOperationException("BKFoliageGlobals not compiled");
+        var g = UnityEngine.Object.FindAnyObjectByType(type) ?? throw new InvalidOperationException("Run FoliageGlobals first");
+        var so = new SerializedObject(g);
+        so.FindProperty("_renderDistance").floatValue = bk;
+        so.ApplyModifiedProperties();      // OnValidate re-applies the shader global
+        EditorSceneManager.MarkSceneDirty(t.gameObject.scene);
+        return new { t.detailObjectDistance, bk, global = Shader.GetGlobalFloat("GrassRenderDist") };
+    }
+
     // ---- MicroVerse stack ----
     public static object Build()
     {
@@ -4381,6 +4851,10 @@ public static class Vegetation
         string FT(int i) => Folder + "/Prefabs/Fir_Tall_" + i + "_Capsule.prefab";
         var c = new Vector2(500, 500);
         uint seed = 100;
+        string L1 = TintedDetail(BKP + "Grass1.prefab", "BK_Grass1_Meadow", MeadowGrass, false);
+        string L2 = TintedDetail(BKP + "Grass2.prefab", "BK_Grass2_Meadow", MeadowGrass, false);
+        string G3 = TintedDetail(BKP + "Grass3.prefab", "BK_Grass3_Tall", TallGrass, true);
+        string SO = TintedDetail(BKP + "Sorrel.prefab", "BK_Sorrel_Dark", m => { m.SetColor("_Color01", new Color(0.30f, 0.52f, 0.17f)); m.SetColor("_Color02", new Color(0.25f, 0.45f, 0.16f)); }, true);
         TreeStamp T(Transform p, string name, string[] prefabs, float[] weights, Vector2 scale, float density, string mask)
         {
             var s = Veg.Trees(p, name, prefabs, weights, scale, density, seed++, c, 1000);
@@ -4416,7 +4890,7 @@ public static class Vegetation
         Veg.Slope(hdead.filterSet, 0, 46, 0, 6);
         // meadow trees as in the BK Meadows demo: mostly singles and groups of 2-3, round broadleafs, birches as accents
         var edge = T(trees, "Meadow Edge Trees", new[] { GV + "Broadleaf_Medium_1.prefab", GV + "Broadleaf_Medium_2.prefab", GV + "Broadleaf_Small_2.prefab", GV + "Birch_Medium_1.prefab", GV + "Birch_Medium_2.prefab", GV + "Birch_Small_1.prefab" },
-            new[] { 22f, 22f, 20f, 12f, 12f, 12f }, new Vector2(0.85f, 1.15f), 2.2f, "Meadow");
+            new[] { 22f, 22f, 20f, 12f, 12f, 12f }, new Vector2(0.85f, 1.15f), 2.2f, "MeadowTrees");
         Veg.Slope(edge.filterSet, 0, 27, 0, 6); Veg.Noise(edge.filterSet.weightNoise, 2, 12.6f, 6f, 0.15f);
         // tree belt outside the playable edge: tall pines and broadleafs, short trees behind the home so the ridges show
         var rimP = T(trees, "Rim Pines", new[] { KN + "PineTree_3.prefab", KN + "PineTree_4.prefab", KN + "PineTree_5.prefab", KN + "PineTree_6.prefab", KN + "PineTree_2.prefab" },
@@ -4462,31 +4936,44 @@ public static class Vegetation
         // Meadow after the BK Pure Nature Meadows demo: a short bright lawn, flowers in hard-edged drifts of one to three
         // species with plain lawn between (high noise amplitude = crisp drifts), barley tufts, tall grass only at tree feet.
         void Proto(DetailStamp s, float align, float jitter, float spread) { s.prototype.alignToGround = align; s.prototype.positionJitter = jitter; s.prototype.noiseSpread = spread; }
-        var lawnA = D("Meadow Lawn A", BKP + "Grass1.prefab", new Vector2(1.0f, 1.5f), new Vector2(1.0f, 1.6f), 2.0f, "Meadow"); TexFilter(lawnA.filterSet, grassLayers); Proto(lawnA, 1, 0.3f, 2.5f);
-        var lawnB = D("Meadow Lawn B", BKP + "Grass2.prefab", new Vector2(1.0f, 1.5f), new Vector2(1.0f, 1.5f), 1.8f, "Meadow"); TexFilter(lawnB.filterSet, grassLayers); Proto(lawnB, 1, 0.3f, 1.8f);
-        var mgl = D("Meadow Tall Grass", DetailPrefab(KN + "Grass_1_Large.prefab"), new Vector2(0.9f, 1.15f), new Vector2(0.9f, 1.2f), 0.9f, "Meadow"); TexFilter(mgl.filterSet, grassLayers);
+        // lawn tips 0.4-0.8 m outside the fence so blades hide the ground at 20 m (eye 1.7 m); a mown lawn in the yard and the bridge lane
+        var lawnA = D("Meadow Lawn A", L1, new Vector2(1.2f, 2.0f), new Vector2(1.6f, 2.8f), 2.0f, "MeadowLawn"); TexFilter(lawnA.filterSet, grassLayers); Proto(lawnA, 1, 0.3f, 2.5f);
+        var lawnB = D("Meadow Lawn B", L2, new Vector2(1.2f, 2.0f), new Vector2(1.6f, 2.6f), 1.8f, "MeadowLawn"); TexFilter(lawnB.filterSet, grassLayers); Proto(lawnB, 1, 0.3f, 1.8f);
+        var yardA = D("Yard Lawn A", L1, new Vector2(1.0f, 1.5f), new Vector2(1.2f, 1.8f), 2.2f, "Yard"); TexFilter(yardA.filterSet, grassLayers); Proto(yardA, 1, 0.3f, 2.5f);
+        var yardB = D("Yard Lawn B", L2, new Vector2(1.0f, 1.5f), new Vector2(1.1f, 1.6f), 1.8f, "Yard"); TexFilter(yardB.filterSet, grassLayers); Proto(yardB, 1, 0.3f, 1.8f);
+        var mgl = D("Meadow Tall Grass", G3, new Vector2(0.7f, 1.1f), new Vector2(0.8f, 1.2f), 1.6f, "Meadow"); TexFilter(mgl.filterSet, grassLayers); Proto(mgl, 0.6f, 0.6f, 0.9f);
         mgl.maxDistanceFromTree = 7f; mgl.filterSet.weight = 0.7f; Veg.Noise(mgl.filterSet.weightNoise, 2, 30, 6f, 0.10f);
         // heads speckle the lawn in loose patches (BK foreground), fields and lavender form large drifts, gorse adds yellow accents
-        var daisy = D("Meadow Daisies", BKP + "Daisy.prefab", new Vector2(1.0f, 1.6f), new Vector2(1.5f, 3.5f), 1.5f, "MeadowFlowers"); TexFilter(daisy.filterSet, grassLayers); Proto(daisy, 1, 0.7f, 1.6f);
+        var daisy = D("Meadow Daisies", BKP + "Daisy.prefab", new Vector2(1.0f, 1.6f), new Vector2(2.5f, 5.0f), 1.5f, "MeadowFlowers"); TexFilter(daisy.filterSet, grassLayers); Proto(daisy, 1, 0.7f, 1.6f);
         daisy.minDistanceFromTree = 4f; Veg.Noise(daisy.filterSet.weightNoise, 2, 30, 6f, 0.12f, 0f);
-        var blue = D("Meadow Blue Heads", BKP + "CommonBlue.prefab", new Vector2(1.0f, 1.6f), new Vector2(1.5f, 3.5f), 1.2f, "MeadowFlowers"); TexFilter(blue.filterSet, grassLayers); Proto(blue, 1, 0.7f, 1.0f);
+        var blue = D("Meadow Blue Heads", BKP + "CommonBlue.prefab", new Vector2(1.0f, 1.6f), new Vector2(2.5f, 5.0f), 1.2f, "MeadowFlowers"); TexFilter(blue.filterSet, grassLayers); Proto(blue, 1, 0.7f, 1.0f);
         blue.minDistanceFromTree = 4f; Veg.Noise(blue.filterSet.weightNoise, 2, 30, 6f, 0.12f, 0.15f);
-        var pink = D("Meadow Pink Heads", BKP + "CommonPink.prefab", new Vector2(1.0f, 1.6f), new Vector2(1.0f, 3.0f), 1.0f, "MeadowFlowers"); TexFilter(pink.filterSet, grassLayers); Proto(pink, 1, 0.7f, 0.5f);
+        var pink = D("Meadow Pink Heads", BKP + "CommonPink.prefab", new Vector2(1.0f, 1.6f), new Vector2(2.0f, 4.0f), 1.0f, "MeadowFlowers"); TexFilter(pink.filterSet, grassLayers); Proto(pink, 1, 0.7f, 0.5f);
         pink.minDistanceFromTree = 4f; Veg.Noise(pink.filterSet.weightNoise, 2, 30, 6f, 0.14f, 0.45f);
         var orange = D("Meadow Orange Field", BKP + "FlowerMeadow1.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 1.0f, "MeadowFlowers"); TexFilter(orange.filterSet, grassLayers); Proto(orange, 0.5f, 0.7f, 0.4f);
         Veg.Slope(orange.filterSet, 0, 20, 0, 4); Veg.Noise(orange.filterSet.weightNoise, 2, 20, 10f, 0.17f, 2f);
         var blueField = D("Meadow Blue Field", BKP + "FlowerMeadow3.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 0.8f, "MeadowFlowers"); TexFilter(blueField.filterSet, grassLayers); Proto(blueField, 0.5f, 0.7f, 0.55f);
-        Veg.Slope(blueField.filterSet, 0, 20, 0, 4); Veg.Noise(blueField.filterSet.weightNoise, 2, 20, 10f, 0.17f, 2f);
+        Veg.Slope(blueField.filterSet, 0, 20, 0, 4); Veg.Noise(blueField.filterSet.weightNoise, 2, 20, 10f, 0.17f, 6.5f);   // off the orange field's cells
         var lavender = D("Meadow Lavender", BKP + "Lavender.prefab", new Vector2(0.8f, 1.3f), new Vector2(0.8f, 1.3f), 2.0f, "MeadowFlowers"); TexFilter(lavender.filterSet, grassLayers); Proto(lavender, 0, 0.7f, 0.6f);
         lavender.minDistanceFromTree = 5f; Veg.Slope(lavender.filterSet, 0, 27, 0, 6); Veg.Noise(lavender.filterSet.weightNoise, 2, 16, 8f, 0.12f, 5f);
         var gorse = D("Meadow Gorse", BKP + "Gorse1.prefab", new Vector2(0.8f, 1.2f), new Vector2(0.8f, 1.2f), 0.8f, "MeadowFlowers"); TexFilter(gorse.filterSet, grassLayers); Proto(gorse, 0, 0.7f, 2.4f);
         gorse.minDistanceFromTree = 5f; Veg.Noise(gorse.filterSet.weightNoise, 2, 45, 10f, 0.2f, 3f);
-        var barley = D("Meadow Barley Tufts", BKP + "GrassMeadows3.prefab", new Vector2(0.6f, 0.9f), new Vector2(0.5f, 0.8f), 0.8f, "Meadow"); TexFilter(barley.filterSet, grassLayers); Proto(barley, 0, 0.7f, 0.5f);
+        var barley = D("Meadow Barley Tufts", BKP + "GrassMeadows3.prefab", new Vector2(0.7f, 1.0f), new Vector2(0.8f, 1.15f), 0.8f, "MeadowLawn"); TexFilter(barley.filterSet, grassLayers); Proto(barley, 0, 0.7f, 0.5f);
         barley.filterSet.weight = 0.7f; Veg.Noise(barley.filterSet.weightNoise, 2, 90, 12f, 0.21f, 7f);
+        // knee-high unmown clumps, dark leafy patches and upright spikes (violet salvia, lupins, white wild carrot) in drifts
+        var tallClumps = D("Meadow Tall Clumps", G3, new Vector2(0.6f, 1.0f), new Vector2(0.6f, 1.0f), 2.0f, "MeadowTall"); TexFilter(tallClumps.filterSet, grassLayers); Proto(tallClumps, 0.6f, 0.6f, 0.9f);
+        var sorrel = D("Meadow Sorrel", SO, new Vector2(1.0f, 2.0f), new Vector2(2.0f, 3.5f), 2.5f, "MeadowCover"); TexFilter(sorrel.filterSet, grassLayers); Proto(sorrel, 1, 0.5f, 0.6f);
+        var salvia = D("Meadow Violet Spikes", KN + "Salvia_Group_1.prefab", new Vector2(0.6f, 1.0f), new Vector2(0.6f, 0.85f), 1.2f, "MeadowSpikes"); TexFilter(salvia.filterSet, grassLayers); Proto(salvia, 0.3f, 0.8f, 1.0f);
+        Veg.Slope(salvia.filterSet, 0, 40, 0, 6);
+        var lupins = D("Meadow Lupins", BKP + "Lupin2.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.8f, 1.15f), 0.5f, "MeadowSpikes"); TexFilter(lupins.filterSet, grassLayers); Proto(lupins, 0, 0.8f, 0.6f);
+        Veg.Noise(lupins.filterSet.weightNoise, 2, 60, 4f, 0f, 4f);
+        var carrot = D("Meadow Wild Carrot", BKP + "Carot1.prefab", new Vector2(0.6f, 0.9f), new Vector2(0.7f, 1.0f), 0.45f, "MeadowSpikes"); TexFilter(carrot.filterSet, grassLayers); Proto(carrot, 0.3f, 0.8f, 0.8f);
+        Veg.Noise(carrot.filterSet.weightNoise, 2, 60, 4f, 0f, 8f);
         var wg = D("Wild Grass", KN + "Grass_1.prefab", new Vector2(0.9f, 1.15f), new Vector2(0.75f, 1.05f), 1.3f, "Wild"); TexFilter(wg.filterSet, grassLayers);
         Veg.Slope(wg.filterSet, 0, 46, 0, 6);
         var wt = D("Wild Tufts", DetailPrefab(KN + "Grass_1_Large.prefab"), new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 0.7f, "Wild"); TexFilter(wt.filterSet, grassLayers);
         Veg.Noise(wt.filterSet.weightNoise, 2, 35, 2.5f, 0.15f);
+        var pathTufts = D("Trail Edge Tufts", DetailPrefab(KN + "Grass_1_Large.prefab"), new Vector2(0.6f, 0.85f), new Vector2(0.9f, 1.3f), 1.1f, "TrailEdge"); TexFilter(pathTufts.filterSet, grassLayers); Proto(pathTufts, 0.3f, 0.8f, 0.6f);
         var wf = D("Wild Flowers", DetailPrefab(HF + "Flowers_1.prefab"), new Vector2(0.9f, 1.1f), new Vector2(0.9f, 1.1f), 1.0f, "Wild"); TexFilter(wf.filterSet, grassLayers);
         Veg.Noise(wf.filterSet.weightNoise, 2, 30, 3f, 0.42f);
         var cl = D("Clovers", KN + "Clovers_1.prefab", new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 1.4f, "Wild");
@@ -4522,6 +5009,15 @@ public static class Vegetation
         // clearing: removes spawns of the stamps above
         var ct = Clear(clear, "Clear Trees", M("ClearTrees"), true, false);
         var cd = Clear(clear, "Clear Details", M("ClearDetails"), false, true);
+        // pebbles lie on the bare core, which Clear Details empties: only clear stamps after a detail stamp clear it
+        var trailDressing = Veg.Group("Vegetation/Trail Dressing");
+        foreach (var (label, path, dens) in new[] { ("Trail Pebbles A", KR + "SmallStone_5.prefab", 0.15f), ("Trail Pebbles B", KR + "SmallStone_6.prefab", 0.1f) })
+        {
+            var pb = Veg.Detail(trailDressing, label, path, new Vector2(0.28f, 0.4f), new Vector2(0.25f, 0.35f), 1f, dens, c, 1000);
+            Veg.Mask(pb.filterSet, M("TrailPebbles"));
+            TexFilter(pb.filterSet, new[] { "MH_Dirt", "MH_WetMud", "MH_Pebbles" });
+            Proto(pb, 1f, 0.8f, 0.5f);
+        }
 
         foreach (var st in root.GetComponentsInChildren<Stamp>(true)) EditorUtility.SetDirty(st);
         EditorSceneManager.MarkSceneDirty(mv.gameObject.scene);
@@ -4821,16 +5317,17 @@ public static class Finishing
         return new { objects = n };
     }
 
-    // Player starts by the campfire, looking out of the gate toward the bridge.
+    // Player starts inside the gate, looking through it toward the bridge.
     public static object PlayerSpawn()
     {
         var player = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(g => g.name == "Player");
         if (player == null) return "no Player root";
         var terrain = Terrain.activeTerrain;
-        var at = new Vector3(333.5f, 0, 281.5f);
+        var s = MeadowHomeLayout.HomeSpawn; var d = MeadowHomeLayout.Bridge - s;
+        var at = new Vector3(s.x, 0, s.y);
         at.y = terrain.SampleHeight(at) + 0.1f;
         Undo.RecordObject(player.transform, "Player spawn");
-        player.transform.SetPositionAndRotation(at, Quaternion.Euler(0, 345f, 0));
+        player.transform.SetPositionAndRotation(at, Quaternion.Euler(0, Mathf.Atan2(d.x, d.y) * Mathf.Rad2Deg, 0));
         EditorSceneManager.MarkSceneDirty(player.scene);
         return player.transform.position.ToString("F2");
     }

@@ -11,6 +11,8 @@ public static class Atmosphere
 {
     const string Folder = "Assets/_Game/Data/Environment/MeadowHome";
     const string KomorebiProfile = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Demo/Settings/KomorebiNature_Demo_Post-Processing.asset";
+    // Low sun from the east-south-east: the home->bridge view is side-lit and the meadow's east view back-lit (glowing grass and leaf edges).
+    const float SunPitch = 32f, SunYaw = 300f;
 
     public static object Report()
     {
@@ -73,10 +75,10 @@ public static class Atmosphere
 
         var sun = Object.FindObjectsByType<Light>().First(l => l.type == LightType.Directional);
         Undo.RecordObject(sun, "Sun"); Undo.RecordObject(sun.transform, "Sun");
-        sun.transform.rotation = Quaternion.Euler(48f, 300f, 0f);
-        sun.useColorTemperature = true; sun.colorTemperature = 5400f;
+        sun.transform.rotation = Quaternion.Euler(SunPitch, SunYaw, 0f);
+        sun.useColorTemperature = true; sun.colorTemperature = 5000f;
         sun.color = new Color(1f, 0.97f, 0.92f);
-        sun.intensity = 2.5f;
+        sun.intensity = 2.8f;
         sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.8f;
         sun.cookie = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Textures/Nature/CloudShadows_Cookie.png");
         var urpLight = sun.GetComponent<UniversalAdditionalLightData>();
@@ -109,10 +111,43 @@ public static class Atmosphere
         return new { sun = sun.transform.eulerAngles.ToString(), sky = skyPath, fog = RenderSettings.fogDensity };
     }
 
+    // Project URP settings for open vistas: sun shadows to 150 m (URP template 50; Komorebi demo 500, HIGHLANDS 120) and
+    // SSAO with the Komorebi demo values, so trunks, rocks and posts sit in the grass.
+    public static object RenderQuality()
+    {
+        var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
+        var so = new SerializedObject(asset);
+        so.FindProperty("m_ShadowDistance").floatValue = 150f;
+        so.FindProperty("m_ShadowCascadeCount").intValue = 4;
+        so.FindProperty("m_Cascade4Split").vector3Value = new Vector3(0.05f, 0.16f, 0.42f);   // 7.5 / 24 / 63 / 150 m
+        so.FindProperty("m_MainLightShadowmapResolution").intValue = 4096;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        AssetDatabase.SaveAssetIfDirty(asset);
+
+        var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/Settings/PC_Renderer.asset");
+        var ssao = renderer.rendererFeatures.First(f => f is ScreenSpaceAmbientOcclusion);
+        var fs = new SerializedObject(ssao);
+        fs.FindProperty("m_Settings.AOMethod").intValue = 1;
+        fs.FindProperty("m_Settings.Source").intValue = 1;
+        fs.FindProperty("m_Settings.Intensity").floatValue = 0.6f;
+        fs.FindProperty("m_Settings.DirectLightingStrength").floatValue = 0.3f;
+        fs.FindProperty("m_Settings.Radius").floatValue = 1.2f;
+        fs.FindProperty("m_Settings.BlurQuality").intValue = 1;
+        fs.FindProperty("m_Settings.Falloff").floatValue = 150f;
+        fs.ApplyModifiedPropertiesWithoutUndo();
+        ssao.SetActive(true);
+        EditorUtility.SetDirty(ssao); EditorUtility.SetDirty(renderer);
+        AssetDatabase.SaveAssetIfDirty(renderer);
+        return new { asset.shadowDistance, asset.shadowCascadeCount, asset.mainLightShadowmapResolution, ssao = ssao.isActive };
+    }
+
     const string KNP = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/Particle Systems/";
     const string GLP = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Particle Effects/";
     const string HLP = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/FX/";
     const string BKP = "Assets/_StoreAssets/Env/BK/PureNature_Meadows/Prefabs/Fx/";
+    const string KRP = "Assets/_StoreAssets/GameFeel/Kroma/Content/Prefabs/";
+    const string SFN = "Assets/_StoreAssets/Env/SICS/Toon Fantasy Nature/Particles/";
+    const string SEM = "Assets/_StoreAssets/Env/SICS/Toon Series/Toon Enchanted Meadow/Particles/";
 
     // Ambient particles under Environment/Atmosphere (rebuilt each run). Heights are sampled from the terrain.
     public static object Particles()
@@ -128,19 +163,31 @@ public static class Atmosphere
         var rng = new System.Random(3);
         int n = 0;
         Transform Grp(string name) { var t = new GameObject(name).transform; t.SetParent(root, false); return t; }
-        void Put(Transform parent, string path, Vector3 pos, Vector3 euler, Vector3 scale)
+        GameObject Put(Transform parent, string path, Vector3 pos, Vector3 euler, Vector3 scale)
         {
             var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path), parent);
             go.transform.SetPositionAndRotation(pos, Quaternion.Euler(euler));
             go.transform.localScale = scale;
             foreach (var r in go.GetComponentsInChildren<ParticleSystemRenderer>()) r.shadowCastingMode = ShadowCastingMode.Off;
             n++;
+            return go;
+        }
+        // Edits a placed vendor system; recorded as prefab overrides, otherwise the next prefab reload reverts them.
+        void Tune(GameObject go, System.Action<ParticleSystem> edit)
+        {
+            foreach (var ps in go.GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = ps.main;
+                main.cullingMode = ParticleSystemCullingMode.Pause;   // the SICS and Kroma systems keep simulating off screen
+                edit?.Invoke(ps);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(ps);
+            }
         }
         var rays = Grp("God Rays");
         foreach (var (x, z) in new[] { (332f, 430f), (346f, 437f), (357f, 425f), (340f, 448f), (362f, 556f), (384f, 544f), (368f, 522f), (416f, 522f), (434f, 498f), (444f, 516f), (508f, 484f), (520f, 448f), (536f, 480f), (598f, 436f), (616f, 424f), (584f, 404f), (420f, 598f), (444f, 642f) })
-            Put(rays, GLP + "GodRays.prefab", new Vector3(x, G(x, z) - 0.5f, z), new Vector3(318, 300, 0), Vector3.one * 1.3f);
+            Put(rays, GLP + "GodRays.prefab", new Vector3(x, G(x, z) - 0.5f, z), new Vector3(SunPitch - 90, SunYaw, 0), Vector3.one * 1.3f);   // beam (local +Y) points at the sun
         foreach (var (x, z) in new[] { (214f, 660f), (236f, 646f), (248f, 668f), (300f, 720f), (420f, 720f), (470f, 700f) })
-            Put(rays, HLP + "GodRays.prefab", new Vector3(x, G(x, z) - 0.5f, z), new Vector3(318, 300, 0), Vector3.one * 1.1f);
+            Put(rays, HLP + "GodRays.prefab", new Vector3(x, G(x, z) - 0.5f, z), new Vector3(SunPitch - 90, SunYaw, 0), Vector3.one * 1.1f);
         var mist = Grp("Mist");
         foreach (var (x, z) in new[] { (344f, 435f), (371f, 541f), (431f, 512f), (521f, 471f), (599f, 421f), (432f, 620f), (233f, 658f), (397f, 713f) })
             Put(mist, KNP + "Fog_1.prefab", new Vector3(x, G(x, z) + 0.3f, z), new Vector3(0, rng.Next(360), 0), new Vector3(2f, 0.56f, 2f));
@@ -163,9 +210,34 @@ public static class Atmosphere
         foreach (var (x, z) in new[] { (322f, 252f), (352f, 270f), (300f, 300f), (390f, 262f), (450f, 255f), (495f, 230f), (280f, 340f), (305f, 330f), (300f, 228f), (395f, 226f), (470f, 230f), (350f, 232f) })
             Put(bugs, BKP + "Butterflies.prefab", new Vector3(x, G(x, z) + 1.8f, z), Vector3.zero, Vector3.one);
         var leaves = Grp("Leaf Fall");
-        foreach (var (x, z) in new[] { (330f, 300f), (296f, 280f), (300f, 352f), (420f, 280f), (360f, 400f), (560f, 320f), (548f, 236f) })
+        // under the home trees, the meadow's hero trees and two forest-edge broadleafs (hand-placed: re-check after layout changes)
+        foreach (var (x, z) in new[] { (255.7f, 266f), (281f, 263.7f), (289f, 274.4f), (340f, 250f), (410f, 268f), (285f, 340f), (479.4f, 256.1f), (360f, 400f), (560f, 320f) })
             Put(leaves, GLP + "Leaffall_Green.prefab", new Vector3(x, G(x, z) + 7f, z), Vector3.zero, Vector3.one);
-        Put(leaves, GLP + "Leaffall_Yellow.prefab", new Vector3(318, G(318, 296) + 7f, 296), Vector3.zero, Vector3.one);
+        Put(leaves, GLP + "Leaffall_Yellow.prefab", new Vector3(248.3f, G(248.3f, 295f) + 7f, 295f), Vector3.zero, Vector3.one);   // the autumn birch west of the yard
+        // dandelion seeds drifting over the meadow and the yard (yaw 30 = the wind drivers' yaw; the force is local z)
+        var seeds = Grp("Seed Fluff");
+        foreach (var (x, z) in new[] { (266f, 284f), (290f, 306f), (304f, 270f), (250f, 316f), (334f, 262f), (372f, 246f), (420f, 258f), (466f, 236f) })
+        {
+            var go = Put(seeds, KRP + "Kroma_Particle_Dandelions_Prefab.prefab", new Vector3(x, G(x, z) + 2f, z), new Vector3(0, 30, 0), Vector3.one);
+            foreach (var mb in go.GetComponents<MonoBehaviour>()) { mb.enabled = false; PrefabUtility.RecordPrefabInstancePropertyModifications(mb); }   // KromaCameraFollow drags the emitter along with the camera
+            Tune(go, ps =>
+            {
+                var main = ps.main; main.startLifetime = 7f; main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.17f);
+                var em = ps.emission; em.rateOverTime = 25f; em.rateOverDistance = 0f;
+                var col = ps.collision; col.enabled = false;   // world collision raycasts every particle
+            });
+        }
+        // gold motes in the god-ray clearings and over the home pond's island
+        var motes = Grp("Sunbeam Motes");
+        foreach (var (x, z) in new[] { (344f, 435f), (371f, 541f), (431f, 512f), (521f, 471f), (599f, 421f), (432f, 620f), (233f, 658f), (420f, 716f), (250f, 425f) })
+            Tune(Put(motes, SEM + "TEM_Dust_01A.prefab", new Vector3(x, G(x, z), z), Vector3.zero, Vector3.one * 1.4f), null);
+        // additive fireflies in shaded stands off the forest trails and at the swamp's wooded edge, knee to head height
+        var fireflies = Grp("Fireflies");
+        foreach (var (x, y, z) in new[] { (404f, 0f, 432f), (376f, 0f, 484f), (444f, 0f, 524f), (296f, 0f, 488f), (540f, 0f, 556f), (504f, 0f, 432f), (626f, 24.5f, 798f), (590f, 24.5f, 794f), (762f, 24.5f, 842f) })
+            Tune(Put(fireflies, SFN + "TFF_Fireflies_01A.prefab", new Vector3(x, Mathf.Max(y, G(x, z)), z), Vector3.zero, Vector3.one), ps =>
+            {
+                var shape = ps.shape; shape.position = new Vector3(0, 1.5f, 0); shape.radius = 3f;
+            });
         EditorSceneManager.MarkSceneDirty(scene);
         return new { particleSystems = n };
     }
