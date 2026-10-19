@@ -1,4 +1,9 @@
-﻿3.3.0
+﻿3.3.1
+
+Added:
+- Shader Graph subgraphs: Sample Dynamic Effects Data (Height/Foam), Sample Dynamic Effects Normals. These allow using Dynamic Effects in any Shader Graph.
+
+3.3.0
 Requires v3.3.0 of the Stylized Water 3 base asset!
 
 (Updated for v3.3.0)

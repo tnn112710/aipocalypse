@@ -15,7 +15,7 @@ namespace StylizedWater3.DynamicEffects
             this.assetStoreID = 299321;
             this.docUrl = "https://staggart.xyz/unity/stylized-water-3/sw3-dynamic-effects-docs/";
             
-            this.version = "3.3.0";
+            this.version = "3.3.1";
             this.minBaseVersion = "3.3.0";
         }
 

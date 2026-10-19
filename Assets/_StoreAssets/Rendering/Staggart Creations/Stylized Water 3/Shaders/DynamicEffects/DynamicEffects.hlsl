@@ -7,8 +7,6 @@
 
 #if !defined(SHADERGRAPH_PREVIEW)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#else
-SamplerState sampler_LinearClamp;
 #endif
 
 TEXTURE2D(_WaterDynamicEffectsBuffer);
@@ -61,12 +59,14 @@ float4 SampleDynamicEffectsData(float3 positionWS)
 {
 	float4 data = 0;
 	
+	#if !defined(SHADERGRAPH_PREVIEW)
 	if(_WaterDynamicEffectsCoords.w > 0)
 	{
 		data = SAMPLE_FUNC(_WaterDynamicEffectsBuffer, sampler_LinearClamp, DynamicEffectsSampleCoords(positionWS));
 				
 		data[DE_HEIGHT_CHANNEL] *= GLOBAL_DISPLACEMENT_STRENGTH;
 	}
+	#endif
 	
 	return data;
 }
@@ -88,6 +88,7 @@ float4 SampleDynamicEffectsNormals(float3 positionWS)
 	float4 neutralNormal = float4(0, 1.0, 0.0, 0.0);
 	float4 normals = neutralNormal;
 	
+	#if !defined(SHADERGRAPH_PREVIEW)
 	if(_WaterDynamicEffectsCoords.w > 0 && NORMALS_AVAILABLE)
 	{
 		//Buffer contains X and Z normal vectors packed into the RG channels
@@ -104,10 +105,20 @@ float4 SampleDynamicEffectsNormals(float3 positionWS)
 
 		normals.a = length(normals.xz) * edgeMask;
 	}
+	#endif
 	
 	return normals;
 }
 
+//Shader Graph
+void SampleDynamicEffectsNormals_float(float3 positionWS, out half3 normals, out half mask)
+{
+	float4 data = SampleDynamicEffectsNormals(positionWS);
+	normals = data.xyz;
+	mask = data.a;
+}
+
+#if !defined(SHADERGRAPH_PREVIEW)
 #include "../Libraries/Foam.hlsl"
 TEXTURE2D(_FoamTexDynamic);
 
@@ -138,3 +149,4 @@ float4 OutputEffect(float3 positionWS, float height, float foam, float normalHei
 
 }
 #define OUTPUT_EFFECT(struct, positionWS) return OutputEffect(positionWS, struct.displacement, struct.foamAmount, struct.normalGradient, struct.alpha)
+#endif
