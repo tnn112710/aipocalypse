@@ -166,7 +166,7 @@ namespace ArmoryCore
 
         private void Awake()
         {
-            random = new System.Random(GetInstanceID() ^ Environment.TickCount);
+            random = new System.Random();
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
             if (animator == null)
