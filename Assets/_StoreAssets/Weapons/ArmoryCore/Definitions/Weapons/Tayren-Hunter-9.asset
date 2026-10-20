@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca16ba1aafe98a74d9a608c3f8b2e015, type: 3}
+  m_Name: Tayren-Hunter-9
+  m_EditorClassIdentifier: Assembly-CSharp::ArmoryCore.ArmoryCoreWeaponDefinition
+  id: Tayren-Hunter-9
+  displayName: "Tayren Hunter-9"
+  weaponTags:
+  - ClosedBolt
+  - DetachableMagazine
+  - sights
+  action: 0
+  reloadType: 0
+  fireModes: 0000000001000000
+  roundsPerMinute: 171.42857
+  burstSize: 3
+  actionCycleTime: 0.7
+  ammunition: {fileID: 11400000, guid: 68d9a894888e8b9418c8ccbb45b7d465, type: 2}
+  magazineCapacity: 5
+  chamberCapacity: 1
+  spawnWithFullMagazine: 1
+  spawnWithChamberLoaded: 1
+  projectilesPerShot: 1
+  damagePerProjectile: 16
+  muzzleVelocityMultiplier: 1
+  accuracyMinutesOfAngle: 5.4625
+  hipFireSpreadMultiplier: 10
+  movingSpreadMultiplier: 2
+  heatSpreadMultiplier: 2.5
+  verticalRecoilDegrees: 1.12
+  horizontalRecoilDegrees: 0.435
+  recoilRandomness: 0.108571425
+  recoilRecoveryDegreesPerSecond: 4.5
+  recoilRecoveryDelay: 0.08
+  weaponMassKilograms: 3.6
+  aimDownSightsTime: 0.2816129
+  tacticalReloadTime: 4.92
+  emptyReloadTime: 6
+  perRoundReloadTime: 1.2
+  meanRoundsBetweenFailures: 3500
+  heatPerShot: 1.1520001
+  heatDissipationPerSecond: 2.5
+  heatForAccuracyPenalty: 32.29032
+  heatForCookOff: 88.798386
+  durabilityLossPerShot: 0.000025
+  foulingPerShot: 0.00015
+  compatibleAttachmentIds:
+  - Orvian-Field-4-Scope
+  - Orvian-Cobra-03-Reflex-Sight
+  - Orvian-Marksman-1-Scope
+  - Orvian-OP-78-Compact-Scope
+  - Nerovan-Night-U-Scope
+  - Orvian-OR-7-Reflex-Sight
+  - Orvian-OR-63-Reflex-Sight
+  - Orvian-ON-93-Night-Vision-Scope
+  - Orvian-OP-29-Prismatic-Scope
+  shotSound: {fileID: 8300000, guid: 8ec2e2b7d80f4ee091f633939a9df471, type: 3}
+  suppressedShotSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  emptySound: {fileID: 0}
+  shotVolume: 1
+  reloadVolume: 0.8
+  emptyVolume: 0.75
+  shotPitchVariation: 0.025
+  audioMinDistanceMeters: 2
+  audioMaxDistanceMeters: 250

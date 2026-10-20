@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca16ba1aafe98a74d9a608c3f8b2e015, type: 3}
+  m_Name: Mavrik-S40
+  m_EditorClassIdentifier: Assembly-CSharp::ArmoryCore.ArmoryCoreWeaponDefinition
+  id: Mavrik-S40
+  displayName: "Mavrik S40"
+  weaponTags:
+  - OpenBolt
+  - DetachableMagazine
+  action: 1
+  reloadType: 0
+  fireModes: 000000000100000003000000
+  roundsPerMinute: 600
+  burstSize: 3
+  actionCycleTime: 0.7
+  ammunition: {fileID: 11400000, guid: dc648231e0c760d448b605f47e1a61a0, type: 2}
+  magazineCapacity: 32
+  chamberCapacity: 0
+  spawnWithFullMagazine: 1
+  spawnWithChamberLoaded: 0
+  projectilesPerShot: 1
+  damagePerProjectile: 7
+  muzzleVelocityMultiplier: 1
+  accuracyMinutesOfAngle: 9.2
+  hipFireSpreadMultiplier: 10
+  movingSpreadMultiplier: 2
+  heatSpreadMultiplier: 2.5
+  verticalRecoilDegrees: 0.592
+  horizontalRecoilDegrees: 0.2535
+  recoilRandomness: 0.13405405
+  recoilRecoveryDegreesPerSecond: 4.5
+  recoilRecoveryDelay: 0.08
+  weaponMassKilograms: 2.8
+  aimDownSightsTime: 0.24806452
+  tacticalReloadTime: 3.28
+  emptyReloadTime: 4
+  perRoundReloadTime: 0.35
+  meanRoundsBetweenFailures: 5000
+  heatPerShot: 0.30422226
+  heatDissipationPerSecond: 2.5
+  heatForAccuracyPenalty: 29.451612
+  heatForCookOff: 80.991936
+  durabilityLossPerShot: 0.000025
+  foulingPerShot: 0.00012
+  compatibleAttachmentIds: []
+  shotSound: {fileID: 8300000, guid: 4bce6f3a57314c529cf69ce93b7c5ddc, type: 3}
+  suppressedShotSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  emptySound: {fileID: 0}
+  shotVolume: 1
+  reloadVolume: 0.8
+  emptyVolume: 0.75
+  shotPitchVariation: 0.025
+  audioMinDistanceMeters: 2
+  audioMaxDistanceMeters: 250

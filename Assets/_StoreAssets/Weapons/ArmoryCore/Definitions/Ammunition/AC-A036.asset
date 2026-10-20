@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fa7c6c09bc955b44bc363e1d10ffb6b, type: 3}
+  m_Name: AC-A036
+  m_EditorClassIdentifier: Assembly-CSharp::ArmoryCore.ArmoryCoreAmmunitionDefinition
+  id: AC-A036
+  displayName: "Magazine with 20 rounds 12.7x55 mm"
+  projectileMassGrams: 48
+  projectileDiameterMillimeters: 12.95
+  muzzleVelocityMetersPerSecond: 290
+  aerodynamicDragCoefficient: 0.36
+  gravityMultiplier: 1
+  maximumFlightTime: 6.8965516
+  maximumRangeMeters: 800
+  minimumLethalVelocity: 60
+  retainedDamageAtMinimumVelocity: 0.12
+  penetrationMultiplier: 1
+  ricochetEnergyRetention: 0.55
+  maximumSegmentLengthMeters: 2
+  maximumSubstepsPerFrame: 24
