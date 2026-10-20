@@ -1,0 +1,181 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7764158486401802069
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90ce1611ace1a9a4a8284d45a924bdcd, type: 3}
+  m_Name: Dithering
+  m_EditorClassIdentifier: sc.screeneffects.runtime::SCPE.Dithering
+  active: 1
+  shader: {fileID: 4800000, guid: 9dfd4d129fd660d43a2fb5c40d119ca4, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  lut:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: 7a95f13299f9b0948aff699c1881bfc6, type: 3}
+    dimension: 1
+  textureProjection:
+    m_OverrideState: 0
+    m_Value: 0
+  luminanceThreshold:
+    m_OverrideState: 1
+    m_Value: 0.348
+  tiling:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &-5817575935365423031
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dfc0ecd934e74246bcf9791abe617b0, type: 3}
+  m_Name: Pixelize
+  m_EditorClassIdentifier: sc.screeneffects.runtime::SCPE.Pixelize
+  active: 1
+  shader: {fileID: 4800000, guid: 418afc1867615f1408a4c6de9d799560, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  resolution:
+    m_OverrideState: 1
+    m_Value: 240
+  resolutionPreset:
+    m_OverrideState: 1
+    m_Value: 240
+  preserveAspectRatio:
+    m_OverrideState: 1
+    m_Value: 0
+  centerPixel:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &-4102926934323385268
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37d89a668a881f14b87b51bbbee96550, type: 3}
+  m_Name: Posterize
+  m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.Posterize
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  shader: {fileID: 0}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  hsvMode:
+    m_OverrideState: 0
+    m_Value: 1
+  levels:
+    m_OverrideState: 0
+    m_Value: 256
+  hue:
+    m_OverrideState: 0
+    m_Value: 256
+  value:
+    m_OverrideState: 1
+    m_Value: 24
+  saturation:
+    m_OverrideState: 0
+    m_Value: 256
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Dithered Retro
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
+  components:
+  - {fileID: -4102926934323385268}
+--- !u!114 &5073402876540905357
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36e21a9f18817d444b2c00478e04a58e, type: 3}
+  m_Name: Posterize
+  m_EditorClassIdentifier: sc.screeneffects.runtime::SCPE.Posterize
+  active: 1
+  shader: {fileID: 4800000, guid: 40279b644fb7ed248b6b89369b5ae060, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  hsvMode:
+    m_OverrideState: 1
+    m_Value: 1
+  levels:
+    m_OverrideState: 1
+    m_Value: 16
+  hue:
+    m_OverrideState: 1
+    m_Value: 64
+  saturation:
+    m_OverrideState: 1
+    m_Value: 64
+  value:
+    m_OverrideState: 1
+    m_Value: 64
+--- !u!114 &8478330483999036718
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae979ba049e535429dde8ab92b28488, type: 3}
+  m_Name: Scanlines
+  m_EditorClassIdentifier: 
+  active: 1
+  shader: {fileID: 4800000, guid: 9a37ab67e535e704b8e007d86c2be9ff, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.214
+  lineColor:
+    m_OverrideState: 0
+    m_Value: 0
+  linePixelSpacing:
+    m_OverrideState: 1
+    m_Value: 1
+  linesManual:
+    m_OverrideState: 1
+    m_Value: 700
+  resolutionDependent:
+    m_OverrideState: 0
+    m_Value: 1
+  speed:
+    m_OverrideState: 1
+    m_Value: 0

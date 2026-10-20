@@ -1,0 +1,492 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8791666693823126863
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb9e7f73449af6d41994438a1a970a42, type: 3}
+  m_Name: Fog
+  m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.Fog
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0
+  shader: {fileID: 4800000, guid: 0b0566f7204d7d84e91f0a1c315a8c4d, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  fogMode:
+    m_OverrideState: 0
+    m_Value: 2
+  startDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  endDistance:
+    m_OverrideState: 0
+    m_Value: 100
+  colorSource:
+    m_OverrideState: 0
+    m_Value: 0
+  fogColor:
+    m_OverrideState: 0
+    m_Value: {r: 0.76, g: 0.94, b: 1, a: 1}
+  fogColorGradient:
+    m_OverrideState: 0
+    m_Value:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 1, g: 1, b: 1, a: 1}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 0
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 0
+      colorSpace: -1
+  gradientDistance:
+    m_OverrideState: 0
+    m_Value: 1000
+  gradientUseFarClipPlane:
+    m_OverrideState: 0
+    m_Value: 1
+  distanceFog:
+    m_OverrideState: 0
+    m_Value: 1
+  distanceDensity:
+    m_OverrideState: 0
+    m_Value: 1
+  useRadialDistance:
+    m_OverrideState: 0
+    m_Value: 1
+  horizonMinMax:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 1}
+  skyboxInfluence:
+    m_OverrideState: 0
+    m_Value: 1
+  skyboxBlurring:
+    m_OverrideState: 0
+    m_Value: 0
+  enableDirectionalLight:
+    m_OverrideState: 0
+    m_Value: 0
+  sunIntensityInfluence:
+    m_OverrideState: 0
+    m_Value: 1
+  sunColorInfluence:
+    m_OverrideState: 0
+    m_Value: 1
+  sunTemperatureShift:
+    m_OverrideState: 0
+    m_Value: 0
+  useLightDirection:
+    m_OverrideState: 0
+    m_Value: 1
+  sunLightColor:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 0.89, b: 0.55, a: 1}
+  lightDirection:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0.5, z: -1}
+  sunLightIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+  lightExponent:
+    m_OverrideState: 0
+    m_Value: 8
+  heightFog:
+    m_OverrideState: 0
+    m_Value: 0
+  height:
+    m_OverrideState: 0
+    m_Value: 10
+  invertHeightFog:
+    m_OverrideState: 0
+    m_Value: 0
+  heightDensity:
+    m_OverrideState: 0
+    m_Value: 0.75
+  heightFogNoise:
+    m_OverrideState: 0
+    m_Value: 1
+  heightNoiseTex3D:
+    m_OverrideState: 1
+    m_Value: {fileID: 11700000, guid: 708d947190c537a4e8ad0c99eeca62f5, type: 2}
+  heightNoiseSize:
+    m_OverrideState: 0
+    m_Value: 0.25
+  heightNoiseStrength:
+    m_OverrideState: 0
+    m_Value: 1
+  heightNoiseHorizontalSpeed:
+    m_OverrideState: 0
+    m_Value: 0.25
+  heightNoiseVerticalSpeed:
+    m_OverrideState: 0
+    m_Value: 0.25
+--- !u!114 &-7399915680060110714
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f1d71d50e791344adc1c772aaaa53a, type: 3}
+  m_Name: Ripples
+  m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.Ripples
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  shader: {fileID: 4800000, guid: 448d1629e6e331545830a975d3f1f2e7, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  mode:
+    m_OverrideState: 0
+    m_Value: 0
+  distortionMap:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: 8af8b9cb204211d42a11edc94c9eced3, type: 3}
+    dimension: 1
+  textureProjection:
+    m_OverrideState: 0
+    m_Value: 0
+  strength:
+    m_OverrideState: 0
+    m_Value: 1
+  distance:
+    m_OverrideState: 0
+    m_Value: 5
+  speed:
+    m_OverrideState: 0
+    m_Value: 1
+  width:
+    m_OverrideState: 0
+    m_Value: 0.75
+  height:
+    m_OverrideState: 0
+    m_Value: 1
+--- !u!114 &-651965401288396537
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1f83681ef12547498b362aa7adec64e, type: 3}
+  m_Name: Ripples
+  m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.Ripples
+  active: 1
+  shader: {fileID: 4800000, guid: cc32764044bcef746970dca5bb25a328, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  mode:
+    m_OverrideState: 1
+    m_Value: 1
+  distortionMap:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: 98414aeb9a4f6be44ba48a92ee075ec1, type: 3}
+  textureProjection:
+    m_OverrideState: 1
+    m_Value: 1
+  strength:
+    m_OverrideState: 1
+    m_Value: 0.081
+  distance:
+    m_OverrideState: 1
+    m_Value: 5
+  speed:
+    m_OverrideState: 1
+    m_Value: 4
+  width:
+    m_OverrideState: 0
+    m_Value: 1.5
+  height:
+    m_OverrideState: 0
+    m_Value: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Underwater
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
+  components:
+  - {fileID: 6236772844062502811}
+  - {fileID: 8300850761679459947}
+  - {fileID: -8791666693823126863}
+  - {fileID: -7399915680060110714}
+--- !u!114 &82171432883604456
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74483714bbf784b45b0c9c7c76035dd8, type: 3}
+  m_Name: Fog
+  m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.Fog
+  active: 1
+  shader: {fileID: 4800000, guid: 8080b34b2281e8945a5ddfe687d717fb, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  fogMode:
+    m_OverrideState: 0
+    m_Value: 2
+  startDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  endDistance:
+    m_OverrideState: 0
+    m_Value: 600
+  colorSource:
+    m_OverrideState: 0
+    m_Value: 0
+  fogColor:
+    m_OverrideState: 1
+    m_Value: {r: 0, g: 0.02780534, b: 0.13207549, a: 1}
+  fogColorGradient:
+    m_OverrideState: 0
+    m_Value:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 1, g: 1, b: 1, a: 1}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 0
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 0
+      colorSpace: -1
+  gradientDistance:
+    m_OverrideState: 0
+    m_Value: 1000
+  gradientUseFarClipPlane:
+    m_OverrideState: 0
+    m_Value: 1
+  distanceFog:
+    m_OverrideState: 1
+    m_Value: 1
+  distanceDensity:
+    m_OverrideState: 1
+    m_Value: 4
+  useRadialDistance:
+    m_OverrideState: 1
+    m_Value: 0
+  horizonMinMax:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 1}
+  skyboxInfluence:
+    m_OverrideState: 0
+    m_Value: 1
+  skyboxBlurring:
+    m_OverrideState: 0
+    m_Value: 0
+  enableDirectionalLight:
+    m_OverrideState: 0
+    m_Value: 0
+  useLightDirection:
+    m_OverrideState: 0
+    m_Value: 1
+  useLightColor:
+    m_OverrideState: 0
+    m_Value: 1
+  useLightIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+  lightColor:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 0.89, b: 0.55, a: 1}
+  lightDirection:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0.5, z: -1}
+  lightIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+  lightExponent:
+    m_OverrideState: 0
+    m_Value: 8
+  heightFog:
+    m_OverrideState: 1
+    m_Value: 0
+  height:
+    m_OverrideState: 0
+    m_Value: 10
+  heightDensity:
+    m_OverrideState: 0
+    m_Value: 0.75
+  heightFogNoise:
+    m_OverrideState: 0
+    m_Value: 1
+  heightNoiseTex3D:
+    m_OverrideState: 1
+    m_Value: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
+  heightNoiseSize:
+    m_OverrideState: 0
+    m_Value: 0.25
+  heightNoiseStrength:
+    m_OverrideState: 0
+    m_Value: 1
+  heightNoiseHorizontalSpeed:
+    m_OverrideState: 0
+    m_Value: 0.25
+  heightNoiseVerticalSpeed:
+    m_OverrideState: 0
+    m_Value: 0.25
+--- !u!114 &6236772844062502811
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 899c54efeace73346a0a16faa3afe726, type: 3}
+  m_Name: Vignette
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.Vignette
+  active: 1
+  color:
+    m_OverrideState: 0
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
+  center:
+    m_OverrideState: 0
+    m_Value: {x: 0.5, y: 0.5}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.413
+  smoothness:
+    m_OverrideState: 0
+    m_Value: 0.2
+  rounded:
+    m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &8300850761679459947
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70afe9e12c7a7ed47911bb608a23a8ff, type: 3}
+  m_Name: SplitToning
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.SplitToning
+  active: 1
+  shadows:
+    m_OverrideState: 1
+    m_Value: {r: 0, g: 0.19573942, b: 0.3207547, a: 1}
+  highlights:
+    m_OverrideState: 0
+    m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  balance:
+    m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &8430254018961364392
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d6e299dc3638154bbc6de09e3382285, type: 3}
+  m_Name: Blur
+  m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.Blur
+  active: 1
+  shader: {fileID: 4800000, guid: fa78272576207e243bc6ec9f8a6c4f73, type: 3}
+  normalsShader: {fileID: 0}
+  blurShader: {fileID: 0}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 1
+  radius:
+    m_OverrideState: 0
+    m_Value: 1
+  iterations:
+    m_OverrideState: 1
+    m_Value: 3
+  downscaling:
+    m_OverrideState: 1
+    m_Value: 1
+  distanceFade:
+    m_OverrideState: 1
+    m_Value: 1
+  startFadeDistance:
+    m_OverrideState: 1
+    m_Value: 10
+  endFadeDistance:
+    m_OverrideState: 1
+    m_Value: 50
