@@ -35,7 +35,7 @@ Dependencies point down only.
 Core **announces** what happens; features **react**. New rules are new subscribers, not edits to existing code.
 
 - Events are small `readonly struct`s published through MessagePipe (`IPublisher<T>` / `ISubscriber<T>`, injected). Brokers are registered once in the root scope.
-- Core events live in `_Core/_Common/Events`: `DamageDealt`, `PlayerDied`, gun jam / repair beats. Features may define their own.
+- Core events live in `_Core/_Common/Events`: `DamageDealt`, `PlayerDied`, gun jam / repair beats, world time (`HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded`). Features may define their own.
 - **Damage goes through `DamageService.Deal`** (root scope): it applies `IDamageable.TakeDamage` (which returns a `DamageResult`: applied amount, killed) and publishes `DamageDealt` with the hit's `Source`. Weapons, falls and future traps never call `TakeDamage` directly, so hit feedback, kill credit and damage rules hook in at one place.
 - **Sound goes through `AudioService`** (root scope), a thin wrapper over BroAudio: game code plays `SoundID`s and never calls BroAudio's static facade.
 - Events are for things that *happen* (a hit, a death), never per-frame data (positions, timers).
@@ -70,7 +70,7 @@ Any scene (World, Proto_*, test arenas)
 
 - **Play from any scene:** the root scope always exists. With no `SessionRequest` (Play pressed in World), `GameStarter` uses a `DevStartConfig` asset (editor only): start day/time, inventory, stats, **which features and experiments are on**. In builds an empty request returns to the menu.
 - Scenes load with `SceneManager.LoadSceneAsync` + UniTask; no Addressables for now.
-- **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe, `InputService`, `PlayerRegistry`, `BulletSystem` and `EffectPool`; `GameLifetimeScope` as a stub with the strict flag. Menu, World, `GameStarter` and the other root services are not built yet.
+- **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe, `InputService`, `PlayerRegistry`, `BulletSystem` and `EffectPool`; `GameLifetimeScope` with the strict flag and optional installers for enemies, the world clock (`ClockSettings` assigned) and the environment (`EnvironmentDirector` + ambience). The clock starts at `ClockSettings.StartHour` until `GameStarter` exists. Menu, World, `GameStarter` and the other root services are not built yet.
 
 ## Systems
 
@@ -85,8 +85,9 @@ Any scene (World, Proto_*, test arenas)
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching (`EnableGameplay` / `EnableUI`) and cursor lock; consumers only read. Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | `EntityScope`, Combat (`IDamageable`, `DamageInfo` / `DamageResult`, `DamageService`, `Health`), Events, Stats (`IStatProvider`), Interaction (`IInteractable`) |
 | AudioSystem | `AudioService` (root): plays BroAudio `SoundID`s 2D or at a point. Libraries in `Data/Audio/` |
-| EnvironmentSystem | Scene-level environment helpers with no gameplay rules: `BKFoliageGlobals` (BK plant shader globals), `ASPTopLayerGlobals` (ANGRY MESH top-layer shader globals). Environment content and its generator: [ENVIRONMENT.md](ENVIRONMENT.md) |
-| UI | Standalone HUD canvas with its own `HudScope` (placed in the scene; player views follow `PlayerRegistry`), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`). Rules and how-tos: [UI.md](UI.md) |
+| WorldTimeSystem | The in-game clock (`WorldClock`, scene scope): day, hour, Dawn / Day / Dusk / Night phases, master and per-phase speed, jumps, skips, slow / freeze requests, moon phase; publishes hour, phase, day, jump and skip events; N / M cheats in dev builds. Separate from `TimeService`, which owns Unity's `Time.timeScale`. [DAYNIGHT.md](DAYNIGHT.md) |
+| EnvironmentSystem | Scene-level environment with no gameplay rules: the time-of-day look (`EnvironmentDirector`, sole writer of the sun / moon light, ambient, fog, reflections, sky globals and time-of-day grade volumes; data in `TimeOfDayProfile` + `LightingPreset`; `IAtmosphereLayer` for weather later), reactors (lamps, windows, particles, material tints), `AmbienceService`; shader globals helpers `BKFoliageGlobals`, `ASPTopLayerGlobals`. Day/night: [DAYNIGHT.md](DAYNIGHT.md); environment content and its generator: [ENVIRONMENT.md](ENVIRONMENT.md) |
+| UI | Standalone HUD canvas with its own `HudScope` (placed in the scene; player views follow `PlayerRegistry`), passive widgets with style assets (`StatBar` + `StatBarStyle`, `HotbarSlotView` + `HotbarSlotStyle`, `ClockView` + `ClockStyle`), presenters that feed them (`PlayerVitalsHud`, `HotbarHud`, `ClockHud`). Rules and how-tos: [UI.md](UI.md) |
 
 **Features** (`Assets/_Game/Features/`): *none yet.* Each system or feature gets a row here when it lands.
 
@@ -205,6 +206,8 @@ Assets/_Game/
 
 
 ## Time and QTE services
+
+Two kinds of time: `TimeService` (root) owns Unity's `Time.timeScale`; `WorldClock` (scene scope, [DAYNIGHT.md](DAYNIGHT.md)) is the in-game day and runs on scaled time, so pausing stops it, while its own speed requests change only the clock.
 
 ProjectLifetimeScope now also installs TimeInstaller and QuickTimeInstaller. TimeService is the sole owner of Time.timeScale and fixed-step adjustment: owner-keyed requests combine by taking the slowest, explicit pause wins, and releasing a request preserves other requests. Disposal restores the initial Unity settings. Future pause/slow-motion callers must use this service.
 

@@ -36,6 +36,10 @@ namespace Aipocalypse.Input
         public bool ReloadPressed => _reloadConsumedFrame != Time.frameCount && _actions.Player.Reload.WasPressedThisFrame();
         public void ConsumeReloadPress() => _reloadConsumedFrame = Time.frameCount;
 
+        // Debug map: enabled in the editor and development builds only, independent of the gameplay / UI switch.
+        public bool DebugNextHourPressed => _actions.Debug.NextHour.WasPressedThisFrame();
+        public bool DebugNextPhasePressed => _actions.Debug.NextPhase.WasPressedThisFrame();
+
         // Hotbar key pressed this frame (0 = Slot1), or -1.
         public int SlotPressed
         {
@@ -66,7 +70,13 @@ namespace Aipocalypse.Input
         public string GetReloadKeyLabel() =>
             _actions.Player.Reload.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
 
-        public void Initialize() => EnableGameplay();
+        public void Initialize()
+        {
+            EnableGameplay();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            _actions.Debug.Enable();
+#endif
+        }
 
         public void Dispose()
         {

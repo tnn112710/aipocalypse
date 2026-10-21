@@ -20,9 +20,11 @@ Core feel prototypes — each mechanic in its own scene under `Assets/_Game/Scen
 - [ ] `Proto_Fishing` — rod: cast, bite, reel, catch into Inventory; gun fishing: shoot jumping fish (weapon on-hit "catch fish"); fish as crowd entities
 - [ ] `Proto_Crafting` — workbench, recipe data, materials → ammo (crafting rules are still [TBD] in the GDD; this tests only the interaction)
 
+- [x] Day/night cycle (Core) — world clock (30 s per game hour, master + per-phase speed, jumps, skips, freeze, N / M cheats), time-of-day look (sun / moon, ambient, fog, painted sky + stars and moon phases, grades), reactors (window glow, door light, particles, tints), ambience (dawn chorus, wind, owls), Duckov-style HUD clock. Meadow Home only ([DAYNIGHT.md](technicals/DAYNIGHT.md))
+
 ## Later (Features — after the core feels good)
 
-- DayNight, Progression, Persistence (save, death, rewind), Activities, Economy — scope follows the GDD
+- DayNight rules (dusk warning, sleeping with `SkipTo`, night enemies), Weather (an `IAtmosphereLayer`), Progression, Persistence (save, death, rewind), Activities, Economy — scope follows the GDD
 
 ## Done
 

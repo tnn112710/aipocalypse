@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 7a30514bbd6901841b00fc47b4c2b7bd, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 5e1e9589db9483a4181106a98ed2054e, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -13906,13 +13906,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9171186678025980081, guid: f6be45e0b82d5f04d86604ed56ff55cd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 53602960}
   m_SourcePrefab: {fileID: 100100000, guid: f6be45e0b82d5f04d86604ed56ff55cd, type: 3}
 --- !u!4 &53602958 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2521091642285394962, guid: f6be45e0b82d5f04d86604ed56ff55cd, type: 3}
   m_PrefabInstance: {fileID: 53602957}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &53602959 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9171186678025980081, guid: f6be45e0b82d5f04d86604ed56ff55cd, type: 3}
+  m_PrefabInstance: {fileID: 53602957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &53602960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 53602959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aed38efd57fef6c4ea51d92d3e8c17d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayEmission
+  _source: 0
+  _hours:
+    On: 18
+    Off: 6.5
+    Fade: 0.75
+  _response: 1.5
+  _materials:
+  - {fileID: 2100000, guid: eb721db29d0e7db41b999da73880f899, type: 2}
+  _emission: {r: 2.4, g: 1.3, b: 0.5, a: 1}
 --- !u!1001 &53662850
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24577,6 +24606,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 89785477}
+  - component: {fileID: 89785479}
+  - component: {fileID: 89785478}
   m_Layer: 0
   m_Name: Sunbeam Motes
   m_TagString: Untagged
@@ -24608,6 +24639,46 @@ Transform:
   - {fileID: 604452540}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &89785478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 89785476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
+--- !u!114 &89785479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 89785476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 1
+  _hours:
+    On: 0
+    Off: 0
+    Fade: 0
+  _response: 1.5
+  _systems: []
+  _offRate: 0
+  _onRate: 1
+  _alignToSun: 0
 --- !u!1001 &90056468
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105686,6 +105757,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 392272197}
+  - component: {fileID: 392272198}
   m_Layer: 0
   m_Name: Seed Fluff
   m_TagString: Untagged
@@ -105716,6 +105788,28 @@ Transform:
   - {fileID: 1208367351}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &392272198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392272196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 1
+  _hours:
+    On: 0
+    Off: 0
+    Fade: 0
+  _response: 1.5
+  _systems: []
+  _offRate: 0
+  _onRate: 1
+  _alignToSun: 0
 --- !u!1001 &392442089
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -119738,6 +119832,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 443037604}
+  - component: {fileID: 443037606}
+  - component: {fileID: 443037605}
   m_Layer: 0
   m_Name: Mist
   m_TagString: Untagged
@@ -119788,6 +119884,46 @@ Transform:
   - {fileID: 1799656512}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &443037605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443037603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
+--- !u!114 &443037606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443037603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 0
+  _hours:
+    On: 4
+    Off: 9.5
+    Fade: 1.5
+  _response: 1.5
+  _systems: []
+  _offRate: 1
+  _onRate: 2.6
+  _alignToSun: 0
 --- !u!1001 &443169402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -219174,6 +219310,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 795026352}
+  - component: {fileID: 795026353}
   m_Layer: 0
   m_Name: Clouds
   m_TagString: Untagged
@@ -219206,6 +219343,24 @@ Transform:
   - {fileID: 988425614}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &795026353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795026351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
 --- !u!1001 &795544305
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -222035,6 +222190,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 1372274711}
   - {fileID: 831626858}
   - {fileID: 747527741}
   - {fileID: 1773122932}
@@ -239193,6 +239349,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 886257609}
+  - component: {fileID: 886257611}
+  - component: {fileID: 886257610}
   m_Layer: 0
   m_Name: Birds
   m_TagString: Untagged
@@ -239222,6 +239380,46 @@ Transform:
   - {fileID: 1800937078}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &886257610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886257608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
+--- !u!114 &886257611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886257608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 0
+  _hours:
+    On: 5
+    Off: 20
+    Fade: 1
+  _response: 1.5
+  _systems: []
+  _offRate: 0
+  _onRate: 1
+  _alignToSun: 0
 --- !u!1001 &886545213
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -250740,6 +250938,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 933772882}
+  - component: {fileID: 933772884}
+  - component: {fileID: 933772883}
   m_Layer: 0
   m_Name: God Rays
   m_TagString: Untagged
@@ -250786,6 +250986,46 @@ Transform:
   - {fileID: 1362337663}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &933772883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933772881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
+--- !u!114 &933772884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933772881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 1
+  _hours:
+    On: 0
+    Off: 0
+    Fade: 0
+  _response: 1.5
+  _systems: []
+  _offRate: 0
+  _onRate: 1
+  _alignToSun: 1
 --- !u!1001 &934253738
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -256540,6 +256780,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 951622587}
+  - component: {fileID: 951622588}
   m_Layer: 0
   m_Name: Swamp Fog
   m_TagString: Untagged
@@ -256572,6 +256813,24 @@ Transform:
   - {fileID: 1573342668}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &951622588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951622586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
 --- !u!1001 &952240536
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -283596,6 +283855,9 @@ MonoBehaviour:
   _enemies:
   - {fileID: 0}
   - {fileID: 0}
+  _clock: {fileID: 11400000, guid: 71d85645d9f52fb41b625fd61bd9cebe, type: 2}
+  _environment: {fileID: 1372274712}
+  _ambience: {fileID: 11400000, guid: 0179d8f79ceb5f944a5b3aa5153b5919, type: 2}
 --- !u!4 &1051055994
 Transform:
   m_ObjectHideFlags: 0
@@ -335868,6 +336130,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1254163442}
+  - component: {fileID: 1254163443}
   m_Layer: 0
   m_Name: Waterfall
   m_TagString: Untagged
@@ -335907,6 +336170,33 @@ Transform:
   - {fileID: 511756817}
   m_Father: {fileID: 747527741}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1254163443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1254163441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials:
+  - {fileID: 2100000, guid: db78f2478b28d0b46813785158f743e7, type: 2}
+  - {fileID: 2100000, guid: 62826f19bed2c4448a25ccd3caa311d4, type: 2}
+  - {fileID: 2100000, guid: a7bc84473cfe49138371a7d0d1b48f70, type: 2}
+  - {fileID: 2100000, guid: f0de20c5221443a44b8a55ee3ae0f503, type: 2}
+  _properties:
+  - _BaseColor
+  - _Color_1
+  - _Color_2
+  - _Foam_1_Color
+  - _Foam_1_Shadow_Color
+  - _Foam_2_Color
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
 --- !u!1001 &1255182719
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -371130,6 +371420,81 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4902521262422327770, guid: 2e64f462fd6257d4cb574ad2c30ac9f1, type: 3}
   m_PrefabInstance: {fileID: 1371433319}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1372274710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1372274711}
+  - component: {fileID: 1372274712}
+  m_Layer: 0
+  m_Name: Time Of Day
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1372274711
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372274710}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 1452487003}
+  - {fileID: 2033497264}
+  m_Father: {fileID: 810801751}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1372274712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372274710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a0a33d906332fe44b6b628c6fa80fac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.EnvironmentDirector
+  _profile: {fileID: 11400000, guid: 25df888397d1e184e960a9163b10bd9b, type: 2}
+  _light: {fileID: 308460570}
+  _gradeFrom: {fileID: 1452487004}
+  _gradeTo: {fileID: 2033497265}
+  _lightStep: 0
+  _nightShadowDistance: 60
+  _sceneReactors:
+  - {fileID: 886257610}
+  - {fileID: 886257611}
+  - {fileID: 1635283273}
+  - {fileID: 795026353}
+  - {fileID: 1638287664}
+  - {fileID: 933772883}
+  - {fileID: 933772884}
+  - {fileID: 1421974013}
+  - {fileID: 53602960}
+  - {fileID: 443037606}
+  - {fileID: 443037605}
+  - {fileID: 1884464648}
+  - {fileID: 1464587852}
+  - {fileID: 392272198}
+  - {fileID: 89785478}
+  - {fileID: 89785479}
+  - {fileID: 951622588}
+  - {fileID: 1254163443}
+  _preview: 0
+  _previewHour: 9
+  _previewSpeed: 0
+  _previewMoonPhase: 0.5
 --- !u!1001 &1372299832
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -384194,6 +384559,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1421974012}
+  - component: {fileID: 1421974013}
   m_Layer: 0
   m_Name: Haze
   m_TagString: Untagged
@@ -384236,6 +384602,24 @@ Transform:
   - {fileID: 544315726}
   m_Father: {fileID: 1566288170}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1421974013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421974011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _BaseColor
+  _channel: 0
+  _multiply: 1
+  _keepAlpha: 1
 --- !u!1001 &1422530085
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -393048,6 +393432,55 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8607917982295370475, guid: 77c3171a0dce8e949971f33f7089db07, type: 3}
   m_PrefabInstance: {fileID: 1452102543}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1452487002
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1452487003}
+  - component: {fileID: 1452487004}
+  m_Layer: 0
+  m_Name: Grade From
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1452487003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1452487002}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1372274711}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1452487004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1452487002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 10
+  blendDistance: 0
+  weight: 0
+  sharedProfile: {fileID: 0}
 --- !u!1001 &1453393562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -396513,6 +396946,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1464587851}
+  - component: {fileID: 1464587852}
   m_Layer: 0
   m_Name: Peaks
   m_TagString: Untagged
@@ -396545,6 +396979,24 @@ Transform:
   - {fileID: 1262691716}
   m_Father: {fileID: 1566288170}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1464587852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464587850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: febe0c76a731d5a44a484eee6b50aff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.AtmosphereTint
+  _materials: []
+  _properties:
+  - _FogColor
+  _channel: 1
+  _multiply: 0
+  _keepAlpha: 1
 --- !u!1001 &1465243432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -442278,6 +442730,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1635283272}
+  - component: {fileID: 1635283273}
   m_Layer: 0
   m_Name: Butterflies
   m_TagString: Untagged
@@ -442312,6 +442765,28 @@ Transform:
   - {fileID: 517718993}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1635283273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635283271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 0
+  _hours:
+    On: 7.5
+    Off: 18.5
+    Fade: 1
+  _response: 1.5
+  _systems: []
+  _offRate: 0
+  _onRate: 1
+  _alignToSun: 0
 --- !u!1001 &1636138575
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -443029,6 +443504,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1638287663}
+  - component: {fileID: 1638287664}
   m_Layer: 0
   m_Name: Fireflies
   m_TagString: Untagged
@@ -443060,6 +443536,28 @@ Transform:
   - {fileID: 276011075}
   m_Father: {fileID: 31464785}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1638287664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638287662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 472324cecd2a2bb43b2f69efc4a97928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayParticles
+  _source: 0
+  _hours:
+    On: 19.5
+    Off: 5
+    Fade: 1
+  _response: 1.5
+  _systems: []
+  _offRate: 0
+  _onRate: 1
+  _alignToSun: 0
 --- !u!1001 &1638480948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -450857,6 +451355,7 @@ Transform:
   - {fileID: 1941504864}
   - {fileID: 1457051410}
   - {fileID: 480241712}
+  - {fileID: 1884464647}
   m_Father: {fileID: 747527741}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1665871195
@@ -520287,6 +520786,58 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1406652934436659934, guid: f0ac6faac82b6c8438a3da2c8f0758b2, type: 3}
   m_PrefabInstance: {fileID: 1884183506}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1884464646
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1884464647}
+  - component: {fileID: 1884464648}
+  m_Layer: 0
+  m_Name: Night Lights
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1884464647
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1884464646}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 1895752747}
+  m_Father: {fileID: 1665737319}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1884464648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1884464646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff00f45c9055c1f43ab1e14618c47e7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayLight
+  _source: 0
+  _hours:
+    On: 18.25
+    Off: 6.25
+    Fade: 0.75
+  _response: 1.5
+  _lights: []
 --- !u!1001 &1884958042
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -523303,6 +523854,133 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7815512962977044384, guid: 8a7e86f76e15c694bbfa3d2f9233364d, type: 3}
   m_PrefabInstance: {fileID: 1895605347}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1895752746
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1895752747}
+  - component: {fileID: 1895752748}
+  - component: {fileID: 1895752749}
+  m_Layer: 0
+  m_Name: Door Light
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1895752747
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895752746}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 268.40463, y: 32.20982, z: 281.2615}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1884464647}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!108 &1895752748
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895752746}
+  m_Enabled: 1
+  serializedVersion: 13
+  m_Type: 2
+  m_Color: {r: 1, g: 0.68, b: 0.38, a: 1}
+  m_Intensity: 2.5
+  m_Range: 8
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize2D: {x: 0.5, y: 0.5}
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShapeRadius: 0.025
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
+--- !u!114 &1895752749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895752746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1001 &1896075397
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -558828,6 +559506,55 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1486327816476060099, guid: d8d6cb5e0f319b445a3cb38b9288feb4, type: 3}
   m_PrefabInstance: {fileID: 2033166704}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2033497263
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2033497264}
+  - component: {fileID: 2033497265}
+  m_Layer: 0
+  m_Name: Grade To
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2033497264
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033497263}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1372274711}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2033497265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033497263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 11
+  blendDistance: 0
+  weight: 0
+  sharedProfile: {fileID: 0}
 --- !u!1 &2033916209
 GameObject:
   m_ObjectHideFlags: 0

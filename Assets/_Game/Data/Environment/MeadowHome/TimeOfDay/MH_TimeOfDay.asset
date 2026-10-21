@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584378ef389479547953cea081988fdd, type: 3}
+  m_Name: MH_TimeOfDay
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayProfile
+  Keys:
+  - Name: Midnight
+    Hour: 0
+    Look: {fileID: 11400000, guid: a43ab543815dcc742bf9eaea001fdcaf, type: 2}
+    Grade: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
+    Blend: 0
+  - Name: Blue hour
+    Hour: 4.5
+    Look: {fileID: 11400000, guid: ad3fde94eb8efb845acea32ee83d4c00, type: 2}
+    Grade: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
+    Blend: 0
+  - Name: Dawn
+    Hour: 5.5
+    Look: {fileID: 11400000, guid: 5a2dcb4d2931bac4e8ec7bf6a16b71e3, type: 2}
+    Grade: {fileID: 11400000, guid: e27e0236f30e92e45b365522cd296506, type: 2}
+    Blend: 0
+  - Name: Sunrise
+    Hour: 6.5
+    Look: {fileID: 11400000, guid: b61fc3e2ef62e6f4cb4dd87ceafc3735, type: 2}
+    Grade: {fileID: 11400000, guid: b2d76805e3c37dd40a6bc021a91bb74b, type: 2}
+    Blend: 0
+  - Name: Morning
+    Hour: 9
+    Look: {fileID: 11400000, guid: 1dd0dbc2d7636884aa88ab960ff272f9, type: 2}
+    Grade: {fileID: 11400000, guid: 437bdca698d6cbc479a65b1df2f1f6b5, type: 2}
+    Blend: 0
+  - Name: Noon
+    Hour: 12.5
+    Look: {fileID: 11400000, guid: 5e6bbc4577f36eb4fa8816ad3e9427ae, type: 2}
+    Grade: {fileID: 11400000, guid: 437bdca698d6cbc479a65b1df2f1f6b5, type: 2}
+    Blend: 0
+  - Name: Afternoon
+    Hour: 16
+    Look: {fileID: 11400000, guid: 88e64aa7918122e40afd09e8b1904d18, type: 2}
+    Grade: {fileID: 11400000, guid: 437bdca698d6cbc479a65b1df2f1f6b5, type: 2}
+    Blend: 0
+  - Name: Golden hour
+    Hour: 18
+    Look: {fileID: 11400000, guid: 6c834c1c7700075468c734f2dca9d18e, type: 2}
+    Grade: {fileID: 11400000, guid: b2d76805e3c37dd40a6bc021a91bb74b, type: 2}
+    Blend: 0
+  - Name: Sunset
+    Hour: 19
+    Look: {fileID: 11400000, guid: 16548095a5327924ea7bf3925b6388b1, type: 2}
+    Grade: {fileID: 11400000, guid: b2d76805e3c37dd40a6bc021a91bb74b, type: 2}
+    Blend: 0
+  - Name: Dusk
+    Hour: 20
+    Look: {fileID: 11400000, guid: 7d25fd1fead75104d90d5f3bc850b736, type: 2}
+    Grade: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
+    Blend: 0
+  - Name: Night
+    Hour: 21.5
+    Look: {fileID: 11400000, guid: 6c98b5905d3ad6e4fbb80b88a76ed645, type: 2}
+    Grade: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
+    Blend: 0
+  Path:
+    Sunrise: 6
+    Sunset: 19
+    NoonElevation: 50
+    SunriseBearing: 70
+    DayArc: 220
+    MoonElevation: 45
+    MoonriseBearing: 100
+    NightArc: 160
+    MinLightElevation: 8
+    HorizonFade: 12

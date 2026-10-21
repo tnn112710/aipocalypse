@@ -18,7 +18,7 @@ namespace Aipocalypse.Tests
     // a gun is picked up, fires and reloads. Any error logged along the way fails the test.
     public sealed class PrototypeSmokeTests
     {
-        const string ScenePath = "Assets/_Game/Scenes/Prototype.unity";
+        const string ScenePath = "Assets/_Game/Scenes/Prototype/Prototype.unity";
 
         [UnityTest]
         public IEnumerator PrototypeScene_PlayerPicksUpAGunFiresAndReloads()

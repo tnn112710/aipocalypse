@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bde95d6aec05b5040a27019e50809dd4, type: 3}
+  m_Name: ClockStyle
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.UI.ClockStyle
+  TimeFont: {fileID: 11400000, guid: 5ad3bd70008689c418483dba1db4c2c2, type: 2}
+  TimeMaterial: {fileID: 2100000, guid: 18cad136db3aec84580cd0f6bfaebc01, type: 2}
+  TimeFontSize: 58
+  TimeColor: {r: 0.97, g: 0.97, b: 0.95, a: 1}
+  LabelFont: {fileID: 11400000, guid: d10a2c4b67b4adc4088ef3445a4b6562, type: 2}
+  LabelMaterial: {fileID: 2100000, guid: 7c4e282f2a8fa424b9515cda5d1a1cf5, type: 2}
+  LabelFontSize: 26
+  DayColor: {r: 0.97, g: 0.97, b: 0.95, a: 1}
+  DayFormat: Day {0}
+  BackingSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  BackingColor: {r: 0.05, g: 0.06, b: 0.08, a: 0.7}
+  DawnLabel: Dawn
+  DawnColor: {r: 1, g: 0.72, b: 0.66, a: 1}
+  DayLabel: Daytime
+  DayPhaseColor: {r: 1, g: 0.86, b: 0.45, a: 1}
+  DuskLabel: Dusk
+  DuskColor: {r: 1, g: 0.56, b: 0.32, a: 1}
+  NightLabel: Night
+  NightColor: {r: 0.62, g: 0.74, b: 1, a: 1}

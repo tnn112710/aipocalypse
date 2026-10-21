@@ -26,6 +26,7 @@ HUD                          Canvas · CanvasScaler
 └─ SafeFrame                 stretch, inset 48/40
    ├─ TopLeft                corner anchors (zero size): widgets anchor to these
    ├─ TopRight
+   │  └─ Clock               nested Canvas · ClockView · ClockHud (world clock, see Clock below)
    ├─ BottomLeft
    │  └─ Vitals              nested Canvas · VerticalLayoutGroup · ContentSizeFitter · PlayerVitalsHud
    │     ├─ HealthBar        StatBar (HealthBarStyle)
@@ -42,7 +43,7 @@ HUD                          Canvas · CanvasScaler
          └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
 ```
 
-- **Region per corner.** New HUD info goes under the matching region: quest tracker in TopRight, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
+- **Region per corner.** New HUD info goes under the matching region: the clock (and later weather) in TopRight, quest tracker in TopRight below it, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
 - **A nested Canvas around anything that changes often.** `Vitals` has its own Canvas, so the bars changing every frame (stamina regen) only rebuild that group, not the whole HUD. Give each frequently updated group its own nested Canvas. Static decoration can share the root.
 
 ## Where the HUD lives
@@ -131,6 +132,8 @@ InteractPrompt               InteractPromptView component
 | Item icons | the item's `Data/Items/*.asset` → `Icon` |
 | Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
 | Interact prompt position | `HUD` → `Center/Interact` anchored position |
+| Clock fonts, sizes, colors, backing panel, phase labels / colors, day format | `Data/UI/ClockStyle.asset` |
+| Clock position, size, text placement | `HUD` → `TopRight/Clock` RectTransforms (Clock size, Time and Labels offsets) |
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
 | Crosshair sprint fade speed, spread tick threshold / speed | `HUD` → `Center/Crosshair` → `CrosshairHud` |
 | How the crosshair moves | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway ([WEAPONS.md](WEAPONS.md#aim-sway)) |
@@ -150,6 +153,26 @@ InteractPrompt               InteractPromptView component
 3. **New data to show:** add a presenter under `_Core/UI/Hud/` that injects its source (a service; for player data derive from `PlayerHudView`) and pushes values into widgets. Use polling for values that change continuously. For rare changes (currency, objectives), subscribe to MessagePipe events.
 4. Add the scripts to [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
+
+## Clock
+
+A digital clock as in Escape from Duckov, on `SafeFrame/TopRight/Clock` (built by `AgentScripts/DayNight/DayNightSetup.Hud()`). The clock itself: [DAYNIGHT.md](DAYNIGHT.md).
+
+```text
+Clock                        296×76, anchored to TopRight · nested Canvas · ClockView (ClockStyle) · ClockHud
+└─ Content                   stretched; shown / hidden as a whole
+   ├─ Backing                stretched Image: translucent rounded panel (built-in UISprite, 9-sliced)
+   ├─ Time                   left 16–172 px: TMP "07:00", monospaced digits, header font + underlay
+   └─ Labels                 right of the time
+      ├─ Phase               top half: "Dawn" / "Daytime" / "Dusk" / "Night", coloured per phase
+      └─ Day                 bottom half: "Day 1" (ClockStyle.DayFormat)
+```
+
+- Fixed rects, no layout groups: the digits are monospaced, so the clock never changes size, and nothing layout-driven is written as an override onto the HUD instance in a scene.
+
+- `ClockView` API: `SetTime(hour, minute)`, `SetPhase(label, color)`, `SetDay(day)`, `Show(bool)`, `ApplyStyle()`. Each setter skips repeats; the time is written from a cached char buffer (`SetCharArray`), so updates allocate nothing.
+- `ClockHud` resolves the `WorldClock` if the scene has one (else the clock hides) and polls it in `LateUpdate`: 24-hour time, one-minute steps (every 0.5 s at 30 s per game hour).
+- A weather line goes under `Labels` when weather exists.
 
 ## Crosshair
 

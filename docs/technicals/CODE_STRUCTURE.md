@@ -35,7 +35,7 @@ Assets/_Game/
 │  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, AudioInstaller, CombatInstaller, TimeInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y…)
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
-│  │  └─ GameLifetimeScope.cs               per-scene scope, optional EnemyInstaller, Strict flag, execution order -5000
+│  │  └─ GameLifetimeScope.cs               per-scene scope, optional EnemyInstaller, WorldTimeInstaller (Clock), EnvironmentInstaller (Environment + Ambience), Strict flag, execution order -5000
 │  ├─ _Common/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
@@ -47,6 +47,7 @@ Assets/_Game/
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied
 │  │  ├─ Events/GunRepairQteStarted.cs      owner, item, QTE session, feedback preset: what the HUD needs to show a gun's repair QTE
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
+│  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
 │  │  └─ TransformExtensions.cs             Aipocalypse.Core — SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
@@ -54,9 +55,24 @@ Assets/_Game/
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
-│  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment helpers, see ENVIRONMENT.md
+│  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in Meadow Home
-│  │  └─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in Meadow Home
+│  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in Meadow Home
+│  │  ├─ EnvironmentInstaller.cs            scene scope: RegisterComponent(EnvironmentDirector) (+ TimeOfDayAmbience → AmbienceService entry point)
+│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ sky globals, Grade From / To volumes; profile → layers → apply → reactors (Play mode); edit-mode preview; collects scene reactors on save / Play
+│  │  ├─ TimeOfDay/TimeOfDayProfile.cs      SO: keys (hour, LightingPreset, grade VolumeProfile, blend) → Evaluate(hour); SunPath (sun / moon directions); grade-override warning
+│  │  ├─ TimeOfDay/LightingPreset.cs        SO: one look (sun, moon, ambient, reflections, fog, sky, haze, unlit tint) → AtmosphereState
+│  │  ├─ TimeOfDay/AtmosphereState.cs       every value the director applies in a frame; Lerp
+│  │  ├─ TimeOfDay/IAtmosphereLayer.cs      Modify(ref state, hour) after the profile (weather, zones, special nights)
+│  │  ├─ TimeOfDay/EnvironmentReactor.cs    base of scene objects ticked by the director (injected spawns register themselves); TimeOfDayReactor: 0–1 weight from hours / daylight / darkness, eased, Apply(weight)
+│  │  ├─ TimeOfDay/TimeOfDayLight.cs        fades lights to their authored intensity
+│  │  ├─ TimeOfDay/TimeOfDayEmission.cs     runtime emissive copies of chosen materials (windows)
+│  │  ├─ TimeOfDay/TimeOfDayParticles.cs    scales / stops emitters, optional align to the sun (god rays)
+│  │  ├─ TimeOfDay/TimeOfDayActive.cs       shows objects only during their hours
+│  │  ├─ TimeOfDay/AtmosphereTint.cs        multiplies / replaces colour properties on runtime material copies by an atmosphere channel
+│  │  ├─ TimeOfDay/TimeOfDayAmbience.cs     SO: sound beds with a volume curve over the day, calls inside hours (BroAudio SoundIDs)
+│  │  ├─ TimeOfDay/AmbienceService.cs       plays the ambience against the clock through AudioService (scene entry point)
+│  │  └─ Shaders/SkyTimeOfDay.shader        "Aipocalypse/Skybox/Time Of Day": painted panorama + night gradient, horizon glow, sun disc, stars, moon phases from _TOD_ globals
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, Prefab (one per item: world + hand), CreateInstance
@@ -82,7 +98,7 @@ Assets/_Game/
 │  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
 │  │  └─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  ├─ InputSystem/                          Aipocalypse.Input
-│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload
+│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload; Debug map (N / M) enabled in dev builds
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
@@ -123,6 +139,8 @@ Assets/_Game/
 │  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font, ammo font + colors
 │  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
 │  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
+│  │  ├─ Widgets/ClockView.cs               passive digital clock: SetTime (monospaced HH:MM, char buffer) / SetPhase / SetDay / Show / ApplyStyle
+│  │  ├─ Widgets/ClockStyle.cs              ScriptableObject: fonts + underlay materials, sizes, colors, backing panel, phase labels / colors
 │  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
 │  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind per active player
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
@@ -130,11 +148,19 @@ Assets/_Game/
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker, hit / kill sound, pooled damage numbers
+│  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
 │  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled), font Data/UI/DamageNumberFont.asset
+│  ├─ WorldTimeSystem/                      Aipocalypse.Core.WorldTimeSystem — the in-game clock, see DAYNIGHT.md
+│  │  ├─ WorldTime.cs                       WorldTime (hours since day 1: Day, Hour, WholeHour, Minute, HoursUntil) + DayPhase enum
+│  │  ├─ ClockSettings.cs                   SO: seconds per game hour, master speed, start, phase starts + speeds, moon cycle; PhaseAt, RealSecondsBetween, Real time inspector box
+│  │  ├─ WorldClock.cs                      scene service (ITickable, scaled time): Advance steps hour by hour and phase by phase (events in order); JumpTo / SetTime / SkipTo; speed requests (slowest wins); MoonPhase
+│  │  ├─ TimeWindow.cs                      On / Off / Fade hours, may wrap past midnight → Weight(hour)
+│  │  ├─ WorldClockCheats.cs                dev builds: N → JumpToNextHour, M → JumpToNextPhase (InputService debug presses)
+│  │  └─ WorldTimeInstaller.cs              scene scope: ClockSettings + WorldClock (entry point) + cheats
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, accuracy, handling, sounds, effects
 │     ├─ GunSettings.cs                     the setting groups above + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
@@ -172,14 +198,16 @@ Assets/_Game/
 │     └─ Prefabs/Melee/FireAxe.prefab       HeldMelee: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World like the guns
 ├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
 ├─ Data/
-│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat .asset) + one folder of entities each
+│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience .asset) + one folder of entities each
+│  ├─ WorldTime/ClockSettings.asset         30 s per game hour (12-minute day), start 07:00, phases 05 / 07 / 18 / 20
+│  ├─ Environment/MeadowHome/TimeOfDay/     MH_TimeOfDay (profile), Looks/TOD_*.asset, Grades/PP_*.asset, MH_Sky_TimeOfDay.mat, MH_Ambience.asset
 │  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound}Tuning.asset beside it
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
 │  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (one prefab each; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, DamageNumberFont.asset
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, ClockStyle.asset, DamageNumberFont.asset
 ├─ Tests/PlayMode/PrototypeSmokeTests.cs  asmdef Aipocalypse.Tests.PlayMode: loads Prototype.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
@@ -192,6 +220,8 @@ Assets/_Game/
    ├─ ItemPrefabTests.cs                    every item has one prefab for world + hand; world layout; rig strips world parts
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
    ├─ HeldMotionTests.cs                    GunAccuracy (speed, airborne, aiming, steadiness, settling); HeldItemSway (look / move lag, aiming, sway stat, landing)
+   ├─ WorldClockTests.cs                    clock speed, real minutes per day, phase speeds, events in one long frame, no skipped phase at a boundary, midnight, jumps, N / M cheats, skip (and a jump ending it), freeze, moon phase
+   ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path
    └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
 ```
 
@@ -219,6 +249,10 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
          PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active player
            PlayerVitalsHud, CrosshairHud, HotbarHud, InteractPromptHud (+ InputService for key labels), HitFeedbackHud (+ AudioService, DamageDealt),
            RepairQteHud (gun repair events)
+         ClockHud (TryResolve WorldClock)
+
+GameLifetimeScope (scene) ──registers──> WorldClock (+ WorldClockCheats), EnvironmentDirector (RegisterComponent → TryResolve WorldClock), AmbienceService
+   EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
@@ -255,11 +289,14 @@ HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's sho
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
 FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip
 VContainer ticks     BulletSystem moves and ray-tests bullets → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes;
-                     EffectPool returns expired effects; EnemyManager ticks registered enemy trees (scene scope)
+                     EffectPool returns expired effects; EnemyManager ticks registered enemy trees (scene scope);
+                     WorldClock advances (HourChanged / DayPhaseChanged / DayStarted); cheats; AmbienceService bed volumes and calls
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
                      CrosshairHud reads Player.CrosshairPosition / AimWeight / IsSprinting → moves and fades the dot
                      InteractPromptHud reads Player.Interactor → InteractPromptView
+                     EnvironmentDirector reads WorldClock.Now → light, RenderSettings, sky globals, grades → reactors
+                     ClockHud reads WorldClock.Now / Phase → ClockView
 StatBar.Update       only while a trail is catching up, otherwise disabled
 ```
 

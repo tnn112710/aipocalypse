@@ -1,0 +1,50 @@
+using System;
+
+namespace Aipocalypse.Core.WorldTimeSystem
+{
+    public enum DayPhase
+    {
+        Dawn,
+        Day,
+        Dusk,
+        Night,
+    }
+
+    // A moment on the world clock: hours since day 1, 00:00. Day, hour and minute are derived, so saving it is one number.
+    public readonly struct WorldTime : IEquatable<WorldTime>
+    {
+        public const double HoursPerDay = 24d;
+
+        public readonly double TotalHours;
+
+        public WorldTime(double totalHours) => TotalHours = totalHours;
+
+        public static WorldTime At(int day, float hour) => new((day - 1) * HoursPerDay + hour);
+
+        // 1-based day number.
+        public int Day => (int)Math.Floor(TotalHours / HoursPerDay) + 1;
+
+        // 0 (midnight) to just under 24.
+        public float Hour => (float)(TotalHours - Math.Floor(TotalHours / HoursPerDay) * HoursPerDay);
+
+        public int WholeHour => (int)(TotalMinutes / 60 % 24);
+        public int Minute => (int)(TotalMinutes % 60);
+        public float DayFraction => Hour / (float)HoursPerDay;
+
+        long TotalMinutes => (long)Math.Floor(TotalHours * 60d);
+
+        // Hours from this moment until the clock next shows the given hour (0 when it shows it now).
+        public double HoursUntil(float hour)
+        {
+            double delta = hour - Hour;
+            return delta < 0d ? delta + HoursPerDay : delta;
+        }
+
+        public WorldTime AddHours(double hours) => new(TotalHours + hours);
+
+        public bool Equals(WorldTime other) => TotalHours.Equals(other.TotalHours);
+        public override bool Equals(object obj) => obj is WorldTime other && Equals(other);
+        public override int GetHashCode() => TotalHours.GetHashCode();
+        public override string ToString() => $"Day {Day} {WholeHour:00}:{Minute:00}";
+    }
+}
