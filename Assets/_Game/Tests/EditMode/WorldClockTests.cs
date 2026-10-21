@@ -67,7 +67,7 @@ namespace Aipocalypse.Tests
         {
             Assert.AreEqual(1, _clock.Now.Day);
             Assert.AreEqual(7f, _clock.Now.Hour, 1e-4f);
-            Assert.AreEqual(DayPhase.Day, _clock.Phase);
+            Assert.AreEqual(DayPhase.Dawn, _clock.Phase);
         }
 
         [Test]
@@ -92,24 +92,28 @@ namespace Aipocalypse.Tests
         [Test]
         public void PhaseSpeed_ShortensThatPhaseOnly()
         {
-            _settings.Night = new PhaseTiming(20f, 3f);
+            _settings.Evening = new PhaseTiming(18f, 3f);
+            _settings.Midnight = new PhaseTiming(0f, 3f);
 
-            // Night is 20:00–05:00 (9 h): 270 s at speed 1, 90 s at speed 3. The other 15 h stay at 450 s.
-            Assert.AreEqual(450d + 90d, _settings.RealSecondsPerDay, 1e-3d);
+            // Evening + Midnight are 18:00–06:00 (12 h): 360 s at speed 1, 120 s at speed 3. The other 12 h stay at 360 s.
+            Assert.AreEqual(360d + 120d, _settings.RealSecondsPerDay, 1e-3d);
         }
 
         [Test]
         public void BigStep_PublishesEveryHourAndPhaseInOrder()
         {
-            // One huge frame from 07:00 to 21:00 must still send each hour and Dusk → Night.
+            // One huge frame from 07:00 to 21:00 must still send each hour and Morning → Afternoon → Dusk → Evening.
             _clock.Advance(14f * 30f);
 
             Assert.AreEqual(21f, _clock.Now.Hour, 1e-3f);
             Assert.AreEqual(14, _hours.Count);
-            Assert.AreEqual(2, _phases.Count);
-            Assert.AreEqual(DayPhase.Dusk, _phases[0].Current);
-            Assert.AreEqual(DayPhase.Night, _phases[1].Current);
-            Assert.AreEqual(18, _phases[0].Now.WholeHour);
+            Assert.AreEqual(4, _phases.Count);
+            Assert.AreEqual(DayPhase.Morning, _phases[0].Current);
+            Assert.AreEqual(DayPhase.Afternoon, _phases[1].Current);
+            Assert.AreEqual(DayPhase.Dusk, _phases[2].Current);
+            Assert.AreEqual(DayPhase.Evening, _phases[3].Current);
+            Assert.AreEqual(8, _phases[0].Now.WholeHour);
+            Assert.AreEqual(16, _phases[2].Now.WholeHour);
         }
 
         [Test]
@@ -122,7 +126,7 @@ namespace Aipocalypse.Tests
             _clock.Advance(1f);
 
             Assert.AreEqual(1, _phases.Count);
-            Assert.AreEqual(DayPhase.Dusk, _phases[0].Current);
+            Assert.AreEqual(DayPhase.Evening, _phases[0].Current);
         }
 
         [Test]
@@ -136,20 +140,20 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(2, _clock.Now.Day);
             Assert.AreEqual(1, _days.Count);
             Assert.AreEqual(2, _days[0].Day);
-            Assert.AreEqual(DayPhase.Night, _clock.Phase);
+            Assert.AreEqual(DayPhase.Midnight, _clock.Phase);
         }
 
         [Test]
         public void JumpTo_GoesForwardToNextOccurrence_WithOneJumpEvent()
         {
-            _clock.JumpTo(6f);
+            _clock.JumpTo(5f);
 
             Assert.AreEqual(2, _clock.Now.Day);
-            Assert.AreEqual(6f, _clock.Now.Hour, 1e-4f);
+            Assert.AreEqual(5f, _clock.Now.Hour, 1e-4f);
             Assert.AreEqual(1, _jumps.Count);
             Assert.AreEqual(0, _hours.Count, "instant jumps don't replay hours");
             Assert.AreEqual(1, _days.Count);
-            Assert.AreEqual(DayPhase.Dawn, _clock.Phase);
+            Assert.AreEqual(DayPhase.Midnight, _clock.Phase);
             Assert.AreEqual(1, _phases.Count);
         }
 
@@ -169,13 +173,25 @@ namespace Aipocalypse.Tests
         public void NextPhaseCheat_CyclesPhases()
         {
             _clock.JumpToNextPhase();
-            Assert.AreEqual(DayPhase.Dusk, _clock.Phase);
-            Assert.AreEqual(18f, _clock.Now.Hour, 1e-4f);
+            Assert.AreEqual(DayPhase.Morning, _clock.Phase);
+            Assert.AreEqual(8f, _clock.Now.Hour, 1e-4f);
 
             _clock.JumpToNextPhase();
             _clock.JumpToNextPhase();
-            Assert.AreEqual(DayPhase.Dawn, _clock.Phase);
+            _clock.JumpToNextPhase();
+            Assert.AreEqual(DayPhase.Evening, _clock.Phase);
+            Assert.AreEqual(18f, _clock.Now.Hour, 1e-4f);
+            Assert.AreEqual(1, _clock.Now.Day);
+
+            _clock.JumpToNextPhase();
+            Assert.AreEqual(DayPhase.Midnight, _clock.Phase);
             Assert.AreEqual(2, _clock.Now.Day);
+            Assert.AreEqual(0f, _clock.Now.Hour, 1e-4f);
+
+            _clock.JumpToNextPhase();
+            Assert.AreEqual(DayPhase.Dawn, _clock.Phase);
+            Assert.AreEqual(6, _clock.Now.WholeHour, "lands on the hour, not at 05:59");
+            Assert.AreEqual(0, _clock.Now.Minute);
         }
 
         [Test]
@@ -225,7 +241,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void RealSecondsUntil_CountsPhaseSpeeds()
         {
-            _settings.Dusk = new PhaseTiming(18f, 2f);
+            _settings.Evening = new PhaseTiming(18f, 2f);
 
             // 07:00 → 18:00 at speed 1 (330 s), 18:00 → 19:00 at speed 2 (15 s).
             Assert.AreEqual(345d, _clock.RealSecondsUntil(19f), 1e-3d);

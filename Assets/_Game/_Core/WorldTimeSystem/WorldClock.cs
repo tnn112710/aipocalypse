@@ -89,7 +89,14 @@ namespace Aipocalypse.Core.WorldTimeSystem
         }
 
         // Instantly to the next time the clock shows this hour (no-op if it shows it now).
-        public void JumpTo(float hour) => SetTime(Now.AddHours(Now.HoursUntil(hour)));
+        // Built from the day start in double: adding a float-derived delta lands just short, and the clock reads 05:59.
+        public void JumpTo(float hour)
+        {
+            double target = Math.Floor(_totalHours / WorldTime.HoursPerDay) * WorldTime.HoursPerDay + hour;
+            if (target < _totalHours)
+                target += WorldTime.HoursPerDay;
+            SetTime(new WorldTime(target));
+        }
 
         public void JumpToPhase(DayPhase phase) => JumpTo(_settings.Timing(phase).Start);
         public void JumpToNextHour() => SetTime(new WorldTime(Math.Floor(_totalHours + Epsilon) + 1d));

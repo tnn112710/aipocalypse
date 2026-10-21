@@ -164,7 +164,7 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
    ├─ Backing                stretched Image: translucent rounded panel (built-in UISprite, 9-sliced)
    ├─ Time                   left 16–172 px: TMP "07:00", monospaced digits, header font + underlay
    └─ Labels                 right of the time
-      ├─ Phase               top half: "Dawn" / "Daytime" / "Dusk" / "Night", coloured per phase
+      ├─ Phase               top half: "Dawn" / "Morning" / "Afternoon" / "Dusk" / "Evening" / "Midnight", coloured per phase
       └─ Day                 bottom half: "Day 1" (ClockStyle.DayFormat)
 ```
 

@@ -17,16 +17,22 @@ MonoBehaviour:
   StartDay: 1
   StartHour: 7
   Dawn:
-    Start: 5
+    Start: 6
     Speed: 1
-  Day:
-    Start: 7
+  Morning:
+    Start: 8
+    Speed: 1
+  Afternoon:
+    Start: 12
     Speed: 1
   Dusk:
+    Start: 16
+    Speed: 1
+  Evening:
     Start: 18
     Speed: 1
-  Night:
-    Start: 20
+  Midnight:
+    Start: 0
     Speed: 1
   MoonCycleDays: 8
   FirstFullMoonDay: 1

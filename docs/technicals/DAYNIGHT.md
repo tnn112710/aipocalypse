@@ -24,7 +24,7 @@ DATA   ClockSettings · TimeOfDayProfile → LightingPreset + VolumeProfile per 
 | Seconds Per Game Hour | 30 | Real seconds for one in-game hour at speed 1 |
 | Master Speed | 1 | Multiplies every phase (2 = the whole day twice as fast). Use it to speed up testing |
 | Start Day / Start Hour | 1 / 07:00 | Where a scene's clock starts |
-| Dawn / Day / Dusk / Night | 05:00 / 07:00 / 18:00 / 20:00, speed 1 | Phase starts (they must keep that order around the clock) and a speed per phase on top of Master Speed |
+| Dawn / Morning / Afternoon / Dusk / Evening / Midnight | 06:00 / 08:00 / 12:00 / 16:00 / 18:00 / 00:00, speed 1 | Phase starts (they must keep that order around the clock) and a speed per phase on top of Master Speed |
 | Moon Cycle Days / First Full Moon Day | 8 / 1 | Moon phase: 0 new, 0.5 full |
 
 The inspector's **Real time** box shows the result. At the defaults:
@@ -32,10 +32,12 @@ The inspector's **Real time** box shows the result. At the defaults:
 | | In-game | Real time |
 | --- | --- | --- |
 | Full day | 24 h | 12 min (1 game minute = 0.5 s) |
-| Dawn | 05:00–07:00 | 1 min |
-| Day | 07:00–18:00 | 5.5 min |
-| Dusk | 18:00–20:00 | 1 min |
-| Night | 20:00–05:00 | 4.5 min |
+| Midnight | 00:00–06:00 | 3 min |
+| Dawn | 06:00–08:00 | 1 min |
+| Morning | 08:00–12:00 | 2 min |
+| Afternoon | 12:00–16:00 | 2 min |
+| Dusk | 16:00–18:00 | 1 min |
+| Evening | 18:00–24:00 | 3 min |
 
 `WorldClock` (plain C#, `ITickable`) runs on scaled time, so a `TimeService` pause stops it. Its own speed requests only affect the clock.
 
@@ -53,7 +55,7 @@ Events (MessagePipe, `_Common/Events/WorldTimeEvents.cs`):
 | Event | When |
 | --- | --- |
 | `HourChanged` | Every whole hour the clock passes, also while skipping (one per hour, even in one long frame) |
-| `DayPhaseChanged` (Previous, Current) | Dawn / Day / Dusk / Night changed |
+| `DayPhaseChanged` (Previous, Current) | Dawn / Morning / Afternoon / Dusk / Evening / Midnight changed (Midnight starts at 00:00, with the new day) |
 | `DayStarted` | Midnight |
 | `TimeJumped` (From, To) | An instant jump. The hours in between are not replayed: resync instead. `DayStarted` / `DayPhaseChanged` still follow if the day or phase changed |
 | `TimeSkipEnded` | A `SkipTo` reached its target |
@@ -72,11 +74,11 @@ Phases are for gameplay and stay fixed while the look changes: retuning a sunset
 
 | Transition | The look shown |
 | --- | --- |
-| **By Phases** (default) | Holds one look per phase, the profile's `Phase Looks` hour: Dawn 06:30, Day 12:30, Dusk 18:30, Night 00:00. Changes when a phase starts. |
+| **By Phases** (default) | Holds one look per phase, the profile's `Phase Looks` hour: Dawn 07:00, Morning 09:00, Afternoon 14:00, Dusk 17:30, Evening 20:30, Midnight 00:00. Changes when a phase starts. |
 | By Hours | The look at the current whole hour; changes on the hour. |
 | Continuous | The look at the exact time, every frame. |
 
-A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the hour the look is sampled at, the short way round, so a Day → Dusk change plays afternoon → golden hour → sunset in 5 s and the grades still blend key to key. The sun and moon belong to the look too: in By Phases / By Hours the light and the sky's sun and moon hold still between transitions (no shadow shimmer) and swing to their new place during the change. Light still fades by the shown sun's height, so pick phase hours with the sun or moon up: at 19:00 the sun is on the horizon and Dusk would get no direct light. Reactors with an hour window (lamps, mist, birds) follow the clock; Daylight / Darkness reactors follow the shown sun. `EnvironmentDirector.LookHour` is the hour shown; layers still get the real hour. Edit-mode preview is always continuous.
+A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the hour the look is sampled at, the short way round, so an Afternoon → Dusk change plays afternoon → golden hour in 5 s and the grades still blend key to key. The sun and moon belong to the look too: in By Phases / By Hours the light and the sky's sun and moon hold still between transitions (no shadow shimmer) and swing to their new place during the change. Light still fades by the shown sun's height, so pick phase hours with the sun or moon up: at 19:00 the sun is on the horizon and Dusk would get no direct light. Reactors with an hour window (lamps, mist, birds) follow the clock; Daylight / Darkness reactors follow the shown sun. `EnvironmentDirector.LookHour` is the hour shown; layers still get the real hour. Edit-mode preview is always continuous.
 
 | Hour | Key | Look (`Looks/TOD_*`) | Grade (`Grades/PP_*`) |
 | --- | --- | --- | --- |
@@ -157,7 +159,7 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 | --- | --- |
 | Day length | `ClockSettings` → Seconds Per Game Hour (the Real time box updates) |
 | Test faster | `ClockSettings` → Master Speed in Play mode, or N / M |
-| Night shorter or longer | `ClockSettings` → Night → Speed |
+| Night shorter or longer | `ClockSettings` → Evening / Midnight → Speed |
 | When phases start | `ClockSettings` phase starts (gameplay timing; the look doesn't move) |
 | What an hour looks like | Its `Looks/TOD_*.asset` (live in Play mode and in the edit preview) |
 | Add an hour | Add a key to `MH_TimeOfDay` with a look and a grade (duplicate a look) |

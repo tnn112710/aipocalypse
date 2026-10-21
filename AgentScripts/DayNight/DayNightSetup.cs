@@ -534,7 +534,7 @@ public static class DayNightSetup
         style.LabelFontSize = 26f;
         style.BackingSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
         style.BackingColor = new Color(0.05f, 0.06f, 0.08f, 0.7f);
-        style.DayPhaseColor = new Color(1f, 0.86f, 0.45f, 1f);
+        style.MorningColor = new Color(1f, 0.86f, 0.45f, 1f);
         style.DayColor = new Color(0.97f, 0.97f, 0.95f, 1f);
         EditorUtility.SetDirty(style);
         return style;
@@ -748,7 +748,7 @@ public static class DayNightSetup
             Stretch((RectTransform)time.transform, Vector2.zero, new Vector2(0f, 1f), new Vector2(16f, 0f), new Vector2(172f, 0f));
             var labels = UiObject("Labels", content);
             Stretch(labels, Vector2.zero, Vector2.one, new Vector2(182f, 8f), new Vector2(-10f, -8f));
-            var phase = Text("Phase", labels, "Daytime", TextAlignmentOptions.BottomLeft);
+            var phase = Text("Phase", labels, "Afternoon", TextAlignmentOptions.BottomLeft);
             Stretch((RectTransform)phase.transform, new Vector2(0f, 0.5f), Vector2.one, Vector2.zero, new Vector2(0f, 2f));
             var day = Text("Day", labels, "Day 1", TextAlignmentOptions.TopLeft);
             Stretch((RectTransform)day.transform, Vector2.zero, new Vector2(1f, 0.5f), new Vector2(0f, -2f), Vector2.zero);

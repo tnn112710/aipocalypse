@@ -1,6 +1,7 @@
 using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Aipocalypse.Core.WorldTimeSystem
 {
@@ -31,23 +32,27 @@ namespace Aipocalypse.Core.WorldTimeSystem
         [BoxGroup("Start"), Min(1)] public int StartDay = 1;
         [BoxGroup("Start"), Range(0f, 24f)] public float StartHour = 7f;
 
-        [BoxGroup("Phases")] public PhaseTiming Dawn = new(5f);
-        [BoxGroup("Phases")] public PhaseTiming Day = new(7f);
-        [BoxGroup("Phases")] public PhaseTiming Dusk = new(18f);
-        [BoxGroup("Phases")] public PhaseTiming Night = new(20f);
+        [BoxGroup("Phases")] public PhaseTiming Dawn = new(6f);
+        [BoxGroup("Phases"), FormerlySerializedAs("Day")] public PhaseTiming Morning = new(8f);
+        [BoxGroup("Phases")] public PhaseTiming Afternoon = new(12f);
+        [BoxGroup("Phases")] public PhaseTiming Dusk = new(16f);
+        [BoxGroup("Phases"), FormerlySerializedAs("Night")] public PhaseTiming Evening = new(18f);
+        [BoxGroup("Phases")] public PhaseTiming Midnight = new(0f);
 
         [BoxGroup("Moon"), Min(1), Tooltip("Days from one full moon to the next")]
         public int MoonCycleDays = 8;
         [BoxGroup("Moon"), Min(1)] public int FirstFullMoonDay = 1;
 
-        static readonly DayPhase[] Order = { DayPhase.Dawn, DayPhase.Day, DayPhase.Dusk, DayPhase.Night };
+        static readonly DayPhase[] Order = { DayPhase.Dawn, DayPhase.Morning, DayPhase.Afternoon, DayPhase.Dusk, DayPhase.Evening, DayPhase.Midnight };
 
         public PhaseTiming Timing(DayPhase phase) => phase switch
         {
             DayPhase.Dawn => Dawn,
-            DayPhase.Day => Day,
+            DayPhase.Morning => Morning,
+            DayPhase.Afternoon => Afternoon,
             DayPhase.Dusk => Dusk,
-            _ => Night,
+            DayPhase.Evening => Evening,
+            _ => Midnight,
         };
 
         public static DayPhase Next(DayPhase phase) => Order[((int)phase + 1) % Order.Length];
@@ -55,9 +60,9 @@ namespace Aipocalypse.Core.WorldTimeSystem
         // The phase whose start is the latest one at or before the hour, wrapping past midnight.
         public DayPhase PhaseAt(float hour)
         {
-            DayPhase best = DayPhase.Night;
+            DayPhase best = DayPhase.Midnight;
             float bestStart = float.NegativeInfinity;
-            DayPhase latest = DayPhase.Night;
+            DayPhase latest = DayPhase.Midnight;
             float latestStart = float.NegativeInfinity;
             foreach (DayPhase phase in Order)
             {
@@ -83,7 +88,7 @@ namespace Aipocalypse.Core.WorldTimeSystem
             return delta < 0d ? delta + WorldTime.HoursPerDay : delta;
         }
 
-        // Phases always follow Dawn → Day → Dusk → Night; their starts must keep that order around the clock.
+        // Phases always follow Dawn → Morning → Afternoon → Dusk → Evening → Midnight; their starts must keep that order around the clock.
         public bool StartsInOrder()
         {
             int wraps = 0;
@@ -129,7 +134,7 @@ namespace Aipocalypse.Core.WorldTimeSystem
 
         public double RealSecondsPerDay => RealSecondsBetween(new WorldTime(0d), new WorldTime(WorldTime.HoursPerDay));
 
-        [ShowInInspector, ReadOnly, BoxGroup("Real time"), HideLabel, MultiLineProperty(7)]
+        [ShowInInspector, ReadOnly, BoxGroup("Real time"), HideLabel, MultiLineProperty(9)]
         string RealTimeSummary
         {
             get
@@ -146,7 +151,7 @@ namespace Aipocalypse.Core.WorldTimeSystem
                     text.AppendLine($"{phase}: {Clock(start)}–{Clock(Timing(Next(phase)).Start)} ({length:0.##} h) = {seconds / 60d:0.##} min");
                 }
                 if (!StartsInOrder())
-                    text.AppendLine("Phase starts are out of order: keep Dawn → Day → Dusk → Night around the clock");
+                    text.AppendLine("Phase starts are out of order: keep Dawn → Morning → Afternoon → Dusk → Evening → Midnight around the clock");
                 return text.ToString().TrimEnd();
             }
         }
@@ -156,7 +161,7 @@ namespace Aipocalypse.Core.WorldTimeSystem
         void OnValidate()
         {
             if (!StartsInOrder())
-                Debug.LogWarning($"{name}: phase starts must follow Dawn → Day → Dusk → Night around the clock", this);
+                Debug.LogWarning($"{name}: phase starts must follow Dawn → Morning → Afternoon → Dusk → Evening → Midnight around the clock", this);
         }
     }
 }

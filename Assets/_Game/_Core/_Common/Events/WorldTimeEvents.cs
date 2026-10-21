@@ -9,7 +9,7 @@ namespace Aipocalypse.Core.Events
         public HourChanged(WorldTime now) => Now = now;
     }
 
-    // Dawn / Day / Dusk / Night changed. Read WorldClock.Phase for the current one.
+    // Dawn / Morning / Afternoon / Dusk / Evening / Midnight changed. Read WorldClock.Phase for the current one.
     public readonly struct DayPhaseChanged
     {
         public readonly DayPhase Previous;

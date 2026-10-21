@@ -27,27 +27,35 @@ namespace Aipocalypse.Core.UI
 
         [BoxGroup("Phases")] public string DawnLabel = "Dawn";
         [BoxGroup("Phases")] public Color DawnColor = new(1f, 0.72f, 0.66f, 1f);
-        [BoxGroup("Phases")] public string DayLabel = "Daytime";
-        [BoxGroup("Phases")] public Color DayPhaseColor = new(1f, 0.9f, 0.62f, 1f);
+        [BoxGroup("Phases")] public string MorningLabel = "Morning";
+        [BoxGroup("Phases")] public Color MorningColor = new(1f, 0.86f, 0.45f, 1f);
+        [BoxGroup("Phases")] public string AfternoonLabel = "Afternoon";
+        [BoxGroup("Phases")] public Color AfternoonColor = new(1f, 0.76f, 0.4f, 1f);
         [BoxGroup("Phases")] public string DuskLabel = "Dusk";
         [BoxGroup("Phases")] public Color DuskColor = new(1f, 0.56f, 0.32f, 1f);
-        [BoxGroup("Phases")] public string NightLabel = "Night";
-        [BoxGroup("Phases")] public Color NightColor = new(0.62f, 0.74f, 1f, 1f);
+        [BoxGroup("Phases")] public string EveningLabel = "Evening";
+        [BoxGroup("Phases")] public Color EveningColor = new(0.72f, 0.7f, 1f, 1f);
+        [BoxGroup("Phases")] public string MidnightLabel = "Midnight";
+        [BoxGroup("Phases")] public Color MidnightColor = new(0.62f, 0.74f, 1f, 1f);
 
         public string PhaseLabel(DayPhase phase) => phase switch
         {
             DayPhase.Dawn => DawnLabel,
-            DayPhase.Day => DayLabel,
+            DayPhase.Morning => MorningLabel,
+            DayPhase.Afternoon => AfternoonLabel,
             DayPhase.Dusk => DuskLabel,
-            _ => NightLabel,
+            DayPhase.Evening => EveningLabel,
+            _ => MidnightLabel,
         };
 
         public Color PhaseColor(DayPhase phase) => phase switch
         {
             DayPhase.Dawn => DawnColor,
-            DayPhase.Day => DayPhaseColor,
+            DayPhase.Morning => MorningColor,
+            DayPhase.Afternoon => AfternoonColor,
             DayPhase.Dusk => DuskColor,
-            _ => NightColor,
+            DayPhase.Evening => EveningColor,
+            _ => MidnightColor,
         };
 
 #if UNITY_EDITOR

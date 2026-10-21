@@ -95,17 +95,21 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         [BoxGroup("Sun and moon"), HideLabel] public SunPath Path = new();
 
-        [BoxGroup("Phase looks"), Range(0f, 24f), Tooltip("Transition By Phases: the hour whose look, sun and moon Dawn shows. Pick an hour with the sun or moon up, or the phase gets no direct light")] public float DawnLook = 6.5f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float DayLook = 12.5f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float DuskLook = 18.5f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float NightLook = 0f;
+        [BoxGroup("Phase looks"), Range(0f, 24f), Tooltip("Transition By Phases: the hour whose look, sun and moon Dawn shows. Pick an hour with the sun or moon up, or the phase gets no direct light")] public float DawnLook = 7f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float MorningLook = 9f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float AfternoonLook = 14f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float DuskLook = 17.5f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float EveningLook = 20.5f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float MidnightLook = 0f;
 
         public float PhaseLookHour(DayPhase phase) => phase switch
         {
             DayPhase.Dawn => DawnLook,
-            DayPhase.Day => DayLook,
+            DayPhase.Morning => MorningLook,
+            DayPhase.Afternoon => AfternoonLook,
             DayPhase.Dusk => DuskLook,
-            _ => NightLook,
+            DayPhase.Evening => EveningLook,
+            _ => MidnightLook,
         };
 
         public readonly struct Segment

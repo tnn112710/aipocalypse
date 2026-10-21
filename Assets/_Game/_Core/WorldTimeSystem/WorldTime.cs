@@ -5,9 +5,11 @@ namespace Aipocalypse.Core.WorldTimeSystem
     public enum DayPhase
     {
         Dawn,
-        Day,
+        Morning,
+        Afternoon,
         Dusk,
-        Night,
+        Evening,
+        Midnight,
     }
 
     // A moment on the world clock: hours since day 1, 00:00. Day, hour and minute are derived, so saving it is one number.
