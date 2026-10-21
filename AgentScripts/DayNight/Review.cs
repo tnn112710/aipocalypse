@@ -28,8 +28,9 @@ public static class Review
 
     public static object Freeze(bool freeze)
     {
-        if (freeze) Clock.Freeze(typeof(Review));
-        else Clock.Release(typeof(Review));
+        // A string key: each run_script compiles a new assembly, so typeof(Review) would differ between calls.
+        if (freeze) Clock.Freeze("Review");
+        else Clock.Release("Review");
         return State();
     }
 

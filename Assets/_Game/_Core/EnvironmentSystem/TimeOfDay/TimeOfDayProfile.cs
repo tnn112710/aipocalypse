@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -93,6 +94,19 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public List<TimeOfDayKey> Keys = new();
 
         [BoxGroup("Sun and moon"), HideLabel] public SunPath Path = new();
+
+        [BoxGroup("Phase looks"), Range(0f, 24f), Tooltip("Transition By Phases: the hour whose look, sun and moon Dawn shows. Pick an hour with the sun or moon up, or the phase gets no direct light")] public float DawnLook = 6.5f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float DayLook = 12.5f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float DuskLook = 18.5f;
+        [BoxGroup("Phase looks"), Range(0f, 24f)] public float NightLook = 0f;
+
+        public float PhaseLookHour(DayPhase phase) => phase switch
+        {
+            DayPhase.Dawn => DawnLook,
+            DayPhase.Day => DayLook,
+            DayPhase.Dusk => DuskLook,
+            _ => NightLook,
+        };
 
         public readonly struct Segment
         {

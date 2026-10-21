@@ -11,6 +11,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
     // Sole writer of the sun light, ambient, fog, reflections, sky globals and the time-of-day grade volumes.
     // Each frame: profile look at the clock's hour → atmosphere layers (weather later) → apply → reactors.
     // Without a clock (no installer, edit mode) it uses Preview Hour; in edit mode only while Preview is on.
+    public enum LookTransition
+    {
+        ByPhases,
+        ByHours,
+        Continuous,
+    }
+
     [ExecuteAlways]
     public sealed class EnvironmentDirector : MonoBehaviour
     {
@@ -30,14 +37,20 @@ namespace Aipocalypse.Core.EnvironmentSystem
         static readonly int StarsId = Shader.PropertyToID("_TOD_Stars");
 
         [SerializeField, InlineEditor] TimeOfDayProfile _profile;
+        [SerializeField, Tooltip("When the look changes. By Phases: at each phase start, to the profile's Phase Looks hour. By Hours: at each whole hour. Continuous: every frame. The sun and moon move with the look, so they hold still between transitions")]
+        LookTransition _transition = LookTransition.ByPhases;
+        [SerializeField, Min(0f), Tooltip("Real seconds a look change takes. 0 = cut")]
+        float _transitionDuration = 5f;
         [SerializeField, Tooltip("The one shadowed directional light: the sun by day, the moon by night")]
         Light _light;
         [SerializeField, Tooltip("Global volume above the base grade: the grade of the key before the current hour")]
         Volume _gradeFrom;
         [SerializeField, Tooltip("Global volume above Grade From: the next key's grade, weighted by the blend")]
         Volume _gradeTo;
-        [SerializeField, Min(0f), Tooltip("Turn the light in steps of this many degrees if moving shadows shimmer. 0 = smooth")]
-        float _lightStep;
+        [SerializeField, Min(0f), Tooltip("Continuous only (the other transitions hold the light still): the light holds still until the sun has moved this many degrees, then glides there. A light turning every frame makes shadow edges crawl. 0 = follow the sun every frame")]
+        float _shadowStep = 1f;
+        [SerializeField, Min(0f), Tooltip("Seconds each step glides over. 0 = snap")]
+        float _shadowGlide = 0.3f;
         [SerializeField, Min(0f), Tooltip("Play mode: URP shadow distance (m) while the moon lights the scene. Swaps at twilight with the light. 0 = keep the asset's")]
         float _nightShadowDistance = 60f;
         [SerializeField, Tooltip("Reactors placed in this scene. Collected automatically when the scene is saved or Play starts")]
@@ -56,6 +69,15 @@ namespace Aipocalypse.Core.EnvironmentSystem
         AtmosphereState _state;
         VolumeProfile _fromProfile;
         VolumeProfile _toProfile;
+        float _lookFrom;
+        float _lookSpan;
+        float _lookTarget = -1f;
+        float _lookGlide = 1f;
+        Quaternion _lightFrom;
+        Quaternion _lightTo;
+        float _glide = 1f;
+        bool _lightPlaced;
+        bool _sunLit;
         UniversalRenderPipelineAsset _pipeline;
         float _dayShadowDistance;
 
@@ -63,6 +85,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public WorldClock Clock => _clock;
         public AtmosphereState State => _state;
         public float Hour { get; private set; }
+        // The hour whose look is shown: trails Hour unless the transition is Continuous.
+        public float LookHour { get; private set; }
         public float MoonPhase { get; private set; }
         public Vector3 SunDirection { get; private set; }
         public Vector3 MoonDirection { get; private set; }
@@ -168,7 +192,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 moonPhase = _previewMoonPhase;
             }
 
-            Apply(hour, moonPhase);
+            Apply(hour, playing && _clock != null ? StepLook(hour) : hour, moonPhase);
 
             if (playing)
             {
@@ -188,9 +212,42 @@ namespace Aipocalypse.Core.EnvironmentSystem
 #endif
         }
 
-        void Apply(float hour, float moonPhase)
+        // Glides the look hour (not a snapshot of the look) so the grades still blend key to key on the way.
+        float StepLook(float hour)
         {
-            if (_profile == null || !_profile.Evaluate(hour, out AtmosphereState state, out TimeOfDayProfile.Segment segment))
+            float target = _transition switch
+            {
+                LookTransition.ByPhases when _profile != null => _profile.PhaseLookHour(_clock.Phase),
+                LookTransition.ByHours => _clock.Now.WholeHour,
+                _ => hour,
+            };
+
+            if (_transition == LookTransition.Continuous || _lookTarget < 0f || _transitionDuration <= 0f)
+            {
+                _lookTarget = _lookFrom = target;
+                _lookSpan = 0f;
+                _lookGlide = 1f;
+                return target;
+            }
+
+            if (target != _lookTarget)
+            {
+                _lookFrom = LookHour;
+                _lookSpan = Mathf.Repeat(target - _lookFrom, 24f);
+                // The short way round, so switching modes mid-day doesn't spin through a whole day.
+                if (_lookSpan > 12f)
+                    _lookSpan -= 24f;
+                _lookTarget = target;
+                _lookGlide = 0f;
+            }
+            if (_lookGlide < 1f)
+                _lookGlide = Mathf.Min(1f, _lookGlide + Time.unscaledDeltaTime / _transitionDuration);
+            return Mathf.Repeat(_lookFrom + _lookSpan * Smooth01(_lookGlide), 24f);
+        }
+
+        void Apply(float hour, float lookHour, float moonPhase)
+        {
+            if (_profile == null || !_profile.Evaluate(lookHour, out AtmosphereState state, out TimeOfDayProfile.Segment segment))
                 return;
 
             for (int i = 0; i < _layers.Count; i++)
@@ -198,11 +255,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
             _state = state;
             Hour = hour;
+            LookHour = lookHour;
             MoonPhase = moonPhase;
 
+            // The sun and moon belong to the look: By Phases / By Hours hold them still between transitions.
             SunPath path = _profile.Path;
-            Vector3 sun = path.Sun(hour, out float sunElevation);
-            Vector3 moon = path.Moon(hour, out float moonElevation);
+            Vector3 sun = path.Sun(lookHour, out float sunElevation);
+            Vector3 moon = path.Moon(lookHour, out float moonElevation);
             SunDirection = sun;
             MoonDirection = moon;
             SunElevation = sunElevation;
@@ -228,18 +287,39 @@ namespace Aipocalypse.Core.EnvironmentSystem
             Vector3 toSource = sunLights ? sun : moon;
             float bearing = Mathf.Atan2(toSource.x, toSource.z) * Mathf.Rad2Deg;
             float elevation = Mathf.Max(sunLights ? sunElevation : moonElevation, path.MinLightElevation);
-            if (_lightStep > 0f)
-            {
-                bearing = Mathf.Round(bearing / _lightStep) * _lightStep;
-                elevation = Mathf.Round(elevation / _lightStep) * _lightStep;
-            }
 
-            _light.transform.rotation = Quaternion.LookRotation(-SunPath.Direction(bearing, elevation));
+            _light.transform.rotation = StepLight(Quaternion.LookRotation(-SunPath.Direction(bearing, elevation)), sunLights);
             _light.useColorTemperature = false;
             _light.color = sunLights ? state.SunColor : state.MoonColor;
             _light.intensity = sunLights ? sunIntensity : moonIntensity;
             _light.shadowStrength = sunLights ? state.SunShadows : state.MoonShadows;
             SetShadowDistance(!sunLights);
+        }
+
+        // Shadow maps shimmer while their light turns, so it turns in short glides between still holds.
+        // Jumps, skips and the sun/moon swap snap: nobody sees the shadows move then.
+        Quaternion StepLight(Quaternion target, bool sunLights)
+        {
+            bool snap = _shadowStep <= 0f || _transition != LookTransition.Continuous || !Application.isPlaying || !_lightPlaced || sunLights != _sunLit
+                || (_clock != null && _clock.IsSkipping) || Quaternion.Angle(_lightTo, target) > _shadowStep * 4f + 2f;
+            if (snap)
+            {
+                _lightFrom = _lightTo = target;
+                _glide = 1f;
+                _lightPlaced = true;
+                _sunLit = sunLights;
+                return target;
+            }
+
+            if (_glide >= 1f && Quaternion.Angle(_lightTo, target) >= _shadowStep)
+            {
+                _lightFrom = _lightTo;
+                _lightTo = target;
+                _glide = 0f;
+            }
+            if (_glide < 1f)
+                _glide = _shadowGlide > 0f ? Mathf.Min(1f, _glide + Time.unscaledDeltaTime / _shadowGlide) : 1f;
+            return Quaternion.Slerp(_lightFrom, _lightTo, Smooth01(_glide));
         }
 
         static void ApplyRenderSettings(in AtmosphereState state)

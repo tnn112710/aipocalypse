@@ -371467,10 +371467,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.EnvironmentDirector
   _profile: {fileID: 11400000, guid: 25df888397d1e184e960a9163b10bd9b, type: 2}
+  _transition: 0
+  _transitionDuration: 5
   _light: {fileID: 308460570}
   _gradeFrom: {fileID: 1452487004}
   _gradeTo: {fileID: 2033497265}
-  _lightStep: 0
+  _shadowStep: 1
+  _shadowGlide: 0.3
   _nightShadowDistance: 60
   _sceneReactors:
   - {fileID: 886257610}
