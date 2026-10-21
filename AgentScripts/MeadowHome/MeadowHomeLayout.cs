@@ -62,6 +62,32 @@ public static class MeadowHomeLayout
     public const float SwampWater = 24.5f, SwampGround = 24.85f;
     // the home pond and the river sit at the lake's level: one flat water height for underwater rendering
     public const float LakeLevel = 19.5f;
+    // The home pond's shore, islands and dressing frame were traced at the fall (206, 433), heading 100, scale 0.88 (about
+    // 82 x 66 m). PondXf turns that shape about the fall to PondHeading and stretches it to about 2.5 times its area:
+    // PondAlong along the flow, PondLeft on the north (left) bank, PondRight on the south bank, so it grows into the forest
+    // and stays clear of the bridge and the trails.
+    public static readonly Vector2 PondFall = V(206, 433);
+    public const float TracedHeading = 100f, PondHeading = 85f, PondAlong = 1.2f, PondLeft = 3.3f, PondRight = 1.3f;
+    static Vector2 Dir(float heading) => V(Mathf.Sin(heading * Mathf.Deg2Rad), Mathf.Cos(heading * Mathf.Deg2Rad));
+    public static Vector2 TracedForward => Dir(TracedHeading);
+    public static Vector2 TracedSide => V(TracedForward.y, -TracedForward.x);   // right of the flow: the south bank
+    public static Vector2 PondForward => Dir(PondHeading);
+    public static Vector2 PondSide => V(PondForward.y, -PondForward.x);
+    public static Vector2 PondXf(Vector2 old)
+    {
+        var d = old - PondFall;
+        float s = Vector2.Dot(d, TracedForward), t = Vector2.Dot(d, TracedSide);
+        return PondFall + PondForward * (s * PondAlong) + PondSide * (t * (t < 0 ? PondLeft : PondRight));
+    }
+    public static Vector2 PondXfInverse(Vector2 p)
+    {
+        var d = p - PondFall;
+        float s = Vector2.Dot(d, PondForward), t = Vector2.Dot(d, PondSide);
+        return PondFall + TracedForward * (s / PondAlong) + TracedSide * (t / (t < 0 ? PondLeft : PondRight));
+    }
+    static Vector2 PondXf(float x, float z) => PondXf(V(x, z));
+    // a radius at an old pond position, scaled with the local stretch
+    public static float PondR(Vector2 old, float r) => r * Mathf.Sqrt(PondAlong * (Vector2.Dot(old - PondFall, TracedSide) < 0 ? PondLeft : PondRight));
     public static readonly Vector2 HomeBase = V(267, 282);
     public const float HomeBaseHeight = 29.5f;
     public static readonly Vector2 Bridge = V(312, 362);
@@ -142,15 +168,16 @@ public static class MeadowHomeLayout
             V(705,96), V(660,104), V(622,112), V(590,130), V(566,154), V(545,185), V(534,220), V(522,248), V(506,262),
         }, 4) },
         // the home pond: the Komorebi demo pond's shore traced from its terrain (research4/komorebi_pond.md), scaled 0.88 and
-        // laid along our waterfall (206, 433) heading 100: a funnel from the fall, a back basin with two islets, two arms
-        // around the central island and two front bays; the river leaves from the right-front bay
-        new Basin { name = "WaterfallPond", level = LakeLevel, depth = 2.8f, deepDistance = 10f, bankSlope = 0.3f, shore = SmoothClosed(new[]
+        // laid along our waterfall (206, 433) heading 100 and stretched by PondXf: a funnel from the fall, a back basin with two
+        // islets, two arms around the central island and two front bays; the river leaves from the right-front bay. Steeper
+        // banks than the other basins: a gentler cone from this big, low pond cut the West Stream banks and the West Pond rim.
+        new Basin { name = "WaterfallPond", level = LakeLevel, depth = 4.8f, deepDistance = 13f, bankSlope = 0.5f, shore = SmoothClosed(new[]
         {
             V(203.0f,432.0f), V(204.1f,427.5f), V(215.3f,410.5f), V(230.4f,396.9f), V(242.9f,390.0f), V(250.8f,390.0f), V(263.4f,386.2f), V(275.5f,388.1f),
             V(281.4f,391.3f), V(283.4f,395.9f), V(283.5f,400.9f), V(282.9f,404.9f), V(279.0f,413.5f), V(280.3f,416.3f), V(284.7f,420.0f), V(285.6f,424.1f),
             V(283.8f,433.1f), V(279.9f,438.6f), V(270.3f,438.5f), V(259.6f,441.9f), V(246.3f,451.5f), V(237.7f,452.6f), V(231.7f,450.6f), V(224.7f,442.9f),
             V(219.6f,443.5f), V(211.9f,441.5f), V(204.4f,437.3f),
-        }, 4) },
+        }.Select(v => PondXf(v)).ToArray(), 4) },
         new Basin { name = "WestPond", level = 50.0f, depth = 3.0f, deepDistance = 10f, bankSlope = 0.35f, shore = Ellipse(V(196,640), 28, 23, 20, 12, 21) },
         new Basin { name = "NorthPond", level = 44.0f, depth = 3.0f, deepDistance = 10f, bankSlope = 0.35f, shore = Ellipse(V(386,806), 52, 20, 12, 16, 31) },
     };
@@ -205,10 +232,12 @@ public static class MeadowHomeLayout
     // Rivers about twice and streams about 2.5 times their first width, each about 0.3-0.5 m deeper.
     public static readonly Line[] Lines =
     {
-        new Line { name = "River", depth = 3.3f, bankSlope = 0.3f, meander = 4f, seed = 5, narrowAt = V(312, 362), narrowTo = 0.85f, knots = new[]
+        // starts in the stretched pond's right-front bay (the old first knot moved by PondXf) and keeps its old course from
+        // (292, 384), so it still crosses the bridge square to the trails
+        new Line { name = "River", depth = 4.5f, bankSlope = 0.3f, meander = 4f, seed = 5, narrowAt = V(312, 362), narrowTo = 0.85f, knots = new[]
         {
-            P(264,402,LakeLevel,10), P(277,397,LakeLevel,10.5f), P(292,384,LakeLevel,12.5f), P(312,362,LakeLevel,13.5f), P(348,339,LakeLevel,14.5f), P(386,321,LakeLevel,15),
-            P(430,303,LakeLevel,15.5f), P(468,289,LakeLevel,16.5f), P(490,284,LakeLevel,18), P(508,283,LakeLevel,21), P(524,285,LakeLevel,23), P(542,289,LakeLevel,24),
+            P(PondXf(264,402).x,PondXf(264,402).y,LakeLevel,12), P(292,384,LakeLevel,15), P(312,362,LakeLevel,16.2f), P(348,339,LakeLevel,17.4f), P(386,321,LakeLevel,18),
+            P(430,303,LakeLevel,18.6f), P(468,289,LakeLevel,19.8f), P(490,284,LakeLevel,21), P(508,283,LakeLevel,22.5f), P(524,285,LakeLevel,23.5f), P(542,289,LakeLevel,24.5f),
         } },
         new Line { name = "WestStream", depth = 1.2f, bankSlope = 0.45f, meander = 2.5f, seed = 10, knots = new[]
         {
@@ -309,10 +338,13 @@ public static class MeadowHomeLayout
     public static readonly Vector4[] Islands =
     {
         A(690,240,3.0f,26), A(810,190,2.2f,18), A(860,380,2.6f,22), A(760,330,1.2f,13), A(620,170,0.8f,14),
-        // home pond (Komorebi demo): the central island as two overlapping bumps along the flow, islets W and NE at the back,
-        // the flower islet in the left-front bay (the demo's sits in the right-front bay, where our river leaves)
-        A(250.9f,419.7f,2.1f,12.6f), A(265.2f,417.5f,1.9f,11.8f), A(230.7f,414.5f,1.1f,8.3f), A(240.7f,438.5f,0.8f,7.3f), A(276f,428f,0.6f,6f),
+        // home pond (Komorebi demo, traced at the old pond frame and moved by PondXf): the central island as two overlapping
+        // bumps along the flow, islets W and NE at the back, the flower islet in the left-front bay (the demo's sits in the
+        // right-front bay, where our river leaves)
+        PondIsland(250.9f,419.7f,2.1f,12.6f), PondIsland(265.2f,417.5f,1.9f,11.8f), PondIsland(230.7f,414.5f,1.1f,8.3f), PondIsland(240.7f,438.5f,0.8f,7.3f), PondIsland(276f,428f,0.6f,6f),
     };
+
+    static Vector4 PondIsland(float x, float z, float top, float r) { var p = PondXf(x, z); return A(p.x, p.y, top, PondR(V(x, z), r)); }
 
     static float[] islandLevels;
 
@@ -2413,7 +2445,7 @@ public static class MeadowHomeLayout
     // dark river channel look as if it stopped short of the lake.
     static readonly (Vector2 c, float r)[] SandCoves =
     {
-        (V(548,172), 24f), (V(700,106), 40f), (V(830,136), 32f), (V(922,330), 30f), (V(612,128), 26f), (V(282,433), 17f), (V(262,418), 9f), (V(620,170), 14f),
+        (V(548,172), 24f), (V(700,106), 40f), (V(830,136), 32f), (V(922,330), 30f), (V(612,128), 26f), (PondXf(282,433), PondR(V(282,433), 17f)), (PondXf(262,418), PondR(V(262,418), 9f)), (V(620,170), 14f),
     };
 
     public static float SandWeight(Vector2 p)
@@ -3127,7 +3159,36 @@ public static class Landmarks
         Put(yard, LV + "Environment/Trough_1.prefab", MeadowHomeLayout.Yard(10.5f, -10f), MeadowHomeLayout.HomeYaw + 30, 1f, 0);
         Put(yard, LV + "Environment/StreetLamp_1.prefab", MeadowHomeLayout.Yard(MeadowHomeLayout.GateLocalX - MeadowHomeLayout.FenceSeg(2 * MeadowHomeLayout.FenceHalf.x) / 2 - 0.9f, MeadowHomeLayout.FenceHalf.y - 1.2f), MeadowHomeLayout.HomeYaw + 180, 1f, 0);
 
-        // ---- bridge over the river, square to the flow ----
+        Bridge(root, log);
+
+        // trail sign at the forest fork
+        Put(Child(root, "Trail Signs"), LV + "Environment/SignPost_1.prefab", new Vector2(339, 421), 200, 1f, 0);
+
+        foreach (var go in root.GetComponentsInChildren<Transform>(true).Select(t => t.gameObject).Where(g => g.GetComponentInParent<StylizedWater3.WaterObject>() == null))
+            if (go.GetComponentInChildren<ParticleSystem>(true) == null && go.GetComponent<Light>() == null)
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ContributeGI);
+        EditorSceneManager.MarkSceneDirty(scene);
+        return log;
+    }
+
+    // Rebuilds only the bridge (after the river changes width).
+    public static object BuildBridge()
+    {
+        terrain = Terrain.activeTerrain ?? throw new InvalidOperationException("No terrain.");
+        var root = SceneManager.GetActiveScene().GetRootGameObjects().First(g => g.name == "Environment").transform.Find("Landmarks");
+        var old = root.Find("River Bridge");
+        if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+        var log = new List<string>();
+        Bridge(root, log);
+        foreach (var t in root.Find("River Bridge").GetComponentsInChildren<Transform>(true))
+            GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ContributeGI);
+        EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+        return log;
+    }
+
+    // The bridge over the river, square to the flow.
+    static void Bridge(Transform root, List<string> log)
+    {
         var bridgeRoot = Child(root, "River Bridge");
         var (pos, along, width) = RiverPoint(MeadowHomeLayout.Bridge);
         var axis = new Vector2(-along.y, along.x);              // across the river
@@ -3141,15 +3202,6 @@ public static class Landmarks
         bridge.transform.localScale = new Vector3(1.3f, 1.3f, spanScale);
         bridge.transform.position = new Vector3(pos.x, Mathf.Max(bankA, bankB) - 0.15f, pos.y);
         log.Add($"bridge at {bridge.transform.position:F1} yaw {yaw:0} span {span:0.0} m banks {bankA:0.0}/{bankB:0.0} river {pos}");
-
-        // trail sign at the forest fork
-        Put(Child(root, "Trail Signs"), LV + "Environment/SignPost_1.prefab", new Vector2(339, 421), 200, 1f, 0);
-
-        foreach (var go in root.GetComponentsInChildren<Transform>(true).Select(t => t.gameObject).Where(g => g.GetComponentInParent<StylizedWater3.WaterObject>() == null))
-            if (go.GetComponentInChildren<ParticleSystem>(true) == null && go.GetComponent<Light>() == null)
-                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ContributeGI);
-        EditorSceneManager.MarkSceneDirty(scene);
-        return log;
     }
 
     // ---- waterfall (Komorebi kit on rock meshes; recipe scaled from the Komorebi demo's falls) ----
@@ -4063,18 +4115,20 @@ public static class Dressing
         var td = terrain.terrainData;
         Quaternion Tilted(float lo, float hi) => Quaternion.Euler(R(-1, 1) * R(lo, hi), R(0, 360), R(-1, 1) * R(lo, hi));
         Quaternion Upright() => Quaternion.Euler(0, R(0, 360), 0);
-        var fall = new Vector2(206, 433);
-        float hd = 100f * Mathf.Deg2Rad;
-        var f = new Vector2(Mathf.Sin(hd), Mathf.Cos(hd)); var right = new Vector2(f.y, -f.x);
-        Vector2 W(float s, float t) => fall + f * (0.88f * s) + right * (0.88f * t);
-        float Sof(Vector2 p) => Vector2.Dot(p - fall, f) / 0.88f;
-        float Tof(Vector2 p) => Vector2.Dot(p - fall, right) / 0.88f;
+        var fall = MeadowHomeLayout.PondFall;
+        var f = MeadowHomeLayout.TracedForward; var right = MeadowHomeLayout.TracedSide;
+        // (s, t) in the traced demo frame: W0 at the old size (behind the fall), W stretched with the pond
+        Vector2 W0(float s, float t) => fall + f * (0.88f * s) + right * (0.88f * t);
+        Vector2 W(float s, float t) => MeadowHomeLayout.PondXf(W0(s, t));
+        float Sof(Vector2 p) => Vector2.Dot(MeadowHomeLayout.PondXfInverse(p) - fall, f) / 0.88f;
+        float Tof(Vector2 p) => Vector2.Dot(MeadowHomeLayout.PondXfInverse(p) - fall, right) / 0.88f;
         var river = MeadowHomeLayout.Lines.First(l => l.name == "River");
         bool InOutflow(Vector2 p) => MeadowHomeLayout.TrueLineEdge(p, river) < 3f;
         var placed = new List<Vector3>();
         bool Free(Vector2 p, float r) => placed.All(q => (new Vector2(q.x, q.y) - p).sqrMagnitude > (q.z + r) * (q.z + r));
         string Stone() { int r = rng.Next(100); return KN + "Rocks/SmallStone_" + (r < 24 ? 1 : r < 61 ? 2 : r < 97 ? 3 : 4) + ".prefab"; }
-        var pondIslands = Enumerable.Range(0, MeadowHomeLayout.Islands.Length).Where(i => MeadowHomeLayout.IslandLevel(i) == level).ToArray();
+        var pondIslands = Enumerable.Range(0, MeadowHomeLayout.Islands.Length)
+            .Where(i => MeadowHomeLayout.SignedDistance(new Vector2(MeadowHomeLayout.Islands[i].x, MeadowHomeLayout.Islands[i].y), pond.shore) < 0).ToArray();
         bool OnLand(Vector2 p, float above) => H(p) > level + above;
         int nStones = 0, nLilies = 0, nPlants = 0;
 
@@ -4213,22 +4267,22 @@ public static class Dressing
         for (int k = 0; k < 10; k++) Try(central, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", W(R(44, 78), R(-4, 16)), R(0.9f, 1.2f), 0.25f, 1f);
         for (int k = 0; k < 4; k++) Try(central, "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", W(R(50, 76), R(-3, 15)), R(0.9f, 1.1f), 0.3f, 1f);
         var isletW = Sub2(islRoot, "Islet W");
-        Try(isletW, "Nature/Sakura_5.prefab", new Vector2(230.7f, 414.5f), 1.0f, 0.6f, 1f);
-        for (int k = 0; k < 4; k++) Try(isletW, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", new Vector2(230.7f, 414.5f), R(0.8f, 1.1f), 0.2f, 4f);
+        Try(isletW, "Nature/Sakura_5.prefab", MeadowHomeLayout.PondXf(new Vector2(230.7f, 414.5f)), 1.0f, 0.6f, 1f);
+        for (int k = 0; k < 4; k++) Try(isletW, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", MeadowHomeLayout.PondXf(new Vector2(230.7f, 414.5f)), R(0.8f, 1.1f), 0.2f, 4f);
         var isletNE = Sub2(islRoot, "Islet NE");
-        Try(isletNE, "Nature/Sakura_3.prefab", new Vector2(240.7f, 438.5f), 1.0f, 0.4f, 1f);
-        for (int k = 0; k < 3; k++) Try(isletNE, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", new Vector2(240.7f, 438.5f), R(0.8f, 1.1f), 0.15f, 3.5f);
+        Try(isletNE, "Nature/Sakura_3.prefab", MeadowHomeLayout.PondXf(new Vector2(240.7f, 438.5f)), 1.0f, 0.4f, 1f);
+        for (int k = 0; k < 3; k++) Try(isletNE, "Nature/Fern_" + (1 + rng.Next(3)) + ".prefab", MeadowHomeLayout.PondXf(new Vector2(240.7f, 438.5f)), R(0.8f, 1.1f), 0.15f, 3.5f);
         var isletS = Sub2(islRoot, "Flower Islet");
-        Try(isletS, "Nature/Bush_3_Flowers.prefab", new Vector2(276f, 428f), 1.0f, 0.3f, 0.8f);
-        Try(isletS, "Nature/Bush_1_Flowers.prefab", new Vector2(276f, 428f), 1.1f, 0.1f, 3f);
-        for (int k = 0; k < 8; k++) Try(isletS, "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", new Vector2(276f, 428f), R(0.9f, 1.1f), 0.08f, 3.2f);
-        for (int k = 0; k < 2; k++) Try(isletS, "Nature/Salvia_Group_1.prefab", new Vector2(276f, 428f), R(0.9f, 1.1f), 0.1f, 2.5f);
+        Try(isletS, "Nature/Bush_3_Flowers.prefab", MeadowHomeLayout.PondXf(new Vector2(276f, 428f)), 1.0f, 0.3f, 0.8f);
+        Try(isletS, "Nature/Bush_1_Flowers.prefab", MeadowHomeLayout.PondXf(new Vector2(276f, 428f)), 1.1f, 0.1f, 3f);
+        for (int k = 0; k < 8; k++) Try(isletS, "Nature/Farfugium_" + (1 + rng.Next(3)) + ".prefab", MeadowHomeLayout.PondXf(new Vector2(276f, 428f)), R(0.9f, 1.1f), 0.08f, 3.2f);
+        for (int k = 0; k < 2; k++) Try(isletS, "Nature/Salvia_Group_1.prefab", MeadowHomeLayout.PondXf(new Vector2(276f, 428f)), R(0.9f, 1.1f), 0.1f, 2.5f);
 
         // ---- 5. banks ----
         // a point on the bank `back` metres past the waterline, walking from a point in the water along dir
         Vector2 Bank(Vector2 from, Vector2 dir, float back)
         {
-            for (float d = 0; d < 40f; d += 0.5f) if (H(from + dir * d) > level + 0.2f) return from + dir * (d + back);
+            for (float d = 0; d < 80f; d += 0.5f) if (H(from + dir * d) > level + 0.2f) return from + dir * (d + back);
             return new Vector2(float.NaN, 0);
         }
         void BankPlant(string path, Vector2 at, float scale)
@@ -4236,10 +4290,10 @@ public static class Dressing
             if (float.IsNaN(at.x) || InOutflow(at) || MeadowHomeLayout.TrailDistancePublic(at) < 3f || !Free(at, 1.5f)) return;
             Plant(banks, path, at, scale);
         }
-        BankPlant("Nature/Sakura_1.prefab", Bank(W(52, -20), -right, R(2, 5)), R(1.0f, 1.15f));          // left arm (north)
-        BankPlant("Nature/Sakura_2.prefab", Bank(W(58, 30), right, R(2, 5)), R(1.1f, 1.25f));            // right arm (south)
-        BankPlant("Nature/Sakura_5.prefab", Bank(W(72, 30), right, 12), 0.9f);
-        for (int k = 0, tries = 0; k < 7 && tries < 300; tries++)                                          // pines on the sides and front
+        BankPlant("Nature/Sakura_1.prefab", Bank(W(52, -20), -MeadowHomeLayout.PondSide, R(2, 5)), R(1.0f, 1.15f));          // left arm (north)
+        BankPlant("Nature/Sakura_2.prefab", Bank(W(58, 30), MeadowHomeLayout.PondSide, R(2, 5)), R(1.1f, 1.25f));            // right arm (south)
+        BankPlant("Nature/Sakura_5.prefab", Bank(W(72, 30), MeadowHomeLayout.PondSide, 12), 0.9f);
+        for (int k = 0, tries = 0; k < 7 && tries < 1500; tries++)                                         // pines on the sides and front
         {
             float s = R(30, 100), t = rng.Next(2) == 0 ? R(-60, -30) : R(38, 62);
             var q = W(s, t);
@@ -4270,7 +4324,7 @@ public static class Dressing
         int frame = 0;
         for (int tries = 0; tries < 200 && frame < 4; tries++)
         {
-            var q = W(R(-33, -14), R(-22, 22));
+            var q = W0(R(-33, -14), R(-22, 22));
             if (!Drop(q, out var hp) || hp.y < level + 10f || !Free(q, 5f)) continue;
             Put(banks, KN + "Nature/Sakura_" + (1 + frame) + ".prefab", hp - Vector3.up * 0.2f, Upright(), R(1.15f, 1.3f));
             placed.Add(new Vector3(q.x, q.y, 5f)); frame++; nPlants++;
@@ -5237,12 +5291,13 @@ public static class Finishing
         Vector2 Dir(float ang) => new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
         float AngleDiff(float a, float b) => Mathf.Abs(Mathf.DeltaAngle(a * Mathf.Rad2Deg, b * Mathf.Rad2Deg)) * Mathf.Deg2Rad;
         var view = MeadowHomeLayout.HomeBase;
+        var homePond = MeadowHomeLayout.Basins.First(b => b.name == "WaterfallPond").shore;
 
         for (int ii = 0; ii < MeadowHomeLayout.Islands.Length; ii++)
         {
             float level = MeadowHomeLayout.IslandLevel(ii);
-            if (level > 20f) continue;                                    // the home pond's islands: Dressing.BuildHomePond
             var isl = MeadowHomeLayout.Islands[ii];
+            if (MeadowHomeLayout.SignedDistance(new Vector2(isl.x, isl.y), homePond) < 0) continue;   // the home pond's islands: Dressing.BuildHomePond
             var c = new Vector2(isl.x, isl.y);
             float rw = MeadowHomeLayout.IslandWaterline(ii);
             char kind = rw >= 16f ? 'A' : isl.z > 1.3f ? 'B' : isl.z > 1.0f ? 'C' : 'D';

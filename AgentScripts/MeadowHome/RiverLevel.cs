@@ -65,8 +65,9 @@ public static class RiverLevel
     }
 
     // River knots (x, z) and the home pond centre, matching MeadowHomeLayout.
-    static readonly Vector2[] RiverXZ = { new(264,402), new(277,397), new(292,384), new(312,362), new(348,339), new(386,321), new(430,303), new(468,289), new(490,284), new(508,283), new(524,285), new(542,289) };
-    static readonly Vector2 PondCentre = new(232, 425);
+    static readonly Vector2[] RiverXZ = { new(283,413), new(292,384), new(312,362), new(348,339), new(386,321), new(430,303), new(468,289), new(490,284), new(508,283), new(524,285), new(542,289) };
+    static readonly Vector2 PondCentre = new(262, 446);
+    const float PondRadius = 55f;
 
     static float RiverDistance(Vector2 p)
     {
@@ -77,7 +78,7 @@ public static class RiverLevel
             float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / ab.sqrMagnitude);
             d = Mathf.Min(d, Vector2.Distance(p, a + t * ab));
         }
-        return Mathf.Min(d, Vector2.Distance(p, PondCentre) - 30f);
+        return Mathf.Min(d, Vector2.Distance(p, PondCentre) - PondRadius);
     }
 
     // Moves the river mist from the old sloped surface down to the new level.
@@ -172,6 +173,32 @@ public static class RiverLevel
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         }
         return $"half span {half:0.0} drops {Drop(a1):0.00}/{Drop(a2):0.00} banks now {bankA:0.0}/{bankB:0.0} bridge y {bridge.position.y:0.00}";
+    }
+
+    // Placed objects (outermost prefab instances outside the rebuilt groups and water) whose pivot now stands under the
+    // water level near the river or pond. apply=true deletes them.
+    public static object Drowned(float level, float within, bool apply)
+    {
+        var terrain = Terrain.activeTerrain;
+        var env = Env();
+        var skip = Roots.Select(r => env.Find(r)).Append(env.Find("Water")).Where(t => t != null).ToHashSet();
+        var hits = new List<GameObject>();
+        foreach (var t in env.GetComponentsInChildren<Transform>(true))
+        {
+            if (!UnityEditor.PrefabUtility.IsOutermostPrefabInstanceRoot(t.gameObject) || skip.Any(s => t.IsChildOf(s))) continue;
+            var parentPath = Path(t.parent);
+            if (parentPath.EndsWith("/Mist") || parentPath.EndsWith("/Lilies") || parentPath.Contains("/River Bridge")) continue;
+            var p = t.position;
+            if (RiverDistance(new Vector2(p.x, p.z)) > within) continue;
+            if (terrain.SampleHeight(p) + terrain.transform.position.y < level - 0.05f) hits.Add(t.gameObject);
+        }
+        var report = hits.GroupBy(g => Path(g.transform.parent)).ToDictionary(g => g.Key, g => g.Select(o => $"{o.name} ({o.transform.position.x:0},{o.transform.position.z:0}) y {o.transform.position.y:0.0}").ToList());
+        if (apply)
+        {
+            foreach (var g in hits) UnityEditor.Undo.DestroyObjectImmediate(g);
+            if (hits.Count > 0) UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        }
+        return new { count = hits.Count, report };
     }
 
     static string Path(Transform t) => t.parent == null ? t.name : Path(t.parent) + "/" + t.name;
