@@ -12,10 +12,10 @@ One terrain, 1000 × 300 × 1000 m at the origin, heightmap 2049 (about 0.49 m),
 | --- | --- | --- |
 | Home base | fenced 34 × 27 m centred (267, 282), turned 50° (`HomeYaw`): door, open gate and spawn face bearing 50, toward the bridge | flat pad 29.5 m on the Home Rise |
 | Meadow | round, from the home pond along the river's south bank to the lake, south to about 8 m inside the playable edge (z ≈ 200–208), up to the foot rocks; rolling (`MeadowHills`: knolls up to +5 m, hollows to −2.5 m, faded near water); the home sits on a rise at its west end, with the near range 85–110 m behind it (west/south-west) | 23–32 m rolling |
-| Home pond | below the waterfall, about 82 × 66 m | 23.0 m, 2.8 m deep. The Komorebi demo pond's traced outline at 0.88 scale: a central island, two islets at the back and a flower islet |
-| Waterfall | sheet pivot (206, 433), heading 100° | lip 41.6 m → pond 23.0 m |
-| River | home pond (264, 402) → lake (542, 289) | surface 23.0 → 19.5 m, about 24–40 m wide and 3.3 m deep on average, narrower at the bridge |
-| Bridge | (312, 362), 92 m from the base | Grasslands `Bridge`, stretched along its span to the local river width (about 31 m); deck and rails ×1.3 |
+| Home pond | below the waterfall, about 82 × 66 m | 19.5 m (`LakeLevel`), 2.8 m deep; the ground around it sits about 3.5 m lower than the old 23 m pond. The Komorebi demo pond's traced outline at 0.88 scale: a central island, two islets at the back and a flower islet |
+| Waterfall | sheet pivot (206, 433), heading 100° | lip 41.6 m → pond 19.5 m |
+| River | home pond (264, 402) → lake (542, 289) | flat at 19.5 m, the lake's level, so pond, river and lake share one water height (SW3 underwater rendering needs flat water); about 24–40 m wide and 3.3 m deep on average, narrower at the bridge |
+| Bridge | (312, 362), 92 m from the base | Grasslands `Bridge`, stretched along its span to the local river width (about 31 m); deck and rails ×1.3; deck at about 20.3 m |
 | Great Lake | south-east, x 506–924, z 96–550 | surface 19.5 m, up to 10 m deep; round, its north-west shore follows the forest; five islands, beaches and coves |
 | Outlet river | lake's north-east tip (818, 520) → north edge at x ≈ 928 | 19.5 → 18.4 m, about 30–34 m wide, 2.7 m deep; leaves the map between gorge slabs |
 | Pine forest | centre, east and north-east | 24–48 m, knolls and stands with clearings |
@@ -42,8 +42,8 @@ Order of a full rebuild (entry points of `MeadowHomeLayout.cs` unless noted):
 4. `GenerateTextureMasks(1024)`, `BuildTerrainLayers()`, `BuildTextures()`: 8 first-party layer copies (Grasslands grass/blue/yellow/mud/mudstones/sand, wet mud, a Komorebi rock-detail layer) and 19 texture stamps: base grass, cool patches, forest dirt, warm meadow, cool meadow patches, highland scree, swamp grass/mud, water beds, shore pebbles, beach coves, channel beds and banks, steep rock, highland shelves, and trails (a frayed bare core, `TrailHalfWidth` about 0.9–1.7 m; a patchy trampled verge; darker wear down the middle). Trails are not carved into the heightmap. Bed/shore follow the real waterline, so islands stay grassy.
 5. `Vegetation.GenerateMasks(1024)`, `Vegetation.MakeVariants()`, `Vegetation.Build()`: the MicroVerse `Vegetation` group (details below).
 6. `BuildBoundary(1337)`: per-side foot rocks, the near range with its pines, peaks, haze and a backdrop ground ring (models, no terrain raise) plus invisible walls. `BoundaryAngles(3)` reports, per viewpoint and 10° bearing, whether the peaks rise above the layers in front.
-7. `BuildWaterMaterials()`, `BuildFlatWater()`, `BuildRivers()`: Stylized Water 3 (below). `BuildLakeReflection()` is not run while water reflections are off.
-8. `Landmarks.Build(7)`, `Landmarks.BuildWaterfall(206, 433, 100, 41.6, 23)`, `Outcrops.Build(5)`, `Dressing.BuildWaterEdges(21)`, `Dressing.BuildBanks(23)`, `Dressing.BuildHomePond(41)`, `Finishing.Islands(9)`.
+7. `BuildWaterMaterials()`, `BuildFlatWater()`, `BuildRivers()`, `BuildUnderwater()`: Stylized Water 3 (below). `BuildLakeReflection()` is not run while water reflections are off.
+8. `Landmarks.Build(7)`, `Landmarks.BuildWaterfall(206, 433, 100, 41.6, 19.5)`, `Outcrops.Build(5)`, `Dressing.BuildWaterEdges(21)`, `Dressing.BuildBanks(23)`, `Dressing.BuildHomePond(41)`, `Finishing.Islands(9)`.
 9. `Atmosphere.cs`: `ClonePostProcessing()`, `Apply()`, `Particles()`; then `Vegetation.Wind()` (also adds `BK Foliage Globals`) **before** `Atmosphere.SharedWind()` (`Wind()` deletes the Wind root that `SharedWind()` fills), `Finishing.FillLight(0.45)`, `Finishing.PlayerSpawn()`. `Atmosphere.RenderQuality()` sets the project URP asset (shadows, SSAO); it only needs re-running if those change.
 10. `Vegetation.GenerateClearMasks(1024)` first, so the first tree pass already has this layout's gaps (it matters whenever the yard, trails or rocks move), kit `Rebuild(true)` (terrain trees exist from here), then `Dressing.BuildMeadow(31)` (keeps its stones and hero trees off terrain trees), `Dressing.BuildHomeTrees()`, `Vegetation.GenerateClearMasks(1024)` (after every rock or dressing pass), kit `Rebuild(true)`, `Vegetation.DrawDistances(120, 240)` (last: read the values back), `SaveScene("")`. Then check that every `Atmosphere/Leaf Fall` point still has a tree within 5 m (the points are hand-placed in `Particles()`).
 11. `OpenScene()` reloads the saved scene. Do this before screenshots: the GPU Resident Drawer keeps drawing objects that scripts deleted or disabled until the scene reloads.
@@ -103,6 +103,16 @@ Like the concept, the valley is enclosed by grey rocky mountains right at its ed
 - Calm flow: the vendor river material runs time at 16×. Ours uses `_Speed` 6, slope speed 1.5, foam speed 0.7 and ribbon foam velocity strength 0.45. The waterfall copy flows at 0.42×.
 - Intersection source 2 adds the ribbon's vertex-colour edge band to the foam. In sharp mode everything above the clip turns white, which drew a continuous curb along both banks. `_IntersectionClipping` 0.6 keeps only the noise peaks. Don't set `_IntersectionLength` below 1: that zeroes the depth term.
 - Gotcha: refreshing a mesh asset with `EditorUtility.CopySerialized` left the old GPU buffers on screen; `SaveMesh` refills it through the Mesh API instead (vertex colours included).
+
+## Underwater
+
+SW3's Underwater Rendering extension (render feature setting already on in `PC_Renderer`). `BuildUnderwater()` builds `Environment/Water/Underwater`:
+
+- One `UnderwaterArea` (trigger box from 15 m under the surface to 3 m above, the shore bounds plus 10 m) per flat level: `Home Pond + River` (19.5 m, pond palette), `Great Lake` (19.5 m), `WestPond` (50 m), `NorthPond` (44 m), `Swamp` (24.5 m, fog density 1.2). The extension needs one flat water height per area, which is why the home pond and river sit at the lake's level. Streams and the outlet river slope, so they have none.
+- The area's `Reset()` runs on `AddComponent` and resizes the box to 100 × 50 × 100 m; the builder sets the box afterwards.
+- Still, pond and swamp materials render both faces (`_Cull` 0) so their surface shows from below.
+- The vendor shader turns underwater shading off in river mode, so the river ribbon is invisible from below. `River Underside` (`Water/MH_RiverUnderside.asset`) is a flat sheet over the channel at 19.5 m with `MH_Water_RiverUnderside.mat` (a pond copy drawing back faces only, `_Cull` 1): seen from below only.
+- Known gap: the waterfall sheet and other transparents draw after the underwater fog and stay unfogged.
 
 ## Waterfall
 
