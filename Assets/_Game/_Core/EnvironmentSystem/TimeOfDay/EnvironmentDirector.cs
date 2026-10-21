@@ -288,11 +288,24 @@ namespace Aipocalypse.Core.EnvironmentSystem
             float bearing = Mathf.Atan2(toSource.x, toSource.z) * Mathf.Rad2Deg;
             float elevation = Mathf.Max(sunLights ? sunElevation : moonElevation, path.MinLightElevation);
 
-            _light.transform.rotation = StepLight(Quaternion.LookRotation(-SunPath.Direction(bearing, elevation)), sunLights);
-            _light.useColorTemperature = false;
-            _light.color = sunLights ? state.SunColor : state.MoonColor;
-            _light.intensity = sunLights ? sunIntensity : moonIntensity;
-            _light.shadowStrength = sunLights ? state.SunShadows : state.MoonShadows;
+            // Only changed values are written (here, RenderSettings and the volumes): every write dirties the object,
+            // and a selected one repaints its Inspector each frame, which halves the editor's frame rate.
+            Quaternion rotation = StepLight(Quaternion.LookRotation(-SunPath.Direction(bearing, elevation)), sunLights);
+            Transform lightTransform = _light.transform;
+            // Exact compare: Quaternion's == ignores turns under ~0.16°, which would freeze a slow continuous sun.
+            if (!lightTransform.rotation.Equals(rotation))
+                lightTransform.rotation = rotation;
+            if (_light.useColorTemperature)
+                _light.useColorTemperature = false;
+            Color color = sunLights ? state.SunColor : state.MoonColor;
+            if (_light.color != color)
+                _light.color = color;
+            float intensity = sunLights ? sunIntensity : moonIntensity;
+            if (_light.intensity != intensity)
+                _light.intensity = intensity;
+            float shadowStrength = sunLights ? state.SunShadows : state.MoonShadows;
+            if (_light.shadowStrength != shadowStrength)
+                _light.shadowStrength = shadowStrength;
             SetShadowDistance(!sunLights);
         }
 
@@ -326,12 +339,18 @@ namespace Aipocalypse.Core.EnvironmentSystem
         {
             if (RenderSettings.ambientMode != AmbientMode.Trilight)
                 RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = state.AmbientSky;
-            RenderSettings.ambientEquatorColor = state.AmbientEquator;
-            RenderSettings.ambientGroundColor = state.AmbientGround;
-            RenderSettings.reflectionIntensity = state.ReflectionIntensity;
-            RenderSettings.fogColor = state.FogColor;
-            RenderSettings.fogDensity = state.FogDensity;
+            if (RenderSettings.ambientSkyColor != state.AmbientSky)
+                RenderSettings.ambientSkyColor = state.AmbientSky;
+            if (RenderSettings.ambientEquatorColor != state.AmbientEquator)
+                RenderSettings.ambientEquatorColor = state.AmbientEquator;
+            if (RenderSettings.ambientGroundColor != state.AmbientGround)
+                RenderSettings.ambientGroundColor = state.AmbientGround;
+            if (RenderSettings.reflectionIntensity != state.ReflectionIntensity)
+                RenderSettings.reflectionIntensity = state.ReflectionIntensity;
+            if (RenderSettings.fogColor != state.FogColor)
+                RenderSettings.fogColor = state.FogColor;
+            if (RenderSettings.fogDensity != state.FogDensity)
+                RenderSettings.fogDensity = state.FogDensity;
         }
 
         static void ApplySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
@@ -361,13 +380,17 @@ namespace Aipocalypse.Core.EnvironmentSystem
             {
                 if (_fromProfile != from || _gradeFrom.sharedProfile != from)
                     _gradeFrom.sharedProfile = _fromProfile = from;
-                _gradeFrom.weight = from != null ? 1f : 0f;
+                float weight = from != null ? 1f : 0f;
+                if (_gradeFrom.weight != weight)
+                    _gradeFrom.weight = weight;
             }
             if (_gradeTo != null)
             {
                 if (_toProfile != to || _gradeTo.sharedProfile != to)
                     _gradeTo.sharedProfile = _toProfile = to;
-                _gradeTo.weight = to != null && to != from ? segment.T : 0f;
+                float weight = to != null && to != from ? segment.T : 0f;
+                if (_gradeTo.weight != weight)
+                    _gradeTo.weight = weight;
             }
         }
 
