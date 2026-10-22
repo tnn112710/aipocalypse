@@ -282,12 +282,13 @@ public static class DayNightSetup
             p.ReflectionIntensity = 0.7f;
             p.FogColor = new Color(0.65f, 0.42f, 0.38f);
             p.FogDensity = 0.0018f;
-            p.SkyTint = new Color(0.42f, 0.3f, 0.3f);
-            p.SkyExposure = morning.SkyExposure * 0.58f;
+            p.SkyTint = new Color(0.42f, 0.26f, 0.28f);
+            // Dark enough to match the ground: the sun light is already at 0 on the horizon.
+            p.SkyExposure = morning.SkyExposure * 0.21f;
             p.NightSkyTop = new Color(0.05f, 0.06f, 0.14f);
-            p.NightSkyHorizon = new Color(0.5f, 0.26f, 0.22f);
-            p.NightSkyBlend = 0.3f;
-            p.HorizonGlow = new Color(1.2f, 0.45f, 0.18f);
+            p.NightSkyHorizon = new Color(0.32f, 0.16f, 0.14f);
+            p.NightSkyBlend = 0.62f;
+            p.HorizonGlow = new Color(0.9f, 0.35f, 0.14f);
             p.SunDisc = 1.2f;
             p.HazeColor = new Color(0.45f, 0.32f, 0.34f);
             p.UnlitTint = new Color(0.85f, 0.65f, 0.6f);
@@ -362,6 +363,7 @@ public static class DayNightSetup
             white.tint.Override(Mathf.Clamp(tint + dTint, -100f, 100f));
             Add<Bloom>(profile).intensity.Override(Mathf.Max(0f, bloom + dBloom));
             Add<Vignette>(profile).intensity.Override(Mathf.Clamp01(vignette + dVignette));
+            MergeUnder(basePost, profile);
             EditorUtility.SetDirty(profile);
         }
 
@@ -397,10 +399,10 @@ public static class DayNightSetup
             Key("Morning", 9f, "Morning", "Day"),
             Key("Noon", 12.5f, "Noon", "Day"),
             Key("Afternoon", 16f, "Afternoon", "Day"),
-            Key("Golden hour", 18f, "GoldenHour", "Golden"),
-            Key("Sunset", 19f, "Sunset", "Golden"),
-            Key("Dusk", 20f, "Dusk", "Night"),
-            Key("Night", 21.5f, "Night", "Night"),
+            Key("Golden hour", 17f, "GoldenHour", "Golden"),
+            Key("Sunset", 18f, "Sunset", "Golden"),
+            Key("Dusk", 19f, "Dusk", "Night"),
+            Key("Night", 20.5f, "Night", "Night"),
         };
         profile.Path = new SunPath();
         EditorUtility.SetDirty(profile);
@@ -560,6 +562,8 @@ public static class DayNightSetup
         var director = Get<EnvironmentDirector>(tod);
         var from = GradeVolume(tod.transform, "Grade From", 10f);
         var to = GradeVolume(tod.transform, "Grade To", 11f);
+        RestGrades(from, to);
+        RemoveBaseVolume(log);
 
         var so = new SerializedObject(director);
         so.FindProperty("_profile").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TimeOfDayProfile>(ProfilePath);
@@ -582,13 +586,13 @@ public static class DayNightSetup
         Tint(atmosphere + "Mist");
         Tint(atmosphere + "Swamp Fog");
         Tint(atmosphere + "Clouds");
-        Particles(atmosphere + "Birds", ReactorSource.Hours, new TimeWindow(5f, 20f, 1f), 0f, 1f);
+        Particles(atmosphere + "Birds", ReactorSource.Hours, new TimeWindow(5f, 18f, 1f), 0f, 1f);
         Tint(atmosphere + "Birds");
-        Particles(atmosphere + "Butterflies", ReactorSource.Hours, new TimeWindow(7.5f, 18.5f, 1f), 0f, 1f);
+        Particles(atmosphere + "Butterflies", ReactorSource.Hours, new TimeWindow(7.5f, 17f, 1f), 0f, 1f);
         Particles(atmosphere + "Seed Fluff", ReactorSource.Daylight, default, 0f, 1f);
         Particles(atmosphere + "Sunbeam Motes", ReactorSource.Daylight, default, 0f, 1f);
         Tint(atmosphere + "Sunbeam Motes");
-        Particles(atmosphere + "Fireflies", ReactorSource.Hours, new TimeWindow(19.5f, 5f, 1f), 0f, 1f);
+        Particles(atmosphere + "Fireflies", ReactorSource.Hours, new TimeWindow(20f, 5f, 1f), 0f, 1f);
 
         // Boundary: haze banks are unlit; the HIGHLANDS / Grasslands mountain copies keep their own height haze.
         Tint("Environment/Boundary/Haze");
@@ -646,6 +650,79 @@ public static class DayNightSetup
         EditorSceneManager.SaveScene(scene);
         log.Add($"reactors {new SerializedObject(director).FindProperty("_sceneReactors").arraySize}");
         return string.Join("\n", log);
+    }
+
+    // One volume at a time: every grade carries the base volume's fixed settings (tonemapping, bloom and vignette shape,
+    // lift/gamma/gain), the scene's base volume goes, and the director turns Grade To off while it isn't blending.
+    public static object SingleGrade()
+    {
+        var basePost = AssetDatabase.LoadAssetAtPath<VolumeProfile>(BasePostPath);
+        var profile = AssetDatabase.LoadAssetAtPath<TimeOfDayProfile>(ProfilePath);
+        var log = new List<string>();
+        foreach (VolumeProfile grade in profile.Keys.Select(k => k.Grade).Where(g => g != null).Distinct())
+        {
+            MergeUnder(basePost, grade);
+            EditorUtility.SetDirty(grade);
+            AssetDatabase.SaveAssetIfDirty(grade);
+            log.Add(grade.name + ": " + string.Join(", ", grade.components.Select(c => c.GetType().Name)));
+        }
+
+        var director = Object.FindAnyObjectByType<EnvironmentDirector>() ?? throw new Exception("no EnvironmentDirector");
+        var so = new SerializedObject(director);
+        RestGrades((Volume)so.FindProperty("_gradeFrom").objectReferenceValue, (Volume)so.FindProperty("_gradeTo").objectReferenceValue);
+        RemoveBaseVolume(log);
+        EditorSceneManager.MarkSceneDirty(director.gameObject.scene);
+        return string.Join("\n", log);
+    }
+
+    // Copies each base setting a grade doesn't override, so the grade alone renders what base + grade did.
+    static void MergeUnder(VolumeProfile basePost, VolumeProfile grade)
+    {
+        if (basePost == null)
+            return;
+        foreach (VolumeComponent source in basePost.components.Where(c => c.active))
+        {
+            VolumeComponent target = grade.components.FirstOrDefault(c => c.GetType() == source.GetType());
+            if (target == null)
+            {
+                target = grade.Add(source.GetType());
+                target.name = source.GetType().Name;
+                target.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+                AssetDatabase.AddObjectToAsset(target, grade);
+            }
+            for (int i = 0; i < source.parameters.Count; i++)
+            {
+                VolumeParameter from = source.parameters[i];
+                VolumeParameter to = target.parameters[i];
+                if (!from.overrideState || to.overrideState)
+                    continue;
+                to.SetValue(from);
+                to.overrideState = true;
+            }
+        }
+    }
+
+    // The saved scene shows the Day grade, so edit mode (no director running) still looks like the morning.
+    static void RestGrades(Volume from, Volume to)
+    {
+        Undo.RecordObject(from, "Grades");
+        Undo.RecordObject(to, "Grades");
+        from.sharedProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(TodDir + "/Grades/PP_Day.asset");
+        from.weight = 1f;
+        from.enabled = true;
+        to.sharedProfile = null;
+        to.weight = 0f;
+        to.enabled = false;
+    }
+
+    static void RemoveBaseVolume(List<string> log)
+    {
+        var basePost = AssetDatabase.LoadAssetAtPath<VolumeProfile>(BasePostPath);
+        foreach (Volume volume in Object.FindObjectsByType<Volume>(FindObjectsInactive.Include).Where(v => v.sharedProfile == basePost))
+        {
+            log.Add("removed base volume " + volume.name);
+            Undo.DestroyObjectImmediate(volume.GetComponents<Component>().Length <= 2 && volume.transform.childCount == 0 ? (Object)volume.gameObject : volume);
+        }
     }
 
     static Volume GradeVolume(Transform parent, string name, float priority)

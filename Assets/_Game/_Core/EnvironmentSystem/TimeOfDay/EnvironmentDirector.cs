@@ -51,7 +51,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         float _transitionDuration = 5f;
         [SerializeField, Tooltip("The one shadowed directional light: the sun by day, the moon by night")]
         Light _light;
-        [SerializeField, Tooltip("Global volume above the base grade: the grade of the key before the current hour")]
+        [SerializeField, Tooltip("Global volume: the grade of the key before the current hour. The scene's only grade outside a blend")]
         Volume _gradeFrom;
         [SerializeField, Tooltip("Global volume above Grade From: the next key's grade, weighted by the blend")]
         Volume _gradeTo;
@@ -395,26 +395,26 @@ namespace Aipocalypse.Core.EnvironmentSystem
         }
 
         // From = the key before the hour at full weight, To = the next key at the blend weight: URP's volume stack lerps them.
+        // Each grade is complete (no base volume under them), so outside a blend between two grades only From is on.
         void ApplyGrades(TimeOfDayProfile.Segment segment)
         {
             VolumeProfile from = _profile.Keys[segment.From].Grade;
             VolumeProfile to = _profile.Keys[segment.To].Grade;
-            if (_gradeFrom != null)
-            {
-                if (_fromProfile != from || _gradeFrom.sharedProfile != from)
-                    _gradeFrom.sharedProfile = _fromProfile = from;
-                float weight = from != null ? 1f : 0f;
-                if (_gradeFrom.weight != weight)
-                    _gradeFrom.weight = weight;
-            }
-            if (_gradeTo != null)
-            {
-                if (_toProfile != to || _gradeTo.sharedProfile != to)
-                    _gradeTo.sharedProfile = _toProfile = to;
-                float weight = to != null && to != from ? segment.T : 0f;
-                if (_gradeTo.weight != weight)
-                    _gradeTo.weight = weight;
-            }
+            SetGrade(_gradeFrom, ref _fromProfile, from, from != null ? 1f : 0f);
+            SetGrade(_gradeTo, ref _toProfile, to, to != null && to != from ? segment.T : 0f);
+        }
+
+        static void SetGrade(Volume volume, ref VolumeProfile applied, VolumeProfile profile, float weight)
+        {
+            if (volume == null)
+                return;
+            if (applied != profile || volume.sharedProfile != profile)
+                volume.sharedProfile = applied = profile;
+            if (volume.weight != weight)
+                volume.weight = weight;
+            bool on = weight > 0f;
+            if (volume.enabled != on)
+                volume.enabled = on;
         }
 
         static float Smooth01(float x)

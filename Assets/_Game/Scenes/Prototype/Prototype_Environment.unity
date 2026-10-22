@@ -283656,6 +283656,63 @@ Transform:
   - {fileID: 1702464944}
   m_Father: {fileID: 2053706921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1048338942
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 272.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 292.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5963837223361328323, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9190400212361816520, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
+      propertyPath: m_Name
+      value: Lantern
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
 --- !u!1001 &1049804589
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -371467,7 +371524,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.EnvironmentDirector
   _profile: {fileID: 11400000, guid: 25df888397d1e184e960a9163b10bd9b, type: 2}
-  _transition: 0
+  _transition: 1
   _transitionDuration: 5
   _light: {fileID: 308460570}
   _gradeFrom: {fileID: 1452487004}
@@ -371485,14 +371542,15 @@ MonoBehaviour:
   - {fileID: 933772884}
   - {fileID: 1421974013}
   - {fileID: 53602960}
-  - {fileID: 443037606}
   - {fileID: 443037605}
+  - {fileID: 443037606}
   - {fileID: 1884464648}
   - {fileID: 1464587852}
   - {fileID: 392272198}
   - {fileID: 89785478}
   - {fileID: 89785479}
   - {fileID: 951622588}
+  - {fileID: 2137827535}
   - {fileID: 1254163443}
   _preview: 0
   _previewHour: 9
@@ -393482,8 +393540,8 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 10
   blendDistance: 0
-  weight: 0
-  sharedProfile: {fileID: 0}
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 437bdca698d6cbc479a65b1df2f1f6b5, type: 2}
 --- !u!1001 &1453393562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -553814,7 +553872,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2009775849}
-  - component: {fileID: 2009775848}
   - component: {fileID: 2009775850}
   m_Layer: 0
   m_Name: Post-Processing
@@ -553823,23 +553880,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2009775848
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2009775847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: c3260c9b58cd59744b7d67dcb9865dcc, type: 2}
 --- !u!4 &2009775849
 Transform:
   m_ObjectHideFlags: 0
@@ -553867,7 +553907,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02aa669be1117cb48833b01abaed11b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: sc.screeneffects.runtime::sc.screeneffects.runtime.PostProcessingVolumeRenderer
-  volume: {fileID: 2009775848}
+  volume: {fileID: 0}
   settings:
     executionOrder: 0
     alwaysEnable: 0
@@ -559548,7 +559588,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2033497263}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
@@ -591100,6 +591140,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4902521262422327770, guid: 2e64f462fd6257d4cb574ad2c30ac9f1, type: 3}
   m_PrefabInstance: {fileID: 2137743333}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2137827535 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6798359731818773260, guid: 1144b94f7343f5a409716110c146f3ab, type: 3}
+  m_PrefabInstance: {fileID: 2092883947}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7290775bb8b60b45afe50f239d6b4e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayWeight
 --- !u!1001 &2138913305
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -592793,3 +592844,4 @@ SceneRoots:
   - {fileID: 1667528870}
   - {fileID: 1303372367}
   - {fileID: 690906473}
+  - {fileID: 1048338942}
