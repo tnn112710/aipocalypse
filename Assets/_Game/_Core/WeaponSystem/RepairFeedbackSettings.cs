@@ -18,6 +18,13 @@ namespace Aipocalypse.Core.WeaponSystem
         [BoxGroup("Success"), Min(0f), Tooltip("Time to keep the successful widget visible before its final fade.")] public float SuccessHold = 0.32f;
         [BoxGroup("Success"), Range(1f, 1.8f)] public float SuccessScale = 1.5f;
         [BoxGroup("Success"), Range(1f, 3f)] public float BurstScale = 2.6f;
+        [BoxGroup("Success"), Range(0.01f, 0.5f), Tooltip("Share of the duration the widget takes to pop up to Success Scale, and again to settle")]
+        public float SuccessPopShare = 0.12f;
+        [BoxGroup("Success"), Range(1f, 1.8f), Tooltip("Scale it settles at after the pop, while held")] public float SuccessSettleScale = 1.08f;
+        [BoxGroup("Success"), Range(0.5f, 1f), Tooltip("Scale it shrinks to while fading out")] public float SuccessEndScale = 0.9f;
+        [BoxGroup("Success"), Range(0.1f, 1f), Tooltip("Share of the duration at which the fade-out ends")] public float SuccessFadeEndShare = 0.76f;
+        [BoxGroup("Success"), Range(0.1f, 1f), Tooltip("Share of the duration the burst ring grows and fades over; also caps Success Hold")]
+        public float BurstShare = 0.65f;
         [BoxGroup("Success")] public GunJolt SuccessJolt = new(new Vector3(0f, 0.008f, -0.03f), new Vector3(-5f, 1.5f, 2.5f), 0.4f);
         [BoxGroup("Success"), Tooltip("The hit that frees the gun")] public SoundID SuccessSound;
         [BoxGroup("Success"), Tooltip("Reward chime")] public SoundID SuccessAccent;
@@ -27,7 +34,12 @@ namespace Aipocalypse.Core.WeaponSystem
         [BoxGroup("Miss")] public Color MissColor = new(1f, 0.2f, 0.12f, 1f);
         [BoxGroup("Miss"), Min(0.05f)] public float MissDuration = 0.4f;
         [BoxGroup("Miss"), Min(0f)] public float MissShakePixels = 22f;
+        [BoxGroup("Miss"), Min(1), Tooltip("Shake oscillations")] public int MissShakeVibrato = 10;
+        [BoxGroup("Miss"), Range(0f, 1f)] public float MissShakeElasticity = 0.7f;
         [BoxGroup("Miss"), Range(0f, 0.5f), Tooltip("Widget squash on a miss")] public float MissSquash = 0.18f;
+        [BoxGroup("Miss"), Range(0.05f, 1f), Tooltip("Share of the miss duration the squash lasts")] public float MissSquashShare = 0.6f;
+        [BoxGroup("Miss"), Min(1)] public int MissSquashVibrato = 4;
+        [BoxGroup("Miss"), Range(0f, 1f)] public float MissSquashElasticity = 0.5f;
         [BoxGroup("Miss"), Tooltip("Fumbled hit")] public GunJolt MissJolt = new(new Vector3(-0.006f, -0.01f, 0.006f), new Vector3(4f, -4f, 7f), 0.45f, 2.5f);
         [BoxGroup("Miss")] public SoundID MissSound;
         [BoxGroup("Miss"), Tooltip("Dull thud layered under the miss sound")] public SoundID MissAccent;

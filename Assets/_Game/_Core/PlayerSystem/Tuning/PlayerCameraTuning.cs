@@ -14,6 +14,8 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Min(0f)] public float SprintBobAmplitude { get; private set; } = 0.055f;
         [field: SerializeField, Range(0f, 2f)] public float BobSideRatio { get; private set; } = 0.5f;
         [field: SerializeField, Min(0f)] public float BobFadeSpeed { get; private set; } = 8f;
+        [field: SerializeField, Range(0f, 1f), Tooltip("Footsteps play only while the bob is above this share of walking speed")]
+        public float StepMinIntensity { get; private set; } = 0.3f;
 
         [field: Header("Landing dip"), SerializeField, Min(0f), Tooltip("Impacts slower than this (m/s) don't dip")]
         public float LandingDipMinSpeed { get; private set; } = 3f;

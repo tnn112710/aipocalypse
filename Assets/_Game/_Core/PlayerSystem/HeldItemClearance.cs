@@ -43,7 +43,7 @@ namespace Aipocalypse.Core.PlayerSystem
                     target = Mathf.Clamp01((reach - distance) / Mathf.Max(0.01f, _tuning.ClearanceRetractDistance));
             }
 
-            float blend = 1f - Mathf.Exp(-_tuning.ClearanceBlendSpeed * Mathf.Max(0f, deltaTime));
+            float blend = Damping.ByRate(_tuning.ClearanceBlendSpeed, Mathf.Max(0f, deltaTime));
             _weight = Mathf.Lerp(_weight, target, blend);
             _rig.ApplyObstaclePose(_weight, _tuning.ClearanceRetractDistance, _tuning.ClearanceEuler);
         }
@@ -52,15 +52,9 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             int count = Physics.SphereCastNonAlloc(origin, _tuning.ClearanceRadius, direction, _hits, distance,
                 _tuning.ClearanceLayers, QueryTriggerInteraction.Ignore);
-            nearestDistance = float.MaxValue;
-            for (int i = 0; i < count; i++)
-            {
-                RaycastHit hit = _hits[i];
-                if (hit.distance >= nearestDistance || hit.collider.transform.IsChildOf(_root))
-                    continue;
-                nearestDistance = hit.distance;
-            }
-            return nearestDistance < float.MaxValue;
+            bool found = PhysicsQueries.Nearest(_hits, count, _root, out RaycastHit nearest);
+            nearestDistance = found ? nearest.distance : float.MaxValue;
+            return found;
         }
     }
 }

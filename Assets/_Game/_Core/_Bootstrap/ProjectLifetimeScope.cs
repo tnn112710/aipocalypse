@@ -25,10 +25,9 @@ namespace Aipocalypse.Core.Bootstrap
                 options.EnableCaptureStackTrace = true;
 #endif
             });
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            // Only for the MessagePipe Diagnostics window; game code never uses GlobalMessagePipe.
-            builder.RegisterBuildCallback(resolver => GlobalMessagePipe.SetProvider(resolver.AsServiceProvider()));
-#endif
+            // Only for the MessagePipe Diagnostics window (editor and development builds); game code never uses GlobalMessagePipe.
+            if (Debug.isDebugBuild)
+                builder.RegisterBuildCallback(resolver => GlobalMessagePipe.SetProvider(resolver.AsServiceProvider()));
 
             new InputInstaller(_controls).Install(builder);
             new AudioInstaller().Install(builder);

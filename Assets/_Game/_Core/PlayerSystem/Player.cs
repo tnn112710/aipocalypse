@@ -227,7 +227,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 AimHeld = intent.Aim,
                 ReloadPressed = intent.Reload,
                 IsSprinting = _motor.IsSprinting,
-                IsMoving = _motor.HorizontalVelocity.sqrMagnitude > 0.25f,
+                IsMoving = _motor.HorizontalVelocity.sqrMagnitude > _tuning.HeldItem.MovingSpeed * _tuning.HeldItem.MovingSpeed,
                 IsAirborne = !_motor.IsGrounded,
             }, deltaTime);
 
@@ -272,7 +272,7 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             ItemInstance item = Equipment.DropSelected();
             if (item != null)
-                WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, transform.eulerAngles.y + 90f, 0f), null);
+                WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, transform.eulerAngles.y + _tuning.Interaction.DropYaw, 0f), null);
         }
 
         void OnStepped() => _audio.Play(_tuning.Sounds.FootstepSound, _motor.IsSprinting ? 1f : _tuning.Sounds.WalkStepVolume);

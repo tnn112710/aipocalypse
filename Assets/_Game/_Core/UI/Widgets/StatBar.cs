@@ -37,10 +37,15 @@ namespace Aipocalypse.Core.UI
             float normalized = max > 0f ? Mathf.Clamp01(current / max) : 0f;
             if (normalized != _normalized)
             {
+                bool first = _normalized < 0f;
                 float drop = _normalized - normalized;
                 _normalized = normalized;
                 _fill.fillAmount = normalized;
-                UpdateTrail(drop);
+                // The first value is a starting point, not a drop: the trail starts there instead of wherever the prefab left it.
+                if (first && _trail != null)
+                    _trail.fillAmount = normalized;
+                else
+                    UpdateTrail(drop);
             }
 
             // Rounded up so a sliver of health never reads as 0.

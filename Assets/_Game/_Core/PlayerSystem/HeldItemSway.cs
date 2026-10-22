@@ -171,7 +171,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             float aim = _aimWeight = Mathf.Clamp01(input.AimWeight);
             float scale = Mathf.Max(0f, _stats.Get(StatId.HeldItemSway, 1f));
-            float blend = 1f - Mathf.Exp(-deltaTime / BlendTime);
+            float blend = Damping.ByTime(BlendTime, deltaTime);
             _time += deltaTime;
             _airborne = Mathf.Lerp(_airborne, input.IsAirborne ? 1f : 0f, blend);
             _winded = Mathf.Lerp(_winded, input.IsWinded ? 1f : 0f, blend);

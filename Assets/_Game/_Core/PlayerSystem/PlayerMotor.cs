@@ -130,13 +130,13 @@ namespace Aipocalypse.Core.PlayerSystem
             {
                 Vector3 target = wishDirection * ((wantsSprint ? SprintSpeed : WalkSpeed) * scale * SpeedMultiplier);
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
-                _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, 1f - Mathf.Exp(-rate * deltaTime));
+                _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate, deltaTime));
             }
             else if (hasMove)
             {
                 // Airborne: steer, keep momentum, never gain sprint speed mid-air.
                 float speed = Mathf.Max(_horizontalVelocity.magnitude, WalkSpeed * scale);
-                _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, 1f - Mathf.Exp(-_tuning.AirAcceleration * deltaTime));
+                _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, Damping.ByRate(_tuning.AirAcceleration, deltaTime));
             }
 
             if (IsOnSteepSlope)
@@ -230,7 +230,7 @@ namespace Aipocalypse.Core.PlayerSystem
             float radius = _controller.radius;
             Vector3 bottomSphere = _body.TransformPoint(_controller.center) - Vector3.up * (_controller.height * 0.5f - radius);
             bool flatBelow = Physics.Raycast(bottomSphere, Vector3.down, out RaycastHit hit, radius + _controller.stepOffset,
-                                             Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                                             _tuning.GroundLayers, QueryTriggerInteraction.Ignore)
                              && Vector3.Angle(hit.normal, Vector3.up) <= _controller.slopeLimit;
             return !flatBelow;
         }

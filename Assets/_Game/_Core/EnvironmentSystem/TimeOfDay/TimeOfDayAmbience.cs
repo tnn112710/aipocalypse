@@ -32,5 +32,6 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public Bed[] Beds = Array.Empty<Bed>();
         public Calls[] OneShots = Array.Empty<Calls>();
         [Min(0f), Tooltip("Seconds a bed takes to follow its curve")] public float VolumeFade = 2f;
+        [Min(0f), Tooltip("Seconds the beds fade out when the scene ends")] public float StopFade = 1f;
     }
 }

@@ -49,7 +49,6 @@ namespace Aipocalypse.Core.WeaponSystem
         GunJolt _jolt;
         float _time = -1f;
 
-
         public void Play(GunJolt jolt)
         {
             if (jolt.IsEmpty)

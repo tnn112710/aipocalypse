@@ -23,15 +23,12 @@ namespace Aipocalypse.Core.WeaponSystem
         internal int SpawnId { get; set; }
         internal bool IsSpawned { get; set; }
 
-        void Awake()
-        {
-            _particles = GetComponentsInChildren<ParticleSystem>(true);
-            _trails = GetComponentsInChildren<TrailRenderer>(true);
-        }
-
         // After it's been moved into place: no trail streak from where it was last used, particles start over.
+        // Found on first use rather than in Awake, which hasn't run yet when it spawns under an inactive parent.
         public void Restart()
         {
+            _particles ??= GetComponentsInChildren<ParticleSystem>(true);
+            _trails ??= GetComponentsInChildren<TrailRenderer>(true);
             foreach (TrailRenderer trail in _trails)
                 trail.Clear();
             foreach (ParticleSystem particles in _particles)

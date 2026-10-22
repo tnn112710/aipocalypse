@@ -12,6 +12,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
     public sealed class AmbienceService : IStartable, ITickable, IDisposable
     {
         const float UpdateInterval = 0.25f;
+        const float MinCallInterval = 1f;
 
         readonly TimeOfDayAmbience _ambience;
         readonly WorldClock _clock;
@@ -71,25 +72,31 @@ namespace Aipocalypse.Core.EnvironmentSystem
             for (int i = 0; i < _callTimers.Length; i++)
             {
                 TimeOfDayAmbience.Calls calls = _ambience.OneShots[i];
-                if (!calls.Hours.Contains(hour))
+                float weight = calls.Hours.Weight(hour);
+                if (weight <= 0f)
                     continue;
                 _callTimers[i] -= deltaTime;
                 if (_callTimers[i] > 0f)
                     continue;
                 _callTimers[i] = NextInterval(calls);
-                _audio.Play(calls.Sound, calls.Volume * calls.Hours.Weight(hour));
+                _audio.Play(calls.Sound, calls.Volume * weight);
             }
         }
 
         public void Dispose()
         {
             foreach (IAudioPlayer bed in _beds)
-                _audio.Stop(bed, 1f);
+                _audio.Stop(bed, _ambience.StopFade);
         }
 
         static float BedVolume(in TimeOfDayAmbience.Bed bed, float hour) =>
             bed.Volume != null && bed.Volume.length > 0 ? Mathf.Clamp01(bed.Volume.Evaluate(hour)) : 1f;
 
-        static float NextInterval(in TimeOfDayAmbience.Calls calls) => Random.Range(calls.Interval.x, Mathf.Max(calls.Interval.x, calls.Interval.y));
+        // At least the slider's 1 s: a new entry's (0, 0) would otherwise play the call every frame.
+        static float NextInterval(in TimeOfDayAmbience.Calls calls)
+        {
+            float min = Mathf.Max(MinCallInterval, calls.Interval.x);
+            return Random.Range(min, Mathf.Max(min, calls.Interval.y));
+        }
     }
 }

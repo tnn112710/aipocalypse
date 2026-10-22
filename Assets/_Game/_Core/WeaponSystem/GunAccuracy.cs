@@ -19,9 +19,7 @@ namespace Aipocalypse.Core.WeaponSystem
             float target = airborne ? _settings.AirborneSpread : 0f;
             target *= Mathf.Lerp(1f, _settings.AimMultiplier, Mathf.Clamp01(aimWeight)) * Mathf.Max(0f, steadiness);
 
-            Spread = target >= Spread || _settings.SettleSpeed <= 0f
-                ? target
-                : Mathf.Lerp(Spread, target, 1f - Mathf.Exp(-_settings.SettleSpeed * deltaTime));
+            Spread = target >= Spread ? target : Mathf.Lerp(Spread, target, Damping.ByRate(_settings.SettleSpeed, deltaTime));
         }
 
         public void Reset() => Spread = 0f;

@@ -34,7 +34,6 @@ namespace Aipocalypse.Core.UI
             _canvas = canvas != null ? canvas.rootCanvas.transform as RectTransform : null;
         }
 
-        protected override void Bind(Player player) { }
         protected override void Unbind(Player player)
         {
             _sprintAlpha = 1f;
@@ -58,14 +57,15 @@ namespace Aipocalypse.Core.UI
             float alpha = Mathf.Min(_sprintAlpha, 1f - aimed);
             Show(player.CrosshairPosition * pixels, alpha);
 
-            _spread = Mathf.Lerp(_spread, player.CrosshairSpread * pixels, 1f - Mathf.Exp(-_spreadSpeed * deltaTime));
+            _spread = Mathf.Lerp(_spread, player.CrosshairSpread * pixels, Damping.ByRate(_spreadSpeed, deltaTime));
             ShowSpread(_spread, alpha * Mathf.Clamp01((_spread - _minSpread) / _spreadFade));
         }
 
         void Show(Vector2 position, float alpha)
         {
             // Under half a pixel of change isn't worth a canvas rebuild.
-            if ((position - _position).sqrMagnitude > 0.25f || position == Vector2.zero)
+            // Except a return to the exact centre, so the crosshair never rests a fraction of a pixel off.
+            if (position != _position && ((position - _position).sqrMagnitude > 0.25f || position == Vector2.zero))
             {
                 _position = position;
                 _crosshair.anchoredPosition = position;

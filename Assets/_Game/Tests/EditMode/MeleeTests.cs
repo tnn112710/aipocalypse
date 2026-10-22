@@ -97,6 +97,19 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void AfterSwitching_TheNextSwingStartsOnTheFirstSide()
+        {
+            MeleeAttack attack = NewAttack();
+            Run(attack, Attack(true), 0.6f);
+            Assert.AreEqual(1, attack.SwingIndex);
+
+            attack.Tick(new MeleeInput { IsReady = false }, Frame);
+            attack.Tick(Attack(true, true), Frame);
+
+            Assert.AreEqual(0, attack.SwingIndex);
+        }
+
+        [Test]
         public void Switching_CancelsTheSwingBeforeItLands()
         {
             MeleeAttack attack = NewAttack();

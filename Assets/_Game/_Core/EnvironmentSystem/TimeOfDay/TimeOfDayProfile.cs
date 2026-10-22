@@ -43,6 +43,15 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public float MinLightElevation = 8f;
         [Range(0.5f, 20f), Tooltip("Degrees above the horizon over which sunlight and moonlight fade in")]
         public float HorizonFade = 12f;
+        [Range(1f, 90f), Tooltip("Degrees the sun sinks below the horizon at midnight (and the moon at noon)")]
+        public float NightDepth = 30f;
+        [Range(0f, 1f), Tooltip("Moonlight at new moon, as a share of the look's Moon Intensity (full moon)")]
+        public float NewMoonLight = 1f / 3f;
+
+        [Range(-20f, 0f), Tooltip("Sun elevation where Daylight starts rising from 0 (lamps, windows and other reactors use it)")]
+        public float DaylightStartElevation = -6f;
+        [Range(0f, 30f), Tooltip("Sun elevation where Daylight reaches 1")]
+        public float DaylightFullElevation = 10f;
 
         public float DayLength => Sunset > Sunrise ? Sunset - Sunrise : Sunset + 24f - Sunrise;
 
@@ -62,7 +71,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         {
             float p = Progress(hour, out bool isDay);
             float arc = Mathf.Sin(p * Mathf.PI);
-            elevation = isDay ? arc * NoonElevation : -arc * 30f;
+            elevation = isDay ? arc * NoonElevation : -arc * NightDepth;
             float bearing = isDay ? SunriseBearing + p * DayArc : SunriseBearing + DayArc + p * (360f - DayArc);
             return Direction(bearing, elevation);
         }
@@ -71,7 +80,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         {
             float p = Progress(hour, out bool isDay);
             float arc = Mathf.Sin(p * Mathf.PI);
-            elevation = isDay ? -arc * 30f : arc * MoonElevation;
+            elevation = isDay ? -arc * NightDepth : arc * MoonElevation;
             float bearing = isDay ? MoonriseBearing + NightArc + p * (360f - NightArc) : MoonriseBearing + p * NightArc;
             return Direction(bearing, elevation);
         }
@@ -156,10 +165,9 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 into += 24f;
             float t = Ease(a.Blend, count > 1 ? Mathf.Clamp01(into / span) : 0f);
 
-            LightingPreset lookA = a.Look;
+            // A key without a Look borrows its neighbour's; with neither, the first key's (checked above).
+            LightingPreset lookA = a.Look != null ? a.Look : b.Look != null ? b.Look : Keys[0].Look;
             LightingPreset lookB = b.Look != null ? b.Look : lookA;
-            if (lookA == null)
-                lookA = lookB;
             state = AtmosphereState.Lerp(lookA.ToState(), lookB.ToState(), t);
             segment = new Segment(from, to, t);
             return true;
@@ -175,7 +183,19 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [Button("Sort keys by hour"), PropertyOrder(-1)]
         public void SortKeys() => Keys.Sort((x, y) => x.Hour.CompareTo(y.Hour));
 
-        void OnValidate() => SortKeys();
+        // Only when out of order, so a row doesn't jump on every unrelated edit.
+        void OnValidate()
+        {
+            EnvironmentDirector.MarkLooksEdited();
+            for (int i = 1; i < Keys.Count; i++)
+            {
+                if (Keys[i].Hour < Keys[i - 1].Hour)
+                {
+                    SortKeys();
+                    return;
+                }
+            }
+        }
 
         bool HasGradeWarning => !string.IsNullOrEmpty(GradeWarning);
 

@@ -38,7 +38,7 @@ namespace Aipocalypse.Core.UI
             if (this == null)
                 return;
 
-            foreach (HotbarSlotView slot in FindObjectsByType<HotbarSlotView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (HotbarSlotView slot in FindObjectsByType<HotbarSlotView>(FindObjectsInactive.Include))
             {
                 if (slot.Style == this)
                     slot.ApplyStyle();

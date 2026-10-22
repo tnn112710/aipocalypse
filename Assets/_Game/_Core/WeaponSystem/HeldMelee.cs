@@ -44,7 +44,6 @@ namespace Aipocalypse.Core.WeaponSystem
         // Set by this frame's MeleeAttack.Tick, checked in LateTick once the camera is in its final place.
         bool _pendingStrike;
 
-        public MeleeAttack Attack => _attack;
         // Let the swing play without the obstacle pose changing its arc.
         public override bool KeepsClear => _attack == null || _attack.Phase == SwingPhase.None;
 
@@ -73,7 +72,7 @@ namespace Aipocalypse.Core.WeaponSystem
             _attack.Struck += OnStruck;
 
             if (_effects != null)
-                _effects.Prewarm(_definition.ImpactEffect, 4);
+                _effects.Prewarm(_definition.ImpactEffect, _definition.ImpactPrewarm);
         }
 
         public override bool StopsSprint(bool useHeld, bool aimHeld) => _attack != null && useHeld;
@@ -148,12 +147,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             float power = _user.MeleePower;
             Vector3 force = eye.forward * (swing.Knockback * power);
-            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            _damage?.Deal(target, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
-
-            Rigidbody body = hit.rigidbody;
-            if (body != null && !body.isKinematic)
-                body.AddForceAtPosition(force, hit.point, ForceMode.Impulse);
+            IDamageable target = _damage?.DealHit(hit, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
 
             if (_effects != null)
                 _effects.Spawn(_definition.ImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
@@ -164,17 +158,7 @@ namespace Aipocalypse.Core.WeaponSystem
         bool TryHit(Vector3 origin, Vector3 direction, SwingSettings swing, out RaycastHit nearest)
         {
             int count = Physics.SphereCastNonAlloc(origin, swing.Radius, direction, _hits, swing.Range, swing.HitLayers, QueryTriggerInteraction.Ignore);
-            nearest = default;
-            float nearestDistance = float.MaxValue;
-            for (int i = 0; i < count; i++)
-            {
-                RaycastHit hit = _hits[i];
-                if (hit.distance >= nearestDistance || hit.collider.transform.IsChildOf(_user.Root))
-                    continue;
-                nearest = hit;
-                nearestDistance = hit.distance;
-            }
-            if (nearestDistance == float.MaxValue)
+            if (!PhysicsQueries.Nearest(_hits, count, _user.Root, out nearest))
                 return false;
 
             // Already touching at the start of the cast: Unity reports no point or normal.
@@ -197,7 +181,7 @@ namespace Aipocalypse.Core.WeaponSystem
             else
             {
                 Transform target = sprinting && _sprintPose != null ? _sprintPose : _idlePose;
-                float t = _poseSpeed > 0f ? 1f - Mathf.Exp(-_poseSpeed * deltaTime) : 1f;
+                float t = Damping.ByRate(_poseSpeed, deltaTime);
                 if (target != null)
                 {
                     _posePosition = Vector3.Lerp(_posePosition, target.localPosition, t);

@@ -44,7 +44,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public void Tick(PlayerMotor motor, float deltaTime)
         {
             float speed = motor.HorizontalVelocity.magnitude;
-            float fade = 1f - Mathf.Exp(-_tuning.BobFadeSpeed * deltaTime);
+            float fade = Damping.ByRate(_tuning.BobFadeSpeed, deltaTime);
             float targetIntensity = motor.IsGrounded ? Mathf.Clamp01(speed / Mathf.Max(motor.WalkSpeed, 0.01f)) : 0f;
             _intensity = Mathf.Lerp(_intensity, targetIntensity, fade);
             _sprintBlend = Mathf.Lerp(_sprintBlend, motor.IsSprinting ? 1f : 0f, fade);
@@ -55,7 +55,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 float previous = _phase;
                 _phase = (_phase + speed * deltaTime / _tuning.StepLength * Mathf.PI) % (2f * Mathf.PI);
                 // The bob (sin 2·phase) bottoms out at 3π/4 and 7π/4.
-                if (StepIndex(_phase) != StepIndex(previous) && _intensity > 0.3f)
+                if (StepIndex(_phase) != StepIndex(previous) && _intensity > _tuning.StepMinIntensity)
                     Stepped?.Invoke();
             }
 

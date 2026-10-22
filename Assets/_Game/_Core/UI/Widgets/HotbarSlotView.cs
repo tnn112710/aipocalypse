@@ -20,6 +20,11 @@ namespace Aipocalypse.Core.UI
 
         Sprite _iconSprite;
         bool _selected;
+        // Last ammo shown, so a refresh of every slot rebuilds only the labels that changed. Rounds -1 = hidden.
+        int _shownRounds = -1;
+        int _shownReserve = -1;
+        bool _shownInfinite;
+        bool _shownWarning;
 
         public HotbarSlotStyle Style => _style;
 
@@ -40,18 +45,34 @@ namespace Aipocalypse.Core.UI
             if (_ammoLabel == null)
                 return;
             _ammoLabel.enabled = true;
-            if (infiniteReserve)
-                _ammoLabel.SetText("{0}", (float)rounds);
-            else
-                _ammoLabel.SetText("{0}/{1}", (float)rounds, (float)reserve);
-            if (_style != null)
-                _ammoLabel.color = warning ? _style.AmmoWarningColor : _style.AmmoColor;
+            if (rounds != _shownRounds || infiniteReserve != _shownInfinite || (!infiniteReserve && reserve != _shownReserve))
+            {
+                if (infiniteReserve)
+                    _ammoLabel.SetText("{0}", (float)rounds);
+                else
+                    _ammoLabel.SetText("{0}/{1}", (float)rounds, (float)reserve);
+                _shownRounds = rounds;
+                _shownReserve = reserve;
+                _shownInfinite = infiniteReserve;
+            }
+            if (warning != _shownWarning)
+            {
+                _shownWarning = warning;
+                PaintAmmo();
+            }
         }
 
         public void HideAmmo()
         {
             if (_ammoLabel != null)
                 _ammoLabel.enabled = false;
+            _shownRounds = -1;
+        }
+
+        void PaintAmmo()
+        {
+            if (_style != null)
+                _ammoLabel.color = _shownWarning ? _style.AmmoWarningColor : _style.AmmoColor;
         }
 
         public void SetSelected(bool selected)
@@ -87,8 +108,8 @@ namespace Aipocalypse.Core.UI
             {
                 if (_style.AmmoFont != null)
                     _ammoLabel.font = _style.AmmoFont;
-                _ammoLabel.color = _style.AmmoColor;
                 _ammoLabel.fontSize = _style.AmmoFontSize;
+                PaintAmmo();
             }
 
             Refresh();

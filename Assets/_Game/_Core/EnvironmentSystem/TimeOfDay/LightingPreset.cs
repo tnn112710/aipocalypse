@@ -14,7 +14,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         [BoxGroup("Moon"), Tooltip("Moonlight takes over the same light while the sun is down")]
         public Color MoonColor = new(0.55f, 0.65f, 0.95f);
-        [BoxGroup("Moon"), Min(0f), Tooltip("At full moon; a new moon gives a third of it")]
+        [BoxGroup("Moon"), Min(0f), Tooltip("At full moon; a new moon gives the profile's New Moon Light share of it")]
         public float MoonIntensity = 0.4f;
         [BoxGroup("Moon"), Range(0f, 1f)] public float MoonShadows = 0.6f;
 
@@ -43,6 +43,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public Color HazeColor = new(0.30f, 0.42f, 0.55f);
         [BoxGroup("Scene"), Tooltip("Multiplies unlit effects: mist, haze banks, clouds, god rays")]
         public Color UnlitTint = Color.white;
+
+        void OnValidate() => EnvironmentDirector.MarkLooksEdited();
 
         public AtmosphereState ToState() => new()
         {

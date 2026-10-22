@@ -36,6 +36,14 @@ namespace Aipocalypse.Core.EnvironmentSystem
         static readonly int MoonGlowId = Shader.PropertyToID("_TOD_MoonGlow");
         static readonly int StarsId = Shader.PropertyToID("_TOD_Stars");
 
+        // Moon phase drift smaller than this doesn't re-apply an unchanged look (the phase creeps every frame).
+        const float MoonPhaseStep = 0.0001f;
+
+        // Bumped when a look, profile or director setting is edited, so a held look re-applies while tuning in Play mode.
+        static int _editRevision;
+
+        public static void MarkLooksEdited() => _editRevision++;
+
         [SerializeField, InlineEditor] TimeOfDayProfile _profile;
         [SerializeField, Tooltip("When the look changes. By Phases: at each phase start, to the profile's Phase Looks hour. By Hours: at each whole hour. Continuous: every frame. The sun and moon move with the look, so they hold still between transitions")]
         LookTransition _transition = LookTransition.ByPhases;
@@ -80,10 +88,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
         bool _sunLit;
         UniversalRenderPipelineAsset _pipeline;
         float _dayShadowDistance;
+        // What was last applied; Apply skips an unchanged look.
+        float _appliedLookHour = -1f;
+        float _appliedMoonPhase = -1f;
+        int _appliedRevision = -1;
 
-        public TimeOfDayProfile Profile => _profile;
-        public WorldClock Clock => _clock;
-        public AtmosphereState State => _state;
+        // By reference: reactors read a few fields of it each frame.
+        public ref readonly AtmosphereState State => ref _state;
         public float Hour { get; private set; }
         // The hour whose look is shown: trails Hour unless the transition is Continuous.
         public float LookHour { get; private set; }
@@ -91,7 +102,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public Vector3 SunDirection { get; private set; }
         public Vector3 MoonDirection { get; private set; }
         public float SunElevation { get; private set; }
-        // 0 at night (sun 6° below the horizon) to 1 by day (10° above).
+        // 0 at night to 1 by day, over the profile's SunPath daylight elevations.
         public float Daylight { get; private set; }
 
         [Inject]
@@ -158,6 +169,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         void OnValidate()
         {
+            MarkLooksEdited();
             if (!Application.isPlaying && !_preview)
                 ApplySkyOnly();
         }
@@ -247,6 +259,14 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         void Apply(float hour, float lookHour, float moonPhase)
         {
+            // By Phases / By Hours hold the look for minutes: with no layer and no light glide running, nothing to redo.
+            if (Application.isPlaying && _layers.Count == 0 && _glide >= 1f && lookHour == _appliedLookHour &&
+                Mathf.Abs(moonPhase - _appliedMoonPhase) < MoonPhaseStep && _appliedRevision == _editRevision)
+            {
+                Hour = hour;
+                return;
+            }
+
             if (_profile == null || !_profile.Evaluate(lookHour, out AtmosphereState state, out TimeOfDayProfile.Segment segment))
                 return;
 
@@ -257,6 +277,9 @@ namespace Aipocalypse.Core.EnvironmentSystem
             Hour = hour;
             LookHour = lookHour;
             MoonPhase = moonPhase;
+            _appliedLookHour = lookHour;
+            _appliedMoonPhase = moonPhase;
+            _appliedRevision = _editRevision;
 
             // The sun and moon belong to the look: By Phases / By Hours hold them still between transitions.
             SunPath path = _profile.Path;
@@ -265,7 +288,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             SunDirection = sun;
             MoonDirection = moon;
             SunElevation = sunElevation;
-            Daylight = Smooth01((sunElevation + 6f) / 16f);
+            Daylight = Smooth01(Mathf.InverseLerp(path.DaylightStartElevation, path.DaylightFullElevation, sunElevation));
 
             ApplyLight(path, state, sun, sunElevation, moon, moonElevation, moonPhase);
             ApplyRenderSettings(state);
@@ -280,7 +303,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
             float fullness = 1f - Mathf.Abs(moonPhase - 0.5f) * 2f;
             float sunIntensity = state.SunIntensity * Smooth01(sunElevation / path.HorizonFade);
-            float moonIntensity = state.MoonIntensity * Smooth01(moonElevation / path.HorizonFade) * Mathf.Lerp(1f / 3f, 1f, fullness);
+            float moonIntensity = state.MoonIntensity * Smooth01(moonElevation / path.HorizonFade) * Mathf.Lerp(path.NewMoonLight, 1f, fullness);
             bool sunLights = sunIntensity >= moonIntensity;
 
             // The swap happens while both are near zero at twilight, so it can't be seen.

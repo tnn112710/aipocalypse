@@ -25,9 +25,6 @@ namespace Aipocalypse.Core.WeaponSystem
     // events into the hit check, sounds and motion.
     public sealed class MeleeAttack
     {
-        // Swings this close together alternate sides; after a longer pause the next one starts on the first side.
-        const float AlternateResetDelay = 0.5f;
-
         readonly SwingSettings _swing;
         bool _queued;
         float _idleTime = float.MaxValue;
@@ -62,11 +59,10 @@ namespace Aipocalypse.Core.WeaponSystem
                 Start(overflow);
         }
 
-        // Holstered or switching: drops the swing before it lands.
+        // Holstered or switching: drops the swing before it lands. Time put away isn't counted, so the next swing starts on the first side.
         public void Interrupt()
         {
-            if (Phase != SwingPhase.None)
-                _idleTime = 0f;
+            _idleTime = float.MaxValue;
             Phase = SwingPhase.None;
             SwingTime = 0f;
             _queued = false;
@@ -100,7 +96,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void Start(float elapsed)
         {
-            SwingIndex = _idleTime > AlternateResetDelay ? 0 : SwingIndex + 1;
+            SwingIndex = _idleTime > _swing.AlternateResetDelay ? 0 : SwingIndex + 1;
             _queued = false;
             Phase = SwingPhase.WindUp;
             SwingTime = 0f;

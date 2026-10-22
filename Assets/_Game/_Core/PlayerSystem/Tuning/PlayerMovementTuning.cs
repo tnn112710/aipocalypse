@@ -25,6 +25,8 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Min(0f)] public float JumpBufferTime { get; private set; } = 0.12f;
         [field: SerializeField, Min(0f), Tooltip("Slide acceleration on slopes steeper than the CharacterController slope limit")]
         public float SteepSlopeSlideAcceleration { get; private set; } = 12f;
+        [field: SerializeField, Tooltip("What the steep-slope check looks for under the feet (a flat step edge there means no slide)")]
+        public LayerMask GroundLayers { get; private set; } = Physics.DefaultRaycastLayers;
 
         [field: Header("Landing"), SerializeField, Min(0f), Tooltip("Drops at least this high slow you down briefly")]
         public float HeavyLandingHeight { get; private set; } = 2f;

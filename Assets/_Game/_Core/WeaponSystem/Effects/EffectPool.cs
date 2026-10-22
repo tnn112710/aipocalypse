@@ -12,7 +12,7 @@ namespace Aipocalypse.Core.WeaponSystem
         sealed class Pool
         {
             public ObjectPool<PooledEffect> Objects;
-            // Spawn order, oldest first, for MaxActive.
+            // Spawn order, oldest first; only kept for prefabs with a MaxActive.
             public readonly List<PooledEffect> Active = new();
         }
 
@@ -52,8 +52,10 @@ namespace Aipocalypse.Core.WeaponSystem
                 return null;
 
             Pool pool = GetPool(prefab);
-            if (prefab.MaxActive > 0)
+            bool capped = prefab.MaxActive > 0;
+            if (capped && pool.Active.Count >= prefab.MaxActive)
             {
+                // Destroyed with a parent (a dropped gun's muzzle flash) still counts until forgotten.
                 for (int i = pool.Active.Count - 1; i >= 0; i--)
                 {
                     if (pool.Active[i] == null)
@@ -68,7 +70,8 @@ namespace Aipocalypse.Core.WeaponSystem
             effect.transform.SetPositionAndRotation(position, rotation);
             effect.SpawnId = ++_nextSpawnId;
             effect.IsSpawned = true;
-            pool.Active.Add(effect);
+            if (capped)
+                pool.Active.Add(effect);
             effect.gameObject.SetActive(true);
             effect.Restart();
 
@@ -85,7 +88,8 @@ namespace Aipocalypse.Core.WeaponSystem
                 return;
 
             effect.IsSpawned = false;
-            pool.Active.Remove(effect);
+            if (effect.Prefab.MaxActive > 0)
+                pool.Active.Remove(effect);
             // Destroyed with its parent (a dropped gun's muzzle flash): just forget it.
             if (effect != null)
                 pool.Objects.Release(effect);
@@ -104,7 +108,10 @@ namespace Aipocalypse.Core.WeaponSystem
 
                 if (current)
                     Return(timed.Effect);
-                _timed.RemoveAt(i);
+                // Order doesn't matter: swap-remove.
+                int last = _timed.Count - 1;
+                _timed[i] = _timed[last];
+                _timed.RemoveAt(last);
             }
         }
 

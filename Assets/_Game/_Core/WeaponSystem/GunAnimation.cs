@@ -122,7 +122,7 @@ namespace Aipocalypse.Core.WeaponSystem
         // The repair succeeded early: RepairEnd plays from the current pose back to the grips.
         public void FinishRepair()
         {
-            bool capture = IsRepairing;
+            bool capture = IsRepairing || _state == GunClip.RepairFocus;
             if (capture)
             {
                 EnsureGraph();

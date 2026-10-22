@@ -35,8 +35,8 @@ namespace Aipocalypse.Core.UI
             _bound = null;
         }
 
-        protected abstract void Bind(Player player);
-        protected abstract void Unbind(Player player);
+        protected virtual void Bind(Player player) { }
+        protected virtual void Unbind(Player player) { }
 
         void OnPlayerChanged(ActivePlayerChanged _) => Rebind();
 

@@ -30,14 +30,15 @@ namespace Aipocalypse.Core.EnemySystem
         {
             var origin = _navigation.GetNearest(transform.position, NearestNodeConstraint.Walkable);
             if (origin.node == null) return false;
-            for (int i = 0; i < 12; i++)
+            float minTravel = _settings.MinTravelDistance;
+            for (int i = 0; i < _settings.DestinationAttempts; i++)
             {
                 var offset = Random.insideUnitCircle * _settings.Radius;
                 var candidate = _home + new Vector3(offset.x, 0f, offset.y);
                 var nearest = _navigation.GetNearest(candidate, NearestNodeConstraint.Walkable);
                 if (nearest.node == null || !PathUtilities.IsPathPossible(origin.node, nearest.node)) continue;
                 if ((nearest.position - _home).sqrMagnitude > _settings.Radius * _settings.Radius) continue;
-                if ((nearest.position - transform.position).sqrMagnitude < 1f) continue;
+                if ((nearest.position - transform.position).sqrMagnitude < minTravel * minTravel) continue;
                 _agent.destination = nearest.position;
                 return true;
             }

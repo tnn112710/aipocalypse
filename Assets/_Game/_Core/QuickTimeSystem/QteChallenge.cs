@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Aipocalypse.Core.QuickTimeSystem
 {
@@ -16,7 +17,9 @@ namespace Aipocalypse.Core.QuickTimeSystem
 
     public abstract class QteChallenge : ScriptableObject
     {
-        [Range(0.01f, 1f)] public float WorldTimeScale = 1f;
+        [Range(0.01f, 1f), FormerlySerializedAs("WorldTimeScale"),
+         Tooltip("Game slow-motion (Time.timeScale, through TimeService) while a standalone QTE runs; 1 = none. Not the world clock")]
+        public float TimeScale = 1f;
         [Tooltip("IDs of compatible QteView widgets. One is chosen for each event.")]
         public string[] Presentations = { "Circle", "Bar" };
 

@@ -45,7 +45,6 @@ namespace Aipocalypse.Core.WorldTimeSystem
             Reset(WorldTime.At(settings.StartDay, settings.StartHour));
         }
 
-        public ClockSettings Settings => _settings;
         public WorldTime Now => new(_totalHours);
         public DayPhase Phase => _phase;
         public bool IsSkipping => _skipping;

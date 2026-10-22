@@ -8,11 +8,7 @@ namespace Aipocalypse.Core.WeaponSystem
     // extra on top. Hip and aiming values blend by the aim weight. HeldGun applies the gun's, the player's look the view's.
     public sealed class GunRecoil
     {
-        const float SprayResetDelay = 0.24f;
         const float SprayNoiseStep = 0.347f;
-        const float SprayPitchJitter = 0.18f;
-        const float SprayYawJitter = 0.72f;
-        const float SprayRollFactor = 0.55f;
 
         readonly RecoilSettings _settings;
         readonly RecoilValues _blend = new();
@@ -57,7 +53,7 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             RecoilValues values = Values(aimWeight);
 
-            if (_sinceShot > SprayResetDelay)
+            if (_sinceShot > _settings.SprayResetDelay)
             {
                 _shotIndex = 0;
                 BeginSpray();
@@ -92,13 +88,13 @@ namespace Aipocalypse.Core.WeaponSystem
             _sinceShot += deltaTime;
 
             RecoilValues values = Values(aimWeight);
-            float verticalReturn = Damp(values.VerticalReturnSpeed, deltaTime);
-            float horizontalReturn = Damp(values.HorizontalReturnSpeed, deltaTime);
-            float verticalSnap = Damp(values.VerticalSnappiness, deltaTime);
-            float horizontalSnap = Damp(values.HorizontalSnappiness, deltaTime);
+            float verticalReturn = Damping.ByRate(values.VerticalReturnSpeed, deltaTime);
+            float horizontalReturn = Damping.ByRate(values.HorizontalReturnSpeed, deltaTime);
+            float verticalSnap = Damping.ByRate(values.VerticalSnappiness, deltaTime);
+            float horizontalSnap = Damping.ByRate(values.HorizontalSnappiness, deltaTime);
 
-            float gunReturn = Damp(values.GunReturnSpeed, deltaTime);
-            float gunSnap = Damp(values.GunSnappiness, deltaTime);
+            float gunReturn = Damping.ByRate(values.GunReturnSpeed, deltaTime);
+            float gunSnap = Damping.ByRate(values.GunSnappiness, deltaTime);
             _gunTarget = Vector3.Lerp(_gunTarget, Vector3.zero, gunReturn);
             _gun = Vector3.Lerp(_gun, _gunTarget, gunSnap);
             _viewTarget = DampAxes(_viewTarget, Vector3.zero, verticalReturn, horizontalReturn);
@@ -134,7 +130,7 @@ namespace Aipocalypse.Core.WeaponSystem
         }
 
         float AccurateShotsMultiplier(int shot) =>
-            _settings.AccurateShots >= 2 && shot < _settings.AccurateShots ? Mathf.Clamp01(_settings.AccurateShotsMultiplier) : 1f;
+            shot < _settings.AccurateShots ? Mathf.Clamp01(_settings.AccurateShotsMultiplier) : 1f;
 
         // Smooth climb and side-to-side drift that differ every spray.
         void Pattern(int shotIndex, out float pitchScale, out float yawPattern, out float rollPattern)
@@ -144,18 +140,18 @@ namespace Aipocalypse.Core.WeaponSystem
             float yawNoise = SignedNoise(41.73f + _sprayNoise, shot * 0.31f - _sprayPhase);
             float extraYawNoise = SignedNoise(83.91f + _sprayNoise, shot * 0.47f + _sprayPhase * 0.5f);
 
-            pitchScale = Mathf.Max(0.1f, 1f + shot * _sprayClimb + pitchNoise * SprayPitchJitter);
-            float yaw = yawNoise * SprayYawJitter + extraYawNoise * 0.2f + _sprayDrift;
+            pitchScale = Mathf.Max(0.1f, 1f + shot * _sprayClimb + pitchNoise * _settings.SprayPitchJitter);
+            float yaw = yawNoise * _settings.SprayYawJitter + extraYawNoise * 0.2f + _sprayDrift;
             yawPattern = Mathf.Clamp(yaw, -1f, 1f);
-            rollPattern = Mathf.Clamp(yaw * SprayRollFactor, -1f, 1f);
+            rollPattern = Mathf.Clamp(yaw * _settings.SprayRollFromYaw, -1f, 1f);
         }
 
         void BeginSpray()
         {
             _sprayNoise = Random.Range(-1000f, 1000f);
             _sprayPhase = Random.Range(-Mathf.PI, Mathf.PI);
-            _sprayDrift = Random.Range(-0.35f, 0.35f);
-            _sprayClimb = Random.Range(0.02f, 0.075f);
+            _sprayDrift = Random.Range(-_settings.SprayDrift, _settings.SprayDrift);
+            _sprayClimb = Random.Range(_settings.SprayClimb.x, _settings.SprayClimb.y);
         }
 
         static float SignedNoise(float x, float y) => Mathf.PerlinNoise(x, y) * 2f - 1f;
@@ -165,7 +161,5 @@ namespace Aipocalypse.Core.WeaponSystem
             Mathf.Lerp(current.x, target.x, verticalT),
             Mathf.Lerp(current.y, target.y, horizontalT),
             Mathf.Lerp(current.z, target.z, horizontalT));
-
-        static float Damp(float speed, float deltaTime) => speed <= 0f ? 1f : 1f - Mathf.Exp(-speed * deltaTime);
     }
 }

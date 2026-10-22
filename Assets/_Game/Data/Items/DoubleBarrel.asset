@@ -47,8 +47,8 @@ MonoBehaviour:
     AutoReload: 1
   <Jam>k__BackingField:
     Chance: 0
-    ClearTime: 1.2
     Repair: {fileID: 11400000, guid: f95aa80e1b7c35f47bcee47d59da8d3c, type: 2}
+    ClearTime: 1.2
   <Recoil>k__BackingField:
     Hip:
       Multiplier: 1
@@ -91,6 +91,12 @@ MonoBehaviour:
     AirborneMultiplier: 1.65
     AccurateShots: 0
     AccurateShotsMultiplier: 1
+    SprayResetDelay: 0.24
+    SprayClimb: {x: 0.02, y: 0.075}
+    SprayDrift: 0.35
+    SprayPitchJitter: 0.18
+    SprayYawJitter: 0.72
+    SprayRollFromYaw: 0.55
   <Accuracy>k__BackingField:
     AirborneSpread: 2
     AimMultiplier: 0.4

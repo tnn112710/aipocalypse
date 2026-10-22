@@ -52,7 +52,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 tierSpeed *= _settings.WindedMoveSpeed;
             float speed = Mathf.Max(0f, 1f - (1f - tierSpeed) * scale);
 
-            float t = _settings.EaseTime > 0f ? 1f - Mathf.Exp(-deltaTime / _settings.EaseTime) : 1f;
+            float t = Damping.ByTime(_settings.EaseTime, deltaTime);
             RecoilMultiplier = Mathf.Lerp(RecoilMultiplier, recoil, t);
             MeleePower = Mathf.Lerp(MeleePower, melee, t);
             MoveSpeed = Mathf.Lerp(MoveSpeed, speed, t);

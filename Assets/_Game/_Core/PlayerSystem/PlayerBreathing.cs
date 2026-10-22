@@ -35,7 +35,7 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             bool heavy = exhausted || staminaFraction < _settings.Below;
             float target = heavy ? TirednessFor(staminaFraction, exhausted, _settings.Below) : 0f;
-            float t = _settings.EaseTime > 0f ? 1f - Mathf.Exp(-deltaTime / _settings.EaseTime) : 1f;
+            float t = Damping.ByTime(_settings.EaseTime, deltaTime);
             Tiredness = Mathf.Lerp(Tiredness, target, t);
             IsActive = heavy;
         }

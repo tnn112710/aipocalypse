@@ -22,7 +22,7 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 - `EnemyBrain.cs` injected bridge: on its first `Start` (and each re-enable) initializes its mover, starts its tree and registers; stops both and leaves when disabled.
 - `WanderMover.cs` samples reachable destinations around the spawn point and drives A* FollowerEntity, including arrival and travel timeout checks.
 - `WanderTasks.cs` contains the choose, walk, and pause ActionNodes used by the shared subtree.
-- `WanderSettings.cs` holds movement, radius, pause, timeout, and think-stride tuning; the asset and shared subtree are in `Data/Enemies/`.
+- `WanderSettings.cs` holds movement, radius, pause, timeout, destination search (attempts, minimum travel) and think-stride tuning; the asset and shared subtree are in `Data/Enemies/`.
 
 `GameLifetimeScope` installs this slice when navigation and settings are assigned. `AgentScripts/WanderDemo.cs` builds and inspects the two-agent scene setup through Unity CLI. Core also references AstarPathfindingProject and its PackageTools/Drawing base assemblies.
 
@@ -41,7 +41,7 @@ Assets/_Game/
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage: TakeDamage → DamageResult (hurt it through DamageService)
 │  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force, Source) + DamageType enum (Generic, Fall, Gunshot, Melee) + DamageResult (Applied, Killed)
-│  │  │  ├─ DamageService.cs                root service: Deal(target, info) → TakeDamage, publishes DamageDealt with the result
+│  │  │  ├─ DamageService.cs                root service: Deal(target, info) → TakeDamage, publishes DamageDealt with the result; DealHit(hit, info) for physics hits (finds the IDamageable, pushes a loose rigidbody)
 │  │  │  ├─ CombatInstaller.cs              registers DamageService in the root scope
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied
@@ -50,7 +50,10 @@ Assets/_Game/
 │  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
-│  │  └─ TransformExtensions.cs             Aipocalypse.Core — SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
+│  │  └─ Utils/                             Aipocalypse.Core
+│  │     ├─ Damping.cs                      ByRate / ByTime: frame-rate independent smoothing share for Lerp (0 = instant)
+│  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
+│  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
@@ -159,7 +162,7 @@ Assets/_Game/
 │  │  ├─ ClockSettings.cs                   SO: seconds per game hour, master speed, start, phase starts + speeds, moon cycle; PhaseAt, RealSecondsBetween, Real time inspector box
 │  │  ├─ WorldClock.cs                      scene service (ITickable, scaled time): Advance steps hour by hour and phase by phase (events in order); JumpTo / SetTime / SkipTo; speed requests (slowest wins); MoonPhase
 │  │  ├─ TimeWindow.cs                      On / Off / Fade hours, may wrap past midnight → Weight(hour)
-│  │  ├─ WorldClockCheats.cs                dev builds: N → JumpToNextHour, M → JumpToNextPhase (InputService debug presses)
+│  │  ├─ WorldClockCheats.cs                editor and dev builds (registered when Debug.isDebugBuild): N → JumpToNextHour, M → JumpToNextPhase (InputService debug presses)
 │  │  └─ WorldTimeInstaller.cs              scene scope: ClockSettings + WorldClock (entry point) + cheats
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, accuracy, handling, sounds, effects
@@ -337,7 +340,7 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 - `_Core/WeaponSystem/RepairFeedbackSettings.cs`: shared or per-gun ScriptableObject preset for result colors, UI punch/ring/hold/shake/squash/fade, GunJolt presets (jam, dry fire, slap, punch, miss, success; `GunJolt.cs` holds the struct and the GunJoltPlayer that runs one) and success/mechanism/accent/miss/natural sounds (SoundIDs). HeldGun plays them through AudioService and the active jolt on its existing recoil pivot (scaled time), resets on hide, and publishes GunJamBeat and GunRepairCompleted.
 - `_Core/_Common/Events/GunRepairCompleted.cs`: owner, item and QTE-success flag for completed repairs; interruptions do not publish it.
 - `_Core/QuickTimeSystem/TimingQteChallenge.cs`: timing settings and session with independent lifetime/pointer clocks, configurable miss hold and bounded green-zone relocation after the hold. Pointer pauses never extend standalone expiry or gun repair; presses during a hold are ignored. Optional random delegate supports deterministic relocation checks.
-- `_Core/UI/Widgets/QteStyle.cs`: Synty sprites, font and colors. QteView.cs is the replaceable view contract; TimingQteView.cs presents circle or bar without weapon/input knowledge.
+- `_Core/UI/Widgets/QteStyle.cs`: Synty sprites, colors (track, fill, zone, no-attempt fill, marker, track flash strength) and the key cap (sprite, font, size, label color, gap below the QTE). QteView.cs is the replaceable view contract; TimingQteView.cs presents circle or bar without weapon/input knowledge.
 - `_Core/UI/Hud/RepairQteHud.cs`: PlayerHudView presenter for the compact QTE/key cap plus scaled DOTween result feedback. Subscribes to GunRepairQteStarted, GunJamBeat (Miss) and GunRepairCompleted for the active player only, never reads the gun, retains its last session for success/natural fade, and resets on cancellation, unbind, disable, input lock or weapon change; idle frames do nothing. Pre-placed SuccessBurst and CanvasGroup avoid runtime object creation. QteView.Flash lets compatible widgets implement the flash without coupling the session to UI.
 - InputService.cs owns confirmation input consumption and the Reload binding label. ProjectLifetimeScope installs TimeInstaller and QuickTimeInstaller after InputInstaller.
 - `Tests/EditMode/RepairQteTests.cs`: timing passes, zone tuning, timeout, automatic/manual repair variants, continuous progress, owner-controlled QTE lifetime, early completion, interruption and time request arbitration. GunAnimationTests also validates repair focus/recovery contacts and all AK47 override bindings.

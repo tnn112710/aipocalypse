@@ -19,12 +19,17 @@ namespace Aipocalypse.Core.WeaponSystem
         [field: SerializeField, Min(0f), Tooltip("Camera-origin shots: seconds the tracer takes to slide from the muzzle onto the bullet's real path")]
         public float TracerConvergeTime { get; private set; } = 0.08f;
 
+        [field: Header("Prewarm (copies made when a gun is bound)"), SerializeField, Min(0)] public int MuzzleFlashPrewarm { get; private set; } = 4;
+        [field: SerializeField, Min(0)] public int TracerPrewarm { get; private set; } = 16;
+        [field: SerializeField, Min(0)] public int ImpactPrewarm { get; private set; } = 8;
+        [field: SerializeField, Min(0)] public int BulletHolePrewarm { get; private set; } = 16;
+
         public void Prewarm(EffectPool pool)
         {
-            pool.Prewarm(MuzzleFlash, 4);
-            pool.Prewarm(Tracer, 16);
-            pool.Prewarm(Impact, 8);
-            pool.Prewarm(BulletHole, 16);
+            pool.Prewarm(MuzzleFlash, MuzzleFlashPrewarm);
+            pool.Prewarm(Tracer, TracerPrewarm);
+            pool.Prewarm(Impact, ImpactPrewarm);
+            pool.Prewarm(BulletHole, BulletHolePrewarm);
         }
     }
 }

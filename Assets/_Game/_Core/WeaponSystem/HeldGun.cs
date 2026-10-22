@@ -62,7 +62,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public override float Zoom => _gun != null ? Mathf.Lerp(1f, _definition.Handling.AimZoom, _aimWeight) : 1f;
         public override float AimWeight => _aimWeight;
         // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
-        public float AirSpread => _accuracy != null ? _accuracy.Spread : 0f;
+        float AirSpread => _accuracy != null ? _accuracy.Spread : 0f;
         public override float Spread => _gun != null ? AirSpread + _definition.Fire.SpreadAngle : 0f;
 
         // Aiming or pulling the trigger ends a sprint.
@@ -356,7 +356,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void UpdatePose(bool sprinting, float deltaTime)
         {
             HandlingSettings handling = _definition.Handling;
-            float aimBlend = handling.AimSpeed > 0f ? 1f - Mathf.Exp(-handling.AimSpeed * deltaTime) : 1f;
+            float aimBlend = Damping.ByRate(handling.AimSpeed, deltaTime);
             _aimWeight = Mathf.Lerp(_aimWeight, _gun.IsAiming && !sprinting ? 1f : 0f, aimBlend);
             Transform target = sprinting ? _sprintPose : _gun.IsAiming ? _aimPose : _hipPose;
             if (target == null)
@@ -364,7 +364,7 @@ namespace Aipocalypse.Core.WeaponSystem
             if (target != null)
             {
                 float speed = sprinting ? handling.SprintPoseSpeed : handling.AimSpeed;
-                float t = speed > 0f ? 1f - Mathf.Exp(-speed * deltaTime) : 1f;
+                float t = Damping.ByRate(speed, deltaTime);
                 _posePosition = Vector3.Lerp(_posePosition, target.localPosition, t);
                 _poseRotation = Quaternion.Slerp(_poseRotation, target.localRotation, t);
             }

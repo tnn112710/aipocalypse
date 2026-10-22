@@ -91,9 +91,9 @@ namespace Aipocalypse.Core.WeaponSystem
     public sealed class JamSettings
     {
         [Range(0f, 1f), Tooltip("Chance each shot jams instead of firing")] public float Chance = 0.02f;
-        [Min(0f), Tooltip("Fallback clear time for guns without a Repair profile; those guns clear automatically.")] public float ClearTime = 1.5f;
-        [Tooltip("Optional per-gun repair sequence and QTE. Unassigned guns retain their existing jam clearing.")]
+        [Tooltip("Repair timing, QTE and feedback. None: the jam clears by itself after Clear Time, with no QTE")]
         public GunRepairProfile Repair;
+        [Min(0f), ShowIf("@Repair == null"), Tooltip("Seconds to clear a jam without a Repair profile")] public float ClearTime = 1.5f;
 
         public RepairFeedbackSettings Feedback => Repair != null ? Repair.Feedback : null;
     }
@@ -156,8 +156,19 @@ namespace Aipocalypse.Core.WeaponSystem
         public float KeptShare = 0.25f;
         [Min(0f), Tooltip("Recoil multiplier while moving")] public float MovingMultiplier = 1.15f;
         [Min(0f), Tooltip("Recoil multiplier while in the air")] public float AirborneMultiplier = 1.6f;
-        [Min(0), Tooltip("The first shots of a spray kick less (0 or 1 = off)")] public int AccurateShots;
-        [Range(0f, 1f)] public float AccurateShotsMultiplier = 1f;
+        [Min(0), Tooltip("The first this many shots of a spray kick less (0 = off)")] public int AccurateShots;
+        [Range(0f, 1f), ShowIf("@AccurateShots > 0"), Tooltip("Kick multiplier for those first shots")]
+        public float AccurateShotsMultiplier = 1f;
+
+        [Header("Spray pattern (randomised per spray)"), Min(0f), Tooltip("Seconds without a shot after which the next one starts a new spray")]
+        public float SprayResetDelay = 0.24f;
+        [MinMaxSlider(0f, 0.2f, true), Tooltip("Extra upward kick per shot into a spray, as a share of Vertical: picked per spray between these")]
+        public Vector2 SprayClimb = new(0.02f, 0.075f);
+        [Range(0f, 1f), Tooltip("Steady sideways lean of a spray (share of Horizontal): picked per spray up to this either way")]
+        public float SprayDrift = 0.35f;
+        [Range(0f, 1f), Tooltip("Shot-to-shot wobble of the upward kick (share of Vertical)")] public float SprayPitchJitter = 0.18f;
+        [Range(0f, 1f), Tooltip("Shot-to-shot side-to-side wander (share of Horizontal)")] public float SprayYawJitter = 0.72f;
+        [Range(0f, 1f), Tooltip("Roll that follows the sideways kick")] public float SprayRollFromYaw = 0.55f;
     }
 
     // Spread while airborne, on top of SpreadAngle (walking shows as visible aim sway instead). It moves the whole shot,

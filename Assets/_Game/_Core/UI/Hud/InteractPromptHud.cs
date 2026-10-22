@@ -23,7 +23,6 @@ namespace Aipocalypse.Core.UI
             base.Start();
         }
 
-        protected override void Bind(Player player) { }
         protected override void Unbind(Player player) => _view.Hide();
 
         void LateUpdate()

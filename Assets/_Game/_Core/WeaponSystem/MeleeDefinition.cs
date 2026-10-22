@@ -17,6 +17,9 @@ namespace Aipocalypse.Core.WeaponSystem
         [field: SerializeField, Tooltip("Spawned where a swing lands; can be the bullet impact")]
         public PooledEffect ImpactEffect { get; private set; }
 
+        [field: SerializeField, Min(0), Tooltip("Impact copies made when the weapon is bound")]
+        public int ImpactPrewarm { get; private set; } = 4;
+
         public override ItemCategory Category => ItemCategory.Melee;
     }
 }

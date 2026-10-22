@@ -16,6 +16,8 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Knockback = 4f;
         [Tooltip("What swings can hit")] public LayerMask HitLayers = Physics.DefaultRaycastLayers;
         [Min(0f), Tooltip("Stamina each swing costs, hit or miss. Regen keeps running")] public float StaminaPerSwing = 10f;
+        [Min(0f), Tooltip("Swings within this many seconds of the last one alternate sides; after a longer pause the next starts on the first side")]
+        public float AlternateResetDelay = 0.5f;
 
         public float Duration => WindUp + Recovery;
     }

@@ -11,7 +11,13 @@ namespace Aipocalypse.Core.PlayerSystem
         public float InteractRadius { get; private set; } = 0.12f;
         [field: SerializeField, Tooltip("Layers the look ray hits: interactables and anything that should block them")]
         public LayerMask InteractMask { get; private set; } = Physics.DefaultRaycastLayers;
-        [field: SerializeField, Min(0f), Tooltip("How far in front of the player dropped items land (m)")]
+        [field: Header("Dropping"), SerializeField, Min(0f), Tooltip("How far in front of the player dropped items land (m)")]
         public float DropDistance { get; private set; } = 1.2f;
+        [field: SerializeField, Min(0f), Tooltip("Room kept between a dropped item and a wall in front (m)")]
+        public float DropWallGap { get; private set; } = 0.25f;
+        [field: SerializeField, Min(0.1f), Tooltip("How far down the ground is searched for under the drop point (m)")]
+        public float DropGroundProbe { get; private set; } = 10f;
+        [field: SerializeField, Range(-180f, 180f), Tooltip("Dropped item's yaw relative to the player's facing (degrees)")]
+        public float DropYaw { get; private set; } = 90f;
     }
 }

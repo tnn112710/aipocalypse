@@ -73,9 +73,9 @@ namespace Aipocalypse.Input
         public void Initialize()
         {
             EnableGameplay();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            _actions.Debug.Enable();
-#endif
+            // Editor and development builds only.
+            if (Debug.isDebugBuild)
+                _actions.Debug.Enable();
         }
 
         public void Dispose()

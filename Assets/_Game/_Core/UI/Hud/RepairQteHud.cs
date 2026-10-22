@@ -81,17 +81,18 @@ namespace Aipocalypse.Core.UI
             base.Start();
         }
 
-        public void ApplyStyle()
+        void ApplyStyle()
         {
             if (_style == null)
                 return;
             _keyCap.sprite = _style.KeyCap;
-            _key.font = _style.Font;
-            _key.fontSize = _style.FontSize;
-            _key.color = Color.black;
+            _key.font = _style.KeyFont;
+            _key.fontSize = _style.KeyFontSize;
+            _key.color = _style.KeyLabelColor;
+            if (_burst != null)
+                _burst.sprite = _style.Ring;
         }
 
-        protected override void Bind(Player player) { }
         protected override void Unbind(Player player) => ResetFeedback();
 
         protected override void OnDestroy()
@@ -118,6 +119,11 @@ namespace Aipocalypse.Core.UI
                     _selected = view;
             foreach (QteView view in _views)
                 view.gameObject.SetActive(view == _selected);
+            if (_selected != null)
+            {
+                float gap = _style != null ? _style.KeyCapGap : 0f;
+                _keyCap.rectTransform.anchoredPosition = new Vector2(0f, -((RectTransform)_selected.transform).rect.height * 0.5f - gap);
+            }
         }
 
         void OnMissed(GunJamBeat beat)
@@ -129,10 +135,11 @@ namespace Aipocalypse.Core.UI
             _content.transform.localScale = _restScale;
             _flash = 1f;
             _flashColor = _feedback.MissColor;
-            float duration = Mathf.Max(0.05f, _feedback.MissDuration);
+            RepairFeedbackSettings f = _feedback;
+            float duration = f.MissDuration;
             _feedbackTween = DOTween.Sequence()
-                .Append(_content.transform.DOPunchPosition(Vector3.right * _feedback.MissShakePixels, duration, 10, 0.7f))
-                .Join(_content.transform.DOPunchScale(-_restScale * _feedback.MissSquash, duration * 0.6f, 4, 0.5f))
+                .Append(_content.transform.DOPunchPosition(Vector3.right * f.MissShakePixels, duration, f.MissShakeVibrato, f.MissShakeElasticity))
+                .Join(_content.transform.DOPunchScale(-_restScale * f.MissSquash, duration * f.MissSquashShare, f.MissSquashVibrato, f.MissSquashElasticity))
                 .Join(DOTween.To(() => _flash, value => _flash = value, 0f, duration).SetEase(Ease.InQuad))
                 .SetUpdate(true);
         }
@@ -154,26 +161,27 @@ namespace Aipocalypse.Core.UI
             Sequence sequence = DOTween.Sequence();
             if (repair.QteSuccess)
             {
-                float duration = Mathf.Max(0.05f, feedback.SuccessDuration);
-                float hold = Mathf.Clamp(feedback.SuccessHold, 0f, duration * 0.65f);
-                float fade = duration * 0.76f - hold;
-                sequence.Append(_content.transform.DOScale(_restScale * feedback.SuccessScale, duration * 0.12f).SetEase(Ease.OutCubic))
-                    .Append(_content.transform.DOScale(_restScale * 1.08f, duration * 0.12f).SetEase(Ease.OutQuad))
+                float duration = feedback.SuccessDuration;
+                float pop = duration * feedback.SuccessPopShare;
+                float burst = duration * feedback.BurstShare;
+                float hold = Mathf.Clamp(feedback.SuccessHold, 0f, burst);
+                float fade = Mathf.Max(0f, duration * feedback.SuccessFadeEndShare - hold);
+                sequence.Append(_content.transform.DOScale(_restScale * feedback.SuccessScale, pop).SetEase(Ease.OutCubic))
+                    .Append(_content.transform.DOScale(_restScale * feedback.SuccessSettleScale, pop).SetEase(Ease.OutQuad))
                     .AppendInterval(hold)
                     .Append(_group.DOFade(0f, fade))
-                    .Join(_content.transform.DOScale(_restScale * 0.9f, fade).SetEase(Ease.InCubic));
+                    .Join(_content.transform.DOScale(_restScale * feedback.SuccessEndScale, fade).SetEase(Ease.InCubic));
                 if (_burst != null)
                 {
                     _burst.gameObject.SetActive(true);
-                    _burst.sprite = _style.Ring;
                     _burst.color = feedback.SuccessColor;
                     _burst.transform.localScale = Vector3.one;
-                    sequence.Insert(0f, _burst.transform.DOScale(feedback.BurstScale, duration * 0.65f).SetEase(Ease.OutCubic))
-                        .Insert(0f, _burst.DOFade(0f, duration * 0.65f));
+                    sequence.Insert(0f, _burst.transform.DOScale(feedback.BurstScale, burst).SetEase(Ease.OutCubic))
+                        .Insert(0f, _burst.DOFade(0f, burst));
                 }
             }
             else
-                sequence.Append(_group.DOFade(0f, Mathf.Max(0.05f, feedback.NaturalFadeDuration)));
+                sequence.Append(_group.DOFade(0f, feedback.NaturalFadeDuration));
             // Real time, so the success hit stop doesn't freeze the widget.
             _feedbackTween = sequence.SetUpdate(true).OnComplete(ResetFeedback);
         }
@@ -224,7 +232,6 @@ namespace Aipocalypse.Core.UI
             else
                 _selected.Display(_displayedSession);
             _selected.Flash(_flashColor, _flash);
-            _keyCap.rectTransform.anchoredPosition = new Vector2(0f, -((RectTransform)_selected.transform).rect.height * 0.5f - 22f);
         }
     }
 }

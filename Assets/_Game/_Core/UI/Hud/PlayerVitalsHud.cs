@@ -9,9 +9,6 @@ namespace Aipocalypse.Core.UI
         [SerializeField] StatBar _health;
         [SerializeField] StatBar _stamina;
 
-        protected override void Bind(Player player) { }
-        protected override void Unbind(Player player) { }
-
         // Polled after Player.Update: two bars, and StatBar ignores unchanged values.
         void LateUpdate()
         {

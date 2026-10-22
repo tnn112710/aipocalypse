@@ -27,6 +27,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
             _renderers = new Renderer[_systems.Length];
             for (int i = 0; i < _systems.Length; i++)
             {
+                if (_systems[i] == null)
+                    continue;
                 _rates[i] = _systems[i].emission.rateOverTimeMultiplier;
                 _renderers[i] = _systems[i].GetComponent<ParticleSystemRenderer>();
             }
@@ -34,12 +36,16 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         public override void React(EnvironmentDirector director, float deltaTime)
         {
-            if (_alignToSun && Vector3.Angle(_alignedTo, director.SunDirection) > 0.1f)
+            // Vector3.Angle is 0 against a zero vector, so the first alignment has to be forced.
+            if (_alignToSun && (_alignedTo == Vector3.zero || Vector3.Angle(_alignedTo, director.SunDirection) > 0.1f))
             {
                 _alignedTo = director.SunDirection;
                 Quaternion rotation = Quaternion.FromToRotation(Vector3.up, _alignedTo);
                 foreach (ParticleSystem system in _systems)
-                    system.transform.rotation = rotation;
+                {
+                    if (system != null)
+                        system.transform.rotation = rotation;
+                }
             }
             base.React(director, deltaTime);
         }

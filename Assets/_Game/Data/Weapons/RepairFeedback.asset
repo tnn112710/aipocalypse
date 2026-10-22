@@ -37,6 +37,11 @@ MonoBehaviour:
   SuccessHold: 0.32
   SuccessScale: 1.5
   BurstScale: 2.6
+  SuccessPopShare: 0.12
+  SuccessSettleScale: 1.08
+  SuccessEndScale: 0.9
+  SuccessFadeEndShare: 0.76
+  BurstShare: 0.65
   SuccessJolt:
     Position: {x: 0, y: 0.008, z: -0.03}
     Euler: {x: -5, y: 1.5, z: 2.5}
@@ -58,7 +63,12 @@ MonoBehaviour:
   MissColor: {r: 1, g: 0.2, b: 0.12, a: 1}
   MissDuration: 0.4
   MissShakePixels: 22
+  MissShakeVibrato: 10
+  MissShakeElasticity: 0.7
   MissSquash: 0.18
+  MissSquashShare: 0.6
+  MissSquashVibrato: 4
+  MissSquashElasticity: 0.5
   MissJolt:
     Position: {x: -0.006, y: -0.01, z: 0.006}
     Euler: {x: 4, y: -4, z: 7}

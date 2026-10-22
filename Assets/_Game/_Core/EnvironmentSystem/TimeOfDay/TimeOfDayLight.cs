@@ -16,7 +16,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 _lights = GetComponentsInChildren<Light>(true);
             _intensities = new float[_lights.Length];
             for (int i = 0; i < _lights.Length; i++)
-                _intensities[i] = _lights[i].intensity;
+                _intensities[i] = _lights[i] != null ? _lights[i].intensity : 0f;
         }
 
         protected override void Apply(float weight)

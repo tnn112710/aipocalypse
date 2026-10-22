@@ -81,7 +81,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         public override void React(EnvironmentDirector director, float deltaTime)
         {
-            AtmosphereState state = director.State;
+            ref readonly AtmosphereState state = ref director.State;
             Color color = _channel switch
             {
                 AtmosphereChannel.Haze => state.HazeColor,

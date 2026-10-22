@@ -28,7 +28,7 @@ namespace Aipocalypse.Core.UI
             if (this == null)
                 return;
 
-            foreach (InteractPromptView prompt in FindObjectsByType<InteractPromptView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (InteractPromptView prompt in FindObjectsByType<InteractPromptView>(FindObjectsInactive.Include))
             {
                 if (prompt.Style == this)
                     prompt.ApplyStyle();

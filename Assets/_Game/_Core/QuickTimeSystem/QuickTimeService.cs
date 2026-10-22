@@ -50,8 +50,8 @@ namespace Aipocalypse.Core.QuickTimeSystem
             string[] presentations = challenge.Presentations;
             Presentation = presentations != null && presentations.Length > 0
                 ? presentations[UnityEngine.Random.Range(0, presentations.Length)] : string.Empty;
-            if (challenge.WorldTimeScale < 1f)
-                _time.Request(this, challenge.WorldTimeScale);
+            if (challenge.TimeScale < 1f)
+                _time.Request(this, challenge.TimeScale);
             _started.Publish(new QteStarted(session, Presentation));
             return true;
         }

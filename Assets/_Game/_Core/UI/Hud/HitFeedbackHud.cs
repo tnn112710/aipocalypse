@@ -26,6 +26,7 @@ namespace Aipocalypse.Core.UI
         [SerializeField, Min(0.01f)] float _killDuration = 0.4f;
         [SerializeField, Min(1f), Tooltip("Pop size at the start of a hit marker")] float _hitPop = 1.3f;
         [SerializeField, Min(1f)] float _killPop = 1.8f;
+        [SerializeField, Range(0.05f, 1f), Tooltip("Share of the fade the marker takes to shrink back from its pop")] float _popShare = 0.4f;
 
         [Header("Sound")]
         [SerializeField] SoundID _hitSound;
@@ -62,7 +63,6 @@ namespace Aipocalypse.Core.UI
             base.Start();
         }
 
-        protected override void Bind(Player player) { }
         protected override void Unbind(Player player) => HideMarker();
 
         protected override void OnDestroy()
@@ -106,7 +106,7 @@ namespace Aipocalypse.Core.UI
             _marker.localScale = _markerScale * (kill ? _killPop : _hitPop);
             // Real time, so a kill's hit stop doesn't freeze the marker.
             _tween = DOTween.Sequence()
-                .Append(_marker.DOScale(_markerScale, duration * 0.4f).SetEase(Ease.OutCubic))
+                .Append(_marker.DOScale(_markerScale, duration * _popShare).SetEase(Ease.OutCubic))
                 .Join(_markerGroup.DOFade(0f, duration).SetEase(Ease.InQuad))
                 .SetUpdate(true);
         }

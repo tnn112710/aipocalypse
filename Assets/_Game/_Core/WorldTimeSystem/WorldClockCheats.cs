@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using Aipocalypse.Input;
 using VContainer.Unity;
 
@@ -25,4 +24,3 @@ namespace Aipocalypse.Core.WorldTimeSystem
         }
     }
 }
-#endif

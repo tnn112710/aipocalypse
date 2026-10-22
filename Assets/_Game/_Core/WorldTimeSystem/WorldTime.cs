@@ -26,12 +26,14 @@ namespace Aipocalypse.Core.WorldTimeSystem
         // 1-based day number.
         public int Day => (int)Math.Floor(TotalHours / HoursPerDay) + 1;
 
-        // 0 (midnight) to just under 24.
-        public float Hour => (float)(TotalHours - Math.Floor(TotalHours / HoursPerDay) * HoursPerDay);
+        // 0 (midnight) to just under 24. Clamped: a moment within float precision of midnight would otherwise round up to 24.
+        public float Hour => Math.Min((float)(TotalHours - Math.Floor(TotalHours / HoursPerDay) * HoursPerDay), LastHour);
 
         public int WholeHour => (int)(TotalMinutes / 60 % 24);
         public int Minute => (int)(TotalMinutes % 60);
-        public float DayFraction => Hour / (float)HoursPerDay;
+
+        // The largest float below 24.
+        const float LastHour = 23.999998f;
 
         long TotalMinutes => (long)Math.Floor(TotalHours * 60d);
 

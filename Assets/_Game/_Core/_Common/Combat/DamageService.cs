@@ -1,5 +1,6 @@
 using Aipocalypse.Core.Events;
 using MessagePipe;
+using UnityEngine;
 
 namespace Aipocalypse.Core.Combat
 {
@@ -19,6 +20,19 @@ namespace Aipocalypse.Core.Combat
             if (result.Applied > 0f)
                 _dealt.Publish(new DamageDealt(target, info, result));
             return result;
+        }
+
+        // A physics hit (bullet, swing): damages the IDamageable the collider belongs to and pushes a loose rigidbody by
+        // info.Force. Returns the damageable, or null when the hit was on scenery.
+        public IDamageable DealHit(in RaycastHit hit, in DamageInfo info)
+        {
+            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
+            Deal(target, info);
+
+            Rigidbody body = hit.rigidbody;
+            if (body != null && !body.isKinematic && info.Force != Vector3.zero)
+                body.AddForceAtPosition(info.Force, hit.point, ForceMode.Impulse);
+            return target;
         }
     }
 }

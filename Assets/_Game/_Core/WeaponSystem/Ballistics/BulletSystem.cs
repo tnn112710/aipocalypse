@@ -138,8 +138,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             if (bullet.Tracer != null)
             {
-                float converge = bullet.Effects.TracerConvergeTime;
-                bullet.VisualOffset *= converge > 0f ? Mathf.Exp(-deltaTime / converge) : 0f;
+                bullet.VisualOffset *= 1f - Damping.ByTime(bullet.Effects.TracerConvergeTime, deltaTime);
                 bullet.Tracer.transform.SetPositionAndRotation(bullet.Position + bullet.VisualOffset, Quaternion.LookRotation(velocity));
             }
             return !lastStep;
@@ -149,17 +148,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public bool TryHit(Vector3 origin, Vector3 direction, float distance, int layers, Transform ignore, out RaycastHit nearest)
         {
             int count = Physics.RaycastNonAlloc(origin, direction, _hits, distance, layers, QueryTriggerInteraction.Ignore);
-            nearest = default;
-            float nearestDistance = float.MaxValue;
-            for (int i = 0; i < count; i++)
-            {
-                RaycastHit hit = _hits[i];
-                if (hit.distance >= nearestDistance || (ignore != null && hit.collider.transform.IsChildOf(ignore)))
-                    continue;
-                nearest = hit;
-                nearestDistance = hit.distance;
-            }
-            return nearestDistance < float.MaxValue;
+            return PhysicsQueries.Nearest(_hits, count, ignore, out nearest);
         }
 
         void Impact(in Bullet bullet, in RaycastHit hit, float travelled)
@@ -168,12 +157,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             float share = bullet.Falloff != null ? bullet.Falloff.At(travelled) : 1f;
             Vector3 force = bullet.Velocity.normalized * (bullet.Knockback * share);
-            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            _damage.Deal(target, new DamageInfo(bullet.Damage * share, DamageType.Gunshot, hit.point, force, bullet.Source));
-
-            Rigidbody body = hit.rigidbody;
-            if (body != null && !body.isKinematic && force != Vector3.zero)
-                body.AddForceAtPosition(force, hit.point, ForceMode.Impulse);
+            IDamageable target = _damage.DealHit(hit, new DamageInfo(bullet.Damage * share, DamageType.Gunshot, hit.point, force, bullet.Source));
 
             BulletEffects effects = bullet.Effects;
             if (effects == null)

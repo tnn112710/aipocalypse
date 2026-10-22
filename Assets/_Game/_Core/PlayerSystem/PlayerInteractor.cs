@@ -66,13 +66,13 @@ namespace Aipocalypse.Core.PlayerSystem
                 forward = _actor.transform.forward;
             forward.Normalize();
 
-            const float wallGap = 0.25f;
+            float wallGap = _tuning.DropWallGap;
             float distance = _tuning.DropDistance;
             if (Physics.Raycast(_eye.position, forward, out RaycastHit wall, distance + wallGap, _tuning.InteractMask, QueryTriggerInteraction.Ignore))
                 distance = Mathf.Max(0f, wall.distance - wallGap);
 
             Vector3 point = _eye.position + forward * distance;
-            return Physics.Raycast(point, Vector3.down, out RaycastHit ground, 10f, _tuning.InteractMask, QueryTriggerInteraction.Ignore)
+            return Physics.Raycast(point, Vector3.down, out RaycastHit ground, _tuning.DropGroundProbe, _tuning.InteractMask, QueryTriggerInteraction.Ignore)
                 ? ground.point
                 : _actor.transform.position + forward * distance;
         }
@@ -82,19 +82,7 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             Ray ray = new(_eye.position, _eye.forward);
             int count = Physics.SphereCastNonAlloc(ray, _tuning.InteractRadius, _hits, _tuning.InteractRange, _tuning.InteractMask, QueryTriggerInteraction.Collide);
-
-            Collider nearest = null;
-            float nearestDistance = float.MaxValue;
-            for (int i = 0; i < count; i++)
-            {
-                RaycastHit hit = _hits[i];
-                if (hit.distance < nearestDistance && !hit.collider.transform.IsChildOf(_actor.transform))
-                {
-                    nearest = hit.collider;
-                    nearestDistance = hit.distance;
-                }
-            }
-            return nearest;
+            return PhysicsQueries.Nearest(_hits, count, _actor.transform, out RaycastHit nearest) ? nearest.collider : null;
         }
     }
 }

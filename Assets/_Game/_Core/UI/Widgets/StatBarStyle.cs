@@ -41,7 +41,7 @@ namespace Aipocalypse.Core.UI
             if (this == null)
                 return;
 
-            foreach (StatBar bar in FindObjectsByType<StatBar>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (StatBar bar in FindObjectsByType<StatBar>(FindObjectsInactive.Include))
             {
                 if (bar.Style == this)
                     bar.ApplyStyle();

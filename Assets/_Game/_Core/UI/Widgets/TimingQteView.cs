@@ -12,17 +12,10 @@ namespace Aipocalypse.Core.UI
         [SerializeField] UnityEngine.UI.Image _zone;
         [SerializeField] UnityEngine.UI.Image _marker;
 
-        void Awake() => ApplyStyle();
-
-        public void ApplyStyle()
+        void Awake()
         {
-            if (_style == null)
-                return;
-            _track.sprite = _fill.sprite = _zone.sprite = _radial ? _style.Ring : _style.Bar;
-            _track.color = _style.Track;
-            _zone.color = _style.GreenZone;
-            _fill.color = _style.Fill;
-            _marker.color = _style.Text;
+            if (_style != null)
+                _track.sprite = _fill.sprite = _zone.sprite = _radial ? _style.Ring : _style.Bar;
         }
 
         public override bool CanDisplay(IQteSession session) => session is TimingQteSession;
@@ -36,21 +29,30 @@ namespace Aipocalypse.Core.UI
 
         public override void Flash(Color color, float amount)
         {
+            if (amount <= 0f)
+                return;
             _fill.color = Color.Lerp(_fill.color, color, amount);
             _zone.color = Color.Lerp(_zone.color, color, amount);
             _marker.color = Color.Lerp(_marker.color, color, amount);
-            _track.color = Color.Lerp(_track.color, color, amount * 0.65f);
+            float trackStrength = _style != null ? _style.TrackFlashStrength : 1f;
+            _track.color = Color.Lerp(_track.color, color, amount * trackStrength);
         }
 
+        // Every frame: each colour is set once to its final base value (Graphic skips unchanged colours), and Flash tints on top.
         public override void Display(IQteSession session)
         {
             if (session is not TimingQteSession timing)
                 return;
-            ApplyStyle();
+            if (_style != null)
+            {
+                _track.color = _style.Track;
+                _zone.color = _style.GreenZone;
+                _marker.color = _style.Marker;
+                _fill.color = timing.AttemptAvailable ? _style.Fill : _style.NoAttempt;
+            }
             _marker.enabled = true;
             float progress = timing.Progress;
             _fill.fillAmount = progress;
-            _fill.color = timing.AttemptAvailable ? _style.Fill : _style.Miss;
             if (_radial)
             {
                 _zone.fillAmount = timing.ZoneWidth;

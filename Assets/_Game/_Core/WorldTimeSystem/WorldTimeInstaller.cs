@@ -14,9 +14,9 @@ namespace Aipocalypse.Core.WorldTimeSystem
         {
             builder.RegisterInstance(_settings);
             builder.RegisterEntryPoint<WorldClock>().AsSelf();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            builder.RegisterEntryPoint<WorldClockCheats>();
-#endif
+            // Editor and development builds only.
+            if (UnityEngine.Debug.isDebugBuild)
+                builder.RegisterEntryPoint<WorldClockCheats>();
         }
     }
 }

@@ -52,7 +52,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
         public void OnAttempted(in QteAttempted attempt)
         {
-            if (_profile == null || attempt.Result != QteAttemptResult.Miss || !_qte.IsActiveFor(_owner))
+            if (_profile == null || _qte == null || attempt.Result != QteAttemptResult.Miss || !_qte.IsActiveFor(_owner))
                 return;
             _gun.AddRepairTime(_profile.MissPenalty, _profile.MaxMissPenalty);
             Missed?.Invoke();
