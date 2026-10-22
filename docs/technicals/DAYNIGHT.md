@@ -68,14 +68,14 @@ Phases are for gameplay and stay fixed while the look changes: retuning a sunset
 
 ## Look of the day
 
-`Data/Environment/MeadowHome/TimeOfDay/MH_TimeOfDay.asset` lists keys; between two keys everything blends (Smooth, Linear or Hold per key).
+`Data/Environment/TimeOfDay/TimeOfDay.asset` lists keys; between two keys everything blends (Smooth, Linear or Hold per key).
 
 **When the look changes** (`EnvironmentDirector → Transition`, Play mode):
 
 | Transition | The look shown |
 | --- | --- |
 | By Phases (code default) | Holds one look per phase, the profile's `Phase Looks` hour: Dawn 07:00, Morning 09:00, Afternoon 14:00, Dusk 17:30, Evening 20:30, Midnight 00:00. Changes when a phase starts. |
-| **By Hours** (Prototype_Environment) | The look at the current whole hour; changes on the hour. |
+| **By Hours** (WorldMap) | The look at the current whole hour; changes on the hour. |
 | Continuous | The look at the exact time, every frame. |
 
 While a held look stays the same (no glide running, no atmosphere layer, the moon phase barely moved), the director skips re-applying it: no light, `RenderSettings`, sky-global or volume writes. Editing a `LightingPreset`, the profile or the director bumps a revision, so tuning in Play mode still shows at once.
@@ -88,7 +88,7 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 | 04:30 | Blue hour | BlueHour | Night |
 | 05:30 | Dawn | Dawn | Dawn |
 | 06:30 | Sunrise | Sunrise | Golden |
-| 09:00 | Morning | Morning (the old static Meadow Home look) | Day (the old grade) |
+| 09:00 | Morning | Morning (the old static world map look) | Day (the old grade) |
 | 12:30 | Noon | Noon | Day |
 | 16:00 | Afternoon | Afternoon | Day |
 | 17:00 | Golden hour | GoldenHour | Golden |
@@ -97,10 +97,10 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 | 20:30 | Night | Night | Night |
 
 - **`LightingPreset`** (one asset per look): sun colour / intensity / shadow strength, moon colour / intensity / shadows, trilight ambient, reflection intensity, fog colour / density, sky (painted tint and exposure, night gradient and how much it covers the painted sky, horizon glow toward the sun, sun disc, stars, moon glow), far-mountain haze, unlit-effect tint. Sun direction is not in a look.
-- **Grades:** each `PP_*` grade is the whole post-processing look (tonemapping, colour adjustments, white balance, bloom, vignette, lift/gamma/gain); the scene has no base volume under them. `Time Of Day/Grade From` (priority 10, weight 1) holds the key before the hour and `Grade To` (priority 11) the next key, weighted by the blend. URP's volume stack does the lerp. The director switches a grade volume off while its weight is 0, so outside a blend between two different grades only Grade From is on. The saved scene keeps Grade From on `PP_Day` so edit mode (no director running) shows the morning grade. Every grade must override the same settings, or a setting pops at the key; the profile shows a warning when they differ. `MH_PostProcessing.asset` is only the source the setup script copies the fixed settings from (`DayNightSetup.SingleGrade()` merges it into the grades and removes the scene's base volume).
+- **Grades:** each `PP_*` grade is the whole post-processing look (tonemapping, colour adjustments, white balance, bloom, vignette, lift/gamma/gain); the scene has no base volume under them. `Time Of Day/Grade From` (priority 10, weight 1) holds the key before the hour and `Grade To` (priority 11) the next key, weighted by the blend. URP's volume stack does the lerp. The director switches a grade volume off while its weight is 0, so outside a blend between two different grades only Grade From is on. The saved scene keeps Grade From on `PP_Day` so edit mode (no director running) shows the morning grade. Every grade must override the same settings, or a setting pops at the key; the profile shows a warning when they differ. `Base_PostProcessing.asset` is only the source the setup script copies the fixed settings from (`DayNightSetup.SingleGrade()` merges it into the grades and removes the scene's base volume).
 - **Sun path** (profile → Sun and moon): sunrise 06:00, sunset 19:00, noon elevation 50°, rising at bearing 70° and travelling 220°. At 09:00 the sun is where the old static light was (33°, bearing 121). The moon rises at sunset (bearing 100°, 45° high).
 - **One shadowed directional light:** the sun by day, the moon at night (full moon brightest, new moon `NewMoonLight` (a third) of it; both on the profile's Sun and moon group). Each fades in over the first `HorizonFade` (12°) above the horizon, about one game hour. The swap happens at twilight while both are near zero. The light never goes below `MinLightElevation` (8°), so terrain is never lit from below. At 30 s per hour the sun moves 0.5° per second. A shadow map whose light turns every frame makes shadow edges crawl, so in Continuous mode (the other transitions already hold the light still) the light holds still until the sun has moved `Shadow Step` (1°) and then glides there over `Shadow Glide` (0.3 s): a short slide about every 2 s instead of constant shimmer. Time jumps, skips, big moves and the sun/moon swap snap instead. The sky's sun disc still moves every frame. `Shadow Step` 0 = follow the sun every frame; `Shadow Glide` 0 = snap each step. In Play mode, while the moon lights the scene, `Night Shadow Distance` (60 m) replaces the URP asset's shadow distance (150 m), since faint moon shadows don't need the range. It swaps with the light at twilight and is restored when the director is disabled or Play stops (0 = keep the asset's).
-- **Sky:** `MH_Sky_TimeOfDay.mat` with `Aipocalypse/Skybox/Time Of Day` (`_Core/EnvironmentSystem/Shaders/`). It draws the same Komorebi panorama as before (same rotation, tint × exposure) and adds a night gradient, a horizon glow, a sun disc, procedural twinkling stars and a moon with phases. Its time values are `_TOD_*` shader globals the director sets, so the material asset is never written. With no director it uses its own Fallback Tint / Exposure. Star and moon size live on the material.
+- **Sky:** `TimeOfDay_Sky.mat` with `Aipocalypse/Skybox/Time Of Day` (`_Core/EnvironmentSystem/Shaders/`). It draws the same Komorebi panorama as before (same rotation, tint × exposure) and adds a night gradient, a horizon glow, a sun disc, procedural twinkling stars and a moon with phases. Its time values are `_TOD_*` shader globals the director sets, so the material asset is never written. With no director it uses its own Fallback Tint / Exposure. Star and moon size live on the material.
 
 **`EnvironmentDirector`** (`Environment/Time Of Day`) is the only writer of the sun light, RenderSettings ambient / fog / reflections, the sky globals and the two grade volumes. Atmosphere.cs still seeds those values when the generator runs, but the director overrides them in Play mode.
 
@@ -128,7 +128,7 @@ The five `TimeOfDay*` types share a weight from **Hours** (a `TimeWindow`: On, O
 - **New kind of reactor:** derive from `TimeOfDayReactor` and implement `Apply(float weight)`, or from `EnvironmentReactor` for something that reads `director.State` / `SunDirection` every frame.
 - **Game logic** (spawn waves, shop hours, fish bite times) subscribes to `DayPhaseChanged` / `HourChanged` or reads `WorldClock.Now`. It doesn't use reactors.
 
-Meadow Home wiring (`DayNightSetup.Scene`):
+World map wiring (`DayNightSetup.Scene`):
 
 | Object | Reactor |
 | --- | --- |
@@ -158,7 +158,7 @@ At night a light around the player lights the near ground, so things close by re
 
 ## Ambience
 
-`TimeOfDay/MH_Ambience.asset` (`TimeOfDayAmbience`), played by `AmbienceService` (scene scope, needs the clock):
+`TimeOfDay/TimeOfDay_Ambience.asset` (`TimeOfDayAmbience`), played by `AmbienceService` (scene scope, needs the clock):
 
 - **Beds** loop all day; each has a volume curve over 0–24 h. Birds (Lakefell ambience clips) peak at dawn for the chorus, drop through the day and stop at 20:00. Meadow wind is louder at night.
 - **Calls** play now and then inside their hours: owls (HIGHLANDS clips) from 20:30 to 04:30, every 18–45 s. Calls pause while the game is paused or the clock is skipping.
@@ -177,21 +177,21 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 | Night shorter or longer | `ClockSettings` → Evening / Midnight → Speed |
 | When phases start | `ClockSettings` phase starts (gameplay timing; the look doesn't move) |
 | What an hour looks like | Its `Looks/TOD_*.asset` (live in Play mode and in the edit preview) |
-| Add an hour | Add a key to `MH_TimeOfDay` with a look and a grade (duplicate a look) |
+| Add an hour | Add a key to `TimeOfDay` with a look and a grade (duplicate a look) |
 | Post-processing per hour | `Grades/PP_*.asset`; keep the same overrides in all of them |
-| Where the sun rises, how high it gets | `MH_TimeOfDay` → Sun and moon |
-| Stars, moon size | `MH_Sky_TimeOfDay.mat` |
+| Where the sun rises, how high it gets | `TimeOfDay` → Sun and moon |
+| Stars, moon size | `TimeOfDay_Sky.mat` |
 | Unlit effects at night | Each look's Unlit Tint |
 | Lamps, windows | `TimeOfDayLight` / `TimeOfDayEmission` hours and colours |
-| The player's light at night | `Data/Player/PlayerVisionTuning.asset`; a lantern's share: `Data/Items/Lantern.asset` |
-| Ambience | `MH_Ambience` curves and calls |
+| The player's light at night | `Data/Player/PlayerVisionTuning.asset`; a lantern's share: `Content/Items/Lantern/Lantern.asset` |
+| Ambience | `TimeOfDay_Ambience` curves and calls |
 
 ## Setup scripts
 
 `AgentScripts/DayNight/` (run with `unity command run_script`):
 
 - `DayNightSetup.Assets(reset)` creates the data assets. **`reset = true` overwrites the looks, grades, profile keys and ambience with the script's values.** Use `false` to keep hand tuning and only add what's missing.
-- `DayNightSetup.Scene()` wires Meadow Home (director, grade volumes, sky, reactors, door light, scope fields) and saves the scene. Re-run it after `Atmosphere.Particles()` rebuilds the atmosphere groups.
+- `DayNightSetup.Scene()` wires the world map (director, grade volumes, sky, reactors, door light, scope fields) and saves the scene. Re-run it after `Atmosphere.Particles()` rebuilds the atmosphere groups.
 - `DayNightSetup.Hud()` rebuilds `SafeFrame/TopRight/Clock` in `HUD.prefab`.
 - `Prof.Start()` / `Prof.StartGpu()`, `Prof.Stop()`, `Prof.Window(from, to)`, `Prof.Compare(aFrom, aTo, bFrom, bTo, thread, top)`, `Prof.Spikes(...)`: Play-mode profiler captures (median CPU / GPU frame time, GC per frame, markers that grew between two frame ranges). Measured: a look transition costs about 0.3 ms main thread + 0.3 ms GPU over a hold (1–4 fps in the editor); the director writes the light, RenderSettings and volumes only when a value changes, so holds cost nothing.
 - `DayNightSetup.RestoreHudOverrides(path)` sets the open scene's HUD instance overrides back to those of another copy of the scene (for example `git show HEAD:<scene>` saved to a temp file). Editor layout passes write layout-driven values onto the instance, which would otherwise show up as noise in the scene diff.

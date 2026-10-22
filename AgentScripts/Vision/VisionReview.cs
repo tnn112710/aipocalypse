@@ -41,7 +41,9 @@ public static class VisionReview
 
     public static object Give(string itemAsset)
     {
-        var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>($"Assets/_Game/Data/Items/{itemAsset}.asset");
+        var item = AssetDatabase.FindAssets($"{itemAsset} t:{nameof(ItemDefinition)}", new[] { "Assets/_Game/Content" })
+            .Select(g => AssetDatabase.LoadAssetAtPath<ItemDefinition>(AssetDatabase.GUIDToAssetPath(g)))
+            .First(i => i.name == itemAsset);
         Player.Equipment.TryPickUp(item.CreateInstance(), out _);
         return State();
     }
@@ -50,7 +52,7 @@ public static class VisionReview
     public static object SpawnPickup(float distance)
     {
         Player player = Player;
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/EquipmentSystem/Prefabs/Lantern.prefab");
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Items/Lantern/Lantern.prefab");
         Vector3 at = player.transform.position + player.transform.forward * distance + Vector3.up * 2f;
         if (Physics.Raycast(at, Vector3.down, out RaycastHit hit, 10f, ~0, QueryTriggerInteraction.Ignore))
             at = hit.point;
@@ -75,7 +77,7 @@ public static class VisionReview
         Equipment equipment = Player.Equipment;
         if (wear)
         {
-            var lantern = AssetDatabase.LoadAssetAtPath<LanternDefinition>("Assets/_Game/Data/Items/Lantern.asset");
+            var lantern = AssetDatabase.LoadAssetAtPath<LanternDefinition>("Assets/_Game/Content/Items/Lantern/Lantern.asset");
             equipment.TryPickUp(lantern.CreateInstance(), out _);
         }
         else

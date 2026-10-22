@@ -20,16 +20,16 @@ using Object = UnityEngine.Object;
 using Volume = UnityEngine.Rendering.Volume;
 
 // Builds the day/night cycle: data assets (clock, looks, grades, sky, ambience, clock style), the scene wiring in
-// Meadow Home (director, reactors, scope fields) and the HUD clock. Every entry point is safe to re-run.
+// World Map (director, reactors, scope fields) and the HUD clock. Every entry point is safe to re-run.
 public static class DayNightSetup
 {
     const string ClockPath = "Assets/_Game/Data/WorldTime/ClockSettings.asset";
-    const string TodDir = "Assets/_Game/Data/Environment/MeadowHome/TimeOfDay";
-    const string ProfilePath = TodDir + "/MH_TimeOfDay.asset";
-    const string SkyPath = TodDir + "/MH_Sky_TimeOfDay.mat";
-    const string AmbiencePath = TodDir + "/MH_Ambience.asset";
-    const string BasePostPath = "Assets/_Game/Data/Environment/MeadowHome/MH_PostProcessing.asset";
-    const string OldSkyPath = "Assets/_Game/Data/Environment/MeadowHome/MH_Skybox.mat";
+    const string TodDir = "Assets/_Game/Data/Environment/TimeOfDay";
+    const string ProfilePath = TodDir + "/TimeOfDay.asset";
+    const string SkyPath = TodDir + "/TimeOfDay_Sky.mat";
+    const string AmbiencePath = TodDir + "/TimeOfDay_Ambience.asset";
+    const string BasePostPath = TodDir + "/Base_PostProcessing.asset";
+    const string OldSkyPath = TodDir + "/Base_Skybox.mat";
     const string AudioLibPath = "Assets/_Game/Data/Audio/Ambience.asset";
     const string AudioDir = "Assets/_Game/Data/Audio/Ambience";
     const string ClockStylePath = "Assets/_Game/Data/UI/ClockStyle.asset";
@@ -88,7 +88,7 @@ public static class DayNightSetup
             return preset;
         }
 
-        // Today's Meadow Home look (Atmosphere.cs), taken from the open scene so 09:00 matches it exactly.
+        // Today's World Map look (Atmosphere.cs), taken from the open scene so 09:00 matches it exactly.
         Light sun = RenderSettings.sun;
         var oldSky = AssetDatabase.LoadAssetAtPath<Material>(OldSkyPath);
         Color sunColor = sun != null && sun.useColorTemperature
@@ -542,7 +542,7 @@ public static class DayNightSetup
         return style;
     }
 
-    // ---------------------------------------------------------------- scene (Meadow Home)
+    // ---------------------------------------------------------------- scene (World Map)
 
     public static object Scene()
     {
@@ -603,7 +603,7 @@ public static class DayNightSetup
         Tint("Environment/Landmarks/Waterfall",
             new[] { "_BaseColor", "_Color_1", "_Color_2", "_Foam_1_Color", "_Foam_1_Shadow_Color", "_Foam_2_Color" },
             AtmosphereChannel.UnlitTint, true,
-            Mat("Assets/_Game/Data/Environment/MeadowHome/Water/MH_Waterfall.mat"),
+            Mat("Assets/_Game/Environment/Water/Water_Waterfall.mat"),
             Mat(Komorebi + "Nature/Waterfall_Ripples_1.mat"),
             Mat(Komorebi + "Particle Systems/Waterfall_Splash_1.mat"),
             Mat(Komorebi + "Particle Systems/Fog_Particle.mat"));

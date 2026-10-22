@@ -50,7 +50,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void EveryItem_HasOnePrefabForWorldAndHand()
         {
-            string[] guids = AssetDatabase.FindAssets("t:ItemDefinition", new[] { "Assets/_Game/Data/Items" });
+            string[] guids = AssetDatabase.FindAssets("t:ItemDefinition", new[] { "Assets/_Game/Content" });
             Assert.That(guids, Is.Not.Empty);
             foreach (string guid in guids)
             {

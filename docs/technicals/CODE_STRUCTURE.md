@@ -22,9 +22,9 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 - `EnemyBrain.cs` injected bridge: on its first `Start` (and each re-enable) initializes its mover, starts its tree and registers; stops both and leaves when disabled.
 - `WanderMover.cs` samples reachable destinations around the spawn point and drives A* FollowerEntity, including arrival and travel timeout checks.
 - `WanderTasks.cs` contains the choose, walk, and pause ActionNodes used by the shared subtree.
-- `WanderSettings.cs` holds movement, radius, pause, timeout, destination search (attempts, minimum travel) and think-stride tuning; the asset and shared subtree are in `Data/Enemies/`.
+- `WanderSettings.cs` holds movement, radius, pause, timeout, destination search (attempts, minimum travel) and think-stride tuning; the asset is in `Data/Enemies/`, the shared subtree in `Content/Enemies/_Shared/`.
 
-`GameLifetimeScope` installs this slice when navigation and settings are assigned. `AgentScripts/WanderDemo.cs` builds and inspects the two-agent scene setup through Unity CLI. Core also references AstarPathfindingProject and its PackageTools/Drawing base assemblies.
+`GameLifetimeScope` installs this slice when navigation and settings are assigned. `_Core/EnemySystem/Prefabs/Navigation.prefab` (AstarPath + RVOSimulator) goes into every scene with agents. `AgentScripts/WanderDemo.cs` builds and inspects the two-agent scene setup through Unity CLI. Core also references AstarPathfindingProject and its PackageTools/Drawing base assemblies.
 
 ## Script map
 
@@ -59,8 +59,8 @@ Assets/_Game/
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
-│  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in Meadow Home
-│  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in Meadow Home
+│  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
+│  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in the world map
 │  │  ├─ EnvironmentInstaller.cs            scene scope: RegisterComponent(EnvironmentDirector) (+ TimeOfDayAmbience → AmbienceService entry point)
 │  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ sky globals, Grade From / To volumes; profile → layers → apply → reactors (Play mode); edit-mode preview; collects scene reactors on save / Play
 │  │  ├─ TimeOfDay/TimeOfDayProfile.cs      SO: keys (hour, LightingPreset, grade VolumeProfile, blend) → Evaluate(hour); SunPath (sun / moon directions); grade-override warning
@@ -92,8 +92,7 @@ Assets/_Game/
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
 │  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, Zoom (field of view multiplier), Spread (shot cone for the crosshair), StopsSprint(use, aim), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
-│  │  ├─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
-│  │  └─ Prefabs/Lantern.prefab             belt lantern pickup: WorldItem + trigger box, World > Model (Polygon Mega Survival kerosene lamp)
+│  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
@@ -102,7 +101,8 @@ Assets/_Game/
 │  │  ├─ ItemHands.cs                       on an item prefab: one grip per hand, per-item hand scale; Show hands preview, Bake fit for all grips
 │  │  ├─ FirstPersonHands.cs                on the player: spawns the HandSet, puts each hand on the item's grip (elbow-aimed) with its finger shape
 │  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
-│  │  └─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
+│  │  ├─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
+│  │  └─ Prefabs/FPHand_Left, FPHand_Right.prefab   the hand prefabs (VR Low Poly Hand), listed in Data/Hands/HandSet.asset
 │  ├─ InputSystem/                          Aipocalypse.Input
 │  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload; Debug map (N / M) enabled in dev builds
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
@@ -198,21 +198,28 @@ Assets/_Game/
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) in the root scope
-│     ├─ Prefabs/Guns/Gun_Base.prefab       HeldGun skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle
-│     ├─ Prefabs/Guns/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun.prefab   variants of Gun_Base with the store model and their poses / muzzle;
-│     │                                     also the pickup: root WorldItem + trigger box, World child = model lying flat
-│     ├─ Prefabs/Effects/                   MuzzleFlash, Tracer, BulletImpact, BulletHole (PooledEffect roots)
-│     ├─ Materials/BulletHoleDecal.mat, Textures/BulletHole.png   bullet hole decal
-│     └─ Prefabs/Melee/FireAxe.prefab       HeldMelee: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World like the guns
+│     └─ Prefabs/Gun_Base.prefab            HeldGun skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle; every gun is a variant of it
+├─ Content/                                 one folder per thing (weapon, item, enemy…) with everything it needs; ARCHITECTURE.md → Folder layout
+│  ├─ Weapons/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun/   <Gun>.prefab: Gun_Base variant with the store model, poses, muzzle; also the pickup
+│  │                                        (root WorldItem + trigger box, World child = model lying flat). <Gun>.asset (GunDefinition: all its numbers),
+│  │                                        <Gun>_Repair / _RepairQte.asset, Animations/ (<Gun>.overrideController + clips), <Gun>_Magazine.prefab
+│  ├─ Weapons/FireAxe/                      FireAxe.prefab (HeldMelee: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World), FireAxe.asset
+│  ├─ Weapons/_Shared/                      Animations/ (Gun.controller + base clips); Effects/ (MuzzleFlash, Tracer, BulletImpact, BulletHole PooledEffect roots,
+│  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
+│  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
+│  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat
+├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/, Rocks/, Mountains/ (ENVIRONMENT.md)
+├─ Maps/WorldMap/                           WorldMap.unity + what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/
+├─ Scenes/Prototypes/                       Prototype.unity (its terrain data in Prototype/); Proto_* scenes
 ├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
-├─ Data/
+├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
 │  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience .asset) + one folder of entities each
 │  ├─ WorldTime/ClockSettings.asset         30 s per game hour (12-minute day), start 07:00, phases 05 / 07 / 18 / 20
-│  ├─ Environment/MeadowHome/TimeOfDay/     MH_TimeOfDay (profile), Looks/TOD_*.asset, Grades/PP_*.asset, MH_Sky_TimeOfDay.mat, MH_Ambience.asset
+│  ├─ Environment/TimeOfDay/                TimeOfDay (profile), Looks/TOD_*.asset, Grades/PP_*.asset, TimeOfDay_Sky.mat, TimeOfDay_Ambience.asset, Base_PostProcessing / Base_Skybox (setup sources)
 │  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound,Vision}Tuning.asset beside it
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe, Lantern.asset   item definitions (one prefab each; weapons hold all their numbers)
-│  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
+│  ├─ Hands/HandSet.asset, Poses/           the hand prefabs + shared hand poses
+│  ├─ Enemies/WanderSettings.asset          wander tuning
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, ClockStyle.asset, DamageNumberFont.asset
@@ -358,4 +365,4 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 
 GunAnimation also samples the clip-authored `_repairImpactCount` track and raises RepairSlapped once per contact; the stepped `_repairPunch` track makes ImpactIsPunch true for punches. HeldGun subscribes locally and plays the GunSounds.RepairSlap or RepairPunch entity (random clip and volume live on the entity). Early success uses cached transform/shape snapshots to blend to RepairEnd without playing the remaining hits; HandGrip.SetAnimatedShape applies the blended finger pose. Arrays are cached once when the graph is created. GunAnimationTests covers skipped-frame markers, duplicate suppression, pause, restart and early success with no extra impacts.
 
-All five guns now supply independent Data/Weapons/<Gun>_Repair and <Gun>_RepairQte assets, impact audio settings on their GunDefinition, and four repair overrides. RepairQteSetup.OtherGuns creates the per-gun data; Ak47Animations.UpdateRepairing(weapon) fits the shared slap authoring to each gun's contact hierarchy. RepairQteChecks accepts any configured held gun and verifies full repair duration, 3/4 impacts and audio starts, persistent QTE and early completion. WeaponAnimationTests validates all new override bindings plus both repair variants and early returns for all four later guns.
+All five guns now supply independent Content/Weapons/<Gun>/<Gun>_Repair and <Gun>_RepairQte assets, impact audio settings on their GunDefinition, and four repair overrides. RepairQteSetup.OtherGuns creates the per-gun data; Ak47Animations.UpdateRepairing(weapon) fits the shared slap authoring to each gun's contact hierarchy. RepairQteChecks accepts any configured held gun and verifies full repair duration, 3/4 impacts and audio starts, persistent QTE and early completion. WeaponAnimationTests validates all new override bindings plus both repair variants and early returns for all four later guns.

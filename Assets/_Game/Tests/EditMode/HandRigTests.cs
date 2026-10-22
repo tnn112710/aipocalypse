@@ -13,7 +13,7 @@ namespace Aipocalypse.Tests
         HandRig _rig;
 
         void Load(string side) => _rig = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
-            "Assets/_Game/Prefabs/Hands/FPHand_" + side + ".prefab")).GetComponent<HandRig>();
+            "Assets/_Game/_Core/HandSystem/Prefabs/FPHand_" + side + ".prefab")).GetComponent<HandRig>();
 
         [TearDown]
         public void TearDown()
@@ -125,7 +125,7 @@ namespace Aipocalypse.Tests
         public void PunchContactsUseFullFistAndThumbClosesAfterFingers(string weapon, bool stubborn)
         {
             var state = stubborn ? "RepairingStubborn" : "Repairing";
-            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/_Core/WeaponSystem/Animations/" + weapon + "/" + weapon + "_" + state + ".anim");
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/Content/Weapons/" + weapon + "/Animations/" + weapon + "_" + state + ".anim");
             var bindings = AnimationUtility.GetCurveBindings(clip);
             AnimationCurve Curve(string property) => AnimationUtility.GetEditorCurve(clip, bindings.Single(b => b.propertyName == property &&
                 (b.type == typeof(GunAnimation) || b.path.EndsWith("/Left"))));

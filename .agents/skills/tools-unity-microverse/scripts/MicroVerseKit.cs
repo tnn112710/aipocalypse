@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 
 public static class MicroVerseKit
 {
-    const string DataRoot = "Assets/_Game/Data/Environment/";
+    const string DataRoot = "Assets/_Game/Maps/";
 
     // Scene overview: MicroVerse state, terrains and the stamp stack in evaluation (hierarchy) order.
     public static object Status()
@@ -364,12 +364,12 @@ public static class MicroVerseKit
         return new { center = b.center.ToString(), size = b.size.ToString() };
     }
 
-    // Saves the active scene and the terrain assets. path = "" keeps the scene's path; a new scene needs one (Assets/_Game/Scenes/...).
+    // Saves the active scene and the terrain assets. path = "" keeps the scene's path; a new map scene needs one (Assets/_Game/Maps/<Map>/<Map>.unity).
     public static object SaveScene(string path)
     {
         var scene = SceneManager.GetActiveScene();
         if (string.IsNullOrEmpty(path)) path = scene.path;
-        if (string.IsNullOrEmpty(path)) throw new InvalidOperationException("Scene has never been saved; pass a path under Assets/_Game/Scenes/.");
+        if (string.IsNullOrEmpty(path)) throw new InvalidOperationException("Scene has never been saved; pass a path under Assets/_Game/Maps/<Map>/.");
         EditorSceneManager.SaveScene(scene, path);  // MicroVerse syncs heights back to the terrains on scene save
         if (MicroVerse.instance != null) SaveTerrainData(MicroVerse.instance);
         return new { saved = scene.path };

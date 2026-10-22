@@ -18,7 +18,7 @@ Key labels on the HUD come from the bindings (`InputService.GetSlotKeyLabel`), s
 ## Layers
 
 ```text
-Data (ScriptableObjects, Data/Items/, Data/Equipment/)
+Data (ScriptableObjects: items in Content/<Kind>/<Item>/, Data/Equipment/)
   ItemDefinition                 name, icon, Category, Prefab              abstract; one prefab per item (world + hand)
   └─ EquippableDefinition        EquipTime, HolsterTime; HeldPrefab = the HeldItem on Prefab's root
      ├─ GunDefinition            Category Gun; all gun numbers (WeaponSystem, see WEAPONS.md)
@@ -85,11 +85,11 @@ A lantern is worn, not held: it works whatever is in your hands. `Equipment.Belt
 - **E** on a lantern: **Store** on an empty belt, **Swap** with the worn one otherwise (the old lantern drops where the new one lay). A full hotbar doesn't matter, and the hands don't change.
 - It can't be dropped with G (that drops the held item).
 - What it does: `PlayerVision` reads `Equipment.Belt` and widens the player's light in the dark ([DAYNIGHT.md → Player light](DAYNIGHT.md#player-light-in-the-dark)).
-- The pickup is `_Core/EquipmentSystem/Prefabs/Lantern.prefab` (item `Data/Items/Lantern.asset`). It's a world model only: lanterns have no HeldItem.
+- The pickup is `Content/Items/Lantern/Lantern.prefab` (item `Content/Items/Lantern/Lantern.asset`). It's a world model only: lanterns have no HeldItem.
 
 ### One prefab per item
 
-Each item has a single prefab (`Prefabs/Guns/AK47.prefab`, `Prefabs/Melee/FireAxe.prefab`), assigned to its asset's `Prefab`. The root carries both sides:
+Each item has a single prefab (`Content/Weapons/AK47/AK47.prefab`, `Content/Weapons/FireAxe/FireAxe.prefab`), assigned to its asset's `Prefab`. The root carries both sides:
 
 ```text
 AK47                 HeldGun, ItemHands                first-person side
@@ -108,11 +108,11 @@ AK47                 HeldGun, ItemHands                first-person side
 | To change | Edit |
 | --- | --- |
 | Switch speed for everything | `Data/Equipment/EquipmentConfig.asset` → `SwitchSpeed` (live in Play mode) |
-| One item's equip / holster time | `Data/Items/<Item>.asset` → `EquipTime` / `HolsterTime` |
+| One item's equip / holster time | `Content/<Kind>/<Item>/<Item>.asset` → `EquipTime` / `HolsterTime` |
 | Which slots exist, what they accept, starting items | `EquipmentConfig` → `Slots` (order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
 | Reach and thickness of the look ray, drop distance | `Data/Player/PlayerInteractionTuning.asset` |
 | How a pickup lies on the ground, its pickup box | the item prefab → `World/Model` transform, root `BoxCollider` |
-| How far a lantern lights, its colour and flicker | `Data/Items/Lantern.asset` (where its light sits: `PlayerVisionTuning` → Lantern Position) |
+| How far a lantern lights, its colour and flicker | `Content/Items/Lantern/Lantern.asset` (where its light sits: `PlayerVisionTuning` → Lantern Position) |
 | The temporary lower/raise motion | `Player.prefab` → `CameraRoot/CameraPitch/HeldItems` → `EquipmentRig` (lowered offset, tilt, curve) |
 | Where the hand sits on screen | `HeldItems/Hand` local position |
 | One model's grip position | that item's prefab → first-person `Model` child transform |
@@ -143,7 +143,7 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
 ## Extending
 
 - **Another gun:** follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun).
-- **A new item of an existing kind** (another gun or melee weapon): follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun) or [Melee](WEAPONS.md#melee). In short: an item prefab copied from an existing one with both models swapped (first-person model: shadows off, no colliders; `World/Model`: lying flat), the root `WorldItem._definition` set to a new item asset in `Data/Items/`, and the prefab assigned to the asset's `Prefab`. Drop copies into scenes to place pickups.
+- **A new item of an existing kind** (another gun or melee weapon): follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun) or [Melee](WEAPONS.md#melee). In short: an item prefab copied from an existing one with both models swapped (first-person model: shadows off, no colliders; `World/Model`: lying flat), the root `WorldItem._definition` set to a new item asset, both in a new `Content/<Kind>/<Item>/` folder, and the prefab assigned to the asset's `Prefab`. Drop copies into scenes to place pickups.
 - **More slots** (up to 9): add entries to `EquipmentConfig.Slots`. The HUD spawns one slot view per slot and keys 1–9 are already bound.
 - **A new item kind** (bandage, drink, tool):
   1. Add a flag to `ItemCategory`.

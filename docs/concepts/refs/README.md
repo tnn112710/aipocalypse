@@ -1,6 +1,6 @@
 # Environment style references
 
-Store screenshots collected on 2026-10-19 as the art target for the Meadow Home terrain ([meadow-home-map.md](../meadow-home-map.md)): mostly Raygeas packs, BK Pure Nature as support. They show the look to aim for (palette, density, rock/cliff treatment), not layout.
+Store screenshots collected on 2026-10-19 as the art target for the world map terrain ([world-map.md](../world-map.md)): mostly Raygeas packs, BK Pure Nature as support. They show the look to aim for (palette, density, rock/cliff treatment), not layout.
 
 | File | Pack | What to take from it |
 | --- | --- | --- |

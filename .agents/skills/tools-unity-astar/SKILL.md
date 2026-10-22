@@ -26,7 +26,7 @@ Every scene with walking agents needs these, otherwise agents throw or don't mov
 - **`AstarPath`** (the A* inspector object, holds the graphs). Exactly one per scene.
 - **`RVOSimulator`**, only if any agent has local avoidance on. Without it, RVO silently does nothing (`RVOSystem` reads `RVOSimulator.active`).
 
-Package both as one `Navigation` prefab under `Assets/_Game/Prefabs/` and drop it into World and every `Proto_*` scene that has agents. Entity prefabs never carry these (scene-level, one instance).
+Package both as one `Navigation` prefab (`Assets/_Game/_Core/EnemySystem/Prefabs/Navigation.prefab`) and drop it into World and every `Proto_*` scene that has agents. Entity prefabs never carry these (scene-level, one instance).
 
 Graphs:
 - **World**: `RecastGraph` (3D terrain + props). Tile it (tile size ~ 64–128 voxels) so local updates and navmesh cuts are cheap. Set the layer mask so props that shouldn't block (grass, small debris, triggers) are excluded. A recast scan includes terrain trees (filtered by layer/tag since 5.4.5). Check that GPUI-instanced trees still have colliders where agents must route around them.

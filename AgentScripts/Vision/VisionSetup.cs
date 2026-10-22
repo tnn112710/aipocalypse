@@ -11,8 +11,8 @@ public static class VisionSetup
 {
     const string TuningPath = "Assets/_Game/Data/Player/PlayerTuning.asset";
     const string VisionTuningPath = "Assets/_Game/Data/Player/PlayerVisionTuning.asset";
-    const string LanternPath = "Assets/_Game/Data/Items/Lantern.asset";
-    const string LanternPrefabPath = "Assets/_Game/_Core/EquipmentSystem/Prefabs/Lantern.prefab";
+    const string LanternPath = "Assets/_Game/Content/Items/Lantern/Lantern.asset";
+    const string LanternPrefabPath = "Assets/_Game/Content/Items/Lantern/Lantern.prefab";
     const string PlayerPrefabPath = "Assets/_Game/_Core/PlayerSystem/Prefabs/Player.prefab";
     // URP Lit like the scene; the toon-shaded lanterns turned saturated blue under the night light.
     const string LanternModelPath = "Assets/_StoreAssets/Env/Animpic/Polygon-Mega Survival/Prefabs/New/SM_Kerosene_Lamp.prefab";

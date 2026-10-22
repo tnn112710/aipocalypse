@@ -9,7 +9,7 @@ using Aipocalypse.Core.HandSystem;
 
 public static class HandFistReview
 {
-    const string Left = "Assets/_Game/Prefabs/Hands/FPHand_Left.prefab";
+    const string Left = "Assets/_Game/_Core/HandSystem/Prefabs/FPHand_Left.prefab";
     public static object Geometry()
     {
         var rig=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Left)).GetComponent<HandRig>();
@@ -47,7 +47,7 @@ public static class HandFistReview
         try
         {
             var set=AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
-            var gun=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/"+weapon+".prefab"));
+            var gun=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/" + weapon + "/" + weapon + ".prefab"));
             SceneManager.MoveGameObjectToScene(gun,scene);gun.transform.position=set.PreviewItemPosition;
             var held=new SerializedObject(gun.GetComponent<Aipocalypse.Core.WeaponSystem.HeldGun>());
             var pivot=(Transform)held.FindProperty("_posePivot").objectReferenceValue;
@@ -88,7 +88,7 @@ public static class HandFistReview
     {
         foreach(string side in new[]{"Left","Right"})
         {
-            string path="Assets/_Game/Prefabs/Hands/FPHand_"+side+".prefab";
+            string path="Assets/_Game/_Core/HandSystem/Prefabs/FPHand_"+side+".prefab";
             var prefab=PrefabUtility.LoadPrefabContents(path);
             try
             {
@@ -105,7 +105,7 @@ public static class HandFistReview
         foreach(string name in new[]{"AK47","MP5","Pistol","PumpShotgun","DoubleBarrel"})
         foreach(string state in new[]{"Repairing","RepairingStubborn","RepairFocus","RepairEnd"})
         {
-            var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/_Core/WeaponSystem/Animations/"+name+"/"+name+"_"+state+".anim");
+            var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/Content/Weapons/" + name + "/Animations/"+name+"_"+state+".anim");
             var bindings=AnimationUtility.GetCurveBindings(clip);
             var thumbBinding=bindings.Single(b=>b.type==typeof(HandGrip)&&b.path.EndsWith("/Left")&&b.propertyName=="_animatedShape.Thumb.Curl");
             var originalThumb=AnimationUtility.GetEditorCurve(clip,thumbBinding);
@@ -180,7 +180,7 @@ public static class HandFistReview
     {
         var rig = AssetDatabase.LoadAssetAtPath<GameObject>(Left).GetComponent<HandRig>();
         var fingers = new SerializedObject(rig).FindProperty("_fingers");
-        var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/_Core/WeaponSystem/Animations/AK47/AK47_Repairing.anim");
+        var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/Content/Weapons/AK47/Animations/AK47_Repairing.anim");
         return new {
             fingers = Enumerable.Range(0, fingers.arraySize).Select(f => {
                 var finger = fingers.GetArrayElementAtIndex(f);
@@ -204,7 +204,7 @@ public static class HandFistReview
         {
             var rig = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Left)).GetComponent<HandRig>();
             SceneManager.MoveGameObjectToScene(rig.gameObject, scene);
-            var gun = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/AK47.prefab"));
+            var gun = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/AK47/AK47.prefab"));
             SceneManager.MoveGameObjectToScene(gun,scene);
             var animation = gun.GetComponentInChildren<Aipocalypse.Core.WeaponSystem.GunAnimation>();
             animation.StartAction(Aipocalypse.Core.WeaponSystem.GunAction.ClearingJam,false);

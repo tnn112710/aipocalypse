@@ -47,7 +47,7 @@ namespace Aipocalypse.Tests
         void Load(string name)
         {
             _item = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
-                "Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/" + name + ".prefab"));
+                "Assets/_Game/Content/Weapons/" + name + "/" + name + ".prefab"));
             _animation = _item.GetComponentInChildren<GunAnimation>();
             _root = _animation.transform;
         }
@@ -68,7 +68,7 @@ namespace Aipocalypse.Tests
             Load(name);
             var overrides = _animation.GetComponent<Animator>().runtimeAnimatorController as AnimatorOverrideController;
             Assert.That(overrides.runtimeAnimatorController, Is.SameAs(AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
-                "Assets/_Game/_Core/WeaponSystem/Animations/Shared/Gun.controller")));
+                "Assets/_Game/Content/Weapons/_Shared/Animations/Gun.controller")));
             foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "Cycling", "RepairingStubborn", "RepairFocus", "RepairEnd" })
             {
                 var clip = overrides[state];
@@ -163,7 +163,7 @@ namespace Aipocalypse.Tests
             _animation.Tick(0.01f, 0.5f);
             Assert.That(pump.localPosition.z, Is.LessThan(rest.z - 0.08f));
             AssertContact("Motion/Weapon/Pump/LeftGrip");
-            var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Data/Items/PumpShotgun.asset");
+            var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Content/Weapons/PumpShotgun/PumpShotgun.asset");
             var item = new GunInstance(definition);
             item.SetRounds(definition.Magazine.Size - 2);
             var ammo = new AmmoReserve();

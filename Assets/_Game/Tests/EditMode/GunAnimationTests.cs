@@ -9,7 +9,7 @@ namespace Aipocalypse.Tests
 {
     public sealed class GunAnimationTests
     {
-        const string PrefabPath = "Assets/_Game/_Core/WeaponSystem/Prefabs/Guns/AK47.prefab";
+        const string PrefabPath = "Assets/_Game/Content/Weapons/AK47/AK47.prefab";
         GameObject _item;
         GunAnimation _animation;
         Transform _root;

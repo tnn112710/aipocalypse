@@ -129,7 +129,7 @@ InteractPrompt               InteractPromptView component
 | Hotbar sprites, colors, key font, selected scale, ammo font / size / colors | `Data/UI/HotbarSlotStyle.asset` |
 | Hotbar slot size, key cap size | `HotbarSlot.prefab` RectTransforms. Outline / box thickness: the images' Pixels Per Unit Multiplier |
 | Spacing between hotbar slots | `Hotbar` → HorizontalLayoutGroup spacing |
-| Item icons | the item's `Data/Items/*.asset` → `Icon` |
+| Item icons | the item's `Content/<Kind>/<Item>/<Item>.asset` → `Icon` |
 | Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
 | Interact prompt position | `HUD` → `Center/Interact` anchored position |
 | Clock fonts, sizes, colors, backing panel, phase labels / colors, day format | `Data/UI/ClockStyle.asset` |

@@ -47,7 +47,7 @@ Core **announces** what happens; features **react**. New rules are new subscribe
 
 **Every number lives in data.**
 
-- ScriptableObjects under `Assets/_Game/Data/<System>/` (today: `Player/PlayerTuning.asset`, which links one asset per group: movement, vitals, camera, interaction, held item, sounds). SO edits made in Play mode persist, so tune by feel while playing.
+- Settings shared by a whole system (one copy each) are ScriptableObjects under `Assets/_Game/Data/<System>/` (today: `Player/PlayerTuning.asset`, which links one asset per group: movement, vitals, camera, interaction, held item, sounds). Data that belongs to one thing (a gun's `GunDefinition`, an item, an enemy's stats) lives with that thing in `Assets/_Game/Content/<Kind>/<Name>/` (see Folder layout). SO edits made in Play mode persist, so tune by feel while playing.
 - Rules that are really tables are data tables, not `if` chains.
 
 ## Scopes and app flow
@@ -145,13 +145,13 @@ How `EntityScope` does it (VContainer API checked in package source):
 - Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds and heavy breathing when out of breath (`PlayerSoundTuning`). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
 - First-person presentation: `FirstPersonRenderFeature` draws the HeldWeapon layer inside the world camera with a cleared depth and its own lens (`FirstPersonView`), so held models stay visible and unzoomed. `HeldItemClearance` blends the hand back and tilts it near obstacles without moving the player; melee swings opt out.
-- All numbers live in the `Data/Player/` tuning assets, linked from `PlayerTuning.asset` (equipment: `Data/Equipment/`, `Data/Items/`).
+- All numbers live in the `Data/Player/` tuning assets, linked from `PlayerTuning.asset` (equipment: `Data/Equipment/`; each item's numbers: its `Content/<Kind>/<Item>/<Item>.asset`).
 
 ## AI
 
-The first AI slice is a capsule wander demo in `Prototype.unity`. Every AI agent decides with a Behavior Designer Pro tree; tasks delegate navigation to `WanderMover`. The shared `Data/Enemies/Wander.asset` subtree repeats a sequence: choose a reachable point, walk there, pause. Tuning lives in `WanderSettings.asset`.
+The first AI slice is a capsule wander demo in `Prototype.unity`. Every AI agent decides with a Behavior Designer Pro tree; tasks delegate navigation to `WanderMover`. The shared `Content/Enemies/_Shared/Wander.asset` subtree repeats a sequence: choose a reachable point, walk there, pause. Tuning lives in `WanderSettings.asset`.
 
-`GameLifetimeScope` optionally installs `EnemyInstaller` when its navigation and wander settings are assigned. Enemies are found through `EnemyRegistry` (scene scope), a dense list: each `EnemyBrain` is injected once (scene-placed ones by the scope's build callback, spawned ones by their spawner), starts its tree on its first `Start` and joins the registry while enabled, so spawned and pooled enemies tick like placed ones. `EnemyManager` walks the registry and ticks the Manual trees with a staggered stride. `Navigation.prefab` holds AstarPath and RVOSimulator; its small terrain-following grid scans on startup. Pooling, spawning and combat are not implemented yet. Skill: `tools-unity-behavior-designer`.
+`GameLifetimeScope` optionally installs `EnemyInstaller` when its navigation and wander settings are assigned. Enemies are found through `EnemyRegistry` (scene scope), a dense list: each `EnemyBrain` is injected once (scene-placed ones by the scope's build callback, spawned ones by their spawner), starts its tree on its first `Start` and joins the registry while enabled, so spawned and pooled enemies tick like placed ones. `EnemyManager` walks the registry and ticks the Manual trees with a staggered stride. `_Core/EnemySystem/Prefabs/Navigation.prefab` holds AstarPath and RVOSimulator; its small terrain-following grid scans on startup. Pooling, spawning and combat are not implemented yet. Skill: `tools-unity-behavior-designer`.
 
 ## Performance
 
@@ -167,7 +167,7 @@ Per-system budgets (enemy counts, stress scenes) get added here with those syste
 
 ## Prototypes → main game
 
-Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the player is tested in `Assets/_Game/Scenes/Prototype.unity`.
+Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the player is tested in `Assets/_Game/Scenes/Prototypes/Prototype.unity`.
 
 1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real folder (Core, Feature or Experimental) from day one. No `Proto*` copies of classes or prefabs.
 2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs (and `HUD.prefab` if you want the HUD); they run on root services + their defaults.
@@ -182,21 +182,36 @@ A prototype is done when it works in its scene **and** in World with no code cha
 
 What exists, plus where new things go. Script by script: [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
+**Code and content are kept apart.** Code lives in one folder per system (`_Core`, `Features`, `_Experimental`), together with the base prefabs that are part of a system's contract (`Player.prefab`, `Gun_Base.prefab`, `HUD.prefab`, `Navigation.prefab`). Content lives in one folder per thing: adding a weapon, enemy or animal adds one folder, and cutting it deletes that folder.
+
 ```text
 Assets/_Game/
-  _Core/                  asmdef Aipocalypse.Core
+  _Core/                  CODE. asmdef Aipocalypse.Core
     _Bootstrap/           ProjectLifetimeScope (+ prefab), VContainerSettings asset (preloaded), GameLifetimeScope
     _Common/              Entities, Combat, Events, Stats, Interaction
-    PlayerSystem/  InputSystem/  EquipmentSystem/  WeaponSystem/  UI/
-    <NewSystem>/          one folder per Core system, with its installer
+    PlayerSystem/  InputSystem/  EquipmentSystem/  WeaponSystem/  HandSystem/  EnemySystem/  UI/ …
+    <NewSystem>/          one folder per Core system, with its installer (+ Prefabs/ for its base prefabs)
   Features/               (when the first feature lands) asmdef Aipocalypse.Features → references Core
   _Experimental/          (when the first experiment lands) asmdef Aipocalypse.Experimental → references Core + Features
-  Data/                   ScriptableObject assets, one folder per system
-    Environment/          TerrainData + MicroVerse stamp assets per area, own heightmaps (skill tools-unity-microverse)
-  Scenes/                 Prototype.unity
-    Prototypes/           Proto_* scenes
-  Tests/EditMode/         asmdef Aipocalypse.Tests.EditMode
+  Content/                CONTENT, one folder per thing with everything it needs (prefab, definition, animations, materials…)
+    Weapons/<Name>/       e.g. AK47/: AK47.prefab, AK47.asset, AK47_Repair(Qte).asset, Animations/
+    Weapons/_Shared/      what several weapons use: base animations, effects, ammo types, materials
+    Items/<Name>/         non-weapon items (Lantern/)
+    Enemies/  Animals/  Companions/   <Name>/ per kind, _Shared/ for what several use (Enemies/_Shared/Wander.asset)
+  Environment/            shared environment kit every map can use: Water/, TerrainLayers/, Vegetation/, Rocks/, Mountains/
+  Maps/<Map>/             one folder per map: <Map>.unity + what only that map uses (Terrain/, Heightmaps/, water meshes…)
+    WorldMap/             the prototype world map (ENVIRONMENT.md)
+  Data/                   settings shared by a whole system, one folder per system (one copy each: PlayerTuning, EquipmentConfig,
+                          AmmoConfig, ClockSettings, UI styles, Audio libraries, HandSet + poses, Environment/TimeOfDay)
+  Scenes/Prototypes/      Prototype.unity, Proto_* scenes (scene-only assets in a folder named after the scene)
+  Settings/               URP assets, Input System actions
+  Tests/EditMode/  Tests/PlayMode/
 ```
+
+- **Content or Data?** It belongs to one weapon, item, enemy or animal → `Content/<Kind>/<Name>/`. One copy shared by the whole system → `Data/<System>/`. Used by several things of one kind → `Content/<Kind>/_Shared/`.
+- **Map or Environment?** Only one map uses it (its terrain, heightmaps, water meshes) → `Maps/<Map>/`. Another map could use it (a water material, a terrain layer, a vegetation copy) → `Environment/`.
+- **Names** keep the thing's name (`AK47_Repair`, not `Repair`): the object picker shows only file names. Map assets get no map prefix (the folder says which map); first-party copies of vendor assets keep the source pack's prefix (`BK_`, `HL_`, `KN_`, `AM_`, `GL_`).
+- **Making a prototype map official:** rename its `Maps/<Map>/` folder and scene, update its generator's path constants, and add the scene to Build Settings.
 
 ## Assemblies
 
