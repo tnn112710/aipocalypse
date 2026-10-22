@@ -1,4 +1,5 @@
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.PlayerSystem;
 using NUnit.Framework;
 using UnityEngine;
@@ -274,6 +275,104 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(1f, PlayerMotor.DirectionalSpeedScale(Vector2.up, 0.9f, 0.7f), 0.001f);
             Assert.AreEqual(0.9f, PlayerMotor.DirectionalSpeedScale(Vector2.right, 0.9f, 0.7f), 0.001f);
             Assert.AreEqual(0.7f, PlayerMotor.DirectionalSpeedScale(Vector2.down, 0.9f, 0.7f), 0.001f);
+        }
+    }
+
+    public class PlayerVisionTests
+    {
+        const float Step = 0.02f;
+
+        GameObject _object;
+        Light _light;
+        PlayerVisionTuning _tuning;
+        LanternDefinition _lantern;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _object = new GameObject("VisionLight");
+            _light = _object.AddComponent<Light>();
+            _tuning = ScriptableObject.CreateInstance<PlayerVisionTuning>();
+            _lantern = ScriptableObject.CreateInstance<LanternDefinition>();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_object);
+            Object.DestroyImmediate(_tuning);
+            Object.DestroyImmediate(_lantern);
+        }
+
+        [Test]
+        public void ByDay_TheLightIsOff()
+        {
+            var vision = new PlayerVision(_light, _tuning);
+
+            vision.Tick(darkness: 0f, radius: 4f, lantern: null, time: 0f, deltaTime: Step);
+
+            Assert.IsFalse(_light.enabled);
+        }
+
+        [Test]
+        public void AtNight_RangeReachesPastTheRadiusEdge_AndDarknessScalesTheIntensity()
+        {
+            var vision = new PlayerVision(_light, _tuning);
+            float height = _tuning.Position.y;
+            float edgeSqr = 4f * 4f + height * height;
+
+            vision.Tick(darkness: 1f, radius: 4f, lantern: null, time: 0f, deltaTime: Step);
+            float full = PlayerVision.IntensityFor(_tuning.Brightness, edgeSqr, _tuning.RangeScale, _tuning.MaxIntensity);
+            Assert.IsTrue(_light.enabled);
+            Assert.AreEqual(Mathf.Sqrt(edgeSqr) * _tuning.RangeScale, _light.range, 0.001f);
+            Assert.AreEqual(full, _light.intensity, 0.001f);
+
+            vision.Tick(darkness: 0.5f, radius: 4f, lantern: null, time: 0f, deltaTime: Step);
+            Assert.AreEqual(full * 0.5f, _light.intensity, 0.001f);
+        }
+
+        [Test]
+        public void BiggerRadius_IsABrighterLongerLight()
+        {
+            var small = new PlayerVision(_light, _tuning);
+            small.Tick(1f, 4f, null, 0f, Step);
+            var big = new PlayerVision(_light, _tuning);
+            big.Tick(1f, 8f, null, 0f, Step);
+
+            Assert.Greater(big.Intensity, small.Intensity * 2f);
+            Assert.Greater(big.Range, small.Range);
+        }
+
+        [Test]
+        public void IntensityFor_GivesTheEdgeBrightness_UnderUrpFalloff()
+        {
+            const float edgeDistance = 5f;
+            const float rangeScale = 1.6f;
+            float intensity = PlayerVision.IntensityFor(0.12f, edgeDistance * edgeDistance, rangeScale, max: 1000f);
+
+            float fade = 1f - Mathf.Pow(1f / rangeScale, 4f);
+            Assert.AreEqual(0.12f, intensity / (edgeDistance * edgeDistance) * fade * fade, 0.0001f);
+            Assert.AreEqual(3f, PlayerVision.IntensityFor(0.12f, 100f, rangeScale, max: 3f));
+        }
+
+        [Test]
+        public void Lantern_AddsItsRadius_EasingIn_FromItsOwnPosition()
+        {
+            var vision = new PlayerVision(_light, _tuning);
+            vision.Tick(1f, 4f, null, 0f, Step);
+
+            vision.Tick(1f, 4f, _lantern, Step, Step);
+            Assert.Greater(vision.Radius, 4f);
+            Assert.Less(vision.Radius, 4f + _lantern.Radius - 0.5f);
+
+            for (int i = 2; i < 200; i++)
+                vision.Tick(1f, 4f, _lantern, i * Step, Step);
+            float radius = 4f + _lantern.Radius;
+            float height = _tuning.LanternPosition.y;
+            float steady = PlayerVision.IntensityFor(_lantern.Brightness, radius * radius + height * height, _tuning.RangeScale, _tuning.MaxIntensity);
+            Assert.AreEqual(radius, vision.Radius, 0.01f);
+            Assert.That(_light.intensity, Is.InRange(steady * (1f - _lantern.Flicker) - 0.01f, steady + 0.01f));
+            Assert.That(Vector3.Distance(_tuning.LanternPosition, _object.transform.localPosition), Is.LessThan(0.01f));
         }
     }
 }

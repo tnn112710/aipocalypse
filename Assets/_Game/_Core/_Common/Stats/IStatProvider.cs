@@ -16,6 +16,8 @@ namespace Aipocalypse.Core.Stats
         // Multipliers (base 1): stamina spent per shot / swing, and how hard low stamina hits recoil, melee and speed (0 = not at all).
         AttackStaminaCost,
         FatiguePenalty,
+        // Metres around the player that read clearly in the dark; a belt lantern adds its own radius on top.
+        VisionRadius,
     }
 
     // Core reads tunable numbers through this seam; perks, XP and buffs plug in a modifying implementation.

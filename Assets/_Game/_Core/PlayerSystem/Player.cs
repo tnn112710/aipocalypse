@@ -1,5 +1,6 @@
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.EnvironmentSystem;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
 using Aipocalypse.Core.HandSystem;
@@ -16,7 +17,7 @@ using VContainer;
 namespace Aipocalypse.Core.PlayerSystem
 {
     // The player's view: turns input into an intent and drives look → movement → stamina → fatigue and breathing → head motion → interaction → equipment
-    // (switching, then the item in hand: fire, aim, reload) → recoil turn, view kick and zoom → sway and aim (crosshair, model turn), in that order.
+    // (switching, then the item in hand: fire, aim, reload) → recoil turn, view kick and zoom → sway and aim (crosshair, model turn) → light in the dark, in that order.
     [RequireComponent(typeof(CharacterController))]
     public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner, IGunUser
     {
@@ -30,6 +31,9 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField] EquipmentRig _equipmentRig;
         [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
         [SerializeField, Tooltip("Starting reserve ammo, or infinite")] AmmoConfig _ammoConfig;
+        [SerializeField, Tooltip("Optional: lights the dark around the player; a worn lantern takes it over. A child of the root")] Light _visionLight;
+        [SerializeField, Tooltip("How dark it is for the vision light (Darkness source); the scene's director ticks it. None or no director = always day")]
+        TimeOfDayWeight _darkness;
 
         InputService _input;
         IStatProvider _stats;
@@ -52,6 +56,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Fatigue Fatigue { get; private set; }
+        [ShowInInspector, ReadOnly, HideInEditorMode] public PlayerVision Vision { get; private set; }
         public Equipment Equipment { get; private set; }
         public AmmoReserve Ammo { get; private set; }
         public PlayerInteractor Interactor => _interactor;
@@ -98,6 +103,8 @@ namespace Aipocalypse.Core.PlayerSystem
             _aim = new PlayerAim(_equipmentRig, _zoom);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);
+            if (_visionLight != null && _tuning.Vision != null)
+                Vision = new PlayerVision(_visionLight, _tuning.Vision);
 
             _motor.Jumped += OnJumped;
             _motor.Landed += OnLanded;
@@ -150,6 +157,7 @@ namespace Aipocalypse.Core.PlayerSystem
             else
                 _interactor.Clear();
             TickEquipment(intent, deltaTime);
+            TickVision(deltaTime);
         }
 
         void OnControllerColliderHit(ControllerColliderHit hit) => _motor?.OnControllerHit(hit);
@@ -266,6 +274,15 @@ namespace Aipocalypse.Core.PlayerSystem
             }, deltaTime);
             _equipmentRig.ApplyHandMotion(_heldSway.Position, _heldSway.Rotation);
             _aim.Tick(_heldSway.AimRotation, held != null ? held.Spread : 0f);
+        }
+
+        void TickVision(float deltaTime)
+        {
+            if (Vision == null)
+                return;
+            float darkness = _darkness != null ? Mathf.Max(0f, _darkness.Weight) : 0f;
+            var lantern = Equipment?.Belt?.Definition as LanternDefinition;
+            Vision.Tick(darkness, _stats.Get(StatId.VisionRadius, _tuning.Vision.Radius), lantern, Time.time, deltaTime);
         }
 
         void DropSelected()

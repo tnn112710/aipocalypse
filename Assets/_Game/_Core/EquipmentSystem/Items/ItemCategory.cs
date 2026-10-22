@@ -9,5 +9,7 @@ namespace Aipocalypse.Core.EquipmentSystem
         None = 0,
         Gun = 1 << 0,
         Melee = 1 << 1,
+        // Goes on the belt, not the hotbar (Equipment.Belt).
+        Lantern = 1 << 2,
     }
 }

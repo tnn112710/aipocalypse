@@ -120,8 +120,9 @@ A scene object that reacts gets an `EnvironmentReactor` component. The director 
 | `TimeOfDayParticles` | Scales child emitters' rate between Off Rate and On Rate. At 0 they stop, bursts too: on screen their live particles finish, off screen they are cleared (culled emitters don't simulate, so they'd reappear later). `Align To Sun` points each emitter's +Y at the sun (god rays) |
 | `TimeOfDayActive` | Shows objects only during their hours |
 | `AtmosphereTint` | Multiplies (or replaces) colour properties of child materials by an atmosphere channel (Unlit Tint, Haze, Fog, Sun, Ambient Sky), on runtime copies |
+| `TimeOfDayWeight` | Nothing on its own: exposes the eased `Weight` (-1 before the director's first tick) for other code. The player's light reads one |
 
-The four `TimeOfDay*` types share a weight from **Hours** (a `TimeWindow`: On, Off, Fade; may wrap past midnight), **Daylight** (follows the sun: 0 below `DaylightStartElevation` (-6°), 1 above `DaylightFullElevation` (10°), on the profile's SunPath) or **Darkness**, eased over `Response` real seconds so N / M jumps fade instead of popping.
+The five `TimeOfDay*` types share a weight from **Hours** (a `TimeWindow`: On, Off, Fade; may wrap past midnight), **Daylight** (follows the sun: 0 below `DaylightStartElevation` (-6°), 1 above `DaylightFullElevation` (10°), on the profile's SunPath) or **Darkness**, eased over `Response` real seconds so N / M jumps fade instead of popping.
 
 - **Add a lamp:** put the light on the lamp prefab at its "on" intensity, add `TimeOfDayLight` with hours (for example On 18:15, Off 06:15, Fade 0.75). For a glowing shade, add `TimeOfDayEmission` with the shade material.
 - **New kind of reactor:** derive from `TimeOfDayReactor` and implement `Apply(float weight)`, or from `EnvironmentReactor` for something that reads `director.State` / `SunDirection` every frame.
@@ -142,6 +143,18 @@ Meadow Home wiring (`DayNightSetup.Scene`):
 | Landmarks/Waterfall | Sheet (five colour properties), ripples, splash and mist tinted |
 | Home Base/House_1 | `Window_Glass` glows 18:00–06:30 |
 | Home Base/Night Lights | Warm door light 18:15–06:15 |
+
+## Player light in the dark
+
+At night a light around the player lights the near ground, so things close by read clearly. A worn lantern makes it warmer and wider. Code: `PlayerSystem/PlayerVision.cs`; tuning: `Data/Player/PlayerVisionTuning.asset`; the lantern: [EQUIPMENT.md → Belt](EQUIPMENT.md#belt).
+
+- **When:** `Player.prefab → VisionLight` carries a `TimeOfDayWeight` on **Darkness** (response 1.5 s), so the light fades in and out with the shown sun, like the lamps. By day the light is disabled (no cost). With no director in the scene it never turns on.
+- **How far:** radius = `StatId.VisionRadius` (base `Radius`, 4 m) + the worn lantern's `Radius` (6 m). Perks raise it through `IStatProvider`.
+- **Radius → light:** URP point lights fade with distance squared, so a bigger range alone barely widens the lit area. `PlayerVision` sets the intensity so the ground at the radius' edge keeps `Brightness` (vision 0.12, lantern 0.15): a bigger radius is a brighter light. The range reaches `RangeScale` (1.6) times the distance to that edge, and `MaxIntensity` (30) caps it. At the defaults: no lantern ≈ intensity 4, range 8 m; lantern ≈ intensity 22, range 17 m.
+- **Where:** the light sits above the head (`Position` 3 m; `LanternPosition` 3.2 m, a little to the right). The lantern isn't drawn in first person, so its light is placed for the look: from the belt it lit the underside of the gun and little else, and closer to the hands it washed them out.
+- **Changing lantern** (on / off / another lantern) eases radius, colour, brightness and position over `BlendTime` (0.35 s). A lantern flickers (`Flicker`, `FlickerSpeed`).
+- **No shadows** by default: a point light renders six shadow maps. `LanternDefinition.Shadows` turns them on per lantern; measure first.
+- Against the current night looks (moonlit, fairly bright ambient) the lit area shows near you, but the far field stays readable. Darker `TOD_Night` / `TOD_Midnight` ambient would make the radius matter more.
 
 ## Ambience
 
@@ -170,6 +183,7 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 | Stars, moon size | `MH_Sky_TimeOfDay.mat` |
 | Unlit effects at night | Each look's Unlit Tint |
 | Lamps, windows | `TimeOfDayLight` / `TimeOfDayEmission` hours and colours |
+| The player's light at night | `Data/Player/PlayerVisionTuning.asset`; a lantern's share: `Data/Items/Lantern.asset` |
 | Ambience | `MH_Ambience` curves and calls |
 
 ## Setup scripts
@@ -182,6 +196,11 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 - `Prof.Start()` / `Prof.StartGpu()`, `Prof.Stop()`, `Prof.Window(from, to)`, `Prof.Compare(aFrom, aTo, bFrom, bTo, thread, top)`, `Prof.Spikes(...)`: Play-mode profiler captures (median CPU / GPU frame time, GC per frame, markers that grew between two frame ranges). Measured: a look transition costs about 0.3 ms main thread + 0.3 ms GPU over a hold (1–4 fps in the editor); the director writes the light, RenderSettings and volumes only when a value changes, so holds cost nothing.
 - `DayNightSetup.RestoreHudOverrides(path)` sets the open scene's HUD instance overrides back to those of another copy of the scene (for example `git show HEAD:<scene>` saved to a temp file). Editor layout passes write layout-driven values onto the instance, which would otherwise show up as noise in the scene diff.
 - `Review.cs`: Play-mode helpers (`SetHour`, `Freeze`, `View`, `State`) for screenshots. Unity stops ticking Play mode while the editor is in the background: run `Application.runInBackground = true` (eval) first.
+
+`AgentScripts/Vision/` (player light and lantern):
+
+- `VisionSetup.Assets()` creates `PlayerVisionTuning` (linked from `PlayerTuning`), the `Lantern` item and its pickup prefab, keeping existing values. `VisionSetup.Defaults()` resets `PlayerVisionTuning` to the code defaults. `VisionSetup.Player()` adds / refreshes `VisionLight` on `Player.prefab`. `VisionSetup.Place(x, y, z)` drops a lantern pickup into the open scene (not saved).
+- `VisionReview.cs`: Play-mode helpers (`State`, `Wear(bool)`, `SpawnPickup(distance)`, `PickUp()`, `Give(item)`, `Manual(...)` to try light values by hand, `Wait(seconds)`). `RunTests.Fixtures("A,B")` runs EditMode fixtures by reflection when a dirty scene would block the Test Runner. `shot.sh <out.png>` captures the game view to any path (`capture_game_view --save_path` writes under `Assets/` only); `run.sh <file> <entry> [args]` runs an entry and prints its result.
 
 ## Known limits
 

@@ -13,7 +13,7 @@ namespace Aipocalypse.Tests
 
         const ItemCategory Weapon = ItemCategory.Gun | ItemCategory.Melee;
 
-        ItemInstance _rifle, _pistol, _axe, _rifle2;
+        ItemInstance _rifle, _pistol, _axe, _rifle2, _lantern, _lantern2;
 
         [SetUp]
         public void SetUp()
@@ -22,6 +22,8 @@ namespace Aipocalypse.Tests
             _pistol = ScriptableObject.CreateInstance<GunDefinition>().CreateInstance();
             _axe = ScriptableObject.CreateInstance<MeleeDefinition>().CreateInstance();
             _rifle2 = _rifle.Definition.CreateInstance();
+            _lantern = ScriptableObject.CreateInstance<LanternDefinition>().CreateInstance();
+            _lantern2 = _lantern.Definition.CreateInstance();
         }
 
         [TearDown]
@@ -30,6 +32,7 @@ namespace Aipocalypse.Tests
             Object.DestroyImmediate(_rifle.Definition);
             Object.DestroyImmediate(_pistol.Definition);
             Object.DestroyImmediate(_axe.Definition);
+            Object.DestroyImmediate(_lantern.Definition);
         }
 
         static Hotbar GunsAndMelee() => new(new[] { ItemCategory.Gun, ItemCategory.Gun, ItemCategory.Melee });
@@ -265,6 +268,35 @@ namespace Aipocalypse.Tests
             equipment.TryPickUp(_rifle, out _);
 
             Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_rifle));
+        }
+
+        [Test]
+        public void Lantern_GoesOnTheBelt_EvenWithAFullHotbar_AndLeavesTheHandsAlone()
+        {
+            Equipment equipment = Loaded();
+
+            Assert.AreEqual(PickUpAction.Store, equipment.GetPickUpAction(_lantern));
+            Assert.IsTrue(equipment.TryPickUp(_lantern, out ItemInstance dropped));
+
+            Assert.IsNull(dropped);
+            Assert.AreSame(_lantern, equipment.Belt);
+            Assert.AreEqual(-1, equipment.Hotbar.IndexOf(_lantern));
+            Assert.AreEqual(0, equipment.SelectedIndex);
+            Assert.AreSame(_rifle, equipment.Switcher.Held);
+            Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_lantern));
+        }
+
+        [Test]
+        public void SecondLantern_SwapsWithTheWornOne()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+            equipment.TryPickUp(_lantern, out _);
+
+            Assert.AreEqual(PickUpAction.Swap, equipment.GetPickUpAction(_lantern2));
+            Assert.IsTrue(equipment.TryPickUp(_lantern2, out ItemInstance dropped));
+
+            Assert.AreSame(_lantern, dropped);
+            Assert.AreSame(_lantern2, equipment.Belt);
         }
     }
 }

@@ -2,9 +2,11 @@ using System;
 
 namespace Aipocalypse.Core.EquipmentSystem
 {
-    // Which hotbar slot is selected, and keeping the switcher's target in sync with it.
+    // Which hotbar slot is selected, and keeping the switcher's target in sync with it. Plus the belt: one worn item.
     public sealed class Equipment : IDisposable
     {
+        const ItemCategory BeltAccepts = ItemCategory.Lantern;
+
         readonly Func<ItemInstance, bool> _canSelect = CanSelect;
 
         // previous index, new index; -1 = nothing selected
@@ -21,6 +23,8 @@ namespace Aipocalypse.Core.EquipmentSystem
         public EquipmentSwitcher Switcher { get; }
         public int SelectedIndex { get; private set; } = -1;
         public ItemInstance Selected => SelectedIndex >= 0 ? Hotbar[SelectedIndex] : null;
+        // Worn, not held: works whatever is in the hands (a lantern).
+        public ItemInstance Belt { get; private set; }
 
         public void Dispose() => Hotbar.SlotChanged -= OnSlotChanged;
 
@@ -56,10 +60,13 @@ namespace Aipocalypse.Core.EquipmentSystem
         public void Tick(float deltaTime, float switchSpeed) => Switcher.Tick(deltaTime, switchSpeed);
 
         // Store: goes into the first free slot that accepts it, and is switched to. Swap: no free slot, it replaces the selected item.
+        // Belt items are stored on an empty belt or swapped with the worn one; the hands don't change.
         public PickUpAction GetPickUpAction(ItemInstance item)
         {
-            if (item == null || Hotbar.IndexOf(item) >= 0)
+            if (item == null || item == Belt || Hotbar.IndexOf(item) >= 0)
                 return PickUpAction.None;
+            if (GoesOnBelt(item))
+                return Belt == null ? PickUpAction.Store : PickUpAction.Swap;
             if (Hotbar.FindFreeSlot(item) >= 0)
                 return PickUpAction.Store;
             if (SelectedIndex >= 0 && Hotbar.CanPlace(SelectedIndex, item))
@@ -74,7 +81,15 @@ namespace Aipocalypse.Core.EquipmentSystem
         public bool TryPickUp(ItemInstance item, out ItemInstance dropped)
         {
             dropped = null;
-            switch (GetPickUpAction(item))
+            PickUpAction action = GetPickUpAction(item);
+            if (action != PickUpAction.None && GoesOnBelt(item))
+            {
+                dropped = Belt;
+                Belt = item;
+                return true;
+            }
+
+            switch (action)
             {
                 case PickUpAction.Store:
                     int slot = Hotbar.FindFreeSlot(item);
@@ -94,6 +109,8 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         // Selecting a slot holds its item. Items that do something else on select (quick-use consumables) go here.
         static bool CanSelect(ItemInstance item) => item.IsEquippable;
+
+        static bool GoesOnBelt(ItemInstance item) => (item.Definition.Category & BeltAccepts) != 0;
 
         void SetSelection(int index)
         {

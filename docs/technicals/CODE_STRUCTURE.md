@@ -72,25 +72,28 @@ Assets/_Game/
 │  │  ├─ TimeOfDay/TimeOfDayEmission.cs     runtime emissive copies of chosen materials (windows)
 │  │  ├─ TimeOfDay/TimeOfDayParticles.cs    scales / stops emitters, optional align to the sun (god rays)
 │  │  ├─ TimeOfDay/TimeOfDayActive.cs       shows objects only during their hours
+│  │  ├─ TimeOfDay/TimeOfDayWeight.cs       a weight for other code to read (Weight, -1 before the first tick): the player's darkness for PlayerVision
 │  │  ├─ TimeOfDay/AtmosphereTint.cs        multiplies / replaces colour properties on runtime material copies by an atmosphere channel
 │  │  ├─ TimeOfDay/TimeOfDayAmbience.cs     SO: sound beds with a volume curve over the day, calls inside hours (BroAudio SoundIDs)
 │  │  ├─ TimeOfDay/AmbienceService.cs       plays the ambience against the clock through AudioService (scene entry point)
 │  │  └─ Shaders/SkyTimeOfDay.shader        "Aipocalypse/Skybox/Time Of Day": painted panorama + night gradient, horizon glow, sun disc, stars, moon phases from _TOD_ globals
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
-│  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts
+│  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts; Lantern: goes on the belt
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, Prefab (one per item: world + hand), CreateInstance
 │  │  ├─ Items/EquippableDefinition.cs      abstract SO: equip / holster time; HeldPrefab = the HeldItem on Prefab's root
 │  │  ├─ Items/ItemInstance.cs              one owned item (per-copy state goes in subclasses)
+│  │  ├─ Items/LanternDefinition.cs         SO: worn on the belt, not held: radius added to the vision light, colour, edge brightness, flicker, shadows
 │  │  ├─ Hotbar.cs                          ≤ 9 slots, category check, SlotChanged, FindNext, FindFreeSlot
 │  │  ├─ EquipmentSwitcher.cs               holster → swap → equip timing (Raise 0..1, SwitchPhase)
-│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle; pick up (store / swap), DropSelected
+│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle; pick up (store / swap), DropSelected; Belt (one worn lantern)
 │  │  ├─ PickUpAction.cs                    None / Store / Swap
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world (on the item prefab's root): IInteractable, picks up / swaps; Spawn for drops; Awake shows only the World child; StripForHand
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, slots (accepts, starting item) → CreateHotbar
 │  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, IsAiming, KeepsClear, Zoom (field of view multiplier), Spread (shot cone for the crosshair), StopsSprint(use, aim), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands)
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
-│  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
+│  │  ├─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
+│  │  └─ Prefabs/Lantern.prefab             belt lantern pickup: WorldItem + trigger box, World > Model (Polygon Mega Survival kerosene lamp)
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
@@ -126,6 +129,7 @@ Assets/_Game/
 │  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers, slower still while winded; StatId.FatiguePenalty
 │  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings): IsActive, eased Tiredness and Volume for the breath loop and the aim sway
 │  │  ├─ FallDamage.cs                      drop height → damage
+│  │  ├─ PlayerVision.cs                    light around the player in the dark: radius (StatId.VisionRadius + worn lantern) → intensity that keeps the edge brightness under URP falloff, range, colour, position; eased; off by day
 │  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below; Player hands each rule only its group
 │  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, sprint / jump stamina costs → PlayerMotor
 │  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, fatigue tiers, fall damage heights → Player
@@ -133,6 +137,7 @@ Assets/_Game/
 │  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
 │  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, AimSwaySettings, HeldSwaySettings → Player, HeldItemClearance, HeldItemSway
 │  │  ├─ Tuning/PlayerSoundTuning.cs        footstep / jump / land / breath SoundIDs and volumes, breathing threshold / volume / fades → Player
+│  │  ├─ Tuning/PlayerVisionTuning.cs       vision radius, colour, edge brightness, light / lantern positions, range scale, max intensity, blend → PlayerVision
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
@@ -204,9 +209,9 @@ Assets/_Game/
 │  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience .asset) + one folder of entities each
 │  ├─ WorldTime/ClockSettings.asset         30 s per game hour (12-minute day), start 07:00, phases 05 / 07 / 18 / 20
 │  ├─ Environment/MeadowHome/TimeOfDay/     MH_TimeOfDay (profile), Looks/TOD_*.asset, Grades/PP_*.asset, MH_Sky_TimeOfDay.mat, MH_Ambience.asset
-│  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound}Tuning.asset beside it
+│  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound,Vision}Tuning.asset beside it
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
-│  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe.asset   item definitions (one prefab each; weapons hold all their numbers)
+│  ├─ Items/AK47, Pistol, MP5, DoubleBarrel, PumpShotgun, FireAxe, Lantern.asset   item definitions (one prefab each; weapons hold all their numbers)
 │  ├─ Weapons/RifleAmmo, PistolAmmo, ShotgunShells.asset   ammo types
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
@@ -214,8 +219,8 @@ Assets/_Game/
 ├─ Tests/PlayMode/PrototypeSmokeTests.cs  asmdef Aipocalypse.Tests.PlayMode: loads Prototype.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
-   ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed
-   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop
+   ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)
+   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop, lantern onto the belt / swap
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
    ├─ WeaponAnimationTests.cs               MP5/pistol/shotgun bindings, scaled hands, automatic Animator pass, contacts and continuity, slap/reset, repeated shell reload and pump cycle, break-action closure
@@ -238,10 +243,11 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
    │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
    └─ injects the Player GameObject (whole hierarchy)
          Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
+           VisionLight's TimeOfDayWeight (EnvironmentReactor) registers itself with the scene's EnvironmentDirector, if any
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning.Movement, stats, stamina),
              PlayerLook(body, cameraPitch, tuning.Camera), PlayerHeadBob(cameraRoot, tuning.Camera), HeldItemSway(tuning.HeldItem.HeldSway, stats), PlayerZoom(Cinemachine camera, FirstPersonView), PlayerInteractor(cameraPitch, gameObject, tuning.Interaction),
-             AmmoReserve(AmmoConfig.CreateReserve()),
+             AmmoReserve(AmmoConfig.CreateReserve()), PlayerVision(VisionLight, tuning.Vision),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
                rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, QuickTimeService, publishers), HeldMelee.Construct(EffectPool, DamageService, AudioService)
                HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil + GunAccuracy + GunRepairFlow; HeldMelee builds MeleeAttack
@@ -260,6 +266,7 @@ GameLifetimeScope (scene) ──registers──> WorldClock (+ WorldClockCheats)
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
 - `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser`, a `HeldMelee` its eye and root through `IWeaponUser` (Player implements all of them). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
+- `PlayerSystem` → `EnvironmentSystem`: the player's `VisionLight` carries a `TimeOfDayWeight` (Darkness) that the scene's director ticks; `Player` only reads its `Weight`. No director (prototype scenes) = never dark, light off.
 - Bullets, swings and falls hurt anything with an `IDamageable` (`_Common/Combat`) through `DamageService.Deal`, which applies `TakeDamage` and publishes `DamageDealt` (source, result). Targets only apply their own rules.
 - Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
 - Inside the player system, plain C# events are used (`PlayerMotor.Landed`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
@@ -291,6 +298,7 @@ HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's sho
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
 FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip
+PlayerVision.Tick    darkness (TimeOfDayWeight, eased by the director last frame) + StatId.VisionRadius + Equipment.Belt lantern → the VisionLight
 VContainer ticks     BulletSystem moves and ray-tests bullets → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes;
                      EffectPool returns expired effects; EnemyManager ticks registered enemy trees (scene scope);
                      WorldClock advances (HourChanged / DayPhaseChanged / DayStarted); cheats; AmbienceService bed volumes and calls
@@ -312,6 +320,7 @@ Player                       CharacterController (h 1.8, r 0.35, step 0.35, slop
 │     └─ HeldItems           EquipmentRig
 │        ├─ Hand             (0.17, -0.21, 0.62); held prefabs spawn here, posed by the rig (guns add their own poses on top)
 │        └─ Hands            FirstPersonHands (HandSet); HeldWeapon layer; spawns FPHand_Left / FPHand_Right
+├─ VisionLight               y 3; point Light (off, no shadows), PlayerVision drives it · TimeOfDayWeight (Darkness, response 1.5 s)
 ├─ PlayerCamera              Camera (tag MainCamera, all layers, no camera stack) · URP camera data · CinemachineBrain · AudioListener · FirstPersonView
 └─ PlayerCinemachineCamera   CinemachineCamera (FOV 70) · HardLockToTarget · RotateWithFollowTarget
 ```

@@ -1,6 +1,6 @@
 # Equipment
 
-The hotbar, items and switching between what's in the player's hands. Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The hotbar HUD: [UI.md](UI.md#hotbar).
+The hotbar, items and switching between what's in the player's hands, plus the belt (one worn lantern). Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The hotbar HUD: [UI.md](UI.md#hotbar).
 
 Modelled on Escape from Duckov's quick bar: a row of numbered slots along the bottom, guns and a melee weapon first, then room for consumables and tools. Today there are 3 weapon slots that take any weapon (gun or melee) in any order, filled by picking weapons up. Guns shoot and the fire axe swings ([WEAPONS.md](WEAPONS.md)).
 
@@ -23,13 +23,15 @@ Data (ScriptableObjects, Data/Items/, Data/Equipment/)
   └─ EquippableDefinition        EquipTime, HolsterTime; HeldPrefab = the HeldItem on Prefab's root
      ├─ GunDefinition            Category Gun; all gun numbers (WeaponSystem, see WEAPONS.md)
      └─ MeleeDefinition          Category Melee        (WeaponSystem)
+  └─ LanternDefinition           Category Lantern; worn on the belt: radius, colour, brightness, flicker (PlayerVision)
   EquipmentConfig                SwitchSpeed, slots (name, accepted categories, starting item)
 
 Rules (plain C#, EditMode-tested)
   ItemInstance                   one owned item; per-copy state goes in subclasses (GunInstance: rounds, jam)
   Hotbar                         ≤ 9 slots, category check, SlotChanged event, FindNext for cycling
   EquipmentSwitcher              Held / Target / Raise 0..1 / Phase; HeldChanged, BecameReady events
-  Equipment                      selected slot ↔ switcher target; Select, Cycle; TryPickUp, DropSelected; SelectionChanged event
+  Equipment                      selected slot ↔ switcher target; Select, Cycle; TryPickUp, DropSelected; SelectionChanged event;
+                                 Belt: one worn item (Lantern category), outside the hotbar
 
 Views
   HeldItem                       on the item prefab's root, for its first-person use; subclass for fire / swing / use (HeldGun)
@@ -76,6 +78,15 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 - **The same item object** goes world → hotbar → world. Per-copy state (a gun's rounds and jam) survives drops and swaps. A scene-placed `WorldItem` creates its instance from `_definition` the first time it's used.
 - Rules live in `Equipment` (`GetPickUpAction`, `TryPickUp`, `DropSelected`) and are covered by EditMode tests. `WorldItem` only does the world side: it destroys itself and spawns the swapped-out item.
 
+### Belt
+
+A lantern is worn, not held: it works whatever is in your hands. `Equipment.Belt` holds one item whose category is `Lantern`, outside the hotbar (no slot, no key, not shown on the HUD yet).
+
+- **E** on a lantern: **Store** on an empty belt, **Swap** with the worn one otherwise (the old lantern drops where the new one lay). A full hotbar doesn't matter, and the hands don't change.
+- It can't be dropped with G (that drops the held item).
+- What it does: `PlayerVision` reads `Equipment.Belt` and widens the player's light in the dark ([DAYNIGHT.md → Player light](DAYNIGHT.md#player-light-in-the-dark)).
+- The pickup is `_Core/EquipmentSystem/Prefabs/Lantern.prefab` (item `Data/Items/Lantern.asset`). It's a world model only: lanterns have no HeldItem.
+
 ### One prefab per item
 
 Each item has a single prefab (`Prefabs/Guns/AK47.prefab`, `Prefabs/Melee/FireAxe.prefab`), assigned to its asset's `Prefab`. The root carries both sides:
@@ -101,6 +112,7 @@ AK47                 HeldGun, ItemHands                first-person side
 | Which slots exist, what they accept, starting items | `EquipmentConfig` → `Slots` (order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
 | Reach and thickness of the look ray, drop distance | `Data/Player/PlayerInteractionTuning.asset` |
 | How a pickup lies on the ground, its pickup box | the item prefab → `World/Model` transform, root `BoxCollider` |
+| How far a lantern lights, its colour and flicker | `Data/Items/Lantern.asset` (where its light sits: `PlayerVisionTuning` → Lantern Position) |
 | The temporary lower/raise motion | `Player.prefab` → `CameraRoot/CameraPitch/HeldItems` → `EquipmentRig` (lowered offset, tilt, curve) |
 | Where the hand sits on screen | `HeldItems/Hand` local position |
 | One model's grip position | that item's prefab → first-person `Model` child transform |
