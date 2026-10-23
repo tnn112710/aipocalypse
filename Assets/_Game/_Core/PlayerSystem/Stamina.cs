@@ -34,15 +34,14 @@ namespace Aipocalypse.Core.PlayerSystem
             _windedTime = Mathf.Max(0f, windedTime);
         }
 
-        // `delaysRegen` false: regen keeps running (attacks), so only a cost above the regen rate drains the meter.
-        public void Spend(float amount, bool delaysRegen = true)
+        // Any spend (walking, sprinting, jumping, attacking) pauses regen and restarts the delay.
+        public void Spend(float amount)
         {
             if (amount <= 0f)
                 return;
 
             _current = Mathf.Max(0f, _current - amount);
-            if (delaysRegen)
-                _regenDelayLeft = _regenDelay;
+            _regenDelayLeft = _regenDelay;
             // Only running dry winds you; draining an already exhausted meter again doesn't restart the wait.
             if (_current <= 0f && !_exhausted)
             {
@@ -51,11 +50,17 @@ namespace Aipocalypse.Core.PlayerSystem
             }
         }
 
-        public void Tick(float deltaTime, float regenPerSecond)
+        // `resting` false (moving, airborne): no regen, and the delay holds full until the player stands idle.
+        public void Tick(float deltaTime, float regenPerSecond, bool resting = true)
         {
             bool waiting = _regenDelayLeft > 0f || _windedLeft > 0f;
             _regenDelayLeft -= deltaTime;
             _windedLeft -= deltaTime;
+            if (!resting)
+            {
+                _regenDelayLeft = Mathf.Max(_regenDelayLeft, _regenDelay);
+                return;
+            }
             if (waiting)
                 return;
 

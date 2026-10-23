@@ -125,13 +125,13 @@ Assets/_Game/
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ FirstPersonView.cs                 on the world camera: the lens held models draw with (own FOV via SetFieldOfView so zoom doesn't swell the gun, near 0.01 / far 10 m)
 │  │  ├─ FirstPersonRenderFeature.cs        URP renderer feature on PC_Renderer: draws the HeldWeapon layer in the world camera after transparents, depth cleared, with FirstPersonView's lens (replaces the overlay camera)
-│  │  ├─ Stamina.cs                         stamina meter: spend (with or without regen delay), regen delay, exhaustion, winded wait after running dry
+│  │  ├─ Stamina.cs                         stamina meter: spend (pauses regen), regen only while resting after a delay, exhaustion, winded wait after running dry
 │  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers, slower still while winded; StatId.FatiguePenalty
 │  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings): IsActive, eased Tiredness and Volume for the breath loop and the aim sway
 │  │  ├─ FallDamage.cs                      drop height → damage
 │  │  ├─ PlayerVision.cs                    light around the player in the dark: radius (StatId.VisionRadius + worn lantern) → intensity that keeps the edge brightness under URP falloff, range, colour, position; eased; off by day
 │  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below; Player hands each rule only its group
-│  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, sprint / jump stamina costs → PlayerMotor
+│  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, walk / sprint / jump stamina costs, idle speed for regen → PlayerMotor
 │  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, fatigue tiers, fall damage heights → Player
 │  │  ├─ Tuning/PlayerCameraTuning.cs       pitch limits, head bob, landing dip → PlayerLook, PlayerHeadBob
 │  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
@@ -285,7 +285,7 @@ intent = dead or gameplay input disabled ? default : read InputService
 PlayerLook.Tick      yaw + pitch                    (movement uses the new facing this frame)
 PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Landed event
                        └─ Player.OnJumped / OnLanded: jump / landing sound, head-bob dip, fall damage → DamageService → Health → DamageDealt / PlayerDied
-Stamina.Tick         regen (spending happened inside the motor, and in the held item last frame)
+Stamina.Tick         regen while the motor is idle (spending happened inside the motor, and in the held item last frame)
 Fatigue.Tick         tier for the stamina (+ winded) → eased recoil / melee power / move speed (used by this frame's held item and next frame's motor)
 PlayerBreathing.Tick out of breath → eased Tiredness → Player starts / fades / stops the breath loop (AudioService.Start)
 PlayerHeadBob.Tick   camera root offset; Stepped → footstep sound

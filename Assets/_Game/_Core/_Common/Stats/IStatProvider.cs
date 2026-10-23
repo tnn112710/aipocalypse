@@ -18,6 +18,7 @@ namespace Aipocalypse.Core.Stats
         FatiguePenalty,
         // Metres around the player that read clearly in the dark; a belt lantern adds its own radius on top.
         VisionRadius,
+        WalkStaminaCost,
     }
 
     // Core reads tunable numbers through this seam; perks, XP and buffs plug in a modifying implementation.

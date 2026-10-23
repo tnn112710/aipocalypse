@@ -33,7 +33,10 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Range(0f, 1f)] public float HeavyLandingSpeedMultiplier { get; private set; } = 0.5f;
         [field: SerializeField, Min(0f)] public float HeavyLandingRecoveryTime { get; private set; } = 0.4f;
 
-        [field: Header("Stamina costs"), SerializeField, Min(0f)] public float SprintStaminaPerSecond { get; private set; } = 12f;
+        [field: Header("Stamina costs"), SerializeField, Min(0f)] public float WalkStaminaPerSecond { get; private set; } = 2f;
+        [field: SerializeField, Min(0f)] public float SprintStaminaPerSecond { get; private set; } = 12f;
         [field: SerializeField, Min(0f)] public float JumpStaminaCost { get; private set; } = 12f;
+        [field: SerializeField, Min(0f), Tooltip("Stamina regenerates only while standing still: no move input, grounded, and slower than this (m/s)")]
+        public float IdleMaxSpeed { get; private set; } = 0.2f;
     }
 }

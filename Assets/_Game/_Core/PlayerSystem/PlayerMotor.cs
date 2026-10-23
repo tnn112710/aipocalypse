@@ -41,6 +41,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool IsGrounded { get; private set; }
         public bool IsOnSteepSlope { get; private set; }
         public bool IsSprinting { get; private set; }
+        // Standing still on stable ground with no move input: the only state stamina regenerates in.
+        public bool IsIdle { get; private set; }
         public Vector3 HorizontalVelocity => _horizontalVelocity;
         // Up is positive; on the ground it holds the small stick-down speed, not a real fall.
         public float VerticalVelocity => _verticalVelocity;
@@ -75,8 +77,14 @@ namespace Aipocalypse.Core.PlayerSystem
             if (!TryJump())
                 UpdateVertical(stableGround, deltaTime);
 
+            bool hasMove = move.sqrMagnitude > 0.0001f;
+            IsIdle = !hasMove && stableGround && !_isJumping
+                && _horizontalVelocity.sqrMagnitude <= _tuning.IdleMaxSpeed * _tuning.IdleMaxSpeed;
+
             if (IsSprinting)
                 _stamina.Spend(_stats.Get(StatId.SprintStaminaCost, _tuning.SprintStaminaPerSecond) * deltaTime);
+            else if (hasMove && stableGround)
+                _stamina.Spend(_stats.Get(StatId.WalkStaminaCost, _tuning.WalkStaminaPerSecond) * deltaTime);
 
             Move(deltaTime);
         }

@@ -63,7 +63,7 @@ namespace Aipocalypse.Tests
         public void RunningDry_WindsYou_BeforeRegenStarts()
         {
             var stamina = new Stamina(100f, regenDelay: 0f, recoverFraction: 0.3f, windedTime: 2f);
-            stamina.Spend(100f, delaysRegen: false);
+            stamina.Spend(100f);
             Assert.IsTrue(stamina.IsWinded);
 
             stamina.Tick(1.5f, regenPerSecond: 20f);
@@ -84,7 +84,7 @@ namespace Aipocalypse.Tests
             stamina.Tick(2.1f, regenPerSecond: 20f);
             stamina.Tick(0.25f, regenPerSecond: 20f);
 
-            stamina.Spend(10f, delaysRegen: false);
+            stamina.Spend(10f);
             Assert.AreEqual(0f, stamina.Current);
             Assert.IsFalse(stamina.IsWinded, "still exhausted, so no new wait");
         }
@@ -99,14 +99,31 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void SpendWithoutRegenDelay_KeepsRegenRunning()
+        public void NoRegen_WhileNotResting_AndDelayRestartsOnceIdle()
         {
             var stamina = new Stamina(100f, regenDelay: 1f, recoverFraction: 0.3f);
-            stamina.Spend(50f, delaysRegen: false);
+            stamina.Spend(50f);
+
+            stamina.Tick(2f, regenPerSecond: 20f, resting: false);
+            Assert.AreEqual(50f, stamina.Current, "moving never regenerates");
+
+            stamina.Tick(0.5f, regenPerSecond: 20f, resting: true);
+            Assert.AreEqual(50f, stamina.Current, "the delay counts only from standing idle");
+
+            stamina.Tick(0.6f, regenPerSecond: 20f, resting: true);
+            stamina.Tick(1f, regenPerSecond: 20f, resting: true);
+            Assert.AreEqual(70f, stamina.Current, 0.001f);
+        }
+
+        [Test]
+        public void EverySpend_PausesRegen()
+        {
+            var stamina = new Stamina(100f, regenDelay: 1f, recoverFraction: 0.3f);
+            stamina.Spend(50f);
 
             stamina.Tick(0.5f, regenPerSecond: 20f);
 
-            Assert.AreEqual(60f, stamina.Current, 0.001f);
+            Assert.AreEqual(50f, stamina.Current);
         }
     }
 

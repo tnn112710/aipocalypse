@@ -76,7 +76,7 @@ namespace Aipocalypse.Core.PlayerSystem
         Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
         float IWeaponUser.MeleePower => Fatigue.MeleePower;
 
-        void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.Get(StatId.AttackStaminaCost, 1f), delaysRegen: false);
+        void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.Get(StatId.AttackStaminaCost, 1f));
 
         [Inject]
         void Construct(InputService input, IStatProvider stats, DamageService damage, AudioService audio, IPublisher<PlayerDied> died,
@@ -147,7 +147,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
-            Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond));
+            Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond), _motor.IsIdle);
             Fatigue.Tick(Stamina.Normalized, _stats.Get(StatId.FatiguePenalty, 1f), deltaTime, Stamina.IsWinded);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
             _breathSound.Tick(_breathing, IsDead);
