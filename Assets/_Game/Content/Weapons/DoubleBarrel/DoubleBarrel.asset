@@ -1,21 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
----
-&11400000 !u!114
+--- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: { fileID: 0 }
-  m_PrefabInstance: { fileID: 0 }
-  m_PrefabAsset: { fileID: 0 }
-  m_GameObject: { fileID: 0 }
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: { fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3 }
+  m_Script: {fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3}
   m_Name: DoubleBarrel
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunDefinition
   <DisplayName>k__BackingField: Double Barrel
-  <Icon>k__BackingField: { fileID: 21300000, guid: 2541a689cf99a1c4e8031b9800fbb0fa, type: 3 }
-  <Prefab>k__BackingField: { fileID: 1637485852169346600, guid: 6d2e16a8371a8aa479e4671b67bc05c7, type: 3 }
+  <Icon>k__BackingField: {fileID: 21300000, guid: 2541a689cf99a1c4e8031b9800fbb0fa, type: 3}
+  <Prefab>k__BackingField: {fileID: 1637485852169346623, guid: 6d2e16a8371a8aa479e4671b67bc05c7, type: 3}
   <EquipTime>k__BackingField: 0.45
   <HolsterTime>k__BackingField: 0.3
   <Fire>k__BackingField:
@@ -41,14 +40,14 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294966971
   <Magazine>k__BackingField:
-    AmmoType: { fileID: 11400000, guid: 5c02020a12247d8478ebe7418ef9c131, type: 2 }
+    AmmoType: {fileID: 11400000, guid: 5c02020a12247d8478ebe7418ef9c131, type: 2}
     Size: 2
     Reload: 0
     ReloadTime: 2
     AutoReload: 1
   <Jam>k__BackingField:
     Chance: 0
-    Repair: { fileID: 11400000, guid: f95aa80e1b7c35f47bcee47d59da8d3c, type: 2 }
+    Repair: {fileID: 11400000, guid: f95aa80e1b7c35f47bcee47d59da8d3c, type: 2}
     ClearTime: 1.2
   <Recoil>k__BackingField:
     Hip:
@@ -93,7 +92,7 @@ MonoBehaviour:
     AccurateShots: 0
     AccurateShotsMultiplier: 1
     SprayResetDelay: 0.24
-    SprayClimb: { x: 0.02, y: 0.075 }
+    SprayClimb: {x: 0.02, y: 0.075}
     SprayDrift: 0.35
     SprayPitchJitter: 0.18
     SprayYawJitter: 0.72
@@ -110,59 +109,59 @@ MonoBehaviour:
   <Sounds>k__BackingField:
     Volume: 1
     Equip:
-      _entity: { fileID: 11400000, guid: fe597dddddde05a43aa06b8f8cc4bd84, type: 2 }
+      _entity: {fileID: 11400000, guid: fe597dddddde05a43aa06b8f8cc4bd84, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     Fire:
-      _entity: { fileID: 11400000, guid: 825c972435a05924984f5aa1ef2ac3ac, type: 2 }
+      _entity: {fileID: 11400000, guid: 825c972435a05924984f5aa1ef2ac3ac, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     ReloadStart:
-      _entity: { fileID: 11400000, guid: 2378322e82fa09c46b6876cfbebd9d47, type: 2 }
+      _entity: {fileID: 11400000, guid: 2378322e82fa09c46b6876cfbebd9d47, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     ReloadInsert:
-      _entity: { fileID: 0 }
+      _entity: {fileID: 0}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     ReloadEnd:
-      _entity: { fileID: 11400000, guid: 0c9133d1a848463458b0711e23d6f7f6, type: 2 }
+      _entity: {fileID: 11400000, guid: 0c9133d1a848463458b0711e23d6f7f6, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     Jam:
-      _entity: { fileID: 11400000, guid: bfcc47202ecc9694dbbcb0b5485ec9ac, type: 2 }
+      _entity: {fileID: 11400000, guid: bfcc47202ecc9694dbbcb0b5485ec9ac, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     DryFire:
-      _entity: { fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2 }
+      _entity: {fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     Empty:
-      _entity: { fileID: 0 }
+      _entity: {fileID: 0}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     ClearJamStart:
-      _entity: { fileID: 11400000, guid: 7c46b85da282ee345aad7cbea2653514, type: 2 }
+      _entity: {fileID: 11400000, guid: 7c46b85da282ee345aad7cbea2653514, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     ClearJamEnd:
-      _entity: { fileID: 11400000, guid: 84f8be6ab74aa6d41b12ab83fc1373bd, type: 2 }
+      _entity: {fileID: 11400000, guid: 84f8be6ab74aa6d41b12ab83fc1373bd, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     RepairSlap:
-      _entity: { fileID: 11400000, guid: bda1536e51d1bda448a35fa4fb6c2612, type: 2 }
+      _entity: {fileID: 11400000, guid: bda1536e51d1bda448a35fa4fb6c2612, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     RepairPunch:
-      _entity: { fileID: 11400000, guid: af6b3b83b9911bf41852cec0ba0f6c69, type: 2 }
+      _entity: {fileID: 11400000, guid: af6b3b83b9911bf41852cec0ba0f6c69, type: 2}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     CycleStart:
-      _entity: { fileID: 0 }
+      _entity: {fileID: 0}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
+      <DebugObject>k__BackingField: {fileID: 0}
     CycleEnd:
-      _entity: { fileID: 0 }
+      _entity: {fileID: 0}
       ID: 0
-      <DebugObject>k__BackingField: { fileID: 0 }
-  <Effects>k__BackingField: { fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2 }
+      <DebugObject>k__BackingField: {fileID: 0}
+  <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

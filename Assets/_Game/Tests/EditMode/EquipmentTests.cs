@@ -109,6 +109,40 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void LowerHands_HolstersButKeepsTheSlot_RaiseHandsBringsItBack()
+        {
+            Equipment equipment = Loaded();
+
+            equipment.LowerHands();
+            Settle(equipment);
+            Assert.AreEqual(SwitchPhase.Empty, equipment.Switcher.Phase);
+            Assert.AreEqual(0, equipment.SelectedIndex);
+
+            equipment.RaiseHands();
+            Settle(equipment);
+            Settle(equipment);
+            Assert.AreSame(_rifle, equipment.Switcher.Held);
+            Assert.IsTrue(equipment.Switcher.IsReady);
+        }
+
+        [Test]
+        public void LowerHands_SelectingWaitsForRaiseHands()
+        {
+            Equipment equipment = Loaded();
+            equipment.LowerHands();
+
+            equipment.Select(1);
+            Settle(equipment);
+            Assert.IsNull(equipment.Switcher.Held, "hands stay down");
+            Assert.AreEqual(1, equipment.SelectedIndex);
+
+            equipment.RaiseHands();
+            Settle(equipment);
+            Settle(equipment);
+            Assert.AreSame(_pistol, equipment.Switcher.Held);
+        }
+
+        [Test]
         public void SwitchSpeed_ScalesDuration()
         {
             Equipment equipment = Loaded();

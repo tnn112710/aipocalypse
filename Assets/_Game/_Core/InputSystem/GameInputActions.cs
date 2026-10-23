@@ -1385,6 +1385,26 @@ namespace Aipocalypse.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""KillPlayer"",
+                    ""type"": ""Button"",
+                    ""id"": ""ceafb386-28fb-4201-83f3-7f18face9df8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""RevivePlayer"",
+                    ""type"": ""Button"",
+                    ""id"": ""15ed51af-2e6b-4a41-b334-46d520af2faf"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -1407,6 +1427,28 @@ namespace Aipocalypse.Input
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""NextPhase"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""29c655a2-7b18-44c1-a7f9-5602d6c06acf"",
+                    ""path"": ""<Keyboard>/k"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""KillPlayer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""32d0db66-959a-4416-b4e2-d38a195f8824"",
+                    ""path"": ""<Keyboard>/l"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""RevivePlayer"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1515,6 +1557,8 @@ namespace Aipocalypse.Input
             m_Debug = asset.FindActionMap("Debug", throwIfNotFound: true);
             m_Debug_NextHour = m_Debug.FindAction("NextHour", throwIfNotFound: true);
             m_Debug_NextPhase = m_Debug.FindAction("NextPhase", throwIfNotFound: true);
+            m_Debug_KillPlayer = m_Debug.FindAction("KillPlayer", throwIfNotFound: true);
+            m_Debug_RevivePlayer = m_Debug.FindAction("RevivePlayer", throwIfNotFound: true);
         }
 
         ~@GameInputActions()
@@ -2110,6 +2154,8 @@ namespace Aipocalypse.Input
         private List<IDebugActions> m_DebugActionsCallbackInterfaces = new List<IDebugActions>();
         private readonly InputAction m_Debug_NextHour;
         private readonly InputAction m_Debug_NextPhase;
+        private readonly InputAction m_Debug_KillPlayer;
+        private readonly InputAction m_Debug_RevivePlayer;
         /// <summary>
         /// Provides access to input actions defined in input action map "Debug".
         /// </summary>
@@ -2129,6 +2175,14 @@ namespace Aipocalypse.Input
             /// Provides access to the underlying input action "Debug/NextPhase".
             /// </summary>
             public InputAction @NextPhase => m_Wrapper.m_Debug_NextPhase;
+            /// <summary>
+            /// Provides access to the underlying input action "Debug/KillPlayer".
+            /// </summary>
+            public InputAction @KillPlayer => m_Wrapper.m_Debug_KillPlayer;
+            /// <summary>
+            /// Provides access to the underlying input action "Debug/RevivePlayer".
+            /// </summary>
+            public InputAction @RevivePlayer => m_Wrapper.m_Debug_RevivePlayer;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -2161,6 +2215,12 @@ namespace Aipocalypse.Input
                 @NextPhase.started += instance.OnNextPhase;
                 @NextPhase.performed += instance.OnNextPhase;
                 @NextPhase.canceled += instance.OnNextPhase;
+                @KillPlayer.started += instance.OnKillPlayer;
+                @KillPlayer.performed += instance.OnKillPlayer;
+                @KillPlayer.canceled += instance.OnKillPlayer;
+                @RevivePlayer.started += instance.OnRevivePlayer;
+                @RevivePlayer.performed += instance.OnRevivePlayer;
+                @RevivePlayer.canceled += instance.OnRevivePlayer;
             }
 
             /// <summary>
@@ -2178,6 +2238,12 @@ namespace Aipocalypse.Input
                 @NextPhase.started -= instance.OnNextPhase;
                 @NextPhase.performed -= instance.OnNextPhase;
                 @NextPhase.canceled -= instance.OnNextPhase;
+                @KillPlayer.started -= instance.OnKillPlayer;
+                @KillPlayer.performed -= instance.OnKillPlayer;
+                @KillPlayer.canceled -= instance.OnKillPlayer;
+                @RevivePlayer.started -= instance.OnRevivePlayer;
+                @RevivePlayer.performed -= instance.OnRevivePlayer;
+                @RevivePlayer.canceled -= instance.OnRevivePlayer;
             }
 
             /// <summary>
@@ -2530,6 +2596,20 @@ namespace Aipocalypse.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnNextPhase(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "KillPlayer" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnKillPlayer(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "RevivePlayer" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnRevivePlayer(InputAction.CallbackContext context);
         }
     }
 }

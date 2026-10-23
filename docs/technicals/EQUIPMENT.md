@@ -60,6 +60,7 @@ select another slot ─> Holstering: Raise 1 → 0 over the old item's HolsterTi
 - **Durations** = item time ÷ `EquipmentConfig.SwitchSpeed`. A time of 0 is instant.
 - **At spawn** the first slot with an item is held and ready, with no animation (`EquipFirstImmediately`).
 - **Usable only when ready.** The rig sets `HeldItemInput.IsReady` from `Switcher.IsReady`; a gun can't fire or aim and cancels a reload while it's false.
+- **Hands lowered** (`Equipment.LowerHands`, used by pose sequences such as dying): the held item is holstered but its slot stays selected; selecting another slot changes the selection only. `RaiseHands` raises the selected item again.
 - **An item that leaves the hotbar while held** (dropped, swapped away) leaves the hands at once, with no holster animation. Removing the selected item clears the selection.
 
 ## Pickup, swap and drop

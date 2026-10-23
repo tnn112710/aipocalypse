@@ -35,7 +35,7 @@ Dependencies point down only.
 Core **announces** what happens; features **react**. New rules are new subscribers, not edits to existing code.
 
 - Events are small `readonly struct`s published through MessagePipe (`IPublisher<T>` / `ISubscriber<T>`, injected). Brokers are registered once in the root scope.
-- Core events live in `_Core/_Common/Events`: `DamageDealt`, `PlayerDied`, gun jam / repair beats, world time (`HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded`). Features may define their own.
+- Core events live in `_Core/_Common/Events`: `DamageDealt`, `PlayerDied`, `PlayerDeathSequenceEnded`, `PlayerRespawning` (async), `PlayerRevived`, gun jam / repair beats, world time (`HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded`). Features may define their own.
 - **Damage goes through `DamageService.Deal`** (root scope): it applies `IDamageable.TakeDamage` (which returns a `DamageResult`: applied amount, killed) and publishes `DamageDealt` with the hit's `Source`. Physics hits (bullets, swings) use `DamageService.DealHit(hit, info)`, which finds the collider's `IDamageable`, deals the damage and pushes a loose rigidbody by `info.Force`. Weapons, falls and future traps never call `TakeDamage` directly, so hit feedback, kill credit and damage rules hook in at one place.
 - **Sound goes through `AudioService`** (root scope), a thin wrapper over BroAudio: game code plays `SoundID`s and never calls BroAudio's static facade.
 - Events are for things that *happen* (a hit, a death), never per-frame data (positions, timers).
@@ -103,7 +103,7 @@ Any scene (World, Proto_*, test arenas)
 
 ## Debug tools
 
-*Not built yet.* Planned as an in-game/Odin debug panel; each system adds its own commands through a small `IDebugCommands` registration. Until then: Odin buttons on views (e.g. `Player.Revive`).
+*Not built yet.* Planned as an in-game/Odin debug panel; each system adds its own commands through a small `IDebugCommands` registration. Until then: Odin buttons on views (e.g. `Player.Revive`) and the `Debug` input map in editor and dev builds (N / M: next hour / phase, `WorldClockCheats`; K / L: kill / revive the player, `PlayerCheats`).
 
 ## Entities: self-contained prefabs
 
@@ -145,6 +145,7 @@ How `EntityScope` does it (VContainer API checked in package source):
 - Feel: footsteps play at the bottom of each head-bob step (`PlayerHeadBob.Stepped`), plus jump and landing sounds and heavy breathing when out of breath (`PlayerSoundTuning`). Aiming down sights zooms the Cinemachine lens by the held item's `Zoom` (`PlayerZoom`) and scales look speed to match; the held model keeps its own field of view.
 - Equipment: keys 1–9 select hotbar slots, the mouse wheel cycles; switching holsters the held item, then raises the new one over per-item times scaled by `EquipmentConfig.SwitchSpeed`. Details: [EQUIPMENT.md](EQUIPMENT.md).
 - First-person presentation: `FirstPersonRenderFeature` draws the HeldWeapon layer inside the world camera with a cleared depth and its own lens (`FirstPersonView`), so held models stay visible and unzoomed. `HeldItemClearance` blends the hand back and tilts it near obstacles without moving the player; melee swings opt out.
+- Pose sequences: a `PoseSequence` asset scripts a first-person moment as beats (eye height, offset, pitch / yaw / roll, field of view, ease, hold, sounds), then a settled pose with an optional free-look range and music. A `Continuous` sequence flows through its beats on one smooth path and never stops (holds only add time); a hand-held wander and a slow elliptical drift (from the last beat on) keep the frame moving, like phone footage. `Player.PlaySequence(sequence, anchor)` hands it the camera and body (no movement, no item use, the held item holstered via `Equipment.LowerHands` if the sequence asks) until `StopSequence`. Beats are placed around the feet on the ground (short of walls), or exactly in an anchor's space (a seat). Dying plays `PlayerTuning.DeathSequence` (`Data/Player/Sequences/PlayerDeath.asset`, continuous: groan on the hit, kneel and sweep the view across the grass, topple onto the side with a thud, roll onto the back and look up at the landscape with music); `EndAfter` seconds after it settles, `PlayerDeathSequenceEnded` is published (the hook for a fade / respawn). Then the HUD's death screen closes the eyes, shows "You're dead" with "Loading..." while `PlayerRespawnService` moves the body back to `Player.SpawnPosition` (where it entered the scene) and awaits every `PlayerRespawning` subscriber (`IAsyncPublisher`: systems that reset for a respawn finish there), then "Click to continue" revives ([UI.md → Death screen](UI.md#death-screen)). `Revive` stops the sequence (and its music) and publishes `PlayerRevived`. Benches, chairs and resting moments are planned as more sequences on the same player.
 - All numbers live in the `Data/Player/` tuning assets, linked from `PlayerTuning.asset` (equipment: `Data/Equipment/`; each item's numbers: its `Content/<Kind>/<Item>/<Item>.asset`).
 
 ## AI

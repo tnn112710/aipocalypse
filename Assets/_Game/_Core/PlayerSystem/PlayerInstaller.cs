@@ -6,6 +6,13 @@ namespace Aipocalypse.Core.PlayerSystem
     // Root-scope services of the player system. Per-player parts are registered by PlayerScope.
     public sealed class PlayerInstaller : IInstaller
     {
-        public void Install(IContainerBuilder builder) => builder.Register<PlayerRegistry>(Lifetime.Singleton);
+        public void Install(IContainerBuilder builder)
+        {
+            builder.Register<PlayerRegistry>(Lifetime.Singleton);
+            builder.Register<PlayerRespawnService>(Lifetime.Singleton);
+            // Editor and development builds only.
+            if (UnityEngine.Debug.isDebugBuild)
+                builder.RegisterEntryPoint<PlayerCheats>();
+        }
     }
 }

@@ -22,7 +22,7 @@ How the in-game UI is built and how to extend or restyle it. Script locations an
 | SafeFrame | Stretch, inset 48 px left/right, 40 px top/bottom | Keeps widgets off the screen edge. Change the inset in one place |
 
 ```text
-HUD                          Canvas · CanvasScaler
+HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibilityHud (fades the HUD out while the player is dead)
 └─ SafeFrame                 stretch, inset 48/40
    ├─ TopLeft                corner anchors (zero size): widgets anchor to these
    ├─ TopRight
@@ -153,6 +153,30 @@ InteractPrompt               InteractPromptView component
 3. **New data to show:** add a presenter under `_Core/UI/Hud/` that injects its source (a service; for player data derive from `PlayerHudView`) and pushes values into widgets. Use polling for values that change continuously. For rare changes (currency, objectives), subscribe to MessagePipe events.
 4. Add the scripts to [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
+
+## Death screen
+
+`HUD.prefab` → `DeathScreen` (built by `AgentScripts/DeathScreen/DeathScreenSetup.All()`): its own nested Canvas, sort order 100, over the rest of the HUD. Look and timing: `Data/UI/DeathScreenStyle.asset`; art, font and title material in `Data/UI/DeathScreen/`.
+
+```text
+DeathScreen                  nested Canvas (override sorting 100) · CanvasGroup (ignores the HUD's) · DeathScreenView (DeathScreenStyle) · DeathScreenHud
+├─ Eyes                      stretched; shown while the eyes close
+│  ├─ Darkness               black Image, alpha = the step's darkness
+│  ├─ UpperLid / LowerLid    RawImage of Eyelid.png (lower one flipped by uvRect), each as tall as the screen, anchored at its middle
+└─ Menu                      stretched · CanvasGroup (fades)
+   ├─ Background             flat cyan
+   ├─ Glow                   RawImage of Glow.png: soft light in the middle (vignette)
+   ├─ Title                  TMP "You're dead", Varela Round (DeathScreenFont), underlay shadow (DeathScreenFont_Title.mat)
+   ├─ Illustration           empty 640×230 rect between the title and the footer: the slot for an image / animation later
+   └─ Footer                 dark band, 228 px, with a 3 px light Line on top
+      └─ Status              TMP "Loading..." / "Click to continue" (pulses)
+```
+
+- **HUD hidden while dying:** `HudVisibilityHud` on the HUD root fades the HUD's CanvasGroup out on `PlayerDied` (0.35 s) and back in on `PlayerRevived` (0.5 s). The death screen's own CanvasGroup has `ignoreParentGroups`, so it stays visible. Fade times are on the component.
+- **Flow** (`DeathScreenHud`, a `PlayerHudView`): `PlayerDeathSequenceEnded` (the death sequence's `EndAfter`, 6 s after the camera settles) → `CloseEyes` plays the style's eye steps (by default: close to 40%, open to 30%, close to 80%, open to 70%, shut and black) → the menu fades in with "Loading...", `InputService.EnableUI` (cursor free) → `PlayerRespawnService.PrepareAsync` (and at least `MinLoadingTime`) → "Click to continue" → a click or Submit (`InputService.UiConfirmPressed`) → `PlayerRespawnService.Continue` → `Player.Revive` → `PlayerRevived` → the menu fades out over the respawned player, `EnableGameplay`. Any revive (the L cheat) closes it the same way.
+- **Eyelids:** `Eyelid.png` is black above an arched soft edge, so a half-closed pair leaves a lens-shaped gap. A step's `Closed` is the share of the view the lids cover in the middle (0.4 = 40%), measured where the lid turns solid; the lids first slide in from off-screen over the first 10%. `EyelidSolidAt` (arch + soft edge, 0.3) is where the texture turns solid and how far past the middle a shut lid goes, so a shut pair leaves no seam. To change the shape, edit and rerun `AgentScripts/DeathScreen/gen_textures.py` (numpy).
+- **Not raycast:** nothing on it is clickable; the click is read from the UI input map, so the canvas has no `GraphicRaycaster`.
+- **To change:** colors, font, sizes, texts, eye steps, fades, minimum loading time, continue pulse → `DeathScreenStyle.asset`; title / illustration / footer placement → `HUD` → `DeathScreen/Menu` RectTransforms. A tip line under the status (as in the reference) is not built yet.
 
 ## Clock
 

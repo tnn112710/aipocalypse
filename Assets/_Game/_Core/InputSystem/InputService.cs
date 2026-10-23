@@ -36,9 +36,14 @@ namespace Aipocalypse.Input
         public bool ReloadPressed => _reloadConsumedFrame != Time.frameCount && _actions.Player.Reload.WasPressedThisFrame();
         public void ConsumeReloadPress() => _reloadConsumedFrame = Time.frameCount;
 
+        // UI map (EnableUI): a click, or Submit (Enter, gamepad south), to confirm a full-screen menu.
+        public bool UiConfirmPressed => _actions.UI.Click.WasPressedThisFrame() || _actions.UI.Submit.WasPressedThisFrame();
+
         // Debug map: enabled in the editor and development builds only, independent of the gameplay / UI switch.
         public bool DebugNextHourPressed => _actions.Debug.NextHour.WasPressedThisFrame();
         public bool DebugNextPhasePressed => _actions.Debug.NextPhase.WasPressedThisFrame();
+        public bool DebugKillPlayerPressed => _actions.Debug.KillPlayer.WasPressedThisFrame();
+        public bool DebugRevivePlayerPressed => _actions.Debug.RevivePlayer.WasPressedThisFrame();
 
         // Hotbar key pressed this frame (0 = Slot1), or -1.
         public int SlotPressed

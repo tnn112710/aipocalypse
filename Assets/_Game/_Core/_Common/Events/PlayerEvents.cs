@@ -1,7 +1,26 @@
+using UnityEngine;
+
 namespace Aipocalypse.Core.Events
 {
     // A player registered or unregistered (spawn, death and respawn, scene unload). Read PlayerRegistry.Current for the new one.
     public readonly struct ActivePlayerChanged
     {
+    }
+
+    // Async (IAsyncPublisher): the dead player has been moved to its spawn point behind the death screen. Systems that reset
+    // for a respawn (loot grave, enemies…) subscribe and finish their work before the screen offers "continue".
+    public readonly struct PlayerRespawning
+    {
+        public readonly Vector3 SpawnPosition;
+
+        public PlayerRespawning(Vector3 spawnPosition) => SpawnPosition = spawnPosition;
+    }
+
+    // The player is back on its feet (continue on the death screen, or a revive cheat).
+    public readonly struct PlayerRevived
+    {
+        public readonly Vector3 Position;
+
+        public PlayerRevived(Vector3 position) => Position = position;
     }
 }

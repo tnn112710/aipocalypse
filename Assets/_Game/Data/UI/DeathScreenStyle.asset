@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 614ac45046675bd458ba2581590b1967, type: 3}
+  m_Name: DeathScreenStyle
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.UI.DeathScreenStyle
+  EyelidTexture: {fileID: 2800000, guid: 767c36280ef416343a222f13ca9cd873, type: 3}
+  EyelidSolidAt: 0.3
+  EyeSteps:
+  - Duration: 1.3
+    Closed: 0.4
+    Darkness: 0.25
+    Ease: 4
+  - Duration: 0.7
+    Closed: 0.3
+    Darkness: 0.2
+    Ease: 4
+  - Duration: 1
+    Closed: 0.8
+    Darkness: 0.5
+    Ease: 4
+  - Duration: 0.7
+    Closed: 0.7
+    Darkness: 0.45
+    Ease: 4
+  - Duration: 1.1
+    Closed: 1
+    Darkness: 1
+    Ease: 7
+  - Duration: 0.6
+    Closed: 1
+    Darkness: 1
+    Ease: 1
+  BackgroundColor: {r: 0.17, g: 0.61, b: 0.71, a: 1}
+  GlowTexture: {fileID: 2800000, guid: 1d590987d79a61a46a6f470aec6547bb, type: 3}
+  GlowColor: {r: 0.55, g: 0.85, b: 0.89, a: 0.9}
+  FooterColor: {r: 0.04, g: 0.33, b: 0.45, a: 1}
+  FooterLineColor: {r: 0.6, g: 0.85, b: 0.9, a: 0.85}
+  TitleFont: {fileID: 11400000, guid: 3e26a0e98906ae4419e8ed36dfbc65c1, type: 2}
+  TitleMaterial: {fileID: 2100000, guid: 172a76bb0985c28468c59fd09bb3fe9d, type: 2}
+  TitleSize: 230
+  TitleColor: {r: 0.93, g: 0.9, b: 0.88, a: 1}
+  StatusFont: {fileID: 11400000, guid: 3e26a0e98906ae4419e8ed36dfbc65c1, type: 2}
+  StatusSize: 44
+  StatusColor: {r: 1, g: 1, b: 1, a: 1}
+  Title: You're dead
+  LoadingText: Loading...
+  ContinueText: Click to continue
+  MenuFadeIn: 0.6
+  MenuFadeOut: 0.5
+  MinLoadingTime: 1.2
+  ContinuePulseAlpha: 0.45
+  ContinuePulsePeriod: 1.6

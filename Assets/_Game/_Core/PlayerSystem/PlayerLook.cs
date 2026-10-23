@@ -22,6 +22,17 @@ namespace Aipocalypse.Core.PlayerSystem
             _pivotPosition = pitchPivot.localPosition;
         }
 
+        // Degrees, positive = down.
+        public float Pitch => _pitch;
+
+        // Snaps the pitch (after a cutscene took the camera) and drops any view kick.
+        public void ResetPitch(float pitch)
+        {
+            _pitch = Mathf.Clamp(pitch, _tuning.MinPitch, _tuning.MaxPitch);
+            _kick = default;
+            Apply();
+        }
+
         public void Tick(Vector2 lookDegrees)
         {
             if (lookDegrees.x != 0f)

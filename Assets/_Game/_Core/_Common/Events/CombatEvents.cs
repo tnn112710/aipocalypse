@@ -29,4 +29,12 @@ namespace Aipocalypse.Core.Events
             Cause = cause;
         }
     }
+
+    // The death sequence has played out (lying, looking up): the point to fade out and respawn.
+    public readonly struct PlayerDeathSequenceEnded
+    {
+        public readonly Vector3 Position;
+
+        public PlayerDeathSequenceEnded(Vector3 position) => Position = position;
+    }
 }

@@ -44,9 +44,9 @@ Assets/_Game/
 │  │  │  ├─ DamageService.cs                root service: Deal(target, info) → TakeDamage, publishes DamageDealt with the result; DealHit(hit, info) for physics hits (finds the IDamageable, pushes a loose rigidbody)
 │  │  │  ├─ CombatInstaller.cs              registers DamageService in the root scope
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore
-│  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied
+│  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied, PlayerDeathSequenceEnded (the death sequence played out: where a fade / respawn will start)
 │  │  ├─ Events/GunRepairQteStarted.cs      owner, item, QTE session, feedback preset: what the HUD needs to show a gun's repair QTE
-│  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current)
+│  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current), PlayerRespawning (async: reset for a respawn), PlayerRevived
 │  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum + stat seam
@@ -85,7 +85,7 @@ Assets/_Game/
 │  │  ├─ Items/LanternDefinition.cs         SO: worn on the belt, not held: radius added to the vision light, colour, edge brightness, flicker, shadows
 │  │  ├─ Hotbar.cs                          ≤ 9 slots, category check, SlotChanged, FindNext, FindFreeSlot
 │  │  ├─ EquipmentSwitcher.cs               holster → swap → equip timing (Raise 0..1, SwitchPhase)
-│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle; pick up (store / swap), DropSelected; Belt (one worn lantern)
+│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle; pick up (store / swap), DropSelected; Belt (one worn lantern); LowerHands / RaiseHands (holster but keep the slot)
 │  │  ├─ PickUpAction.cs                    None / Store / Swap
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world (on the item prefab's root): IInteractable, picks up / swaps; Spawn for drops; Awake shows only the World child; StripForHand
@@ -104,21 +104,25 @@ Assets/_Game/
 │  │  ├─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  │  └─ Prefabs/FPHand_Left, FPHand_Right.prefab   the hand prefabs (VR Low Poly Hand), listed in Data/Hands/HandSet.asset
 │  ├─ InputSystem/                          Aipocalypse.Input
-│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload; Debug map (N / M) enabled in dev builds
+│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock; hotbar keys + cycling, interact, drop, attack, aim, reload; UiConfirmPressed (UI map click / submit); Debug map (N / M / K / L) enabled in dev builds
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control options
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing sounds, aim / trigger end a sprint (HeldItem.StopsSprint), held item's LookTurn → PlayerLook.Turn, fall damage through DamageService
+│  │  ├─ Player.cs                          view MonoBehaviour: input → intent (look scaled by zoom), ticks the parts, IDamageable, IGunUser (owns the AmmoReserve); footstep / jump / landing sounds, aim / trigger end a sprint (HeldItem.StopsSprint), held item's LookTurn → PlayerLook.Turn, fall damage through DamageService; PlaySequence / StopSequence (dying plays PlayerTuning.DeathSequence, Revive stops it and publishes PlayerRevived); SpawnPosition + MoveToSpawn (where it entered the scene)
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
-│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry
+│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry, PlayerRespawnService (+ PlayerCheats in dev builds)
+│  │  ├─ PlayerRespawnService.cs            PrepareAsync (Player.MoveToSpawn, then awaits every PlayerRespawning subscriber) and Continue (Revive); driven by the death screen
+│  │  ├─ PlayerCheats.cs                    editor and dev builds: K kills the active player through DamageService, L revives it (InputService debug presses)
+│  │  ├─ Sequences/PoseSequence.cs          SO: a scripted first-person moment (death, sitting, resting): PoseSpace (Feet = on the ground around the start, Anchor = exact in a seat's space), beats (move + hold: eye height, offset, pitch / yaw / roll, FOV, ease, start / arrive sounds), Continuous (one smooth path, never stops), handheld wander, elliptical drift, settled look range, EndAfter, music, LowerHands
+│  │  ├─ Sequences/PoseSequencePlayer.cs    plays one PoseSequence on the camera root (look pitch folded in): beats placed once (ground probe, wall sphere cast), DOVirtual eased moves or a monotone cubic path through the beats (no overshoot into the ground), Perlin handheld from a fresh seed, drift from the last beat on, cues through AudioService, settled free look, Ended, FovScale
 │  │  ├─ PlayerRegistry.cs                  the active player (Current); players register themselves, publishes ActivePlayerChanged
 │  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop, Fire, FirePressed, Aim, Reload
-│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); Jumped / Landed events; SpeedMultiplier (aiming)
-│  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil)
+│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); Jumped / Landed events; SpeedMultiplier (aiming); Teleport (no momentum, no fall damage)
+│  │  ├─ PlayerLook.cs                      yaw on body, pitch on camera pivot, + the held item's ViewKick (recoil); Pitch, ResetPitch (after a sequence)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip on the camera root; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
 │  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSway
-│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom, keeps FirstPersonView's FOV unzoomed, LookScale, TanHalfFov
+│  │  ├─ PlayerZoom.cs                      narrows the Cinemachine lens by the held item's Zoom (or widens it, up to 1.5, for a pose sequence), keeps FirstPersonView's FOV unzoomed, LookScale, TanHalfFov
 │  │  ├─ PlayerAim.cs                       aim sway → CrosshairPosition and CrosshairSpread on screen (world FOV) + the rig's zoom-corrected turn; static ScreenPosition / ScreenRadius / ModelRotation
 │  │  ├─ PlayerBreathSound.cs               loops PlayerSoundTuning.BreathSound while out of breath (volume by Tiredness, fades), pauses it while time is stopped
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
@@ -130,7 +134,7 @@ Assets/_Game/
 │  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings): IsActive, eased Tiredness and Volume for the breath loop and the aim sway
 │  │  ├─ FallDamage.cs                      drop height → damage
 │  │  ├─ PlayerVision.cs                    light around the player in the dark: radius (StatId.VisionRadius + worn lantern) → intensity that keeps the edge brightness under URP falloff, range, colour, position; eased; off by day
-│  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below; Player hands each rule only its group
+│  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below (+ DeathSequence, a PoseSequence); Player hands each rule only its group
 │  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, walk / sprint / jump stamina costs, idle speed for regen → PlayerMotor
 │  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, fatigue tiers, fall damage heights → Player
 │  │  ├─ Tuning/PlayerCameraTuning.cs       pitch limits, head bob, landing dip → PlayerLook, PlayerHeadBob
@@ -149,6 +153,8 @@ Assets/_Game/
 │  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
 │  │  ├─ Widgets/ClockView.cs               passive digital clock: SetTime (monospaced HH:MM, char buffer) / SetPhase / SetDay / Show / ApplyStyle
 │  │  ├─ Widgets/ClockStyle.cs              ScriptableObject: fonts + underlay materials, sizes, colors, backing panel, phase labels / colors
+│  │  ├─ Widgets/DeathScreenView.cs         passive: eyelids + darkness (CloseEyes from the style's steps), menu (ShowMenu / HideMenu fades), SetStatus (pulse), HideAll, Illustration slot
+│  │  ├─ Widgets/DeathScreenStyle.cs        ScriptableObject: eyelid texture + EyelidSolidAt, EyeStep timeline (lids, darkness, ease), menu colors / glow / fonts / texts, fades, MinLoadingTime, continue pulse
 │  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
 │  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind per active player
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
@@ -157,6 +163,8 @@ Assets/_Game/
 │  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker, hit / kill sound, pooled damage numbers
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
+│  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
+│  │  ├─ Hud/DeathScreenHud.cs              PlayerHudView: PlayerDeathSequenceEnded → eyes close → menu "Loading..." (EnableUI, PlayerRespawnService.PrepareAsync) → "Click to continue" → Continue; PlayerRevived closes it
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
@@ -211,23 +219,26 @@ Assets/_Game/
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/, Rocks/, Mountains/ (ENVIRONMENT.md)
 ├─ Maps/WorldMap/                           WorldMap.unity + what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/
 ├─ Scenes/Prototypes/                       Prototype.unity (its terrain data in Prototype/); Proto_* scenes
-├─ (Assets/_Samples/Audio/Weapons/)        gun sound samples from the old project (rifle, pistol, sniper bolt)
+├─ (Assets/_Samples/Audio/)                Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
+│                                          Music/: PLACEHOLDER death music cut from a YouTube Short, not licensed (sources in SOURCES.txt)
 ├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
-│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience .asset) + one folder of entities each
+│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience, Music .asset) + one folder of entities each
 │  ├─ WorldTime/ClockSettings.asset         30 s per game hour (12-minute day), start 07:00, phases 05 / 07 / 18 / 20
 │  ├─ Environment/TimeOfDay/                TimeOfDay (profile), Looks/TOD_*.asset, Grades/PP_*.asset, TimeOfDay_Sky.mat, TimeOfDay_Ambience.asset, Base_PostProcessing / Base_Skybox (setup sources)
-│  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound,Vision}Tuning.asset beside it
+│  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound,Vision}Tuning.asset beside it and Sequences/PlayerDeath.asset
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn
 │  ├─ Hands/HandSet.asset, Poses/           the hand prefabs + shared hand poses
 │  ├─ Enemies/WanderSettings.asset          wander tuning
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by both guns
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, ClockStyle.asset, DamageNumberFont.asset
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, ClockStyle.asset, DamageNumberFont.asset,
+│        DeathScreenStyle.asset; DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ Tests/PlayMode/PrototypeSmokeTests.cs  asmdef Aipocalypse.Tests.PlayMode: loads Prototype.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)
-   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop, lantern onto the belt / swap
+   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop, lantern onto the belt / swap, lower / raise hands
+   ├─ PoseSequenceTests.cs                  PoseSequencePlayer: start pose, beat moves, ground and wall placement, anchor space, settled look range, Ended, Stop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
    ├─ WeaponAnimationTests.cs               MP5/pistol/shotgun bindings, scaled hands, automatic Animator pass, contacts and continuity, slap/reset, repeated shell reload and pump cycle, break-action closure
@@ -249,12 +260,12 @@ ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
    │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
    └─ injects the Player GameObject (whole hierarchy)
-         Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, PlayerRegistry, IObjectResolver)
+         Player.Construct(InputService, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>, IPublisher<PlayerDeathSequenceEnded>, IPublisher<PlayerRevived>, PlayerRegistry, IObjectResolver)
            VisionLight's TimeOfDayWeight (EnvironmentReactor) registers itself with the scene's EnvironmentDirector, if any
            creates (plain C#, owned by Player):
              Health, Stamina, PlayerMotor(CharacterController, tuning.Movement, stats, stamina),
              PlayerLook(body, cameraPitch, tuning.Camera), PlayerHeadBob(cameraRoot, tuning.Camera), HeldItemSway(tuning.HeldItem.HeldSway, stats), PlayerZoom(Cinemachine camera, FirstPersonView), PlayerInteractor(cameraPitch, gameObject, tuning.Interaction),
-             AmmoReserve(AmmoConfig.CreateReserve()), PlayerVision(VisionLight, tuning.Vision),
+             AmmoReserve(AmmoConfig.CreateReserve()), PlayerVision(VisionLight, tuning.Vision), PoseSequencePlayer(body, cameraRoot, cameraPitch, AudioService),
              Equipment(EquipmentConfig.CreateHotbar()) → EquipmentRig.Bind(Equipment, owner: this, resolver)
                rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, QuickTimeService, publishers), HeldMelee.Construct(EffectPool, DamageService, AudioService)
                HeldItem.Bind(item, owner) → HeldGun builds Gun(GunInstance, owner.Ammo) + GunRecoil + GunAccuracy + GunRepairFlow; HeldMelee builds MeleeAttack
@@ -281,14 +292,14 @@ GameLifetimeScope (scene) ──registers──> WorldClock (+ WorldClockCheats)
 ## Frame order (Player.Update)
 
 ```text
-intent = dead or gameplay input disabled ? default : read InputService
-PlayerLook.Tick      yaw + pitch                    (movement uses the new facing this frame)
+intent = dead, in a pose sequence or gameplay input disabled ? default : read InputService
+PlayerLook.Tick      yaw + pitch                    (movement uses the new facing this frame; skipped in a pose sequence)
 PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Landed event
                        └─ Player.OnJumped / OnLanded: jump / landing sound, head-bob dip, fall damage → DamageService → Health → DamageDealt / PlayerDied
 Stamina.Tick         regen while the motor is idle (spending happened inside the motor, and in the held item last frame)
 Fatigue.Tick         tier for the stamina (+ winded) → eased recoil / melee power / move speed (used by this frame's held item and next frame's motor)
 PlayerBreathing.Tick out of breath → eased Tiredness → Player starts / fades / stops the breath loop (AudioService.Start)
-PlayerHeadBob.Tick   camera root offset; Stepped → footstep sound
+PlayerHeadBob.Tick   camera root offset; Stepped → footstep sound (skipped in a pose sequence)
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 Equipment            intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
@@ -305,6 +316,8 @@ HeldItem.LateTick    model and camera are final: HeldGun spawns this frame's sho
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
 FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip
+PoseSequencePlayer   in a pose sequence only: camera root pose (wins over head bob, pitch and kick), cues, music, settled look (raw look input) + drift
+                       → PlayerZoom.Tick(FovScale)
 PlayerVision.Tick    darkness (TimeOfDayWeight, eased by the director last frame) + StatId.VisionRadius + Equipment.Belt lantern → the VisionLight
 VContainer ticks     BulletSystem moves and ray-tests bullets → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes;
                      EffectPool returns expired effects; EnemyManager ticks registered enemy trees (scene scope);

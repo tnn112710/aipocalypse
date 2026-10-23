@@ -25,12 +25,12 @@ namespace Aipocalypse.Core.PlayerSystem
         // tan(half the world camera's vertical field of view): maps eye-space directions to the screen.
         public float TanHalfFov => _baseTan * LookScale;
 
-        // `zoom` multiplies the base field of view: 1 = none, 0.85 = 15% narrower.
+        // `zoom` multiplies the base field of view: 1 = none, 0.85 = 15% narrower, above 1 wider (the death sequence).
         public void Tick(float zoom)
         {
             if (_camera == null)
                 return;
-            float fov = _baseFov * Mathf.Clamp(zoom, 0.1f, 1f);
+            float fov = _baseFov * Mathf.Clamp(zoom, 0.1f, 1.5f);
             _camera.Lens.FieldOfView = fov;
             LookScale = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) / _baseTan;
         }

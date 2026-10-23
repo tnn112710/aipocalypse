@@ -1297,6 +1297,26 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "KillPlayer",
+                    "type": "Button",
+                    "id": "ceafb386-28fb-4201-83f3-7f18face9df8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "RevivePlayer",
+                    "type": "Button",
+                    "id": "15ed51af-2e6b-4a41-b334-46d520af2faf",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -1319,6 +1339,28 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "NextPhase",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "29c655a2-7b18-44c1-a7f9-5602d6c06acf",
+                    "path": "<Keyboard>/k",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "KillPlayer",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "32d0db66-959a-4416-b4e2-d38a195f8824",
+                    "path": "<Keyboard>/l",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "RevivePlayer",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

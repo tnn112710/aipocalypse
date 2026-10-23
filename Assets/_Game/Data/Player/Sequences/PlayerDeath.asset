@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e27e3b4d261888547af6fd92e636ca5f, type: 3}
+  m_Name: PlayerDeath
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PoseSequence
+  <Space>k__BackingField: 0
+  <LowerHands>k__BackingField: 1
+  <Beats>k__BackingField:
+  - Name: Hit
+    Duration: 0.35
+    Ease: 6
+    Height: 1.45
+    Offset: {x: 0, y: 0}
+    Pitch: 18
+    Yaw: 3
+    Roll: 5
+    FovScale: 1
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 11400000, guid: 75d78f5fde4839848b4579deb5dc14ba, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - Name: Kneel, look at the ground
+    Duration: 0.75
+    Ease: 4
+    Height: 0.95
+    Offset: {x: 0.05, y: 0.2}
+    Pitch: 60
+    Yaw: -8
+    Roll: 7
+    FovScale: 1
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 11400000, guid: 40c02ed343ea0c749971063193208623, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - Name: Look across the grass
+    Duration: 1
+    Ease: 4
+    Height: 0.85
+    Offset: {x: 0.08, y: 0.28}
+    Pitch: 52
+    Yaw: 12
+    Roll: 3
+    FovScale: 1
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - Name: Topple onto the side
+    Duration: 0.75
+    Ease: 5
+    Height: 0.5
+    Offset: {x: 0.45, y: -0.6}
+    Pitch: 10
+    Yaw: 4
+    Roll: -78
+    FovScale: 1
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 11400000, guid: 7ab2579a60ec0e64cb991157d38b95d8, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - Name: Roll onto the back, look up
+    Duration: 2.6
+    Ease: 4
+    Height: 0.6
+    Offset: {x: 0.6, y: -0.9}
+    Pitch: -28
+    Yaw: 14
+    Roll: 0
+    FovScale: 1.12
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  <Continuous>k__BackingField: 1
+  <HandheldAngles>k__BackingField: {x: 1.2, y: 1.6, z: 0.9}
+  <HandheldOffset>k__BackingField: 0.012
+  <HandheldSpeed>k__BackingField: 0.45
+  <LookRange>k__BackingField: {x: 0, y: 0}
+  <DriftAmplitude>k__BackingField: {x: 3, y: 6}
+  <DriftPeriod>k__BackingField: 10
+  <EndAfter>k__BackingField: 6
+  <Music>k__BackingField:
+    _entity: {fileID: 11400000, guid: 0cd4ec2ffd408dc4a9ce87f1e785a998, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  <MusicBeat>k__BackingField: 4
+  <MusicDelay>k__BackingField: 0.3
+  <MusicFadeIn>k__BackingField: 1.5
+  <MusicFadeOut>k__BackingField: 1
+  <GroundMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 4294967291
+  <HeadRadius>k__BackingField: 0.15

@@ -25,6 +25,8 @@ namespace Aipocalypse.Core.EquipmentSystem
         public ItemInstance Selected => SelectedIndex >= 0 ? Hotbar[SelectedIndex] : null;
         // Worn, not held: works whatever is in the hands (a lantern).
         public ItemInstance Belt { get; private set; }
+        // Selection changes while lowered wait for RaiseHands.
+        public bool HandsLowered { get; private set; }
 
         public void Dispose() => Hotbar.SlotChanged -= OnSlotChanged;
 
@@ -58,6 +60,20 @@ namespace Aipocalypse.Core.EquipmentSystem
         }
 
         public void Tick(float deltaTime, float switchSpeed) => Switcher.Tick(deltaTime, switchSpeed);
+
+        // Puts the held item away but keeps the slot selected (the player went down); RaiseHands brings it back.
+        public void LowerHands()
+        {
+            HandsLowered = true;
+            Switcher.SetTarget(null);
+        }
+
+        public void RaiseHands()
+        {
+            HandsLowered = false;
+            ItemInstance item = Selected;
+            Switcher.SetTarget(item != null && CanSelect(item) ? item : null);
+        }
 
         // Store: goes into the first free slot that accepts it, and is switched to. Swap: no free slot, it replaces the selected item.
         // Belt items are stored on an empty belt or swapped with the worn one; the hands don't change.
@@ -117,7 +133,7 @@ namespace Aipocalypse.Core.EquipmentSystem
             int previous = SelectedIndex;
             SelectedIndex = index;
             ItemInstance item = Selected;
-            Switcher.SetTarget(item != null && CanSelect(item) ? item : null);
+            Switcher.SetTarget(!HandsLowered && item != null && CanSelect(item) ? item : null);
             if (previous != index)
                 SelectionChanged?.Invoke(previous, index);
         }
@@ -128,7 +144,7 @@ namespace Aipocalypse.Core.EquipmentSystem
             if (index == SelectedIndex)
             {
                 if (current != null && CanSelect(current))
-                    Switcher.SetTarget(current);
+                    Switcher.SetTarget(HandsLowered ? null : current);
                 else
                     SetSelection(-1);
             }

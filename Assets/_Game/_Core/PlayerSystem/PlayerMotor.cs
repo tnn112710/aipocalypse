@@ -89,6 +89,20 @@ namespace Aipocalypse.Core.PlayerSystem
             Move(deltaTime);
         }
 
+        // Moves the body without sweeping the controller there, and forgets any momentum, jump or fall (no fall damage from the jump).
+        public void Teleport(Vector3 position, Quaternion rotation)
+        {
+            _controller.enabled = false;
+            _body.SetPositionAndRotation(position, rotation);
+            _controller.enabled = true;
+            _horizontalVelocity = Vector3.zero;
+            _verticalVelocity = 0f;
+            _jumpBufferLeft = 0f;
+            _landingSlowLeft = 0f;
+            _isJumping = false;
+            _apexY = position.y;
+        }
+
         // Called from Player.OnControllerColliderHit during Move.
         public void OnControllerHit(ControllerColliderHit hit)
         {

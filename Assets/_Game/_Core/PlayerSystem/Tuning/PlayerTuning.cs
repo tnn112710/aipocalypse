@@ -14,5 +14,6 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Required, InlineEditor] public PlayerHeldItemTuning HeldItem { get; private set; }
         [field: SerializeField, Required, InlineEditor] public PlayerSoundTuning Sounds { get; private set; }
         [field: SerializeField, Required, InlineEditor] public PlayerVisionTuning Vision { get; private set; }
+        [field: SerializeField, Required, InlineEditor, Tooltip("Plays when the player dies")] public PoseSequence DeathSequence { get; private set; }
     }
 }
