@@ -85,6 +85,7 @@ When writing code, the user's prompt is the spec.
 
 - No XML/docstring blocks. At most one short `//` line on a method to state its purpose; skip it when the name is self-explanatory.
 - Don't add comments narrating a fix or adjustment ("changed X to Y", "fixed bug"). Comment only for important/critical fixes, workarounds, or non-obvious solutions, and explain the *why*.
+- Serialized key→value data uses Unity 6.6's built-in `[SerializeField] Dictionary<TKey, TValue>` ([manual](https://docs.unity3d.com/6000.6/Documentation/Manual/script-serialization-dictionaries.html)), not a list of key/value structs or a custom `SerializableDictionary`. **Never use Odin serialization** (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`, Odin serialized collections) in any case; Odin is for inspector attributes only.
 
 ## Conventions / gotchas
 
