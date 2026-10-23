@@ -32,6 +32,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `tools-unity-map-generation` | Building or changing a map: layout from a concept, generated heights/water/vegetation/boundary/dressing, rebuilds, map art packs and perf (the WorldMap generator; step runner in `scripts/`) |
 | `tools-unity-microverse` | Terrain stamps, filters, masks, texturing and vegetation (MicroVerse 1.7, Rowlan height packs, BK presets; CLI kit in `scripts/`) |
 | `tools-unity-stylized-water` | Any Stylized Water 3 work: water bodies, RiverModeler rivers, waterfalls, underwater, height queries, water materials and perf |
+| `tools-unity-6-new-apis` | Any C# touching serialization (dictionaries), statics, init/play-mode hooks, object IDs, build defines, animation events or uGUI layout; whenever a remembered Unity API fails to compile (Unity 6.4–6.6 changes newer than training data) |
 | `tools-unity-addressables` | Generic; Addressables is not used for game content (see ARCHITECTURE.md) |
 
 To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `description` frontmatter, and add a row here. The `tools-unity-*` skills started from [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, `.agents/skills/THIRD_PARTY_LICENSE-unity-gamedev.txt`).
