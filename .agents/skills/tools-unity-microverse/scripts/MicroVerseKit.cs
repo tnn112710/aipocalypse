@@ -13,14 +13,14 @@ using UnityEngine.SceneManagement;
 
 public static class MicroVerseKit
 {
-    const string DataRoot = "Assets/_Game/Maps/";
+    static readonly string[] DataRoots = { "Assets/_Game/Maps/", "Assets/_Game/Scenes/Prototypes/" };
 
     // Scene overview: MicroVerse state, terrains and the stamp stack in evaluation (hierarchy) order.
     public static object Status()
     {
         var scene = SceneManager.GetActiveScene();
         var mv = MicroVerse.instance;
-        if (mv == null) return new { scene = scene.path, microVerse = (object)null, terrains = Terrain.activeTerrains.Select(DescribeTerrain).ToArray() };
+        if (mv == null) return new { scene = scene.path, scene.isDirty, microVerse = (object)null, terrains = Terrain.activeTerrains.Select(DescribeTerrain).ToArray() };
         mv.SyncTerrainList();
         var stamps = mv.GetComponentsInChildren<Stamp>(true).Where(s => !(s is HeightStamp h && h.hideFlags.HasFlag(HideFlags.HideInHierarchy)));
         return new
@@ -46,7 +46,7 @@ public static class MicroVerseKit
             pack = c.packName,
             c.author,
             collection = AssetDatabase.GetAssetPath(c),
-            stamps = c.contents.Select(cd => string.IsNullOrEmpty(cd.stamp) ? null : AssetDatabase.GUIDToAssetPath(cd.stamp))
+            stamps = Contents(c).Select(cd => string.IsNullOrEmpty(cd.stamp) ? null : AssetDatabase.GUIDToAssetPath(cd.stamp))
                 .Where(p => !string.IsNullOrEmpty(p)).Distinct()
                 .Where(p => Contains(c.packName, filter) || Contains(System.IO.Path.GetFileNameWithoutExtension(p), filter))
                 .ToArray()
@@ -73,16 +73,18 @@ public static class MicroVerseKit
             {
                 pack = c.packName,
                 c.author,
-                prefabs = c.contents.Where(cd => cd.prefab != null).Select(cd => AssetDatabase.GetAssetPath(cd.prefab))
+                prefabs = Contents(c).Where(cd => cd.prefab != null).Select(cd => AssetDatabase.GetAssetPath(cd.prefab))
                     .Where(p => Contains(c.packName, filter) || Contains(System.IO.Path.GetFileNameWithoutExtension(p), filter)).ToArray()
             })
             .Where(p => p.prefabs.Length > 0).ToArray();
     }
 
     // Drops a Content Browser preset prefab (path from Presets()) like the browser does: instantiated, fully unpacked,
-    // placed on the terrain surface at (x,z), footprint sizeX x sizeZ (0 = keep the prefab's scale), drop actions run.
+    // placed on the terrain surface at (x,z), footprint sizeX x sizeZ (0 = keep the prefab's scale).
     // Tree/Object stamps get the default poisson disk, which only their inspector assigns otherwise (null = spawns nothing).
-    public static object AddPreset(string prefabPath, string group, float x, float z, float sizeX, float sizeZ, float rotationY)
+    // Drop actions only run with runDropActions: BK ones set the skybox and fog (EnvironmentDirector owns them) or replace
+    // every terrain's material.
+    public static object AddPreset(string prefabPath, string group, float x, float z, float sizeX, float sizeZ, float rotationY, bool runDropActions = false)
     {
         var mv = RequireMicroVerse();
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -101,7 +103,8 @@ public static class MicroVerseKit
         foreach (var tree in go.GetComponentsInChildren<TreeStamp>(true)) if (tree.poissonDisk == null) { tree.poissonDisk = disk; EditorUtility.SetDirty(tree); }
         foreach (var obj in go.GetComponentsInChildren<ObjectStamp>(true)) if (obj.poissonDisk == null) { obj.poissonDisk = disk; EditorUtility.SetDirty(obj); }
         bool destroy = false;
-        foreach (var action in go.GetComponentsInChildren<JBooth.MicroVerseCore.Browser.IContentBrowserDropAction>(true))
+        var actions = go.GetComponentsInChildren<JBooth.MicroVerseCore.Browser.IContentBrowserDropAction>(true);
+        foreach (var action in runDropActions ? actions : Array.Empty<JBooth.MicroVerseCore.Browser.IContentBrowserDropAction>())
         {
             action.Execute(out bool d);
             destroy |= d;
@@ -118,7 +121,8 @@ public static class MicroVerseKit
             path = PathUnderRoot(go.transform),
             position = go.transform.position.ToString("0.#"),
             scale = go.transform.lossyScale.ToString("0.#"),
-            stamps = go.GetComponentsInChildren<Stamp>(true).Select(s => s.GetType().Name + ": " + s.name).ToArray()
+            stamps = go.GetComponentsInChildren<Stamp>(true).Select(s => s.GetType().Name + ": " + s.name).ToArray(),
+            skippedDropActions = runDropActions ? new string[0] : actions.Select(a => a.GetType().Name).ToArray()
         };
     }
 
@@ -130,10 +134,11 @@ public static class MicroVerseKit
     }
 
     // Creates a MicroVerse root with a tilesX x tilesZ grid of fresh terrains (TerrainData assets under dataFolder).
-    public static object Setup(string dataFolder, int tilesX, int tilesZ, float tileSize, float height, int heightmapResolution, int alphamapResolution)
+    // Details use coverage scatter mode (what the world map's densities assume) at detailResolution per tile.
+    public static object Setup(string dataFolder, int tilesX, int tilesZ, float tileSize, float height, int heightmapResolution, int alphamapResolution, int detailResolution = 1024)
     {
         if (MicroVerse.instance != null) throw new InvalidOperationException("Scene already has a MicroVerse (" + MicroVerse.instance.name + ").");
-        if (!dataFolder.StartsWith(DataRoot)) throw new ArgumentException("dataFolder must be under " + DataRoot);
+        if (!DataRoots.Any(dataFolder.StartsWith)) throw new ArgumentException("dataFolder must be under " + string.Join(" or ", DataRoots));
         EnsureFolder(dataFolder);
         var root = new GameObject("MicroVerse");
         Undo.RegisterCreatedObjectUndo(root, "Create MicroVerse");
@@ -148,7 +153,8 @@ public static class MicroVerseKit
                 data.size = new Vector3(tileSize, height, tileSize);
                 data.baseMapResolution = 1024;
                 data.alphamapResolution = alphamapResolution;
-                data.SetDetailResolution(1024, data.detailResolutionPerPatch);
+                data.SetDetailScatterMode(DetailScatterMode.CoverageMode);
+                data.SetDetailResolution(detailResolution, data.detailResolutionPerPatch);
                 var path = AssetDatabase.GenerateUniqueAssetPath(dataFolder + "/Terrain_" + x + "_" + z + ".asset");
                 AssetDatabase.CreateAsset(data, path);
                 var go = Terrain.CreateTerrainGameObject(data);
@@ -311,6 +317,9 @@ public static class MicroVerseKit
         mv.SyncTerrainList();
         mv.Invalidate();
         mv.Modify(true, true);
+        // Modify doesn't clear the pending Invalidate, which would start a second, async rebuild on the next editor tick
+        // (double cost, and a SaveScene right after could catch vegetation mid-respawn).
+        typeof(MicroVerse).GetField("needUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.SetValue(mv, false);
         if (bake)
         {
             mv.SaveBackToTerrain(true);
@@ -338,17 +347,31 @@ public static class MicroVerseKit
         return new { northUp = rows };
     }
 
-    // Frames the Scene view for `unity command capture_scene_view`: looks from (x,y,z) with pitch/yaw, size = framing distance.
-    public static object View(float x, float y, float z, float pitch, float yaw, float size)
+    // Puts the Scene-view camera exactly at (x,y,z) looking along pitch/yaw, for `unity command screenshot --view scene`.
+    // aboveGround: y is metres above the terrain (1.7 = player eye). Gizmos off, sky/fog/effects on, HUD and Player hidden
+    // (scene visibility is per user, not saved in the scene).
+    public static object Look(float x, float y, float z, float pitch, float yaw, float fov = 60, bool aboveGround = true)
     {
         var view = SceneView.lastActiveSceneView;
         if (view == null) throw new InvalidOperationException("No Scene view open.");
-        var rot = Quaternion.Euler(pitch, yaw, 0);
+        var terrain = TerrainAt(new Vector3(x, 0, z));
+        if (aboveGround && terrain != null) y += terrain.SampleHeight(new Vector3(x, 0, z)) + terrain.transform.position.y;
         view.orthographic = false;
-        view.LookAtDirect(new Vector3(x, y, z) + rot * Vector3.forward * size, rot, size);
+        view.drawGizmos = false;
         view.sceneLighting = true;
-        view.Repaint();
-        return new { pivot = view.pivot.ToString(), size = view.size };
+        var state = view.sceneViewState;
+        state.showSkybox = true; state.showFog = true; state.showImageEffects = true;
+        var cs = view.cameraSettings;
+        cs.fieldOfView = fov; cs.dynamicClip = false; cs.nearClip = 0.3f; cs.farClip = 4000f;
+        foreach (var root in SceneManager.GetActiveScene().GetRootGameObjects())
+            if (root.name == "HUD" || root.name == "Player") SceneVisibilityManager.instance.Hide(root, true);
+        // SceneView.LookAt puts the camera a fov-dependent distance behind the pivot; aligning to a temp transform doesn't
+        var tmp = new GameObject("Look (temp)") { hideFlags = HideFlags.HideAndDontSave };
+        tmp.transform.SetPositionAndRotation(new Vector3(x, y, z), Quaternion.Euler(pitch, yaw, 0));
+        view.AlignViewToObject(tmp.transform);
+        UnityEngine.Object.DestroyImmediate(tmp);
+        SceneView.RepaintAll();
+        return new { camera = new Vector3(x, y, z).ToString("0.0"), pitch, yaw, fov };
     }
 
     // Frames the whole MicroVerse terrain set from above at an angle.
@@ -357,6 +380,7 @@ public static class MicroVerseKit
         var mv = RequireMicroVerse();
         var b = TerrainUtil.ComputeTerrainBounds(mv.terrains);
         var view = SceneView.lastActiveSceneView;
+        if (view == null) throw new InvalidOperationException("No Scene view open.");
         view.orthographic = false;
         view.LookAtDirect(b.center, Quaternion.Euler(pitch, yaw, 0), Mathf.Max(b.size.x, b.size.z) * 0.6f);
         view.sceneLighting = true;
@@ -370,7 +394,10 @@ public static class MicroVerseKit
         var scene = SceneManager.GetActiveScene();
         if (string.IsNullOrEmpty(path)) path = scene.path;
         if (string.IsNullOrEmpty(path)) throw new InvalidOperationException("Scene has never been saved; pass a path under Assets/_Game/Maps/<Map>/.");
-        EditorSceneManager.SaveScene(scene, path);  // MicroVerse syncs heights back to the terrains on scene save
+        if (MicroVerse.instance != null && MicroVerse.instance.IsModifyingTerrain) throw new InvalidOperationException("MicroVerse is still rebuilding; wait until Status shows modifying: false.");
+        EnsureFolder(System.IO.Path.GetDirectoryName(path).Replace('\\', '/'));
+        // MicroVerse syncs heights back to the terrains on scene save
+        if (!EditorSceneManager.SaveScene(scene, path)) throw new InvalidOperationException("Saving " + path + " failed (see the console).");
         if (MicroVerse.instance != null) SaveTerrainData(MicroVerse.instance);
         return new { saved = scene.path };
     }
@@ -438,7 +465,7 @@ public static class MicroVerseKit
         var candidates = AssetDatabase.FindAssets("t:ContentCollection")
             .Select(g => AssetDatabase.LoadAssetAtPath<ContentCollection>(AssetDatabase.GUIDToAssetPath(g)))
             .Where(c => c != null && c.contentType == ContentType.Height)
-            .SelectMany(c => c.contents.Select(cd => AssetDatabase.GUIDToAssetPath(cd.stamp)))
+            .SelectMany(c => Contents(c).Select(cd => AssetDatabase.GUIDToAssetPath(cd.stamp)))
             .Where(p => !string.IsNullOrEmpty(p)).Distinct().ToList();
         var exact = candidates.Where(p => string.Equals(System.IO.Path.GetFileNameWithoutExtension(p), query, StringComparison.OrdinalIgnoreCase)).ToList();
         var hits = exact.Count > 0 ? exact : candidates.Where(p => Contains(p, query)).ToList();
@@ -467,6 +494,9 @@ public static class MicroVerseKit
     }
 
     static bool Contains(string s, string part) => s != null && s.IndexOf(part, StringComparison.OrdinalIgnoreCase) >= 0;
+
+    // ContentCollection.contents isn't initialised, so an empty collection would throw
+    static IEnumerable<ContentData> Contents(ContentCollection c) => c.contents ?? Enumerable.Empty<ContentData>();
 
     static Terrain TerrainAt(Vector3 p)
     {
