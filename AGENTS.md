@@ -24,7 +24,10 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `tools-unity-object-pooling` | Anything that spawns repeatedly; temporary collections in hot paths |
 | `aipocalypse-enemy-ai` | Any enemy/companion/NPC movement or AI decision: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager`, A* `FollowerEntity`, navmesh, spawning |
 | `tools-unity-cinemachine` | Player camera rig, FOV, shake, extra cameras (Cinemachine 3 API) |
-| `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks) |
+| `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks; points to Feel's own skills) |
+| `tools-unity-broaudio` | Any sound, music or ambience: `AudioService`, `SoundID`s, BroAudio libraries (points to BroAudio's `CLAUDE.md`) |
+| `tools-unity-audio-tools` | Editing audio clips in the editor: trim, normalize, fade, export (points to Audio Tools' own skills) |
+| `tools-unity-text-studio` | Animated / typewriter text (Text Studio is Undecided: ask first; points to its own skills) |
 | `tools-unity-profiling` | Measuring or optimising performance, `Proto_Stress` |
 | `tools-unity-map-generation` | Building or changing a map: layout from a concept, generated heights/water/vegetation/boundary/dressing, rebuilds, map art packs and perf, and how MicroVerse is used here (the WorldMap generator; step runner and MicroVerse kit in `scripts/`) |
 | `tools-unity-stylized-water` | Any Stylized Water 3 work: water bodies, RiverModeler rivers, waterfalls, underwater, height queries, water materials and perf |

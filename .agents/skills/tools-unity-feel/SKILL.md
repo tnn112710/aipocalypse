@@ -13,6 +13,20 @@ Installed: **Feel** (MMF_Player era, v4+; no version string is shipped, so check
 
 Feedback catalog with project status: [references/feedbacks.md](references/feedbacks.md).
 
+## Feel's own skills (vendor how-to)
+
+Feel 6.1 ships agent skills in `Assets/_StoreAssets/GameFeel/Feel/Skills/`. No agent loads them on its own, so read the one that matches the task for menu paths, inspector steps and API detail. **This skill's rules win wherever they disagree:** check §2 before adding anything a vendor skill suggests.
+
+| Vendor skill | Read when | Here |
+| --- | --- | --- |
+| `feel-add-feedbacks/` (+ `references/feedback-catalog.md`) | Creating an MMF_Player, adding feedbacks, triggering from code / animation events / Timeline, loops, runtime changes, completion callbacks, target acquisition | Use, but skip its FreezeFrame / `MMTimeManager` and sound parts (§2, §5) |
+| `feel-screen-shake/` | Camera / Cinemachine / UI shake, zoom, fade, flash, shake accessibility toggle | Use with §3 (Cinemachine 3 impulses) |
+| `feel-post-processing-effects/` (+ `references/shaker-map.md`) | Pulsing vignette, bloom, chromatic aberration, lens distortion | Use the URP variants only (§4) |
+| `feel-springs/` (+ `references/spring-components.md`) | Bouncy / springy motion and values | Use (views and UI only, not crowd enemies, §6) |
+| `feel-custom-feedback/` (+ `references/shaker-pattern.md`) | Writing an `MMF_Feedback` subclass or a shaker | Use with §5 (bridges to our services through `FeedbackContext`) |
+| `feel-sound-manager/`, `feel-sound-and-playlist-setup/` | — | **Banned:** MMSoundManager. BroAudio owns audio (`tools-unity-broaudio`) |
+| `feel-haptics/` | — | **Not applicable:** Nice Vibrations not installed, PC only |
+
 ## 1. Where Feel fits in this architecture
 
 ARCHITECTURE.md: *"Feel / Damage Numbers Pro hook into `Health` and event subscribers, never into weapons directly."*
@@ -148,7 +162,7 @@ namespace Aipocalypse.Core.Feedback
 ```
 
 - Implemented: `_Core/_Common/Feedback/FeedbackContext.cs` exposes `TimeService` directly (no `ITimeScaleRequests` interface yet) and `MMF_HitStop.cs` calls `TimeService.RequestHitStop(duration, scale)` (real-time, pause beats hit stop, overlapping stops keep the longest time and lowest scale). Don't let a feedback or Feel's `MMTimeManager` own it.
-- **`MMF_BroSound`**, same shape: `[SerializeField] SoundID _sound;` and `CustomPlayFeedback` plays it at `position` through BroAudio (read `Assets/Plugins/BroAudio/CLAUDE.md`). If PLUGINS.md adds an audio service wrapper, go through `FeedbackContext` instead of the static facade.
+- **`MMF_BroSound`** (not built yet; write it when a feedback needs sound), same shape: `[SerializeField] SoundID _sound;` and `CustomPlayFeedback` calls `AudioService.PlayAt(_sound, position)` reached through `FeedbackContext` (add `AudioService` to it), never BroAudio's static facade (`tools-unity-broaudio`).
 - Override points (from `MMF_Feedback.cs`): `CustomInitialization(MMF_Player owner)`, `CustomPlayFeedback(position, intensity)` (abstract), `CustomStopFeedback`, `CustomSkipToTheEnd`, `CustomRestoreInitialValues`, `CustomReset`, `CustomPlayerComplete`, `FeedbackDuration`. Useful members: `Owner`, `Active`, `Timing`, `FeedbackTime` / `FeedbackDeltaTime` (respect the timescale mode), `InScaledTimescaleMode`, `NormalPlayDirection`, `ComputeIntensity(intensity, position)`.
 - Put custom feedbacks in `Assets/_Game/_Core/_Common/Feedback/` (Core) or a feature's folder. The asmdef references `MoreMountains.Tools`.
 
