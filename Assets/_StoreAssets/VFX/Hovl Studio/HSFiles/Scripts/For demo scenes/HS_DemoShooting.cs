@@ -36,9 +36,9 @@ namespace Hovl
 
         static Transform globalPoolRoot;
 
-        // key = prefab instance id, value = pool list
-        static readonly Dictionary<int, List<GameObject>> pools = new Dictionary<int, List<GameObject>>();
-        static readonly Dictionary<int, Transform> poolParents = new Dictionary<int, Transform>();
+        // key = prefab entity id, value = pool list
+        static readonly Dictionary<EntityId, List<GameObject>> pools = new Dictionary<EntityId, List<GameObject>>();
+        static readonly Dictionary<EntityId, Transform> poolParents = new Dictionary<EntityId, Transform>();
 
         void Awake()
         {
@@ -159,7 +159,7 @@ namespace Hovl
             if (prefab == null)
                 return null;
 
-            int prefabId = prefab.GetInstanceID();
+            EntityId prefabId = prefab.GetEntityId();
 
             if (!pools.TryGetValue(prefabId, out List<GameObject> pool))
             {
@@ -212,7 +212,7 @@ namespace Hovl
             return count;
         }
 
-        GameObject CreateProjectile(GameObject prefab, int prefabId)
+        GameObject CreateProjectile(GameObject prefab, EntityId prefabId)
         {
             Transform parent = GetOrCreatePoolParent(prefab, prefabId);
 
@@ -222,7 +222,7 @@ namespace Hovl
             return newProjectile;
         }
 
-        Transform GetOrCreatePoolParent(GameObject prefab, int prefabId)
+        Transform GetOrCreatePoolParent(GameObject prefab, EntityId prefabId)
         {
             if (poolParents.TryGetValue(prefabId, out Transform existingParent) && existingParent != null)
                 return existingParent;
