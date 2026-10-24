@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Last Change: 10/12/2026 1:45pm
+using System;
 using UnityEngine;
 
 namespace MalbersAnimations.SA
@@ -9,6 +10,7 @@ namespace MalbersAnimations.SA
     public class MRigidbodyFPSController : MonoBehaviour, IObjectCore, ICharacterMove
     {
         public Camera cam;
+        [Tooltip("Keep the cursor locked to the center of the screen and hidden. It is locked again if something releases it (e.g. Escape in the Editor)")]
         public bool LockCursor;
 
         public bool lockMovement = false;
@@ -34,19 +36,36 @@ namespace MalbersAnimations.SA
 
         public bool MovementDetected => throw new NotImplementedException();
 
+        /// <summary>Cache the components, apply the cursor lock and reset the mouse look</summary>
         private void Start()
         {
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
 
-            Cursor.lockState = LockCursor ? CursorLockMode.Locked : CursorLockMode.None;  // Lock or unlock the cursor.
-            Cursor.visible = !LockCursor;
+            ApplyCursorLock();
             RestartMouseLook();
         }
 
+        /// <summary>Lock or unlock the cursor and keep it that way</summary>
+        public virtual void SetCursorLock(bool value)
+        {
+            LockCursor = value;
+            ApplyCursorLock();
+        }
 
+        /// <summary>Apply the Lock Cursor value to the cursor</summary>
+        protected virtual void ApplyCursorLock()
+        {
+            Cursor.lockState = LockCursor ? CursorLockMode.Locked : CursorLockMode.None;  // Lock or unlock the cursor.
+            Cursor.visible = !LockCursor;
+        }
+
+        /// <summary>Keep the cursor lock, rotate the view and read the jump input</summary>
         private void Update()
         {
+            //The cursor can be released by something else (Escape in the Editor, losing focus). Lock it again
+            if (LockCursor && Cursor.lockState != CursorLockMode.Locked) ApplyCursorLock();
+
             RotateView();
 
 #if ENABLE_LEGACY_INPUT_MANAGER

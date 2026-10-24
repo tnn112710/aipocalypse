@@ -1,4 +1,5 @@
 using System;
+using ImpossibleRobert.Common;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -389,7 +390,7 @@ namespace TextStudio
                 Renderer.lightProbeUsage = LightProbeUsage.Off;
                 Renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
                 Renderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-                Renderer.allowOcclusionWhenDynamic = false;
+                Renderer.SetDynamicOcclusionCulling(false);
             }
 
             internal Mesh Mesh => _mesh;

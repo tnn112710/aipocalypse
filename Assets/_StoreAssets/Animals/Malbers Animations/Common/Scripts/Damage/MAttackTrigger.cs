@@ -1,4 +1,4 @@
-﻿// Last Change: 9/24/2026 1:16pm
+﻿// Last Change: 10/14/2026 2:45pm
 using UnityEngine;
 using UnityEngine.Events;
 using MalbersAnimations.Utilities;
@@ -131,6 +131,7 @@ namespace MalbersAnimations.Controller
         private void AttackTriggerEnter(GameObject newGo, Collider other, TriggerProxy proxy)
         {
             if (dontHitOwner && UserGo != null && other.transform.IsChildOf(UserGo.transform)) return;
+            if (dontHitAllies && UserGo != null && IsAlly(other.gameObject)) return;   //Dont hit your pack!
 
             var center = Trigger.bounds.center;
 
@@ -181,6 +182,7 @@ namespace MalbersAnimations.Controller
         private void AttackTriggerExit(GameObject newGo, Collider other, TriggerProxy proxy)
         {
             if (dontHitOwner && UserGo != null && other.transform.IsChildOf(UserGo.transform)) return;
+            if (dontHitAllies && UserGo != null && IsAlly(other.gameObject)) return;   //Dont hit your pack!
 
             TryDamage(other.GetComponentInParent<IMDamage>(), EnemyStatExit); //if the other doesn't have the Damageable Interface dont send the Damageable stuff
         }

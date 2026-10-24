@@ -28,6 +28,68 @@ namespace TextStudio.Editor
             bool recordUndo);
     }
 
+    /// <summary>Identifies TMP text input driven by an external authoring source without restricting its styling controls.</summary>
+    public interface ITextStudioTMPTextInputProvider
+    {
+        /// <summary>Names the authoring source shown beside read-only displayed text.</summary>
+        string SourceDisplayName { get; }
+        /// <summary>Reports whether this TMP component's text is owned by the provider's external source.</summary>
+        bool IsTextDriven(Component target);
+    }
+
+    /// <summary>Registers optional editor integrations that own a TMP target's displayed text.</summary>
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static class TextStudioTMPTextInputProviders
+    {
+        static readonly List<ITextStudioTMPTextInputProvider> s_providers =
+            new List<ITextStudioTMPTextInputProvider>();
+
+        public static void Register(ITextStudioTMPTextInputProvider provider)
+        {
+            if (provider == null)
+                throw new ArgumentNullException(nameof(provider));
+            if (!s_providers.Contains(provider))
+                s_providers.Add(provider);
+        }
+
+        public static void Unregister(ITextStudioTMPTextInputProvider provider)
+        {
+            if (provider != null)
+                s_providers.Remove(provider);
+        }
+
+        internal static bool TryGetProvider(
+            UnityEngine.Object[] targets,
+            out ITextStudioTMPTextInputProvider provider)
+        {
+            provider = null;
+            if (targets == null || targets.Length == 0)
+                return false;
+
+            for (int i = 0; i < s_providers.Count; i++)
+            {
+                ITextStudioTMPTextInputProvider candidate = s_providers[i];
+                bool allDriven = true;
+                for (int j = 0; j < targets.Length; j++)
+                {
+                    if (targets[j] is not TMP_Text text || text == null || !candidate.IsTextDriven(text))
+                    {
+                        allDriven = false;
+                        break;
+                    }
+                }
+                if (!allDriven)
+                    continue;
+
+                provider = candidate;
+                return true;
+            }
+            return false;
+        }
+    }
+
 #if UNITY_6000_7_OR_NEWER
     [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
 #endif
@@ -40,6 +102,14 @@ namespace TextStudio.Editor
         static readonly GUIContent s_addMultipleContent = new GUIContent(
             "Add Text Studio",
             "Add TextStudioText hubs to selected TextMeshPro objects that do not have one yet.");
+
+        static readonly GUIContent s_drivenTextContent = new GUIContent("Displayed Text");
+        static readonly GUIContent s_rightToLeftContent = new GUIContent(
+            "Right To Left",
+            "Use TextMeshPro's right-to-left text layout.");
+        static readonly GUIContent s_textStyleContent = new GUIContent(
+            "Text Style",
+            "Apply a TextMeshPro style from the assigned style sheet.");
 
         static readonly List<TMP_Text> s_missingTargets = new List<TMP_Text>(8);
         static List<ITextStudioTMPSetupProvider> s_setupProviders;
@@ -78,6 +148,57 @@ namespace TextStudio.Editor
 
             if (s_missingTargets.Count > 0)
                 DrawSetupControls(s_missingTargets);
+        }
+
+        internal static bool DrawDrivenTextInput(
+            SerializedProperty text,
+            SerializedProperty rightToLeft,
+            SerializedProperty styleHash,
+            GUIContent[] styleNames,
+            IReadOnlyList<TMP_Style> styles,
+            Dictionary<int, int> styleIndexes,
+            ITextStudioTMPTextInputProvider provider)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_drivenTextContent, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "Driven by " + provider.SourceDisplayName + ". Change displayed text at its source.",
+                EditorStyles.wordWrappedMiniLabel);
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.PropertyField(text, GUIContent.none);
+
+            EditorGUILayout.PropertyField(rightToLeft, s_rightToLeftContent);
+            if (styleHash == null || styleNames == null || styles == null || styles.Count == 0)
+                return false;
+
+            styleIndexes.TryGetValue(styleHash.intValue, out int selectedStyle);
+            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            EditorGUI.BeginProperty(rect, s_textStyleContent, styleHash);
+            bool previousMixed = EditorGUI.showMixedValue;
+            EditorGUI.showMixedValue = styleHash.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            selectedStyle = EditorGUI.Popup(rect, s_textStyleContent, selectedStyle, styleNames);
+            bool changed = EditorGUI.EndChangeCheck();
+            EditorGUI.showMixedValue = previousMixed;
+            EditorGUI.EndProperty();
+            if (!changed || selectedStyle < 0 || selectedStyle >= styles.Count)
+                return false;
+
+            styleHash.intValue = styles[selectedStyle].hashCode;
+            return true;
+        }
+
+        internal static void RefreshDrivenTextStyles(UnityEngine.Object[] targets)
+        {
+            // Serialized style changes also need TMP's public setter to refresh its cached style and layout.
+            for (int i = 0; i < targets.Length; i++)
+            {
+                if (targets[i] is TMP_Text text && text != null)
+                {
+                    TMP_Style style = text.textStyle;
+                    text.textStyle = style;
+                }
+            }
         }
 
         static void CollectMissingTargets(

@@ -14,7 +14,7 @@ struct TextStudio2DGpuTextUniform
 Texture2D<float4> _TextStudio2DTextUniformsData;
 TextStudio2DGpuTextUniform TextStudioLoadTextUniform(uint slot)
 {
-    int texel = (int)slot * 2;
+    int texel = (int)TextStudioTableRecord((int)slot, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.w) * 2;
     TextStudio2DGpuTextUniform record;
     record.timeAndProgress = _TextStudio2DTextUniformsData.Load(int3(texel & 1023, texel >> 10, 0));
     texel++;
@@ -24,7 +24,10 @@ TextStudio2DGpuTextUniform TextStudioLoadTextUniform(uint slot)
 #else
 StructuredBuffer<TextStudio2DGpuTextUniform>
     _TextStudio2DTextUniforms;
-TextStudio2DGpuTextUniform TextStudioLoadTextUniform(uint slot) { return _TextStudio2DTextUniforms[slot]; }
+TextStudio2DGpuTextUniform TextStudioLoadTextUniform(uint slot)
+{
+    return _TextStudio2DTextUniforms[TextStudioTableRecord((int)slot, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.w)];
+}
 #endif
 float _TextStudio2DVisualModifiersEnabled;
 #endif

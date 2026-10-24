@@ -1,4 +1,4 @@
-// Last Change: 9/19/2026 3:44pm
+// Last Change: 10/16/2026 9:45am
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -125,7 +125,7 @@ namespace MalbersAnimations.IK
             if (position)
             {
                 animator.SetIKPositionWeight(goal, weight);
-                animator.SetIKPosition(goal, TargetGoal.TransformPoint(OffsetP));
+                animator.SetIKPosition(goal, TargetGoal.TransformPoint(OffsetP * OffsetScale(set))); //IK Manager Scale Multiplier
             }
             if (rotation)
             {
@@ -144,7 +144,7 @@ namespace MalbersAnimations.IK
                     HintIKPose = HintBoneT.localToWorldMatrix; //Pose the Scene View handle must use (see IKPoseCached)
                     IKPoseCached = true;
 
-                    var HintPosition = HintIKPose.MultiplyPoint3x4(OffsetH);
+                    var HintPosition = HintIKPose.MultiplyPoint3x4(OffsetH * OffsetScale(set));
 
                     animator.SetIKHintPositionWeight(HintGoal, weight);
                     animator.SetIKHintPosition(HintGoal, HintPosition);
@@ -214,19 +214,22 @@ namespace MalbersAnimations.IK
                 }
             }
 
+            //The Handles show the scaled offsets and a drag is divided back, so the stored values stay unscaled
+            var scale = OffsetScale(set);
+
             if (Tools.current == Tool.Move)
             {
                 var Rotation = Tools.pivotRotation == PivotRotation.Local ? TargetGoal.rotation : Quaternion.identity;
 
                 using (var cc = new EditorGUI.ChangeCheckScope())
                 {
-                    Vector3 piv = TargetGoal.TransformPoint(OffsetP);
+                    Vector3 piv = TargetGoal.TransformPoint(OffsetP * scale);
                     Vector3 NewPos = Handles.PositionHandle(piv, Rotation);
 
                     if (cc.changed)
                     {
                         Undo.RecordObject(Target, "Change Pos");
-                        OffsetP = TargetGoal.InverseTransformPoint(NewPos);
+                        OffsetP = TargetGoal.InverseTransformPoint(NewPos) / scale;
                         EditorUtility.SetDirty(Target);
                     }
                 }
@@ -240,13 +243,13 @@ namespace MalbersAnimations.IK
 
                     using (var cc = new EditorGUI.ChangeCheckScope())
                     {
-                        Vector3 HintPiv = hintPose.MultiplyPoint3x4(OffsetH);
+                        Vector3 HintPiv = hintPose.MultiplyPoint3x4(OffsetH * scale);
                         Vector3 NewHint = Handles.PositionHandle(HintPiv, HintRotation);
 
                         if (cc.changed)
                         {
                             Undo.RecordObject(Target, "Change Hint");
-                            OffsetH = hintPose.inverse.MultiplyPoint3x4(NewHint);
+                            OffsetH = hintPose.inverse.MultiplyPoint3x4(NewHint) / scale;
                             EditorUtility.SetDirty(Target);
                         }
                     }

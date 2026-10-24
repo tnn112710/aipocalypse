@@ -45,6 +45,16 @@ namespace TextStudio
         // Every dirty tick resolves the behavior settings once for both the runtime configuration and the default effects.
         void SyncBehaviorConfiguration()
         {
+            // Without a profile or typewriter source the resolved typewriter settings are the no-typewriter constant and the
+            // default effects are the inline ones, which is what the general resolution below returns for them.
+            if (_behaviorProfile == null && _typewriterSource == TextStudioTypewriterSource.None)
+            {
+                SyncRuntimeConfiguration(CreateNoTypewriterSettings());
+                ApplyDefaultEffects(GetInlineDefaultEffectSettings());
+                RecordBehaviorProfileSync();
+                return;
+            }
+
             TextStudioResolvedBehaviorSettings behavior = ResolveBehaviorSettings();
             SyncRuntimeConfiguration(behavior.Typewriter.Resolve());
             ApplyDefaultEffects(behavior.DefaultEffects);
@@ -53,7 +63,10 @@ namespace TextStudio
 
         void ApplyDefaultEffects()
         {
-            ApplyDefaultEffects(ResolveBehaviorSettings().DefaultEffects);
+            // Without a profile the resolved default effects are the inline ones.
+            ApplyDefaultEffects(_behaviorProfile == null
+                ? GetInlineDefaultEffectSettings()
+                : ResolveBehaviorSettings().DefaultEffects);
         }
 
         void ApplyDefaultEffects(TextStudioDefaultEffectSettings settings)
@@ -118,7 +131,11 @@ namespace TextStudio
 
         TextStudioTypewriterSettings ResolveTypewriterSettings()
         {
-            return ResolveTypewriterRecipe().Resolve();
+            if (_behaviorProfile != null && _behaviorProfile.Provides(TextStudioBehaviorDomain.Typewriter))
+                return _behaviorProfile.Typewriter.Resolve();
+            if (_typewriterSource == TextStudioTypewriterSource.None)
+                return CreateNoTypewriterSettings();
+            return GetLocalTypewriterRecipe().Resolve();
         }
 
         // Every tick checks the writing style, so read only the recipe fields Resolve() would copy into WritingEnabled and WritingStyle.
@@ -166,7 +183,9 @@ namespace TextStudio
 
         TextStudioTypewriterRecipe ResolveTypewriterRecipe()
         {
-            return ResolveBehaviorSettings().Typewriter;
+            return _behaviorProfile != null && _behaviorProfile.Provides(TextStudioBehaviorDomain.Typewriter)
+                ? _behaviorProfile.Typewriter
+                : GetLocalTypewriterRecipe();
         }
 
         TextStudioTypewriterRecipe GetLocalTypewriterRecipe()
@@ -265,6 +284,9 @@ namespace TextStudio
 
         bool EnsureInlineTypewriterSource()
         {
+            // Every typewriter setter starts here, and some change settings without marking the runtime dirty; the next full
+            // tick's SyncBehaviorConfiguration applies them.
+            EndSteadyLane();
             if (_typewriterSource == TextStudioTypewriterSource.Inline)
                 return true;
 
@@ -347,13 +369,17 @@ namespace TextStudio
 
         bool ProcessPipeline()
         {
-            bool changed = _runtime.ProcessPipeline(
-                !Application.isPlaying && !Preview.IsPlaying && !Preview.IsScrubbing,
-                IsRenderingRawExternalOutput,
-                _markupSyntaxOverride);
-            _preview?.ConfigureRevealActiveBlendForCurrentLifecycleInternal();
-            EnsureAppearancePlanCurrent();
-            return changed;
+            using (PipelineProfilerMarker.Auto())
+            {
+                _runtime.RefreshTextProjectionBackend(_activeTextBackend as ITextStudioTextProjectionBackend);
+                bool changed = _runtime.ProcessPipeline(
+                    !Application.isPlaying && !Preview.IsPlaying && !Preview.IsScrubbing,
+                    IsRenderingRawExternalOutput,
+                    _markupSyntaxOverride);
+                _preview?.ConfigureRevealActiveBlendForCurrentLifecycleInternal();
+                EnsureAppearancePlanCurrent();
+                return changed;
+            }
         }
 
         void SyncValidatedTextImmediate()

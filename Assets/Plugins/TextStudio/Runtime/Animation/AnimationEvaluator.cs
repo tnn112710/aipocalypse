@@ -18,6 +18,10 @@ namespace TextStudio
     {
         static readonly Dictionary<int, EvaluatedGlyphState[]> s_persistentIdentityStates =
             new Dictionary<int, EvaluatedGlyphState[]>();
+        // Read-only identity states that Initialize publishes until a write copies them (EnsureWritableStates).
+        static readonly Dictionary<int, EvaluatedGlyphState[]> s_identityStates =
+            new Dictionary<int, EvaluatedGlyphState[]>();
+        const int MaximumSharedIdentityCapacity = 4096;
 #if UNITY_6000_7_OR_NEWER
         [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
 #endif
@@ -59,6 +63,10 @@ namespace TextStudio
         float[] _glyphEffectDelays;
         TextStudioEffectUnitContext[] _glyphEffectUnits;
         bool[] _glyphEffectReusesPreviousContext;
+        // The bound effect, glyph and unit of every binding entry the counting pass resolved, in fill order.
+        int[] _resolvedLookupBindings = Array.Empty<int>();
+        int[] _resolvedLookupGlyphs = Array.Empty<int>();
+        TextStudioEffectUnitContext[] _resolvedLookupUnits = Array.Empty<TextStudioEffectUnitContext>();
         bool _glyphEffectLookupDirty = true;
         bool _hasUniformSinglePersistentEffect;
         bool _hasSharedPersistentTiming;
@@ -217,6 +225,9 @@ namespace TextStudio
             public TextStudioEffectCapabilities capabilities;
             public bool appliesToPersistentPhase;
             public bool writesRenderProperties;
+            // A built-in transition effect at full influence without scope, envelope or blend group: in Reveal and Hide
+            // phases it evaluates from its timing alone (CodeEffectBase.EvaluateTransitionFast).
+            public bool transitionFastPath;
             public int phaseBlendGroupId;
             public float revealActiveBlendDuration;
             public TextStudioPhaseMask revealActiveBlendPhaseMask;
@@ -315,10 +326,28 @@ namespace TextStudio
                 _statesAreShared = capacity > 0;
                 _resetSharedStatesOnWrite = _statesAreShared;
             }
-            else if (_states == null || _states.Length < glyphCount)
+            else
             {
-                _states = new EvaluatedGlyphState[TextStudioBufferCapacity.ForCount(glyphCount)];
-                _resetSharedStatesOnWrite = false;
+                // Every state starts as identity, so text that is never evaluated, such as plain TMP pass-through text, reads a
+                // shared identity array instead of allocating and filling its own. The first write resets an owned array to the
+                // identity states this branch used to write (EnsureWritableStates), reusing the array this evaluator already owns.
+                // Long text keeps owned states, so the shared arrays stay small.
+                int capacity = _states != null && _states.Length >= glyphCount
+                    ? _states.Length
+                    : TextStudioBufferCapacity.ForCount(glyphCount);
+                if (capacity <= MaximumSharedIdentityCapacity)
+                {
+                    if (_states != null && _states.Length > 0)
+                        _writableStates = _states;
+                    _states = GetIdentityStates(capacity);
+                    _statesAreShared = capacity > 0;
+                    _resetSharedStatesOnWrite = _statesAreShared;
+                }
+                else if (_states == null || _states.Length < glyphCount)
+                {
+                    _states = new EvaluatedGlyphState[capacity];
+                    _resetSharedStatesOnWrite = false;
+                }
             }
 
             _stateCount = glyphCount;
@@ -628,54 +657,340 @@ namespace TextStudio
                 EffectBindingGeneration++;
             }
 
-            if (plan.EffectBindings == null) return;
-
-            for (int i = 0; i < plan.EffectBindingCount; i++)
+            _boundPlan = null;
+            BeginEvaluatorReuse();
+            if (plan.EffectBindings == null)
             {
-                ref EffectBinding binding = ref plan.EffectBindings[i];
+                EndEvaluatorReuse();
+                return;
+            }
 
-                ITextStudioEffect boundEffect = binding.effect;
-                if (boundEffect == null &&
-                         TextStudioEffects.TryCreate(
-                             binding.effectId,
-                             in binding.parameters,
-                             out ITextStudioEffect createdEffect))
-                {
-                    boundEffect = createdEffect;
-                }
+            _boundEffectsExtendable = true;
+            for (int i = 0; i < plan.EffectBindingCount; i++)
+                BindPlanEffect(plan, i);
+            EndEvaluatorReuse();
+            BuildGlyphEffectLookup(plan);
+            RecordBoundPlan(plan);
+        }
 
-                if (boundEffect != null)
+        /// <summary>
+        /// Binds the effect bindings an appended markup compile added from <paramref name="keptBindingCount"/> on, keeping
+        /// the effects bound for the bindings before, when <see cref="BindEffects"/> would bind those to the same objects:
+        /// it reuses every evaluator it created for them in order, while their bindings and the glyphs before
+        /// <paramref name="keptGlyphCount"/> are unchanged in the plan of version <paramref name="baseSourceVersion"/> they
+        /// were bound from. The glyph lookup keeps the entries of those glyphs when no kept effect reads segmentation that the
+        /// append can change. Returns false, changing nothing, when <see cref="BindEffects"/> must run instead.
+        /// </summary>
+        internal bool TryBindAppendedEffects(
+            TextStudioCompiledPlan plan,
+            int keptBindingCount,
+            int keptGlyphCount,
+            uint baseSourceVersion)
+        {
+            if (!_boundEffectsExtendable ||
+                !ReferenceEquals(plan, _boundPlan) ||
+                plan.EffectBindings == null ||
+                _boundPlanSourceVersion != baseSourceVersion ||
+                _boundPlanBindingCount != keptBindingCount ||
+                keptBindingCount > plan.EffectBindingCount ||
+                _rendererDeferredBoundEffectCount != 0 ||
+                _reusableEvaluatorCount != 0)
+            {
+                return false;
+            }
+
+            for (int i = keptBindingCount; i < plan.EffectBindingCount; i++)
+            {
+                if (plan.EffectBindings[i].selectorScope != null)
+                    return false;
+            }
+
+            bool extendsLookup =
+                _lookupGeneration == EffectBindingGeneration &&
+                !_lookupStale &&
+                keptGlyphCount <= _lookupGlyphCount &&
+                _allBoundEffectsKeepAppendedLookup;
+            unchecked
+            {
+                EffectBindingGeneration++;
+            }
+
+            // What ClearBoundEffects resets besides the bound effects themselves; the lookup computes the rest again.
+            _evaluatedStatesAreUniform = false;
+            _hasEvaluatedSinglePersistentFrame = false;
+            _hasUniformSinglePersistentEffect = false;
+            _hasSharedPersistentTiming = false;
+            _hasUniformPersistentState = false;
+            // A rebind takes each evaluator it created before for the same kept binding, in creation order, and resets it.
+            for (int i = 0; i < _createdEvaluatorCount; i++)
+                _createdEvaluators[i].evaluator.Reset();
+            ReusedEvaluatorCount = _createdEvaluatorCount;
+            // A rebind resolves capabilities again, which a changed render property registration can change.
+            if (_boundRenderPropertyRegistrationVersion != TextStudioRenderPropertyRegistry.RegistrationVersion)
+                RefreshBoundEffectCapabilities();
+
+            int firstAppendedEffect = _boundEffectCount;
+            for (int i = keptBindingCount; i < plan.EffectBindingCount; i++)
+                BindPlanEffect(plan, i);
+            if (extendsLookup)
+                BuildAppendedGlyphEffectLookup(plan, keptGlyphCount, firstAppendedEffect);
+            else
+                BuildGlyphEffectLookup(plan);
+            RecordBoundPlan(plan);
+            return true;
+        }
+
+        // The plan bindings the bound effects were bound from, which TryBindAppendedEffects extends.
+        TextStudioCompiledPlan _boundPlan;
+        uint _boundPlanSourceVersion;
+        int _boundPlanBindingCount;
+        int _boundRenderPropertyRegistrationVersion;
+        // Whether a rebind would bind every bound effect to the same object: the binding's own effect, no effect, or a
+        // reusable code evaluator this evaluator created; selector members also depend on the unit count.
+        bool _boundEffectsExtendable;
+        // Every bound effect resolves its glyph units from its own range and times them without word or line offsets, so an
+        // append that keeps the glyphs before it keeps their lookup entries.
+        bool _allBoundEffectsKeepAppendedLookup = true;
+        uint _lookupGeneration;
+        int _lookupGlyphCount;
+        bool _lookupStale;
+
+        void RecordBoundPlan(TextStudioCompiledPlan plan)
+        {
+            _boundPlan = plan;
+            _boundPlanSourceVersion = plan.SourceVersion;
+            _boundPlanBindingCount = plan.EffectBindingCount;
+            _boundRenderPropertyRegistrationVersion = TextStudioRenderPropertyRegistry.RegistrationVersion;
+        }
+
+        void BindPlanEffect(TextStudioCompiledPlan plan, int i)
+        {
+            ref EffectBinding binding = ref plan.EffectBindings[i];
+
+            ITextStudioEffect boundEffect = binding.effect ?? CreateOrReuseEvaluator(in binding);
+            if (binding.selectorScope != null ||
+                binding.effect == null && boundEffect != null && !_lastEvaluatorIsReusable)
+            {
+                _boundEffectsExtendable = false;
+            }
+
+            if (boundEffect != null)
+            {
+                bool[] selectorMembers = ResolveEffectSelector(in binding, plan);
+                AddBoundEffect(new BoundEffect
                 {
-                    bool[] selectorMembers = ResolveEffectSelector(in binding, plan);
-                    AddBoundEffect(new BoundEffect
-                    {
-                        effect = boundEffect,
-                        sourceBindingIndex = i,
-                        glyphStart = binding.glyphStart,
-                        glyphEnd = binding.glyphStart + binding.glyphCount,
-                        forcePhase = binding.phase,
-                        phaseMask = binding.phaseMask,
-                        phaseParams = binding.phaseParams,
-                        phaseSpeed = Mathf.Max(0.01f, binding.phaseParams.speed),
-                        intensity = Mathf.Clamp01(binding.intensity),
-                        timeOffset = binding.timeOffset,
-                        area = binding.area.Equals(default)
-                            ? boundEffect.DefaultArea
-                            : binding.area,
-                        sequence = binding.sequence.Equals(default)
-                            ? TextStudioSequenceSettings.Unstaggered
-                            : binding.sequence,
-                        phaseBlendGroupId = binding.phaseBlendGroupId,
-                        revealActiveBlendDuration = binding.revealActiveBlendDuration,
-                        revealActiveBlendPhaseMask = binding.revealActiveBlendPhaseMask,
-                        revealActiveBlendTimeOffset = binding.revealActiveBlendTimeOffset,
-                        scope = binding.scope,
-                        selectorMembers = selectorMembers,
-                        envelope = binding.envelope
-                    });
+                    effect = boundEffect,
+                    sourceBindingIndex = i,
+                    glyphStart = binding.glyphStart,
+                    glyphEnd = binding.glyphStart + binding.glyphCount,
+                    forcePhase = binding.phase,
+                    phaseMask = binding.phaseMask,
+                    phaseParams = binding.phaseParams,
+                    phaseSpeed = Mathf.Max(0.01f, binding.phaseParams.speed),
+                    intensity = Mathf.Clamp01(binding.intensity),
+                    timeOffset = binding.timeOffset,
+                    area = binding.area.Equals(default)
+                        ? boundEffect.DefaultArea
+                        : binding.area,
+                    sequence = binding.sequence.Equals(default)
+                        ? TextStudioSequenceSettings.Unstaggered
+                        : binding.sequence,
+                    phaseBlendGroupId = binding.phaseBlendGroupId,
+                    revealActiveBlendDuration = binding.revealActiveBlendDuration,
+                    revealActiveBlendPhaseMask = binding.revealActiveBlendPhaseMask,
+                    revealActiveBlendTimeOffset = binding.revealActiveBlendTimeOffset,
+                    scope = binding.scope,
+                    selectorMembers = selectorMembers,
+                    envelope = binding.envelope
+                });
+            }
+        }
+
+        // A detached evaluator created for an effect id, kept for the next rebind of an equal invocation.
+        struct CreatedEvaluator
+        {
+            public string effectId;
+            public ITextStudioEffectDefinition definition;
+            public TextStudioTagParameters parameters;
+            public AnimationPhase phase;
+            public CodeEffectBase evaluator;
+        }
+
+        // The previous binding generation's evaluators, offered to this one, and the evaluators this one created.
+        CreatedEvaluator[] _reusableEvaluators = Array.Empty<CreatedEvaluator>();
+        int _reusableEvaluatorCount;
+        CreatedEvaluator[] _createdEvaluators = Array.Empty<CreatedEvaluator>();
+        int _createdEvaluatorCount;
+
+        // Evaluators the last BindEffects reused instead of creating.
+        internal int ReusedEvaluatorCount { get; private set; }
+
+        void BeginEvaluatorReuse()
+        {
+            (_reusableEvaluators, _createdEvaluators) = (_createdEvaluators, _reusableEvaluators);
+            _reusableEvaluatorCount = _createdEvaluatorCount;
+            _createdEvaluatorCount = 0;
+            ReusedEvaluatorCount = 0;
+        }
+
+        void EndEvaluatorReuse()
+        {
+            if (_reusableEvaluatorCount > 0)
+                Array.Clear(_reusableEvaluators, 0, _reusableEvaluatorCount);
+            _reusableEvaluatorCount = 0;
+        }
+
+        // An explicit refresh re-resolves definitions, so the next rebind creates every evaluator again.
+        internal void DiscardReusableEvaluators()
+        {
+            if (_createdEvaluatorCount > 0)
+                Array.Clear(_createdEvaluators, 0, _createdEvaluatorCount);
+            _createdEvaluatorCount = 0;
+            _boundEffectsExtendable = false;
+        }
+
+        // Every text change rebinds its effects, and creating each evaluator cloned its definition and parsed its
+        // parameters again. A CodeEffectBase evaluator is a stateless clone of its registered definition with the
+        // invocation's parameters applied, so one of the previous generation from the same definition, id, parameters and
+        // phase is the evaluator a new clone would be. Code Effect assets and other evaluators may hold per-glyph state and
+        // are always created.
+        // Whether the evaluator the last CreateOrReuseEvaluator returned is one the next rebind reuses.
+        bool _lastEvaluatorIsReusable;
+
+        ITextStudioEffect CreateOrReuseEvaluator(in EffectBinding binding)
+        {
+            _lastEvaluatorIsReusable = false;
+            if (!TextStudioEffects.TryGetDefinition(binding.effectId, out ITextStudioEffectDefinition definition) ||
+                definition == null)
+            {
+                return null;
+            }
+
+            ITextStudioEffect effect = TakeReusableEvaluator(binding.effectId, definition, in binding.parameters, binding.phase);
+            if (effect != null)
+            {
+                ReusedEvaluatorCount++;
+                effect.Reset();
+            }
+            else if (!TextStudioEffects.TryCreate(definition, in binding.parameters, out effect))
+            {
+                return null;
+            }
+
+            if (definition is CodeEffectBase && effect is CodeEffectBase evaluator)
+            {
+                if (_createdEvaluators.Length <= _createdEvaluatorCount)
+                    Array.Resize(ref _createdEvaluators, Math.Max(4, _createdEvaluators.Length * 2));
+                _createdEvaluators[_createdEvaluatorCount++] = new CreatedEvaluator
+                {
+                    effectId = binding.effectId,
+                    definition = definition,
+                    parameters = binding.parameters,
+                    phase = binding.phase,
+                    evaluator = evaluator
+                };
+                _lastEvaluatorIsReusable = true;
+            }
+            else if (ReferenceEquals(effect, definition))
+            {
+                // A definition that is not a factory is its own evaluator in every rebind.
+                _lastEvaluatorIsReusable = true;
+            }
+
+            return effect;
+        }
+
+        CodeEffectBase TakeReusableEvaluator(
+            string effectId,
+            ITextStudioEffectDefinition definition,
+            in TextStudioTagParameters parameters,
+            AnimationPhase phase)
+        {
+            if (!(definition is CodeEffectBase))
+                return null;
+
+            // Unchanged texts bind in the same order, so the evaluator at this creation index matches first.
+            int preferred = _createdEvaluatorCount;
+            if (preferred < _reusableEvaluatorCount &&
+                IsReusableFor(in _reusableEvaluators[preferred], effectId, definition, in parameters, phase))
+            {
+                return TakeReusableEvaluatorAt(preferred);
+            }
+
+            for (int i = 0; i < _reusableEvaluatorCount; i++)
+            {
+                if (i != preferred &&
+                    IsReusableFor(in _reusableEvaluators[i], effectId, definition, in parameters, phase))
+                {
+                    return TakeReusableEvaluatorAt(i);
                 }
             }
-            BuildGlyphEffectLookup(plan);
+
+            return null;
+        }
+
+        CodeEffectBase TakeReusableEvaluatorAt(int index)
+        {
+            CodeEffectBase evaluator = _reusableEvaluators[index].evaluator;
+            _reusableEvaluators[index] = default;
+            return evaluator;
+        }
+
+        static bool IsReusableFor(
+            in CreatedEvaluator candidate,
+            string effectId,
+            ITextStudioEffectDefinition definition,
+            in TextStudioTagParameters parameters,
+            AnimationPhase phase)
+        {
+            return candidate.evaluator != null &&
+                   ReferenceEquals(candidate.definition, definition) &&
+                   candidate.phase == phase &&
+                   string.Equals(candidate.effectId, effectId, StringComparison.Ordinal) &&
+                   HaveSameValues(in candidate.parameters, in parameters);
+        }
+
+        static bool HaveSameValues(in TextStudioTagParameters left, in TextStudioTagParameters right)
+        {
+            int positionalCount = left.PositionalCount;
+            int namedCount = left.NamedCount;
+            if (positionalCount != right.PositionalCount ||
+                namedCount != right.NamedCount ||
+                !string.Equals(left.Raw, right.Raw, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (positionalCount > 0)
+            {
+                IReadOnlyList<string> leftPositional = left.Positional;
+                IReadOnlyList<string> rightPositional = right.Positional;
+                for (int i = 0; i < positionalCount; i++)
+                {
+                    if (!string.Equals(leftPositional[i], rightPositional[i], StringComparison.Ordinal))
+                        return false;
+                }
+            }
+
+            if (namedCount > 0)
+            {
+                IReadOnlyList<TextStudioNamedTagParameter> leftNamed = left.Named;
+                IReadOnlyList<TextStudioNamedTagParameter> rightNamed = right.Named;
+                for (int i = 0; i < namedCount; i++)
+                {
+                    TextStudioNamedTagParameter a = leftNamed[i];
+                    TextStudioNamedTagParameter b = rightNamed[i];
+                    if (a.IsFlag != b.IsFlag ||
+                        a.Operation != b.Operation ||
+                        !string.Equals(a.Name, b.Name, StringComparison.Ordinal) ||
+                        !string.Equals(a.Value, b.Value, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         bool[] ResolveEffectSelector(in EffectBinding binding, TextStudioCompiledPlan plan)
@@ -728,6 +1043,8 @@ namespace TextStudio
                 revealActiveBlendTimeOffset = 0f
             });
             _glyphEffectLookupDirty = true;
+            _lookupStale = true;
+            _boundEffectsExtendable = false;
         }
 
         void ClearBoundEffects()
@@ -740,6 +1057,7 @@ namespace TextStudio
             _settledOutputBoundEffectCount = 0;
             _allBoundEffectsApplyToPersistentPhase = true;
             _allBoundEffectsSupportPersistentFastPath = true;
+            _allBoundEffectsKeepAppendedLookup = true;
             _hasUniformSinglePersistentEffect = false;
             _hasSharedPersistentTiming = false;
             _hasUniformPersistentState = false;
@@ -756,6 +1074,13 @@ namespace TextStudio
                  effect.forcePhase == AnimationPhase.Persistent) &&
                 IncludesPhase(effect.phaseMask, AnimationPhase.Persistent);
             effect.writesRenderProperties = !(effect.effect is CodeEffectBase code) || code.WritesPersistentRenderProperties;
+            effect.transitionFastPath =
+                effect.effect is CodeEffectBase transitionEffect &&
+                transitionEffect.SupportsTransitionFastPath &&
+                effect.scope == null &&
+                effect.envelope == null &&
+                effect.intensity >= 1f &&
+                effect.phaseBlendGroupId == 0;
             if (ChangesSettledOutput(in effect))
                 _settledOutputBoundEffectCount++;
             _allBoundEffectsApplyToPersistentPhase &=
@@ -766,6 +1091,14 @@ namespace TextStudio
                 effect.envelope == null &&
                 effect.effect is CodeEffectBase codeEffect &&
                 codeEffect.SupportsPersistentFastPath;
+            // Word, line and paragraph units and word or line offsets read segmentation, which the segmentation after an append
+            // can give other values for earlier glyphs: a word joined across the boundary, or a line break's unassigned line slot.
+            _allBoundEffectsKeepAppendedLookup &=
+                effect.area.Mode != TextStudioEffectAreaMode.Word &&
+                effect.area.Mode != TextStudioEffectAreaMode.Line &&
+                effect.area.Mode != TextStudioEffectAreaMode.Paragraph &&
+                effect.phaseParams.wordOffset == 0f &&
+                effect.phaseParams.lineOffset == 0f;
             if (_boundEffects == null || _boundEffects.Length <= _boundEffectCount)
             {
                 int capacity = _boundEffects == null ? 8 : _boundEffects.Length * 2;
@@ -817,6 +1150,7 @@ namespace TextStudio
                     _settledOutputBoundEffectCount++;
 
             _glyphEffectLookupDirty = true;
+            _lookupStale = true;
             _hasUniformSinglePersistentEffect = false;
             _hasSharedPersistentTiming = false;
             _hasUniformPersistentState = false;
@@ -1038,6 +1372,7 @@ namespace TextStudio
 
             _allEvaluatedGlyphsDirty = _stateCount > 0;
             BeginRenderPropertyEvaluation();
+            bool fullMotion = TextStudioMotionSettings.Resolve(_motionPolicy) == TextStudioMotionPolicy.Full;
 
             for (int i = 0; i < _stateCount; i++)
             {
@@ -1073,10 +1408,13 @@ namespace TextStudio
                         out hiddenByVisibilityOverride);
                     if (!hasVisibilityOverride)
                     {
-                        phase = reveal != null
-                            ? reveal.GetGlyphPhase(i, _time)
-                            : AnimationPhase.Persistent;
-                        phaseProgress = GetPhaseProgress(reveal, i, phase);
+                        if (reveal != null)
+                            reveal.GetGlyphPhaseAndProgress(i, out phase, out phaseProgress);
+                        else
+                        {
+                            phase = AnimationPhase.Persistent;
+                            phaseProgress = 1f;
+                        }
                     }
 
                     if (overridePersistentPhaseProgress && phase == AnimationPhase.Persistent)
@@ -1305,7 +1643,32 @@ namespace TextStudio
                                 deltaTime: deltaTime,
                                 normalizedIndex: unit.normalizedUnitIndex,
                                 unit);
+                            spatialContext = WithSpatialContext(in context, i);
                         }
+                        // A binding of another phase, such as a hide effect while revealing, skips the call that would fail.
+                        else if (!AppliesInGlyphPhase(in bound, phase))
+                        {
+                            hasReusableContext = false;
+                            continue;
+                        }
+                        // EvaluateScopedEffect reaches Evaluate unchanged at full influence and full motion, so a built-in
+                        // transition effect evaluates its Reveal or Hide frame without the glyph's spatial context.
+                        else if (bound.transitionFastPath &&
+                                 fullMotion &&
+                                 TryEvaluateTransitionFast(
+                                     in bound,
+                                     effectDelay,
+                                     reveal,
+                                     phase,
+                                     phaseProgress,
+                                     in unit,
+                                     ref _states[i]))
+                        {
+                            anyApplied = true;
+                            hasReusableContext = false;
+                            continue;
+                        }
+                        // TryCreateEffectContext already returns the spatial context; deriving it again recomputed the same fields.
                         else if (!TryCreateEffectContext(
                                      in bound,
                                      effectDelay,
@@ -1317,15 +1680,14 @@ namespace TextStudio
                                      phaseProgress,
                                      deltaTime,
                                      in unit,
-                                     out context))
+                                     out spatialContext))
                         {
                             hasReusableContext = false;
                             continue;
                         }
 
-                        hasReusableContext = true;
                         // Later effects that reuse this base context resolve to the same spatial context.
-                        spatialContext = WithSpatialContext(in context, i);
+                        hasReusableContext = true;
                     }
 
                     anyApplied |= EvaluateScopedEffect(
@@ -1547,7 +1909,7 @@ namespace TextStudio
                     continue;
                 }
 
-                context = WithSpatialContext(in context, glyphIndex);
+                // The context already carries this glyph's spatial source.
                 anyApplied |= EvaluateScopedEffect(
                     bound.effect,
                     in bound.capabilities,
@@ -2227,6 +2589,21 @@ namespace TextStudio
             return states;
         }
 
+        static EvaluatedGlyphState[] GetIdentityStates(int capacity)
+        {
+            if (capacity <= 0)
+                return Array.Empty<EvaluatedGlyphState>();
+
+            if (s_identityStates.TryGetValue(capacity, out EvaluatedGlyphState[] states))
+                return states;
+
+            states = new EvaluatedGlyphState[capacity];
+            for (int i = 0; i < states.Length; i++)
+                states[i] = EvaluatedGlyphState.Identity;
+            s_identityStates.Add(capacity, states);
+            return states;
+        }
+
         static EvaluatedGlyphState CreatePersistentIdentity()
         {
             EvaluatedGlyphState state = EvaluatedGlyphState.Identity;
@@ -2340,7 +2717,8 @@ namespace TextStudio
             int propertyGlyphIndex = renderPropertyGlyphIndex >= 0 ? renderPropertyGlyphIndex : context.glyphIndex;
             // Full motion evaluates at the authored rate without a motion-policy blend, so it needs neither the
             // pre-effect state nor a time-scaled context.
-            if (TextStudioMotionSettings.Resolve(_motionPolicy) == TextStudioMotionPolicy.Full)
+            TextStudioMotionPolicy policy = TextStudioMotionSettings.Resolve(_motionPolicy);
+            if (policy == TextStudioMotionPolicy.Full)
             {
                 TextStudioRenderPropertyWriter fullMotionProperties = new TextStudioRenderPropertyWriter(
                     renderPropertySink,
@@ -2355,7 +2733,8 @@ namespace TextStudio
             EvaluatedGlyphState previous = state;
             float resolvedInfluence = ResolveRenderPropertyInfluence(
                 in capabilities,
-                renderPropertyInfluence);
+                renderPropertyInfluence,
+                policy);
             TextStudioRenderPropertyWriter renderProperties =
                 new TextStudioRenderPropertyWriter(
                     renderPropertySink,
@@ -2363,7 +2742,7 @@ namespace TextStudio
                     1,
                     resolvedInfluence);
             float motionRate = TextStudioVisualPrimitiveMath.ResolveMotionRate(
-                TextStudioMotionSettings.Resolve(_motionPolicy),
+                policy,
                 capabilities.ReducedMotionBehavior,
                 out _);
             EffectEvaluationContext motionContext = motionRate < 0.999999f
@@ -2494,11 +2873,11 @@ namespace TextStudio
             state = EvaluatedGlyphState.Lerp(preEffectState, state, influence);
         }
 
-        float ResolveRenderPropertyInfluence(
+        static float ResolveRenderPropertyInfluence(
             in TextStudioEffectCapabilities capabilities,
-            float influence)
+            float influence,
+            TextStudioMotionPolicy policy)
         {
-            TextStudioMotionPolicy policy = TextStudioMotionSettings.Resolve(_motionPolicy);
             if (policy == TextStudioMotionPolicy.Full)
                 return Mathf.Clamp01(influence);
             if (capabilities.ReducedMotionBehavior ==
@@ -2688,38 +3067,32 @@ namespace TextStudio
             _activeVisibilityTransitionCount = Mathf.Max(0, _activeVisibilityTransitionCount - 1);
         }
 
-        bool TryCreateEffectContext(
+        // Whether TryCreateEffectContext evaluates the binding in this glyph phase: its effect family is enabled, a forced
+        // phase matches and its phase mask includes the effective phase.
+        bool AppliesInGlyphPhase(in BoundEffect bound, AnimationPhase glyphPhase)
+        {
+            AnimationPhase effectPhase = bound.forcePhase == AnimationPhase.None ? glyphPhase : bound.forcePhase;
+            return IsEffectFamilyEnabled(effectPhase) &&
+                   (bound.forcePhase == AnimationPhase.None || glyphPhase == bound.forcePhase) &&
+                   IncludesPhase(bound.phaseMask, effectPhase);
+        }
+
+        // The effect phase, progress and clocks a binding that applies in this glyph phase evaluates with.
+        void ResolveEffectTiming(
             in BoundEffect bound,
             float effectDelay,
             RevealController reveal,
-            int glyphIndex,
-            int wordIndex,
-            int lineIndex,
             AnimationPhase glyphPhase,
             float glyphPhaseProgress,
-            float deltaTime,
-            in TextStudioEffectUnitContext unit,
-            out EffectEvaluationContext context)
+            out AnimationPhase effectPhase,
+            out float effectProgress,
+            out float effectTime,
+            out float effectPlaybackTime,
+            out bool usesContinuousPhaseClock)
         {
-            AnimationPhase effectPhase = bound.forcePhase == AnimationPhase.None ? glyphPhase : bound.forcePhase;
-            if (!IsEffectFamilyEnabled(effectPhase))
-            {
-                context = default;
-                return false;
-            }
-            if (bound.forcePhase != AnimationPhase.None && glyphPhase != bound.forcePhase)
-            {
-                context = default;
-                return false;
-            }
+            effectPhase = bound.forcePhase == AnimationPhase.None ? glyphPhase : bound.forcePhase;
 
-            if (!IncludesPhase(bound.phaseMask, effectPhase))
-            {
-                context = default;
-                return false;
-            }
-
-            float effectProgress = glyphPhaseProgress;
+            effectProgress = glyphPhaseProgress;
             if (bound.forcePhase != AnimationPhase.None)
                 effectProgress = GetStaggeredPhaseProgress(
                     reveal,
@@ -2728,9 +3101,9 @@ namespace TextStudio
                     effectPhase,
                     glyphPhaseProgress);
 
-            float effectTime = _time;
-            float effectPlaybackTime = _playbackTime;
-            bool usesContinuousPhaseClock =
+            effectTime = _time;
+            effectPlaybackTime = _playbackTime;
+            usesContinuousPhaseClock =
                 effectPhase == AnimationPhase.Persistent ||
                 (effectPhase == AnimationPhase.Disappearance &&
                  IncludesPhase(bound.phaseMask, AnimationPhase.Persistent));
@@ -2749,22 +3122,137 @@ namespace TextStudio
             effectPlaybackTime += bound.timeOffset;
             effectTime = Mathf.Max(0f, effectTime);
             effectPlaybackTime = Mathf.Max(0f, effectPlaybackTime);
+        }
 
-            context = new EffectEvaluationContext(
-                glyphIndex: glyphIndex,
-                totalGlyphs: _stateCount,
-                wordIndex: wordIndex,
-                lineIndex: lineIndex,
-                phase: effectPhase,
-                phaseProgress: effectProgress,
-                time: effectTime,
-                playbackTime: effectPlaybackTime,
-                deltaTime: deltaTime,
-                normalizedIndex: unit.normalizedUnitIndex,
-                unit);
-            if (usesContinuousPhaseClock && effectPhase != AnimationPhase.Persistent)
-                context = context.WithContinuousPhaseClock();
-            context = WithSpatialContext(in context, glyphIndex);
+        // Evaluates a transition fast-path binding in a Reveal or Hide frame on a discrete clock, as the general path would
+        // through Evaluate, and reports false for every other frame.
+        bool TryEvaluateTransitionFast(
+            in BoundEffect bound,
+            float effectDelay,
+            RevealController reveal,
+            AnimationPhase glyphPhase,
+            float glyphPhaseProgress,
+            in TextStudioEffectUnitContext unit,
+            ref EvaluatedGlyphState state)
+        {
+            ResolveEffectTiming(
+                in bound,
+                effectDelay,
+                reveal,
+                glyphPhase,
+                glyphPhaseProgress,
+                out AnimationPhase effectPhase,
+                out float effectProgress,
+                out float effectTime,
+                out float effectPlaybackTime,
+                out bool usesContinuousPhaseClock);
+            if (usesContinuousPhaseClock ||
+                (effectPhase != AnimationPhase.Appearance && effectPhase != AnimationPhase.Disappearance))
+            {
+                return false;
+            }
+
+            ((CodeEffectBase)bound.effect).EvaluateTransitionFast(
+                ref state,
+                effectPhase,
+                effectProgress,
+                effectTime,
+                effectPlaybackTime,
+                unit.unitIndex,
+                unit.normalizedUnitIndex);
+            state.renderChannels |= bound.renderChannels;
+            return true;
+        }
+
+        bool TryCreateEffectContext(
+            in BoundEffect bound,
+            float effectDelay,
+            RevealController reveal,
+            int glyphIndex,
+            int wordIndex,
+            int lineIndex,
+            AnimationPhase glyphPhase,
+            float glyphPhaseProgress,
+            float deltaTime,
+            in TextStudioEffectUnitContext unit,
+            out EffectEvaluationContext context)
+        {
+            if (!AppliesInGlyphPhase(in bound, glyphPhase))
+            {
+                context = default;
+                return false;
+            }
+
+            ResolveEffectTiming(
+                in bound,
+                effectDelay,
+                reveal,
+                glyphPhase,
+                glyphPhaseProgress,
+                out AnimationPhase effectPhase,
+                out float effectProgress,
+                out float effectTime,
+                out float effectPlaybackTime,
+                out bool usesContinuousPhaseClock);
+            bool patchesContinuousPhaseClock = usesContinuousPhaseClock && effectPhase != AnimationPhase.Persistent;
+            if (patchesContinuousPhaseClock || _hasInfluenceTarget)
+            {
+                context = new EffectEvaluationContext(
+                    glyphIndex: glyphIndex,
+                    totalGlyphs: _stateCount,
+                    wordIndex: wordIndex,
+                    lineIndex: lineIndex,
+                    phase: effectPhase,
+                    phaseProgress: effectProgress,
+                    time: effectTime,
+                    playbackTime: effectPlaybackTime,
+                    deltaTime: deltaTime,
+                    normalizedIndex: unit.normalizedUnitIndex,
+                    unit);
+                if (patchesContinuousPhaseClock)
+                    context = context.WithContinuousPhaseClock();
+                context = WithSpatialContext(in context, glyphIndex);
+                return true;
+            }
+
+            // One construction writes what the base constructor and WithSpatialContext derive in three: the base fields,
+            // then the glyph's spatial source over the base context's defaults.
+            float normalizedIndex = unit.normalizedUnitIndex;
+            ResolveSpatialSource(
+                glyphIndex,
+                normalizedIndex,
+                unit.unitStartGlyph,
+                unit.unitGlyphCount,
+                new Vector3(normalizedIndex, 0f, 0f),
+                out Vector3 source,
+                out Vector3 spatial,
+                out float effectUnitScale,
+                out Vector3 normalized,
+                out Color sourceColor,
+                out bool hasSourceColor,
+                out TextStudioGlyphVisualBounds sourceAreaBounds,
+                out bool hasSourceAreaBounds);
+            context = EffectEvaluationContext.CreateSpatial(
+                glyphIndex,
+                _stateCount,
+                wordIndex,
+                lineIndex,
+                effectPhase,
+                effectProgress,
+                effectTime,
+                effectPlaybackTime,
+                deltaTime,
+                normalizedIndex,
+                in unit,
+                source,
+                normalized,
+                sourceColor,
+                hasSourceColor,
+                spatial,
+                _localToWorld.MultiplyPoint3x4(spatial),
+                hasSourceAreaBounds ? sourceAreaBounds : default,
+                hasSourceAreaBounds,
+                effectUnitScale);
             return true;
         }
 
@@ -2772,38 +3260,20 @@ namespace TextStudio
             in EffectEvaluationContext context,
             int glyphIndex)
         {
-            Vector3 source = _sourcePositions != null &&
-                glyphIndex >= 0 && glyphIndex < _spatialCount && glyphIndex < _sourcePositions.Length
-                ? _sourcePositions[glyphIndex]
-                : new Vector3(context.normalizedIndex, 0f, 0f);
-            Vector3 spatial = _usePlacements &&
-                glyphIndex >= 0 && glyphIndex < _spatialCount &&
-                glyphIndex < _placementCount && glyphIndex < _placements.Length
-                ? _placements[glyphIndex].position
-                : source;
-            float effectUnitScale = _effectUnitScales != null &&
-                                    glyphIndex >= 0 &&
-                                    glyphIndex < _effectUnitScales.Length
-                ? _effectUnitScales[glyphIndex]
-                : 1f;
-            Vector3 normalized = _sourceTextNormalizedPositions != null &&
-                glyphIndex >= 0 && glyphIndex < _spatialCount &&
-                glyphIndex < _sourceTextNormalizedPositions.Length
-                ? _sourceTextNormalizedPositions[glyphIndex]
-                : new Vector3(context.normalizedIndex, 0f, 0f);
-            bool hasSourceColor = _sourceColorValidity != null &&
-                                  glyphIndex >= 0 &&
-                                  glyphIndex < _spatialCount &&
-                                  glyphIndex < _sourceColorValidity.Length &&
-                                  _sourceColorValidity[glyphIndex] &&
-                                  _sourceColors != null &&
-                                  glyphIndex < _sourceColors.Length;
-            Color sourceColor = hasSourceColor
-                ? (Color)_sourceColors[glyphIndex].Sample(0.5f, 0.5f)
-                : Color.white;
-            bool hasSourceAreaBounds = TryResolveSourceAreaBounds(
-                in context,
-                out TextStudioGlyphVisualBounds sourceAreaBounds);
+            ResolveSpatialSource(
+                glyphIndex,
+                context.normalizedIndex,
+                context.unitStartGlyph,
+                context.unitGlyphCount,
+                context.sourcePosition,
+                out Vector3 source,
+                out Vector3 spatial,
+                out float effectUnitScale,
+                out Vector3 normalized,
+                out Color sourceColor,
+                out bool hasSourceColor,
+                out TextStudioGlyphVisualBounds sourceAreaBounds,
+                out bool hasSourceAreaBounds);
             EffectEvaluationContext spatialContext = context.WithSpatialSource(
                 source,
                 spatial,
@@ -2822,13 +3292,68 @@ namespace TextStudio
                 : spatialContext;
         }
 
+        // The spatial source WithSpatialContext writes over a base context with this normalized index, unit range and
+        // source position.
+        void ResolveSpatialSource(
+            int glyphIndex,
+            float normalizedIndex,
+            int unitStartGlyph,
+            int unitGlyphCount,
+            Vector3 baseSourcePosition,
+            out Vector3 source,
+            out Vector3 spatial,
+            out float effectUnitScale,
+            out Vector3 normalized,
+            out Color sourceColor,
+            out bool hasSourceColor,
+            out TextStudioGlyphVisualBounds sourceAreaBounds,
+            out bool hasSourceAreaBounds)
+        {
+            source = _sourcePositions != null &&
+                glyphIndex >= 0 && glyphIndex < _spatialCount && glyphIndex < _sourcePositions.Length
+                ? _sourcePositions[glyphIndex]
+                : new Vector3(normalizedIndex, 0f, 0f);
+            spatial = _usePlacements &&
+                glyphIndex >= 0 && glyphIndex < _spatialCount &&
+                glyphIndex < _placementCount && glyphIndex < _placements.Length
+                ? _placements[glyphIndex].position
+                : source;
+            effectUnitScale = _effectUnitScales != null &&
+                              glyphIndex >= 0 &&
+                              glyphIndex < _effectUnitScales.Length
+                ? _effectUnitScales[glyphIndex]
+                : 1f;
+            normalized = _sourceTextNormalizedPositions != null &&
+                glyphIndex >= 0 && glyphIndex < _spatialCount &&
+                glyphIndex < _sourceTextNormalizedPositions.Length
+                ? _sourceTextNormalizedPositions[glyphIndex]
+                : new Vector3(normalizedIndex, 0f, 0f);
+            hasSourceColor = _sourceColorValidity != null &&
+                             glyphIndex >= 0 &&
+                             glyphIndex < _spatialCount &&
+                             glyphIndex < _sourceColorValidity.Length &&
+                             _sourceColorValidity[glyphIndex] &&
+                             _sourceColors != null &&
+                             glyphIndex < _sourceColors.Length;
+            sourceColor = hasSourceColor
+                ? (Color)_sourceColors[glyphIndex].SampleCenter()
+                : Color.white;
+            hasSourceAreaBounds = TryResolveSourceAreaBounds(
+                unitStartGlyph,
+                unitGlyphCount,
+                baseSourcePosition,
+                out sourceAreaBounds);
+        }
+
         bool TryResolveSourceAreaBounds(
-            in EffectEvaluationContext context,
+            int unitStartGlyph,
+            int unitGlyphCount,
+            Vector3 fallbackSourcePosition,
             out TextStudioGlyphVisualBounds bounds)
         {
-            int start = Mathf.Clamp(context.unitStartGlyph, 0, _spatialCount);
+            int start = Mathf.Clamp(unitStartGlyph, 0, _spatialCount);
             int end = Mathf.Clamp(
-                context.unitStartGlyph + context.unitGlyphCount,
+                unitStartGlyph + unitGlyphCount,
                 start,
                 _spatialCount);
             long key = ((long)start << 32) | (uint)(end - start);
@@ -2857,7 +3382,7 @@ namespace TextStudio
             }
             if (!found)
             {
-                Vector2 point = new Vector2(context.sourcePosition.x, context.sourcePosition.y);
+                Vector2 point = new Vector2(fallbackSourcePosition.x, fallbackSourcePosition.y);
                 minimum = point;
                 maximum = point;
             }
@@ -2913,25 +3438,6 @@ namespace TextStudio
                 case AnimationPhase.None:
                 default:
                     return false;
-            }
-        }
-
-        static float GetPhaseProgress(RevealController reveal, int glyphIndex, AnimationPhase phase)
-        {
-            if (reveal == null)
-                return phase == AnimationPhase.Persistent ? 1f : 0f;
-
-            switch (phase)
-            {
-                case AnimationPhase.Appearance:
-                    return reveal.GetAppearanceProgress(glyphIndex);
-                case AnimationPhase.Disappearance:
-                    return reveal.GetDisappearanceProgress(glyphIndex);
-                case AnimationPhase.Persistent:
-                    return 1f;
-                case AnimationPhase.None:
-                default:
-                    return 0f;
             }
         }
 
@@ -3008,32 +3514,7 @@ namespace TextStudio
                 Array.Clear(_glyphEffectWrite, 0, glyphCount);
             }
 
-            int totalBindings = 0;
-            for (int e = 0; e < _boundEffectCount; e++)
-            {
-                ref BoundEffect bound = ref _boundEffects[e];
-                if (bound.rendererDeferred)
-                    continue;
-                int start = Mathf.Clamp(bound.glyphStart, 0, glyphCount);
-                int end = Mathf.Clamp(bound.glyphEnd, start, glyphCount);
-                for (int i = start; i < end; i++)
-                {
-                    if (bound.selectorMembers != null &&
-                        (i >= bound.selectorMembers.Length || !bound.selectorMembers[i]))
-                        continue;
-                    if (TextStudioEffectAreaResolver.TryResolveUnit(
-                            plan,
-                            bound.glyphStart,
-                            bound.glyphEnd - bound.glyphStart,
-                            bound.area,
-                            i,
-                            out _))
-                    {
-                        _glyphEffectCount[i]++;
-                        totalBindings++;
-                    }
-                }
-            }
+            int totalBindings = ResolveGlyphEffectUnits(plan, 0, 0, glyphCount);
 
             if (_glyphEffectIndices == null ||
                 _glyphEffectIndices.Length < totalBindings ||
@@ -3062,49 +3543,124 @@ namespace TextStudio
                 cursor += _glyphEffectCount[i];
             }
 
-            for (int e = 0; e < _boundEffectCount; e++)
+            WriteGlyphEffectEntries(plan, totalBindings);
+            ResolveReusedEffectContexts(0, glyphCount);
+            FinishGlyphEffectLookup(glyphCount);
+        }
+
+        // Builds lookup entries for the glyphs from keptGlyphCount on, which only the bound effects from firstEffect on cover,
+        // and keeps the entries before, which the lookup built for the same earlier effects resolved (TryBindAppendedEffects).
+        void BuildAppendedGlyphEffectLookup(TextStudioCompiledPlan plan, int keptGlyphCount, int firstEffect)
+        {
+            int glyphCount = _stateCount;
+            int keptEntries = keptGlyphCount > 0
+                ? _glyphEffectStart[keptGlyphCount - 1] + _glyphEffectCount[keptGlyphCount - 1]
+                : 0;
+            _glyphEffectStart = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectStart, glyphCount, keptGlyphCount);
+            _glyphEffectCount = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectCount, glyphCount, keptGlyphCount);
+            _glyphEffectWrite = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectWrite, glyphCount, keptGlyphCount);
+            if (glyphCount > keptGlyphCount)
+            {
+                Array.Clear(_glyphEffectStart, keptGlyphCount, glyphCount - keptGlyphCount);
+                Array.Clear(_glyphEffectCount, keptGlyphCount, glyphCount - keptGlyphCount);
+                Array.Clear(_glyphEffectWrite, keptGlyphCount, glyphCount - keptGlyphCount);
+            }
+
+            int resolvedCount = ResolveGlyphEffectUnits(plan, firstEffect, keptGlyphCount, glyphCount);
+            int totalBindings = keptEntries + resolvedCount;
+            _glyphEffectIndices = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectIndices, totalBindings, keptEntries);
+            _glyphEffectDelays = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectDelays, totalBindings, keptEntries);
+            _glyphEffectUnits = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectUnits, totalBindings, keptEntries);
+            _glyphEffectReusesPreviousContext = TextStudioBufferCapacity.EnsureKeeping(_glyphEffectReusesPreviousContext, totalBindings, keptEntries);
+            if (resolvedCount > 0)
+                Array.Clear(_glyphEffectReusesPreviousContext, keptEntries, resolvedCount);
+
+            int cursor = keptEntries;
+            for (int i = keptGlyphCount; i < glyphCount; i++)
+            {
+                _glyphEffectStart[i] = cursor;
+                cursor += _glyphEffectCount[i];
+            }
+
+            WriteGlyphEffectEntries(plan, resolvedCount);
+            ResolveReusedEffectContexts(keptGlyphCount, glyphCount);
+            FinishGlyphEffectLookup(glyphCount);
+        }
+
+        // The counting pass over the bound effects from firstEffect on, for glyphs from firstGlyph on. It keeps each resolved
+        // unit, so the fill pass writes the entries without resolving them again.
+        int ResolveGlyphEffectUnits(TextStudioCompiledPlan plan, int firstEffect, int firstGlyph, int glyphCount)
+        {
+            int totalBindings = 0;
+            for (int e = firstEffect; e < _boundEffectCount; e++)
             {
                 ref BoundEffect bound = ref _boundEffects[e];
                 if (bound.rendererDeferred)
                     continue;
-                int start = Mathf.Clamp(bound.glyphStart, 0, glyphCount);
+                int start = Mathf.Clamp(bound.glyphStart, firstGlyph, glyphCount);
                 int end = Mathf.Clamp(bound.glyphEnd, start, glyphCount);
                 for (int i = start; i < end; i++)
                 {
                     if (bound.selectorMembers != null &&
                         (i >= bound.selectorMembers.Length || !bound.selectorMembers[i]))
                         continue;
-                    if (!TextStudioEffectAreaResolver.TryResolveUnit(
+                    if (TextStudioEffectAreaResolver.TryResolveUnit(
                             plan,
                             bound.glyphStart,
                             bound.glyphEnd - bound.glyphStart,
                             bound.area,
                             i,
-                            out TextStudioEffectUnitContext unit))
+                            out TextStudioEffectUnitContext resolvedUnit))
                     {
-                        continue;
+                        if (_resolvedLookupUnits.Length <= totalBindings)
+                        {
+                            int resolvedCapacity = TextStudioBufferCapacity.ForCount(totalBindings + 1);
+                            Array.Resize(ref _resolvedLookupBindings, resolvedCapacity);
+                            Array.Resize(ref _resolvedLookupGlyphs, resolvedCapacity);
+                            Array.Resize(ref _resolvedLookupUnits, resolvedCapacity);
+                        }
+                        _resolvedLookupBindings[totalBindings] = e;
+                        _resolvedLookupGlyphs[totalBindings] = i;
+                        _resolvedLookupUnits[totalBindings] = resolvedUnit;
+                        _glyphEffectCount[i]++;
+                        totalBindings++;
                     }
-
-                    int writeIndex = _glyphEffectStart[i] + _glyphEffectWrite[i];
-                    _glyphEffectIndices[writeIndex] = e;
-                    _glyphEffectUnits[writeIndex] = unit;
-                    int wordIndex = plan.GlyphToWordIndex != null && i < plan.GlyphToWordIndex.Length
-                        ? Mathf.Max(0, plan.GlyphToWordIndex[i])
-                        : 0;
-                    int lineIndex = plan.GlyphToLineIndex != null && i < plan.GlyphToLineIndex.Length
-                        ? Mathf.Max(0, plan.GlyphToLineIndex[i])
-                        : 0;
-                    float timingDelay = bound.phaseParams.ComputeDelay(unit.unitIndex, wordIndex, lineIndex);
-                    float sequenceDelay = TextStudioSequenceUtility.ComputeDelay(
-                        unit.unitIndex,
-                        unit.unitCount,
-                        in bound.sequence);
-                    _glyphEffectDelays[writeIndex] = Mathf.Max(0f, timingDelay + sequenceDelay);
-                    _glyphEffectWrite[i]++;
                 }
             }
 
-            for (int i = 0; i < glyphCount; i++)
+            return totalBindings;
+        }
+
+        void WriteGlyphEffectEntries(TextStudioCompiledPlan plan, int resolvedCount)
+        {
+            for (int resolved = 0; resolved < resolvedCount; resolved++)
+            {
+                int e = _resolvedLookupBindings[resolved];
+                int i = _resolvedLookupGlyphs[resolved];
+                ref BoundEffect bound = ref _boundEffects[e];
+                ref readonly TextStudioEffectUnitContext unit = ref _resolvedLookupUnits[resolved];
+                int writeIndex = _glyphEffectStart[i] + _glyphEffectWrite[i];
+                _glyphEffectIndices[writeIndex] = e;
+                _glyphEffectUnits[writeIndex] = unit;
+                int wordIndex = plan.GlyphToWordIndex != null && i < plan.GlyphToWordIndex.Length
+                    ? Mathf.Max(0, plan.GlyphToWordIndex[i])
+                    : 0;
+                int lineIndex = plan.GlyphToLineIndex != null && i < plan.GlyphToLineIndex.Length
+                    ? Mathf.Max(0, plan.GlyphToLineIndex[i])
+                    : 0;
+                float timingDelay = bound.phaseParams.ComputeDelay(unit.unitIndex, wordIndex, lineIndex);
+                float sequenceDelay = TextStudioSequenceUtility.ComputeDelay(
+                    unit.unitIndex,
+                    unit.unitCount,
+                    in bound.sequence);
+                _glyphEffectDelays[writeIndex] = Mathf.Max(0f, timingDelay + sequenceDelay);
+                _glyphEffectWrite[i]++;
+            }
+        }
+
+        void ResolveReusedEffectContexts(int startGlyph, int glyphCount)
+        {
+            for (int i = startGlyph; i < glyphCount; i++)
             {
                 int start = _glyphEffectStart[i];
                 int count = _glyphEffectCount[i];
@@ -3123,7 +3679,10 @@ namespace TextStudio
                         in _glyphEffectUnits[lookupIndex]);
                 }
             }
+        }
 
+        void FinishGlyphEffectLookup(int glyphCount)
+        {
             _hasUniformSinglePersistentEffect =
                 _boundEffectCount == 1 &&
                 _boundEffects[0].appliesToPersistentPhase &&
@@ -3164,6 +3723,9 @@ namespace TextStudio
                 codeEffect.SupportsUniformPersistentState;
 
             _glyphEffectLookupDirty = false;
+            _lookupGeneration = EffectBindingGeneration;
+            _lookupGlyphCount = glyphCount;
+            _lookupStale = false;
         }
 
         static bool CanReuseEffectContext(

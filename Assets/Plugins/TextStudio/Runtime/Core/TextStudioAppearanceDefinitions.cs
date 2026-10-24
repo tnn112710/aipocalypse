@@ -217,7 +217,8 @@ namespace TextStudio
                 extracted.Add(layer);
             }
             TextStudio2DStyleSettings result = new TextStudio2DStyleSettings(null, TextStudio2DStyleInheritanceMode.Replace,
-                settings.SourceFieldQuality, settings.PainterOrder, settings.WorldShadowMode, extracted.ToArray());
+                settings.SourceFieldQuality, settings.PainterOrder, settings.WorldShadowMode, extracted.ToArray(),
+                exactLayering: settings.ExactLayering);
             result.SetExposures(exposures);
             return result;
         }

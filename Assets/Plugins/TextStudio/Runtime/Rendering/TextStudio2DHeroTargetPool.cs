@@ -139,6 +139,8 @@ namespace TextStudio
         int _allocatedTargets;
         long _allocatedBytes;
         long _activeBytes;
+        // Active leases the pool may take back (TryAcquireReclaimable); counted in _activeBytes.
+        long _reclaimableBytes;
         long _peakAllocatedBytes;
         int _acquisitionCount;
         int _reuseCount;
@@ -153,6 +155,7 @@ namespace TextStudio
             internal RenderTexture Texture;
             internal TextStudioAppearanceMemoryLease Memory;
             internal ulong LastUse;
+            internal bool Reclaimable;
         }
 
         internal static TextStudio2DHeroTargetPool Shared =>
@@ -167,8 +170,9 @@ namespace TextStudio
                 _acquisitionCount,
                 _reuseCount);
 
-        internal long AvailableBytes => Math.Min(MaximumAllocatedBytes - _activeBytes,
-            TextStudioAppearanceMemory.AvailableGpuBytes + _allocatedBytes - _activeBytes);
+        /// <summary>Bytes a composition can lease, counting reclaimable leases as free because any acquisition takes them back.</summary>
+        internal long AvailableBytes => Math.Min(MaximumAllocatedBytes - (_activeBytes - _reclaimableBytes),
+            TextStudioAppearanceMemory.AvailableGpuBytes + _allocatedBytes - (_activeBytes - _reclaimableBytes));
 
         internal long GetByteSize(TextStudio2DHeroTargetLease lease) =>
             IsCurrent(lease) ? _entries[lease.Slot].Descriptor.ByteSize : 0L;
@@ -246,16 +250,54 @@ namespace TextStudio
         {
             ThrowIfDisposed();
             lease = default;
-            if (!TryResolveDescriptor(
-                    width,
-                    height,
-                    qualityTier,
-                    out TextStudio2DHeroTargetDescriptor descriptor,
-                    out status, scalarCoverage, withDepth))
-            {
-                return false;
-            }
+            return TryResolveDescriptor(width, height, qualityTier, out TextStudio2DHeroTargetDescriptor descriptor, out status,
+                       scalarCoverage, withDepth) &&
+                   TryAcquire(in descriptor, out lease, out status);
+        }
 
+        /// <summary>Leases a stencil-only surface of a composition's size for the row masks of one render.</summary>
+        internal bool TryAcquireRowMask(
+            int width,
+            int height,
+            out TextStudio2DHeroTargetLease lease,
+            out TextStudio2DHeroTargetStatus status)
+        {
+            ThrowIfDisposed();
+            lease = default;
+            return TryResolveRowMaskDescriptor(width, height, out TextStudio2DHeroTargetDescriptor descriptor, out status) &&
+                   TryAcquire(in descriptor, out lease, out status);
+        }
+
+        /// <summary>
+        /// Leases a target that holds a recomputable image between renders. Whenever an acquisition finds no free slot or memory,
+        /// or the appearance memory ledger asks for memory back, the pool releases reclaimable leases, least recently used first,
+        /// before failing; their owners then see the lease go stale. Layout counts their bytes as available.
+        /// </summary>
+        internal bool TryAcquireReclaimable(
+            int width,
+            int height,
+            TextStudio2DQualityTier qualityTier,
+            out TextStudio2DHeroTargetLease lease,
+            out TextStudio2DHeroTargetStatus status)
+        {
+            ThrowIfDisposed();
+            lease = default;
+            if (!TryResolveDescriptor(width, height, qualityTier, out TextStudio2DHeroTargetDescriptor descriptor, out status) ||
+                !TryAcquire(in descriptor, out lease, out status))
+                return false;
+            Entry entry = _entries[lease.Slot];
+            entry.Reclaimable = true;
+            _entries[lease.Slot] = entry;
+            _reclaimableBytes += entry.Descriptor.ByteSize;
+            return true;
+        }
+
+        bool TryAcquire(
+            in TextStudio2DHeroTargetDescriptor descriptor,
+            out TextStudio2DHeroTargetLease lease,
+            out TextStudio2DHeroTargetStatus status)
+        {
+            lease = default;
             _acquisitionCount++;
             _useSequence++;
             for (int index = 0; index < _entries.Length; index++)
@@ -340,22 +382,51 @@ namespace TextStudio
 
         internal void Release(ref TextStudio2DHeroTargetLease lease)
         {
-            if (!IsCurrent(lease))
-            {
-                lease = default;
-                return;
-            }
-            Entry entry = _entries[lease.Slot];
+            if (IsCurrent(lease))
+                Deactivate(lease.Slot);
+            lease = default;
+        }
+
+        void Deactivate(int slot)
+        {
+            Entry entry = _entries[slot];
             entry.Active = false;
             entry.Memory.SetIdle(true);
             entry.LastUse = ++_useSequence;
             entry.Generation++;
             if (entry.Generation == 0u)
                 entry.Generation = 1u;
-            _entries[lease.Slot] = entry;
+            if (entry.Reclaimable)
+                _reclaimableBytes -= entry.Descriptor.ByteSize;
+            entry.Reclaimable = false;
+            _entries[slot] = entry;
             _activeTargets--;
             _activeBytes -= entry.Descriptor.ByteSize;
-            lease = default;
+        }
+
+        /// <summary>Marks a held lease as used now, so reclamation takes back leases that went unused longest first.</summary>
+        internal void Touch(TextStudio2DHeroTargetLease lease)
+        {
+            if (!IsCurrent(lease)) return;
+            Entry entry = _entries[lease.Slot];
+            entry.LastUse = ++_useSequence;
+            _entries[lease.Slot] = entry;
+        }
+
+        /// <summary>Takes back the least recently used reclaimable lease; its owner's lease goes stale.</summary>
+        bool ReclaimOldest()
+        {
+            int oldest = -1;
+            for (int index = 0; index < _entries.Length; index++)
+            {
+                Entry entry = _entries[index];
+                if (entry.Active && entry.Reclaimable && (oldest < 0 || entry.LastUse < _entries[oldest].LastUse))
+                    oldest = index;
+            }
+            if (oldest < 0)
+                return false;
+            Deactivate(oldest);
+            return true;
         }
 
         internal void TrimUnused(long targetBytes = 0L)
@@ -373,7 +444,12 @@ namespace TextStudio
 
         void ITextStudioAppearanceMemoryReclaimer.ReclaimUnused(long gpuBytes, long cpuBytes)
         {
-            if (!_disposed && gpuBytes > 0) TrimUnused(Math.Max(0, _allocatedBytes - gpuBytes));
+            if (_disposed || gpuBytes <= 0) return;
+            long target = Math.Max(0, _allocatedBytes - gpuBytes);
+            TrimUnused(target);
+            // Retained images are recomputable, so they give their memory back before an admission fails.
+            while (_allocatedBytes > target && ReclaimOldest())
+                TrimUnused(target);
         }
 
         internal static bool TryResolveDescriptor(
@@ -430,6 +506,38 @@ namespace TextStudio
             return true;
         }
 
+        /// <summary>
+        /// A depth-stencil surface without colour, quantized like the composition targets it is bound beside. Only its stencil
+        /// bits are used, so the smallest supported packed format wins.
+        /// </summary>
+        internal static bool TryResolveRowMaskDescriptor(
+            int width,
+            int height,
+            out TextStudio2DHeroTargetDescriptor descriptor,
+            out TextStudio2DHeroTargetStatus status)
+        {
+            descriptor = default;
+            if (width <= 0 || height <= 0)
+            {
+                status = TextStudio2DHeroTargetStatus.InvalidSize;
+                return false;
+            }
+            GraphicsFormat format = SystemInfo.IsFormatSupported(GraphicsFormat.D24_UNorm_S8_UInt, GraphicsFormatUsage.Render)
+                ? GraphicsFormat.D24_UNorm_S8_UInt
+                : GraphicsFormat.D32_SFloat_S8_UInt;
+            if (!SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render))
+            {
+                status = TextStudio2DHeroTargetStatus.UnsupportedFormat;
+                return false;
+            }
+            int normalizedWidth = NormalizeDimension(width);
+            int normalizedHeight = NormalizeDimension(height);
+            descriptor = new TextStudio2DHeroTargetDescriptor(normalizedWidth, normalizedHeight, GraphicsFormat.None,
+                (long)normalizedWidth * normalizedHeight * GraphicsFormatUtility.GetBlockSize(format), format);
+            status = TextStudio2DHeroTargetStatus.Ready;
+            return true;
+        }
+
         static int NormalizeDimension(int value)
         {
             int clamped = Mathf.Clamp(value, DimensionQuantum, MaximumDimension);
@@ -455,6 +563,8 @@ namespace TextStudio
             while (_allocatedBytes + requestedBytes > MaximumAllocatedBytes)
             {
                 int oldest = FindOldestInactiveSlot();
+                if (oldest < 0 && ReclaimOldest())
+                    oldest = FindOldestInactiveSlot();
                 if (oldest < 0)
                 {
                     status = TextStudio2DHeroTargetStatus.MemoryBudgetExceeded;
@@ -472,6 +582,8 @@ namespace TextStudio
             }
 
             int evictable = FindOldestInactiveSlot();
+            if (evictable < 0 && ReclaimOldest())
+                evictable = FindOldestInactiveSlot();
             if (evictable < 0)
             {
                 status = TextStudio2DHeroTargetStatus.TargetCapacityExceeded;
@@ -516,7 +628,7 @@ namespace TextStudio
             };
             RenderTexture texture = new RenderTexture(unityDescriptor)
             {
-                name = "Text Studio Hero Surface " +
+                name = (descriptor.Format == GraphicsFormat.None ? "Text Studio Hero Row Mask " : "Text Studio Hero Surface ") +
                        descriptor.Width + "x" + descriptor.Height,
                 hideFlags = HideFlags.HideAndDontSave,
                 filterMode = FilterMode.Bilinear,
@@ -587,6 +699,7 @@ namespace TextStudio
             _allocatedTargets = 0;
             _allocatedBytes = 0L;
             _activeBytes = 0L;
+            _reclaimableBytes = 0L;
             _disposed = true;
         }
 

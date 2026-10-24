@@ -3,6 +3,7 @@ using UnityEngine.UIElements;
 
 namespace TextStudio
 {
+    /// <summary>Reports a UI Toolkit binding's supported feature level as unavailable, basic text output, or full Text Studio parity.</summary>
     public enum TextStudioUITKFeatureSet
     {
         None = 0,
@@ -10,6 +11,7 @@ namespace TextStudio
         FullParity = 2
     }
 
+    /// <summary>Chooses UI Toolkit's standard text generator, prefers its advanced generator, or follows the project default.</summary>
     public enum TextStudioUITKTextGeneratorPreference
     {
         ProjectDefault = 0,

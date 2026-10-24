@@ -50,22 +50,35 @@ namespace TextStudio
         internal readonly TextStudioPixelContourProjection? PixelProjection;
         internal readonly TextStudio2DNativeInkSource[] NativeInkSources;
         internal readonly ulong Fingerprint;
+        /// <summary>True when <see cref="Edges"/> starts with the <see cref="BandEdgeCount"/> edges that meet <see cref="InkBand"/>.</summary>
+        internal readonly bool HasInkBand;
+        /// <summary>Leading edges whose vertical extent meets <see cref="InkBand"/>; every later edge lies wholly above or below it.</summary>
+        internal readonly int BandEdgeCount;
+        /// <summary>Bottom and top of the band a static ink mask orders first.</summary>
+        internal readonly Vector2 InkBand;
 
+        /// <param name="inkBand">
+        /// Bottom and top of a horizontal band. A static ink mask stores the edges that meet it first, so the lean line program
+        /// measures only those for pixels whose antialiasing and treatment reach stay inside the band. Edge order changes no
+        /// distance or winding.
+        /// </param>
         internal TextStudio2DSurfaceGeometry(IReadOnlyList<Vector2[]> contours, Vector4? coordinateBounds = null,
-            TextStudioPixelContourProjection? pixelProjection = null, IReadOnlyList<TextStudio2DNativeInkSource> nativeInkSources = null)
+            TextStudioPixelContourProjection? pixelProjection = null, IReadOnlyList<TextStudio2DNativeInkSource> nativeInkSources = null,
+            Vector2? inkBand = null)
         {
-            int count = 0;
+            int count = CountEdges(contours);
+            if (count > MaximumEdges) throw new InvalidOperationException("This surface exceeds the 2048-edge geometry budget. Reduce corner detail or split the selected range.");
             Vector4 bounds = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (Vector2[] contour in contours)
             {
-                count = checked(count + contour.Length);
-                if (count > MaximumEdges) throw new InvalidOperationException("This surface exceeds the 2048-edge geometry budget. Reduce corner detail or split the selected range.");
                 foreach (Vector2 point in contour)
                 {
                     bounds.x = Mathf.Min(bounds.x, point.x); bounds.y = Mathf.Min(bounds.y, point.y);
                     bounds.z = Mathf.Max(bounds.z, point.x); bounds.w = Mathf.Max(bounds.w, point.y);
                 }
             }
+            if (inkBand.HasValue && (pixelProjection.HasValue || nativeInkSources?.Count > 0 || !(inkBand.Value.y >= inkBand.Value.x)))
+                throw new ArgumentException("An ink band orders the edges of a static local mask and needs a valid vertical range.");
             PixelProjection = pixelProjection;
             if (pixelProjection.HasValue && nativeInkSources?.Count > 0)
                 throw new ArgumentException("Native ink sources use the glyph's local plane, independently of pixel contour projection.");
@@ -120,11 +133,42 @@ namespace TextStudio
                 for (int index = 0; index < contour.Length; index++)
                 {
                     Vector2 a = contour[index], b = contour[(index + 1) % contour.Length];
-                    Vector4 edge = new Vector4(a.x, a.y, b.x, b.y);
-                    Edges[offset++] = edge;
-                    hash.Add(edge.x); hash.Add(edge.y); hash.Add(edge.z); hash.Add(edge.w);
+                    Edges[offset++] = new Vector4(a.x, a.y, b.x, b.y);
                 }
+            if (inkBand.HasValue)
+            {
+                HasInkBand = true;
+                InkBand = inkBand.Value;
+                BandEdgeCount = OrderBandEdgesFirst(Edges, InkBand);
+                hash.Add(InkBand.x); hash.Add(InkBand.y); hash.Add(BandEdgeCount);
+            }
+            foreach (Vector4 edge in Edges)
+            {
+                hash.Add(edge.x); hash.Add(edge.y); hash.Add(edge.z); hash.Add(edge.w);
+            }
             Fingerprint = hash.Value;
+        }
+
+        internal static int CountEdges(IReadOnlyList<Vector2[]> contours)
+        {
+            int count = 0;
+            foreach (Vector2[] contour in contours) count = checked(count + contour.Length);
+            return count;
+        }
+
+        // Stable partition: edges whose vertical extent meets the band keep their order ahead of all others.
+        static int OrderBandEdgesFirst(Vector4[] edges, Vector2 band)
+        {
+            Vector4[] outside = null;
+            int inside = 0, outsideCount = 0;
+            for (int index = 0; index < edges.Length; index++)
+            {
+                Vector4 edge = edges[index];
+                if (Mathf.Min(edge.y, edge.w) <= band.y && Mathf.Max(edge.y, edge.w) >= band.x) edges[inside++] = edge;
+                else (outside ??= new Vector4[edges.Length - index])[outsideCount++] = edge;
+            }
+            if (outsideCount > 0) Array.Copy(outside, 0, edges, inside, outsideCount);
+            return inside;
         }
 
         static void IncludePoint(ref Vector4 bounds, Vector2 point)

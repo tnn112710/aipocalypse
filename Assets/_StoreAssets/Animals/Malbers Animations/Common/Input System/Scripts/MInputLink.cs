@@ -1,4 +1,4 @@
-﻿// Last Change: 9/21/2026 9:40am
+﻿// Last Change: 10/8/2026 10:30am
 using MalbersAnimations.Events;
 using MalbersAnimations.Scriptables;
 
@@ -15,7 +15,10 @@ using static UnityEngine.InputSystem.PlayerInputManager;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.InputSystem.Users;
+using UnityEngine.InputSystem.Controls;
 #endif
+
+using UnityEngine.EventSystems;
 
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -1219,6 +1222,10 @@ namespace MalbersAnimations.InputSystem
         [Tooltip("Input will not work on Time.Scale = 0")]
         public BoolReference ignoreOnPause = new();
 
+        [Tooltip("Ignore Mouse, Touch and Pen presses that start over an interactable UI element (Button, Toggle, Slider, Scroll View...). " +
+            "Clicking the UI will not trigger this Input. Keyboard and Gamepad are never blocked")]
+        public BoolReference blockOverUI = new(true);
+
         /// <summary>Type of interaction the button has</summary>
         public MInputInteraction interaction = MInputInteraction.Press;
 
@@ -1335,6 +1342,7 @@ namespace MalbersAnimations.InputSystem
         {
             if (!Active) return; //Do nothing if the Local Active is false;
             if (ignoreOnPause && Time.timeScale == 0) return; //Do nothing if TimeScale = 0;
+            if (BlockedByUI(context)) return;
 
             //  Debug.Log($"{name}: {context.phase}");
 
@@ -1576,14 +1584,77 @@ namespace MalbersAnimations.InputSystem
             FirstInputPress = false;
             InputCompleted = false;
             InputStartTime = 0;
+            PressStarted = PressBlockedByUI = false;
 
-            if (!inputValue) return;                    //It was not pressed: there's nothing to release
+            if (!inputValue) return;                 //It was not pressed: there's nothing to release
 
             inputValue = false;
             DebugInput(false);
 
             //MWC — same contract as DisconnectButtons(): the listeners are told the Input dropped to false
             if (ResetOnDisable.Value) OnInputChanged.Invoke(false);
+        }
+
+        /// <summary>True while a press is in progress: its UI verdict was already taken</summary>
+        private bool PressStarted;
+
+        /// <summary>True when the current press started over an interactable UI element</summary>
+        private bool PressBlockedByUI;
+
+        private static readonly List<RaycastResult> UIHits = new();
+
+        /// <summary>Swallows every phase of a Pointer press that started over an interactable UI element</summary>
+        private bool BlockedByUI(InputAction.CallbackContext context)
+        {
+            //The verdict is taken once, when the press begins, so Started, Performed and the release all agree.
+            //Dragging off the Button before releasing must not let the release (or a Hold's Performed) through.
+            if (context.started || (context.performed && !PressStarted))
+            {
+                PressStarted = true;
+                PressBlockedByUI = blockOverUI.Value && IsPointerOverInteractableUI(context.control);
+            }
+
+            var blocked = PressBlockedByUI;
+
+            //Tap/PassThrough actions end on Performed with no Canceled: a released button also closes the press
+            if (context.canceled || (context.control is ButtonControl button && !button.isPressed))
+                PressStarted = PressBlockedByUI = false;
+
+            return blocked;
+        }
+
+        /// <summary>True when the control is a Mouse, Touch or Pen button and the pointer is over an interactable UI element</summary>
+        public static bool IsPointerOverInteractableUI(InputControl control)
+        {
+            if (control is not ButtonControl || control.device is not Pointer pointer) return false;
+
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null) return false;
+
+            //Raycast now instead of EventSystem.IsPointerOverGameObject(): that one reads last frame's
+            //state and logs a warning every time it is called from inside an Input System callback
+            var position = control.parent is TouchControl touch ? touch.position.ReadValue() : pointer.position.ReadValue();
+            var data = new PointerEventData(eventSystem) { position = position };
+
+            UIHits.Clear();
+            eventSystem.RaycastAll(data, UIHits);
+
+            if (UIHits.Count == 0) return false;
+
+            var top = UIHits[0]; //RaycastAll sorts the hits front to back
+            UIHits.Clear();
+
+            if (top.module is PhysicsRaycaster) return false;                  //A world object (3D or 2D), not UI
+            if (top.module is not UnityEngine.UI.GraphicRaycaster) return true; //UI Toolkit panel
+
+            var handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(top.gameObject);
+            if (handler == null) handler = ExecuteEvents.GetEventHandler<IPointerDownHandler>(top.gameObject);
+            if (handler == null) handler = ExecuteEvents.GetEventHandler<IBeginDragHandler>(top.gameObject);
+
+            if (handler == null) return false; //Decorative UI: labels, panels, HUD images
+
+            //A disabled Button (or one inside a non interactable Canvas Group) does not eat the click
+            return !handler.TryGetComponent(out UnityEngine.UI.Selectable selectable) || selectable.IsInteractable();
         }
 
         private void DoPress()
@@ -2148,6 +2219,7 @@ namespace MalbersAnimations.InputSystem
                     var active = Element.FindPropertyRelative("active");
                     var debug = Element.FindPropertyRelative("debug");
                     var ignoreOnPause = Element.FindPropertyRelative("ignoreOnPause");
+                    var blockOverUI = Element.FindPropertyRelative("blockOverUI");
                     var ResetOnDisable = Element.FindPropertyRelative("ResetOnDisable");
 
 
@@ -2164,6 +2236,7 @@ namespace MalbersAnimations.InputSystem
 
                     EditorGUILayout.PropertyField(ResetOnDisable);
                     EditorGUILayout.PropertyField(ignoreOnPause);
+                    EditorGUILayout.PropertyField(blockOverUI);
 
                     if (Element.FindPropertyRelative("reference").objectReferenceValue == null)
                     {

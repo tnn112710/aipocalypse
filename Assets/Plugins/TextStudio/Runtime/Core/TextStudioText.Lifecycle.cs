@@ -32,6 +32,8 @@ namespace TextStudio
             _hasEnabledLifecycle = true;
             _isShuttingDown = false;
             _isIdleSleeping = false;
+            // Created here so that parking allocates nothing in a later frame.
+            _unpark ??= Unpark;
             TextStudioHubEvents.Register(this);
             TextStudioRegistry.EnsureInitialized();
             HostTime.Reset(ref _lastHostTime, _timing);
@@ -205,6 +207,11 @@ namespace TextStudio
         {
             if (_isValidating)
                 return;
+
+            // Editor deserialization fills unassigned object fields with placeholders that equal null only through Unity's
+            // equality. The sleep check compares references, so an Inspector edit would keep the text awake for good.
+            if (_influenceTarget == null) _influenceTarget = null;
+            if (_behaviorProfile == null) _behaviorProfile = null;
 
             unchecked { _reactionSerializationRevision++; }
             if (_reactionSerializationRevision == 0)

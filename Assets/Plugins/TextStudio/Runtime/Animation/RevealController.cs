@@ -89,6 +89,8 @@ namespace TextStudio
         // Leading glyph slots whose schedule arrays hold the Instant layout for _instantScheduleDelay: zero reveal times, the delay, no instant flags, identity reveal and hide order and hide order index 0. Every other schedule writer clears it.
         int _instantScheduleCount;
         float _instantScheduleDelay;
+        // Initialize built the reveal schedule and hide order from the inputs a restart reads; the next start consumes it.
+        bool _scheduleBuiltByInitialize;
 
         // Marker tracking
         int _lastDispatchedMarkerIndex;
@@ -280,6 +282,7 @@ namespace TextStudio
         {
             _plan = plan;
             _groupTimings = timings;
+            _scheduleBuiltByInitialize = false;
             _totalCount = plan.VisibleGlyphCount;
             _revealedCount = 0;
             _revealProgress = 0f;
@@ -375,6 +378,7 @@ namespace TextStudio
 
             BuildRevealSchedule(plan);
             BuildHideOrder();
+            _scheduleBuiltByInitialize = true;
         }
 
         internal TextChangeState CaptureTextChangeState(
@@ -422,6 +426,21 @@ namespace TextStudio
         /// </param>
         public void StartReveal(bool resetProgress = true)
         {
+            StartReveal(resetProgress, reuseInitializedSchedule: false);
+        }
+
+        /// <summary>
+        /// Starts from glyph 0 directly after <see cref="Initialize"/>, whose schedule and hide order already come from the
+        /// inputs a restart reads, so only a start without that fresh schedule builds them again.
+        /// </summary>
+        internal void StartInitializedReveal()
+        {
+            StartReveal(true, _scheduleBuiltByInitialize);
+        }
+
+        void StartReveal(bool resetProgress, bool reuseInitializedSchedule)
+        {
+            _scheduleBuiltByInitialize = false;
             if (_totalCount == 0 && (_plan == null ||
                 (_plan.ActionMarkerCount == 0 && _plan.ExtensionTagCount == 0)))
             {
@@ -433,8 +452,11 @@ namespace TextStudio
 
             if (resetProgress)
             {
-                BuildRevealSchedule(_plan);
-                BuildHideOrder();
+                if (!reuseInitializedSchedule)
+                {
+                    BuildRevealSchedule(_plan);
+                    BuildHideOrder();
+                }
                 _completionTime = _scheduledCompletionTime;
                 _revealedCount = 0;
                 _revealProgress = 0f;
@@ -1277,10 +1299,32 @@ namespace TextStudio
 
             if (_isDisappearing)
             {
-                phase = GetGlyphPhase(glyphIndex, 0f);
-                progress = phase == AnimationPhase.Disappearance
-                    ? GetDisappearanceProgress(glyphIndex)
-                    : phase == AnimationPhase.Persistent ? 1f : 0f;
+                if (!IsGlyphAffectedByDisappear(glyphIndex))
+                {
+                    phase = AnimationPhase.Persistent;
+                    progress = 1f;
+                    return;
+                }
+
+                float disappearanceProgress = GetDisappearanceProgress(glyphIndex);
+                if (_hideSequenceSettings.Order != TextStudioSequenceOrder.AllAtOnce)
+                {
+                    if (disappearanceProgress >= 1f)
+                    {
+                        phase = AnimationPhase.None;
+                        progress = 0f;
+                        return;
+                    }
+                    if (disappearanceProgress <= 0f && GetHideOrderIndex(glyphIndex) > 0)
+                    {
+                        phase = AnimationPhase.Persistent;
+                        progress = 1f;
+                        return;
+                    }
+                }
+
+                phase = AnimationPhase.Disappearance;
+                progress = disappearanceProgress;
                 return;
             }
 

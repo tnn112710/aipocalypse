@@ -19,50 +19,50 @@ namespace FIMSpace.FEditor
 
         public static void Init()
         {
-            FTextureQuickConverter window = (FTextureQuickConverter)GetWindow(typeof(FTextureQuickConverter));
+            FTextureQuickConverter window = (FTextureQuickConverter)GetWindow( typeof( FTextureQuickConverter ) );
 
-            window.minSize = new Vector2(250f, 180f);
-            window.maxSize = new Vector2(250f, 250f);
+            window.minSize = new Vector2( 250f, 180f );
+            window.maxSize = new Vector2( 250f, 250f );
 
-            window.titleContent = new GUIContent("PNG Conversion", FTextureToolsGUIUtilities.FindIcon("SPR_TexTool"));
-            window.position = new Rect(200, 100, 250, 188f);
+            window.titleContent = new GUIContent( "PNG Conversion", FTextureToolsGUIUtilities.FindIcon( "SPR_TexTool" ) );
+            window.position = new Rect( 200, 100, 250, 188f );
             window.Show();
         }
 
 
         void OnGUI()
         {
-            if (textures == null) textures = new List<Texture2D>();
+            if( textures == null ) textures = new List<Texture2D>();
             textures.Clear();
 
-            if (Selection.objects.Length > 0)
+            if( Selection.objects.Length > 0 )
             {
-                for (int i = 0; i < Selection.objects.Length; i++)
+                for( int i = 0; i < Selection.objects.Length; i++ )
                 {
-                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GetAssetPath(Selection.objects[i]));
-                    if (texture != null) textures.Add(texture);
+                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>( AssetDatabase.GetAssetPath( Selection.objects[i] ) );
+                    if( texture != null ) textures.Add( texture );
                 }
 
-                if (!dimSetted)
-                    if (textures.Count > 0)
+                if( !dimSetted )
+                    if( textures.Count > 0 )
                         dimSetted = true;
             }
 
-            if (textures.Count == 0)
+            if( textures.Count == 0 )
             {
-                EditorGUILayout.HelpBox("You must select at least one texture file!", MessageType.Warning);
+                EditorGUILayout.HelpBox( "You must select at least one texture file!", MessageType.Warning );
                 return;
             }
 
-            EditorGUILayout.LabelField("Textures to convert: " + textures.Count);
+            EditorGUILayout.LabelField( "Textures to convert: " + textures.Count );
 
-            SwapRedTo = (EChannelSelect)EditorGUILayout.EnumPopup("Red to:", SwapRedTo);
-            SwapGreenTo = (EChannelSelect)EditorGUILayout.EnumPopup("Green to:", SwapGreenTo);
-            SwapBlueTo = (EChannelSelect)EditorGUILayout.EnumPopup("Blue to:", SwapBlueTo);
-            SwapAlphaTo = (EChannelSelect)EditorGUILayout.EnumPopup("Alpha to:", SwapAlphaTo);
+            SwapRedTo = (EChannelSelect)EditorGUILayout.EnumPopup( "Red to:", SwapRedTo );
+            SwapGreenTo = (EChannelSelect)EditorGUILayout.EnumPopup( "Green to:", SwapGreenTo );
+            SwapBlueTo = (EChannelSelect)EditorGUILayout.EnumPopup( "Blue to:", SwapBlueTo );
+            SwapAlphaTo = (EChannelSelect)EditorGUILayout.EnumPopup( "Alpha to:", SwapAlphaTo );
 
-            GUILayout.Space(4);
-            if (GUILayout.Button("Reset"))
+            GUILayout.Space( 4 );
+            if( GUILayout.Button( "Reset" ) )
             {
                 SwapRedTo = EChannelSelect.R;
                 SwapGreenTo = EChannelSelect.G;
@@ -70,65 +70,65 @@ namespace FIMSpace.FEditor
                 SwapAlphaTo = EChannelSelect.A;
             }
 
-            FTextureToolsGUIUtilities.DrawUILine(Color.white * 0.35f, 2, 5);
+            FTextureToolsGUIUtilities.DrawUILine( Color.white * 0.35f, 2, 5 );
 
-            postFix = EditorGUILayout.TextField("Suffix:",  postFix);
+            postFix = EditorGUILayout.TextField( "Suffix:", postFix );
 
-            if (GUILayout.Button("Duplicate and convert Files (" + textures.Count + ")"))
+            if( GUILayout.Button( "Duplicate and convert Files (" + textures.Count + ")" ) )
             {
-                for (int i = 0; i < textures.Count; i++)
+                for( int i = 0; i < textures.Count; i++ )
                 {
-                    Texture2D pngDuplicate = FTextureEditorToolsMethods.DuplicateAsPNG(textures[i]);
+                    Texture2D pngDuplicate = FTextureEditorToolsMethods.DuplicateAsPNG( textures[i] );
 
-                    if ( SwapRedTo != EChannelSelect.R || SwapGreenTo != EChannelSelect.G || SwapBlueTo != EChannelSelect.B || SwapAlphaTo != EChannelSelect.A)
+                    if( SwapRedTo != EChannelSelect.R || SwapGreenTo != EChannelSelect.G || SwapBlueTo != EChannelSelect.B || SwapAlphaTo != EChannelSelect.A )
                     {
-                        if (pngDuplicate != null) ProcessConversion(textures[i], pngDuplicate);
+                        if( pngDuplicate != null ) ProcessConversion( textures[i], pngDuplicate );
                     }
                 }
             }
 
         }
 
-        public void ProcessConversion(Texture2D source, Texture2D target)
+        public void ProcessConversion( Texture2D source, Texture2D target )
         {
-            TextureImporter srcImporter = FTextureEditorToolsMethods.GetTextureAsset(source);
-            var srcInfo = FTextureEditorToolsMethods.GetTextureInfo(srcImporter, source);
+            TextureImporter srcImporter = FTextureEditorToolsMethods.GetTextureAsset( source );
+            var srcInfo = FTextureEditorToolsMethods.GetTextureInfo( srcImporter, source );
 
-            TextureImporter tgtImporter = FTextureEditorToolsMethods.GetTextureAsset(target);
-            var tgtInfo = FTextureEditorToolsMethods.GetTextureInfo(tgtImporter, target);
+            TextureImporter tgtImporter = FTextureEditorToolsMethods.GetTextureAsset( target );
+            var tgtInfo = FTextureEditorToolsMethods.GetTextureInfo( tgtImporter, target );
 
             try
             {
-                EditorUtility.DisplayProgressBar("Channeling textures...", "Scaling texture " + target.name, 0.2f);
+                EditorUtility.DisplayProgressBar( "Channeling textures...", "Scaling texture " + target.name, 0.2f );
 
-                FTextureEditorToolsMethods.StartEditingTextureAsset(srcImporter, source, srcInfo);
-                FTextureEditorToolsMethods.StartEditingTextureAsset(tgtImporter, target, tgtInfo);
+                FTextureEditorToolsMethods.StartEditingTextureAsset( srcImporter, source, srcInfo );
+                FTextureEditorToolsMethods.StartEditingTextureAsset( tgtImporter, target, tgtInfo );
 
                 Color32[] srcPixels = source.GetPixels32();
                 Color32[] newPixels = target.GetPixels32();
 
-                for (int i = 0; i < newPixels.Length; i++) newPixels[i] = SwapChannels(srcPixels[i], newPixels[i]);
+                for( int i = 0; i < newPixels.Length; i++ ) newPixels[i] = SwapChannels( srcPixels[i], newPixels[i] );
 
-                FTextureEditorToolsMethods.EndEditingTextureAsset(srcPixels, srcInfo, srcImporter, source);
-                FTextureEditorToolsMethods.EndEditingTextureAsset(newPixels, tgtInfo, tgtImporter, target);
+                FTextureEditorToolsMethods.EndEditingTextureAsset( srcPixels, srcInfo, srcImporter, source );
+                FTextureEditorToolsMethods.EndEditingTextureAsset( newPixels, tgtInfo, tgtImporter, target );
 
                 EditorUtility.ClearProgressBar();
             }
-            catch (System.Exception exc)
+            catch( System.Exception exc )
             {
-                srcInfo.RestoreOn(srcImporter, source, false);
-                tgtInfo.RestoreOn(tgtImporter, source, false);
+                srcInfo.RestoreOn( srcImporter, source, false );
+                tgtInfo.RestoreOn( tgtImporter, source, false );
 
                 EditorUtility.ClearProgressBar();
-                UnityEngine.Debug.LogError("[Fimpo Image Tools] Something went wrong when channeling textures! " + exc);
+                UnityEngine.Debug.LogError( "[Fimpo Image Tools] Something went wrong when channeling textures! " + exc );
             }
         }
 
-        public Color32 SwapChannels(Color32 source, Color32 target)
+        public Color32 SwapChannels( Color32 source, Color32 target )
         {
             Color32 newC = target;
 
-            switch (SwapRedTo)
+            switch( SwapRedTo )
             {
                 case EChannelSelect.R: newC.r = target.r; break;
                 case EChannelSelect.G: newC.r = target.g; break;
@@ -139,7 +139,7 @@ namespace FIMSpace.FEditor
                 case EChannelSelect.SetGray: newC.r = byte.MaxValue / 2; break;
             }
 
-            switch (SwapGreenTo)
+            switch( SwapGreenTo )
             {
                 case EChannelSelect.R: newC.g = target.r; break;
                 case EChannelSelect.G: newC.g = target.g; break;
@@ -150,7 +150,7 @@ namespace FIMSpace.FEditor
                 case EChannelSelect.SetGray: newC.g = byte.MaxValue / 2; break;
             }
 
-            switch (SwapBlueTo)
+            switch( SwapBlueTo )
             {
                 case EChannelSelect.R: newC.b = target.r; break;
                 case EChannelSelect.G: newC.b = target.g; break;
@@ -161,7 +161,7 @@ namespace FIMSpace.FEditor
                 case EChannelSelect.SetGray: newC.b = byte.MaxValue / 2; break;
             }
 
-            switch (SwapAlphaTo)
+            switch( SwapAlphaTo )
             {
                 case EChannelSelect.R: newC.a = target.r; break;
                 case EChannelSelect.G: newC.a = target.g; break;
@@ -176,26 +176,26 @@ namespace FIMSpace.FEditor
         }
 
 
-        [MenuItem("CONTEXT/Material/Convert Material Textures To PNGs")]
-        private static void ConvertMaterialTexturesToPNGs(MenuCommand menuCommand)
+        [MenuItem( "CONTEXT/Material/Convert Material Textures To PNGs" )]
+        private static void ConvertMaterialTexturesToPNGs( MenuCommand menuCommand )
         {
             Material targetMaterial = (Material)menuCommand.context;
 
-            if (targetMaterial)
+            if( targetMaterial )
             {
-                List<TextureInfo> textures = GetAllTexturesFromMaterial(targetMaterial);
-                for (int i = 0; i < textures.Count; i++)
+                List<TextureInfo> textures = GetAllTexturesFromMaterial( targetMaterial );
+                for( int i = 0; i < textures.Count; i++ )
                 {
-                    if (textures[i].tex == null) continue;
+                    if( textures[i].tex == null ) continue;
 
-                    string texPath = AssetDatabase.GetAssetPath(textures[i].tex);
-                    FTex.FETextureExtension extension = FTex.FTex_Methods.GetFileExtension(texPath);
+                    string texPath = AssetDatabase.GetAssetPath( textures[i].tex );
+                    FTex.FETextureExtension extension = FTex.FTex_Methods.GetFileExtension( texPath );
 
-                    if (extension != FTex.FETextureExtension.PNG)
+                    if( extension != FTex.FETextureExtension.PNG )
                     {
-                        Texture2D duplicated = FTextureEditorToolsMethods.DuplicateAsPNG(textures[i].tex);
-                        if ( duplicated != null)
-                            targetMaterial.SetTexture(textures[i].nameInShader, duplicated);
+                        Texture2D duplicated = FTextureEditorToolsMethods.DuplicateAsPNG( textures[i].tex );
+                        if( duplicated != null )
+                            targetMaterial.SetTexture( textures[i].nameInShader, duplicated );
                     }
                 }
 
@@ -204,31 +204,31 @@ namespace FIMSpace.FEditor
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("CONTEXT/Material/Convert Material Textures To PNGs and Remove Sources")]
-        private static void ConvertMaterialTexturesToPNGsAndRemove(MenuCommand menuCommand)
+        [MenuItem( "CONTEXT/Material/Convert Material Textures To PNGs and Remove Sources" )]
+        private static void ConvertMaterialTexturesToPNGsAndRemove( MenuCommand menuCommand )
         {
             Material targetMaterial = (Material)menuCommand.context;
 
-            if (targetMaterial)
+            if( targetMaterial )
             {
 
-                if (EditorUtility.DisplayDialog("Warning", "This action will remove source texture files into system trash after converting them into pngs.", "Ok", "Cancel"))
+                if( EditorUtility.DisplayDialog( "Warning", "This action will remove source texture files into system trash after converting them into pngs.", "Ok", "Cancel" ) )
                 {
-                    List<TextureInfo> textures = GetAllTexturesFromMaterial(targetMaterial);
-                    for (int i = 0; i < textures.Count; i++)
+                    List<TextureInfo> textures = GetAllTexturesFromMaterial( targetMaterial );
+                    for( int i = 0; i < textures.Count; i++ )
                     {
-                        if (textures[i].tex == null) continue;
+                        if( textures[i].tex == null ) continue;
 
-                        string texPath = AssetDatabase.GetAssetPath(textures[i].tex);
-                        FTex.FETextureExtension extension = FTex.FTex_Methods.GetFileExtension(texPath);
+                        string texPath = AssetDatabase.GetAssetPath( textures[i].tex );
+                        FTex.FETextureExtension extension = FTex.FTex_Methods.GetFileExtension( texPath );
 
-                        if (extension != FTex.FETextureExtension.PNG)
+                        if( extension != FTex.FETextureExtension.PNG )
                         {
-                            Texture2D duplicated = FTextureEditorToolsMethods.DuplicateAsPNG(textures[i].tex);
-                            if (duplicated != null)
+                            Texture2D duplicated = FTextureEditorToolsMethods.DuplicateAsPNG( textures[i].tex );
+                            if( duplicated != null )
                             {
-                                targetMaterial.SetTexture(textures[i].nameInShader, duplicated);
-                                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(textures[i].tex));
+                                targetMaterial.SetTexture( textures[i].nameInShader, duplicated );
+                                AssetDatabase.DeleteAsset( AssetDatabase.GetAssetPath( textures[i].tex ) );
                             }
                         }
                     }
@@ -241,21 +241,88 @@ namespace FIMSpace.FEditor
         }
 
 
-        public static List<TextureInfo> GetAllTexturesFromMaterial(Material mat)
+        [MenuItem( "CONTEXT/Material/Apply 'TEX_' naming to the Material Textures" )]
+        private static void ApplyNamingToTheMaterialTextures( MenuCommand menuCommand )
+        {
+            Material targetMaterial = (Material)menuCommand.context;
+
+            if( targetMaterial )
+            {
+                string matName = targetMaterial.name.Replace( "MAT_", "" );
+                matName = matName.Replace( "Mat_", "" );
+                string texTitle = "TEX_" + matName;
+
+                List<TextureInfo> textures = GetAllTexturesFromMaterial( targetMaterial );
+
+                for( int i = 0; i < textures.Count; i++ )
+                {
+                    if( textures[i].tex == null ) continue;
+
+                    string texPath = AssetDatabase.GetAssetPath( textures[i].tex );
+                    string texShaderName = textures[i].nameInShader.ToLower();
+
+                    if( texShaderName.Contains( "maint" ) || texShaderName.Contains( "albe" ) ) // MainTex / albedo
+                    {
+                        AssetDatabase.RenameAsset( texPath, texTitle + "_Albedo" );
+                    }
+                    else if( texShaderName.Contains( "mask" ) || texShaderName.Contains( "gao" ) ) // MaskMap / AO tex
+                    {
+                        AssetDatabase.RenameAsset( texPath, texTitle + "_MaskMap" );
+                    }
+                    else if( texShaderName.Contains( "normal" ) || texShaderName.Contains( "bumpmap" ) ) // NormalMap Texture
+                    {
+                        AssetDatabase.RenameAsset( texPath, texTitle + "_Normal" );
+                    }
+                }
+            }
+
+            AssetDatabase.Refresh();
+            AssetDatabase.SaveAssets();
+        }
+
+
+        public static List<TextureInfo> GetAllTexturesFromMaterial( Material mat )
         {
             List<TextureInfo> allTexture = new List<TextureInfo>();
             Shader shader = mat.shader;
-            for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); i++)
+            for( int i = 0; i < GetShaderPropertyCount( shader ); i++ )
             {
-                if (ShaderUtil.GetPropertyType(shader, i) == ShaderUtil.ShaderPropertyType.TexEnv)
+                if( IsShaderTextureProperty( shader, i ) )
                 {
-                    string name = ShaderUtil.GetPropertyName(shader, i);
-                    Texture2D texture = (Texture2D)mat.GetTexture(name);
-                    allTexture.Add(new TextureInfo(texture, name, i));
+                    string name = GetShaderPropertyName( shader, i );
+                    Texture2D texture = (Texture2D)mat.GetTexture( name );
+                    allTexture.Add( new TextureInfo( texture, name, i ) );
                 }
             }
 
             return allTexture;
+        }
+
+        private static int GetShaderPropertyCount( Shader shader )
+        {
+#if UNITY_2019_3_OR_NEWER
+            return shader.GetPropertyCount();
+#else
+            return ShaderUtil.GetPropertyCount( shader );
+#endif
+        }
+
+        private static bool IsShaderTextureProperty( Shader shader, int propertyIndex )
+        {
+#if UNITY_2019_3_OR_NEWER
+            return shader.GetPropertyType( propertyIndex ) == UnityEngine.Rendering.ShaderPropertyType.Texture;
+#else
+            return ShaderUtil.GetPropertyType( shader, propertyIndex ) == ShaderUtil.ShaderPropertyType.TexEnv;
+#endif
+        }
+
+        private static string GetShaderPropertyName( Shader shader, int propertyIndex )
+        {
+#if UNITY_2019_3_OR_NEWER
+            return shader.GetPropertyName( propertyIndex );
+#else
+            return ShaderUtil.GetPropertyName( shader, propertyIndex );
+#endif
         }
 
         public struct TextureInfo
@@ -264,7 +331,7 @@ namespace FIMSpace.FEditor
             public string nameInShader;
             public int idInShader;
 
-            public TextureInfo(Texture2D tex, string nameInShader, int idInShader)
+            public TextureInfo( Texture2D tex, string nameInShader, int idInShader )
             {
                 this.tex = tex;
                 this.nameInShader = nameInShader;

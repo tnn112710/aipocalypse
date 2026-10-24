@@ -12,6 +12,10 @@ namespace TextStudio
         readonly Dictionary<string, ITextStudioCharacterSubstitution> _entries =
             new Dictionary<string, ITextStudioCharacterSubstitution>(TextStudioIgnoreCaseComparer.Instance);
         readonly List<string> _removeBuffer = new List<string>(8);
+        uint _revision;
+
+        // Advances whenever a lookup can resolve differently, so compiled plans can tell whether their bindings still hold.
+        internal uint Revision => _revision;
 
         public bool TryGet(string tagName, out ITextStudioCharacterSubstitution substitution)
         {
@@ -60,6 +64,7 @@ namespace TextStudio
             }
 
             Dictionary<string, ITextStudioCharacterSubstitution> target = builtIn ? _builtInEntries : _entries;
+            _revision++;
             RegisterName(target, substitution.Id, substitution);
 
             TextStudioCharacterSubstitutionDefinition definition = substitution.Definition;
@@ -106,6 +111,8 @@ namespace TextStudio
 
             bool removed = _removeBuffer.Count > 0;
             _removeBuffer.Clear();
+            if (removed)
+                _revision++;
             return removed;
         }
 
@@ -114,6 +121,7 @@ namespace TextStudio
             _builtInEntries.Clear();
             _entries.Clear();
             _removeBuffer.Clear();
+            _revision++;
         }
 
         public IEnumerable<ITextStudioCharacterSubstitution> GetAll()

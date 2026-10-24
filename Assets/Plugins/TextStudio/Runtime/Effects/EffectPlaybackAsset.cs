@@ -66,6 +66,7 @@ namespace TextStudio
         float Evaluate(float time, float duration);
     }
 
+    /// <summary>Chooses whether completed finite effect playback holds its final intensity or resets to zero.</summary>
     public enum EffectPlaybackCompletion
     {
         HoldFinal,

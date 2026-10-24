@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses closing markup derived automatically from an expansion's opening markup or supplied explicitly by the author.</summary>
     public enum TextStudioTagExpansionClosingMode
     {
         Auto,

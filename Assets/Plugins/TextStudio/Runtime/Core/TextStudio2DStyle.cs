@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Identifies the operation performed by a 2D appearance layer, from painted fills and strokes to decorations, masks, effects, and adjustments.</summary>
     public enum TextStudio2DLayerKind : byte
     {
         Fill = 0,
@@ -24,6 +25,7 @@ namespace TextStudio
         CompositeAdjustment = 15
     }
 
+    /// <summary>Selects automatic routing or an explicit fused-field, retained-geometry, or hero-compositor path for a 2D appearance style.</summary>
     public enum TextStudio2DExecutionPath : byte
     {
         Automatic = 0,
@@ -32,9 +34,12 @@ namespace TextStudio
         HeroCompositor = 3
     }
 
+    /// <summary>Limits an appearance layer to text glyphs, color glyphs such as sprites, or both, with automatic source applicability available.</summary>
     public enum TextStudio2DSourceApplicability : byte { Automatic, TextGlyphsOnly, TextAndColor, ColorOnly }
+    /// <summary>Chooses whether a color glyph keeps its original pixels, is tinted, or contributes only its silhouette to an appearance fill.</summary>
     public enum TextStudio2DColorFaceMode : byte { PreserveOriginal, Tint, SilhouetteFill }
 
+    /// <summary>Selects the responsive, balanced, or hero quality budget used when compiling and rendering a 2D appearance style.</summary>
     public enum TextStudio2DQualityTier : byte
     {
         Responsive = 0,
@@ -58,6 +63,7 @@ namespace TextStudio
         [InspectorName("By Character")] GlyphMajor = 1
     }
 
+    /// <summary>Chooses whether an appearance group inherits painter order, draws each layer across characters, or completes each character's stack first.</summary>
     public enum TextStudio2DGroupOrder : byte
     {
         Inherit = 0,
@@ -65,6 +71,7 @@ namespace TextStudio
         [InspectorName("By Character")] ByCharacter = 2
     }
 
+    /// <summary>Chooses whether shared decoration surfaces are drawn before or after the characters they support.</summary>
     public enum TextStudio2DSharedSurfaceOrder : byte
     {
         [InspectorName("Before Characters")] BeforeCharacters = 0,
@@ -78,6 +85,7 @@ namespace TextStudio
         AlphaClipped = 1
     }
 
+    /// <summary>Selects the color compositing operation used to combine a 2D appearance layer with the layers beneath it.</summary>
     public enum TextStudio2DBlendMode : byte
     {
         Normal = 0,
@@ -95,6 +103,7 @@ namespace TextStudio
         Max = 12
     }
 
+    /// <summary>Selects how a paint produces color, including solid colors, gradients, textures, patterns, procedural noise, and distance-based gradients.</summary>
     public enum TextStudio2DPaintKind : byte
     {
         Solid = 0,
@@ -108,6 +117,7 @@ namespace TextStudio
         DistanceGradient = 8
     }
 
+    /// <summary>Selects the coordinate space in which a paint is sampled, from individual glyphs and text ranges to object, screen, or world coordinates.</summary>
     public enum TextStudio2DMappingSpace : byte
     {
         Glyph = 0,
@@ -156,6 +166,7 @@ namespace TextStudio
         Mirror = 2
     }
 
+    /// <summary>Selects the round, miter, or bevel shape used where adjacent segments of a 2D contour stroke meet.</summary>
     public enum TextStudio2DStrokeJoin : byte
     {
         Round = 0,
@@ -177,6 +188,7 @@ namespace TextStudio
         DepthProgress = 1
     }
 
+    /// <summary>Selects the text decoration to generate: underline, strikethrough, overline, background, or border.</summary>
     public enum TextStudio2DDecorationKind : byte
     {
         Underline = 0,
@@ -205,6 +217,7 @@ namespace TextStudio
         Notch = 5
     }
 
+    /// <summary>Selects the silhouette of a decoration surface, including geometric plates, custom polygons, and the source glyph's own outline.</summary>
     public enum TextStudio2DDecorationShape : byte
     {
         Plate = 0,
@@ -220,6 +233,7 @@ namespace TextStudio
         GlyphSilhouette = 10
     }
 
+    /// <summary>Chooses whether decoration surfaces are built per line, as a connected selected range, or per text fragment.</summary>
     public enum TextStudio2DDecorationTopology : byte
     {
         PerLine = 0,
@@ -254,6 +268,7 @@ namespace TextStudio
         HolographicFoil = 10
     }
 
+    /// <summary>Combines a style with its parent by appending layers, replacing layers with matching persistent IDs, or replacing the inherited stack.</summary>
     public enum TextStudio2DStyleInheritanceMode : byte
     {
         Append = 0,
@@ -1240,6 +1255,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Chooses whether a glyph-derived backplate follows Typewriter reveal and hide or stays visible independently.</summary>
     public enum TextStudio2DBackplateVisibility
     {
         FollowTypewriter = 0,

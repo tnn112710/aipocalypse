@@ -9,11 +9,22 @@ namespace TextStudio
 {
     internal sealed partial class TextStudio2DStyleDecorations
     {
+        // A static mask orders first the edges within this many em of its line's tiles. The lean line program measures only
+        // those for pixels whose antialiasing and treatment reach stay inside that band, and every edge for the others.
+        const float InkBandMarginEm = .25f;
+        // A static mask over the edge budget keeps the outlines within this many em of its line's tiles. Its coverage stays
+        // exact while the antialiasing width and treatment reach fit in the margin, above about ten output pixels per em.
+        const float InkClipMarginEm = .5f;
+        internal const string InkBudgetMetricWarning = "The glyph outlines of a skip-ink line exceed the 2048-edge budget, so the line skips the metric bounds of its glyphs instead. Split the line to keep outline gaps.";
+        internal const string InkBudgetExceededWarning = "Skip ink for a line exceeds the 2048-edge budget even with metric glyph bounds, so the line stays continuous. Split the line.";
         readonly List<Vector2[]> _inkShapes = new List<Vector2[]>();
         readonly List<TextStudio2DNativeInkSource> _nativeInkSources = new List<TextStudio2DNativeInkSource>();
+        // Set when a line of the operation being emitted samples live Writing ink, which only the general program evaluates.
+        bool _liveInkEmitted;
 
         TextStudio2DSurfaceHandle PrepareSkipInk(in TextStudioFrame frame, in TextStudioVisualSnapshot snapshot,
-            TMP_Text text, in TextStudio2DDecorationSpec decoration, in DecorationRun run, Vector4 adjustmentMask, TextStudioPreparedFieldDemand sourceDemand, TextStudioTMPFrameApplier frameApplier)
+            TMP_Text text, in TextStudio2DDecorationSpec decoration, in DecorationRun run, Vector4 expansion, Vector4 adjustmentMask,
+            TextStudioPreparedFieldDemand sourceDemand, TextStudioTMPFrameApplier frameApplier)
         {
             TextStudio2DDecorationLineSpec line = decoration.Line;
             if (line.SkipInk == TextStudio2DSkipInk.Off) return default;
@@ -22,6 +33,9 @@ namespace TextStudio
             TextStudioDeterministicHash64 hash = default;
             hash.Add(pixelLine); hash.Add(run.Left); hash.Add(run.Right);
             hash.Add((byte)line.SkipInk); hash.Add(line.InkClearance); hash.Add(run.EmScale);
+            // The band order and the budget clip follow the line's tiles.
+            hash.Add(run.Bottom); hash.Add(run.Height);
+            hash.Add(expansion.x); hash.Add(expansion.y); hash.Add(expansion.z); hash.Add(expansion.w);
             for (int index = 0; index < snapshot.RenderGlyphCount; index++)
             {
                 ref readonly TextStudioVisualGlyph glyph = ref snapshot.RenderGlyphAt(index);
@@ -44,6 +58,7 @@ namespace TextStudio
                 else if (line.SkipInk == TextStudio2DSkipInk.Precise)
                     CompatibilityWarning = "Precise skip ink needs prepared font outlines. Use Prepare Appearance Data for each font. The line stays continuous where that source is unavailable.";
             }
+            _liveInkEmitted |= hasLiveInk;
             if (_activeSurfaces >= 128)
             {
                 CompatibilityWarning = "The text exceeds the 128 line and connected-surface budget. Split the text to prepare additional skip-ink lines.";
@@ -55,65 +70,19 @@ namespace TextStudio
             {
                 if (surface.Geometry == null || surface.InputFingerprint != hash.Value)
                 {
-                    _inkShapes.Clear();
-                    _nativeInkSources.Clear();
-                    int edgeOffset = 0;
-                    for (int index = 0; index < snapshot.RenderGlyphCount; index++)
+                    TextStudio2DSurfaceGeometry geometry = BuildInkGeometry(in frame, in snapshot, text, in line, in run, expansion, pixelLine,
+                        hasLiveInk, sourceDemand, frameApplier, out string warning);
+                    if (geometry == null)
                     {
-                        ref readonly TextStudioVisualGlyph glyph = ref snapshot.RenderGlyphAt(index);
-                        float em = glyph.LocalEmSize > 0 ? glyph.LocalEmSize : frame.GetEffectUnitScale(glyph.TextUnitIndex);
-                        if (!IsNativeInkVisible(in frame, in glyph) || glyph.LineIndex != run.LineIndex) continue;
-                        bool posed = TextStudio2DTMPGlyphPlane.TryCreate(text, in glyph, out TextStudio2DTMPGlyphPlane plane, frameApplier, sourceDemand);
-                        if (posed && !plane.HasVisibleSource) continue;
-                        int firstEdge = edgeOffset;
-                        bool prepared = glyph.SourceKind == TextStudioVisualSourceKind.FontGlyph &&
-                            snapshot.TryGetFontSource(glyph.FontIdentity, out TextStudioVisualFontSource source);
-                        if (prepared)
-                        {
-                            snapshot.TryGetFontSource(glyph.FontIdentity, out source);
-                            ICurveFontFace face = source.AppearanceData.GetCurveSource();
-                            if (face != null && glyph.GlyphIndex < face.GlyphCount)
-                            {
-                                float nativeOffset = posed ? plane.NativeFaceOffsetEm : 0;
-                                float tolerance = ResolveInkTolerance(sourceDemand, glyph.FontIdentity);
-                                bool clipWriting = hasLiveInk && posed;
-                                // Positive round dilations compose exactly. Combine them before tessellation to avoid doubling tiny edges.
-                                // Erosion and Writing clipping must still precede the line's outward clearance.
-                                bool combineDilation = !clipWriting && nativeOffset >= 0;
-                                MeasuredContourSet measured = source.AppearanceData.GetContours(glyph.GlyphIndex, tolerance, combineDilation ? 0 : nativeOffset);
-                                Vector2[][] contours = new Vector2[measured.Count][];
-                                for (int contour = 0; contour < contours.Length; contour++) contours[contour] = measured.GetContour(contour).ToArray();
-                                float clearance = line.InkClearance + (combineDilation ? nativeOffset : 0);
-                                if (!clipWriting && clearance > 0) contours = PolygonGeometry.Offset(contours, clearance, tolerance);
-                                foreach (Vector2[] contour in contours)
-                                {
-                                    if (!hasLiveInk || !posed)
-                                        for (int point = 0; point < contour.Length; point++)
-                                            contour[point] = posed ? (Vector2)plane.Position(contour[point]) : glyph.Origin + contour[point] * em;
-                                    _inkShapes.Add(contour);
-                                    edgeOffset += contour.Length;
-                                }
-                                if (hasLiveInk) AddNativeInkSource(firstEdge, edgeOffset, posed, in plane, line.InkClearance);
-                                continue;
-                            }
-                        }
-                        if (line.SkipInk == TextStudio2DSkipInk.Auto)
-                        {
-                            Vector2[] metricShape = ResolveInkMetricShape(text, in glyph, (hasLiveInk && posed ? 0 : line.InkClearance) + (posed ? plane.NativeFaceOffsetEm : 0), em, hasLiveInk && posed);
-                            _inkShapes.Add(metricShape);
-                            edgeOffset += metricShape.Length;
-                            if (hasLiveInk) AddNativeInkSource(firstEdge, edgeOffset, posed, in plane, line.InkClearance);
-                        }
-                        else CompatibilityWarning = "Precise skip ink is unavailable for one of this line's glyph sources. Prepare its font appearance data.";
+                        CompatibilityWarning = warning;
+                        return default;
                     }
-                    // Sample posed native ink after the line's own sizing and glyph transform in both unit modes.
-                    surface.Geometry = hasLiveInk
-                        ? new TextStudio2DSurfaceGeometry(_inkShapes, nativeInkSources: _nativeInkSources)
-                        : new TextStudio2DSurfaceGeometry(PolygonGeometry.Union(_inkShapes));
+                    surface.Geometry = geometry;
                     surface.InputFingerprint = hash.Value;
-                    _inkShapes.Clear();
-                    _nativeInkSources.Clear();
+                    surface.Warning = warning;
                 }
+                // A cached fallback keeps reporting itself on every build that reuses it.
+                if (!string.IsNullOrEmpty(surface.Warning)) CompatibilityWarning = surface.Warning;
                 if (surface.Geometry.Edges.Length == 0) return default;
                 if (!TextStudio2DSurfaceTable.Shared.TryUpdate(ref surface.Handle, surface.Geometry, adjustmentMask))
                 {
@@ -131,6 +100,120 @@ namespace TextStudio
                 _nativeInkSources.Clear();
                 CompatibilityWarning = "Skip ink could not prepare this line: " + exception.Message;
                 return default;
+            }
+        }
+
+        // Prefers the union of the line's whole native ink. When it exceeds the edge budget, an em-sized static mask keeps the
+        // outlines near its tiles, and any mask still over budget falls back to metric glyph bounds with an explicit warning.
+        // Returns null, with the warning, only when even those bounds exceed the budget.
+        TextStudio2DSurfaceGeometry BuildInkGeometry(in TextStudioFrame frame, in TextStudioVisualSnapshot snapshot, TMP_Text text,
+            in TextStudio2DDecorationLineSpec line, in DecorationRun run, Vector4 expansion, bool pixelLine, bool hasLiveInk,
+            TextStudioPreparedFieldDemand sourceDemand, TextStudioTMPFrameApplier frameApplier, out string warning)
+        {
+            warning = string.Empty;
+            try
+            {
+                float bottom = run.Bottom - expansion.y, top = run.Top + expansion.w;
+                float bandMargin = InkBandMarginEm * run.EmScale, clip = InkClipMarginEm * run.EmScale;
+                Vector2 band = new Vector2(bottom - bandMargin, top + bandMargin);
+                // Pixel-sized lines size their band per camera, so only em-sized static masks clip to their tiles.
+                Rect? samples = pixelLine ? (Rect?)null :
+                    Rect.MinMaxRect(run.Left - expansion.x - clip, bottom - clip, run.Right + expansion.z + clip, top + clip);
+                CollectNativeInk(in frame, in snapshot, text, in line, in run, hasLiveInk, false, sourceDemand, frameApplier);
+                TextStudio2DSurfaceGeometry geometry = hasLiveInk ? ComposeLiveInk() : ComposeStaticInk(_inkShapes, band, samples);
+                if (geometry != null) return geometry;
+                CollectNativeInk(in frame, in snapshot, text, in line, in run, hasLiveInk, true, sourceDemand, frameApplier);
+                geometry = hasLiveInk ? ComposeLiveInk() : ComposeStaticInk(_inkShapes, band, null);
+                warning = geometry != null ? InkBudgetMetricWarning : InkBudgetExceededWarning;
+                return geometry;
+            }
+            finally
+            {
+                _inkShapes.Clear();
+                _nativeInkSources.Clear();
+            }
+        }
+
+        /// <summary>
+        /// The union of static ink with the edges that meet <paramref name="band"/> first. When that union exceeds the edge
+        /// budget, its part within <paramref name="samples"/>, which is unchanged within the rectangle's margin around the
+        /// line. Null when even that part exceeds the budget, or no rectangle applies.
+        /// </summary>
+        internal static TextStudio2DSurfaceGeometry ComposeStaticInk(IReadOnlyList<Vector2[]> shapes, Vector2 band, Rect? samples)
+        {
+            Vector2[][] union = PolygonGeometry.Union(shapes);
+            if (TextStudio2DSurfaceGeometry.CountEdges(union) > TextStudio2DSurfaceGeometry.MaximumEdges)
+            {
+                if (!samples.HasValue) return null;
+                union = PolygonGeometry.Intersect(union, new[] { InkRectangle(samples.Value) });
+                if (TextStudio2DSurfaceGeometry.CountEdges(union) > TextStudio2DSurfaceGeometry.MaximumEdges) return null;
+            }
+            return new TextStudio2DSurfaceGeometry(union, inkBand: band);
+        }
+
+        // Live Writing ink keeps each glyph's canonical edges in place for its native source records.
+        TextStudio2DSurfaceGeometry ComposeLiveInk() =>
+            TextStudio2DSurfaceGeometry.CountEdges(_inkShapes) <= TextStudio2DSurfaceGeometry.MaximumEdges
+                ? new TextStudio2DSurfaceGeometry(_inkShapes, nativeInkSources: _nativeInkSources)
+                : null;
+
+        // Collects the visible native ink of the run's line: prepared outlines where available, and metric glyph bounds for
+        // Auto lines, for glyphs without outlines, or for every glyph when metricOnly is set. Posed native ink is sampled after
+        // the line's own sizing and glyph transform in both unit modes.
+        void CollectNativeInk(in TextStudioFrame frame, in TextStudioVisualSnapshot snapshot, TMP_Text text,
+            in TextStudio2DDecorationLineSpec line, in DecorationRun run, bool hasLiveInk, bool metricOnly,
+            TextStudioPreparedFieldDemand sourceDemand, TextStudioTMPFrameApplier frameApplier)
+        {
+            _inkShapes.Clear();
+            _nativeInkSources.Clear();
+            int edgeOffset = 0;
+            for (int index = 0; index < snapshot.RenderGlyphCount; index++)
+            {
+                ref readonly TextStudioVisualGlyph glyph = ref snapshot.RenderGlyphAt(index);
+                float em = glyph.LocalEmSize > 0 ? glyph.LocalEmSize : frame.GetEffectUnitScale(glyph.TextUnitIndex);
+                if (!IsNativeInkVisible(in frame, in glyph) || glyph.LineIndex != run.LineIndex) continue;
+                bool posed = TextStudio2DTMPGlyphPlane.TryCreate(text, in glyph, out TextStudio2DTMPGlyphPlane plane, frameApplier, sourceDemand);
+                if (posed && !plane.HasVisibleSource) continue;
+                int firstEdge = edgeOffset;
+                bool prepared = !metricOnly && glyph.SourceKind == TextStudioVisualSourceKind.FontGlyph &&
+                    snapshot.TryGetFontSource(glyph.FontIdentity, out TextStudioVisualFontSource source);
+                if (prepared)
+                {
+                    snapshot.TryGetFontSource(glyph.FontIdentity, out source);
+                    ICurveFontFace face = source.AppearanceData.GetCurveSource();
+                    if (face != null && glyph.GlyphIndex < face.GlyphCount)
+                    {
+                        float nativeOffset = posed ? plane.NativeFaceOffsetEm : 0;
+                        float tolerance = ResolveInkTolerance(sourceDemand, glyph.FontIdentity);
+                        bool clipWriting = hasLiveInk && posed;
+                        // Positive round dilations compose exactly. Combine them before tessellation to avoid doubling tiny edges.
+                        // Erosion and Writing clipping must still precede the line's outward clearance.
+                        bool combineDilation = !clipWriting && nativeOffset >= 0;
+                        MeasuredContourSet measured = source.AppearanceData.GetContours(glyph.GlyphIndex, tolerance, combineDilation ? 0 : nativeOffset);
+                        Vector2[][] contours = new Vector2[measured.Count][];
+                        for (int contour = 0; contour < contours.Length; contour++) contours[contour] = measured.GetContour(contour).ToArray();
+                        float clearance = line.InkClearance + (combineDilation ? nativeOffset : 0);
+                        if (!clipWriting && clearance > 0) contours = PolygonGeometry.Offset(contours, clearance, tolerance);
+                        foreach (Vector2[] contour in contours)
+                        {
+                            if (!hasLiveInk || !posed)
+                                for (int point = 0; point < contour.Length; point++)
+                                    contour[point] = posed ? (Vector2)plane.Position(contour[point]) : glyph.Origin + contour[point] * em;
+                            _inkShapes.Add(contour);
+                            edgeOffset += contour.Length;
+                        }
+                        if (hasLiveInk) AddNativeInkSource(firstEdge, edgeOffset, posed, in plane, line.InkClearance);
+                        continue;
+                    }
+                }
+                if (line.SkipInk == TextStudio2DSkipInk.Auto || metricOnly)
+                {
+                    Vector2[] metricShape = ResolveInkMetricShape(text, in glyph, (hasLiveInk && posed ? 0 : line.InkClearance) + (posed ? plane.NativeFaceOffsetEm : 0), em, hasLiveInk && posed);
+                    _inkShapes.Add(metricShape);
+                    edgeOffset += metricShape.Length;
+                    if (hasLiveInk) AddNativeInkSource(firstEdge, edgeOffset, posed, in plane, line.InkClearance);
+                }
+                else CompatibilityWarning = "Precise skip ink is unavailable for one of this line's glyph sources. Prepare its font appearance data.";
             }
         }
 

@@ -897,17 +897,19 @@ namespace TextStudio
 
         public static float ComputeArcRadius(Vector3[] layoutPositions, int start, int glyphCount, float arcRadians, float glyphMargin = 0f)
         {
-            if (layoutPositions == null || glyphCount < 2 || arcRadians <= 1e-4f)
+            // Reversed arcs sweep a negative angle; only the sweep's extent determines the radius that fits the text.
+            float arcExtent = Mathf.Abs(arcRadians);
+            if (layoutPositions == null || glyphCount < 2 || arcExtent <= 1e-4f)
                 return 0f;
 
             float totalAdvance = ComputeOpenAdvance(layoutPositions, start, glyphCount);
             if (totalAdvance <= 1e-4f)
                 return 0f;
 
-            float arcRadius = totalAdvance / arcRadians;
+            float arcRadius = totalAdvance / arcExtent;
             int gaps = Mathf.Max(1, glyphCount - 1);
             float averageAdvance = totalAdvance / gaps;
-            float stepRadians = arcRadians / gaps;
+            float stepRadians = arcExtent / gaps;
             float adjacentChordRadius = 0f;
             float sinStepHalf = Mathf.Sin(stepRadians * 0.5f);
             if (sinStepHalf > 1e-4f)

@@ -34,6 +34,7 @@ namespace TextStudio
             }
             if (s_ContentRevision == 0)
                 s_ContentRevision = 1;
+            TextStudioHubScheduler.UnparkAll();
         }
     }
 }

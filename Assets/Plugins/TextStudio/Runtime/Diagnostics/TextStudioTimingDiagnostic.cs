@@ -1,5 +1,6 @@
 namespace TextStudio
 {
+    /// <summary>Reports Typewriter playback as idle, revealing, paused, waiting between loops, or complete.</summary>
     public enum TextStudioRevealState
     {
         Idle,

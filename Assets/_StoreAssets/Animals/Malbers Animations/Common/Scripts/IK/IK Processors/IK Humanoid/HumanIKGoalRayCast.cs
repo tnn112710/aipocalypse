@@ -1,4 +1,4 @@
-// Last Change: 9/19/2026 3:44pm
+// Last Change: 10/16/2026 9:45am
 using MalbersAnimations.Scriptables;
 using UnityEngine;
 
@@ -128,7 +128,7 @@ namespace MalbersAnimations.IK
 
                 Normal = Target;
 
-                Hit += (hit.normal * NormalOffset);
+                Hit += (hit.normal * (NormalOffset * OffsetScale(set))); //IK Manager Scale Multiplier
             }
             else
             {

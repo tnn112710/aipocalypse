@@ -3,8 +3,11 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses whether an appearance binding replaces the current appearance stack or overlays its layers onto it.</summary>
     public enum TextStudioAppearanceApplyMode { Replace = 0, Overlay = 1 }
+    /// <summary>Chooses whether an appearance binding is always active or is activated only by matching appearance markup.</summary>
     public enum TextStudioAppearanceActivationMode { Always = 0, Tagged = 1 }
+    /// <summary>Chooses whether an appearance binding uses an inline style definition or a shared style asset.</summary>
     public enum TextStudioAppearanceDefinitionSource { Inline = 0, Asset = 1 }
 
     /// <summary>Activation metadata for a top-level appearance group. Inactive source data is retained.</summary>

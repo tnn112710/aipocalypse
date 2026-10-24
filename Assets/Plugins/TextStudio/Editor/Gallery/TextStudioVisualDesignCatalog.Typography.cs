@@ -34,10 +34,9 @@ namespace TextStudio.Editor
 
         internal static TMP_FontAsset LoadAppearanceDisplayFont(string id)
         {
-            string fullRoot = TextStudioPackagePaths.FindFullRoot(TextStudioPackagePaths.BasePackageName);
-            if (string.IsNullOrEmpty(fullRoot))
+            string root = TextStudioPackagePaths.FindAssetRoot(TextStudioPackagePaths.BasePackageName);
+            if (string.IsNullOrEmpty(root))
                 return null;
-            string root = FileUtil.GetProjectRelativePath(fullRoot).Replace('\\', '/');
             string name = ResolveAppearanceFontName(id);
             return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
                 root.TrimEnd('/') + "/" + AppearanceFontRoot + "/" + name + "/" + name + " Gallery SDF.asset");

@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 namespace TextStudio
@@ -53,10 +54,10 @@ namespace TextStudio
 
             if (shader.passCount != 1)
                 return Unsupported("multi-pass TMP materials are not supported");
-            if (!material.HasProperty("_MainTex") ||
-                !material.HasProperty("_GradientScale") ||
-                !material.HasProperty("_TextureWidth") ||
-                !material.HasProperty("_TextureHeight"))
+            if (!material.HasProperty(ShaderUtilities.ID_MainTex) ||
+                !material.HasProperty(ShaderUtilities.ID_GradientScale) ||
+                !material.HasProperty(ShaderUtilities.ID_TextureWidth) ||
+                !material.HasProperty(ShaderUtilities.ID_TextureHeight))
             {
                 return Unsupported("required SDF atlas properties are missing");
             }

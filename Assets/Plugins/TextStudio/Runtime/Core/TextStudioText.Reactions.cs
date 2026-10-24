@@ -502,6 +502,8 @@ namespace TextStudio
 
         void SyncReactions()
         {
+            // Reads the presentation clock, which a parked hub keeps in the scheduler.
+            Unpark();
             _runtime.SetReactionActionHost(this, deferLiveOutputSampling: true);
             bool profileBacked = _behaviorProfile != null &&
                                  _behaviorProfile.Provides(TextStudioBehaviorDomain.Reactions);

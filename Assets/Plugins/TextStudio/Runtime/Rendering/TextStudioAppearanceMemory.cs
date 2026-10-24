@@ -6,6 +6,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace TextStudio
 {
+    /// <summary>Classifies appearance memory allocations as source fields, paint textures, geometry, tables, hero targets, or preparation data.</summary>
     public enum TextStudioAppearanceResourceKind
     {
         Fields,

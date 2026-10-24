@@ -2,6 +2,7 @@ using System;
 
 namespace TextStudio
 {
+    /// <summary>Flags whether an effect supports flat text, extruded 3D text, or both output domains.</summary>
     [Flags]
     public enum TextStudioRenderDomain
     {
@@ -11,6 +12,7 @@ namespace TextStudio
         All = FlatText | Extruded3D
     }
 
+    /// <summary>Reports whether an effect fully or partly supports a target, is unsupported, or is blocked by a missing dependency.</summary>
     public enum TextStudioEffectCompatibilityState
     {
         Compatible,
@@ -40,6 +42,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Classifies how an effect performs its work, from ordinary real-time evaluation to vertex streaming, material updates, geometry refresh, prepared deformation, or simulation.</summary>
     public enum TextStudioEffectPerformanceTier
     {
         Realtime,
@@ -58,6 +61,7 @@ namespace TextStudio
         GeometryRefresh
     }
 
+    /// <summary>Declares whether an effect is preserved, reduced, or disabled when reduced motion is requested.</summary>
     public enum TextStudioReducedMotionBehavior
     {
         Preserve,
@@ -65,6 +69,7 @@ namespace TextStudio
         Disable
     }
 
+    /// <summary>Chooses full, reduced, or disabled motion for text effects, or inherits the project motion-accessibility setting.</summary>
     public enum TextStudioMotionPolicy
     {
         Inherit,

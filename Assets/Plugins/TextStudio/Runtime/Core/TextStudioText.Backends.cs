@@ -254,6 +254,14 @@ namespace TextStudio
                     DirtyFlags.Animation |
                     DirtyFlags.Visual);
             }
+            else if (change == TextStudioTextBackendChange.Presentation)
+            {
+                bool refreshed = _activeTextBackend is ITextStudioSourceColorBackend source &&
+                    source.TryRefreshSourceColors(_layout.SourceColors, _layout.GlyphCount);
+                if (refreshed) _runtime.MeshDirty.SetAllDirty(_layout.GlyphCount);
+                _runtime.SetDirty((refreshed ? DirtyFlags.None : DirtyFlags.Layout) |
+                    DirtyFlags.Animation | DirtyFlags.Visual);
+            }
             else if (IsDrivingTextStudioOutput && !IsRenderingRawExternalOutput)
             {
                 _runtime.SetDirty(DirtyFlags.Animation | DirtyFlags.Visual);
@@ -365,19 +373,22 @@ namespace TextStudio
 
         void PushTextBackend(bool isDriving)
         {
-            if (_activeTextSourceBackend == null)
+            using (BackendPublicationProfilerMarker.Auto())
             {
-                TmpBridge.SetLiteralMarkupRendering(IsRenderingRawExternalOutput);
-                TmpBridge.PushText(isDriving, _runtime.Plan, _runtime.Markup);
-                return;
-            }
+                if (_activeTextSourceBackend == null)
+                {
+                    TmpBridge.SetLiteralMarkupRendering(IsRenderingRawExternalOutput);
+                    TmpBridge.PushText(isDriving, _runtime.Plan, _runtime.Markup);
+                    return;
+                }
 
-            TextStudioBackendTextRequest request = new TextStudioBackendTextRequest(
-                _runtime.Plan,
-                _runtime.Markup,
-                isDriving,
-                IsRenderingRawExternalOutput);
-            _activeTextSourceBackend.PushText(in request);
+                TextStudioBackendTextRequest request = new TextStudioBackendTextRequest(
+                    _runtime.Plan,
+                    _runtime.Markup,
+                    isDriving,
+                    IsRenderingRawExternalOutput);
+                _activeTextSourceBackend.PushText(in request);
+            }
         }
 
         void PushRawAuthoringTextBackend()
@@ -407,7 +418,8 @@ namespace TextStudio
                     sourceContextRequirements,
                     ActiveCompiledAppearanceStyle,
                     _compiledWritingStyle,
-                    ActiveCompiledAppearancePlan);
+                    ActiveCompiledAppearancePlan,
+                    TextStudioKeptGlyphPrefix.Of(_runtime.Pipeline));
             }
 
             TextStudioBackendLayoutRequest request = new TextStudioBackendLayoutRequest(
@@ -424,7 +436,7 @@ namespace TextStudio
                    _backendLayoutBuilder.HasCommittedLayout;
         }
 
-        void RenderTextBackend(in TextStudioFrame frame, bool suppressOutput)
+        void RenderTextBackend(in TextStudioFrame frame, bool suppressOutput, bool steadyFrame = false)
         {
             if (_activeMeshBackend != null)
             {
@@ -443,7 +455,8 @@ namespace TextStudio
                 _presentationGlyphs,
                 _glyphProvider,
                 suppressOutput,
-                applyPlacement);
+                applyPlacement,
+                steadyFrame);
         }
 
         void UpdateTextBackendVisibility(bool suppressOutput)
@@ -463,7 +476,8 @@ namespace TextStudio
 
         void ReleaseTextBackendMaterialEffects()
         {
-            if (_activeMeshBackend != null)
+            // Text that never prepared material effects, or released them already, skips the per-frame requirement checks.
+            if (_activeMeshBackend != null || !TmpBridge.HasReleasableMaterialState)
                 return;
             TmpBridge.ReleaseMaterialEffectsIfUnused(
                 _runtime.Plan,

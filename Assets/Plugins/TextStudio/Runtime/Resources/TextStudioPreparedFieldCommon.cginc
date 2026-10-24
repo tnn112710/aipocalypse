@@ -55,6 +55,9 @@ TextStudioPreparedField TextStudioResolveExternalField(TextStudioPreparedField r
     return result;
 }
 
+// Reads a glyph's row from the mapping table of TextStudio2DStylePaintCommon.cginc. Programs without that table, such as
+// the uniform field program's external-field variant, resolve their rows from vertex streams instead.
+#ifdef TEXT_STUDIO_MAPPING_TABLE_ENABLED
 TextStudioPreparedField TextStudioGetPreparedField(uint styleSlot, int glyphIndex)
 {
     TextStudioPreparedField result = (TextStudioPreparedField)0;
@@ -67,6 +70,7 @@ TextStudioPreparedField TextStudioGetPreparedField(uint styleSlot, int glyphInde
     result.decode = glyph.preparedDecode;
     return result;
 }
+#endif
 
 float4 TextStudioSamplePreparedField(TextStudioPreparedField source, float2 nativeUv)
 {

@@ -1,4 +1,4 @@
-// Last Change: 9/19/2026 3:44pm
+// Last Change: 10/16/2026 9:45am
 using MalbersAnimations.Scriptables;
 using UnityEngine;
 
@@ -69,7 +69,7 @@ namespace MalbersAnimations.IK
 
             if (weight <= 0) return;
 
-            anim.bodyPosition += GetWorldOffset(anim.bodyRotation) * weight;
+            anim.bodyPosition += GetWorldOffset(anim.bodyRotation) * (weight * OffsetScale(set)); //IK Manager Scale Multiplier
         }
 
         /// <summary> Offset rotated into world space according to [space] </summary>
@@ -103,7 +103,7 @@ namespace MalbersAnimations.IK
             if (hips == null) return;
 
             var from = hips.position;
-            var to = from + GetSpaceRotation(anim, hips) * Offset.Value;
+            var to = from + GetSpaceRotation(anim, hips) * (Offset.Value * OffsetScale(IKSet));
 
             Gizmos.color = Color.gray;
             Gizmos.DrawWireSphere(from, 0.04f);
@@ -124,16 +124,17 @@ namespace MalbersAnimations.IK
 
             var spaceRot = GetSpaceRotation(animator, hips);
             var handleRot = Tools.pivotRotation == PivotRotation.Local ? spaceRot : Quaternion.identity;
+            var scale = OffsetScale(set); //Handle shows the scaled offset, a drag is divided back
 
             using (var cc = new EditorGUI.ChangeCheckScope())
             {
-                var pos = hips.position + spaceRot * Offset.Value;
+                var pos = hips.position + spaceRot * (Offset.Value * scale);
                 var newPos = Handles.PositionHandle(pos, handleRot);
 
                 if (cc.changed)
                 {
                     Undo.RecordObject(Target, "Change Body Position Offset");
-                    Offset.Value = Quaternion.Inverse(spaceRot) * (newPos - hips.position);
+                    Offset.Value = Quaternion.Inverse(spaceRot) * (newPos - hips.position) / scale;
                     EditorUtility.SetDirty(Target);
                 }
             }

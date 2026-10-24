@@ -384,6 +384,16 @@ namespace TextStudio
         {
             if (left == null || right == null)
                 return false;
+            bool leftAtom = left.TextUnits != null && leftUnitIndex >= 0 && leftUnitIndex < left.TextUnitCount &&
+                left.TextUnits[leftUnitIndex].isSourceAtom;
+            bool rightAtom = right.TextUnits != null && rightUnitIndex >= 0 && rightUnitIndex < right.TextUnitCount &&
+                right.TextUnits[rightUnitIndex].isSourceAtom;
+            if (leftAtom || rightAtom)
+            {
+                if (!leftAtom || !rightAtom) return false;
+                ReadOnlySpan<char> leftIdentity = left.GetUnitIdentitySpan(leftUnitIndex);
+                return !leftIdentity.IsEmpty && leftIdentity.SequenceEqual(right.GetUnitIdentitySpan(rightUnitIndex));
+            }
             int leftStart = left.GetResolvedStart(leftUnitIndex);
             int rightStart = right.GetResolvedStart(rightUnitIndex);
             int leftLength = left.GetResolvedLength(leftUnitIndex);

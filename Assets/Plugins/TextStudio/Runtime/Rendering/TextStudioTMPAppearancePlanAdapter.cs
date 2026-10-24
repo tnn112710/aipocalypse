@@ -191,6 +191,16 @@ namespace TextStudio
             return false;
         }
 
+        internal bool HasStaticCameraQuality
+        {
+            get
+            {
+                for (int index = 0; index < _programs.Count; index++)
+                    if (_used[index] && !_programs[index].HasStaticCameraQuality) return false;
+                return true;
+            }
+        }
+
         internal void FlushAndBind()
         {
             for (int index = 0; index < _programs.Count; index++) if (_used[index]) _programs[index].FlushAndBind();

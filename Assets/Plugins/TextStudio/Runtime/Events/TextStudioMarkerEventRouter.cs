@@ -6,6 +6,7 @@ using UnityEngine.Events;
 
 namespace TextStudio
 {
+    /// <summary>Chooses the string delivered by a routed marker event: all joined arguments, the route's event name, or its first argument.</summary>
     public enum TextStudioMarkerPayloadMode
     {
         [InspectorName("All Arguments")] JoinedParameters,

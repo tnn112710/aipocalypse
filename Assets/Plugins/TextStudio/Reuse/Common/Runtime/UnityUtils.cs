@@ -81,6 +81,43 @@ namespace ImpossibleRobert.Common
         }
 
         /// <summary>
+        /// Keeps a camera that only renders into a texture out of stereo rendering while an XR display is active.
+        /// Only the Built-in Render Pipeline reads the setting. Scriptable pipelines skip XR for a camera with a
+        /// target texture and log a warning when the setting is assigned, so it is left alone there.
+        /// </summary>
+        public static void ExcludeFromStereoRendering(Camera camera)
+        {
+            if (camera != null && UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline == null)
+                camera.stereoTargetEye = StereoTargetEyeMask.None;
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Undo brings a deleted object back as a new instance. The serialized reference of another component finds it
+        /// again, but that component's field keeps the destroyed instance until it is read back. Call this from an
+        /// <c>Undo.undoRedoPerformed</c> handler for every field that points at another scene object. Returns true
+        /// when the field was replaced. Editor only.
+        /// </summary>
+        public static bool TryRecoverUndoneReference<T>(Object owner, string propertyPath, ref T field) where T : Object
+        {
+            // Never assigned, or alive: nothing to recover.
+            if (ReferenceEquals(field, null) || field != null || owner == null)
+                return false;
+
+            using (UnityEditor.SerializedObject serialized = new UnityEditor.SerializedObject(owner))
+            {
+                UnityEditor.SerializedProperty property = serialized.FindProperty(propertyPath);
+                T restored = property != null ? property.objectReferenceValue as T : null;
+                if (restored == null)
+                    return false;
+
+                field = restored;
+                return true;
+            }
+        }
+#endif
+
+        /// <summary>
         /// Returns a stable integer identifier for the object.
         /// Uses GetEntityId on Unity 6.2+ and GetInstanceID on older versions.
         /// </summary>
@@ -91,6 +128,24 @@ namespace ImpossibleRobert.Common
 #else
             return obj.GetInstanceID();
 #endif
+        }
+
+        /// <summary>Controls baked occlusion for a dynamic renderer on supported Unity versions.</summary>
+        public static void SetDynamicOcclusionCulling(this Renderer renderer, bool enabled)
+        {
+            // Keep the per-renderer baked-occlusion opt-out while Unity still supports it.
+#pragma warning disable CS0618
+            renderer.allowOcclusionWhenDynamic = enabled;
+#pragma warning restore CS0618
+        }
+
+        /// <summary>Controls baked occlusion for a camera, including off-screen preview cameras.</summary>
+        public static void SetOcclusionCulling(this Camera camera, bool enabled)
+        {
+            // Preview cameras must keep bypassing baked scene occlusion while the API is supported.
+#pragma warning disable CS0618
+            camera.useOcclusionCulling = enabled;
+#pragma warning restore CS0618
         }
 
         /// <summary>

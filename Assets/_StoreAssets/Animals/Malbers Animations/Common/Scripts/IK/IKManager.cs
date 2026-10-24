@@ -1,4 +1,4 @@
-﻿// Last Change: 9/24/2026 12:57pm
+﻿// Last Change: 10/16/2026 4:28pm
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -23,6 +23,10 @@ namespace MalbersAnimations.IK
 
         [Range(0f, 1f), Tooltip("Global weight for the All IK Profiles")]
         public float Weight = 1;
+
+        /// <summary>Multiplier applied to every position offset of all the IK Processors, to match the character bone scale</summary>
+        [Min(0.0001f), Tooltip("Multiplies every position offset of all the IK Processors (Goal, Hint, Body, Sole... offsets) to match the scale of the character bones.\nRotation offsets are not affected")]
+        public float ScaleMultiplier = 1;
 
         public List<IKSet> sets = new();
         /// <summary>Animator parameter hashes available on this rig, used to validate IK Set parameter bindings</summary>
@@ -621,6 +625,8 @@ namespace MalbersAnimations.IK
                     if (!set.active) continue;
                     if (!set.Gizmos) continue; //Global Gizmos switch of the Set
 
+                    set.Owner = this; //MWC — edit-time Gizmos need the Owner for its Scale Multiplier (Initialize only runs in Play Mode)
+
                     //Paint the Weight Processors
                     if (set.weightProcessors != null)
                     {
@@ -678,7 +684,7 @@ namespace MalbersAnimations.IK
 
         IKManager m;
 
-        SerializedProperty GlobalWeight, IKSets, animator, EditorTabs, SelectedSet, GlobalTargets,
+        SerializedProperty GlobalWeight, ScaleMultiplier, IKSets, animator, EditorTabs, SelectedSet, GlobalTargets,
             library, LibraryMode, LoadLibraryOnAwake, Remap, AutomapOnAwake
             ;
 
@@ -690,6 +696,7 @@ namespace MalbersAnimations.IK
             IKSets = serializedObject.FindProperty("sets");
             EditorTabs = serializedObject.FindProperty("EditorTabs");
             GlobalWeight = serializedObject.FindProperty("Weight");
+            ScaleMultiplier = serializedObject.FindProperty(nameof(IKManager.ScaleMultiplier));
             SelectedSet = serializedObject.FindProperty("SelectedSet");
             GlobalTargets = serializedObject.FindProperty("GlobalTargets");
 
@@ -889,6 +896,7 @@ namespace MalbersAnimations.IK
             {
                 EditorGUILayout.PropertyField(animator);
                 EditorGUILayout.PropertyField(GlobalWeight);
+                EditorGUILayout.PropertyField(ScaleMultiplier);
             }
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
@@ -1364,8 +1372,25 @@ namespace MalbersAnimations.IK
         }
 
 
+        /// <summary>True while this editor hides Unity's transform tool so only the IK Processor handles show.</summary>
+        private bool hidToolsForIK;
+
+        /// <summary>Restores Unity's transform tool if the IK handles hid it.</summary>
+        private void OnDisable() => HideToolsForIK(false);
+
+        /// <summary>Hides or restores Unity's transform tool on the character, only touching it when this editor hid it.</summary>
+        private void HideToolsForIK(bool hide)
+        {
+            if (hide == hidToolsForIK) return;
+            Tools.hidden = hide;
+            hidToolsForIK = hide;
+        }
+
         private void OnSceneGUI()
         {
+            //The character's own Move/Rotate gizmo sits on top of the IK handles; hide it while they are drawn
+            var drawn = false;
+
             if (m.sets != null && m.sets.Count > 0 && m.animator != null)
             {
                 for (int k = 0; k < m.sets.Count; k++)
@@ -1374,16 +1399,23 @@ namespace MalbersAnimations.IK
 
                     if (set != null && m.SelectedSet == k && set.active && set.Gizmos && set.Processors != null)
                     {
+                        set.Owner = m; //MWC — edit-time Handles need the Owner for its Scale Multiplier (Initialize only runs in Play Mode)
+
                         for (int i = 0; i < set.Processors.Count; i++)
                         {
                             var link = set.Processors[i];
 
                             if (link != null && link.Active && set.SelectedIKProcessor == i)
+                            {
                                 link.OnSceneGUI(set, m.animator, target, i);
+                                drawn |= link.HasSceneHandles;
+                            }
                         }
                     }
                 }
             }
+
+            HideToolsForIK(drawn);
         }
     }
 #endif

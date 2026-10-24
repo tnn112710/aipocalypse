@@ -1,4 +1,5 @@
-﻿using MalbersAnimations.Scriptables;
+﻿// Last Change: 10/16/2026 2:46pm
+using MalbersAnimations.Scriptables;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,6 +22,7 @@ namespace MalbersAnimations.Controller
             public MalbersAnimations.Reactions.Reaction2 NoWallDetectedReactions;
 
 
+            /// <summary> Clears the profile values </summary>
             public void Empty()
             {
                 SpeedIndex = 0;
@@ -28,6 +30,15 @@ namespace MalbersAnimations.Controller
                 TouchWallReactions = new();
                 NoWallDetectedReactions = new();
             }
+        }
+
+        [System.Serializable]
+        public struct WallStopStancePivot
+        {
+            [Tooltip("Stance that uses this pivot for the Wall Stop ray (e.g. Crouch)")]
+            public StanceID Stance;
+            [Tooltip("Local position (relative to the Animal root) where the Wall Stop ray starts while on this Stance")]
+            public Vector3 Pivot;
         }
 
         //public override string StateName => "Locomotion";
@@ -55,6 +66,16 @@ namespace MalbersAnimations.Controller
             "\nY:Additional Value for the Ray when the Character is on that speed.")]
         [Hide("WallStop", false, false)]
         public List<WallStopProfiles> wallStopProfiles = new();
+
+        [Tooltip("Override the Wall Stop ray origin per Stance (e.g. a lower pivot while Crouching so the character can walk under low obstacles)." +
+            "\nStances not on this list use the Main Pivot (Chest)")]
+        [Hide("WallStop", false, false)]
+        public List<WallStopStancePivot> wallStopStancePivots = new();
+
+        /// <summary> Stance the cached Wall Stop pivot was resolved for </summary>
+        private StanceID cachedPivotStance;
+        /// <summary> Index of the Wall Stop stance pivot for the cached stance (-1 = Main Pivot) </summary>
+        private int cachedPivotIndex = -1;
 
 
         [Space(10), Tooltip("Makes the Animal avoid ledges, Useful when the Animal without a Fall State, like the Elephant")]
@@ -212,7 +233,7 @@ namespace MalbersAnimations.Controller
             if (WallStop && currentProfile.SpeedIndex != 0 && MovementRaw.z > 0) //Find a wall if we are doing Wall Stopping
             {
                 var Length = (currentProfile.RayLength) * ScaleFactor;
-                var MainPivotPoint = animal.Main_Pivot_Point;
+                var MainPivotPoint = WallStopPivot();
 
                 MDebug.DrawRay(MainPivotPoint, animal.Forward * Length, Color.yellow);
                 MDebug.DrawWireSphere(MainPivotPoint + animal.Forward * Length, Color.yellow, 0.02f);
@@ -236,6 +257,29 @@ namespace MalbersAnimations.Controller
                     }
                 }
             }
+        }
+
+        /// <summary> World origin of the Wall Stop ray: the current Stance pivot override, or the Main Pivot </summary>
+        private Vector3 WallStopPivot()
+        {
+            var stance = animal.Stance;
+
+            if (stance != cachedPivotStance) //Resolve the override only when the Stance changes
+            {
+                cachedPivotStance = stance;
+                cachedPivotIndex = -1;
+
+                if (stance != null)
+                {
+                    for (int i = 0; i < wallStopStancePivots.Count; i++)
+                    {
+                        var st = wallStopStancePivots[i].Stance;
+                        if (st != null && st.ID == stance.ID) { cachedPivotIndex = i; break; }
+                    }
+                }
+            }
+
+            return cachedPivotIndex != -1 ? transform.TransformPoint(wallStopStancePivots[cachedPivotIndex].Pivot) : animal.Main_Pivot_Point;
         }
 
         /// <summary>  Wall Stop Profiles  </summary>
@@ -262,6 +306,8 @@ namespace MalbersAnimations.Controller
         {
             currentProfile.Empty(); //Reset the current ProFile
             WallHit = null;
+            cachedPivotStance = null;
+            cachedPivotIndex = -1;
         }
 
         //───────────────────────────────────────── ANTI FALL CODE ──────────────────────────────────────────────────────────────────
@@ -357,6 +403,16 @@ namespace MalbersAnimations.Controller
                 {
                     Gizmos.DrawRay(MainPivotPoint, animal.Forward * item.RayLength);
                     Gizmos.DrawSphere(MainPivotPoint + animal.Forward * item.RayLength, 0.02f);
+                }
+
+                Gizmos.color = Color.cyan; //Stance pivot overrides
+                foreach (var sp in wallStopStancePivots)
+                {
+                    var StancePivot = animal.transform.TransformPoint(sp.Pivot);
+                    Gizmos.DrawWireSphere(StancePivot, 0.03f);
+
+                    foreach (var item in wallStopProfiles)
+                        Gizmos.DrawRay(StancePivot, animal.Forward * item.RayLength);
                 }
             }
         }

@@ -27,6 +27,7 @@ namespace TextStudio
             TextStudio2DPainterOrder.LayerMajor;
         [SerializeField] TextStudio2DWorldShadowMode _worldShadowMode =
             TextStudio2DWorldShadowMode.Off;
+        [SerializeField] bool _exactLayering;
         [SerializeField] TextStudio2DLayer[] _layers = Array.Empty<TextStudio2DLayer>();
         [NonSerialized] int _revision;
         [NonSerialized] int[] _definitionDomains;
@@ -37,6 +38,10 @@ namespace TextStudio
         [NonSerialized] Texture2D[] _paintTextures;
         [NonSerialized] int _paintDependencyRevision;
         [NonSerialized] ulong _paintDependencyBaseKey;
+        [NonSerialized] int _frameDependencyFrame = -1;
+        [NonSerialized] int _frameDependencyRevision;
+        [NonSerialized] ulong _frameDependencyBaseKey;
+        [NonSerialized] ulong _frameDependencyValue;
 
         internal static event Action<TextStudio2DStyleAsset> Changed;
 
@@ -54,6 +59,11 @@ namespace TextStudio
         public TextStudio2DSourceFieldQuality SourceFieldQuality => _sourceFieldQuality;
         public TextStudio2DPainterOrder PainterOrder => _painterOrder;
         public TextStudio2DWorldShadowMode WorldShadowMode => _worldShadowMode;
+        /// <summary>
+        /// Keeps Text Studio's exact layered rendering. Off, the default, draws a style TextMeshPro can express (one solid fill, a
+        /// round stroke and a distance-field outer shadow at Native source quality) through the text's TextMeshPro SDF material.
+        /// </summary>
+        public bool ExactLayering => _exactLayering;
         public int ItemCount => _layers?.Length ?? 0;
         /// <summary>Returns an independent snapshot of this asset's local settings.</summary>
         public TextStudio2DStyleSettings Settings => GetSettingsForCompilation().Clone();
@@ -63,7 +73,7 @@ namespace TextStudio
             if (_definitionDomains == null || _definitionDomains.Length != ItemCount) _definitionDomains = TextStudioAppearanceDomains.Build(_layers);
             return new TextStudio2DStyleSettings(
                 _baseStyle, _inheritanceMode, _sourceFieldQuality, _painterOrder,
-                _worldShadowMode, _layers, _exposures, _definitionDomains);
+                _worldShadowMode, _layers, _exposures, _definitionDomains, _exactLayering);
         }
 
         /// <summary>Sets a stable catalog ID independently from the asset filename. Empty IDs remain ordinary styles.</summary>
@@ -93,6 +103,7 @@ namespace TextStudio
             _sourceFieldQuality = settings.SourceFieldQuality;
             _painterOrder = settings.PainterOrder;
             _worldShadowMode = settings.WorldShadowMode;
+            _exactLayering = settings.ExactLayering;
             _layers = settings.CloneAuthoredLayers();
             _exposures = settings.Exposures;
             RepairLayers();
@@ -144,6 +155,15 @@ namespace TextStudio
             NotifyChanged();
         }
 
+        /// <summary>Sets whether the style keeps Text Studio's exact layered rendering (<see cref="ExactLayering"/>).</summary>
+        public void SetExactLayering(bool exactLayering)
+        {
+            if (_exactLayering == exactLayering)
+                return;
+            _exactLayering = exactLayering;
+            NotifyChanged();
+        }
+
         internal TextStudio2DLayer[] CloneAuthoredLayers()
         {
             return TextStudio2DStyleSettings.CloneLayers(_layers);
@@ -157,6 +177,7 @@ namespace TextStudio
             _sourceFieldQuality = TextStudio2DSourceFieldQuality.Automatic;
             _painterOrder = TextStudio2DPainterOrder.LayerMajor;
             _worldShadowMode = TextStudio2DWorldShadowMode.Off;
+            _exactLayering = false;
             _layers = new[]
             {
                 TextStudio2DLayer.CreateFill("Fill", TextStudio2DPaint.Solid(Color.white))
@@ -241,6 +262,24 @@ namespace TextStudio
                 current = current.BaseStyle;
             }
             return hash.Value;
+        }
+
+        // Settled texts poll a shared style every frame; one result serves the rest of a player frame while this asset's revision and base chain are unchanged.
+        internal bool TryGetFrameDependencyRevision(int frame, out ulong revision)
+        {
+            revision = _frameDependencyValue;
+            return frame == _frameDependencyFrame && _frameDependencyRevision == _revision &&
+                   _frameDependencyBaseKey == ComputePaintDependencyBaseKey();
+        }
+
+        // Edit Mode records frame -1, so Play Mode never reuses a result computed while editor ticks did not advance frames.
+        internal void RecordFrameDependencyRevision(int frame, ulong revision)
+        {
+            _frameDependencyFrame = frame;
+            if (frame < 0) return;
+            _frameDependencyRevision = _revision;
+            _frameDependencyBaseKey = ComputePaintDependencyBaseKey();
+            _frameDependencyValue = revision;
         }
 
         void OnDisable() => _sharedProgram = null;

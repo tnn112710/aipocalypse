@@ -1,3 +1,4 @@
+// Last Change: 10/8/2026 6:40pm
 using MalbersAnimations.Scriptables;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -27,6 +28,9 @@ namespace MalbersAnimations
         [Tooltip("Seconds the pivot takes to turn toward the target direction. Zero turns instantly")]
         public FloatReference RotationSmoothTime = new(0.15f);
 
+        [Tooltip("Keep facing the last locked position after the lock is released, so the camera does not swing around while it blends out")]
+        public BoolReference HoldLastTarget = new(true);
+
         [Tooltip("Ignore the height difference so the pivot only turns around the Up axis")]
         public BoolReference OnlyYaw = new(true);
 
@@ -38,6 +42,12 @@ namespace MalbersAnimations
 
         /// <summary>Target the pivot faced on the last update, used to snap when a new lock starts</summary>
         private Transform lastTarget;
+
+        /// <summary>Last position of the locked target, used while the lock is released</summary>
+        private Vector3 heldTargetPosition;
+
+        /// <summary>True when there is a held target position to face</summary>
+        private bool hasHeldTarget;
 
         /// <summary>Unparents the pivot so the Cinemachine Camera transform does not drag it around</summary>
         private void Awake()
@@ -86,9 +96,13 @@ namespace MalbersAnimations
             var follow = Follow.Value;
             if (follow == null) return;
 
-            transform.SetPositionAndRotation(follow.position, DesiredRotation(follow, Target.Value));
-            PlaceAimPoint(follow, Target.Value);
-            lastTarget = Target.Value;
+            var target = Target.Value;
+            hasHeldTarget = target != null;
+            if (hasHeldTarget) heldTargetPosition = target.position;
+
+            transform.SetPositionAndRotation(follow.position, DesiredRotation(follow));
+            PlaceAimPoint(follow);
+            lastTarget = target;
         }
 
         /// <summary>Moves the pivot onto the Follow and turns it toward the Target, smoothing the rotation over time</summary>
@@ -107,19 +121,29 @@ namespace MalbersAnimations
 
             lastTarget = target;
 
-            var desired = DesiredRotation(follow, target);
+            if (target != null)
+            {
+                heldTargetPosition = target.position;
+                hasHeldTarget = true;
+            }
+            else if (!HoldLastTarget.Value)
+            {
+                hasHeldTarget = false;
+            }
+
+            var desired = DesiredRotation(follow);
             var smooth = RotationSmoothTime.Value;
 
             var rotation = smooth <= 0f ? desired : Quaternion.Slerp(transform.rotation, desired, 1f - Mathf.Exp(-deltaTime / smooth));
 
             transform.SetPositionAndRotation(follow.position, rotation);
-            PlaceAimPoint(follow, target);
+            PlaceAimPoint(follow);
         }
 
-        /// <summary>Rotation looking from the Follow toward the Target, or the Follow facing when there is no Target</summary>
-        private Quaternion DesiredRotation(Transform follow, Transform target)
+        /// <summary>Rotation looking from the Follow toward the Target (or the held position), or the Follow facing when there is none</summary>
+        private Quaternion DesiredRotation(Transform follow)
         {
-            var direction = target != null ? target.position - follow.position : follow.forward;
+            var direction = hasHeldTarget ? heldTargetPosition - follow.position : follow.forward;
 
             if (OnlyYaw.Value) direction.y = 0f;
 
@@ -128,13 +152,13 @@ namespace MalbersAnimations
             return Quaternion.LookRotation(direction.normalized, Vector3.up);
         }
 
-        /// <summary>Places the Aim Point between the Follow and the Target</summary>
-        private void PlaceAimPoint(Transform follow, Transform target)
+        /// <summary>Places the Aim Point between the Follow and the Target (or the held position)</summary>
+        private void PlaceAimPoint(Transform follow)
         {
             if (AimPoint == null) return;
 
             var origin = follow.position + Vector3.up * AimPointHeight.Value;
-            AimPoint.position = target != null ? Vector3.Lerp(origin, target.position, AimPointBias.Value) : origin;
+            AimPoint.position = hasHeldTarget ? Vector3.Lerp(origin, heldTargetPosition, AimPointBias.Value) : origin;
         }
 
 #if UNITY_EDITOR

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TextStudio.BuiltIns;
+using Unity.Profiling;
 using UnityEngine;
 using BuiltInWaitAction = TextStudio.BuiltIns.WaitAction;
 
@@ -9,6 +10,9 @@ namespace TextStudio
 {
     internal sealed partial class TextStudioRuntimeCore : ITextStudioController, ITextStudioWaitLifecycleSink, ITypewriterProvider
     {
+        static readonly ProfilerMarker CompileProfilerMarker = new ProfilerMarker("Text Studio Compile");
+        static readonly ProfilerMarker BindEffectsProfilerMarker = new ProfilerMarker("Text Studio Bind Effects");
+
         readonly StringTextSource _source = new StringTextSource();
         readonly TextStudioPipeline _pipeline = new TextStudioPipeline();
         StringTextSource _textChangePreviewSource;
@@ -107,7 +111,12 @@ namespace TextStudio
         }
 
         DirtyTracker _dirty = new DirtyTracker();
+        // Counts every change NotifyHost reports, parked or not; the hub's steady lane compares it (TextStudioText.TickSteady).
+        internal uint HostNotificationRevision { get; private set; }
         DirtyFlags _dirtySetDuringPipeline;
+        // Set only while the owning hub is parked outside the scheduler loop. Dirty flags, a started action and the
+        // animation pause are inputs of its sleep check, so each change hands the hub back to that check.
+        internal Action UnparkHost;
         ITextStudioActionRunner _actionRunner;
         TypingTimingsBase _timings;
         TextStudioDefaultEffectSettings _defaultEffects = TextStudioDefaultEffectSettings.None;
@@ -196,7 +205,7 @@ namespace TextStudio
         public bool HasPlan => _pipeline.Plan != null;
         public bool HasActiveEffects => _pipeline.Plan != null && _pipeline.Plan.EffectBindingCount > 0;
         // Settled text whose effects only apply while revealing or hiding produces no new output until one starts.
-        bool HasContinuousEffects => HasActiveEffects && _animator.HasSettledOutputEffects;
+        internal bool HasContinuousEffects => HasActiveEffects && _animator.HasSettledOutputEffects;
         internal bool HasExternalEffectState =>
             _pendingExternalEffects.Count > 0 ||
             _externalEffectsAppliedLastFrame;
@@ -224,6 +233,12 @@ namespace TextStudio
             !_animator.HasActiveVisibilityTransitions &&
             _pendingExternalEffects.Count == 0 &&
             !_externalEffectsAppliedLastFrame;
+        // HasOnlyPersistentEffectEvaluation for a runtime without external effect state (HasExternalEffectState), which
+        // then reads no request list.
+        internal bool HasOnlyPersistentEffectEvaluationWithoutExternalEffects =>
+            HasActiveEffects &&
+            !_reveal.HasActiveReveal &&
+            !_animator.HasActiveVisibilityTransitions;
 
         public RevealMode RevealMode
         {
@@ -741,9 +756,23 @@ namespace TextStudio
 
         public void SetDirty(DirtyFlags flags)
         {
+            MarkDirtyWithoutHostNotification(flags);
+            NotifyHost();
+        }
+
+        void MarkDirtyWithoutHostNotification(DirtyFlags flags)
+        {
             _dirty.SetDirty(flags);
             if (_isProcessingPipeline)
                 _dirtySetDuringPipeline |= flags;
+        }
+
+        // Reports a change of an input of the hub's sleep check and steady lane: dirty flags, a started action or the
+        // animation pause.
+        void NotifyHost()
+        {
+            unchecked { HostNotificationRevision++; }
+            UnparkHost?.Invoke();
         }
 
         public bool IsDirty(DirtyFlags flags)
@@ -796,12 +825,16 @@ namespace TextStudio
                 if (IsDirty(DirtyFlags.Style))
                     _pipeline.Invalidate();
 
-                bool changed = _pipeline.Process(
-                    _source,
-                    renderMarkupLiterally,
-                    markupSyntax != null
-                        ? markupSyntax
-                        : TextStudioProjectSettings.ActiveMarkupSyntax);
+                bool changed;
+                using (CompileProfilerMarker.Auto())
+                {
+                    changed = _pipeline.Process(
+                        _source,
+                        renderMarkupLiterally,
+                        markupSyntax != null
+                            ? markupSyntax
+                            : TextStudioProjectSettings.ActiveMarkupSyntax);
+                }
                 if (!changed)
                 {
                     DiscardTextChangeContinuity();
@@ -819,9 +852,21 @@ namespace TextStudio
                         previousCanonicalText,
                         plan.CanonicalText,
                         StringComparison.Ordinal);
-                _animator.Initialize(count, preserveCurrentEffectTime);
-                _effectContentRefreshPending = false;
-                _animator.BindEffects(plan);
+                using (BindEffectsProfilerMarker.Auto())
+                {
+                    _animator.Initialize(count, preserveCurrentEffectTime);
+                    _effectContentRefreshPending = false;
+                    // Appended markup keeps the plan's earlier bindings and glyphs, so their bound effects can stay.
+                    if (!_pipeline.LastProcessAppendedMarkup ||
+                        !_animator.TryBindAppendedEffects(
+                            plan,
+                            _pipeline.AppendKeptBindingCount,
+                            _pipeline.AppendKeptGlyphCount,
+                            _pipeline.AppendBaseSourceVersion))
+                    {
+                        _animator.BindEffects(plan);
+                    }
+                }
                 _meshDirty.EnsureCapacity(count);
                 _meshDirty.SetAllDirty(count);
                 _pendingExternalEffects.Clear();
@@ -892,6 +937,7 @@ namespace TextStudio
                 _textChangePreviewPipeline.ApplySupplementalEffects(_supplementalEffects);
             }
             _textChangePreviewPipeline.WordBoundaryProvider = _pipeline.WordBoundaryProvider;
+            _textChangePreviewPipeline.SynchronizeTextProjectionBackend(_textProjectionBackend);
             _textChangePreviewPipeline.SetLocalActions(_localActions);
             _textChangePreviewPipeline.ApplyDefaultEffects(_defaultEffects);
             _textChangePreviewPipeline.ApplyTypewriterTransitionStyle(
@@ -924,6 +970,15 @@ namespace TextStudio
             }
         }
 
+        ITextStudioTextProjectionBackend _textProjectionBackend;
+
+        internal void RefreshTextProjectionBackend(ITextStudioTextProjectionBackend backend)
+        {
+            _textProjectionBackend = backend;
+            if (_pipeline.SynchronizeTextProjectionBackend(backend))
+                SetDirty(DirtyFlags.Text | DirtyFlags.Style);
+        }
+
         public bool ProcessPendingTextForReveal()
         {
             EnsureEffectContentCurrent();
@@ -933,7 +988,8 @@ namespace TextStudio
             if (_pipeline.Plan != null && !IsDirty(DirtyFlags.Text | DirtyFlags.Style))
                 return false;
 
-            ProcessPipeline(snapNonInstantRevealToEnd: false);
+            using (TextStudioPerformanceDiagnostics.Measure(TextStudioPerformanceStage.Pipeline))
+                ProcessPipeline(snapNonInstantRevealToEnd: false);
             ClearProcessedTextAndStyleDirty();
             SetDirty(DirtyFlags.Topology | DirtyFlags.Layout | DirtyFlags.Placement | DirtyFlags.Animation | DirtyFlags.Visual);
             return true;
@@ -993,9 +1049,16 @@ namespace TextStudio
                 return;
             }
 
-            if (!resetProgress)
+            if (resetProgress)
+            {
+                // InitializeReveal just built the schedule and hide order a restart would build again.
+                _reveal.StartInitializedReveal();
+            }
+            else
+            {
                 _reveal.RestoreRevealedPrefix(revealedPrefix, _pipeline.Plan);
-            _reveal.StartReveal(resetProgress);
+                _reveal.StartReveal(false);
+            }
 
             if (resetProgress)
             {
@@ -1404,6 +1467,7 @@ namespace TextStudio
             if (plan == null)
                 return;
 
+            _animator.DiscardReusableEvaluators();
             _animator.BindEffects(plan);
             _animator.RestartEffects();
             SetDirty(DirtyFlags.Animation | DirtyFlags.Visual);
@@ -1470,6 +1534,14 @@ namespace TextStudio
 
         public int TickReveal(float deltaTime, bool allowTimedReveal)
         {
+            return TickReveal(deltaTime, allowTimedReveal, true);
+        }
+
+        // The hub's own tick passes notifyHost false: it presents the reveal's Animation and Visual dirt in the same tick, so
+        // that dirt is no host notification and only changes made by callbacks during the update move HostNotificationRevision.
+        // Ticks run unparked, so the skipped NotifyHost would only have counted the revision.
+        internal int TickReveal(float deltaTime, bool allowTimedReveal, bool notifyHost)
+        {
             TickReactionClock(deltaTime);
             // Presentation effects can outlive the reveal itself. Their retained glyph ages
             // still advance on active host ticks; idle hosts already skip the whole tick.
@@ -1481,7 +1553,12 @@ namespace TextStudio
 
             int revealed = _reveal.Update(deltaTime, _pipeline.Plan);
             if (revealed > 0 || _reveal.ChangedThisUpdate)
-                SetDirty(DirtyFlags.Animation | DirtyFlags.Visual);
+            {
+                if (notifyHost)
+                    SetDirty(DirtyFlags.Animation | DirtyFlags.Visual);
+                else
+                    MarkDirtyWithoutHostNotification(DirtyFlags.Animation | DirtyFlags.Visual);
+            }
 
             SampleReactionsBeforePresentation();
             return revealed;
@@ -1508,7 +1585,10 @@ namespace TextStudio
                 return false;
 
             _animator.Evaluate(deltaTime, _reveal, _pipeline.Plan);
-            ApplyPendingExternalEffects();
+            // Without external effects this frame or the last, both external glyph sets are already clear, so applying, merging and rotating them would change nothing.
+            bool tracksExternalEffectGlyphs = hasExternalEffects || _externalEffectsAppliedLastFrame;
+            if (tracksExternalEffectGlyphs)
+                ApplyPendingExternalEffects();
             _externalEffectsAppliedLastFrame = hasExternalEffects;
             _externalMaterialEffectAppliedLastFrame = hasExternalMaterialEffect;
             _externalSourceRequirementsLastFrame = externalSourceRequirements;
@@ -1530,10 +1610,13 @@ namespace TextStudio
                     _currentExternalEffectGlyphs);
             }
 
-            GlyphDirtyBits reusableExternalEffectGlyphs = _previousExternalEffectGlyphs;
-            _previousExternalEffectGlyphs = _currentExternalEffectGlyphs;
-            _currentExternalEffectGlyphs = reusableExternalEffectGlyphs;
-            _currentExternalEffectGlyphs.ClearAll();
+            if (tracksExternalEffectGlyphs)
+            {
+                GlyphDirtyBits reusableExternalEffectGlyphs = _previousExternalEffectGlyphs;
+                _previousExternalEffectGlyphs = _currentExternalEffectGlyphs;
+                _currentExternalEffectGlyphs = reusableExternalEffectGlyphs;
+                _currentExternalEffectGlyphs.ClearAll();
+            }
 
             return true;
         }
@@ -1912,6 +1995,7 @@ namespace TextStudio
             int actionGeneration = _actionGeneration;
             bool started = false;
             _activeActionContexts.Add(context);
+            NotifyHost();
             try
             {
                 while (actionGeneration == _actionGeneration)
@@ -2071,7 +2155,7 @@ namespace TextStudio
             _reveal.Initialize(
                 plan,
                 _timings,
-                preset != null ? preset.GetRevealDelayAfter : null,
+                preset != null ? preset.RevealDelayEvaluator : null,
                 _waitAfterFinalReveal);
             _revealScheduleDirty = false;
         }

@@ -129,6 +129,17 @@ namespace TextStudio
         /// <summary>Formats a number with configured grouping, precision, sign, compact notation, suffix, and culture.</summary>
         public string Format(double value)
         {
+            return Format(value, null);
+        }
+
+        internal string Format(double value, string existingMarkup)
+        {
+            return Format(value, existingMarkup, default, default);
+        }
+
+        internal string Format(double value, string existingMarkup,
+            ReadOnlySpan<char> markupPrefix, ReadOnlySpan<char> markupSuffix)
+        {
             TextStudioNumberFormat settings = Resolve();
             double displayValue = value;
             string compactSuffix = string.Empty;
@@ -144,7 +155,10 @@ namespace TextStudio
                     settings._useGrouping,
                     sign,
                     compactSuffix,
-                    configuredSuffix);
+                    configuredSuffix,
+                    existingMarkup,
+                    markupPrefix,
+                    markupSuffix);
             }
 
             CultureInfo culture = ResolveCulture(settings._cultureName);
@@ -152,14 +166,15 @@ namespace TextStudio
                 settings._useGrouping,
                 settings._minimumFractionDigits,
                 settings._maximumFractionDigits);
-            string number = displayValue.ToString(pattern, culture);
             if (sign.Length == 0 &&
                 compactSuffix.Length == 0 &&
-                configuredSuffix.Length == 0)
+                configuredSuffix.Length == 0 &&
+                existingMarkup == null && markupPrefix.IsEmpty && markupSuffix.IsEmpty)
             {
-                return number;
+                return displayValue.ToString(pattern, culture);
             }
-            return string.Concat(sign, number, compactSuffix, configuredSuffix);
+            return WriteFormattedNumber(displayValue, pattern, culture,
+                sign, compactSuffix, configuredSuffix, existingMarkup, markupPrefix, markupSuffix);
         }
 
         /// <summary>Returns a copy with safe precision, suffix, and culture defaults.</summary>
@@ -272,7 +287,10 @@ namespace TextStudio
             bool useGrouping,
             string sign,
             string compactSuffix,
-            string configuredSuffix)
+            string configuredSuffix,
+            string existingMarkup,
+            ReadOnlySpan<char> markupPrefix,
+            ReadOnlySpan<char> markupSuffix)
         {
             bool negative = displayValue < 0d;
             long magnitude = (long)(negative ? -displayValue : displayValue);
@@ -280,10 +298,13 @@ namespace TextStudio
             for (long remaining = magnitude / 10L; remaining > 0L; remaining /= 10L)
                 digitCount++;
             int separatorCount = useGrouping ? (digitCount - 1) / 3 : 0;
-            int numberEnd = sign.Length + (negative ? 1 : 0) + digitCount + separatorCount;
-            int length = numberEnd + compactSuffix.Length + configuredSuffix.Length;
+            int numberEnd = markupPrefix.Length + sign.Length + (negative ? 1 : 0) + digitCount + separatorCount;
+            int suffixStart = numberEnd + compactSuffix.Length + configuredSuffix.Length;
+            int length = suffixStart + markupSuffix.Length;
             char[] characters = TextStudioNumberFormatBuffer.Get(length);
-            sign.CopyTo(0, characters, 0, sign.Length);
+            markupPrefix.CopyTo(characters.AsSpan());
+            sign.CopyTo(0, characters, markupPrefix.Length, sign.Length);
+            markupSuffix.CopyTo(characters.AsSpan(suffixStart));
             compactSuffix.CopyTo(0, characters, numberEnd, compactSuffix.Length);
             configuredSuffix.CopyTo(
                 0,
@@ -307,6 +328,46 @@ namespace TextStudio
             while (magnitude > 0L);
             if (negative)
                 characters[--position] = '-';
+            return CreateOrReuseText(characters, length, existingMarkup);
+        }
+
+        static string WriteFormattedNumber(double displayValue, string pattern, CultureInfo culture,
+            string sign, string compactSuffix, string configuredSuffix, string existingMarkup,
+            ReadOnlySpan<char> markupPrefix, ReadOnlySpan<char> markupSuffix)
+        {
+            int numberStart = markupPrefix.Length + sign.Length;
+            int decorationLength = numberStart + compactSuffix.Length + configuredSuffix.Length + markupSuffix.Length;
+            char[] characters = TextStudioNumberFormatBuffer.Get(decorationLength + 32);
+            int numberLength;
+            while (!displayValue.TryFormat(
+                       characters.AsSpan(numberStart, characters.Length - decorationLength),
+                       out numberLength, pattern.AsSpan(), culture))
+            {
+                characters = TextStudioNumberFormatBuffer.Get(characters.Length * 2);
+            }
+
+            int numberEnd = numberStart + numberLength;
+            int suffixStart = numberEnd + compactSuffix.Length + configuredSuffix.Length;
+            int length = suffixStart + markupSuffix.Length;
+            markupPrefix.CopyTo(characters.AsSpan());
+            sign.CopyTo(0, characters, markupPrefix.Length, sign.Length);
+            markupSuffix.CopyTo(characters.AsSpan(suffixStart));
+            compactSuffix.CopyTo(0, characters, numberEnd, compactSuffix.Length);
+            configuredSuffix.CopyTo(0, characters,
+                numberEnd + compactSuffix.Length, configuredSuffix.Length);
+            return CreateOrReuseText(characters, length, existingMarkup);
+        }
+
+        static string CreateOrReuseText(char[] characters, int length, string existingMarkup)
+        {
+            if (existingMarkup != null && existingMarkup.Length == length)
+            {
+                int index = 0;
+                while (index < length && existingMarkup[index] == characters[index])
+                    index++;
+                if (index == length)
+                    return existingMarkup;
+            }
             return new string(characters, 0, length);
         }
 

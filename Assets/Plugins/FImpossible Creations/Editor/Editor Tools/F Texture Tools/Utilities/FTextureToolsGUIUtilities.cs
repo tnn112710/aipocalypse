@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace FIMSpace.FTextureTools
 {
+#if UNITY_6000_6_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class FTextureToolsGUIUtilities
     {
 

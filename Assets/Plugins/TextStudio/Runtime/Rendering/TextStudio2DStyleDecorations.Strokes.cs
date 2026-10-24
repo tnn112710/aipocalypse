@@ -52,7 +52,8 @@ namespace TextStudio
                 ref readonly TextStudioVisualGlyph glyph = ref snapshot.RenderGlyphAt(index);
                 if (!IsSelected(glyph.TextUnitIndex) || !glyph.IsVisible || glyph.SourceKind != TextStudioVisualSourceKind.FontGlyph ||
                     !snapshot.TryGetFontSource(glyph.FontIdentity, out TextStudioVisualFontSource source)) continue;
-                if (!TextStudio2DTMPGlyphPlane.TryCreate(text, in glyph, out TextStudio2DTMPGlyphPlane plane, frameApplier, sourceDemand)) continue;
+                if (!TryResolveStrokeGlyph(text, in glyph, frameApplier, out uint glyphIndex, out Vector4 atlasToEm) ||
+                    !TextStudio2DTMPGlyphPlane.TryCreate(text, glyph.VisualIndex, atlasToEm, out TextStudio2DTMPGlyphPlane plane, frameApplier, sourceDemand)) continue;
                 float tolerance = .0005f;
                 if (sourceDemand != null && sourceDemand.TryGetFont(glyph.FontIdentity, out TextStudioPreparedFieldDemand.Font font))
                     tolerance = font.ContourPrecision.Tolerance;
@@ -67,7 +68,7 @@ namespace TextStudio
                         { CompatibilityWarning = warning; continue; }
                         projection = projected;
                     }
-                    geometry = source.AppearanceData.GetStroke(glyph.GlyphIndex, in stroke, 1, tolerance, projection, plane.NativeFaceOffsetEm);
+                    geometry = source.AppearanceData.GetStroke(glyphIndex, in stroke, 1, tolerance, projection, plane.NativeFaceOffsetEm);
                     if (geometry != null && geometry.PixelProjection.HasValue)
                         geometry.PixelProjection.Value.UnprojectBounds(geometry.MetricBounds, stroke.Softness + 2);
                 }
@@ -98,6 +99,21 @@ namespace TextStudio
                 EmitStrokeQuad(target.Geometry, geometry, surface.Handle, in frame, in snapshot, in glyph, index,
                     in plane, in stroke, tolerance, operationIndex, styleSlot);
             }
+        }
+
+        // A scrambling glyph outlines the substitute it presents, not the authored glyph it reveals later.
+        static bool TryResolveStrokeGlyph(TMP_Text text, in TextStudioVisualGlyph glyph, TextStudioTMPFrameApplier frameApplier,
+            out uint glyphIndex, out Vector4 atlasToEm)
+        {
+            glyphIndex = glyph.GlyphIndex;
+            atlasToEm = glyph.AtlasToEm;
+            if (frameApplier == null || !frameApplier.TryGetSubstitutedCharacter(text.textInfo, glyph.VisualIndex, out TMP_Character substitute))
+                return true;
+            // A substitute without an outline, such as a space, has no stroke, as TMP draws no glyph for it.
+            if (substitute.glyph.glyphRect.width <= 0 || substitute.glyph.glyphRect.height <= 0) return false;
+            glyphIndex = substitute.glyphIndex;
+            atlasToEm = TextStudioTMPFontMetrics.AtlasToEm(text.textInfo.characterInfo[glyph.VisualIndex].fontAsset, substitute.glyph);
+            return true;
         }
 
         static void EmitStrokeQuad(GeometryBuffer target, TextStudio2DSurfaceGeometry geometry, TextStudio2DSurfaceHandle handle,

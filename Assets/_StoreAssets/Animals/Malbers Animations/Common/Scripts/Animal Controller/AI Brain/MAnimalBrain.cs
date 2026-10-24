@@ -1,4 +1,4 @@
-﻿// Last Change: 9/24/2026 1:13pm
+﻿// Last Change: 10/14/2026 2:45pm
 using System.Collections.Generic;
 using UnityEngine;
 using MalbersAnimations.Events;
@@ -17,6 +17,27 @@ namespace MalbersAnimations.Controller.AI
     [AddComponentMenu("Malbers/Animal Controller/AI/Animal Brain")]
     public class MAnimalBrain : MonoBehaviour, IAnimatorListener
     {
+        //Every enabled Brain registers itself so other systems can find AI without FindObjectsByType scans
+        private static readonly List<MAnimalBrain> brains = new();
+
+        /// <summary>Every enabled Brain in the loaded scenes (read only)</summary>
+        public static IReadOnlyList<MAnimalBrain> Brains => brains;
+
+        /// <summary>Invoked when a Brain is enabled and added to <see cref="Brains"/></summary>
+        public static event Action<MAnimalBrain> BrainEnabled;
+
+        /// <summary>Invoked when a Brain is disabled and removed from <see cref="Brains"/></summary>
+        public static event Action<MAnimalBrain> BrainDisabled;
+
+        /// <summary>Clears the registry when Domain Reload is disabled (Enter Play Mode options)</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetBrains()
+        {
+            brains.Clear();
+            BrainEnabled = null;
+            BrainDisabled = null;
+        }
+
         /// <summary>Reference for the Ai Control Movement</summary>
         public IAIControl AIControl;
 
@@ -96,6 +117,14 @@ namespace MalbersAnimations.Controller.AI
         /// <summary>Store if a Task has Started</summary>
         internal bool[] TasksStarted { get; set; }
 
+        /// <summary>Read only view of the Task Done flags (one slot per Task index of the current AI State)</summary>
+        public IReadOnlyList<bool> TasksDoneList => TasksDone;
+        /// <summary>Read only view of the Task Started flags (one slot per Task index of the current AI State)</summary>
+        public IReadOnlyList<bool> TasksStartedList => TasksStarted;
+
+        /// <summary>True if the Task at this index of the current AI State has started</summary>
+        public bool IsTaskStarted(int TaskIndex) => TasksStarted != null && TasksStarted[TaskIndex];
+
         /// <summary>Time Elapsed for the Tasks on an AI State</summary>
         public float[] TasksStartTime { get; set; }
         public float[] TasksUpdateTime { get; set; }
@@ -106,6 +135,9 @@ namespace MalbersAnimations.Controller.AI
         /// <summary>Decision Local Vars to store values on Prepare Decision</summary>
         public BrainVars[] DecisionsVars { get; set; }
         internal bool BrainInitialize { get; set; }
+
+        /// <summary>True while OnEnable is waiting for the AI Control to be ready before calling StartBrain</summary>
+        private bool StartPending { get; set; }
 
         //MWC: Per-slot strongly-typed runtime state for Tasks/Decisions. Cleaner alternative to the fixed BrainVars
         //grab-bag: each behavior declares its own BrainState subclass with as many fields as it needs.
@@ -192,6 +224,13 @@ namespace MalbersAnimations.Controller.AI
 
             AnimalStats = Animal.FindComponent<Stats>();
 
+            AllocateArrays();
+        }
+
+        /// <summary>Creates the Task and Decision arrays (once). Called on Awake, callable earlier for Brains built in code or tests</summary>
+        public void AllocateArrays()
+        {
+            if (TasksDone != null) return; //Already allocated
 
             //Optimize the Memory Allocations for the Brain Arrays
             TasksVars = new BrainVars[MaxAlloc];
@@ -223,8 +262,12 @@ namespace MalbersAnimations.Controller.AI
             Animal.OnModeStart.AddListener(OnAnimalModeStart);
             Animal.OnModeEnd.AddListener(OnAnimalModeEnd);
 
-            //Invoke(nameof(StartBrain), 0.1f); //Start AI a Frame later; 
+            //Invoke(nameof(StartBrain), 0.1f); //Start AI a Frame later;
 
+            if (!brains.Contains(this)) brains.Add(this);
+            BrainEnabled?.Invoke(this);
+
+            StartPending = true;
             this.Delay_Action(() => !AIControl.AIReady, StartBrain);
 
             //StartBrain();
@@ -248,6 +291,10 @@ namespace MalbersAnimations.Controller.AI
 
             //  AIControl.Stop();
             StopAllCoroutines();
+            StartPending = false;
+
+            brains.Remove(this);
+            BrainDisabled?.Invoke(this);
 
             if (currentState)
             {
@@ -276,6 +323,8 @@ namespace MalbersAnimations.Controller.AI
         /// <summary>Activates the AI Control and plays the Current State. Disables the Brain (with a warning) when the Current State is empty</summary>
         public void StartBrain()
         {
+            StartPending = false;
+
             if (currentState)
             {
                 AIControl.AutoNextTarget = false;
@@ -296,6 +345,8 @@ namespace MalbersAnimations.Controller.AI
 
                 }
 
+                BrainInitialize = true; //Set before playing the state so StartNewState plays it right away
+
                 StartNewState(currentState);
 
 
@@ -303,8 +354,6 @@ namespace MalbersAnimations.Controller.AI
 
                 if (AIControl.Target)
                     SetLastWayPoint(AIControl.Target);
-
-                BrainInitialize = true;
             }
             else
             {
@@ -361,7 +410,22 @@ namespace MalbersAnimations.Controller.AI
         /// <summary>  Activate a new state in the Brain Component  </summary>
         public virtual void StartNewState(MAIState newState)
         {
-            if (!enabled) enabled = true; //Make sure the Brain is enabled!!!! IMPORTANT
+            if (newState == null)
+            {
+                Debug.LogWarning($"[{name}] StartNewState was called with an empty AI State. Ignored.", this);
+                return;
+            }
+
+            //The Brain is not running yet (disabled, before Awake, or waiting for the AI Control).
+            //Store the State and let StartBrain play it, so the Brain is fully initialized and the State is not started twice.
+            if (!BrainInitialize)
+            {
+                currentState = newState;
+
+                if (!enabled) enabled = true;                                  //OnEnable will call StartBrain once the AI Control is ready
+                else if (isActiveAndEnabled && !StartPending) StartBrain();   //Enabled but StartBrain already ran (or never will)
+                return;
+            }
 
             StateLastTime = Time.time;   //Store the last time the Animal made a transition
 

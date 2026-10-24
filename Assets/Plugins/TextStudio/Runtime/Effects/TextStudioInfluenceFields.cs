@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Selects the spatial or procedural shape that produces an effect's influence weight, including linear, radial, target-distance, and noise fields.</summary>
     public enum TextStudioInfluenceFieldShape
     {
         Linear,
@@ -15,6 +16,7 @@ namespace TextStudio
         Noise
     }
 
+    /// <summary>Selects whether an influence field samples source layout, normalized source text, placed text, or world coordinates.</summary>
     public enum TextStudioInfluenceFieldSpace
     {
         SourceLayout,
@@ -23,6 +25,7 @@ namespace TextStudio
         World
     }
 
+    /// <summary>Selects the local X, Y, or Z axis used to orient an influence field.</summary>
     public enum TextStudioInfluenceFieldAxis
     {
         X,
@@ -30,6 +33,7 @@ namespace TextStudio
         Z
     }
 
+    /// <summary>Chooses how an influence field combines its weight with other fields: multiply, add, maximum, or minimum.</summary>
     public enum TextStudioInfluenceFieldCombine
     {
         Multiply,
@@ -349,6 +353,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Selects hue, saturation, perceptual luminance, or alpha when source glyph color contributes an effect's influence weight.</summary>
     public enum TextStudioSourceColorMetric
     {
         Hue,

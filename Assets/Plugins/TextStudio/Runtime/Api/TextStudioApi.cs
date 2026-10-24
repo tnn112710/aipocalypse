@@ -23,7 +23,8 @@ namespace TextStudio
         {
             if (content == null)
                 return;
-            content.SetText(format.Format(value));
+            // Authored markup preserves rich suffixes; SetText still owns host submission and change semantics.
+            content.SetText(format.Format(value, content.Markup));
         }
 
         /// <summary>Set text on a TextStudio hub and optionally start reveal.</summary>

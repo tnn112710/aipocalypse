@@ -1,4 +1,4 @@
-// Last Change: 9/21/2026 9:40am
+// Last Change: 10/16/2026 9:45am
 using MalbersAnimations.Scriptables;
 using System;
 using System.Collections.Generic;
@@ -187,6 +187,10 @@ namespace MalbersAnimations.IK
         [NonSerialized] private float m_MaxFootLift, m_MaxBodyDrop, m_GroundedDistance, m_GroundedRadius;
         [NonSerialized] private float m_UpperLegLength, m_LowerLegLength;
         [NonSerialized] private float m_SwingFadeHeight; // lift at which a foot in the air stops pulling the pelvis
+        [NonSerialized] private float m_OffsetScale = 1; // IK Manager Scale Multiplier, cached by OnAnimatorIK / Gizmos / Handles
+
+        /// <summary>[SoleOffset] multiplied by the IK Manager Scale Multiplier</summary>
+        private float ScaledSole => SoleOffset * m_OffsetScale;
 
         [NonSerialized] private Vector3 m_OffsetL, m_OffsetR;          // smoothed foot offsets
         [NonSerialized] private Vector3 m_ExtrapolationL, m_ExtrapolationR;
@@ -364,6 +368,7 @@ namespace MalbersAnimations.IK
         /// <summary> Solves both feet, the pelvis and the knee hints, then writes them to the Animator. </summary>
         public override void OnAnimatorIK(IKSet set, Animator anim, int index, float weight)
         {
+            m_OffsetScale = OffsetScale(set);
             if (!m_Ready || anim == null) return;
 
             // OnAnimatorIK runs once per Animator layer that has its IK Pass on. The solve must advance only
@@ -477,7 +482,7 @@ namespace MalbersAnimations.IK
 
             // The pelvis is a read modify write on a value shared by every IK pass, so it goes in once
             if (applyBody && BodyWeight > 0)
-                anim.bodyPosition += (m_BodyOffset + m_Root.up * BodyHeightOffset) * (BodyWeight * weight * m_BodyBlend);
+                anim.bodyPosition += (m_BodyOffset + m_Root.up * (BodyHeightOffset * m_OffsetScale)) * (BodyWeight * weight * m_BodyBlend);
 
             anim.SetIKPositionWeight(AvatarIKGoal.LeftFoot, footWeight);
             anim.SetIKPosition(AvatarIKGoal.LeftFoot, m_FinalGoalL);
@@ -591,7 +596,7 @@ namespace MalbersAnimations.IK
                                                castDistance, GroundLayer, TriggerInteraction);
             if (hasSphere)
             {
-                sphereAnkle = sphereOrigin + down * sphereHit.distance + up * SoleOffset;
+                sphereAnkle = sphereOrigin + down * sphereHit.distance + up * ScaledSole;
 
                 var beta = Vector3.Angle(up, sphereHit.normal);
 
@@ -652,7 +657,7 @@ namespace MalbersAnimations.IK
                 }
             }
 
-            var soleHeight = m_FootHeight + SoleOffset;                          // user shift on top of the measured height
+            var soleHeight = m_FootHeight + ScaledSole;                          // user shift on top of the measured height
             var ankle = bottomPoint + up * (soleHeight / cosAlpha);
             var surfacePoint = ankle - up * soleHeight;
 
@@ -773,7 +778,7 @@ namespace MalbersAnimations.IK
         {
             if (solve.Planted || SwingFootPull >= 1f) return 1f;
 
-            var lift = Vector3.Dot(goal - rootPos, up) - (m_FootHeight + SoleOffset);
+            var lift = Vector3.Dot(goal - rootPos, up) - (m_FootHeight + ScaledSole);
             if (lift <= 0f || m_SwingFadeHeight <= 0.0001f) return 1f;
 
             return Mathf.Lerp(1f, SwingFootPull, Mathf.Clamp01(lift / m_SwingFadeHeight));
@@ -1119,6 +1124,7 @@ namespace MalbersAnimations.IK
         /// <summary> Draws every size as the foot shape it describes, and the live solve while playing. </summary>
         public override void OnDrawGizmos(IKManager manager, IKSet IKSet, Animator anim, float weight)
         {
+            m_OffsetScale = OffsetScale(IKSet);
             if (!IKSet.Gizmos || anim == null || !anim.isHuman) return;
 
             var leftFoot = anim.GetBoneTransform(HumanBodyBones.LeftFoot);
@@ -1195,7 +1201,7 @@ namespace MalbersAnimations.IK
 
             var rotation = anim.transform.rotation;
             var anchor = FootAnchor(goal, rootPos, up);
-            var soleHeight = sizes.Height + SoleOffset;
+            var soleHeight = sizes.Height + ScaledSole;
             var sole = goal - up * soleHeight;                         // where the sole plane sits under the ankle
             var print = sole + forward * sizes.ForwardOffset;          // centre of the footprint
 
@@ -1391,6 +1397,7 @@ namespace MalbersAnimations.IK
         /// <summary> Labels every size next to its shape on the left foot, plus the live readouts while playing. </summary>
         internal override void OnSceneGUI(IKSet set, Animator animator, UnityEngine.Object target, int index)
         {
+            m_OffsetScale = OffsetScale(set);
             if (!set.Gizmos || !Active || animator == null || !animator.isHuman) return;
 
             var leftFoot = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
@@ -1406,7 +1413,7 @@ namespace MalbersAnimations.IK
 
             var goal = playing ? m_LastGoalL : leftFoot.position;
             var anchor = FootAnchor(goal, root.position, up);
-            var sole = goal - up * (sizes.Height + SoleOffset);
+            var sole = goal - up * (sizes.Height + ScaledSole);
             var print = sole + forward * sizes.ForwardOffset;
 
             var style = new GUIStyle(EditorStyles.helpBox) { fontSize = 10, richText = true };

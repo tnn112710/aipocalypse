@@ -10,7 +10,10 @@ namespace TextStudio
         BackendPublication,
         Layout,
         Evaluation,
-        Dispatch
+        Dispatch,
+        // The scheduled update of every hub, including settled hubs that skip their pipeline. Profiler markers are
+        // stripped from release players, so this is the device lane's attribution of Text Studio main-thread time.
+        Scheduler
     }
 
     internal readonly struct TextStudioPerformanceSnapshot
@@ -26,6 +29,7 @@ namespace TextStudio
         public readonly long EvaluationAllocatedBytes;
         public readonly long DispatchAllocatedBytes;
         public readonly bool AllocationMeasurementsAvailable;
+        public readonly double SchedulerMilliseconds;
 
         public TextStudioPerformanceSnapshot(
             double pipelineMilliseconds,
@@ -38,7 +42,8 @@ namespace TextStudio
             long layoutAllocatedBytes,
             long evaluationAllocatedBytes,
             long dispatchAllocatedBytes,
-            bool allocationMeasurementsAvailable)
+            bool allocationMeasurementsAvailable,
+            double schedulerMilliseconds = 0d)
         {
             PipelineMilliseconds = pipelineMilliseconds;
             BackendPublicationMilliseconds = backendPublicationMilliseconds;
@@ -51,6 +56,7 @@ namespace TextStudio
             EvaluationAllocatedBytes = evaluationAllocatedBytes;
             DispatchAllocatedBytes = dispatchAllocatedBytes;
             AllocationMeasurementsAvailable = allocationMeasurementsAvailable;
+            SchedulerMilliseconds = schedulerMilliseconds;
         }
     }
 
@@ -74,6 +80,7 @@ namespace TextStudio
         static long _layoutTicks = 0L;
         static long _evaluationTicks = 0L;
         static long _dispatchTicks = 0L;
+        static long _schedulerTicks = 0L;
         static long _pipelineAllocatedBytes = 0L;
         static long _backendPublicationAllocatedBytes = 0L;
         static long _layoutAllocatedBytes = 0L;
@@ -91,6 +98,7 @@ namespace TextStudio
             _layoutTicks = 0L;
             _evaluationTicks = 0L;
             _dispatchTicks = 0L;
+            _schedulerTicks = 0L;
             _pipelineAllocatedBytes = 0L;
             _backendPublicationAllocatedBytes = 0L;
             _layoutAllocatedBytes = 0L;
@@ -145,6 +153,7 @@ namespace TextStudio
             _layoutTicks = 0L;
             _evaluationTicks = 0L;
             _dispatchTicks = 0L;
+            _schedulerTicks = 0L;
             _pipelineAllocatedBytes = 0L;
             _backendPublicationAllocatedBytes = 0L;
             _layoutAllocatedBytes = 0L;
@@ -180,7 +189,8 @@ namespace TextStudio
                 _layoutAllocatedBytes,
                 _evaluationAllocatedBytes,
                 _dispatchAllocatedBytes,
-                _allocationMeasurementsAvailable);
+                _allocationMeasurementsAvailable,
+                _schedulerTicks * millisecondsPerTick);
         }
 
         static bool DetectAllocationMeasurementSupport()
@@ -226,6 +236,9 @@ namespace TextStudio
                 case TextStudioPerformanceStage.Dispatch:
                     _dispatchTicks += elapsedTicks;
                     _dispatchAllocatedBytes += allocatedBytes;
+                    break;
+                case TextStudioPerformanceStage.Scheduler:
+                    _schedulerTicks += elapsedTicks;
                     break;
             }
         }

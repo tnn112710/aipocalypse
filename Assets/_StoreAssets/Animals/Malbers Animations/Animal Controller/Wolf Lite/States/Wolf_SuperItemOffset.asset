@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b970820d222fa8a4b964f741721c33d4, type: 3}
   m_Name: Wolf_SuperItemOffset
   m_EditorClassIdentifier: 
-  Offsets: []
+  Offsets:
+  - ID:
+      ID: {fileID: 11400000, guid: 9cec644d7cde1824b86fda367a3bfe5b, type: 2}
+      Value: {fileID: 11400000, guid: 1308646cb35d0004aa0a3f0a7d90e49c, type: 2}
+    Offset:
+      Position: {x: 0, y: 0, z: 0}
+      Rotation: {x: 0, y: 0, z: 0}
+      Scale: {x: 1, y: 1, z: 1}
+    ItemTypeOverride: {fileID: 0}
   HolsterOffsets: []
   EquipPointEquivalents:
   - EquipPoint: {fileID: 11400000, guid: e07cb5dac4dfc86448f03d27ed3722fe, type: 2}

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Flags the evaluated glyph transform, geometry, and surface channels a renderer needs to consume.</summary>
     [System.Flags]
     public enum TextStudioRenderChannels : ushort
     {

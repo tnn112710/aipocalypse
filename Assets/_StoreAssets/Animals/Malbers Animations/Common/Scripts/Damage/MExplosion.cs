@@ -1,4 +1,5 @@
-﻿using MalbersAnimations.Controller;
+﻿// Last Change: 10/14/2026 2:45pm
+using MalbersAnimations.Controller;
 using System.Collections.Generic;
 using UnityEngine;
 using MalbersAnimations.Scriptables;
@@ -59,6 +60,7 @@ namespace MalbersAnimations
                 var col = colliders[i];
 
                 if (dontHitOwner && UserGo && col.transform.IsChildOf(UserGo.transform)) continue;   //Don't hit yourself
+                if (dontHitAllies && UserGo && IsAlly(col.gameObject)) continue;                    //Don't hit your pack
 
                 // Perform a raycast to check for sight-blocking objects
                 Vector3 directionToCollider = col.bounds.center - transform.position;

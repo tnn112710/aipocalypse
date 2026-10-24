@@ -188,5 +188,112 @@ Shader "Hidden/Text Studio/2D Hero Composite"
             }
             ENDCG
         }
+
+        // Writes one row mask into the stencil: the quads of a row mask class, transformed like the Hero layer's vertices
+        // (including the TMP vertex offset), so a masked row's full-size quads shade only inside its own support.
+        Pass
+        {
+            Name "ROW_MASK"
+            ColorMask 0
+            Stencil
+            {
+                Ref 1
+                Comp Always
+                Pass Replace
+            }
+
+            CGPROGRAM
+            #pragma target 3.0
+            #pragma vertex TextStudioHeroRowMaskVertex
+            #pragma fragment TextStudioHeroRowMaskFragment
+            #include "UnityCG.cginc"
+
+            float4 _TextStudioHeroRowMaskOffset;
+
+            float4 TextStudioHeroRowMaskVertex(float4 vertex : POSITION) : SV_POSITION
+            {
+                vertex.xy += _TextStudioHeroRowMaskOffset.xy;
+                return UnityObjectToClipPos(vertex);
+            }
+
+            fixed4 TextStudioHeroRowMaskFragment() : SV_Target
+            {
+                return 0;
+            }
+            ENDCG
+        }
+
+        // Composites cached static rows over the target with the rows' own premultiplied source-over blend. Both surfaces share
+        // one descriptor, so each pixel loads exactly the texel it covers, unfiltered. Above composed rows of an RGBA8 target the
+        // global comparison is NotEqual, so the cache lands only where BACKDROP_MASK left the stencil empty.
+        Pass
+        {
+            Name "CACHED_ROWS"
+            Blend One OneMinusSrcAlpha
+            Stencil
+            {
+                Ref 1
+                ReadMask 1
+                WriteMask 0
+                Comp [_TextStudioHeroCachedRowsStencil]
+            }
+
+            CGPROGRAM
+            #pragma target 3.5
+            #pragma vertex TextStudioHeroCachedRowsVertex
+            #pragma fragment TextStudioHeroCachedRowsFragment
+            #include "UnityCG.cginc"
+
+            Texture2D _TextStudioHeroCachedRows;
+
+            float4 TextStudioHeroCachedRowsVertex(uint vertexId : SV_VertexID) : SV_POSITION
+            {
+                // One triangle covering the viewport.
+                float2 corner = float2((vertexId << 1) & 2, vertexId & 2);
+                return float4(corner * 2 - 1, 0, 1);
+            }
+
+            float4 TextStudioHeroCachedRowsFragment(float4 position : SV_POSITION) : SV_Target
+            {
+                return _TextStudioHeroCachedRows.Load(int3(position.xy, 0));
+            }
+            ENDCG
+        }
+
+        // Marks with stencil 1 every pixel where the composition below a cached run is not empty. There the run's rows draw
+        // over it with their own rounding; elsewhere the cached run equals the drawn rows exactly.
+        Pass
+        {
+            Name "BACKDROP_MASK"
+            ColorMask 0
+            Stencil
+            {
+                Ref 1
+                Comp Always
+                Pass Replace
+            }
+
+            CGPROGRAM
+            #pragma target 3.5
+            #pragma vertex TextStudioHeroBackdropMaskVertex
+            #pragma fragment TextStudioHeroBackdropMaskFragment
+            #include "UnityCG.cginc"
+
+            Texture2D _TextStudioHeroBackdrop;
+
+            float4 TextStudioHeroBackdropMaskVertex(uint vertexId : SV_VertexID) : SV_POSITION
+            {
+                float2 corner = float2((vertexId << 1) & 2, vertexId & 2);
+                return float4(corner * 2 - 1, 0, 1);
+            }
+
+            fixed4 TextStudioHeroBackdropMaskFragment(float4 position : SV_POSITION) : SV_Target
+            {
+                if (!any(_TextStudioHeroBackdrop.Load(int3(position.xy, 0))))
+                    discard;
+                return 0;
+            }
+            ENDCG
+        }
     }
 }

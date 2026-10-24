@@ -1,4 +1,4 @@
-﻿// Last Change: 9/21/2026 9:40am
+﻿// Last Change: 10/12/2026 10:44am
 using MalbersAnimations.Scriptables;
 using System.Collections.Generic;
 using UnityEngine;
@@ -851,9 +851,14 @@ namespace MalbersAnimations.Controller
 
         }
 
+        /// <summary> Moves the legacy [states] list into the States IDList, only when there is legacy data to migrate </summary>
         internal void UpgradeToIDList(UnityEngine.Object dirtyTarget) //MWC: was ComboManager; generalized so ComboSet can reuse it
         {
-            if (states != null && States == null || States.Empty)
+            States ??= new(); //MWC — a code-created Combo has no States list yet
+
+            //MWC — [states] deserializes as an empty list (never null), so check Count too; otherwise an empty
+            //States re-ran the upgrade (and dirtied the scene/prefab) on every OnValidate
+            if (states != null && states.Count > 0 && States.Empty)
             {
                 States = new IDListCheck<StateID>(states);
                 states = null;

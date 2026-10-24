@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using TextStudio.BuiltIns;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.TextCore;
 
@@ -15,9 +16,19 @@ namespace TextStudio
 {
     internal sealed class TextStudioTMPFrameApplier
     {
+        static readonly ProfilerMarker MeshUploadProfilerMarker = new ProfilerMarker("Text Studio TMP Mesh Upload");
+
         const byte VertexChannel = 1 << 0;
         const byte ColorChannel = 1 << 1;
         const byte MaterialChannel = 1 << 2;
+        // Material payload streams of one mesh: UV2, UV3, the local payload (Canvas tangents or world UV4), the source
+        // coordinate normals, and the Squiggle UV1, which is sent with every publication because TMP can rewrite UV1.
+        const byte Payload0Stream = 1 << 0;
+        const byte Payload1Stream = 1 << 1;
+        const byte LocalPayloadStream = 1 << 2;
+        const byte CoordinateNormalStream = 1 << 3;
+        const byte SquiggleStream = 1 << 4;
+        const byte AllPayloadStreams = Payload0Stream | Payload1Stream | LocalPayloadStream | CoordinateNormalStream;
         Vector3[][] _cachedVertices;
         Color32[][] _cachedColors;
         TmpUv0[][] _cachedUv0;
@@ -34,15 +45,27 @@ namespace TextStudio
         Vector4[][] _materialPayload2;
         Vector4[][] _squiggleUv1;
         Vector3[][] _sourceCoordinateNormals;
+        // Whether any mesh holds coordinate normals that RestoreSourceNormals would restore; refreshed whenever they are cached.
+        bool _hasSourceCoordinateNormals;
+        // Set when coordinate normals are cached or uploaded and cleared once RestoreSourceNormals has restored every mesh;
+        // until the next upload, restoring again would write the same normals and resubmit the same meshes.
+        bool _sourceNormalRestorePending;
         List<Vector3> _canvasNormals;
         List<Vector4> _canvasTangents;
         Matrix4x4 _canvasPayloadMatrix = Matrix4x4.identity;
         Matrix4x4 _canvasPayloadTextMatrix, _canvasPayloadRootMatrix;
-        bool _canvasPayloadInputsKnown;
-        internal long CanvasPayloadBytes => (long)(_canvasNormals?.Capacity ?? 0) * 12 + (long)(_canvasTangents?.Capacity ?? 0) * 16;
+        bool _canvasPayloadInputsKnown, _canvasPayloadInputsConfirmed;
+        internal long ManagedMeshPayloadBytes => (long)(_canvasNormals?.Capacity ?? 0) * 12 + (long)(_canvasTangents?.Capacity ?? 0) * 16 +
+            (long)(_sourceNormalsScratch?.Capacity ?? 0) * 12;
         Vector3[][] _cachedSourceNormals;
+        List<Vector3> _sourceNormalsScratch;
         bool[] _hadSourceNormals;
         bool[] _materialMeshDirty;
+        // Payload streams per mesh whose uploaded copy differs from the CPU payload; a publication sends only these.
+        byte[] _stalePayloadStreams;
+        // Canvas payload space of every Canvas tangent and normal copy that has no stale bit.
+        Matrix4x4 _uploadedStreamSpace;
+        bool _hasUploadedStreamSpace;
         RenderGlyph[] _renderGlyphs;
         int _renderGlyphCount;
         byte[] _appliedChannels;
@@ -91,10 +114,15 @@ namespace TextStudio
             _materialPayload2 = null;
             _squiggleUv1 = null;
             _sourceCoordinateNormals = null;
+            _hasSourceCoordinateNormals = false;
+            _sourceNormalRestorePending = false;
             _canvasNormals = null; _canvasTangents = null; _canvasPayloadMatrix = Matrix4x4.identity; _canvasPayloadInputsKnown = false;
             _cachedSourceNormals = null;
+            _sourceNormalsScratch = null;
             _hadSourceNormals = null;
             _materialMeshDirty = null;
+            _stalePayloadStreams = null;
+            _hasUploadedStreamSpace = false;
             _renderGlyphs = null;
             _renderGlyphCount = 0;
             _appliedChannels = null;
@@ -118,6 +146,7 @@ namespace TextStudio
         {
             _sourceTextBounds = enabled ? bounds : Vector4.zero;
             _hasSourceTextBounds = enabled;
+            if (!enabled) _sourceNormalsScratch = null;
         }
 
         internal void SetAppearanceProgram(
@@ -171,6 +200,89 @@ namespace TextStudio
             return _sourceCoordinateNormals != null && materialIndex >= 0 && materialIndex < _sourceCoordinateNormals.Length &&
                 HasVertex(_sourceCoordinateNormals[materialIndex], vertexIndex)
                 ? _sourceCoordinateNormals[materialIndex][vertexIndex] : new Vector3(0, 0, -1);
+        }
+
+        /// <summary>
+        /// The quad a character substitution such as a scramble presents in place of a glyph's authored quad: its
+        /// source-space corners and atlas UV rectangle. False while the glyph draws its authored quad.
+        /// </summary>
+        internal bool TryGetSubstitutedQuad(
+            int materialIndex,
+            int vertexIndex,
+            out Vector2 bottomLeft,
+            out Vector2 bottomRight,
+            out Vector2 topLeft,
+            out Vector4 atlasUvRect)
+        {
+            bottomLeft = bottomRight = topLeft = default;
+            atlasUvRect = default;
+            if (_appliedSubstituteCount <= 0 || !IsPresentationGeometryValid(materialIndex))
+                return false;
+            Vector3[] vertices = _presentationVertices[materialIndex];
+            TmpUv0[] uv0 = _presentationUv0[materialIndex];
+            TmpUv0[] sourceUv0 = _cachedUv0 != null && materialIndex < _cachedUv0.Length ? _cachedUv0[materialIndex] : null;
+            if (!HasQuad(vertices, vertexIndex) || !HasQuad(uv0, vertexIndex) || !HasQuad(sourceUv0, vertexIndex))
+                return false;
+            bool substituted = false;
+            for (int corner = 0; corner < 4 && !substituted; corner++)
+                substituted = !uv0[vertexIndex + corner].Equals(sourceUv0[vertexIndex + corner]);
+            if (!substituted)
+                return false;
+
+            // TMP orders quad corners bottom left, top left, top right, bottom right.
+            bottomLeft = vertices[vertexIndex];
+            topLeft = vertices[vertexIndex + 1];
+            bottomRight = vertices[vertexIndex + 3];
+            Vector2 minimum = new Vector2(uv0[vertexIndex].x, uv0[vertexIndex].y);
+            Vector2 maximum = minimum;
+            for (int corner = 1; corner < 4; corner++)
+            {
+                Vector2 point = new Vector2(uv0[vertexIndex + corner].x, uv0[vertexIndex + corner].y);
+                minimum = Vector2.Min(minimum, point);
+                maximum = Vector2.Max(maximum, point);
+            }
+            atlasUvRect = new Vector4(minimum.x, minimum.y, maximum.x, maximum.y);
+            return true;
+        }
+
+        /// <summary>
+        /// The same-font character a character substitution such as a scramble presents in place of a rendered
+        /// character. False while the character draws its authored glyph.
+        /// </summary>
+        internal bool TryGetSubstitutedCharacter(TMP_TextInfo textInfo, int characterIndex, out TMP_Character substitute)
+        {
+            substitute = null;
+            if (_appliedSubstituteCount <= 0 || _appliedSubstitutes == null || textInfo?.characterInfo == null ||
+                characterIndex < 0 || characterIndex >= textInfo.characterInfo.Length)
+            {
+                return false;
+            }
+
+            // Render glyphs follow TMP character order, so a binary search finds the one drawing the character.
+            int low = 0;
+            int high = _renderGlyphCount - 1;
+            while (low <= high)
+            {
+                int middle = (low + high) >> 1;
+                int current = _renderGlyphs[middle].CharacterInfoIndex;
+                if (current < characterIndex)
+                {
+                    low = middle + 1;
+                }
+                else if (current > characterIndex)
+                {
+                    high = middle - 1;
+                }
+                else
+                {
+                    uint codePoint = middle < _appliedSubstitutes.Length ? _appliedSubstitutes[middle] : 0u;
+                    substitute = codePoint != 0u
+                        ? ResolveSubstitute(in textInfo.characterInfo[characterIndex], (int)codePoint)
+                        : null;
+                    return substitute != null;
+                }
+            }
+            return false;
         }
 
         static bool HasVertex<T>(T[] values, int index) => values != null && index >= 0 && index < values.Length;
@@ -231,9 +343,13 @@ namespace TextStudio
                 _hadSourceNormals = new bool[meshCount];
             if (_materialMeshDirty == null || _materialMeshDirty.Length < meshCount)
                 _materialMeshDirty = new bool[meshCount];
+            if (_stalePayloadStreams == null || _stalePayloadStreams.Length < meshCount)
+                _stalePayloadStreams = new byte[meshCount];
 
             for (int m = 0; m < meshCount; m++)
             {
+                // Recaching clears the CPU payload and recomputes the source coordinates, so no uploaded stream is current.
+                _stalePayloadStreams[m] = AllPayloadStreams;
                 Vector3[] verts = textInfo.meshInfo[m].vertices;
                 if (verts != null)
                 {
@@ -265,6 +381,12 @@ namespace TextStudio
                 CacheSourceCoordinateNormals(textInfo.meshInfo[m].mesh, m, verts, vertexCount);
             }
 
+            // Entries past the current mesh count keep earlier payloads that RestoreSourceNormals can still reach.
+            _hasSourceCoordinateNormals = false;
+            for (int m = 0; m < _sourceCoordinateNormals.Length; m++)
+                _hasSourceCoordinateNormals |= _sourceCoordinateNormals[m] != null;
+            _sourceNormalRestorePending = _hasSourceCoordinateNormals;
+
             CacheRenderGlyphs(textInfo, plan);
             ApplyWritingSampleIndicesToCache();
         }
@@ -279,6 +401,7 @@ namespace TextStudio
             {
                 _writingSourceSampleOffset = resolved;
                 ApplyWritingSampleIndicesToCache();
+                MarkStalePayloadStreams(CoordinateNormalStream);
                 UploadSourceCoordinateNormals(tmpText);
                 _hasUniformAppliedState = false;
             }
@@ -331,13 +454,17 @@ namespace TextStudio
                 textInfo.meshInfo.Length,
                 _sourceCoordinateNormals.Length);
             bool uploaded = false;
+            TextMeshProUGUI canvasText = tmpText as TextMeshProUGUI;
+            Matrix4x4 streamSpace = canvasText != null ? ResolveStreamSpace(canvasText) : Matrix4x4.identity;
             for (int materialIndex = 0; materialIndex < meshCount; materialIndex++)
             {
                 Vector3[] normals = _sourceCoordinateNormals[materialIndex];
                 Mesh mesh = textInfo.meshInfo[materialIndex].mesh;
                 if (normals == null || mesh == null || normals.Length != mesh.vertexCount)
                     continue;
-                UploadCoordinateNormals(tmpText, mesh, normals);
+                UploadCoordinateNormals(mesh, normals, canvasText != null, streamSpace);
+                if (_stalePayloadStreams != null && materialIndex < _stalePayloadStreams.Length)
+                    _stalePayloadStreams[materialIndex] &= unchecked((byte)~CoordinateNormalStream);
                 tmpText.UpdateGeometry(mesh, materialIndex);
                 uploaded = true;
             }
@@ -359,8 +486,10 @@ namespace TextStudio
                 return;
             }
 
-            Vector3[] sourceNormals = mesh.normals;
-            bool hadSourceNormals = sourceNormals != null && sourceNormals.Length == vertexCount;
+            _sourceNormalsScratch ??= new List<Vector3>(vertexCount);
+            mesh.GetNormals(_sourceNormalsScratch);
+            List<Vector3> sourceNormals = _sourceNormalsScratch;
+            bool hadSourceNormals = sourceNormals.Count == vertexCount;
             _hadSourceNormals[materialIndex] = hadSourceNormals;
             if (hadSourceNormals)
             {
@@ -369,7 +498,7 @@ namespace TextStudio
                 {
                     _cachedSourceNormals[materialIndex] = new Vector3[vertexCount];
                 }
-                Array.Copy(sourceNormals, _cachedSourceNormals[materialIndex], vertexCount);
+                sourceNormals.CopyTo(_cachedSourceNormals[materialIndex]);
             }
             else
             {
@@ -458,6 +587,58 @@ namespace TextStudio
             }
         }
 
+        internal bool RepublishFreshLayoutColors(
+            TMP_Text tmpText,
+            in TextStudioFrame frame,
+            PresentationGlyph[] presentationGlyphs,
+            IPresentationGlyphProvider glyphProvider)
+        {
+            TextStudioCompiledPlan plan = frame.Plan.CompiledPlan;
+            TMP_TextInfo info = tmpText != null ? tmpText.textInfo : null;
+            if (plan == null || info?.characterInfo == null || info.meshInfo == null ||
+                !string.Equals(tmpText.text, plan.DisplayText ?? plan.ResolvedText, StringComparison.Ordinal) ||
+                !frame.Animated.IsCreated || frame.AnimatedCount != plan.VisibleGlyphCount ||
+                frame.Animated.Length < frame.AnimatedCount || info.characterCount > info.characterInfo.Length)
+                return false;
+
+            // Validate the current native mapping in full before writing. The cached render-glyph/material/vertex
+            // mapping belongs to the old layout and is deliberately not consulted or replaced here.
+            for (int index = 0; index < info.characterCount; index++)
+            {
+                ref TMP_CharacterInfo character = ref info.characterInfo[index];
+                if (!character.isVisible) continue;
+                int unit = plan.GetUnitIndexForDisplayChar(character.index);
+                if (unit < 0 || unit >= frame.AnimatedCount ||
+                    character.materialReferenceIndex < 0 || character.materialReferenceIndex >= info.meshInfo.Length ||
+                    !HasQuad(info.meshInfo[character.materialReferenceIndex].colors32, character.vertexIndex))
+                    return false;
+            }
+
+            bool hasPresentationGlyphs = (glyphProvider != null || plan.CharacterSubstitutionBindingCount > 0) &&
+                presentationGlyphs != null && frame.PresentationGlyphCount > 0;
+            for (int index = 0; index < info.characterCount; index++)
+            {
+                ref TMP_CharacterInfo character = ref info.characterInfo[index];
+                if (!character.isVisible) continue;
+                int unit = plan.GetUnitIndexForDisplayChar(character.index);
+                ref readonly EvaluatedGlyphState state = ref frame.Animated.Items[unit];
+                float alphaMultiplier = hasPresentationGlyphs && unit < presentationGlyphs.Length
+                    ? presentationGlyphs[unit].alphaMultiplier : 1f;
+                byte alpha = (byte)(Mathf.Clamp01(state.alpha * alphaMultiplier) * 255f);
+                bool applyRgb = (ResolveRenderChannels(in state) & TextStudioRenderChannels.Color) != 0;
+                Color32[] colors = info.meshInfo[character.materialReferenceIndex].colors32;
+                for (int corner = 0; corner < 4; corner++)
+                {
+                    int vertex = character.vertexIndex + corner;
+                    colors[vertex] = ResolveColor(in state, colors[vertex], alpha, applyRgb);
+                }
+            }
+            // Preserve all new native positions, UVs and materials. The normal layout owner will recache them and
+            // publish transforms/material streams; its invalidated mesh and dirty work remain pending.
+            tmpText.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+            return true;
+        }
+
         public void ApplyFrame(
             TMP_Text tmpText,
             in TextStudioFrame frame,
@@ -465,7 +646,8 @@ namespace TextStudio
             IPresentationGlyphProvider glyphProvider,
             bool forceAll,
             float alphaMultiplier = 1f,
-            bool applyPlacement = true)
+            bool applyPlacement = true,
+            bool notifyMeshUpdated = true)
         {
             if (tmpText == null)
                 return;
@@ -495,6 +677,7 @@ namespace TextStudio
             bool usePresentationGlyphs = hasPresentationGlyphs || restoreSubstitutes;
             // TMP regeneration resubmits source quads, so applied substitutes are written again even without a vertex channel.
             bool rewriteSubstitutes = _submittedMeshInvalidated;
+            bool forceComposedSubmission = forceAll || _submittedMeshInvalidated;
             bool applyAll = forceAll || _submittedMeshInvalidated || restoreSubstitutes || frame.Dirty.AreAllDirty(stateCount);
             if (!applyAll && !frame.Dirty.AnyDirtyInRange(0, stateCount))
                 return;
@@ -506,11 +689,13 @@ namespace TextStudio
             bool usePlacement = applyPlacement && placements.IsCreated && placementCount > 0;
             if (usePresentationGlyphs)
                 EnsurePresentationUvCache(textInfo);
-            float fallbackEffectUnitScale = TextStudioTMPBridge.ResolveEffectUnitScale(tmpText);
             // Frame-level views are read once; a frame without render properties gives every glyph an empty view.
             TextStudioRenderPropertyView frameRenderProperties = frame.RenderProperties;
             bool frameHasRenderProperties = !frameRenderProperties.IsEmpty;
             TextStudioReadOnlyBuffer<float> effectUnitScales = frame.EffectUnitScales;
+            float fallbackEffectUnitScale = effectUnitScales.IsCreated && effectUnitScales.Count >= stateCount
+                ? 1f
+                : TextStudioTMPBridge.ResolveEffectUnitScale(tmpText);
             PlacementCoordinateMap placementMap = ResolvePlacementCoordinateMap(textInfo, in frame, usePlacement);
             bool wroteVertices = false;
             bool wroteColors = false;
@@ -521,7 +706,12 @@ namespace TextStudio
                 if (_submittedMeshInvalidated && _materialPayload0 != null)
                 {
                     for (int index = 0; index < _materialMeshDirty.Length && index < _materialPayload0.Length; index++)
-                        _materialMeshDirty[index] = _materialPayload0[index] != null;
+                    {
+                        if (_materialPayload0[index] == null)
+                            continue;
+                        // TMP regeneration can replace every payload channel, so the mesh republishes them all.
+                        MarkPayloadStreams(index, AllPayloadStreams);
+                    }
                 }
             }
             RefreshMaterialPropertyBindings();
@@ -590,7 +780,9 @@ namespace TextStudio
             Color32 uniformQuadSourceColor = default;
             Color32 uniformQuadColor = default;
 
-            _selectorPass.Begin();
+            // Only appearance programs read the selector pass, so plain frames skip opening one.
+            if (HasAppearanceProgram)
+                _selectorPass.Begin();
             for (int renderIndex = 0; renderIndex < _renderGlyphCount; renderIndex++)
             {
                 ref RenderGlyph renderGlyph = ref _renderGlyphs[renderIndex];
@@ -675,10 +867,13 @@ namespace TextStudio
                             resolvedAlphaMultiplier,
                             in placementMap,
                             usePresentationGlyphs,
+                            forceComposedSubmission,
+                            out bool composedVertices,
+                            out bool composedColors,
                             out bool composedUv0))
                     {
-                        wroteVertices = true;
-                        wroteColors = true;
+                        wroteVertices |= composedVertices;
+                        wroteColors |= composedColors;
                         wroteUv0 |= composedUv0;
                     }
                     continue;
@@ -1034,13 +1229,14 @@ namespace TextStudio
                     EnsureMaterialPayloadCapacity(
                         matIdx,
                         meshInfo.vertices != null ? meshInfo.vertices.Length : 0);
-                    if (ApplyMaterialPayload(
+                    MarkPayloadStreams(
+                        matIdx,
+                        ApplyMaterialPayload(
                             matIdx,
                             vertIdx,
                             renderGlyph.SourceIndex,
                             in glyphProperties,
-                            appearanceOperationMask))
-                        _materialMeshDirty[matIdx] = true;
+                            appearanceOperationMask));
                 }
                 if (_appliedChannels != null && unitIndex < _appliedChannels.Length)
                     _appliedChannels[unitIndex] = currentChannels;
@@ -1071,11 +1267,17 @@ namespace TextStudio
                     updateFlags |= TMP_VertexDataUpdateFlags.Colors32;
                 if (wroteUv0)
                     updateFlags |= TMP_VertexDataUpdateFlags.Uv0;
+                // Payload streams go up first, so a frame that also writes vertices, colors or UV0 submits each mesh once.
+                ApplyMaterialStreams(tmpText, textInfo, updateFlags != 0);
                 if (updateFlags != 0)
-                    tmpText.UpdateVertexData(updateFlags);
-                ApplyMaterialStreams(tmpText, textInfo);
+                {
+                    using (MeshUploadProfilerMarker.Auto())
+                        tmpText.UpdateVertexData(updateFlags);
+                }
                 _submittedMeshInvalidated = false;
-                TextStudioTMPMeshUpdateHooks.NotifyMeshUpdated(tmpText);
+                // Optional graphics integrations may schedule a Canvas rebuild, so native regeneration leaves notifications to normal frame application.
+                if (notifyMeshUpdated)
+                    TextStudioTMPMeshUpdateHooks.NotifyMeshUpdated(tmpText);
                 if (cacheUniformMaterialState)
                 {
                     _uniformAppliedState = uniformMaterialState;
@@ -1097,8 +1299,13 @@ namespace TextStudio
             float alphaMultiplier,
             in PlacementCoordinateMap placementMap,
             bool usePresentationGlyphs,
+            bool forceSubmission,
+            out bool wroteVertices,
+            out bool wroteColors,
             out bool wroteUv0)
         {
+            wroteVertices = false;
+            wroteColors = false;
             wroteUv0 = false;
             int materialIndex = renderGlyph.MaterialIndex;
             int vertexIndex = renderGlyph.VertexIndex;
@@ -1131,11 +1338,34 @@ namespace TextStudio
             transformState.skew = glyphState.skew;
             transformState.pivotOffset = glyphState.pivotOffset;
 
-            Vector3 sourceCenter =
-                (sourceVertices[vertexIndex] + sourceVertices[vertexIndex + 2]) * 0.5f;
-            GlyphPlacement placement = default;
-            TextStudioGlyphQuadTransform transform =
-                TextStudioGlyphQuadTransformer.CreateFromQuad(
+            // Settled composed glyphs, such as resting physical text that still composes every step, rewrite the quad the
+            // mesh already holds. Only a changed quad or a forced source refresh submits the vertex stream again.
+            Vector3 previousVertex0 = destinationVertices[vertexIndex];
+            Vector3 previousVertex1 = destinationVertices[vertexIndex + 1];
+            Vector3 previousVertex2 = destinationVertices[vertexIndex + 2];
+            Vector3 previousVertex3 = destinationVertices[vertexIndex + 3];
+            bool hasCornerOffsets = glyphState.cornerOffsets.HasAny;
+            bool usedLinear2DFastPath = !hasCornerOffsets && TryApplyLinear2DQuad(
+                sourceVertices,
+                null,
+                destinationVertices,
+                null,
+                vertexIndex,
+                false,
+                in transformState,
+                ResolveRenderChannels(in transformState),
+                1f,
+                1f,
+                true,
+                false,
+                false);
+            TextStudioGlyphQuadTransform transform = default;
+            if (!usedLinear2DFastPath)
+            {
+                Vector3 sourceCenter =
+                    (sourceVertices[vertexIndex] + sourceVertices[vertexIndex + 2]) * 0.5f;
+                GlyphPlacement placement = default;
+                transform = TextStudioGlyphQuadTransformer.CreateFromQuad(
                     sourceVertices[vertexIndex],
                     sourceVertices[vertexIndex + 1],
                     sourceVertices[vertexIndex + 2],
@@ -1146,24 +1376,39 @@ namespace TextStudio
                     false,
                     1f,
                     1f);
+            }
             TextStudioGlyphColorQuad vertexColors = glyphState.vertexColors.IsInitialized
                 ? glyphState.vertexColors
                 : TextStudioGlyphColorQuad.Uniform(glyphState.color);
-            float resolvedAlpha = Mathf.Clamp01(glyphState.alpha * alphaMultiplier);
-            bool hasCornerOffsets = glyphState.cornerOffsets.HasAny;
+            byte resolvedAlpha = (byte)(Mathf.Clamp01(glyphState.alpha * alphaMultiplier) * 255f);
             for (int vertex = 0; vertex < 4; vertex++)
             {
-                Vector3 source = sourceVertices[vertexIndex + vertex];
-                destinationVertices[vertexIndex + vertex] = hasCornerOffsets
-                    ? transform.ApplyPosition(
-                        source,
-                        glyphState.cornerOffsets.GetCanonicalVertexOffset(vertex),
-                        1f)
-                    : transform.ApplyPosition(source);
-                destinationColors[vertexIndex + vertex] = ResolveComposedColor(
+                if (!usedLinear2DFastPath)
+                {
+                    Vector3 source = sourceVertices[vertexIndex + vertex];
+                    destinationVertices[vertexIndex + vertex] = hasCornerOffsets
+                        ? transform.ApplyPosition(
+                            source,
+                            glyphState.cornerOffsets.GetCanonicalVertexOffset(vertex),
+                            1f)
+                        : transform.ApplyPosition(source);
+                }
+                Color32 resolvedColor = ResolveComposedColor(
                     GetCanonicalColor(in vertexColors, vertex),
                     resolvedAlpha);
+                if (!HasSameColor(destinationColors[vertexIndex + vertex], resolvedColor))
+                {
+                    destinationColors[vertexIndex + vertex] = resolvedColor;
+                    wroteColors = true;
+                }
             }
+            // A source refresh can replace submitted data even when the CPU-side vertices and colors already match.
+            wroteVertices = forceSubmission ||
+                            !HasSameVertex(previousVertex0, destinationVertices[vertexIndex]) ||
+                            !HasSameVertex(previousVertex1, destinationVertices[vertexIndex + 1]) ||
+                            !HasSameVertex(previousVertex2, destinationVertices[vertexIndex + 2]) ||
+                            !HasSameVertex(previousVertex3, destinationVertices[vertexIndex + 3]);
+            wroteColors |= forceSubmission;
 
             byte currentChannels = VertexChannel | ColorChannel;
             TextStudioRenderPropertyGlyphView glyphProperties =
@@ -1189,15 +1434,14 @@ namespace TextStudio
                 EnsureMaterialPayloadCapacity(
                     materialIndex,
                     destinationVertices.Length);
-                if (ApplyMaterialPayload(
+                MarkPayloadStreams(
+                    materialIndex,
+                    ApplyMaterialPayload(
                         materialIndex,
                         vertexIndex,
                         renderGlyph.SourceIndex,
                         in glyphProperties,
-                        appearanceOperationMask))
-                {
-                    _materialMeshDirty[materialIndex] = true;
-                }
+                        appearanceOperationMask));
             }
             if (_appliedChannels != null && unitIndex < _appliedChannels.Length)
                 _appliedChannels[unitIndex] = currentChannels;
@@ -1234,13 +1478,14 @@ namespace TextStudio
             };
         }
 
-        static Color32 ResolveComposedColor(Color32 color, float alpha)
+        static Color32 ResolveComposedColor(Color32 color, byte alpha)
         {
-            color.a = (byte)((color.a * (byte)(Mathf.Clamp01(alpha) * 255f)) / 255);
+            color.a = (byte)((color.a * alpha) / 255);
             return color;
         }
 
-        bool ApplyMaterialPayload(
+        /// <summary>Writes one glyph's material payload and returns the streams whose content changed.</summary>
+        byte ApplyMaterialPayload(
             int materialIndex,
             int vertexIndex,
             int glyphIndex,
@@ -1253,7 +1498,7 @@ namespace TextStudio
                 !HasQuad(_materialPayload1[materialIndex], vertexIndex) ||
                 !HasQuad(_materialPayload2[materialIndex], vertexIndex))
             {
-                return false;
+                return 0;
             }
 
             Vector4 focus = ReadProperty(in properties, in _focusProperty);
@@ -1295,11 +1540,12 @@ namespace TextStudio
             Vector3[] sweepSourceVertices = sweepBrightness > 0.0001f
                 ? ResolveSourceVertices(materialIndex, true)
                 : null;
-            bool changed = ApplySquigglePayload(materialIndex, vertexIndex, squiggle);
+            byte changed = ApplySquigglePayload(materialIndex, vertexIndex, squiggle) ? SquiggleStream : (byte)0;
             for (int vertex = 0; vertex < 4; vertex++)
             {
                 int index = vertexIndex + vertex;
-                changed |= WritePayloadIfChanged(stream0, index, payload0);
+                if (WritePayloadIfChanged(stream0, index, payload0))
+                    changed |= Payload0Stream;
                 Vector4 vertexPayload1 = payload1;
                 if (sweepSourceVertices != null &&
                     index < sweepSourceVertices.Length)
@@ -1311,64 +1557,68 @@ namespace TextStudio
                         new Vector2(sourceVertex.x, sourceVertex.y),
                         sweepDirection) - sweepCenter) / Mathf.Max(.0001f, sweepWidth);
                 }
-                changed |= WritePayloadIfChanged(stream1, index, vertexPayload1);
+                if (WritePayloadIfChanged(stream1, index, vertexPayload1))
+                    changed |= Payload1Stream;
             }
-            changed |= WritePayloadIfChanged(
-                stream2,
-                vertexIndex,
-                CreateLocalPayload(
-                    0f,
-                    0f,
-                    signedPixelCellSize,
-                    signedPixelAmount,
-                    glyphIndex));
-            changed |= WritePayloadIfChanged(
-                stream2,
-                vertexIndex + 1,
-                CreateLocalPayload(
-                    0f,
-                    1f,
-                    signedPixelCellSize,
-                    signedPixelAmount,
-                    glyphIndex));
-            changed |= WritePayloadIfChanged(
-                stream2,
-                vertexIndex + 2,
-                CreateLocalPayload(
-                    1f,
-                    1f,
-                    signedPixelCellSize,
-                    signedPixelAmount,
-                    glyphIndex));
-            changed |= WritePayloadIfChanged(
-                stream2,
-                vertexIndex + 3,
-                CreateLocalPayload(
-                    1f,
-                    0f,
-                    signedPixelCellSize,
-                    signedPixelAmount,
-                    glyphIndex));
+            float packedPixelCellSize = PackGlyphAndPixelCell(signedPixelCellSize, glyphIndex);
+            bool localChanged = WritePayloadIfChanged(stream2, vertexIndex,
+                new Vector4(0f, 0f, packedPixelCellSize, signedPixelAmount));
+            localChanged |= WritePayloadIfChanged(stream2, vertexIndex + 1,
+                new Vector4(0f, 1f, packedPixelCellSize, signedPixelAmount));
+            localChanged |= WritePayloadIfChanged(stream2, vertexIndex + 2,
+                new Vector4(1f, 1f, packedPixelCellSize, signedPixelAmount));
+            localChanged |= WritePayloadIfChanged(stream2, vertexIndex + 3,
+                new Vector4(1f, 0f, packedPixelCellSize, signedPixelAmount));
+            if (localChanged)
+                changed |= LocalPayloadStream;
             return changed;
         }
 
-        Vector4 CreateLocalPayload(
-            float localX,
-            float localY,
-            float pixelCellSize,
-            float pixelAmount,
-            int glyphIndex)
+        // A changed stream publishes its mesh this frame and stays stale until that publication sends it.
+        void MarkPayloadStreams(int materialIndex, byte streams)
+        {
+            if (streams == 0 || _materialMeshDirty == null || materialIndex >= _materialMeshDirty.Length)
+                return;
+            _materialMeshDirty[materialIndex] = true;
+            if (_stalePayloadStreams != null && materialIndex < _stalePayloadStreams.Length)
+                _stalePayloadStreams[materialIndex] |= streams;
+        }
+
+        void MarkStalePayloadStreams(byte streams)
+        {
+            if (_stalePayloadStreams == null)
+                return;
+            for (int index = 0; index < _stalePayloadStreams.Length; index++)
+                _stalePayloadStreams[index] |= streams;
+        }
+
+        // Canvas tangents and normals are uploaded in the text's canvas payload space; when that space moves, every
+        // uploaded copy needs the new transform before it can count as current.
+        Matrix4x4 ResolveStreamSpace(TextMeshProUGUI text)
+        {
+            return AdoptStreamSpace(TextStudioCanvasPayloadSpace.Resolve(text.transform, text.canvas));
+        }
+
+        Matrix4x4 AdoptStreamSpace(Matrix4x4 space)
+        {
+            if (!_hasUploadedStreamSpace || !_uploadedStreamSpace.Equals(space))
+            {
+                MarkStalePayloadStreams(LocalPayloadStream | CoordinateNormalStream);
+                _uploadedStreamSpace = space;
+                _hasUploadedStreamSpace = true;
+            }
+            return space;
+        }
+
+        float PackGlyphAndPixelCell(float pixelCellSize, int glyphIndex)
         {
             if (!HasAppearanceProgram)
-                return new Vector4(localX, localY, pixelCellSize, pixelAmount);
+                return pixelCellSize;
 
             const float glyphIndexStride = 128f;
             float pixelSign = pixelCellSize < 0f ? -1f : 1f;
-            float packedGlyphAndPixel =
-                ((Mathf.Max(0, glyphIndex) + 1) * glyphIndexStride +
-                 Mathf.Abs(pixelCellSize)) * pixelSign;
-
-            return new Vector4(localX, localY, packedGlyphAndPixel, pixelAmount);
+            return ((Mathf.Max(0, glyphIndex) + 1) * glyphIndexStride +
+                    Mathf.Abs(pixelCellSize)) * pixelSign;
         }
 
         internal float ResolveAppearanceIdentity(byte appearanceOperationMask) =>
@@ -1445,30 +1695,44 @@ namespace TextStudio
                 values[index].y = meshInfo.uvs2[index].y;
             }
             meshInfo.mesh.SetUVs(1, values);
+            // RestoreSourceNormals also restores this stream.
+            _sourceNormalRestorePending = true;
         }
 
         internal bool NeedsCanvasPayloadRefresh(TMP_Text text)
         {
             if (!(text is TextMeshProUGUI ui) || !HasMaterialPayloadStorage) return false;
             // Sleeping text checks every tick; unchanged transforms keep the payload space without resolving its inverse.
-            if (HaveCanvasPayloadInputs(ui)) return false;
+            if (HaveCanvasPayloadInputs(ui)) { _canvasPayloadInputsConfirmed = true; return false; }
             if (!_canvasPayloadMatrix.Equals(TextStudioCanvasPayloadSpace.Resolve(ui.transform, ui.canvas))) return true;
             RecordCanvasPayloadInputs(ui);
             return false;
         }
 
+        // The inputs a parked text compares in its scheduler slot in place of this check, which returns false while they
+        // match. Only inputs the last check found unchanged qualify: a text whose pose keeps changing records new ones every
+        // frame and keeps polling in its hub rather than leaving its slot each frame.
+        internal bool TryGetConfirmedCanvasPayloadInputs(out Matrix4x4 text, out Matrix4x4 root)
+        {
+            text = _canvasPayloadTextMatrix;
+            root = _canvasPayloadRootMatrix;
+            return _canvasPayloadInputsKnown && _canvasPayloadInputsConfirmed;
+        }
+
+        // TMP caches its RectTransform, and the texts on a canvas share one read of its root per player frame.
         bool HaveCanvasPayloadInputs(TextMeshProUGUI text)
         {
             Canvas canvas = text.canvas;
             return _canvasPayloadInputsKnown && canvas != null &&
-                _canvasPayloadTextMatrix.Equals(text.transform.localToWorldMatrix) &&
-                _canvasPayloadRootMatrix.Equals(canvas.rootCanvas.transform.localToWorldMatrix);
+                _canvasPayloadTextMatrix.Equals(text.rectTransform.localToWorldMatrix) &&
+                _canvasPayloadRootMatrix.Equals(TextStudioCanvasRootSnapshot.Of(canvas).LocalToWorld);
         }
 
         void RecordCanvasPayloadInputs(TextMeshProUGUI text)
         {
             Canvas canvas = text.canvas;
             _canvasPayloadInputsKnown = canvas != null;
+            _canvasPayloadInputsConfirmed = false;
             if (canvas == null) return;
             _canvasPayloadTextMatrix = text.transform.localToWorldMatrix;
             _canvasPayloadRootMatrix = canvas.rootCanvas.transform.localToWorldMatrix;
@@ -1483,20 +1747,22 @@ namespace TextStudio
             _canvasPayloadMatrix = matrix;
             TMP_MeshInfo[] meshes = text.textInfo?.meshInfo;
             if (meshes == null || _materialPayload2 == null) return;
+            matrix = AdoptStreamSpace(matrix);
             for (int index = 0; index < meshes.Length && index < _materialPayload2.Length; index++)
             {
                 Mesh mesh = meshes[index].mesh;
                 if (mesh == null || _materialPayload2[index] == null) continue;
-                UploadCanvasTangents(ui, mesh, _materialPayload2[index]);
+                UploadCanvasTangents(mesh, _materialPayload2[index], matrix);
                 if (_sourceCoordinateNormals != null && index < _sourceCoordinateNormals.Length && _sourceCoordinateNormals[index] != null)
-                    UploadCoordinateNormals(ui, mesh, _sourceCoordinateNormals[index]);
+                    UploadCoordinateNormals(mesh, _sourceCoordinateNormals[index], true, matrix);
+                if (_stalePayloadStreams != null && index < _stalePayloadStreams.Length)
+                    _stalePayloadStreams[index] &= unchecked((byte)~(LocalPayloadStream | CoordinateNormalStream));
                 ui.UpdateGeometry(mesh, index);
             }
         }
 
-        void UploadCanvasTangents(TextMeshProUGUI text, Mesh mesh, Vector4[] values)
+        void UploadCanvasTangents(Mesh mesh, Vector4[] values, Matrix4x4 matrix)
         {
-            Matrix4x4 matrix = TextStudioCanvasPayloadSpace.Resolve(text.transform, text.canvas);
             if (matrix.Equals(Matrix4x4.identity)) { mesh.SetTangents(values); return; }
             _canvasTangents ??= new List<Vector4>(values.Length);
             _canvasTangents.Clear();
@@ -1505,22 +1771,29 @@ namespace TextStudio
             mesh.SetTangents(_canvasTangents);
         }
 
-        void UploadCoordinateNormals(TMP_Text text, Mesh mesh, Vector3[] values)
+        void UploadCoordinateNormals(Mesh mesh, Vector3[] values, bool canvasSpace, Matrix4x4 matrix)
         {
-            if (!(text is TextMeshProUGUI ui)) { mesh.SetNormals(values); return; }
-            Matrix4x4 matrix = TextStudioCanvasPayloadSpace.Resolve(ui.transform, ui.canvas);
-            if (matrix.Equals(Matrix4x4.identity)) { mesh.SetNormals(values); return; }
+            _sourceNormalRestorePending = true;
+            if (!canvasSpace || matrix.Equals(Matrix4x4.identity)) { mesh.SetNormals(values); return; }
             _canvasNormals ??= new List<Vector3>(values.Length);
             _canvasNormals.Clear();
             for (int index = 0; index < values.Length; index++) _canvasNormals.Add(matrix.MultiplyVector(values[index]));
             mesh.SetNormals(_canvasNormals);
         }
 
-        void ApplyMaterialStreams(TMP_Text tmpText, TMP_TextInfo textInfo)
+        /// <summary>
+        /// Publishes the payload streams of every mesh whose payload changed this frame. Only stale streams are sent, and when
+        /// <paramref name="vertexDataFollows"/> is set the following UpdateVertexData submits those meshes, so each mesh
+        /// reaches TMP once per frame: one Canvas mesh copy or one bounds pass instead of two.
+        /// </summary>
+        void ApplyMaterialStreams(TMP_Text tmpText, TMP_TextInfo textInfo, bool vertexDataFollows)
         {
             if (_materialMeshDirty == null)
                 return;
 
+            TextMeshProUGUI canvasText = tmpText as TextMeshProUGUI;
+            bool hasStreamSpace = false;
+            Matrix4x4 streamSpace = Matrix4x4.identity;
             int meshCount = Mathf.Min(textInfo.meshInfo.Length, _materialMeshDirty.Length);
             for (int materialIndex = 0; materialIndex < meshCount; materialIndex++)
             {
@@ -1529,20 +1802,39 @@ namespace TextStudio
                 Mesh mesh = textInfo.meshInfo[materialIndex].mesh;
                 if (mesh == null)
                     continue;
-                mesh.SetUVs(2, _materialPayload0[materialIndex]);
-                mesh.SetUVs(3, _materialPayload1[materialIndex]);
+                if (canvasText != null && !hasStreamSpace)
+                {
+                    streamSpace = ResolveStreamSpace(canvasText);
+                    hasStreamSpace = true;
+                }
+
+                byte staleStreams = _stalePayloadStreams != null && materialIndex < _stalePayloadStreams.Length
+                    ? _stalePayloadStreams[materialIndex]
+                    : AllPayloadStreams;
+                if ((staleStreams & Payload0Stream) != 0)
+                    mesh.SetUVs(2, _materialPayload0[materialIndex]);
+                if ((staleStreams & Payload1Stream) != 0)
+                    mesh.SetUVs(3, _materialPayload1[materialIndex]);
                 UploadSquiggleUv1(materialIndex, in textInfo.meshInfo[materialIndex]);
-                if (tmpText is TextMeshProUGUI)
-                    UploadCanvasTangents((TextMeshProUGUI)tmpText, mesh, _materialPayload2[materialIndex]);
-                else
-                    mesh.SetUVs(4, _materialPayload2[materialIndex]);
-                if (_sourceCoordinateNormals != null &&
+                if ((staleStreams & LocalPayloadStream) != 0)
+                {
+                    if (canvasText != null)
+                        UploadCanvasTangents(mesh, _materialPayload2[materialIndex], streamSpace);
+                    else
+                        mesh.SetUVs(4, _materialPayload2[materialIndex]);
+                }
+                if ((staleStreams & CoordinateNormalStream) != 0 &&
+                    _sourceCoordinateNormals != null &&
                     materialIndex < _sourceCoordinateNormals.Length &&
                     _sourceCoordinateNormals[materialIndex] != null)
                 {
-                    UploadCoordinateNormals(tmpText, mesh, _sourceCoordinateNormals[materialIndex]);
+                    UploadCoordinateNormals(mesh, _sourceCoordinateNormals[materialIndex], canvasText != null, streamSpace);
                 }
-                tmpText.UpdateGeometry(mesh, materialIndex);
+                if (_stalePayloadStreams != null && materialIndex < _stalePayloadStreams.Length)
+                    _stalePayloadStreams[materialIndex] = 0;
+                // UpdateVertexData submits only meshes below the material count.
+                if (!vertexDataFollows || materialIndex >= textInfo.materialCount)
+                    tmpText.UpdateGeometry(mesh, materialIndex);
             }
         }
 
@@ -1561,6 +1853,9 @@ namespace TextStudio
                 return false;
 
             bool initializedAny = false;
+            TextMeshProUGUI canvasText = tmpText as TextMeshProUGUI;
+            bool hasStreamSpace = false;
+            Matrix4x4 streamSpace = Matrix4x4.identity;
             int meshCount = Mathf.Min(
                 textInfo.meshInfo.Length,
                 _materialPayload0.Length);
@@ -1573,6 +1868,11 @@ namespace TextStudio
                     : 0;
                 if (mesh == null || vertexCount <= 0)
                     continue;
+                if (canvasText != null && !hasStreamSpace)
+                {
+                    streamSpace = ResolveStreamSpace(canvasText);
+                    hasStreamSpace = true;
+                }
 
                 EnsureMaterialPayloadCapacity(materialIndex, vertexCount);
                 Array.Clear(_materialPayload0[materialIndex], 0, vertexCount);
@@ -1588,16 +1888,19 @@ namespace TextStudio
                     mesh.SetUVs(0, meshInfo.uvs0);
                 mesh.SetUVs(2, _materialPayload0[materialIndex]);
                 mesh.SetUVs(3, _materialPayload1[materialIndex]);
-                if (tmpText is TextMeshProUGUI)
-                    UploadCanvasTangents((TextMeshProUGUI)tmpText, mesh, _materialPayload2[materialIndex]);
+                if (canvasText != null)
+                    UploadCanvasTangents(mesh, _materialPayload2[materialIndex], streamSpace);
                 else
                     mesh.SetUVs(4, _materialPayload2[materialIndex]);
                 if (_sourceCoordinateNormals != null &&
                     materialIndex < _sourceCoordinateNormals.Length &&
                     _sourceCoordinateNormals[materialIndex] != null)
                 {
-                    UploadCoordinateNormals(tmpText, mesh, _sourceCoordinateNormals[materialIndex]);
+                    UploadCoordinateNormals(mesh, _sourceCoordinateNormals[materialIndex], canvasText != null, streamSpace);
                 }
+                // Every payload stream of this mesh now holds its CPU content.
+                if (_stalePayloadStreams != null && materialIndex < _stalePayloadStreams.Length)
+                    _stalePayloadStreams[materialIndex] = 0;
                 tmpText.UpdateGeometry(mesh, materialIndex);
                 initializedAny = true;
             }
@@ -1636,22 +1939,27 @@ namespace TextStudio
                 }
 
                 int vertex = glyph.VertexIndex;
-                stream[vertex] = CreateLocalPayload(
-                    0f, 0f, 0f, 0f, glyph.SourceIndex);
-                stream[vertex + 1] = CreateLocalPayload(
-                    0f, 1f, 0f, 0f, glyph.SourceIndex);
-                stream[vertex + 2] = CreateLocalPayload(
-                    1f, 1f, 0f, 0f, glyph.SourceIndex);
-                stream[vertex + 3] = CreateLocalPayload(
-                    1f, 0f, 0f, 0f, glyph.SourceIndex);
+                float packedPixelCellSize = PackGlyphAndPixelCell(0f, glyph.SourceIndex);
+                stream[vertex] = new Vector4(0f, 0f, packedPixelCellSize, 0f);
+                stream[vertex + 1] = new Vector4(0f, 1f, packedPixelCellSize, 0f);
+                stream[vertex + 2] = new Vector4(1f, 1f, packedPixelCellSize, 0f);
+                stream[vertex + 3] = new Vector4(1f, 0f, packedPixelCellSize, 0f);
                 stampedIdentity |= StampAppearanceIdentity(uvs0, vertex, identity);
             }
             return stampedIdentity;
         }
 
+        // Whether RestoreSourceNormals would write anything: coordinate normals were cached or uploaded since it last restored
+        // every mesh.
+        internal bool NeedsSourceNormalRestore => _hasSourceCoordinateNormals && _sourceNormalRestorePending;
+
         internal void RestoreSourceNormals(TMP_Text tmpText)
         {
-            if (tmpText == null ||
+            // Text without coordinate normals is released every frame and has none to restore, and text whose meshes were
+            // restored since the last upload holds the source normals already.
+            if (!_hasSourceCoordinateNormals ||
+                !_sourceNormalRestorePending ||
+                tmpText == null ||
                 _hadSourceNormals == null ||
                 _cachedSourceNormals == null ||
                 _sourceCoordinateNormals == null)
@@ -1663,6 +1971,7 @@ namespace TextStudio
             if (textInfo == null || textInfo.meshInfo == null)
                 return;
 
+            bool restoredEveryMesh = true;
             int meshCount = Mathf.Min(textInfo.meshInfo.Length, _hadSourceNormals.Length);
             for (int materialIndex = 0; materialIndex < meshCount; materialIndex++)
             {
@@ -1671,12 +1980,18 @@ namespace TextStudio
 
                 Mesh mesh = textInfo.meshInfo[materialIndex].mesh;
                 if (mesh == null)
+                {
+                    restoredEveryMesh = false;
                     continue;
+                }
 
                 // TMP can regenerate geometry before serialization restores transient state.
                 // Its new mesh already owns fresh normals; the old payload belongs to a different vertex buffer.
                 if (_sourceCoordinateNormals[materialIndex].Length != mesh.vertexCount)
+                {
+                    restoredEveryMesh = false;
                     continue;
+                }
 
                 if (_hadSourceNormals[materialIndex] &&
                     _cachedSourceNormals[materialIndex] != null)
@@ -1687,6 +2002,9 @@ namespace TextStudio
                 {
                     mesh.normals = null;
                 }
+                // The mesh holds TMP's normals again, so a later publication must send the source coordinates.
+                if (_stalePayloadStreams != null && materialIndex < _stalePayloadStreams.Length)
+                    _stalePayloadStreams[materialIndex] |= CoordinateNormalStream;
                 if (_squiggleUv1 != null && materialIndex < _squiggleUv1.Length && _squiggleUv1[materialIndex] != null)
                 {
                     mesh.SetUVs(1, textInfo.meshInfo[materialIndex].uvs2);
@@ -1694,6 +2012,56 @@ namespace TextStudio
                 }
                 tmpText.UpdateGeometry(mesh, materialIndex);
             }
+
+            if (restoredEveryMesh)
+                _sourceNormalRestorePending = false;
+        }
+
+        /// <summary>
+        /// Returns the meshes to TMP's own streams for a material that reads no Text Studio payload, the TextMeshPro route:
+        /// restores TMP's normals and second UV channel, then drops the payload and source coordinates, so no later publication
+        /// writes them again until <see cref="InitializeMaterialPayloadStreams"/> prepares a production material.
+        /// </summary>
+        internal void ReleaseMaterialStreams(TMP_Text tmpText)
+        {
+            RestoreSourceNormals(tmpText);
+            TMP_TextInfo textInfo = tmpText != null ? tmpText.textInfo : null;
+            if (_squiggleUv1 != null && textInfo?.meshInfo != null)
+            {
+                int meshCount = Mathf.Min(_squiggleUv1.Length, textInfo.meshInfo.Length);
+                for (int materialIndex = 0; materialIndex < meshCount; materialIndex++)
+                {
+                    if (_squiggleUv1[materialIndex] == null)
+                        continue;
+                    Mesh mesh = textInfo.meshInfo[materialIndex].mesh;
+                    Vector2[] uvs2 = textInfo.meshInfo[materialIndex].uvs2;
+                    if (mesh != null && uvs2 != null && uvs2.Length == mesh.vertexCount)
+                    {
+                        mesh.SetUVs(1, uvs2);
+                        tmpText.UpdateGeometry(mesh, materialIndex);
+                    }
+                    _squiggleUv1[materialIndex] = null;
+                }
+            }
+            ClearMeshStreams(_materialPayload0);
+            ClearMeshStreams(_materialPayload1);
+            ClearMeshStreams(_materialPayload2);
+            ClearMeshStreams(_sourceCoordinateNormals);
+            _hasSourceCoordinateNormals = false;
+            _sourceNormalRestorePending = false;
+            _hasUniformAppliedState = false;
+            // No glyph holds a payload any more, so the next frame neither resets one nor allocates the streams again.
+            if (_appliedChannels != null)
+            {
+                for (int index = 0; index < _appliedChannels.Length; index++)
+                    _appliedChannels[index] &= unchecked((byte)~MaterialChannel);
+            }
+        }
+
+        static void ClearMeshStreams<T>(T[][] streams)
+        {
+            if (streams != null)
+                Array.Clear(streams, 0, streams.Length);
         }
 
         void RefreshMaterialPropertyBindings()
@@ -2290,6 +2658,14 @@ namespace TextStudio
                    left.g == right.g &&
                    left.b == right.b &&
                    left.a == right.a;
+        }
+
+        // Exact component equality; Vector3 == tolerates small differences.
+        static bool HasSameVertex(Vector3 left, Vector3 right)
+        {
+            return left.x == right.x &&
+                   left.y == right.y &&
+                   left.z == right.z;
         }
 
         static byte ResolveAnimatedChannels(

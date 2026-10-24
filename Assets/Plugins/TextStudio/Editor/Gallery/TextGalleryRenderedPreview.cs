@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -49,18 +47,11 @@ namespace TextStudio.Editor
             if (string.IsNullOrEmpty(packageName) || string.IsNullOrEmpty(relativeImagePath))
                 return false;
 
-            string packageRoot = TextStudioPackagePaths.FindFullRoot(packageName);
-            if (string.IsNullOrEmpty(packageRoot))
+            string assetRoot = TextStudioPackagePaths.FindAssetRoot(packageName);
+            if (string.IsNullOrEmpty(assetRoot))
                 return false;
 
-            string fullPath = Path.Combine(packageRoot, relativeImagePath.Replace('/', Path.DirectorySeparatorChar));
-            if (!File.Exists(fullPath))
-                return false;
-
-            assetPath = ToAssetPath(fullPath);
-            if (string.IsNullOrEmpty(assetPath))
-                return false;
-
+            assetPath = assetRoot.TrimEnd('/') + "/" + relativeImagePath.Replace('\\', '/').TrimStart('/');
             texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
             return texture != null;
         }
@@ -111,14 +102,5 @@ namespace TextStudio.Editor
             root.Add(label);
         }
 
-        static string ToAssetPath(string fullPath)
-        {
-            string normalized = fullPath.Replace('\\', '/');
-            string assets = Application.dataPath.Replace('\\', '/');
-            if (!normalized.StartsWith(assets, StringComparison.OrdinalIgnoreCase))
-                return null;
-
-            return "Assets" + normalized.Substring(assets.Length);
-        }
     }
 }

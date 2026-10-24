@@ -14,6 +14,8 @@ namespace TextStudio
         const string FieldShaderName = "Text Studio/2D Field SDF";
         const string CanvasFieldShaderName = "Text Studio/2D Field SDF Canvas";
         const string OverlayFieldShaderName = "Text Studio/2D Field SDF Overlay";
+        const string UniformFieldShaderName = "Text Studio/2D Field Uniform";
+        const string CanvasUniformFieldShaderName = "Text Studio/2D Field Uniform Canvas";
         const AdditionalCanvasShaderChannels CanvasPayloadChannels =
             AdditionalCanvasShaderChannels.TexCoord1 |
             AdditionalCanvasShaderChannels.TexCoord2 |
@@ -28,6 +30,13 @@ namespace TextStudio
         Material[] _sourceMaterials;
         Material[] _productionMaterials;
         TextStudioTMPProductionMaterialLease[] _productionMaterialLeases;
+        // Program variants of the production leases (tier and solid paint), acquired on first use by an ordered primitive.
+        TextStudioTMPProductionMaterialLease[] _primitiveMaterialLeases;
+        // Slots the current ordered build resolved; EndPrimitiveMaterials releases the others, so a row that changes its program
+        // does not keep its previous program's material alive while the production state stays current.
+        bool[] _primitiveMaterialUsed;
+        // Every shader tier with and without solid paint.
+        const int PrimitiveSlots = 12;
         Material _sourcePrimaryMaterial;
         TMP_Text _target;
         TextStudioCanvasShaderChannelLease _canvasPayloadLease;
@@ -35,10 +44,38 @@ namespace TextStudio
         bool _writingMaterialRequired;
         bool _appearanceMaterialRequired;
         TextStudio2DFieldPaddingTier _appearancePaddingTier;
+        TextStudio2DShaderTier _appearanceShaderTier;
+        TextStudio2DShaderOptions _shaderOptions = TextStudio2DShaderOptions.MaterialEffects;
+        // Rows of the uniform field program the eligible submeshes draw with; default when the text keeps the Field program.
+        TextStudio2DUniformFieldProgram _uniformProgram;
+        // TextMeshPro route: every submesh draws a shared copy of its own TMP material with these rows instead of a production
+        // material, and the text needs no Text Studio payload. Default on every other route.
+        TextStudio2DTextMeshProStyle _textMeshProStyle;
+        TextStudioTMPRouteMaterialLease[] _routeMaterialLeases;
+        // The last source check of SupportsTextMeshProRoute, reused while the style, sources and atlas densities are unchanged.
+        TextStudio2DTextMeshProStyle _routeCheckStyle;
+        Material[] _routeCheckSources = System.Array.Empty<Material>();
+        float[] _routeCheckPixelsPerEm = System.Array.Empty<float>();
+        int _routeCheckCount = -1;
+        bool _routeCheckResult;
+        // Set when a source could not take or keep its route material since the bridge last asked.
+        bool _textMeshProRouteFailed;
+        // Whether the effect plan uses a material-tier effect, known even when the text needs no appearance production
+        // material. Restore resets it to true, so the Hero compositor reads the plan itself for its rows.
+        bool _materialEffectsRequired = true;
         bool _canvasPayloadRequired;
+        // False while every field Restore resets holds its reset value and no lease is held, so Restore has nothing to do;
+        // Prepare sets it before it writes any of them.
+        bool _hasRestorableState;
 
         internal string CompatibilityWarning { get; private set; } = string.Empty;
         internal bool HasPreparedState => _target != null;
+        /// <summary>
+        /// The text draws with shared copies of its TMP materials on the TextMeshPro route; its meshes keep TMP's own streams,
+        /// without Text Studio payload, source coordinates or Canvas payload channels.
+        /// </summary>
+        internal bool UsesTextMeshProRoute => _target != null && _textMeshProStyle.IsValid;
+        internal bool HasRestorableState => _hasRestorableState;
         internal Material SourcePrimaryMaterial => _sourcePrimaryMaterial;
 
         internal Material ResolveRenderingMaterial(TMP_Text target, int materialIndex)
@@ -46,6 +83,65 @@ namespace TextStudio
             return _productionMaterials != null && materialIndex >= 0 && materialIndex < _productionMaterials.Length
                 ? _productionMaterials[materialIndex] : ResolveSourceMaterial(target, materialIndex);
         }
+
+        /// <summary>
+        /// Resolves the production variant of one ordered primitive's program (<see cref="TextStudio2DPrimitivePrograms"/>): an
+        /// isolated operation family, the Basic tier, or solid paint for a primitive whose own operations paint solid. Every variant
+        /// shares the source, padding, payload identity and material effects of the production lease, which a primitive asking for
+        /// the text's own program receives.
+        /// </summary>
+        internal Material ResolvePrimitiveMaterial(TMP_Text target, int materialIndex, TextStudio2DShaderTier tier, bool solidPaint)
+        {
+            if (_productionMaterialLeases == null || materialIndex < 0 || materialIndex >= _productionMaterialLeases.Length)
+                return ResolveRenderingMaterial(target, materialIndex);
+            TextStudioTMPProductionMaterialLease production = _productionMaterialLeases[materialIndex];
+            // The uniform program carries its own rows and has no tiers.
+            if (!production.IsValid || production.UniformProgram.IsValid)
+                return ResolveRenderingMaterial(target, materialIndex);
+            TextStudio2DShaderOptions options = solidPaint ? production.Options | TextStudio2DShaderOptions.SolidPaint : production.Options;
+            if (tier == production.ShaderTier && options == production.Options)
+                return production.Replacement;
+            if (_primitiveMaterialLeases == null || _primitiveMaterialLeases.Length != _productionMaterialLeases.Length * PrimitiveSlots)
+            {
+                ReleaseProductionMaterialLeases(_primitiveMaterialLeases);
+                _primitiveMaterialLeases = new TextStudioTMPProductionMaterialLease[_productionMaterialLeases.Length * PrimitiveSlots];
+                _primitiveMaterialUsed = new bool[_primitiveMaterialLeases.Length];
+            }
+            int slot = materialIndex * PrimitiveSlots + (int)tier * 2 + (solidPaint ? 1 : 0);
+            _primitiveMaterialUsed[slot] = true;
+            ref TextStudioTMPProductionMaterialLease primitive = ref _primitiveMaterialLeases[slot];
+            if (!primitive.IsValid || !ReferenceEquals(primitive.Source, production.Source) || !ReferenceEquals(primitive.Shader, production.Shader) ||
+                primitive.PayloadFromTangent != production.PayloadFromTangent || primitive.PaddingTier != production.PaddingTier ||
+                primitive.WritingSource != production.WritingSource || !Mathf.Approximately(primitive.PixelsPerEm, production.PixelsPerEm) ||
+                primitive.Options != options || primitive.ShaderTier != TextStudio2DShaderTiers.SupportedTier(production.Shader, tier))
+            {
+                TextStudioTMPProductionMaterialCache.Release(ref primitive);
+                primitive = TextStudioTMPProductionMaterialCache.Acquire(production.Source, production.Shader, production.PayloadFromTangent,
+                    production.PaddingTier, production.WritingSource, production.PixelsPerEm, tier, options);
+            }
+
+            return primitive.IsValid ? primitive.Replacement : production.Replacement;
+        }
+
+        /// <summary>Starts an ordered build: primitive leases it does not resolve again are released by <see cref="EndPrimitiveMaterials"/>.</summary>
+        internal void BeginPrimitiveMaterials()
+        {
+            if (_primitiveMaterialUsed != null)
+                System.Array.Clear(_primitiveMaterialUsed, 0, _primitiveMaterialUsed.Length);
+        }
+
+        /// <summary>Releases the primitive leases the finished ordered build did not use.</summary>
+        internal void EndPrimitiveMaterials()
+        {
+            if (_primitiveMaterialLeases == null || _primitiveMaterialUsed == null)
+                return;
+            for (int slot = 0; slot < _primitiveMaterialLeases.Length; slot++)
+                if (!_primitiveMaterialUsed[slot] && _primitiveMaterialLeases[slot].HasIdentity)
+                    TextStudioTMPProductionMaterialCache.Release(ref _primitiveMaterialLeases[slot]);
+        }
+
+        internal TextStudio2DShaderOptions ShaderOptions => _shaderOptions;
+        internal bool MaterialEffectsRequired => _materialEffectsRequired;
 
         internal Material ResolveSourceMaterial(TMP_Text target, int materialIndex)
         {
@@ -93,7 +189,8 @@ namespace TextStudio
             Material[] restored = null;
             for (int i = 0; i < current.Length; i++)
             {
-                if (!IsTransientProductionMaterial(current[i]))
+                // Route materials keep TMP's shader, so a reload's orphans are recognized by their hidden name.
+                if (!IsTransientProductionMaterial(current[i]) && !TextStudioTMPRouteMaterialCache.IsOrphan(current[i]))
                     continue;
 
                 Material source = ResolveFontSourceMaterial(target, i);
@@ -134,16 +231,24 @@ namespace TextStudio
 
         internal static bool IsTransientProductionMaterial(Material material)
         {
-            // Every replacement declares this property. Native TMP materials are queried
+            if (material == null)
+                return false;
+            // TextMeshPro route materials keep TMP's shader and are registered while they live; restore paths recognize a
+            // reload's orphans by name (TextStudioTMPRouteMaterialCache.IsOrphan).
+            if (TextStudioTMPRouteMaterialCache.IsRegistered(material))
+                return true;
+            // Every other replacement declares this property. Native TMP materials are queried
             // during continuous Hero output and need no allocating shader-name inspection.
-            if (material == null || !material.HasProperty("_TextStudioPayloadEnabled") || material.shader == null)
+            if (!material.HasProperty("_TextStudioPayloadEnabled") || material.shader == null)
                 return false;
             string shaderName = material.shader.name;
             if (shaderName != ProductionShaderName &&
                 shaderName != OverlayProductionShaderName &&
                 shaderName != FieldShaderName &&
                 shaderName != CanvasFieldShaderName &&
-                shaderName != OverlayFieldShaderName)
+                shaderName != OverlayFieldShaderName &&
+                shaderName != UniformFieldShaderName &&
+                shaderName != CanvasUniformFieldShaderName)
                 return false;
 
             bool hiddenAndUnsaved =
@@ -161,14 +266,46 @@ namespace TextStudio
             bool requiresWritingMaterial = false,
             bool requiresAppearanceMaterial = false,
             TextStudio2DFieldPaddingTier appearancePaddingTier =
-                TextStudio2DFieldPaddingTier.None)
+                TextStudio2DFieldPaddingTier.None,
+            CompiledTextStudio2DStyle appearanceStyle = null,
+            CompiledTextStudioAppearancePlan appearancePlan = null,
+            in TextStudio2DTextMeshProStyle textMeshProStyle = default)
         {
+            TextStudio2DShaderTier shaderTier = requiresAppearanceMaterial
+                ? TextStudio2DShaderTiers.Select(appearanceStyle, appearancePlan)
+                : TextStudio2DShaderTier.Full;
+            // Appearance materials compile material-tier effects only when the plan uses one, and paint evaluation only when
+            // a paint is not solid; see TEXT_STUDIO_MATERIAL_EFFECTS and TEXT_STUDIO_SOLID_PAINT.
+            bool materialEffects = RequiresProductionMaterial(plan);
+            _materialEffectsRequired = materialEffects;
+            _hasRestorableState = true;
+            TextStudio2DShaderOptions shaderOptions = requiresAppearanceMaterial
+                ? TextStudio2DShaderTiers.SelectOptions(appearanceStyle, appearancePlan, materialEffects)
+                : TextStudio2DShaderOptions.MaterialEffects;
+            // TMP-expressible styles read their rows from material constants instead of the style table; see
+            // TextStudio2DShaderTiers.TrySelectUniformProgram. Overlay and other ineligible submeshes keep the Field program.
+            TextStudio2DUniformFieldProgram uniformProgram = default;
+            Shader uniformShader = null;
+            if (requiresAppearanceMaterial && !requiresExternalMaterial && target != null &&
+                TextStudio2DShaderTiers.TrySelectUniformProgram(appearanceStyle, appearancePlan, materialEffects, requiresWritingMaterial,
+                    out uniformProgram))
+            {
+                uniformShader = TextStudio2DShaderTiers.LoadUniformShader(target is TextMeshProUGUI);
+                if (uniformShader == null)
+                    uniformProgram = default;
+            }
             if (!requiresAppearanceMaterial)
                 appearancePaddingTier = TextStudio2DFieldPaddingTier.None;
+            // The TextMeshPro route replaces every production requirement; any of them keeps the production path.
+            TextStudio2DTextMeshProStyle routeStyle = !requiresExternalMaterial && !requiresWritingMaterial &&
+                                                      !requiresAppearanceMaterial && !materialEffects
+                ? textMeshProStyle
+                : default;
             if (!requiresExternalMaterial &&
                 !requiresWritingMaterial &&
                 !requiresAppearanceMaterial &&
-                !RequiresProductionMaterial(plan))
+                !materialEffects &&
+                !routeStyle.IsValid)
             {
                 Restore();
                 return;
@@ -184,7 +321,7 @@ namespace TextStudio
                     target,
                     requiresWritingMaterial,
                     requiresAppearanceMaterial,
-                    appearancePaddingTier))
+                    appearancePaddingTier, shaderTier, shaderOptions, in uniformProgram, in routeStyle))
             {
                 SynchronizeProductionMaterials();
                 return;
@@ -192,24 +329,148 @@ namespace TextStudio
 
             // TMP rebuilds fallback slots during text edits; retain existing leases until their replacements have been acquired.
             TextStudioTMPProductionMaterialLease[] previousLeases = _productionMaterialLeases;
+            TextStudioTMPRouteMaterialLease[] previousRouteLeases = _routeMaterialLeases;
             _productionMaterialLeases = null;
+            _routeMaterialLeases = null;
             try
             {
-                PrepareMaterials(target, requiresWritingMaterial, requiresAppearanceMaterial, appearancePaddingTier);
+                if (routeStyle.IsValid)
+                    PrepareTextMeshProMaterials(target, in routeStyle);
+                else
+                    PrepareMaterials(target, requiresWritingMaterial, requiresAppearanceMaterial, appearancePaddingTier, shaderTier, shaderOptions,
+                        in uniformProgram, uniformShader);
             }
             finally
             {
                 ReleaseProductionMaterialLeases(previousLeases);
+                ReleaseRouteMaterialLeases(previousRouteLeases);
+                ReleaseProductionMaterialLeases(_primitiveMaterialLeases);
+                _primitiveMaterialLeases = null;
             }
+        }
+
+        /// <summary>
+        /// Whether every submesh's live source material can draw the TextMeshPro rows (<see cref="TextStudio2DTextMeshProRoute.TryResolveMaterial"/>).
+        /// Overlay text keeps the exact path. The result is reused while the rows, sources and atlas densities are unchanged.
+        /// </summary>
+        internal bool SupportsTextMeshProRoute(TMP_Text target, in TextStudio2DTextMeshProStyle style)
+        {
+            if (target == null || target.isOverlay || !style.IsValid)
+                return false;
+            TMP_TextInfo info = target.textInfo;
+            int count = info != null ? Mathf.Max(1, info.materialCount) : 1;
+            bool current = _routeCheckCount == count && _routeCheckStyle.Equals(style);
+            if (_routeCheckSources.Length < count)
+            {
+                System.Array.Resize(ref _routeCheckSources, count);
+                System.Array.Resize(ref _routeCheckPixelsPerEm, count);
+                current = false;
+            }
+            for (int index = 0; index < count; index++)
+            {
+                Material source = ResolveSourceMaterial(target, index);
+                float pixelsPerEm = TextStudioTMPFontMetrics.PixelsPerEm(target, index, source);
+                current &= ReferenceEquals(_routeCheckSources[index], source) && _routeCheckPixelsPerEm[index].Equals(pixelsPerEm);
+                _routeCheckSources[index] = source;
+                _routeCheckPixelsPerEm[index] = pixelsPerEm;
+            }
+            if (current)
+                return _routeCheckResult;
+            _routeCheckStyle = style;
+            _routeCheckCount = count;
+            _routeCheckResult = true;
+            for (int index = 0; index < count && _routeCheckResult; index++)
+                _routeCheckResult = TextStudio2DTextMeshProRoute.TryResolveMaterial(in style, _routeCheckSources[index],
+                    _routeCheckPixelsPerEm[index], out _);
+            return _routeCheckResult;
+        }
+
+        /// <summary>Forgets the last TextMeshPro source check, for example after a source material's properties changed.</summary>
+        internal void InvalidateTextMeshProSupport() => _routeCheckCount = -1;
+
+        /// <summary>
+        /// Whether a source could not take or keep its route material since the last call, for example a fallback font the
+        /// route check did not see or a source edited at runtime; the text then needs a new route decision. Clears the report.
+        /// </summary>
+        internal bool ConsumeTextMeshProRouteFailure()
+        {
+            bool failed = _textMeshProRouteFailed;
+            _textMeshProRouteFailed = false;
+            return failed;
+        }
+
+        void MarkTextMeshProRouteFailed()
+        {
+            _textMeshProRouteFailed = true;
+            _routeCheckCount = -1;
+        }
+
+        // Every submesh draws a shared copy of its live source material with the style's face, outline and underlay. When any
+        // source cannot take one, the text keeps its sources and reports the failure, so the bridge decides the exact path.
+        void PrepareTextMeshProMaterials(TMP_Text target, in TextStudio2DTextMeshProStyle style)
+        {
+            Restore();
+            _hasRestorableState = true;
+            Material sourcePrimaryMaterial = ResolveLiveSourceMaterial(target, target.fontSharedMaterial, 0, null);
+            Material[] currentMaterials = target.fontSharedMaterials;
+            if (sourcePrimaryMaterial == null || currentMaterials == null || currentMaterials.Length == 0)
+            {
+                MarkTextMeshProRouteFailed();
+                return;
+            }
+            Material[] source = (Material[])currentMaterials.Clone();
+            source[0] = sourcePrimaryMaterial;
+            for (int i = 1; i < source.Length; i++)
+                source[i] = ResolveLiveSourceMaterial(target, source[i], i, sourcePrimaryMaterial);
+
+            Material[] replacements = new Material[source.Length];
+            TextStudioTMPRouteMaterialLease[] leases = new TextStudioTMPRouteMaterialLease[source.Length];
+            for (int i = 0; i < source.Length; i++)
+            {
+                leases[i] = TextStudioTMPRouteMaterialCache.Acquire(source[i], TextStudioTMPFontMetrics.PixelsPerEm(target, i, source[i]), in style);
+                if (!leases[i].IsValid)
+                {
+                    ReleaseRouteMaterialLeases(leases);
+                    MarkTextMeshProRouteFailed();
+                    return;
+                }
+                replacements[i] = leases[i].Replacement;
+            }
+
+            CompatibilityWarning = string.Empty;
+            _target = target;
+            _sourceMaterials = source;
+            _sourcePrimaryMaterial = sourcePrimaryMaterial;
+            _productionMaterials = replacements;
+            _productionMaterialLeases = null;
+            _routeMaterialLeases = leases;
+            _overlayIntent = target.isOverlay;
+            _writingMaterialRequired = false;
+            _appearanceMaterialRequired = false;
+            _appearancePaddingTier = TextStudio2DFieldPaddingTier.None;
+            _appearanceShaderTier = TextStudio2DShaderTier.Full;
+            _shaderOptions = TextStudio2DShaderOptions.MaterialEffects;
+            _uniformProgram = default;
+            _textMeshProStyle = style;
+            // As in PrepareMaterials, a target whose primary material no longer exists receives its live source first.
+            if (target.fontSharedMaterial == null)
+                PrimeTargetSharedMaterials(target, source);
+            target.fontSharedMaterials = replacements;
+            target.fontSharedMaterial = replacements[0];
         }
 
         void PrepareMaterials(
             TMP_Text target,
             bool requiresWritingMaterial,
             bool requiresAppearanceMaterial,
-            TextStudio2DFieldPaddingTier appearancePaddingTier)
+            TextStudio2DFieldPaddingTier appearancePaddingTier,
+            TextStudio2DShaderTier shaderTier,
+            TextStudio2DShaderOptions shaderOptions,
+            in TextStudio2DUniformFieldProgram uniformProgram,
+            Shader uniformShader)
         {
             Restore();
+            _hasRestorableState = true;
             TextStudio2DShaderVariants.WarmUp();
             string shaderResource = requiresAppearanceMaterial
                 ? target is TextMeshProUGUI
@@ -276,7 +537,8 @@ namespace TextStudio
                 }
 
                 bool useOverlay = target.isOverlay || compatibility.IsOverlay;
-                Shader replacementShader = useOverlay ? overlayShader : shader;
+                bool useUniform = UsesUniformProgram(in uniformProgram, useOverlay, sourceMaterial, compatibility);
+                Shader replacementShader = useUniform ? uniformShader : useOverlay ? overlayShader : shader;
                 if (replacementShader == null)
                 {
                     replacements[i] = sourceMaterial;
@@ -294,7 +556,8 @@ namespace TextStudio
                         replacementShader,
                         target is TextMeshProUGUI,
                         appearancePaddingTier,
-                        requiresWritingMaterial, TextStudioTMPFontMetrics.PixelsPerEm(target, i, sourceMaterial));
+                        requiresWritingMaterial, TextStudioTMPFontMetrics.PixelsPerEm(target, i, sourceMaterial), shaderTier, shaderOptions,
+                        useUniform ? uniformProgram : default);
                 leases[i] = lease;
                 replacements[i] = lease.IsValid
                     ? lease.Replacement
@@ -317,6 +580,9 @@ namespace TextStudio
                 _writingMaterialRequired = requiresWritingMaterial;
                 _appearanceMaterialRequired = requiresAppearanceMaterial;
                 _appearancePaddingTier = appearancePaddingTier;
+                _appearanceShaderTier = shaderTier;
+                _shaderOptions = shaderOptions;
+                _uniformProgram = uniformProgram;
                 return;
             }
 
@@ -329,7 +595,15 @@ namespace TextStudio
             _writingMaterialRequired = requiresWritingMaterial;
             _appearanceMaterialRequired = requiresAppearanceMaterial;
             _appearancePaddingTier = appearancePaddingTier;
+            _appearanceShaderTier = shaderTier;
+            _shaderOptions = shaderOptions;
+            _uniformProgram = uniformProgram;
             AcquireCanvasPayloadChannels(target);
+            // TMP reads its current primary material while it accepts a material array. A target can still hold a
+            // production material that no longer exists, for example an instance of a prefab saved from a styled scene
+            // object after that object is gone, so the live source goes in first.
+            if (target.fontSharedMaterial == null)
+                PrimeTargetSharedMaterials(target, source);
             target.fontSharedMaterials = replacements;
             if (replacements[0] != null)
                 target.fontSharedMaterial = replacements[0];
@@ -375,6 +649,9 @@ namespace TextStudio
 
         public void Restore()
         {
+            // Plain text releases its unused material effects every frame; after the first release nothing is left to reset.
+            if (!_hasRestorableState)
+                return;
             ReleaseCanvasPayloadChannels();
             if (_target != null && _sourceMaterials != null)
             {
@@ -431,17 +708,27 @@ namespace TextStudio
             }
 
             ReleaseProductionMaterialLeases(_productionMaterialLeases);
+            ReleaseRouteMaterialLeases(_routeMaterialLeases);
+            ReleaseProductionMaterialLeases(_primitiveMaterialLeases);
+            _primitiveMaterialLeases = null;
             _target = null;
             _sourceMaterials = null;
             _productionMaterials = null;
             _productionMaterialLeases = null;
+            _routeMaterialLeases = null;
+            _textMeshProStyle = default;
             _sourcePrimaryMaterial = null;
             _overlayIntent = false;
             _writingMaterialRequired = false;
             _appearanceMaterialRequired = false;
             _appearancePaddingTier = TextStudio2DFieldPaddingTier.None;
+            _appearanceShaderTier = TextStudio2DShaderTier.Full;
+            _shaderOptions = TextStudio2DShaderOptions.MaterialEffects;
+            _uniformProgram = default;
+            _materialEffectsRequired = true;
             _canvasPayloadRequired = false;
             CompatibilityWarning = string.Empty;
+            _hasRestorableState = false;
         }
 
         static Material ResolveLiveSourceMaterial(
@@ -450,7 +737,11 @@ namespace TextStudio
             int materialIndex,
             Material fallback)
         {
-            if (candidate != null && !IsTransientProductionMaterial(candidate))
+            // TMP's instance material copies a route material without its registration or hidden flags, so its name identifies
+            // it; the font's own material needs no name check.
+            if (candidate != null && !IsTransientProductionMaterial(candidate) &&
+                (materialIndex == 0 && target.font != null && ReferenceEquals(candidate, target.font.material) ||
+                 !TextStudioTMPRouteMaterialCache.HasRouteName(candidate)))
                 return candidate;
 
             Material fontSource = ResolveFontSourceMaterial(target, materialIndex);
@@ -501,7 +792,11 @@ namespace TextStudio
                        target,
                        _writingMaterialRequired,
                        _appearanceMaterialRequired,
-                       _appearancePaddingTier);
+                       _appearancePaddingTier,
+                       _appearanceShaderTier,
+                       _shaderOptions,
+                       in _uniformProgram,
+                       in _textMeshProStyle);
         }
 
         internal bool ReferencesSourceMaterial(Material material)
@@ -513,7 +808,11 @@ namespace TextStudio
             TMP_Text target,
             bool requiresWritingMaterial,
             bool requiresAppearanceMaterial,
-            TextStudio2DFieldPaddingTier appearancePaddingTier)
+            TextStudio2DFieldPaddingTier appearancePaddingTier,
+            TextStudio2DShaderTier shaderTier,
+            TextStudio2DShaderOptions shaderOptions,
+            in TextStudio2DUniformFieldProgram uniformProgram,
+            in TextStudio2DTextMeshProStyle textMeshProStyle)
         {
             if (!ReferenceEquals(_target, target) ||
                 _sourceMaterials == null ||
@@ -521,7 +820,11 @@ namespace TextStudio
                 _overlayIntent != target.isOverlay ||
                 _writingMaterialRequired != requiresWritingMaterial ||
                 _appearanceMaterialRequired != requiresAppearanceMaterial ||
-                _appearancePaddingTier != appearancePaddingTier)
+                _appearancePaddingTier != appearancePaddingTier ||
+                _appearanceShaderTier != shaderTier ||
+                _shaderOptions != shaderOptions ||
+                !_uniformProgram.Equals(uniformProgram) ||
+                !_textMeshProStyle.Equals(textMeshProStyle))
             {
                 return false;
             }
@@ -540,6 +843,8 @@ namespace TextStudio
             Material[] current = target.fontSharedMaterials;
             if (current == null || current.Length != _productionMaterials.Length)
                 return false;
+            if (_textMeshProStyle.IsValid)
+                return IsTextMeshProStateCurrent(target, current);
             for (int i = 0; i < current.Length; i++)
             {
                 if (_productionMaterialLeases != null && i < _productionMaterialLeases.Length &&
@@ -552,15 +857,35 @@ namespace TextStudio
                     TextStudioTMPMaterialCompatibility.Analyze(_sourceMaterials[i]);
                 if (!compatibility.IsSupported && !ReferenceEquals(_productionMaterials[i], _sourceMaterials[i]))
                     return false;
+                bool useOverlay = target.isOverlay || compatibility.IsOverlay;
                 if (compatibility.IsSupported &&
                     !UsesExpectedProductionShader(
                         _productionMaterials[i],
-                        target.isOverlay || compatibility.IsOverlay,
+                        useOverlay,
                         requiresAppearanceMaterial,
-                        target is TextMeshProUGUI))
+                        target is TextMeshProUGUI,
+                        UsesUniformProgram(in uniformProgram, useOverlay, _sourceMaterials[i], compatibility)))
                 {
                     return false;
                 }
+            }
+            return true;
+        }
+
+        // Every submesh holds the live, registered route material of its source at its current atlas density. A destroyed
+        // material still equals its own reference, so the lease checks that both materials exist.
+        bool IsTextMeshProStateCurrent(TMP_Text target, Material[] current)
+        {
+            if (_routeMaterialLeases == null || _routeMaterialLeases.Length != current.Length)
+                return false;
+            for (int i = 0; i < current.Length; i++)
+            {
+                TextStudioTMPRouteMaterialLease lease = _routeMaterialLeases[i];
+                if (!lease.IsValid || !ReferenceEquals(current[i], lease.Replacement) ||
+                    !TextStudioTMPRouteMaterialCache.IsRegistered(lease.Replacement) ||
+                    lease.Replacement.shader != lease.Source.shader ||
+                    !lease.PixelsPerEm.Equals(TextStudioTMPFontMetrics.PixelsPerEm(target, i, lease.Source)))
+                    return false;
             }
             return true;
         }
@@ -569,7 +894,8 @@ namespace TextStudio
             Material material,
             bool useOverlay,
             bool useFieldShader,
-            bool useCanvasFieldShader)
+            bool useCanvasFieldShader,
+            bool useUniformShader)
         {
             if (material == null || material.shader == null)
                 return false;
@@ -577,7 +903,9 @@ namespace TextStudio
             if (!TextStudio2DShaderResources.IsUsable(material.shader))
                 return false;
 
-            string expectedName = useFieldShader
+            string expectedName = useUniformShader
+                ? useCanvasFieldShader ? CanvasUniformFieldShaderName : UniformFieldShaderName
+                : useFieldShader
                 ? useOverlay
                     ? OverlayFieldShaderName
                     : useCanvasFieldShader
@@ -585,6 +913,14 @@ namespace TextStudio
                         : FieldShaderName
                 : useOverlay ? OverlayProductionShaderName : ProductionShaderName;
             return material.shader.name == expectedName;
+        }
+
+        /// <summary>A submesh draws the uniform program when its text selected one and its source material adds nothing the program omits.</summary>
+        static bool UsesUniformProgram(in TextStudio2DUniformFieldProgram program, bool useOverlay, Material source,
+            TextStudioTMPMaterialCompatibility compatibility)
+        {
+            return program.IsValid && !useOverlay && compatibility.IsSupported &&
+                   TextStudio2DShaderTiers.SupportsUniformSource(source, compatibility.NativeMaterialModel);
         }
 
         void SynchronizeProductionMaterials()
@@ -596,12 +932,22 @@ namespace TextStudio
                 if (source == null || production == null || ReferenceEquals(source, production))
                     continue;
 
+                // A source edited beyond what the route draws keeps its last route values until the next route decision.
+                if (_routeMaterialLeases != null && i < _routeMaterialLeases.Length &&
+                    !TextStudioTMPRouteMaterialCache.Synchronize(in _routeMaterialLeases[i]))
+                    MarkTextMeshProRouteFailed();
                 if (_productionMaterialLeases != null &&
                     i < _productionMaterialLeases.Length)
                 {
                     TextStudioTMPProductionMaterialLease lease =
                         _productionMaterialLeases[i];
                     TextStudioTMPProductionMaterialCache.Synchronize(in lease);
+                }
+                for (int slot = 0; _primitiveMaterialLeases != null && slot < PrimitiveSlots; slot++)
+                {
+                    int primitiveIndex = i * PrimitiveSlots + slot;
+                    if (primitiveIndex < _primitiveMaterialLeases.Length && _primitiveMaterialLeases[primitiveIndex].IsValid)
+                        TextStudioTMPProductionMaterialCache.Synchronize(in _primitiveMaterialLeases[primitiveIndex]);
                 }
             }
         }
@@ -610,7 +956,9 @@ namespace TextStudio
             TextStudioCompiledPlan plan,
             bool requiresExternalMaterial)
         {
-            if (requiresExternalMaterial ||
+            // The TextMeshPro route is an appearance the bridge prepares; only its next route decision releases it.
+            if (UsesTextMeshProRoute ||
+                requiresExternalMaterial ||
                 _appearanceMaterialRequired ||
                 RequiresProductionMaterial(plan))
                 return false;
@@ -621,7 +969,8 @@ namespace TextStudio
 
         internal void SetPayloadEnabled(bool enabled)
         {
-            if (!enabled && _target != null)
+            // TMP's own material reads no Text Studio payload.
+            if (!enabled && _target != null && !UsesTextMeshProRoute)
                 Restore();
         }
 
@@ -665,7 +1014,8 @@ namespace TextStudio
             warning.Append(reason);
         }
 
-        static bool RequiresProductionMaterial(TextStudioCompiledPlan plan)
+        /// <summary>Whether the effect plan uses a material-tier effect, which production materials and Hero rows compile.</summary>
+        internal static bool RequiresProductionMaterial(TextStudioCompiledPlan plan)
         {
             if (plan?.EffectBindings == null)
                 return false;
@@ -702,6 +1052,14 @@ namespace TextStudio
                 return;
             for (int i = 0; i < leases.Length; i++)
                 TextStudioTMPProductionMaterialCache.Release(ref leases[i]);
+        }
+
+        static void ReleaseRouteMaterialLeases(TextStudioTMPRouteMaterialLease[] leases)
+        {
+            if (leases == null)
+                return;
+            for (int i = 0; i < leases.Length; i++)
+                TextStudioTMPRouteMaterialCache.Release(ref leases[i]);
         }
 
         static bool Contains(Material[] materials, Material candidate)

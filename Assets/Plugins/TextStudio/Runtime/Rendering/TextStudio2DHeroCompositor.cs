@@ -1,4 +1,5 @@
 using System;
+using ImpossibleRobert.Common;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -48,6 +49,20 @@ namespace TextStudio
         internal readonly int TargetHeight;
         /// <summary>Copies of completed compositions into shared output page slices during the last render.</summary>
         internal readonly int PublishPassCount;
+        /// <summary>Layer draws of the last render whose row read its record from material constants (uniform row program).</summary>
+        internal readonly int UniformRowDrawCount;
+        /// <summary>Layer draws of the last render that shaded only inside their row mask.</summary>
+        internal readonly int RowMaskDrawCount;
+        /// <summary>Glyphs of the current layer geometry whose row mask submeshes hold quads trimmed to each row's support.</summary>
+        internal readonly int RowMaskGlyphCount;
+        /// <summary>Layer draws of the last render that drew a material, graphic or animated row with its plain variant.</summary>
+        internal readonly int PlainRowDrawCount;
+        /// <summary>Rows the last render composited from the static row cache instead of drawing them.</summary>
+        internal readonly int CachedRowCount;
+        /// <summary>Renders that composed static rows into the cache.</summary>
+        internal readonly int StaticRowBuildCount;
+        /// <summary>Layer draws of the last render that drew a cached run's rows only where the composition below it was not empty.</summary>
+        internal readonly int SplitRowDrawCount;
 
         internal TextStudio2DHeroCompositorStatistics(
             int renderCount,
@@ -62,8 +77,21 @@ namespace TextStudio
             int historySurfaceCount,
             int targetWidth,
             int targetHeight,
-            int publishPassCount)
+            int publishPassCount,
+            int uniformRowDrawCount = 0,
+            int rowMaskDrawCount = 0,
+            int rowMaskGlyphCount = 0,
+            int plainRowDrawCount = 0,
+            int cachedRowCount = 0,
+            int staticRowBuildCount = 0,
+            int splitRowDrawCount = 0)
         {
+            RowMaskDrawCount = rowMaskDrawCount;
+            RowMaskGlyphCount = rowMaskGlyphCount;
+            PlainRowDrawCount = plainRowDrawCount;
+            CachedRowCount = cachedRowCount;
+            StaticRowBuildCount = staticRowBuildCount;
+            SplitRowDrawCount = splitRowDrawCount;
             RenderCount = renderCount;
             SkippedStaticFrameCount = skippedStaticFrameCount;
             GeometryUploadCount = geometryUploadCount;
@@ -77,6 +105,7 @@ namespace TextStudio
             TargetWidth = targetWidth;
             TargetHeight = targetHeight;
             PublishPassCount = publishPassCount;
+            UniformRowDrawCount = uniformRowDrawCount;
         }
     }
 
@@ -269,6 +298,10 @@ namespace TextStudio
         Rect _renderBounds;
         Vector4 _sourceBounds;
         bool _compositionFailed;
+        // Whether the text's effect plan uses material-tier effects: only then do Hero row materials compile them and rows keep the
+        // union extent. Read from the plan itself, because the material adapter's MaterialEffectsRequired keeps its conservative
+        // default whenever the adapter restores the source material, as for every Hero text without an external or writing material.
+        bool _heroMaterialEffects = true;
         bool _hasRenderedOutput;
         bool _requiresContinuousRendering;
         TextStudio2DWorldShadowMode _worldShadowMode;
@@ -297,6 +330,13 @@ namespace TextStudio
         int _geometryReuseCount;
         int _outputGeometryUploadCount;
         int _lastLayerDrawCount;
+        int _lastUniformRowDrawCount;
+        int _lastRowMaskDrawCount;
+        int _lastPlainRowDrawCount;
+        // Uniform row records of _uniformRowStyle, packed once per compiled style; ineligible rows keep the table program.
+        CompiledTextStudio2DStyle _uniformRowStyle;
+        TextStudio2DHeroUniformRow[] _uniformRows = Array.Empty<TextStudio2DHeroUniformRow>();
+        bool[] _uniformRowEligible = Array.Empty<bool>();
         int _lastCompositePassCount;
         int _lastEffectPassCount;
         int _historyCaptureCount;
@@ -329,7 +369,14 @@ namespace TextStudio
                 TotalHistorySurfaceCount,
                 _output.IsValid ? _output.Width : 0,
                 _output.IsValid ? _output.Height : 0,
-                _lastPublishPassCount);
+                _lastPublishPassCount,
+                _lastUniformRowDrawCount,
+                _lastRowMaskDrawCount,
+                _occurrenceState.RowMaskGlyphCount,
+                _lastPlainRowDrawCount,
+                _lastCachedRowCount,
+                _staticRowBuildCount,
+                _lastSplitRowDrawCount);
 
         internal TextStudio2DHeroCompositor(TextStudioText hub)
         {
@@ -354,6 +401,7 @@ namespace TextStudio
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(TextStudio2DHeroCompositor));
+            _heroMaterialEffects = TextStudioTMPMaterialEffectAdapter.RequiresProductionMaterial(frame.Plan.CompiledPlan);
             _selectorPass.Begin();
             if (tmpText != null) SetViewSource(null);
             if (_appearancePlan != null) ReleaseAppearanceOccurrences();
@@ -391,6 +439,11 @@ namespace TextStudio
             _scopeDepth = 0;
             _compositionFailed = false;
             _lastLayerDrawCount = 0;
+            _lastUniformRowDrawCount = 0;
+            _lastRowMaskDrawCount = 0;
+            _lastPlainRowDrawCount = 0;
+            _lastCachedRowCount = 0;
+            _lastSplitRowDrawCount = 0;
             _lastCompositePassCount = 0;
             _lastEffectPassCount = 0;
             _lastPublishPassCount = 0;
@@ -436,6 +489,7 @@ namespace TextStudio
             _viewDensity = Mathf.Max(_surfacePixelsPerUnit, ResolveSourcePixelsPerUnit(in frame, styleSlot));
             _currentRenderTime = frame.PresentationTime;
             SynchronizeProjectionCallbacks();
+            _staticInputsUnchanged = !forceRefresh && !outputScaleChanged && HasOutput && !StaticInputsChanged(in frame, program);
             bool rendered = RenderCachedGeometry(ShouldResetHistory(in frame, program));
             if (rendered)
             {
@@ -474,10 +528,13 @@ namespace TextStudio
             TextStudio2DHeroProgram program = _viewProgram;
             TextStudioLensMagnifierDescriptor lensMagnifier = _viewLens;
             bool hasLensMagnifier = lensMagnifier.IsActive;
+            // Only the render Render prepared may reuse cached static rows; camera-time renders draw every row.
+            bool staticInputsUnchanged = _staticInputsUnchanged;
+            _staticInputsUnchanged = false;
             Rect geometryBounds = ResolveProjectedGeometryBounds();
             _scopeDepth = 0;
             _compositionFailed = false;
-            _lastLayerDrawCount = _lastCompositePassCount = _lastEffectPassCount = _lastPublishPassCount = 0;
+            _lastLayerDrawCount = _lastUniformRowDrawCount = _lastRowMaskDrawCount = _lastPlainRowDrawCount = _lastCachedRowCount = _lastSplitRowDrawCount = _lastCompositePassCount = _lastEffectPassCount = _lastPublishPassCount = 0;
             Rect targetBounds = ExpandForHeroPostProcessing(
                 in geometryBounds,
                 program);
@@ -551,6 +608,9 @@ namespace TextStudio
             try
             {
                 _effectMaterial = effects;
+                PrepareUniformRows();
+                PrepareRowMasks(composite);
+                PrepareStaticRows(program, composite, staticInputsUnchanged);
                 TextStudio2DHeroSubmission.Begin();
                 BuildCompositionCommands(
                     program,
@@ -584,6 +644,7 @@ namespace TextStudio
                     program.Style.RequiresContinuousRenderingForPolicy(
                         _hub.MotionPolicy) ||
                     HasContinuouslyAnimatedMaterial();
+                CommitStaticRows();
                 SynchronizeOutput(_viewText);
                 Status = TextStudio2DHeroCompositorStatus.Ready;
                 CompatibilityWarning = string.Empty;
@@ -602,6 +663,8 @@ namespace TextStudio
             finally
             {
                 _effectMaterial = null;
+                // A render that did not complete leaves the cached rows invalid (PrepareStaticRows).
+                EndStaticRows();
                 ReleaseScratchTargets();
             }
         }
@@ -610,13 +673,26 @@ namespace TextStudio
             in TextStudioFrame frame,
             TextStudio2DHeroProgram program)
         {
-            if (!HasOutput ||
-                !TextStudio2DHeroOutputPages.EnsureResident(_output) ||
-                _requiresContinuousRendering ||
-                !_lastFingerprint.Equals(program.Fingerprint) ||
+            return !HasOutput ||
+                   !TextStudio2DHeroOutputPages.EnsureResident(_output) ||
+                   _requiresContinuousRendering ||
+                   frame.GlobalDirty != DirtyFlags.None ||
+                   StaticInputsChanged(in frame, program);
+        }
+
+        /// <summary>
+        /// Whether anything static rows depend on changed since the last completed render. An animating text raises the generic
+        /// Animation and Visual requests every tick, so they count only through the glyph dirty bits, visual version and geometry
+        /// they cause.
+        /// </summary>
+        bool StaticInputsChanged(
+            in TextStudioFrame frame,
+            TextStudio2DHeroProgram program)
+        {
+            if (!_lastFingerprint.Equals(program.Fingerprint) ||
                 !_lastVisualVersion.Equals(frame.VisualSnapshot.Version) ||
                 _lastGlyphCount != frame.VisualSnapshot.GlyphCount ||
-                frame.GlobalDirty != DirtyFlags.None ||
+                (frame.GlobalDirty & ~(DirtyFlags.Animation | DirtyFlags.Visual)) != DirtyFlags.None ||
                 !frame.Dirty.IsCreated)
             {
                 return true;
@@ -634,11 +710,13 @@ namespace TextStudio
             out TextStudio2DQualityTier qualityTier)
         {
             _occurrenceState.HasCachedGeometry = false;
+            _geometryRevision++;
             Array.Clear(_occurrenceState.OperationHasSelection, 0, _occurrenceState.OperationHasSelection.Length);
             geometryBounds = default;
             qualityTier = ResolveQualityTier(program.Style);
+            BuildRowMaskClasses(frame.AppearanceStyle);
             for (int index = 0; index < _occurrenceState.Batches.Count; index++)
-                _occurrenceState.Batches[index].BeginBuild();
+                _occurrenceState.Batches[index].BeginBuild(_occurrenceState.RowMaskClassCount);
             _occurrenceState.ActiveBatchCount = 0;
 
             TextStudioVisualSnapshot snapshot = frame.VisualSnapshot;
@@ -794,6 +872,8 @@ namespace TextStudio
                 _occurrenceState.GeometryStyleSlot != _styleSlot ||
                 !_occurrenceState.GeometryVisualVersion.Equals(snapshot.Version) ||
                 _occurrenceState.GeometryGlyphCount != snapshot.RenderGlyphCount ||
+                !ReferenceEquals(_occurrenceState.GeometryExternalSource, _viewExternal) ||
+                (_viewExternal != null && _occurrenceState.GeometryExternalRevision != _viewExternal.GeometryRevision) ||
                 !frame.Dirty.IsCreated ||
                 frame.Dirty.AnyDirtyInRange(unitStart, unitEnd - unitStart))
             {
@@ -820,6 +900,8 @@ namespace TextStudio
             _occurrenceState.GeometryStyleSlot = _styleSlot;
             _occurrenceState.GeometryVisualVersion = frame.VisualSnapshot.Version;
             _occurrenceState.GeometryGlyphCount = frame.VisualSnapshot.RenderGlyphCount;
+            _occurrenceState.GeometryExternalSource = _viewExternal;
+            _occurrenceState.GeometryExternalRevision = _viewExternal?.GeometryRevision ?? 0;
             _occurrenceState.GeometryPrecisionFingerprint = _sourceDemand?.GeometryFingerprint ?? 0;
             _occurrenceState.CachedGeometryBounds = geometryBounds;
             _occurrenceState.HasCachedGeometry = true;
@@ -910,27 +992,11 @@ namespace TextStudio
             for (int index = 0; index < style.OperationCount; index++)
             {
                 ref readonly TextStudio2DCompiledOperation operation = ref style.OperationAt(index);
-                if (operation.Kind == TextStudio2DLayerKind.Decoration || operation.SurfaceOwnerOperationIndex >= 0 ||
-                    TextStudio2DStyleDecorations.UsesContourStroke(in operation)) continue;
-                TextStudio2DBoundsExpansion bounds = operation.BoundsExpansion;
-                if (operation.Kind == TextStudio2DLayerKind.FauxDepth)
-                {
-                    float outset = operation.FauxDepth.SilhouetteOutset + operation.FauxDepth.Softness;
-                    bounds = new TextStudio2DBoundsExpansion(outset, outset, outset, outset);
-                }
-                bool pixels = TextStudio2DFieldPadding.UsesPixelUnits(in operation);
-                Vector2 units = pixels ? new Vector2(
-                    1f / Mathf.Max(MinimumExtent, _surfacePixelsPerUnit * (bottomRight - bottomLeft).magnitude),
-                    1f / Mathf.Max(MinimumExtent, _surfacePixelsPerUnit * (topLeft - bottomLeft).magnitude))
-                    : fieldPixelLocal * glyph.FieldPixelsPerEm;
-                TextStudio2DBoundsExpansion local = new TextStudio2DBoundsExpansion(
-                    bounds.Left * units.x, bounds.Bottom * units.y, bounds.Right * units.x, bounds.Top * units.y);
+                if (!DrawsGlyphRow(in operation)) continue;
+                TextStudio2DBoundsExpansion local = LocalRowExpansion(in operation, in glyph, fieldPixelLocal, bottomLeft, topLeft, bottomRight);
                 expansion = expansion.Max(in local);
             }
-            return new Vector4(-expansion.Left - FieldAntialiasGuardPixels * fieldPixelLocal.x,
-                -expansion.Bottom - FieldAntialiasGuardPixels * fieldPixelLocal.y,
-                1f + expansion.Right + FieldAntialiasGuardPixels * fieldPixelLocal.x,
-                1f + expansion.Top + FieldAntialiasGuardPixels * fieldPixelLocal.y);
+            return RowExtent(in expansion, fieldPixelLocal);
         }
 
         void EmitGlyph(
@@ -980,17 +1046,49 @@ namespace TextStudio
                 ? frame.AppearanceBinding.GetDomainBounds(frame.AppearanceOccurrenceIndex) : snapshot.SourceBounds;
             int mappingGlyphIndex = frame.AppearanceOccurrenceIndex >= 0 && frame.AppearanceBinding != null
                 ? frame.AppearanceBinding.GetMappingGlyphIndex(frame.AppearanceOccurrenceIndex, glyphIndex) : glyphIndex;
+            for (int corner = 0; corner < 4; corner++)
+            {
+                ref RowCorner data = ref _rowCorners[corner];
+                data.Color = colors[vertexIndex + corner];
+                data.Squiggle = frameApplier.GetSquigglePayload(materialIndex, vertexIndex + corner);
+                frameApplier.TryGetMaterialPayload(materialIndex, vertexIndex + corner, out data.Payload0, out data.Payload1, out data.Local);
+                data.NormalZ = frameApplier.GetSourceCoordinateNormal(materialIndex, vertexIndex + corner).z;
+            }
+            int rowClasses = _occurrenceState.RowMaskClassCount;
+            bool trimmed = rowClasses > 1 && TrimsToRowMasks(bottomLeft, topLeft, topRight, bottomRight,
+                uvBottomLeft, uvTopLeft, uvTopRight, uvBottomRight);
 
-            EmitCorner(0, minimumX, minimumY, colors[vertexIndex]);
-            EmitCorner(1, minimumX, maximumY, colors[vertexIndex + 1]);
-            EmitCorner(2, maximumX, maximumY, colors[vertexIndex + 2]);
-            EmitCorner(3, maximumX, minimumY, colors[vertexIndex + 3]);
-            batch.EmitTriangles();
+            EmitCorner(0, minimumX, minimumY, true);
+            EmitCorner(1, minimumX, maximumY, true);
+            EmitCorner(2, maximumX, maximumY, true);
+            EmitCorner(3, maximumX, minimumY, true);
+            if (trimmed)
+            {
+                _occurrenceState.RowMaskGlyphCount++;
+                batch.EmitTriangles(0);
+                // Trimmed quads lie inside the shared quad, so the emitted bounds stay those of class 0.
+                for (int rowClass = 1; rowClass < rowClasses; rowClass++)
+                {
+                    ref readonly TextStudio2DCompiledOperation representative =
+                        ref frame.AppearanceStyle.OperationAt(_occurrenceState.RowMaskRepresentative[rowClass]);
+                    TextStudio2DBoundsExpansion expansion = LocalRowExpansion(in representative, in glyph, fieldPixelLocal, bottomLeft, topLeft, bottomRight);
+                    Vector4 rowExtent = RowExtent(in expansion, fieldPixelLocal);
+                    EmitCorner(0, rowExtent.x, rowExtent.y, false);
+                    EmitCorner(1, rowExtent.x, rowExtent.w, false);
+                    EmitCorner(2, rowExtent.z, rowExtent.w, false);
+                    EmitCorner(3, rowExtent.z, rowExtent.y, false);
+                    batch.EmitTriangles(rowClass);
+                }
+            }
+            else
+                batch.EmitTriangles();
             boundsMinimum = emittedMinimum;
             boundsMaximum = emittedMaximum;
 
-            void EmitCorner(int sourceCorner, float localX, float localY, Color32 color)
+            void EmitCorner(int sourceCorner, float localX, float localY, bool includeBounds)
             {
+                RowCorner data = _rowCorners[sourceCorner];
+                Color32 color = data.Color;
                 Vector3 position = TextStudio2DPrimitiveSupport.Bilinear(
                     bottomLeft,
                     topLeft,
@@ -1012,24 +1110,18 @@ namespace TextStudio
                     materialUvBottomRight,
                     localX,
                     localY);
-                Vector2 squiggle = frameApplier.GetSquigglePayload(materialIndex, vertexIndex + sourceCorner);
+                Vector2 squiggle = data.Squiggle;
                 uv1.z = squiggle.x;
                 uv1.w = squiggle.y;
-                Vector4 payload0 = default;
-                Vector4 payload1 = default;
-                Vector4 localPayload = default;
-                frameApplier.TryGetMaterialPayload(
-                    materialIndex,
-                    vertexIndex + sourceCorner,
-                    out payload0,
-                    out payload1,
-                    out localPayload);
+                Vector4 payload0 = data.Payload0;
+                Vector4 payload1 = data.Payload1;
+                Vector4 localPayload = data.Local;
                 localPayload.x = localX;
                 localPayload.y = localY;
                 localPayload.z = PackGlyphAndPixelPayload(
                     localPayload.z,
                     mappingGlyphIndex);
-                float normalZ = frameApplier.GetSourceCoordinateNormal(materialIndex, vertexIndex + sourceCorner).z;
+                float normalZ = data.NormalZ;
                 Vector2 sourcePosition = new Vector2(
                     Mathf.LerpUnclamped(glyphBoundsMinimum.x, glyphBoundsMaximum.x, localX),
                     Mathf.LerpUnclamped(glyphBoundsMinimum.y, glyphBoundsMaximum.y, localY));
@@ -1046,6 +1138,7 @@ namespace TextStudio
                     payload1,
                     selectors,
                     localPayload);
+                if (!includeBounds) return;
                 Vector2 position2D = new Vector2(position.x, position.y);
                 emittedMinimum = Vector2.Min(emittedMinimum, position2D);
                 emittedMaximum = Vector2.Max(emittedMaximum, position2D);
@@ -1168,10 +1261,9 @@ namespace TextStudio
             {
                 return null;
             }
-            LayerBatch created = new LayerBatch(in lease)
-            {
-                Active = true
-            };
+            LayerBatch created = new LayerBatch(in lease);
+            created.BeginBuild(_occurrenceState.RowMaskClassCount);
+            created.Active = true;
             _occurrenceState.Batches.Insert(_occurrenceState.ActiveBatchCount++, created);
             return created;
         }
@@ -1608,6 +1700,7 @@ namespace TextStudio
             _occurrenceState.HistoryCursor = 0;
             _occurrenceState.PendingHistoryOperation = -1;
             _occurrenceState.HistoryCapturePending = false;
+            _occurrenceState.HistoryLayerCaptured = false;
             _occurrenceState.HasHistoryTime = false;
         }
 
@@ -1619,12 +1712,14 @@ namespace TextStudio
         {
             _occurrenceState.PendingHistoryOperation = -1;
             _occurrenceState.HistoryCapturePending = false;
+            _occurrenceState.HistoryLayerCaptured = false;
             float surfacePixelUnit = 1f / Mathf.Max(MinimumExtent, _surfacePixelsPerUnit);
             _commands.SetGlobalVector(s_surfacePixelUnitProperty, new Vector4(surfacePixelUnit, surfacePixelUnit,
                 _pixelsPerUnit / Mathf.Max(MinimumExtent, _surfacePixelsPerUnit), 0f));
             _commands.SetGlobalFloat(s_heroPixelScaleProperty, _pixelsPerUnit / Mathf.Max(MinimumExtent, _surfacePixelsPerUnit));
             _commands.SetGlobalFloat(s_timeProperty, time);
             _commands.SetGlobalInt(s_motionPolicyProperty, (int)motionPolicy);
+            _commands.SetGlobalInt(s_rowMaskProperty, (int)CompareFunction.Disabled);
             Matrix4x4 projection = Matrix4x4.Ortho(
                 _renderBounds.xMin,
                 _renderBounds.xMax,
@@ -1647,10 +1742,26 @@ namespace TextStudio
             RenderTexture result = ComposeScope(program, -1, in root, 0, composite);
             if (result != null && result != _finalTexture)
             {
-                _commands.Blit(result, _finalTexture);
-                _lastCompositePassCount++;
+                if (PassElisionEnabled && result == _rootScratchTexture && _scratchCount > 1 && _scratchTextures[1] == result &&
+                    _finalTexture == TextStudio2DHeroTargetPool.Shared.GetTexture(_finalLease))
+                {
+                    // Both surfaces are leases of one descriptor; the composed one becomes the final image. The leases swap with the
+                    // textures, so the final lease keeps owning the surface that holds the composite after this render releases its
+                    // scratch targets, and the released scratch lease returns the previous final surface to the pool.
+                    (_finalLease, _scratchLeases[1]) = (_scratchLeases[1], _finalLease);
+                    _scratchTextures[1] = _finalTexture;
+                    _rootScratchTexture = _finalTexture;
+                    _finalTexture = result;
+                }
+                else
+                {
+                    _commands.Blit(result, _finalTexture);
+                    _lastCompositePassCount++;
+                }
             }
             if (!_compositionFailed && _occurrenceState.PendingHistoryOperation >= 0) CaptureHistory();
+            // A failed frame advances no history, but an early capture already replaced the oldest frame of the ring.
+            else if (_occurrenceState.HistoryLayerCaptured) ResetHistoryState();
         }
 
         void SetGlyphFilter(int unit)
@@ -1682,7 +1793,7 @@ namespace TextStudio
             int last = scopeIndex < 0 ? program.LastRootOperationIndex : program.GetNode(scopeIndex).LastChildOperationIndex;
             return program.GetPainterOrder(scopeIndex) == TextStudio2DPainterOrder.GlyphMajor
                 ? ComposeGlyphMajor(program, scopeIndex, last, in pair, nestedDepth, composite)
-                : ComposeRange(program, last, in pair, nestedDepth, composite);
+                : ComposeRange(program, last, in pair, nestedDepth, composite, root: scopeIndex < 0);
         }
 
         RenderTexture ComposeGlyphMajor(TextStudio2DHeroProgram program, int scopeIndex, int lastOperationIndex,
@@ -1766,14 +1877,17 @@ namespace TextStudio
             Material composite,
             int stopOperationIndex = -1,
             bool skipSharedSurfaces = false,
-            bool clear = true)
+            bool clear = true,
+            bool root = false)
         {
             if (!pair.IsValid)
             {
                 _compositionFailed = true;
                 return null;
             }
-            if (clear) ClearTarget(pair.First);
+            // The first composed node clears the target when it reads it; a filter that overwrites it completely reads black.
+            bool pendingClear = clear && PassElisionEnabled;
+            if (clear && !pendingClear) ClearTarget(pair.First);
             RenderTexture current = pair.First;
             RenderTexture alternate = pair.Second;
             int operationIndex = lastOperationIndex;
@@ -1781,15 +1895,29 @@ namespace TextStudio
             while (operationIndex >= 0 && operationIndex != stopOperationIndex &&
                    guard++ <= TextStudio2DHeroProgram.MaximumOperations)
             {
+                if (root && operationIndex == _staticRunBottom && _staticRowTexture != null)
+                {
+                    current = ComposeStaticRun(program, current, alternate, nestedDepth, composite, ref pendingClear);
+                    if (_compositionFailed) return current;
+                    operationIndex = program.GetNode(_staticRunTop).PreviousSiblingOperationIndex;
+                    continue;
+                }
                 TextStudio2DHeroNode node = program.GetNode(operationIndex);
-                RenderTexture next = skipSharedSurfaces && program.Style.OperationAt(operationIndex).Kind == TextStudio2DLayerKind.Decoration
-                    ? current : ComposeNode(
-                    program,
-                    operationIndex,
-                    current,
-                    alternate,
-                    nestedDepth,
-                    composite);
+                RenderTexture next;
+                if (skipSharedSurfaces && program.Style.OperationAt(operationIndex).Kind == TextStudio2DLayerKind.Decoration)
+                    next = current;
+                else
+                {
+                    next = ComposeNode(
+                        program,
+                        operationIndex,
+                        current,
+                        alternate,
+                        nestedDepth,
+                        composite,
+                        pendingClear);
+                    pendingClear = false;
+                }
                 if (next != current)
                 {
                     alternate = current;
@@ -1797,14 +1925,21 @@ namespace TextStudio
                 }
                 operationIndex = node.PreviousSiblingOperationIndex;
             }
+            if (pendingClear) ClearTarget(current);
             if (guard > TextStudio2DHeroProgram.MaximumOperations + 1)
                 _compositionFailed = true;
             return current;
         }
 
+        /// <param name="clearBackdrop">The backdrop is a range target nothing has cleared yet; it holds transparent black by definition.</param>
         RenderTexture ComposeNode(TextStudio2DHeroProgram program, int operationIndex, RenderTexture backdrop,
-            RenderTexture destination, int nestedDepth, Material composite)
+            RenderTexture destination, int nestedDepth, Material composite, bool clearBackdrop = false)
         {
+            if (clearBackdrop && !FiltersBackdropDirectly(program, operationIndex))
+            {
+                ClearTarget(backdrop);
+                clearBackdrop = false;
+            }
             bool group = program.Style.OperationAt(operationIndex).Kind == TextStudio2DLayerKind.Group;
             int previousFilter = _glyphFilter;
             if (group && previousFilter >= 0)
@@ -1812,9 +1947,25 @@ namespace TextStudio
                 if (_scopeDepth == 0 && _occurrenceState.PainterScopes.FirstUnit(operationIndex) != previousFilter) return backdrop;
                 SetGlyphFilter(-1);
             }
-            try { return ComposeNodeCore(program, operationIndex, backdrop, destination, nestedDepth, composite); }
+            try { return ComposeNodeCore(program, operationIndex, backdrop, destination, nestedDepth, composite, clearBackdrop); }
             finally { SetGlyphFilter(previousFilter); }
         }
+
+        // A Normal, unmasked backdrop filter composites as lerp(backdrop, filtered, 1): its full-resolution effect pass can write the
+        // destination directly. Matches the conditions of the direct branch in ComposeNodeCore, which every such row reaches.
+        bool FiltersBackdropDirectly(TextStudio2DHeroProgram program, int operationIndex)
+        {
+            ref readonly TextStudio2DCompiledOperation operation = ref program.Style.OperationAt(operationIndex);
+            return PassElisionEnabled && operation.Kind == TextStudio2DLayerKind.AnimatedEffect &&
+                   WritesFullResolutionFilter(operation.AnimatedEffect.Kind) && operation.BlendMode == TextStudio2DBlendMode.Normal &&
+                   operation.MaskOperationIndex < 0 && _occurrenceState.OperationHasSelection[operationIndex];
+        }
+
+        /// <summary>Post-process kinds whose pass writes a complete full-resolution image; progressive blur writes downsampled scratch.</summary>
+        static bool WritesFullResolutionFilter(TextStudio2DAnimatedEffectKind kind) =>
+            kind == TextStudio2DAnimatedEffectKind.GlitchDisplacement || kind == TextStudio2DAnimatedEffectKind.HeatHaze ||
+            kind == TextStudio2DAnimatedEffectKind.LiquidWarp || kind == TextStudio2DAnimatedEffectKind.EchoTrails ||
+            kind == TextStudio2DAnimatedEffectKind.MotionSmear;
 
         RenderTexture ComposeNodeCore(
             TextStudio2DHeroProgram program,
@@ -1822,7 +1973,8 @@ namespace TextStudio
             RenderTexture backdrop,
             RenderTexture destination,
             int nestedDepth,
-            Material composite)
+            Material composite,
+            bool clearBackdrop)
         {
             ref readonly TextStudio2DCompiledOperation operation =
                 ref program.Style.OperationAt(operationIndex);
@@ -1903,13 +2055,20 @@ namespace TextStudio
                 TextStudio2DAnimatedEffectUtility.RequiresPostProcess(
                     operation.AnimatedEffect.Kind))
             {
+                // With full contribution the composite below would only copy the filtered image, so the filter writes the destination.
+                bool direct = PassElisionEnabled && operation.BlendMode == TextStudio2DBlendMode.Normal && mask.Texture == null &&
+                              WritesFullResolutionFilter(operation.AnimatedEffect.Kind);
                 source = ApplyAnimatedPostProcess(
                     operationIndex,
                     in operation,
                     source,
-                    backdrop);
+                    backdrop,
+                    clearBackdrop ? Texture2D.blackTexture : backdrop,
+                    direct ? destination : _effectScratchTexture0);
                 if (_compositionFailed || source == null)
                     return backdrop;
+                if (direct)
+                    return destination;
                 sourceIsBackdropFilter = true;
             }
             else if (requiresTextWideBlur)
@@ -1938,7 +2097,8 @@ namespace TextStudio
             in TextStudio2DCompiledOperation operation,
             RenderTexture backdrop,
             RenderTexture selectorMask,
-            RenderTexture coverage)
+            RenderTexture coverage,
+            RenderTexture target)
         {
             if (_effectMaterial == null || _effectScratchTexture0 == null)
             {
@@ -1961,11 +2121,11 @@ namespace TextStudio
                 selectorMask != null ? selectorMask : Texture2D.whiteTexture);
             _commands.Blit(
                 backdrop,
-                _effectScratchTexture0,
+                target,
                 _effectMaterial,
                 ColorAdjustmentPass);
             CountEffectPass();
-            return _effectScratchTexture0;
+            return target;
         }
 
         RenderTexture ApplyTextWideSoftEffect(
@@ -2114,11 +2274,15 @@ namespace TextStudio
                 : offset * _effectUnitScale;
         }
 
+        /// <param name="backdropSample">What full-resolution passes read as the backdrop: the backdrop, or black for an uncleared one.</param>
+        /// <param name="target">Where full-resolution passes write: the effect scratch, or the composite destination they replace.</param>
         RenderTexture ApplyAnimatedPostProcess(
             int operationIndex,
             in TextStudio2DCompiledOperation operation,
             RenderTexture source,
-            RenderTexture backdrop)
+            RenderTexture backdrop,
+            Texture backdropSample,
+            RenderTexture target)
         {
             TextStudio2DAnimatedEffectSpec effect = operation.AnimatedEffect;
             if (_effectMaterial == null ||
@@ -2129,38 +2293,45 @@ namespace TextStudio
                 return source;
             }
 
-            ConfigureAnimatedEffect(in effect, backdrop, source);
+            ConfigureAnimatedEffect(in effect, backdropSample, source);
             switch (effect.Kind)
             {
                 case TextStudio2DAnimatedEffectKind.GlitchDisplacement:
                 case TextStudio2DAnimatedEffectKind.HeatHaze:
                 case TextStudio2DAnimatedEffectKind.LiquidWarp:
                     _commands.Blit(
-                        backdrop,
-                        _effectScratchTexture0,
+                        backdropSample,
+                        target,
                         _effectMaterial,
                         0);
                     CountEffectPass();
-                    return _effectScratchTexture0;
+                    return target;
                 case TextStudio2DAnimatedEffectKind.EchoTrails:
                     BindHistoryTextures();
                     _commands.Blit(
-                        backdrop,
-                        _effectScratchTexture0,
+                        backdropSample,
+                        target,
                         _effectMaterial,
                         1);
                     CountEffectPass();
-                    if (_coverageReplayDepth == 0 && !_geometryCoveragePass) _occurrenceState.PendingHistoryOperation = operationIndex;
-                    return _effectScratchTexture0;
+                    if (_coverageReplayDepth == 0 && !_geometryCoveragePass)
+                    {
+                        _occurrenceState.PendingHistoryOperation = operationIndex;
+                        // The trail pass has read the ring, and the end-of-frame capture would redraw this same layer: copy it now.
+                        if (PassElisionEnabled && source == _layerTexture && _glyphFilter < 0 && _scopeDepth == 0 &&
+                            _occurrenceState.HistoryCoverageCount == 0 && !_occurrenceState.HistoryLayerCaptured)
+                            _occurrenceState.HistoryLayerCaptured = CaptureHistoryLayer();
+                    }
+                    return target;
                 case TextStudio2DAnimatedEffectKind.MotionSmear:
                     _commands.SetGlobalInt(s_historyCountProperty, 0);
                     _commands.Blit(
-                        backdrop,
-                        _effectScratchTexture0,
+                        backdropSample,
+                        target,
                         _effectMaterial,
                         1);
                     CountEffectPass();
-                    return _effectScratchTexture0;
+                    return target;
                 case TextStudio2DAnimatedEffectKind.ProgressiveBlurFocus:
                     if (_blurScratchTexture0 == null ||
                         _blurScratchTexture1 == null)
@@ -2205,7 +2376,7 @@ namespace TextStudio
 
         void ConfigureAnimatedEffect(
             in TextStudio2DAnimatedEffectSpec effect,
-            RenderTexture backdrop,
+            Texture backdrop,
             RenderTexture effectMask)
         {
             _commands.SetGlobalInt(s_effectKindProperty, (int)effect.Kind);
@@ -2266,6 +2437,19 @@ namespace TextStudio
             }
         }
 
+        // Copies the current echo layer into the oldest history slot; only after every pass that reads the ring this frame.
+        bool CaptureHistoryLayer()
+        {
+            RenderTexture destination = _occurrenceState.HistorySurfaceCount > 0
+                ? _occurrenceState.HistoryTextures[_occurrenceState.HistoryCursor]
+                : null;
+            if (destination == null)
+                return false;
+            _commands.Blit(_layerTexture, destination);
+            CountEffectPass();
+            return true;
+        }
+
         void CaptureHistory()
         {
             if (_occurrenceState.HistorySurfaceCount <= 0 || _occurrenceState.PendingHistoryOperation < 0)
@@ -2273,6 +2457,11 @@ namespace TextStudio
             RenderTexture destination = _occurrenceState.HistoryTextures[_occurrenceState.HistoryCursor];
             if (destination == null)
                 return;
+            if (_occurrenceState.HistoryLayerCaptured)
+            {
+                _occurrenceState.HistoryCapturePending = true;
+                return;
+            }
             // All color and coverage replays read the previous frames before the oldest slot is replaced.
             int previousGlyph = _glyphFilter;
             SetGlyphFilter(-1);
@@ -2559,7 +2748,14 @@ namespace TextStudio
         {
             _commands.SetGlobalVector(s_sourceRangeProperty, new Vector4(firstSource, endSource, 0, 0));
             bool unionCoverage = sourceMode == HeroLayerSourceMode.Operation && UsesUnionCoverage(operationIndex);
-            if (clear) ClearTarget(target != null ? target : _layerTexture, unionCoverage);
+            bool surface = sourceMode == HeroLayerSourceMode.Operation && _surfaceStyle != null &&
+                           (_surfaceStyle.OperationAt(operationIndex).Kind == TextStudio2DLayerKind.Decoration ||
+                            TextStudio2DStyleDecorations.UsesContourStroke(_surfaceStyle.OperationAt(operationIndex)));
+            int rowClass = surface ? 0 : RowMaskClass(operationIndex);
+            RenderTexture destination = clear && target == null ? _layerTexture : target;
+            if (_staticRunSplit && !clear && target != null) BindSplitTarget(target);
+            else if (rowClass > 0 && destination != null) BindRowMask(destination, clear, rowClass);
+            else if (clear) ClearTarget(destination, unionCoverage);
             else BindTarget(target);
             _commands.SetGlobalInt(s_operationIndexProperty, operationIndex);
             _commands.SetGlobalInt(s_selectorIndexProperty, selectorIndex);
@@ -2572,15 +2768,20 @@ namespace TextStudio
             _commands.SetGlobalVector(
                 s_scopeSelectors1Property,
                 ScopeVector(4));
-            if (sourceMode == HeroLayerSourceMode.Operation && _surfaceStyle != null &&
-                (_surfaceStyle.OperationAt(operationIndex).Kind == TextStudio2DLayerKind.Decoration ||
-                 TextStudio2DStyleDecorations.UsesContourStroke(_surfaceStyle.OperationAt(operationIndex))))
+            if (surface)
             {
                 _lastLayerDrawCount += _occurrenceState.SurfaceGeometry.DrawHero(_commands, operationIndex, unionCoverage);
                 return;
             }
             // These meshes use raw TMP colors and bypass CanvasRenderer's vertex-color conversion.
             _layerProperties.SetInt(s_uiVertexColorGammaProperty, ViewIsCanvas ? 1 : 0);
+            // The plain draw, whose per-draw values the plain family row variants compile as constants.
+            bool plainDraw = sourceMode == HeroLayerSourceMode.Operation && firstSource == 0 && endSource == int.MaxValue &&
+                             _glyphFilter < 0 && !_geometryCoveragePass;
+            // Masked rows still draw the full-size quads of class 0; only the stencil written by BindRowMask limits them. The rows
+            // of a split static run test the stencil BACKDROP_MASK wrote in the same way.
+            bool stencilTested = rowClass > 0 || _staticRunSplit;
+            if (stencilTested) _commands.SetGlobalInt(s_rowMaskProperty, (int)CompareFunction.Equal);
             for (int index = 0; index < _occurrenceState.Batches.Count; index++)
             {
                 LayerBatch batch = _occurrenceState.Batches[index];
@@ -2594,14 +2795,68 @@ namespace TextStudio
                      drawingOperation.Fill.ColorFace == TextStudio2DColorFaceMode.SilhouetteFill)) continue;
                 if (batch.Lease.ColorMode == 3 && sourceMode == HeroLayerSourceMode.Operation &&
                     drawingOperation.Kind == TextStudio2DLayerKind.Fill && drawingOperation.Fill.ColorFace != TextStudio2DColorFaceMode.SilhouetteFill) continue;
+                // PrepareUniformRows resolved the uniform row materials of this render; others keep the table program.
+                Material rowMaterial = _appearancePlan == null ? batch.UniformRowMaterial(operationIndex) : null;
+                if (rowMaterial != null)
+                    _lastUniformRowDrawCount++;
+                else
+                {
+                    TextStudio2DShaderTier familyTier = TextStudio2DShaderTiers.IsolatedTierFor(drawingOperation.Kind);
+                    rowMaterial = TextStudio2DHeroMaterials.ResolveRowMaterial(
+                        batch.Lease,
+                        familyTier,
+                        TextStudio2DShaderTiers.UsesOnlySolidPaint(_surfaceStyle),
+                        _heroMaterialEffects,
+                        plainDraw);
+                    if (TextStudio2DHeroMaterials.UsesPlainRow(batch.Lease, familyTier, plainDraw))
+                        _lastPlainRowDrawCount++;
+                }
+                if (rowClass > 0)
+                    _lastRowMaskDrawCount++;
+                if (_staticRunSplit)
+                    _lastSplitRowDrawCount++;
                 _commands.DrawMesh(
                     batch.Mesh,
                     Matrix4x4.identity,
-                    batch.Material,
+                    rowMaterial,
                     0,
                     0,
                     _layerProperties);
                 _lastLayerDrawCount++;
+            }
+            if (stencilTested) _commands.SetGlobalInt(s_rowMaskProperty, (int)CompareFunction.Disabled);
+        }
+
+        // Resolves every batch's uniform row materials before the render records commands. Acquiring and releasing them can
+        // create and destroy materials, and destroying one flushes the pending submission, which must never split a recording.
+        // A row draws uniformly when TextStudio2DHeroMaterials.SupportsUniformRow admits it, the render composes no appearance
+        // occurrence, whose glyph rows carry appearance bounds, and the batch is no colour source, whose native face reads its
+        // row from the table. Every other draw keeps the table program.
+        void PrepareUniformRows()
+        {
+            bool enabled = TextStudio2DHeroMaterials.UniformRowsEnabled && _appearancePlan == null;
+            if (enabled && !ReferenceEquals(_uniformRowStyle, _surfaceStyle))
+            {
+                // Records are packed once per compiled style.
+                _uniformRowStyle = _surfaceStyle;
+                int count = _surfaceStyle != null ? _surfaceStyle.OperationCount : 0;
+                if (_uniformRowEligible.Length < count)
+                {
+                    _uniformRowEligible = new bool[count];
+                    _uniformRows = new TextStudio2DHeroUniformRow[count];
+                }
+                for (int index = 0; index < _uniformRowEligible.Length; index++)
+                {
+                    bool eligible = index < count && TextStudio2DHeroMaterials.SupportsUniformRow(_surfaceStyle, index);
+                    _uniformRowEligible[index] = eligible;
+                    _uniformRows[index] = eligible ? new TextStudio2DHeroUniformRow(_surfaceStyle, index) : default;
+                }
+            }
+            for (int index = 0; index < _occurrenceState.Batches.Count; index++)
+            {
+                LayerBatch batch = _occurrenceState.Batches[index];
+                bool drawsUniformRows = enabled && batch.Lease.ColorMode != 1 && batch.Lease.ColorMode != 2;
+                batch.PrepareUniformRows(drawsUniformRows ? _uniformRowEligible : null, _uniformRows, _heroMaterialEffects);
             }
         }
 
@@ -2737,7 +2992,7 @@ namespace TextStudio
                 _worldOutputRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
                 _worldOutputRenderer.motionVectorGenerationMode =
                     MotionVectorGenerationMode.ForceNoMotion;
-                _worldOutputRenderer.allowOcclusionWhenDynamic = false;
+                _worldOutputRenderer.SetDynamicOcclusionCulling(false);
                 _hasWorldOutputBounds = false;
                 _worldOutputMaterial = null;
             }
@@ -2902,6 +3157,7 @@ namespace TextStudio
             _nestedPairCount = 0;
             _coveragePairCount = _coverageReplayDepth = 0;
             _generatedAlphaTexture = null;
+            ReleaseRowMask();
             pool.Release(ref _finalLease);
             _finalTexture = null;
         }
@@ -3026,6 +3282,7 @@ namespace TextStudio
             _occurrenceState = _defaultOccurrenceState;
             ReleaseScratchTargets();
             ReleaseHistoryTargets();
+            ReleaseStaticRows();
             TextStudio2DHeroTargetPool.Shared.Release(ref _finalLease);
             _finalTexture = null;
             TextStudio2DHeroOutputPages.Shared.Release(ref _output);
@@ -3208,19 +3465,30 @@ namespace TextStudio
             readonly List<Vector4> _payload1 = new List<Vector4>(4);
             readonly List<Vector4> _selectors = new List<Vector4>(4);
             readonly List<Vector4> _localPayload = new List<Vector4>(4);
-            readonly List<int> _triangles = new List<int>(6);
+            // One index list per row mask class (submesh); class 0 holds every glyph at the shared extent.
+            List<int>[] _triangles = { new List<int>(6) };
+            int _classCount = 1;
             TextStudio2DHeroLayerMaterialLease _lease;
+            // Uniform row materials this batch draws, by operation index.
+            TextStudio2DHeroUniformRowLease[] _uniformRows = Array.Empty<TextStudio2DHeroUniformRowLease>();
 
-            internal long ManagedPayloadBytes => TextStudioAppearanceManagedMemory.ListBytes(_vertices) +
-                TextStudioAppearanceManagedMemory.ListBytes(_normals) +
-                TextStudioAppearanceManagedMemory.ListBytes(_colors) +
-                TextStudioAppearanceManagedMemory.ListBytes(_uv0) +
-                TextStudioAppearanceManagedMemory.ListBytes(_uv1) +
-                TextStudioAppearanceManagedMemory.ListBytes(_payload0) +
-                TextStudioAppearanceManagedMemory.ListBytes(_payload1) +
-                TextStudioAppearanceManagedMemory.ListBytes(_selectors) +
-                TextStudioAppearanceManagedMemory.ListBytes(_localPayload) +
-                TextStudioAppearanceManagedMemory.ListBytes(_triangles);
+            internal long ManagedPayloadBytes
+            {
+                get
+                {
+                    long bytes = TextStudioAppearanceManagedMemory.ListBytes(_vertices) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_normals) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_colors) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_uv0) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_uv1) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_payload0) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_payload1) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_selectors) +
+                        TextStudioAppearanceManagedMemory.ListBytes(_localPayload) + (long)_triangles.Length * IntPtr.Size;
+                    foreach (List<int> triangles in _triangles) bytes += TextStudioAppearanceManagedMemory.ListBytes(triangles);
+                    return bytes;
+                }
+            }
 
             internal bool Active;
             internal bool IsUsable => _lease.IsValid && Mesh != null;
@@ -3228,6 +3496,8 @@ namespace TextStudio
             internal Material Material => _lease.Material;
             internal Mesh Mesh { get; }
             internal TextStudio2DHeroLayerMaterialLease Lease => _lease;
+            /// <summary>Row mask classes of the uploaded mesh, one submesh each.</summary>
+            internal int SubmeshCount { get; private set; } = 1;
 
             internal LayerBatch(in TextStudio2DHeroLayerMaterialLease lease)
             {
@@ -3248,7 +3518,7 @@ namespace TextStudio
                        _lease.ColorMode == colorMode && _lease.DistanceRange.Equals(distanceRange);
             }
 
-            internal void BeginBuild()
+            internal void BeginBuild(int classCount)
             {
                 Active = false;
                 _vertices.Clear();
@@ -3260,7 +3530,14 @@ namespace TextStudio
                 _payload1.Clear();
                 _selectors.Clear();
                 _localPayload.Clear();
-                _triangles.Clear();
+                if (_triangles.Length < classCount)
+                {
+                    int previous = _triangles.Length;
+                    Array.Resize(ref _triangles, classCount);
+                    for (int index = previous; index < classCount; index++) _triangles[index] = new List<int>(6);
+                }
+                foreach (List<int> triangles in _triangles) triangles.Clear();
+                _classCount = Mathf.Max(1, classCount);
             }
 
             internal bool HasSpatialVertices()
@@ -3302,15 +3579,24 @@ namespace TextStudio
                 _localPayload.Add(localPayload);
             }
 
+            /// <summary>Adds the last emitted quad to every row mask class: every row's mask covers its shared extent.</summary>
             internal void EmitTriangles()
             {
+                for (int index = 0; index < _classCount; index++)
+                    EmitTriangles(index);
+            }
+
+            /// <summary>Adds the last emitted quad to one row mask class, in glyph order.</summary>
+            internal void EmitTriangles(int rowClass)
+            {
                 int start = _vertices.Count - 4;
-                _triangles.Add(start);
-                _triangles.Add(start + 1);
-                _triangles.Add(start + 2);
-                _triangles.Add(start + 2);
-                _triangles.Add(start + 3);
-                _triangles.Add(start);
+                List<int> triangles = _triangles[rowClass];
+                triangles.Add(start);
+                triangles.Add(start + 1);
+                triangles.Add(start + 2);
+                triangles.Add(start + 2);
+                triangles.Add(start + 3);
+                triangles.Add(start);
             }
 
             internal bool Upload()
@@ -3330,12 +3616,38 @@ namespace TextStudio
                 Mesh.SetUVs(3, _payload1);
                 Mesh.SetUVs(4, _selectors);
                 Mesh.SetTangents(_localPayload);
-                Mesh.SetTriangles(_triangles, 0, true);
+                Mesh.subMeshCount = _classCount;
+                for (int index = 0; index < _classCount; index++)
+                    Mesh.SetTriangles(_triangles[index], index, true);
+                SubmeshCount = _classCount;
                 return true;
             }
 
+            /// <summary>
+            /// Holds the uniform row material of every eligible operation and releases the others; a null
+            /// <paramref name="eligible"/> releases them all. Operations whose material cannot be resolved keep the table program.
+            /// </summary>
+            internal void PrepareUniformRows(bool[] eligible, TextStudio2DHeroUniformRow[] rows, bool materialEffects)
+            {
+                int count = eligible?.Length ?? 0;
+                if (_uniformRows.Length < count)
+                    Array.Resize(ref _uniformRows, count);
+                for (int index = 0; index < _uniformRows.Length; index++)
+                {
+                    if (index < count && eligible[index])
+                        TextStudio2DHeroMaterials.ResolveUniformRow(in _lease, ref _uniformRows[index], in rows[index], materialEffects);
+                    else if (_uniformRows[index].IsHeld)
+                        TextStudio2DHeroMaterials.ReleaseUniformRow(in _lease, ref _uniformRows[index]);
+                }
+            }
+
+            /// <summary>The uniform row material prepared for an operation, or null when the row keeps the table program.</summary>
+            internal Material UniformRowMaterial(int operationIndex) =>
+                (uint)operationIndex < (uint)_uniformRows.Length && _uniformRows[operationIndex].IsHeld ? _uniformRows[operationIndex].Material : null;
+
             public void Dispose()
             {
+                PrepareUniformRows(null, null, false);
                 TextStudio2DHeroMaterials.ReleaseLayer(ref _lease);
                 Destroy(Mesh);
             }

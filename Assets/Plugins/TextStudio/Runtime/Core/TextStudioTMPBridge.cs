@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ImpossibleRobert.Common;
 using TMPro;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -18,6 +19,11 @@ namespace TextStudio
     /// </summary>
     internal sealed partial class TextStudioTMPBridge
     {
+        static readonly ProfilerMarker TextWriteProfilerMarker = new ProfilerMarker("Text Studio TMP Text Write");
+        static readonly ProfilerMarker RegenerationProfilerMarker = new ProfilerMarker("Text Studio TMP Regeneration");
+        static readonly ProfilerMarker LayoutPrepareProfilerMarker = new ProfilerMarker("Text Studio Layout Prepare");
+        static readonly ProfilerMarker LayoutSourceDataProfilerMarker = new ProfilerMarker("Text Studio Layout Source Data");
+
         readonly TextStudioText _hub;
         readonly TextStudioTMPFrameApplier _frameApplier = new TextStudioTMPFrameApplier();
         readonly TextStudioTMPMaterialEffectAdapter _materialEffectAdapter = new TextStudioTMPMaterialEffectAdapter();
@@ -48,8 +54,18 @@ namespace TextStudio
             ? _appearancePlanAdapter.PaddingTier : _appearanceAdapter.PaddingTier;
         int AppearanceFieldStyleSlot => _appearancePlanAdapter.Plan != null
             ? _appearancePlanAdapter.PrimaryFieldAdapter?.FieldStyleSlot ?? 0 : _appearanceAdapter.FieldStyleSlot;
+        bool AppearanceRequiresFullShaderTier => _appearancePlanAdapter.Plan != null
+            ? _appearancePlanAdapter.UsesHero : _appearanceAdapter.HasHeroProgram;
 
-        bool PrepareAppearance(CompiledTextStudio2DStyle style, CompiledTextStudioAppearancePlan plan, bool forceHero = false)
+        // The rows the material adapter draws through the text's own TMP materials, or default on every other route.
+        TextStudio2DTextMeshProStyle AppearanceTextMeshProStyle => _appearancePlanAdapter.Plan != null
+            ? default : _appearanceAdapter.TextMeshProStyle;
+
+        /// <summary>Whether the text draws through its own TMP materials on the TextMeshPro route.</summary>
+        internal bool UsesTextMeshProRoute => _materialEffectAdapter.UsesTextMeshProRoute;
+
+        bool PrepareAppearance(CompiledTextStudio2DStyle style, CompiledTextStudioAppearancePlan plan, bool forceHero = false,
+            in TextStudio2DTextMeshProStyle textMeshProStyle = default)
         {
             if (plan != null && plan.HasInvocations)
             {
@@ -59,8 +75,49 @@ namespace TextStudio
             }
             bool hadPlan = _appearancePlanAdapter.Plan != null;
             if (hadPlan) _appearancePlanAdapter.Release();
-            return _appearanceAdapter.Update(style, forceHero, _tmpText) || hadPlan;
+            return _appearanceAdapter.Update(style, forceHero, _tmpText, TextStudio2DRouteReason.LensMagnifier, in textMeshProStyle) || hadPlan;
         }
+
+        // A TextMeshPro-expressible style draws through the text's own TMP materials when the context allows it and every source
+        // material can draw it (TextStudio2DTextMeshProRoute); default keeps the exact path. The style check runs first, since
+        // most styles fail it.
+        TextStudio2DTextMeshProStyle ResolveTextMeshProStyle(CompiledTextStudio2DStyle style, CompiledTextStudioAppearancePlan plan,
+            TextStudioCompiledPlan effects, bool writing) =>
+            TextStudio2DTextMeshProRoute.TrySelect(style, plan, out TextStudio2DTextMeshProStyle selected) &&
+            AllowsTextMeshProRoute(effects, writing) && _materialEffectAdapter.SupportsTextMeshProRoute(_tmpText, in selected)
+                ? selected
+                : default;
+
+        // The TextMeshPro route replaces Text Studio's materials and drops their payload streams, so a requirement for those
+        // materials, Writing, a World Batch Group that merges Text Studio primitives, or a lens magnifier, whose exact lens
+        // composites through Hero output, keeps the exact path.
+        bool AllowsTextMeshProRoute(TextStudioCompiledPlan plan, bool writing) =>
+            !_requiresExternalMaterialIntent && !writing && !_hub.IsWorldBatched &&
+            !TextStudioTMPMaterialEffectAdapter.RequiresProductionMaterial(plan) && !UsesLensMagnifier(plan);
+
+        static bool UsesLensMagnifier(TextStudioCompiledPlan plan)
+        {
+            if (plan?.EffectBindings == null)
+                return false;
+            int count = System.Math.Min(plan.EffectBindingCount, plan.EffectBindings.Length);
+            for (int i = 0; i < count; i++)
+            {
+                if (plan.EffectBindings[i].effect is BuiltIns.LensMagnifierEffect ||
+                    string.Equals(plan.EffectBindings[i].effectId, TextStudioBuiltInEffectIds.LensMagnifier,
+                        System.StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Whether a new appearance style moves this text off the TextMeshPro route: its rows no longer qualify or a source
+        /// material cannot draw them. Layout must then prepare the payload streams of Text Studio's materials before the next frame.
+        /// </summary>
+        internal bool LeavesTextMeshProRoute(CompiledTextStudio2DStyle style, CompiledTextStudioAppearancePlan plan) =>
+            _materialEffectAdapter.UsesTextMeshProRoute &&
+            (!TextStudio2DTextMeshProRoute.TrySelect(style, plan, out TextStudio2DTextMeshProStyle selected) ||
+             !_materialEffectAdapter.SupportsTextMeshProRoute(_tmpText, in selected));
 
         internal string MaterialCompatibilityWarning
         {
@@ -111,12 +168,30 @@ namespace TextStudio
         internal bool NeedsCameraQualityRefresh() => (_appearancePlanAdapter.Plan != null
             ? _appearancePlanAdapter.NeedsCameraQualityRefresh(_tmpText) : _appearanceAdapter.NeedsCameraQualityRefresh(_tmpText)) || _heroCompositor?.NeedsColorSourceRefresh == true;
 
+        // NeedsCameraQualityRefresh cannot turn true without a tick: no program has prepared-field demand or a memory retry,
+        // and no Hero compositor polls color sources.
+        internal bool HasStaticCameraQuality => _heroCompositor == null && (_appearancePlanAdapter.Plan != null
+            ? _appearancePlanAdapter.HasStaticCameraQuality : _appearanceAdapter.HasStaticCameraQuality);
+
+        // Adds the Canvas payload inputs a parked hub compares in place of NeedsCanvasPayloadRefresh. False while that check
+        // must keep running in the hub: a moving Canvas text, or one without a canvas.
+        internal bool TryCaptureParkedCanvasPayload(ref TextStudioHubScheduler.ParkedAppearance appearance)
+        {
+            if (!(_tmpText is TextMeshProUGUI ui) || !_frameApplier.HasMaterialPayloadStorage) return true;
+            Canvas canvas = ui.canvas;
+            if (canvas == null || !_frameApplier.TryGetConfirmedCanvasPayloadInputs(out appearance.PoseMatrix, out appearance.PoseRootMatrix))
+                return false;
+            appearance.PoseTransform = ui.rectTransform;
+            appearance.PoseCanvas = canvas;
+            return true;
+        }
+
         internal TextStudio2DHeroCompositorStatistics HeroCompositorStatistics =>
             _heroCompositor != null ? _heroCompositor.Statistics : default;
         internal bool NeedsCanvasPayloadRefresh() => _frameApplier.NeedsCanvasPayloadRefresh(_tmpText);
         internal long AppearanceSelectionPayloadBytes => _appearancePlanAdapter.Plan != null
             ? _appearancePlanAdapter.SelectionPayloadBytes : _appearanceAdapter.BoundStyle.ManagedPayloadBytes;
-        internal long AppearanceMeshPayloadBytes => _frameApplier.CanvasPayloadBytes + (_orderedRenderer?.ManagedPayloadBytes ?? 0) +
+        internal long AppearanceMeshPayloadBytes => _frameApplier.ManagedMeshPayloadBytes + (_orderedRenderer?.ManagedPayloadBytes ?? 0) +
             (_styleDecorations?.ManagedPayloadBytes ?? 0) + (_heroCompositor?.ManagedPayloadBytes ?? 0);
 
         internal int OrderedGeometryUploadCount => _orderedRenderer?.GeometryUploadCount ?? 0;
@@ -211,6 +286,8 @@ namespace TextStudio
         TMP_FontAsset _lastSeenFontAsset;
         string _pendingGeneratedTextWrite = string.Empty;
         bool _hasPendingGeneratedTextWrite;
+        // Set while SetTMPTextFromTextStudio writes TMP's text property (HandleTMPLayoutCallback).
+        bool _isWritingGeneratedText;
 
         // TMP event subscription state.
         bool _subscribedToChanged;
@@ -226,12 +303,17 @@ namespace TextStudio
         TextStudioDecorations _decorations;
         TextStudio2DStyleDecorations _styleDecorations;
         bool _skippedVisualFrameWhileSuppressed;
+        // The input objects of the last frame RenderFrame found plain, which RenderPlainFrame applies for the steady lane.
+        bool _hasPlainFrame;
+        int _plainFrameCountForDebug;
+        internal int PlainFrameCountForDebug => _plainFrameCountForDebug;
+        CompiledTextStudio2DStyle _plainAppearanceStyle;
+        CompiledTextStudioAppearancePlan _plainAppearancePlan;
+        CompiledTextStudioWritingStyle _plainWritingStyle;
+        TextStudioCompiledPlan _plainCompiledPlan;
 
-        /// <summary>
-        /// Fires when TMP regenerates its mesh externally. The argument reports whether the
-        /// generated layout differs from the last layout consumed by the hub.
-        /// </summary>
-        public event Action<bool> OnRegenerated;
+        /// <summary>Reports native mesh or material changes. The first argument indicates that the consumed layout or material state needs refresh; the second is true only when TMP has generated a fresh native mesh.</summary>
+        public event Action<bool, bool> OnRegenerated;
 
         public TMP_Text TMPText => _tmpText;
         public string CurrentSourceText => GetCurrentSourceText();
@@ -248,6 +330,28 @@ namespace TextStudio
             return tmpText != null &&
                    ReferenceEquals(tmpText.font, _lastSeenFontAsset) &&
                    string.Equals(tmpText.text ?? string.Empty, _lastSeenText, StringComparison.Ordinal);
+        }
+
+        // The hub's steady lane skips TryConsumeFontAssetChange and the text pull while this holds: TMP keeps the observed text
+        // and font, and pass-through is off, so both find no change. A generated write still waiting for confirmation is the
+        // observed text itself, so the pull would only confirm it, which ConfirmSteadyText replays (an import from an input
+        // field is excluded by the hub).
+        internal bool IsSteadyTextCurrent()
+        {
+            TMP_Text tmpText = _tmpText;
+            return tmpText != null &&
+                   (!_hasPendingGeneratedTextWrite ||
+                    string.Equals(_pendingGeneratedTextWrite, _lastSeenText, StringComparison.Ordinal)) &&
+                   !_isUsingUnanimatedPassThrough &&
+                   ReferenceEquals(tmpText.font, _lastSeenFontAsset) &&
+                   string.Equals(tmpText.text, _lastSeenText, StringComparison.Ordinal);
+        }
+
+        // The state change of the text pull and push that a steady tick skips while IsSteadyTextCurrent holds: TMP still holds
+        // the observed text, which confirms a pending generated write of it.
+        internal void ConfirmSteadyText()
+        {
+            ClearPendingGeneratedTextWriteIfMatched(_lastSeenText);
         }
 
         public bool TryConsumeFontAssetChange()
@@ -502,8 +606,14 @@ namespace TextStudio
             else
                 target = markup ?? string.Empty;
 
-            if (SetTMPTextFromTextStudio(target) && _tmpText.font != null)
-                _hasFreshMeshForLayout = SuppressedForceMeshUpdate();
+            bool changed;
+            using (TextWriteProfilerMarker.Auto())
+                changed = SetTMPTextFromTextStudio(target);
+            if (changed && _tmpText.font != null)
+            {
+                using (RegenerationProfilerMarker.Auto())
+                    _hasFreshMeshForLayout = SuppressedForceMeshUpdate();
+            }
         }
 
         /// <summary>
@@ -597,62 +707,118 @@ namespace TextStudio
                 TextStudioSourceContextRequirements.None,
             CompiledTextStudio2DStyle appearanceStyle = null,
             CompiledTextStudioWritingStyle writingStyle = null,
-            CompiledTextStudioAppearancePlan appearancePlan = null)
+            CompiledTextStudioAppearancePlan appearancePlan = null,
+            TextStudioKeptGlyphPrefix keptPrefix = default)
         {
+            _hasPlainFrame = false;
             _isUsingUnanimatedPassThrough = false;
             ReleasePassThroughVisibility();
             _layoutValid = false;
-            if (_tmpText == null || plan == null) return false;
-            if (_tmpText.font == null) return false;
-            _requiresExternalMaterialIntent = requiresExternalMaterial;
-            PrepareAppearance(appearanceStyle, appearancePlan);
-            UpdateWorldShadowState(_appearancePlanAdapter.Plan != null ? _appearancePlanAdapter.WorldShadowStyle : appearanceStyle);
-            bool requiresWritingMaterial =
-                TextStudioWritingRenderer.RequiresWritingMaterial(
-                    plan,
-                    writingStyle);
-
-            SetLiteralMarkupRendering(plan.IsLiteralMarkup);
-
-            string displayText = plan.IsLiteralMarkup
-                ? plan.CanonicalText ?? string.Empty
-                : plan.DisplayText ?? plan.ResolvedText ?? string.Empty;
-            if (_tmpText.text != displayText)
+            if (_tmpText == null || plan == null || _tmpText.font == null)
             {
-                SetTMPTextFromTextStudio(displayText);
+                InvalidateAppendLayout();
+                return false;
             }
-
-            _suppressRegen = true;
+            bool requiresWritingMaterial;
             bool meshOk;
-            try
+            using (LayoutPrepareProfilerMarker.Auto())
             {
-                bool hadPreparedMaterialState = _materialEffectAdapter.HasPreparedState;
-                bool restoredOrphanedMaterial =
-                    RestoreOrphanedProductionMaterialsIfUnowned();
-                _materialEffectAdapter.Prepare(
-                    _tmpText,
-                    plan,
-                    requiresExternalMaterial,
-                    requiresWritingMaterial,
-                    AppearanceRequiresFieldMaterial,
-                    AppearancePaddingTier);
-                // PushText already regenerated an unmodified TMP mesh after changing the
-                // string. It remains a valid visual-source snapshot unless material
-                // preparation was active before or after this call.
-                meshOk = _hasFreshMeshForLayout &&
-                         !restoredOrphanedMaterial &&
-                         !hadPreparedMaterialState &&
-                         !_materialEffectAdapter.HasPreparedState;
-                if (!meshOk)
-                    meshOk = TryForceMeshUpdate(_tmpText);
+                _requiresExternalMaterialIntent = requiresExternalMaterial;
+                requiresWritingMaterial =
+                    TextStudioWritingRenderer.RequiresWritingMaterial(
+                        plan,
+                        writingStyle);
+                // Layout reads the current values of the source materials, which runtime edits change without an event.
+                _materialEffectAdapter.InvalidateTextMeshProSupport();
+                PrepareAppearance(appearanceStyle, appearancePlan, false,
+                    ResolveTextMeshProStyle(appearanceStyle, appearancePlan, plan, requiresWritingMaterial));
+                UpdateWorldShadowState(_appearancePlanAdapter.Plan != null ? _appearancePlanAdapter.WorldShadowStyle : appearanceStyle);
+
+                SetLiteralMarkupRendering(plan.IsLiteralMarkup);
+
+                string displayText = plan.IsLiteralMarkup
+                    ? plan.CanonicalText ?? string.Empty
+                    : plan.DisplayText ?? plan.ResolvedText ?? string.Empty;
+                if (_tmpText.text != displayText)
+                {
+                    SetTMPTextFromTextStudio(displayText);
+                }
+
+                _suppressRegen = true;
+                try
+                {
+                    bool hadPreparedMaterialState = _materialEffectAdapter.HasPreparedState;
+                    bool restoredOrphanedMaterial =
+                        RestoreOrphanedProductionMaterialsIfUnowned();
+                    _materialEffectAdapter.Prepare(
+                        _tmpText,
+                        plan,
+                        requiresExternalMaterial,
+                        requiresWritingMaterial,
+                        AppearanceRequiresFieldMaterial,
+                        AppearancePaddingTier,
+                        AppearanceRequiresFullShaderTier ? null : appearanceStyle,
+                        AppearanceRequiresFullShaderTier ? null : _appearancePlanAdapter.Plan,
+                        AppearanceTextMeshProStyle);
+                    // A source the route check did not see, such as a fallback font this text now uses, keeps the exact path until
+                    // the next layout.
+                    if (_materialEffectAdapter.ConsumeTextMeshProRouteFailure())
+                    {
+                        PrepareAppearance(appearanceStyle, appearancePlan);
+                        _materialEffectAdapter.Prepare(
+                            _tmpText,
+                            plan,
+                            requiresExternalMaterial,
+                            requiresWritingMaterial,
+                            AppearanceRequiresFieldMaterial,
+                            AppearancePaddingTier,
+                            AppearanceRequiresFullShaderTier ? null : appearanceStyle,
+                            AppearanceRequiresFullShaderTier ? null : _appearancePlanAdapter.Plan);
+                    }
+                    // TMP's own material reads TMP's normals and no payload; restore them while the cached sources still match.
+                    if (_materialEffectAdapter.UsesTextMeshProRoute)
+                        _frameApplier.ReleaseMaterialStreams(_tmpText);
+                    // PushText already regenerated an unmodified TMP mesh after changing the
+                    // string. It remains a valid visual-source snapshot unless material
+                    // preparation was active before or after this call.
+                    meshOk = _hasFreshMeshForLayout &&
+                             !restoredOrphanedMaterial &&
+                             !hadPreparedMaterialState &&
+                             !_materialEffectAdapter.HasPreparedState;
+                    if (!meshOk)
+                        meshOk = TryForceMeshUpdate(_tmpText);
+                }
+                finally { _suppressRegen = false; }
+                _hasFreshMeshForLayout = false;
             }
-            finally { _suppressRegen = false; }
-            _hasFreshMeshForLayout = false;
-            if (!meshOk) return false;
+            if (!meshOk)
+            {
+                InvalidateAppendLayout();
+                return false;
+            }
 
             TMP_TextInfo textInfo = _tmpText.textInfo;
             int count = plan.VisibleGlyphCount;
-            BuildUnitToCharacterInfoMap(plan, textInfo, count);
+            uint materialsVersion = ComputeMaterialsVersion(_tmpText);
+            // Appended text whose settings keep earlier TMP lines in place records the state the next append resumes from, so text
+            // that is replaced rather than appended pays nothing for it; the first of consecutive appends lays out in full.
+            bool appendEligible = keptPrefix.IsDefined && AllowsAppendLayout(_tmpText);
+            int appendSettings = appendEligible
+                ? ComputeAppendLayoutSettings(plan, cacheVisualSourceData, requiresExternalMaterial, externalSourceRequirements,
+                    appearanceStyle, writingStyle, appearancePlan)
+                : 0;
+            // An append that kept the TMP lines before resumeLine resumes every pass below at that line's first unit and
+            // character, with the state the last pass reached there; a full layout starts at zero.
+            int resumeLine = -1;
+            bool resume = appendEligible &&
+                          TryResumeAppendLayout(plan, layout, keptPrefix, textInfo, count, appendSettings, materialsVersion,
+                              out resumeLine);
+            if (!appendEligible)
+                AppendLayoutRejectionForDebug = keptPrefix.IsDefined ? "text settings" : "no kept prefix";
+            LineResumePoint resumePoint = resume ? _lineResumePoints[resumeLine] : default;
+            int startUnit = resume ? resumePoint.Unit : 0;
+            int startCharacter = resume ? resumePoint.Character : 0;
+            BuildUnitToCharacterInfoMap(plan, textInfo, count, startUnit, startCharacter);
 
             // Populate the layout-owned arrays directly. Keeping a second retained copy in the
             // bridge doubled this storage for every TMP-backed Text Studio instance.
@@ -665,17 +831,27 @@ namespace TextStudio
             TextStudioGlyphVisualBounds[] sourceVisualBounds = layout.SourceVisualBounds;
             float[] effectUnitScales = layout.EffectUnitScales;
             TextStudioVisualGlyph[] visualGlyphs = layout.VisualGlyphs;
-            if (_fontSourceCount > 0) Array.Clear(_fontSources, 0, _fontSourceCount);
-            _fontSourceCount = 0;
+            if (!resume)
+            {
+                // A resumed pass keeps the sources of the kept lines; it only resumes after a pass that registered none.
+                if (_fontSourceCount > 0) Array.Clear(_fontSources, 0, _fontSourceCount);
+                _fontSourceCount = 0;
+                ResetColorSources();
+                _appendLayoutFonts.Clear();
+            }
             _layoutSources.Reset();
             _versionSources.Reset();
-            ResetColorSources();
 
-            float autoFitGlyphMargin = 0f;
+            float autoFitGlyphMargin = resume ? resumePoint.AutoFitGlyphMargin : 0f;
             FontStyles globalStyle = _tmpText.fontStyle;
             TMP_FontAsset fontAsset = _tmpText.font;
+            NoteAppendLayoutFont(fontAsset);
             float defaultEffectUnitScale = ResolveEffectUnitScale(_tmpText, default);
-            for (int i = 0; i < count; i++)
+            EnsureLineResumePointCapacity(textInfo.lineCount);
+            // Line numbers grow with units and characters in TMP's order; a pass that meets them out of order records no lines.
+            bool linesInOrder = true;
+            int unitLine = resume ? resumeLine - 1 : -1;
+            for (int i = startUnit; i < count; i++)
             {
                 int characterInfoIndex = GetCharacterInfoIndex(i);
                 if (characterInfoIndex < 0 || characterInfoIndex >= textInfo.characterCount)
@@ -694,9 +870,29 @@ namespace TextStudio
 
                 // TMP_CharacterInfo spans several hundred bytes, so per-glyph loops read it in place instead of copying it.
                 ref readonly TMP_CharacterInfo charInfo = ref textInfo.characterInfo[characterInfoIndex];
+                int line = charInfo.lineNumber;
+                if (line != unitLine)
+                {
+                    if (line < unitLine || line >= _lineResumePoints.Length)
+                    {
+                        linesInOrder = false;
+                    }
+                    else
+                    {
+                        // Lines without a unit of their own cannot be resumed at.
+                        for (int skipped = unitLine + 1; skipped < line; skipped++)
+                            _lineResumePoints[skipped].Unit = -1;
+                        _lineResumePoints[line].Unit = i;
+                        _lineResumePoints[line].AutoFitGlyphMargin = autoFitGlyphMargin;
+                        unitLine = line;
+                    }
+                }
                 // Selecting the font first lets the unit scale read its cached point size; BuildVisualGlyph then finds it selected and registered.
                 if (_layoutSources.SelectFont(charInfo.fontAsset))
+                {
                     RegisterFontSource(charInfo.fontAsset, _layoutSources.FontIdentity);
+                    NoteAppendLayoutFont(charInfo.fontAsset);
+                }
                 sourceColorValidity[i] = true;
                 effectUnitScales[i] = ResolveLayoutEffectUnitScale(in charInfo);
                 Color32 fallbackColor = (charInfo.style & FontStyles.Underline) != 0
@@ -767,12 +963,16 @@ namespace TextStudio
                     ComputeAutoFitGlyphMargin(textInfo, plan, fontAsset, globalStyle, in charInfo, i, positions[i]));
             }
 
+            for (int line = unitLine + 1; line < textInfo.lineCount && line < _lineResumePoints.Length; line++)
+                _lineResumePoints[line].Unit = -1;
+
             // Whitespace has no mesh, but its decorations need the same visual pivot and
             // vertical span as the surrounding run. Font ascent/descent is not ink bounds.
             int[] widenedUnits = EnsureWidenedLayoutUnitCapacity(count + textInfo.characterCount);
             int widenedUnitCount = 0;
-            int previousVisible = -1, nextVisible = 0;
-            for (int i = 0; i < count; i++)
+            // A resumed pass starts at a line's first unit, which no unit of an earlier line neighbours.
+            int previousVisible = -1, nextVisible = startUnit;
+            for (int i = startUnit; i < count; i++)
             {
                 // A visual glyph spans 160 bytes, so only the whitespace glyphs this pass rewrites are copied.
                 ref readonly TextStudioVisualGlyph current = ref visualGlyphs[i];
@@ -809,15 +1009,46 @@ namespace TextStudio
             // This pass reads every TMP record once, so it also accumulates the layout fingerprint, which HandleTMPTextChanged recomputes with the same steps, and the geometry and atlas parts of the visual version.
             int characterCount = textInfo.characterCount;
             TextStudioVisualGlyph[] renderedGlyphs = layout.EnsureRenderGlyphCapacity(characterCount);
-            int renderedCount = 0;
-            int currentLayoutFingerprint = BeginLayoutFingerprint(_tmpText, characterCount);
-            VisualVersionHash geometryVersion = BeginGeometryVersion(textInfo, characterCount);
-            VisualVersionHash atlasVersion = VisualVersionHash.Create();
-            AddFontAtlasVersion(ref atlasVersion, fontAsset, -1);
-            for (int index = 0; index < characterCount; index++)
+            int renderedCount = resume ? resumePoint.RenderedGlyphCount : 0;
+            int layoutFingerprintChain = resume ? resumePoint.LayoutFingerprint : LayoutFingerprintSeed;
+            VisualVersionHash geometryVersion = resume ? resumePoint.Geometry : VisualVersionHash.Create();
+            VisualVersionHash atlasVersion;
+            if (resume)
+            {
+                atlasVersion = resumePoint.Atlas;
+            }
+            else
+            {
+                atlasVersion = VisualVersionHash.Create();
+                AddFontAtlasVersion(ref atlasVersion, fontAsset, -1);
+            }
+            int characterLine = resume ? resumeLine - 1 : -1;
+            for (int index = startCharacter; index < characterCount; index++)
             {
                 ref readonly TMP_CharacterInfo character = ref textInfo.characterInfo[index];
-                currentLayoutFingerprint = AddLayoutFingerprintCharacter(currentLayoutFingerprint, textInfo, in character);
+                int line = character.lineNumber;
+                if (line != characterLine)
+                {
+                    if (line < characterLine || line >= _lineResumePoints.Length)
+                    {
+                        linesInOrder = false;
+                    }
+                    else
+                    {
+                        for (int skipped = characterLine + 1; skipped < line; skipped++)
+                            _lineResumePoints[skipped].Character = -1;
+                        ref LineResumePoint point = ref _lineResumePoints[line];
+                        point.Character = index;
+                        point.LayoutFingerprint = layoutFingerprintChain;
+                        point.Geometry = geometryVersion;
+                        point.Atlas = atlasVersion;
+                        point.RenderedGlyphCount = renderedCount;
+                        point.Origin = character.origin;
+                        point.Baseline = character.baseLine;
+                        characterLine = line;
+                    }
+                }
+                layoutFingerprintChain = AddLayoutFingerprintCharacter(layoutFingerprintChain, textInfo, in character);
                 AddGeometryVersion(ref geometryVersion, textInfo, in character);
                 int unit = plan.GetUnitIndexForDisplayChar(character.index);
                 if (unit < 0 || unit >= count)
@@ -868,10 +1099,17 @@ namespace TextStudio
                 textInfo,
                 sourceColors,
                 sourceColorBounds,
-                count);
+                count,
+                startUnit);
 
-            BuildPlacementLines(plan, textInfo, positions, count);
-            TextStudioVisualVersion visualVersion = BuildVisualVersion(_tmpText, currentLayoutFingerprint, geometryVersion, atlasVersion);
+            BuildPlacementLines(plan, textInfo, positions, count, startUnit);
+            int currentLayoutFingerprint = FinishLayoutFingerprint(_tmpText, characterCount, layoutFingerprintChain);
+            FinishGeometryVersion(ref geometryVersion, textInfo, characterCount);
+            TextStudioVisualVersion visualVersion = new TextStudioVisualVersion(
+                unchecked((uint)currentLayoutFingerprint),
+                geometryVersion.Value,
+                atlasVersion.Value,
+                materialsVersion);
 
             layout.SetFromPositions(
                 positions, count,
@@ -893,13 +1131,22 @@ namespace TextStudio
                 visualGlyphs,
                 ResolveVisualCapabilities(_tmpText, textInfo),
                 visualVersion,
-                _fontSources, _fontSourceCount, renderedGlyphs, renderedCount, _colorSources, _colorSourceCount);
+                _fontSources, _fontSourceCount, renderedGlyphs, renderedCount, _colorSources, _colorSourceCount,
+                unchangedGlyphCount: startUnit);
+            if (resume)
+                AppendLayoutCountForDebug++;
+            _lineResumePointCount = linesInOrder ? characterLine + 1 : 0;
+            if (appendEligible)
+                RecordAppendLayoutState(plan, layout, count, appendSettings, materialsVersion);
+            else
+                InvalidateAppendLayout();
 
             TextStudioSourceContextRequirements sourceContextRequirements =
                 plan.SourceContextRequirements | externalSourceRequirements;
             _frameApplier.SetSourceTextBounds(
                 layout.SourceTextBounds,
                 _materialEffectAdapter.HasPreparedState &&
+                !_materialEffectAdapter.UsesTextMeshProRoute &&
                 (AppearanceRequiresFieldMaterial ||
                  requiresWritingMaterial ||
                  (sourceContextRequirements &
@@ -909,18 +1156,21 @@ namespace TextStudio
                 AppearanceRequiresFieldMaterial ? (_appearancePlanAdapter.Plan != null ? _appearancePlanAdapter.PrimaryFieldStyle : appearanceStyle) : null);
 
             bool materialPayloadReady = false;
-            if (cacheVisualSourceData)
+            using (LayoutSourceDataProfilerMarker.Auto())
             {
-                _frameApplier.CacheSourceData(textInfo, plan);
-                if (_materialEffectAdapter.HasPreparedState)
+                if (cacheVisualSourceData)
                 {
-                    materialPayloadReady =
-                        _frameApplier.InitializeMaterialPayloadStreams(_tmpText);
+                    _frameApplier.CacheSourceData(textInfo, plan);
+                    if (_materialEffectAdapter.HasPreparedState && !_materialEffectAdapter.UsesTextMeshProRoute)
+                    {
+                        materialPayloadReady =
+                            _frameApplier.InitializeMaterialPayloadStreams(_tmpText);
+                    }
                 }
-            }
-            else
-            {
-                _frameApplier.Clear();
+                else
+                {
+                    _frameApplier.Clear();
+                }
             }
             _materialEffectAdapter.SetPayloadEnabled(materialPayloadReady);
             if (materialPayloadReady)
@@ -1095,12 +1345,9 @@ namespace TextStudio
             return capabilities;
         }
 
-        // RunLayout accumulates the geometry and atlas parts while it reads each TMP record; materials are read once per shared material here.
-        static TextStudioVisualVersion BuildVisualVersion(
-            TMP_Text text,
-            int layoutFingerprint,
-            VisualVersionHash geometry,
-            VisualVersionHash atlas)
+        // RunLayout accumulates the layout, geometry and atlas parts while it reads each TMP record; materials are read once per
+        // shared material here.
+        static uint ComputeMaterialsVersion(TMP_Text text)
         {
             VisualVersionHash materials = VisualVersionHash.Create();
             Material[] sharedMaterials = text != null ? text.fontSharedMaterials : null;
@@ -1111,20 +1358,16 @@ namespace TextStudio
                 {
                     Material material = sharedMaterials[i];
                     materials.Add(material != null ? material.GetStableId() : 0);
-                    materials.Add(material != null && material.shader != null
-                        ? material.shader.name
-                        : string.Empty);
+                    // This version only invalidates live renderer state; shader identity needs no allocated name string.
+                    Shader shader = material != null ? material.shader : null;
+                    materials.Add(shader != null ? shader.GetStableId() : 0);
                     materials.Add(material != null ? material.ComputeCRC() : 0);
                     AddTextureVersion(
                         ref materials,
                         material != null ? material.mainTexture : null);
                 }
             }
-            return new TextStudioVisualVersion(
-                unchecked((uint)layoutFingerprint),
-                geometry.Value,
-                atlas.Value,
-                materials.Value);
+            return materials.Value;
         }
 
         static void AddFontAtlasVersion(
@@ -1188,6 +1431,7 @@ namespace TextStudio
 
         public void UseUnanimatedPassThrough(TextStudioCompiledPlan plan)
         {
+            _hasPlainFrame = false;
             if (_tmpText == null)
                 return;
 
@@ -1257,6 +1501,11 @@ namespace TextStudio
                 _frameApplier.RestoreSourceNormals(_tmpText);
         }
 
+        // False while ReleaseMaterialEffectsIfUnused would change nothing, whatever the plan requires: the material adapter
+        // holds nothing to restore and no mesh waits for its source normals.
+        internal bool HasReleasableMaterialState =>
+            _materialEffectAdapter.HasRestorableState || _frameApplier.NeedsSourceNormalRestore;
+
         internal static float ResolveEffectUnitScale(
             TMP_Text tmpText,
             in TMP_CharacterInfo character)
@@ -1291,8 +1540,10 @@ namespace TextStudio
             TMP_TextInfo textInfo,
             TextStudioGlyphColorQuad[] sourceColors,
             TextStudioGlyphColorBounds[] sourceColorBounds,
-            int count)
+            int count,
+            int startUnit = 0)
         {
+            // Neighbours never cross a TMP line, so a pass from a line's first unit leaves the units before it unchanged.
             if (_previousVisibleColorUnits == null || _previousVisibleColorUnits.Length < count)
                 _previousVisibleColorUnits = new int[TextStudioBufferCapacity.ForCount(count)];
             if (_nextVisibleColorUnits == null || _nextVisibleColorUnits.Length < count)
@@ -1300,7 +1551,7 @@ namespace TextStudio
 
             int previousVisibleUnit = -1;
             int previousLine = -1;
-            for (int i = 0; i < count; i++)
+            for (int i = startUnit; i < count; i++)
             {
                 int characterInfoIndex = GetCharacterInfoIndex(i);
                 if (characterInfoIndex < 0 || characterInfoIndex >= textInfo.characterCount)
@@ -1324,7 +1575,7 @@ namespace TextStudio
 
             int nextVisibleUnit = -1;
             int nextLine = -1;
-            for (int i = count - 1; i >= 0; i--)
+            for (int i = count - 1; i >= startUnit; i--)
             {
                 int characterInfoIndex = GetCharacterInfoIndex(i);
                 if (characterInfoIndex < 0 || characterInfoIndex >= textInfo.characterCount)
@@ -1346,7 +1597,7 @@ namespace TextStudio
                     nextVisibleUnit = i;
             }
 
-            for (int i = 0; i < count; i++)
+            for (int i = startUnit; i < count; i++)
             {
                 int characterInfoIndex = GetCharacterInfoIndex(i);
                 if (characterInfoIndex < 0 || characterInfoIndex >= textInfo.characterCount)
@@ -1511,19 +1762,34 @@ namespace TextStudio
             return character.color;
         }
 
+        // A pass from startUnit, the first unit of a TMP line, keeps the lines that end before it.
         void BuildPlacementLines(
             TextStudioCompiledPlan plan,
             TMP_TextInfo textInfo,
             Vector3[] positions,
-            int glyphCount)
+            int glyphCount,
+            int startUnit = 0)
         {
-            _cachedPlacementLineCount = 0;
+            if (startUnit <= 0)
+            {
+                _cachedPlacementLineCount = 0;
+            }
+            else
+            {
+                while (_cachedPlacementLineCount > 0)
+                {
+                    LineRange last = _cachedPlacementLines[_cachedPlacementLineCount - 1];
+                    if (last.glyphStart + last.glyphCount <= startUnit)
+                        break;
+                    _cachedPlacementLineCount--;
+                }
+            }
             if (plan == null || textInfo == null || glyphCount <= 0)
                 return;
 
             int activeStart = -1;
             int activeLineNumber = 0;
-            for (int i = 0; i < glyphCount; i++)
+            for (int i = startUnit; i < glyphCount; i++)
             {
                 if (plan.IsLineBreakUnit(i))
                 {
@@ -1558,22 +1824,31 @@ namespace TextStudio
             return textInfo.characterInfo[characterInfoIndex].lineNumber;
         }
 
+        // Maps units from startUnit on to their first TMP character from startCharacter on; an append layout keeps the entries
+        // of the units before them, whose characters precede startCharacter.
         void BuildUnitToCharacterInfoMap(
             TextStudioCompiledPlan plan,
             TMP_TextInfo textInfo,
-            int unitCount)
+            int unitCount,
+            int startUnit = 0,
+            int startCharacter = 0)
         {
             if (_unitToCharacterInfo == null || _unitToCharacterInfo.Length < unitCount)
-                _unitToCharacterInfo = new int[TextStudioBufferCapacity.ForCount(unitCount)];
+            {
+                int[] map = new int[TextStudioBufferCapacity.ForCount(unitCount)];
+                if (startUnit > 0)
+                    Array.Copy(_unitToCharacterInfo, map, startUnit);
+                _unitToCharacterInfo = map;
+            }
 
-            for (int i = 0; i < unitCount; i++)
+            for (int i = startUnit; i < unitCount; i++)
                 _unitToCharacterInfo[i] = -1;
 
             if (plan == null || textInfo == null || textInfo.characterInfo == null)
                 return;
 
             int characterCount = Mathf.Min(textInfo.characterCount, textInfo.characterInfo.Length);
-            for (int characterInfoIndex = 0; characterInfoIndex < characterCount; characterInfoIndex++)
+            for (int characterInfoIndex = startCharacter; characterInfoIndex < characterCount; characterInfoIndex++)
             {
                 ref readonly TMP_CharacterInfo character = ref textInfo.characterInfo[characterInfoIndex];
                 if (character.elementType != TMP_TextElementType.Character)
@@ -1624,6 +1899,37 @@ namespace TextStudio
         //  Frame rendering (TMP vertex/color manipulation)
         // ─────────────────────────────────────────────────────────────────────
 
+        /// <summary>Restores current colors for a fresh layout or prepared TMP streams for an unchanged layout without rebuilding replacement graphics.</summary>
+        internal void RepublishCurrentFrame(
+            in TextStudioFrame frame,
+            PresentationGlyph[] presentationGlyphs,
+            IPresentationGlyphProvider glyphProvider,
+            bool applyPlacement,
+            bool freshLayoutOnly)
+        {
+            if (!_layoutValid || _tmpText == null || !_tmpText.isActiveAndEnabled ||
+                _suppressRegen || _skippedVisualFrameWhileSuppressed)
+                return;
+
+            if (freshLayoutOnly)
+            {
+                if (_frameApplier.RepublishFreshLayoutColors(_tmpText, in frame, presentationGlyphs, glyphProvider))
+                    _replacementSourceVisibility.Synchronize(_tmpText, _hasInternalReplacement);
+                return;
+            }
+            if (_materialEffectAdapter.RequiresRefresh(_tmpText))
+                return;
+
+            // Native regeneration can run inside a Canvas graphic rebuild. Reuse the already prepared
+            // material bindings and streams; replacement graphics and resource preparation belong to the scheduler.
+            _frameApplier.RefreshCanvasPayloadTransform(_tmpText);
+            _frameApplier.RetainHiddenGlyphGeometry = _hub.RetainsHiddenGlyphGeometry;
+            _frameApplier.ApplyFrame(
+                _tmpText, in frame, presentationGlyphs, glyphProvider,
+                forceAll: true, applyPlacement: applyPlacement, notifyMeshUpdated: false);
+            _replacementSourceVisibility.Synchronize(_tmpText, _hasInternalReplacement);
+        }
+
         /// <summary>
         /// Apply an animated frame to TMP's mesh vertices and colors, then rebuild
         /// curved decoration tiles. No-op when TMP layout is invalid, TMP is disabled,
@@ -1634,12 +1940,14 @@ namespace TextStudio
             PresentationGlyph[] presentationGlyphs,
             IPresentationGlyphProvider glyphProvider,
             bool suppressVisualMeshUpdate,
-            bool applyPlacement = true)
+            bool applyPlacement = true,
+            bool steadyFrame = false)
         {
             if (!_layoutValid || _tmpText == null || !_tmpText.enabled) return;
 
             if (suppressVisualMeshUpdate)
             {
+                _hasPlainFrame = false;
                 _skippedVisualFrameWhileSuppressed = true;
                 DisposeOrderedRenderer();
                 DisposeHeroCompositor();
@@ -1651,6 +1959,13 @@ namespace TextStudio
                 return;
             }
 
+            if (steadyFrame && IsPlainFrameCurrent(in frame))
+            {
+                RenderPlainFrame(in frame, presentationGlyphs, glyphProvider, applyPlacement);
+                return;
+            }
+
+            _hasPlainFrame = false;
             bool hasExactLens = TextStudioLensMagnifierDescriptor.TryPrepare(
                 in frame,
                 _hub,
@@ -1659,6 +1974,15 @@ namespace TextStudio
                 TextStudioWritingRenderer.RequiresWritingMaterial(
                     frame.Plan.CompiledPlan,
                     frame.WritingStyle);
+            TextStudio2DTextMeshProStyle textMeshProStyle = ResolveTextMeshProStyle(frame.AppearanceStyle, frame.AppearancePlan,
+                frame.Plan.CompiledPlan, potentiallyHasWriting);
+            // Leaving the TextMeshPro route needs the payload streams only layout prepares. Style, Writing and World Batch Group
+            // changes lay out first; any other change that ends the route keeps this route frame and lays out again.
+            if (!textMeshProStyle.IsValid && _materialEffectAdapter.UsesTextMeshProRoute)
+            {
+                _hub.ScheduleLayoutRebuild();
+                return;
+            }
             TextStudioWritingPrepareResult writingResult = default;
             if (potentiallyHasWriting)
             {
@@ -1674,7 +1998,7 @@ namespace TextStudio
             }
 
             bool appearanceMaterialChanged =
-                PrepareAppearance(frame.AppearanceStyle, frame.AppearancePlan, hasExactLens);
+                PrepareAppearance(frame.AppearanceStyle, frame.AppearancePlan, hasExactLens, in textMeshProStyle);
             bool hasAppearancePlan = _appearancePlanAdapter.Plan != null;
             UpdateWorldShadowState(hasAppearancePlan ? _appearancePlanAdapter.WorldShadowStyle : frame.AppearanceStyle);
             TextStudioVisualSnapshot visualSnapshot = frame.VisualSnapshot;
@@ -1687,11 +2011,13 @@ namespace TextStudio
             {
                 _appearanceAdapter.UpdateMappings(in frame, _tmpText, _materialEffectAdapter);
             }
-            if (appearanceMaterialChanged ||
+            bool prepareMaterial =
+                appearanceMaterialChanged ||
                 writingResult.SourceStateChanged ||
                 (frame.GlobalDirty &
                  (DirtyFlags.AppearanceRenderState |
-                  DirtyFlags.WritingRenderState)) != 0)
+                  DirtyFlags.WritingRenderState)) != 0;
+            if (prepareMaterial)
             {
                 _materialEffectAdapter.Prepare(
                     _tmpText,
@@ -1699,7 +2025,15 @@ namespace TextStudio
                     _requiresExternalMaterialIntent,
                     writingResult.RequiresSourceMaterial,
                     AppearanceRequiresFieldMaterial,
-                    AppearancePaddingTier);
+                    AppearancePaddingTier,
+                    AppearanceRequiresFullShaderTier ? null : frame.AppearanceStyle,
+                    AppearanceRequiresFullShaderTier ? null : _appearancePlanAdapter.Plan,
+                    AppearanceTextMeshProStyle);
+                // A source that cannot take or keep its route material, such as one edited at runtime, is decided again at layout.
+                if (_materialEffectAdapter.ConsumeTextMeshProRouteFailure())
+                    _hub.ScheduleLayoutRebuild();
+                if (_materialEffectAdapter.UsesTextMeshProRoute)
+                    _frameApplier.ReleaseMaterialStreams(_tmpText);
             }
             bool writingSourceBindingChanged =
                 _frameApplier.SetWritingSourceSampleOffset(
@@ -1719,17 +2053,7 @@ namespace TextStudio
                 _appearanceAdapter.FlushAndBind();
             }
 
-            DirtyFlags structuralDirty =
-                DirtyFlags.Text |
-                DirtyFlags.Style |
-                DirtyFlags.Topology |
-                DirtyFlags.Layout |
-                DirtyFlags.Placement |
-                DirtyFlags.AppearanceTopology |
-                DirtyFlags.AppearanceRenderState |
-                DirtyFlags.WritingTopology |
-                DirtyFlags.WritingBounds |
-                DirtyFlags.WritingRenderState;
+            DirtyFlags structuralDirty = StructuralRefreshDirty;
             bool forceVisualRefresh =
                 _skippedVisualFrameWhileSuppressed ||
                 writingSourceBindingChanged ||
@@ -1824,6 +2148,79 @@ namespace TextStudio
             }
             }
 
+            RebuildDecorationsIfNeeded(in frame, forceVisualRefresh);
+
+            // A frame without a lens, writing, an appearance plan or program, material preparation, a writing binding change,
+            // a world shadow or an internal replacement left all of that state released, and the next frame with the same
+            // inputs would release nothing again; RenderPlainFrame applies such frames of the hub's steady lane.
+            _hasPlainFrame =
+                !hasExactLens &&
+                !potentiallyHasWriting &&
+                !hasAppearancePlan &&
+                appearanceAdapterUnused &&
+                !prepareMaterial &&
+                !writingSourceBindingChanged &&
+                !_hasInternalReplacement &&
+                _worldShadowRenderers.Count == 0 &&
+                !HasCompositionLayerBinding(frame.Plan.CompiledPlan);
+            _plainAppearanceStyle = _hasPlainFrame ? frame.AppearanceStyle : null;
+            _plainAppearancePlan = _hasPlainFrame ? frame.AppearancePlan : null;
+            _plainWritingStyle = _hasPlainFrame ? frame.WritingStyle : null;
+            _plainCompiledPlan = _hasPlainFrame ? frame.Plan.CompiledPlan : null;
+        }
+
+        // The steady lane hands RenderFrame only frames that follow the hub's previous frame without a change notification,
+        // so no other bridge call has touched this state since; same input objects then mean the same plain outcome.
+        bool IsPlainFrameCurrent(in TextStudioFrame frame)
+        {
+            return _hasPlainFrame &&
+                   !_skippedVisualFrameWhileSuppressed &&
+                   (frame.GlobalDirty & (DirtyFlags.AppearanceRenderState | DirtyFlags.WritingRenderState)) == 0 &&
+                   ReferenceEquals(frame.AppearanceStyle, _plainAppearanceStyle) &&
+                   ReferenceEquals(frame.AppearancePlan, _plainAppearancePlan) &&
+                   ReferenceEquals(frame.WritingStyle, _plainWritingStyle) &&
+                   ReferenceEquals(frame.Plan.CompiledPlan, _plainCompiledPlan) &&
+                   !_hub.HasInfluenceTarget;
+        }
+
+        // RenderFrame for a plain frame (IsPlainFrameCurrent): the lens, writing, appearance, material, world shadow, renderer
+        // disposal and replacement steps would change nothing, so the glyphs and decorations are all that remain.
+        void RenderPlainFrame(
+            in TextStudioFrame frame,
+            PresentationGlyph[] presentationGlyphs,
+            IPresentationGlyphProvider glyphProvider,
+            bool applyPlacement)
+        {
+            unchecked { _plainFrameCountForDebug++; }
+            // RenderFrame's refresh rule without a suppressed frame or a writing binding change.
+            bool forceVisualRefresh = (frame.GlobalDirty & StructuralRefreshDirty) != 0;
+            _frameApplier.RefreshCanvasPayloadTransform(_tmpText);
+            _frameApplier.RetainHiddenGlyphGeometry = _hub.RetainsHiddenGlyphGeometry;
+            _frameApplier.ApplyFrame(
+                _tmpText,
+                in frame,
+                presentationGlyphs,
+                glyphProvider,
+                forceVisualRefresh,
+                applyPlacement: applyPlacement);
+            RebuildDecorationsIfNeeded(in frame, forceVisualRefresh);
+        }
+
+        // Frame changes that make RenderFrame refresh every glyph and rebuild decorations.
+        const DirtyFlags StructuralRefreshDirty =
+            DirtyFlags.Text |
+            DirtyFlags.Style |
+            DirtyFlags.Topology |
+            DirtyFlags.Layout |
+            DirtyFlags.Placement |
+            DirtyFlags.AppearanceTopology |
+            DirtyFlags.AppearanceRenderState |
+            DirtyFlags.WritingTopology |
+            DirtyFlags.WritingBounds |
+            DirtyFlags.WritingRenderState;
+
+        void RebuildDecorationsIfNeeded(in TextStudioFrame frame, bool forceVisualRefresh)
+        {
             if (forceVisualRefresh || ShouldRebuildDecorations(in frame))
             {
                 if (_decorations == null)
@@ -1835,8 +2232,22 @@ namespace TextStudio
             }
         }
 
+        // Composition layers can enable writing without a frame change, so plans with them never replay a plain frame.
+        static bool HasCompositionLayerBinding(TextStudioCompiledPlan plan)
+        {
+            if (plan?.EffectBindings == null)
+                return false;
+            for (int index = 0; index < plan.EffectBindingCount; index++)
+            {
+                if (plan.EffectBindings[index].effect is TextStudioCompositionLayer)
+                    return true;
+            }
+            return false;
+        }
+
         internal void RestoreTransientMaterialState()
         {
+            _hasPlainFrame = false;
             DisposeOrderedRenderer();
             DisposeHeroCompositor();
             SetInternalReplacementVisibility(false);
@@ -1954,6 +2365,7 @@ namespace TextStudio
         /// </summary>
         public void RestoreVisibility()
         {
+            _hasPlainFrame = false;
             _replacementSourceVisibility.Restore();
             ReleasePassThroughVisibility();
             if (_tmpText == null) return;
@@ -2004,20 +2416,24 @@ namespace TextStudio
                 _materialEffectAdapter.RequiresRefresh(_tmpText) ||
                 !_hasLayoutFingerprint ||
                 _layoutFingerprint != ComputeLayoutFingerprint(_tmpText);
-            OnRegenerated?.Invoke(layoutChanged);
+            OnRegenerated?.Invoke(layoutChanged, true);
         }
 
         void HandleTMPMaterialPropertyChanged(bool changed, Material material)
         {
             if (changed)
+            {
                 _hasFreshMeshForLayout = false;
+                // An edited source material may stop or start drawing the TextMeshPro route.
+                _materialEffectAdapter.InvalidateTextMeshProSupport();
+            }
             if (!changed || _suppressRegen ||
                 !_materialEffectAdapter.ReferencesSourceMaterial(material))
             {
                 return;
             }
 
-            OnRegenerated?.Invoke(true);
+            OnRegenerated?.Invoke(true, false);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -2126,6 +2542,9 @@ namespace TextStudio
 
         internal void RestoreWorldShadowState()
         {
+            // Renderers and their source modes are tracked in pairs, so text that forces no shadows restores nothing every frame.
+            if (_worldShadowRenderers.Count == 0)
+                return;
             for (int index = 0; index < _worldShadowRenderers.Count; index++)
             {
                 MeshRenderer renderer = _worldShadowRenderers[index];
@@ -2214,10 +2633,10 @@ namespace TextStudio
             // RunLayout accumulates the same steps while it reads each record; both must combine them in this order.
             TMP_TextInfo textInfo = tmpText.textInfo;
             int characterCount = textInfo != null ? textInfo.characterCount : 0;
-            int hash = BeginLayoutFingerprint(tmpText, characterCount);
+            int chain = LayoutFingerprintSeed;
             for (int i = 0; i < characterCount; i++)
-                hash = AddLayoutFingerprintCharacter(hash, textInfo, in textInfo.characterInfo[i]);
-            return hash;
+                chain = AddLayoutFingerprintCharacter(chain, textInfo, in textInfo.characterInfo[i]);
+            return FinishLayoutFingerprint(tmpText, characterCount, chain);
         }
 
         static int CombineHash(int current, int value)
@@ -2243,7 +2662,15 @@ namespace TextStudio
                 SizeEmptyMeshToText(_tmpText, target);
             // The property defers parsing to the mesh update. SetText(string) also filled TMP's character arrays at once,
             // which the following regeneration filled again.
-            _tmpText.text = target;
+            _isWritingGeneratedText = true;
+            try
+            {
+                _tmpText.text = target;
+            }
+            finally
+            {
+                _isWritingGeneratedText = false;
+            }
             _lastSeenText = target;
             return true;
         }
@@ -2265,12 +2692,14 @@ namespace TextStudio
             if (meshInfo.vertices == null || meshInfo.vertices.Length > 4 || meshInfo.mesh == null)
                 return;
 
-            // Rich text tags produce no quads, so they are not counted; a short count only leaves TMP's own growth.
+            // Count visible characters, as TMP does: whitespace, zero-width spaces and the second half of a surrogate
+            // pair do not need quads. An underestimate still leaves TMP's normal mesh growth in place.
             int quadCount = 0;
             bool richText = tmpText.richText;
             for (int i = 0; i < text.Length; i++)
             {
-                if (richText && text[i] == '<')
+                char character = text[i];
+                if (richText && character == '<')
                 {
                     int close = text.IndexOf('>', i + 1);
                     if (close > i)
@@ -2278,6 +2707,12 @@ namespace TextStudio
                         i = close;
                         continue;
                     }
+                }
+                if (character == ' ' || character == '\t' || character == '\n' || character == '\v' ||
+                    character == '\r' || character == '\u200B' || character == '\u2028' || character == '\u2029' ||
+                    char.IsLowSurrogate(character) && i > 0 && char.IsHighSurrogate(text[i - 1]))
+                {
+                    continue;
                 }
                 quadCount++;
             }

@@ -20,6 +20,7 @@ namespace TextStudio.Geometry
     {
         readonly CurveGlyphCache _glyphs = new CurveGlyphCache();
         internal long CachedCurveBytes => _glyphs.ReadPayloadBytes();
+        internal long TrimCachedCurves() => _glyphs.Trim();
 
         readonly Func<int, CurveGlyph> _readGlyph;
         readonly byte[] _fontBytes;
@@ -767,14 +768,18 @@ namespace TextStudio.Geometry
             if (depth > 16) throw new InvalidOperationException("Compound glyph nesting exceeded 16 levels.");
             int glyphOffset = GetGlyphOffset(glyphIndex);
             int glyphEnd = GetGlyphOffset(glyphIndex + 1);
-            if (glyphOffset < 0 || glyphEnd <= glyphOffset) return null;
+            if (glyphOffset < 0 || glyphEnd < glyphOffset)
+                throw new InvalidOperationException("Glyph locations are invalid or out of order.");
+            if (glyphEnd == glyphOffset)
+                return new CurveGlyph(Array.Empty<CurveContour>(), default, GetAdvanceWidthByGlyphIndex(glyphIndex));
             short count = ReadInt16(glyphOffset);
             return count < 0 ? ParseCompoundGlyph(glyphIndex, glyphOffset, depth) : ParseSimpleGlyph(glyphOffset, count, glyphIndex);
         }
 
         CurveGlyph ParseSimpleGlyph(int offset, int numberOfContours, int glyphIndex)
         {
-            if (numberOfContours == 0) return null;
+            if (numberOfContours == 0)
+                return new CurveGlyph(Array.Empty<CurveContour>(), default, GetAdvanceWidthByGlyphIndex(glyphIndex));
 
             // Read bounding box
             short xMin = ReadInt16(offset + 2);
@@ -875,7 +880,7 @@ namespace TextStudio.Geometry
                     Vector2 position = sourcePoints[point];
                     if ((flags[point] & 1) != 0)
                     {
-                        if ((position - current).sqrMagnitude > 1e-12f) segments.Add(CurveSegment.Line(current, position));
+                        segments.Add(CurveSegment.Line(current, position));
                         current = position;
                     }
                     else
@@ -888,7 +893,7 @@ namespace TextStudio.Geometry
                         if (nextOn) index++;
                     }
                 }
-                if ((current - first).sqrMagnitude > 1e-12f) segments.Add(CurveSegment.Line(current, first));
+                if (!current.Equals(first)) segments.Add(CurveSegment.Line(current, first));
                 if (segments.Count > 0) contours.Add(new CurveContour(segments.ToArray()));
                 startPoint = endPoint + 1;
             }

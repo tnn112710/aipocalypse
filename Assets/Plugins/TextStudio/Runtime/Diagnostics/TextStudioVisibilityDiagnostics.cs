@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Reports text and rendering ownership, distinguishing backend mirroring, driven text, external sources, and single or combined renderer output.</summary>
     public enum TextStudioOwnershipMode
     {
         NoRenderer,
@@ -13,6 +14,7 @@ namespace TextStudio
         RendererMix
     }
 
+    /// <summary>Flags inactive state, missing content or targets, reveal state, and ownership conditions that explain why text may not be visible.</summary>
     [Flags]
     public enum TextStudioVisibilityIssue
     {

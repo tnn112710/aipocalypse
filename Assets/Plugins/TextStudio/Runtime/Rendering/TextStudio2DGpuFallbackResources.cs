@@ -5,8 +5,10 @@ namespace TextStudio
 {
     /// <summary>
     /// Keeps every table declared by a packaged 2D shader safely bound while the corresponding feature table is
-    /// disabled: structured buffers on the buffer transport (Metal requires declared buffers to be bound even when a
-    /// runtime branch avoids reading them) or a one-texel data texture on the texture transport.
+    /// disabled: one-record structured buffers on the buffer transport (Metal requires declared buffers to be bound even
+    /// when a runtime branch avoids reading them) or one zeroed data-texture row on the texture transport. Compiled
+    /// programs still read a disabled table (fxc flattens the guarding branches), so the style and mapping fallbacks
+    /// publish zero last records and every accessor then reads record 0.
     /// </summary>
 #if UNITY_6000_7_OR_NEWER
     [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
@@ -14,6 +16,8 @@ namespace TextStudio
     internal static partial class TextStudio2DGpuFallbackResources
     {
         const int BufferCount = 6;
+        // The data-texture fallback holds record 0 of every table, up to the widest one: an operation.
+        static readonly int s_dataTextureTexels = System.Runtime.InteropServices.Marshal.SizeOf<TextStudio2DGpuOperation>() / 16;
 
         static readonly int s_styleHeadersProperty =
             Shader.PropertyToID("_TextStudio2DStyleHeaders");
@@ -43,6 +47,10 @@ namespace TextStudio
             Shader.PropertyToID("_TextStudioWritingEnabled");
         static readonly int s_writingSourceEnabledProperty =
             Shader.PropertyToID("_TextStudioWritingSourceEnabled");
+        static readonly int s_styleLastRecordsProperty =
+            Shader.PropertyToID("_TextStudio2DStyleTableLastRecords");
+        static readonly int s_mappingLastRecordsProperty =
+            Shader.PropertyToID("_TextStudio2DMappingTableLastRecords");
 
         static readonly TextStudio2DGpuStyleHeader[] s_vectorRecords =
             new TextStudio2DGpuStyleHeader[1];
@@ -132,9 +140,12 @@ namespace TextStudio
             EnsureInitialized();
         }
 
+        /// <summary>True while Play Mode ends or code reloads: the data tables are gone and are not created again.</summary>
+        internal static bool IsShuttingDown => s_shuttingDown || TextStudioAppearanceResources.IsShuttingDown;
+
         internal static bool EnsureInitialized()
         {
-            if (s_shuttingDown || TextStudioAppearanceResources.IsShuttingDown) return false;
+            if (IsShuttingDown) return false;
             if (HasEveryBuffer)
                 return true;
             if (!IsSupported)
@@ -145,13 +156,13 @@ namespace TextStudio
             {
                 if (TextStudio2DTransport.UsesTextures)
                 {
-                    s_dataTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, true)
+                    s_dataTexture = new Texture2D(s_dataTextureTexels, 1, TextureFormat.RGBAFloat, false, true)
                     {
                         name = "Text Studio Empty Data Table",
                         hideFlags = HideFlags.HideAndDontSave,
                         filterMode = FilterMode.Point
                     };
-                    s_dataTexture.SetPixelData(new[] { Vector4.zero }, 0);
+                    s_dataTexture.SetPixelData(new Vector4[s_dataTextureTexels], 0);
                     s_dataTexture.Apply(false, true);
                     BindAllFallbacks();
                     DisableAllConsumers();
@@ -201,6 +212,7 @@ namespace TextStudio
         {
             if (!EnsureInitialized())
                 return;
+            Shader.SetGlobalVector(s_styleLastRecordsProperty, Vector4.zero);
             if (BindDataTextures(0, 4)) return;
             Shader.SetGlobalBuffer(s_styleHeadersProperty, s_vectorBuffer);
             Shader.SetGlobalBuffer(s_styleOperationsProperty, s_operationBuffer);
@@ -212,12 +224,14 @@ namespace TextStudio
         {
             if (!EnsureInitialized())
                 return;
-            RestoreMappingBindings(s_mappingHeadersProperty, s_mappingGlyphsProperty, s_mappingRangesProperty);
+            RestoreMappingBindings(s_mappingHeadersProperty, s_mappingGlyphsProperty, s_mappingRangesProperty,
+                s_mappingLastRecordsProperty);
         }
 
-        internal static void RestoreMappingBindings(int headersProperty, int glyphsProperty, int rangesProperty)
+        internal static void RestoreMappingBindings(int headersProperty, int glyphsProperty, int rangesProperty, int lastRecordsProperty)
         {
             if (!EnsureInitialized()) return;
+            Shader.SetGlobalVector(lastRecordsProperty, Vector4.zero);
             if (BindDataTextures(4, 3)) return;
             Shader.SetGlobalBuffer(headersProperty, s_vectorBuffer);
             Shader.SetGlobalBuffer(glyphsProperty, s_glyphMappingBuffer);
@@ -316,6 +330,8 @@ namespace TextStudio
 
         static void BindAllFallbacks()
         {
+            Shader.SetGlobalVector(s_styleLastRecordsProperty, Vector4.zero);
+            Shader.SetGlobalVector(s_mappingLastRecordsProperty, Vector4.zero);
             if (BindDataTextures(0, s_dataTextureProperties.Length))
             {
                 RestorePreparedFieldTexture();

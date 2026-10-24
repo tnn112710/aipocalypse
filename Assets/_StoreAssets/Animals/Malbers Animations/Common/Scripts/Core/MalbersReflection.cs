@@ -1,4 +1,4 @@
-// Last Change: 9/17/2026 6:05pm
+// Last Change: 10/14/2026 2:45pm
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -258,34 +258,29 @@ namespace MalbersAnimations
             return fi;
         }
 
-        /// <summary>Returns all non-abstract subclasses of T within T's assembly.</summary>
-        public static List<Type> GetAllTypes<T>()
-        {
-            Type classtype = typeof(T);
-            var allTypes = classtype.Assembly.GetTypes();
-            var subTypeList = new List<Type>();
+        /// <summary>Returns all non-abstract subclasses of T. In the Editor it searches every assembly (add-ons included); in builds only T's assembly.</summary>
+        public static List<Type> GetAllTypes<T>() => GetAllTypes(typeof(T));
 
-            for (int i = 0; i < allTypes.Length; i++)
-            {
-                if (allTypes[i].IsSubclassOf(classtype) && !allTypes[i].IsAbstract)
-                    subTypeList.Add(allTypes[i]);
-            }
-
-            return subTypeList;
-        }
-
-        /// <summary>Returns all non-abstract subclasses of the given type within its assembly.</summary>
+        /// <summary>Returns all non-abstract subclasses (or implementations) of the given type. Every assembly in the Editor; only the type's assembly in builds.</summary>
         public static List<Type> GetAllTypes(Type type)
         {
-            var allTypes = type.Assembly.GetTypes();
             var subTypeList = new List<Type>();
+
+#if UNITY_EDITOR
+            //TypeCache covers every assembly, so Tasks, Decisions, States, etc. defined in add-on asmdefs are found too
+            foreach (var t in UnityEditor.TypeCache.GetTypesDerivedFrom(type))
+            {
+                if (!t.IsAbstract && !t.IsInterface) subTypeList.Add(t);
+            }
+#else
+            var allTypes = type.Assembly.GetTypes();
 
             for (int i = 0; i < allTypes.Length; i++)
             {
                 if (allTypes[i].IsSubclassOf(type) && !allTypes[i].IsAbstract)
                     subTypeList.Add(allTypes[i]);
             }
-
+#endif
             return subTypeList;
         }
 

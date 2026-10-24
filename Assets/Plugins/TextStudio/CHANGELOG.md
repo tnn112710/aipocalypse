@@ -1,6 +1,44 @@
 # Changelog
 
+## [1.3.1] - 2026-10-21
+
+- Unity 6.7 & Unity 7 compatibility
+
+## [1.3.0] - 2026-10-20
+
+- Massive performance upgrade (CPU, GPU, Vulkan/Metal, Android)
+  - Greatly reduced the GPU cost of styled 2D text on mobile devices and standalone XR headsets. In measured Quest 3 scenes, 200 labels with a fill, outline and shadow rendered about 18 times faster, plain styled labels about 9 times faster, and composited titles about 10 times faster.
+  - Styles now use lighter rendering for common solid and gradient layers, glyph samples and simple decorations, and run material, graphic and animated effects only where needed. Effects such as Dissolve and Pixel Grid no longer slow unrelated layers; heavier effect groups may add a draw call.
+  - Simple Native quality styles with one solid fill, a round outline and a Distance Field outer shadow now use TextMeshPro's own SDF rendering by default. This lowers the cost of common labels, with TextMeshPro's edge filtering and combined fading; where letters touch, a later outline or shadow can cover an earlier face. Choose Exact Layering to preserve precise layer overlap. Richer styles retain layered rendering automatically.
+  - Layered animated titles now reuse unchanged static layers, limit shading to each layer's visible area and avoid redundant copies. In a measured Adreno 619 scene, an eight-layer 1400 px title fell from 649 to 42 ms of GPU time per frame, using about 5.5 MiB more peak appearance memory; the composition stayed within one 8-bit color step.
+  - Fixed mobile Vulkan shader failures that could leave layered labels, contour dashes, decorations or material-effect layers missing, including texture-backed rendering on an Adreno 619.
+  - Fixed styled 2D labels on Metal when an optional style table is empty, preventing invalid GPU reads without changing their appearance.
+  - Improved 2D style rendering with texture-backed data and Single Pass Instanced stereo, including shadows and Editor selection. Styles now select the correct rendering data across supported devices.
+  - Solid-colored underlines, strikethroughs and overlines render more efficiently on mobile GPUs, including dashed, dotted and wavy lines with skip ink. Long lines with Precise skip ink keep their gaps; extremely long lines fall back to glyph bounds with a warning.
+  - Settled static text now skips Text Studio's per-frame updates when its inputs are unchanged. Eligible styled text and compatible UniText Folio labels can sleep until their appearance or source changes, and large groups of parked Canvas TextMeshPro labels share scale checks while retaining correct SDF scaling.
+  - Animated, revealing and hiding text now skips unchanged preparation, effect work and mesh uploads. Reused effect bindings, lighter glyph evaluation and changed-only color, geometry and material submissions reduce per-frame CPU work while preserving the presented output.
+  - Appending to long text now resumes markup processing, segmentation and layout after the unchanged portion when its formatting and layout permit. Same-length plain-text replacements can reuse effect bindings, improving chat, dialogue and other frequently updated text.
+  - Pooled emitters and formatted numbers now avoid redundant resets, transform writes and temporary strings, especially when the displayed value stays the same.
+- The gallery defers offscreen previews, pauses hidden animations and loads shipped thumbnails correctly from local Package Manager installs instead of rendering them again.
+- Improved clean-install and player-build reliability for prefab Reactions, UI Toolkit bindings, preview PNG export and packaged resources. Styles with unrecognized shader-quality settings now use the full renderer; a first player build can take longer while Unity compiles additional specialized shader variants.
+- Shaped inline images can be identified consistently across compatible text renderers, including repeated glyphs and font, palette and variation choices. Compatible 3D renderers also retain the direction and source positions of curved outlines.
+- Fixed unrevealed letters briefly appearing when TextMeshPro rebuilds text, and replacement text triggered by reveal or completion callbacks inheriting invisible leading glyphs from the previous line.
+- Fixed wide 2D strokes being clipped at glyph edges when TextMeshPro padding is smaller than the requested stroke.
+- Improved LED Studio text integration: markup animates correctly, scrolling preserves complete glyphs after font-size changes, and unchanged text avoids repeated layout and missing-character warnings. Setup preserves a board's mesh and existing font and style settings, keeps integration-owned text fields read-only and makes the integration easier to find.
+- Fixed missing materials and errors when saving styled text as a prefab, applying prefab changes or moving an instance to another scene.
+- Improved UniText integration for managed child renderers and runtime target changes while preserving prefab targets. Native mathematical formulas, styling, reveal boundaries and rule geometry remain intact during 3D rendering and style changes, with reuse of unchanged layouts and earlier diagnosis of invalid font sources.
+- Improved UniText Folio 3.20 and LightSide Core 4 compatibility for Canvas and world text, retained Reactions, opacity and tint changes, refreshed geometry and document camera updates when Text Studio 3D renders the text.
+- Removed misleading shader-resource warnings on leaving Play Mode while retaining diagnostics for real rendering failures. Disabled mobile TextMeshPro outlines also stay disabled when an outline width is saved, and native materials work more consistently with Canvas and overlay styling.
+- Improved Unity 6.7 imports and renderer compatibility, and removed obsolete-API warnings from bundled integrations on Unity 6.6 or newer.
+- Reusable UI Toolkit sample controllers now support Unity 6.5+ PanelRenderer and labels that attach to or move between panels. Existing custom controller calls and saved host references may need updating; see the UI Toolkit migration guide.
+- Fixed reversed Arc placement ignoring Auto Fit Radius and crowding glyphs.
+- Fixed Adventure Creator speech setup placing its bridge inside a subtitle Canvas that becomes inactive, with clearer checks for incompatible subtitle routing.
+- Corrected integration links, descriptions and setup guidance for UniText, PrimeTween, Naninovel, Yarn Spinner, UIEffect, Pixel Crushers and PlayMaker 2.
+- Style gallery exports now include built-in Appearance, Writing and complete designs with their collection labels. The scripting reference and mobile/GPU performance guide cover more authoring, runtime and optimization workflows.
+
 ## [1.2.0] - 2026-10-05
+
+- Preserved selector disclosures, text focus, selection and scroll when adding or removing root exclusions in virtualized Apply Where conditions.
 
 - Redesigned Runtime Preparation as a project overview: a status card with prepared counts, one Prepare action for open scenes and build content, the build-automation toggle and an inline font-outline license choice. Details explain each kind of prepared data with its benefit and runtime fallback and link every text to its prepared data; Prepared data and Settings tabs hold the asset inventory and expert controls. Characters shown at runtime adds digit, Latin, punctuation and other character sets plus phrases to 2D and 3D preparation for text that changes while playing.
 - Added named Appearance styles in markup with nested Replace and Overlay composition, scoped selection and registration of custom styles.

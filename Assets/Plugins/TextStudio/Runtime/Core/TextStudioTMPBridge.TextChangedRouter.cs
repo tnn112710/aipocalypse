@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using TMPro;
+using UnityEngine.Events;
 
 namespace TextStudio
 {
@@ -8,19 +9,48 @@ namespace TextStudio
     {
         TMP_Text _textChangedKey;
         TextStudioTMPBridge _nextTextChangedBridge;
+        UnityAction _layoutDirtyCallback;
 
-        // Registers this bridge for regenerations of its current TMP text while subscribed.
+        // Registers this bridge for regenerations and layout invalidations of its current TMP text while subscribed.
         void SyncTextChangedRegistration()
         {
             TMP_Text key = _subscribedToChanged ? _tmpText : null;
             if (ReferenceEquals(key, _textChangedKey))
                 return;
             if ((object)_textChangedKey != null)
+            {
                 TextChangedRouter.Unregister(_textChangedKey, this);
+                _textChangedKey.UnregisterDirtyLayoutCallback(_layoutDirtyCallback);
+            }
             _textChangedKey = key;
             if ((object)key != null)
+            {
                 TextChangedRouter.Register(key, this);
+                key.RegisterDirtyLayoutCallback(_layoutDirtyCallback ??= HandleTMPLayoutCallback);
+            }
         }
+
+        // A write of generated text marks TextMeshProUGUI's layout dirty too. It is no external change for the steady lane, which
+        // polls TMP's text and replays the write's confirmation (IsSteadyTextCurrent, ConfirmSteadyText), so it only hands a
+        // parked hub back to its sleep check.
+        void HandleTMPLayoutCallback()
+        {
+            if (_isWritingGeneratedText)
+                _hub.UnparkIfParked();
+            else
+                HandleTMPLayoutDirty();
+        }
+
+        // TextMeshProUGUI marks its layout dirty on every text, SetText, character array and font write while it is active,
+        // also while canvases rebuild graphics, which skip its vertex callback. TextMeshPro and subclasses that may override
+        // that path are compared by the scheduler instead while their hub is parked.
+        internal bool ReportsTMPWrites =>
+            (object)_textChangedKey != null && _textChangedKey.GetType() == typeof(TextMeshProUGUI);
+
+        // The TextMeshProUGUI whose writes reach the hub through that callback, or null.
+        internal TextMeshProUGUI WriteReportingText => ReportsTMPWrites ? (TextMeshProUGUI)_textChangedKey : null;
+
+        void HandleTMPLayoutDirty() => _hub.Unpark();
 
         /// <summary>
         /// TMP raises one global text-changed event for every regeneration of any text. A bridge per hub subscribing to it

@@ -1,4 +1,5 @@
-﻿using MalbersAnimations.Scriptables;
+﻿// Last Change: 10/16/2026 12:00pm
+using MalbersAnimations.Scriptables;
 using UnityEngine;
 
 
@@ -19,11 +20,13 @@ namespace MalbersAnimations.Utilities
         public BoolReference LocalPos;
         [Tooltip("Reset the Local Rotation of this gameobject when parented")]
         public BoolReference LocalRot;
-        [Tooltip("Additional Local Position Offset to add after the gameobject is parented")]
+        [Tooltip("Additional Local Position Offset to add after the gameobject is parented.\n" +
+            "It is measured in the Animator's scale, so the same value works on rigs whose bones are scaled (e.g. Root bone at 0.01)")]
         public Vector3Reference PosOffset;
         [Tooltip("Additional Local Rotation Offset to add after the gameobject is parented")]
         public Vector3Reference RotOffset;
 
+        /// <summary> Parents this gameobject to the bone when enabled </summary>
         private void OnEnable()
         {
             if (animator == null) { animator = this.FindComponent<Animator>(); }
@@ -31,6 +34,7 @@ namespace MalbersAnimations.Utilities
             if (animator != null) Align();
         }
 
+        /// <summary> Parents this gameobject to the bone and applies the offsets, compensating the bone's scale </summary>
         private void Align()
         {
             if (animator.avatar != null)
@@ -44,7 +48,8 @@ namespace MalbersAnimations.Utilities
                     if (LocalPos.Value) transform.localPosition = Vector3.zero;
                     if (LocalRot.Value) transform.localRotation = Quaternion.identity;
 
-                    transform.localPosition += PosOffset;
+                    //Bones scaled inside the rig (e.g. Synty Root at 0.01) would shrink/grow the offset. Undo that scale
+                    transform.localPosition += Vector3.Scale(PosOffset.Value, InverseBoneScale(boneParent));
                     transform.localRotation *= Quaternion.Euler(RotOffset);
                 }
             }
@@ -55,11 +60,26 @@ namespace MalbersAnimations.Utilities
             }
         }
 
+        /// <summary> Inverse of the bone's scale relative to the Animator (1,1,1 when every bone between them has scale 1) </summary>
+        private Vector3 InverseBoneScale(Transform bone)
+        {
+            var root = animator.transform.lossyScale;
+            var b = bone.lossyScale;
 
+            return new Vector3(
+                Mathf.Approximately(b.x, 0) ? 1 : root.x / b.x,
+                Mathf.Approximately(b.y, 0) ? 1 : root.y / b.y,
+                Mathf.Approximately(b.z, 0) ? 1 : root.z / b.z);
+        }
+
+        /// <summary> Copies the current local position/rotation into the offsets, converted to the Animator's scale </summary>
         [ContextMenu("Copy Local")]
         private void CopyLocalPosition()
         {
-            PosOffset.Value = transform.localPosition;
+            var bone = transform.parent;
+            var inv = bone != null && animator != null ? InverseBoneScale(bone) : Vector3.one;
+
+            PosOffset.Value = new Vector3(transform.localPosition.x / inv.x, transform.localPosition.y / inv.y, transform.localPosition.z / inv.z);
             RotOffset.Value = transform.localRotation.eulerAngles;
         }
 
@@ -76,8 +96,8 @@ namespace MalbersAnimations.Utilities
             Undo.RecordObject(transform, "Humanoid Parent Try Align");
 #endif
             //TransformPoint uses the bone's full local-to-world matrix, so the offset is rotated and scaled by the bone and all its ancestors,
-            //exactly like [localPosition = PosOffset] once the object is parented to the bone.
-            var worldPos = boneParent.TransformPoint(PosOffset.Value);
+            //exactly like Align() once the object is parented to the bone (same bone-scale compensation).
+            var worldPos = boneParent.TransformPoint(Vector3.Scale(PosOffset.Value, InverseBoneScale(boneParent)));
             var worldRot = boneParent.rotation * Quaternion.Euler(RotOffset.Value);
 
             transform.SetPositionAndRotation(worldPos, worldRot);

@@ -7,7 +7,7 @@ namespace TextStudio
     {
         /// <summary>No appearance: the source renderer draws unchanged.</summary>
         PassThrough = 0,
-        /// <summary>The source glyph quads draw with the shared field material; no extra geometry or pass.</summary>
+        /// <summary>The source glyph quads draw with one shared material, Text Studio's field material or TextMeshPro's own; no extra geometry or pass.</summary>
         NativeField = 1,
         /// <summary>Text Studio draws ordered primitives directly into the active target; no offscreen pass.</summary>
         OrderedPrimitives = 2,
@@ -35,6 +35,8 @@ namespace TextStudio
         ScopedAppearance = 7,
         /// <summary>A text engine's published glyphs draw as ordered primitives in place of its native output.</summary>
         EngineOwnedOutput = 8,
+        /// <summary>A TextMeshPro-expressible style draws through the text's own TextMeshPro SDF material, one pass per glyph.</summary>
+        TextMeshProMaterial = 9,
         /// <summary>An exact lens magnifier renders the text in isolation.</summary>
         LensMagnifier = 16,
         /// <summary>An operation explicitly requests the compositor.</summary>
@@ -103,8 +105,10 @@ namespace TextStudio
                 TextStudio2DRouteReason.None;
             if (ordered == TextStudio2DRouteReason.None)
                 return new TextStudio2DRouteDecision(TextStudio2DRoute.NativeField, TextStudio2DRouteReason.CompactField, tier);
+            // Ordered primitives expand around the tight glyph themselves. Keep the source quad
+            // at its native padding so atlas isolation does not count the field envelope twice.
             return TextStudio2DOrderedRenderer.Supports(style)
-                ? new TextStudio2DRouteDecision(TextStudio2DRoute.OrderedPrimitives, ordered, tier)
+                ? new TextStudio2DRouteDecision(TextStudio2DRoute.OrderedPrimitives, ordered, TextStudio2DFieldPaddingTier.None)
                 : Composited(TextStudio2DRouteReason.UnsupportedDirectOperation);
         }
 

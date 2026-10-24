@@ -10,6 +10,7 @@ namespace TextStudio
         public const string UnityUIText = "unity-ui-text";
     }
 
+    /// <summary>Flags the shaping, bidirectional text, color, rich-text, editing, geometry, and animation features exposed by a text backend.</summary>
     [Flags]
     public enum TextStudioTextBackendCapabilities
     {
@@ -26,13 +27,17 @@ namespace TextStudio
         ShapedGlyphOutlines = 1 << 9
     }
 
+    /// <summary>Classifies a backend notification so the hub can refresh the affected data.</summary>
     public enum TextStudioTextBackendChange
     {
         Mesh,
         Layout,
-        Text
+        Text,
+        /// <summary>Source colors changed while text, layout and glyph identity stayed valid.</summary>
+        Presentation
     }
 
+    /// <summary>Chooses how an active text backend handles direct text writes outside the hub: warn, import them as canonical source, or ignore them.</summary>
     public enum TextStudioBackendWriteHandling
     {
         Warn = 0,
@@ -128,6 +133,13 @@ namespace TextStudio
             TextStudioBackendLayoutBuilder builder);
     }
 
+    /// <summary>Optional backend capability for refreshing source colors without rebuilding layout.</summary>
+    public interface ITextStudioSourceColorBackend
+    {
+        /// <summary>Copies current colors into caller-owned storage for the committed semantic units. Returns false when a new layout is required.</summary>
+        bool TryRefreshSourceColors(TextStudioGlyphColorQuad[] colors, int count);
+    }
+
     /// <summary>Optional backend capability that renders evaluated glyph state into its target.</summary>
     public interface ITextStudioMeshBackend
     {
@@ -142,6 +154,18 @@ namespace TextStudio
         void Render(in TextStudioFrame frame, bool suppressOutput);
         /// <summary>Restores target state that the backend replaced while driving output.</summary>
         void RestoreOutput();
+    }
+
+    /// <summary>
+    /// Lets the settled host of a custom text backend idle-sleep and park in the hub scheduler like TMP-hosted text. The backend
+    /// guarantees that every change of its target that can alter the host's output reaches the host through
+    /// <see cref="ITextStudioTextBackend.Changed"/> or a host rebuild request in the frame it happens, before the scheduler's
+    /// LateUpdate, and that its text projection revision does not change without one. Backends without it keep their host awake.
+    /// </summary>
+    internal interface ITextStudioIdleTextBackend
+    {
+        /// <summary>Names what keeps the host polling, or null while it may sleep. Every sleep check reads it, so keep it cheap.</summary>
+        string IdleSleepBlocker { get; }
     }
 
     /// <summary>
@@ -168,6 +192,16 @@ namespace TextStudio
             out TextStudioBackendShapedFontFace fontFace);
     }
 
+    /// <summary>Optional configured font-source capability for authoring validation before a backend has committed layout.</summary>
+    public interface ITextStudioRuntimeFontSourceBackend
+    {
+        /// <summary>Copies the configured primary, authored fallback/typeface and styled font closure into caller-owned descriptors retaining immutable owned source bytes. This must not shape text, change the target or require a committed glyph revision. Dynamically selected system faces remain authoritative through the shaped-glyph contract once selected.</summary>
+        /// <returns><see langword="false"/> with an actionable diagnostic when the configured source cannot supply runtime outlines.</returns>
+        bool TryGetRuntimeFontSources(
+            out TextStudioBackendShapedFontFace[] fontFaces,
+            out string error);
+    }
+
     /// <summary>Optional shaped-glyph data that an external backend can publish.</summary>
     [Flags]
     public enum TextStudioShapedGlyphFeature
@@ -183,7 +217,9 @@ namespace TextStudio
         Decorations = 1 << 7,
         VirtualGlyphTopology = 1 << 8,
         WorldSpaceTarget = 1 << 9,
-        NativeRichText = 1 << 10
+        NativeRichText = 1 << 10,
+        PlanarGeometry = 1 << 11,
+        FilledPrimitives = 1 << 12
     }
 
     /// <summary>
@@ -242,19 +278,48 @@ namespace TextStudio
     /// <summary>
     /// Caller-owned shaped glyph and font-face data for one representative preparation sample.
     /// </summary>
-    public sealed class TextStudioShapedGlyphPreparationSnapshot
+    public sealed class TextStudioShapedGlyphPreparationSnapshot : ITextStudioShapedGlyphBackend,
+        ITextStudioShapedGeometryBackend, ITextStudioShapedGlyphImageBackend
     {
+        readonly TextStudioGlyphImageSnapshot[] _images;
         readonly TextStudioBackendShapedGlyph[] _glyphs;
         readonly TextStudioBackendShapedFontFace[] _fontFaces;
+        readonly TextStudioBackendShapedGlyphGeometry[] _geometry;
+        readonly TextStudioBackendShapedPrimitive[] _primitives;
+        readonly int[] _ownerCodepoints;
 
         /// <summary>Creates a snapshot by copying the supplied glyph and font-face data.</summary>
         public TextStudioShapedGlyphPreparationSnapshot(
             TextStudioBackendShapedGlyph[] glyphs,
-            TextStudioBackendShapedFontFace[] fontFaces)
+            TextStudioBackendShapedFontFace[] fontFaces,
+            TextStudioBackendShapedGlyphGeometry[] geometry = null,
+            TextStudioBackendShapedPrimitive[] primitives = null,
+            int[] ownerCodepoints = null,
+            TextStudioGlyphImageSnapshot[] images = null)
         {
             _glyphs = glyphs != null
                 ? (TextStudioBackendShapedGlyph[])glyphs.Clone()
                 : Array.Empty<TextStudioBackendShapedGlyph>();
+            if (geometry != null && geometry.Length != _glyphs.Length)
+                throw new ArgumentException("Planar geometry must align with the same shaped glyph revision.", nameof(geometry));
+            _geometry = geometry != null ? (TextStudioBackendShapedGlyphGeometry[])geometry.Clone()
+                : Array.Empty<TextStudioBackendShapedGlyphGeometry>();
+            _primitives = primitives != null ? (TextStudioBackendShapedPrimitive[])primitives.Clone()
+                : Array.Empty<TextStudioBackendShapedPrimitive>();
+            _ownerCodepoints = ownerCodepoints != null ? (int[])ownerCodepoints.Clone() : Array.Empty<int>();
+            if (images != null && images.Length != _glyphs.Length)
+                throw new ArgumentException("Prepared images must align with the exact shaped glyph array.", nameof(images));
+            _images = new TextStudioGlyphImageSnapshot[_glyphs.Length];
+            for (int i = 0; i < _images.Length; i++)
+            {
+                TextStudioGlyphImageSnapshot image = images?[i];
+                if (image == null) continue;
+                if (!image.Request.MatchesGlyph(_glyphs[i]))
+                    throw new ArgumentException("A prepared image does not match its complete shaped occurrence.", nameof(images));
+                TextStudioGlyphImageRequest original = image.Request;
+                var request = new TextStudioGlyphImageRequest(original.Identity, _glyphs[i], 1, i, original.SourceStart, original.SourceLength);
+                _images[i] = image.ForOccurrence(in request, 0);
+            }
             int faceCount = fontFaces?.Length ?? 0;
             _fontFaces = new TextStudioBackendShapedFontFace[faceCount];
             for (int i = 0; i < faceCount; i++)
@@ -275,8 +340,61 @@ namespace TextStudio
             }
         }
 
+        /// <summary>Gets the prepared exact image request for a shaped glyph, when owned pixels are available.</summary>
+        public TextStudioGlyphImageStatus GetGlyphImageRequest(int shapedGlyphIndex, out TextStudioGlyphImageRequest request, out string diagnostic)
+        {
+            request = default; diagnostic = string.Empty;
+            if ((uint)shapedGlyphIndex >= _glyphs.Length)
+            { diagnostic = "The shaped glyph index is outside the preparation snapshot."; return TextStudioGlyphImageStatus.InvalidData; }
+            TextStudioGlyphImageSnapshot image = _images[shapedGlyphIndex];
+            if (image != null) { request = image.Request; return TextStudioGlyphImageStatus.Ready; }
+            if (TryGetFontFace(_glyphs[shapedGlyphIndex].FontId, out TextStudioBackendShapedFontFace face) && face.IsColorFont)
+            { diagnostic = "The preparation snapshot has no owned RGBA pixels for this exact color glyph."; return TextStudioGlyphImageStatus.Unavailable; }
+            return TextStudioGlyphImageStatus.NotAnImage;
+        }
+
+        /// <summary>Copies prepared image pixels into the requested shaped occurrence when its identity still matches.</summary>
+        public TextStudioGlyphImageStatus CaptureGlyphImage(in TextStudioGlyphImageRequest request, out TextStudioGlyphImageSnapshot image, out string diagnostic)
+        {
+            image = null; diagnostic = string.Empty;
+            if (!request.IsCurrentFor(this))
+            { diagnostic = "The image request does not match the immutable preparation snapshot."; return TextStudioGlyphImageStatus.Stale; }
+            TextStudioGlyphImageSnapshot stored = _images[request.ShapedGlyphIndex];
+            if (stored == null || !stored.Request.Identity.Equals(request.Identity))
+            { diagnostic = "No prepared pixels exist for this exact shaped image identity."; return TextStudioGlyphImageStatus.Unavailable; }
+            image = stored.ForOccurrence(in request, 0); return TextStudioGlyphImageStatus.Ready;
+        }
+
         public int GlyphCount => _glyphs.Length;
         public int FontFaceCount => _fontFaces.Length;
+        public int ShapedGlyphRevision => 1;
+        public int ShapedGlyphCount => GlyphCount;
+        public int ShapedPrimitiveCount => _primitives.Length;
+        public bool TryGetShapedGlyph(int index, out TextStudioBackendShapedGlyph glyph) => TryGetGlyph(index, out glyph);
+        public bool TryGetShapedFontFace(int fontId, out TextStudioBackendShapedFontFace face) => TryGetFontFace(fontId, out face);
+
+        /// <summary>Gets planar geometry aligned with a glyph in this preparation snapshot.</summary>
+        public bool TryGetShapedGlyphGeometry(int index, out TextStudioBackendShapedGlyphGeometry geometry)
+        {
+            geometry = (uint)index < (uint)_geometry.Length ? _geometry[index] : default;
+            return geometry.IsPresent;
+        }
+
+        /// <summary>Gets one filled vector primitive owned by this preparation snapshot.</summary>
+        public bool TryGetShapedPrimitive(int index, out TextStudioBackendShapedPrimitive primitive)
+        {
+            if ((uint)index < (uint)_primitives.Length) { primitive = _primitives[index]; return true; }
+            primitive = default;
+            return false;
+        }
+
+        /// <summary>Gets the semantic owner codepoint used for preparation scopes, without changing the shaped font glyph.</summary>
+        public bool TryGetOwnerCodepoint(int textUnitIndex, out int codepoint)
+        {
+            if ((uint)textUnitIndex < (uint)_ownerCodepoints.Length) { codepoint = _ownerCodepoints[textUnitIndex]; return true; }
+            codepoint = 0;
+            return false;
+        }
 
         /// <summary>Gets the shaped glyph at the supplied snapshot index.</summary>
         public bool TryGetGlyph(

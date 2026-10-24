@@ -21,6 +21,8 @@ Shader "Text Studio/2D Style Decoration"
         _ColorMask ("Color Mask", Float) = 15
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
         [HideInInspector] _UIVertexColorAlwaysGammaSpace ("UI Vertex Color Always Gamma Space", Float) = 0
+        // Declared because a shader reimport or assignment rebuilds material values from this block and drops undeclared ones.
+        [HideInInspector] _TextStudio2DDecorationHero ("Text Studio 2D Decoration Hero", Float) = 0
     }
 
     SubShader
@@ -104,6 +106,17 @@ Shader "Text Studio/2D Style Decoration"
                 float2 localPosition : TEXCOORD4;
                 float2 worldPosition : TEXCOORD5;
                 float4 screenPosition : TEXCOORD6;
+                // Dash, dot and wave coordinate of a line. It is affine within every tile, so the vertex stage reads its
+                // mapping rows once instead of every pixel reading them.
+                float lineCoordinate : TEXCOORD7;
+            #if defined(TEXT_STUDIO_DECORATION_LINE_SOLID)
+                // Constant per tile: x the operation record base (negative when the style row is unavailable), y the first
+                // edge of a static skip-ink mask, z its edge count (-1 without a mask, -2 when the mask is not current) and
+                // w the count of its leading band edges.
+                nointerpolation float4 lineRecord : TEXCOORD8;
+                // Vertical range, in the mask's local space, that every edge after the band edges stays outside.
+                nointerpolation float2 lineBand : TEXCOORD9;
+            #endif
             };
 
             float2 TextStudioLinePixelUnits(float4 localCenter)
@@ -168,6 +181,57 @@ Shader "Text Studio/2D Style Decoration"
                 input.uv0.xy += delta / size;
             }
 
+            // Every branch of TextStudioStyleLineCoordinate is affine in the text coordinate with coefficients that are
+            // constant across a tile, so interpolating its vertex values reproduces the per-pixel evaluation.
+            float TextStudioDecorationLineCoordinate(TextStudioDecorationVertexInput input)
+            {
+                uint slot = (uint)max(0, round(input.uv1.z));
+                int index = max(0, (int)round(input.uv1.w));
+                if (slot == 0 || TEXT_STUDIO_STYLE_TABLE_ENABLED < .5) return 0;
+                TextStudio2DGpuStyleHeader header = TextStudioLoadStyleHeader(slot);
+                if ((int)round(header.metadata.x) != TEXT_STUDIO_STYLE_SCHEMA_VERSION || index >= (int)round(header.metadata.y)) return 0;
+                TextStudio2DGpuOperation owner = TextStudioLoadOperation((int)round(header.program.x) + index);
+                if ((int)round(owner.layerMetadata.x) != 8 || owner.parameters0.x > 2 || owner.parameters3.x < 2) return 0;
+                float packedGeometryKind = round(input.uv2.w);
+                int glyphIndex = packedGeometryKind < 0 ? -(int)packedGeometryKind - 1 : max(0, (int)floor(packedGeometryKind * .5) - 1);
+                return TextStudioStyleLineCoordinate(slot, index, glyphIndex, input.uv1.x, ((int)round(owner.parameters5.w) & 3) == 1);
+            }
+
+        #if defined(TEXT_STUDIO_DECORATION_LINE_SOLID)
+            // The lean line program reads its operation rows and its static mask through these tile constants instead of
+            // the dependent header lookups the general program repeats for every pixel.
+            void TextStudioResolveLineRecords(TextStudioDecorationVertexInput input, out float4 record, out float2 band)
+            {
+                record = float4(-1, 0, -1, 0);
+                band = 0;
+                uint slot = (uint)max(0, round(input.uv1.z));
+                int index = max(0, (int)round(input.uv1.w));
+                if (slot == 0 || TEXT_STUDIO_STYLE_TABLE_ENABLED < .5) return;
+                TextStudio2DGpuStyleHeader header = TextStudioLoadStyleHeader(slot);
+                if ((int)round(header.metadata.x) != TEXT_STUDIO_STYLE_SCHEMA_VERSION || index >= (int)round(header.metadata.y)) return;
+                record.x = round(header.program.x);
+                float2 handle = input.uv3.xy;
+                if (round(input.uv2.w) >= 0 || handle.x <= .5) return;
+                // A present handle that is no longer current measures no ink, as TextStudioSurfaceDistanceAtPoint does.
+                record.z = -2;
+                if (_TextStudio2DSurfacesEnabled < .5) return;
+                int surfaceHeader = (int)round(handle.x) * TEXT_STUDIO_SURFACE_HEADER_STRIDE;
+                float4 metadata = TextStudioLoadSurfaceHeader(surfaceHeader);
+                // Live Writing masks keep the general program (TextStudio2DStyleDecorations.SupportsLineProgram).
+                if (abs(metadata.z - handle.y) > .5 || metadata.w >= 1.5) return;
+                record.y = round(metadata.x);
+                record.z = min(2048, round(metadata.y));
+                record.w = record.z;
+                band = float2(-1e30, 1e30);
+                float4 bandRecord = TextStudioLoadSurfaceHeader(surfaceHeader + 3);
+                if (bandRecord.w > .5)
+                {
+                    record.w = min(record.z, round(bandRecord.x));
+                    band = bandRecord.yz;
+                }
+            }
+        #endif
+
             TextStudioDecorationPixelInput TextStudioDecorationVertex(
                 TextStudioDecorationVertexInput input)
             {
@@ -187,6 +251,10 @@ Shader "Text Studio/2D Style Decoration"
                 output.localPosition = input.vertex.xy;
                 output.worldPosition = mul(unity_ObjectToWorld, input.vertex).xy;
                 output.screenPosition = ComputeScreenPos(output.vertex);
+                output.lineCoordinate = TextStudioDecorationLineCoordinate(input);
+            #if defined(TEXT_STUDIO_DECORATION_LINE_SOLID)
+                TextStudioResolveLineRecords(input, output.lineRecord, output.lineBand);
+            #endif
                 return output;
             }
 
@@ -682,9 +750,8 @@ Shader "Text Studio/2D Style Decoration"
                 geometryCoverage = 0;
                 float2 size = max(abs(input.geometry.xy), .00001);
                 float emScale = max(input.geometry.z, .00001);
-                int lineFlags = (int)round(owner.parameters5.w);
-                float patternCoordinate = owner.parameters0.x <= 2 && owner.parameters3.x >= 2 ?
-                    TextStudioStyleLineCoordinate(styleSlot, ownerIndex, glyphIndex, input.textAndProgram.x, (lineFlags & 3) == 1) : 0;
+                // Resolved per vertex for line owners with a dash, dot or wave pattern, and zero for every other owner.
+                float patternCoordinate = input.lineCoordinate;
                 float2 pixelUnits = TextStudioLinePixelUnits(float4(input.localPosition, 0, 1));
                 bool maskedLine = owner.parameters0.x <= 2 && surfaceHandle.x > .5;
                 // Canvas batching moves POSITION into Canvas space. Reconstruct ink coordinates from the retained line origin instead.
@@ -825,10 +892,14 @@ Shader "Text Studio/2D Style Decoration"
                 return result * ownerOpacity;
             }
 
+            // alphaTest is the alpha-clip value of the returned colour, or 1 where the core returns without clipping. Callers discard
+            // after every interpolant read: discarding here, before the code of other layer kinds, made the Adreno 619 Vulkan driver
+            // fail to link these programs ("Out of index").
             fixed4 TextStudioDecorationFragmentCore(
-                TextStudioDecorationPixelInput input, bool coverageOnly, out half geometryCoverage)
+                TextStudioDecorationPixelInput input, bool coverageOnly, out half geometryCoverage, out half alphaTest)
             {
                 geometryCoverage = 0;
+                alphaTest = 1;
                 if (TEXT_STUDIO_STYLE_TABLE_ENABLED < .5)
                     return 0;
 
@@ -882,8 +953,7 @@ Shader "Text Studio/2D Style Decoration"
                         surface *= clipping;
                         geometryCoverage *= clipping;
                     }
-                    UNITY_BRANCH
-                    if (UNITY_UI_ALPHACLIP) clip(surface.a - .001);
+                    alphaTest = surface.a - .001;
                     return surface;
                 }
                 if (layerKind == 1)
@@ -1002,16 +1072,111 @@ Shader "Text Studio/2D Style Decoration"
                     result *= clipping;
                     geometryCoverage *= clipping;
                 }
-                UNITY_BRANCH
-                if (UNITY_UI_ALPHACLIP)
-                    clip(result.a - .001);
+                alphaTest = result.a - .001;
                 return result;
             }
 
+        #if defined(TEXT_STUDIO_DECORATION_LINE_SOLID)
+            // Largest distance a fill treatment moves or softens an edge. Pixel units scale by the screen gradient of a
+            // distance that changes at most one unit per unit, which twice the footprint bounds.
+            float TextStudioLineFillReach(int operationBase, int ownerIndex, int first, int last, float emScale, float footprint)
+            {
+                float reach = 0;
+                [loop]
+                for (int index = last; index >= first; index--)
+                {
+                    TextStudio2DGpuOperation treatment = TextStudioLoadOperation(operationBase + index);
+                    if ((int)round(treatment.selectorMetadata.w) != ownerIndex + 1) continue;
+                    float scale = treatment.parameters0.z > .5 ? footprint * 2 : emScale;
+                    reach = max(reach, (abs(treatment.parameters0.x) + max(0, treatment.parameters0.y)) * scale);
+                }
+                return reach;
+            }
+
+            // Lean program of retained lines whose treatments are normal fills of solid paint, in a style without colour
+            // adjustments (TextStudio2DStyleDecorations.SupportsLineProgram). It repeats the arithmetic, order and precision
+            // of TextStudioEvaluateSurfaceTreatments for exactly that case, so selected rows render the pixels of the general
+            // program while compiling none of its shape, surface, lighting, shadow, depth and paint families.
+            fixed4 TextStudioDecorationLineFragment(TextStudioDecorationPixelInput input)
+            {
+                int operationBase = (int)round(input.lineRecord.x);
+                if (operationBase < 0) return 0;
+                int ownerIndex = max(0, (int)round(input.textAndProgram.w));
+                TextStudio2DGpuOperation owner = TextStudioLoadOperation(operationBase + ownerIndex);
+                if ((int)round(owner.layerMetadata.x) != 8 || owner.parameters0.x > 2) return 0;
+                float2 size = max(abs(input.geometry.xy), .00001);
+                float emScale = max(input.geometry.z, .00001);
+                // Only pixel-unit lines read the camera scale; the line distance ignores it otherwise.
+                float2 pixelUnits = (int)round(owner.parameters3.w) == 1 ? TextStudioLinePixelUnits(float4(input.localPosition, 0, 1)) : 1;
+                float lineDistance = TextStudioDecorationLineDistance(owner, input.shapeAndGlyph.xy, size, emScale, input.lineCoordinate, pixelUnits);
+                int first = (int)round(owner.parameters13.y);
+                int last = min((int)round(owner.parameters13.z), TEXT_STUDIO_MAX_SURFACE_TREATMENTS) + first - 1;
+                bool maskedLine = input.lineRecord.z > -1.5;
+                float2 sourcePoint = input.atlasRect.zw + input.shapeAndGlyph.xy * size;
+                float footprint = length(ddx(sourcePoint)) + length(ddy(sourcePoint));
+                float inkDistance = 0, distance = lineDistance;
+                if (maskedLine)
+                {
+                    inkDistance = -1e6;
+                    if (input.lineRecord.z > -.5)
+                    {
+                        // Edges after the band edges lie beyond this reach from a pixel whose window stays inside the band and
+                        // never cross its row. The reach covers the antialiasing widths of the pixel and its neighbours, the fill
+                        // treatments and the line's half height, so every distance that reaches the pixel's coverage is exact.
+                        float reach = footprint * 4 + size.y * .5 + TextStudioLineFillReach(operationBase, ownerIndex, first, last, emScale, footprint);
+                        int edges = sourcePoint.y - reach >= input.lineBand.x && sourcePoint.y + reach <= input.lineBand.y
+                            ? (int)round(input.lineRecord.w) : (int)round(input.lineRecord.z);
+                        inkDistance = -TextStudioSurfaceEdgeDistance(sourcePoint, (int)round(input.lineRecord.y), edges);
+                    }
+                    distance = max(lineDistance, inkDistance);
+                }
+                float antiAlias = max(fwidth(distance), .00001);
+                float lineAntiAlias = max(fwidth(lineDistance), .00001), inkAntiAlias = max(fwidth(inkDistance), .00001);
+                float pixelScale = max(length(float2(ddx(distance), ddy(distance))), .000001);
+                half4 result = 0;
+                [loop]
+                for (int index = last; index >= first; index--)
+                {
+                    TextStudio2DGpuOperation treatment = TextStudioLoadOperation(operationBase + index);
+                    if ((int)round(treatment.selectorMetadata.w) != ownerIndex + 1 || (int)round(treatment.layerMetadata.x) != 0) continue;
+                    float scale = treatment.parameters0.z > .5 ? pixelScale : emScale;
+                    half coverage = TextStudioSoftShapeCoverage(distance - treatment.parameters0.x * scale, treatment.parameters0.y * scale, antiAlias);
+                    if (maskedLine)
+                        coverage = min(TextStudioSoftShapeCoverage(lineDistance - treatment.parameters0.x * scale, treatment.parameters0.y * scale, lineAntiAlias),
+                            TextStudioSoftShapeCoverage(inkDistance - treatment.parameters0.x * scale, treatment.parameters0.y * scale, inkAntiAlias));
+                    half4 paint = treatment.color;
+                    if (treatment.layerMetadata.w > .5) paint.rgb *= input.color.rgb;
+                    coverage *= saturate(treatment.layerMetadata.z);
+                    half alpha = saturate(paint.a * coverage);
+                    result = TextStudioBlendPremultiplied(result, half4(paint.rgb * alpha, alpha), (int)round(treatment.layerMetadata.y));
+                }
+                half ownerOpacity = saturate(owner.layerMetadata.z * input.color.a);
+                half4 surface = result * ownerOpacity;
+                UNITY_BRANCH
+                if (UNITY_UI_CLIP_RECT)
+                {
+                    half clipping = UnityGet2DClipping(input.localPosition, _ClipRect);
+                    surface *= clipping;
+                }
+                UNITY_BRANCH
+                if (UNITY_UI_ALPHACLIP) clip(surface.a - .001);
+                return surface;
+            }
+        #endif
+
             fixed4 TextStudioDecorationFragment(TextStudioDecorationPixelInput input) : SV_Target
             {
+            #if defined(TEXT_STUDIO_DECORATION_LINE_SOLID)
+                return TextStudioDecorationLineFragment(input);
+            #else
                 half geometryCoverage;
-                return TextStudioDecorationFragmentCore(input, _TextStudio2DGeometryCoveragePass > .5, geometryCoverage);
+                half alphaTest;
+                fixed4 result = TextStudioDecorationFragmentCore(input, _TextStudio2DGeometryCoveragePass > .5, geometryCoverage, alphaTest);
+                UNITY_BRANCH
+                if (UNITY_UI_ALPHACLIP)
+                    clip(alphaTest);
+                return result;
+            #endif
             }
 
             struct TextStudioConnectedSurfaceOutput
@@ -1020,14 +1185,31 @@ Shader "Text Studio/2D Style Decoration"
                 float depth : SV_Depth;
             };
 
+            // Raised by Hero around its connected-surface union draws and lowered after them.
+            float _TextStudio2DConnectedSurfaceUnion;
+
+            TextStudioDecorationPixelInput TextStudioConnectedSurfaceVertex(TextStudioDecorationVertexInput input)
+            {
+                TextStudioDecorationPixelInput output = TextStudioDecorationVertex(input);
+                // Hero raises the flag around its union draws only. An overlay Canvas submits every pass of a retained
+                // material regardless of LightMode, so the union quads collapse there and rasterize nothing.
+                if (_TextStudio2DConnectedSurfaceUnion < .5)
+                    output.vertex = float4(0, 0, 0, 1);
+                return output;
+            }
+
             TextStudioConnectedSurfaceOutput TextStudioConnectedSurfaceFragment(TextStudioDecorationPixelInput input)
             {
                 // Resolve overlapping patches by geometric coverage. One evaluation returns both the painted
                 // layer and its coverage; inlining the core twice doubled this pass's compile cost.
                 half geometryCoverage;
+                half alphaTest;
                 TextStudioConnectedSurfaceOutput output;
-                output.color = TextStudioDecorationFragmentCore(input, _TextStudio2DGeometryCoveragePass > .5, geometryCoverage);
+                output.color = TextStudioDecorationFragmentCore(input, _TextStudio2DGeometryCoveragePass > .5, geometryCoverage, alphaTest);
                 float coverage = saturate(geometryCoverage);
+                UNITY_BRANCH
+                if (UNITY_UI_ALPHACLIP)
+                    clip(alphaTest);
                 clip(coverage - .00001);
                 #if defined(UNITY_REVERSED_Z)
                 output.depth = coverage;
@@ -1053,6 +1235,8 @@ Shader "Text Studio/2D Style Decoration"
             #pragma target 3.5
             #pragma target 4.5 TEXT_STUDIO_BUFFER_TRANSPORT
             #pragma multi_compile TEXT_STUDIO_BUFFER_TRANSPORT TEXT_STUDIO_TEXTURE_TRANSPORT
+            // Retained lines that qualify draw with the lean solid-line program (AppearanceGpuCost.md).
+            #pragma multi_compile_local __ TEXT_STUDIO_DECORATION_LINE_SOLID
             #pragma vertex TextStudioDecorationVertex
             #pragma fragment TextStudioDecorationFragment
             #pragma dynamic_branch UNITY_UI_CLIP_RECT
@@ -1085,6 +1269,9 @@ Shader "Text Studio/2D Style Decoration"
         Pass
         {
             Name "TEXTSTUDIO_CONNECTED_SURFACE_UNION"
+            // Hero draws this pass by index. A LightMode outside every pipeline's defaults keeps Built-in renderers and
+            // camera Canvases, which draw each untagged pass, from writing its depth over later layers.
+            Tags { "LightMode"="TextStudioConnectedSurfaceUnion" }
             Cull Off
             ZWrite On
             ZTest LEqual
@@ -1094,7 +1281,7 @@ Shader "Text Studio/2D Style Decoration"
             #pragma target 3.5
             #pragma target 4.5 TEXT_STUDIO_BUFFER_TRANSPORT
             #pragma multi_compile TEXT_STUDIO_BUFFER_TRANSPORT TEXT_STUDIO_TEXTURE_TRANSPORT
-            #pragma vertex TextStudioDecorationVertex
+            #pragma vertex TextStudioConnectedSurfaceVertex
             #pragma fragment TextStudioConnectedSurfaceFragment
             #pragma dynamic_branch UNITY_UI_CLIP_RECT
             #pragma dynamic_branch UNITY_UI_ALPHACLIP

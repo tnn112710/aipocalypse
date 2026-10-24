@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Selects automatic preview composition, flat 2D output, the active renderer's output, or a comparison view.</summary>
     public enum TextStudioPreviewStageMode
     {
         Automatic,
@@ -12,6 +13,7 @@ namespace TextStudio
         Compare
     }
 
+    /// <summary>Selects a front, perspective, side, or orbit camera view for a preview stage.</summary>
     public enum TextStudioPreviewView
     {
         Front,
@@ -20,12 +22,14 @@ namespace TextStudio
         Orbit
     }
 
+    /// <summary>Chooses draft or full quality for preview-stage rendering.</summary>
     public enum TextStudioPreviewQuality
     {
         Draft,
         Full
     }
 
+    /// <summary>Flags the views, comparison modes, quality controls, and material or lighting diagnostics offered by a preview-stage provider.</summary>
     [Flags]
     public enum TextStudioPreviewStageCapabilities
     {
@@ -39,6 +43,7 @@ namespace TextStudio
         LightingDiagnostics = 1 << 6
     }
 
+    /// <summary>Classifies preview-stage feedback as information, success, warning, or error.</summary>
     public enum TextStudioPreviewDiagnosticSeverity
     {
         Information,

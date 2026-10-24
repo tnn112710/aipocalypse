@@ -92,8 +92,9 @@ namespace TextStudio.Editor
             double _lastHostTime;
             float _continuousTime;
             float _previousLifecycleTime;
+            bool _initializationAttempted;
 
-            internal bool HasScheduledItem => _scheduledItem != null;
+            internal bool HasScheduledItem => _scheduledItem != null && _scheduledItem.isActive;
 
             internal PreviewController(
                 VisualElement root,
@@ -115,9 +116,18 @@ namespace TextStudio.Editor
 
             internal void Attach()
             {
-                if (_renderer != null)
-                    return;
+                RegisterScrollVisibilityCallback();
+                RefreshVisibility();
+            }
 
+            bool TryInitializeRenderer()
+            {
+                if (_renderer != null)
+                    return true;
+                if (_initializationAttempted)
+                    return false;
+
+                _initializationAttempted = true;
                 if (!TextStudioPreviewExportSnapshot.TryCreate(
                         _markup,
                         _segments,
@@ -126,7 +136,7 @@ namespace TextStudio.Editor
                         out string error))
                 {
                     ShowFallback(error);
-                    return;
+                    return false;
                 }
 
                 try
@@ -143,14 +153,14 @@ namespace TextStudio.Editor
                     _continuousTime = 0f;
                     _previousLifecycleTime = 0f;
                     _lastHostTime = HostTime.CurrentHostTime(ClockMode.Realtime);
-                    RegisterScrollVisibilityCallback();
                     RenderCurrentFrame();
-                    RefreshVisibility();
+                    return true;
                 }
                 catch (System.Exception exception)
                 {
                     DisposeRenderer();
                     ShowFallback("Rendered preview unavailable: " + exception.Message);
+                    return false;
                 }
             }
 
@@ -158,19 +168,21 @@ namespace TextStudio.Editor
             {
                 UnregisterScrollVisibilityCallback();
                 PauseScheduling();
+                _scheduledItem = null;
                 DisposeRenderer();
+                _initializationAttempted = false;
             }
 
             internal void RefreshVisibility()
             {
-                if (_renderer == null)
-                    return;
-
                 if (!IsInsideVisiblePanel())
                 {
                     PauseScheduling();
                     return;
                 }
+
+                if (!TryInitializeRenderer())
+                    return;
 
                 _lastHostTime = HostTime.CurrentHostTime(ClockMode.Realtime);
                 if (_scheduledItem == null)
@@ -203,11 +215,13 @@ namespace TextStudio.Editor
             void PauseScheduling()
             {
                 _scheduledItem?.Pause();
-                _scheduledItem = null;
             }
 
             void RegisterScrollVisibilityCallback()
             {
+                if (_scrollView != null)
+                    return;
+
                 _scrollView = FindParentScrollView();
                 if (_scrollView != null)
                     _scrollView.verticalScroller.valueChanged += OnVerticalScrollChanged;

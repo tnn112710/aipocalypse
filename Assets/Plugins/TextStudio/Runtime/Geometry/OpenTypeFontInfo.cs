@@ -43,7 +43,8 @@ namespace TextStudio.Geometry
             bool isVariable,
             FontVariationAxisInfo[] variationAxes,
             int fingerprint,
-            int sfntOffset)
+            int sfntOffset,
+            bool hasMathData)
         {
             OutlineFormat = outlineFormat;
             HasColorTables = hasColorTables;
@@ -51,11 +52,13 @@ namespace TextStudio.Geometry
             _variationAxes = variationAxes ?? Array.Empty<FontVariationAxisInfo>();
             Fingerprint = fingerprint;
             SfntOffset = sfntOffset;
+            HasMathData = hasMathData;
         }
 
         public FontOutlineFormat OutlineFormat { get; }
         public bool HasColorTables { get; }
         public bool IsVariable { get; }
+        public bool HasMathData { get; }
         public IReadOnlyList<FontVariationAxisInfo> VariationAxes => _variationAxes;
         public int Fingerprint { get; }
 
@@ -159,6 +162,7 @@ namespace TextStudio.Geometry
             bool hasBitmapColor = false;
             bool hasLayeredColor = false;
             bool hasFvar = false;
+            bool hasMathData = false;
             int fvarOffset = -1;
             int fvarLength = 0;
 
@@ -177,6 +181,7 @@ namespace TextStudio.Geometry
                     case "loca": hasLoca = true; break;
                     case "CFF ": hasCff1 = true; break;
                     case "CFF2": hasCff2 = true; break;
+                    case "MATH": hasMathData = tableLength >= 10; break;
                     case "fvar":
                         hasFvar = true;
                         fvarOffset = tableOffset;
@@ -225,7 +230,8 @@ namespace TextStudio.Geometry
                 hasFvar,
                 axes,
                 ComputeFingerprint(bytes, sfntOffset),
-                sfntOffset);
+                sfntOffset,
+                hasMathData);
         }
 
         static FontVariationAxisInfo[] ParseVariationAxes(byte[] bytes, int tableOffset, int tableLength)

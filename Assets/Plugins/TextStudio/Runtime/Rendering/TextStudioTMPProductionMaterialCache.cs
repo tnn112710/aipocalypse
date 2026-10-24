@@ -14,6 +14,10 @@ namespace TextStudio
         internal TextStudio2DFieldPaddingTier PaddingTier;
         internal bool WritingSource;
         internal float PixelsPerEm;
+        internal TextStudio2DShaderTier ShaderTier;
+        internal TextStudio2DShaderOptions Options;
+        /// <summary>Rows of the uniform field program; default for every other production material.</summary>
+        internal TextStudio2DUniformFieldProgram UniformProgram;
 
         internal bool HasIdentity =>
             !ReferenceEquals(Source, null) &&
@@ -51,13 +55,17 @@ namespace TextStudio
             internal readonly TextStudio2DFieldPaddingTier PaddingTier;
             internal readonly bool WritingSource;
             internal readonly float PixelsPerEm;
+            internal readonly TextStudio2DShaderTier ShaderTier;
+            internal readonly TextStudio2DShaderOptions Options;
+            internal readonly TextStudio2DUniformFieldProgram UniformProgram;
 
             internal CacheKey(
                 Material source,
                 Shader shader,
                 bool payloadFromTangent,
                 TextStudio2DFieldPaddingTier paddingTier,
-                bool writingSource, float pixelsPerEm)
+                bool writingSource, float pixelsPerEm, TextStudio2DShaderTier shaderTier, TextStudio2DShaderOptions options,
+                in TextStudio2DUniformFieldProgram uniformProgram)
             {
                 Source = source;
                 Shader = shader;
@@ -65,6 +73,9 @@ namespace TextStudio
                 PaddingTier = paddingTier;
                 WritingSource = writingSource;
                 PixelsPerEm = pixelsPerEm;
+                ShaderTier = shaderTier;
+                Options = options;
+                UniformProgram = uniformProgram;
             }
 
             public bool Equals(CacheKey other)
@@ -73,7 +84,8 @@ namespace TextStudio
                        ReferenceEquals(Shader, other.Shader) &&
                        PayloadFromTangent == other.PayloadFromTangent &&
                        PaddingTier == other.PaddingTier &&
-                       WritingSource == other.WritingSource && PixelsPerEm.Equals(other.PixelsPerEm);
+                       WritingSource == other.WritingSource && PixelsPerEm.Equals(other.PixelsPerEm) &&
+                       ShaderTier == other.ShaderTier && Options == other.Options && UniformProgram.Equals(other.UniformProgram);
             }
 
             public override bool Equals(object obj)
@@ -94,7 +106,10 @@ namespace TextStudio
                     hash = hash * 397 ^ (PayloadFromTangent ? 1 : 0);
                     hash = hash * 397 ^ (int)PaddingTier;
                     hash = hash * 397 ^ (WritingSource ? 1 : 0);
-                    return hash * 397 ^ PixelsPerEm.GetHashCode();
+                    hash = hash * 397 ^ PixelsPerEm.GetHashCode();
+                    hash = hash * 397 ^ (int)ShaderTier;
+                    hash = hash * 397 ^ (int)Options;
+                    return hash * 397 ^ UniformProgram.GetHashCode();
                 }
             }
         }
@@ -130,7 +145,10 @@ namespace TextStudio
             Shader shader,
             bool payloadFromTangent,
             TextStudio2DFieldPaddingTier paddingTier,
-            bool writingSource = false, float pixelsPerEm = 0f)
+            bool writingSource = false, float pixelsPerEm = 0f,
+            TextStudio2DShaderTier shaderTier = TextStudio2DShaderTier.Full,
+            TextStudio2DShaderOptions options = TextStudio2DShaderOptions.MaterialEffects,
+            in TextStudio2DUniformFieldProgram uniformProgram = default)
         {
             if (source == null || !TextStudio2DShaderResources.IsUsable(shader))
                 return default;
@@ -140,7 +158,7 @@ namespace TextStudio
                 shader,
                 payloadFromTangent,
                 paddingTier,
-                writingSource, pixelsPerEm);
+                writingSource, pixelsPerEm, TextStudio2DShaderTiers.SupportedTier(shader, shaderTier), options, in uniformProgram);
             if (s_entries.TryGetValue(key, out CacheEntry entry) &&
                 entry.Material != null)
             {
@@ -163,7 +181,7 @@ namespace TextStudio
                 replacement,
                 payloadFromTangent,
                 paddingTier,
-                writingSource, pixelsPerEm);
+                writingSource, pixelsPerEm, key.ShaderTier, key.Options, in key.UniformProgram);
             entry = new CacheEntry(key, replacement, source.ComputeCRC());
             s_entries.Add(key, entry);
             return CreateLease(in key, replacement);
@@ -179,7 +197,7 @@ namespace TextStudio
                 lease.Shader,
                 lease.PayloadFromTangent,
                 lease.PaddingTier,
-                lease.WritingSource, lease.PixelsPerEm);
+                lease.WritingSource, lease.PixelsPerEm, lease.ShaderTier, lease.Options, in lease.UniformProgram);
             if (s_entries.TryGetValue(key, out CacheEntry entry) &&
                 ReferenceEquals(entry.Material, lease.Replacement))
             {
@@ -200,7 +218,7 @@ namespace TextStudio
                 lease.Shader,
                 lease.PayloadFromTangent,
                 lease.PaddingTier,
-                lease.WritingSource, lease.PixelsPerEm);
+                lease.WritingSource, lease.PixelsPerEm, lease.ShaderTier, lease.Options, in lease.UniformProgram);
             if (s_entries.TryGetValue(key, out CacheEntry entry) &&
                 ReferenceEquals(entry.Material, lease.Replacement))
             {
@@ -228,7 +246,8 @@ namespace TextStudio
                 entry.Material,
                 entry.Key.PayloadFromTangent,
                 entry.Key.PaddingTier,
-                entry.Key.WritingSource, entry.Key.PixelsPerEm);
+                entry.Key.WritingSource, entry.Key.PixelsPerEm, entry.Key.ShaderTier, entry.Key.Options,
+                in entry.Key.UniformProgram);
             entry.SourceCrc = sourceCrc;
         }
 
@@ -237,7 +256,8 @@ namespace TextStudio
             Material replacement,
             bool payloadFromTangent,
             TextStudio2DFieldPaddingTier paddingTier,
-            bool writingSource, float pixelsPerEm)
+            bool writingSource, float pixelsPerEm, TextStudio2DShaderTier shaderTier, TextStudio2DShaderOptions options,
+            in TextStudio2DUniformFieldProgram uniformProgram)
         {
             Shader shader = replacement.shader;
             string name = replacement.name;
@@ -245,8 +265,11 @@ namespace TextStudio
             replacement.shader = shader;
             replacement.name = name;
             replacement.hideFlags = HideFlags.HideAndDontSave;
-            replacement.SetFloat(TextStudioTMPMaterialCompatibility.NativeMaterialModelProperty,
-                (float)TextStudioTMPMaterialCompatibility.Analyze(source).NativeMaterialModel);
+            TextStudio2DShaderTiers.Configure(replacement, shaderTier, options);
+            if (uniformProgram.IsValid)
+                TextStudio2DShaderTiers.ConfigureUniformProgram(replacement, in uniformProgram);
+            TextStudioTMPNativeMaterialModel nativeModel = TextStudioTMPMaterialCompatibility.Analyze(source).NativeMaterialModel;
+            replacement.SetFloat(TextStudioTMPMaterialCompatibility.NativeMaterialModelProperty, (float)nativeModel);
             replacement.SetFloat(TextStudioGlyphFieldContract.PixelsPerEmProperty, pixelsPerEm);
             SetWhiteTextureWhenMissing(replacement, "_FaceTex");
             SetWhiteTextureWhenMissing(replacement, "_OutlineTex");
@@ -276,9 +299,11 @@ namespace TextStudio
                         TextStudio2DFieldPadding.GetNormalizedCapacity(paddingTier)));
             }
 
+            // Full TMP has no outline keyword; Mobile requires it even when a saved width is positive.
             bool outlineEnabled = source.IsKeywordEnabled("OUTLINE_ON") ||
-                                  source.HasProperty("_OutlineWidth") &&
-                                  source.GetFloat("_OutlineWidth") > 0.0001f;
+                                  (nativeModel == TextStudioTMPNativeMaterialModel.Full &&
+                                   source.HasProperty("_OutlineWidth") &&
+                                   source.GetFloat("_OutlineWidth") > 0.0001f);
             if (outlineEnabled)
                 replacement.EnableKeyword("OUTLINE_ON");
             else
@@ -319,7 +344,10 @@ namespace TextStudio
                 PayloadFromTangent = key.PayloadFromTangent,
                 PaddingTier = key.PaddingTier,
                 WritingSource = key.WritingSource,
-                PixelsPerEm = key.PixelsPerEm
+                PixelsPerEm = key.PixelsPerEm,
+                ShaderTier = key.ShaderTier,
+                Options = key.Options,
+                UniformProgram = key.UniformProgram
             };
         }
 

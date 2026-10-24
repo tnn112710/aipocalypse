@@ -156,6 +156,7 @@ namespace TextStudio
         TextStudioStackItemId GetItemId(int index);
     }
 
+    /// <summary>Classifies appearance-stack validation and compilation feedback as information, warnings, or errors.</summary>
     public enum TextStudioStackDiagnosticSeverity : byte
     {
         Information = 0,

@@ -28,6 +28,7 @@ Shader "Text Studio/2D Field SDF Canvas"
         _TextureWidth ("Texture Width", Float) = 512
         _TextureHeight ("Texture Height", Float) = 512
         _GradientScale ("Gradient Scale", Float) = 5
+        [HideInInspector] _TextStudioNativeMaterialModel ("Text Studio Native Material Model", Float) = 0
         [HideInInspector] _TextStudioFieldFormat ("Text Studio Field Format", Float) = 0
         [HideInInspector] _TextStudioFieldPixelsPerEm ("Text Studio Field Pixels Per Em", Float) = 0
         [HideInInspector] _TextStudioFieldSafeDistance ("Text Studio Field Safe Distance", Float) = 0

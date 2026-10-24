@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks for a finite response to tex
 metadata:
   asset: "Text Studio - Text Animation for Unity | TextMeshPro & UI Toolkit"
   publisher: "Impossible Robert"
-  asset-version: "1.2.0"
+  asset-version: "1.3.1"
   skill-version: "1.0.0"
   unity: "2023.2"
   render-pipelines: "Built-in, URP, HDRP, custom SRP"

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Selects world coordinates, screen-projected positioning, or parent-local coordinates for a temporary-text emission.</summary>
     public enum TextStudioEmissionOutputSpace
     {
         World,
@@ -10,6 +11,7 @@ namespace TextStudio
         ParentLocal
     }
 
+    /// <summary>Chooses whether an emitter at capacity recycles its oldest active emission or rejects the incoming request.</summary>
     public enum TextStudioEmissionOverflowPolicy
     {
         RecycleOldest,

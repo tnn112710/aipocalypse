@@ -4,6 +4,7 @@ using TextStudio.BuiltIns;
 
 namespace TextStudio
 {
+    /// <summary>Classifies markup diagnostics as information, warnings, or errors for authoring and validation feedback.</summary>
     public enum TextStudioDiagnosticSeverity
     {
         Info,
@@ -11,6 +12,7 @@ namespace TextStudio
         Error
     }
 
+    /// <summary>Identifies the markup condition reported by a diagnostic, including recognized tags, syntax errors, missing parameters, incompatible backends, and effect risks.</summary>
     public enum TextStudioDiagnosticCode
     {
         NativeRichTextTag,
@@ -34,6 +36,7 @@ namespace TextStudio
         AmbiguousAppearanceTag
     }
 
+    /// <summary>Identifies how parsed markup is interpreted, including native formatting, effects, extensions, actions, markers, Typewriter controls, expansions, and appearance.</summary>
     public enum TextStudioTagKind
     {
         NativeRichText,

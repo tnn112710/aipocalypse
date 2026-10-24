@@ -498,10 +498,7 @@ namespace MalbersAnimations.Items
         [SerializeField] private int SelectedHolster;
         [SerializeField] private int SelectedHolsterSlot; //MWC — Slot selected in the Slots list: the only one the Scene handles can edit
         [SerializeField] private bool debug;
-
-#pragma warning disable 0414
         [SerializeField] private bool ShowWarnings = true; //MWC — show/hide the validation Warnings help box in the inspector
-#pragma warning restore 0414
         [SerializeField] private bool EditOffsetsItems;
 
         //----------------------------------------------

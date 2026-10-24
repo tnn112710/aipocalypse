@@ -52,13 +52,22 @@ namespace TextStudio
         readonly Dictionary<ulong, Font> _fonts = new Dictionary<ulong, Font>();
         readonly List<ulong> _unused = new List<ulong>();
         readonly List<TextStudio2DSourceProjection> _projections = new List<TextStudio2DSourceProjection>();
-        Camera[] _cameras = Array.Empty<Camera>();
         ulong _projectionFingerprint;
         // Inputs of the last Screen Space Overlay projection; a sleeping overlay text compares these instead of rebuilding it.
         Canvas _overlayRoot;
         Matrix4x4 _overlayModel;
         Matrix4x4 _overlayRootMatrix;
         float _overlayScale;
+        // Inputs of the last camera projection; a settled text compares these and the shared camera snapshot instead of
+        // querying every camera again.
+        bool _cameraProjectionCurrent;
+        ulong _cameraFingerprint;
+        Matrix4x4 _cameraModel;
+        int _cameraLayer;
+        Scene _cameraScene;
+        Canvas _cameraCanvas;
+        RenderMode _cameraCanvasMode;
+        Camera _cameraExplicit;
         TextStudioVisualVersion _measuredVersion;
         int _measuredGlyphCount = -1;
         TextStudio2DAppearanceBinding _measuredBinding;
@@ -150,7 +159,7 @@ namespace TextStudio
             if (!projectionOnly) _nativeMaterials = nativeMaterials;
             // Same outcome as the settled early return below, reached without rebuilding and hashing an unchanged projection.
             if (projectionOnly && ReferenceEquals(style, _selectedStyle) && !style.RequiresContourGeometry &&
-                IsOverlayProjectionCurrent(text) && SelectionsSettled())
+                (IsOverlayProjectionCurrent(text) || IsCameraProjectionCurrent(text)) && SelectionsSettled())
                 return;
             CollectProjections(text);
             TextStudioDeterministicHash64 projectionHash = default;
@@ -279,23 +288,42 @@ namespace TextStudio
             GeometryFingerprint = geometry.Value;
         }
 
+        bool IsCameraProjectionCurrent(TMP_Text text)
+        {
+            if (!_cameraProjectionCurrent) return false;
+            Canvas canvas = text is TextMeshProUGUI ui ? ui.canvas : null;
+            if (!ReferenceEquals(canvas, _cameraCanvas)) return false;
+            if (canvas != null && (canvas.rootCanvas.renderMode != _cameraCanvasMode ||
+                                   !ReferenceEquals(canvas.worldCamera, _cameraExplicit) ||
+                                   _cameraCanvasMode == RenderMode.ScreenSpaceCamera && canvas.rootCanvas.worldCamera != null))
+                return false;
+            if (canvas == null && !ReferenceEquals(Camera.current, _cameraExplicit)) return false;
+            GameObject owner = text.gameObject;
+            return _cameraFingerprint == TextStudio2DCameraSnapshot.Fingerprint &&
+                   owner.layer == _cameraLayer &&
+                   owner.scene == _cameraScene &&
+                   _cameraModel.Equals(text.transform.localToWorldMatrix);
+        }
+
         bool IsOverlayProjectionCurrent(TMP_Text text)
         {
             if (_overlayRoot == null || !(text is TextMeshProUGUI ui)) return false;
             Canvas canvas = ui.canvas;
             if (canvas == null) return false;
-            Canvas root = canvas.rootCanvas;
-            return ReferenceEquals(root, _overlayRoot) &&
-                   root.renderMode == RenderMode.ScreenSpaceOverlay &&
-                   root.scaleFactor == _overlayScale &&
-                   _overlayModel.Equals(text.transform.localToWorldMatrix) &&
-                   _overlayRootMatrix.Equals(root.transform.localToWorldMatrix);
+            // The Canvas payload check reads the same root; every text on the canvas shares one read per player frame.
+            ref readonly TextStudioCanvasRootSnapshot.Entry root = ref TextStudioCanvasRootSnapshot.Of(canvas);
+            return ReferenceEquals(root.Root, _overlayRoot) &&
+                   root.RenderMode == RenderMode.ScreenSpaceOverlay &&
+                   root.ScaleFactor == _overlayScale &&
+                   _overlayModel.Equals(ui.rectTransform.localToWorldMatrix) &&
+                   _overlayRootMatrix.Equals(root.LocalToWorld);
         }
 
         void CollectProjections(TMP_Text text)
         {
             _projections.Clear();
             _overlayRoot = null;
+            _cameraProjectionCurrent = false;
             if (text == null) return;
             Matrix4x4 model = text.transform.localToWorldMatrix;
             Canvas canvas = text is TextMeshProUGUI ui ? ui.canvas : null;
@@ -315,20 +343,33 @@ namespace TextStudio
                 AddProjection(canvas.rootCanvas.worldCamera, text, model);
                 return;
             }
-            int activeCount = Camera.allCamerasCount;
-            if (_cameras.Length < activeCount + 18) Array.Resize(ref _cameras, Mathf.NextPowerOfTwo(activeCount + 18));
-            int count = Camera.GetAllCameras(_cameras);
-            count = TextStudio2DCameraUniforms.AppendRecentCameras(_cameras, count);
+            GameObject owner = text.gameObject;
+            int layer = owner.layer;
+            Scene scene = owner.scene;
             Camera explicitCamera = canvas != null ? canvas.worldCamera : Camera.current;
-            if (explicitCamera != null)
-            {
-                bool exists = false;
-                for (int index = 0; index < count; index++) if (_cameras[index] == explicitCamera) { exists = true; break; }
-                if (!exists) _cameras[count++] = explicitCamera;
-            }
+            bool explicitCaptured = explicitCamera == null;
+            int count = TextStudio2DCameraSnapshot.Count;
             for (int index = 0; index < count; index++)
-                AddProjection(_cameras[index], text, model);
-            Array.Clear(_cameras, 0, _cameras.Length);
+            {
+                ref readonly TextStudio2DCameraSnapshot.Entry camera = ref TextStudio2DCameraSnapshot.At(index);
+                if (!explicitCaptured && ReferenceEquals(camera.Camera, explicitCamera)) explicitCaptured = true;
+                if ((camera.CullingMask & (1 << layer)) == 0 || camera.Scene.IsValid() && camera.Scene != scene) continue;
+#if UNITY_EDITOR
+                // Preview and prefab stages can share layers while using disjoint scene culling masks.
+                if (!camera.Scene.IsValid() && (camera.SceneCullingMask & owner.sceneCullingMask) == 0) continue;
+#endif
+                _projections.Add(new TextStudio2DSourceProjection(camera.WorldToClip * model, camera.Pixels, sceneView: camera.IsSceneView));
+            }
+            if (!explicitCaptured) AddProjection(explicitCamera, text, model);
+            // An explicit camera outside the snapshot is not covered by its fingerprint, so that text recollects every frame.
+            _cameraProjectionCurrent = explicitCaptured;
+            _cameraFingerprint = TextStudio2DCameraSnapshot.Fingerprint;
+            _cameraModel = model;
+            _cameraLayer = layer;
+            _cameraScene = scene;
+            _cameraCanvas = canvas;
+            _cameraCanvasMode = canvas != null ? canvas.rootCanvas.renderMode : RenderMode.WorldSpace;
+            _cameraExplicit = explicitCamera;
             // Editor navigation must not redefine the pixel scale of an actual output camera.
             // Keep Scene View demand only when it is the text's sole available view.
             bool hasOutput = false;

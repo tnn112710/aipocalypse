@@ -8,6 +8,9 @@ using UnityEngine.Rendering;
 
 namespace FIMSpace.FTextureTools
 {
+#if UNITY_6000_6_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class FMeshPaintWindow : EditorWindow
     {
         public static FMeshPaintWindow Instance { get; private set; } = null;

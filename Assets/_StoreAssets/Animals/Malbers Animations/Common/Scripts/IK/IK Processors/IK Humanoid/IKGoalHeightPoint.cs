@@ -1,3 +1,4 @@
+// Last Change: 10/16/2026 9:45am
 using MalbersAnimations.Scriptables;
 using System;
 using UnityEngine;
@@ -85,15 +86,15 @@ namespace MalbersAnimations.IK
 
                 if (heightHitFound)
                 {
-                    ApplyIKPositionRotation(anim, heightHit.point, weight);
+                    ApplyIKPositionRotation(anim, heightHit.point, weight, OffsetScale(set));
                 }
             }
         }
 
 
-        private void ApplyIKPositionRotation(Animator anim, Vector3 position, float weight)
+        private void ApplyIKPositionRotation(Animator anim, Vector3 position, float weight, float scale)
         {
-            Vector3 finalPosition = position + anim.transform.TransformDirection(targetPosOffsetDistance);
+            Vector3 finalPosition = position + anim.transform.TransformDirection(targetPosOffsetDistance * scale); //IK Manager Scale Multiplier
             anim.SetIKPositionWeight(avatarIKGoal, weight);
             anim.SetIKPosition(avatarIKGoal, finalPosition);
 

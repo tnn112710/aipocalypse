@@ -9,7 +9,7 @@ namespace TextStudio
     /// Orchestrates the full text pipeline: source → tokenize → resolve → segment → layout.
     /// Rebuilds only what's dirty via version-checked stages.
     /// </summary>
-    internal sealed class TextStudioPipeline
+    internal sealed partial class TextStudioPipeline
     {
         readonly TextStudioTokenizer _tokenizer = new TextStudioTokenizer();
         readonly TextSegmenter _segmenter = new TextSegmenter();
@@ -25,6 +25,8 @@ namespace TextStudio
 
         TextStudioCompiledPlan _plan;
         uint _lastSourceVersion;
+        // Registry revisions when the current markup compile started reading them; an append state needs them unchanged at its end.
+        RegistryRevisions _markupCompileRegistries;
         TextStudioDefaultEffectSettings _defaultEffects;
         TextStudioMarkupSyntax _lastMarkupSyntax;
         int _lastMarkupSyntaxRevision;
@@ -32,6 +34,9 @@ namespace TextStudio
         TextStudioComposedEffectAsset _lastLocalEffect;
         string _lastPreviewSoloLayerId;
         bool _lastProcessedUnitsOnly;
+        // Every style input change goes through Invalidate, which advances this revision.
+        uint _styleInputRevision;
+        PlainTextStyleResolution _plainTextStyles;
 
         // Pooled token array
         TextToken[] _tokenBuffer;
@@ -59,6 +64,8 @@ namespace TextStudio
         internal bool LastProcessUsedPlainTextAppendFastPath { get; private set; }
         // Text without markup whose default, transition or supplemental effects resolved without tokenizing.
         internal bool LastProcessUsedPlainTextStylePath { get; private set; }
+        // A plain style path text that kept the resolution of the plain text before it (TryKeepPlainTextStyles).
+        internal bool LastProcessKeptPlainTextStyles { get; private set; }
         // Parity tests compile through the tokenizer to compare it with the plain text paths.
         internal bool ForceTokenizerForTests { get; set; }
         internal IReadOnlyList<TextStudioCompatibilityDiagnostic> CompatibilityDiagnostics =>
@@ -189,11 +196,25 @@ namespace TextStudio
                 return false;
 
             _lastProcessedUnitsOnly = false;
+            bool canAppendMarkup = CanProcessAppendedMarkup(
+                markupSyntax,
+                markupSyntaxRevision,
+                renderMarkupLiterally,
+                localEffect,
+                unitsOnly);
+            // Only a markup compile that ends below records an append state again.
+            _markupAppend.IsValid = false;
+            LastProcessAppendedMarkup = false;
+            _segmenter.NoteKeptUnits(null, 0, 0);
 
             bool previousUsedPlainTextFastPath = LastProcessUsedPlainTextFastPath;
             LastProcessUsedPlainTextFastPath = false;
             LastProcessUsedPlainTextAppendFastPath = false;
             LastProcessUsedPlainTextStylePath = false;
+            LastProcessKeptPlainTextStyles = false;
+            // Every other path may rewrite the plan's style arrays, so only a resolution recorded by the previous process is kept.
+            bool plainTextStylesWereRecorded = _plainTextStyles.IsValid;
+            _plainTextStyles.IsValid = false;
             int appendStart = -1;
             bool explicitAppend =
                 source is StringTextSource stringSource &&
@@ -201,6 +222,8 @@ namespace TextStudio
                     previousSourceVersion,
                     version,
                     out appendStart);
+            // Appended text keeps the segmented units its next append can resume after (TextSegmenter).
+            _segmenter.RetainsAppendPrefix = explicitAppend;
             _lastSourceVersion = version;
             _lastMarkupSyntax = markupSyntax;
             _lastMarkupSyntaxRevision = markupSyntaxRevision;
@@ -208,6 +231,7 @@ namespace TextStudio
             _lastLocalEffect = localEffect;
             _lastPreviewSoloLayerId = previewSoloLayerId;
             string canonicalText = source.GetCanonicalText() ?? string.Empty;
+            _plan.UnprojectedResolvedCharToResolvedBoundary = null;
             string appendValidatedText = canonicalText;
             if (renderMarkupLiterally)
             {
@@ -216,6 +240,14 @@ namespace TextStudio
             }
 
             _plan.IsLiteralMarkup = false;
+
+            if (canAppendMarkup && explicitAppend)
+            {
+                // CanProcessAppendedMarkup found every registry at the revision the append state recorded.
+                _markupCompileRegistries = _markupAppend.Registries;
+                if (TryProcessAppendedMarkup(canonicalText, version, appendStart, markupSyntax))
+                    return true;
+            }
 
             if (markupSyntax != null)
                 canonicalText = markupSyntax.Normalize(canonicalText);
@@ -226,11 +258,13 @@ namespace TextStudio
                 ? TextStudioTagExpansionProcessor.Expand(canonicalText, TextStudioRegistry.TagExpansions)
                 : canonicalText;
             text = _compatibilityTranslator.Translate(text, profile);
+            TextStudioTextProjection protectedProjection = GetTextProjection(text);
             bool canTrustAppendStart =
                 explicitAppend &&
                 ReferenceEquals(text, appendValidatedText);
 
-            PlainTextKind plainText = ForceTokenizerForTests || localEffect != null
+            PlainTextKind plainText = ForceTokenizerForTests || localEffect != null ||
+                protectedProjection != null && !string.Equals(protectedProjection.ResolvedText, text, StringComparison.Ordinal)
                 ? PlainTextKind.Markup
                 : ClassifyPlainText(text);
             if (plainText != PlainTextKind.Markup)
@@ -264,18 +298,27 @@ namespace TextStudio
                     return true;
                 }
 
+                if (plainTextStylesWereRecorded && TryKeepPlainTextStyles())
+                {
+                    LastProcessKeptPlainTextStyles = true;
+                    return true;
+                }
+
                 _styleResolver.Resolve(_plan, _defaultEffects, localEffect, previewSoloLayerId, _rangeLedger);
+                RecordPlainTextStyles();
                 return true;
             }
 
             // Stage 1: Tokenize
-            _tokenizer.Tokenize(text);
+            // Tokenizing and resolving read the registries, which an append state needs unchanged at the end of this compile.
+            _markupCompileRegistries = RegistryRevisions.Capture();
+            _tokenizer.Tokenize(text, protectedProjection);
             _plan.CanonicalText = text;
             _plan.SourceVersion = version;
             CopyTokensToPlan(_tokenizer);
             _plan.TokenCount = _tokenizer.TokenCount;
 
-            _rangeLedger.Build(text, _plan.Tokens, _plan.TokenCount);
+            _rangeLedger.Build(text, _plan.Tokens, _plan.TokenCount, _tokenizer.Names);
 
             // Stage 2: Resolve text (strip markup, build resolved string)
             ResolveText(text);
@@ -287,11 +330,14 @@ namespace TextStudio
             }
 
             // Stage 3: Resolve styles, effects, actions
-            _styleResolver.Resolve(_plan, _defaultEffects, localEffect, previewSoloLayerId, _rangeLedger);
+            _styleResolver.Resolve(_plan, _defaultEffects, localEffect, previewSoloLayerId, _rangeLedger, _tokenizer.Names);
 
             // Stage 4: Segment into words/lines on first read
             _plan.DeferSegmentation(_segmenter);
 
+            // Appended text can build on this plan when every text transform returned the canonical text itself.
+            if (localEffect == null && ReferenceEquals(text, appendValidatedText))
+                RecordMarkupAppendState(text, markupSyntax);
             return true;
         }
 
@@ -355,6 +401,7 @@ namespace TextStudio
             }
 
             int previousTextLength = previousText.Length;
+            uint previousSourceVersion = _plan.SourceVersion;
             _plan.CanonicalText = text;
             _plan.SourceVersion = sourceVersion;
             _plan.Tokens = Array.Empty<TextToken>();
@@ -370,6 +417,9 @@ namespace TextStudio
 
             ExtendIdentityDisplayCharacterMap(previousTextLength);
             FinalizeUnstyledPlanMetadata(text.Length);
+            // ASCII identity units: every character of the text before the append keeps its glyph.
+            AppendKeptGlyphCount = previousTextLength;
+            AppendBaseSourceVersion = previousSourceVersion;
             return true;
         }
 
@@ -587,21 +637,170 @@ namespace TextStudio
         public void Invalidate()
         {
             _lastSourceVersion = unchecked(_lastSourceVersion - 1);
+            _styleInputRevision = unchecked(_styleInputRevision + 1);
+        }
+
+        // Without markup the resolver reads only the unit count, the style inputs, the effect and substitution registries
+        // and effect asset content, and writes only the effect bindings, the character substitutions with their region maps
+        // and the source context requirements. A plain replacement that keeps the unit count and all of those inputs would
+        // resolve the same values into the arrays the previous resolution left in the plan, so it restores their counts.
+        struct PlainTextStyleResolution
+        {
+            internal bool IsValid;
+            internal int UnitCount;
+            internal uint StyleInputRevision;
+            internal uint EffectRegistryRevision;
+            internal uint SubstitutionRegistryRevision;
+            internal uint EffectContentRevision;
+            internal EffectBinding[] EffectBindings;
+            internal int EffectBindingCount;
+            internal TextStudioSourceContextRequirements SourceContextRequirements;
+            internal CharacterSubstitutionBinding[] CharacterSubstitutionBindings;
+            internal int CharacterSubstitutionBindingCount;
+            internal RegionToGlyphMap[] RegionMaps;
+            internal int RegionMapCount;
+        }
+
+        void RecordPlainTextStyles()
+        {
+            if (_plan.AppearanceSpanCount != 0 ||
+                _plan.ActionMarkerCount != 0 ||
+                _plan.ExtensionTagCount != 0 ||
+                _plan.InstantRangeCount != 0 ||
+                _plan.CharDecorations != null ||
+                !HasReplayableEffectBindings(_plan))
+            {
+                return;
+            }
+
+            _plainTextStyles = new PlainTextStyleResolution
+            {
+                IsValid = true,
+                UnitCount = _plan.VisibleGlyphCount,
+                StyleInputRevision = _styleInputRevision,
+                EffectRegistryRevision = TextStudioRegistry.Effects.Revision,
+                SubstitutionRegistryRevision = TextStudioRegistry.CharacterSubstitutions.Revision,
+                EffectContentRevision = TextStudioEffectDefinitionAsset.ContentRevision,
+                EffectBindings = _plan.EffectBindings,
+                EffectBindingCount = _plan.EffectBindingCount,
+                SourceContextRequirements = _plan.SourceContextRequirements,
+                CharacterSubstitutionBindings = _plan.CharacterSubstitutionBindings,
+                CharacterSubstitutionBindingCount = _plan.CharacterSubstitutionBindingCount,
+                RegionMaps = _plan.RegionMaps,
+                RegionMapCount = _plan.RegionMapCount
+            };
+        }
+
+        bool TryKeepPlainTextStyles()
+        {
+            ref PlainTextStyleResolution kept = ref _plainTextStyles;
+            if (kept.UnitCount != _plan.VisibleGlyphCount ||
+                kept.StyleInputRevision != _styleInputRevision ||
+                kept.EffectRegistryRevision != TextStudioRegistry.Effects.Revision ||
+                kept.SubstitutionRegistryRevision != TextStudioRegistry.CharacterSubstitutions.Revision ||
+                kept.EffectContentRevision != TextStudioEffectDefinitionAsset.ContentRevision ||
+                !ReferenceEquals(kept.EffectBindings, _plan.EffectBindings) ||
+                !ReferenceEquals(kept.CharacterSubstitutionBindings, _plan.CharacterSubstitutionBindings) ||
+                !ReferenceEquals(kept.RegionMaps, _plan.RegionMaps))
+            {
+                return false;
+            }
+
+            // BuildPlainTextPlan cleared every count; the arrays still hold the recorded resolution.
+            _plan.EffectBindingCount = kept.EffectBindingCount;
+            _plan.SourceContextRequirements = kept.SourceContextRequirements;
+            _plan.CharacterSubstitutionBindingCount = kept.CharacterSubstitutionBindingCount;
+            _plan.RegionMapCount = kept.RegionMapCount;
+            kept.IsValid = true;
+            return true;
+        }
+
+        // A resolution creates an evaluator only for a direct effect whose definition is a factory. A kept binding then
+        // reuses that evaluator, which matches a new one only for stateless built-in code effects; shared definitions and
+        // composition layers are the same objects in every resolution. Writing layers also register their stroke
+        // properties while resolving, so they always resolve again.
+        static bool HasReplayableEffectBindings(TextStudioCompiledPlan plan)
+        {
+            for (int i = 0; i < plan.EffectBindingCount; i++)
+            {
+                ITextStudioEffect effect = plan.EffectBindings[i].effect;
+                if (effect == null ||
+                    effect is BuiltIns.CodeEffectBase ||
+                    effect is TextStudioCompositionLayer layer && layer.Kind != TextStudioCompositionLayerKind.Writing ||
+                    effect is ITextStudioEffectDefinition && !(effect is ITextStudioEffectFactory))
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
         }
 
         void ResolveText(string source)
         {
-            var tokens = _plan.Tokens;
-            int tokenCount = _plan.TokenCount;
-
             _resolvedBuilder.Clear();
             _displayBuilder.Clear();
             _resolvedSourceIndices.Clear();
             _displayResolvedIndices.Clear();
             _nativeTextAtoms.Clear();
-            bool hasNativeFormatting = false;
+            _hasNativeFormatting = false;
+            AppendTokenText(source, 0, _plan.TokenCount, _tokenizer.Names);
 
-            for (int i = 0; i < tokenCount; i++)
+            _plan.ResolvedText = _resolvedBuilder.ToString();
+            _plan.DisplayText = _hasNativeFormatting ? _displayBuilder.ToString() : _plan.ResolvedText;
+            TextStudioTextUnitBuilder.Build(_plan, _resolvedSourceIndices);
+            ApplyNativeTextAtoms(0);
+            BuildDisplayCharacterMap();
+            ApplyTextProjection();
+            FinishResolvedGlyphs(source.Length);
+        }
+
+        // An inline object occupies one resolved character but retains its complete authored tag span.
+        void ApplyNativeTextAtoms(int resolvedFrom)
+        {
+            for (int i = 0; i < _nativeTextAtoms.Count; i++)
+            {
+                TextStudioTextUnit atom = _nativeTextAtoms[i];
+                if (atom.resolvedStart < resolvedFrom)
+                    continue;
+                int unitIndex = _plan.GetUnitIndexForResolvedChar(atom.resolvedStart);
+                _plan.TextUnits[unitIndex] = new TextStudioTextUnit(
+                    unitIndex, atom.resolvedStart, 1, atom.sourceStart, atom.sourceLength);
+            }
+        }
+
+        void FinishResolvedGlyphs(int sourceLength)
+        {
+            _plan.VisibleGlyphCount = _plan.TextUnitCount;
+
+            // Build a single glyph run spanning the whole text
+            if (_plan.VisibleGlyphCount > 0)
+            {
+                _singleRunBuffer[0] = new GlyphRun
+                {
+                    startIndex = 0,
+                    count = _plan.VisibleGlyphCount,
+                    sourceStart = 0,
+                    sourceEnd = sourceLength,
+                    styleIndex = 0
+                };
+                _plan.GlyphRuns = _singleRunBuffer;
+                _plan.GlyphRunCount = 1;
+            }
+            else
+            {
+                _plan.GlyphRuns = Array.Empty<GlyphRun>();
+                _plan.GlyphRunCount = 0;
+            }
+        }
+
+        // Appends the resolved and display text of tokens [start, end) with their character maps.
+        void AppendTokenText(string source, int start, int end, string[] names)
+        {
+            TextToken[] tokens = _plan.Tokens;
+            for (int i = start; i < end; i++)
             {
                 ref var token = ref tokens[i];
                 switch (token.kind)
@@ -630,9 +829,15 @@ namespace TextStudio
                         // it natively. Decoration runs (u / s) are later
                         // subdivided per-character in the hub's mesh pass so they
                         // follow curved placements without touching this stream.
-                        int nameStart = token.sourceStart;
-                        int nameEnd = token.nameEnd > token.sourceStart ? token.nameEnd : token.sourceEnd;
-                        string tagName = source.Substring(nameStart, nameEnd - nameStart).Trim();
+                        string tagName;
+                        if (names != null)
+                            tagName = names[i];
+                        else
+                        {
+                            int nameStart = token.sourceStart;
+                            int nameEnd = token.nameEnd > token.sourceStart ? token.nameEnd : token.sourceEnd;
+                            tagName = source.Substring(nameStart, nameEnd - nameStart).Trim();
+                        }
                         TextStudioRangeEntry ownership = _rangeLedger[i];
                         bool isNativeOpen = token.kind == TokenKind.StyleOpen && ownership.Owner == TextStudioRangeOwner.Native;
                         bool orphanNativeClose = token.kind == TokenKind.StyleClose && ownership.Owner == TextStudioRangeOwner.None &&
@@ -650,7 +855,7 @@ namespace TextStudio
                             if (token.kind == TokenKind.StyleOpen &&
                                 TryAppendNormalizedNativeColorTag(_displayBuilder, source, token, tagName))
                             {
-                                hasNativeFormatting = true;
+                                _hasNativeFormatting = true;
                                 _displayBuilder.Append('>');
                                 AppendUnmappedDisplayCharacters(displayStart);
                                 break;
@@ -672,7 +877,7 @@ namespace TextStudio
                             }
                             else
                                 AppendUnmappedDisplayCharacters(displayStart);
-                            hasNativeFormatting = true;
+                            _hasNativeFormatting = true;
                         }
                         // Non-native style tags are consumed here - StyleResolver turns
                         // them into effect bindings.
@@ -689,40 +894,6 @@ namespace TextStudio
                         break;
                 }
             }
-
-            _plan.ResolvedText = _resolvedBuilder.ToString();
-            _plan.DisplayText = hasNativeFormatting ? _displayBuilder.ToString() : _plan.ResolvedText;
-            TextStudioTextUnitBuilder.Build(_plan, _resolvedSourceIndices);
-            // An inline object occupies one resolved character but retains its complete authored tag span.
-            for (int i = 0; i < _nativeTextAtoms.Count; i++)
-            {
-                TextStudioTextUnit atom = _nativeTextAtoms[i];
-                int unitIndex = _plan.GetUnitIndexForResolvedChar(atom.resolvedStart);
-                _plan.TextUnits[unitIndex] = new TextStudioTextUnit(
-                    unitIndex, atom.resolvedStart, 1, atom.sourceStart, atom.sourceLength);
-            }
-            BuildDisplayCharacterMap();
-            _plan.VisibleGlyphCount = _plan.TextUnitCount;
-
-            // Build a single glyph run spanning the whole text
-            if (_plan.VisibleGlyphCount > 0)
-            {
-                _singleRunBuffer[0] = new GlyphRun
-                {
-                    startIndex = 0,
-                    count = _plan.VisibleGlyphCount,
-                    sourceStart = 0,
-                    sourceEnd = source.Length,
-                    styleIndex = 0
-                };
-                _plan.GlyphRuns = _singleRunBuffer;
-                _plan.GlyphRunCount = 1;
-            }
-            else
-            {
-                _plan.GlyphRuns = Array.Empty<GlyphRun>();
-                _plan.GlyphRunCount = 0;
-            }
         }
 
         void AppendUnmappedDisplayCharacters(int displayStart)
@@ -737,7 +908,8 @@ namespace TextStudio
                 _displayResolvedIndices.Add(resolvedIndex);
         }
 
-        void BuildDisplayCharacterMap()
+        // Display characters before displayFrom keep the entries the build before this one wrote for them.
+        void BuildDisplayCharacterMap(int displayFrom = 0)
         {
             int displayLength = _plan.DisplayText != null ? _plan.DisplayText.Length : 0;
             if (displayLength <= 0)
@@ -747,14 +919,10 @@ namespace TextStudio
                 return;
             }
 
-            int[] displayCharToResolved = _plan.DisplayCharToResolvedCharIndex;
-            if (displayCharToResolved == null || displayCharToResolved.Length < displayLength)
-                displayCharToResolved = new int[TextStudioBufferCapacity.ForCount(displayLength)];
-            int[] displayCharToUnit = _plan.DisplayCharToTextUnitIndex;
-            if (displayCharToUnit == null || displayCharToUnit.Length < displayLength)
-                displayCharToUnit = new int[TextStudioBufferCapacity.ForCount(displayLength)];
+            int[] displayCharToResolved = TextStudioBufferCapacity.EnsureKeeping(_plan.DisplayCharToResolvedCharIndex, displayLength, displayFrom);
+            int[] displayCharToUnit = TextStudioBufferCapacity.EnsureKeeping(_plan.DisplayCharToTextUnitIndex, displayLength, displayFrom);
 
-            for (int i = 0; i < displayLength; i++)
+            for (int i = displayFrom; i < displayLength; i++)
             {
                 int resolvedIndex = i < _displayResolvedIndices.Count
                     ? _displayResolvedIndices[i]
@@ -826,14 +994,14 @@ namespace TextStudio
                    string.Equals(tagName, "mark", StringComparison.OrdinalIgnoreCase);
         }
 
-        void CopyTokensToPlan(TextStudioTokenizer tokenizer)
+        // Tokens before start keep the copy made of them before.
+        void CopyTokensToPlan(TextStudioTokenizer tokenizer, int start = 0)
         {
             int count = tokenizer.TokenCount;
-            if (_tokenBuffer == null || _tokenBuffer.Length < count)
-                _tokenBuffer = new TextToken[TextStudioBufferCapacity.ForCount(count)];
+            _tokenBuffer = TextStudioBufferCapacity.EnsureKeeping(_tokenBuffer, count, start);
 
             var source = tokenizer.Tokens;
-            for (int i = 0; i < count; i++)
+            for (int i = start; i < count; i++)
                 _tokenBuffer[i] = source[i];
 
             _plan.Tokens = _tokenBuffer;
@@ -979,6 +1147,13 @@ namespace TextStudio
                 TextStudioPhaseMask.All);
         TextStudioDefaultEffectMode _transitionEffectMode = TextStudioDefaultEffectMode.None;
         int _nextPhaseWrapperGroup;
+        // Set by the end of a resolution that a text append can extend (TryResolveAppended).
+        bool _canResolveAppended;
+        // Set while resolving an explicit binding that a full resolution would resolve to other objects, another phase blend
+        // group or a missing-entry warning; such text resolves in full.
+        bool _bindingBlocksAppend;
+        static readonly IComparer<TextStudioExtensionTag> ExtensionTagOrder =
+            Comparer<TextStudioExtensionTag>.Create(CompareExtensionTags);
         TextStudioComposedEffectAsset _localEffect;
         string _previewSoloLayerId;
 
@@ -1080,16 +1255,18 @@ namespace TextStudio
             Resolve(plan, defaultEffects, null);
         }
 
+        /// <param name="names">The tokenizer's tag name per token of the plan, or null to read each name from the source.</param>
         internal void Resolve(
             TextStudioCompiledPlan plan,
             TextStudioDefaultEffectSettings defaultEffects,
             TextStudioComposedEffectAsset localEffect,
             string previewSoloLayerId = null,
-            TextStudioRangeLedger rangeLedger = null)
+            TextStudioRangeLedger rangeLedger = null,
+            string[] names = null)
         {
             if (rangeLedger == null)
             {
-                _fallbackRangeLedger.Build(plan.CanonicalText, plan.Tokens, plan.TokenCount);
+                _fallbackRangeLedger.Build(plan.CanonicalText, plan.Tokens, plan.TokenCount, names);
                 rangeLedger = _fallbackRangeLedger;
             }
             _appearanceSpans.Clear();
@@ -1108,19 +1285,103 @@ namespace TextStudio
             _decorationTagStack.Clear();
             _phaseEffectNames.Clear();
             _nextPhaseWrapperGroup = 0;
+            _bindingBlocksAppend = false;
 
             // Lazily allocate / resize CharDecorations only if we actually see
             // a decoration tag below. The common case (no <uu>/<o> markers)
             // leaves the array null so the decoration subsystem skips this
             // track entirely.
             DecorationBits[] charDecorations = null;
+            int resolvedIndex = ResolveTokens(plan, rangeLedger, names, 0, 0, 0, ref charDecorations);
+            FinishResolve(plan, defaultEffects, resolvedIndex, charDecorations, default);
+        }
+
+        /// <summary>
+        /// Resolves the tokens a text append added from <paramref name="startToken"/> on, after a resolution of this plan that
+        /// closed every tag and added no default effects (<see cref="CanResolveAppended"/>), and keeps that resolution's
+        /// results for the tokens before. <paramref name="resolvedCharIndex"/> is the resolved text length before
+        /// <paramref name="startToken"/>, whose units the append kept. Returns false when the appended tokens open appearance
+        /// or decoration scopes, or resolve bindings an append does not keep; the plan then needs a full resolution.
+        /// </summary>
+        internal bool TryResolveAppended(
+            TextStudioCompiledPlan plan,
+            TextStudioDefaultEffectSettings defaultEffects,
+            TextStudioRangeLedger rangeLedger,
+            string[] names,
+            int startToken,
+            int resolvedCharIndex)
+        {
+            if (!_canResolveAppended ||
+                defaultEffects.Mode != TextStudioDefaultEffectMode.None ||
+                HasTypewriterTransitionEffects ||
+                HasSupplementalEffects)
+            {
+                return false;
+            }
+
+            AppendedResolutionStart previous = new AppendedResolutionStart(this);
+            int phaseBlendGroupState = _effectResolver.PhaseBlendGroupState;
+            _canResolveAppended = false;
+            DecorationBits[] charDecorations = null;
+            int resolvedIndex = ResolveTokens(
+                plan,
+                rangeLedger,
+                names,
+                startToken,
+                resolvedCharIndex,
+                plan.GetUnitBoundaryForUnprojectedResolvedChar(resolvedCharIndex),
+                ref charDecorations);
+            if (_bindingBlocksAppend || _appearanceSpans.Count > 0 || charDecorations != null)
+            {
+                // The full resolution that follows then allocates the phase blend groups it would have allocated without this attempt.
+                _effectResolver.PhaseBlendGroupState = phaseBlendGroupState;
+                return false;
+            }
+
+            FinishResolve(plan, defaultEffects, resolvedIndex, null, previous);
+            return true;
+        }
+
+        // Whether the last resolution of the plan can take a text append (TryResolveAppended).
+        internal bool CanResolveAppended => _canResolveAppended;
+
+        // The entry counts before an append's tokens, whose entries the plan arrays hold already.
+        readonly struct AppendedResolutionStart
+        {
+            internal readonly bool IsAppend;
+            internal readonly int EffectBindings;
+            internal readonly int CharacterSubstitutionBindings;
+            internal readonly int ActionMarkers;
+            internal readonly int ExtensionTags;
+            internal readonly int InstantRanges;
+            internal readonly int RegionMaps;
+
+            internal AppendedResolutionStart(StyleResolver resolver)
+            {
+                IsAppend = true;
+                EffectBindings = resolver._effectBindings.Count;
+                CharacterSubstitutionBindings = resolver._characterSubstitutionBindings.Count;
+                ActionMarkers = resolver._actionMarkers.Count;
+                ExtensionTags = resolver._extensionTags.Count;
+                InstantRanges = resolver._instantRanges.Count;
+                RegionMaps = resolver._regionMaps.Count;
+            }
+        }
+
+        // Resolves the tokens from startToken on, starting at the resolved character and unit index before it, and returns the unit index after the last token.
+        int ResolveTokens(
+            TextStudioCompiledPlan plan,
+            TextStudioRangeLedger rangeLedger,
+            string[] names,
+            int startToken,
+            int resolvedCharIndex,
+            int resolvedIndex,
+            ref DecorationBits[] charDecorations)
+        {
             int visibleGlyphCount = plan.VisibleGlyphCount;
-
             string source = plan.CanonicalText;
-            int resolvedCharIndex = 0;
-            int resolvedIndex = 0;
 
-            for (int i = 0; i < plan.TokenCount; i++)
+            for (int i = startToken; i < plan.TokenCount; i++)
             {
                 ref var token = ref plan.Tokens[i];
 
@@ -1134,7 +1395,7 @@ namespace TextStudio
 
                     case TokenKind.StyleOpen:
                     {
-                        string tagName = ExtractTagName(source, token);
+                        string tagName = names != null ? names[i] : ExtractTagName(source, token);
                         TextStudioRangeEntry ownership = rangeLedger[i];
                         if (ownership.Owner == TextStudioRangeOwner.Appearance)
                         {
@@ -1268,7 +1529,7 @@ namespace TextStudio
                     case TokenKind.Wait:
                     case TokenKind.Action:
                     {
-                        string actionName = ExtractTagName(source, token);
+                        string actionName = names != null ? names[i] : ExtractTagName(source, token);
                         if (BuiltIns.BuiltInActions.TryGetCanonicalActionId(actionName, out string canonicalActionName))
                             actionName = canonicalActionName;
                         else if (TryGetLocalActionId(actionName, out string canonicalLocalActionName))
@@ -1283,7 +1544,7 @@ namespace TextStudio
 
                     case TokenKind.Marker:
                     {
-                        string markerName = ExtractTagName(source, token);
+                        string markerName = names != null ? names[i] : ExtractTagName(source, token);
                         if (BuiltIns.BuiltInActions.TryGetCanonicalActionId(markerName, out string canonicalMarkerName))
                             markerName = canonicalMarkerName;
                         else if (TryGetLocalActionId(markerName, out string canonicalLocalMarkerName))
@@ -1298,7 +1559,7 @@ namespace TextStudio
 
                     case TokenKind.ExtensionTag:
                     {
-                        string tagName = ExtractTagName(source, token);
+                        string tagName = names != null ? names[i] : ExtractTagName(source, token);
                         if (!TextStudioTagUtility.TryGetExtensionTag(tagName, token.parameterStart > 0, out TextStudioExtensionTagDefinition definition))
                             break;
 
@@ -1337,6 +1598,26 @@ namespace TextStudio
                 }
             }
 
+            return resolvedIndex;
+        }
+
+        // Closes the tags the end of the text left open, adds the default effects and hands every list to the plan. The plan
+        // arrays of an append hold the entries before it already.
+        void FinishResolve(
+            TextStudioCompiledPlan plan,
+            TextStudioDefaultEffectSettings defaultEffects,
+            int resolvedIndex,
+            DecorationBits[] charDecorations,
+            AppendedResolutionStart previous)
+        {
+            int visibleGlyphCount = plan.VisibleGlyphCount;
+            string source = plan.CanonicalText;
+            bool openAtTextEnd =
+                _openTagStack.Count > 0 ||
+                _characterSubstitutionTagStack.Count > 0 ||
+                _instantTagStack.Count > 0 ||
+                _decorationTagStack.Count > 0 ||
+                _openExtensionTagStack.Count > 0;
             ApplyRemainingEffectRanges(resolvedIndex);
             ApplyRemainingCharacterSubstitutionRanges(resolvedIndex);
             ApplyRemainingInstantRanges(resolvedIndex);
@@ -1355,14 +1636,18 @@ namespace TextStudio
             plan.AppearanceSpanCount = _appearanceSpans.Count;
 
             // Copy to plan arrays (reuse when possible)
-            if (_effectBindings.Count > 0 &&
-                (plan.EffectBindings == null || plan.EffectBindings.Length < _effectBindings.Count))
+            int bindingStart = previous.EffectBindings;
+            if (previous.IsAppend)
+                plan.EffectBindings = KeepForAppend(plan.EffectBindings, _effectBindings.Count, bindingStart);
+            else if (_effectBindings.Count > 0 &&
+                     (plan.EffectBindings == null || plan.EffectBindings.Length < _effectBindings.Count))
                 plan.EffectBindings = new EffectBinding[Math.Max(_effectBindings.Count, 8)];
-            for (int i = 0; i < _effectBindings.Count; i++)
+            for (int i = bindingStart; i < _effectBindings.Count; i++)
                 plan.EffectBindings[i] = _effectBindings[i];
             plan.EffectBindingCount = _effectBindings.Count;
-            plan.SourceContextRequirements = TextStudioSourceContextRequirements.None;
-            for (int i = 0; i < _effectBindings.Count; i++)
+            if (!previous.IsAppend)
+                plan.SourceContextRequirements = TextStudioSourceContextRequirements.None;
+            for (int i = bindingStart; i < _effectBindings.Count; i++)
             {
                 EffectBinding binding = _effectBindings[i];
                 TextStudioEffectScopeChain scope = binding.scope;
@@ -1375,47 +1660,60 @@ namespace TextStudio
                 }
             }
 
-            if (_characterSubstitutionBindings.Count > 0 &&
-                (plan.CharacterSubstitutionBindings == null ||
-                 plan.CharacterSubstitutionBindings.Length < _characterSubstitutionBindings.Count))
-                plan.CharacterSubstitutionBindings = new CharacterSubstitutionBinding[Math.Max(_characterSubstitutionBindings.Count, 4)];
-            for (int i = 0; i < _characterSubstitutionBindings.Count; i++)
-                plan.CharacterSubstitutionBindings[i] = _characterSubstitutionBindings[i];
+            plan.CharacterSubstitutionBindings = CopyToPlan(
+                _characterSubstitutionBindings, plan.CharacterSubstitutionBindings, previous.CharacterSubstitutionBindings, 4, previous.IsAppend);
             plan.CharacterSubstitutionBindingCount = _characterSubstitutionBindings.Count;
-
-            if (_actionMarkers.Count > 0 &&
-                (plan.ActionMarkers == null || plan.ActionMarkers.Length < _actionMarkers.Count))
-                plan.ActionMarkers = new ActionMarker[Math.Max(_actionMarkers.Count, 8)];
-            for (int i = 0; i < _actionMarkers.Count; i++)
-                plan.ActionMarkers[i] = _actionMarkers[i];
+            plan.ActionMarkers = CopyToPlan(_actionMarkers, plan.ActionMarkers, previous.ActionMarkers, 8, previous.IsAppend);
             plan.ActionMarkerCount = _actionMarkers.Count;
 
-            _extensionTags.Sort(CompareExtensionTags);
-            if (_extensionTags.Count > 0 &&
-                (plan.ExtensionTags == null || plan.ExtensionTags.Length < _extensionTags.Count))
-                plan.ExtensionTags = new TextStudioExtensionTag[Math.Max(_extensionTags.Count, 8)];
-            for (int i = 0; i < _extensionTags.Count; i++)
-                plan.ExtensionTags[i] = _extensionTags[i];
+            // Appended tags sort after every earlier one: they start at or after its glyphs and after its source.
+            if (previous.IsAppend)
+                _extensionTags.Sort(previous.ExtensionTags, _extensionTags.Count - previous.ExtensionTags, ExtensionTagOrder);
+            else
+                _extensionTags.Sort(CompareExtensionTags);
+            plan.ExtensionTags = CopyToPlan(_extensionTags, plan.ExtensionTags, previous.ExtensionTags, 8, previous.IsAppend);
             plan.ExtensionTagCount = _extensionTags.Count;
-
-            if (_instantRanges.Count > 0 &&
-                (plan.InstantRanges == null || plan.InstantRanges.Length < _instantRanges.Count))
-                plan.InstantRanges = new TextStudioInstantRange[Math.Max(_instantRanges.Count, 4)];
-            for (int i = 0; i < _instantRanges.Count; i++)
-                plan.InstantRanges[i] = _instantRanges[i];
+            plan.InstantRanges = CopyToPlan(_instantRanges, plan.InstantRanges, previous.InstantRanges, 4, previous.IsAppend);
             plan.InstantRangeCount = _instantRanges.Count;
-
-            if (_regionMaps.Count > 0 &&
-                (plan.RegionMaps == null || plan.RegionMaps.Length < _regionMaps.Count))
-                plan.RegionMaps = new RegionToGlyphMap[Math.Max(_regionMaps.Count, 8)];
-            for (int i = 0; i < _regionMaps.Count; i++)
-                plan.RegionMaps[i] = _regionMaps[i];
+            plan.RegionMaps = CopyToPlan(_regionMaps, plan.RegionMaps, previous.RegionMaps, 8, previous.IsAppend);
             plan.RegionMapCount = _regionMaps.Count;
 
             // Hand the collected decoration bits to the plan. Null when the
             // source contained no custom decoration tags - a cheap signal for
             // the decoration subsystem to skip this track.
             plan.CharDecorations = charDecorations;
+
+            // An append keeps these results only while nothing it adds can reach back into them: every tag is closed, no default
+            // effect spans the whole text, and no binding would resolve to other objects or warn again when resolved anew.
+            _canResolveAppended =
+                !openAtTextEnd &&
+                !_bindingBlocksAppend &&
+                _appearanceSpans.Count == 0 &&
+                charDecorations == null &&
+                _effectBindings.Count == explicitEffectBindingCount &&
+                _characterSubstitutionBindings.Count == _explicitCharacterSubstitutionBindingCount &&
+                _localEffect == null;
+        }
+
+        // Grows an append's plan array, keeping its entries before start; like a full resolution, no entries leave it as it is.
+        static T[] KeepForAppend<T>(T[] array, int count, int start)
+        {
+            return count > (array != null ? array.Length : 0)
+                ? TextStudioBufferCapacity.EnsureKeeping(array, count, start)
+                : array;
+        }
+
+        // Copies the list to the plan array from start on. A full resolution sizes a new array as before; an append keeps the entries before start.
+        static T[] CopyToPlan<T>(List<T> list, T[] array, int start, int minimumCapacity, bool append)
+        {
+            int count = list.Count;
+            if (append)
+                array = KeepForAppend(array, count, start);
+            else if (count > 0 && (array == null || array.Length < count))
+                array = new T[Math.Max(count, minimumCapacity)];
+            for (int i = start; i < count; i++)
+                array[i] = list[i];
+            return array;
         }
 
         static void AdvanceResolvedIndex(
@@ -1429,7 +1727,7 @@ namespace TextStudio
 
             resolvedCharIndex += resolvedCharCount;
             resolvedUnitIndex = plan != null
-                ? plan.GetUnitBoundaryForResolvedChar(resolvedCharIndex)
+                ? plan.GetUnitBoundaryForUnprojectedResolvedChar(resolvedCharIndex)
                 : resolvedCharIndex;
         }
 
@@ -1889,7 +2187,7 @@ namespace TextStudio
             return phaseParams;
         }
 
-        static TextStudioEffectAreaSettings CreateAreaSettings(
+        TextStudioEffectAreaSettings CreateAreaSettings(
             string effectId,
             TextStudioTagParameters parameters)
         {
@@ -1910,11 +2208,13 @@ namespace TextStudio
             return area;
         }
 
-        static TextStudioEffectAreaSettings GetDefaultArea(string effectId)
+        TextStudioEffectAreaSettings GetDefaultArea(string effectId)
         {
-            return TextStudioRegistry.Effects.TryGet(effectId, out ITextStudioEffectDefinition effect) && effect != null
-                ? effect.DefaultArea
-                : TextStudioEffectAreaSettings.Default;
+            if (TextStudioRegistry.Effects.TryGet(effectId, out ITextStudioEffectDefinition effect) && effect != null)
+                return effect.DefaultArea;
+            // The lookup warns about the missing entry, which a full resolution of the next append would repeat.
+            _bindingBlocksAppend = true;
+            return TextStudioEffectAreaSettings.Default;
         }
 
         static bool TryParseAreaMode(string value, out TextStudioEffectAreaMode mode)
@@ -2040,7 +2340,7 @@ namespace TextStudio
                 bool wrapperOwnsRevealBlend = !writing && open.phase == AnimationPhase.Appearance &&
                                               open.wrapperGroup > 0;
                 if (bindingCount <= 0) continue;
-                _effectBindings.Add(new EffectBinding
+                AddExplicitBinding(new EffectBinding
                 {
                     effectId = resolved.EffectId,
                     effect = resolved.Effect,
@@ -2083,6 +2383,31 @@ namespace TextStudio
                 regionName = open.name,
                 glyphCount = glyphCount
             });
+        }
+
+        void AddExplicitBinding(in EffectBinding binding)
+        {
+            _effectBindings.Add(binding);
+            if (BlocksAppend(in binding))
+                _bindingBlocksAppend = true;
+        }
+
+        // Resolving the tag again creates new scope, selector and envelope chains and a new phase blend group, and writing
+        // layers register their strokes while resolving. Effect objects are the shared definitions and composition layers of
+        // every resolution, or stateless built-in evaluators (TextStudioPipeline.HasReplayableEffectBindings).
+        static bool BlocksAppend(in EffectBinding binding)
+        {
+            ITextStudioEffect effect = binding.effect;
+            bool sameEffect =
+                effect == null ||
+                effect is BuiltIns.CodeEffectBase ||
+                effect is TextStudioCompositionLayer layer && layer.Kind != TextStudioCompositionLayerKind.Writing ||
+                effect is ITextStudioEffectDefinition && !(effect is ITextStudioEffectFactory);
+            return !sameEffect ||
+                   binding.phaseBlendGroupId > 0 ||
+                   binding.scope != null ||
+                   binding.selectorScope != null ||
+                   binding.envelope != null;
         }
 
         static TextStudioPhaseMask ToPhaseMask(AnimationPhase phase)
@@ -2443,18 +2768,17 @@ namespace TextStudio
                 return true;
             }
 
-            foreach (KeyValuePair<string, ITextStudioAction> pair in TextStudioRegistry.Actions.GetAll())
+            if (TextStudioRegistry.Actions.TryFindFirst(s_matchesActionName, tagName, out ITextStudioAction action))
             {
-                ITextStudioAction action = pair.Value;
-                if (!TextStudioActionDefinitionUtility.MatchesName(action, tagName))
-                    continue;
-
                 actionId = action.Id;
                 return true;
             }
 
             return false;
         }
+
+        static readonly Func<ITextStudioAction, string, bool> s_matchesActionName =
+            TextStudioActionDefinitionUtility.MatchesName;
 
         static TextStudioTagParameters ExtractTagParameters(
             string source,

@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to animate a UI Toolkit Labe
 metadata:
   asset: "Text Studio - Text Animation for Unity | TextMeshPro & UI Toolkit"
   publisher: "Impossible Robert"
-  asset-version: "1.2.0"
+  asset-version: "1.3.1"
   skill-version: "1.0.0"
   unity: "2023.2"
   render-pipelines: "Built-in, URP, HDRP, custom SRP"
@@ -33,7 +33,7 @@ Attach one TextStudioBinding CustomBinding to a normal Label.text slot and keep 
 - Count and select semantic text units rather than UTF-16 code units. `WordBoundaryProvider` can tailor language-specific word ends without replacing the renderer's shaping system.
 
 - Unity 2023.2 or newer is used.
-- A UIDocument, PanelSettings, and target Label exist.
+- A UIDocument, or PanelRenderer on Unity 6000.5+, supplies PanelSettings and a target Label. Keep shipped scenes and example builders on UIDocument for compatibility; reuse their controller scripts with either supported host.
 - The source mode and update owner are known.
 
 ## Quick start
@@ -42,7 +42,7 @@ Attach one TextStudioBinding CustomBinding to a normal Label.text slot and keep 
 2. Add one TextStudioBinding to the Label.text binding slot.
 3. Choose Label Text, Element, or Data as the source within that binding.
 4. Set markup and reveal behavior through the binding's public surface.
-5. Test attach, detach, panel recreation, data changes, and long text.
+5. Test attach, detach, panel recreation, data changes, and long text. For PanelRenderer, obtain the root through `UIToolkitPanelRootTracker` and compare host, root, and `RootVersion`; retained trees reconnect callbacks after re-enable without duplicating controls or bindings.
 
 ## Workflows
 
@@ -71,6 +71,7 @@ Attach one TextStudioBinding CustomBinding to a normal Label.text slot and keep 
 - Label Text, Element, and Data are treated as modes, not separate custom controls.
 - Unity 2023.2 through 6000.1 uses the supported Basic path; Unity 6000.2+ may use native per-glyph post-processing.
 - Panel detach and reattach do not leak scheduled work.
+- On Unity 6000.2+, `PreferAdvanced` preserves the requested preference while falling back to Standard when the attached panel disables Advanced Text. First attachment and movement between panels re-evaluate that panel's availability. Removing a binding restores only generator styles it still owns.
 
 ## API quick reference
 
@@ -93,3 +94,4 @@ Attach one TextStudioBinding CustomBinding to a normal Label.text slot and keep 
 - Do not add multiple TextStudioBinding instances to the same text slot.
 - Do not assume Unity 6000.2 native capabilities on earlier versions.
 - Do not retain panel or VisualElement references after their lifecycle owner has detached them.
+- Reusable sample hosts use `Component UIPanel` and serialize `_uiPanel`, with same-GameObject discovery when unassigned. Assign only UIDocument or guarded Unity 6000.5+ PanelRenderer; never add a document automatically to a renderer host. Reassign old `_document` / `_uiDocument` references after updating, especially references to another GameObject. Old named host arguments in Renderer Lesson `Configure`, Whisperwood `ConfigureForScene`, and PrimeTween Notification Course `Configure` become `uiPanel`; rebuild compiled callers and update exact-signature reflection.

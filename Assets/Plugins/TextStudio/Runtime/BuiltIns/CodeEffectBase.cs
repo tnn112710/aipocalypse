@@ -102,6 +102,25 @@ namespace TextStudio.BuiltIns
                 normalizedIndex);
         }
 
+        /// <summary>
+        /// True when <see cref="EvaluateTransitionFast"/> computes exactly what <see cref="Evaluate"/> computes in the Reveal
+        /// and Hide phases on a discrete effect clock, reading no other context field and writing no render property.
+        /// </summary>
+        internal virtual bool SupportsTransitionFastPath => false;
+
+        // Evaluate's result for an Appearance or Disappearance context with these timing fields, so a binding at full
+        // influence and full motion skips building the glyph's spatial context.
+        internal virtual void EvaluateTransitionFast(
+            ref EvaluatedGlyphState state,
+            AnimationPhase phase,
+            float phaseProgress,
+            float time,
+            float playbackTime,
+            int unitIndex,
+            float normalizedIndex)
+        {
+        }
+
         public virtual void Reset() { }
 
         public virtual ITextStudioEffect CreateEffect(in TextStudioTagParameters parameters)

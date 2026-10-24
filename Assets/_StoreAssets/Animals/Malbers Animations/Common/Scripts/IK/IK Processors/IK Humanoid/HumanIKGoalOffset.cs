@@ -1,4 +1,4 @@
-// Last Change: 9/19/2026 3:44pm
+// Last Change: 10/16/2026 4:12pm
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -32,16 +32,45 @@ namespace MalbersAnimations.IK
         public bool position = true;
         public bool rotation = true;
 
-        Transform Root { get; set; }
+        /// <summary>Cached space the offsets are relative to (the Animator root or a Humanoid bone).</summary>
+        private Transform space;
+        /// <summary>Bone the cached space was resolved for (-1 = the Animator root).</summary>
+        private int spaceKey = int.MinValue;
 
-
-        private Transform relativeTo;
-
+        /// <summary>Caches the space the offsets are relative to.</summary>
         public override void Start(IKSet set, Animator animator, int index)
         {
-            //Cache the RootBone
-            Root = RelativeToRoot ? animator.transform : animator.GetBoneTransform(RelativeTo);
-            relativeTo = animator.GetBoneTransform(RelativeTo);
+            spaceKey = int.MinValue;
+            GetSpace(animator);
+        }
+
+        /// <summary>Returns the root or the RelativeTo bone; re-resolves when either option changes.</summary>
+        private Transform GetSpace(Animator animator)
+        {
+            var key = RelativeToRoot ? -1 : (int)RelativeTo;
+
+            if (space == null || key != spaceKey)
+            {
+                space = RelativeToRoot ? animator.transform : FindBone(animator, RelativeTo);
+                spaceKey = key;
+            }
+            return space;
+        }
+
+        /// <summary>Returns a Humanoid bone, walking up to the closest mapped parent for optional bones (e.g. UpperChest).</summary>
+        private static Transform FindBone(Animator animator, HumanBodyBones bone)
+        {
+            if (animator == null || !animator.isHuman) return null;
+
+            var b = (int)bone;
+
+            while (b >= 0 && b < (int)HumanBodyBones.LastBone)
+            {
+                var t = animator.GetBoneTransform((HumanBodyBones)b);
+                if (t != null) return t;
+                b = HumanTrait.GetParentBone(b);
+            }
+            return animator.transform;
         }
 
 
@@ -59,10 +88,15 @@ namespace MalbersAnimations.IK
 
 
 
+        /// <summary>Places the IK Goal (and Hint) at the offsets, relative to the root or the chosen bone.</summary>
         public override void OnAnimatorIK(IKSet set, Animator animator, int index, float weight)
         {
-            var GoalPosition = RelativeToRoot ? Root.TransformPoint(GoalOffset) : relativeTo.TransformPoint(GoalOffset);
-            var HintPosition = RelativeToRoot ? Root.TransformPoint(HintOffset) : relativeTo.TransformPoint(HintOffset);
+            var Root = GetSpace(animator);
+            if (Root == null) return;
+
+            var scale = OffsetScale(set); //IK Manager Scale Multiplier (position offsets only)
+            var GoalPosition = Root.TransformPoint(GoalOffset * scale);
+            var HintPosition = Root.TransformPoint(HintOffset * scale);
 
             MDebug.DrawWireSphere(GoalPosition, Color.red, 0.1f);
             MDebug.DrawWireSphere(HintPosition, Color.blue, 0.1f);
@@ -94,21 +128,23 @@ namespace MalbersAnimations.IK
             {
                 if (anim == null || !anim.isHuman) return;
 
-                var RootBone = RelativeToRoot ? anim.transform : anim.GetBoneTransform(RelativeTo);
+                var RootBone = RelativeToRoot ? anim.transform : FindBone(anim, RelativeTo);
 
                 var goalTransform = GetGoal(anim);
-                if (RootBone == null) return;
+                if (RootBone == null || goalTransform == null) return;
+
+                var scale = manager != null ? manager.ScaleMultiplier : OffsetScale(IKSet);
 
                 var oldMatrix = Gizmos.matrix;
                 Gizmos.matrix = RootBone.localToWorldMatrix;
 
                 Gizmos.color = Color.green;
-                Gizmos.DrawWireSphere(Vector3.zero + GoalOffset, 0.05f);
-                Gizmos.DrawSphere(Vector3.zero + GoalOffset, 0.05f);
+                Gizmos.DrawWireSphere(GoalOffset * scale, 0.05f);
+                Gizmos.DrawSphere(GoalOffset * scale, 0.05f);
 
                 Gizmos.matrix = oldMatrix;
 
-                var off = RootBone.TransformPoint(GoalOffset);
+                var off = RootBone.TransformPoint(GoalOffset * scale);
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(goalTransform.position, off);
                 Gizmos.color = Color.gray;
@@ -124,7 +160,7 @@ namespace MalbersAnimations.IK
                 if (FixHint)
                 {
                     Gizmos.color = Color.blue;
-                    Gizmos.DrawSphere(RootBone.TransformPoint(HintOffset), 0.05f);
+                    Gizmos.DrawSphere(RootBone.TransformPoint(HintOffset * scale), 0.05f);
                 }
             }
         }
@@ -150,35 +186,43 @@ namespace MalbersAnimations.IK
             if (set.Gizmos)
             {
                 if (animator == null || !animator.isHuman) return;
-                var RootBone = RelativeToRoot ? animator.transform : animator.GetBoneTransform(RelativeTo);
+                var RootBone = RelativeToRoot ? animator.transform : FindBone(animator, RelativeTo);
                 var goalTransform = GetGoal(animator);
 
                 if (RootBone == null || goalTransform == null) return;
 
+                //The Handles show the scaled offset and a drag is divided back, so the stored value stays unscaled
+                var scale = OffsetScale(set);
+
                 if (Tools.current == Tool.Move)
                 {
+                    //Follow the Scene view Global/Local toggle: Local uses the Goal rotation for the Goal and the space bone for the Hint
+                    var local = Tools.pivotRotation == PivotRotation.Local;
+                    var goalHandleRot = local ? RootBone.rotation * Quaternion.Euler(GoalRotation) : Quaternion.identity;
+                    var hintHandleRot = local ? RootBone.rotation : Quaternion.identity;
+
                     using (var cc = new EditorGUI.ChangeCheckScope())
                     {
-                        Vector3 piv = RootBone.TransformPoint(GoalOffset);
-                        Vector3 NewPivPosition = Handles.PositionHandle(piv, Quaternion.identity);
+                        Vector3 piv = RootBone.TransformPoint(GoalOffset * scale);
+                        Vector3 NewPivPosition = Handles.PositionHandle(piv, goalHandleRot);
 
                         if (cc.changed)
                         {
                             Undo.RecordObject(Target, "Change Pos Goal");
-                            GoalOffset = RootBone.InverseTransformPoint(NewPivPosition);
+                            GoalOffset = RootBone.InverseTransformPoint(NewPivPosition) / scale;
                             EditorUtility.SetDirty(Target);
                         }
                     }
 
                     using (var dd = new EditorGUI.ChangeCheckScope())
                     {
-                        Vector3 HandlePos = RootBone.TransformPoint(HintOffset);
-                        Vector3 NewHintPos = Handles.PositionHandle(HandlePos, Quaternion.identity);
+                        Vector3 HandlePos = RootBone.TransformPoint(HintOffset * scale);
+                        Vector3 NewHintPos = Handles.PositionHandle(HandlePos, hintHandleRot);
 
                         if (dd.changed)
                         {
                             Undo.RecordObject(Target, "Change Pos Hint");
-                            HintOffset = RootBone.InverseTransformPoint(NewHintPos);
+                            HintOffset = RootBone.InverseTransformPoint(NewHintPos) / scale;
                             EditorUtility.SetDirty(Target);
                         }
                     }
@@ -187,7 +231,7 @@ namespace MalbersAnimations.IK
                 {
                     using (var cc = new EditorGUI.ChangeCheckScope())
                     {
-                        Vector3 Pos = RootBone.TransformPoint(GoalOffset);
+                        Vector3 Pos = RootBone.TransformPoint(GoalOffset * scale);
 
                         Quaternion oldQ = RootBone.rotation * Quaternion.Euler(GoalRotation);
 

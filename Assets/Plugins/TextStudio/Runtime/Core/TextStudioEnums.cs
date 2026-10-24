@@ -2,6 +2,7 @@ using System;
 
 namespace TextStudio
 {
+    /// <summary>Identifies cached text, layout, animation, simulation, appearance, and writing work that must be refreshed, with independent extension bits for add-ons.</summary>
     [Flags]
     public enum DirtyFlags : uint
     {
@@ -39,6 +40,7 @@ namespace TextStudio
                      Simulation | Appearance | Writing
     }
 
+    /// <summary>Selects how glyphs are positioned, including built-in paths, grids, custom curves, and extension placement strategies.</summary>
     public enum PlacementMode
     {
         Linear,
@@ -51,6 +53,7 @@ namespace TextStudio
         Curve
     }
 
+    /// <summary>Chooses whether custom-curve placement maps each selector match independently or maps the entire selected text as one range.</summary>
     public enum TextStudioCurveMapping
     {
         EachMatch,
@@ -137,6 +140,7 @@ namespace TextStudio
         Narrative
     }
 
+    /// <summary>Selects the text units advanced by Typewriter reveal, from individual glyphs or letters to words, lines, regions, or a custom strategy.</summary>
     public enum RevealMode
     {
         Instant,
@@ -148,6 +152,7 @@ namespace TextStudio
         Custom
     }
 
+    /// <summary>Identifies whether Typewriter settings are absent, selected from a built-in preset, supplied by a custom preset, or authored inline.</summary>
     public enum TextStudioTypewriterSource
     {
         None,
@@ -156,6 +161,7 @@ namespace TextStudio
         Inline
     }
 
+    /// <summary>Flags the default-effects, Typewriter, and Reaction domains that a behavior profile can supply.</summary>
     [Flags]
     public enum TextStudioBehaviorDomain
     {
@@ -165,6 +171,7 @@ namespace TextStudio
         Reactions = 1 << 2
     }
 
+    /// <summary>Identifies whether default effects are absent, supplied by a behavior profile, or authored inline on the text component.</summary>
     public enum TextStudioDefaultEffectsSource
     {
         None,
@@ -172,12 +179,14 @@ namespace TextStudio
         Inline
     }
 
+    /// <summary>Chooses between editing raw source markup and presenting the processed Text Studio output while authoring in Edit Mode.</summary>
     public enum TextStudioAuthoringMode
     {
         Raw,
         Preview
     }
 
+    /// <summary>Chooses whether default effects are disabled, fill gaps left by explicit effect tags, or apply alongside tagged effects.</summary>
     public enum TextStudioDefaultEffectMode
     {
         None = 0,
@@ -185,6 +194,7 @@ namespace TextStudio
         Constant = 2
     }
 
+    /// <summary>Identifies the appearance, persistent, or disappearance phase in which a glyph effect runs.</summary>
     public enum AnimationPhase
     {
         None,
@@ -193,6 +203,7 @@ namespace TextStudio
         Disappearance
     }
 
+    /// <summary>Determines how a composed effect layer combines its value with the glyph's current transform, color, or render property.</summary>
     public enum EffectBlendMode
     {
         Additive,
@@ -201,6 +212,7 @@ namespace TextStudio
         Lerp
     }
 
+    /// <summary>Chooses whether an effect replaces a glyph's color, changes only its alpha, or multiplies the existing color.</summary>
     public enum TextStudioColorBlendMode
     {
         Set,
@@ -208,6 +220,7 @@ namespace TextStudio
         Multiply
     }
 
+    /// <summary>Selects the glyph, word, line, paragraph, or matched range used as an effect's spatial area.</summary>
     public enum TextStudioEffectAreaMode
     {
         Glyph,
@@ -217,6 +230,7 @@ namespace TextStudio
         Range
     }
 
+    /// <summary>Selects how elapsed time produces effect intensity, including single runs, repeating cycles, ping-pong, external control, and an authored weight curve.</summary>
     public enum PlaybackMode
     {
         Once,
@@ -226,6 +240,7 @@ namespace TextStudio
         Weighted
     }
 
+    /// <summary>Selects a built-in response curve or a custom animation curve for normalized sampling.</summary>
     public enum CurveType
     {
         Linear = 0,
@@ -241,6 +256,7 @@ namespace TextStudio
         Custom = 5
     }
 
+    /// <summary>Selects a reusable timing recipe for effect playback, including one-shot, looping, ping-pong, weighted, appearance, external, and custom playback.</summary>
     public enum TextStudioEffectPlaybackPreset
     {
         Once,
@@ -253,6 +269,7 @@ namespace TextStudio
         Custom
     }
 
+    /// <summary>Selects a named easing or response-curve recipe for effect parameters, including custom and reversed progress curves.</summary>
     public enum TextStudioEffectCurvePreset
     {
         Linear,

@@ -5,6 +5,7 @@ using UnityEngine.Audio;
 
 namespace TextStudio
 {
+    /// <summary>Chooses sequential, random, or named clip selection for a sound action invoked from text markup.</summary>
     public enum TextStudioSoundClipSelection
     {
         Sequential,

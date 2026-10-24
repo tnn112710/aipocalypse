@@ -31,10 +31,24 @@ namespace TextStudio.Editor
         ToolbarToggle _missingCompanionFilter;
         ToolbarToggle _updatesFilter;
         Label _comparisonInfo;
+        VisualElement _contextRow;
+        Label _contextLabel;
         readonly HashSet<string> _expandedPackages = new HashSet<string>(StringComparer.Ordinal);
         ScrollView _cards;
         IReadOnlyList<TextStudioIntegrationState> _states;
         TextStudioIntegrationStatusFilter _statusFilter;
+        [SerializeField] string _focusedIntegrationId;
+
+        internal void FocusIntegration(string integrationId)
+        {
+            _focusedIntegrationId = integrationId;
+            _statusFilter = TextStudioIntegrationStatusFilter.All;
+            _search?.SetValueWithoutNotify(string.Empty);
+            _category?.SetValueWithoutNotify(AllCategories);
+            _expandedPackages.Add(integrationId);
+            Refresh();
+            _cards?.schedule.Execute(() => _cards.scrollOffset = Vector2.zero);
+        }
 
         public static void ShowWindow()
         {
@@ -71,7 +85,7 @@ namespace TextStudio.Editor
             _search.style.flexGrow = 1f;
             _search.style.flexBasis = 0f;
             _search.style.minWidth = 200f;
-            _search.RegisterValueChangedCallback(_ => RebuildCards());
+            _search.RegisterValueChangedCallback(_ => { _focusedIntegrationId = null; RebuildCards(); });
             toolbar.Add(_search);
 
             _category = new PopupField<string>(
@@ -81,13 +95,23 @@ namespace TextStudio.Editor
                 value => value);
             _category.name = "integration-category-filter";
             _category.tooltip = "Filter integrations by workflow.";
-            _category.RegisterValueChangedCallback(_ => RebuildCards());
+            _category.RegisterValueChangedCallback(_ => { _focusedIntegrationId = null; RebuildCards(); });
             _category.style.width = 180f;
             _category.style.minWidth = 160f;
             _category.style.flexShrink = 0f;
             _category.style.marginLeft = 6f;
             toolbar.Add(_category);
             rootVisualElement.Add(toolbar);
+
+            _contextRow = new VisualElement { name = "integration-request-context" };
+            _contextRow.style.flexDirection = FlexDirection.Row;
+            _contextRow.style.marginBottom = 8f;
+            _contextLabel = new Label();
+            _contextLabel.style.flexGrow = 1f;
+            _contextLabel.style.whiteSpace = WhiteSpace.Normal;
+            _contextRow.Add(_contextLabel);
+            _contextRow.Add(new Button(() => { _focusedIntegrationId = null; RebuildCards(); }) { text = "Show All" });
+            rootVisualElement.Add(_contextRow);
 
             VisualElement statusFilters = new VisualElement();
             statusFilters.name = "integration-status-filters";
@@ -198,6 +222,9 @@ namespace TextStudio.Editor
             if (_states == null)
                 return;
 
+            bool hasContext = !string.IsNullOrEmpty(_focusedIntegrationId);
+            _contextRow.style.display = hasContext ? DisplayStyle.Flex : DisplayStyle.None;
+
             string search = _search?.value?.Trim() ?? string.Empty;
             string category = _category?.value ?? AllCategories;
             int visibleCount = 0;
@@ -211,6 +238,8 @@ namespace TextStudio.Editor
             for (int i = 0; i < _states.Count; i++)
             {
                 TextStudioIntegrationState state = _states[i];
+                if (hasContext && state.Definition.Id == _focusedIntegrationId)
+                    _contextLabel.text = state.Definition.DisplayName + " integration";
                 if (state.Package != null && state.Package.IsUpdate)
                     updateCount++;
                 if (state.Package != null && state.Package.Status != TextStudioPackageStatus.NotApplicable)
@@ -233,7 +262,8 @@ namespace TextStudio.Editor
                         break;
                 }
 
-                if (!Matches(state.Definition, search, category) ||
+                if ((hasContext && state.Definition.Id != _focusedIntegrationId) ||
+                    !Matches(state.Definition, search, category) ||
                     !MatchesStatus(state, _statusFilter))
                     continue;
 
@@ -302,6 +332,7 @@ namespace TextStudio.Editor
             if (_statusFilter == filter)
                 return;
 
+            _focusedIntegrationId = null;
             _statusFilter = filter;
             RebuildCards();
         }

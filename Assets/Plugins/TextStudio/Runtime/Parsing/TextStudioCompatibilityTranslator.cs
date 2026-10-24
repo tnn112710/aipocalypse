@@ -72,6 +72,12 @@ namespace TextStudio
         internal bool TMPEffectsDetected { get; private set; }
         internal int TranslatedTagCount { get; private set; }
 
+        // Native and Compatibility text that translates to itself records the profile, its length and the position from which
+        // text appended to it must be scanned again, so an append scans only its own tags (TryTranslateAppendedIdentically).
+        TextStudioAuthoringProfile _identityProfile;
+        int _identityLength = -1;
+        int _identityResume;
+
         internal string Translate(string source, TextStudioAuthoringProfile profile)
         {
             source ??= string.Empty;
@@ -79,6 +85,7 @@ namespace TextStudio
             _vendorRanges.Clear();
             TMPEffectsDetected = false;
             TranslatedTagCount = 0;
+            _identityLength = -1;
 
             switch (profile)
             {
@@ -98,25 +105,89 @@ namespace TextStudio
                 case TextStudioAuthoringProfile.Compatibility:
                 default:
                     string textAnimatorText = TranslateTextAnimatorPhaseTags(source);
-                    TMPEffectsDetected = HasTMPEffectsEvidence(textAnimatorText);
+                    int resume = 0;
+                    TMPEffectsDetected = !string.IsNullOrEmpty(textAnimatorText) &&
+                                         textAnimatorText.IndexOf('<') >= 0 &&
+                                         HasTMPEffectsEvidence(textAnimatorText, 0, out resume);
+                    if (!TMPEffectsDetected &&
+                        profile == TextStudioAuthoringProfile.Compatibility &&
+                        textAnimatorText.IndexOf('{') < 0)
+                    {
+                        RecordIdentity(profile, textAnimatorText.Length, textAnimatorText.IndexOf('<') >= 0 ? resume : textAnimatorText.Length);
+                    }
                     return TMPEffectsDetected
                         ? TranslateTMPEffects(textAnimatorText, true)
                         : textAnimatorText;
             }
         }
 
+        /// <summary>
+        /// Translate for <paramref name="source"/>, which appends to the text of the last translation from
+        /// <paramref name="appendStart"/> on, when both translate to themselves: it then scans only from the last resume
+        /// position and leaves the translator as Translate would. Returns false, changing nothing, otherwise.
+        /// </summary>
+        internal bool TryTranslateAppendedIdentically(string source, int appendStart, TextStudioAuthoringProfile profile)
+        {
+            if (_identityLength < 0 || _identityLength != appendStart || _identityProfile != profile ||
+                source == null || source.Length < appendStart)
+            {
+                return false;
+            }
+
+            int resume;
+            switch (profile)
+            {
+                case TextStudioAuthoringProfile.Native:
+                    if (!ScanEscapeIdentity(source, _identityResume, out resume))
+                        return false;
+                    break;
+                case TextStudioAuthoringProfile.Compatibility:
+                    if (source.IndexOf('{', appendStart) >= 0 ||
+                        HasTMPEffectsEvidence(source, _identityResume, out resume))
+                    {
+                        return false;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+
+            _diagnostics.Clear();
+            _vendorRanges.Clear();
+            TMPEffectsDetected = false;
+            TranslatedTagCount = 0;
+            RecordIdentity(profile, source.Length, resume);
+            return true;
+        }
+
+        void RecordIdentity(TextStudioAuthoringProfile profile, int length, int resume)
+        {
+            _identityProfile = profile;
+            _identityLength = length;
+            _identityResume = resume;
+        }
+
         static bool TryGetLiteralMarkupEnd(string source, int open, out int end)
         {
+            return TryGetLiteralMarkupEnd(source, open, out end, out _);
+        }
+
+        // unterminated reports a literal that runs to the end of the text, which appended text could still terminate.
+        static bool TryGetLiteralMarkupEnd(string source, int open, out int end, out bool unterminated)
+        {
             end = 0;
+            unterminated = false;
             if (TextStudioTagExpansionUtility.IsEscaped(source, open))
             {
                 int close = source.IndexOf('>', open + 1);
+                unterminated = close < 0;
                 end = close >= 0 ? close + 1 : source.Length;
                 return true;
             }
             if (TextStudioTagExpansionUtility.IsCommentStart(source, open))
             {
                 int close = source.IndexOf("-->", open + 4, StringComparison.Ordinal);
+                unterminated = close < 0;
                 end = close >= 0 ? close + 3 : source.Length;
                 return true;
             }
@@ -127,6 +198,7 @@ namespace TextStudio
             while (nameEnd < source.Length && char.IsWhiteSpace(source[nameEnd])) nameEnd++;
             if (nameEnd >= source.Length || source[nameEnd] != '>') return false;
             int closing = source.IndexOf("</noparse>", nameEnd + 1, StringComparison.OrdinalIgnoreCase);
+            unterminated = closing < 0;
             end = closing >= 0 ? closing + 10 : source.Length;
             return true;
         }
@@ -136,22 +208,40 @@ namespace TextStudio
             if (string.IsNullOrEmpty(source) || source.IndexOf('<') < 0)
                 return false;
 
-            int cursor = 0;
+            return HasTMPEffectsEvidence(source, 0, out _);
+        }
+
+        // Scans from start on. Without evidence, resume is the position text appended to source must be scanned again from:
+        // where a scan read to the end of the text without finding a '>' or a literal's end, otherwise the end. A tag that ends
+        // before that point, and the characters a check could still need past the end, cannot change by appending: a missing
+        // '>' already stops the scan there.
+        static bool HasTMPEffectsEvidence(string source, int scanStart, out int resume)
+        {
+            resume = source.Length;
+            int cursor = scanStart;
             while (cursor < source.Length)
             {
                 int open = source.IndexOf('<', cursor);
                 if (open < 0)
                     return false;
 
-                if (TryGetLiteralMarkupEnd(source, open, out int literalEnd))
+                if (TryGetLiteralMarkupEnd(source, open, out int literalEnd, out bool unterminated))
                 {
+                    if (unterminated)
+                    {
+                        resume = open;
+                        return false;
+                    }
                     cursor = literalEnd;
                     continue;
                 }
 
                 int close = source.IndexOf('>', open + 1);
                 if (close < 0)
+                {
+                    resume = open;
                     return false;
+                }
 
                 int start = open + 1;
                 while (start < close && char.IsWhiteSpace(source[start]))
@@ -662,7 +752,18 @@ namespace TextStudio
         string EscapeTMPEffectsPrefixedTags(string source)
         {
             if (string.IsNullOrEmpty(source) || source.IndexOf('<') < 0)
-                return source ?? string.Empty;
+            {
+                source ??= string.Empty;
+                RecordIdentity(TextStudioAuthoringProfile.Native, source.Length, source.Length);
+                return source;
+            }
+
+            // Most text holds no prefixed tag; it returns unchanged without copying it into the builder.
+            if (ScanEscapeIdentity(source, 0, out int resume))
+            {
+                RecordIdentity(TextStudioAuthoringProfile.Native, source.Length, resume);
+                return source;
+            }
 
             _tmpeffectsBuilder.Clear();
             int cursor = 0;
@@ -710,6 +811,44 @@ namespace TextStudio
             }
 
             return changed ? _tmpeffectsBuilder.ToString() : source;
+        }
+
+        // Whether EscapeTMPEffectsPrefixedTags leaves the text from start on unchanged, with the position text appended to it
+        // must be scanned again from, as in HasTMPEffectsEvidence.
+        static bool ScanEscapeIdentity(string source, int start, out int resume)
+        {
+            resume = source.Length;
+            int cursor = start;
+            while (cursor < source.Length)
+            {
+                int open = source.IndexOf('<', cursor);
+                if (open < 0)
+                    return true;
+
+                if (TryGetLiteralMarkupEnd(source, open, out int literalEnd, out bool unterminated))
+                {
+                    if (unterminated)
+                    {
+                        resume = open;
+                        return true;
+                    }
+                    cursor = literalEnd;
+                    continue;
+                }
+
+                int close = source.IndexOf('>', open + 1);
+                if (close < 0)
+                {
+                    resume = open;
+                    return true;
+                }
+
+                if (IsTMPEffectsPrefixedTag(source, open + 1, close))
+                    return false;
+                cursor = close + 1;
+            }
+
+            return true;
         }
 
         void AppendOpenRange(

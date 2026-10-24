@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Identifies the scalar, vector, color, or unsigned-integer value stored by a render-property descriptor.</summary>
     public enum TextStudioRenderPropertyValueType : byte
     {
         Float = 0,
@@ -14,6 +15,7 @@ namespace TextStudio
         UInt = 5
     }
 
+    /// <summary>Identifies the pipeline stage that applies a render property, from glyph and vertex evaluation to materials, geometry, topology, or simulation.</summary>
     public enum TextStudioRenderPropertyStage : byte
     {
         Glyph = 0,
@@ -24,6 +26,7 @@ namespace TextStudio
         Simulation = 5
     }
 
+    /// <summary>Classifies the work needed to update a render property, including immediate evaluation, vertex streaming, geometry refresh, prepared deformation, or simulation.</summary>
     public enum TextStudioRenderPropertyPerformanceClass : byte
     {
         Realtime = 0,
@@ -33,6 +36,7 @@ namespace TextStudio
         Simulation = 4
     }
 
+    /// <summary>Flags the additive, multiplicative, override, and interpolation operations supported by a render-property descriptor.</summary>
     [Flags]
     public enum TextStudioRenderPropertyBlendModes : byte
     {

@@ -26,6 +26,7 @@ namespace TextStudio
         AuthoredCenterline = 4
     }
 
+    /// <summary>Selects the cardinal or diagonal direction used by directional Writing reveals.</summary>
     public enum TextStudioWritingDirection : byte
     {
         LeftToRight = 0,
@@ -59,12 +60,14 @@ namespace TextStudio
         VolumetricTube = 2
     }
 
+    /// <summary>Distinguishes a prepared Writing path along a stroke centerline from one following a glyph outline.</summary>
     public enum TextStudioWritingStrokeRole : byte
     {
         Centerline = 0,
         Outline = 1
     }
 
+    /// <summary>Selects the round, butt, or square shape used at the ends of a rendered Writing stroke.</summary>
     public enum TextStudioWritingStrokeCap : byte
     {
         Round = 0,
@@ -72,6 +75,7 @@ namespace TextStudio
         Square = 2
     }
 
+    /// <summary>Selects the round, bevel, or miter shape used where adjacent Writing stroke segments meet.</summary>
     public enum TextStudioWritingStrokeJoin : byte
     {
         Round = 0,

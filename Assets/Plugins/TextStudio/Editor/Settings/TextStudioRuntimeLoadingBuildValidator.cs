@@ -89,6 +89,8 @@ namespace TextStudio.Editor
                 TextStudio2DResourceKeys.FieldShader,
                 TextStudio2DResourceKeys.FieldCanvasShader,
                 TextStudio2DResourceKeys.FieldOverlayShader,
+                TextStudio2DResourceKeys.FieldUniformShader,
+                TextStudio2DResourceKeys.FieldUniformCanvasShader,
                 TextStudio2DResourceKeys.StyleDecorationShader,
                 TextStudio2DResourceKeys.WritingShader,
                 TextStudio2DResourceKeys.HeroLayerShader,
@@ -121,6 +123,8 @@ namespace TextStudio.Editor
                 TextStudio2DResourceKeys.FieldShader,
                 TextStudio2DResourceKeys.FieldCanvasShader,
                 TextStudio2DResourceKeys.FieldOverlayShader,
+                TextStudio2DResourceKeys.FieldUniformShader,
+                TextStudio2DResourceKeys.FieldUniformCanvasShader,
                 TextStudio2DResourceKeys.StyleDecorationShader,
                 TextStudio2DResourceKeys.WritingShader,
                 TextStudio2DResourceKeys.HeroLayerShader,
@@ -161,19 +165,16 @@ namespace TextStudio.Editor
             if (string.IsNullOrEmpty(relativePath))
                 return null;
 
-            string packageRoot =
-                TextStudioPackagePaths.FindFullRoot(
+            // An asset path, not a disk path: installed as a package, Text Studio lives outside the
+            // project folder and is only reachable as "Packages/<name>/...".
+            string assetRoot =
+                TextStudioPackagePaths.FindAssetRoot(
                     TextStudioPackagePaths.BasePackageName);
-            if (string.IsNullOrEmpty(packageRoot))
+            if (string.IsNullOrEmpty(assetRoot))
                 return null;
 
-            string fullPath = Path.GetFullPath(
-                Path.Combine(packageRoot, relativePath));
-            string assetPath = FileUtil.GetProjectRelativePath(
-                fullPath.Replace('\\', '/'));
-            return string.IsNullOrEmpty(assetPath)
-                ? null
-                : assetPath.Replace('\\', '/');
+            return assetRoot.TrimEnd('/') + "/" +
+                relativePath.Replace('\\', '/').TrimStart('/');
         }
 
         internal static int CountMatchingResourceKeys(string resourceKey)

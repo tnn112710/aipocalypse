@@ -115,11 +115,42 @@ namespace TextStudio
             float capacity = GetNormalizedCapacity(tier);
             extendsGeometry |= Mathf.Max(Mathf.Max(scaledSupport.Left, scaledSupport.Right),
                 Mathf.Max(scaledSupport.Bottom, scaledSupport.Top)) > capacity;
+            if (sourceText != null)
+            {
+                float requiredEm = Mathf.Max(Mathf.Max(support.Left, support.Right), Mathf.Max(support.Bottom, support.Top));
+                extendsGeometry |= requiredEm > ResolveGeometryCapacityEm(sourceText, tier);
+            }
             return true;
         }
 
         static TextStudio2DBoundsExpansion Scale(in TextStudio2DBoundsExpansion expansion, float scale) =>
             new TextStudio2DBoundsExpansion(expansion.Left * scale, expansion.Bottom * scale, expansion.Right * scale, expansion.Top * scale);
+
+        static float ResolveGeometryCapacityEm(TMP_Text text, TextStudio2DFieldPaddingTier tier)
+        {
+            bool primaryBold = (text.fontStyle & FontStyles.Bold) != 0;
+            Material previousMaterial = text.fontSharedMaterial;
+            float capacity = TextStudioTMPFontMetrics.FusedGeometryPaddingEm(text.font, previousMaterial, tier, primaryBold);
+            TMP_TextInfo info = text.textInfo;
+            if (info?.characterInfo == null) return capacity;
+            TMP_FontAsset previous = text.font;
+            bool previousBold = primaryBold;
+            for (int index = 0; index < Mathf.Min(info.characterCount, info.characterInfo.Length); index++)
+            {
+                TMP_CharacterInfo character = info.characterInfo[index];
+                if (character.elementType != TMP_TextElementType.Character || character.fontAsset == null) continue;
+                bool bold = (character.style & FontStyles.Bold) != 0;
+                int materialIndex = character.materialReferenceIndex;
+                Material material = info.meshInfo != null && materialIndex >= 0 && materialIndex < info.meshInfo.Length
+                    ? info.meshInfo[materialIndex].material : character.fontAsset.material;
+                if (character.fontAsset == previous && material == previousMaterial && bold == previousBold) continue;
+                capacity = Mathf.Min(capacity, TextStudioTMPFontMetrics.FusedGeometryPaddingEm(character.fontAsset, material, tier, bold));
+                previous = character.fontAsset;
+                previousMaterial = material;
+                previousBold = bold;
+            }
+            return capacity;
+        }
 
         static float ResolvePaddingUnitsPerEm(TMP_Text text)
         {

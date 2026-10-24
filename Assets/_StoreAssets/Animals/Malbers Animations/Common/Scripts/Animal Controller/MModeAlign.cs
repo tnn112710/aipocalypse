@@ -160,7 +160,7 @@ namespace MalbersAnimations
 
             foreach (var a in MAnimal.Animals)
             {
-                if (a == animal                                                 //We are the same animal
+                if (a != null && a == animal                                                 //We are the same animal
                     || a.Sleep                                                  //The Animal is sleep (Not working)
                     || !a.enabled                                               //The Animal Component is disabled    
                     || !MTools.Layer_in_LayerMask(a.gameObject.layer, Layer)    //Is not using the correct layer

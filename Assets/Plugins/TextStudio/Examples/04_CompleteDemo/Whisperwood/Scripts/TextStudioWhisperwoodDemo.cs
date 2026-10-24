@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ImpossibleRobert.Common;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
@@ -82,7 +83,31 @@ namespace TextStudio.Examples.Whisperwood
         [SerializeField] UIButton _canvasSkipButton;
 
         [Header("UI Toolkit View")]
-        [SerializeField] UIDocument _uiDocument;
+        [SerializeField, InspectorName("UI Panel"), Tooltip("Assign a UIDocument or, on Unity 6.5+, a PanelRenderer. An unassigned field discovers the host on this GameObject.")] Component _uiPanel;
+        readonly UIToolkitPanelRootTracker _panelRoot = new UIToolkitPanelRootTracker();
+        Component _boundHost;
+        Component _configuredHost;
+        VisualElement _panelElement;
+        VisualElement _configuredRoot;
+        int _rootVersion;
+        int _configuredVersion;
+        bool _newUIToolkitTree;
+        bool _hasInitializedRun;
+        Backend _initializedBackend;
+        TextStudioWhisperwoodStory _initializedStory;
+        readonly Dictionary<TextStudioBinding, string> _uitkBindingNames = new Dictionary<TextStudioBinding, string>();
+        readonly Dictionary<string, VisualElement> _presentedElements = new Dictionary<string, VisualElement>();
+        readonly Dictionary<string, UIToolkitTextState> _savedTexts = new Dictionary<string, UIToolkitTextState>();
+        readonly Dictionary<string, StyleEnum<DisplayStyle>> _savedVisibility = new Dictionary<string, StyleEnum<DisplayStyle>>();
+        readonly Dictionary<string, string> _savedButtons = new Dictionary<string, string>();
+
+        struct UIToolkitTextState
+        {
+            public TextStudioBinding Binding;
+            public string Markup;
+            public float RevealProgress;
+            public bool Paused;
+        }
 
         readonly List<TextStudioBinding> _uitkBindings = new List<TextStudioBinding>(20);
         VisualElement[] _uitkNpcMarkers = Array.Empty<VisualElement>();
@@ -132,11 +157,25 @@ namespace TextStudio.Examples.Whisperwood
         public Backend ActiveBackend => _backend;
         public TextStudioWhisperwoodStory Story => _story;
 
-        public void ConfigureForScene(Backend backend, TextStudioWhisperwoodStory story, UIDocument uiDocument = null)
+        public Component UIPanel
         {
+            get => _uiPanel;
+            set
+            {
+                UIToolkitPanelHost.EnsureSupported(value, nameof(value));
+                _uiPanel = value;
+                if (isActiveAndEnabled && _backend == Backend.UIToolkit) RefreshUIToolkitRoot();
+            }
+        }
+        void OnValidate() => _uiPanel = UIToolkitPanelHost.Normalize(_uiPanel);
+
+        public void ConfigureForScene(Backend backend, TextStudioWhisperwoodStory story, Component uiPanel = null)
+        {
+            UIToolkitPanelHost.EnsureSupported(uiPanel, nameof(uiPanel));
             _backend = backend;
             _story = story;
-            _uiDocument = uiDocument;
+            _uiPanel = uiPanel;
+            if (isActiveAndEnabled) InitializeBackend();
         }
 
         public void ConfigureCanvasView(
@@ -202,16 +241,32 @@ namespace TextStudio.Examples.Whisperwood
 
         void OnDisable()
         {
-            ResumeDialogueFromOverlay();
-            StopCluePlayback();
+            CaptureUIToolkitPresentation();
+            PauseClueForOverlay();
+            _canvasDialogue?.UnregisterExternalEffectSource(this);
+            _uitkDialogue?.UnregisterExternalEffectSource(this);
             UnsubscribeDialogueEvents();
             UnbindUIToolkitButtons();
+            ClearUIToolkitReferences();
+            _panelRoot.Release();
             _initialized = false;
             if (_voice != null) _voice.StopPlayback();
         }
 
+        void OnDestroy()
+        {
+            UnsubscribeDialogueEvents();
+            UnbindUIToolkitButtons();
+            _panelRoot.Release();
+            StopCluePlayback();
+            _savedTexts.Clear();
+            _savedVisibility.Clear();
+            _savedButtons.Clear();
+        }
+
         void Update()
         {
+            if (_backend == Backend.UIToolkit) RefreshUIToolkitRoot();
             if (_needsUIToolkitBinding && TryBindUIToolkit())
                 FinishInitialization();
 
@@ -291,52 +346,169 @@ namespace TextStudio.Examples.Whisperwood
 
         void InitializeBackend()
         {
-            StopCluePlayback();
+            bool reset = !_hasInitializedRun || _initializedBackend != _backend || _initializedStory != _story || _collectedWords.Length != NpcCount;
+            if (reset)
+            {
+                StopCluePlayback();
+                _hasInitializedRun = false;
+                _savedTexts.Clear();
+                _savedVisibility.Clear();
+                _savedButtons.Clear();
+                _collectedWords = new bool[NpcCount];
+            }
+            else
+                CaptureUIToolkitPresentation();
             UnsubscribeDialogueEvents();
             UnbindUIToolkitButtons();
+            ClearUIToolkitReferences();
             _initialized = false;
             _needsUIToolkitBinding = false;
-            int npcCount = NpcCount;
-            _collectedWords = new bool[npcCount];
-            _uitkNpcMarkers = new VisualElement[npcCount];
-
+            _uitkNpcMarkers = new VisualElement[NpcCount];
+            _initializedBackend = _backend;
+            _initializedStory = _story;
             if (_backend == Backend.Canvas)
             {
+                _panelRoot.Release();
                 if (_canvasDialogue != null)
                 {
                     _canvasDialogue.OnMarkerReached += HandleDialogueMarker;
-                    if (Application.isPlaying && _voiceReactions != null)
-                        _canvasDialogue.Reactions = TextStudioReactionRecipe.Custom(_voiceReactions);
-                    if (Application.isPlaying)
-                        _canvasDialogue.OnReactionAudioCue += HandleCanvasDialogueVoice;
+                    if (Application.isPlaying && _voiceReactions != null) _canvasDialogue.Reactions = TextStudioReactionRecipe.Custom(_voiceReactions);
+                    if (Application.isPlaying) _canvasDialogue.OnReactionAudioCue += HandleCanvasDialogueVoice;
                 }
                 FinishInitialization();
             }
             else if (TryBindUIToolkit())
-            {
                 FinishInitialization();
-            }
             else
-            {
                 _needsUIToolkitBinding = true;
-            }
         }
 
         void FinishInitialization()
         {
             _needsUIToolkitBinding = false;
             _initialized = true;
+            _lastRealtime = Time.realtimeSinceStartup;
             ApplySoundPreference();
-            ShowMenu();
+            if (!_hasInitializedRun)
+            {
+                ShowMenu();
+                _hasInitializedRun = true;
+            }
+            else if (_backend == Backend.UIToolkit)
+                RestoreUIToolkitPresentation();
+            if (_backend == Backend.UIToolkit && _uitkDialogue != null)
+            {
+                _uitkDialogue.OnMarkerReached += HandleDialogueMarker;
+                if (Application.isPlaying) _uitkDialogue.OnReactionAudioCue += HandleUIToolkitDialogueVoice;
+            }
+            if (_mode == DemoMode.Clue)
+            {
+                if (_backend == Backend.Canvas) _canvasDialogue?.RegisterExternalEffectSource(this);
+                else _uitkDialogue?.RegisterExternalEffectSource(this);
+                ResumeClueFromOverlay();
+            }
+        }
+
+        void RefreshUIToolkitRoot()
+        {
+            Component host = _uiPanel != null ? _uiPanel : UIToolkitPanelHost.Find(gameObject);
+            _panelRoot.SetHost(host);
+            VisualElement root = _panelRoot.Root;
+            int version = _panelRoot.RootVersion;
+            if (!UIToolkitPanelHost.IsActive(host)) root = null;
+            if (_boundHost == host && _panelElement == root && _rootVersion == version) return;
+            CaptureUIToolkitPresentation();
+            PauseClueForOverlay();
+            _uitkDialogue?.UnregisterExternalEffectSource(this);
+            UnsubscribeDialogueEvents();
+            UnbindUIToolkitButtons();
+            ClearUIToolkitReferences();
+            _boundHost = host;
+            _panelElement = root;
+            _rootVersion = version;
+            _initialized = false;
+            _needsUIToolkitBinding = true;
+        }
+
+        void CaptureUIToolkitPresentation()
+        {
+            if (_uitkRoot == null || !_hasInitializedRun) return;
+            _savedTexts.Clear();
+            _savedVisibility.Clear();
+            _savedButtons.Clear();
+            foreach (TextStudioBinding binding in _uitkBindings)
+            {
+                if (binding == null || !_uitkBindingNames.TryGetValue(binding, out string name)) continue;
+                _savedTexts[name] = new UIToolkitTextState { Binding = binding, Markup = binding.Markup, RevealProgress = binding.RevealProgress, Paused = binding.IsRevealPaused };
+            }
+            foreach (VisualElement element in _presentedElements.Values) SaveElementPresentation(element);
+        }
+
+        void CacheElementPresentation(VisualElement element)
+        {
+            if (!string.IsNullOrEmpty(element.name)) _presentedElements[element.name] = element;
+        }
+
+        void SaveElementPresentation(VisualElement element)
+        {
+            if (string.IsNullOrEmpty(element.name)) return;
+            _savedVisibility[element.name] = element.style.display;
+            if (element is UITKButton button) _savedButtons[element.name] = button.text;
+        }
+
+        void RestoreUIToolkitPresentation()
+        {
+            foreach (TextStudioBinding binding in _uitkBindings)
+            {
+                string name = binding?.Element?.name;
+                if (string.IsNullOrEmpty(name) || !_savedTexts.TryGetValue(name, out UIToolkitTextState state) || ReferenceEquals(state.Binding, binding)) continue;
+                binding.ShowText(state.Markup);
+                binding.SetRevealProgress(state.RevealProgress);
+                if (state.Paused) binding.PauseReveal();
+            }
+            RestoreElementPresentation(_uitkRoot);
+            _uitkRoot.Query<VisualElement>().ForEach(RestoreElementPresentation);
+            UpdatePlayerView();
+            UpdateLanterns();
+            UpdateGateVisual();
+        }
+
+        void RestoreElementPresentation(VisualElement element)
+        {
+            if (string.IsNullOrEmpty(element.name)) return;
+            if (_savedVisibility.TryGetValue(element.name, out StyleEnum<DisplayStyle> display)) element.style.display = display;
+            if (element is UITKButton button && _savedButtons.TryGetValue(element.name, out string text)) button.text = text;
+        }
+
+        void ClearUIToolkitReferences()
+        {
+            _boundHost = null;
+            _panelElement = null;
+            _uitkRoot = _uitkWorld = _uitkPlayerMarker = _uitkGateMarker = null;
+            _uitkMenuPanel = _uitkMenuButtonRow = _uitkDialoguePanel = _uitkCreditsPanel = null;
+            _uitkTitle = _uitkMenuBody = _uitkHud = _uitkQuest = _uitkPrompt = _uitkNearby = _uitkGateSign = null;
+            _uitkSpeaker = _uitkDialogue = _uitkCredits = _uitkInscription = _uitkFinaleReward = null;
+            _uitkFinalePanel = null;
+            _uitkNpcMarkers = new VisualElement[NpcCount];
+            _uitkLanterns = Array.Empty<VisualElement>();
+            _uitkBindingNames.Clear();
+            _presentedElements.Clear();
         }
 
         bool TryBindUIToolkit()
         {
-            if (_uiDocument == null || _uiDocument.rootVisualElement == null)
-                return false;
-            VisualElement documentRoot = _uiDocument.rootVisualElement;
+            Component host = _uiPanel != null ? _uiPanel : UIToolkitPanelHost.Find(gameObject);
+            _panelRoot.SetHost(host);
+            VisualElement documentRoot = _panelRoot.Root;
+            int version = _panelRoot.RootVersion;
+            if (!UIToolkitPanelHost.IsActive(host) || documentRoot == null) return false;
+            _boundHost = host;
+            _panelElement = documentRoot;
+            _rootVersion = version;
+            _newUIToolkitTree = _configuredHost != host || _configuredRoot != documentRoot || _configuredVersion != version;
             _uitkRoot = documentRoot.Q<VisualElement>("whisperwood-root");
-            if (_uitkRoot == null)
+            Label dialogueLabel = _uitkRoot?.Q<Label>("dialogue");
+            if (dialogueLabel == null || !dialogueLabel.TryAttachTextStudio(out _))
                 return false;
 
             _uitkWorld = _uitkRoot.Q<VisualElement>("world");
@@ -380,22 +552,21 @@ namespace TextStudio.Examples.Whisperwood
             SetUITKMarkerPosition(_uitkPlayerMarker, _playerPosition, 28f, 28f);
 
             BindUIToolkitButtons();
-            if (_uitkDialogue != null)
-            {
-                _uitkDialogue.OnMarkerReached += HandleDialogueMarker;
-                if (Application.isPlaying)
-                    _uitkDialogue.OnReactionAudioCue += HandleUIToolkitDialogueVoice;
-            }
-            _uitkHud?.ShowTextInstant("WASD / Arrows move   E talks   Esc pauses");
+            CacheElementPresentation(_uitkRoot);
+            _uitkRoot.Query<VisualElement>().ForEach(CacheElementPresentation);
+            _configuredHost = host;
+            _configuredRoot = documentRoot;
+            _configuredVersion = version;
+            if (_newUIToolkitTree) _uitkHud?.ShowTextInstant("WASD / Arrows move   E talks   Esc pauses");
             return _uitkDialogue != null;
         }
 
         TextStudioBinding QueryBinding(string name, RevealMode revealMode)
         {
             Label label = _uitkRoot?.Q<Label>(name);
-            TextStudioBinding binding = label?.GetTextStudioBinding();
-            if (binding == null)
+            if (label == null || !label.TryAttachTextStudio(out TextStudioBinding binding))
                 return null;
+            _uitkBindingNames[binding] = name;
 
             // A scene UIDocument uses a player-context panel outside Play Mode, so Unity can
             // leave a serialized binding inactive even though the visual tree is attached.
@@ -403,6 +574,11 @@ namespace TextStudio.Examples.Whisperwood
             if (binding.Element == null)
                 binding.Attach(label);
 
+            if (!_newUIToolkitTree)
+            {
+                if (!_uitkBindings.Contains(binding)) _uitkBindings.Add(binding);
+                return binding;
+            }
             binding.EnableInEditMode = true;
             binding.UpdateMode = TextStudioUITKUpdateMode.Manual;
             binding.RevealMode = revealMode;

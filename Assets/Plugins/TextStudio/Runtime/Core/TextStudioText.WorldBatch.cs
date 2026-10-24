@@ -23,6 +23,9 @@ namespace TextStudio
             if (_worldBatched == batched) return;
             _worldBatched = batched;
             _tmpBridge?.SetWorldOutputSuppressed(batched);
+            // The group merges Text Studio primitives, which read the payload streams layout prepares and the TextMeshPro route drops.
+            if (batched && _tmpBridge != null && _tmpBridge.UsesTextMeshProRoute)
+                ScheduleLayoutRebuild();
             ScheduleMeshRefresh();
         }
 
@@ -51,6 +54,8 @@ namespace TextStudio
 
         void OnTransformParentChanged()
         {
+            // A new parent can give TMP another canvas than the one a parked styled text compares (OnCanvasHierarchyChanged).
+            Unpark();
             if (isActiveAndEnabled) NotifyWorldBatchGroups();
         }
     }

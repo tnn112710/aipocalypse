@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace FIMSpace.FEditor
 {
+#if UNITY_6000_6_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class FTextureEditorToolsMethods
     {
         public static readonly int MAX_TEX_SIZE = 16384;

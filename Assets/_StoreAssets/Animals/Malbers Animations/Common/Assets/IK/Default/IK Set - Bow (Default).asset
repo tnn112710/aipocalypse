@@ -28,6 +28,7 @@ MonoBehaviour:
     active: 1
     EnableTime: 0.5
     DisableTime: 0.25
+    Gizmos: 1
     weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
@@ -125,7 +126,6 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 1
-        Gizmos: 1
     - rid: 454648389053186892
       type: {class: WeightAnimParamCurve, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
@@ -209,7 +209,6 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 1
-        Gizmos: 1
     - rid: 454648524217516341
       type: {class: IKGenericLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
@@ -233,7 +232,6 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 1
-        Gizmos: 1
     - rid: 4986561859825172810
       type: {class: HumanIKGoal, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
@@ -264,4 +262,3 @@ MonoBehaviour:
         Distance:
           minValue: 0
           maxValue: 0
-        gizmos: 1

@@ -32,8 +32,10 @@ namespace TextStudio
         void SnapToEndStateInternal();
         void RestartPreviewInvocationInternal();
         void CancelPreviewInvocationInternal();
+        void PreviewTookPlaybackInternal();
     }
 
+    /// <summary>Flags the reveal, active, and hide segments included in an authoring preview's playback cycle.</summary>
     [Flags]
     public enum TextStudioPreviewSegment
     {
@@ -654,6 +656,8 @@ namespace TextStudio
         void TakePreviewPlaybackOwnership()
         {
             _playbackOwner = Application.isPlaying ? PlaybackOwner.PlayModePreview : PlaybackOwner.EditModePreview;
+            // Ends runtime pass-through, which a sleeping host's check reads.
+            _hub.PreviewTookPlaybackInternal();
         }
 
         void BeginSelectedPlayback()

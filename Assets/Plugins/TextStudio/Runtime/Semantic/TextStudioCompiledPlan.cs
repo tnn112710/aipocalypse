@@ -27,6 +27,8 @@ namespace TextStudio
         // are preserved so TMP can render them. When null, adapters fall back to
         // ResolvedText.
         public string DisplayText { get; internal set; }
+
+        internal int[] UnprojectedResolvedCharToResolvedBoundary { get; set; }
         internal bool IsLiteralMarkup { get; set; }
 
         // Glyph data
@@ -292,6 +294,14 @@ namespace TextStudio
             return resolvedCharIndex >= unit.ResolvedEnd ? unitIndex + 1 : unitIndex;
         }
 
+        internal int GetUnitBoundaryForUnprojectedResolvedChar(int index)
+        {
+            int[] mapping = UnprojectedResolvedCharToResolvedBoundary;
+            return GetUnitBoundaryForResolvedChar(mapping != null && mapping.Length > 0
+                ? mapping[Math.Max(0, Math.Min(index, mapping.Length - 1))]
+                : index);
+        }
+
         public char GetPrimaryChar(int unitIndex)
         {
             int resolvedStart = GetResolvedStart(unitIndex);
@@ -310,18 +320,18 @@ namespace TextStudio
                 : 0;
         }
 
-        public string GetUnitText(int unitIndex)
+        public string GetUnitText(int unitIndex) => GetUnitIdentitySpan(unitIndex).ToString();
+
+        internal ReadOnlySpan<char> GetUnitIdentitySpan(int unitIndex)
         {
             if (TextUnits == null || unitIndex < 0 || unitIndex >= TextUnitCount)
-                return string.Empty;
-
+                return ReadOnlySpan<char>.Empty;
             TextStudioTextUnit unit = TextUnits[unitIndex];
-            return ResolvedText != null &&
-                   unit.resolvedStart >= 0 &&
-                   unit.resolvedLength >= 0 &&
-                   unit.ResolvedEnd <= ResolvedText.Length
-                ? ResolvedText.Substring(unit.resolvedStart, unit.resolvedLength)
-                : string.Empty;
+            string text = unit.isSourceAtom ? CanonicalText : ResolvedText;
+            int start = unit.isSourceAtom ? unit.sourceStart : unit.resolvedStart;
+            int length = unit.isSourceAtom ? unit.sourceLength : unit.resolvedLength;
+            return text != null && start >= 0 && length >= 0 && start <= text.Length && length <= text.Length - start
+                ? text.AsSpan(start, length) : ReadOnlySpan<char>.Empty;
         }
 
         public bool IsWhiteSpaceUnit(int unitIndex)

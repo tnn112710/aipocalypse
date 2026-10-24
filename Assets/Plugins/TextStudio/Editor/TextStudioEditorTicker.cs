@@ -38,6 +38,7 @@ namespace TextStudio.Editor
             new Dictionary<TextStudioText, TextStudioPreview.State>();
         static readonly HashSet<TextStudioText> s_serializationSuspendedHubs =
             new HashSet<TextStudioText>();
+        static bool s_restoringPrefabAsset;
         static readonly List<UnityEngine.Object> s_pendingLifecycleDestroy =
             new List<UnityEngine.Object>();
         static uint s_lastEffectContentRevision;
@@ -56,6 +57,8 @@ namespace TextStudio.Editor
             PrefabStage.prefabSaving += OnPrefabSaving;
             PrefabStage.prefabSaved -= OnPrefabSaved;
             PrefabStage.prefabSaved += OnPrefabSaved;
+            PrefabUtility.prefabInstanceUpdated -= OnPrefabInstanceUpdated;
+            PrefabUtility.prefabInstanceUpdated += OnPrefabInstanceUpdated;
 
             // Domain-reload initialization previously in runtime #if UNITY_EDITOR blocks.
             TextStudioRegistry.EnsureInitialized();
@@ -210,6 +213,89 @@ namespace TextStudio.Editor
         static void OnPrefabSaved(GameObject prefabRoot)
         {
             ResumeSerializedHubs(default, prefabRoot);
+        }
+
+        // Creating a prefab from a scene object, or applying an instance, writes the asset without a saving event. The
+        // asset then holds the instance's production materials, which cannot be stored and load as missing references,
+        // so the asset is corrected right after it changes.
+        static void OnPrefabInstanceUpdated(GameObject instance)
+        {
+            if (s_restoringPrefabAsset || Application.isPlaying || instance == null)
+                return;
+
+            string path = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(instance);
+            GameObject asset = string.IsNullOrEmpty(path) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (asset == null || PrefabUtility.IsPartOfImmutablePrefab(asset))
+                return;
+
+            bool changed = false;
+            TextStudioText[] hubs = asset.GetComponentsInChildren<TextStudioText>(true);
+            for (int i = 0; i < hubs.Length; i++)
+                changed |= RestoreAssetTmpMaterialReferences(hubs[i]);
+            if (!changed)
+                return;
+
+            s_restoringPrefabAsset = true;
+            try
+            {
+                PrefabUtility.SavePrefabAsset(asset);
+            }
+            finally
+            {
+                s_restoringPrefabAsset = false;
+            }
+        }
+
+        // Only the asset's references change. The production materials stay with the scene objects that draw with them.
+        static bool RestoreAssetTmpMaterialReferences(TextStudioText hub)
+        {
+            TMP_Text text = hub != null ? hub.GetComponent<TMP_Text>() : null;
+            Material source = text != null ? TextStudioTMPMaterialEffectAdapter.ResolveFontSourceMaterial(text, 0) : null;
+            if (source == null)
+                return false;
+
+            bool changed = false;
+            using (SerializedObject serializedText = new SerializedObject(text))
+            {
+                bool textChanged = RestoreAssetMaterial(serializedText.FindProperty("m_sharedMaterial"), source);
+                textChanged |= RestoreFirstAssetMaterial(serializedText.FindProperty("m_fontSharedMaterials"), source);
+                if (textChanged)
+                    serializedText.ApplyModifiedPropertiesWithoutUndo();
+                changed |= textChanged;
+            }
+
+            Renderer renderer = hub.GetComponent<Renderer>();
+            if (renderer == null)
+                return changed;
+            using (SerializedObject serializedRenderer = new SerializedObject(renderer))
+            {
+                if (RestoreFirstAssetMaterial(serializedRenderer.FindProperty("m_Materials"), source))
+                {
+                    serializedRenderer.ApplyModifiedPropertiesWithoutUndo();
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        static bool RestoreFirstAssetMaterial(SerializedProperty materials, Material source)
+        {
+            return materials != null && materials.isArray && materials.arraySize > 0 &&
+                   RestoreAssetMaterial(materials.GetArrayElementAtIndex(0), source);
+        }
+
+        static bool RestoreAssetMaterial(SerializedProperty property, Material source)
+        {
+            if (property == null)
+                return false;
+
+            // A production material that no longer exists reads as null, exactly like the missing reference on disk.
+            Material material = property.objectReferenceValue as Material;
+            if (material != null && !ShouldRestoreTransientMaterial(material))
+                return false;
+
+            property.objectReferenceValue = source;
+            return true;
         }
 
         static void SuspendForSerialization(TextStudioText hub)
@@ -371,9 +457,10 @@ namespace TextStudio.Editor
 
         static bool ShouldRestoreTransientMaterial(Material material)
         {
+            // TMP's instance material of a TextMeshPro route material keeps only the route name.
             return material != null &&
-                   TextStudioTMPMaterialEffectAdapter.IsTransientProductionMaterial(
-                       material) &&
+                   (TextStudioTMPMaterialEffectAdapter.IsTransientProductionMaterial(material) ||
+                    TextStudioTMPRouteMaterialCache.HasRouteName(material)) &&
                    !IsPersistentMaterialAsset(material);
         }
 

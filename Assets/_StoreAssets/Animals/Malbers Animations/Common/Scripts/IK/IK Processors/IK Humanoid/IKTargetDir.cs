@@ -1,3 +1,4 @@
+// Last Change: 10/16/2026 9:45am
 using MalbersAnimations.Scriptables;
 using System;
 using System.Collections.Generic;
@@ -76,7 +77,7 @@ namespace MalbersAnimations.IK
                 if (targets != null)
                 {
                     Vector3 targetPosition = PerformRaycast(anim, bodyPart, targets, positionOffset, rayStartOffset);
-                    Vector3 finalPosition = targetPosition + anim.transform.TransformDirection(positionOffset);
+                    Vector3 finalPosition = targetPosition + anim.transform.TransformDirection(positionOffset * OffsetScale(IKSet)); //IK Manager Scale Multiplier
 
                     // Smoothly interpolate position
                     currentIKPosition = Vector3.Lerp(currentIKPosition, finalPosition, Time.deltaTime * lerpSpeed);

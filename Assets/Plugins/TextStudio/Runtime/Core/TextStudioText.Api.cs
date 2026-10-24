@@ -98,6 +98,8 @@ namespace TextStudio
         public void SetBackendWriteHandling(TextStudioBackendWriteHandling handling)
         {
             _backendWriteHandling = handling;
+            // Pulls of imported sources read an input field, which the steady lane never polls.
+            EndSteadyLane();
         }
 
         /// <summary>Controls whether preview-safe actions may produce scene side effects in edit mode.</summary>

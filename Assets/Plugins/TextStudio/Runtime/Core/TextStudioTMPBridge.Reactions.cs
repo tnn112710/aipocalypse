@@ -63,7 +63,8 @@ namespace TextStudio
         {
             get
             {
-                if (_appearanceAdapter.HasHeroProgram || _appearanceAdapter.HasActiveProgram) return true;
+                // The TextMeshPro route keeps the existing contract: retained capture copies no styled appearance.
+                if (_appearanceAdapter.HasHeroProgram || _appearanceAdapter.HasActiveProgram || _appearanceAdapter.UsesTextMeshProRoute) return true;
                 if (_appearancePlanAdapter.Plan == null) return false;
                 for (int index = 0; index < _appearancePlanAdapter.Programs.Count; index++)
                 {
@@ -77,6 +78,14 @@ namespace TextStudio
         public TextStudioReactionCaptureCapability QuerySupport(
             in TextStudioReactionCaptureRequest request)
         {
+            return QuerySupport(in request, out _, out _, out _);
+        }
+
+        TextStudioReactionCaptureCapability QuerySupport(
+            in TextStudioReactionCaptureRequest request, out int materialIndex,
+            out int firstCharacter, out int lastCharacter)
+        {
+            materialIndex = firstCharacter = lastCharacter = -1;
             if (!Application.isPlaying)
                 return TextStudioReactionCaptureCapability.Unsupported(
                     "Retained TMP output runs only in Play Mode.");
@@ -121,7 +130,6 @@ namespace TextStudio
                 return TextStudioReactionCaptureCapability.Unsupported(
                     "The requested semantic unit has no prepared TMP layout.");
 
-            int materialIndex = -1;
             int visible = 0;
             for (int i = 0; i < textInfo.characterCount; i++)
             {
@@ -146,6 +154,8 @@ namespace TextStudio
                     return TextStudioReactionCaptureCapability.Unsupported(
                         "One semantic unit spans multiple TMP material references.");
                 materialIndex = character.materialReferenceIndex;
+                if (firstCharacter < 0) firstCharacter = i;
+                lastCharacter = i;
                 visible++;
             }
             if (visible == 0 || materialIndex < 0)
@@ -167,25 +177,14 @@ namespace TextStudio
             out TextStudioReactionLease lease)
         {
             lease = default;
-            if (!QuerySupport(in request).IsSupported ||
+            if (!QuerySupport(in request, out int materialIndex,
+                    out int firstCharacter, out int lastCharacter).IsSupported ||
                 !_hub.TryGetReactionAnchor(in request.Context,
                     out TextStudioReactionAnchor anchor)) return false;
 
             TextStudioPlanView plan = _hub.Plan;
             TMP_TextInfo textInfo = _tmpText.textInfo;
             int unit = request.Context.UnitIndex;
-            int materialIndex = -1;
-            for (int i = 0; i < textInfo.characterCount; i++)
-            {
-                ref readonly TMP_CharacterInfo character = ref textInfo.characterInfo[i];
-                if (character.isVisible &&
-                    plan.GetUnitIndexForDisplayChar(character.index) == unit)
-                {
-                    materialIndex = character.materialReferenceIndex;
-                    break;
-                }
-            }
-            if (materialIndex < 0) return false;
             ref readonly TMP_MeshInfo sourceInfo = ref textInfo.meshInfo[materialIndex];
             Mesh sourceMesh = sourceInfo.mesh;
             ReactionSourceBuffers sourceBuffers = ReadReactionSourceMesh(sourceMesh);
@@ -208,7 +207,7 @@ namespace TextStudio
                 slot.BaseColors.Clear();
                 slot.OutputColors.Clear();
                 slot.Triangles.Clear();
-                for (int i = 0; i < textInfo.characterCount; i++)
+                for (int i = firstCharacter; i <= lastCharacter; i++)
                 {
                     ref readonly TMP_CharacterInfo character = ref textInfo.characterInfo[i];
                     if (!character.isVisible ||
@@ -261,7 +260,7 @@ namespace TextStudio
                 mesh.SetUVs(2, slot.Uv2);
                 mesh.SetUVs(3, slot.Uv3);
                 mesh.SetUVs(4, slot.Uv4);
-                mesh.SetTriangles(slot.Triangles, 0);
+                mesh.SetTriangles(slot.Triangles, 0, false);
                 mesh.RecalculateBounds();
                 slot.Root.transform.localPosition = slot.CenterLocal;
                 slot.Root.transform.localRotation = Quaternion.identity;

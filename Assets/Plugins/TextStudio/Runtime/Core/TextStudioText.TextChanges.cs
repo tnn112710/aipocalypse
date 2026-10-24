@@ -42,6 +42,23 @@ namespace TextStudio
             TextStudioTextChangeScope? scopeOverride = null,
             bool? restartUnchanged = null)
         {
+            using (TextChangeProfilerMarker.Auto())
+            {
+                RequestTextChangeCore(markup, syncTextImmediate, forceReveal, preferIncrementalAppend, raiseTextSetEvent,
+                    forceImmediate, scopeOverride, restartUnchanged);
+            }
+        }
+
+        void RequestTextChangeCore(
+            string markup,
+            bool syncTextImmediate,
+            bool forceReveal,
+            bool preferIncrementalAppend,
+            bool raiseTextSetEvent,
+            bool forceImmediate,
+            TextStudioTextChangeScope? scopeOverride,
+            bool? restartUnchanged)
+        {
             TextStudioTypewriterSettings settings = ResolveTypewriterSettings();
             if (settings.ResetSpeedOnNewText)
                 _runtime.RevealSpeedMultiplier = settings.RevealSpeedMultiplier;
@@ -92,24 +109,27 @@ namespace TextStudio
             bool preserveContinuity = false,
             TextStudioGlyphChangeSet reactionChanges = default)
         {
-            _latestCommittedGlyphChanges = glyphChanges;
-            _layoutInterpolation?.Prepare(in glyphChanges);
-            bool deferImmediateProcessing = _runtime.IsProcessingPipeline;
-            if (_runtime.IsDisappearing)
-                _runtime.StopDisappear();
-            if (preserveContinuity && glyphChanges.IsDefined)
-                _runtime.PrepareTextChangeContinuity(glyphChanges);
-            else
-                _runtime.DiscardTextChangeContinuity();
-            _runtime.PrepareReactionTextChange(in reactionChanges);
-            if (preferIncrementalAppend)
-                _runtime.AppendCanonicalText(markup);
-            else
-                _runtime.SetText(markup, raiseTextSetEvent);
-            if (syncTextImmediate && !deferImmediateProcessing)
-                SyncTextImmediateForCurrentMode();
-            if (revealReplacement)
-                StartTextChangeRevealOrDeferUntilPipelineIsCurrent();
+            using (TextChangeCommitProfilerMarker.Auto())
+            {
+                _latestCommittedGlyphChanges = glyphChanges;
+                _layoutInterpolation?.Prepare(in glyphChanges);
+                bool deferImmediateProcessing = _runtime.IsProcessingPipeline;
+                if (_runtime.IsDisappearing)
+                    _runtime.StopDisappear();
+                if (preserveContinuity && glyphChanges.IsDefined)
+                    _runtime.PrepareTextChangeContinuity(glyphChanges);
+                else
+                    _runtime.DiscardTextChangeContinuity();
+                _runtime.PrepareReactionTextChange(in reactionChanges);
+                if (preferIncrementalAppend)
+                    _runtime.AppendCanonicalText(markup);
+                else
+                    _runtime.SetText(markup, raiseTextSetEvent);
+                if (syncTextImmediate && !deferImmediateProcessing)
+                    SyncTextImmediateForCurrentMode();
+                if (revealReplacement)
+                    StartTextChangeRevealOrDeferUntilPipelineIsCurrent();
+            }
         }
 
         void CompletePendingTextChange() => _textChanges.Complete(this);

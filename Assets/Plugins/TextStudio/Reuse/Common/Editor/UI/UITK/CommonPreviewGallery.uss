@@ -85,6 +85,72 @@
     -unity-text-align: upper-center;
 }
 
+.common-preview-gallery-card__badges {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    overflow: hidden;
+    min-width: 0;
+    margin-top: 4px;
+}
+
+.common-preview-gallery-card__badge {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -unity-text-align: middle-center;
+    font-size: 10px;
+    height: 17px;
+    padding-left: 6px;
+    padding-right: 6px;
+    margin-left: 2px;
+    margin-right: 2px;
+    border-width: 1px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.common-preview-gallery-card__actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    flex-direction: row;
+    padding: 2px;
+    border-radius: 4px;
+    background-color: rgba(32, 32, 32, 0.88);
+    opacity: 0;
+}
+
+.common-preview-gallery-card:hover .common-preview-gallery-card__actions,
+.common-preview-gallery-card--actions-visible .common-preview-gallery-card__actions {
+    opacity: 1;
+}
+
+.common-preview-gallery-card__action {
+    width: 22px;
+    height: 20px;
+    margin: 0 1px;
+    padding: 2px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.common-preview-gallery-card__action:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.common-preview-gallery-card__action:focus {
+    background-color: rgba(53, 119, 210, 0.45);
+}
+
+.common-preview-gallery-card__action Image {
+    width: 16px;
+    height: 16px;
+}
+
 .common-preview-gallery-card:hover {
     background-color: rgba(94, 94, 94, 0.52);
     border-color: rgba(170, 170, 170, 0.58);
@@ -112,4 +178,21 @@
 .common-inspector-theme-light .common-preview-gallery-card:focus {
     background-color: rgba(42, 108, 200, 0.14);
     border-color: rgb(42, 108, 200);
+}
+
+.common-inspector-theme-light .common-preview-gallery-card__badge {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
+.common-inspector-theme-light .common-preview-gallery-card__actions {
+    background-color: rgba(236, 236, 236, 0.94);
+}
+
+.common-inspector-theme-light .common-preview-gallery-card__action:hover {
+    background-color: rgba(0, 0, 0, 0.10);
+}
+
+.common-inspector-theme-light .common-preview-gallery-card__action:focus {
+    background-color: rgba(42, 108, 200, 0.30);
 }

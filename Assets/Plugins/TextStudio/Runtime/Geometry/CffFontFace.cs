@@ -14,6 +14,7 @@ namespace TextStudio.Geometry
         readonly float _inverseUnitsPerEm;
         readonly CurveGlyphCache _glyphs = new CurveGlyphCache();
         internal long CachedCurveBytes => _glyphs.ReadPayloadBytes();
+        internal long TrimCachedCurves() => _glyphs.Trim();
 
         readonly Func<int, CurveGlyph> _readGlyph;
         public int FontId { get; }
@@ -76,7 +77,7 @@ namespace TextStudio.Geometry
             public void LineTo(float x, float y)
             {
                 Vector2 end = new Vector2(x, y);
-                if ((end - _current).sqrMagnitude > 1e-12f) _segments.Add(CurveSegment.Line(_current, end));
+                _segments.Add(CurveSegment.Line(_current, end));
                 _current = end;
             }
             public void Curve3(float x1, float y1, float x2, float y2)
@@ -94,14 +95,14 @@ namespace TextStudio.Geometry
             public void CloseContour()
             {
                 if (_segments.Count == 0) return;
-                if ((_current - _start).sqrMagnitude > 1e-12f) _segments.Add(CurveSegment.Line(_current, _start));
+                if (!_current.Equals(_start)) _segments.Add(CurveSegment.Line(_current, _start));
                 _contours.Add(new CurveContour(_segments.ToArray()));
                 _segments.Clear();
             }
             internal CurveGlyph Build(float advance)
             {
                 CloseContour();
-                if (_contours.Count == 0) return null;
+                if (_contours.Count == 0) return new CurveGlyph(Array.Empty<CurveContour>(), default, advance);
                 Bounds bounds = _contours[0][0].Bounds;
                 foreach (CurveContour contour in _contours)
                     for (int index = 0; index < contour.Count; index++) bounds.Encapsulate(contour[index].Bounds);

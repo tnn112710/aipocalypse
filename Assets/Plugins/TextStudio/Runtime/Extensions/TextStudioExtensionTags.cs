@@ -6,12 +6,14 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Declares whether an extension tag's syntax represents a single point or a paired range around text.</summary>
     public enum TextStudioExtensionTagShape
     {
         Point,
         Range
     }
 
+    /// <summary>Flags whether an extension tag dispatches during plan construction, on reveal, and when skipped content is flushed.</summary>
     [Flags]
     public enum TextStudioExtensionTagDispatch
     {
@@ -21,6 +23,7 @@ namespace TextStudio
         FlushOnSkip = 1 << 2
     }
 
+    /// <summary>Identifies whether a parsed extension-tag invocation marks a single text position or a glyph range.</summary>
     public enum TextStudioExtensionTagBoundary
     {
         Point,
@@ -77,6 +80,7 @@ namespace TextStudio
         public bool FlushesOnSkip => (Dispatch & TextStudioExtensionTagDispatch.FlushOnSkip) != 0;
     }
 
+    /// <summary>Chooses whether a named markup parameter assigns a value or multiplies the parameter's existing value.</summary>
     public enum TextStudioTagParameterOperation
     {
         Set,

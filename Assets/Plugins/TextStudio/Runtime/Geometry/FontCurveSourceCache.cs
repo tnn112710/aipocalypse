@@ -23,11 +23,48 @@ namespace TextStudio.Geometry
             curveBytes = face is TrueTypeFontFace ttf ? ttf.CachedCurveBytes : face is CffFontFace cff ? cff.CachedCurveBytes : 0;
         }
 
+        /// <summary>Known canonical curve payload retained by live faces in the shared weak source index. Excludes source bytes and parser overhead.</summary>
+        public static long CachedCurvePayloadBytes
+        {
+            get
+            {
+                lock (s_gate)
+                {
+                    long bytes = 0L;
+                    foreach (WeakReference<ICurveFontFace> weak in s_faces.Values)
+                        if (weak.TryGetTarget(out ICurveFontFace face))
+                        {
+                            GetRetainedPayload(face, out _, out long curves);
+                            bytes += curves;
+                        }
+                    return bytes;
+                }
+            }
+        }
+
+        /// <summary>Drops cached canonical curves without altering parsed faces or immutable glyphs held by consumers. Returns removed cache ownership, not physical memory reclaimed.</summary>
+        public static long TrimCachedCurves()
+        {
+            lock (s_gate)
+            {
+                long removed = 0L;
+                foreach (WeakReference<ICurveFontFace> weak in s_faces.Values)
+                    if (weak.TryGetTarget(out ICurveFontFace face))
+                        removed += face is TrueTypeFontFace ttf ? ttf.TrimCachedCurves() :
+                            face is CffFontFace cff ? cff.TrimCachedCurves() : 0L;
+                return removed;
+            }
+        }
+
         public static ICurveFontFace GetOrCreate(byte[] bytes, int faceIndex = 0)
         {
             OpenTypeFontInfo info = OpenTypeFontInfo.Inspect(bytes, faceIndex, requireExactFace: true);
             return GetOrCreate(bytes, info);
         }
+
+        /// <summary>Reports whether the exact readable font face contains a bounded OpenType MATH table.</summary>
+        public static bool HasOpenTypeMathData(byte[] bytes, int faceIndex = 0) =>
+            OpenTypeFontInfo.Inspect(bytes, faceIndex, requireExactFace: true).HasMathData;
 
         internal static ICurveFontFace GetOrCreate(byte[] bytes, OpenTypeFontInfo info)
         {
@@ -76,6 +113,18 @@ namespace TextStudio.Geometry
         internal long Bytes { get; private set; }
 
         internal long ReadPayloadBytes() { lock (_gate) return Bytes; }
+
+        internal long Trim()
+        {
+            lock (_gate)
+            {
+                long removed = Bytes;
+                _entries.Clear();
+                _order.Clear();
+                Bytes = 0L;
+                return removed;
+            }
+        }
 
         internal CurveGlyph GetOrCreate(int glyph, Func<int, CurveGlyph> create)
         {

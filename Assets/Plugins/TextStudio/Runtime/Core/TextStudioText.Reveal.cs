@@ -201,7 +201,8 @@ namespace TextStudio
 
         internal void StartRevealInternal(bool resetProgress)
         {
-            _runtime.StartReveal(resetProgress);
+            using (RevealStartProfilerMarker.Auto())
+                _runtime.StartReveal(resetProgress);
             if (resetProgress)
                 FlushVisualStateImmediate();
         }
@@ -320,5 +321,6 @@ namespace TextStudio
         void ITextStudioPreviewHost.SnapToEndStateInternal() => SnapToEndStateInternal();
         void ITextStudioPreviewHost.RestartPreviewInvocationInternal() => RestartPreviewInvocationInternal();
         void ITextStudioPreviewHost.CancelPreviewInvocationInternal() => CancelPreviewInvocationInternal();
+        void ITextStudioPreviewHost.PreviewTookPlaybackInternal() => Unpark();
     }
 }

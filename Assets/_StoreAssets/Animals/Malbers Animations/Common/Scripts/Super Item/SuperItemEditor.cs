@@ -1,4 +1,4 @@
-// Last Change: 9/30/2026 10:00am
+// Last Change: 10/16/2026 4:20pm
 #if UNITY_EDITOR
 using MalbersAnimations.Scriptables;
 using MalbersAnimations.Utilities;
@@ -335,6 +335,10 @@ namespace MalbersAnimations.Items
         private static readonly GUIContent GC_OnUnequip = new("On Unequip by Owner",
             "Raised when this Item is unequipped by an user.\nSends the Current User (the Owner's GameObject)");
 
+        private static readonly GUIContent s_UpdateRuntimeOffset = new("Update Runtime Offset",
+            "Saves this Item's current local Position/Rotation/Scale into its entry (Item + Equip Point / Item + Holster) " +
+            "in the User's Item Offsets asset. Available while the Item is equipped or holstered");
+
         private static GUIContent s_RefreshContent; //MWC — cached to avoid per-repaint allocation
 
         //MWC — Refresh button content (icon + label) for re-running the Processors validation
@@ -469,6 +473,13 @@ namespace MalbersAnimations.Items
                                 EditorGUILayout.ToggleLeft("Can Interact", M.Active, GUILayout.MinWidth(50));
                             }
                         }
+                    }
+
+                    //Saves this Item's pose (moved by hand while equipped/holstered) into the User's Item Offsets asset
+                    using (new EditorGUI.DisabledGroupScope(M.User == null || M.User.ItemOffsets == null || (!M.IsEquipped && !M.IsInHolster)))
+                    {
+                        if (GUILayout.Button(s_UpdateRuntimeOffset))
+                            SuperItemManagerEditor.SaveRuntimeOffsets(M.User, M);
                     }
                 }
             }
@@ -2196,9 +2207,30 @@ namespace MalbersAnimations.Items
             }
         }
 
+        /// <summary>True while this editor hides Unity's transform tool so only the IK Processor handles show.</summary>
+        private bool hidToolsForIK;
+
+        /// <summary>Restores Unity's transform tool if the IK handles hid it.</summary>
+        protected virtual void OnDisable() => HideToolsForIK(false);
+
+        /// <summary>Hides or restores Unity's transform tool on the item, only touching it when this editor hid it.</summary>
+        private void HideToolsForIK(bool hide)
+        {
+            if (hide == hidToolsForIK) return;
+            Tools.hidden = hide;
+            hidToolsForIK = hide;
+        }
+
         private void OnSceneGUI()
         {
-            if (!Application.isPlaying) return;
+            //The item's own Move/Rotate gizmo sits on top of the IK handles; hide it while they are drawn
+            HideToolsForIK(DrawIKProcessorHandles());
+        }
+
+        /// <summary>Draws the selected IK Processor handles of the active Profile; returns true when any were drawn.</summary>
+        private bool DrawIKProcessorHandles()
+        {
+            if (!Application.isPlaying) return false;
 
             //MWC — the resolved Profile: in Play Mode this is the rig override / Runtime copy, not the authored asset
             if (M.ActiveActionSet != null && M.User != null && M.ActiveActionSet.CurrentIKProfile != null)
@@ -2209,17 +2241,21 @@ namespace MalbersAnimations.Items
                 // The IK Set Drawer stores the selected Processor on the SET (IKSet.SelectedIKProcessor), the same slot
                 // the IK Manager reads. A stale int on the Profile asset used to be read here instead, so the handles
                 // always belonged to Processor [0] no matter which one was selected in the Inspector.
-                if (set == null || !set.active || set.Processors == null) return;
+                if (set == null || !set.active || !set.Gizmos || set.Processors == null) return false;
 
                 var index = set.SelectedIKProcessor;
 
-                if (index < 0 || index >= set.Processors.Count) return;
+                if (index < 0 || index >= set.Processors.Count) return false;
 
                 var link = set.Processors[index];
 
                 if (link != null && link.Active)
+                {
                     link.OnSceneGUI(set, M.User.Anim, IKProfile, index);
+                    return link.HasSceneHandles; //Processors without handles keep the item's own gizmo
+                }
             }
+            return false;
         }
     }
 #endif

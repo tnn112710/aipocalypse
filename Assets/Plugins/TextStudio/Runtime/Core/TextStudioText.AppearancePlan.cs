@@ -14,9 +14,17 @@ namespace TextStudio
         void EnsureAppearancePlanCurrent(bool force = false)
         {
             if (_compiledAppearanceStyle == null) return;
+            using (AppearancePlanProfilerMarker.Auto())
+                EnsureCompiledAppearancePlanCurrent(force);
+        }
+
+        void EnsureCompiledAppearancePlanCurrent(bool force)
+        {
             if (!force && TextStudioAppearancePlanCompiler.IsCurrent(_compiledAppearancePlan, _runtime.Plan, _compiledAppearanceStyle)) return;
             // A text change that keeps the unit count of untagged text would compile an identical default-only plan.
             if (!force && TextStudioAppearancePlanCompiler.CanReuseDefaultOnly(_compiledAppearancePlan, _runtime.Plan, _compiledAppearanceStyle)) return;
+            // A parked hub relies on the plan it parked with polling nothing.
+            Unpark();
             CompiledTextStudioAppearancePlan previous = _compiledAppearancePlan;
             TextStudio2DStyleSettings settings = ActiveAppearanceSettings;
             CompiledTextStudioAppearancePlan current = TextStudioAppearancePlanCompiler.Compile(

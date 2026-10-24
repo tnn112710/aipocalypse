@@ -1,4 +1,4 @@
-﻿// Last Change: 9/24/2026 1:16pm
+﻿// Last Change: 10/14/2026 2:45pm
 using MalbersAnimations.Events;
 using MalbersAnimations.Scriptables;
 using System;
@@ -604,7 +604,7 @@ namespace MalbersAnimations
         [SerializeField] internal BoolReference InvokeEventsOnEnable = new(true);
 
         /// <summary>Regeneration Rate. Change the Speed of the Regeneration</summary>
-        public FloatReference RegenRate;
+        public FloatReference RegenRate = new();
         /// <summary>Regeneration Rate. When the value is modified this will increase or decrease it over time.</summary>
         public FloatReference RegenWaitTime = new(0);
         /// <summary>Regeneration Rate. When the value is modified this will increase or decrease it over time.</summary>
@@ -675,8 +675,17 @@ namespace MalbersAnimations
 
 
         #region Default Values
-        /// <summary>Default value to for max value to add or remove buff conditions</summary>
+        /// <summary>Base Max Value (captured on the first Initialize only). RestoreMax returns to it plus the Max Modifiers</summary>
         public float DefaultMaxValue { get; private set; }
+
+        /// <summary>True once the Base Max Value was captured, so re-enabling the Stats never folds bonuses into it</summary>
+        [NonSerialized] private bool defaultMaxCaptured;
+
+        /// <summary>Additive Max Value modifiers by source (See SetMaxModifier)</summary>
+        [NonSerialized] private Dictionary<object, float> maxModifiers;
+
+        /// <summary>Sum of every Max Modifier currently applied on the Max Value</summary>
+        public float MaxModifierTotal { get; private set; }
 
         /// <summary>Default Value</summary>
         public float DefaultValue { get; private set; }
@@ -941,7 +950,12 @@ namespace MalbersAnimations
 
 
             //Store all the Default values for the stats
-            DefaultMaxValue = MaxValue;
+            //The Base Max is captured only once: re-enabling the Stats must not turn add-on bonuses (Max Modifiers) into the default
+            if (!defaultMaxCaptured)
+            {
+                DefaultMaxValue = MaxValue - MaxModifierTotal;
+                defaultMaxCaptured = true;
+            }
             DefaultMinValue = MinValue;
             DefaultValue = Value;
 
@@ -977,7 +991,48 @@ namespace MalbersAnimations
         }
 
         public void RestoreMultiplier() => SetMultiplier(DefaultMultiplier);
-        public void RestoreMax() => MaxValue = DefaultMaxValue;
+        /// <summary>Restore the Max Value to the Base Max plus the active Max Modifiers</summary>
+        public void RestoreMax() => MaxValue = DefaultMaxValue + MaxModifierTotal;
+
+        /// <summary>Sets a new Base Max Value (what RestoreMax returns to, before Max Modifiers) and applies it</summary>
+        public void SetDefaultMax(float baseMax, bool clampValue = false)
+        {
+            DefaultMaxValue = baseMax;
+            defaultMaxCaptured = true;
+            SetMaxValue(baseMax + MaxModifierTotal, clampValue);
+        }
+
+        /// <summary>Sets the Max Value. When clampValue is true the current Value is lowered to the new Max if it is above it</summary>
+        public void SetMaxValue(float newMax, bool clampValue)
+        {
+            MaxValue = newMax;
+            if (clampValue && !HasNoRange && Value > MaxValue) Value = MaxValue;
+        }
+
+        /// <summary>Adds (or replaces) an additive Max Value modifier for a source. Several sources stack without overwriting each other</summary>
+        public void SetMaxModifier(object source, float amount, bool clampValue = true)
+        {
+            if (source == null) return;
+
+            maxModifiers ??= new();
+            maxModifiers.TryGetValue(source, out var old);
+
+            if (amount == 0) maxModifiers.Remove(source);
+            else maxModifiers[source] = amount;
+
+            var delta = amount - old;
+            if (delta == 0) return;
+
+            MaxModifierTotal += delta;
+            SetMaxValue(MaxValue + delta, clampValue);
+            if (Active && delta > 0) StartRegeneration(); //More room to regenerate
+        }
+
+        /// <summary>Removes the Max Value modifier of a source</summary>
+        public void RemoveMaxModifier(object source, bool clampValue = true) => SetMaxModifier(source, 0, clampValue);
+
+        /// <summary>Current Max Value modifier of a source (0 if it has none)</summary>
+        public float GetMaxModifier(object source) => source != null && maxModifiers != null && maxModifiers.TryGetValue(source, out var v) ? v : 0;
         public void RestoreMin() => MinValue = DefaultMinValue;
         public void RestoreRegenRate() => SetRegenRate(DefaultRegenRate);
         public void RestoreDegenRate() => SetDegenRate(DefaultDegenRate);
@@ -1072,7 +1127,25 @@ namespace MalbersAnimations
                 MaxValue = Compose(parentMax, MaxValue, ParentStat.MaxValue, out linkMax_Contribution, out linkMax_Base);
 
             if (parentValue != StatParentLink.None)
-                SetLinkedValue(Compose(parentValue, Value, ParentStat.Value, out linkValue_Contribution, out linkValue_Base));
+            {
+                var own = Value;
+                SetLinkedValue(Compose(parentValue, own, ParentStat.Value, out linkValue_Contribution, out linkValue_Base));
+
+                //MWC — remember what was REALLY added after the Min/Max clamp and rounding, not the raw parent value.
+                //Otherwise a clamped link (Attack 20 + 10 clipped to Max 25) takes 10 back out on unlink and the item drifts down
+                linkValue_Contribution = AppliedContribution(parentValue, own, Value, linkValue_Contribution);
+            }
+        }
+
+        /// <summary>The contribution that survived the clamp: the difference (Additive) or ratio (Multiply) between the applied and the own Value</summary>
+        private static float AppliedContribution(StatParentLink link, float own, float applied, float contribution)
+        {
+            return link switch
+            {
+                StatParentLink.Additive => applied - own,
+                StatParentLink.Multiply => own != 0 ? applied / own : contribution,
+                _ => contribution,
+            };
         }
 
         /// <summary>Remove the parent numbers, restoring the own ones (Value → Max → Multiplier)</summary>

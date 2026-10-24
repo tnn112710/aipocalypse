@@ -340,6 +340,13 @@ namespace TextStudio
         readonly List<string> _resolutionStack = new List<string>(8);
         int _nextPhaseBlendGroupId = 1;
 
+        // The next phase blend group, saved and restored around a resolution whose results are discarded.
+        internal int PhaseBlendGroupState
+        {
+            get => _nextPhaseBlendGroupId;
+            set => _nextPhaseBlendGroupId = value;
+        }
+
         public bool TryResolve(
             string effectId,
             TextStudioTagParameters callSiteParameters,

@@ -24,21 +24,51 @@ namespace TextStudio
     {
         readonly List<int> _open = new List<int>();
         TextStudioRangeEntry[] _entries = Array.Empty<TextStudioRangeEntry>();
+        int _appearanceCount;
+        // Tokens the last build interpreted; an append resumes after them (BuildAppended).
+        int _builtCount = -1;
         internal TextStudioRangeEntry this[int index] => _entries[index];
 
-        internal void Build(string source, TextToken[] tokens, int count)
+        /// <param name="names">The tokenizer's tag name per token, or null to read each name from the source.</param>
+        internal void Build(string source, TextToken[] tokens, int count, string[] names = null)
         {
             if (_entries.Length < count) Array.Resize(ref _entries, TextStudioBufferCapacity.ForCount(count));
             _open.Clear();
-            int appearanceCount = 0;
-            for (int i = 0; i < count; i++)
+            _appearanceCount = 0;
+            Interpret(source, tokens, 0, count, names);
+        }
+
+        /// <summary>
+        /// Interprets the tokens from <paramref name="start"/> on after a build of the same tokens before it, when every token
+        /// the last build interpreted from there on is text, so its open ranges and appearance count are those at
+        /// <paramref name="start"/>. Returns false, changing nothing, otherwise.
+        /// </summary>
+        internal bool BuildAppended(string source, TextToken[] tokens, int start, int count, string[] names)
+        {
+            if (_builtCount < start || start > count)
+                return false;
+            for (int i = start; i < _builtCount; i++)
+            {
+                if (_entries[i].OpeningTokenIndex >= 0)
+                    return false;
+            }
+
+            if (_entries.Length < count) Array.Resize(ref _entries, TextStudioBufferCapacity.ForCount(count));
+            Interpret(source, tokens, start, count, names);
+            return true;
+        }
+
+        void Interpret(string source, TextToken[] tokens, int start, int count, string[] names)
+        {
+            int appearanceCount = _appearanceCount;
+            for (int i = start; i < count; i++)
             {
                 TextToken token = tokens[i];
                 TextStudioRangeEntry entry = new TextStudioRangeEntry { OpeningTokenIndex = -1, AppearanceIndex = -1, ParentAppearanceIndex = -1 };
                 bool isClose = token.kind == TokenKind.StyleClose || token.kind == TokenKind.ExtensionClose;
                 bool isOpen = token.kind == TokenKind.StyleOpen || token.kind == TokenKind.ExtensionTag;
                 if (!isOpen && !isClose) { _entries[i] = entry; continue; }
-                string name = token.GetNameSpan(source).ToString().Trim();
+                string name = names != null ? names[i] : token.GetNameSpan(source).ToString().Trim();
                 if (isClose)
                 {
                     string closeKey = CanonicalCloseName(name);
@@ -90,6 +120,9 @@ namespace TextStudio
                 _entries[i] = entry;
                 if (entry.IsRange) _open.Add(i);
             }
+
+            _appearanceCount = appearanceCount;
+            _builtCount = count;
         }
 
         internal static string CanonicalCloseName(string name)

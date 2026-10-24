@@ -8,6 +8,7 @@ namespace TextStudio
         public readonly int resolvedLength;
         public readonly int sourceStart;
         public readonly int sourceLength;
+        public readonly bool isSourceAtom;
 
         public int ResolvedEnd => resolvedStart + resolvedLength;
         public int SourceEnd => sourceStart + sourceLength;
@@ -18,13 +19,15 @@ namespace TextStudio
             int resolvedStart,
             int resolvedLength,
             int sourceStart,
-            int sourceLength)
+            int sourceLength,
+            bool isSourceAtom = false)
         {
             this.unitIndex = unitIndex;
             this.resolvedStart = resolvedStart;
             this.resolvedLength = resolvedLength;
             this.sourceStart = sourceStart;
             this.sourceLength = sourceLength;
+            this.isSourceAtom = isSourceAtom;
         }
     }
 }

@@ -20,6 +20,7 @@ namespace TextStudio
         /// <summary>Retained decoration, stroke and depth geometry of each scoped occurrence, drawn in its painter order.</summary>
         readonly List<TextStudio2DStyleDecorations> _occurrenceDecorations = new List<TextStudio2DStyleDecorations>();
         readonly TextStudio2DFusionEligibility _fusion = new TextStudio2DFusionEligibility();
+        readonly TextStudio2DPrimitivePrograms _programs = new TextStudio2DPrimitivePrograms();
         /// <summary>Selected operations of the glyph being emitted, 64 per word.</summary>
         ulong[] _selection = new ulong[1];
         ulong[] _glyphSelections = Array.Empty<ulong>();
@@ -28,6 +29,12 @@ namespace TextStudio
         /// <summary>Engine-published quads the current build emits from instead of TMP quads.</summary>
         TextStudio2DExternalGlyphSource _external;
         int _externalRevision;
+        // Uniform field program of the engine-owned style, reselected when the compiled style or the program switch changes,
+        // and its material for the current build; null keeps every engine glyph on the field materials.
+        CompiledTextStudio2DStyle _externalUniformStyle;
+        bool _externalUniformEnabled;
+        TextStudio2DUniformFieldProgram _externalUniformProgram;
+        Material _externalUniformMaterial;
         TextStudioStackFingerprint _fingerprint;
         TextStudioVisualVersion _version;
         GameObject _worldObject;
@@ -43,7 +50,8 @@ namespace TextStudio
         int _retainedRevision;
         int _appearanceVersion;
 
-        internal long ManagedPayloadBytes => _geometry.ManagedPayloadBytes + _fusion.ManagedPayloadBytes + TextStudioAppearanceManagedMemory.ListBytes(_runs) +
+        internal long ManagedPayloadBytes => _geometry.ManagedPayloadBytes + _fusion.ManagedPayloadBytes + _programs.ManagedPayloadBytes +
+            TextStudioAppearanceManagedMemory.ListBytes(_runs) +
             (long)(_materials.Capacity + _graphics.Capacity) * IntPtr.Size;
 
         internal int GeometryUploadCount { get; private set; }
@@ -105,7 +113,9 @@ namespace TextStudio
                 _ownPrimitives = ownPrimitives;
                 // The native TMP quad can neither grow past its padding nor isolate one operation, so such styles draw here.
                 _active = ownPrimitives || retained != null && !retained.IsEmpty || !_fusion.CanFuse(in frame, text, materials);
+                materials?.BeginPrimitiveMaterials();
                 if (_active) Build(in frame, text, materials, applier, retained);
+                materials?.EndPrimitiveMaterials();
                 _retainedRevision = retained?.GeometryRevision ?? 0;
                 _fingerprint = fingerprint;
                 _version = frame.VisualSnapshot.Version;
@@ -124,13 +134,16 @@ namespace TextStudio
         internal bool RenderExternal(in TextStudioFrame frame, TextStudio2DExternalGlyphSource source, int styleSlot, bool forceRefresh)
         {
             TextStudioStackFingerprint fingerprint = frame.AppearanceStyle.Fingerprint;
-            bool rebuild = forceRefresh || !_hasBinding || _styleSlot != styleSlot || _externalRevision != source.GeometryRevision ||
+            // The uniform program carries its rows in its material, so a changed program rebuilds with another material.
+            bool uniformChanged = SelectExternalUniformProgram(in frame);
+            bool rebuild = forceRefresh || uniformChanged || !_hasBinding || _styleSlot != styleSlot || _externalRevision != source.GeometryRevision ||
                 _fingerprint.Topology != fingerprint.Topology || _fingerprint.Bounds != fingerprint.Bounds ||
                 _fingerprint.RenderState != fingerprint.RenderState || !_version.Equals(frame.VisualSnapshot.Version);
             if (rebuild)
             {
                 _styleSlot = styleSlot;
                 _external = source;
+                _externalUniformMaterial = source.ResolveUniformMaterial(in _externalUniformProgram);
                 try
                 {
                     CompiledTextStudio2DStyle style = frame.AppearanceStyle;
@@ -157,6 +170,22 @@ namespace TextStudio
             return true;
         }
 
+        // Selects the uniform program of the engine-owned style with the rule of TextMeshPro sources. Engine-owned output
+        // draws neither material effects nor Writing; each glyph's field bank replaces the source material check in
+        // EmitExternal. Returns whether the program changed.
+        bool SelectExternalUniformProgram(in TextStudioFrame frame)
+        {
+            CompiledTextStudio2DStyle style = frame.AppearanceStyle;
+            bool enabled = TextStudio2DShaderTiers.UniformProgramEnabled;
+            if (ReferenceEquals(style, _externalUniformStyle) && enabled == _externalUniformEnabled) return false;
+            _externalUniformStyle = style;
+            _externalUniformEnabled = enabled;
+            TextStudio2DShaderTiers.TrySelectUniformProgram(style, frame.AppearancePlan, false, false, out TextStudio2DUniformFieldProgram program);
+            if (program.Equals(_externalUniformProgram)) return false;
+            _externalUniformProgram = program;
+            return true;
+        }
+
         /// <summary>Draws every occurrence of an appearance plan from engine-published quads, in painter order.</summary>
         internal bool RenderAppearanceExternal(in TextStudioFrame frame, TextStudio2DExternalGlyphSource source,
             TextStudioTMPAppearancePlanAdapter appearances, bool forceRefresh)
@@ -167,6 +196,11 @@ namespace TextStudio
             if (rebuild)
             {
                 _external = source;
+                // Scoped occurrences keep the field program; a later single-style render selects its program again.
+                _externalUniformStyle = null;
+                _externalUniformProgram = default;
+                _externalUniformMaterial = null;
+                source.ReleaseUniformMaterial();
                 try { BuildAppearance(in frame, null, appearances, null, null); }
                 finally { _external = null; }
                 _externalRevision = source.GeometryRevision;
@@ -183,7 +217,12 @@ namespace TextStudio
             if (!appearances.IsReady || appearances.UsesHero) { Hide(); return false; }
             bool rebuild = forceRefresh || !_hasBinding || _appearanceVersion != appearances.Version ||
                 !_version.Equals(frame.VisualSnapshot.Version) || !frame.Dirty.IsCreated || frame.Dirty.AnyDirtyInRange(0, frame.VisualSnapshot.GlyphCount);
-            if (rebuild) BuildAppearance(in frame, text, appearances, materials, applier);
+            if (rebuild)
+            {
+                materials?.BeginPrimitiveMaterials();
+                BuildAppearance(in frame, text, appearances, materials, applier);
+                materials?.EndPrimitiveMaterials();
+            }
             if (!_active) { Hide(); return false; }
             if (text is TextMeshProUGUI ui) SynchronizeUi(ui.transform, ui, rebuild);
             else SynchronizeWorld(text, rebuild);
@@ -462,7 +501,10 @@ namespace TextStudio
             int materialIndex = character.materialReferenceIndex;
             ref readonly TMP_MeshInfo mesh = ref text.textInfo.meshInfo[materialIndex];
             int vertexIndex = character.vertexIndex;
-            Material material = materials.ResolveRenderingMaterial(text, materialIndex);
+            TextStudio2DShaderTier tier = _programs.Select(frame.AppearanceStyle, operationIndex, out bool solidPaint);
+            Material material = tier != TextStudio2DShaderTier.Full || solidPaint
+                ? materials.ResolvePrimitiveMaterial(text, materialIndex, tier, solidPaint)
+                : materials.ResolveRenderingMaterial(text, materialIndex);
             if (material == null || mesh.vertices == null || vertexIndex < 0 || vertexIndex + 3 >= mesh.vertices.Length) return;
             float identity = operationIndex == -2
                 ? TextStudio2DStyleIdentity.Pack(_styleSlot, spanMask, span)
@@ -529,7 +571,15 @@ namespace TextStudio
             ref readonly TextStudio2DExternalGlyphSource.Quad quad = ref _external.GetQuad(sourceIndex);
             ref readonly TextStudio2DExternalGlyphSource.Field field = ref _external.GetField(sourceIndex);
             if (!quad.IsPresent || !field.IsValid) return;
-            Material material = _external.ResolveMaterial(field.Bank);
+            // Single-channel glyphs of a uniform style draw with the uniform program. It reads the glyph's mapping row from
+            // uv2 and uv3: the row TryMap publishes to the mapping table for the glyph the Field program looks up.
+            Vector4 rowTransform = Vector4.zero, rowBounds = Vector4.zero;
+            bool uniform = _externalUniformMaterial != null && field.Bank == TextStudio2DExternalGlyphSource.SingleChannelBank &&
+                _external.TryMap(mappingGlyph >= 0 ? mappingGlyph : sourceIndex, out rowTransform, out rowBounds, out _);
+            TextStudio2DShaderTier tier = _programs.Select(frame.AppearanceStyle, operationIndex, out bool solidPaint);
+            Material material = uniform
+                ? _externalUniformMaterial
+                : _external.ResolveMaterial(field.Bank, tier, solidPaint || TextStudio2DShaderTiers.UsesOnlySolidPaint(frame.AppearanceStyle));
             if (material == null) return;
             float identity = operationIndex == -2
                 ? TextStudio2DStyleIdentity.Pack(_styleSlot, spanMask, span)
@@ -561,8 +611,8 @@ namespace TextStudio
                 _geometry.Colors.Add(TextStudio2DPrimitiveSupport.Bilinear(quad.Color0, quad.Color1, quad.Color2, quad.Color3, x, y));
                 _geometry.Uv0.Add(new Vector4(Mathf.LerpUnclamped(em.x, em.z, x), Mathf.LerpUnclamped(em.y, em.w, y), identity, scale));
                 _geometry.Uv1.Add(new Vector4(x, y, 0f, 0f));
-                _geometry.Uv2.Add(Vector4.zero);
-                _geometry.Uv3.Add(Vector4.zero);
+                _geometry.Uv2.Add(rowTransform);
+                _geometry.Uv3.Add(rowBounds);
                 _geometry.Local.Add(new Vector4(x, y, packedGlyph, 0f));
             }
             _geometry.Indices.Add(start); _geometry.Indices.Add(start + 1); _geometry.Indices.Add(start + 2);
@@ -730,6 +780,7 @@ namespace TextStudio
             Destroy(_worldMesh); Destroy(_worldObject);
             _worldMesh = null; _worldObject = null; _worldRenderer = null;
             _geometry.Clear(); _runs.Clear(); _materials.Clear(); _hasBinding = false; _active = false;
+            _externalUniformStyle = null; _externalUniformProgram = default; _externalUniformMaterial = null;
         }
 
         static void Destroy(Object value)

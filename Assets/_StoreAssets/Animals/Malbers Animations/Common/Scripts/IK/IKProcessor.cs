@@ -1,3 +1,4 @@
+// Last Change: 10/16/2026 4:28pm
 using MalbersAnimations.Conditions; // MWC — Conditions2 support on the IK Processor
 using System;
 using UnityEngine;
@@ -109,6 +110,9 @@ namespace MalbersAnimations.IK
         public virtual void LateUpdate(IKSet IKSet, Animator anim, int index, float weight) { }
         public virtual void OnDrawGizmos(IKManager manager, IKSet IKSet, Animator anim, float weight) { }
 
+        /// <summary>Scale Multiplier of the IK Manager owning [set] (1 without one). Multiplies position offsets only, never rotations</summary>
+        public static float OffsetScale(IKSet set) => set != null && set.Owner != null ? set.Owner.ScaleMultiplier : 1f;
+
         ///<summary> Verify if the IKProcessor is set correctly.If it needs some references </summary>
         public abstract void Verify(IKManager manager, IKSet set, Animator animator, int index);
 
@@ -179,7 +183,29 @@ namespace MalbersAnimations.IK
             return m_CondWeightLate;
         }
 
+        /// <summary>Draws the Processor Scene view handles (editor only).</summary>
         internal virtual void OnSceneGUI(IKSet set, Animator animator, UnityEngine.Object target, int index) { }
+
+#if UNITY_EDITOR
+        /// <summary>Per type: does the Processor override OnSceneGUI (i.e. draw its own handles)?</summary>
+        private static readonly System.Collections.Generic.Dictionary<Type, bool> sceneHandlesCache = new();
+
+        /// <summary>True when this Processor type draws its own Scene view handles.</summary>
+        internal bool HasSceneHandles
+        {
+            get
+            {
+                var type = GetType();
+                if (!sceneHandlesCache.TryGetValue(type, out var has))
+                {
+                    var method = type.GetMethod(nameof(OnSceneGUI), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                    has = method != null && method.DeclaringType != typeof(IKProcessor);
+                    sceneHandlesCache[type] = has;
+                }
+                return has;
+            }
+        }
+#endif
 
 
         [HideInInspector] public bool showIndex;

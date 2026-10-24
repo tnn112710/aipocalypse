@@ -1118,12 +1118,15 @@ namespace TextStudio.Editor
         static void SchedulePreviewTicks(VisualElement root, TextStudioBinding binding, RevealMode revealMode, bool loopReveal)
         {
             IVisualElementScheduledItem scheduledItem = null;
+            VisualElement viewport = null;
             double lastTime = 0d;
             float replayTime = 0f;
             const float ReplayInterval = 2.8f;
 
             root.RegisterCallback<AttachToPanelEvent>(_ =>
             {
+                ScrollView scrollView = root.GetFirstAncestorOfType<ScrollView>();
+                viewport = scrollView != null ? scrollView.contentViewport : root.panel?.visualTree;
                 lastTime = HostTime.CurrentHostTime(ClockMode.Realtime);
                 replayTime = 0f;
                 scheduledItem = root.schedule.Execute(() =>
@@ -1131,6 +1134,9 @@ namespace TextStudio.Editor
                     double now = HostTime.CurrentHostTime(ClockMode.Realtime);
                     float deltaTime = HostTime.ClampDelta((float)(now - lastTime), HostTime.DefaultMaxDeltaTime);
                     lastTime = now;
+                    if (viewport == null || !root.worldBound.Overlaps(viewport.worldBound))
+                        return;
+
                     binding.UpdateFromHost(deltaTime);
 
                     if (!loopReveal || revealMode == RevealMode.Instant)
@@ -1149,6 +1155,7 @@ namespace TextStudio.Editor
             {
                 scheduledItem?.Pause();
                 scheduledItem = null;
+                viewport = null;
             });
         }
     }

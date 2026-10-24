@@ -16,6 +16,8 @@ namespace TextStudio
             if (sample == null) return;
             _externalEffectSamples ??= new List<ITextStudioExternalEffectSample>();
             if (!_externalEffectSamples.Contains(sample)) _externalEffectSamples.Add(sample);
+            // Samples mark nothing dirty; a sleeping hub notices them in its configuration check.
+            Unpark();
         }
 
         internal void ReleaseExternalEffectSample(ITextStudioExternalEffectSample sample)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace TextStudio.Editor
@@ -26,10 +27,43 @@ namespace TextStudio.Editor
             }
 
             RefreshPackageRoots();
-            return s_PackageRoots.TryGetValue(packageName, out root) &&
-                   Directory.Exists(root)
-                ? root
+            if (s_PackageRoots.TryGetValue(packageName, out root) &&
+                Directory.Exists(root))
+            {
+                return root;
+            }
+
+            // Not under Assets: installed through the Package Manager (registry, tarball, git or a local folder).
+            UnityEditor.PackageManager.PackageInfo package = FindInstalledPackage(packageName);
+            return package != null && Directory.Exists(package.resolvedPath)
+                ? package.resolvedPath.Replace('\\', '/')
                 : null;
+        }
+
+        /// <summary>
+        /// The package root as an asset path: under Assets when its sources live in the project,
+        /// "Packages/&lt;name&gt;" when it is installed through the Package Manager. A full path
+        /// outside the project cannot be turned into an asset path any other way.
+        /// </summary>
+        public static string FindAssetRoot(string packageName)
+        {
+            string fullRoot = FindFullRoot(packageName);
+            if (string.IsNullOrEmpty(fullRoot)) return null;
+
+            string projectRelative = FileUtil.GetProjectRelativePath(fullRoot.Replace('\\', '/'));
+            if (!string.IsNullOrEmpty(projectRelative) &&
+                projectRelative.StartsWith("Assets/", StringComparison.Ordinal))
+            {
+                return projectRelative;
+            }
+
+            UnityEditor.PackageManager.PackageInfo package = FindInstalledPackage(packageName);
+            return package != null ? package.assetPath : null;
+        }
+
+        static UnityEditor.PackageManager.PackageInfo FindInstalledPackage(string packageName)
+        {
+            return UnityEditor.PackageManager.PackageInfo.FindForAssetPath("Packages/" + packageName);
         }
 
         static void EnsurePackageRoots()

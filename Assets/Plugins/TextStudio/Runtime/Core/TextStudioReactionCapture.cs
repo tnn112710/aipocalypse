@@ -3,8 +3,10 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Declares whether capture requests a glyph-presentation copy or detachment from live text; the provider reports support separately.</summary>
     public enum TextStudioReactionCaptureIntent { Copy, Detach }
 
+    /// <summary>Flags the glyph geometry, material state, sprites, decorations, and layered geometry retained by a Reaction capture.</summary>
     [Flags]
     public enum TextStudioReactionResourceClass
     {
@@ -16,6 +18,7 @@ namespace TextStudio
         MultiLayerGeometry = 16
     }
 
+    /// <summary>Reports whether outgoing-glyph capture is unsupported, supported with declared visual limitations, or exact.</summary>
     public enum TextStudioReactionCaptureSupport
     {
         Unsupported,

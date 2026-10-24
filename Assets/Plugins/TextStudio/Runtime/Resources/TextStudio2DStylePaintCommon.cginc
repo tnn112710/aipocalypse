@@ -11,7 +11,12 @@
 #define TEXT_STUDIO_STYLE_SCHEMA_VERSION 13
 
 // Set only inside a Hero command-buffer coverage replay and reset before output.
+#ifdef TEXT_STUDIO_HERO_PLAIN_ROW
+// A plain Hero row never draws a coverage replay.
+static const float _TextStudio2DGeometryCoveragePass = 0;
+#else
 float _TextStudio2DGeometryCoveragePass;
+#endif
 
 #ifndef TEXT_STUDIO_STYLE_HEADERS_BUFFER
 #define TEXT_STUDIO_STYLE_HEADERS_BUFFER _TextStudio2DStyleHeaders
@@ -43,6 +48,14 @@ float _TextStudio2DGeometryCoveragePass;
 
 #ifndef TEXT_STUDIO_MAPPING_TABLE_ENABLED
 #define TEXT_STUDIO_MAPPING_TABLE_ENABLED _TextStudio2DMappingTableEnabled
+#endif
+
+#ifndef TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS
+#define TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS _TextStudio2DStyleTableLastRecords
+#endif
+
+#ifndef TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS
+#define TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS _TextStudio2DMappingTableLastRecords
 #endif
 
 struct TextStudio2DGpuStyleHeader
@@ -113,6 +126,18 @@ struct TextStudio2DGpuGlyphMapping
 // One logical table contract with two transports, selected globally by TextStudio2DTransport. Structured buffers
 // serve devices that admit them in every stage; full-float data textures addressed by integer texel serve WebGL 2
 // and OpenGL ES 3.0. Records are sequences of float4; texel = record * size + field, stored at (texel & 1023, texel >> 10).
+//
+// Compiled programs read guarded records before their guards decide: fxc flattens small branches into unconditional
+// loads and selects, so a disabled table is still read at a text's slot, and the empty header of an unused slot still
+// indexes the record tables. Metal has no robust buffer access, unlike Direct3D and Vulkan, so every accessor clamps its
+// record to the last record of the bound table, which the owning table publishes with each binding (style: x headers,
+// y operations, z gradient stops, w text uniforms; mapping: x headers, y glyph mappings, z ranges). Fallbacks publish 0.
+float4 TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS;
+float4 TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS;
+
+// A negative record wraps to a large unsigned value and clamps to the last record as well.
+uint TextStudioTableRecord(int record, float lastRecord) { return min((uint)record, (uint)lastRecord); }
+
 #if defined(TEXT_STUDIO_TEXTURE_TRANSPORT)
 Texture2D<float4> _TextStudio2DStyleHeadersData;
 Texture2D<float4> _TextStudio2DStyleOperationsData;
@@ -128,7 +153,7 @@ float4 TextStudioDataTexel(Texture2D<float4> data, int texel)
 
 TextStudio2DGpuStyleHeader TextStudioLoadStyleHeader(uint slot)
 {
-    int texel = (int)slot * 3;
+    int texel = (int)TextStudioTableRecord((int)slot, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.x) * 3;
     TextStudio2DGpuStyleHeader header;
     header.metadata = TextStudioDataTexel(_TextStudio2DStyleHeadersData, texel);
     header.boundsExpansion = TextStudioDataTexel(_TextStudio2DStyleHeadersData, texel + 1);
@@ -138,7 +163,7 @@ TextStudio2DGpuStyleHeader TextStudioLoadStyleHeader(uint slot)
 
 TextStudio2DGpuOperation TextStudioLoadOperation(int index)
 {
-    int texel = index * 27;
+    int texel = (int)TextStudioTableRecord(index, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.y) * 27;
     TextStudio2DGpuOperation operation;
     operation.layerMetadata = TextStudioDataTexel(_TextStudio2DStyleOperationsData, texel);
     operation.executionMetadata = TextStudioDataTexel(_TextStudio2DStyleOperationsData, texel + 1);
@@ -172,15 +197,16 @@ TextStudio2DGpuOperation TextStudioLoadOperation(int index)
 
 TextStudio2DGpuGradientStop TextStudioLoadGradientStop(int index)
 {
+    int texel = (int)TextStudioTableRecord(index, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.z) * 2;
     TextStudio2DGpuGradientStop stop;
-    stop.metadata = TextStudioDataTexel(_TextStudio2DGradientStopsData, index * 2);
-    stop.color = TextStudioDataTexel(_TextStudio2DGradientStopsData, index * 2 + 1);
+    stop.metadata = TextStudioDataTexel(_TextStudio2DGradientStopsData, texel);
+    stop.color = TextStudioDataTexel(_TextStudio2DGradientStopsData, texel + 1);
     return stop;
 }
 
 TextStudio2DGpuMappingHeader TextStudioLoadMappingHeader(uint slot)
 {
-    int texel = (int)slot * 3;
+    int texel = (int)TextStudioTableRecord((int)slot, TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS.x) * 3;
     TextStudio2DGpuMappingHeader header;
     header.metadata = TextStudioDataTexel(_TextStudio2DMappingHeadersData, texel);
     header.objectBounds = TextStudioDataTexel(_TextStudio2DMappingHeadersData, texel + 1);
@@ -190,7 +216,7 @@ TextStudio2DGpuMappingHeader TextStudioLoadMappingHeader(uint slot)
 
 TextStudio2DGpuGlyphMapping TextStudioLoadGlyphMapping(int index)
 {
-    int texel = index * 8;
+    int texel = (int)TextStudioTableRecord(index, TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS.y) * 8;
     TextStudio2DGpuGlyphMapping glyph;
     glyph.wordBounds = TextStudioDataTexel(_TextStudio2DGlyphMappingsData, texel);
     glyph.lineBounds = TextStudioDataTexel(_TextStudio2DGlyphMappingsData, texel + 1);
@@ -205,7 +231,7 @@ TextStudio2DGpuGlyphMapping TextStudioLoadGlyphMapping(int index)
 
 float4 TextStudioLoadRange(int index)
 {
-    return TextStudioDataTexel(_TextStudio2DRangeMappingsData, index);
+    return TextStudioDataTexel(_TextStudio2DRangeMappingsData, (int)TextStudioTableRecord(index, TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS.z));
 }
 #else
 StructuredBuffer<TextStudio2DGpuStyleHeader> TEXT_STUDIO_STYLE_HEADERS_BUFFER;
@@ -215,17 +241,108 @@ StructuredBuffer<TextStudio2DGpuMappingHeader> TEXT_STUDIO_MAPPING_HEADERS_BUFFE
 StructuredBuffer<TextStudio2DGpuGlyphMapping> TEXT_STUDIO_MAPPING_GLYPHS_BUFFER;
 StructuredBuffer<float4> TEXT_STUDIO_MAPPING_RANGES_BUFFER;
 
-TextStudio2DGpuStyleHeader TextStudioLoadStyleHeader(uint slot) { return TEXT_STUDIO_STYLE_HEADERS_BUFFER[slot]; }
-TextStudio2DGpuOperation TextStudioLoadOperation(int index) { return TEXT_STUDIO_STYLE_OPERATIONS_BUFFER[index]; }
-TextStudio2DGpuGradientStop TextStudioLoadGradientStop(int index) { return TEXT_STUDIO_STYLE_GRADIENTS_BUFFER[index]; }
-TextStudio2DGpuMappingHeader TextStudioLoadMappingHeader(uint slot) { return TEXT_STUDIO_MAPPING_HEADERS_BUFFER[slot]; }
-TextStudio2DGpuGlyphMapping TextStudioLoadGlyphMapping(int index) { return TEXT_STUDIO_MAPPING_GLYPHS_BUFFER[index]; }
-float4 TextStudioLoadRange(int index) { return TEXT_STUDIO_MAPPING_RANGES_BUFFER[index]; }
+TextStudio2DGpuStyleHeader TextStudioLoadStyleHeader(uint slot)
+{
+    return TEXT_STUDIO_STYLE_HEADERS_BUFFER[TextStudioTableRecord((int)slot, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.x)];
+}
+TextStudio2DGpuOperation TextStudioLoadOperation(int index)
+{
+    return TEXT_STUDIO_STYLE_OPERATIONS_BUFFER[TextStudioTableRecord(index, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.y)];
+}
+TextStudio2DGpuGradientStop TextStudioLoadGradientStop(int index)
+{
+    return TEXT_STUDIO_STYLE_GRADIENTS_BUFFER[TextStudioTableRecord(index, TEXT_STUDIO_STYLE_TABLE_LAST_RECORDS.z)];
+}
+TextStudio2DGpuMappingHeader TextStudioLoadMappingHeader(uint slot)
+{
+    return TEXT_STUDIO_MAPPING_HEADERS_BUFFER[TextStudioTableRecord((int)slot, TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS.x)];
+}
+TextStudio2DGpuGlyphMapping TextStudioLoadGlyphMapping(int index)
+{
+    return TEXT_STUDIO_MAPPING_GLYPHS_BUFFER[TextStudioTableRecord(index, TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS.y)];
+}
+float4 TextStudioLoadRange(int index)
+{
+    return TEXT_STUDIO_MAPPING_RANGES_BUFFER[TextStudioTableRecord(index, TEXT_STUDIO_MAPPING_TABLE_LAST_RECORDS.z)];
+}
 #endif
 UNITY_DECLARE_TEX2DARRAY(_TextStudio2DPaintTextures);
 float TEXT_STUDIO_STYLE_TABLE_ENABLED;
 float TEXT_STUDIO_MAPPING_TABLE_ENABLED;
 float _TextStudio2DPaintTexturesEnabled;
+
+#ifdef TEXT_STUDIO_UNIFORM_ROW
+// Uniform Hero rows (TextStudio2DHeroUniformRow): the drawn operation's record and its gradient stops travel as material
+// constants, packed by TextStudio2DGpuStylePacking exactly like their style-table records, so the row reads no style table.
+// TextStudio2DHeroMaterials.SupportsUniformRow admits only rows whose program reads no other record.
+#define TEXT_STUDIO_UNIFORM_ROW_STOPS 8
+float4 _TextStudioHeroRowLayer;
+float4 _TextStudioHeroRowExecution;
+float4 _TextStudioHeroRowPaint;
+float4 _TextStudioHeroRowColor;
+float4 _TextStudioHeroRowPaintTransform0;
+float4 _TextStudioHeroRowPaintTransform1;
+float4 _TextStudioHeroRowParameters0;
+float4 _TextStudioHeroRowParameters1;
+float4 _TextStudioHeroRowParameters2;
+// Positions of stops 0 to 3 and 4 to 7, then each stop's colour, from the paint's first stop.
+float4 _TextStudioHeroRowStopPositions0;
+float4 _TextStudioHeroRowStopPositions1;
+float4 _TextStudioHeroRowStopColor0;
+float4 _TextStudioHeroRowStopColor1;
+float4 _TextStudioHeroRowStopColor2;
+float4 _TextStudioHeroRowStopColor3;
+float4 _TextStudioHeroRowStopColor4;
+float4 _TextStudioHeroRowStopColor5;
+float4 _TextStudioHeroRowStopColor6;
+float4 _TextStudioHeroRowStopColor7;
+
+TextStudio2DGpuOperation TextStudioUniformRowOperation()
+{
+    // Fill, stroke, shadow and glow records pack nothing beyond these fields; the others stay zero, as in the table.
+    TextStudio2DGpuOperation operation = (TextStudio2DGpuOperation)0;
+    operation.layerMetadata = _TextStudioHeroRowLayer;
+    operation.executionMetadata = _TextStudioHeroRowExecution;
+    operation.paintMetadata = _TextStudioHeroRowPaint;
+    operation.color = _TextStudioHeroRowColor;
+    operation.paintTransform0 = _TextStudioHeroRowPaintTransform0;
+    operation.paintTransform1 = _TextStudioHeroRowPaintTransform1;
+    operation.parameters0 = _TextStudioHeroRowParameters0;
+    operation.parameters1 = _TextStudioHeroRowParameters1;
+    operation.parameters2 = _TextStudioHeroRowParameters2;
+    return operation;
+}
+
+// One step of the table's stop scan over the row's stops: true, with the colour before the operation tint, once the scan
+// ends at stop index. Each caller passes its stop's own constants, so no stop is addressed dynamically.
+bool TextStudioUniformRowGradientStep(
+    int index,
+    int stopCount,
+    half coordinate,
+    float position,
+    float4 stopColor,
+    inout float previousPosition,
+    inout float4 previousColor,
+    out float4 color)
+{
+    color = previousColor;
+    if (index >= stopCount)
+        return true;
+    if (coordinate <= position)
+    {
+        half denominator = max(
+            .00001,
+            position - previousPosition);
+        half amount = saturate(
+            (coordinate - previousPosition) / denominator);
+        color = lerp(previousColor, stopColor, amount);
+        return true;
+    }
+    previousPosition = position;
+    previousColor = stopColor;
+    return false;
+}
+#endif
 
 int TextStudioStyleOperationBase(uint styleSlot)
 {
@@ -312,12 +429,17 @@ float4 TextStudioApplyColorAdjustmentsForSelection(uint styleSlot, int operation
 
 float4 TextStudioApplyColorAdjustments(uint styleSlot, int operationIndex, int glyphIndex, float4 straight)
 {
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    // Uniform rows belong to styles without colour adjustments, whose mapping rows hold no selection masks.
+    return straight;
+    #else
     if (styleSlot == 0 || operationIndex <= 0 || glyphIndex < 0 || TEXT_STUDIO_MAPPING_TABLE_ENABLED < .5) return straight;
     TextStudio2DGpuMappingHeader mapping = TextStudioLoadMappingHeader(styleSlot);
     int selectionStart = (int)round(mapping.metadata.z) - 1;
     if (selectionStart < 0 || glyphIndex >= (int)round(mapping.metadata.y)) return straight;
     return TextStudioApplyColorAdjustmentsCore(styleSlot, operationIndex, 0,
         selectionStart + glyphIndex * max(1, (int)round(mapping.program.y)), straight);
+    #endif
 }
 
 float TextStudioStyleLineCoordinate(uint styleSlot, int operationIndex, int glyphIndex, float textCoordinateX, bool restartPerLine)
@@ -368,6 +490,9 @@ void TextStudioStyleResolveMapping(
     UNITY_BRANCH
     if (mapping == 0)
         return;
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    // Uniform rows draw texts without appearance occurrences, whose glyph rows carry no appearance bounds.
+    #else
     float4 appearanceBounds;
     if ((mapping == 3 || mapping == 4 || mapping == 7) && TextStudioAppearanceBounds(styleSlot, glyphIndex, appearanceBounds))
     {
@@ -377,6 +502,7 @@ void TextStudioStyleResolveMapping(
         coordinateDy = objectDy / extent;
         return;
     }
+    #endif
     if (mapping == 3)
     {
         coordinate = textLocal;
@@ -456,6 +582,40 @@ fixed4 TextStudioStyleGradientColor(
     TextStudio2DGpuOperation operation,
     half coordinate)
 {
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    // The table scan below over the row's own stops, which the material holds from stop zero.
+    int uniformStopCount = clamp((int)round(operation.paintMetadata.w), 0, TEXT_STUDIO_UNIFORM_ROW_STOPS);
+    if (uniformStopCount <= 0)
+        return operation.color;
+    float previousPosition = _TextStudioHeroRowStopPositions0.x;
+    float4 previousColor = _TextStudioHeroRowStopColor0;
+    if (uniformStopCount == 1 || coordinate <= previousPosition)
+        return previousColor * operation.color;
+    // HLSL evaluates both operands of ||, so each step returns on its own.
+    float4 stopColor;
+    if (TextStudioUniformRowGradientStep(1, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions0.y,
+            _TextStudioHeroRowStopColor1, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    if (TextStudioUniformRowGradientStep(2, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions0.z,
+            _TextStudioHeroRowStopColor2, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    if (TextStudioUniformRowGradientStep(3, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions0.w,
+            _TextStudioHeroRowStopColor3, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    if (TextStudioUniformRowGradientStep(4, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions1.x,
+            _TextStudioHeroRowStopColor4, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    if (TextStudioUniformRowGradientStep(5, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions1.y,
+            _TextStudioHeroRowStopColor5, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    if (TextStudioUniformRowGradientStep(6, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions1.z,
+            _TextStudioHeroRowStopColor6, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    if (TextStudioUniformRowGradientStep(7, uniformStopCount, coordinate, _TextStudioHeroRowStopPositions1.w,
+            _TextStudioHeroRowStopColor7, previousPosition, previousColor, stopColor))
+        return stopColor * operation.color;
+    return previousColor * operation.color;
+    #else
     TextStudio2DGpuStyleHeader header = TextStudioLoadStyleHeader(styleSlot);
     int programStops = max(0, (int)round(header.metadata.z));
     int stopStart = clamp((int)round(operation.paintMetadata.z), 0, max(0, programStops - 1));
@@ -493,6 +653,7 @@ fixed4 TextStudioStyleGradientColor(
         previous = current;
     }
     return previous.color * operation.color;
+    #endif
 }
 
 half TextStudioStyleGradientSpread(half coordinate, half spread)
@@ -509,6 +670,16 @@ fixed4 TextStudioStyleFourCornerColor(
     TextStudio2DGpuOperation operation,
     float2 coordinate)
 {
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    // The row's own first four stops, held by the material from stop zero.
+    int uniformStopCount = clamp((int)round(operation.paintMetadata.w), 0, TEXT_STUDIO_UNIFORM_ROW_STOPS);
+    if (uniformStopCount < 4)
+        return operation.color;
+    fixed4 topLeft = _TextStudioHeroRowStopColor0;
+    fixed4 topRight = _TextStudioHeroRowStopColor1;
+    fixed4 bottomLeft = _TextStudioHeroRowStopColor2;
+    fixed4 bottomRight = _TextStudioHeroRowStopColor3;
+    #else
     TextStudio2DGpuStyleHeader header = TextStudioLoadStyleHeader(styleSlot);
     int programStops = max(0, (int)round(header.metadata.z));
     int stopStart = clamp((int)round(operation.paintMetadata.z), 0, max(0, programStops - 1));
@@ -524,6 +695,7 @@ fixed4 TextStudioStyleFourCornerColor(
     fixed4 topRight = TextStudioLoadGradientStop(tableStart + 1).color;
     fixed4 bottomLeft = TextStudioLoadGradientStop(tableStart + 2).color;
     fixed4 bottomRight = TextStudioLoadGradientStop(tableStart + 3).color;
+    #endif
     float2 uv = saturate(coordinate);
     fixed4 bottom = lerp(bottomLeft, bottomRight, uv.x);
     fixed4 top = lerp(topLeft, topRight, uv.x);
@@ -673,6 +845,8 @@ fixed4 TextStudioEvaluateStylePaintWithDerivatives(
         float2 delta = TextStudioStylePaintDelta(
             operation,
             mappingCoordinate);
+        // Uniform Hero rows admit no texture, pattern or noise paint (TextStudio2DHeroMaterials.SupportsUniformRow).
+        #if !defined(TEXT_STUDIO_APPEARANCE_BASIC) && !defined(TEXT_STUDIO_UNIFORM_ROW)
         if (paintKind == 6)
         {
             TextStudioStyleMakeCoordinateIsotropic(
@@ -681,6 +855,7 @@ fixed4 TextStudioEvaluateStylePaintWithDerivatives(
                 coordinateDx,
                 coordinateDy);
         }
+        #endif
         float2 paintScale = operation.paintTransform1.xy;
         paintScale.x = abs(paintScale.x) > .00001
             ? paintScale.x
@@ -690,6 +865,7 @@ fixed4 TextStudioEvaluateStylePaintWithDerivatives(
             : (paintScale.y < 0 ? -.00001 : .00001);
         float2 deltaDx = coordinateDx / paintScale;
         float2 deltaDy = coordinateDy / paintScale;
+        #if !defined(TEXT_STUDIO_APPEARANCE_BASIC) && !defined(TEXT_STUDIO_UNIFORM_ROW)
         if (paintKind == 4 || paintKind == 5)
         {
             if (_TextStudio2DPaintTexturesEnabled > .5)
@@ -769,7 +945,9 @@ fixed4 TextStudioEvaluateStylePaintWithDerivatives(
                 operation.color.rgb,
                 operation.color.a * noise);
         }
-        else if (paintKind == 7)
+        else
+        #endif
+        if (paintKind == 7)
         {
             result = TextStudioStyleFourCornerColor(
                 styleSlot,

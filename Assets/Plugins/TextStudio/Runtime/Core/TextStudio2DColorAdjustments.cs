@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses between an explicit color matrix and standard controls such as exposure, saturation, hue, and tint.</summary>
     public enum TextStudio2DColorAdjustmentMode : byte { Matrix, Standard }
+    /// <summary>Chooses whether a color adjustment affects a shared surface when any member glyph is selected or only when all its members are selected.</summary>
     public enum TextStudio2DSurfaceSelection : byte { WholeSurface, ExcludePartial }
 
     public partial struct TextStudio2DColorAdjustmentSpec

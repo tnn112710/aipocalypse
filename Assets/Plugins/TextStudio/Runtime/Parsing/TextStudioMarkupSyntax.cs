@@ -48,6 +48,8 @@ namespace TextStudio
             _profile == TextStudioAuthoringProfile.Compatibility ||
             _profile == TextStudioAuthoringProfile.TMPEffects;
         internal int Revision => _revision;
+        // Normalize returns its input unchanged for every profile but Custom.
+        internal bool NormalizesIdentically => _profile != TextStudioAuthoringProfile.Custom;
 
         internal static TextStudioAuthoringProfile ResolveProfile(TextStudioMarkupSyntax syntax)
         {

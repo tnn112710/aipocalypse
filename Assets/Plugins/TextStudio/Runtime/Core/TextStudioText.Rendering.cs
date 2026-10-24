@@ -9,6 +9,7 @@ namespace TextStudio
         bool[] _rendererOwnedEffectBindings = Array.Empty<bool>();
         int _rendererOwnedEffectBindingCount;
         uint _rendererEffectExecutionNegotiationVersion;
+        bool _isRepublishingTMPFrame;
         // Detached evaluators for bindings without a prebound effect, kept until the animator rebinds effects.
         ITextStudioEffect[] _rendererNegotiationEffects = Array.Empty<ITextStudioEffect>();
         uint _rendererNegotiationEffectGeneration;
@@ -17,7 +18,7 @@ namespace TextStudio
         //  TMP regeneration callback
         // ─────────────────────────────────────────────────────────────────────
 
-        void HandleTMPRegenerated(bool layoutChanged)
+        void HandleTMPRegenerated(bool layoutChanged, bool hasFreshNativeMesh)
         {
             bool pulledText = ProcessTMPTextPull();
             if (layoutChanged || pulledText)
@@ -38,15 +39,41 @@ namespace TextStudio
                 return;
             }
 
-            if (!Application.isPlaying)
+            if (Application.isPlaying)
+            {
+                if (hasFreshNativeMesh)
+                    RepublishCurrentTMPFrame(layoutChanged, pulledText);
+            }
+            else
                 TextStudioEditorHooks.RequestRepaint();
+        }
+
+        void RepublishCurrentTMPFrame(bool sourceLayoutChanged, bool sourceTextChanged)
+        {
+            const DirtyFlags pendingSource =
+                DirtyFlags.Text | DirtyFlags.Style | DirtyFlags.Appearance | DirtyFlags.Writing;
+            if (sourceTextChanged || !isActiveAndEnabled || _isShuttingDown || _isTicking ||
+                _isRepublishingTMPFrame || _isValidating || UsesCustomTextBackend ||
+                !IsDrivingTextStudioOutput || _runtime.Plan == null || _runtime.IsProcessingPipeline ||
+                _runtime.IsDirty(pendingSource) ||
+                (_extensions != null && _extensions.HasActiveFrameComposers))
+                return;
+
+            // A reflow invalidates old vertices and placement. Its fresh source quads can still receive the
+            // current canonical glyph colors while the normal scheduler retains all pending layout work.
+            bool freshLayoutOnly = sourceLayoutChanged ||
+                _runtime.IsDirty(DirtyFlags.Topology | DirtyFlags.Layout | DirtyFlags.Placement);
+            _isRepublishingTMPFrame = true;
+            try { DispatchFrame(0f, textBackendOnly: true, freshTMPLayoutOnly: freshLayoutOnly); }
+            finally { _isRepublishingTMPFrame = false; }
         }
 
         // ─────────────────────────────────────────────────────────────────────
         //  Frame dispatch
         // ─────────────────────────────────────────────────────────────────────
 
-        bool DispatchFrame(float dt)
+        // steadyFrame marks a frame of the steady lane (TickSteady), whose preview passes runtime time through.
+        bool DispatchFrame(float dt, bool textBackendOnly = false, bool freshTMPLayoutOnly = false, bool steadyFrame = false)
         {
             TextStudioCompiledPlan plan = _runtime.Plan;
             if (plan == null) return false;
@@ -95,7 +122,7 @@ namespace TextStudio
                     animatedCount: _runtime.Animator.StateCount,
                     dirty: _runtime.MeshDirty,
                     revealProgress: _runtime.Reveal.RevealProgress,
-                    globalDirty: _globalDirtyThisTick,
+                    globalDirty: textBackendOnly ? DirtyFlags.Visual : _globalDirtyThisTick,
                     glyphStates: glyphInstances?.States,
                     glyphStateCount: glyphInstances?.Count ?? 0,
                     presentationGlyphs: _presentationGlyphs,
@@ -122,7 +149,9 @@ namespace TextStudio
                     visualVersion: _layout.VisualVersion,
                     visualSourceBounds: _layout.SourceTextBounds,
                     playbackTime: _runtime.Animator.PlaybackTimeForDebug,
-                    presentationTime: GetPresentationEvaluationTime(),
+                    presentationTime: steadyFrame
+                        ? Mathf.Max(0f, _time - _presentationTimeOrigin)
+                        : GetPresentationEvaluationTime(),
                     rendererOwnedEffectBindings: _rendererOwnedEffectBindings,
                     rendererOwnedEffectBindingCount:
                         _rendererOwnedEffectBindingCount,
@@ -134,11 +163,31 @@ namespace TextStudio
 
                 bool suppressTextBackendOutput =
                     ShouldSuppressTextBackendOutput(hasActiveExternalRenderer);
+                if (textBackendOnly)
+                {
+                    if (!suppressTextBackendOutput)
+                    {
+                        bool applyPlacement = _placementMode != PlacementMode.Linear ||
+                            _placementRotation.HasEffect || _textChangeLayoutDuration > 0f;
+                        TmpBridge.RepublishCurrentFrame(
+                            in frame, _presentationGlyphs, _glyphProvider, applyPlacement, freshTMPLayoutOnly);
+                    }
+                    return true;
+                }
+
                 UpdateTextBackendVisibility(suppressTextBackendOutput);
-                TextStudioFrame textBackendFrame = ComposeFrameForTarget(
-                    in frame,
-                    TextBackendFrameTarget);
-                RenderTextBackend(in textBackendFrame, suppressTextBackendOutput);
+                if (_extensions == null)
+                {
+                    // Without an extension registry every target renders the canonical frame; skip its target and copy.
+                    RenderTextBackend(in frame, suppressTextBackendOutput, steadyFrame);
+                }
+                else
+                {
+                    TextStudioFrame textBackendFrame = ComposeFrameForTarget(
+                        in frame,
+                        TextBackendFrameTarget);
+                    RenderTextBackend(in textBackendFrame, suppressTextBackendOutput, steadyFrame);
+                }
 
                 // External renderer components.
                 for (int i = 0; i < _renderers.Count; i++)

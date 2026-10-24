@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Flags which mapping, tint, transform, spread, texture-fit, or distance settings override a shared paint asset at its point of use.</summary>
     [Flags]
     public enum TextStudio2DPaintOverrides : ushort
     {
@@ -16,6 +17,7 @@ namespace TextStudio
         All = Mapping | Tint | Transform | Spread | TextureFit | Distance
     }
 
+    /// <summary>Chooses whether range-space paint coordinates restart for each selector match or span the entire selection.</summary>
     public enum TextStudio2DRangeMapping : byte
     {
         EachMatch = 0,

@@ -117,11 +117,20 @@ namespace TextStudio
         public int RenderGlyphCount => _hasRenderGlyphs ? _renderGlyphCount : _count;
         public int[] UnitToRenderGlyph => _hasRenderGlyphs ? _unitToRenderGlyph : null;
 
+        // Growth keeps the glyphs already published, which an append layout resumes after.
         public TextStudioVisualGlyph[] EnsureRenderGlyphCapacity(int count)
         {
             if (_renderGlyphs == null || _renderGlyphs.Length < count)
-                _renderGlyphs = new TextStudioVisualGlyph[TextStudioBufferCapacity.ForCount(count)];
+                _renderGlyphs = Grow(_renderGlyphs, _renderGlyphCount, TextStudioBufferCapacity.ForCount(count));
             return _renderGlyphs;
+        }
+
+        static T[] Grow<T>(T[] current, int keptCount, int capacity)
+        {
+            T[] grown = new T[capacity];
+            if (current != null && keptCount > 0)
+                Array.Copy(current, grown, Math.Min(keptCount, current.Length));
+            return grown;
         }
 
         void SetRenderGlyphs(TextStudioVisualGlyph[] glyphs, int count)
@@ -157,20 +166,23 @@ namespace TextStudio
         public Vector4 SourceTextBounds => _sourceTextBounds;
         public int Revision => _revision;
 
+        // Growth keeps the records of the glyphs already published, which an append layout resumes after.
         public void EnsureCapacity(int count)
         {
             if (_glyphLayouts == null || _glyphLayouts.Length < count)
             {
-                _glyphLayouts = new GlyphLayoutInfo[TextStudioBufferCapacity.ForCount(count)];
-                _basePositions = new Vector3[_glyphLayouts.Length];
-                _sourceCenterBaselineOffsets = new float[_glyphLayouts.Length];
-                _sourceColors = new TextStudioGlyphColorQuad[_glyphLayouts.Length];
-                _sourceColorValidity = new bool[_glyphLayouts.Length];
-                _sourceColorBounds = new TextStudioGlyphColorBounds[_glyphLayouts.Length];
-                _sourceVisualBounds = new TextStudioGlyphVisualBounds[_glyphLayouts.Length];
-                _sourceTextNormalizedPositions = new Vector3[_glyphLayouts.Length];
-                _effectUnitScales = new float[_glyphLayouts.Length];
-                _visualGlyphs = new TextStudioVisualGlyph[_glyphLayouts.Length];
+                int capacity = TextStudioBufferCapacity.ForCount(count);
+                int kept = _count;
+                _glyphLayouts = Grow(_glyphLayouts, kept, capacity);
+                _basePositions = Grow(_basePositions, kept, capacity);
+                _sourceCenterBaselineOffsets = Grow(_sourceCenterBaselineOffsets, kept, capacity);
+                _sourceColors = Grow(_sourceColors, kept, capacity);
+                _sourceColorValidity = Grow(_sourceColorValidity, kept, capacity);
+                _sourceColorBounds = Grow(_sourceColorBounds, kept, capacity);
+                _sourceVisualBounds = Grow(_sourceVisualBounds, kept, capacity);
+                _sourceTextNormalizedPositions = Grow(_sourceTextNormalizedPositions, kept, capacity);
+                _effectUnitScales = Grow(_effectUnitScales, kept, capacity);
+                _visualGlyphs = Grow(_visualGlyphs, kept, capacity);
             }
             else if (_sourceCenterBaselineOffsets == null || _sourceCenterBaselineOffsets.Length < _glyphLayouts.Length)
             {
@@ -226,7 +238,8 @@ namespace TextStudio
             TextStudioVisualFontSource[] fontSources = null,
             int fontSourceCount = 0,
             TextStudioVisualGlyph[] renderGlyphs = null, int renderGlyphCount = 0,
-            TextStudioColorSource[] colorSources = null, int colorSourceCount = 0, bool[] sourceLayoutValidity = null)
+            TextStudioColorSource[] colorSources = null, int colorSourceCount = 0, bool[] sourceLayoutValidity = null,
+            int unchangedGlyphCount = 0)
         {
             EnsureCapacity(count);
             _hasPartialSourceLayout = sourceLayoutValidity != null;
@@ -266,7 +279,14 @@ namespace TextStudio
             bool visualBoundsOwnedByLayout = ReferenceEquals(sourceVisualBounds, _sourceVisualBounds);
             bool scalesOwnedByLayout = ReferenceEquals(effectUnitScales, _effectUnitScales);
             bool visualGlyphsOwnedByLayout = ReferenceEquals(visualGlyphs, _visualGlyphs);
-            for (int i = 0; i < count; i++)
+            // A caller that wrote every record into these arrays keeps the glyph infos of glyphs it left unchanged; the last of
+            // them is rebuilt, because its advance reads the next glyph's position.
+            int firstGlyph = positionsOwnedByLayout && baselinesOwnedByLayout && colorsOwnedByLayout &&
+                             colorValidityOwnedByLayout && colorBoundsOwnedByLayout && visualBoundsOwnedByLayout &&
+                             scalesOwnedByLayout && visualGlyphsOwnedByLayout && !_hasPartialSourceLayout
+                ? Mathf.Clamp(unchangedGlyphCount - 1, 0, count)
+                : 0;
+            for (int i = firstGlyph; i < count; i++)
             {
                 if (!positionsOwnedByLayout)
                     _basePositions[i] = positions[i];

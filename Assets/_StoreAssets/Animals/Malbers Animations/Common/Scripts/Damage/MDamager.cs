@@ -1,4 +1,4 @@
-﻿// Last Change: 9/30/2026 12:00pm
+﻿// Last Change: 10/14/2026 2:45pm
 using MalbersAnimations.Events;
 using MalbersAnimations.Scriptables;
 using MalbersAnimations.Utilities;
@@ -65,6 +65,9 @@ namespace MalbersAnimations.Controller
 
         [Tooltip("Don't Hit any objects on the Owner's hierarchy")]
         public BoolReference dontHitOwner = new(true);
+
+        [Tooltip("Don't hit targets that share a Malbers Tag with the Owner (E.g. two wolves tagged [Enemy] of the same pack). Uses the Owner's Tags component")]
+        public BoolReference dontHitAllies = new(false);
 
         [Tooltip("Don't use the Default Reaction of the Damageable Component")]
         public Reaction2 CustomReaction;
@@ -188,6 +191,31 @@ namespace MalbersAnimations.Controller
             }
         }
 
+        //Tags of the Owner, cached and re-resolved whenever the Owner changes (E.g. pooled projectiles)
+        private MalbersAnimations.Tags ownerTags;
+        private GameObject ownerTagsGO;
+
+        /// <summary>Tags component on the Owner of the Damager. Null when the Owner has no Tags</summary>
+        public virtual MalbersAnimations.Tags OwnerTags
+        {
+            get
+            {
+                if (ownerTagsGO != UserGo)
+                {
+                    ownerTagsGO = UserGo;
+                    ownerTags = UserGo != null ? UserGo.FindComponent<MalbersAnimations.Tags>() : null;
+                }
+                return ownerTags;
+            }
+        }
+
+        /// <summary>True if the Damagee shares a Malbers Tag with the Owner</summary>
+        public virtual bool IsAlly(GameObject damagee)
+        {
+            var tags = OwnerTags;
+            return tags != null && tags.tags.Count > 0 && damagee.HasMalbersTagInParent(tags.tags);
+        }
+
         /// <summary>Force of the Damager</summary>
         public virtual float Force => Mathf.Lerp(MinForce, MaxForce, UnityEngine.Random.Range(0f, 1f));
 
@@ -206,6 +234,12 @@ namespace MalbersAnimations.Controller
 
         /// <summary>>Critical Change (0 - 1)</summary>
         public float CriticalChance { get => m_cChance.Value; set => m_cChance.Value = value; }
+
+        /// <summary>The Critical Chance reference itself (read-only). Check UseConstant before writing CriticalChance: a FloatVar is shared by every damager using it</summary>
+        public FloatReference CriticalChanceReference => m_cChance;
+
+        /// <summary>The Critical Multiplier reference itself (read-only). Check UseConstant before writing CriticalMultiplier: a FloatVar is shared by every damager using it</summary>
+        public FloatReference CriticalMultiplierReference => cMultiplier;
 
 
         /// <summary>>Miss Change (0 - 1)</summary>
@@ -339,6 +373,7 @@ namespace MalbersAnimations.Controller
             if (damagee.isTrigger && TriggerInteraction == QueryTriggerInteraction.Ignore) return true;    //just collapse when is a collider what we are hitting
             if (!MTools.Layer_in_LayerMask(damagee.gameObject.layer, Layer)) { return true; }        //Just hit what is on the HitMask Layer
             if (dontHitOwner && UserGo != null && damagee.transform.IsChildOf(UserGo.transform)) { return true; }   //Dont hit yourself!
+            if (dontHitAllies && UserGo != null && IsAlly(damagee.gameObject)) { return true; }                       //Dont hit your pack!
 
             // if (damagee.gameObject.isStatic) return true;
             return false;
@@ -877,7 +912,7 @@ namespace MalbersAnimations.Controller
         protected SerializedProperty Force, minForce, forceMode, index, Tags,
             statModifier, onhit, OnAttackMissed,
             OnHitPosition, OnHitInteractable, OnProfileChanged, OnCritical,
-            dontHitOwner, owner, m_Active, debug, m_audio,
+            dontHitOwner, dontHitAllies, owner, m_Active, debug, m_audio,
             hitLayer, triggerInteraction, AttackDirection,
             m_cChance, cMultiplier, element, pureDamage, CustomReaction, interact, m_MissChance,
             HitEffects, //MWC — [m_HitEffect] and [hitSound] removed
@@ -902,6 +937,7 @@ namespace MalbersAnimations.Controller
             hitLayer = serializedObject.FindProperty("m_hitLayer");
             triggerInteraction = serializedObject.FindProperty("triggerInteraction");
             dontHitOwner = serializedObject.FindProperty("dontHitOwner");
+            dontHitAllies = serializedObject.FindProperty("dontHitAllies");
 
 
             AttackDirection = serializedObject.FindProperty("AttackDirection");
@@ -1200,7 +1236,8 @@ namespace MalbersAnimations.Controller
             EditorGUILayout.PropertyField(AttackDirection);
 
             EditorGUILayout.PropertyField(dontHitOwner, new GUIContent("Don't hit Owner"));
-            if (MD.dontHitOwner.Value)
+            EditorGUILayout.PropertyField(dontHitAllies, new GUIContent("Don't hit Allies"));
+            if (MD.dontHitOwner.Value || MD.dontHitAllies.Value) //Both options need the Owner
             {
                 EditorGUILayout.PropertyField(owner);
                 // Debug.Log("MD = " + MD.Owner);

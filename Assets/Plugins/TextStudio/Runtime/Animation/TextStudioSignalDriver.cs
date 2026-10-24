@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses whether a signal driver reads an explicit normalized value, audio amplitude, or beat input.</summary>
     public enum TextStudioSignalSource { NormalizedValue, AudioAmplitude, Beat }
+    /// <summary>Chooses whether a signal driver writes normalized effect progress or effect intensity.</summary>
     public enum TextStudioSignalDestination { EffectProgress, EffectIntensity }
 
     /// <summary>Applies one normalized signal through the shared external-effect contract each runtime frame.</summary>

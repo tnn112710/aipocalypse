@@ -14,7 +14,7 @@ namespace MalbersAnimations.Controller
     public partial class MAnimalEditor : Editor
     {
         // MWC - single version constant; ACUpdateChecker reads this so both stay in sync automatically
-        public const string Version = "1.5.3a"; // MWC — bumped for the Super Item release
+        public const string Version = "1.5.3b"; // MWC — bumped for the Super Item release
         public readonly string version = $"Animal Controller [{Version}]";
 
         private List<Type> StatesType = new();

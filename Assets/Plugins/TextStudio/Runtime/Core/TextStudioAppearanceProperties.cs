@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Identifies an appearance-layer property that can be read or overridden, such as paint color, opacity, stroke width, shadow offset, or glow radius.</summary>
     public enum TextStudioAppearanceProperty
     {
         PaintColor = 0, Opacity = 1, Enabled = 2, AnimatedTint = 3, BlendMode = 4,
@@ -12,6 +13,7 @@ namespace TextStudio
         ShadowX = 8, ShadowY = 9, ShadowBlur = 10, ShadowSpread = 11,
         GlowRadius = 12, GlowSpread = 13, FillDilation = 14, FillSoftness = 15, NoiseSeed = 16
     }
+    /// <summary>Identifies the color, numeric, Boolean, or enum value accepted by an appearance-property descriptor.</summary>
     public enum TextStudioAppearanceValueType { Color, Float, Integer, Boolean, Enum }
 
     /// <summary>A typed leaf binding. Reordering layers or changing their labels does not change the target.</summary>

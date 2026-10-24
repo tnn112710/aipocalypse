@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Selects logical text order or a spatial direction for ordering selected text units.</summary>
     public enum TextStudioSequenceDirection
     {
         Logical,
@@ -16,6 +17,7 @@ namespace TextStudio
         BottomRightToTopLeft
     }
 
+    /// <summary>Chooses forward, backward, center-out, edges-in, simultaneous, or deterministic random ordering for a text-unit sequence.</summary>
     public enum TextStudioSequenceOrder
     {
         Forward,

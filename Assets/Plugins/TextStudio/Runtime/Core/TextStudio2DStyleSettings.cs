@@ -20,6 +20,7 @@ namespace TextStudio
         [SerializeField] TextStudio2DSourceFieldQuality _sourceFieldQuality;
         [SerializeField] TextStudio2DPainterOrder _painterOrder;
         [SerializeField] TextStudio2DWorldShadowMode _worldShadowMode;
+        [SerializeField] bool _exactLayering;
         [SerializeField] TextStudio2DLayer[] _layers;
         [SerializeField] TextStudioAppearanceExposure[] _exposures;
         [NonSerialized] int _revision;
@@ -30,6 +31,11 @@ namespace TextStudio
         public TextStudio2DSourceFieldQuality SourceFieldQuality => _sourceFieldQuality;
         public TextStudio2DPainterOrder PainterOrder => _painterOrder;
         public TextStudio2DWorldShadowMode WorldShadowMode => _worldShadowMode;
+        /// <summary>
+        /// Keeps Text Studio's exact layered rendering. Off, the default, draws a style TextMeshPro can express (one solid fill, a
+        /// round stroke and a distance-field outer shadow at Native source quality) through the text's TextMeshPro SDF material.
+        /// </summary>
+        public bool ExactLayering => _exactLayering;
         public int ItemCount => _layers?.Length ?? 0;
         internal bool IsEmpty => ItemCount == 0 && _baseStyle == null && (_exposures == null || _exposures.Length == 0);
 
@@ -134,13 +140,15 @@ namespace TextStudio
             TextStudio2DWorldShadowMode worldShadowMode,
             TextStudio2DLayer[] ownedLayers,
             TextStudioAppearanceExposure[] ownedExposures = null,
-            int[] definitionDomains = null)
+            int[] definitionDomains = null,
+            bool exactLayering = false)
         {
             _baseStyle = baseStyle;
             _inheritanceMode = inheritanceMode;
             _sourceFieldQuality = sourceFieldQuality;
             _painterOrder = painterOrder;
             _worldShadowMode = worldShadowMode;
+            _exactLayering = exactLayering;
             _layers = ownedLayers;
             _exposures = ownedExposures ?? Array.Empty<TextStudioAppearanceExposure>();
             _definitionDomains = definitionDomains ?? TextStudioAppearanceDomains.Build(ownedLayers);
@@ -184,6 +192,13 @@ namespace TextStudio
             _sourceFieldQuality = sourceFieldQuality;
             _painterOrder = painterOrder;
             _worldShadowMode = worldShadowMode;
+            unchecked { _revision++; }
+        }
+
+        /// <summary>Sets whether the style keeps Text Studio's exact layered rendering (<see cref="ExactLayering"/>), then advances the settings revision.</summary>
+        public void SetExactLayering(bool exactLayering)
+        {
+            _exactLayering = exactLayering;
             unchecked { _revision++; }
         }
 

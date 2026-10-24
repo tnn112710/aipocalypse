@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses whether typing follows its cadence or waits for a unit's reveal animation to finish before applying the reading pause.</summary>
     public enum TextStudioTypewriterTimingMode
     {
         Cadence,
         FinishCurrentUnit
     }
 
+    /// <summary>Chooses manual Typewriter start or automatic start when the host is enabled, its text changes, or either event occurs.</summary>
     public enum TextStudioTypewriterStartMode
     {
         Manual = 0,
@@ -39,18 +41,21 @@ namespace TextStudio
         NumericValue
     }
 
+    /// <summary>Chooses whether skipping reveal settles reveal effects immediately or lets those effects finish after all units become revealed.</summary>
     public enum TextStudioTypewriterSkipRevealMode
     {
         SettleRevealEffectsImmediately,
         AllowRevealEffectsToFinish
     }
 
+    /// <summary>Chooses whether skipping hide removes glyphs immediately or lets the current hide effect finish.</summary>
     public enum TextStudioTypewriterSkipHideMode
     {
         HideImmediately,
         FinishHideEffect
     }
 
+    /// <summary>Identifies a Typewriter wait that ends after a duration, on input, or through a custom wait handler.</summary>
     public enum TextStudioTypewriterWaitKind
     {
         Timed,

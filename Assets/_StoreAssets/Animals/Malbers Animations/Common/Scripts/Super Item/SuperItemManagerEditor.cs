@@ -1,4 +1,4 @@
-// Last Change: 9/30/2026 11:19am
+// Last Change: 10/6/2026 10:21am
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -1174,6 +1174,10 @@ namespace MalbersAnimations.Items
                     return;
                 }
 
+                //Play Mode only: write the pose of the held Items (moved by hand in the Scene/Inspector) back to the asset
+                if (Application.isPlaying && GUILayout.Button(s_UpdateRuntimeOffset))
+                    SaveRuntimeOffsets(M);
+
                 //MWC — the asset's own table, drawn inline: Holster entries on the Holsters tab, Equip Point entries on
                 //the Equip Points tab. Same ReorderableList the SuperItemOffsets inspector uses (see OffsetTable).
                 s_ShowOffsetsTable = MalbersEditor.Foldout(s_ShowOffsetsTable, holsterTab ? "Holster Offsets" : "Equip Point Offsets");
@@ -1266,6 +1270,89 @@ namespace MalbersAnimations.Items
             EditorUtility.SetDirty(so);
 
             if (changed) M.Debugging($"[Item Offsets] Added <color=white>[{item.ItemType.name}]</color> entry to [{so.name}]");
+        }
+
+        private static readonly GUIContent s_UpdateRuntimeOffset = new("Update Runtime Offset",
+            "Saves the current local Position/Rotation/Scale of every equipped and holstered Item into its entry " +
+            "(Item + Equip Point / Item + Holster) in the Item Offsets asset.\nOnly entries that changed are written");
+
+        /// <summary> Saves the runtime local Transform of the Items the Manager holds (all of them, or only [only]) into the Item Offsets asset. Returns the entries written </summary>
+        internal static int SaveRuntimeOffsets(SuperItemManager manager, SuperItem only = null)
+        {
+            var so = manager != null ? manager.ItemOffsets : null;
+            if (so == null) return 0;
+
+            Undo.RecordObject(so, "Update Runtime Offset");
+
+            var saved = new List<string>();
+
+            //Equipped: the Item must be parented to the Point, a mid-draw Item still sits in its Holster Slot
+            foreach (var ep in manager.EquipPoints)
+            {
+                var item = ep?.Item;
+                if (item == null || item.ItemType == null || ep.ID == null || (only != null && item != only)) continue;
+                if (ep.Point.Value == null || item.transform.parent != ep.Point.Value) continue;
+
+                var stored = so.GetOffset(item.ItemType, ep.ID);
+
+                if (OffsetChanged(stored, item.transform))
+                {
+                    so.SetOffset(item.ItemType, ep.ID, new TransformOffset(item.transform));
+                    saved.Add($"[{item.ItemType.name} → {ep.ID.name}]");
+                }
+            }
+
+            //Holstered: every stored copy (Dual Wielding). Copies share one entry, the unchanged ones are skipped
+            foreach (var h in manager.holsters)
+            {
+                if (h?.ID == null) continue;
+
+                foreach (var item in HolsteredItems(h))
+                {
+                    if (item == null || item.ItemType == null || (only != null && item != only)) continue;
+                    if (SlotOf(h, item) < 0) continue; //Not parented to one of this Holster's Slots
+
+                    var stored = so.GetHolsterOffset(item.ItemType, h.ID);
+
+                    if (OffsetChanged(stored, item.transform))
+                    {
+                        so.SetHolsterOffset(item.ItemType, h.ID, new TransformOffset(item.transform)); //Slot priority list is kept
+                        saved.Add($"[{item.ItemType.name} → {h.ID.name}]");
+                    }
+                }
+            }
+
+            if (saved.Count > 0)
+            {
+                EditorUtility.SetDirty(so);
+                AssetDatabase.SaveAssetIfDirty(so);
+                Debug.Log($"[Item Offsets] Updated {saved.Count} runtime offset(s) in [{so.name}]: {string.Join(", ", saved)}", so);
+            }
+            else
+            {
+                Debug.Log($"[Item Offsets] No runtime offset changed on [{manager.name}]{(only != null ? $" for [{only.name}]" : "")}", so);
+            }
+
+            return saved.Count;
+        }
+
+        /// <summary> Head of the Holster plus every other stored copy, without repeats </summary>
+        private static IEnumerable<SuperItem> HolsteredItems(SItemHolster holster)
+        {
+            if (holster.Item != null) yield return holster.Item;
+
+            foreach (var stored in holster.StoredItems)
+                if (stored != null && stored != holster.Item) yield return stored;
+        }
+
+        /// <summary> True when the Transform's local pose differs from the stored offset (rotations compared as quaternions, so 270° == -90°) </summary>
+        private static bool OffsetChanged(TransformOffset stored, Transform t)
+        {
+            const float k_Epsilon = 0.0001f;
+
+            return (stored.Position - t.localPosition).sqrMagnitude > k_Epsilon * k_Epsilon
+                || (stored.Scale - t.localScale).sqrMagnitude > k_Epsilon * k_Epsilon
+                || Quaternion.Angle(Quaternion.Euler(stored.Rotation), t.localRotation) > 0.01f;
         }
 
         //MWC — Index of the Holster Slot the item is parented under. -1 when it is not parented to any of them.

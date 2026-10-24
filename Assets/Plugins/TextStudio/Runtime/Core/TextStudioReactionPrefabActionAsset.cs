@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses whether a spawned Reaction object follows a live text unit or uses a captured outgoing-unit pose.</summary>
     public enum TextStudioReactionSpawnAnchor
     {
         LiveUnit,

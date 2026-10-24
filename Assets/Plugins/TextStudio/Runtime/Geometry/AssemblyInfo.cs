@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("TextStudioDebug.Editor")]
+[assembly: InternalsVisibleTo("TextStudio.Debug.Benchmarks")]
 
 [assembly: InternalsVisibleTo("TextStudio")]
 [assembly: InternalsVisibleTo("TextStudio.Editor")]

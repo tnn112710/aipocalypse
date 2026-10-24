@@ -11,19 +11,18 @@ namespace TextStudio
         public TextStudioTypewriterPreset CustomPreset;
         public TextStudioTypewriterSettings InlineSettings;
 
-        public static TextStudioTypewriterRecipe None
+        // Hubs without a typewriter resolve these constants on every text change and awake tick. Building them copied the
+        // built-in preset and default settings each time; the cached values are returned by copy, so callers still own theirs.
+        static readonly TextStudioTypewriterRecipe s_none = new TextStudioTypewriterRecipe
         {
-            get
-            {
-                return new TextStudioTypewriterRecipe
-                {
-                    Source = TextStudioTypewriterSource.None,
-                    BuiltInPresetId = BuiltIns.BuiltInTypewriterPresets.Default.Id,
-                    CustomPreset = null,
-                    InlineSettings = TextStudioTypewriterSettings.Default
-                };
-            }
-        }
+            Source = TextStudioTypewriterSource.None,
+            BuiltInPresetId = BuiltIns.BuiltInTypewriterPresets.Default.Id,
+            CustomPreset = null,
+            InlineSettings = TextStudioTypewriterSettings.Default
+        };
+        static readonly TextStudioTypewriterSettings s_noTypewriterSettings = BuildNoTypewriterSettings();
+
+        public static TextStudioTypewriterRecipe None => s_none;
 
         /// <summary>Creates a recipe that resolves a built-in preset by stable identifier.</summary>
         public static TextStudioTypewriterRecipe BuiltIn(string presetId)
@@ -104,7 +103,9 @@ namespace TextStudio
         }
 
         /// <summary>Creates settings that display text immediately without reveal or hide motion.</summary>
-        public static TextStudioTypewriterSettings CreateNoTypewriterSettings()
+        public static TextStudioTypewriterSettings CreateNoTypewriterSettings() => s_noTypewriterSettings;
+
+        static TextStudioTypewriterSettings BuildNoTypewriterSettings()
         {
             TextStudioTypewriterSettings settings = TextStudioTypewriterSettings.Default;
             settings.RevealMode = RevealMode.Instant;

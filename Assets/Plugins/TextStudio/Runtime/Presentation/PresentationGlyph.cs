@@ -54,6 +54,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Flags a presented glyph's visibility, reveal, animation, substitution, and change state separately from canonical layout.</summary>
     [Flags]
     public enum PresentationFlags : byte
     {
@@ -65,6 +66,7 @@ namespace TextStudio
         Dirty       = 1 << 4
     }
 
+    /// <summary>Labels the presentation state of a character substitution, including scrambling, decryption, encryption, corruption, and resolved output.</summary>
     public enum SubstitutionState : byte
     {
         Resolved,

@@ -16,6 +16,7 @@ namespace TextStudio
         public bool Contains(int unit) => unit >= Start && unit < End;
     }
 
+    /// <summary>Reports whether a requested appearance binding resolved to an active definition or is missing, disabled, or invalid.</summary>
     public enum TextStudioAppearanceResolution : byte { Active, Missing, Disabled, Invalid }
 
     /// <summary>One source invocation. Its immutable program can be shared with other invocations.</summary>
@@ -129,6 +130,8 @@ namespace TextStudio
         internal TextStudio2DStyleSettings[] DependencySettings { get; }
         internal TextStudio2DStyleAsset[] Dependencies { get; }
         internal TextStudioAppearanceTagIndex TagIndex { get; }
+        /// <summary>Currency checks read tag styles, variant settings or catalog bindings, not only the default style.</summary>
+        internal bool HasPolledDependencies => Dependencies.Length > 0 || DependencySettings.Length > 0 || _catalogDefinitions.Count > 0;
 
         // Sources without appearance spans index no names, so their plans share one immutable empty index.
 #if UNITY_6000_7_OR_NEWER

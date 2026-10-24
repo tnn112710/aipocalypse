@@ -31,6 +31,12 @@ namespace TextStudio
         internal GraphicsBuffer Buffer { get; private set; }
         internal Texture2D Texture { get; private set; }
         internal bool HasGpuStorage => Buffer != null || Texture != null;
+        /// <summary>
+        /// The last record the published storage holds. Shaders clamp every read of the table to it, because compiled programs
+        /// read guarded records before their guards decide; the owning table publishes it with each binding.
+        /// </summary>
+        internal int LastRecord => Buffer != null ? Buffer.count - 1
+            : Texture != null ? Texture.width * Texture.height / _texelsPerRecord - 1 : 0;
         internal long CpuBytes => (_cpuMemory?.Cpu ?? 0) + (_gpuMemory?.Cpu ?? 0);
         internal long GpuBytes => (_gpuMemory?.Gpu ?? 0) + (_pendingGpuMemory?.Gpu ?? 0);
 

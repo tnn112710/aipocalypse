@@ -19,6 +19,7 @@ namespace TextStudio
         public const string IntegrationPrefix = "Integration ";
     }
 
+    /// <summary>Groups catalogued markup tags by purpose, including effects, cues, formatting, integrations, and appearance.</summary>
     public enum TextStudioTagCategory
     {
         Effect,
@@ -30,6 +31,7 @@ namespace TextStudio
         Appearance
     }
 
+    /// <summary>Flags the text backends and feature levels for which a catalogued markup tag is supported.</summary>
     [Flags]
     public enum TextStudioTagBackend
     {
@@ -50,6 +52,7 @@ namespace TextStudio
               UnityUITextRichText
     }
 
+    /// <summary>Declares whether a catalogued tag surrounds a text range, marks a single point, or is self-contained markup.</summary>
     public enum TextStudioTagShape
     {
         Range,
@@ -57,12 +60,14 @@ namespace TextStudio
         SelfContained
     }
 
+    /// <summary>Identifies whether Text Studio consumes a markup tag or passes it through to the active text backend.</summary>
     public enum TextStudioTagOwnership
     {
         ConsumedByTextStudio,
         PassthroughToBackend
     }
 
+    /// <summary>Declares whether a tag optionally accepts parameters, requires them, or forbids them.</summary>
     public enum TextStudioTagParameterRequirement
     {
         Any,
@@ -70,6 +75,7 @@ namespace TextStudio
         Forbidden
     }
 
+    /// <summary>Declares the value format accepted by a markup parameter, including numbers, colors, vectors, pivots, routes, and asset references.</summary>
     public enum TextStudioTagParameterKind
     {
         String,

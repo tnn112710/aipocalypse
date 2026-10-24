@@ -32,6 +32,12 @@ namespace TextStudio.BuiltIns
 
         public float GetRevealDelayAfter(in TextStudioTimingContext context)
             => _evaluator != null ? _evaluator(in context) : 0f;
+
+        TextStudioTimingEvaluator _revealDelayEvaluator;
+
+        // GetRevealDelayAfter as one delegate, so starting a reveal does not allocate a method-group conversion each time.
+        internal TextStudioTimingEvaluator RevealDelayEvaluator =>
+            _revealDelayEvaluator ??= GetRevealDelayAfter;
     }
 
     /// <summary>

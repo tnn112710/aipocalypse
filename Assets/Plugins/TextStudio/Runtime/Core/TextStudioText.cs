@@ -205,6 +205,10 @@ namespace TextStudio
         // ── TMP integration ─────────────────────────────────────────────────
         TextStudioTMPBridge _tmpBridge;
         TextStudioTMPBridge TmpBridge => _tmpBridge ??= new TextStudioTMPBridge(this);
+        internal TextStudioLayout LayoutForDebug => _layout;
+        // TMP layout passes that resumed after the lines an append kept.
+        internal int AppendLayoutCountForDebug => _tmpBridge != null ? _tmpBridge.AppendLayoutCountForDebug : 0;
+        internal string AppendLayoutRejectionForDebug => _tmpBridge?.AppendLayoutRejectionForDebug;
         /// <summary>Renderer of a text engine that hands its glyph output to Text Studio, when one is attached.</summary>
         internal TextStudio2DExternalAppearanceRenderer ExternalAppearance { get; set; }
         internal string MaterialCompatibilityWarning =>
@@ -270,6 +274,13 @@ namespace TextStudio
         // ── Preview ─────────────────────────────────────────────────────────
         TextStudioPreview _preview;
 
+        // A new preview starts outside runtime ownership, which a sleeping hub's check reads, so creating one unparks it.
+        TextStudioPreview CreatePreview()
+        {
+            Unpark();
+            return _preview = new TextStudioPreview(this);
+        }
+
         // ── Events / public API ─────────────────────────────────────────────
         /// <summary>Occurs when a visible glyph crosses its reveal boundary.</summary>
         public event Action<int, char> OnGlyphRevealed;
@@ -302,7 +313,7 @@ namespace TextStudio
         public TextStudioWritingStyleAsset WritingStyle => ResolveWritingStyle();
         public CompiledTextStudioWritingStyle CompiledWritingStyle =>
             _compiledWritingStyle;
-        public TextStudioPreview Preview => _preview ?? (_preview = new TextStudioPreview(this));
+        public TextStudioPreview Preview => _preview ?? CreatePreview();
         public IReadOnlyList<ITextStudioRenderer> Renderers => _renderers;
         public IReadOnlyList<ITextStudioPreviewStageProvider> PreviewStageProviders => _previewStageProviders;
         public TMP_Text TMPText => TmpBridge.TMPText;
@@ -866,6 +877,7 @@ namespace TextStudio
 
         void HandleRuntimePlanChanged(TextStudioCompiledPlan plan)
         {
+            Unpark();
             int count = plan != null ? plan.VisibleGlyphCount : 0;
             _glyphProvider = _presentationProvider as IPresentationGlyphProvider;
             bool requiresPresentationGlyphs =
@@ -950,6 +962,7 @@ namespace TextStudio
 
         void HandleRuntimeRevealReset(bool preservePresentation)
         {
+            Unpark();
             if (!preservePresentation)
             {
                 _characterSubstitutionPresenter.OnTextChanged(_runtime.Plan);

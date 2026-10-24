@@ -126,7 +126,7 @@ namespace MalbersAnimations.IK
                 MDebug.DrawWireSphere(Hit, Color.yellow, radius);
                 MDebug.DrawRay(Hit, hit.normal * 0.2f, Color.yellow);
 
-                var CheckDist = hit.distance - NormalOffset;
+                var CheckDist = hit.distance - NormalOffset * OffsetScale(set);
 
 
                 if (CheckDist + radius < BeforeDist)
@@ -156,7 +156,7 @@ namespace MalbersAnimations.IK
 
                 Normal = Target;
 
-                Hit += (hit.normal * NormalOffset);
+                Hit += (hit.normal * (NormalOffset * OffsetScale(set))); //IK Manager Scale Multiplier
             }
             else
             {

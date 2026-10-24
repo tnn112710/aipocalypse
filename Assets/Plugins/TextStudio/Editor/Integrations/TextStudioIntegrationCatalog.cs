@@ -531,7 +531,7 @@ namespace TextStudio.Editor
                 "Spline Wayfinding"),
             Define(
                 "prime-tween", "PrimeTween", "Animation",
-                "Composition recipes for tweening Text Studio public properties and commands.",
+                "Sample recipe: PrimeTween animates the parent UI Toolkit element while Text Studio animates the label glyphs.",
                 "PrimeTween owns orchestration. Text Studio owns text animation and rendering.",
                 TextStudioIntegrationSupportLevel.SampleRecipe,
                 TextStudioIntegrationValidationProvenance.ExactVersionValidated,
@@ -575,7 +575,7 @@ namespace TextStudio.Editor
                 "Solid Shaped Text"),
             Define(
                 "3d-unitext-folio-sample", "UniText Folio for Text Studio 3D", "Text Studio 3D",
-                "Extended persisted 3D shaping and extrusion showcase for UniText Folio 3.x.",
+                "Persisted shaping, materials and editable solid-math examples. Requires UniText Folio 3.20 or newer.",
                 "UniText Folio owns shaping. Text Studio 3D owns geometry and rendering.",
                 TextStudioIntegrationSupportLevel.SampleRecipe,
                 TextStudioIntegrationValidationProvenance.ExactVersionValidated,
@@ -1222,7 +1222,7 @@ namespace TextStudio.Editor
                 "ui-effect" => BaseIntegrationGuideUrl + "#uieffect",
                 "unitext" or
                 "unitext-free-sample" or
-                "unitext-folio-sample" => BaseIntegrationGuideUrl + "#unitext",
+                "unitext-folio-sample" => BaseIntegrationGuideUrl + "#unitext-open-source-and-folio",
                 "unity-localization" => BaseIntegrationGuideUrl + "#unity-localization",
                 "unity-splines" => BaseIntegrationGuideUrl + "#unity-splines",
                 "prime-tween" => BaseIntegrationGuideUrl + "#primetween",
@@ -1272,7 +1272,7 @@ namespace TextStudio.Editor
             return id switch
             {
                 "adventure-creator" =>
-                    "Open the demo, or add the Speech Bridge to the AC subtitle UI and leave AC's Dialogue Line label unlinked.",
+                    "Open the demo, or select the AC subtitle TextMeshPro object and use Configure Selected to route speech from a persistent object outside its Canvas. Leave AC's Dialogue Line label unlinked.",
                 "game-creator-2" =>
                     "Open the demo and use Text Studio instructions, conditions, and relays in a Game Creator graph.",
                 "game-creator-2-dialogue" =>

@@ -2,6 +2,7 @@ using System;
 
 namespace TextStudio
 {
+    /// <summary>Flags the reveal, active, and hide phases in which an effect invocation is enabled.</summary>
     [Flags]
     public enum TextStudioPhaseMask
     {

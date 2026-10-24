@@ -5,11 +5,20 @@
 #include "UnityUI.cginc"
 #include "TextStudio2DVisualPrimitiveCommon.cginc"
 
+#if defined(TEXT_STUDIO_STYLE_TABLE) && defined(TEXT_STUDIO_TEXTURE_TRANSPORT) && defined(STEREO_INSTANCING_ON) && defined(SHADER_API_D3D11)
+#define TEXT_STUDIO_PACK_SCREEN_UNDERLAY 1
+#endif
+
 // The including shaders declare TMP and Canvas compatibility keywords with dynamic_branch. Keep their feature checks as runtime if statements so a source edit does not restore the former static variant multiplication.
 
 sampler2D _MainTex;
 #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
+#ifdef TEXT_STUDIO_HERO_PLAIN_ROW
+// A plain Hero row draws only font-field batches.
+static const float _TextStudioColorSourceMode = 0;
+#else
 float _TextStudioColorSourceMode;
+#endif
 #endif
 sampler2D _FaceTex;
 sampler2D _OutlineTex;
@@ -60,12 +69,37 @@ half _TextStudioPayloadEnabled;
 half _TextStudioPayloadFromTangent;
 float4 _TextStudioSourceBounds;
 float _TextStudioWritingSourceEnabled;
+#ifdef TEXT_STUDIO_UNIFORM_FIELD_PROGRAM
+// Rows of the uniform field program (TextStudio2DFieldUniform.shader), packed like their style-table rows. x, y and z
+// belong to the fill, stroke and outer shadow rows; see TextStudio2DUniformFieldProgram.
+float4 _TextStudioUniformBits;
+float4 _TextStudioUniformRanks;
+float4 _TextStudioUniformOpacity;
+float4 _TextStudioUniformTint;
+float4 _TextStudioUniformFillColor;
+float4 _TextStudioUniformFillParameters;
+float4 _TextStudioUniformStrokeColor;
+float4 _TextStudioUniformStrokeParameters0;
+float4 _TextStudioUniformStrokeParameters1;
+float4 _TextStudioUniformShadowColor;
+float4 _TextStudioUniformShadowParameters0;
+float4 _TextStudioUniformShadowParameters1;
+#endif
 CBUFFER_END
 // Canvas and compositor values, set outside material properties.
 float _UIMaskSoftnessX;
 float _UIMaskSoftnessY;
 int _UIVertexColorAlwaysGammaSpace;
+#ifdef TEXT_STUDIO_UNIFORM_FIELD_PROGRAM
+// The uniform program serves texts without Writing and declares no data transport, so it must not declare the
+// Writing table either: an unused buffer declaration still fails to load on WebGL.
+half TextStudioWritingSourceCoverage(float2 glyphLocal, float writingSample)
+{
+    return 1;
+}
+#else
 #include "TextStudioWritingSourceCoverage.cginc"
+#endif
 float _TextStudio2DHeroTime;
 int _TextStudio2DHeroMotionPolicy;
 
@@ -74,6 +108,10 @@ int _TextStudio2DHeroMotionPolicy;
 #include "TextStudioPreparedFieldCommon.cginc"
 #include "TextStudio2DVisualModifierCommon.cginc"
 #include "TextStudio2DAdaptiveDepthCommon.cginc"
+#elif defined(TEXT_STUDIO_UNIFORM_EXTERNAL_FIELD)
+// The uniform program's external-field variant samples engine atlases with the prepared-field code of the Field program,
+// but resolves each glyph's row from its own vertex streams instead of the mapping table.
+#include "TextStudioPreparedFieldCommon.cginc"
 #endif
 
 struct vertex_t
@@ -101,7 +139,9 @@ struct pixel_t
     half4 param : TEXCOORD1;
     float4 mask : TEXCOORD2;
     float4 texcoord1 : TEXCOORD3;
+    #ifndef TEXT_STUDIO_PACK_SCREEN_UNDERLAY
     half2 underlayParam : TEXCOORD4;
+    #endif
     #ifdef TEXT_STUDIO_FULL_PRECISION_PAYLOAD
     float4 textStudio0 : TEXCOORD5;
     float4 textStudio1 : TEXCOORD6;
@@ -118,6 +158,7 @@ struct pixel_t
     nointerpolation float4 textStudioWritingAndSquiggle : TEXCOORD9;
     #ifdef TEXT_STUDIO_STYLE_TABLE
     float4 textStudioObjectWorld : TEXCOORD10;
+    // Packed stereo Texture programs reuse zw for native underlay; other programs retain ComputeScreenPos.
     float4 textStudioScreen : TEXCOORD11;
     #if defined(TEXT_STUDIO_TEXTURE_TRANSPORT)
     // OpenGL ES 3.0 and WebGL 2 guarantee 15 varyings: the fragment fetches the prepared record by exact glyph index.
@@ -131,8 +172,25 @@ struct pixel_t
     nointerpolation float4 preparedBounds : TEXCOORD13;
     nointerpolation float4 preparedDecode : TEXCOORD14;
     #endif
+    #elif defined(TEXT_STUDIO_UNIFORM_EXTERNAL_FIELD)
+    // The resolved engine row, held like the Buffer transport holds prepared rows.
+    nointerpolation float4 preparedTransform : TEXCOORD12;
+    nointerpolation float4 preparedBounds : TEXCOORD13;
+    nointerpolation float4 preparedDecode : TEXCOORD14;
     #endif
 };
+
+#ifdef TEXT_STUDIO_STYLE_TABLE
+float2 TextStudioScreenUv(pixel_t input)
+{
+    #ifdef TEXT_STUDIO_PACK_SCREEN_UNDERLAY
+    // Direct3D pixel SV_POSITION.w carries clip-w; retain the original clamped screen denominator.
+    return input.textStudioScreen.xy / max(input.vertex.w, .00001);
+    #else
+    return input.textStudioScreen.xy / max(input.textStudioScreen.w, .00001);
+    #endif
+}
+#endif
 
 // Matches TextStudio2DStyleIdentity: 10 slot bits, 8 operation bits of one fused span, 6 span bits. The value is
 // exact in float and repeated at every quad vertex, so rounding removes interpolation error.
@@ -163,34 +221,100 @@ float TextStudioPackedPixelCellSize(float value, int glyphIndex)
 
 // Matches TextStudio2DPrimitiveSupport.IsIsolatedOperation: bevel, faux depth, material response, graphic and
 // animated effects. They always receive a single-operation primitive, so the fused loop compiles without them.
+// Field SDF materials compile material-tier effects (pixel grid, squiggle, authored outline glow, chromatic split, surface
+// sweep, dissolve and burn) only when their text uses one. Without them the payload channels driving these effects are zero,
+// so constant inputs let the compiler drop the code; on mobile GPUs it otherwise dominated every styled pixel.
+#if defined(TEXT_STUDIO_MATERIAL_EFFECT_VARIANTS) && !defined(TEXT_STUDIO_MATERIAL_EFFECTS)
+#define TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS 1
+#endif
+
+// Row families: isolated Field SDF primitives and Hero rows draw one operation, so their materials compile only the heavy
+// family it needs (material response or bevel, graphic effect, animated effect, faux depth). A program holding every
+// family spilled hundreds of bytes per pixel on mobile GPUs. Shaders without family variants keep every family.
+#if defined(TEXT_STUDIO_FAMILY_VARIANTS) && !defined(TEXT_STUDIO_FAMILY_MATERIAL)
+#define TEXT_STUDIO_COMPILE_MATERIAL_FAMILY 0
+#else
+#define TEXT_STUDIO_COMPILE_MATERIAL_FAMILY 1
+#endif
+#if defined(TEXT_STUDIO_FAMILY_VARIANTS) && !defined(TEXT_STUDIO_FAMILY_GRAPHIC)
+#define TEXT_STUDIO_COMPILE_GRAPHIC_FAMILY 0
+#else
+#define TEXT_STUDIO_COMPILE_GRAPHIC_FAMILY 1
+#endif
+#if defined(TEXT_STUDIO_FAMILY_VARIANTS) && !defined(TEXT_STUDIO_FAMILY_ANIMATED)
+#define TEXT_STUDIO_COMPILE_ANIMATED_FAMILY 0
+#else
+#define TEXT_STUDIO_COMPILE_ANIMATED_FAMILY 1
+#endif
+#if defined(TEXT_STUDIO_FAMILY_VARIANTS) && !defined(TEXT_STUDIO_FAMILY_DEPTH)
+#define TEXT_STUDIO_COMPILE_DEPTH_FAMILY 0
+#else
+#define TEXT_STUDIO_COMPILE_DEPTH_FAMILY 1
+#endif
+#if !defined(TEXT_STUDIO_SINGLE_STYLE_OPERATION) && (defined(TEXT_STUDIO_FAMILY_MATERIAL) || defined(TEXT_STUDIO_FAMILY_GRAPHIC) || \
+    defined(TEXT_STUDIO_FAMILY_ANIMATED) || defined(TEXT_STUDIO_FAMILY_DEPTH))
+#define TEXT_STUDIO_ISOLATED_OPERATION 1
+#endif
+// Isolated Field primitives draw only operations of their family; light rows draw with the Full or Basic program
+// (TextStudio2DPrimitivePrograms). Family programs therefore compile no light coverage path, and without one they also drop
+// paint evaluation unless their family paints (faux depth).
+#ifdef TEXT_STUDIO_ISOLATED_OPERATION
+#define TEXT_STUDIO_COMPILE_LIGHT_OPERATIONS 0
+#else
+#define TEXT_STUDIO_COMPILE_LIGHT_OPERATIONS 1
+#endif
+
 bool TextStudioIsIsolatedOperationKind(int kind)
 {
     return kind == 6 || kind == 7 || kind == 11 || kind == 12 || kind == 13;
 }
 
 #ifdef TEXT_STUDIO_STYLE_TABLE
-TextStudioPreparedField TextStudioPreparedForPixel(pixel_t input)
+#if defined(TEXT_STUDIO_TEXTURE_TRANSPORT)
+// The texture transport fetches the glyph's prepared row in the fragment. PixShader resolves it once per pixel and every
+// sampling site reads that row. Resolving it at each site repeated its table loads and branches: Hero family programs with
+// material effects grew to 1.5 to 1.8 times their buffer twins, and an Adreno 619 Vulkan driver failed to link them
+// (AppearanceTransport.md).
+static TextStudioPreparedField s_textStudioPreparedForPixel;
+
+void TextStudioResolvePreparedForPixel(pixel_t input)
 {
-    #if defined(TEXT_STUDIO_TEXTURE_TRANSPORT)
     #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
     uint slot = (uint)max(0, _TextStudio2DHeroStyleSlot);
     float packedGlyph = abs(input.textStudioGlyphPayload.x);
     int glyph = TextStudioPackedGlyphIndex(packedGlyph);
     // Hero layers have no varying left for the external transform; they read it here instead.
     TextStudioPreparedField row = TextStudioGetPreparedField(slot, glyph);
-    return TextStudioResolveExternalField(row, TextStudioLoadExternalFieldTransform(row));
+    s_textStudioPreparedForPixel = TextStudioResolveExternalField(row, TextStudioLoadExternalFieldTransform(row));
     #else
     uint slot = (uint)round(max(0.0, input.textStudioWritingAndSquiggle.w * saturate(_TextStudioPayloadEnabled))) & 1023u;
     int glyph = (int)round(input.preparedGlyph);
-    return TextStudioResolveExternalField(TextStudioGetPreparedField(slot, glyph), input.preparedExternal);
+    s_textStudioPreparedForPixel = TextStudioResolveExternalField(TextStudioGetPreparedField(slot, glyph), input.preparedExternal);
     #endif
-    #else
+}
+
+TextStudioPreparedField TextStudioPreparedForPixel(pixel_t input)
+{
+    return s_textStudioPreparedForPixel;
+}
+#else
+TextStudioPreparedField TextStudioPreparedForPixel(pixel_t input)
+{
     TextStudioPreparedField source = (TextStudioPreparedField)0;
     source.transform = input.preparedTransform;
     source.bounds = input.preparedBounds;
     source.decode = input.preparedDecode;
     return source;
-    #endif
+}
+#endif
+#elif defined(TEXT_STUDIO_UNIFORM_EXTERNAL_FIELD)
+TextStudioPreparedField TextStudioPreparedForPixel(pixel_t input)
+{
+    TextStudioPreparedField source;
+    source.transform = input.preparedTransform;
+    source.bounds = input.preparedBounds;
+    source.decode = input.preparedDecode;
+    return source;
 }
 #endif
 
@@ -266,7 +390,10 @@ struct TextStudioStyleDerivatives
 
 bool TextStudioUsesNativeMaterial()
 {
-    #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
+    #if defined(TEXT_STUDIO_UNIFORM_ROW)
+    // Uniform rows never draw a preserved native face (TextStudio2DHeroMaterials.SupportsUniformRow).
+    return false;
+    #elif defined(TEXT_STUDIO_SINGLE_STYLE_OPERATION)
     if (TEXT_STUDIO_STYLE_TABLE_ENABLED < .5 || _TextStudio2DHeroStyleSlot <= 0 || _TextStudio2DHeroOperationIndex < 0) return false;
     uint slot = (uint)_TextStudio2DHeroStyleSlot;
     TextStudio2DGpuStyleHeader header = TextStudioLoadStyleHeader(slot);
@@ -356,7 +483,9 @@ pixel_t VertShader(vertex_t input)
         vert.xy * 2 - clampedRect.xy - clampedRect.zw);
     output.texcoord1 = float4(input.texcoord0.xy + layerOffset, input.color.a,
         (.5 - weight) + .5 / max(.0001, nativeScale));
+    #ifndef TEXT_STUDIO_PACK_SCREEN_UNDERLAY
     output.underlayParam = half2(layerScale, layerBias);
+    #endif
     output.textStudio0 = input.textStudio0;
     output.textStudio1 = input.textStudio1;
     output.textStudioLocal = lerp(
@@ -377,7 +506,11 @@ pixel_t VertShader(vertex_t input)
     output.textStudioObjectWorld = float4(
         vert.xy,
         mul(unity_ObjectToWorld, vert).xy);
+    #ifdef TEXT_STUDIO_PACK_SCREEN_UNDERLAY
+    output.textStudioScreen = float4(ComputeScreenPos(vPosition).xy, half2(layerScale, layerBias));
+    #else
     output.textStudioScreen = ComputeScreenPos(vPosition);
+    #endif
     #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
     uint preparedStyleSlot = (uint)max(0, _TextStudio2DHeroStyleSlot);
     #else
@@ -456,7 +589,7 @@ TextStudioStyleDerivatives TextStudioBuildStyleDerivatives(
     derivatives.objectDx = ddx(input.textStudioObjectWorld.xy);
     derivatives.objectDy = ddy(input.textStudioObjectWorld.xy);
     float2 screenLocal =
-        input.textStudioScreen.xy / max(input.textStudioScreen.w, .00001);
+        TextStudioScreenUv(input);
     derivatives.screenDx = ddx(screenLocal);
     derivatives.screenDy = ddy(screenLocal);
     derivatives.worldDx = ddx(input.textStudioObjectWorld.zw);
@@ -671,98 +804,6 @@ float2 TextStudioClampAtlasToGlyphDerivatives(
         lower,
         upper);
     return clamp(sampleUv, lower, upper);
-}
-
-void TextStudioContinuedAtlasBounds(
-    pixel_t input,
-    TextStudioStyleDerivatives derivatives,
-    out float2 lower,
-    out float2 upper)
-{
-    float2 corner0 = TextStudioVaryingFromLocalDerivatives(
-        input,
-        input.texcoord0.xy,
-        float2(0, 0),
-        derivatives,
-        derivatives.atlasDx,
-        derivatives.atlasDy);
-    float2 corner1 = TextStudioVaryingFromLocalDerivatives(
-        input,
-        input.texcoord0.xy,
-        float2(1, 0),
-        derivatives,
-        derivatives.atlasDx,
-        derivatives.atlasDy);
-    float2 corner2 = TextStudioVaryingFromLocalDerivatives(
-        input,
-        input.texcoord0.xy,
-        float2(0, 1),
-        derivatives,
-        derivatives.atlasDx,
-        derivatives.atlasDy);
-    float2 corner3 = corner1 + corner2 - corner0;
-    float2 atlasMinimum = min(min(corner0, corner1), min(corner2, corner3));
-    float2 atlasMaximum = max(max(corner0, corner1), max(corner2, corner3));
-    TextStudioResolveSafeAtlasBounds(
-        atlasMinimum,
-        atlasMaximum,
-        lower,
-        upper);
-}
-
-half TextStudioSampleContinuedDistance(
-    pixel_t input,
-    float2 sampleUv,
-    float2 sampleDx,
-    float2 sampleDy,
-    half fieldScale,
-    half threshold,
-    float2 lower,
-    float2 upper)
-{
-    half result = 0;
-    #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
-    if (_TextStudioColorSourceMode > 2.5) result = TextStudioReadField(input, sampleUv, sampleDx, sampleDy).a * fieldScale;
-    else
-    #endif
-    {
-    #ifdef TEXT_STUDIO_STYLE_TABLE
-    TextStudioPreparedField source = TextStudioPreparedForPixel(input);
-    UNITY_BRANCH
-    if (source.decode.x > 0) result = TextStudioSamplePreparedField(source, sampleUv).a * fieldScale;
-    else
-    #endif
-    {
-        float2 textureSize = max(float2(_TextureWidth, _TextureHeight), 1.0);
-        float2 safeUv = clamp(sampleUv, lower, upper);
-        half distance = tex2Dgrad(
-            _MainTex,
-            safeUv,
-            sampleDx,
-            sampleDy).a * fieldScale;
-        half gradientScale = max(2 * _GradientScale, 1.0);
-        half safeFieldScale = max(abs(fieldScale), .0001);
-        half signedDistancePixels =
-            (distance - threshold) * gradientScale / safeFieldScale;
-        float2 outside = max(lower - sampleUv, 0) +
-                         max(sampleUv - upper, 0);
-        float outsidePixels = length(outside * textureSize);
-        float2 insideFromLower = (sampleUv - lower) * textureSize;
-        float2 insideFromUpper = (upper - sampleUv) * textureSize;
-        float insidePixels = min(
-            min(insideFromLower.x, insideFromLower.y),
-            min(insideFromUpper.x, insideFromUpper.y));
-        half rectangleDistancePixels = outsidePixels > .00001
-            ? -outsidePixels
-            : insidePixels;
-        half continuedDistancePixels = min(
-            signedDistancePixels - outsidePixels,
-            rectangleDistancePixels);
-        result = threshold +
-               continuedDistancePixels * safeFieldScale / gradientScale;
-    }
-    }
-    return result;
 }
 
 void TextStudioBuildScreenSamples(
@@ -988,347 +1029,7 @@ half TextStudioTextNoise(pixel_t input)
 }
 
 #ifdef TEXT_STUDIO_STYLE_TABLE
-half TextStudioStyleFillCoverage(
-    half4 distances,
-    half bias,
-    half preserve)
-{
-    half4 coverage = saturate(distances - bias);
-    half result = coverage.x;
-    if (preserve > .5)
-        result = dot(coverage, half4(.25, .25, .25, .25));
-    return result;
-}
-
-float TextStudioEmToField()
-{
-    return _TextStudioFieldPixelsPerEm > 0 ? _TextStudioFieldPixelsPerEm / max(.0001, 2 * _GradientScale) : 1;
-}
-
-#if defined(TEXT_STUDIO_SINGLE_STYLE_OPERATION)
-float _TextStudioHeroPixelScale;
-#endif
-
-float TextStudioStyleOutputPixelScale()
-{
-#if defined(TEXT_STUDIO_SINGLE_STYLE_OPERATION)
-    return max(.0001, _TextStudioHeroPixelScale);
-#else
-    return 1;
-#endif
-}
-
-half TextStudioStyleResolveFieldAmount(
-    half value,
-    half units,
-    half fieldScale)
-{
-    return max(0, value) * (units > .5 ? TextStudioStyleOutputPixelScale() : fieldScale * TextStudioEmToField());
-}
-
-half TextStudioStyleSoftCoverage(half distance, half softness)
-{
-    if (softness <= .0001)
-        return saturate(distance);
-    half centered = distance - .5;
-    half halfWidth = .5 + softness;
-    return smoothstep(-halfWidth, halfWidth, centered);
-}
-
-half TextStudioStyleFieldSoftness(half softness, half bias, half outwardAmount)
-{
-    // A saturated empty atlas texel must stay transparent. Its finite distance
-    // cannot support a transition wider than the remaining exterior field band.
-    return min(softness, max(0, bias - outwardAmount));
-}
-
-half TextStudioStyleTreatedFillCoverage(
-    half4 distances,
-    half4 fieldParameters,
-    half4 treatment,
-    half preserve)
-{
-    half dilation = treatment.x *
-        (treatment.z > .5 ? TextStudioStyleOutputPixelScale() : fieldParameters.x * TextStudioEmToField());
-    half softness = TextStudioStyleResolveFieldAmount(
-        treatment.y,
-        treatment.z,
-        fieldParameters.x);
-    softness = TextStudioStyleFieldSoftness(softness, fieldParameters.y, dilation);
-    half4 coverage = half4(
-        TextStudioStyleSoftCoverage(
-            distances.x - fieldParameters.w + dilation,
-            softness),
-        TextStudioStyleSoftCoverage(
-            distances.y - fieldParameters.w + dilation,
-            softness),
-        TextStudioStyleSoftCoverage(
-            distances.z - fieldParameters.w + dilation,
-            softness),
-        TextStudioStyleSoftCoverage(
-            distances.w - fieldParameters.w + dilation,
-            softness));
-    if (preserve > .5)
-        return dot(coverage, half4(.25, .25, .25, .25));
-    return coverage.x;
-}
-
-half TextStudioStyleStrokeCoverageSingle(
-    half distance,
-    half bias,
-    half exteriorBand,
-    half fieldScale,
-    half width,
-    half alignment,
-    half softness,
-    half units)
-{
-    half amount = TextStudioStyleResolveFieldAmount(width, units, fieldScale);
-    half softAmount = TextStudioStyleResolveFieldAmount(
-        softness,
-        units,
-        fieldScale);
-    half outsideFraction = saturate((alignment + 1.0) * .5);
-    half outsideAmount = amount * outsideFraction;
-    half insideAmount = amount - outsideAmount;
-    // Keep the outer antialiasing ramp inside the representable exterior field.
-    outsideAmount = min(outsideAmount, max(0, exteriorBand));
-    softAmount = TextStudioStyleFieldSoftness(softAmount, exteriorBand, outsideAmount);
-    half signedDistance = distance - bias;
-    half outer = TextStudioStyleSoftCoverage(
-        signedDistance + outsideAmount,
-        softAmount);
-    half inner = TextStudioStyleSoftCoverage(
-        signedDistance - insideAmount,
-        softAmount);
-    return saturate(outer - inner);
-}
-
-half TextStudioStyleStrokeCoverage(
-    half4 distances,
-    half4 parameters,
-    half width,
-    half alignment,
-    half softness,
-    half units,
-    half preserve)
-{
-    half result = TextStudioStyleStrokeCoverageSingle(
-        distances.x,
-        parameters.w,
-        parameters.y,
-        parameters.x,
-        width,
-        alignment,
-        softness,
-        units);
-    if (preserve > .5)
-    {
-        result += TextStudioStyleStrokeCoverageSingle(
-            distances.y,
-            parameters.w,
-            parameters.y,
-            parameters.x,
-            width,
-            alignment,
-            softness,
-            units);
-        result += TextStudioStyleStrokeCoverageSingle(
-            distances.z,
-            parameters.w,
-            parameters.y,
-            parameters.x,
-            width,
-            alignment,
-            softness,
-            units);
-        result += TextStudioStyleStrokeCoverageSingle(
-            distances.w,
-            parameters.w,
-            parameters.y,
-            parameters.x,
-            width,
-            alignment,
-            softness,
-            units);
-        result *= .25;
-    }
-    return saturate(result);
-}
-
-half4 TextStudioStyleSampleShiftedDistances(
-    pixel_t input,
-    TextStudioPixelSamples samples,
-    half usePixelSamples,
-    float2 normalizedOffset,
-    half fieldScale,
-    half threshold,
-    half units,
-    TextStudioStyleDerivatives derivatives)
-{
-    float2 atlasOffset = units > .5
-        ? -(derivatives.atlasDx * normalizedOffset.x +
-            derivatives.atlasDy * normalizedOffset.y) * TextStudioStyleOutputPixelScale()
-        : float2(
-            -normalizedOffset.x * max(1, _TextStudioFieldPixelsPerEm) / max(1.0, _TextureWidth),
-            -normalizedOffset.y * max(1, _TextStudioFieldPixelsPerEm) / max(1.0, _TextureHeight));
-    float2 lower;
-    float2 upper;
-    // Glyph bounds are invariant across the shifted samples.
-    TextStudioContinuedAtlasBounds(input, derivatives, lower, upper);
-    // Keep the continued-field sampler in one loop body. Inlining it at every pixel sample and effect call site makes the shader optimizer scale poorly.
-    bool pixel = usePixelSamples > .5;
-    float2 sampleDx = pixel ? samples.uvDx : derivatives.atlasDx;
-    float2 sampleDy = pixel ? samples.uvDy : derivatives.atlasDy;
-    float2 sampleUv = pixel ? samples.uv0 : input.texcoord0.xy;
-    int sampleCount = pixel && samples.preserve > .5 ? 4 : 1;
-    half4 distances = 0;
-    [loop]
-    for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++)
-    {
-        if (sampleIndex == 1) sampleUv = samples.uv1;
-        else if (sampleIndex == 2) sampleUv = samples.uv2;
-        else if (sampleIndex == 3) sampleUv = samples.uv3;
-        half sampleDistance = TextStudioSampleContinuedDistance(
-            input, sampleUv + atlasOffset, sampleDx, sampleDy,
-            fieldScale, threshold, lower, upper);
-        if (sampleIndex == 0) distances = sampleDistance.xxxx;
-        else if (sampleIndex == 1) distances.y = sampleDistance;
-        else if (sampleIndex == 2) distances.z = sampleDistance;
-        else distances.w = sampleDistance;
-    }
-    return distances;
-}
-
-half TextStudioStyleSoftCoverageSingle(
-    half distance,
-    half bias,
-    half exteriorBand,
-    half fieldScale,
-    half spread,
-    half blur,
-    half spreadDirection,
-    half units)
-{
-    half signedDistance = distance - bias +
-        TextStudioStyleResolveFieldAmount(spread, units, fieldScale) *
-        spreadDirection;
-    half softness = max(
-        1.0,
-        TextStudioStyleResolveFieldAmount(blur, units, fieldScale));
-    if (spreadDirection > 0)
-        softness = min(softness, max(.0001, exteriorBand - TextStudioStyleResolveFieldAmount(spread, units, fieldScale)));
-    return smoothstep(-softness, softness, signedDistance);
-}
-
-half TextStudioStyleSoftCoverage(
-    half4 distances,
-    half4 fieldParameters,
-    half spread,
-    half blur,
-    half spreadDirection,
-    half units,
-    half preserve)
-{
-    half result = TextStudioStyleSoftCoverageSingle(
-        distances.x,
-        fieldParameters.w,
-        fieldParameters.y,
-        fieldParameters.x,
-        spread,
-        blur,
-        spreadDirection,
-        units);
-    if (preserve > .5)
-    {
-        result += TextStudioStyleSoftCoverageSingle(
-            distances.y,
-            fieldParameters.w,
-            fieldParameters.y,
-            fieldParameters.x,
-            spread,
-            blur,
-            spreadDirection,
-            units);
-        result += TextStudioStyleSoftCoverageSingle(
-            distances.z,
-            fieldParameters.w,
-            fieldParameters.y,
-            fieldParameters.x,
-            spread,
-            blur,
-            spreadDirection,
-            units);
-        result += TextStudioStyleSoftCoverageSingle(
-            distances.w,
-            fieldParameters.w,
-            fieldParameters.y,
-            fieldParameters.x,
-            spread,
-            blur,
-            spreadDirection,
-            units);
-        result *= .25;
-    }
-    return saturate(result);
-}
-
-half TextStudioStyleEffectCoverage(
-    int layerKind,
-    pixel_t input,
-    TextStudioPixelSamples pixelSamples,
-    half pixelActive,
-    half4 distances,
-    half4 fieldParameters,
-    float4 operationParameters,
-    float4 operationParameters1,
-    half preserve,
-    TextStudioStyleDerivatives derivatives)
-{
-    half face = TextStudioStyleFillCoverage(
-        distances,
-        fieldParameters.w,
-        preserve);
-    half coverage = 0;
-    if (layerKind == 2 || layerKind == 3)
-    {
-        half4 shiftedDistances = TextStudioStyleSampleShiftedDistances(
-            input,
-            pixelSamples,
-            pixelActive,
-            operationParameters.xy,
-            fieldParameters.x,
-            fieldParameters.w,
-            operationParameters1.y,
-            derivatives);
-        half shifted = TextStudioStyleSoftCoverage(
-            shiftedDistances,
-            fieldParameters,
-            operationParameters.w,
-            operationParameters.z,
-            layerKind == 2 ? -1.0 : 1.0,
-            operationParameters1.y,
-            preserve);
-        coverage = layerKind == 2
-            ? saturate(face * (1 - shifted))
-            : saturate(shifted - face);
-    }
-    else
-    {
-        half softened = TextStudioStyleSoftCoverage(
-            distances,
-            fieldParameters,
-            operationParameters.y,
-            operationParameters.x,
-            layerKind == 4 ? -1.0 : 1.0,
-            operationParameters1.y,
-            preserve);
-        coverage = layerKind == 4
-            ? saturate(face * (1 - softened))
-            : saturate(softened - face);
-    }
-    return coverage;
-}
+#include "TextStudio2DFieldCoverageCommon.cginc"
 
 TextStudio2DDepthFieldMapping TextStudioStyleDepthFieldMapping(
     pixel_t input,
@@ -1454,6 +1155,11 @@ fixed4 TextStudioEvaluateStylePaintForGlyph(
     TextStudioStyleDerivatives derivatives,
     half distanceCoordinate)
 {
+    #ifdef TEXT_STUDIO_SOLID_PAINT
+    // Every paint of this program is solid; the general evaluator returns exactly the operation colour for it, so the
+    // mapping, derivative and gradient code drops out of the program.
+    return operation.color;
+    #endif
     int mapping = (int)round(operation.paintMetadata.y);
     float2 mappingCoordinate = glyphLocal;
     float2 coordinateDx = derivatives.glyphDx;
@@ -1470,8 +1176,7 @@ fixed4 TextStudioEvaluateStylePaintForGlyph(
             glyphLocal,
             saturate(input.mask.xy),
             input.textStudioObjectWorld.xy,
-            input.textStudioScreen.xy /
-                max(input.textStudioScreen.w, .00001),
+            TextStudioScreenUv(input),
             input.textStudioObjectWorld.zw,
             derivatives.glyphDx,
             derivatives.glyphDy,
@@ -1794,8 +1499,7 @@ fixed4 TextStudioEvaluateGraphicEffect(
         glyphLocal,
         saturate(input.mask.xy),
         input.textStudioObjectWorld.xy,
-        input.textStudioScreen.xy /
-            max(input.textStudioScreen.w, .00001),
+        TextStudioScreenUv(input),
         input.textStudioObjectWorld.zw,
         derivatives.glyphDx,
         derivatives.glyphDy,
@@ -2183,8 +1887,7 @@ fixed4 TextStudioEvaluateAnimatedEffect(
         glyphLocal,
         saturate(input.mask.xy),
         input.textStudioObjectWorld.xy,
-        input.textStudioScreen.xy /
-            max(input.textStudioScreen.w, .00001),
+        TextStudioScreenUv(input),
         input.textStudioObjectWorld.zw,
         derivatives.glyphDx,
         derivatives.glyphDy,
@@ -2421,7 +2124,7 @@ fixed4 TextStudioFinalizeCoverageOperation(
     TextStudioStyleDerivatives derivatives,
     out half contributionCoverage)
 {
-    if (layerKind == 7 && operation.parameters1.z > .5)
+    if (TEXT_STUDIO_COMPILE_DEPTH_FAMILY && layerKind == 7 && operation.parameters1.z > .5)
     {
         // Depth Progress supplies a canonical face-to-endpoint paint coordinate.
         // Do not let the paint's ordinary glyph/text/object mapping replace it.
@@ -2544,7 +2247,7 @@ fixed4 TextStudioEvaluateStyleOperation(
         half sourceExtent = max(0, operation.parameters4.x) +
                             max(0, operation.parameters1.x);
         float2 localOutset = 0;
-        if (layerKind == 7)
+        if (TEXT_STUDIO_COMPILE_DEPTH_FAMILY && layerKind == 7)
         {
             TextStudio2DDepthFieldMapping sourceMapping = TextStudioStyleDepthFieldMapping(input, fieldParameters, derivatives);
             localOutset = operation.parameters1.w > .5
@@ -2565,6 +2268,7 @@ fixed4 TextStudioEvaluateStyleOperation(
     }
     else
     #endif
+    #if TEXT_STUDIO_COMPILE_LIGHT_OPERATIONS
     if (layerKind == 0)
     {
         valid = 1;
@@ -2593,6 +2297,13 @@ fixed4 TextStudioEvaluateStyleOperation(
 
         }
     }
+    #else
+    if (false)
+    {
+    }
+    #endif
+    #ifndef TEXT_STUDIO_APPEARANCE_BASIC
+    #if TEXT_STUDIO_COMPILE_LIGHT_OPERATIONS
     else if (layerKind >= 2 && layerKind <= 5)
     {
         valid = 1;
@@ -2609,7 +2320,8 @@ fixed4 TextStudioEvaluateStyleOperation(
             preserve,
             derivatives);
     }
-    else if (allowHeavy && (layerKind == 6 || layerKind == 11))
+    #endif
+    else if (TEXT_STUDIO_COMPILE_MATERIAL_FAMILY && allowHeavy && (layerKind == 6 || layerKind == 11))
     {
         valid = 1;
         result = TextStudioEvaluateStyleMaterialResponse(
@@ -2623,7 +2335,7 @@ fixed4 TextStudioEvaluateStyleOperation(
             derivatives,
             animatedTint, contributionCoverage);
     }
-    else if (allowHeavy && layerKind == 12)
+    else if (TEXT_STUDIO_COMPILE_GRAPHIC_FAMILY && allowHeavy && layerKind == 12)
     {
         valid = 1;
         result = TextStudioEvaluateGraphicEffect(
@@ -2642,7 +2354,7 @@ fixed4 TextStudioEvaluateStyleOperation(
             derivatives,
             animatedTint, contributionCoverage);
     }
-    else if (allowHeavy && layerKind == 13)
+    else if (TEXT_STUDIO_COMPILE_ANIMATED_FAMILY && allowHeavy && layerKind == 13)
     {
         valid = 1;
         result = TextStudioEvaluateAnimatedEffect(
@@ -2658,7 +2370,7 @@ fixed4 TextStudioEvaluateStyleOperation(
             derivatives,
             animatedTint, contributionCoverage);
     }
-    else if (allowHeavy && layerKind == 7)
+    else if (TEXT_STUDIO_COMPILE_DEPTH_FAMILY && allowHeavy && layerKind == 7)
     {
         valid = 1;
         usesCoverage = 1;
@@ -2673,6 +2385,7 @@ fixed4 TextStudioEvaluateStyleOperation(
             paintLighting);
     }
 
+    #endif
     if (usesCoverage > .5)
     {
         result = TextStudioFinalizeCoverageOperation(
@@ -2724,6 +2437,13 @@ fixed4 TextStudioEvaluateSingleStyleOperation(
     valid = 0;
     if (TEXT_STUDIO_STYLE_TABLE_ENABLED < .5 || styleSlot == 0)
         return 0;
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    // The material holds this row's record, packed from the style whose program the slot holds, so the header's schema
+    // and operation-count checks hold by construction.
+    if (operationIndex < 0)
+        return 0;
+    TextStudio2DGpuOperation operation = TextStudioUniformRowOperation();
+    #else
     TextStudio2DGpuStyleHeader header =
         TextStudioLoadStyleHeader(styleSlot);
     int operationCount = max(0, (int)round(header.metadata.y));
@@ -2735,6 +2455,7 @@ fixed4 TextStudioEvaluateSingleStyleOperation(
     }
     TextStudio2DGpuOperation operation =
         TextStudioLoadOperation((int)round(header.program.x) + operationIndex);
+    #endif
     TextStudioStyleDerivatives derivatives =
         TextStudioBuildStyleDerivatives(input, glyphLocal);
     half2 fieldGradient = 0;
@@ -2797,6 +2518,7 @@ fixed4 TextStudioEvaluateStyleProgram(
         TextStudioBuildStyleDerivatives(input, glyphLocal);
     uint styleFeatures = (uint)round(header.metadata.w);
     half2 fieldGradient = 0;
+    #ifndef TEXT_STUDIO_APPEARANCE_BASIC
     if ((styleFeatures & (1u << 15)) != 0)
     {
         fieldGradient = TextStudioStyleFieldGradient(
@@ -2804,9 +2526,12 @@ fixed4 TextStudioEvaluateStyleProgram(
             pixelSamples,
             pixelActive);
     }
+    #endif
     int operationStart = (int)round(header.program.x) + spanBase;
-    // A primitive selecting one operation evaluates it outside the loop with every family available. The loop body
-    // only compiles light families: inlining isolated families there made the program several times slower to compile.
+    #if defined(TEXT_STUDIO_ISOLATED_OPERATION) || !defined(TEXT_STUDIO_FAMILY_VARIANTS)
+    // Isolated primitives select one operation and may use every family. With family variants only their materials
+    // compile this path, so fused runs compile the light loop alone: one program holding both paths spilled about 1 KB
+    // of registers per pixel on mobile GPUs. Passes without family variants (the shadow caster) keep both paths.
     // A power of two selects one operation; its bit index is exact in float for an eight-bit mask. Shader model 3.5
     // has no countbits or firstbitlow.
     if (operationMask != 0u && (operationMask & (operationMask - 1u)) == 0u)
@@ -2824,17 +2549,20 @@ fixed4 TextStudioEvaluateStyleProgram(
             styleSlot, spanBase + singleIndex, glyphIndex, single, input, pixelSamples, pixelActive, glyphLocal, distances,
             sharpDistances, fieldParameters, preserve, animatedTint, fieldGradient, derivatives, true, valid);
     }
+    #endif
+    #ifdef TEXT_STUDIO_ISOLATED_OPERATION
+    return 0;
+    #else
     fixed4 result = 0;
+    // Visit only the selected operations, lowest index (topmost row) first: a single-row primitive costs one iteration
+    // instead of a full scan. The lowest set bit's index is exact in float for an eight-bit mask.
+    uint remaining = operationMask & ((1u << min(operationCount, TEXT_STUDIO_MAX_FUSED_OPERATIONS)) - 1u);
     [loop]
-    for (int operationIndex = 0;
-         operationIndex < TEXT_STUDIO_MAX_FUSED_OPERATIONS;
-         operationIndex++)
+    while (remaining != 0u)
     {
-        if (operationIndex >= operationCount ||
-            (operationMask & (1u << operationIndex)) == 0)
-        {
-            continue;
-        }
+        uint lowest = remaining & (~remaining + 1u);
+        remaining ^= lowest;
+        int operationIndex = (int)round(log2((float)lowest));
         TextStudio2DGpuOperation operation =
             TextStudioLoadOperation(
                 operationStart + operationIndex);
@@ -2869,6 +2597,7 @@ fixed4 TextStudioEvaluateStyleProgram(
         result = result + layer * (1 - result.a);
     }
     return result;
+    #endif
 }
 #endif
 #endif
@@ -2920,6 +2649,11 @@ float4 TextStudioNativeColorFace(pixel_t input, uint styleSlot, int glyphIndex)
 
 fixed4 PixShader(pixel_t input) : SV_Target
 {
+    #ifdef TEXT_STUDIO_PACK_SCREEN_UNDERLAY
+    half2 underlayParam = input.textStudioScreen.zw;
+    #else
+    half2 underlayParam = input.underlayParam;
+    #endif
     #ifdef TEXT_STUDIO_SEPARATE_SELECTION_PAYLOAD
     // Glyph IDs and pixel-grid settings are constant across a quad. Perspective
     // interpolation can otherwise round a packed glyph ID below its integer boundary.
@@ -2999,6 +2733,9 @@ fixed4 PixShader(pixel_t input) : SV_Target
     #endif
     #endif
     #endif
+    #if defined(TEXT_STUDIO_STYLE_TABLE) && defined(TEXT_STUDIO_TEXTURE_TRANSPORT)
+    TextStudioResolvePreparedForPixel(input);
+    #endif
     if (_TextStudioNativeMaterialModel > 1.5)
     {
         // Multiplication must follow interpolation: lerp(1 / scale) * lerp(scale) is not 1 in perspective.
@@ -3014,9 +2751,14 @@ fixed4 PixShader(pixel_t input) : SV_Target
     // Resolve local deformation once before any variable-count appearance sampling loops.
     // All face, outline, underlay and Hero samples then share the same warped source coordinates.
     float2 squiggleOffset = TextStudioSquiggleUv(input, input.texcoord0.xy) - input.texcoord0.xy;
+    #ifdef TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS
+    squiggleOffset = 0;
+    #endif
     input.texcoord0.xy += squiggleOffset;
     input.texcoord1.xy += squiggleOffset;
     #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
+    // Uniform rows never draw colour-source batches, whose native colour face reads its row from the table.
+    #ifndef TEXT_STUDIO_UNIFORM_ROW
     if (_TextStudioColorSourceMode > .5 && _TextStudioColorSourceMode < 2.5)
     {
         int colorGlyphIndex = max(0, TextStudioPackedGlyphIndex(textStudioLocal.z));
@@ -3025,6 +2767,7 @@ fixed4 PixShader(pixel_t input) : SV_Target
         if (_TextStudio2DHeroGlyphFilter >= 0 && TextStudioSourceUnit(textStudioStyleSlot, colorGlyphIndex) != _TextStudio2DHeroGlyphFilter) return 0;
         return TextStudioNativeColorFace(input, textStudioStyleSlot, colorGlyphIndex);
     }
+    #endif
     TextStudioStyleDerivatives continuedDerivatives =
         TextStudioBuildStyleDerivatives(input, textStudioLocal.xy);
     // Offscreen glyph coverage uses its own raster derivatives, independent of the last camera's _ScreenParams.
@@ -3047,7 +2790,7 @@ fixed4 PixShader(pixel_t input) : SV_Target
         input.param.x = nativeFaceScale;
         input.param.w = nativeScale / max(.0001, nativeFaceScale);
         float underlayScale = nativeScale / (1 + _UnderlaySoftness * _ScaleRatioC * nativeScale);
-        input.underlayParam = float2(underlayScale,
+        underlayParam = float2(underlayScale,
             (nativeCenter - _UnderlayDilate * _ScaleRatioC * .5) * underlayScale - .5);
         if (_TextStudioNativeMaterialModel < 1.5)
         {
@@ -3106,6 +2849,17 @@ fixed4 PixShader(pixel_t input) : SV_Target
     float packedGlyphAndPixel = abs(textStudioLocal.z);
     int textStudioGlyphIndex = TextStudioPackedGlyphIndex(packedGlyphAndPixel);
     #ifdef TEXT_STUDIO_SINGLE_STYLE_OPERATION
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    // The source glyph a mapping row names is never negative, so against the full range without a glyph filter the test
+    // below keeps exactly the glyphs with an index; uniform rows skip its two dependent mapping loads then.
+    UNITY_BRANCH
+    if (_TextStudio2DHeroSourceRange.x == 0 && _TextStudio2DHeroSourceRange.y >= 2147483648.0 && _TextStudio2DHeroGlyphFilter < 0)
+    {
+        if (textStudioGlyphIndex < 0) return 0;
+    }
+    else
+    {
+    #endif
     int originalSourceGlyphIndex = TextStudioOriginalSourceGlyph((uint)max(0, _TextStudio2DHeroStyleSlot), textStudioGlyphIndex);
     if (originalSourceGlyphIndex < _TextStudio2DHeroSourceRange.x || originalSourceGlyphIndex >= _TextStudio2DHeroSourceRange.y) return 0;
     if (_TextStudio2DHeroGlyphFilter >= 0 &&
@@ -3113,11 +2867,17 @@ fixed4 PixShader(pixel_t input) : SV_Target
     {
         return 0;
     }
+    #ifdef TEXT_STUDIO_UNIFORM_ROW
+    }
+    #endif
     #endif
     float decodedPixelCellSize = TextStudioPackedPixelCellSize(packedGlyphAndPixel, textStudioGlyphIndex);
     half pixelAmount = saturate(abs(textStudioLocal.w));
     float pixelCellSize = max(1.0, floor(decodedPixelCellSize + .5));
     half pixelActive = pixelAmount > .0001 && pixelCellSize > 1.0001;
+    #ifdef TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS
+    pixelActive = 0;
+    #endif
     TextStudioPixelSamples pixelSamples = (TextStudioPixelSamples)0;
     half4 pixelDistances = originalDistance.xxxx;
     half originalSharpDistance = originalDistance;
@@ -3203,6 +2963,8 @@ fixed4 PixShader(pixel_t input) : SV_Target
     float availableRange = preparedDecode.x > 0 ? preparedDecode.y : 1;
     styleSdfParameters.y = sdfBias + .5 * (availableRange - 1) * input.param.x;
     half styleProgramValid;
+    // A uniform row is never a preserved native face, so its program compiles without the native contribution below.
+    #ifndef TEXT_STUDIO_UNIFORM_ROW
     if (TEXT_STUDIO_STYLE_TABLE_ENABLED > .5 && textStudioStyleSlot > 0)
     {
         TextStudio2DGpuStyleHeader nativeHeader = TextStudioLoadStyleHeader(textStudioStyleSlot);
@@ -3224,6 +2986,7 @@ fixed4 PixShader(pixel_t input) : SV_Target
             }
         }
     }
+    #endif
     // Native fills retain TMP face/outline textures, underlay and material effects below.
     // Appearance paint evaluation would replace that complete native contribution with a flat fill.
     if (textStudioNativeOperation < 0)
@@ -3270,6 +3033,10 @@ fixed4 PixShader(pixel_t input) : SV_Target
 
     half authoredOutline = max(0, textStudio0.w);
     half authoredGlow = max(0, textStudio1.x);
+    #ifdef TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS
+    authoredOutline = 0;
+    authoredGlow = 0;
+    #endif
     if (authoredOutline > 0 || authoredGlow > 0)
     {
         half originalOuter = saturate(
@@ -3295,6 +3062,9 @@ fixed4 PixShader(pixel_t input) : SV_Target
     }
 
     half chromatic = textStudio1.w * _TextStudioChromaticIntensity;
+    #ifdef TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS
+    chromatic = 0;
+    #endif
     if (abs(chromatic) > .0001)
     {
         float2 atlasOffset = float2(chromatic * _GradientScale * 3 / max(1, _TextureWidth), 0);
@@ -3321,6 +3091,9 @@ fixed4 PixShader(pixel_t input) : SV_Target
     }
 
     half sweepBrightness = max(0, textStudio1.z);
+    #ifdef TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS
+    sweepBrightness = 0;
+    #endif
     if (sweepBrightness > .0001)
     {
         half sweepDistance = abs(textStudio1.y);
@@ -3336,21 +3109,21 @@ fixed4 PixShader(pixel_t input) : SV_Target
     if (UNDERLAY_ON && TextStudioUsesNativeMaterial())
     {
         float2 underlayOffset = input.texcoord1.xy - input.texcoord0.xy;
-        half originalUnderlayDistance = TextStudioReadField(input, input.texcoord1.xy, ddx(input.texcoord0.xy), ddy(input.texcoord0.xy)).a * input.underlayParam.x;
-        half underlayCoverage = saturate(originalUnderlayDistance - input.underlayParam.y);
+        half originalUnderlayDistance = TextStudioReadField(input, input.texcoord1.xy, ddx(input.texcoord0.xy), ddy(input.texcoord0.xy)).a * underlayParam.x;
+        half underlayCoverage = saturate(originalUnderlayDistance - underlayParam.y);
         if (pixelActive > .5)
         {
             half4 pixelUnderlay = TextStudioSampleDistances(
                 input,
                 pixelSamples,
                 underlayOffset,
-                input.underlayParam.x);
-            half pixelUnderlayCoverage = saturate(pixelUnderlay.x - input.underlayParam.y);
+                underlayParam.x);
+            half pixelUnderlayCoverage = saturate(pixelUnderlay.x - underlayParam.y);
             if (pixelSamples.preserve > .5)
             {
-                pixelUnderlayCoverage += saturate(pixelUnderlay.y - input.underlayParam.y);
-                pixelUnderlayCoverage += saturate(pixelUnderlay.z - input.underlayParam.y);
-                pixelUnderlayCoverage += saturate(pixelUnderlay.w - input.underlayParam.y);
+                pixelUnderlayCoverage += saturate(pixelUnderlay.y - underlayParam.y);
+                pixelUnderlayCoverage += saturate(pixelUnderlay.z - underlayParam.y);
+                pixelUnderlayCoverage += saturate(pixelUnderlay.w - underlayParam.y);
                 pixelUnderlayCoverage *= .25;
             }
             underlayCoverage = lerp(underlayCoverage, pixelUnderlayCoverage, pixelAmount);
@@ -3366,9 +3139,9 @@ fixed4 PixShader(pixel_t input) : SV_Target
         half originalInnerMask = fullNativeMaterial
             ? saturate((originalDistance - sdfBias - .5) * input.param.w + .5)
             : saturate(originalDistance - input.param.z);
-        half originalUnderlayDistance = TextStudioReadField(input, input.texcoord1.xy, ddx(input.texcoord0.xy), ddy(input.texcoord0.xy)).a * input.underlayParam.x;
+        half originalUnderlayDistance = TextStudioReadField(input, input.texcoord1.xy, ddx(input.texcoord0.xy), ddy(input.texcoord0.xy)).a * underlayParam.x;
         half underlayCoverage =
-            (1 - saturate(originalUnderlayDistance - input.underlayParam.y)) *
+            (1 - saturate(originalUnderlayDistance - underlayParam.y)) *
             originalInnerMask;
         if (pixelActive > .5)
         {
@@ -3376,26 +3149,26 @@ fixed4 PixShader(pixel_t input) : SV_Target
                 input,
                 pixelSamples,
                 underlayOffset,
-                input.underlayParam.x);
+                underlayParam.x);
             half pixelCoverage =
-                (1 - saturate(pixelUnderlay.x - input.underlayParam.y)) *
+                (1 - saturate(pixelUnderlay.x - underlayParam.y)) *
                 (fullNativeMaterial
                         ? saturate((pixelDistances.x - sdfBias - .5) * input.param.w + .5)
                         : saturate(pixelDistances.x - input.param.z));
             if (pixelSamples.preserve > .5)
             {
                 pixelCoverage +=
-                    (1 - saturate(pixelUnderlay.y - input.underlayParam.y)) *
+                    (1 - saturate(pixelUnderlay.y - underlayParam.y)) *
                     (fullNativeMaterial
                         ? saturate((pixelDistances.y - sdfBias - .5) * input.param.w + .5)
                         : saturate(pixelDistances.y - input.param.z));
                 pixelCoverage +=
-                    (1 - saturate(pixelUnderlay.z - input.underlayParam.y)) *
+                    (1 - saturate(pixelUnderlay.z - underlayParam.y)) *
                     (fullNativeMaterial
                         ? saturate((pixelDistances.z - sdfBias - .5) * input.param.w + .5)
                         : saturate(pixelDistances.z - input.param.z));
                 pixelCoverage +=
-                    (1 - saturate(pixelUnderlay.w - input.underlayParam.y)) *
+                    (1 - saturate(pixelUnderlay.w - underlayParam.y)) *
                     (fullNativeMaterial
                         ? saturate((pixelDistances.w - sdfBias - .5) * input.param.w + .5)
                         : saturate(pixelDistances.w - input.param.z));
@@ -3408,6 +3181,9 @@ fixed4 PixShader(pixel_t input) : SV_Target
     }
 
     half encodedDissolveThreshold = textStudio0.y;
+    #ifdef TEXT_STUDIO_WITHOUT_MATERIAL_EFFECTS
+    encodedDissolveThreshold = 0;
+    #endif
     half dissolveThreshold = abs(encodedDissolveThreshold);
     if (dissolveThreshold > .0001)
     {
@@ -3481,10 +3257,14 @@ fixed4 PixShader(pixel_t input) : SV_Target
         #endif
     }
     #endif
+    // Writing coverage reads its interpolants before the alpha clip, which still tests the alpha before coverage. Reading them
+    // after the discard made the Adreno 619 Vulkan driver fail to link the fused Field program ("Bary after KILL instruction"),
+    // and Unity skipped its draws.
+    fixed4 covered = TextStudioApplyWritingCoverage(c, input);
     UNITY_BRANCH
     if (UNITY_UI_ALPHACLIP)
         clip(c.a - .001);
-    return TextStudioApplyWritingCoverage(c, input);
+    return covered;
 }
 
 #ifdef TEXT_STUDIO_STYLE_TABLE
@@ -3498,21 +3278,25 @@ fixed4 TextStudioWorldShadowFragment(pixel_t input) : SV_Target
         styleSlot,
         operationMask,
         operationSpanBase);
-    if (TEXT_STUDIO_STYLE_TABLE_ENABLED < .5 || styleSlot == 0)
-        clip(-1);
-
-    TextStudio2DGpuStyleHeader header =
-        TextStudioLoadStyleHeader(styleSlot);
-    uint styleFeatures = (uint)round(header.metadata.w);
-    const uint worldShadowCasterFeature = 1u << 20;
-    if ((int)round(header.metadata.x) != TEXT_STUDIO_STYLE_SCHEMA_VERSION ||
-        (styleFeatures & worldShadowCasterFeature) == 0)
+    // Discard once after every interpolant read, as PixShader does: the Adreno 619 Vulkan driver fails to link programs that
+    // interpolate after a discard.
+    bool casts = TEXT_STUDIO_STYLE_TABLE_ENABLED > .5 && styleSlot != 0;
+    UNITY_BRANCH
+    if (casts)
     {
-        clip(-1);
+        TextStudio2DGpuStyleHeader header =
+            TextStudioLoadStyleHeader(styleSlot);
+        uint styleFeatures = (uint)round(header.metadata.w);
+        const uint worldShadowCasterFeature = 1u << 20;
+        casts = (int)round(header.metadata.x) == TEXT_STUDIO_STYLE_SCHEMA_VERSION &&
+            (styleFeatures & worldShadowCasterFeature) != 0;
     }
 
-    fixed4 styled = PixShader(input);
-    clip(styled.a - .001);
+    half coverage = 0;
+    UNITY_BRANCH
+    if (casts)
+        coverage = PixShader(input).a;
+    clip(coverage - .001);
     return 0;
 }
 #endif

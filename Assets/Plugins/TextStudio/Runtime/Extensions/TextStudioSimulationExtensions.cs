@@ -70,6 +70,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Identifies the backend, external renderer, UI Toolkit output, or custom target associated with an extension's text frame.</summary>
     public enum TextStudioFrameTargetKind : byte
     {
         TextBackend = 0,
@@ -215,6 +216,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Flags the glyph transform, velocity, and visual-response channels exclusively claimed by a registered extension authority.</summary>
     [Flags]
     public enum TextStudioGlyphAuthorityChannels : byte
     {
@@ -291,6 +293,7 @@ namespace TextStudio
         public bool IsValid => _registry != null && _registry.IsAuthorityLeaseCurrent(this);
     }
 
+    /// <summary>Reports why an extension registration failed, including invalid targets or providers and invalid or conflicting glyph authority.</summary>
     public enum TextStudioExtensionRegistrationFailure : byte
     {
         None = 0,
@@ -359,6 +362,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Flags the color, alpha, and scale response channels supplied by an extension that owns glyph visual response.</summary>
     [Flags]
     public enum TextStudioGlyphVisualResponseChannels : byte
     {
@@ -823,12 +827,14 @@ namespace TextStudio
             in TextStudioRenderDirectiveWriter renderProperties);
     }
 
+    /// <summary>Selects fast or accurate geometry sampling when an extension requests glyph bounds or convex shapes.</summary>
     public enum TextStudioGlyphGeometryDetail : byte
     {
         Fast = 0,
         Accurate = 1
     }
 
+    /// <summary>Flags whether a geometry provider supplies glyph bounds and planar or spatial convex shapes for simulation and interaction.</summary>
     [Flags]
     public enum TextStudioGlyphGeometryCapabilities : byte
     {
@@ -1019,6 +1025,7 @@ namespace TextStudio
         bool TryGetSignals(int glyphIndex, out TextStudioGlyphSignalState signals);
     }
 
+    /// <summary>Reports how a stateful extension reconstructs preview state: exact evaluation, reset-and-replay, checkpoint recovery, or approximation.</summary>
     public enum TextStudioStatefulPreviewFidelity : byte
     {
         Exact = 0,
@@ -1027,6 +1034,7 @@ namespace TextStudio
         Approximate = 3
     }
 
+    /// <summary>Chooses whether a stateful preview seek prioritizes a fast result or exact state reconstruction.</summary>
     public enum TextStudioStatefulPreviewSeekMode : byte
     {
         PreferFast = 0,
@@ -1059,6 +1067,7 @@ namespace TextStudio
         void AdvanceSeek(float budgetMilliseconds = 4f);
     }
 
+    /// <summary>Identifies an extension registration that supplies glyph geometry, event signals, or stateful preview behavior.</summary>
     public enum TextStudioExtensionProviderKind : byte
     {
         Geometry = 0,

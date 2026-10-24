@@ -55,6 +55,8 @@ namespace TextStudio
         }
 
         public TextStudioTypewriterRecipe Typewriter => _typewriter;
+        // The recipe in place, for per-tick checks that would otherwise copy its inline settings.
+        internal ref readonly TextStudioTypewriterRecipe TypewriterRecipe => ref _typewriter;
         public TextStudioTypewriterSource TypewriterSource => _typewriter.Source;
         public string TypewriterPresetId => _typewriter.BuiltInPresetId ?? string.Empty;
         public TextStudioTypewriterPreset TypewriterPreset => _typewriter.CustomPreset;
@@ -146,6 +148,7 @@ namespace TextStudio
             unchecked { _reactionSerializationRevision++; }
             if (_reactionSerializationRevision == 0)
                 _reactionSerializationRevision = 1;
+            TextStudioHubScheduler.UnparkAll();
         }
 
         void Normalize()

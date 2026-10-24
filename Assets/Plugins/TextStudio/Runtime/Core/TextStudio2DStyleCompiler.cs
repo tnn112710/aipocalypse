@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Flags the distance-field, paint, compositing, geometry, and effect features a renderer supports when compiling 2D appearance styles.</summary>
     [Flags]
     public enum TextStudio2DRendererCapabilities : ulong
     {
@@ -36,6 +37,7 @@ namespace TextStudio
         All = ulong.MaxValue
     }
 
+    /// <summary>Flags the source data, rendering resources, coordinates, and processing features required by a compiled 2D appearance style.</summary>
     [Flags]
     public enum TextStudio2DStyleRequirements : uint
     {
@@ -70,6 +72,7 @@ namespace TextStudio
         ObjectCoordinates = 1 << 26
     }
 
+    /// <summary>Flags the paint and appearance operations a compiled style needs its shader variants to implement.</summary>
     [Flags]
     public enum TextStudio2DShaderFeatures : uint
     {
@@ -97,6 +100,7 @@ namespace TextStudio
         WorldShadowCaster = 1 << 20
     }
 
+    /// <summary>Flags the rendering, resource, masking, or capability constraints that force compiled 2D appearance operations into separate buckets.</summary>
     [Flags]
     public enum TextStudio2DBucketSplitReason : ushort
     {
@@ -619,7 +623,8 @@ namespace TextStudio
             ulong dependencyRevision,
             TextStudio2DSourceFieldRequest sourceFieldRequest,
             TextStudio2DPainterOrder painterOrder,
-            TextStudio2DWorldShadowMode worldShadowMode)
+            TextStudio2DWorldShadowMode worldShadowMode,
+            bool exactLayering = false)
         {
             _operations = operations ?? Array.Empty<TextStudio2DCompiledOperation>();
             _paints = paints ?? Array.Empty<TextStudio2DCompiledPaint>();
@@ -635,6 +640,7 @@ namespace TextStudio
             SourceFieldRequest = sourceFieldRequest;
             PainterOrder = painterOrder;
             WorldShadowMode = worldShadowMode;
+            ExactLayering = exactLayering;
             GeometryFingerprint = TextStudio2DStyleCompiler.ComputeGeometryFingerprint(this);
 
             int historyOperationCount = 0;
@@ -683,7 +689,7 @@ namespace TextStudio
                 HeroProgramStatus = status;
                 if (program != null)
                     Cost = new TextStudio2DCostEstimate(cost.FieldSamples, cost.TextureSamples, cost.GeometrySegments,
-                        cost.OffscreenPasses, program.EstimatedConcurrentSurfaceCount, cost.RelativeFragmentCost);
+                        cost.OffscreenPasses, program.EstimatedConcurrentSurfaceCount + program.OptionalSurfaceCount, cost.RelativeFragmentCost);
             }
         }
 
@@ -717,6 +723,10 @@ namespace TextStudio
         public TextStudio2DSourceFieldRequest SourceFieldRequest { get; }
         public TextStudio2DPainterOrder PainterOrder { get; }
         public TextStudio2DWorldShadowMode WorldShadowMode { get; }
+        /// <summary>
+        /// Keeps Text Studio's exact layered rendering for a style TextMeshPro could otherwise draw through its own SDF material.
+        /// </summary>
+        public bool ExactLayering { get; }
         public bool RequiresContinuousRendering { get; }
         internal bool RequiresCameraPixels { get; }
         internal bool RequiresContourGeometry { get; }
@@ -773,21 +783,24 @@ namespace TextStudio
         {
             TextStudioMotionPolicy resolved = TextStudioMotionSettings.Resolve(policy);
             for (int index = 0; index < _operations.Length; index++)
-            {
-                TextStudio2DCompiledOperation operation = _operations[index];
-                if (operation.Kind != TextStudio2DLayerKind.AnimatedEffect)
-                    continue;
-                TextStudio2DAnimatedEffectSpec effect = operation.AnimatedEffect;
-                if (Mathf.Abs(effect.Speed) <= 0.000001f)
-                    continue;
-                float rate = TextStudioVisualPrimitiveMath.ResolveMotionRate(
-                    resolved,
-                    effect.ReducedMotionBehavior,
-                    out bool enabled);
-                if (enabled && Mathf.Abs(effect.Speed * rate) > 0.000001f)
+                if (AnimatesForPolicy(in _operations[index], resolved))
                     return true;
-            }
             return false;
+        }
+
+        /// <summary>Whether an operation changes with presentation time under a resolved motion policy: an animated effect that moves.</summary>
+        internal static bool AnimatesForPolicy(in TextStudio2DCompiledOperation operation, TextStudioMotionPolicy resolvedPolicy)
+        {
+            if (operation.Kind != TextStudio2DLayerKind.AnimatedEffect)
+                return false;
+            TextStudio2DAnimatedEffectSpec effect = operation.AnimatedEffect;
+            if (Mathf.Abs(effect.Speed) <= 0.000001f)
+                return false;
+            float rate = TextStudioVisualPrimitiveMath.ResolveMotionRate(
+                resolvedPolicy,
+                effect.ReducedMotionBehavior,
+                out bool enabled);
+            return enabled && Mathf.Abs(effect.Speed * rate) > 0.000001f;
         }
 
         static T GetAt<T>(T[] values, int index, string parameterName)
@@ -865,6 +878,7 @@ namespace TextStudio
             TextStudio2DSourceFieldQuality sourceFieldQuality = settings.SourceFieldQuality;
             TextStudio2DPainterOrder painterOrder = settings.PainterOrder;
             TextStudio2DWorldShadowMode worldShadowMode = settings.WorldShadowMode;
+            bool exactLayering = settings.ExactLayering;
             layers = new List<TextStudio2DLayer>(TextStudioAppearanceDomains.DefaultLayers(layers.ToArray()));
             layers = ExpandSurfaceTreatments(layers, diagnostics);
             if (layers.Count > MaximumCompiledLayers)
@@ -1068,6 +1082,9 @@ namespace TextStudio
             topologyHash.Add((byte)painterOrder);
             renderStateHash.Add((byte)sourceFieldQuality);
             renderStateHash.Add((byte)worldShadowMode);
+            // Hashed only when set, so styles without the opt-out keep their fingerprints.
+            if (exactLayering)
+                renderStateHash.Add(true);
             parameterHash.Add(sourceFieldRequest.MinimumPixelsPerEm);
             parameterHash.Add(sourceFieldRequest.MinimumSafeDistanceEm);
             parameterHash.Add(sourceFieldRequest.RequiresMultiDistanceField);
@@ -1091,7 +1108,8 @@ namespace TextStudio
                 dependencyRevision,
                 sourceFieldRequest,
                 painterOrder,
-                worldShadowMode);
+                worldShadowMode,
+                exactLayering);
         }
 
         static List<TextStudio2DLayer> ExpandSurfaceTreatments(List<TextStudio2DLayer> layers, List<TextStudioStackDiagnostic> diagnostics)
@@ -1149,8 +1167,20 @@ namespace TextStudio
         }
 
         /// <summary>Computes a revision hash from a style, its inherited base styles, and their referenced paint dependencies.</summary>
-        public static ulong ComputeDependencyRevision(TextStudio2DStyleAsset style)
+        public static ulong ComputeDependencyRevision(TextStudio2DStyleAsset style) =>
+            ComputeDependencyRevision(style, style != null && Application.isPlaying ? Time.frameCount : -1);
+
+        // playerFrame is Time.frameCount in Play Mode, where the hub scheduler reads it once for all parked texts, and -1 in
+        // Edit Mode.
+        internal static ulong ComputeDependencyRevision(TextStudio2DStyleAsset style, int playerFrame)
         {
+            // Every settled text polls its style each frame and labels usually share one, so Play Mode keeps one result per
+            // style and frame. A revision change anywhere in the style chain recomputes it at once; a paint asset or texture
+            // edit reaches texts that already read this frame's result on the next frame. Edit Mode recomputes every call
+            // because editor ticks do not advance frames.
+            bool hasAsset = style != null;
+            int frame = hasAsset ? playerFrame : -1;
+            if (frame >= 0 && style.TryGetFrameDependencyRevision(frame, out ulong revision)) return revision;
             TextStudioDeterministicHash64 hash = default;
             TextStudio2DStyleAsset current = style;
             int depth = 0;
@@ -1171,16 +1201,20 @@ namespace TextStudio
             }
             if (current != null)
                 hash.Add(int.MinValue);
+            if (hasAsset) style.RecordFrameDependencyRevision(frame, hash.Value);
             return hash.Value;
         }
 
-        internal static ulong ComputeDependencyRevision(in TextStudio2DStyleSettings settings)
+        internal static ulong ComputeDependencyRevision(in TextStudio2DStyleSettings settings) =>
+            ComputeDependencyRevision(in settings, settings.BaseStyle != null && Application.isPlaying ? Time.frameCount : -1);
+
+        internal static ulong ComputeDependencyRevision(in TextStudio2DStyleSettings settings, int playerFrame)
         {
             TextStudioDeterministicHash64 hash = default;
             hash.Add(settings.Revision);
             settings.HashPaintDependencies(ref hash);
             if (settings.InheritanceMode != TextStudio2DStyleInheritanceMode.Replace)
-                hash.Add(ComputeDependencyRevision(settings.BaseStyle));
+                hash.Add(ComputeDependencyRevision(settings.BaseStyle, playerFrame));
             return hash.Value;
         }
 
@@ -1215,7 +1249,8 @@ namespace TextStudio
 
             settings = new TextStudio2DStyleSettings(
                 null, TextStudio2DStyleInheritanceMode.Append, authored.SourceFieldQuality,
-                authored.PainterOrder, authored.WorldShadowMode, layers.ToArray(), CollectExposures(in authored));
+                authored.PainterOrder, authored.WorldShadowMode, layers.ToArray(), CollectExposures(in authored),
+                exactLayering: authored.ExactLayering);
             return true;
         }
 
@@ -1228,7 +1263,7 @@ namespace TextStudio
                 if (diagnostic.Severity == TextStudioStackDiagnosticSeverity.Error) errors?.Add(diagnostic.Message);
             return new TextStudio2DStyleSettings(null, TextStudio2DStyleInheritanceMode.Replace,
                 settings.SourceFieldQuality, settings.PainterOrder, settings.WorldShadowMode,
-                layers.ToArray(), CollectExposures(in settings));
+                layers.ToArray(), CollectExposures(in settings), exactLayering: settings.ExactLayering);
         }
 
         static TextStudioAppearanceExposure[] CollectExposures(in TextStudio2DStyleSettings settings)

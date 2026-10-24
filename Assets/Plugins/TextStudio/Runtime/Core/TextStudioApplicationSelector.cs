@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Identifies a selector condition or composition node, including text ranges, tags, source colors, semantic state, coverage, properties, and Boolean or scoped combinations.</summary>
     public enum TextStudioSelectorNodeKind : byte
     {
         All = 0,
@@ -20,6 +21,7 @@ namespace TextStudio
         AppearanceTag = 12
     }
 
+    /// <summary>Selects the equality or ordered comparison used by a numeric or render-property selector condition.</summary>
     public enum TextStudioSelectorComparison : byte
     {
         Equal = 0,
@@ -30,6 +32,7 @@ namespace TextStudio
         GreaterOrEqual = 5
     }
 
+    /// <summary>Flags the visibility, reveal phase, and word or line boundary states that a selector can match on text units.</summary>
     [Flags]
     public enum TextStudioSelectorSemanticState : ushort
     {

@@ -50,6 +50,26 @@ Shader "Text Studio/2D Hero Layer"
         [HideInInspector] _TextStudioWritingSourceEnabled ("Text Studio Writing Source Enabled", Float) = 0
         [HideInInspector] _TextStudioPayloadFromTangent ("Text Studio Payload From Tangent", Float) = 0
         [HideInInspector] _TextStudioSourceBounds ("Text Studio Source Bounds", Vector) = (0,0,0,0)
+        // Record and gradient stops of a uniform row (TextStudio2DHeroUniformRow). Vectors, not colors: packed colors are already linear.
+        [HideInInspector] _TextStudioHeroRowLayer ("Text Studio Hero Row Layer", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowExecution ("Text Studio Hero Row Execution", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowPaint ("Text Studio Hero Row Paint", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowColor ("Text Studio Hero Row Color", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowPaintTransform0 ("Text Studio Hero Row Paint Transform 0", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowPaintTransform1 ("Text Studio Hero Row Paint Transform 1", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowParameters0 ("Text Studio Hero Row Parameters 0", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowParameters1 ("Text Studio Hero Row Parameters 1", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowParameters2 ("Text Studio Hero Row Parameters 2", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopPositions0 ("Text Studio Hero Row Stop Positions 0", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopPositions1 ("Text Studio Hero Row Stop Positions 1", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor0 ("Text Studio Hero Row Stop Color 0", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor1 ("Text Studio Hero Row Stop Color 1", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor2 ("Text Studio Hero Row Stop Color 2", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor3 ("Text Studio Hero Row Stop Color 3", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor4 ("Text Studio Hero Row Stop Color 4", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor5 ("Text Studio Hero Row Stop Color 5", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor6 ("Text Studio Hero Row Stop Color 6", Vector) = (0,0,0,0)
+        [HideInInspector] _TextStudioHeroRowStopColor7 ("Text Studio Hero Row Stop Color 7", Vector) = (0,0,0,0)
     }
 
     SubShader
@@ -61,6 +81,15 @@ Shader "Text Studio/2D Hero Layer"
         Lighting Off
         Fog { Mode Off }
         Blend One OneMinusSrcAlpha
+        // A masked row draws its full-size quads where its row mask pre-pass wrote 1 (TextStudio2DHeroCompositor.RowMasks.cs).
+        // The global comparison is 0 (disabled) for every other draw; it is a global so the shared row materials stay unchanged.
+        Stencil
+        {
+            Ref 1
+            ReadMask 1
+            WriteMask 0
+            Comp [_TextStudio2DHeroRowMask]
+        }
 
         Pass
         {
@@ -73,8 +102,28 @@ Shader "Text Studio/2D Hero Layer"
             #pragma fragment PixShader
             #pragma dynamic_branch OUTLINE_ON
             #pragma dynamic_branch UNDERLAY_ON UNDERLAY_INNER
+            // Each row compiles only what it draws: its heavy family, or solid paint for a light row with solid paint, and
+            // material-tier effects only when the text uses one. See TextStudio2DHeroMaterials.ResolveRowMaterial.
+            // TEXT_STUDIO_UNIFORM_ROW draws a fill, stroke, shadow or glow row from its record in material constants
+            // instead of the style table (TextStudio2DHeroMaterials.SupportsUniformRow).
+            // TEXT_STUDIO_PLAIN_* compile a material, graphic or animated row for the plain draw (Operation source mode, full source
+            // range, no glyph filter, no coverage replay, no colour source): those per-draw values become the constants below.
+            #pragma multi_compile_local __ TEXT_STUDIO_SOLID_PAINT TEXT_STUDIO_FAMILY_MATERIAL TEXT_STUDIO_FAMILY_GRAPHIC TEXT_STUDIO_FAMILY_ANIMATED TEXT_STUDIO_FAMILY_DEPTH TEXT_STUDIO_UNIFORM_ROW TEXT_STUDIO_PLAIN_MATERIAL TEXT_STUDIO_PLAIN_GRAPHIC TEXT_STUDIO_PLAIN_ANIMATED
+            #pragma multi_compile_local __ TEXT_STUDIO_MATERIAL_EFFECTS
+            #if defined(TEXT_STUDIO_PLAIN_MATERIAL)
+            #define TEXT_STUDIO_FAMILY_MATERIAL 1
+            #define TEXT_STUDIO_HERO_PLAIN_ROW 1
+            #elif defined(TEXT_STUDIO_PLAIN_GRAPHIC)
+            #define TEXT_STUDIO_FAMILY_GRAPHIC 1
+            #define TEXT_STUDIO_HERO_PLAIN_ROW 1
+            #elif defined(TEXT_STUDIO_PLAIN_ANIMATED)
+            #define TEXT_STUDIO_FAMILY_ANIMATED 1
+            #define TEXT_STUDIO_HERO_PLAIN_ROW 1
+            #endif
             #define TEXT_STUDIO_STYLE_TABLE 1
             #define TEXT_STUDIO_SINGLE_STYLE_OPERATION 1
+            #define TEXT_STUDIO_FAMILY_VARIANTS 1
+            #define TEXT_STUDIO_MATERIAL_EFFECT_VARIANTS 1
             #define TEXT_STUDIO_FULL_PRECISION_PAYLOAD 1
             #define TEXT_STUDIO_SEPARATE_SELECTION_PAYLOAD 1
             #define UNITY_UI_CLIP_RECT 0
@@ -82,9 +131,15 @@ Shader "Text Studio/2D Hero Layer"
             int _TextStudio2DHeroOperationIndex;
             int _TextStudio2DHeroSelectorIndex;
             int _TextStudio2DHeroStyleSlot;
+            #ifdef TEXT_STUDIO_HERO_PLAIN_ROW
+            static const int _TextStudio2DHeroSourceMode = 0;
+            static const int _TextStudio2DHeroGlyphFilter = -1;
+            static const float4 _TextStudio2DHeroSourceRange = float4(0, 2147483648.0, 0, 0);
+            #else
             int _TextStudio2DHeroSourceMode;
             int _TextStudio2DHeroGlyphFilter;
             float4 _TextStudio2DHeroSourceRange;
+            #endif
             float4 _TextStudio2DHeroScopeSelectors0;
             float4 _TextStudio2DHeroScopeSelectors1;
             #include "TextStudio2DProductionSDFCommon.cginc"

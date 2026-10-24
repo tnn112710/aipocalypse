@@ -1,5 +1,6 @@
 namespace TextStudio
 {
+    /// <summary>Identifies whether a resolved behavior setting came from the component or its assigned behavior profile.</summary>
     public enum TextStudioBehaviorValueSource
     {
         Component,

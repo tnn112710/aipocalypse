@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿// Last Change: 10/14/2026 2:45pm
+using UnityEngine;
 using UnityEngine.Events;
 using MalbersAnimations.Scriptables;
 using MalbersAnimations.Controller;
@@ -1023,7 +1024,8 @@ namespace MalbersAnimations.Weapons
                     EditorGUILayout.PropertyField(AttackDirection);
 
                     EditorGUILayout.PropertyField(dontHitOwner, new GUIContent("Don't hit Owner"));
-                    if (M.dontHitOwner.Value) EditorGUILayout.PropertyField(owner);
+                    EditorGUILayout.PropertyField(dontHitAllies, new GUIContent("Don't hit Allies"));
+                    if (M.dontHitOwner.Value || M.dontHitAllies.Value) EditorGUILayout.PropertyField(owner);
                 }
             }
 

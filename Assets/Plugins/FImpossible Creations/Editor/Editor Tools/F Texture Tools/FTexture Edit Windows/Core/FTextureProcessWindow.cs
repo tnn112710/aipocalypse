@@ -7,6 +7,9 @@ using FIMSpace.FEditor;
 
 namespace FIMSpace.FTextureTools
 {
+#if UNITY_6000_6_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public abstract class FTextureProcessWindow : EditorWindow
     {
         protected enum FEPreview { m_1x1, m_2x2, m_4x4, m_8x8 }

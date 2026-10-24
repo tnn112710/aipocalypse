@@ -28,8 +28,8 @@ namespace TextStudio
             }
         }
 
-        public void PauseAnimation() { _ = IsAnimationPaused; _animationPaused = true; }
-        public void ResumeAnimation() { _ = IsAnimationPaused; _animationPaused = false; }
+        public void PauseAnimation() { _ = IsAnimationPaused; _animationPaused = true; NotifyHost(); }
+        public void ResumeAnimation() { _ = IsAnimationPaused; _animationPaused = false; NotifyHost(); }
         internal float ResolvePresentationDeltaTime(float deltaTime) => IsAnimationPaused ? 0f : Mathf.Max(0f, deltaTime);
     }
 }

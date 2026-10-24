@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Flags the logical mappings, glyph metrics, bounds, orientation, atlas, distance-field, and source-color data available in a backend visual snapshot.</summary>
     [Flags]
     public enum TextStudioVisualCapabilities : uint
     {
@@ -65,6 +66,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Identifies a visual snapshot entry as an ordinary font glyph, a color font glyph, or an inline sprite.</summary>
     public enum TextStudioVisualSourceKind : byte { FontGlyph, ColorGlyph, InlineSprite }
 
     /// <summary>Renderer-neutral glyph source and its semantic text-unit owner.</summary>

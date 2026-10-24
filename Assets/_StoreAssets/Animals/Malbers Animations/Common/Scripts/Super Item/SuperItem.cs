@@ -1,4 +1,4 @@
-// Last Change: 9/30/2026 11:37am
+// Last Change: 10/6/2026 10:45am
 using MalbersAnimations.Events;
 using MalbersAnimations.Reactions;
 using MalbersAnimations.Scriptables;
@@ -1605,7 +1605,11 @@ namespace MalbersAnimations.Items
 #if UNITY_EDITOR
             var selected = InSelectionHierarchy();
 
-            if (selected) DrawConditionsGizmos();
+            if (selected)
+            {
+                DrawConditionsGizmos();
+                DrawIKSetGizmos();
+            }
 #endif
 
             foreach (var set in actionSets)
@@ -1627,6 +1631,33 @@ namespace MalbersAnimations.Items
         }
 
 #if UNITY_EDITOR
+        /// <summary> Gizmos of the Active Set's IK Profile (Weight Processors + selected IK Processor), same as the IK Manager draws for its own Sets </summary>
+        private void DrawIKSetGizmos()
+        {
+            //The IK Processors cache their bones on Start, which only runs once the Item has an owner
+            if (!Application.isPlaying || User == null || User.IKManager == null || User.Anim == null) return;
+
+            var profile = ActiveActionSet?.CurrentIKProfile;
+            if (profile == null) return;
+
+            var set = profile.set;
+            if (set == null || !set.active || !set.Gizmos) return;
+
+            if (set.weightProcessors != null)
+                foreach (var weightP in set.weightProcessors)
+                    weightP?.OnDrawGizmos(set, User.Anim);
+
+            if (set.Processors == null) return;
+
+            var index = set.SelectedIKProcessor;
+
+            if (index >= 0 && index < set.Processors.Count)
+            {
+                var link = set.Processors[index];
+                if (link != null && link.Active) link.OnDrawGizmos(User.IKManager, set, User.Anim, User.IKManager.Weight);
+            }
+        }
+
         /// <summary>
         /// Conditions gizmos, drawn whenever the Item is ANYWHERE in the selection: the root itself, a child of
         /// it (the mesh, the aim origin — what you actually click in the Scene view), or the character holding it.
@@ -1668,10 +1699,7 @@ namespace MalbersAnimations.Items
 
 
         [SerializeField, HideInInspector] private int Editor_Tabs1;
-#pragma warning disable 0414
         [SerializeField, HideInInspector] private bool ShowWarnings = true; //MWC — show/hide the Warnings help boxes in the inspector
-#pragma warning restore 414
-
         [SerializeField, HideInInspector] private int Editor_Tabs2;
 
         //MWC — Action tabs (Processors/Conditions/Reactions/IK/[Set] Auto) are stored per ITEM, not per Action.

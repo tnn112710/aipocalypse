@@ -6,7 +6,9 @@ using static FIMSpace.FEditor.FTextureEditorToolsMethods;
 
 namespace FIMSpace.FEditor
 {
-
+#if UNITY_6000_6_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class FChannelledGenerator : EditorWindow
     {
 
@@ -28,7 +30,9 @@ namespace FIMSpace.FEditor
         public enum EChannelMode { BlankColor, StealTextureChannel, None }
 
 
-
+#if UNITY_6000_6_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         [System.Serializable]
         public class ChannelSetup
         {

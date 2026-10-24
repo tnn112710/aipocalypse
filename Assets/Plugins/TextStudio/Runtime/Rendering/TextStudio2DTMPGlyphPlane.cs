@@ -37,7 +37,7 @@ namespace TextStudio
             return TryCreate(text, visualIndex, TextStudioTMPFontMetrics.AtlasToEm(character.fontAsset, character.textElement?.glyph), out plane);
         }
 
-        static bool TryCreate(TMP_Text text, int visualIndex, Vector4 map, out TextStudio2DTMPGlyphPlane plane,
+        internal static bool TryCreate(TMP_Text text, int visualIndex, Vector4 map, out TextStudio2DTMPGlyphPlane plane,
             TextStudioTMPFrameApplier frameApplier = null, TextStudioPreparedFieldDemand sourceDemand = null)
         {
             plane = default;

@@ -180,6 +180,7 @@ namespace TextStudio
         static readonly int s_operationsData = Shader.PropertyToID("_TextStudio2DStyleOperationsData");
         static readonly int s_gradientStopsData = Shader.PropertyToID("_TextStudio2DGradientStopsData");
         static readonly int s_textUniformsData = Shader.PropertyToID("_TextStudio2DTextUniformsData");
+        static readonly int s_lastRecordsProperty = Shader.PropertyToID("_TextStudio2DStyleTableLastRecords");
         static readonly int s_visualModifiersEnabledProperty =
             Shader.PropertyToID("_TextStudio2DVisualModifiersEnabled");
         static readonly int s_enabledProperty =
@@ -426,6 +427,8 @@ namespace TextStudio
             _operationStorage.Bind(s_operationsProperty, s_operationsData);
             _stopStorage.Bind(s_gradientStopsProperty, s_gradientStopsData);
             _uniformStorage.Bind(s_textUniformsProperty, s_textUniformsData);
+            Shader.SetGlobalVector(s_lastRecordsProperty, new Vector4(_headerStorage.LastRecord, _operationStorage.LastRecord,
+                _stopStorage.LastRecord, _uniformStorage.LastRecord));
             Shader.SetGlobalFloat(s_visualModifiersEnabledProperty, 1f);
             Shader.SetGlobalFloat(s_enabledProperty, 1f);
             _lastBoundFrame = frame;

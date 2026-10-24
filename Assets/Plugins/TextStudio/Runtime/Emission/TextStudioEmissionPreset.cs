@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Chooses whether matching temporary-text requests remain independent, sum their numeric values, or replace the active value within the merge window.</summary>
     public enum TextStudioEmissionMergeMode
     {
         None,
@@ -96,35 +98,30 @@ namespace TextStudio
 
         public bool HasValidNumericTemplate
         {
-            get => IsValidNumericTemplate(NumericTemplate);
+            get => FindValueToken(NumericTemplate) >= 0;
         }
 
         /// <summary>Formats a number and substitutes it into the preset's single <c>{value}</c> token.</summary>
         public string FormatValue(double value)
         {
-            string formatted = _numberFormat.Format(value);
             string template = NumericTemplate;
-            if (string.Equals(
-                    template,
-                    ValueToken,
-                    System.StringComparison.Ordinal))
-            {
-                return formatted;
-            }
-            if (!IsValidNumericTemplate(template))
-                return formatted;
-            return template.Replace(ValueToken, formatted);
+            if (template.Length == ValueToken.Length)
+                return _numberFormat.Format(value);
+            int tokenIndex = FindValueToken(template);
+            if (tokenIndex < 0)
+                return _numberFormat.Format(value);
+            return _numberFormat.Format(value, null,
+                template.AsSpan(0, tokenIndex),
+                template.AsSpan(tokenIndex + ValueToken.Length));
         }
 
-        static bool IsValidNumericTemplate(string template)
+        static int FindValueToken(string template)
         {
-            int first = template.IndexOf(
-                ValueToken,
-                System.StringComparison.Ordinal);
+            int first = template.IndexOf(ValueToken, StringComparison.Ordinal);
             return first >= 0 &&
-                   first == template.LastIndexOf(
-                       ValueToken,
-                       System.StringComparison.Ordinal);
+                   template.IndexOf(ValueToken, first + ValueToken.Length, StringComparison.Ordinal) < 0
+                ? first
+                : -1;
         }
 
         void OnValidate()

@@ -45,6 +45,7 @@ namespace TextStudio
             {
                 _occurrenceState = _defaultOccurrenceState;
                 ReleaseHistoryTargets();
+                ReleaseStaticRows();
             }
             _appearancePlan = plan;
             bool boundsChanged = !Mathf.Approximately(_projectedPixelsPerUnit, projectedPixelsPerUnit);
@@ -198,7 +199,7 @@ namespace TextStudio
             if (_activeAppearanceStates.Count == 0) return false;
             _scopeDepth = 0;
             _compositionFailed = false;
-            _lastLayerDrawCount = _lastCompositePassCount = _lastEffectPassCount = _lastPublishPassCount = 0;
+            _lastLayerDrawCount = _lastUniformRowDrawCount = _lastRowMaskDrawCount = _lastPlainRowDrawCount = _lastCachedRowCount = _lastSplitRowDrawCount = _lastCompositePassCount = _lastEffectPassCount = _lastPublishPassCount = 0;
             int pairs = 0, spatial = 0, coverage = 0;
             bool generatedAlpha = false, hasBounds = false, postProcess = _viewLens.IsActive;
             bool anyShadow = false, anyWithoutShadow = false;
@@ -474,6 +475,7 @@ namespace TextStudio
                 (long)state.ColorBindingIndices.EnsureCapacity(0) * 5 * sizeof(int) + TextStudioAppearanceManagedMemory.ListBytes(state.ColorSourceIndices) +
                 TextStudioAppearanceManagedMemory.ArrayBytes(state.SourceAdjustmentSelections) + TextStudioAppearanceManagedMemory.ArrayBytes(state.UnitSourceRanges) +
                 TextStudioAppearanceManagedMemory.ArrayBytes(state.OperationHasSelection) + TextStudioAppearanceManagedMemory.ArrayBytes(state.WholeCompositeScope) +
+                TextStudioAppearanceManagedMemory.ArrayBytes(state.RowMaskClass) + TextStudioAppearanceManagedMemory.ArrayBytes(state.RowMaskRepresentative) +
                 TextStudioAppearanceManagedMemory.ArrayBytes(state.HistoryLeases) + TextStudioAppearanceManagedMemory.ArrayBytes(state.HistoryCoverageLeases) +
                 (long)(state.Batches.Capacity + state.GeneratedContributionRuns.Length + state.HistoryTextures.Length + state.HistoryCoverageTextures.Length) * IntPtr.Size;
             foreach (LayerBatch batch in state.Batches) bytes += batch.ManagedPayloadBytes;
@@ -494,6 +496,11 @@ namespace TextStudio
             internal TextStudio2DPainterScopeBinding PainterScopes = new TextStudio2DPainterScopeBinding();
             internal bool[] SeenDrawingUnits = Array.Empty<bool>();
             internal bool[] OperationHasSelection = new bool[TextStudio2DHeroProgram.MaximumOperations];
+            // Row mask class (batch submesh) of every operation and the operation whose support defines each class.
+            internal int[] RowMaskClass = new int[TextStudio2DHeroProgram.MaximumOperations];
+            internal int[] RowMaskRepresentative = new int[MaximumRowMaskClasses];
+            internal int RowMaskClassCount = 1;
+            internal int RowMaskGlyphCount = 0;
             internal bool[] WholeCompositeScope = new bool[TextStudio2DHeroProgram.MaximumOperations];
             internal List<GeneratedContributionRun>[] GeneratedContributionRuns = new List<GeneratedContributionRun>[TextStudio2DHeroProgram.MaximumOperations];
             internal ulong[] SourceAdjustmentSelections = Array.Empty<ulong>();
@@ -508,6 +515,8 @@ namespace TextStudio
             internal int GeometryStyleSlot = 0;
             internal TextStudioVisualVersion GeometryVisualVersion = default;
             internal int GeometryGlyphCount = -1;
+            internal TextStudio2DExternalGlyphSource GeometryExternalSource;
+            internal int GeometryExternalRevision;
             internal ulong GeometryPrecisionFingerprint = 0;
             internal Rect CachedGeometryBounds = default;
             internal bool HasCachedGeometry = false;
@@ -521,6 +530,8 @@ namespace TextStudio
             internal int HistoryCoverageCount = 0;
             internal int PendingHistoryOperation = -1;
             internal bool HistoryCapturePending = false;
+            // The echo layer already filled this frame's history slot right after its trail pass read the ring.
+            internal bool HistoryLayerCaptured = false;
             internal float LastRenderTime = 0;
             internal bool HasHistoryTime = false;
             internal int BindingRevision = -1;

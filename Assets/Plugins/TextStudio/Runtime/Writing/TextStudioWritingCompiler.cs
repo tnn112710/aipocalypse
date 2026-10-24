@@ -274,6 +274,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Identifies whether Writing resolved to a prepared phrase path, glyph paths, glyph coverage, ordinary Typewriter behavior, or no source.</summary>
     public enum TextStudioWritingSourceKind : byte
     {
         None = 0,

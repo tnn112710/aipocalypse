@@ -5,6 +5,7 @@ using UnityEngine.Pool;
 
 namespace TextStudio
 {
+    /// <summary>Chooses how successive audio cues select clips: in sequence, randomly, or randomly without immediately repeating a clip.</summary>
     public enum TextStudioAudioPlayerClipSequenceMode
     {
         Sequence,
@@ -12,18 +13,21 @@ namespace TextStudio
         RandomNoRepeat
     }
 
+    /// <summary>Chooses whether a new audio cue overlaps existing playback or interrupts the previous cue.</summary>
     public enum TextStudioAudioPlayerPlaybackMode
     {
         Overlap,
         InterruptPrevious
     }
 
+    /// <summary>Chooses audio-cue settings stored inline on the player or supplied by a reusable audio set.</summary>
     public enum TextStudioAudioPlayerSettingsSource
     {
         Inline,
         AudioSet
     }
 
+    /// <summary>Chooses whether audio cues are driven by Typewriter events or Reaction dispatch.</summary>
     public enum TextStudioAudioPlayerCueTrigger
     {
         TypewriterEvents,

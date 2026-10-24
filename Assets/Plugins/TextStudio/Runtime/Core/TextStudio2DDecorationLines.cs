@@ -3,10 +3,15 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Selects a solid, double, dotted, dashed, or wavy pattern for text decoration lines.</summary>
     public enum TextStudio2DLinePattern : byte { Solid, Double, Dotted, Dashed, Wavy }
+    /// <summary>Chooses authored decoration-line measurements, automatic adjusted font metrics, or the font's own metrics.</summary>
     public enum TextStudio2DMetricMode : byte { Custom, Auto, FromFont }
+    /// <summary>Chooses whether a decoration-line pattern restarts at each selector match or at each text line.</summary>
     public enum TextStudio2DLinePhaseRestart : byte { Match, Line }
+    /// <summary>Selects the butt, round, or square shape used at the ends of a decoration-line segment.</summary>
     public enum TextStudio2DLineCap : byte { Butt, Round, Square }
+    /// <summary>Chooses whether decoration lines avoid glyph ink, using an automatic outline-or-metrics fallback or precise prepared appearance data.</summary>
     public enum TextStudio2DSkipInk : byte { Off, Auto, Precise }
 
     /// <summary>Settings for decoration-line patterns, font metrics, phase, caps, and clearance around glyph ink.</summary>

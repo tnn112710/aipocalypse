@@ -251,10 +251,16 @@ namespace TextStudio
             return ResolveEffectUnitScale(_tmpText, in character);
         }
 
-        /// <summary>Starts the layout fingerprint. RunLayout and <see cref="ComputeLayoutFingerprint"/> share these steps, because HandleTMPTextChanged compares their results.</summary>
-        static int BeginLayoutFingerprint(TMP_Text tmpText, int characterCount)
+        /// <summary>
+        /// Starts the character chain of the layout fingerprint, which <see cref="FinishLayoutFingerprint"/> completes. RunLayout and
+        /// <see cref="ComputeLayoutFingerprint"/> share these steps, because HandleTMPTextChanged compares their results. The text
+        /// and its character count enter last, so an append layout resumes the chain at the line it keeps.
+        /// </summary>
+        const int LayoutFingerprintSeed = 17;
+
+        static int FinishLayoutFingerprint(TMP_Text tmpText, int characterCount, int characterChain)
         {
-            int hash = 17;
+            int hash = characterChain;
             string text = tmpText.text ?? string.Empty;
             hash = CombineHash(hash, text.GetHashCode());
             hash = CombineHash(hash, tmpText.font != null ? tmpText.font.GetStableId() : 0);
@@ -309,22 +315,21 @@ namespace TextStudio
             return hash;
         }
 
-        static VisualVersionHash BeginGeometryVersion(TMP_TextInfo textInfo, int characterCount)
+        // The geometry version chains every character's quad from VisualVersionHash.Create, then the mesh sizes; like the layout
+        // fingerprint, the counts enter last so an append layout resumes the chain at the line it keeps.
+        static void FinishGeometryVersion(ref VisualVersionHash geometry, TMP_TextInfo textInfo, int characterCount)
         {
-            VisualVersionHash geometry = VisualVersionHash.Create();
             geometry.Add(characterCount);
-            if (textInfo != null && textInfo.meshInfo != null)
+            if (textInfo == null || textInfo.meshInfo == null)
+                return;
+            geometry.Add(textInfo.meshInfo.Length);
+            for (int i = 0; i < textInfo.meshInfo.Length; i++)
             {
-                geometry.Add(textInfo.meshInfo.Length);
-                for (int i = 0; i < textInfo.meshInfo.Length; i++)
-                {
-                    ref readonly TMP_MeshInfo meshInfo = ref textInfo.meshInfo[i];
-                    Vector3[] vertices = meshInfo.vertices;
-                    geometry.Add(meshInfo.vertexCount);
-                    geometry.Add(vertices?.Length ?? 0);
-                }
+                ref readonly TMP_MeshInfo meshInfo = ref textInfo.meshInfo[i];
+                Vector3[] vertices = meshInfo.vertices;
+                geometry.Add(meshInfo.vertexCount);
+                geometry.Add(vertices?.Length ?? 0);
             }
-            return geometry;
         }
 
         static void AddGeometryVersion(ref VisualVersionHash geometry, TMP_TextInfo textInfo, in TMP_CharacterInfo character)

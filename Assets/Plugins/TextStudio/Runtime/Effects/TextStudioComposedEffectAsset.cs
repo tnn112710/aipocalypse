@@ -5,12 +5,14 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Selects the 2D or 3D authoring controls used to configure a Composed Effect's channel values.</summary>
     public enum TextStudioCompositionAuthoringSpace
     {
         TwoD,
         ThreeD
     }
 
+    /// <summary>Identifies a Composed Effect layer as a channel operation, a referenced effect, or a Writing treatment.</summary>
     public enum TextStudioCompositionLayerKind
     {
         Channel,
@@ -18,6 +20,7 @@ namespace TextStudio
         Writing
     }
 
+    /// <summary>Selects the glyph transform, color, opacity, UV, pivot, or corner-deformation channel driven by a Composed Effect layer.</summary>
     public enum TextStudioCompositionChannel
     {
         Position,
@@ -31,6 +34,7 @@ namespace TextStudio
         CornerDeformation
     }
 
+    /// <summary>Chooses whether a Composed Effect color layer replaces the glyph color or multiplies its existing color.</summary>
     public enum TextStudioCompositionColorMode
     {
         Replace,

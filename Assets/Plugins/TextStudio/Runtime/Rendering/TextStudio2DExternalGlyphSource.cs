@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace TextStudio
@@ -26,6 +27,10 @@ namespace TextStudio
         internal const int SingleChannelBank = 0;
         internal const int MultiChannelBank = 1;
         const int BankCount = 2;
+        // Each bank has one material per shader tier (TextStudio2DShaderTier: Full, Basic and the isolated families), each with
+        // and without the solid-paint specialization (TextStudio2DShaderOptions.SolidPaint).
+        const int FamilySlots = 6;
+        const int SlotCount = BankCount * FamilySlots * 2;
 
         static readonly int s_preparedFields = Shader.PropertyToID("_TextStudioPreparedFields");
         static readonly int s_glyphTable = Shader.PropertyToID("_TextStudioExternalGlyphTable");
@@ -38,10 +43,12 @@ namespace TextStudio
 
         // Sources that bind the same output kind, bank and textures share one field material. UniText binds one global
         // atlas and glyph table to every text, and Canvas batching needs the same material instance: a material per
-        // source drew 200 owned UniText labels in 200 batches.
+        // source drew 200 owned UniText labels in 200 batches. Uniform field materials also share by program rows.
         static readonly Dictionary<MaterialKey, SharedMaterial> s_sharedMaterials = new Dictionary<MaterialKey, SharedMaterial>();
+        static readonly Dictionary<UniformMaterialKey, SharedMaterial> s_sharedUniformMaterials =
+            new Dictionary<UniformMaterialKey, SharedMaterial>();
 
-        internal static int SharedMaterialCount => s_sharedMaterials.Count;
+        internal static int SharedMaterialCount => s_sharedMaterials.Count + s_sharedUniformMaterials.Count;
 
 #if UNITY_6000_7_OR_NEWER
         [UnityEngine.OnExitingPlayMode]
@@ -51,6 +58,9 @@ namespace TextStudio
             foreach (SharedMaterial shared in s_sharedMaterials.Values)
                 Destroy(shared.Material);
             s_sharedMaterials.Clear();
+            foreach (SharedMaterial shared in s_sharedUniformMaterials.Values)
+                Destroy(shared.Material);
+            s_sharedUniformMaterials.Clear();
             s_fieldShaderWarningLogged = false;
             s_canvasShaderWarningLogged = false;
         }
@@ -84,6 +94,29 @@ namespace TextStudio
                     int table = ReferenceEquals(_table, null) ? 0 : RuntimeHelpers.GetHashCode(_table);
                     return ((atlas * 397 ^ table) * 397 ^ _bank) * 2 + (_canvas ? 1 : 0);
                 }
+            }
+        }
+
+        // A uniform field material draws the single-channel bank with the rows of one program. Kept apart from the
+        // field keys, which every source holds per slot, so those stay small.
+        readonly struct UniformMaterialKey : IEquatable<UniformMaterialKey>
+        {
+            readonly MaterialKey _textures;
+            readonly TextStudio2DUniformFieldProgram _program;
+
+            internal UniformMaterialKey(bool canvas, Texture atlas, Texture table, in TextStudio2DUniformFieldProgram program)
+            {
+                _textures = new MaterialKey(canvas, SingleChannelBank, atlas, table);
+                _program = program;
+            }
+
+            public bool Equals(UniformMaterialKey other) => _textures.Equals(other._textures) && _program.Equals(other._program);
+
+            public override bool Equals(object obj) => obj is UniformMaterialKey other && Equals(other);
+
+            public override int GetHashCode()
+            {
+                unchecked { return _textures.GetHashCode() * 397 ^ _program.GetHashCode(); }
             }
         }
 
@@ -128,10 +161,12 @@ namespace TextStudio
 
         Field[] _fields = Array.Empty<Field>();
         Quad[] _quads = Array.Empty<Quad>();
-        readonly Material[] _worldMaterials = new Material[BankCount];
-        readonly Material[] _canvasMaterials = new Material[BankCount];
-        readonly MaterialKey[] _worldKeys = new MaterialKey[BankCount];
-        readonly MaterialKey[] _canvasKeys = new MaterialKey[BankCount];
+        readonly Material[] _worldMaterials = new Material[SlotCount];
+        readonly Material[] _canvasMaterials = new Material[SlotCount];
+        readonly MaterialKey[] _worldKeys = new MaterialKey[SlotCount];
+        readonly MaterialKey[] _canvasKeys = new MaterialKey[SlotCount];
+        Material _uniformMaterial;
+        UniformMaterialKey _uniformKey;
         Texture _singleChannelAtlas, _multiChannelAtlas, _table;
         int _count;
         bool _fieldsChanged;
@@ -220,29 +255,34 @@ namespace TextStudio
             ReleaseMaterials();
         }
 
-        /// <summary>The owned field material of one bank, or null when the field shader is unavailable.</summary>
-        internal Material ResolveMaterial(int bank)
+        /// <summary>
+        /// The owned field material of one bank, or null when the field shader is unavailable. Each primitive uses the variant
+        /// of its program (<see cref="TextStudio2DPrimitivePrograms"/>): isolated operations their family, light runs Full or Basic.
+        /// </summary>
+        internal Material ResolveMaterial(int bank, TextStudio2DShaderTier tier = TextStudio2DShaderTier.Full, bool solidPaint = false)
         {
             bank = Mathf.Clamp(bank, 0, BankCount - 1);
+            int family = Mathf.Clamp((int)tier, 0, FamilySlots - 1);
+            int slot = bank + BankCount * (family + (solidPaint ? FamilySlots : 0));
             Material[] materials = IsCanvas ? _canvasMaterials : _worldMaterials;
             MaterialKey[] keys = IsCanvas ? _canvasKeys : _worldKeys;
-            if (materials[bank] != null) return materials[bank];
-            Release(materials, keys, bank);
-            MaterialKey key = new MaterialKey(IsCanvas, bank, bank == SingleChannelBank ? _singleChannelAtlas : _multiChannelAtlas, _table);
+            if (materials[slot] != null) return materials[slot];
+            Release(materials, keys, slot);
+            MaterialKey key = new MaterialKey(IsCanvas, slot, bank == SingleChannelBank ? _singleChannelAtlas : _multiChannelAtlas, _table);
             if (!s_sharedMaterials.TryGetValue(key, out SharedMaterial shared) || shared.Material == null)
             {
-                Material created = CreateMaterial(bank);
+                Material created = CreateMaterial(bank, tier, solidPaint);
                 if (created == null) return null;
                 shared = new SharedMaterial { Material = created };
                 s_sharedMaterials[key] = shared;
             }
             shared.Users++;
-            materials[bank] = shared.Material;
-            keys[bank] = key;
+            materials[slot] = shared.Material;
+            keys[slot] = key;
             return shared.Material;
         }
 
-        Material CreateMaterial(int bank)
+        Material CreateMaterial(int bank, TextStudio2DShaderTier tier, bool solidPaint)
         {
             string resource = IsCanvas ? TextStudio2DResourceKeys.FieldCanvasShader : TextStudio2DResourceKeys.FieldShader;
             Shader shader = IsCanvas
@@ -254,6 +294,79 @@ namespace TextStudio
                 name = "Text Studio External Glyph Field (" + (bank == SingleChannelBank ? "SDF" : "MSDF") + ")",
                 hideFlags = HideFlags.HideAndDontSave
             };
+            ConfigureFieldMetrics(material);
+            // External quads carry no material-effect payload (EmitExternal writes zero effect streams), so the lean program is exact.
+            TextStudio2DShaderTiers.Configure(material, tier,
+                solidPaint ? TextStudio2DShaderOptions.SolidPaint : TextStudio2DShaderOptions.None);
+            BindMaterial(material, bank);
+            return material;
+        }
+
+        /// <summary>
+        /// The uniform field material drawing this source's single-channel glyphs for <paramref name="program"/>, shared by
+        /// sources with the same output kind, textures and rows. Null for an invalid program or when the uniform shader or its
+        /// external-field variant is unavailable; those glyphs keep the field material of <see cref="ResolveMaterial"/>.
+        /// Multi-channel glyphs always keep it: the uniform program reads one distance.
+        /// </summary>
+        internal Material ResolveUniformMaterial(in TextStudio2DUniformFieldProgram program)
+        {
+            if (!program.IsValid)
+            {
+                ReleaseUniformMaterial();
+                return null;
+            }
+            UniformMaterialKey key = new UniformMaterialKey(IsCanvas, _singleChannelAtlas, _table, in program);
+            if (_uniformMaterial != null && _uniformKey.Equals(key)) return _uniformMaterial;
+            ReleaseUniformMaterial();
+            if (!s_sharedUniformMaterials.TryGetValue(key, out SharedMaterial shared) || shared.Material == null)
+            {
+                Material created = CreateUniformMaterial(in program);
+                if (created == null) return null;
+                shared = new SharedMaterial { Material = created };
+                s_sharedUniformMaterials[key] = shared;
+            }
+            shared.Users++;
+            _uniformMaterial = shared.Material;
+            _uniformKey = key;
+            return _uniformMaterial;
+        }
+
+        /// <summary>Releases this source's uniform field material, for example when its style stops selecting the program.</summary>
+        internal void ReleaseUniformMaterial()
+        {
+            Material material = _uniformMaterial;
+            if (ReferenceEquals(material, null)) return;
+            _uniformMaterial = null;
+            UniformMaterialKey key = _uniformKey;
+            _uniformKey = default;
+            if (!s_sharedUniformMaterials.TryGetValue(key, out SharedMaterial shared) || !ReferenceEquals(shared.Material, material))
+                return;
+            if (--shared.Users > 0) return;
+            s_sharedUniformMaterials.Remove(key);
+            Destroy(material);
+        }
+
+        Material CreateUniformMaterial(in TextStudio2DUniformFieldProgram program)
+        {
+            Shader shader = TextStudio2DShaderTiers.LoadUniformShader(IsCanvas);
+            if (shader == null) return null;
+            LocalKeyword external = shader.keywordSpace.FindKeyword(TextStudio2DShaderTiers.UniformExternalFieldKeyword);
+            if (!external.isValid) return null;
+            Material material = new Material(shader)
+            {
+                name = "Text Studio External Glyph Uniform Field (SDF)",
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            ConfigureFieldMetrics(material);
+            material.SetKeyword(external, true);
+            TextStudio2DShaderTiers.ConfigureUniformProgram(material, in program);
+            BindMaterial(material, SingleChannelBank);
+            return material;
+        }
+
+        // Em field metrics and source flags shared by the field and uniform materials of engine glyphs.
+        void ConfigureFieldMetrics(Material material)
+        {
             // One em spans P virtual pixels and the stored distance is (value - .5) em, so a gradient scale of P / 2
             // reproduces the engine's decode exactly.
             material.SetFloat("_TextureWidth", FieldPixelsPerEm);
@@ -267,17 +380,16 @@ namespace TextStudio
             material.DisableKeyword("OUTLINE_ON");
             material.DisableKeyword("UNDERLAY_ON");
             material.DisableKeyword("UNDERLAY_INNER");
-            BindMaterial(material, bank);
-            return material;
         }
 
         void ReleaseMaterials()
         {
-            for (int bank = 0; bank < BankCount; bank++)
+            for (int slot = 0; slot < SlotCount; slot++)
             {
-                Release(_worldMaterials, _worldKeys, bank);
-                Release(_canvasMaterials, _canvasKeys, bank);
+                Release(_worldMaterials, _worldKeys, slot);
+                Release(_canvasMaterials, _canvasKeys, slot);
             }
+            ReleaseUniformMaterial();
         }
 
         static void Release(Material[] materials, MaterialKey[] keys, int bank)
@@ -298,8 +410,12 @@ namespace TextStudio
         /// </summary>
         internal void ApplyLayerProperties(MaterialPropertyBlock properties, Material batchSource)
         {
-            int bank = ReferenceEquals(batchSource, _worldMaterials[MultiChannelBank]) || ReferenceEquals(batchSource, _canvasMaterials[MultiChannelBank])
-                ? MultiChannelBank : SingleChannelBank;
+            int bank = SingleChannelBank;
+            for (int slot = MultiChannelBank; slot < SlotCount; slot += BankCount)
+            {
+                if (ReferenceEquals(batchSource, _worldMaterials[slot]) || ReferenceEquals(batchSource, _canvasMaterials[slot]))
+                    bank = MultiChannelBank;
+            }
             Texture atlas = bank == SingleChannelBank ? _singleChannelAtlas : _multiChannelAtlas;
             if (atlas != null) properties.SetTexture(s_preparedFields, atlas);
             if (_table != null) properties.SetTexture(s_glyphTable, _table);

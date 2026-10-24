@@ -63,6 +63,12 @@ namespace TextStudio
         internal TextStudio2DHeroProgramStatus HeroProgramStatus { get; private set; }
         /// <summary>The executed route and the condition that selected it.</summary>
         internal TextStudio2DRouteDecision Route { get; private set; }
+        /// <summary>
+        /// The rows the text's TextMeshPro material draws on the TextMeshPro route (<see cref="TextStudio2DTextMeshProRoute"/>);
+        /// invalid on every other route. The route holds no style-table program, payload or ordered primitives.
+        /// </summary>
+        internal TextStudio2DTextMeshProStyle TextMeshProStyle { get; private set; }
+        internal bool UsesTextMeshProRoute => TextMeshProStyle.IsValid;
         internal string SourceQualityHint { get; private set; } = string.Empty;
         internal string CompatibilityWarning => CombineWarnings(
             _programCompatibilityWarning,
@@ -81,11 +87,16 @@ namespace TextStudio
         bool _releasedWithoutStyle;
         CompiledTextStudio2DStyle _releasedStyle;
 
+        /// <param name="textMeshProStyle">
+        /// The style's TextMeshPro rows when the caller found the text, its context and every source material able to draw them
+        /// (<see cref="TextStudio2DTextMeshProRoute"/>); the route then needs no route planning and yields only to forced Hero output.
+        /// </param>
         internal bool Update(
             CompiledTextStudio2DStyle style,
             bool forceHero = false,
             TMP_Text sourceText = null,
-            TextStudio2DRouteReason compositionReason = TextStudio2DRouteReason.LensMagnifier)
+            TextStudio2DRouteReason compositionReason = TextStudio2DRouteReason.LensMagnifier,
+            in TextStudio2DTextMeshProStyle textMeshProStyle = default)
         {
             if (!forceHero && _releasedWithoutStyle && ReferenceEquals(style, _releasedStyle))
                 return false;
@@ -96,6 +107,8 @@ namespace TextStudio
             bool previouslyRequiredFieldMaterial = RequiresFieldMaterial;
             TextStudio2DFieldPaddingTier previousPaddingTier = PaddingTier;
             bool previouslyOrdered = RequiresOrderedPrimitives;
+            TextStudio2DTextMeshProStyle previousTextMeshProStyle = TextMeshProStyle;
+            TextMeshProStyle = default;
             CompiledTextStudio2DStyle heroStyle = forceHero
                 ? TextStudioLensMagnifierHeroStyle.Resolve(style)
                 : style;
@@ -106,7 +119,11 @@ namespace TextStudio
                 ClearSourceReadiness();
                 ReleaseNativeTextures();
             }
+            if (!forceHero && textMeshProStyle.IsValid)
+                return SelectTextMeshProRoute(in textMeshProStyle, in previousTextMeshProStyle, wasActive, wasHero,
+                    previouslyRequiredFieldMaterial, previousPaddingTier, previouslyOrdered);
             Route = TextStudio2DRoutePlanner.Resolve(heroStyle, sourceText, forceHero ? compositionReason : TextStudio2DRouteReason.None);
+            bool leftTextMeshProRoute = previousTextMeshProStyle.IsValid;
             bool requiresHero = Route.IsComposited;
             RequiresOrderedPrimitives = Route.OwnsPrimitives;
             TextStudio2DCameraUniforms.Synchronize(ref _cameraUniformLease, requiresHero || style?.RequiresCameraPixels == true || style?.RequiresContourGeometry == true ||
@@ -153,7 +170,8 @@ namespace TextStudio
                        wasHero != HasHeroProgram ||
                        previouslyRequiredFieldMaterial ||
                        previousPaddingTier != PaddingTier ||
-                       previouslyOrdered;
+                       previouslyOrdered ||
+                       leftTextMeshProRoute;
             }
 
             _heroProgram = null;
@@ -167,7 +185,7 @@ namespace TextStudio
                 RequiresFieldMaterial = false;
                 Status = TextStudio2DFieldProgramStatus.GpuUnsupported;
                 _programCompatibilityWarning = BuildWarning(Status);
-                return wasHero || wasActive || previousPaddingTier != PaddingTier;
+                return wasHero || wasActive || previousPaddingTier != PaddingTier || leftTextMeshProRoute;
             }
 
             bool updated = validation == TextStudio2DFieldProgramStatus.Ready
@@ -190,7 +208,30 @@ namespace TextStudio
                    previouslyRequiredFieldMaterial != RequiresFieldMaterial ||
                    previousPaddingTier != PaddingTier ||
                    previouslyOrdered != RequiresOrderedPrimitives ||
-                   !updated && wasActive;
+                   !updated && wasActive ||
+                   leftTextMeshProRoute;
+        }
+
+        // The TextMeshPro route draws with the text's own TMP material, so it holds no style-table program, mapping, padding tier
+        // or ordered primitives. Entering or leaving it, or changing its rows, changes the material.
+        bool SelectTextMeshProRoute(in TextStudio2DTextMeshProStyle textMeshProStyle, in TextStudio2DTextMeshProStyle previous, bool wasActive,
+            bool wasHero, bool previouslyRequiredFieldMaterial, TextStudio2DFieldPaddingTier previousPaddingTier, bool previouslyOrdered)
+        {
+            Route = new TextStudio2DRouteDecision(TextStudio2DRoute.NativeField, TextStudio2DRouteReason.TextMeshProMaterial,
+                TextStudio2DFieldPaddingTier.None);
+            TextMeshProStyle = textMeshProStyle;
+            RequiresOrderedPrimitives = false;
+            TextStudio2DCameraUniforms.Synchronize(ref _cameraUniformLease, false);
+            _hasRetainedOperations = false;
+            _heroProgram = null;
+            HeroProgramStatus = TextStudio2DHeroProgramStatus.Empty;
+            TextStudio2DStyleTable.Shared.Release(ref _handle);
+            RequiresFieldMaterial = false;
+            PaddingTier = TextStudio2DFieldPaddingTier.None;
+            Status = TextStudio2DFieldProgramStatus.Ready;
+            _programCompatibilityWarning = string.Empty;
+            return wasActive || wasHero || previouslyRequiredFieldMaterial || previousPaddingTier != PaddingTier || previouslyOrdered ||
+                   !previous.Equals(textMeshProStyle);
         }
 
         bool ReleaseInvalid(TextStudio2DFieldProgramStatus validation, out TextStudio2DFieldProgramStatus status)
@@ -261,6 +302,11 @@ namespace TextStudio
             _mappedOutputPixelsPerUnit = OutputPixelsPerUnit;
             _mappedGeometryFingerprint = _sourceDemand?.GeometryFingerprint ?? 0;
         }
+
+        // NeedsCameraQualityRefresh stays false until a tick maps this adapter again: there is no prepared-field demand to
+        // revalidate and no rejected mapping that a later memory availability would retry. Only mapping writes the warning.
+        internal bool HasStaticCameraQuality =>
+            _sourceDemand == null && TextStudio2DMappingTable.Shared.GetMemoryWarning(_handle.Slot).Length == 0;
 
         internal bool NeedsCameraQualityRefresh(TMP_Text text)
         {
@@ -412,6 +458,7 @@ namespace TextStudio
             Status = TextStudio2DFieldProgramStatus.PassThrough;
             HeroProgramStatus = TextStudio2DHeroProgramStatus.Empty;
             Route = default;
+            TextMeshProStyle = default;
             _compiledStyle = null;
             _programCompatibilityWarning = string.Empty;
             _retainedCompatibilityWarning = string.Empty;

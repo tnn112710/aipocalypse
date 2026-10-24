@@ -79,8 +79,12 @@ namespace TextStudio
                 RenderLayer(operationIndex, operationIndex, HeroLayerSourceMode.SelectionMask);
                 selector = _layerTexture;
             }
-            RenderTexture source = ApplyColorAdjustment(in operation, backdrop, selector, coverage);
+            // At full contribution the composite would only copy the adjusted image, so the filter writes the destination.
+            bool direct = PassElisionEnabled && operation.BlendMode == TextStudio2DBlendMode.Normal && mask.Texture == null &&
+                          Mathf.Clamp01(operation.Opacity) >= 1f;
+            RenderTexture source = ApplyColorAdjustment(in operation, backdrop, selector, coverage, direct ? destination : _effectScratchTexture0);
             if (_compositionFailed || source == null) return backdrop;
+            if (direct) return destination;
             Composite(backdrop, source, destination, operation.BlendMode, Mathf.Clamp01(operation.Opacity), true, in mask, composite);
             return destination;
         }

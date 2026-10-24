@@ -24,11 +24,11 @@ namespace ImpossibleRobert.Common
 
         /// <summary>
         /// Version-safe wrapper for importing a Unity package.
-        /// Uses the AssetPackage API on Unity 6.7+ and AssetDatabase on older versions.
+        /// Uses the AssetPackage API on Unity 6.6+ and AssetDatabase on older versions.
         /// </summary>
         public static void ImportPackage(string packagePath, bool interactive)
         {
-#if UNITY_6000_7_OR_NEWER
+#if UNITY_6000_6_OR_NEWER
             UnityEditor.AssetPackage.Package.Import(packagePath, interactive);
 #else
             AssetDatabase.ImportPackage(packagePath, interactive);

@@ -913,6 +913,7 @@ namespace TextStudio.Editor
         }
     }
 
+    /// <summary>Identifies the preview route actually provided by a gallery card, including native UI Toolkit, fallbacks, static or live rendering, and TMP material previews.</summary>
     public enum TextGalleryPreviewQuality
     {
         None,
@@ -923,6 +924,7 @@ namespace TextStudio.Editor
         RenderedTMPMaterial
     }
 
+    /// <summary>Selects the gallery's setup, reveal, effects, design, placement, or add-on category, with an option to show every card.</summary>
     public enum TextGalleryCategory
     {
         All,

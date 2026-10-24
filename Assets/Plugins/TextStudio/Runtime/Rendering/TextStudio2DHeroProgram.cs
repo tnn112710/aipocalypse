@@ -103,6 +103,11 @@ namespace TextStudio
         internal bool RequiresPostProcess => PostProcessScratchCount > 0 || HasCompositeAdjustments;
         internal bool RequiresHistory => MaximumHistoryFrames > 0;
         internal int EstimatedConcurrentSurfaceCount { get; }
+        /// <summary>
+        /// Surfaces a composition leases only while they fit beside its layout: the row mask stencil when rows have distinct
+        /// supports, and the retained static rows when an animated program has a cacheable run.
+        /// </summary>
+        internal int OptionalSurfaceCount { get; }
 
         TextStudio2DHeroProgram(
             CompiledTextStudio2DStyle style,
@@ -194,6 +199,10 @@ namespace TextStudio
             CoveragePairCount = hasIndependentCoverage ? maximumMaskDepth + 1 : 0;
             EstimatedConcurrentSurfaceCount = 3 + CompositionPairCount * 2 +
                                               spatialScratchCount + downsampledBlurScratchCount + HistorySurfaceCount + CoveragePairCount * 2 + (NeedsGeneratedAlpha ? 1 : 0);
+            bool rowMasks = TextStudio2DHeroCompositor.GroupRowMaskClasses(style, false, new int[MaximumOperations],
+                new int[TextStudio2DHeroCompositor.MaximumRowMaskClasses]) > 1;
+            bool staticRows = TextStudio2DHeroCompositor.FindStaticRun(this, TextStudioMotionPolicy.Full, out _, out _) > 0;
+            OptionalSurfaceCount = (rowMasks ? 1 : 0) + (staticRows ? 1 : 0);
         }
 
         static float ResolveConstantPaintAlpha(CompiledTextStudio2DStyle style, int paintIndex)

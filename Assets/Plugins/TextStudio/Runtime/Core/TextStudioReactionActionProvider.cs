@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TextStudio
 {
+    /// <summary>Flags the live or retained anchors, geometry, targets, physics, and output capabilities a Reaction action requires.</summary>
     [Flags]
     public enum TextStudioReactionActionRequirements
     {
@@ -16,6 +17,7 @@ namespace TextStudio
         UIParticles = 64
     }
 
+    /// <summary>Flags the completion, arrival, impact, break, and return events a Reaction action can emit for dependent responses.</summary>
     [Flags]
     public enum TextStudioReactionActionEvents
     {
@@ -27,6 +29,7 @@ namespace TextStudio
         Returned = 16
     }
 
+    /// <summary>Declares whether a Reaction action supports only Play Mode, direct deterministic seeking, or bounded resimulation during authoring previews.</summary>
     public enum TextStudioReactionPreviewCapability
     {
         PlayModeOnly,

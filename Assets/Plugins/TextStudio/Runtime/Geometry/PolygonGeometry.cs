@@ -17,20 +17,22 @@ namespace TextStudio.Geometry
     public static class PolygonGeometry
     {
         public const int MaximumVertices = 65536;
+        internal const int BooleanPrecision = 6;
+        static readonly double BooleanScale = Math.Pow(10, BooleanPrecision);
 
         public static Vector2[][] Union(IReadOnlyList<Vector2[]> contours)
         {
-            return FromPaths(Clipper.Union(ToPaths(contours), new PathsD(), FillRule.NonZero, 6));
+            return FromPaths(Clipper.Union(ToPaths(contours), new PathsD(), FillRule.NonZero, BooleanPrecision));
         }
 
         public static Vector2[][] Difference(IReadOnlyList<Vector2[]> subject, IReadOnlyList<Vector2[]> clip)
         {
-            return FromPaths(Clipper.Difference(ToPaths(subject), ToPaths(clip), FillRule.NonZero, 6));
+            return FromPaths(Clipper.Difference(ToPaths(subject), ToPaths(clip), FillRule.NonZero, BooleanPrecision));
         }
 
         public static Vector2[][] Intersect(IReadOnlyList<Vector2[]> subject, IReadOnlyList<Vector2[]> clip)
         {
-            return FromPaths(Clipper.Intersect(ToPaths(subject), ToPaths(clip), FillRule.NonZero, 6));
+            return FromPaths(Clipper.Intersect(ToPaths(subject), ToPaths(clip), FillRule.NonZero, BooleanPrecision));
         }
 
         /// <summary>Round dilation or erosion of a complete nonzero-winding polygon set, preserving holes.</summary>
@@ -38,6 +40,36 @@ namespace TextStudio.Geometry
         {
             if (!float.IsFinite(distance) || !float.IsFinite(tolerance) || tolerance <= 0) throw new ArgumentOutOfRangeException(nameof(distance));
             return FromPaths(Clipper.InflatePaths(ToPaths(contours), distance, JoinType.Round, EndType.Polygon, 2, 6, tolerance));
+        }
+
+        // Boolean operations quantize their inputs. Sources that must join at an exact
+        // authored boundary can recover known coordinates by their actual Clipper grid
+        // identity, without snapping nearby geometry or widening a tolerance.
+        internal static bool BooleanCoordinateMatchesInput(float output, float input)
+        {
+            PointD rounded = new PointD(new Point64(new PointD(input, 0), BooleanScale), 1 / BooleanScale);
+            return output == (float)rounded.x;
+        }
+
+        internal static Dictionary<Vector2, Vector2> CreateBooleanInputVertexLookup(IReadOnlyList<Vector2[]> input)
+        {
+            var result = new Dictionary<Vector2, Vector2>();
+            foreach (Vector2[] sourceLoop in input)
+                foreach (Vector2 source in sourceLoop)
+                {
+                    PointD rounded = new PointD(new Point64(new PointD(source.x, source.y), BooleanScale), 1 / BooleanScale);
+                    Vector2 key = new Vector2((float)rounded.x, (float)rounded.y);
+                    if (!result.ContainsKey(key)) result.Add(key, source);
+                }
+            return result;
+        }
+
+        internal static void RestoreBooleanInputVertices(Vector2[][] output, IReadOnlyList<Vector2[]> input)
+        {
+            Dictionary<Vector2, Vector2> knownVertices = CreateBooleanInputVertexLookup(input);
+            foreach (Vector2[] loop in output)
+                for (int pointIndex = 0; pointIndex < loop.Length; pointIndex++)
+                    if (knownVertices.TryGetValue(loop[pointIndex], out Vector2 original)) loop[pointIndex] = original;
         }
 
         public static TriangulatedSurface Triangulate(IReadOnlyList<Vector2[]> contours)

@@ -16,6 +16,7 @@ namespace TextStudio
         internal Texture Atlas;
         internal Material Replacement;
         internal bool Hero;
+        internal bool LineProgram;
 
         internal bool HasIdentity => !ReferenceEquals(Replacement, null);
         internal bool IsValid =>
@@ -34,24 +35,28 @@ namespace TextStudio
             new Dictionary<CacheKey, CacheEntry>();
         static bool s_missingShaderWarningLogged;
         static readonly int s_decorationHeroProperty = Shader.PropertyToID("_TextStudio2DDecorationHero");
+        /// <summary>Selects the lean program of retained lines that <see cref="TextStudio2DStyleDecorations.SupportsLineProgram"/> admits.</summary>
+        internal const string LineProgramKeyword = "TEXT_STUDIO_DECORATION_LINE_SOLID";
 
         readonly struct CacheKey : IEquatable<CacheKey>
         {
             internal readonly Material Source;
             internal readonly Texture Atlas;
             internal readonly bool Hero;
+            internal readonly bool LineProgram;
 
-            internal CacheKey(Material source, Texture atlas, bool hero)
+            internal CacheKey(Material source, Texture atlas, bool hero, bool lineProgram)
             {
                 Source = source;
                 Atlas = atlas;
                 Hero = hero;
+                LineProgram = lineProgram;
             }
 
             public bool Equals(CacheKey other)
             {
                 return ReferenceEquals(Source, other.Source) &&
-                       ReferenceEquals(Atlas, other.Atlas) && Hero == other.Hero;
+                       ReferenceEquals(Atlas, other.Atlas) && Hero == other.Hero && LineProgram == other.LineProgram;
             }
 
             public override bool Equals(object obj)
@@ -69,7 +74,7 @@ namespace TextStudio
                     int atlasHash = !ReferenceEquals(Atlas, null)
                         ? RuntimeHelpers.GetHashCode(Atlas)
                         : 0;
-                    return (sourceHash * 397 ^ atlasHash) * 397 ^ (Hero ? 1 : 0);
+                    return (sourceHash * 397 ^ atlasHash) * 397 ^ (Hero ? 1 : 0) ^ (LineProgram ? 2 : 0);
                 }
             }
         }
@@ -92,11 +97,22 @@ namespace TextStudio
 
         internal static int ActiveEntryCount => s_entries.Count;
 
+        internal static int LineProgramEntryCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (KeyValuePair<CacheKey, CacheEntry> pair in s_entries)
+                    if (pair.Key.LineProgram) count++;
+                return count;
+            }
+        }
+
         internal static TextStudio2DStyleDecorationMaterialLease Acquire(
             Material source,
-            Texture atlas, bool hero = false)
+            Texture atlas, bool hero = false, bool lineProgram = false)
         {
-            CacheKey key = new CacheKey(source, atlas, hero);
+            CacheKey key = new CacheKey(source, atlas, hero, lineProgram);
             int sourceCrc = source != null ? source.ComputeCRC() : 0;
             if (!TryGetOrCreate(in key, sourceCrc, out CacheEntry entry))
                 return default;
@@ -107,6 +123,7 @@ namespace TextStudio
                 Source = source,
                 Atlas = atlas,
                 Hero = hero,
+                LineProgram = lineProgram,
                 Replacement = entry.Material
             };
         }
@@ -116,7 +133,7 @@ namespace TextStudio
         {
             if (!lease.IsValid)
                 return;
-            CacheKey key = new CacheKey(lease.Source, lease.Atlas, lease.Hero);
+            CacheKey key = new CacheKey(lease.Source, lease.Atlas, lease.Hero, lease.LineProgram);
             if (s_entries.TryGetValue(key, out CacheEntry entry) &&
                 ReferenceEquals(entry.Material, lease.Replacement))
             {
@@ -132,7 +149,7 @@ namespace TextStudio
                 lease = default;
                 return;
             }
-            CacheKey key = new CacheKey(lease.Source, lease.Atlas, lease.Hero);
+            CacheKey key = new CacheKey(lease.Source, lease.Atlas, lease.Hero, lease.LineProgram);
             if (s_entries.TryGetValue(key, out CacheEntry entry) &&
                 ReferenceEquals(entry.Material, lease.Replacement))
             {
@@ -247,6 +264,10 @@ namespace TextStudio
             replacement.DisableKeyword("OUTLINE_ON");
             replacement.DisableKeyword("UNDERLAY_ON");
             replacement.DisableKeyword("UNDERLAY_INNER");
+            // Copying the source material can carry keywords; the program choice belongs to the cache key alone.
+            LocalKeyword lineProgram = shader.keywordSpace.FindKeyword(LineProgramKeyword);
+            if (lineProgram.isValid)
+                replacement.SetKeyword(lineProgram, key.LineProgram);
         }
 
         static void Destroy(Material material)
@@ -264,6 +285,7 @@ namespace TextStudio
     internal sealed partial class TextStudio2DStyleDecorations : IDisposable
     {
         const float MinimumExtent = 0.0001f;
+        static readonly int s_connectedSurfaceUnionProperty = Shader.PropertyToID("_TextStudio2DConnectedSurfaceUnion");
 
         readonly bool _hero;
         internal int GeometryRevision { get; private set; }
@@ -272,6 +294,8 @@ namespace TextStudio
         readonly List<int> _runMembers = new List<int>();
 
         bool[] _selected = Array.Empty<bool>();
+        // Operations whose retained lines draw with the lean solid-line program during the current build.
+        bool[] _lineProgramOperations = Array.Empty<bool>();
         int _selectionStart, _selectionEnd;
         bool IsSelected(int unit) => unit >= _selectionStart && unit < _selectionEnd && _selected[unit - _selectionStart];
 
@@ -287,7 +311,8 @@ namespace TextStudio
             get
             {
                 long bytes = TextStudioAppearanceManagedMemory.ListBytes(_decorationRuns) + TextStudioAppearanceManagedMemory.ListBytes(_runMembers) +
-                    TextStudioAppearanceManagedMemory.ArrayBytes(_selected) + (long)_batches.Capacity * IntPtr.Size;
+                    TextStudioAppearanceManagedMemory.ArrayBytes(_selected) + TextStudioAppearanceManagedMemory.ArrayBytes(_lineProgramOperations) +
+                    (long)_batches.Capacity * IntPtr.Size;
                 bytes += TextStudioAppearanceManagedMemory.ListBytes(_surfaceBands) + TextStudioAppearanceManagedMemory.ListBytes(_surfaceMembers) +
                     TextStudioAppearanceManagedMemory.ListBytes(_nativeInkSources) + _ownedBinding.ManagedPayloadBytes +
                     (long)(_surfaces.Capacity + _inkShapes.Capacity + _unusedStrokes.Capacity + 2 * _strokeSurfaces.EnsureCapacity(0)) * IntPtr.Size;
@@ -334,6 +359,9 @@ namespace TextStudio
             _binding = binding ?? _ownedBinding;
             _binding.Bind(style);
             _activeSurfaces = 0;
+            int operationCount = style?.OperationCount ?? 0;
+            if (_lineProgramOperations.Length < operationCount) _lineProgramOperations = new bool[operationCount];
+            else Array.Clear(_lineProgramOperations, 0, _lineProgramOperations.Length);
             TextStudioVisualSnapshot snapshot = frame.VisualSnapshot;
             if (tmpText == null || style == null || styleSlot <= 0 || !snapshot.IsCreated)
             {
@@ -375,6 +403,8 @@ namespace TextStudio
                     StyleBatch target = GetDecorationBatch(_batches, ref _activeBatches);
                     if (target == null)
                         continue;
+                    int vertexCount = target.Geometry.Vertices.Count;
+                    _liveInkEmitted = false;
                     EmitSelectedRuns(
                         target.Geometry,
                         in frame,
@@ -384,6 +414,12 @@ namespace TextStudio
                         operationIndex,
                         styleSlot,
                         glyphCount, sourceDemand, frameApplier);
+                    // Hero rows and lines over live Writing ink keep the general program (AppearanceGpuCost.md).
+                    if (!_hero && !_liveInkEmitted && target.Geometry.Vertices.Count > vertexCount && SupportsLineProgram(style, operationIndex))
+                    {
+                        _lineProgramOperations[operationIndex] = true;
+                        target.CarriesLines = true;
+                    }
                 }
                 else if (operation.Kind == TextStudio2DLayerKind.FauxDepth)
                 {
@@ -394,7 +430,8 @@ namespace TextStudio
                         in operation,
                         operationIndex,
                         styleSlot,
-                        glyphCount);
+                        glyphCount,
+                        frameApplier);
                 }
             }
             EndBatches();
@@ -434,16 +471,50 @@ namespace TextStudio
 
         internal void AppendOrderedOperation(TextStudio2DOrderedRenderer renderer, int operationIndex)
         {
+            bool line = UsesLineProgram(operationIndex);
             for (int index = 0; index < _activeBatches; index++)
             {
                 StyleBatch batch = _batches[index];
-                renderer.AppendRetainedOperation(batch.Geometry, batch.Material, operationIndex);
+                // Consecutive lines share one lean material, so they stay one ordered run.
+                Material lineMaterial = line ? batch.LineMaterial : null;
+                renderer.AppendRetainedOperation(batch.Geometry, lineMaterial != null ? lineMaterial : batch.Material, operationIndex);
             }
+        }
+
+        /// <summary>True when the last build drew the retained lines of the operation with the lean solid-line program.</summary>
+        internal bool UsesLineProgram(int operationIndex) =>
+            operationIndex >= 0 && operationIndex < _lineProgramOperations.Length && _lineProgramOperations[operationIndex];
+
+        /// <summary>
+        /// True when the decoration can draw with the lean solid-line program and render the pixels of the general one: an
+        /// underline, strikethrough or overline whose surface treatments are all normal fills, in a style whose paints are all
+        /// solid and that has no colour adjustments. A build also keeps the general program for Hero rows and for lines over
+        /// live Writing ink.
+        /// </summary>
+        internal static bool SupportsLineProgram(CompiledTextStudio2DStyle style, int operationIndex)
+        {
+            if (style == null || operationIndex < 0 || operationIndex >= style.OperationCount || !TextStudio2DShaderTiers.UsesOnlySolidPaint(style))
+                return false;
+            ref readonly TextStudio2DCompiledOperation owner = ref style.OperationAt(operationIndex);
+            if (owner.Kind != TextStudio2DLayerKind.Decoration || owner.SurfaceOwnerOperationIndex >= 0 || IsBackground(owner.Decoration.Kind))
+                return false;
+            for (int index = 0; index < style.OperationCount; index++)
+            {
+                ref readonly TextStudio2DCompiledOperation operation = ref style.OperationAt(index);
+                if ((operation.Features & TextStudio2DShaderFeatures.ColorAdjustment) != 0)
+                    return false;
+                if (operation.SurfaceOwnerOperationIndex == operationIndex &&
+                    (operation.Kind != TextStudio2DLayerKind.Fill || operation.BlendMode != TextStudio2DBlendMode.Normal))
+                    return false;
+            }
+            return true;
         }
 
         static int DrawHero(CommandBuffer commands, int ownerIndex, List<StyleBatch> batches, int count, bool unionCoverage = false)
         {
             int draws = 0;
+            // The union pass rasterizes only while this flag is raised, because an overlay Canvas also submits it.
+            if (unionCoverage) commands.SetGlobalFloat(s_connectedSurfaceUnionProperty, 1f);
             for (int index = 0; index < count; index++)
             {
                 StyleBatch batch = batches[index];
@@ -451,6 +522,7 @@ namespace TextStudio
                 commands.DrawMesh(batch.HeroMesh, Matrix4x4.identity, batch.Material, 0, unionCoverage ? 2 : 0);
                 draws++;
             }
+            if (unionCoverage) commands.SetGlobalFloat(s_connectedSurfaceUnionProperty, 0f);
             return draws;
         }
 
@@ -467,6 +539,8 @@ namespace TextStudio
             TextStudio2DSurfaceTable.Shared.FlushAndBind();
             TrimTrailingEmptyBatches(_batches, ref _activeBatches);
             DeactivateUnusedBatches(_batches, _activeBatches);
+            for (int index = 0; index < _activeBatches; index++)
+                _batches[index].SynchronizeLineMaterial();
         }
 
         static void TrimTrailingEmptyBatches(
@@ -564,7 +638,8 @@ namespace TextStudio
             in TextStudio2DCompiledOperation operation,
             int operationIndex,
             int styleSlot,
-            int glyphCount)
+            int glyphCount,
+            TextStudioTMPFrameApplier frameApplier)
         {
             IReadOnlyList<int> renderGlyphs = ScopedRenderGlyphs(in frame);
             int renderCount = renderGlyphs?.Count ?? snapshot.RenderGlyphCount;
@@ -577,6 +652,7 @@ namespace TextStudio
                     !TryResolveDepthSource(
                         tmpText,
                         in glyph,
+                        frameApplier,
                         out DepthSource source))
                 {
                     continue;
@@ -605,6 +681,7 @@ namespace TextStudio
         static bool TryResolveDepthSource(
             TMP_Text tmpText,
             in TextStudioVisualGlyph glyph,
+            TextStudioTMPFrameApplier frameApplier,
             out DepthSource source)
         {
             source = default;
@@ -650,7 +727,29 @@ namespace TextStudio
             Vector2 bottomLeft = character.bottomLeft;
             Vector2 bottomRight = character.bottomRight;
             Vector2 topLeft = character.topLeft;
-            if ((bottomRight - bottomLeft).sqrMagnitude < MinimumExtent * MinimumExtent ||
+            Vector4 atlasUvRect = glyph.AtlasUvRect;
+            // A scrambling glyph extrudes the substitute it presents, not the authored glyph it reveals later.
+            if (frameApplier != null &&
+                frameApplier.TryGetSubstitutedQuad(
+                    character.materialReferenceIndex,
+                    character.vertexIndex,
+                    out Vector2 substituteBottomLeft,
+                    out Vector2 substituteBottomRight,
+                    out Vector2 substituteTopLeft,
+                    out Vector4 substituteUvRect))
+            {
+                // A substitute without a quad, such as a space, has no depth, as TMP draws no glyph for it.
+                if ((substituteBottomRight - substituteBottomLeft).sqrMagnitude < MinimumExtent * MinimumExtent ||
+                    (substituteTopLeft - substituteBottomLeft).sqrMagnitude < MinimumExtent * MinimumExtent)
+                {
+                    return false;
+                }
+                bottomLeft = substituteBottomLeft;
+                bottomRight = substituteBottomRight;
+                topLeft = substituteTopLeft;
+                atlasUvRect = substituteUvRect;
+            }
+            else if ((bottomRight - bottomLeft).sqrMagnitude < MinimumExtent * MinimumExtent ||
                 (topLeft - bottomLeft).sqrMagnitude < MinimumExtent * MinimumExtent)
             {
                 bottomLeft = glyph.BoundsMin;
@@ -664,7 +763,8 @@ namespace TextStudio
                 bold,
                 bottomLeft,
                 bottomRight,
-                topLeft);
+                topLeft,
+                atlasUvRect);
             return true;
         }
 
@@ -783,7 +883,7 @@ namespace TextStudio
                 programTopLeft,
                 programTopRight,
                 geometry,
-                glyph.AtlasUvRect);
+                source.AtlasUvRect);
         }
 
         static Vector4 Program(
@@ -1023,7 +1123,7 @@ namespace TextStudio
                 for (int member = run.Start; member < run.End; member++) _surfaceMembers.Add(_runMembers[member]);
             Vector4 adjustmentMask = _binding.SurfaceAdjustmentMask(in frame, operationIndex, _surfaceMembers);
             TextStudio2DSurfaceHandle inkMask = IsBackground(decoration.Kind) ? default :
-                PrepareSkipInk(in frame, in snapshot, text, in decoration, in run, adjustmentMask, sourceDemand, frameApplier);
+                PrepareSkipInk(in frame, in snapshot, text, in decoration, in run, expansion, adjustmentMask, sourceDemand, frameApplier);
             if (!IsBackground(decoration.Kind) && decoration.Line.Units == TextStudio2DUnit.Pixels)
             {
                 EmitPixelLine(target, in frame, in snapshot, in run, operationIndex, styleSlot, expansion, adjustmentMask, inkMask);
@@ -1561,6 +1661,7 @@ namespace TextStudio
             internal readonly Vector2 BottomLeft;
             internal readonly Vector2 AxisX;
             internal readonly Vector2 AxisY;
+            internal readonly Vector4 AtlasUvRect;
 
             internal DepthSource(
                 Material material,
@@ -1569,7 +1670,8 @@ namespace TextStudio
                 bool bold,
                 Vector2 bottomLeft,
                 Vector2 bottomRight,
-                Vector2 topLeft)
+                Vector2 topLeft,
+                Vector4 atlasUvRect)
             {
                 Material = material;
                 Atlas = atlas;
@@ -1578,6 +1680,7 @@ namespace TextStudio
                 BottomLeft = bottomLeft;
                 AxisX = bottomRight - bottomLeft;
                 AxisY = topLeft - bottomLeft;
+                AtlasUvRect = atlasUvRect;
             }
         }
 
@@ -1627,6 +1730,7 @@ namespace TextStudio
         sealed class StyleBatch : IDisposable
         {
             TextStudio2DStyleDecorationMaterialLease _materialLease;
+            TextStudio2DStyleDecorationMaterialLease _lineLease;
             internal Mesh HeroMesh { get; private set; }
             internal ulong HeroOwners { get; private set; }
 
@@ -1659,6 +1763,27 @@ namespace TextStudio
             internal Material Material => _materialLease.IsValid
                 ? _materialLease.Replacement
                 : null;
+            /// <summary>Set while the current build emits lines that draw with the lean solid-line program into this batch.</summary>
+            internal bool CarriesLines;
+            internal Material LineMaterial => _lineLease.IsValid ? _lineLease.Replacement : null;
+
+            // Holds the lean variant of this batch's material only while the batch carries such lines.
+            internal void SynchronizeLineMaterial()
+            {
+                if (!CarriesLines || !_materialLease.IsValid || _materialLease.Hero)
+                {
+                    TextStudio2DStyleDecorationMaterialCache.Release(ref _lineLease);
+                    return;
+                }
+                if (_lineLease.IsValid && ReferenceEquals(_lineLease.Source, Source) && ReferenceEquals(_lineLease.Atlas, Atlas))
+                {
+                    TextStudio2DStyleDecorationMaterialCache.Synchronize(in _lineLease);
+                    return;
+                }
+                TextStudio2DStyleDecorationMaterialLease next = TextStudio2DStyleDecorationMaterialCache.Acquire(Source, Atlas, false, true);
+                TextStudio2DStyleDecorationMaterialCache.Release(ref _lineLease);
+                _lineLease = next;
+            }
 
             internal bool Matches(Material source, Texture atlas, bool hero = false)
             {
@@ -1679,7 +1804,10 @@ namespace TextStudio
                         in _materialLease);
                     DecorationOnly &= decorationOnly;
                     if (clearGeometry)
+                    {
                         Geometry.Clear();
+                        CarriesLines = false;
+                    }
                     return true;
                 }
 
@@ -1696,7 +1824,10 @@ namespace TextStudio
                 Atlas = atlas;
                 DecorationOnly = decorationOnly;
                 if (clearGeometry)
+                {
                     Geometry.Clear();
+                    CarriesLines = false;
+                }
                 return true;
             }
 
@@ -1708,6 +1839,8 @@ namespace TextStudio
                 Geometry.Clear();
                 TextStudio2DStyleDecorationMaterialCache.Release(
                     ref _materialLease);
+                TextStudio2DStyleDecorationMaterialCache.Release(ref _lineLease);
+                CarriesLines = false;
                 Source = null;
                 Atlas = null;
                 DecorationOnly = false;

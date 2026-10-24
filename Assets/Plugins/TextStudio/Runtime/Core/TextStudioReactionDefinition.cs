@@ -5,6 +5,7 @@ using UnityEngine.UIElements;
 
 namespace TextStudio
 {
+    /// <summary>Identifies whether Reaction settings are absent, selected from a built-in recipe, supplied by a custom recipe, or authored inline.</summary>
     public enum TextStudioReactionSource
     {
         None,
@@ -13,6 +14,7 @@ namespace TextStudio
         Inline
     }
 
+    /// <summary>Chooses a built-in effect or a custom effect asset for a Reaction's effect response.</summary>
     public enum TextStudioReactionEffectSource
     {
         BuiltIn,
@@ -35,9 +37,13 @@ namespace TextStudio
         UnitRevealComplete
     }
 
+    /// <summary>Selects the response performed by a Reaction: play an effect, send a signal, play an audio cue, or invoke a custom action.</summary>
     public enum TextStudioReactionAction { PlayEffect, SendSignal, PlayAudioCue, Custom }
+    /// <summary>Chooses whether repeated Reaction triggers may overlap, restart the existing response, or are ignored while it runs.</summary>
     public enum TextStudioReactionOverlap { Allow, Restart, Ignore }
+    /// <summary>Selects the predecessor's completion, arrival, impact, break, or return event that starts a dependent Reaction.</summary>
     public enum TextStudioReactionDependencyEvent { Completion, Arrival, Impact, Break, Return }
+    /// <summary>Selects the text units affected by a Reaction: all text, the triggering unit, word or line, or changed incoming or outgoing units.</summary>
     public enum TextStudioReactionTarget
     {
         Text,
@@ -47,7 +53,9 @@ namespace TextStudio
         [InspectorName("Changed Incoming Units")] ChangedUnits,
         [InspectorName("Changed Outgoing Units")] ChangedOutgoingUnits
     }
+    /// <summary>Identifies a Reaction-triggering text change as replacement, append, replay, or no change.</summary>
     public enum TextStudioReactionChangeKind { None, Replace, Append, Replay }
+    /// <summary>Identifies why a running Reaction was cancelled, including explicit requests, host or text changes, lost targets, unsupported capabilities, and action failures.</summary>
     public enum TextStudioReactionCancelReason
     {
         ExplicitCancel,

@@ -62,7 +62,8 @@ namespace TextStudio
                 "_TextStudio2DMappingHeaders",
                 "_TextStudio2DGlyphMappings",
                 "_TextStudio2DRangeMappings",
-                "_TextStudio2DMappingTableEnabled");
+                "_TextStudio2DMappingTableEnabled",
+                "_TextStudio2DMappingTableLastRecords");
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -141,6 +142,7 @@ namespace TextStudio
             readonly int _glyphsProperty;
             readonly int _rangesProperty;
             readonly int _enabledProperty;
+            readonly int _lastRecordsProperty;
             readonly int _headersData;
             readonly int _glyphsData;
             readonly int _rangesData;
@@ -164,7 +166,8 @@ namespace TextStudio
                 string headersProperty,
                 string glyphsProperty,
                 string rangesProperty,
-                string enabledProperty)
+                string enabledProperty,
+                string lastRecordsProperty)
             {
                 _pages = pages;
                 _maximumStyles = maximumStyles;
@@ -172,6 +175,7 @@ namespace TextStudio
                 _glyphsProperty = Shader.PropertyToID(glyphsProperty);
                 _rangesProperty = Shader.PropertyToID(rangesProperty);
                 _enabledProperty = Shader.PropertyToID(enabledProperty);
+                _lastRecordsProperty = Shader.PropertyToID(lastRecordsProperty);
                 _headersData = Shader.PropertyToID(headersProperty + "Data");
                 _glyphsData = Shader.PropertyToID(glyphsProperty + "Data");
                 _rangesData = Shader.PropertyToID(rangesProperty + "Data");
@@ -537,6 +541,8 @@ namespace TextStudio
                 _headerStorage.Bind(_headersProperty, _headersData);
                 _glyphStorage.Bind(_glyphsProperty, _glyphsData);
                 _rangeStorage.Bind(_rangesProperty, _rangesData);
+                Shader.SetGlobalVector(_lastRecordsProperty,
+                    new Vector4(_headerStorage.LastRecord, _glyphStorage.LastRecord, _rangeStorage.LastRecord, 0f));
                 Shader.SetGlobalFloat(_enabledProperty, HasActiveSlots() ? 1f : 0f);
             }
 
@@ -641,7 +647,8 @@ namespace TextStudio
                 _headerStorage.Dispose();
                 _glyphStorage.Dispose();
                 _rangeStorage.Dispose();
-                TextStudio2DGpuFallbackResources.RestoreMappingBindings(_headersProperty, _glyphsProperty, _rangesProperty);
+                TextStudio2DGpuFallbackResources.RestoreMappingBindings(_headersProperty, _glyphsProperty, _rangesProperty,
+                    _lastRecordsProperty);
             }
 
             public void Dispose()
@@ -661,7 +668,8 @@ namespace TextStudio
                 _headerStorage.ReleaseGpu();
                 _glyphStorage.ReleaseGpu();
                 _rangeStorage.ReleaseGpu();
-                TextStudio2DGpuFallbackResources.RestoreMappingBindings(_headersProperty, _glyphsProperty, _rangesProperty);
+                TextStudio2DGpuFallbackResources.RestoreMappingBindings(_headersProperty, _glyphsProperty, _rangesProperty,
+                    _lastRecordsProperty);
             }
 
             static void BuildEntry(

@@ -175,6 +175,8 @@ namespace TextStudio
             internal TextStudio2DSurfaceHandle Handle;
             internal TextStudio2DSurfaceGeometry Geometry;
             internal ulong InputFingerprint;
+            // Explains a skip-ink mask that fell back to metric glyph bounds; reported again by every build that reuses it.
+            internal string Warning;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Last Change: 9/30/2026 10:15am
+﻿// Last Change: 10/8/2026 11:36am
 using MalbersAnimations.Scriptables;
 using System.Collections.Generic; //MWC: List used to collect projectiles stuck to this one before unparenting them
 using UnityEngine;
@@ -423,6 +423,7 @@ namespace MalbersAnimations.Weapons
             }
 
             movement.Fire(this);
+            TeleportBody(); //After movement.Fire: it may have just switched interpolation on
             StartCoroutine(movement.Movement(this)); //All travel logic lives in the ProjectileMovement
 
 
@@ -434,6 +435,34 @@ namespace MalbersAnimations.Weapons
             //}
 
             Debugging("Projectile Fired", this);
+        }
+
+        /// <summary> Moves the Rigidbody onto the launch pose and holds its interpolation off for one physics step </summary>
+        //A pooled projectile is placed through its Transform, but the body still holds the physics pose of its LAST
+        //flight (or of the spot it was parked at). With interpolation on, Unity blends from that old pose to the first
+        //new one and writes the result over the Transform: a one frame jump far from the launcher and a very long trail.
+        //Teleporting the body alone is not enough, the interpolation history still holds the old pose until a step runs
+        protected virtual void TeleportBody()
+        {
+            if (rb == null) return;
+
+            var wanted = rb.interpolation;
+            rb.interpolation = RigidbodyInterpolation.None;
+            rb.position = T.position;
+            rb.rotation = T.rotation;
+
+            if (wanted != RigidbodyInterpolation.None)
+                StartCoroutine(RestoreInterpolation(rb, wanted));
+        }
+
+        /// <summary> Gives the interpolation back once a physics step has run with the body on its launch pose </summary>
+        private System.Collections.IEnumerator RestoreInterpolation(Rigidbody body, RigidbodyInterpolation wanted)
+        {
+            yield return waitForFixedUpdate;
+
+            //Skipped when the body was swapped (Stick On Surface), or something parked it again in the meantime
+            if (rb == body && body.interpolation == RigidbodyInterpolation.None && !HasImpacted)
+                body.interpolation = wanted;
         }
 
         public void EnableCollider(float time) => this.Delay_Action(time, Enable_Collider); //MWC: replaced reflection-based Invoke with the project's coroutine-based Delay_Action

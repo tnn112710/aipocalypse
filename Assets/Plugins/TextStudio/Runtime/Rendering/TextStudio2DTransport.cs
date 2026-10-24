@@ -31,14 +31,14 @@ namespace TextStudio
     /// A WebGPU player that exposes storage buffers therefore takes the buffer route; Web is not assumed texture-only.
     /// </summary>
 #if UNITY_6000_7_OR_NEWER
-    // The transport preference persists; explicit reset also restores the global shader keyword.
+    // The transport preference persists; explicit reset also restores both global shader keywords.
     [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
 #endif
     internal static partial class TextStudio2DTransport
     {
-        /// <summary>Global shader keyword that selects the texture accessors in every 2D program.</summary>
+        /// <summary>Global shader keyword that selects the shared texture accessors.</summary>
         internal const string TextureKeyword = "TEXT_STUDIO_TEXTURE_TRANSPORT";
-        /// <summary>Default keyword of the same multi_compile set, active whenever the texture keyword is disabled.</summary>
+        /// <summary>Global shader keyword that explicitly selects the shared structured-buffer accessors.</summary>
         internal const string BufferKeyword = "TEXT_STUDIO_BUFFER_TRANSPORT";
         /// <summary>Texels per data-texture row; shaders address texel (index &amp; 1023, index &gt;&gt; 10).</summary>
         internal const int TextureWidth = 1024;
@@ -102,6 +102,7 @@ namespace TextStudio
             s_resolved = false;
             s_keywordEnabled = false;
             Shader.DisableKeyword(TextureKeyword);
+            Shader.DisableKeyword(BufferKeyword);
         }
 
         static void Resolve()
@@ -114,10 +115,14 @@ namespace TextStudio
                 TextStudio2DDataTransport.Unsupported;
             s_resolved = true;
             bool keyword = s_active == TextStudio2DDataTransport.DataTextures;
-            if (keyword == s_keywordEnabled && Shader.IsKeywordEnabled(TextureKeyword) == keyword) return;
+            bool bufferKeyword = s_active == TextStudio2DDataTransport.StructuredBuffers;
+            if (keyword == s_keywordEnabled && Shader.IsKeywordEnabled(TextureKeyword) == keyword &&
+                Shader.IsKeywordEnabled(BufferKeyword) == bufferKeyword) return;
             s_keywordEnabled = keyword;
             if (keyword) Shader.EnableKeyword(TextureKeyword);
             else Shader.DisableKeyword(TextureKeyword);
+            if (bufferKeyword) Shader.EnableKeyword(BufferKeyword);
+            else Shader.DisableKeyword(BufferKeyword);
         }
     }
 }

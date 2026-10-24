@@ -241,6 +241,44 @@ namespace TextStudio
                 yield return pair;
         }
 
+        // The first entry of GetAll's order whose value matches, without allocating GetAll's enumerator. Markup parsing asks this
+        // for every tag that is not a registered key.
+        internal bool TryFindFirst(Func<T, string, bool> match, string name, out T item)
+        {
+            EnsureBuilt();
+            foreach (KeyValuePair<string, T> pair in _builtInEntries)
+            {
+                if (!_runtimeEntries.ContainsKey(pair.Key) &&
+                    !_projectEntries.ContainsKey(pair.Key) &&
+                    match(pair.Value, name))
+                {
+                    item = pair.Value;
+                    return true;
+                }
+            }
+
+            foreach (KeyValuePair<string, T> pair in _projectEntries)
+            {
+                if (!_runtimeEntries.ContainsKey(pair.Key) && match(pair.Value, name))
+                {
+                    item = pair.Value;
+                    return true;
+                }
+            }
+
+            foreach (KeyValuePair<string, T> pair in _runtimeEntries)
+            {
+                if (match(pair.Value, name))
+                {
+                    item = pair.Value;
+                    return true;
+                }
+            }
+
+            item = null;
+            return false;
+        }
+
         internal bool IsRuntime(string id, T item)
         {
             EnsureBuilt();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -14,6 +15,11 @@ namespace TextStudio
     {
         static readonly Vector3 InactiveHostLocalPosition =
             new Vector3(100000f, 100000f, 0f);
+        static readonly ProfilerMarker EmitProfilerMarker = new ProfilerMarker("Text Studio Emit");
+        static readonly ProfilerMarker RecycleProfilerMarker = new ProfilerMarker("Text Studio Emitter Recycle");
+        static readonly ProfilerMarker RentProfilerMarker = new ProfilerMarker("Text Studio Emitter Rent");
+        static readonly ProfilerMarker ConfigureProfilerMarker = new ProfilerMarker("Text Studio Emitter Configure");
+        static readonly ProfilerMarker FormatProfilerMarker = new ProfilerMarker("Text Studio Emitter Format");
 
         [Header("Emission")]
         [SerializeField, Tooltip("Complete Text Studio host prefab used when a preset has no override.")]
@@ -332,6 +338,12 @@ namespace TextStudio
         /// <returns>An invalid handle when the emitter is inactive, tearing down, or cannot resolve a host.</returns>
         public TextStudioEmissionHandle Emit(TextStudioEmissionRequest request)
         {
+            using (EmitProfilerMarker.Auto())
+                return EmitCore(request);
+        }
+
+        TextStudioEmissionHandle EmitCore(TextStudioEmissionRequest request)
+        {
             if (!isActiveAndEnabled || _tearingDown)
                 return TextStudioEmissionHandle.Invalid;
 
@@ -355,7 +367,8 @@ namespace TextStudio
             {
                 if (_overflowPolicy == TextStudioEmissionOverflowPolicy.RejectNew)
                     return TextStudioEmissionHandle.Invalid;
-                recycledHost = RecycleOldest(preset);
+                using (RecycleProfilerMarker.Auto())
+                    recycledHost = RecycleOldest(preset);
             }
 
             GameObject prefab = ResolveHostPrefab(preset);
@@ -366,9 +379,13 @@ namespace TextStudio
                 return TextStudioEmissionHandle.Invalid;
             }
 
-            PooledHost host = pool.Get();
-            if (!ReferenceEquals(host, recycledHost))
-                CompleteDeferredReset(recycledHost);
+            PooledHost host;
+            using (RentProfilerMarker.Auto())
+            {
+                host = pool.Get();
+                if (!ReferenceEquals(host, recycledHost))
+                    CompleteDeferredReset(recycledHost);
+            }
             if (host == null || host.Hub == null)
                 return TextStudioEmissionHandle.Invalid;
 
@@ -390,11 +407,16 @@ namespace TextStudio
             host.StackSlot = ResolveStackSlot(request);
 
             _active.Add(host);
-            SubscribeHost(host);
-            ApplyPreset(host);
-            UpdatePlacement(host);
+            using (ConfigureProfilerMarker.Auto())
+            {
+                SubscribeHost(host);
+                ApplyPreset(host);
+                UpdatePlacement(host);
+            }
 
-            string markup = ResolveMarkup(preset, request.IsValue, request.Value, request.Text);
+            string markup;
+            using (FormatProfilerMarker.Auto())
+                markup = ResolveMarkup(preset, request.IsValue, request.Value, request.Text);
             host.Hub.SetText(markup, false);
             host.Hub.StartReveal();
             if (!host.Hub.IsRevealing && host.Hub.RevealProgress >= 0.999f)
@@ -543,7 +565,8 @@ namespace TextStudio
             if (host?.Root == null)
                 return;
 
-            host.Root.SetActive(true);
+            if (!host.Root.activeSelf)
+                host.Root.SetActive(true);
             host.Hub?.ClearVisibilityOverrides();
         }
 
@@ -559,9 +582,19 @@ namespace TextStudio
             UnsubscribeHost(host);
             if (host.Hub != null)
             {
-                host.Hub.StopReveal();
-                host.Hub.StopDisappear();
-                host.Hub.ClearVisibilityOverrides();
+                if (host.Hub.IsTextChangePending || host.Hub.HasActiveReactions)
+                {
+                    // Pending commits and reaction cancellation can observe the stopped outgoing state.
+                    host.Hub.StopReveal();
+                    host.Hub.StopDisappear();
+                    host.Hub.ClearVisibilityOverrides();
+                }
+                else
+                {
+                    // ResetInternal already resets reveal, glyph/effect state and visibility overrides.
+                    // Preserve action skip requests without performing that complete reset twice.
+                    host.Hub.SkipCurrentWait();
+                }
                 host.Hub.ResetInternal();
                 // Hiding prepares the reveal, which compiles pending text. Hiding before the original profile returns
                 // keeps the outgoing text from recompiling only to be replaced: overflow reuses the host at once.
@@ -579,13 +612,16 @@ namespace TextStudio
             if (host.Root != null)
             {
                 Transform hostTransform = host.Root.transform;
-                hostTransform.SetParent(ResolveParent(), false);
+                Transform parent = ResolveParent();
+                if (hostTransform.parent != parent)
+                    hostTransform.SetParent(parent, false);
                 // A backend can finish its disappearance frame after the completion callback.
                 // Park warm pooled roots offscreen so that late write cannot flash at the emitter origin.
                 hostTransform.SetLocalPositionAndRotation(
                     InactiveHostLocalPosition,
                     Quaternion.identity);
-                hostTransform.localScale = host.OriginalLocalScale;
+                if (!hostTransform.localScale.Equals(host.OriginalLocalScale))
+                    hostTransform.localScale = host.OriginalLocalScale;
             }
 
             host.Active = false;

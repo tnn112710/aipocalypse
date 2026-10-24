@@ -29,16 +29,17 @@ MonoBehaviour:
     active: 1
     EnableTime: 0
     DisableTime: 0.25
+    Gizmos: 0
     weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
     aimer: {fileID: 0}
     IKProcesors:
-    - rid: 7038165417835889309
-    - rid: 7038165417835889310
+    - rid: 5692500827330576680
+    - rid: 5692500827330576681
     weightProcessors:
-    - rid: 7038165417835889311
-    - rid: 7038165417835889312
+    - rid: 5692500827330576682
+    - rid: 5692500827330576683
     SelectedIKProcessor: 1
     LerpWeight: 0
     OnWeightChanged:
@@ -113,16 +114,17 @@ MonoBehaviour:
     active: 0
     EnableTime: 0
     DisableTime: 0.25
+    Gizmos: 0
     weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
     aimer: {fileID: 0}
     IKProcesors:
-    - rid: 7038165417835889313
-    - rid: 7038165417835889314
+    - rid: 5692500827330576684
+    - rid: 5692500827330576685
     weightProcessors:
-    - rid: 7038165417835889315
-    - rid: 7038165417835889316
+    - rid: 5692500827330576686
+    - rid: 5692500827330576687
     SelectedIKProcessor: 0
     LerpWeight: 0
     OnWeightChanged:
@@ -197,17 +199,18 @@ MonoBehaviour:
     active: 0
     EnableTime: 0.3
     DisableTime: 0.3
-    weight: 0
+    Gizmos: 1
+    weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
     aimer: {fileID: 0}
     IKProcesors:
-    - rid: 7038165417835889317
-    - rid: 7038165417835889318
-    - rid: 7038165417835889319
-    - rid: 7038165417835889320
+    - rid: 5692500827330576688
+    - rid: 5692500827330576689
+    - rid: 5692500827330576690
+    - rid: 5692500827330576691
     weightProcessors: []
-    SelectedIKProcessor: 0
+    SelectedIKProcessor: 1
     LerpWeight: 0
     OnWeightChanged:
       m_PersistentCalls:
@@ -305,16 +308,17 @@ MonoBehaviour:
     active: 1
     EnableTime: 0.15
     DisableTime: 0.15
+    Gizmos: 0
     weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
     aimer: {fileID: 0}
     IKProcesors:
-    - rid: 7038165417835889321
-    - rid: 7038165417835889322
+    - rid: 5692500827330576692
+    - rid: 5692500827330576693
     weightProcessors:
-    - rid: 7038165417835889323
-    SelectedIKProcessor: 0
+    - rid: 5692500827330576694
+    SelectedIKProcessor: 1
     LerpWeight: 5
     OnWeightChanged:
       m_PersistentCalls:
@@ -412,18 +416,20 @@ MonoBehaviour:
     active: 1
     EnableTime: 0.25
     DisableTime: 0.25
+    Gizmos: 0
     weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
     aimer: {fileID: 0}
     IKProcesors:
-    - rid: 7038165417835889324
-    - rid: 7038165417835889325
-    - rid: 7038165417835889326
-    - rid: 7038165417835889327
+    - rid: 5692500827330576695
+    - rid: 5692500827330576696
+    - rid: 5692500827330576697
+    - rid: 5692500827330576698
+    - rid: 5692500827330576699
     weightProcessors:
-    - rid: 7038165417835889328
-    SelectedIKProcessor: 3
+    - rid: 5692500827330576700
+    SelectedIKProcessor: 4
     LerpWeight: 5
     OnWeightChanged:
       m_PersistentCalls:
@@ -521,14 +527,15 @@ MonoBehaviour:
     active: 1
     EnableTime: 0.25
     DisableTime: 0.25
+    Gizmos: 0
     weight: 1
     Targets: []
     ClearTargetsOnDisable: 0
     aimer: {fileID: 0}
     IKProcesors:
-    - rid: 7038165417835889329
+    - rid: 5692500827330576701
     weightProcessors:
-    - rid: 7038165417835889330
+    - rid: 5692500827330576702
     SelectedIKProcessor: 0
     LerpWeight: 5
     OnWeightChanged:
@@ -589,11 +596,11 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   EditorTabs: 0
-  SelectedSet: 0
+  SelectedSet: 2
   references:
     version: 2
     RefIds:
-    - rid: 7038165417835889309
+    - rid: 5692500827330576680
       type: {class: IKGenericLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Neck Look At
@@ -615,8 +622,7 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 0
-        Gizmos: 1
-    - rid: 7038165417835889310
+    - rid: 5692500827330576681
       type: {class: IKGenericLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Head Look At
@@ -638,8 +644,7 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 0
-        Gizmos: 1
-    - rid: 7038165417835889311
+    - rid: 5692500827330576682
       type: {class: WeightLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1
@@ -652,10 +657,9 @@ MonoBehaviour:
         upVector: 1
         LocalUp: {x: 0, y: 1, z: 0}
         WorldUp: {fileID: 0}
-        showGizmos: 1
         GizmoRadius: 1
         GizmoColor: {r: 0, g: 1, b: 0, a: 1}
-    - rid: 7038165417835889312
+    - rid: 5692500827330576683
       type: {class: WeightAnimParam, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1
@@ -663,7 +667,7 @@ MonoBehaviour:
         Parameter: LookAt
         normalizedBy: 1
         AnimParamHash: 1274512349
-    - rid: 7038165417835889313
+    - rid: 5692500827330576684
       type: {class: IKGenericLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Neck
@@ -685,8 +689,7 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 0
-        Gizmos: 1
-    - rid: 7038165417835889314
+    - rid: 5692500827330576685
       type: {class: IKGenericLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Head
@@ -708,8 +711,7 @@ MonoBehaviour:
         WorldUp: {fileID: 0}
         rotationBlend: 1
         RawAim: 0
-        Gizmos: 1
-    - rid: 7038165417835889315
+    - rid: 5692500827330576686
       type: {class: WeightLookAt, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1
@@ -722,10 +724,9 @@ MonoBehaviour:
         upVector: 1
         LocalUp: {x: 0, y: 1, z: 0}
         WorldUp: {fileID: 0}
-        showGizmos: 1
         GizmoRadius: 1
         GizmoColor: {r: 0, g: 0.2372475, b: 0.6301887, a: 1}
-    - rid: 7038165417835889316
+    - rid: 5692500827330576687
       type: {class: WeightAnimParam, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1
@@ -733,7 +734,7 @@ MonoBehaviour:
         Parameter: LookAt
         normalizedBy: 1
         AnimParamHash: 1274512349
-    - rid: 7038165417835889317
+    - rid: 5692500827330576688
       type: {class: HumanIKGoalOffset, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: ' Right Hand'
@@ -749,18 +750,17 @@ MonoBehaviour:
           active: 0
         Tag: {fileID: 0}
         showIndex: 0
-        LayerIndex: 4
+        LayerIndex: -1
         goal: 3
         RelativeToRoot: 0
         RelativeTo: 8
-        GoalOffset: {x: 20.319431, y: 35.17988, z: -39.913048}
+        GoalOffset: {x: 0.2031943, y: 0.3517988, z: -0.3991305}
         GoalRotation: {x: 295.8234, y: 154.77289, z: 206.53998}
         FixHint: 1
-        HintOffset: {x: 8.353196, y: -17.382711, z: -44.879765}
+        HintOffset: {x: 0.08353196, y: -0.1738271, z: -0.4487976}
         position: 1
         rotation: 1
-        gizmos: 1
-    - rid: 7038165417835889318
+    - rid: 5692500827330576689
       type: {class: HumanIKGoalOffset, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: ' Left Hand'
@@ -776,18 +776,17 @@ MonoBehaviour:
           active: 0
         Tag: {fileID: 0}
         showIndex: 0
-        LayerIndex: 4
+        LayerIndex: -1
         goal: 2
         RelativeToRoot: 0
         RelativeTo: 8
-        GoalOffset: {x: 2.984274, y: 41.01231, z: 45.072605}
-        GoalRotation: {x: 287.66595, y: 11.724675, z: 165.48108}
+        GoalOffset: {x: 0.02984274, y: 0.4101231, z: 0.4507261}
+        GoalRotation: {x: 279.5954, y: 150.58282, z: 32.747375}
         FixHint: 1
-        HintOffset: {x: -12.514511, y: -2.2386293, z: 50.983574}
+        HintOffset: {x: -0.1251451, y: -0.02238629, z: 0.5098357}
         position: 1
         rotation: 1
-        gizmos: 1
-    - rid: 7038165417835889319
+    - rid: 5692500827330576690
       type: {class: HumanIKBoneRotation, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Spine1
@@ -819,8 +818,7 @@ MonoBehaviour:
             invert: 0
           ConstantValue: {x: 0, y: 90, z: -120}
           Variable: {fileID: 0}
-        gizmos: 1
-    - rid: 7038165417835889320
+    - rid: 5692500827330576691
       type: {class: HumanIKBoneRotation, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Chest
@@ -852,8 +850,7 @@ MonoBehaviour:
             invert: 0
           ConstantValue: {x: 180, y: 0, z: 9.55}
           Variable: {fileID: 0}
-        gizmos: 1
-    - rid: 7038165417835889321
+    - rid: 5692500827330576692
       type: {class: HumanIKGoalOffset, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Rigth Hand
@@ -879,8 +876,7 @@ MonoBehaviour:
         HintOffset: {x: 0, y: 0, z: 0}
         position: 1
         rotation: 1
-        gizmos: 1
-    - rid: 7038165417835889322
+    - rid: 5692500827330576693
       type: {class: HumanIKGoalOffset, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Left Hand
@@ -906,8 +902,7 @@ MonoBehaviour:
         HintOffset: {x: 0, y: 0, z: 0}
         position: 1
         rotation: 1
-        gizmos: 1
-    - rid: 7038165417835889323
+    - rid: 5692500827330576694
       type: {class: WeightAnimalState, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1
@@ -928,7 +923,7 @@ MonoBehaviour:
             invert: 0
           ConstantValue: 0
           Variable: {fileID: 0}
-    - rid: 7038165417835889324
+    - rid: 5692500827330576695
       type: {class: HumanIKGoal, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Left Hand
@@ -938,7 +933,7 @@ MonoBehaviour:
         AnimParameter: 
         AnimParameters:
         - IKLeftHand
-        AnimParameterHashes: 
+        AnimParameterHashes: c3f5b50e
         drawConditions: 0
         CheckIf:
           conditions: []
@@ -957,8 +952,7 @@ MonoBehaviour:
         Distance:
           minValue: 0
           maxValue: 0
-        gizmos: 1
-    - rid: 7038165417835889325
+    - rid: 5692500827330576696
       type: {class: HumanIKGoal, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Right Hand
@@ -968,7 +962,7 @@ MonoBehaviour:
         AnimParameter: 
         AnimParameters:
         - IKRightHand
-        AnimParameterHashes: 
+        AnimParameterHashes: 4f332833
         drawConditions: 0
         CheckIf:
           conditions: []
@@ -987,8 +981,7 @@ MonoBehaviour:
         Distance:
           minValue: 0
           maxValue: 0
-        gizmos: 1
-    - rid: 7038165417835889326
+    - rid: 5692500827330576697
       type: {class: HumanIKGoal, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Left Foot
@@ -998,7 +991,7 @@ MonoBehaviour:
         AnimParameter: 
         AnimParameters:
         - IKLeftFoot
-        AnimParameterHashes: 
+        AnimParameterHashes: df8e58e0
         drawConditions: 0
         CheckIf:
           conditions: []
@@ -1017,8 +1010,7 @@ MonoBehaviour:
         Distance:
           minValue: 0
           maxValue: 0
-        gizmos: 1
-    - rid: 7038165417835889327
+    - rid: 5692500827330576698
       type: {class: HumanIKGoal, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: Right Foot
@@ -1028,7 +1020,7 @@ MonoBehaviour:
         AnimParameter: 
         AnimParameters:
         - IKRightFoot
-        AnimParameterHashes: 
+        AnimParameterHashes: 5348c5dd
         drawConditions: 0
         CheckIf:
           conditions: []
@@ -1047,8 +1039,37 @@ MonoBehaviour:
         Distance:
           minValue: 0
           maxValue: 0
-        gizmos: 1
-    - rid: 7038165417835889328
+    - rid: 5692500827330576699
+      type: {class: HumanIKBodyPosition, ns: MalbersAnimations.IK, asm: MalbersAnimations}
+      data:
+        name: BodyPosition
+        Active: 0
+        Weight: 1
+        TargetIndex: 0
+        AnimParameter: 
+        AnimParameters: []
+        AnimParameterHashes: 
+        drawConditions: 0
+        CheckIf:
+          conditions: []
+          active: 0
+        Tag: {fileID: 0}
+        showIndex: 0
+        LayerIndex: 0
+        space: 0
+        Offset:
+          UseConstant: 1
+          UseMember: 0
+          Member:
+            target: {fileID: 0}
+            memberName: 
+            memberKind: 0
+            args: []
+            paramSignature: 
+            invert: 0
+          ConstantValue: {x: 0, y: 0, z: 0}
+          Variable: {fileID: 0}
+    - rid: 5692500827330576700
       type: {class: WeightAnimalState, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1
@@ -1069,7 +1090,7 @@ MonoBehaviour:
             invert: 0
           ConstantValue: 0
           Variable: {fileID: 0}
-    - rid: 7038165417835889329
+    - rid: 5692500827330576701
       type: {class: HumanIKFootGround, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         name: HumanIKFootGround
@@ -1130,9 +1151,8 @@ MonoBehaviour:
         BodyHeightOffset: 0
         SolveKneeHints: 1
         KneeHintWeight: 1
-        ShowGizmos: 1
         ShowRuntimeDebug: 0
-    - rid: 7038165417835889330
+    - rid: 5692500827330576702
       type: {class: WeightAnimalState, ns: MalbersAnimations.IK, asm: MalbersAnimations}
       data:
         Active: 1

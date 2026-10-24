@@ -106,12 +106,17 @@ namespace TextStudio.Editor
                 FindProperty("_worldShadowMode"),
                 "World Shadows",
                 "Alpha Clipped lets world-space Text Studio output cast its final styled silhouette into supported shadow maps. Canvas output is unaffected.");
+            PropertyField exactLayering = CreateField(
+                FindProperty("_exactLayering"),
+                "Exact Layering",
+                "Off draws a style TextMeshPro can express (one solid fill, a round stroke and a distance-field outer shadow at Native source quality) through the text's TextMeshPro material in one pass per glyph, at TextMeshPro's GPU cost; a later glyph's outline or shadow can then cover an earlier glyph where they touch. On keeps Text Studio's exact layered rendering.");
             VisualElement renderingSection = TextStudioInspectorElements.CreateSection(
                 "Rendering",
                 "ts-2d-style-rendering",
                 sourceFieldQuality,
                 painterOrder,
-                worldShadowMode);
+                worldShadowMode,
+                exactLayering);
 
             Label layerHelp = TextStudioInspectorElements.CreateMutedText(
                 "Build the appearance from ordered paint, depth, structure, and motion layers. Open a card to edit only the controls that apply to that treatment.",

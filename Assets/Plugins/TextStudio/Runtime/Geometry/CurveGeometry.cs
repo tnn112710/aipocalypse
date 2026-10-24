@@ -6,6 +6,14 @@ namespace TextStudio.Geometry
 {
     public enum CurveKind : byte { Line, Quadratic, Cubic }
 
+    /// <summary>A subdivision endpoint and its parameter on the original segment.</summary>
+    public readonly struct CurveSample
+    {
+        public Vector2 Position { get; }
+        public float Parameter { get; }
+        internal CurveSample(Vector2 position, float parameter) { Position = position; Parameter = parameter; }
+    }
+
     /// <summary>An immutable canonical Bezier segment in a caller-defined coordinate space.</summary>
     public readonly struct CurveSegment
     {
@@ -110,10 +118,51 @@ namespace TextStudio.Geometry
         {
             if (output == null) throw new ArgumentNullException(nameof(output));
             if (!float.IsFinite(tolerance) || tolerance <= 0) throw new ArgumentOutOfRangeException(nameof(tolerance));
-            Subdivide(in this, output, tolerance * tolerance, 0, maximumSegments);
+            PointSampleOutput sink = new PointSampleOutput(output);
+            Subdivide(in this, ref sink, tolerance * tolerance, 0, maximumSegments, 0f, 1f);
         }
 
-        static void Subdivide(in CurveSegment curve, List<Vector2> output, float toleranceSquared, int depth, int maximum)
+        /// <summary>
+        /// Appends the start and every subdivision endpoint without positional deduplication.
+        /// Segment boundaries and zero-length samples are preserved for explicit attributed cleanup.
+        /// Both flattening APIs use the same subdivision kernel and segment budget convention.
+        /// </summary>
+        public void FlattenSamples(List<CurveSample> output, float tolerance, int maximumSegments = 65536)
+        {
+            if (output == null) throw new ArgumentNullException(nameof(output));
+            if (!float.IsFinite(tolerance) || tolerance <= 0) throw new ArgumentOutOfRangeException(nameof(tolerance));
+            if (maximumSegments < 2 || output.Count >= maximumSegments - 1)
+                throw new InvalidOperationException("Curve flattening exceeded its sample budget.");
+            output.Add(new CurveSample(Start, 0f));
+            AttributedSampleOutput sink = new AttributedSampleOutput(output);
+            Subdivide(in this, ref sink, tolerance * tolerance, 0, maximumSegments, 0f, 1f);
+        }
+
+        interface ICurveSampleOutput
+        {
+            int Count { get; }
+            void Add(Vector2 point, float parameter);
+        }
+
+        readonly struct PointSampleOutput : ICurveSampleOutput
+        {
+            readonly List<Vector2> _output;
+            internal PointSampleOutput(List<Vector2> output) { _output = output; }
+            public int Count => _output.Count;
+            public void Add(Vector2 point, float parameter) => AppendDistinct(_output, point);
+        }
+
+        readonly struct AttributedSampleOutput : ICurveSampleOutput
+        {
+            readonly List<CurveSample> _output;
+            internal AttributedSampleOutput(List<CurveSample> output) { _output = output; }
+            public int Count => _output.Count;
+            public void Add(Vector2 point, float parameter) => _output.Add(new CurveSample(point, parameter));
+        }
+
+        static void Subdivide<TOutput>(in CurveSegment curve, ref TOutput output, float toleranceSquared,
+            int depth, int maximum, float parameterStart, float parameterEnd)
+            where TOutput : struct, ICurveSampleOutput
         {
             if (output.Count >= maximum) throw new InvalidOperationException("Curve flattening exceeded its segment budget.");
             float error = curve.Kind == CurveKind.Line ? 0 : DistanceToSegmentSquared(curve.Control1, curve.Start, curve.End);
@@ -121,10 +170,11 @@ namespace TextStudio.Geometry
                 error = Mathf.Max(error, DistanceToSegmentSquared(curve.Control2, curve.Start, curve.End));
             if (error <= toleranceSquared)
             {
-                AppendDistinct(output, curve.End);
+                output.Add(curve.End, parameterEnd);
                 return;
             }
             if (depth >= 24) throw new InvalidOperationException("Curve tolerance exceeds the supported subdivision precision.");
+            float parameterMiddle = (parameterStart + parameterEnd) * 0.5f;
             Vector2 a = (curve.Start + curve.Control1) * .5f;
             if (curve.Kind == CurveKind.Quadratic)
             {
@@ -132,8 +182,8 @@ namespace TextStudio.Geometry
                 Vector2 mid = (a + b) * .5f;
                 CurveSegment left = Quadratic(curve.Start, a, mid);
                 CurveSegment right = Quadratic(mid, b, curve.End);
-                Subdivide(in left, output, toleranceSquared, depth + 1, maximum);
-                Subdivide(in right, output, toleranceSquared, depth + 1, maximum);
+                Subdivide(in left, ref output, toleranceSquared, depth + 1, maximum, parameterStart, parameterMiddle);
+                Subdivide(in right, ref output, toleranceSquared, depth + 1, maximum, parameterMiddle, parameterEnd);
             }
             else
             {
@@ -144,8 +194,8 @@ namespace TextStudio.Geometry
                 Vector2 mid = (d + e) * .5f;
                 CurveSegment left = Cubic(curve.Start, a, d, mid);
                 CurveSegment right = Cubic(mid, e, c, curve.End);
-                Subdivide(in left, output, toleranceSquared, depth + 1, maximum);
-                Subdivide(in right, output, toleranceSquared, depth + 1, maximum);
+                Subdivide(in left, ref output, toleranceSquared, depth + 1, maximum, parameterStart, parameterMiddle);
+                Subdivide(in right, ref output, toleranceSquared, depth + 1, maximum, parameterMiddle, parameterEnd);
             }
         }
 

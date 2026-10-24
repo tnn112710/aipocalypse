@@ -300,6 +300,51 @@ namespace TextStudio
             _renderProperties = renderProperties;
         }
 
+        /// <summary>
+        /// The context the unit constructor followed by <see cref="WithSpatialSource"/> produces, written in one construction:
+        /// a per-glyph evaluation otherwise builds the base context only to copy and patch it.
+        /// </summary>
+        internal static EffectEvaluationContext CreateSpatial(
+            int glyphIndex, int totalGlyphs,
+            int wordIndex, int lineIndex,
+            AnimationPhase phase, float phaseProgress,
+            float time, float playbackTime, float deltaTime,
+            float normalizedIndex,
+            in TextStudioEffectUnitContext unit,
+            UnityEngine.Vector3 sourcePosition,
+            UnityEngine.Vector3 sourceTextNormalizedPosition,
+            UnityEngine.Color sourceColor,
+            bool hasSourceColor,
+            UnityEngine.Vector3 spatialPosition,
+            UnityEngine.Vector3 worldPosition,
+            in TextStudioGlyphVisualBounds sourceAreaBounds,
+            bool hasSourceAreaBounds,
+            float effectUnitScale)
+        {
+            return new EffectEvaluationContext(
+                glyphIndex,
+                totalGlyphs,
+                wordIndex,
+                lineIndex,
+                phase,
+                phaseProgress,
+                time,
+                playbackTime,
+                deltaTime,
+                normalizedIndex,
+                in unit,
+                phase == AnimationPhase.Persistent,
+                sourcePosition,
+                sourceTextNormalizedPosition,
+                sourceColor,
+                hasSourceColor,
+                spatialPosition,
+                worldPosition,
+                sourceAreaBounds: sourceAreaBounds,
+                hasSourceAreaBounds: hasSourceAreaBounds,
+                effectUnitScale: effectUnitScale);
+        }
+
         internal EffectEvaluationContext WithSpatialPositions(
             UnityEngine.Vector3 source,
             UnityEngine.Vector3 spatial,

@@ -1127,7 +1127,28 @@ namespace TextStudio.BuiltIns
             if (envelope <= 0f)
                 return;
 
-            float phase = ctx.time * speed - ctx.unitIndex * stagger;
+            ApplyBounce(ref state, ctx.time, ctx.unitIndex, envelope);
+        }
+
+        internal override bool SupportsTransitionFastPath => true;
+
+        // Reveal and Hide phases have a full envelope, so only time and unit index remain.
+        internal override void EvaluateTransitionFast(
+            ref EvaluatedGlyphState state,
+            AnimationPhase phase,
+            float phaseProgress,
+            float time,
+            float playbackTime,
+            int unitIndex,
+            float normalizedIndex)
+        {
+            ApplyBounce(ref state, time, unitIndex, 1f);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ApplyBounce(ref EvaluatedGlyphState state, float time, int unitIndex, float envelope)
+        {
+            float phase = time * speed - unitIndex * stagger;
             float u = Mathf.Repeat(phase, 1f);
             Vector2 axis = BuiltInEffectMath.NormalizeDirection(direction);
             float offset = Mathf.Abs(BuiltInEffectMath.FastSin(u * Mathf.PI)) * height * envelope;
@@ -1633,17 +1654,37 @@ namespace TextStudio.BuiltIns
 
         public override void Evaluate(ref EvaluatedGlyphState state, in EffectEvaluationContext ctx)
         {
-            if (ctx.phase == AnimationPhase.Appearance)
+            ApplyPop(ref state, ctx.phase, ctx.phaseProgress);
+        }
+
+        internal override bool SupportsTransitionFastPath => true;
+
+        internal override void EvaluateTransitionFast(
+            ref EvaluatedGlyphState state,
+            AnimationPhase phase,
+            float phaseProgress,
+            float time,
+            float playbackTime,
+            int unitIndex,
+            float normalizedIndex)
+        {
+            ApplyPop(ref state, phase, phaseProgress);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ApplyPop(ref EvaluatedGlyphState state, AnimationPhase phase, float phaseProgress)
+        {
+            if (phase == AnimationPhase.Appearance)
             {
-                float t = Mathf.Clamp01(ctx.phaseProgress);
+                float t = Mathf.Clamp01(phaseProgress);
                 float scale = Mathf.Lerp(startScale, 1f, t) +
                               BuiltInEffectMath.FastSin(t * Mathf.PI) * overshoot;
                 state.scale *= Mathf.Max(0f, scale);
                 state.alpha *= t;
             }
-            else if (ctx.phase == AnimationPhase.Disappearance)
+            else if (phase == AnimationPhase.Disappearance)
             {
-                float t = 1f - Mathf.Clamp01(ctx.phaseProgress);
+                float t = 1f - Mathf.Clamp01(phaseProgress);
                 state.scale *= Mathf.Lerp(startScale, 1f, t);
                 state.alpha *= t;
             }
@@ -1675,6 +1716,21 @@ namespace TextStudio.BuiltIns
                 return;
 
             ApplyFloat(ref state, ctx.time, ctx.normalizedIndex, envelope);
+        }
+
+        internal override bool SupportsTransitionFastPath => true;
+
+        // Reveal and Hide phases have a full envelope.
+        internal override void EvaluateTransitionFast(
+            ref EvaluatedGlyphState state,
+            AnimationPhase phase,
+            float phaseProgress,
+            float time,
+            float playbackTime,
+            int unitIndex,
+            float normalizedIndex)
+        {
+            ApplyFloat(ref state, time, normalizedIndex, 1f);
         }
 
         internal override void EvaluatePersistentFast(
@@ -1815,22 +1871,59 @@ namespace TextStudio.BuiltIns
 
         public override void Evaluate(ref EvaluatedGlyphState state, in EffectEvaluationContext ctx)
         {
+            if (ctx.phase != AnimationPhase.Persistent)
+            {
+                ApplyTransition(ref state, ctx.phase, ctx.phaseProgress);
+                return;
+            }
+
+            if (_hasColorOverride)
+            {
+                float weight = BuiltInEffectTiming.EvaluateActivePlayback(
+                    playback,
+                    in ctx,
+                    duration);
+                state.BlendColor(
+                    color,
+                    TextAnimatorStateCompatibility.ParseColorMode(mode),
+                    Mathf.Clamp01(weight));
+                return;
+            }
+
+            float playbackProgress = BuiltInEffectTiming.EvaluateActivePlayback(
+                playback,
+                in ctx,
+                duration);
+            state.alpha *= Mathf.Lerp(minAlpha, maxAlpha, playbackProgress);
+        }
+
+        internal override bool SupportsTransitionFastPath => true;
+
+        internal override void EvaluateTransitionFast(
+            ref EvaluatedGlyphState state,
+            AnimationPhase phase,
+            float phaseProgress,
+            float time,
+            float playbackTime,
+            int unitIndex,
+            float normalizedIndex)
+        {
+            ApplyTransition(ref state, phase, phaseProgress);
+        }
+
+        // Every phase but Active: a color override blends by phase progress and other phases leave its weight at zero.
+        void ApplyTransition(ref EvaluatedGlyphState state, AnimationPhase phase, float phaseProgress)
+        {
             if (_hasColorOverride)
             {
                 float weight;
-                switch (ctx.phase)
+                switch (phase)
                 {
                     case AnimationPhase.Appearance:
-                        weight = 1f - Mathf.Clamp01(ctx.phaseProgress);
+                        weight = 1f - Mathf.Clamp01(phaseProgress);
                         break;
                     case AnimationPhase.Disappearance:
-                        weight = Mathf.Clamp01(ctx.phaseProgress);
-                        break;
-                    case AnimationPhase.Persistent:
-                        weight = BuiltInEffectTiming.EvaluateActivePlayback(
-                            playback,
-                            in ctx,
-                            duration);
+                        weight = Mathf.Clamp01(phaseProgress);
                         break;
                     default:
                         weight = 0f;
@@ -1844,20 +1937,13 @@ namespace TextStudio.BuiltIns
                 return;
             }
 
-            switch (ctx.phase)
+            switch (phase)
             {
                 case AnimationPhase.Appearance:
-                    state.alpha *= Mathf.Lerp(minAlpha, maxAlpha, Mathf.Clamp01(ctx.phaseProgress));
+                    state.alpha *= Mathf.Lerp(minAlpha, maxAlpha, Mathf.Clamp01(phaseProgress));
                     break;
                 case AnimationPhase.Disappearance:
-                    state.alpha *= Mathf.Lerp(maxAlpha, minAlpha, Mathf.Clamp01(ctx.phaseProgress));
-                    break;
-                case AnimationPhase.Persistent:
-                    float playbackProgress = BuiltInEffectTiming.EvaluateActivePlayback(
-                        playback,
-                        in ctx,
-                        duration);
-                    state.alpha *= Mathf.Lerp(minAlpha, maxAlpha, playbackProgress);
+                    state.alpha *= Mathf.Lerp(maxAlpha, minAlpha, Mathf.Clamp01(phaseProgress));
                     break;
             }
         }

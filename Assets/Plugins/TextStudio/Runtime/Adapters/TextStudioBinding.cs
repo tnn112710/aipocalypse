@@ -2564,6 +2564,7 @@ namespace TextStudio
 
         internal void HandleTargetAttachedToPanel()
         {
+            ApplyTextGeneratorPreference();
             SyncReactions();
             RegisterEditorBinding();
             if (_sourceMode == TextStudioBindingSourceMode.Element)
@@ -4252,6 +4253,11 @@ namespace TextStudio
         void ITextStudioPreviewHost.CancelPreviewInvocationInternal()
         {
             _runtime.CancelPreviewInvocation();
+        }
+
+        // Bindings never park outside a scheduler loop.
+        void ITextStudioPreviewHost.PreviewTookPlaybackInternal()
+        {
         }
     }
 

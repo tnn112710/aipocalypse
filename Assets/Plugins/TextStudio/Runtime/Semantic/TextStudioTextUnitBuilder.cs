@@ -203,6 +203,80 @@ namespace TextStudio
             plan.IdentityUnitCount = 0;
         }
 
+        /// <summary>
+        /// Builds the units of resolved text that starts with the text the plan's current units cover,
+        /// <paramref name="previousTextLength"/> characters, for which the source map before
+        /// <paramref name="mappedLength"/> is unchanged. A unit's end depends only on the characters from its start on, so
+        /// every unit but the last keeps its extent; units from the last one, or from the one holding the first remapped
+        /// character, are built again with the same steps as <see cref="Build(TextStudioCompiledPlan, IReadOnlyList{int})"/>.
+        /// Returns false when the last unit grew into the appended text, which moves an earlier unit boundary; the plan
+        /// then needs <see cref="Build(TextStudioCompiledPlan, IReadOnlyList{int})"/>.
+        /// </summary>
+        internal static bool TryBuildAppended(
+            TextStudioCompiledPlan plan,
+            System.Collections.Generic.IReadOnlyList<int> resolvedSourceIndices,
+            int previousTextLength,
+            int mappedLength,
+            out int rebuiltFrom,
+            out int keptUnitCount)
+        {
+            rebuiltFrom = 0;
+            keptUnitCount = 0;
+            string text = plan.ResolvedText ?? string.Empty;
+            int textLength = text.Length;
+            int previousUnitCount = plan.TextUnitCount;
+            TextStudioTextUnit[] units = plan.TextUnits;
+            int[] charToUnit = plan.ResolvedCharToTextUnitIndex;
+            if (textLength < previousTextLength || mappedLength > previousTextLength ||
+                previousUnitCount <= 0 || previousTextLength <= 0 ||
+                units == null || charToUnit == null || charToUnit.Length < previousTextLength ||
+                units[previousUnitCount - 1].ResolvedEnd != previousTextLength)
+            {
+                return false;
+            }
+
+            int firstUnit = previousUnitCount - 1;
+            if (mappedLength < previousTextLength)
+                firstUnit = Math.Min(firstUnit, charToUnit[mappedLength]);
+            rebuiltFrom = units[firstUnit].resolvedStart;
+            keptUnitCount = firstUnit;
+            units = TextStudioBufferCapacity.EnsureKeeping(units, textLength, firstUnit);
+            charToUnit = TextStudioBufferCapacity.EnsureKeeping(charToUnit, textLength, rebuiltFrom);
+
+            int unitCount = firstUnit;
+            int index = rebuiltFrom;
+            bool asciiIdentity = IsAsciiIdentityText(text, rebuiltFrom);
+            int properties = -1;
+            bool keepsPreviousEnd = false;
+            while (index < textLength)
+            {
+                int start = index;
+                index = asciiIdentity ? start + 1 : TextStudioTextUnitBoundary.GetUnitEnd(text, start, ref properties);
+                if (index == previousTextLength)
+                    keepsPreviousEnd = true;
+
+                int sourceStart = ResolveSourceStart(resolvedSourceIndices, start);
+                int sourceEnd = ResolveSourceEnd(resolvedSourceIndices, start, index);
+                units[unitCount] = new TextStudioTextUnit(
+                    unitCount,
+                    start,
+                    index - start,
+                    sourceStart,
+                    Math.Max(0, sourceEnd - sourceStart));
+
+                for (int c = start; c < index; c++)
+                    charToUnit[c] = unitCount;
+
+                unitCount++;
+            }
+
+            plan.TextUnits = units;
+            plan.TextUnitCount = unitCount;
+            plan.ResolvedCharToTextUnitIndex = charToUnit;
+            plan.IdentityUnitCount = 0;
+            return keepsPreviousEnd;
+        }
+
         static int ResolveSourceStart(System.Collections.Generic.IReadOnlyList<int> sourceIndices, int resolvedStart)
         {
             return sourceIndices != null &&

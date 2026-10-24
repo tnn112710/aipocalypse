@@ -67,6 +67,16 @@ namespace TextStudio
         // Spans that UnitsEqual rejects get a side-specific key that never matches the other side.
         static int GetGlyphKey(TextStudioCompiledPlan plan, int unitIndex, int invalidKey)
         {
+            if (plan.TextUnits != null && unitIndex >= 0 && unitIndex < plan.TextUnitCount &&
+                plan.TextUnits[unitIndex].isSourceAtom)
+            {
+                ReadOnlySpan<char> identity = plan.GetUnitIdentitySpan(unitIndex);
+                if (identity.IsEmpty) return invalidKey;
+                uint atomHash = 2166136261u;
+                foreach (char character in identity)
+                    atomHash = (atomHash ^ character) * 16777619u;
+                return FirstClusterKey + (int)(atomHash & 0x3FFFFFFFu);
+            }
             int resolvedStart = plan.GetResolvedStart(unitIndex);
             int length = plan.GetResolvedLength(unitIndex);
             string text = plan.ResolvedText ?? string.Empty;

@@ -48,6 +48,10 @@ namespace TextStudio
             ColorsEqual(BottomLeft, TopRight) &&
             ColorsEqual(BottomLeft, BottomRight);
 
+        internal bool IsOpaqueWhite =>
+            ColorsEqual(BottomLeft, s_white) && ColorsEqual(TopLeft, s_white) &&
+            ColorsEqual(TopRight, s_white) && ColorsEqual(BottomRight, s_white);
+
         public bool IsInitialized =>
             !ColorsEqual(BottomLeft, default) ||
             !ColorsEqual(TopLeft, default) ||
@@ -110,6 +114,13 @@ namespace TextStudio
             Color top = Color.Lerp((Color)TopLeft, (Color)TopRight, x);
             return (Color32)Color.Lerp(bottom, top, y);
         }
+
+        // Sample(0.5f, 0.5f): a uniform quad returns its color unchanged, because lerping equal colors and converting
+        // b / 255f back through Round(Clamp01(c) * 255f) reproduces every byte exactly.
+        internal Color32 SampleCenter()
+        {
+            return IsUniform ? BottomLeft : Sample(0.5f, 0.5f);
+        }
     }
 
     /// <summary>
@@ -146,6 +157,7 @@ namespace TextStudio
         }
     }
 
+    /// <summary>Flags whether a glyph instance is visible, needs an update, or is controlled by simulation.</summary>
     [Flags]
     public enum GlyphInstanceFlags : byte
     {
@@ -220,8 +232,9 @@ namespace TextStudio
                 : 0;
             EnsureCapacity(safeCount);
             _count = safeCount;
-            for (int i = 0; i < safeCount; i++)
-                _states[i] = source[i];
+            // One block copy; per-glyph indexer reads copy each several-hundred-byte state twice.
+            if (safeCount > 0)
+                Array.Copy(source.Items, 0, _states, 0, safeCount);
         }
 
         public void Build(
@@ -307,39 +320,53 @@ namespace TextStudio
                 TextStudioGlyphColorQuad sourceColor = sourceColors != null && i < sourceColors.Length
                     ? sourceColors[i]
                     : TextStudioGlyphColorQuad.White;
-                TextStudioGlyphColorQuad vertexColors = sourceColor.Resolve(in state);
-                Color32 color = vertexColors.Sample(0.5f, 0.5f);
+                // A uniform source, the common case, resolves its one color once: equal corners resolve equally, and the
+                // center sample of a uniform quad is its color (SampleCenter).
+                TextStudioGlyphColorQuad vertexColors;
+                Color32 color;
+                if (sourceColor.IsUniform)
+                {
+                    color = state.ResolveColor(sourceColor.BottomLeft);
+                    vertexColors = TextStudioGlyphColorQuad.Uniform(color);
+                }
+                else
+                {
+                    vertexColors = sourceColor.Resolve(in state);
+                    color = vertexColors.SampleCenter();
+                }
 
                 GlyphInstanceFlags flags = GlyphInstanceFlags.Visible;
                 if (allDirty || dirty.IsDirty(i)) flags |= GlyphInstanceFlags.Dirty;
                 if (state.alpha <= 0.0001f) flags &= ~GlyphInstanceFlags.Visible;
 
-                _states[i] = new TextStudioGlyphInstanceState
-                {
-                    glyphIndex = i,
-                    resolvedStart = plan != null ? textUnit.resolvedStart : i,
-                    resolvedLength = plan != null ? textUnit.resolvedLength : 1,
-                    sourceStart = plan != null ? textUnit.sourceStart : i,
-                    sourceLength = plan != null ? textUnit.sourceLength : 1,
-                    basePosition = basePosition,
-                    placedPosition = placedPosition,
-                    position = position,
-                    rotation = rotation,
-                    scale = scale,
-                    skew = state.skew,
-                    pivotOffset = state.pivotOffset,
-                    cornerOffsets = TextStudioCornerOffsets.Scale(in state.cornerOffsets, effectUnitScale),
-                    uvOffset = state.uvOffset,
-                    velocity = Vector3.zero,
-                    angularVelocity = Vector3.zero,
-                    color = color,
-                    alpha = Mathf.Clamp01(state.alpha),
-                    phase = state.currentPhase,
-                    phaseProgress = state.phaseProgress,
-                    renderChannels = state.renderChannels,
-                    vertexColors = vertexColors,
-                    flags = flags
-                };
+                // Written in place: an object initializer builds the several-hundred-byte state in a temporary and copies it.
+                ref TextStudioGlyphInstanceState destination = ref _states[i];
+                destination = default;
+                destination.glyphIndex = i;
+                destination.resolvedStart = plan != null ? textUnit.resolvedStart : i;
+                destination.resolvedLength = plan != null ? textUnit.resolvedLength : 1;
+                destination.sourceStart = plan != null ? textUnit.sourceStart : i;
+                destination.sourceLength = plan != null ? textUnit.sourceLength : 1;
+                destination.basePosition = basePosition;
+                destination.placedPosition = placedPosition;
+                destination.position = position;
+                destination.rotation = rotation;
+                destination.scale = scale;
+                destination.skew = state.skew;
+                destination.pivotOffset = state.pivotOffset;
+                destination.cornerOffsets = TextStudioCornerOffsets.Scale(in state.cornerOffsets, effectUnitScale);
+                destination.uvOffset = state.uvOffset;
+                destination.velocity = Vector3.zero;
+                destination.angularVelocity = Vector3.zero;
+                destination.color = color;
+                destination.alpha = Mathf.Clamp01(state.alpha);
+                destination.phase = state.currentPhase;
+                destination.phaseProgress = state.phaseProgress;
+                // Source tint remains active even when an animation already declares another render channel.
+                destination.renderChannels = state.renderChannels | (sourceColor.IsOpaqueWhite
+                    ? TextStudioRenderChannels.None : TextStudioRenderChannels.Color);
+                destination.vertexColors = vertexColors;
+                destination.flags = flags;
             }
         }
     }

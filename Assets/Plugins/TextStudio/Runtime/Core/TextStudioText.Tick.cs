@@ -16,6 +16,32 @@ namespace TextStudio
             new ProfilerMarker("Text Studio Evaluation");
         static readonly ProfilerMarker DispatchProfilerMarker =
             new ProfilerMarker("Text Studio Dispatch");
+        // Development players and the Editor record these; release players compile the scopes out. They attribute the
+        // stage measurements above and the hub work between them.
+        static readonly ProfilerMarker TickProfilerMarker =
+            new ProfilerMarker("Text Studio Tick");
+        static readonly ProfilerMarker SteadyTickProfilerMarker =
+            new ProfilerMarker("Text Studio Steady Tick");
+        static readonly ProfilerMarker ImmediateFlushProfilerMarker =
+            new ProfilerMarker("Text Studio Immediate Flush");
+        static readonly ProfilerMarker TextPullProfilerMarker =
+            new ProfilerMarker("Text Studio Text Pull");
+        static readonly ProfilerMarker BehaviorSyncProfilerMarker =
+            new ProfilerMarker("Text Studio Behavior Sync");
+        static readonly ProfilerMarker BackendPublicationProfilerMarker =
+            new ProfilerMarker("Text Studio Backend Publication");
+        static readonly ProfilerMarker PassThroughProfilerMarker =
+            new ProfilerMarker("Text Studio Pass-Through");
+        static readonly ProfilerMarker PresentProfilerMarker =
+            new ProfilerMarker("Text Studio Present");
+        static readonly ProfilerMarker AppearancePlanProfilerMarker =
+            new ProfilerMarker("Text Studio Appearance Plan");
+        static readonly ProfilerMarker TextChangeProfilerMarker =
+            new ProfilerMarker("Text Studio Text Change");
+        static readonly ProfilerMarker TextChangeCommitProfilerMarker =
+            new ProfilerMarker("Text Studio Text Change Commit");
+        static readonly ProfilerMarker RevealStartProfilerMarker =
+            new ProfilerMarker("Text Studio Reveal Start");
 
         // ─────────────────────────────────────────────────────────────────────
         //  Per-tick loop
@@ -41,42 +67,155 @@ namespace TextStudio
         // Slot in TextStudioHubScheduler while this hub is enabled in Play Mode, otherwise -1.
         [NonSerialized] internal int SchedulerSlot = -1;
 
-        // TextStudioHubScheduler calls this from its LateUpdate for every enabled hub in Play Mode with the frame's deltas.
-        internal void ScheduledLateUpdate(float deltaTime, float unscaledDeltaTime)
+        // Entry of this parked hub's TextMeshProUGUI in TextStudioTMPScaleWatch, otherwise -1.
+        [NonSerialized] internal int TMPScaleWatchSlot = -1;
+
+        // TextStudioHubScheduler calls this from its LateUpdate for every enabled hub in Play Mode with the frame's deltas
+        // and frame count, except while the hub is parked.
+        internal void ScheduledLateUpdate(float deltaTime, float unscaledDeltaTime, int frame)
         {
+            ClockMode clockMode = _timing.ClockMode;
             if (_isIdleSleeping &&
-                ContinueIdleSleep(_timing.ClockMode == ClockMode.Unscaled ? unscaledDeltaTime : deltaTime))
+                ContinueIdleSleep(clockMode == ClockMode.Unscaled ? unscaledDeltaTime : deltaTime))
             {
+                TryPark();
                 return;
             }
-            Tick(HostTime.Step(ref _lastHostTime, Time.frameCount, _timing));
+
+            // Scaled and Unscaled clocks step with the scheduler's frame deltas, as ContinueIdleSleep does; HostTime.Step
+            // reads the same Time values again plus a host time that Tick never reads. Other clocks keep HostTime.Step.
+            TimeStep step = clockMode == ClockMode.Scaled || clockMode == ClockMode.Unscaled
+                ? new TimeStep(
+                    HostTime.ClampDelta(clockMode == ClockMode.Unscaled ? unscaledDeltaTime : deltaTime, _timing.MaxDeltaTime) *
+                    _timing.TimeScale,
+                    0d,
+                    frame)
+                : HostTime.Step(ref _lastHostTime, frame, _timing);
+            _isScheduledTick = true;
+            try
+            {
+                Tick(step);
+            }
+            finally
+            {
+                _isScheduledTick = false;
+            }
         }
 
         DirtyFlags _globalDirtyThisTick;
         bool _isTicking;
+        bool _presentReplacementAfterReveal;
         bool _isIdleSleeping;
+        bool _isParked;
+        // Set while ScheduledLateUpdate's tick runs, up to its PresentationUpdated callback; only scheduled Play Mode ticks run
+        // the steady lane.
+        bool _isScheduledTick;
+        // Set while FlushVisualStateImmediate's tick runs for a scheduled hub, up to its PresentationUpdated callback. Such a
+        // flush is a full tick, so like a scheduled one it may arm the steady lane for the next scheduled tick.
+        bool _isImmediateFlush;
+        // Whether the next scheduled tick may run as TickSteady; Unpark and EndSteadyLane clear it, IsSteadyLaneCurrent
+        // confirms it.
+        bool _steadyLaneArmed;
+        // HostNotificationRevision where the last tick armed or kept the steady lane.
+        uint _steadyRuntimeRevision;
+        // Counts steady ticks for tests and diagnostics.
+        int _steadyTickCountForDebug;
+        Action _unpark;
+        // The dirt an awake tick found where TickInternal decides sleep entry; only IdleSleepBlockerForDebug reads it.
+        DirtyFlags _lastAwakeTickDirtyForDebug;
         bool _hasSyncedBehaviorProfile;
         TextStudioBehaviorProfile _syncedBehaviorProfile;
         uint _syncedBehaviorProfileRevision;
 
         internal bool IsIdleSleepingForDebug => _isIdleSleeping;
+        internal bool IsParkedForDebug => _isParked;
+        internal bool IsSteadyLaneArmedForDebug => _steadyLaneArmed;
+        internal int SteadyTickCountForDebug => _steadyTickCountForDebug;
+        // Whether ticks may skip SyncBehaviorConfiguration (CanUseCachedSettingsForEarlySkip); reads without side effects.
+        internal bool UsesCachedBehaviorSettingsForDebug => CanUseCachedSettingsForEarlySkip();
+        // Frames the TMP bridge applied through RenderPlainFrame.
+        internal int PlainTextFrameCountForDebug => _tmpBridge != null ? _tmpBridge.PlainFrameCountForDebug : 0;
 
-        // Names the first condition that keeps settled text awake, or null while it may sleep.
+        // Names the first condition that keeps the text awake, or null while it sleeps: the inputs of CanSleepWhileIdle, the
+        // cached settings, unobserved text and idle work TickInternal checks before sleep entry, and the effect content
+        // ContinueIdleSleep reads. Canvas payload, camera and polled appearance checks mark dirt, so a text that passes every
+        // check names the dirt its last awake tick found, such as a TMP regeneration it re-presented. Reads without side effects.
         internal string IdleSleepBlockerForDebug
         {
             get
             {
+                if (!Application.isPlaying) return "edit mode";
+                string backend = UsesCustomTextBackend ? CustomTextBackendSleepBlocker() : null;
+                if (backend != null) return backend;
+                if (_hasExternalTextSource) return "external text source";
+                if (!UsesCustomTextBackend && _tmpBridge == null) return "no TMP bridge";
+                if (_timing.ClockMode != ClockMode.Scaled && _timing.ClockMode != ClockMode.Unscaled) return "clock " + _timing.ClockMode;
+                if (NeedsReactionSync()) return "reactions";
+                if (WritingStyle != null) return "writing style";
+                if (_characterSubstitutionPresenter.HasActiveSubstitutions) return "character substitutions";
+                if (!IsSleepingConfigurationCurrent()) return "configuration: " + SleepingConfigurationBlockerForDebug();
+                string cachedSettings = CachedSettingsBlockerForDebug();
+                if (cachedSettings != null) return cachedSettings;
+                if (!IsObservedTextBackendCurrent()) return UsesCustomTextBackend ? "unobserved backend text" : "observed text or font";
+                if (_runtime.Plan == null) return "no compiled plan";
                 if (_runtime.DirtyFlags != DirtyFlags.None) return "dirty " + _runtime.DirtyFlags;
-                if (_runtime.ActiveActionCount > 0) return "actions";
+                string work = IdleWorkBlockerForDebug();
+                if (work != null) return work;
                 if (!_runtime.IsEffectContentCurrent) return "effect content";
-                if (_tmpBridge == null || !_tmpBridge.AreObservedTextAndFontCurrent()) return "observed text or font";
-                if (!IsSleepingConfigurationCurrent()) return "configuration";
-                return CanSleepWhileIdle() ? null : "eligibility";
+                if (_isIdleSleeping) return null;
+                return _lastAwakeTickDirtyForDebug != DirtyFlags.None
+                    ? "last tick ran dirty " + _lastAwakeTickDirtyForDebug
+                    : "settling";
             }
         }
-        internal float PresentationTimeForDebug => _time;
-        internal float PlacementTimeForDebug => _placementTime;
-        internal event Action PresentationUpdated;
+
+        // Names the input CanUseCachedSettingsForEarlySkip rejects, in its order.
+        string CachedSettingsBlockerForDebug()
+        {
+            if (!IsBehaviorProfileSyncCurrent()) return "behavior profile typewriter source";
+            if (_typewriterPreset != null) return "typewriter preset";
+            if (_timings != null) return "typing timings";
+            if (_typewriterRevealEffect != null || _typewriterHideEffect != null) return "typewriter effect asset";
+            if (!string.IsNullOrEmpty(_typewriterRevealEffectExpression) || !string.IsNullOrEmpty(_typewriterHideEffectExpression))
+                return "typewriter effect expression";
+            return null;
+        }
+
+        // Names the work CanSkipIdleTick waits for once the sleeping configuration is current, splitting continuous
+        // evaluation into its sources.
+        string IdleWorkBlockerForDebug()
+        {
+            if (RequiresContinuousEvaluation && !IsRenderingRawExternalOutput)
+            {
+                if (!_runtime.RequiresContinuousEvaluation) return "continuous appearance";
+                if (_runtime.Reveal.HasActiveReveal) return "reveal";
+                if (_runtime.Animator.HasActiveVisibilityTransitions) return "visibility transitions";
+                if (_runtime.HasExternalEffectState) return "external effect state";
+                if (_runtime.HasReactionWork) return "reaction work";
+                return "continuous effects";
+            }
+            if (_runtime.ActiveActionCount > 0) return "actions";
+            if (_placementMode == PlacementMode.Wave || _placementMode == PlacementMode.Spline) return "placement " + _placementMode;
+            if (_preview != null && (_preview.IsPlaying || _preview.IsScrubbing)) return "preview playback";
+            return null;
+        }
+        internal float PresentationTimeForDebug =>
+            _isParked ? TextStudioHubScheduler.ParkedPresentationTime(SchedulerSlot) : _time;
+        internal float PlacementTimeForDebug =>
+            _isParked ? TextStudioHubScheduler.ParkedPlacementTime(SchedulerSlot) : _placementTime;
+        Action _presentationUpdated;
+
+        // Subscribers such as surface groups observe every presentation update, including those of a sleeping hub, so a
+        // subscribed hub sleeps in the scheduler loop instead of parking.
+        internal event Action PresentationUpdated
+        {
+            add
+            {
+                _presentationUpdated += value;
+                Unpark();
+            }
+            remove => _presentationUpdated -= value;
+        }
         int _hiddenGlyphGeometryUsers;
 
         // Surface groups read the TMP quads of hidden source glyphs, so a text they use keeps those quads instead of
@@ -98,20 +237,47 @@ namespace TextStudio
             if (!isActiveAndEnabled || _isTicking || _isValidating)
                 return;
 
+            // A tick reads the clocks a parked hub keeps in its scheduler slot; an awake hub keeps its steady lane.
+            if (_isParked)
+                Unpark();
             _isTicking = true;
             try
             {
-                TickInternal(step);
+                using (TickProfilerMarker.Auto())
+                {
+                    TickInternal(step);
+                    // A callback that replaced the text during the reveal stage ended that pass before presentation. Present the
+                    // replacement with a zero-time pass, as FlushVisualStateImmediate does after a change outside a tick; a further
+                    // replacement during that pass is laid out by the next tick.
+                    if (_presentReplacementAfterReveal)
+                    {
+                        _presentReplacementAfterReveal = false;
+                        TickInternal(new TimeStep(0f, _time, step.Frame));
+                        _presentReplacementAfterReveal = false;
+                    }
+                }
             }
             finally
             {
                 _isTicking = false;
+                // Ticks that PresentationUpdated subscribers start are neither scheduled nor flushes.
+                _isScheduledTick = false;
+                _isImmediateFlush = false;
             }
-            PresentationUpdated?.Invoke();
+            _presentationUpdated?.Invoke();
         }
 
         void TickInternal(in TimeStep step)
         {
+            if (_steadyLaneArmed && _isScheduledTick && IsSteadyLaneCurrent())
+            {
+                using (SteadyTickProfilerMarker.Auto())
+                    TickSteady(step.DeltaTime);
+                return;
+            }
+
+            _steadyLaneArmed = false;
+            _runtime.RefreshTextProjectionBackend(_activeTextBackend as ITextStudioTextProjectionBackend);
             _isIdleSleeping = false;
             float hostDeltaTime = _runtime.ResolvePresentationDeltaTime(step.DeltaTime);
             float dt = _preview != null
@@ -157,6 +323,7 @@ namespace TextStudio
                 _isIdleSleeping = CanSleepWhileIdle();
                 return;
             }
+            _lastAwakeTickDirtyForDebug = _runtime.DirtyFlags;
             if (TryProcessPlacementOnlyTick(
                     dt,
                     canUseCachedSettings,
@@ -174,7 +341,9 @@ namespace TextStudio
             bool isDrivingTextStudioOutput = IsDrivingTextStudioOutput;
 
             // Stage 0: text-source pull (mirror mode).
-            bool pulledText = ProcessTextBackendPull(isDrivingTextBackend);
+            bool pulledText;
+            using (TextPullProfilerMarker.Auto())
+                pulledText = ProcessTextBackendPull(isDrivingTextBackend);
 
             if (CanUseCachedSettingsForEarlySkip() &&
                 (CanSkipIdleTick(pulledText) ||
@@ -183,20 +352,23 @@ namespace TextStudio
                 return;
             }
 
-            SyncBehaviorConfiguration();
+            using (BehaviorSyncProfilerMarker.Auto())
+                SyncBehaviorConfiguration();
 
             if (CanSkipIdleTick(pulledText))
                 return;
             if (CanSkipInvisiblePersistentEffects(isDrivingTextStudioOutput))
                 return;
 
+            // TickSteady resumes the next scheduled tick at this point while nothing the checks above read has changed.
+            _steadyLaneArmed = (_isScheduledTick || _isImmediateFlush) && CanArmSteadyLane();
+            _steadyRuntimeRevision = _runtime.HostNotificationRevision;
             _globalDirtyThisTick = _runtime.DirtyFlags;
 
             // Stage 1: pipeline (text+style → compiled plan).
             if (_runtime.IsDirty(DirtyFlags.Text | DirtyFlags.Style))
             {
                 bool planChanged;
-                using (PipelineProfilerMarker.Auto())
                 using (TextStudioPerformanceDiagnostics.Measure(TextStudioPerformanceStage.Pipeline))
                     planChanged = ProcessPipeline();
                 _runtime.ClearProcessedTextAndStyleDirty();
@@ -234,12 +406,11 @@ namespace TextStudio
                 return;
             }
 
-            if (TryUseUnanimatedTMPPassThrough(
-                    isDrivingTextBackend,
-                    isDrivingTextStudioOutput))
-            {
+            bool usesPassThrough;
+            using (PassThroughProfilerMarker.Auto())
+                usesPassThrough = TryUseUnanimatedTMPPassThrough(isDrivingTextBackend, isDrivingTextStudioOutput);
+            if (usesPassThrough)
                 return;
-            }
 
             // Stage 2: layout.
             bool layoutChanged = _runtime.IsDirty(DirtyFlags.Layout);
@@ -269,6 +440,146 @@ namespace TextStudio
             }
 
             // Stage 3: placement.
+            RunPlacementStage(layoutChanged);
+
+            // Stage 4: reveal tick.
+            uint laidOutSourceVersion = _runtime.Plan != null ? _runtime.Plan.SourceVersion : 0u;
+            if (!Application.isPlaying)
+                _editModeActionRunner.Tick(dt);
+
+            DirtyFlags dirtyBeforeReveal = _runtime.DirtyFlags;
+            float revealDeltaTime = previewStartedDisappear || previewDroveReveal ? 0f : dt;
+            // This tick presents the reveal's own dirt, so it does not end the steady lane.
+            _runtime.TickReveal(revealDeltaTime, !Preview.IsScrubbing && !HasExternalRevealClockOwner, false);
+            _globalDirtyThisTick |= _runtime.DirtyFlags & ~dirtyBeforeReveal;
+            // Completion, marker and wait callbacks can compile replacement text after this pass laid out the previous text.
+            // Presenting that layout over the backend mesh regenerated for the replacement would make the next layout cache
+            // the result as the replacement's source glyphs, so Tick presents the replacement in a follow-up pass instead.
+            if (_runtime.Plan != null && _runtime.Plan.SourceVersion != laidOutSourceVersion)
+            {
+                _presentReplacementAfterReveal = true;
+                return;
+            }
+
+            // Stage 5: presentation pass (addons).
+            UpdatePresentation(dt);
+            _globalDirtyThisTick |= _runtime.DirtyFlags;
+
+            using (PresentProfilerMarker.Auto())
+                PresentEvaluatedFrame(dt, false);
+        }
+
+        // The steady lane: a scheduled tick of animated text whose configuration has not changed since its last full tick
+        // (IsSteadyLaneCurrent). It makes the full tick's state changes in the same order and skips only checks whose
+        // outcome that configuration fixes (CanArmSteadyLane).
+        void TickSteady(float stepDeltaTime)
+        {
+            unchecked { _steadyTickCountForDebug++; }
+            _isIdleSleeping = false;
+            // The preview passes runtime time through (IsRuntimePassThrough), so its effective deltas equal the host delta.
+            float hostDeltaTime = _runtime.ResolvePresentationDeltaTime(stepDeltaTime);
+            _time += hostDeltaTime;
+            _placementTime += hostDeltaTime;
+            // Reactions, appearance, writing, external samples, the TMP font and text, cached settings, placement-only work,
+            // the action runner and the preview leave nothing to do before the pull, and the pull finds no change; it only
+            // confirms a generated write that TMP still holds, such as the text an immediate flush pushed.
+            _lastAwakeTickDirtyForDebug = _runtime.DirtyFlags;
+            _tmpBridge.ConfirmSteadyText();
+            // CanSkipInvisiblePersistentEffects with the steady answers to its conditions: no actions, renderers, character
+            // substitutions, external effects, glyph provider or preview playback.
+            if (_runtime.HasOnlyPersistentEffectEvaluationWithoutExternalEffects &&
+                _placementMode != PlacementMode.Wave &&
+                _placementMode != PlacementMode.Spline &&
+                !TmpBridge.IsVisualOutputEnabled)
+            {
+                return;
+            }
+
+            // SyncBehaviorConfiguration finds every setting applied; its motion policy write still marks the runtime dirty.
+            _runtime.MotionPolicy = _motionPolicy;
+            _steadyRuntimeRevision = _runtime.HostNotificationRevision;
+            _globalDirtyThisTick = _runtime.DirtyFlags;
+
+            // No pipeline, deferred reveal or external effect source work. The last full tick pushed the plan's text, which TMP
+            // still holds (IsSteadyTextCurrent), so PushTextBackend would write nothing, and text that needs per-glyph output
+            // draws no pass-through and lays nothing out.
+            RunPlacementStage(false);
+
+            uint laidOutSourceVersion = _runtime.Plan != null ? _runtime.Plan.SourceVersion : 0u;
+            DirtyFlags dirtyBeforeReveal = _runtime.DirtyFlags;
+            _runtime.TickReveal(hostDeltaTime, !HasExternalRevealClockOwner, false);
+            _globalDirtyThisTick |= _runtime.DirtyFlags & ~dirtyBeforeReveal;
+            if (_runtime.Plan != null && _runtime.Plan.SourceVersion != laidOutSourceVersion)
+            {
+                _presentReplacementAfterReveal = true;
+                return;
+            }
+
+            // UpdatePresentation without presentation glyphs or a glyph provider only ends a time discontinuity.
+            _presentationTimeDiscontinuous = false;
+            _globalDirtyThisTick |= _runtime.DirtyFlags;
+            using (PresentProfilerMarker.Auto())
+                PresentEvaluatedFrame(hostDeltaTime, true);
+        }
+
+        // What the full tick's skipped checks read that changes without notifying the hub, compared before each steady
+        // tick. The runtime reports its changes through HostNotificationRevision, the hub through Unpark and EndSteadyLane.
+        // A destroyed profile resolves like none in SyncBehaviorConfiguration, so its liveness is compared too. Continuous
+        // evaluation, from continuous effects or a running reveal, hide or visibility transition, keeps the idle skip off.
+        bool IsSteadyLaneCurrent()
+        {
+            return _runtime.HostNotificationRevision == _steadyRuntimeRevision &&
+                   _runtime.DirtyFlags == DirtyFlags.None &&
+                   _runtime.IsEffectContentCurrent &&
+                   _runtime.RequiresContinuousEvaluation &&
+                   _layoutInterpolation == null &&
+                   ReferenceEquals(_behaviorProfile, _syncedBehaviorProfile) &&
+                   (_syncedBehaviorProfile is null ||
+                    _syncedBehaviorProfile != null &&
+                    _syncedBehaviorProfile.ReactionSerializationRevision == _syncedBehaviorProfileRevision) &&
+                   _tmpBridge.IsSteadyTextCurrent();
+        }
+
+        // Whether each check TickSteady skips has a fixed outcome until a notification or a polled input changes: the TMP
+        // backend drives the text, nothing is synced, polled or sampled besides IsSteadyLaneCurrent's inputs, settings come
+        // from component fields or a revisioned profile, continuous evaluation keeps the idle skip off, and output needs no
+        // renderer, external effect, glyph provider or preview negotiation. Every condition is a side-effect-free read, so the
+        // field checks come first.
+        bool CanArmSteadyLane()
+        {
+            return _activeTextBackend == null &&
+                   _activeTextSourceBackend == null &&
+                   _activeMeshBackend == null &&
+                   !_hasExternalTextSource &&
+                   _tmpBridge != null &&
+                   _backendWriteHandling != TextStudioBackendWriteHandling.ImportAsSource &&
+                   (_externalEffectSamples == null || _externalEffectSamples.Count == 0) &&
+                   _externalEffectSources.Count == 0 &&
+                   _renderers.Count == 0 &&
+                   _glyphProvider == null &&
+                   _presentationGlyphs == null &&
+                   _layoutInterpolation == null &&
+                   !_startRevealAfterDeferredPipeline &&
+                   _hasAppliedRuntimeSettings &&
+                   _preview != null &&
+                   _preview.IsRuntimePassThrough &&
+                   _runtime.ActiveActionCount == 0 &&
+                   !_runtime.HasExternalEffectState &&
+                   _runtime.RequiresContinuousEvaluation &&
+                   (_compiledAppearancePlan == null || !_compiledAppearancePlan.HasPolledDependencies) &&
+                   !NeedsReactionSync() &&
+                   CanUseCachedSettingsForEarlySkip() &&
+                   !HasPolledAppearance() &&
+                   WritingStyle == null &&
+                   _tmpBridge.IsSteadyTextCurrent();
+        }
+
+        // Changes of steady lane inputs that neither mark the runtime dirty nor unpark the hub end the lane here.
+        void EndSteadyLane() => _steadyLaneArmed = false;
+
+        // Stage 3: placement after a layout or placement change, and every tick for moving placement modes.
+        void RunPlacementStage(bool layoutChanged)
+        {
             bool needPlacement =
                 _runtime.ConsumeDirty(DirtyFlags.Placement) ||
                 _placementMode == PlacementMode.Wave ||
@@ -308,20 +619,12 @@ namespace TextStudio
                 _placementEngine.Clear();
                 _layoutInterpolation?.Reset();
             }
+        }
 
-            // Stage 4: reveal tick.
-            if (!Application.isPlaying)
-                _editModeActionRunner.Tick(dt);
-
-            DirtyFlags dirtyBeforeReveal = _runtime.DirtyFlags;
-            float revealDeltaTime = previewStartedDisappear || previewDroveReveal ? 0f : dt;
-            _runtime.TickReveal(revealDeltaTime, !Preview.IsScrubbing && !HasExternalRevealClockOwner);
-            _globalDirtyThisTick |= _runtime.DirtyFlags & ~dirtyBeforeReveal;
-
-            // Stage 5: presentation pass (addons).
-            UpdatePresentation(dt);
-            _globalDirtyThisTick |= _runtime.DirtyFlags;
-
+        // Stages 6 and 7 and the work after dispatch, shared by the full tick and the steady lane, which runs only in Play
+        // Mode and so never renders raw external output.
+        void PresentEvaluatedFrame(float dt, bool steadyLane)
+        {
             // Stage 6: evaluator.
             bool hasInfluenceTarget = UpdateInfluenceTarget(
                 out Vector3 influenceTargetLocalPosition,
@@ -344,7 +647,7 @@ namespace TextStudio
                 _layout.SourceVisualBounds,
                 _layout.Revision,
                 _layout.EffectUnitScales);
-            bool renderRawWithoutEffects = IsRenderingRawExternalOutput;
+            bool renderRawWithoutEffects = !steadyLane && IsRenderingRawExternalOutput;
             UpdateRendererEffectExecution(
                 _runtime.Plan,
                 renderRawWithoutEffects);
@@ -361,7 +664,7 @@ namespace TextStudio
             using (DispatchProfilerMarker.Auto())
             using (TextStudioPerformanceDiagnostics.Measure(TextStudioPerformanceStage.Dispatch))
             {
-                if (DispatchFrame(dt))
+                if (DispatchFrame(dt, steadyFrame: steadyLane))
                     _runtime.ClearDirty(DirtyFlags.Topology | DirtyFlags.Visual | DirtyFlags.Simulation | DirtyFlags.Appearance | DirtyFlags.Writing);
             }
             _runtime.SampleReactionsAfterPresentation();
@@ -719,17 +1022,37 @@ namespace TextStudio
         }
 
         // An assigned profile keeps cached settings valid until it changes; every serialized or API edit moves its revision.
+        // Its inline typewriter settings resolve from that serialized data alone unless they reference timing or effect assets
+        // or effect expressions, which the component's own inline settings exclude as well.
         bool IsBehaviorProfileSyncCurrent()
         {
             if (_behaviorProfile == null)
                 return true;
 
-            TextStudioTypewriterSource typewriterSource = _behaviorProfile.TypewriterSource;
-            return ReferenceEquals(_syncedBehaviorProfile, _behaviorProfile) &&
-                   _syncedBehaviorProfileRevision == _behaviorProfile.ReactionSerializationRevision &&
-                   (!_behaviorProfile.Provides(TextStudioBehaviorDomain.Typewriter) ||
-                    typewriterSource == TextStudioTypewriterSource.None ||
-                    typewriterSource == TextStudioTypewriterSource.BuiltIn);
+            if (!ReferenceEquals(_syncedBehaviorProfile, _behaviorProfile) ||
+                _syncedBehaviorProfileRevision != _behaviorProfile.ReactionSerializationRevision)
+            {
+                return false;
+            }
+
+            if (!_behaviorProfile.Provides(TextStudioBehaviorDomain.Typewriter))
+                return true;
+
+            ref readonly TextStudioTypewriterRecipe typewriter = ref _behaviorProfile.TypewriterRecipe;
+            switch (typewriter.Source)
+            {
+                case TextStudioTypewriterSource.None:
+                case TextStudioTypewriterSource.BuiltIn:
+                    return true;
+                case TextStudioTypewriterSource.Inline:
+                    return typewriter.InlineSettings.Timings == null &&
+                           typewriter.InlineSettings.RevealEffect == null &&
+                           typewriter.InlineSettings.HideEffect == null &&
+                           string.IsNullOrEmpty(typewriter.InlineSettings.RevealEffectExpression) &&
+                           string.IsNullOrEmpty(typewriter.InlineSettings.HideEffectExpression);
+                default:
+                    return false;
+            }
         }
 
         void RecordBehaviorProfileSync()
@@ -750,15 +1073,18 @@ namespace TextStudio
         }
 
         // A settled hub sleeps while every input its idle tick polls is unchanged. Runtime dirty flags and actions, the effect
-        // content revision, the synced profile and TMP's text and font references wake it; hubs with inputs that are only
-        // polled stay awake. Time advances with Tick's arithmetic, so later frames read the same clocks.
+        // content revision, the synced profile and TMP's text and font references, or a custom backend's sleep blocker and
+        // unpulled text, wake it, and appearance output also runs the settled tick's appearance checks; hubs with inputs that
+        // are only polled otherwise stay awake. Time advances with Tick's arithmetic, so later frames read the same clocks.
         bool ContinueIdleSleep(float deltaTime)
         {
             if (_runtime.DirtyFlags != DirtyFlags.None ||
                 _runtime.ActiveActionCount > 0 ||
                 !_runtime.IsEffectContentCurrent ||
                 !IsSleepingConfigurationCurrent() ||
-                !_tmpBridge.AreObservedTextAndFontCurrent())
+                UsesCustomTextBackend && CustomTextBackendSleepBlocker() != null ||
+                !IsObservedTextBackendCurrent() ||
+                HasPolledAppearance() && !IsPolledAppearanceCurrent())
             {
                 _isIdleSleeping = false;
                 return false;
@@ -770,25 +1096,180 @@ namespace TextStudio
             _placementTime += _preview != null
                 ? _preview.GetEffectivePlacementDeltaTime(hostDeltaTime)
                 : hostDeltaTime;
-            PresentationUpdated?.Invoke();
+            _presentationUpdated?.Invoke();
             return true;
         }
 
         bool CanSleepWhileIdle()
         {
             return Application.isPlaying &&
-                   _tmpBridge != null &&
-                   _activeTextSourceBackend == null &&
-                   !UsesCustomTextBackend &&
+                   (UsesCustomTextBackend ? CustomTextBackendSleepBlocker() == null : _tmpBridge != null) &&
                    !_hasExternalTextSource &&
                    (_timing.ClockMode == ClockMode.Scaled || _timing.ClockMode == ClockMode.Unscaled) &&
                    !NeedsReactionSync() &&
-                   AppearanceSource == TextStudioAppearanceSource.Inline &&
-                   _inlineAppearanceSettings.IsEmpty &&
                    WritingStyle == null &&
                    !_characterSubstitutionPresenter.HasActiveSubstitutions &&
-                   _tmpBridge.AreObservedTextAndFontCurrent() &&
+                   IsObservedTextBackendCurrent() &&
                    IsSleepingConfigurationCurrent();
+        }
+
+        // A custom text backend lets its settled host sleep only through ITextStudioIdleTextBackend, which promises that every
+        // change of its target arrives through Changed or a host rebuild request before the scheduled update.
+        string CustomTextBackendSleepBlocker() =>
+            _activeTextBackend is ITextStudioIdleTextBackend backend ? backend.IdleSleepBlocker : "custom text backend";
+
+        // The backend text a sleeping hub compares: TMP's text and font references, or the custom backend's unpulled text.
+        bool IsObservedTextBackendCurrent() =>
+            UsesCustomTextBackend
+                ? !_activeTextSourceBackend.HasUnobservedTextChange
+                : _tmpBridge.AreObservedTextAndFontCurrent();
+
+        // A cleared Style source draws no appearance, exactly like empty inline settings.
+        bool HasNoAppearanceSource() => AppearanceSource == TextStudioAppearanceSource.Inline
+            ? _inlineAppearanceSettings.IsEmpty
+            : _appearanceStyle == null;
+
+        // Appearance output reads inputs without change events every frame: the paint assets and textures of its styles, its
+        // canvas pose and its camera demand. Styled text parks with those inputs its slot can compare (CaptureParkedAppearance);
+        // text whose inputs need the hub, such as prepared-field camera demand or appearance tags, sleeps in the loop and polls.
+        bool HasPolledAppearance()
+        {
+            if (!HasNoAppearanceSource())
+                return true;
+            CompiledTextStudioAppearancePlan plan = ActiveCompiledAppearancePlan;
+            return plan != null && !plan.IsPassThrough;
+        }
+
+        // The appearance checks of the settled tick, in its order and marking the dirt CanSkipIdleTick marks. Like that check,
+        // the host of a custom text backend polls no TMP canvas payload or camera quality.
+        bool IsPolledAppearanceCurrent()
+        {
+            EnsureAppearanceStyleCurrent();
+            if (_runtime.DirtyFlags != DirtyFlags.None)
+                return false;
+            if (UsesCustomTextBackend)
+                return true;
+            if (_tmpBridge.NeedsCanvasPayloadRefresh())
+            {
+                _runtime.SetDirty(DirtyFlags.Visual);
+                return false;
+            }
+            if (_tmpBridge.NeedsCameraQualityRefresh())
+            {
+                _runtime.SetDirty(DirtyFlags.AppearanceParameters);
+                return false;
+            }
+            return true;
+        }
+
+        // A sleeping hub parks: the scheduler advances its clocks without calling it, and every change of an input
+        // ContinueIdleSleep reads unparks it. Unparking keeps the hub asleep, so its next scheduled update decides through
+        // ContinueIdleSleep exactly as before. PresentationUpdated subscribers keep it polling, TMP types without write
+        // callbacks are probed by the scheduler, and so are the polled appearance inputs of styled text. A custom text backend
+        // that lets its host sleep reports every target change through Changed, which unparks the hub through SetDirty.
+        void TryPark()
+        {
+            if (_isParked || SchedulerSlot < 0 || _presentationUpdated != null)
+                return;
+            TextStudioHubScheduler.ParkedAppearance appearance = default;
+            if (HasPolledAppearance() && CaptureParkedAppearance(out appearance) != null)
+                return;
+
+            _isParked = true;
+            _runtime.UnparkHost = _unpark ??= Unpark;
+            TextStudioHubScheduler.Park(
+                SchedulerSlot,
+                _time,
+                _placementTime,
+                _timing.ClockMode == ClockMode.Unscaled,
+                _timing.MaxDeltaTime,
+                _timing.TimeScale,
+                _runtime.IsAnimationPaused,
+                UsesCustomTextBackend || _tmpBridge.ReportsTMPWrites ? null : _tmpBridge,
+                in appearance);
+            // While parked, the per-frame scale check TMP runs for this TextMeshProUGUI moves to one batched watch. Font writes,
+            // which can give that check an environment map to update, unpark the hub through TMP's layout callback first.
+            TextMeshProUGUI scaleWatchText = UsesCustomTextBackend ? null : _tmpBridge.WriteReportingText;
+            if (!(scaleWatchText is null))
+                TextStudioTMPScaleWatch.Watch(this, scaleWatchText);
+        }
+
+        // Captures what the scheduler slot compares in place of IsPolledAppearanceCurrent, or names the input that keeps this
+        // hub polling in the loop. Exact right after a passing check, which is where TryPark runs: the style revision is the
+        // one EnsureAppearanceStyleCurrent compares, and the Canvas payload inputs are those HaveCanvasPayloadInputs compares.
+        // The plan must poll nothing else, and camera quality must stay unchanged until a tick (HasStaticCameraQuality);
+        // prepared-field demand also follows font data and page availability, which only the hub reads. The settled checks of a
+        // custom text backend's host read only the style revision.
+        internal string CaptureParkedAppearance(out TextStudioHubScheduler.ParkedAppearance appearance)
+        {
+            appearance = default;
+            if (_compiledAppearancePlan != null && _compiledAppearancePlan.HasPolledDependencies) return "appearance tag dependencies";
+            if (!UsesCustomTextBackend)
+            {
+                if (!_tmpBridge.HasStaticCameraQuality) return "camera demand";
+                if (!_tmpBridge.TryCaptureParkedCanvasPayload(ref appearance)) return "canvas pose";
+            }
+            appearance.Active = true;
+            appearance.Inline = AppearanceSource == TextStudioAppearanceSource.Inline && !_inlineAppearanceSettings.IsEmpty;
+            if (appearance.Inline) appearance.InlineSettings = _inlineAppearanceSettings;
+            else appearance.Style = AppearanceStyle;
+            appearance.Revision = _appearanceDependencyRevision;
+            return null;
+        }
+
+        // Names why a sleeping text stays in the scheduler loop, or null while it parks or could park; reads TMP's cached
+        // canvas but changes no hub state.
+        internal string ParkingBlockerForDebug
+        {
+            get
+            {
+                if (_isParked || !_isIdleSleeping) return null;
+                if (_presentationUpdated != null) return "presentation subscribers";
+                return HasPolledAppearance() ? CaptureParkedAppearance(out _) : null;
+            }
+        }
+
+        // The Canvas payload a parked styled text compares belongs to the canvas it parked under. Graphic takes another
+        // canvas only in this message, OnTransformParentChanged, its OnEnable (which reports through TMP's layout callback)
+        // or after that canvas is destroyed, and every component of the object receives the messages.
+        void OnCanvasHierarchyChanged() => Unpark();
+
+        // Animation writes serialized fields such as the appearance source, style and inline settings without their setters
+        // or OnValidate. A parked hub compares only what it parked with, so the write hands it back to its sleep check.
+        void OnDidApplyAnimationProperties() => Unpark();
+
+        // Hands a parked hub back to its sleep check and leaves an awake hub's steady lane armed, for changes the lane polls.
+        internal void UnparkIfParked()
+        {
+            if (_isParked)
+                Unpark();
+        }
+
+        // Called by every change of a sleep input and before every read of the clocks; one branch while not parked. The
+        // steady lane's checks read the same inputs, so every call also ends it.
+        internal void Unpark()
+        {
+            _steadyLaneArmed = false;
+            if (!_isParked)
+                return;
+
+            _isParked = false;
+            _runtime.UnparkHost = null;
+            TextStudioHubScheduler.Unpark(SchedulerSlot, ref _time, ref _placementTime);
+            if (TMPScaleWatchSlot != -1)
+                TextStudioTMPScaleWatch.Release(this);
+        }
+
+        // Names the first sleeping-configuration input that keeps the text awake; mirrors IsSleepingConfigurationCurrent.
+        string SleepingConfigurationBlockerForDebug()
+        {
+            if (_preview != null && !_preview.IsRuntimePassThrough) return "preview playback";
+            if (_renderers.Count != 0) return "renderers";
+            if (_externalEffectSources.Count != 0 || _externalEffectSamples != null && _externalEffectSamples.Count != 0) return "external effects";
+            if (_glyphProvider != null) return "glyph provider";
+            if (_layoutInterpolation != null) return "layout interpolation";
+            if (!ReferenceEquals(_influenceTarget, null)) return "influence target";
+            return "behavior profile";
         }
 
         bool IsSleepingConfigurationCurrent()
@@ -823,6 +1304,8 @@ namespace TextStudio
                 return;
             }
 
+            // A parked hub compares the revision and style it parked with.
+            Unpark();
             CompiledTextStudio2DStyle previous = _compiledAppearanceStyle;
             CompiledTextStudio2DStyle current = hasInline
                 ? TextStudio2DStyleCompiler.Compile(in _inlineAppearanceSettings, TextStudio2DCompileContext.Full)
@@ -859,6 +1342,12 @@ namespace TextStudio
             bool previousPassThrough = previous == null || previous.IsPassThrough;
             bool currentPassThrough = current == null || current.IsPassThrough;
             if (previousPassThrough != currentPassThrough)
+                dirty |= DirtyFlags.Layout;
+            // Layout prepares the payload streams Text Studio's materials read and TextMeshPro's own material does not, so
+            // entering or leaving the TextMeshPro route, also for values its source materials cannot draw, takes effect in the
+            // same update.
+            if (TextStudio2DTextMeshProRoute.IsCandidate(previous) != TextStudio2DTextMeshProRoute.IsCandidate(current) ||
+                _tmpBridge != null && _tmpBridge.LeavesTextMeshProRoute(current, ActiveCompiledAppearancePlan))
                 dirty |= DirtyFlags.Layout;
             _runtime.SetDirty(dirty);
         }
@@ -897,6 +1386,11 @@ namespace TextStudio
                 dirty |= DirtyFlags.WritingRenderState;
             if ((changes & TextStudioStackChange.Bounds) != 0)
                 dirty |= DirtyFlags.WritingBounds;
+            // Writing draws with Text Studio's materials, whose payload streams layout prepares, so it leaves the TextMeshPro
+            // route in the same update.
+            if (_tmpBridge != null && _tmpBridge.UsesTextMeshProRoute &&
+                TextStudioWritingRenderer.RequiresWritingMaterial(_runtime.Plan, current))
+                dirty |= DirtyFlags.Layout;
             _runtime.SetDirty(dirty);
         }
 
@@ -905,7 +1399,19 @@ namespace TextStudio
             if (!isActiveAndEnabled || _isTicking || _runtime.Plan == null)
                 return;
 
-            Tick(new TimeStep(0f, _time, Time.frameCount));
+            // The flush stays an eager full tick, so everything a caller observes before the next scheduled tick is unchanged;
+            // like a scheduled tick it may arm the steady lane, so that tick, such as the same frame's after an emission's
+            // StartReveal, can run TickSteady.
+            _isImmediateFlush = SchedulerSlot >= 0;
+            try
+            {
+                using (ImmediateFlushProfilerMarker.Auto())
+                    Tick(new TimeStep(0f, _time, Time.frameCount));
+            }
+            finally
+            {
+                _isImmediateFlush = false;
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+// Last Change: 10/16/2026 4:31pm
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -33,6 +34,9 @@ namespace MalbersAnimations.IK
 
         private IKSetProfile m;
 
+        /// <summary>Character used to draw this Profile's Processor handles in the Scene view (shared by every Profile inspector, not saved).</summary>
+        private static IKManager PreviewManager;
+
         private void OnEnable()
         {
             m = (IKSetProfile)target;
@@ -41,7 +45,12 @@ namespace MalbersAnimations.IK
             EditorTabs = serializedObject.FindProperty("EditorTabs");
 
             drawer = new IKSetDrawer(m); //No IKManager: this Set lives inside an asset
+
+            SceneView.duringSceneGui += OnPreviewSceneGUI;
         }
+
+        /// <summary>Stops drawing the preview handles.</summary>
+        private void OnDisable() => SceneView.duringSceneGui -= OnPreviewSceneGUI;
 
         public override void OnInspectorGUI()
         {
@@ -51,6 +60,8 @@ namespace MalbersAnimations.IK
             {
                 MalbersEditor.Foldout_Bold(true, m.name, MTools.MBlue * 2, true);
 
+                DrawPreviewField();
+
                 // ── Paste from IKManager clipboard ────────────────────────────────
                 DrawPasteFromClipboardButton();
                 // ─────────────────────────────────────────────────────────────────
@@ -59,6 +70,43 @@ namespace MalbersAnimations.IK
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        /// <summary>Draws the Preview IK Manager field.</summary>
+        private void DrawPreviewField()
+        {
+            using (var cc = new EditorGUI.ChangeCheckScope())
+            {
+                PreviewManager = (IKManager)EditorGUILayout.ObjectField(new GUIContent("Preview",
+                    "Character (IK Manager) used to show the selected Processor's handles in the Scene view while this Profile is selected.\n" +
+                    "Lets you tune the offsets from the asset instead of selecting the Weapon or Item.\n" +
+                    "Edits go to this asset: if the Item uses a Runtime copy of the Profile in Play Mode, disable [Runtime IK] to see them live"),
+                    PreviewManager, typeof(IKManager), true);
+
+                if (cc.changed) SceneView.RepaintAll();
+            }
+        }
+
+        /// <summary>Draws the selected Processor handles of this Profile on the Preview character.</summary>
+        private void OnPreviewSceneGUI(SceneView view)
+        {
+            if (PreviewManager == null || m == null || m.set == null) return;
+
+            var animator = PreviewManager.animator;
+            var set = m.set;
+
+            if (animator == null || !set.active || !set.Gizmos || set.Processors == null) return;
+
+            var index = set.SelectedIKProcessor;
+            if (index < 0 || index >= set.Processors.Count) return;
+
+            var link = set.Processors[index];
+            if (link == null || !link.Active) return;
+
+            //Handles need an Owner for its Scale Multiplier (Initialize only runs in Play Mode; while playing keep the live one)
+            if (!Application.isPlaying || set.Owner == null) set.Owner = PreviewManager;
+
+            link.OnSceneGUI(set, animator, m, index);
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ namespace TextStudio
         static readonly int s_faceDilate = Shader.PropertyToID("_FaceDilate");
         static readonly int s_scaleRatioA = Shader.PropertyToID("_ScaleRatioA");
         static readonly int s_gradientScale = Shader.PropertyToID("_GradientScale");
+        static readonly int s_outlineSoftness = Shader.PropertyToID("_OutlineSoftness");
 
         internal static float NativeFaceOffsetEm(Material material, float pixelsPerEm, bool bold)
         {
@@ -74,6 +75,33 @@ namespace TextStudio
 
         internal static float FieldUnitsPerEm(float pixelsPerEm, float gradientScale) =>
             pixelsPerEm > 0 ? pixelsPerEm / Mathf.Max(.0001f, 2f * gradientScale) : 1f;
+
+        // Predict the replacement material's guaranteed quad padding without changing the source material.
+        // TMP GetPadding applies UpdateShaderRatios before its 1.25-pixel guard; glow and underlay can increase that padding, so omitting them gives a conservative bound for native-field routing.
+        internal static float FusedGeometryPaddingEm(TMP_FontAsset font, Material material, TextStudio2DFieldPaddingTier tier, bool bold)
+        {
+            if (font == null) return 0;
+            if (material == null) material = font.material;
+            if (material == null) return 0;
+            float density = TextStudioGlyphFieldContract.ResolvePixelsPerEm(material, font.faceInfo.pointSize);
+            float gradient = Read(material, s_gradientScale, 0);
+            if (!float.IsFinite(density) || !float.IsFinite(gradient) || density <= 0 || gradient <= 0) return 0;
+            // A current production material may still carry the previous style's larger padding bucket.
+            // Only the requested bucket is guaranteed; a retained native outline can increase support.
+            float outline = TextStudio2DFieldPadding.GetNormalizedCapacity(tier);
+            float softness = Read(material, s_outlineSoftness, 0);
+            float dilation = Read(material, s_faceDilate, 0);
+            float weight = Mathf.Max(Read(material, s_weightNormal, 0), Read(material, s_weightBold, 0)) * .25f;
+            if (weight < 0) return 0;
+            float ratio = material.IsKeywordEnabled(ShaderUtilities.Keyword_Ratios)
+                ? 1f
+                : (gradient - 1f) / (gradient * Mathf.Max(1f, weight + dilation + outline + softness));
+            float padding = Mathf.Clamp01((outline + softness + dilation) * ratio) * gradient + 1.25f;
+            // TMP's style padding consumes the vertical gradient budget even though it expands only X.
+            float stylePadding = (bold ? font.boldStyle : font.normalStyle) * .25f * gradient * ratio;
+            padding = Mathf.Min(padding, gradient - stylePadding);
+            return float.IsFinite(padding) ? Mathf.Max(0f, padding) / density : 0f;
+        }
 
         internal static float PaddingUnitsPerEm(TMP_FontAsset font)
         {

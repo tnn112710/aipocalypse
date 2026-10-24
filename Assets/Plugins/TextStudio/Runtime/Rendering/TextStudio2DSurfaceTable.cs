@@ -125,6 +125,13 @@ namespace TextStudio
             return true;
         }
 
+        internal void CollectActiveGeometriesForTests(List<TextStudio2DSurfaceGeometry> geometries)
+        {
+            geometries.Clear();
+            for (int slot = 1; slot < MaximumSurfaces; slot++)
+                if (_entries[slot]?.Active == true) geometries.Add(_entries[slot].Geometry);
+        }
+
         internal bool IsCurrent(TextStudio2DSurfaceHandle handle) => !_disposed && handle.IsValid && handle.Slot < MaximumSurfaces &&
             ReferenceEquals(handle.Owner, this) &&
             _entries[handle.Slot] != null && _entries[handle.Slot].Active && _entries[handle.Slot].Generation == handle.Generation;
@@ -178,6 +185,9 @@ namespace TextStudio
                     _headers[header] = new Vector4(offset, geometry.Edges.Length, entry.Generation, geometry.PixelProjection.HasValue ? 1 : geometry.NativeInkSources.Length > 0 ? 2 : 0);
                     _headers[header + 1] = geometry.Bounds;
                     _headers[header + 2] = entry.AdjustmentMask;
+                    // A static ink mask names its leading band edges for the lean line program of the decoration shader.
+                    if (geometry.HasInkBand)
+                        _headers[header + 3] = new Vector4(geometry.BandEdgeCount, geometry.InkBand.x, geometry.InkBand.y, 1);
                     if (geometry.PixelProjection.HasValue)
                     {
                         Matrix4x4 projection = geometry.PixelProjection.Value.Matrix;

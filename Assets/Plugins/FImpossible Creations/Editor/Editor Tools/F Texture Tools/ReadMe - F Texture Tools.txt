@@ -1,7 +1,7 @@
 ﻿__________________________________________________________________________________________
 
 Package "F Texture Tools"
-Version 1.1.9.1
+Version 1.1.9.2
 
 Made by FImpossible Creations - Filip Moeglich
 https://assetstore.unity.com/publishers/37262
@@ -63,6 +63,13 @@ Tools In The Package:
 
 
 ______________________________________________________________
+
+Version 1.1.9.2
+- Texture Equalize Window: Added possibility to blend other texture underneath instead of tiling (when Texturize ON and Random Splat OFF)
+- Texture Equalize Window: Changed the math how highlights/shadows are sampled
+- Channel Inserter: Fixed resolution mismatch issues
+- Added menu item to the material "Apply 'TEX_' naming..." which will automatically rename texture files as material + texture property name
+- Fixed warnings for Unity 6000.6+
 
 Version 1.1.9.1
 -F Mesh Painting: Implemented custom brushes feature

@@ -233,21 +233,16 @@ namespace TextStudio.Editor
 
         internal static TMP_FontAsset LoadWritingDisplayFont()
         {
-            string fullRoot = TextStudioPackagePaths.FindFullRoot(
+            string projectRoot = TextStudioPackagePaths.FindAssetRoot(
                 TextStudioPackagePaths.BasePackageName);
-            if (!string.IsNullOrEmpty(fullRoot))
+            if (!string.IsNullOrEmpty(projectRoot))
             {
-                string projectRoot = FileUtil.GetProjectRelativePath(fullRoot)
-                    .Replace('\\', '/');
-                if (!string.IsNullOrEmpty(projectRoot))
-                {
-                    TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<
-                        TMP_FontAsset>(
-                        projectRoot.TrimEnd('/') + "/" +
-                        WritingDisplayFontRelativePath);
-                    if (font != null)
-                        return font;
-                }
+                TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<
+                    TMP_FontAsset>(
+                    projectRoot.TrimEnd('/') + "/" +
+                    WritingDisplayFontRelativePath);
+                if (font != null)
+                    return font;
             }
 
             string[] guids = AssetDatabase.FindAssets(
@@ -268,13 +263,8 @@ namespace TextStudio.Editor
 
         internal static string ResolveProjectRoot()
         {
-            string fullRoot = TextStudioPackagePaths.FindFullRoot(
+            string projectRoot = TextStudioPackagePaths.FindAssetRoot(
                 TextStudioPackagePaths.BasePackageName);
-            if (string.IsNullOrEmpty(fullRoot))
-                return string.Empty;
-
-            string projectRoot = FileUtil.GetProjectRelativePath(fullRoot)
-                .Replace('\\', '/');
             return string.IsNullOrEmpty(projectRoot)
                 ? string.Empty
                 : projectRoot.TrimEnd('/') + "/" + PresetRoot;

@@ -1,4 +1,5 @@
 using System;
+using ImpossibleRobert.Common;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -900,7 +901,7 @@ namespace TextStudio
             _worldRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
             _worldRenderer.motionVectorGenerationMode =
                 MotionVectorGenerationMode.ForceNoMotion;
-            _worldRenderer.allowOcclusionWhenDynamic = false;
+            _worldRenderer.SetDynamicOcclusionCulling(false);
         }
 
         void UploadWorldMesh()

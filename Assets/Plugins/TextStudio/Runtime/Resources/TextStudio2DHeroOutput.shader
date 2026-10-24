@@ -39,6 +39,7 @@ Shader "Text Studio/2D Hero Output"
 
     struct TextStudioHeroOutputVertexInput
     {
+        UNITY_VERTEX_INPUT_INSTANCE_ID
         float4 vertex : POSITION;
         fixed4 color : COLOR;
         float4 uv : TEXCOORD0;
@@ -72,6 +73,7 @@ Shader "Text Studio/2D Hero Output"
 
     struct TextStudioHeroCoverageInput
     {
+        UNITY_VERTEX_OUTPUT_STEREO
         float4 vertex : SV_POSITION;
         float4 uv : TEXCOORD0;
     };
@@ -79,6 +81,9 @@ Shader "Text Studio/2D Hero Output"
     TextStudioHeroCoverageInput TextStudioHeroCoverageVertex(TextStudioHeroOutputVertexInput input)
     {
         TextStudioHeroCoverageInput output;
+        UNITY_INITIALIZE_OUTPUT(TextStudioHeroCoverageInput, output);
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.vertex = UnityObjectToClipPos(TextStudioHeroOutputObjectPosition(input));
         output.uv = TextStudioHeroOutputUv(input.uv);
         return output;
@@ -122,6 +127,7 @@ Shader "Text Studio/2D Hero Output"
 
             struct TextStudioHeroOutputPixelInput
             {
+                UNITY_VERTEX_OUTPUT_STEREO
                 float4 vertex : SV_POSITION;
                 fixed4 color : COLOR;
                 float4 uv : TEXCOORD0;
@@ -132,6 +138,9 @@ Shader "Text Studio/2D Hero Output"
                 TextStudioHeroOutputVertexInput input)
             {
                 TextStudioHeroOutputPixelInput output;
+                UNITY_INITIALIZE_OUTPUT(TextStudioHeroOutputPixelInput, output);
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 float4 position = TextStudioHeroOutputObjectPosition(input);
                 output.vertex = UnityObjectToClipPos(position);
                 output.color = input.color * _Color;

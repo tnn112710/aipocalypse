@@ -1,4 +1,4 @@
-// Last Change: 9/19/2026 3:44pm
+// Last Change: 10/16/2026 9:45am
 using System;
 using UnityEngine;
 using MalbersAnimations.Scriptables;
@@ -332,7 +332,7 @@ namespace MalbersAnimations.IK
                 if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, RaycastLength, GroundLayer))
                 {
                     leg.HasHit    = true;
-                    leg.HitPoint  = hit.point + hit.normal * NormalOffset;
+                    leg.HitPoint  = hit.point + hit.normal * (NormalOffset * OffsetScale(set)); // IK Manager Scale Multiplier
                     leg.HitNormal = hit.normal;
                     leg.FootWeight = footWeight;
 

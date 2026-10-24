@@ -84,6 +84,11 @@ Shader "Text Studio/2D Field SDF"
             #pragma target 3.5
             #pragma target 4.5 TEXT_STUDIO_BUFFER_TRANSPORT
             #pragma multi_compile TEXT_STUDIO_BUFFER_TRANSPORT TEXT_STUDIO_TEXTURE_TRANSPORT
+            // Program tier: Basic, or one isolated operation family for ordered primitives. They never combine, and each
+            // compiles only its own code; see TextStudio2DShaderTiers.
+            #pragma multi_compile_local __ TEXT_STUDIO_APPEARANCE_BASIC TEXT_STUDIO_FAMILY_MATERIAL TEXT_STUDIO_FAMILY_GRAPHIC TEXT_STUDIO_FAMILY_ANIMATED TEXT_STUDIO_FAMILY_DEPTH
+            #pragma multi_compile_local __ TEXT_STUDIO_MATERIAL_EFFECTS
+            #pragma multi_compile_local __ TEXT_STUDIO_SOLID_PAINT
             #pragma vertex VertShader
             #pragma fragment PixShader
             #pragma dynamic_branch OUTLINE_ON
@@ -91,6 +96,8 @@ Shader "Text Studio/2D Field SDF"
             #pragma dynamic_branch UNITY_UI_CLIP_RECT
             #pragma dynamic_branch UNITY_UI_ALPHACLIP
             #define TEXT_STUDIO_STYLE_TABLE 1
+            #define TEXT_STUDIO_MATERIAL_EFFECT_VARIANTS 1
+            #define TEXT_STUDIO_FAMILY_VARIANTS 1
             #include "TextStudio2DProductionSDFCommon.cginc"
             ENDCG
         }
@@ -110,6 +117,9 @@ Shader "Text Studio/2D Field SDF"
             #pragma target 3.5
             #pragma target 4.5 TEXT_STUDIO_BUFFER_TRANSPORT
             #pragma multi_compile TEXT_STUDIO_BUFFER_TRANSPORT TEXT_STUDIO_TEXTURE_TRANSPORT
+            // Shadows keep one program with every family, material effect and paint (eight variants): specializing them
+            // tripled the build's shader compile time for a rarely used pass.
+            #pragma multi_compile_local __ TEXT_STUDIO_APPEARANCE_BASIC
             #pragma vertex VertShader
             #pragma fragment TextStudioWorldShadowFragment
             #pragma multi_compile_shadowcaster
