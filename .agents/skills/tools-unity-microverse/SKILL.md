@@ -7,7 +7,7 @@ description: MicroVerse 1.7 (Jason Booth) terrain authoring for aipocalypse — 
 
 Installed: **MicroVerse 1.7.0** core + Splines, Vegetation, Objects, Ambiance, Demo (`Packages/com.jbooth.microverse*`, full C# source, namespace `JBooth.MicroVerseCore`). **Not installed:** MicroSplat, Masks, Roads (no proxy renderer, no mask stamps, no road tools; ignore docs/Genesis features that need them). Content: Rowlan height packs and Genesis in `Assets/_StoreAssets/Env/Rowlan/`, Rowlan's BK Pure Nature 2 presets in `Assets/_StoreAssets/Env/MicroVerse-Presets/`. All of it is vendor content: reference it, never edit it.
 
-The worked example is the WorldMap (`Assets/_Game/Maps/WorldMap/WorldMap.unity`), built by a generator (`AgentScripts/Maps/WorldMap/WorldMapLayout.cs`) that writes an analytic base heightmap and terrain-space masks and drives MicroVerse with them. Whole-map work (layouts, water, boundary, dressing, rebuilds) follows **tools-unity-map-generation**; this skill is the MicroVerse layer underneath.
+The worked example is the WorldMap (`Assets/_Game/Scenes/Prototypes/WorldMap.unity`, data in `Maps/WorldMap/`), built by a generator (`AgentScripts/Maps/WorldMap/WorldMapLayout.cs`) that writes an analytic base heightmap and terrain-space masks and drives MicroVerse with them. Whole-map work (layouts, water, boundary, dressing, rebuilds) follows **tools-unity-map-generation**; this skill is the MicroVerse layer underneath.
 
 Read before acting:
 - [references/api.md](references/api.md): stamp classes, fields, enums and the JSON field names `Edit` needs (checked against the 1.7.0 source).
@@ -80,7 +80,7 @@ Anything the kit doesn't cover (masks, vegetation stamps, filters, layer copies,
 ## 4. Building a terrain (order of operations)
 
 Two proven ways:
-- **Stamp composition** (blockouts, small areas; `Scenes/Prototypes/Prototype.unity`): Rowlan stamps and BK presets placed with the kit, steps below.
+- **Stamp composition** (blockouts, small areas; the old `Prototype.unity`, deleted 2026-10-24, is in git history): Rowlan stamps and BK presets placed with the kit, steps below.
 - **Generated base** (a designed map that must match a layout, carry water and be verified; the WorldMap): an analytic height field written as an R16 PNG in one whole-terrain Override stamp, Rowlan detail stamps on top as zero-mean `Add` with terrain-space masks, then texture/vegetation stamps on whole-terrain masks. See tools-unity-map-generation.
 
 Stamp composition:
@@ -102,7 +102,7 @@ Hand-painting: Terrain Tools brushes on a MicroVerse terrain are erased by the n
 
 ## 5. Combining Rowlan heights with BK presets
 
-The two content sets are made to stack: Rowlan packs give the **shape** (height stamps only), BK presets give the **surface** (texture/vegetation/object stamps under a `FalloffOverride` root, no heights in most biomes). `Scenes/Prototypes/Prototype.unity` does this: Rowlan `Valleys 01` (Add, 1000×240×1000) + BK Meadows "Green Grass Mixed" texture + "Flower Meadow Orange Blue" details. The WorldMap uses no BK presets: its surface comes from first-party layers on generated masks.
+The two content sets are made to stack: Rowlan packs give the **shape** (height stamps only), BK presets give the **surface** (texture/vegetation/object stamps under a `FalloffOverride` root, no heights in most biomes). The old `Prototype.unity` (deleted 2026-10-24, in git history) did this: Rowlan `Valleys 01` (Add, 1000×240×1000) + BK Meadows "Green Grass Mixed" texture + "Flower Meadow Orange Blue" details. The WorldMap uses no BK presets: its surface comes from first-party layers on generated masks.
 
 - Natural pairings (suggestions, the user picks the look): Rowlan Meadows or Valleys + BK Meadows/AsianValley surface, Alpine Mountains + BK Mountains, Swamp or Jungle Rivers + BK Swamp/Jungle, FantasyForest for mossy forest floors. BK Highlands art isn't installed.
 - Only the **6 installed BK biomes** resolve: AsianValley, FantasyForest, Jungle, Meadows, Mountains, Swamp. `Presets` filters out the rest.
@@ -127,7 +127,7 @@ The two content sets are made to stack: Rowlan packs give the **shape** (height 
   - Coverage scatter mode (what the WorldMap uses): density isn't linear (1.6 gave 3× the instances of 1.0).
 - `ClearStamp` removes trees/details/objects from spawn stamps **above** it (paths, clearings): put clear stamps last and together, and any dressing that must sit on cleared ground after them. `OcclusionStamp` blocks stamps **after** it. `SplinePath.clearTrees/clearDetails` clears along a path.
 - **Rendering:** on the WorldMap, Unity's terrain renderer draws trees and details (detail distance 100, tree distance 1000 in the saved scene; ask before changing them). Details are most of the triangles: keep the detail distance ≤ ~120 m without GPUI. BK plants fade out beyond ~50 m unless `BKFoliageGlobals` (`_Core/EnvironmentSystem/`, render distance ≈ 2× detail distance) is in the scene.
-- **GPU Instancer Pro** is only on `Scenes/Prototypes/Prototype.unity` (a `GPUIDetailManager`, terrain `detailObjectDistance` 0). The Detail Manager is cheap; the Tree Manager costs CPU per prototype × LOD × material × camera every frame (it was slower than Unity's trees on the WorldMap). Shader Graphs need GPUI's setup node (Raygeas graphs don't have it: magenta). Attaching or removing a manager rewrites the terrain's draw distances. GPUI never removes prototypes: `ResetPrototypesFromTerrains()` after removing a stamp; `GPUITerrainAPI.RequireUpdate(manager, true, true)` if details look stale after a rebuild.
+- **GPU Instancer Pro** is on no scene now (the deleted `Prototype.unity` had a `GPUIDetailManager`, terrain `detailObjectDistance` 0). The Detail Manager is cheap; the Tree Manager costs CPU per prototype × LOD × material × camera every frame (it was slower than Unity's trees on the WorldMap). Shader Graphs need GPUI's setup node (Raygeas graphs don't have it: magenta). Attaching or removing a manager rewrites the terrain's draw distances. GPUI never removes prototypes: `ResetPrototypesFromTerrains()` after removing a stamp; `GPUITerrainAPI.RequireUpdate(manager, true, true)` if details look stale after a rebuild.
 - **MicroVerse's terrain-settings panel** (MicroVerse inspector) writes **all** of its fields to every terrain when any one changes: material, resolutions, basemap distance, detail scatter mode/resolution/density/distance, tree distance, pixel error. Don't touch it without restoring them.
 
 ## 7. Splines (paths, roads, rivers, areas)

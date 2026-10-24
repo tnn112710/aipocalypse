@@ -61,7 +61,7 @@ Assets/_Game/
 │  │  ├─ EnemySpawner.cs                    scene MonoBehaviour injected by EnemyInstaller: Spawn(prefab, position, rotation) through the resolver (injected before Awake), parented under it
 │  │  ├─ WanderTasks.cs                     ChooseWanderDestination / WalkToWanderDestination / PauseWander ActionNodes of the shared subtree (read EnemyBrain.Definition.Wander, move through EnemyMover)
 │  │  ├─ WanderSettings.cs                  SO: wander radius, pause, travel timeout, destination attempts, minimum travel; asset in Data/Enemies/, the shared subtree in Content/Enemies/_Shared/
-│  │  └─ Prefabs/Navigation.prefab          AstarPath (small terrain-following grid, scanned on startup) + RVOSimulator: goes into every scene with agents
+│  │  └─ Prefabs/Navigation.prefab          AstarPath (default: small terrain-following grid, scanned on startup) + RVOSimulator: goes into every scene with agents; WorldMap's instance overrides the graph (recast + cache, ENVIRONMENT.md → Navigation)
 │  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
 │  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in the world map
@@ -248,11 +248,11 @@ Assets/_Game/
 │  ├─ Weapons/_Shared/                      Animations/ (Gun.controller + base clips); Effects/ (MuzzleFlash, Tracer, BulletImpact, BulletHole PooledEffect roots,
 │  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
-│  ├─ Enemies/WanderCapsule/                WanderCapsule.asset (EnemyDefinition of the Prototype capsules)
+│  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain; two in WorldMap), WanderCapsule.asset (its EnemyDefinition)
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/, Rocks/, Mountains/ (ENVIRONMENT.md)
-├─ Maps/WorldMap/                           WorldMap.unity + what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/
-├─ Scenes/Prototypes/                       Prototype.unity (its terrain data in Prototype/); Proto_* scenes
+├─ Maps/WorldMap/                           what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/, Navigation/ (NavmeshWater mesh, WorldMapNavmesh.bytes cache)
+├─ Scenes/Prototypes/                       WorldMap.unity (the prototype world map; its data in Maps/WorldMap/); Proto_* scenes
 ├─ (Assets/_Samples/Audio/)                Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
 │                                          Music/: PLACEHOLDER death music cut from a YouTube Short, not licensed (sources in SOURCES.txt)
 ├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
@@ -271,7 +271,7 @@ Assets/_Game/
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, ClockStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
-├─ Tests/PlayMode/PrototypeSmokeTests.cs  asmdef Aipocalypse.Tests.PlayMode: loads Prototype.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
+├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)

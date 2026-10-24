@@ -2,7 +2,7 @@
 
 Guns (shooting, ammo, reloading, jams, recoil, aiming, bullets and their effects) and [melee](#melee) (swings, hits, knockback). Guns are ported from the old project's `WeaponSystem` and rebuilt on this project's rules (plain C# rules + one view, central ticks, pooling); melee is new, built the same way. Items, the hotbar and switching are in [EQUIPMENT.md](EQUIPMENT.md); script locations in [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
-Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares pistol ammo), a **double-barrel shotgun** (break action), a **pump shotgun** and a **fire axe** (melee), picked up from the table in `Scenes/Prototypes/Prototype.unity`, with a shooting range (backstop wall + two `TargetDummy` capsules) further ahead.
+Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares pistol ammo), a **double-barrel shotgun** (break action), a **pump shotgun** and a **fire axe** (melee), picked up from the table by the home in `Scenes/Prototypes/WorldMap.unity`, with a shooting range backstop wall further ahead.
 
 ## Controls
 
@@ -242,7 +242,7 @@ Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCostScal
 - **No breath clip yet:** `PlayerSoundTuning` → `BreathSound` is unset (silent) until a BroAudio entity with a breathing clip (Loop on) is added to `Data/Audio/Player`. The visual breathing rate (`TiredBreathRate`) isn't synced to the clip; tune it by ear.
 - **Sound placeholders:** every gun sound is a stand-in clip (see Sounds above); swap the clips on the BroAudio entities, no code or gun asset changes needed.
 - **Crosshair** matches exactly with `Camera` and `MuzzleToCrosshair`, only roughly with `Muzzle` (there the model's zoom correction also turns the barrel a little more than the view while aiming).
-- **Nothing in `Prototype.unity` takes damage yet:** the wander capsules aren't damageable and the scene has no `TargetDummy`, so hit feedback only shows on a dummy you add (`_Debug/TargetDummy`).
+- **Nothing in `WorldMap.unity` takes damage yet:** the wander capsules aren't damageable and the scene has no `TargetDummy`, so hit feedback only shows on a dummy you add (`_Debug/TargetDummy`).
 - **Clip authoring gaps** (their tests are marked `[Ignore]` with the reason): MP5 / pistol left-hand free control is ~1° off the magazine grip at the 0.145 switch; the AK47's is ~5.5° off the forend at 0.02; the DoubleBarrel's free hand is ~5 cm / 9° off the shell grip at 0.28 and its hinge curve overshoots ~0.5° after closing. Fix the keys in the Animation window (script edits of these clips re-tangent or rebind them), then drop the `Ignore`s in `WeaponAnimationTests`.
 - **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.
 - **No empty-click sound of its own:** no gun sets `Sounds.Empty` yet, so the empty click reuses the jam's `DryFire` clip.

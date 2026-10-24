@@ -921,7 +921,7 @@ public static class WorldMapLayout
 
     // ---------------- MicroVerse stack ----------------
 
-    const string ScenePath = "Assets/_Game/Maps/WorldMap/WorldMap.unity";
+    const string ScenePath = "Assets/_Game/Scenes/Prototypes/WorldMap.unity";
     const string RowlanStamps = "Assets/_StoreAssets/Env/Rowlan/Terrain/Stamps/";
 
     public static object OpenScene()
@@ -2788,6 +2788,7 @@ public static class WorldMapLayout
     }
 
     public static void EnsureFolderPublic(string path) => EnsureFolder(path);
+    public static Transform WaterGroupPublic(string child) => WaterGroup(child);
 
     // _Game copy of a vendor material, refreshed from the vendor and re-tuned on every call; vendor files stay untouched.
     public static Material MaterialCopy(Material vendor, string dest, Action<Material> tune)
@@ -5513,5 +5514,202 @@ public static class Finishing
         DynamicGI.UpdateEnvironment();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         return RenderSettings.ambientEquatorColor.ToString();
+    }
+}
+
+// Enemy navigation: one tiled recast graph over the whole map, baked into a startup cache so play never scans. Water is
+// kept out by a navmesh-only volume: the scan skips the underwater areas (they are triggers) and would otherwise walk the
+// beds. Run BuildWaterVolume after the water or terrain changes and Bake after anything that adds, moves or removes
+// colliders (dressing, landmarks, boundary, trees): the cache is a snapshot.
+public static class Navigation
+{
+    const string NavigationPrefab = "Assets/_Game/_Core/EnemySystem/Prefabs/Navigation.prefab";
+    const string Folder = WorldMapLayout.MapFolder + "/Navigation";
+    const string CachePath = Folder + "/WorldMapNavmesh.bytes";
+    const float VolumeDepth = 30f;
+
+    // Columns from VolumeDepth under the surface up to it wherever the ground lies under water (the dressing masks' wet
+    // test), merged into runs along X. The renderer is disabled: A* only needs it to find the mesh (forceRenderingOff still
+    // drew it magenta, it has no material). With wadeStreams
+    // the streams (1-1.3 m deep, crossed on foot like the player) stay walkable: blocking them cuts the land between them
+    // off from the rest of the map.
+    public static async Task<object> BuildWaterVolume(float cell, bool wadeStreams)
+    {
+        var terrain = Terrain.activeTerrain;
+        if (terrain == null) throw new InvalidOperationException("No active terrain.");
+        var data = terrain.terrainData;
+        int hr = data.heightmapResolution;
+        float[,] h = data.GetHeights(0, 0, hr, hr);
+        Vector3 size = data.size, origin = terrain.transform.position;
+        float Ground(float x, float z)
+        {
+            float u = Mathf.Clamp01((x - origin.x) / size.x) * (hr - 1), v = Mathf.Clamp01((z - origin.z) / size.z) * (hr - 1);
+            int i = Mathf.Min((int)u, hr - 2), j = Mathf.Min((int)v, hr - 2);
+            float fu = u - i, fv = v - j;
+            float a = Mathf.Lerp(h[j, i], h[j, i + 1], fu), b = Mathf.Lerp(h[j + 1, i], h[j + 1, i + 1], fu);
+            return origin.y + Mathf.Lerp(a, b, fv) * size.y;
+        }
+
+        WorldMapLayout.WaterSurfaceAt(Vector2.zero);   // builds the lazy basin bounds and line points before the threads read them
+        float maxLevel = WorldMapLayout.Basins.Max(b => b.level);
+        maxLevel = Mathf.Max(maxLevel, WorldMapLayout.SwampWater);
+        foreach (var l in WorldMapLayout.Lines) maxLevel = Mathf.Max(maxLevel, l.pts.Max(p => p.z));
+
+        int n = Mathf.CeilToInt(WorldMapLayout.Size / cell);
+        var surface = new float[n * n];
+        await Task.Run(() => Parallel.For(0, n, j =>
+        {
+            for (int i = 0; i < n; i++)
+            {
+                float x = (i + 0.5f) * cell, z = (j + 0.5f) * cell;
+                float ground = Ground(x, z);
+                float s = float.NegativeInfinity;
+                if (ground < maxLevel)
+                {
+                    var (level, kind) = WorldMapLayout.WaterSurfaceAt(new Vector2(x, z));
+                    if (!float.IsNegativeInfinity(level) && ground < level - 0.02f && !(wadeStreams && kind == 2)) s = level;
+                }
+                surface[j * n + i] = s;
+            }
+        }));
+
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
+        void Quad(float x0, float x1, float z0, float z1, float y)
+        {
+            int b = vertices.Count;
+            vertices.Add(new Vector3(x0, y, z0)); vertices.Add(new Vector3(x0, y, z1)); vertices.Add(new Vector3(x1, y, z1)); vertices.Add(new Vector3(x1, y, z0));
+            triangles.AddRange(new[] { b, b + 1, b + 2, b, b + 2, b + 3 });
+        }
+        int runs = 0, wet = 0;
+        for (int j = 0; j < n; j++)
+        {
+            int i = 0;
+            while (i < n)
+            {
+                float s = surface[j * n + i];
+                if (float.IsNegativeInfinity(s)) { i++; continue; }
+                int start = i;
+                while (i < n && !float.IsNegativeInfinity(surface[j * n + i]) && Mathf.Abs(surface[j * n + i] - s) < 0.05f) i++;
+                wet += i - start;
+                float x0 = start * cell, x1 = i * cell, z0 = j * cell, z1 = (j + 1) * cell;
+                Quad(x0, x1, z0, z1, s);
+                Quad(x0, x1, z0, z1, s - VolumeDepth);
+                runs++;
+            }
+        }
+
+        var mesh = new Mesh { name = "NavmeshWater", indexFormat = IndexFormat.UInt32 };
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateBounds();
+        WorldMapLayout.EnsureFolderPublic(Folder);
+        string meshPath = Folder + "/NavmeshWater.asset";
+        var existing = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+        if (existing == null) AssetDatabase.CreateAsset(mesh, meshPath);
+        else
+        {
+            existing.Clear();
+            existing.indexFormat = IndexFormat.UInt32;
+            existing.SetVertices(vertices);
+            existing.SetTriangles(triangles, 0);
+            existing.RecalculateBounds();
+            mesh = existing;
+        }
+        AssetDatabase.SaveAssetIfDirty(mesh);
+
+        var group = WorldMapLayout.WaterGroupPublic("Navmesh");
+        var go = new GameObject("Navmesh Water", typeof(MeshFilter), typeof(MeshRenderer));
+        Undo.RegisterCreatedObjectUndo(go, "Navigation");
+        go.transform.SetParent(group, false);
+        go.layer = LayerMask.NameToLayer("Water");
+        go.GetComponent<MeshFilter>().sharedMesh = mesh;
+        var mr = go.GetComponent<MeshRenderer>();
+        mr.enabled = false;
+        mr.shadowCastingMode = ShadowCastingMode.Off;
+        mr.receiveShadows = false;
+        var modifier = go.AddComponent<Pathfinding.RecastNavmeshModifier>();
+        modifier.includeInScan = Pathfinding.RecastNavmeshModifier.ScanInclusion.AlwaysInclude;
+        modifier.geometrySource = Pathfinding.RecastNavmeshModifier.GeometrySource.MeshFilter;
+        modifier.mode = Pathfinding.RecastNavmeshModifier.Mode.UnwalkableSurface;
+        modifier.solid = true;
+        modifier.dynamic = false;
+        EditorSceneManager.MarkSceneDirty(go.scene);
+        return new { cell, wadeStreams, wetCells = wet, wetArea = wet * cell * cell, runs, vertices = vertices.Count, maxLevel };
+    }
+
+    // Scans the scene's Navigation (the prefab instance, added if missing) as one recast graph and writes the startup cache.
+    public static object Bake(float cellSize)
+    {
+        if (UnityEngine.Object.FindObjectsByType<Pathfinding.RecastNavmeshModifier>().All(m => m.name != "Navmesh Water"))
+            throw new InvalidOperationException("No Navmesh Water; run Navigation.BuildWaterVolume first.");
+        var terrain = Terrain.activeTerrain;
+        var scene = SceneManager.GetActiveScene();
+        var astar = UnityEngine.Object.FindObjectsByType<AstarPath>(FindObjectsInactive.Include).SingleOrDefault();
+        if (astar == null)
+        {
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(NavigationPrefab), scene);
+            Undo.RegisterCreatedObjectUndo(go, "Navigation");
+            astar = go.GetComponent<AstarPath>();
+        }
+
+        astar.data.DeserializeGraphs();
+        foreach (var old in astar.data.graphs.Where(g => g != null).ToArray()) astar.data.RemoveGraph(old);
+        var graph = (Pathfinding.RecastGraph)astar.data.AddGraph(typeof(Pathfinding.RecastGraph));
+        graph.name = "WorldMap";
+        Vector3 size = terrain.terrainData.size;
+        graph.forcedBoundsCenter = terrain.transform.position + new Vector3(size.x, WorldMapLayout.MaxHeight, size.z) * 0.5f;
+        graph.forcedBoundsSize = new Vector3(size.x, WorldMapLayout.MaxHeight + 20f, size.z);
+        graph.cellSize = cellSize;
+        graph.useTiles = true;
+        graph.editorTileSize = 128;
+        graph.characterRadius = 0.5f;   // the enemies' FollowerEntity radius
+        graph.walkableHeight = 2f;
+        graph.walkableClimb = 0.4f;
+        graph.maxSlope = 45f;           // the player's slope limit
+        graph.collectionSettings.layerMask = 1 << LayerMask.NameToLayer("Default");
+        graph.collectionSettings.rasterizeTerrain = true;
+        graph.collectionSettings.rasterizeTrees = true;
+        graph.collectionSettings.rasterizeColliders = true;
+        graph.collectionSettings.rasterizeMeshes = false;
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        astar.Scan();
+        watch.Stop();
+
+        int nodes = 0, walkable = 0;
+        var areas = new Dictionary<uint, int>();
+        graph.GetNodes(node =>
+        {
+            nodes++;
+            if (!node.Walkable) return;
+            walkable++;
+            areas[node.Area] = areas.TryGetValue(node.Area, out int c) ? c + 1 : 1;
+        });
+        var spawn = WorldMapLayout.HomeSpawn;
+        var home = astar.GetNearest(new Vector3(spawn.x, terrain.SampleHeight(new Vector3(spawn.x, 0, spawn.y)), spawn.y), Pathfinding.NearestNodeConstraint.Walkable);
+        int homeArea = home.node != null ? areas[home.node.Area] : 0;
+
+        astar.data.SetData(astar.data.SerializeGraphs());
+        WorldMapLayout.EnsureFolderPublic(Folder);
+        File.WriteAllBytes(CachePath, astar.data.SerializeGraphs(new Pathfinding.Serialization.SerializeSettings { nodes = true }));
+        AssetDatabase.ImportAsset(CachePath);
+        astar.data.file_cachedStartup = AssetDatabase.LoadAssetAtPath<TextAsset>(CachePath);
+        astar.data.cacheStartup = true;
+        EditorUtility.SetDirty(astar);
+        PrefabUtility.RecordPrefabInstancePropertyModifications(astar);
+        EditorSceneManager.MarkSceneDirty(scene);
+
+        var big = areas.Values.OrderByDescending(c => c).Take(5).ToArray();
+        return new
+        {
+            scanSeconds = Math.Round(watch.Elapsed.TotalSeconds, 2),
+            tiles = $"{graph.tileXCount}x{graph.tileZCount}",
+            nodes, walkable,
+            areas = areas.Count,
+            largestAreas = big,
+            homeAreaShare = Math.Round(homeArea / (double)Math.Max(1, walkable), 3),
+            cacheKB = new FileInfo(CachePath).Length / 1024,
+        };
     }
 }

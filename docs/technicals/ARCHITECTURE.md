@@ -154,9 +154,9 @@ How `EntityScope` does it (VContainer API checked in package source):
 
 ## AI
 
-The first AI slice is a capsule wander demo in `Prototype.unity`. Every AI agent decides with a Behavior Designer Pro tree; tasks delegate movement to `EnemyMover` (the enemy's legs over A* `FollowerEntity`). Each enemy kind has an `EnemyDefinition` in `Content/Enemies/<Name>/` (move speed, stop distance, its behaviour tuning); the Prototype capsules use `WanderCapsule/WanderCapsule.asset`. The shared `Content/Enemies/_Shared/Wander.asset` subtree repeats a sequence: choose a reachable point, walk there, pause; its tuning is the definition's `WanderSettings` (`Data/Enemies/WanderSettings.asset`).
+The first AI slice is a capsule wander demo in `WorldMap.unity`: two `Content/Enemies/WanderCapsule/WanderCapsule.prefab` outside the home gate. Every AI agent decides with a Behavior Designer Pro tree; tasks delegate movement to `EnemyMover` (the enemy's legs over A* `FollowerEntity`). Each enemy kind has an `EnemyDefinition` in `Content/Enemies/<Name>/` (move speed, stop distance, its behaviour tuning); the capsules use `WanderCapsule/WanderCapsule.asset`. The shared `Content/Enemies/_Shared/Wander.asset` subtree repeats a sequence: choose a reachable point, walk there, pause; its tuning is the definition's `WanderSettings` (`Data/Enemies/WanderSettings.asset`).
 
-A scene gets enemies by adding the `EnemyInstaller` component to its `GameLifetimeScope` (navigation and `EnemySystemSettings` assigned). Enemies are found through `EnemyRegistry` (scene scope), a dense list: each `EnemyBrain` is injected once (scene-placed ones by the installer's build callback, spawned ones by an `EnemySpawner`, which instantiates through the scene's resolver), starts its tree on its first `Start` and joins the registry while enabled, so spawned and pooled enemies tick like placed ones. `EnemyManager` ticks the Manual trees round-robin on a time budget: each enemy thinks about every `ThinkInterval` (1/15 s) at any frame rate, at most `MaxThinksPerFrame` trees a frame, on scaled time (paused = no thinking). `_Core/EnemySystem/Prefabs/Navigation.prefab` holds AstarPath and RVOSimulator; its small terrain-following grid scans on startup. Spawn rules, pooling and combat are not implemented yet. Skill: `tools-unity-behavior-designer`.
+A scene gets enemies by adding the `EnemyInstaller` component to its `GameLifetimeScope` (navigation and `EnemySystemSettings` assigned). Enemies are found through `EnemyRegistry` (scene scope), a dense list: each `EnemyBrain` is injected once (scene-placed ones by the installer's build callback, spawned ones by an `EnemySpawner`, which instantiates through the scene's resolver), starts its tree on its first `Start` and joins the registry while enabled, so spawned and pooled enemies tick like placed ones. `EnemyManager` ticks the Manual trees round-robin on a time budget: each enemy thinks about every `ThinkInterval` (1/15 s) at any frame rate, at most `MaxThinksPerFrame` trees a frame, on scaled time (paused = no thinking). `_Core/EnemySystem/Prefabs/Navigation.prefab` holds AstarPath and RVOSimulator; its default graph is a small terrain-following grid scanned on startup (for small `Proto_*` scenes). WorldMap's instance holds one tiled recast graph over the whole map, loaded at startup from a cache the map generator bakes, with lakes, ponds and rivers cut out and streams wadeable ([ENVIRONMENT.md → Navigation](ENVIRONMENT.md#navigation)). Spawn rules, pooling and combat are not implemented yet. Skill: `tools-unity-behavior-designer`.
 
 ## Performance
 
@@ -172,14 +172,14 @@ Per-system budgets (enemy counts, stress scenes) get added here with those syste
 
 ## Prototypes → main game
 
-Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the player is tested in `Assets/_Game/Scenes/Prototypes/Prototype.unity`.
+Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the mechanics are tested together in `Assets/_Game/Scenes/Prototypes/WorldMap.unity`.
 
 1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real folder (Core, Feature or Experimental) from day one. No `Proto*` copies of classes or prefabs.
 2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs (and `HUD.prefab` if you want the HUD); they run on root services + their defaults.
 3. **Real systems via installers.** When a prototype needs a real system, add a `GameLifetimeScope` with just those `SceneInstaller` components. World uses the same class with all of them, strict.
 4. **Defaults belong to the entity's system** (e.g. `PlayerSystem/Defaults/BaseStats`) — they are part of the entity's contract.
 5. **Tuning lives in ScriptableObjects** under `Assets/_Game/Data/`, shared by every scene.
-6. **Smoke test** (PlayMode): `Tests/PlayMode/PrototypeSmokeTests.cs` loads `Prototype.unity`, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it.
+6. **Smoke test** (PlayMode): `Tests/PlayMode/WorldMapSmokeTests.cs` loads `WorldMap.unity`, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it.
 
 A prototype is done when it works in its scene **and** in World with no code changes.
 
@@ -204,11 +204,12 @@ Assets/_Game/
     Items/<Name>/         non-weapon items (Lantern/)
     Enemies/  Animals/  Companions/   <Name>/ per kind (Enemies/WanderCapsule/), _Shared/ for what several use (Enemies/_Shared/Wander.asset)
   Environment/            shared environment kit every map can use: Water/, TerrainLayers/, Vegetation/, Rocks/, Mountains/
-  Maps/<Map>/             one folder per map: <Map>.unity + what only that map uses (Terrain/, Heightmaps/, water meshes…)
-    WorldMap/             the prototype world map (ENVIRONMENT.md)
+  Maps/<Map>/             one folder per map: what only that map uses (Terrain/, Heightmaps/, water meshes, Navigation/…), and the
+                          scene (<Map>.unity) once the map is official
+    WorldMap/             the prototype world map's data; its scene is Scenes/Prototypes/WorldMap.unity (ENVIRONMENT.md)
   Data/                   settings shared by a whole system, one folder per system (one copy each: PlayerTuning, EquipmentConfig,
                           AmmoConfig, ClockSettings, EnemySystemSettings, UI styles, Audio libraries, HandSet + poses, Environment/TimeOfDay)
-  Scenes/Prototypes/      Prototype.unity, Proto_* scenes (scene-only assets in a folder named after the scene)
+  Scenes/Prototypes/      WorldMap.unity (data in Maps/WorldMap/), Proto_* scenes (scene-only assets in a folder named after the scene)
   Settings/               URP assets, Input System actions
   Tests/EditMode/  Tests/PlayMode/
 ```

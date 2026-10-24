@@ -6,7 +6,7 @@ Date: 2026-10-19. Status: visual concept with approximate scale. This records th
 
 ## Built scene
 
-Revision 13 is built in `Assets/_Game/Maps/WorldMap/WorldMap.unity`; see [ENVIRONMENT.md](../technicals/ENVIRONMENT.md) for how it is generated. Differences from the drawing, as requested by the user: the bridge is complete (not broken), and the boundary mountains are rock and mountain models (the terrain is not raised) with invisible walls along the playable edge. The meadow follows the BK Pure Nature Meadows look. Style references are in [refs/](refs/README.md).
+Revision 13 is built in `Assets/_Game/Scenes/Prototypes/WorldMap.unity` (data in `Maps/WorldMap/`); see [ENVIRONMENT.md](../technicals/ENVIRONMENT.md) for how it is generated. Differences from the drawing, as requested by the user: the bridge is complete (not broken), and the boundary mountains are rock and mountain models (the terrain is not raised) with invisible walls along the playable edge. The meadow follows the BK Pure Nature Meadows look. Style references are in [refs/](refs/README.md).
 
 Later rounds with the user changed the built scene further:
 

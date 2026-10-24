@@ -33,7 +33,7 @@ Read before acting:
 
 ## 2. Generator architecture
 
-- One generator per map in `AgentScripts/Maps/<Map>/`, outside `Assets/` (no import, no domain reload), run with `unity command run_script`. Map-only output in `Assets/_Game/Maps/<Map>/`; reusable first-party copies in `Assets/_Game/Environment/`.
+- One generator per map in `AgentScripts/Maps/<Map>/`, outside `Assets/` (no import, no domain reload), run with `unity command run_script`. Map-only output in `Assets/_Game/Maps/<Map>/` (the WorldMap scene itself is `Scenes/Prototypes/WorldMap.unity` while it is a prototype); reusable first-party copies in `Assets/_Game/Environment/`.
 - **Layout is data**: polygons, basins, lines, anchors (100 m grid), bumps, islands, landmark frames and the detail-stamp table at the top of the file, in metres (x east, z north). Everything derives from them.
 - **One height function** and **one canonical waterline**: masks, water meshes, ribbons and dressing call the same functions that carved the terrain.
 - **Terrain size is a parameter.** No `1000`/`500`/`998` literals; noise in world metres; MicroVerse UV-space values converted (heights.md §8).
@@ -60,6 +60,7 @@ Generic pipeline (WorldMap entry names; full list in ENVIRONMENT.md → "How it 
 | 9 | Atmosphere, wind (before shared wind), spawn | `Atmosphere.*`, `Vegetation.Wind`, `Finishing.PlayerSpawn`, `DayNightSetup.Scene` |
 | 10 | Clear masks → bake → tree-aware dressing → clear masks → bake | `GenerateClearMasks`, kit `Rebuild true`, `BuildMeadow`, `BuildHomeTrees`, … |
 | 11 | Render policy, distances, save, reopen, stats | (policy pass: placement.md §6), kit `SaveScene`, `OpenScene`, `DetailStats` |
+| 12 | Enemy navmesh: water volume, recast bake + startup cache (after anything that adds or moves colliders) | `Navigation.BuildWaterVolume(0.5, true)`, `Navigation.Bake(0.3)` (ENVIRONMENT.md → Navigation) |
 
 Timings: the 1000 m map's full rebuild is ~8.3 min over 36 steps (`Generate` 185 s at 2048, `Verify` 33 s, texture masks 48 s, vegetation masks 39 s, clear masks 2 × 20 s, the rest 1–15 s). The 1500 m map took ~35 min (`Generate` ~5 min at 4096). Run step lists in the background with [scripts/run_steps.sh](scripts/run_steps.sh) (`file|Class.Method|json args` per line, LF endings, stops at the first failure, one JSON log per step).
 
