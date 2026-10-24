@@ -1,140 +1,164 @@
 # Third-party plugins & tools
 
-Everything third-party in the project: what it is, where it lives, and whether we use it. **Check this before building a system** (an installed plugin may already do it), and **update it in the same change** whenever a plugin is added, removed, upgraded, or used in a new way.
-
-Status:
-- **Core**: the architecture depends on it.
-- **Use**: approved for game code, following the rules below.
-- **Content**: art/audio/animation we reference or make variants of.
-- **Editor**: editor-only tooling, never referenced by runtime game code.
-- **Undecided**: installed but no decision yet. Ask before relying on it.
+Every code library, plugin, Unity package and editor tool in the project, grouped by purpose, with which one to use for each. Art, animation, UI, VFX and audio packs are in [ASSETS.md](ASSETS.md). **Check this before building a system** (an installed plugin may already do it), and **update it in the same change** whenever a plugin is added, removed, upgraded, or used in a new way.
 
 Vendor folders (`Assets/Plugins/`, `Assets/_StoreAssets/`, `Assets/Synty/`, `Packages/com.*` local packages) are never modified. Make variants or wrappers under `Assets/_Game/`.
+
+## Priority tags
+
+Tags rank a plugin **for one purpose**: the same plugin can be Must for one job and Avoid for another (Feel: Must for feedbacks, Could for tweens).
+
+| Tag | Meaning |
+| --- | --- |
+| **Must** | The only choice for this purpose; the architecture or a project rule depends on it. Don't use alternatives. At most one Must per purpose. |
+| **Should** | The default pick, approved for game code (even if nothing uses it yet). Using another needs a reason, written in its row. |
+| **Could** | Fallback, only for what the Must/Should choice doesn't cover, or an optional convenience. |
+| **Maybe** | Last resort, only when nothing tagged Must/Should/Could covers it, and ask first. |
+| **Avoid** | Reference only: no game code, asset or scene may use it. Kept installed (a dependency, or removal not decided) unless the row says remove. |
+| **Undecided** | Not ranked yet. Ask before relying on it. The row may suggest a tag. |
+
+Editor-only tools never ship and are never referenced by runtime code; their tag only says which tool to reach for.
 
 ## General rules
 
 - No plugin singletons or static event systems in gameplay code (`MMEventManager`, `X.Instance`, …). Wrap a plugin behind a service registered in VContainer when game code needs it. Cross-system events go through MessagePipe.
 - `TimeService` owns `Time.timeScale`. No plugin may set it directly (Feel's time-scale feedbacks, BD's `Time/SetTimeScale`, …).
-- UI is uGUI. Code tweens use DOTween.
+- UI is uGUI. Code tweens use DOTween. All audio goes through BroAudio (`AudioService`): no plugin plays its own audio (MicroVerse Ambiance, SW3 `RiverAudioManager`, Malbers' controller sounds).
 - Prefer each plugin's pooling, batching and caching (Damage Numbers Pro and BroAudio pools, GPUI instancing). Keep per-instance plugin components off crowd entities. Exceptions: BD's `BehaviorTree` (Manual mode, centrally ticked) and A*'s `FollowerEntity`.
 - When unsure how a plugin works, read its docs or source instead of guessing. Some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`.
 
-## Code libraries (UPM, from git)
+MessagePipe, UniTask, UIEffect and the yasirkula tools track their repo HEAD (no tag pinned), so a package resolve can upgrade them. Versions below are what `Library/PackageCache` or the package's `package.json` holds; "—" means the asset has no version file.
 
-| Library | Version | Status | Notes |
-|---|---|---|---|
-| VContainer (`jp.hadashikick.vcontainer`) | 1.19.0 (pinned tag) | Core | DI. Lifetime scopes, per-system installers, `EntityScope` on entity prefabs. Root via `_Core/_Bootstrap/VContainerSettings.asset` (Preloaded Assets) → `ProjectLifetimeScope.prefab`. `DisableScriptModifier` is on: otherwise VContainer overwrites any newly created `*LifetimeScope.cs` with its template. |
-| MessagePipe (+ `.vcontainer`) | 1.8.2 | Core | Cross-system events. Registered once in the root scope (open generics on, no per-type registration). Awaitable events use `IAsyncPublisher` / `IAsyncSubscriber` (`PlayerRespawnFading` and `PlayerRespawning`, awaited by `PlayerRespawnFlow`; the death screen subscribes). Skill: `aipocalypse-architecture`. |
-| UniTask | 2.5.11 | Core | Async. Use instead of coroutines. |
-| UIEffect (`com.coffee.ui-effect`) | 5.11.7 | Use | uGUI effects. |
+## Architecture, async, data
 
-MessagePipe, UniTask and UIEffect track the repo HEAD (no tag pinned), so a package resolve can upgrade them. Versions above are what `Library/PackageCache` holds.
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| VContainer (`jp.hadashikick.vcontainer`) | 1.19.0 (pinned tag) | UPM git | Must | DI. Lifetime scopes, per-system installers, `EntityScope` on entity prefabs. Root via `_Core/_Bootstrap/VContainerSettings.asset` (Preloaded Assets) → `ProjectLifetimeScope.prefab`. `DisableScriptModifier` is on: otherwise VContainer overwrites any newly created `*LifetimeScope.cs` with its template. Skill: `aipocalypse-architecture`. |
+| MessagePipe (+ `.vcontainer`) | 1.8.2 | UPM git | Must | Cross-system events. Registered once in the root scope (open generics on, no per-type registration). Awaitable events use `IAsyncPublisher` / `IAsyncSubscriber` (`PlayerRespawnFading` and `PlayerRespawning`, awaited by `PlayerRespawnFlow`; the death screen subscribes). |
+| UniTask | 2.5.11 | UPM git | Must | Async. Use instead of coroutines. `UNITASK_DOTWEEN_SUPPORT` is off. |
+| Odin Inspector | — | `Assets/Plugins/Sirenix` | Must (inspector attributes) | Inspector attributes in game code, mostly editor-side. **Never use Odin serialization** (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`, Odin serialized collections): use Unity serialization, including the built-in `[SerializeField] Dictionary<,>` (Unity 6.6) for key→value data. |
+| Easy Save 3 | — | `Assets/Plugins/Easy Save 3` | Should | Persistence. Not used yet (save system postponed, see ARCHITECTURE.md). |
+| Addressables | 2.11.2 | Unity package | Undecided | Not used. |
+| Newtonsoft JSON (`com.unity.nuget.newtonsoft-json`) | 3.2.2 | Unity package | Undecided | Not used by our code; likely a dependency. |
+| SharpZipLib (`com.unity.sharp-zip-lib`) | 1.4.2 | Unity package | Undecided | Not used by our code; likely a dependency. |
+| Visual Scripting | 1.9.12 | Unity package | Avoid | Not used. Check whether another package depends on it before removing. |
 
-## Runtime plugins
+## AI & navigation
 
-| Plugin | Version | Location | Status | Notes |
-|---|---|---|---|---|
-| A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Core | Enemy navigation with `FollowerEntity` agents, driven directly by `EnemyMover`. The scene's `AstarPath` is injected through `EnemyInstaller` (no `AstarPath.active` in game code). Scenes with agents need the `Navigation` prefab (AstarPath + RVOSimulator). Skill: `aipocalypse-enemy-ai`. |
-| Behavior Designer Pro (+ Opsive Graph Designer 3.3.4, Opsive Shared 2.3.2) | 3.3.3 | `Packages/com.opsive.*`, `Assets/Plugins/Opsive` | Core | Behaviour trees for **all** AI: crowd enemies, companions, drone, bosses. Crowd trees run in `Manual` mode, ticked time-sliced by `EnemyManager`; tasks delegate to our parts. Skill: `aipocalypse-enemy-ai`. |
-| GPU Instancer Pro (Core, Prefab, Terrain) | 0.12.20 | `Packages/com.gurbu.gpui-pro*`, `Assets/Plugins/GPUInstancerPro` | Use | Foliage and props instancing. **Not yet on the world map terrain** (`Scenes/Prototypes/WorldMap.unity`): its trees and details are drawn by Unity's terrain renderer for now. The Raygeas Shader Graphs (`Grass`, `Tree_Foliage`, `Tree_Trunk`, `Cliffs`) have no "GPU Instancer Pro Setup" node, so GPUI would draw Komorebi vegetation with its magenta error shader; they need `_Game` graph copies with that node first. GPUI also auto-converts text shaders by writing `*_GPUIPro.shader` next to the vendor file. Both are open decisions (see ENVIRONMENT.md). |
-| GPU Instancer Pro – Crowd Animations | 0.10.6 | `Packages/com.gurbu.gpui-pro.crowd-animations` | Undecided | Candidate for crowd enemy rendering. |
-| DOTween + DOTween Pro (+ DemiLib) | — | `Assets/Plugins/Demigiant` | Use | Code tweens: the QTE widget's result feedback and the hit marker (unscaled time, so a hit stop doesn't freeze them), the HUD fade on death. `DOVirtual.EasedValue` gives the pose sequences' eased moves (Ease picked per beat in data, no tween objects); the death screen's eyelids, menu fades and pulse are DOTween sequences linked to its GameObject. Core references DOTween.Modules for uGUI extensions. |
-| Feel (MoreMountains) | — | `Assets/_StoreAssets/GameFeel/Feel` | Use | Game feel / feedbacks. Views play `MMF_Player`s in response to events, never services or weapons directly. No time-scale, sound, scene-loading, floating-text or broadcast feedbacks, and no `MMF_Player` on crowd enemies. Hit stop goes through our `MMF_HitStop` (→ `TimeService.RequestHitStop`, via `FeedbackContext`). Camera shake: `MMF_CinemachineImpulse` (Scaled timescale mode on every impulse feedback) heard by the `CinemachineImpulseListener` on the player's Cinemachine camera. First use: `Player/GunJamFeedback` (gun jam / repair beats). `Aipocalypse.Core` references `MoreMountains.Tools`. Skill: `tools-unity-feel` (feedback catalog in its references). |
-| Damage Numbers Pro | — | `Assets/_StoreAssets/GameFeel/DamageNumbersPro` | Use | Hit numbers: `_Core/UI/Prefabs/Widgets/DamageNumber.prefab` (built with DNP's own menu item, pooling on, prewarmed by `HitFeedbackHud`). DNP's setup rewrites its font's material, so our prefab uses the first-party copy `Data/UI/DamageNumberFont.asset` and the vendor font stays untouched. Same hook rule as Feel: a view spawns numbers in response to `DamageDealt`. |
-| BroAudio | — | `Assets/Plugins/BroAudio` | Use | All game audio. Read its `CLAUDE.md`. Game code plays through `AudioService` (`_Core/AudioSystem`, root scope), never the static `BroAudio` facade. One-shots use `Play` / `PlayAt`; a sound the caller keeps (the player's breath loop) uses `Start`, then `SetVolume` / `Pause` / `UnPause` / `Stop` (fades on volume and stop) on the returned `IAudioPlayer`. Set Loop on the entity for loops. Libraries (`AudioAsset`) and their entities live in `Data/Audio/` (`Guns`, `Melee`, `RepairFeedback`, `Player`, `Combat`, `Ambience`: time-of-day beds and calls played by `AmbienceService`, `Music`: the death sequence's music, a seamless loop (1.2 s crossfade) that plays until the player revives); each entity holds its clips, volume, random clip / pitch settings. Edit them in the Library Manager (`Tools > BroAudio > Library Manager`); data fields reference them as `SoundID`. The entities were first created from the old `AudioClip` fields by an editor script using BroAudio's public `AudioEntity.CreateNewInstance`. |
-| Easy Save 3 | — | `Assets/Plugins/Easy Save 3` | Use | Persistence (save system postponed, see ARCHITECTURE.md). |
-| Odin Inspector | — | `Assets/Plugins/Sirenix` | Use | Inspector attributes in game code. Mostly editor-side. **Never use Odin serialization** (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`, Odin serialized collections) in any case: use Unity serialization, including the built-in `[SerializeField] Dictionary<,>` (Unity 6.6) for key→value data. |
-| COZY 3: Stylized Weather (+ Blocks 1.7.2, Habits 1.4.0, Horizon 1.0.0, Plume 1.4.3) | 3.6.23 | `Packages/com.distantlands.cozy.*` | Not used | Kept installed, not used (user, 2026-10-21): the day/night cycle, sky, lighting and future weather are ours ([DAYNIGHT.md](DAYNIGHT.md)). Don't reference COZY scripts, shaders or assets. |
-| Kronnect Beautify, Volumetric Fog 2, Dynamic Fog URP, Global Snow, Highlight Plus, Transitions Plus, Skybox Plus | — | `Assets/_StoreAssets/Rendering/Kronnect` | Undecided | Post FX, fog, snow, outlines, screen transitions, skybox. Overlaps with URP post-processing and our sky / fog ([DAYNIGHT.md](DAYNIGHT.md)). |
-| Stylized Grass, Stylized Water 3 (Staggart) | 2.1.3 / 3.3.3 | `Assets/_StoreAssets/Rendering/Staggart Creations` | Use | Grass and water shaders. Stylized Water 3 (3.3.3; skill `tools-unity-stylized-water`) draws the world map water: flat bodies are `WaterObject`s on generated meshes at the water level; rivers and streams are `RiverModeler` ribbons on spline knots at the water surface. Materials are first-party copies in `Environment/Water/`; script-set toggles also need their keywords (`[Toggle]` drawers don't run from code). River audio is off (`RiverAudioManager` is a second audio owner; BroAudio owns audio). The MicroVerse river integration is not used: the generator carves the beds. Environment reflections are off in every water material for performance (`_EnvironmentReflectionsOn` 0 plus the `_ENVIRONMENTREFLECTIONS_OFF` keyword); the Great Lake's realtime ReflectionProbe is deactivated. Don't use `PlanarReflectionRenderer`: it would re-render the whole terrain every frame. The waterfall uses the `Particles/Waterfall Impact Splashes` and `WaterRipples_Stationairy` prefabs (sortingOrder 1 so they draw after the queue-3001 sheet). Dynamic Effects are not used: their buffers take about 160 MB at our renderer settings. The Underwater Rendering extension is used: one `UnderwaterArea` per flat water level (see ENVIRONMENT.md → Underwater); it only works for flat water and skips cameras with `hideFlags` set (test renders need a plain camera). |
-| Malbers Animal Controller (+ Animals packs) | — | `Assets/_StoreAssets/Animation/Malbers Animations` (stray duplicate: `Assets/Malbers Animations/Animals Packs/04 Pets` at the root) | Undecided | Heavy per-instance controller. Fine for a few unique animals (dog, cat); never for crowds. Some `Common/Audio` clips are used in BroAudio libraries. |
+The WorldMap navmesh setup (Navigation prefab, cached recast graph, water exclusion mesh) is in ENVIRONMENT.md → Navigation and the `aipocalypse-enemy-ai` skill.
+
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Behavior Designer Pro (+ Opsive Graph Designer 3.3.4, Opsive Shared 2.3.2) | 3.3.3 | `Packages/com.opsive.*`, `Assets/Plugins/Opsive` | Must | Behaviour trees for **all** AI: crowd enemies, companions, drone, bosses. Crowd trees run in `Manual` mode, ticked time-sliced by `EnemyManager`; tasks delegate to our parts. Skill: `aipocalypse-enemy-ai`. |
+| A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Must | Enemy navigation with `FollowerEntity` agents, driven directly by `EnemyMover`. The scene's `AstarPath` is injected through `EnemyInstaller` (no `AstarPath.active` in game code). Scenes with agents need the `Navigation` prefab (AstarPath + RVOSimulator). |
+| Entities / Entities Graphics | 6.6.0 | Unity package | Avoid (dependency) | Required by BD Pro. Our own code stays MonoBehaviour (ARCHITECTURE.md). |
+| Unity Behavior | 1.0.16 | Unity package | Avoid (remove) | Behavior Designer Pro was chosen. Remove the package. |
+| AI Navigation | 2.0.16 | Unity package | Avoid | A* is the navigation choice. Probably removable. |
+| Malbers Animal Controller | — | `Assets/_StoreAssets/Characters/Malbers Animations/Animal Controller` | Undecided | Heavy per-instance controller. Fine for a few unique animals (dog, cat); never for crowds. Its animal models: ASSETS.md. |
 | Fishing for Animal Controller (Sunfish Creations) | — | `Assets/_StoreAssets/Animation/Sunfish Creations` | Undecided | Malbers add-on. Not used. |
-| ArmoryCore | — | `Assets/_StoreAssets/Weapons/ArmoryCore` | Undecided | Low-poly weapon models plus its own weapon system (`Scripts/`, ScriptableObject definitions for weapons, ammo, attachments). Not used; our weapon system is `_Core/WeaponSystem` (WEAPONS.md). |
-| Unluck Software (Insect Particles, Stylized Weather, Simple Particle Scaler, shaders) | — | `Assets/_StoreAssets/VFX/Unluck Software` | Undecided | Particle FX and weather. Not used; the day/night cycle and future weather are ours (DAYNIGHT.md). |
-| Lean (CW: LeanCommon, LeanGUI, LeanTexture(+), LeanTransition) | — | `Assets/Plugins/CW` | Undecided | LeanTransition overlaps with DOTween; prefer DOTween. |
-| Text Studio | 1.3.1 | `Assets/Plugins/TextStudio` | Undecided | Text effects. |
-| Advanced FPS Counter (CodeStage) | 1.5.7 | `Assets/Plugins/CodeStage` | Use | Debug overlay only (dev builds). |
 
-## Unity packages worth noting
+## Input, camera, player
 
-Default Unity modules are omitted. Full list: `Packages/manifest.json`.
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Input System | 1.20.1 | Unity package | Must | New Input System only. `Assets/_Game/Settings/InputSystem_Actions.inputactions`, read only through `InputService` via the generated wrapper `GameInputActions` (`_Core/InputSystem/`, regenerated on import). The asset is also the project-wide actions, which only feed UI for now. Editor: keyboard/mouse reach the game only while the Game view has focus. |
+| Cinemachine | 6.6.0 | Unity package | Must | Owns the camera. The player rig (`CinemachineBrain` + a `CinemachineCamera` hard-locked to the player's camera pivot) lives inside the Player prefab; scenes have no camera of their own. |
 
-| Package | Version | Status | Notes |
-|---|---|---|---|
-| Input System | 1.20.1 | Core | New Input System only. `Assets/_Game/Settings/InputSystem_Actions.inputactions`, read only through `InputService` via the generated wrapper `GameInputActions` (`_Core/InputSystem/`, regenerated on import). The asset is also the project-wide actions, which only feed UI for now. Editor: keyboard/mouse reach the game only while the Game view has focus. |
-| URP / Shader Graph / VFX Graph | 17.6.0 | Core | Rendering. First-person held models / muzzle flashes are drawn by a custom renderer feature (`FirstPersonRenderFeature`, HeldWeapon layer, depth cleared, own FOV) in the world camera, with no overlay camera; world effects keep normal depth. GPU Resident Drawer is on, static batching off. |
-| Cinemachine | 6.6.0 | Core | Owns the camera. The player rig (`CinemachineBrain` + a `CinemachineCamera` hard-locked to the player's camera pivot) lives inside the Player prefab; scenes have no camera of their own. |
-| Test Framework | 1.8.0 | Core | `unity command run_tests`. |
-| Unity Pipeline (`com.unity.pipeline`) | 0.9.1-exp.1 | Editor | Unity CLI bridge. Docs: `Library/PackageCache/com.unity.pipeline@*/Documentation~/`; Claude Code skill: `unity:unity-cli`. |
-| Entities / Entities Graphics | 6.6.0 | Undecided | Required by BD Pro. Our own code stays MonoBehaviour (ARCHITECTURE.md). |
-| Unity Behavior | 1.0.16 | Remove | Behavior Designer Pro was chosen. Don't use; remove the package. |
-| AI Navigation | 2.0.16 | Undecided | Overlaps with A*. Not used for enemies. |
-| Visual Scripting | 1.9.12 | Undecided | Probably a dependency of another package or unused. |
-| Addressables | 2.11.2 | Undecided | |
-| Localization | 1.5.13 | Use | |
-| Animation Rigging | 6.6.0 | Use | AK47, MP5, pistol, pump shotgun and double barrel: Multi-Parent Constraints drive shared-hand targets from gun parts or an authored free-hand control. GunAnimation evaluates the rig with its manual controller graph in the central weapon tick; no per-hand Update. Editor Animation-window previews use RigBuilder normally. See HANDS.md. |
-| Splines | 2.9.1 | Use | |
-| Terrain Tools | 5.3.3 | Editor | |
-| Timeline | 6.6.0 | Use | |
-| Recorder / Memory Profiler / FBX Exporter | 5.1.7 / 1.1.12 / 5.1.6 | Editor | |
-| SC Screen Effects (`xyz.staggart-creations.screen-effects`, local package) | 3.0.2 | Undecided | Extra URP post-processing volume effects (blur, colour split, condition, fog, …). Not used: its components only appear in `_Game/Settings/DefaultVolumeProfile.asset` because Unity lists every installed volume component there. |
-| 2D Animation | 16.0.1 | Undecided | Not used by our code. |
-| Editor Coroutines | 6.6.0 | Undecided | Not used by our code. |
-| Newtonsoft JSON (`com.unity.nuget.newtonsoft-json`) | 3.2.2 | Undecided | Not used by our code. |
-| SharpZipLib (`com.unity.sharp-zip-lib`) | 1.4.2 | Undecided | Not used by our code. |
+## Weapons & animation
 
-## Editor-only tools
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Animation Rigging | 6.6.0 | Unity package | Must | First-person hands: Multi-Parent Constraints drive shared-hand targets from gun parts or an authored free-hand control. GunAnimation evaluates the rig with its manual controller graph in the central weapon tick; no per-hand Update. See HANDS.md. |
+| ArmoryCore weapon system | — | `Assets/_StoreAssets/Weapons/ArmoryCore/Scripts`, `Definitions` | Avoid | Its own weapon system and ScriptableObject definitions. Ours is `_Core/WeaponSystem` (WEAPONS.md). Its models: ASSETS.md. |
+| KINEMATION FPS Animation Framework, Procedural Recoil Animation System | — | `Assets/_StoreAssets/Animation/KINEMATION` | Avoid | Our weapon animation and recoil are first-party (HANDS.md, WEAPONS.md). Retarget Pro is under Editor tools. |
+| Timeline | 6.6.0 | Unity package | Should | Cutscenes and authored sequences. Not used yet. |
+| 2D Animation | 16.0.1 | Unity package | Undecided | Not used by our code. |
 
-| Tool | Version | Location | Notes |
-|---|---|---|---|
-| MicroVerse (+ Ambiance, Objects, Splines, Vegetation, Demo) | 1.7.0 | `Packages/com.jbooth.microverse*` | Terrain authoring, stripped from builds (only baked TerrainData ships). BK Pure Nature 2 presets in `Assets/_StoreAssets/Env/MicroVerse-Presets` (only the 6 installed BK biomes resolve). Ambiance (`AmbientArea`/`AmbianceMgr`) runs at runtime as a static singleton: don't use it (BroAudio owns audio). Skill: `tools-unity-map-generation` (library detail: user-scope `unity-microverse`). |
-| Spline Spawner (Staggart) | 1.2.0 | `Packages/xyz.staggart-creations.spline-spawner` | Spawn objects along splines. |
-| Vegetation Spawner (Staggart) | 1.1.0 | `Assets/_StoreAssets/Rendering/Staggart Creations` | Terrain vegetation placement. |
-| Rowlan height stamps (Alpine Mountains, Highlands, Jungle Rivers, Meadows, Swamp, Valleys) | — | `Assets/_StoreAssets/Env/Rowlan/Terrain/Stamps` | 4K R16 heightmaps with MicroVerse content collections. Each pack's Terrain Tools brushes are extracted (`<Pack>/Brushes/Brushes/*.brush`). |
-| Rowlan Genesis for MicroVerse | 3.5.5 | `Assets/_StoreAssets/Env/Rowlan/Genesis` | MicroVerse wizards (heightmap → collection converter, stamp placement/validation, terraform). The Genesis wizard writes to `Assets/Rowlan/Genesis Data` (not created yet) and replaces MicroVerse setups. Gameplay (legacy Input rig) and Visual Ambience (built-in post-processing) must not be used. |
-| Rowlan Fullscreen Editor Play Mode | 1.9.0 | `Assets/Plugins/Rowlan/Fullscreen` | |
-| Rowlan YAPP (prefab painter) | 1.28.0 | `Assets/Plugins/Rowlan/YAPP` | Not used. Map dressing is scripted by the generator (`tools-unity-map-generation`). |
-| Asset Usage Detector | 2.6.3 | UPM git (yasirkula) | Find asset references. |
-| Inspect Plus | 2.1.1 | UPM git (yasirkula) | |
-| Audio Tools | 1.2.0 | `Assets/Plugins/AudioTools` | |
-| Audio Preview Tool | — | `Assets/Plugins/WarpedImagination` | |
-| Easy Collider Editor | — | `Assets/Plugins/EasyColliderEditor` | Collider authoring. |
-| KINEMATION Retarget Pro (+ FPS Animation Framework, FPS Animation Pack, Procedural Recoil Animation System) | — | `Assets/_StoreAssets/Animation/KINEMATION` | Animation retargeting. The FPS framework, pack and recoil system are not used (our weapon animation: HANDS.md, WEAPONS.md). |
-| FImpossible Creations shared tools | — | `Assets/Plugins/FImpossible Creations` | |
-| Auxilium Dev Toolbox | — | `Assets/Plugins/Auxilium Dev Toolbox` | |
-| Scene List Tool | — | `Assets/Plugins/SceneListTool` | |
-| Colorize Palette Modifier (Smitesoft) | — | `Assets/Plugins/Smitesoft` | |
-| Smart Mouse (TelePresent) | — | `Assets/Plugins/TelePresent` | |
-| Better Inspector (Tiny Giant Studio) | — | `Assets/Plugins/Tiny Giant Studio` | |
-| Ultimate Preview / Ultimate Thumbnails (Voxel Labs) | — | `Assets/Plugins/Voxel Labs` | |
-| SyntyPackageHelper | — | `Assets/Synty/SyntyPackageHelper` | Synty package import helper (editor). |
+## Rendering & post-processing
 
-## Content packs
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| URP / Shader Graph / VFX Graph | 17.6.0 | Unity package | Must | Rendering. First-person held models / muzzle flashes are drawn by a custom renderer feature (`FirstPersonRenderFeature`, HeldWeapon layer, depth cleared, own FOV) in the world camera, with no overlay camera; world effects keep normal depth. GPU Resident Drawer is on, static batching off. Post-processing: URP volumes owned by `EnvironmentDirector` (DAYNIGHT.md). |
+| Stylized Water 3 (Staggart) | 3.3.3 | `Assets/_StoreAssets/Rendering/Staggart Creations/Stylized Water 3` | Must (water) | Draws the world map water: flat bodies are `WaterObject`s on generated meshes at the water level; rivers and streams are `RiverModeler` ribbons on spline knots. Materials are first-party copies in `Environment/Water/`; script-set toggles also need their keywords (`[Toggle]` drawers don't run from code). Underwater Rendering is used: one `UnderwaterArea` per flat water level (ENVIRONMENT.md → Underwater). Not used: river audio (`RiverAudioManager`), the MicroVerse river integration, `PlanarReflectionRenderer` (re-renders the terrain every frame), Dynamic Effects (~160 MB of buffers). Environment reflections are off in every water material (`_EnvironmentReflectionsOn` 0 plus the `_ENVIRONMENTREFLECTIONS_OFF` keyword) and the Great Lake's realtime ReflectionProbe is deactivated. Waterfall particles: `Particles/Waterfall Impact Splashes`, `WaterRipples_Stationairy` (sortingOrder 1). Skill: `tools-unity-stylized-water`. |
+| GPU Instancer Pro (Core, Prefab, Terrain) | 0.12.20 | `Packages/com.gurbu.gpui-pro*`, `Assets/Plugins/GPUInstancerPro` | Should (foliage, props) | Planned instancing for foliage and props. **Not on the world map yet**: Unity's terrain renderer draws its trees and details, and a leftover `GPUITerrainBuiltin` sits on the terrain with no GPUI manager. The Raygeas Shader Graphs have no "GPU Instancer Pro Setup" node, so GPUI would draw Komorebi vegetation magenta until `_Game` graph copies get that node. GPUI also auto-converts text shaders by writing `*_GPUIPro.shader` next to the vendor file. Both are open decisions (ENVIRONMENT.md). |
+| GPU Instancer Pro – Crowd Animations | 0.10.6 | `Packages/com.gurbu.gpui-pro.crowd-animations` | Undecided | Candidate for crowd enemy rendering. |
+| Stylized Grass (Staggart) | 2.1.3 | `Assets/_StoreAssets/Rendering/Staggart Creations/Stylized Grass` | Undecided | No material uses its shaders, but its `GrassRenderFeature` (grass bending, range 50) is active in `_Game/Settings/PC_Renderer.asset`. Decide whether to drop the feature. |
+| SC Screen Effects (`xyz.staggart-creations.screen-effects`, local package) | 3.0.2 | `Packages/xyz.staggart-creations.screen-effects` | Undecided | Extra URP volume effects (blur, colour split, fog, …). Not used. Its components appear in `_Game/Settings/DefaultVolumeProfile.asset` only because Unity lists every installed volume component there; a stray `PostProcessingVolumeRenderer` (no volume set) sits on WorldMap's `Post-Processing` object. |
+| Kronnect Beautify, Volumetric Fog 2, Dynamic Fog URP, Global Snow, Highlight Plus, Transitions Plus, Skybox Plus | — | `Assets/_StoreAssets/Rendering/Kronnect` | Undecided | Post FX, fog, snow, outlines, screen transitions, skybox. Overlaps with URP post-processing and our sky / fog (DAYNIGHT.md). Beautify appears in `DefaultVolumeProfile.asset` the same listing-only way. Fog and snow stay candidates for weather; Highlight Plus for interactable outlines. |
 
-| Pack | Location |
-|---|---|
-| Synty Polygon Generic, Polygon Prototype, Sidekick Characters | `Assets/Synty` |
-| Synty Animation Base Locomotion, Goblin Locomotion | `Assets/Synty` |
-| Synty Interface Core, Interface Apocalypse HUD | `Assets/Synty`. HUD art: **sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Our widgets reference the sprites through style assets ([UI.md](UI.md)); the repair QTE uses Apocalypse ring/bar/panel sprites with first-party timing views; item icons come from `Icons_Weapons` and the hotbar key cap from Interface Core's `Icons_Input` |
-| Low Poly Weapon Bundle Packs 1–3 | `Assets/_StoreAssets/Weapons`. Gun models: each gun is a `Gun_Base` variant (`_Core/WeaponSystem/Prefabs/Gun_Base.prefab`; each gun lives in `Content/Weapons/<Gun>/`) holding an unpacked copy of the store model under `AnimationRoot/Motion/Weapon` (generic part names, shared meshes/materials, store prefabs untouched), shadows off, no colliders ([WEAPONS.md](WEAPONS.md#gun-clips-and-constraints), [HANDS.md](HANDS.md)). In use (Pack 1): AR_B (AK47), SMG_B (MP5), Pistol_E (Pistol), ShotGun_C (PumpShotgun), ShotGun_E (DoubleBarrel) |
-| VFX: Gabriel Aguiar Unique packs (Projectiles Vol 1–5, Toon Projectiles, Magic Abilities Vol 2, Markers & Pointers, Sci-Fi), Hovl Studio packs | `Assets/_StoreAssets/VFX`. Our effect prefabs (`Content/Weapons/_Shared/Effects/`: muzzle flash, tracer, impact) use the Unique Projectiles materials; they're pooled through `EffectPool`, never instantiated per shot. Hovl Studio: not used yet |
-| Animpic Polygon Mega Survival (Kit, Construction, Tools, Medical, Weapons), Poly-Survival Food / Melee / Workshop | `Assets/_StoreAssets/Env/Animpic`. Melee models are used the same way as the gun models |
-| Raygeas: Komorebi Nature, HIGHLANDS, Grasslands, Lakefell Village, Stylized Terrain Textures, AZURE | `Assets/_StoreAssets/Env/Raygeas`. Main art set of the world map (ENVIRONMENT.md). Komorebi: nature only (no torii, shrines, lanterns or bamboo). Sakura only where the user asked for the Komorebi demo's pond look: around the home pond, plus a few accents on lake islands and the shore. Vegetation sways only with the wind drivers in the scene: Komorebi `Wind_Controller.prefab` (Komorebi graphs), HIGHLANDS `Wind Settings.prefab` (`Highlands_Foliage`) and a `Raygeas.WindSettings` component (Grasslands/Lakefell shaders); keep them aligned. `Shared Assets/Scripts/WindController.cs` and `WindSettings.cs` start with an unguarded `using UnityEditor;`, which likely fails player builds (vendor edit needed, not done). Avoid Lakefell particles and `Buildings (Combined Meshes)`: they use the built-in `Particles/Standard Unlit` shader (magenta in URP). Never place Grasslands `Other/Controller.prefab` (a demo player rig that locks the cursor). The grass-topped HIGHLANDS rocks use a copy with the Grasslands lawn texture as coverage (`Environment/Rocks/HL_Rock_1/2_Grass`). Komorebi `Salvia_Group_1` is a meadow spike detail and `Rocks/SmallStone_5/6` are trail-pebble details (no LODGroup, instanced URP Lit); Komorebi `Rocks/*_NoGrass` stones near the home are swapped to their `Rocks Grass` twin materials. |
-| BK Pure Nature (Asian Valley, Jungle, Meadows, Mountains) | `Assets/_StoreAssets/Env/BK`. Supporting assets on the world map: the meadow lawn and flowers (Meadows `Plants/`), meadow stones, reeds, butterflies, and the flattened hills and far range of the boundary (`Mountains/`, scale 20,000–45,000: the meshes are about 0.03 m at scale 1). BK plants read four shader globals (`GrassRenderDist`, `MicroPower/Speed/Frequency`); unset, they fade out beyond ~50 m. `BK_EnvironmentManager` sets them but also draws clouds: don't place it. Use `_Core/EnvironmentSystem/BKFoliageGlobals` instead (render distance 240 = 2× the terrain detail distance of 120). The meadow lawn `Grass1/2`, tall `Grass3` and `Sorrel` are used through first-party material copies (`Environment/Vegetation/Materials/BK_*`, colour spread only); `Lupin2` and `Carot1` are meadow spikes. `Reeds` (Meadows and Mountains) are also placed as GameObject reed beds on the lake shore. Asian Valley `Fx/WaterSplash` is the waterfall mist (shadows off, sortingOrder 1). |
-| ANGRY MESH Stylized Pack – Meadow | `Assets/_StoreAssets/Env/ANGRY MESH`. The world map near boundary range (ENVIRONMENT.md): `Rocks/P_Rock_01-05` scaled ×14–25 as granite domes and `Background/P_Mountain_01/03/04` at small scale behind them. Use the first-party grey copies `Environment/Mountains/AM_*.mat` (vendor rocks are beige, mountains mauve); the rock copies keep a grass top layer (`_TopLayerUVScale` 20, offset 0.3: caps on faces under ~50°), which multiplies by the pack's global shader values; `_Core/EnvironmentSystem/ASPTopLayerGlobals` on `Environment/Boundary` sets them (instead of the vendor `ASPGlobalTopLayer`, which sets them every frame). The mountain copies keep the top layer off. Remove the mountains' 14k-triangle mesh colliders when placing them beyond the walls. |
-| SICS Toon Fantasy Nature, Toon Series (Enchanted Meadow, Farm Pack), ToonScapes Spring Isles | `Assets/_StoreAssets/Env/SICS`. The world map uses only two particle prefabs, both on URP Particles shaders: `TEM_Dust_01A` (gold motes in the god-ray clearings) and `TFF_Fireflies_01A` (additive fireflies in shaded stands). Tweaks are per instance in `Atmosphere.Particles` (culling Pause; the vendor setting always simulates). |
-| Kroma (FayLabs) | `Assets/_StoreAssets/GameFeel/Kroma`. `Kroma_Particle_Dandelions_Prefab` is the meadow seed fluff. On our instances its `KromaCameraFollow` (ExecuteAlways, follows `Camera.main`) and `KromaParticleController` are disabled and world collision is off. Avoid `Dust_Glow` (emission 191, extreme bloom) unless through a material copy; don't use Kroma's zone, lighting or LUT tools. |
-| NewLua Stylized Farm Crops | `Assets/_StoreAssets/Env/NewLua Studios` |
-| Malbers Animals Packs (Forest, Pets) | `Assets/_StoreAssets/Animation/Malbers Animations/Animals Packs` (stray copy of Pets at `Assets/Malbers Animations`) |
-| PolyartStudio Dreamscape (Campsite, Castle, Meadows), Farmlands | `Assets/_StoreAssets/Env/PolyartStudio`. Not used |
-| VR Low Poly Hand (Left & Right) | `Assets/_StoreAssets/Characters/VR Low Poly Hand (Left & Right)`. Mesh of the first-person hand prefabs `_Core/HandSystem/Prefabs/FPHand_Left/Right` (HANDS.md) |
-| Audio: Gamemaster Audio Pro Sound Collection, PlaceHolder Inc (Environment Sounds, Gun Sounds Vol 1, Interface & Item Sounds Lite, Survival Game Sounds Lite), ithappy Nature Sound FX | `Assets/_StoreAssets/Audio`. Not used yet (no clip in the BroAudio libraries in `Data/Audio/`) |
-| TextMesh Pro samples (fonts, shaders) | `Assets/Samples/TextMesh Pro` |
+## Day/night, sky, weather
 
-## Open overlaps to decide
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Our `EnvironmentDirector` (DAYNIGHT.md) | — | `_Core/EnvironmentSystem` | Must | Time of day, sky, lighting, fog and grade are first-party. |
+| COZY 3: Stylized Weather (+ Blocks 1.7.2, Habits 1.4.0, Horizon 1.0.0, Plume 1.4.3) | 3.6.23 | `Packages/com.distantlands.cozy.*` | Avoid | Kept installed, not used (user, 2026-10-21). Don't reference COZY scripts, shaders or assets. |
+| Unluck Stylized Weather | — | `Assets/_StoreAssets/VFX/Unluck Software` | Undecided | Its weather controller overlaps ours; its particles are listed in ASSETS.md. |
 
-The capsule wander demo in `Assets/_Game/Scenes/Prototypes/WorldMap.unity` (two `WanderCapsule` prefabs) uses a shared Behavior Designer Pro subtree (`Content/Enemies/_Shared/Wander.asset`), with custom choose/walk/pause tasks and Manual trees ticked by `EnemyManager`. A* FollowerEntity handles movement and local avoidance; `_Core/EnemySystem/Prefabs/Navigation.prefab` contains AstarPath (default graph: a small terrain-following grid scanned on startup) and RVOSimulator. WorldMap's instance holds one tiled RecastGraph over the 1 km map (0.3 m cells, 38 m tiles, ~43k triangles, 0.5 s to scan), loaded from a startup cache (`Maps/WorldMap/Navigation/WorldMapNavmesh.bytes`, 1.3 MB). Water is kept out by a navmesh-only mesh with a `RecastNavmeshModifier` (Unwalkable, solid, always included; its renderer disabled): the underwater areas are triggers, which the scan skips. Both are made by the map generator (ENVIRONMENT.md → Navigation); never hand-scan WorldMap without that mesh in the scene. The `Enemy` layer keeps the capsules out of terrain navigation and grounding queries.
+## Game feel, tweening, UI
 
-- **A\* vs AI Navigation.** A* is the choice for enemies; AI Navigation can probably go.
-- **Tweening: DOTween vs LeanTransition vs Feel's tweens.** DOTween for code; Feel only through feedbacks.
-- **Atmosphere: Kronnect Volumetric Fog / Global Snow vs URP volumes.** Fog, sky, lighting and the time of day are owned by our `EnvironmentDirector` (DAYNIGHT.md), not COZY: URP volumes (base grade + time-of-day grades), RenderSettings fog/ambient, our sky shader over the painted panorama, Raygeas particle effects. Kronnect fog / snow stay undecided for weather.
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| DOTween + DOTween Pro (+ DemiLib) | — | `Assets/Plugins/Demigiant` | Must (code tweens) | The QTE widget's result feedback and the hit marker (unscaled time, so a hit stop doesn't freeze them), the HUD fade on death. `DOVirtual.EasedValue` gives the pose sequences' eased moves (Ease picked per beat in data, no tween objects); the death screen's eyelids, menu fades and pulse are DOTween sequences linked to its GameObject. Core references DOTween.Modules for uGUI extensions. |
+| Feel (MoreMountains) | — | `Assets/_StoreAssets/GameFeel/Feel` | Must (feedbacks); Could (tweens, inside feedbacks only) | Views play `MMF_Player`s in response to events, never services or weapons directly. No time-scale, sound, scene-loading, floating-text or broadcast feedbacks, and no `MMF_Player` on crowd enemies. Hit stop goes through our `MMF_HitStop` (→ `TimeService.RequestHitStop`, via `FeedbackContext`). Camera shake: `MMF_CinemachineImpulse` (Scaled timescale mode on every impulse feedback) heard by the `CinemachineImpulseListener` on the player's Cinemachine camera. First use: `Player/GunJamFeedback`. `Aipocalypse.Core` references `MoreMountains.Tools`. Skill: `tools-unity-feel`. |
+| Damage Numbers Pro | — | `Assets/_StoreAssets/GameFeel/DamageNumbersPro` | Must (damage numbers) | `_Core/UI/Prefabs/Widgets/DamageNumber.prefab` (built with DNP's own menu item, pooling on, prewarmed by `HitFeedbackHud`). DNP's setup rewrites its font's material, so our prefab uses the first-party copy `Data/UI/DamageNumberFont.asset`. A view spawns numbers in response to `DamageDealt`. |
+| uGUI + TextMesh Pro | 2.6.0 | Unity package | Must (UI) | All UI ([UI.md](UI.md)). No UI Toolkit for game UI. |
+| UIEffect (`com.coffee.ui-effect`) | 5.11.7 | UPM git | Should | uGUI effects (shiny, dissolve, transitions). Not used yet. |
+| Text Studio | 1.3.1 | `Assets/Plugins/TextStudio` | Undecided | Animated / typewriter text. Skill: `tools-unity-text-studio`. |
+| Lean (CW: LeanCommon, LeanGUI, LeanTexture(+), LeanTransition) | — | `Assets/Plugins/CW` | Avoid (LeanTransition); Undecided (others) | LeanTransition overlaps DOTween. LeanGUI overlaps our uGUI widgets. |
+| Localization | 1.5.13 | Unity package | Should | Text localization. Not used yet. |
+
+## Audio
+
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| BroAudio | — | `Assets/Plugins/BroAudio` | Must | All game audio. Read its `CLAUDE.md`. Game code plays through `AudioService` (`_Core/AudioSystem`, root scope), never the static `BroAudio` facade. One-shots use `Play` / `PlayAt`; a sound the caller keeps (the player's breath loop) uses `Start`, then `SetVolume` / `Pause` / `UnPause` / `Stop` on the returned `IAudioPlayer`. Set Loop on the entity for loops. Libraries (`AudioAsset`) and their entities live in `Data/Audio/` (`Guns`, `Melee`, `RepairFeedback`, `Player`, `Combat`, `Ambience`: beds and calls played by `AmbienceService`, `Music`: the death music loop); edit them in the Library Manager (`Tools > BroAudio > Library Manager`); data fields reference them as `SoundID`. Clip sources: ASSETS.md → Audio. Skill: `tools-unity-broaudio`. |
+
+## Debug
+
+| Plugin | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Advanced FPS Counter (CodeStage) | 1.5.7 | `Assets/Plugins/CodeStage` | Must (fps overlay) | Debug overlay only (editor and dev builds). |
+
+## Editor tools
+
+### Terrain and map authoring
+
+| Tool | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| MicroVerse (+ Objects, Splines, Vegetation, Demo) | 1.7.0 | `Packages/com.jbooth.microverse*` | Must | Terrain authoring through the WorldMap generator, stripped from builds (only baked TerrainData ships). Skill: `tools-unity-map-generation` (library detail: user-scope `unity-microverse`). Height stamps and presets: ASSETS.md. |
+| MicroVerse Ambiance | 1.7.0 | `Packages/com.jbooth.microverse.ambiance` | Avoid | `AmbientArea` / `AmbianceMgr` run at runtime as a static singleton; BroAudio owns audio. |
+| Rowlan Genesis for MicroVerse | 3.5.5 | `Assets/_StoreAssets/Env/Rowlan/Genesis` | Could | MicroVerse wizards (heightmap → collection converter, stamp placement/validation, terraform). The wizard writes to `Assets/Rowlan/Genesis Data` (not created yet) and replaces MicroVerse setups. Its Gameplay (legacy Input rig) and Visual Ambience (built-in post-processing) parts are Avoid. |
+| Terrain Tools | 5.3.3 | Unity package | Could | Brush painting is erased by the next MicroVerse rebuild on generated terrains. The Rowlan stamp packs' brushes are extracted to `<Pack>/Brushes/Brushes/*.brush`. |
+| Splines | 2.9.1 | Unity package | Should | Spline data (rivers via SW3 `RiverModeler`, generator scripts). |
+| Spline Spawner (Staggart) | 1.2.0 | `Packages/xyz.staggart-creations.spline-spawner` | Undecided | Spawn objects along splines. Not used; map dressing is scripted by the generator. |
+| Vegetation Spawner (Staggart) | 1.1.0 | `Assets/_StoreAssets/Rendering/Staggart Creations/VegetationSpawner` | Avoid | The generator places vegetation; a second placer would fight it. |
+| Rowlan YAPP (prefab painter) | 1.28.0 | `Assets/Plugins/Rowlan/YAPP` | Avoid | Map dressing is scripted by the generator. |
+
+### Engine, testing, profiling
+
+| Tool | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Unity Pipeline (`com.unity.pipeline`) | 0.9.1-exp.1 | Unity package | Must | Unity CLI bridge for driving the editor. Docs: `Library/PackageCache/com.unity.pipeline@*/Documentation~/`; Claude Code skill: `unity:unity-cli`. |
+| Test Framework | 1.8.0 | Unity package | Must | `unity command test run --mode editor`. |
+| Recorder / Memory Profiler / FBX Exporter | 5.1.7 / 1.1.12 / 5.1.6 | Unity packages | Should | Captures, memory snapshots, FBX export. |
+| Editor Coroutines | 6.6.0 | Unity package | Undecided | Not used by our code; likely a dependency. |
+
+### Assets, inspector, workflow
+
+| Tool | Version | Location | Tag | Notes |
+| --- | --- | --- | --- | --- |
+| Asset Usage Detector | 2.6.3 | UPM git (yasirkula) | Should | Find asset references. |
+| Inspect Plus | 2.1.1 | UPM git (yasirkula) | Could | Inspector extras. |
+| Better Inspector (Tiny Giant Studio) | — | `Assets/Plugins/Tiny Giant Studio` | Could | Inspector extras; overlaps Inspect Plus and Odin. |
+| KINEMATION Retarget Pro | — | `Assets/_StoreAssets/Animation/KINEMATION/RetargetPro` | Should | Animation retargeting. |
+| Audio Tools | 1.2.0 | `Assets/Plugins/AudioTools` | Should | Trim, normalize, fade, export clips. Skill: `tools-unity-audio-tools`. |
+| Audio Preview Tool | — | `Assets/Plugins/WarpedImagination` | Could | Clip preview in the Project window. |
+| Easy Collider Editor | — | `Assets/Plugins/EasyColliderEditor` | Should | Collider authoring. |
+| Rowlan Fullscreen Editor Play Mode | 1.9.0 | `Assets/Plugins/Rowlan/Fullscreen` | Could | |
+| Ultimate Preview / Ultimate Thumbnails (Voxel Labs) | — | `Assets/Plugins/Voxel Labs` | Could | |
+| Colorize Palette Modifier (Smitesoft) | — | `Assets/Plugins/Smitesoft` | Could | |
+| Smart Mouse (TelePresent) | — | `Assets/Plugins/TelePresent` | Could | |
+| Scene List Tool | — | `Assets/Plugins/SceneListTool` | Could | |
+| Auxilium Dev Toolbox | — | `Assets/Plugins/Auxilium Dev Toolbox` | Could | |
+| FImpossible Creations shared tools | — | `Assets/Plugins/FImpossible Creations` | Could | |
+| SyntyPackageHelper | — | `Assets/Synty/SyntyPackageHelper` | Could | Synty package import helper. |

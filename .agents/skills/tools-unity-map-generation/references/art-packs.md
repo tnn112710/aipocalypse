@@ -62,11 +62,11 @@ Summer/Autumn/Winter sets: trees, `P_Rock_01-12`, rock groups, `Background/P_Hil
 
 ### Other packs (not used; ask first, styles clash)
 
-SICS Toon Fantasy Nature / Enchanted Meadow / Farm Pack / ToonScapes Spring Isles (toon shaders); PolyartStudio Dreamscape Meadows / Campsite / Castle and Farmlands (URP Shader Graphs; ignore their built-in folders and the Post Processing v2 / `PP` layer instructions; not in PLUGINS.md yet); Animpic Polygon Mega Survival (low-poly; its `Standard Assets/Environment/Water*` are built-in); NewLua farm crops.
+SICS Toon Fantasy Nature / Enchanted Meadow / Farm Pack / ToonScapes Spring Isles (toon shaders); PolyartStudio Dreamscape Meadows / Campsite / Castle and Farmlands (URP Shader Graphs; ignore their built-in folders and the Post Processing v2 / `PP` layer instructions); Animpic Polygon Mega Survival (low-poly; its `Standard Assets/Environment/Water*` are built-in); NewLua farm crops.
 
 ## 3. The user's standing preferences (2026-10-18 → 23)
 
-- **Raygeas is the main style**, BK is support (lawn, flowers, stones, reeds, far range), ANGRY MESH for the near boundary. Ask before bringing in another style.
+- **Raygeas is the main style**, BK is support (lawn, flowers, stones, reeds, far range). Ask before bringing in another style. Per-pack ranking is in `docs/technicals/ASSETS.md` (2026-10-25: ANGRY MESH is Avoid, its near-boundary use to be replaced; SICS and PolyartStudio are Maybe).
 - Komorebi **nature only** (pines, bushes, ferns, rocks, water, waterfall); no cultural props. Sakura only at the home pond.
 - **Boundary**: mountains and rocks as models; the terrain is never raised for them; invisible walls on the playable edge only; not climbable; a different asset family per side.
 - **Water**: Stylized Water 3; waterfall and pond as beautiful as the Komorebi demo; rivers crossable (no walls along banks, deepest point ~3 m, gentle banks; drowning comes later); calm flow.

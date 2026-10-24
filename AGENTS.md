@@ -48,7 +48,7 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 
 - `Assets/_Game/` — **all first-party game code and content go here.** Stable mechanics live in `Assets/_Game/_Core/` (one folder per system plus `_Bootstrap`, `_Common`, `_Debug`); design-dependent rules will go in `Assets/_Game/Features/` and trial mechanics in `Assets/_Game/_Experimental/`, both created with their first code (only the `Aipocalypse.Core` and two test asmdefs exist today). Features depend on Core, never the reverse; their asmdefs will enforce it once they exist. Content lives in one folder per thing (`Assets/_Game/Content/<Kind>/<Name>/`: `Enemies`, `Items` and `Weapons` exist; other kinds such as animals or companions get a folder when the first one is added); system-wide settings ScriptableObjects in `Assets/_Game/Data/<System>/`; maps in `Assets/_Game/Maps/<Map>/` with the shared environment kit in `Assets/_Game/Environment/`. Full layout and rules and system ownership: `docs/technicals/ARCHITECTURE.md`; script map: `docs/technicals/CODE_STRUCTURE.md`.
 - `Assets/_Game/Scenes/Prototypes/` — `WorldMap.unity`, the prototype world map, not in Build Settings. Mechanics are currently tested there; `Proto_*` scenes that test one mechanic each are planned. Prototype scenes use the real code and prefabs, never copies (rules in ARCHITECTURE.md → "Prototypes → main game").
-- `Assets/_StoreAssets/` and `Assets/Synty/` — third-party art/asset-store content (Synty packs, Low Poly Weapon Bundles 1–3, Stylized Grass/Water 3, Damage Numbers Pro, Feel…). Treat as vendor code: don't modify; reference or make variants/prefabs under `_Game`. Full inventory: `docs/technicals/PLUGINS.md`.
+- `Assets/_StoreAssets/` and `Assets/Synty/` — third-party art/asset-store content (Synty packs, Low Poly Weapon Bundles 1–3, Stylized Grass/Water 3, Damage Numbers Pro, Feel…). Treat as vendor code: don't modify; reference or make variants/prefabs under `_Game`. Content packs (3D, UI, VFX, audio): `docs/technicals/ASSETS.md`; code plugins and tools: `docs/technicals/PLUGINS.md`.
 - `Assets/_Placeholder/` — temporary/placeholder assets (e.g. borrowed audio) waiting for final replacements. Fine to reference from `_Game`, but nothing here is meant to ship.
 - `Assets/Plugins/` — third-party editor/runtime tooling (Odin Inspector, DOTween/Demigiant, GPUInstancerPro, etc.). Don't modify.
 - `Assets/_Game/Settings/` — URP assets (`PC_RPAsset`, `PC_Renderer`), volume profile, and Input System config. `Assets/Settings/` holds the Build Profiles and an unused URP global settings asset (the live one is in `_Game/Settings`).
@@ -66,21 +66,23 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 - **Rendering/perf**: URP, GPU Instancer Pro for foliage/props, VFX Graph, Splines, Terrain Tools.
 - **Editor conveniences**: Odin Inspector (`Sirenix`), DOTween, Feel (MoreMountains), Damage Numbers Pro are available for game code.
 
-## Plugins — check before building, use them correctly
+## Plugins and content packs — check before building, use them correctly
 
-Many runtime and editor plugins are installed (Feel, BroAudio, Easy Save 3, Damage Numbers Pro, DOTween, Odin, GPU Instancer Pro, A*, Behavior Designer Pro, Localization…). **Read `docs/technicals/PLUGINS.md` before any task that a plugin might cover.**
+Many runtime and editor plugins are installed (Feel, BroAudio, Easy Save 3, Damage Numbers Pro, DOTween, Odin, GPU Instancer Pro, A*, Behavior Designer Pro, Localization…), plus many art, UI, VFX and audio packs. **Read `docs/technicals/PLUGINS.md` before any task that a plugin might cover, and `docs/technicals/ASSETS.md` before building, dressing or sounding anything.**
+
+Both files rank each entry per purpose: **Must** (the only choice), **Should** (the default), **Could** (fallback for what the higher tags lack), **Maybe** (last resort, ask first), **Avoid** (reference only, nothing in `_Game` points at it), **Undecided** (ask first). Pick the highest-ranked entry that has what you need; using a lower one means writing why in its row.
 
 - **Check first:** before writing a system or tool, check whether an installed plugin already does it. Use the plugin rather than reinventing it, unless PLUGINS.md says otherwise.
 - **Use it the documented way:** follow the plugin's rules in PLUGINS.md (e.g. no plugin singletons/static event systems in gameplay code, `TimeService` owns `Time.timeScale`, uGUI for UI, DOTween for code tweens, behavior trees for all AI with crowd trees ticked by `EnemyManager`). When unsure how a plugin works, read its docs or source in `Assets/Plugins/` / `Packages/` instead of guessing (some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`).
 - **Use it efficiently:** prefer the plugin's pooling, batching and caching features (Damage Numbers Pro and BroAudio pooling, GPUI instancing) and keep per-instance plugin components off crowd entities (exceptions: BD `BehaviorTree` in Manual mode, A* `FollowerEntity`).
-- **Keep PLUGINS.md current:** when adding, removing or starting to use a plugin in a new way, update it in the same change.
+- **Keep PLUGINS.md and ASSETS.md current:** when adding, removing or starting to use a plugin or pack in a new way (or for a new purpose), update its row in the same change.
 
 ## Ask the user first
 
 Stop and ask before:
 
 - Implementing anything taken from `docs/gdd/` (see below) or `IDEAS.md`.
-- Adding a package or plugin, or relying on one PLUGINS.md marks Undecided (e.g. Text Studio).
+- Adding a package, plugin or content pack, relying on one PLUGINS.md or ASSETS.md marks Undecided (e.g. Text Studio), or using one marked Avoid.
 - Adding or renaming BroAudio entities/libraries (Library Manager authoring) or `SoundID`s.
 - Renaming or moving a Behavior Designer task class (trees store its full type name).
 - A full rebuild of an existing map, or changing a scene's structure (`WorldMap.unity`) beyond the task.
@@ -100,7 +102,7 @@ When writing code, the user's prompt is the spec.
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
 - `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` is the index of per-topic files; start with `docs/gdd/CORE.md` (pitch, pillars, core loop). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
-- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Script map (what each script owns, dependencies, frame order): `docs/technicals/CODE_STRUCTURE.md` — update it whenever you add, move or remove a script. Plugin inventory and usage rules: `docs/technicals/PLUGINS.md`. UI (HUD canvas, widgets, styles, adding info): `docs/technicals/UI.md`. Equipment (items, hotbar, switching, belt lantern, adding item kinds): `docs/technicals/EQUIPMENT.md`. Weapons (guns, ammo, bullets, recoil, melee, adding a weapon): `docs/technicals/WEAPONS.md`. First-person hands (grips, hand poses, weapon clip authoring, swapping the hand mesh): `docs/technicals/HANDS.md`. World map environment (terrain generator, water, vegetation, atmosphere, rebuild order): `docs/technicals/ENVIRONMENT.md`. Day/night cycle (world clock, time-of-day looks, sky, reactors, player light at night, ambience, HUD clock): `docs/technicals/DAYNIGHT.md`.
+- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Script map (what each script owns, dependencies, frame order): `docs/technicals/CODE_STRUCTURE.md` — update it whenever you add, move or remove a script. Plugin inventory and usage rules: `docs/technicals/PLUGINS.md`. Content packs (3D, animation, UI, VFX, audio) and which to use per purpose: `docs/technicals/ASSETS.md`. UI (HUD canvas, widgets, styles, adding info): `docs/technicals/UI.md`. Equipment (items, hotbar, switching, belt lantern, adding item kinds): `docs/technicals/EQUIPMENT.md`. Weapons (guns, ammo, bullets, recoil, melee, adding a weapon): `docs/technicals/WEAPONS.md`. First-person hands (grips, hand poses, weapon clip authoring, swapping the hand mesh): `docs/technicals/HANDS.md`. World map environment (terrain generator, water, vegetation, atmosphere, rebuild order): `docs/technicals/ENVIRONMENT.md`. Day/night cycle (world clock, time-of-day looks, sky, reactors, player light at night, ambience, HUD clock): `docs/technicals/DAYNIGHT.md`.
 - Current milestone/tasks: `docs/ROADMAP.md`.
 
 ## Code style
@@ -130,7 +132,7 @@ Base convention: the `oss-unity:csharp-unity` skill (Claude Code; other agents r
 1. `script recompile` → `script recompile_status` is clean, and `console status` shows no new errors.
 2. `test run --mode editor` passes, with tests added or updated for changed rules.
 3. Changed editor content is checked (`capture scene_view`, `component get_fields`), not assumed.
-4. Docs updated in the same change: CODE_STRUCTURE.md for any script added, moved or removed; PLUGINS.md for plugin use; the system's doc for behaviour changes.
+4. Docs updated in the same change: CODE_STRUCTURE.md for any script added, moved or removed; PLUGINS.md / ASSETS.md for plugin or pack use; the system's doc for behaviour changes.
 5. Report what was verified and what wasn't. Don't commit unless asked.
 
 ## Conventions / gotchas

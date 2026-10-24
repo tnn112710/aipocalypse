@@ -32,4 +32,4 @@ Text Studio ships agent skills in `Assets/Plugins/TextStudio/AI/Skills/`. No age
 - **Views own it:** services never reference Text Studio; a view reacts to a MessagePipe event and drives the text (same rule as Feel).
 - **Pause:** gameplay text animates on scaled time; menus and the death screen on unscaled time. `TimeService` owns `Time.timeScale`.
 - **Assemblies:** add the `TextStudio` asmdef reference to the game assembly that uses it, and update CODE_STRUCTURE.md.
-- **Docs:** change its PLUGINS.md row from Undecided to Use with the usage rules in the same change.
+- **Docs:** change its PLUGINS.md row from Undecided to Should (or Must) with the usage rules in the same change.
