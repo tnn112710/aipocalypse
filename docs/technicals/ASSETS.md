@@ -1,8 +1,10 @@
 # Third-party content packs
 
-Every art, animation, UI, VFX and audio pack in the project, grouped by kind, with which one to use for each purpose. Code plugins and tools are in [PLUGINS.md](PLUGINS.md). A pack that is both (Feel, Damage Numbers Pro, Stylized Water 3, MicroVerse) lives there and is only linked here. **Check this before building or dressing anything**, and **update it in the same change** whenever a pack is added, removed, or starts being used for something.
+Every art, animation, UI, VFX and audio pack in the project, grouped by kind, with which one to use for each purpose. Code plugins and tools are in [PLUGINS.md](PLUGINS.md). A pack that is both (Feel, Damage Numbers Pro, Stylized Water 3, MicroVerse) lives there and is only linked here. **Check this before building or dressing anything**, and **update it in the same change** whenever a pack is added, removed, or starts being used for something. Name each pack folder exactly (`Folder` column): `.claude/hooks/check-undeclared-packs.sh` flags any folder under `_StoreAssets/<Kind>/`, `Synty/` or `Plugins/` that neither file names.
 
 Vendor folders (`Assets/_StoreAssets/`, `Assets/Synty/`) are never modified. Make variants, material copies or prefabs under `Assets/_Game/`. Paths below are relative to `Assets/_StoreAssets/` unless they start with `Assets/`.
+
+**Before using assets for a task**, check `Assets/_StoreAssets/` for packs this file doesn't list yet (`bash .claude/hooks/check-undeclared-packs.sh`) and the Undecided rows. If one could be useful, ask the user for a decision (suggest a group and tag), add or update its row, then pick by tag.
 
 ## Priority tags
 
@@ -70,7 +72,7 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 | --- | --- | --- | --- | --- |
 | First-person hands | VR Low Poly Hand (Left & Right) | Must | `Characters/VR Low Poly Hand (Left & Right)` | Mesh of `_Core/HandSystem/Prefabs/FPHand_Left/Right` ([HANDS.md](HANDS.md)). |
 | Humans, enemies | Synty Sidekick Characters | Undecided | `Assets/Synty/SidekickCharacters` | No animated characters yet. |
-| Locomotion animations | Synty Animation Base Locomotion, Goblin Locomotion | Undecided | `Assets/Synty/Animation*` | No animated characters yet. |
+| Locomotion animations | Synty Animation Base Locomotion, Goblin Locomotion | Undecided | `Assets/Synty/AnimationBaseLocomotion`, `Assets/Synty/AnimationGoblinLocomotion` | No animated characters yet. |
 | Animals | Malbers Animals Packs (Forest, Pets) | Undecided | `Characters/Malbers Animations/Animals Packs` | Models and animations for Malbers' Animal Controller (PLUGINS.md): a few unique animals, never crowds. |
 | First-person weapon animations | KINEMATION FPS Animation Pack | Avoid | `Animation/KINEMATION` | Our weapon animation is first-party ([HANDS.md](HANDS.md), [WEAPONS.md](WEAPONS.md)). |
 
@@ -78,7 +80,7 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 
 | Purpose | Pack | Tag | Folder | Notes |
 | --- | --- | --- | --- | --- |
-| Gun models | Low Poly Weapon Bundle Packs 1–3 | Must | `Weapons/Low Poly Weapon Bundle Pack 1–3` | Each gun is a `Gun_Base` variant holding an unpacked copy of the store model (store prefabs untouched), shadows off, no colliders ([WEAPONS.md](WEAPONS.md#gun-clips-and-constraints)). In use (Pack 1): AR_B (AK47), SMG_B (MP5), Pistol_E (Pistol), ShotGun_C (PumpShotgun), ShotGun_E (DoubleBarrel). New guns come from Packs 1–3 first. |
+| Gun models | Low Poly Weapon Bundle Packs 1–3 | Must | `Weapons/Low Poly Weapon Bundle Pack 1`, `Low Poly Weapon Bundle Pack 2`, `Low Poly Weapon Bundle Pack 3` | Each gun is a `Gun_Base` variant holding an unpacked copy of the store model (store prefabs untouched), shadows off, no colliders ([WEAPONS.md](WEAPONS.md#gun-clips-and-constraints)). In use (Pack 1): AR_B (AK47), SMG_B (MP5), Pistol_E (Pistol), ShotGun_C (PumpShotgun), ShotGun_E (DoubleBarrel). New guns come from Packs 1–3 first. |
 | Gun models | Animpic Polygon-Mega Weapons Kit | Could | `Env/Animpic` | For guns the bundles lack. |
 | Gun models | ArmoryCore models | Undecided | `Weapons/ArmoryCore/Models` | Check the style against the bundles first. Its weapon scripts are Avoid (PLUGINS.md). |
 | Melee models | Animpic Poly-Survival Melee Weapons | Must | `Env/Animpic` | Used like the gun models. In use: fire axe. |
@@ -90,7 +92,7 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 | HUD art (frames, bars, panels, fonts) | Synty Interface Apocalypse HUD | Must | `Assets/Synty/InterfaceApocalypseHUD` | **Sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Widgets reference the sprites through style assets ([UI.md](UI.md)); the repair QTE uses its ring/bar/panel sprites. |
 | Input prompts | Synty Interface Core | Must | `Assets/Synty/InterfaceCore` | The hotbar key cap uses `Sprites/Icons_Input`. |
 | Item icons | Synty Interface Apocalypse HUD `Icons_Weapons` | Must | `Assets/Synty/InterfaceApocalypseHUD/Sprites` | All current item icons. |
-| Item icons | Survival Flat Icons (Kat Grabowska), Survival_flat_icons, Flat resource and craft icons, Flat skill and ability icons | Undecided | `UI/` | Flat style. Suggest Could for icons Synty lacks, and pick one set so styles don't mix. |
+| Item icons | Survival Flat Icons (Kat Grabowska), Survival flat icons, Flat resource and craft icons, Flat skill and ability icons | Undecided | `UI/Survival Flat Icons by Kat Grabowska`, `UI/Survival_flat_icons`, `UI/Flat_resource_and_craft_icons`, `UI/Flat_Skill_and_Ability_icons` | Flat style. Suggest Could for icons Synty lacks, and pick one set so styles don't mix. |
 | Menus, inventory screens | Layer Lab GUI Pro – Survival Clean | Undecided | `UI/Layer Lab` | Full UI kit; overlaps the Synty HUD style. Decide before the first menu. |
 | Crosshair | Crosshairs | Could | `UI/Crosshairs` | The crosshair today is a 6×6 dot from the built-in Knob sprite ([UI.md](UI.md)). |
 | Text shaders | TextMesh Pro samples | Must | `Assets/Samples/TextMesh Pro` | TMP SDF shaders and fonts. |

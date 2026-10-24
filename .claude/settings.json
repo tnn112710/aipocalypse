@@ -6,5 +6,18 @@
       "Bash(unity list*)",
       "Bash(unity command*)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-undeclared-packs.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }
