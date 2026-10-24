@@ -12,19 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a14b7a62292fcd49bcd6ff62292d7db, type: 3}
   m_Name: PlayerHeldItemTuning
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerHeldItemTuning
-  <AimFrom>k__BackingField: 2
-  <AimMoveSpeedMultiplier>k__BackingField: 0.6
-  <MovingSpeed>k__BackingField: 0.5
-  <KeepHeldItemClear>k__BackingField: 1
-  <ClearanceMargin>k__BackingField: 0.05
-  <ClearanceRadius>k__BackingField: 0.05
-  <ClearanceRetractDistance>k__BackingField: 0.45
-  <ClearanceEuler>k__BackingField: {x: 15, y: -10, z: 5}
-  <ClearanceBlendSpeed>k__BackingField: 14
-  <ClearanceLayers>k__BackingField:
+  _aimFrom: 2
+  _aimMoveSpeedMultiplier: 0.6
+  _movingSpeed: 0.5
+  _keepHeldItemClear: 1
+  _clearanceMargin: 0.05
+  _clearanceRadius: 0.05
+  _clearanceRetractDistance: 0.45
+  _clearanceEuler: {x: 15, y: -10, z: 5}
+  _clearanceBlendSpeed: 14
+  _clearanceLayers:
     serializedVersion: 2
     m_Bits: 1083211827
-  <AimSway>k__BackingField:
+  _aimSway:
     Breath: {x: 0.15, y: 0.2}
     BreathRate: 0.28
     TiredBreathRate: 0.75
@@ -32,6 +32,7 @@ MonoBehaviour:
     WindedBreath: 1.5
     WalkBob: {x: 0.35, y: 1}
     StrafeBob: {x: 1.6, y: 0.3}
+    StepLag: 0.5
     SprintBob: 2.5
     MoveDrift: {x: 0.2, y: 0.08}
     LookLag: 0.6
@@ -45,15 +46,17 @@ MonoBehaviour:
     LandingJolt: 0.3
     Stiffness: 90
     DampingRatio: 0.5
+    BlendTime: 0.15
     AimBreath: 0.7
     AimBob: 1
     AimMove: 0.8
     AimLook: 0.5
     AimLanding: 0.5
     AimInKick: 0.5
+    AimInKickSideways: 0.5
     MaxOffset: 4
     AimMaxOffset: 3
-  <HeldSway>k__BackingField:
+  _heldSway:
     BreathPosition: {x: 0.0025, y: 0.003, z: 0}
     BreathRoll: 0.3
     WalkBobPosition: {x: 0.011, y: 0.007, z: 0.004}

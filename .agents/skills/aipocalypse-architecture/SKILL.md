@@ -8,7 +8,7 @@ description: How aipocalypse wires its code — VContainer scopes and installers
 Project layer on top of the library skills. Read those for the API: **unity-vcontainer** (VContainer 1.19), **unity-messagepipe** (MessagePipe 1.8.2), **unity-unitask** (UniTask 2.5.11), **unity-6-new-apis** (Unity 6.4–6.6). Where they and this file disagree, this file and `docs/technicals/` win. Enemy wiring: **aipocalypse-enemy-ai**.
 
 Already documented. Read it, don't re-derive it:
-- `AGENTS.md` → Key tech choices (input, DI, no singletons), Code style (Dictionary serialization, no Odin serialization).
+- `AGENTS.md` → Key tech choices (input, DI, no singletons), Code style (base convention `oss-unity:csharp-unity` with the project's overrides: `_camelCase` fields, no `this.`/`private`, `[SerializeField] _field` + read-only property and never `[field: SerializeField]`; Dictionary serialization, no Odin serialization).
 - `docs/technicals/ARCHITECTURE.md` → **Scopes and app flow** (what's built vs planned), **Gameplay events** (event list, `DamageService` / `AudioService` as single entry points), **Entities** (`EntityScope` parent lookup, defaults, execution order, strict mode), **Performance**, **Assemblies** (source generator off).
 - `docs/technicals/CODE_STRUCTURE.md` → **Who depends on whom** (every registration per scope), **Frame order**, **Adding a script** (root vs scene installer, `DisableScriptModifier`).
 

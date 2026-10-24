@@ -5,38 +5,62 @@ namespace Aipocalypse.Core.PlayerSystem
     [CreateAssetMenu(fileName = "PlayerMovementTuning", menuName = "Aipocalypse/Player/Movement Tuning")]
     public sealed class PlayerMovementTuning : ScriptableObject
     {
-        [field: Header("Movement (m/s)"), SerializeField, Min(0f)] public float WalkSpeed { get; private set; } = 3.5f;
-        [field: SerializeField, Min(0f)] public float SprintSpeed { get; private set; } = 6f;
-        [field: SerializeField, Range(0f, 1f)] public float StrafeSpeedMultiplier { get; private set; } = 0.9f;
-        [field: SerializeField, Range(0f, 1f)] public float BackwardSpeedMultiplier { get; private set; } = 0.6f;
-        [field: SerializeField, Range(0f, 1f), Tooltip("Forward stick/key amount needed to sprint")]
-        public float SprintMinForwardInput { get; private set; } = 0.5f;
-        [field: SerializeField, Min(0f)] public float GroundAcceleration { get; private set; } = 10f;
-        [field: SerializeField, Min(0f)] public float GroundDeceleration { get; private set; } = 12f;
-        [field: SerializeField, Min(0f), Tooltip("Steering while airborne; momentum is kept")]
-        public float AirAcceleration { get; private set; } = 1.5f;
+        [Header("Movement (m/s)"), SerializeField, Min(0f)] float _walkSpeed = 3.5f;
+        [SerializeField, Min(0f)] float _sprintSpeed = 6f;
+        [SerializeField, Range(0f, 1f)] float _strafeSpeedMultiplier = 0.9f;
+        [SerializeField, Range(0f, 1f)] float _backwardSpeedMultiplier = 0.6f;
+        [SerializeField, Range(0f, 1f), Tooltip("Forward stick/key amount needed to sprint")]
+        float _sprintMinForwardInput = 0.5f;
+        [SerializeField, Min(0f)] float _groundAcceleration = 10f;
+        [SerializeField, Min(0f)] float _groundDeceleration = 12f;
+        [SerializeField, Min(0f), Tooltip("Steering while airborne; momentum is kept")]
+        float _airAcceleration = 1.5f;
 
-        [field: Header("Jump & gravity"), SerializeField, Min(0f)] public float JumpHeight { get; private set; } = 1.1f;
-        [field: SerializeField, Min(0.01f)] public float Gravity { get; private set; } = 22f;
-        [field: SerializeField, Min(0f)] public float MaxFallSpeed { get; private set; } = 50f;
-        [field: SerializeField, Min(0f), Tooltip("Downward speed while grounded, keeps contact on slopes and steps")]
-        public float GroundStickSpeed { get; private set; } = 5f;
-        [field: SerializeField, Min(0f)] public float CoyoteTime { get; private set; } = 0.12f;
-        [field: SerializeField, Min(0f)] public float JumpBufferTime { get; private set; } = 0.12f;
-        [field: SerializeField, Min(0f), Tooltip("Slide acceleration on slopes steeper than the CharacterController slope limit")]
-        public float SteepSlopeSlideAcceleration { get; private set; } = 12f;
-        [field: SerializeField, Tooltip("What the steep-slope check looks for under the feet (a flat step edge there means no slide)")]
-        public LayerMask GroundLayers { get; private set; } = Physics.DefaultRaycastLayers;
+        [Header("Jump & gravity"), SerializeField, Min(0f)] float _jumpHeight = 1.1f;
+        [SerializeField, Min(0.01f)] float _gravity = 22f;
+        [SerializeField, Min(0f)] float _maxFallSpeed = 50f;
+        [SerializeField, Min(0f), Tooltip("Downward speed while grounded, keeps contact on slopes and steps")]
+        float _groundStickSpeed = 5f;
+        [SerializeField, Min(0f)] float _coyoteTime = 0.12f;
+        [SerializeField, Min(0f)] float _jumpBufferTime = 0.12f;
+        [SerializeField, Min(0f), Tooltip("Slide acceleration on slopes steeper than the CharacterController slope limit")]
+        float _steepSlopeSlideAcceleration = 12f;
+        [SerializeField, Tooltip("What the steep-slope check looks for under the feet (a flat step edge there means no slide)")]
+        LayerMask _groundLayers = Physics.DefaultRaycastLayers;
 
-        [field: Header("Landing"), SerializeField, Min(0f), Tooltip("Drops at least this high slow you down briefly")]
-        public float HeavyLandingHeight { get; private set; } = 2f;
-        [field: SerializeField, Range(0f, 1f)] public float HeavyLandingSpeedMultiplier { get; private set; } = 0.5f;
-        [field: SerializeField, Min(0f)] public float HeavyLandingRecoveryTime { get; private set; } = 0.4f;
+        [Header("Landing"), SerializeField, Min(0f), Tooltip("Drops at least this high slow you down briefly")]
+        float _heavyLandingHeight = 2f;
+        [SerializeField, Range(0f, 1f)] float _heavyLandingSpeedMultiplier = 0.5f;
+        [SerializeField, Min(0f)] float _heavyLandingRecoveryTime = 0.4f;
 
-        [field: Header("Stamina costs"), SerializeField, Min(0f)] public float WalkStaminaPerSecond { get; private set; } = 2f;
-        [field: SerializeField, Min(0f)] public float SprintStaminaPerSecond { get; private set; } = 12f;
-        [field: SerializeField, Min(0f)] public float JumpStaminaCost { get; private set; } = 12f;
-        [field: SerializeField, Min(0f), Tooltip("Stamina regenerates only while standing still: no move input, grounded, and slower than this (m/s)")]
-        public float IdleMaxSpeed { get; private set; } = 0.2f;
+        [Header("Stamina costs"), SerializeField, Min(0f)] float _walkStaminaPerSecond = 2f;
+        [SerializeField, Min(0f)] float _sprintStaminaPerSecond = 12f;
+        [SerializeField, Min(0f)] float _jumpStaminaCost = 12f;
+        [SerializeField, Min(0f), Tooltip("Stamina regenerates only while standing still: no move input, grounded, and slower than this (m/s)")]
+        float _idleMaxSpeed = 0.2f;
+
+        public float WalkSpeed => _walkSpeed;
+        public float SprintSpeed => _sprintSpeed;
+        public float StrafeSpeedMultiplier => _strafeSpeedMultiplier;
+        public float BackwardSpeedMultiplier => _backwardSpeedMultiplier;
+        public float SprintMinForwardInput => _sprintMinForwardInput;
+        public float GroundAcceleration => _groundAcceleration;
+        public float GroundDeceleration => _groundDeceleration;
+        public float AirAcceleration => _airAcceleration;
+        public float JumpHeight => _jumpHeight;
+        public float Gravity => _gravity;
+        public float MaxFallSpeed => _maxFallSpeed;
+        public float GroundStickSpeed => _groundStickSpeed;
+        public float CoyoteTime => _coyoteTime;
+        public float JumpBufferTime => _jumpBufferTime;
+        public float SteepSlopeSlideAcceleration => _steepSlopeSlideAcceleration;
+        public LayerMask GroundLayers => _groundLayers;
+        public float HeavyLandingHeight => _heavyLandingHeight;
+        public float HeavyLandingSpeedMultiplier => _heavyLandingSpeedMultiplier;
+        public float HeavyLandingRecoveryTime => _heavyLandingRecoveryTime;
+        public float WalkStaminaPerSecond => _walkStaminaPerSecond;
+        public float SprintStaminaPerSecond => _sprintStaminaPerSecond;
+        public float JumpStaminaCost => _jumpStaminaCost;
+        public float IdleMaxSpeed => _idleMaxSpeed;
     }
 }

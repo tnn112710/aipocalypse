@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3}
   m_Name: PumpShotgun
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunDefinition
-  <DisplayName>k__BackingField: Pump Shotgun
-  <Icon>k__BackingField: {fileID: 21300000, guid: 07e15889013d9604791f95dbcf24feb0, type: 3}
-  <Prefab>k__BackingField: {fileID: 2918530292510609399, guid: f9dafd94e35cde648b43c9345c68c588, type: 3}
-  <EquipTime>k__BackingField: 0.45
-  <HolsterTime>k__BackingField: 0.3
-  <Fire>k__BackingField:
+  _displayName: Pump Shotgun
+  _icon: {fileID: 21300000, guid: 07e15889013d9604791f95dbcf24feb0, type: 3}
+  _prefab: {fileID: 2918530292510609399, guid: f9dafd94e35cde648b43c9345c68c588, type: 3}
+  _maxStack: 1
+  _equipTime: 0.45
+  _holsterTime: 0.3
+  _holdFeel:
+    AimMoveSpeedScale: 1
+    SwayScale: 1
+  _fire:
     Mode: 1
     RoundsPerMinute: 300
     BurstCount: 3
@@ -32,24 +36,25 @@ MonoBehaviour:
     SpreadAngle: 5
     CycleTime: 0.55
     StaminaPerShot: 2
-  <Bullet>k__BackingField:
+  _bullet:
     Speed: 200
     Range: 40
     GravityScale: 0
     HitLayers:
       serializedVersion: 2
       m_Bits: 4294966971
-  <Magazine>k__BackingField:
+    DamageType: 2
+  _magazine:
     AmmoType: {fileID: 11400000, guid: 5c02020a12247d8478ebe7418ef9c131, type: 2}
     Size: 6
     Reload: 1
     ReloadTime: 0.5
     AutoReload: 1
-  <Jam>k__BackingField:
+  _jam:
     Chance: 0.005
     Repair: {fileID: 11400000, guid: 87d2237d34c15a74caff05a73f9b7fe1, type: 2}
     ClearTime: 1.2
-  <Recoil>k__BackingField:
+  _recoil:
     Hip:
       Multiplier: 1
       Vertical: 7
@@ -97,16 +102,16 @@ MonoBehaviour:
     SprayPitchJitter: 0.18
     SprayYawJitter: 0.72
     SprayRollFromYaw: 0.55
-  <Accuracy>k__BackingField:
+  _accuracy:
     AirborneSpread: 2
     AimMultiplier: 0.4
     SettleSpeed: 6
-  <Handling>k__BackingField:
+  _handling:
     AimSpeed: 8
     SprintPoseSpeed: 7
     AimZoom: 0.88
     SprintRecoveryTime: 0.25
-  <Sounds>k__BackingField:
+  _sounds:
     Volume: 1
     Equip:
       _entity: {fileID: 11400000, guid: fe597dddddde05a43aa06b8f8cc4bd84, type: 2}
@@ -164,4 +169,4 @@ MonoBehaviour:
       _entity: {fileID: 11400000, guid: 2d5022972f2912a40b6f76b7462ec804, type: 2}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
-  <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}
+  _effects: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

@@ -12,13 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 026d57e7e63829d4683b801a60f2bbb9, type: 3}
   m_Name: PlayerVitalsTuning
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerVitalsTuning
-  <MaxHealth>k__BackingField: 100
-  <MaxStamina>k__BackingField: 100
-  <StaminaRegenPerSecond>k__BackingField: 18
-  <StaminaRegenDelay>k__BackingField: 1
-  <ExhaustionRecoverFraction>k__BackingField: 0.3
-  <WindedTime>k__BackingField: 2
-  <Fatigue>k__BackingField:
+  _maxHealth: 100
+  _maxStamina: 100
+  _staminaRegenPerSecond: 18
+  _staminaRegenDelay: 1
+  _exhaustionRecoverFraction: 0.3
+  _windedTime: 2
+  _breathing:
+    Below: 0.25
+    EaseTime: 0.6
+  _fatigue:
     Tiers:
     - Below: 0.5
       Recoil: 1.25
@@ -34,5 +37,5 @@ MonoBehaviour:
       MoveSpeed: 0.7
     WindedMoveSpeed: 0.75
     EaseTime: 0.35
-  <SafeFallHeight>k__BackingField: 3.5
-  <LethalFallHeight>k__BackingField: 14
+  _safeFallHeight: 3.5
+  _lethalFallHeight: 14

@@ -17,15 +17,20 @@ namespace Aipocalypse.Core.EquipmentSystem
     // Static data shared by every copy of an item. Runtime state lives in ItemInstance.
     public abstract class ItemDefinition : ScriptableObject
     {
-        [field: SerializeField] public string DisplayName { get; private set; }
-        [field: SerializeField, PreviewField(64)] public Sprite Icon { get; private set; }
+        [SerializeField] string _displayName;
+        [SerializeField, PreviewField(64)] Sprite _icon;
 
-        [field: SerializeField, Tooltip("The item's one prefab: lies in the world (picked up from it, spawned when dropped) and, " +
+        [SerializeField, Tooltip("The item's one prefab: lies in the world (picked up from it, spawned when dropped) and, " +
             "for equippables, is also the first-person model with its HeldItem on the same root")]
-        public WorldItem Prefab { get; private set; }
+        WorldItem _prefab;
 
-        [field: SerializeField, Min(1), Tooltip("How many fit in one slot. Above 1, picking up another adds to the stack")]
-        public int MaxStack { get; private set; } = 1;
+        [SerializeField, Min(1), Tooltip("How many fit in one slot. Above 1, picking up another adds to the stack")]
+        int _maxStack = 1;
+
+        public string DisplayName => _displayName;
+        public Sprite Icon => _icon;
+        public WorldItem Prefab => _prefab;
+        public int MaxStack => _maxStack;
 
         public virtual SelectBehaviour Selecting => SelectBehaviour.None;
 

@@ -25,7 +25,7 @@ namespace Aipocalypse.Tests
             _pivot.SetParent(_root, false);
             _player = new PoseSequencePlayer(_body.transform, new PlayerCameraRig(_root, _pivot, 0f), null);
             _sequence = ScriptableObject.CreateInstance<PoseSequence>();
-            Set("Beats", new[] { Beat(1f, 0.3f, new Vector2(0.5f, -1f), -20f, 0f, 1.2f) });
+            Set("_beats", new[] { Beat(1f, 0.3f, new Vector2(0.5f, -1f), -20f, 0f, 1.2f) });
         }
 
         [TearDown]
@@ -40,8 +40,8 @@ namespace Aipocalypse.Tests
             Duration = duration, Ease = Ease.Linear, Height = height, Offset = offset, Pitch = pitch, Hold = hold, FovScale = fov,
         };
 
-        void Set(string property, object value) =>
-            typeof(PoseSequence).GetField($"<{property}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!
+        void Set(string field, object value) =>
+            typeof(PoseSequence).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)!
                 .SetValue(_sequence, value);
 
         [Test]
@@ -114,8 +114,8 @@ namespace Aipocalypse.Tests
         [Test]
         public void AnchorBeats_AreExactInTheAnchorsSpace()
         {
-            Set("Space", PoseSpace.Anchor);
-            Set("Beats", new[] { Beat(0.5f, 1f, Vector2.zero, 0f, 0f) });
+            Set("_space", PoseSpace.Anchor);
+            Set("_beats", new[] { Beat(0.5f, 1f, Vector2.zero, 0f, 0f) });
             var anchor = new GameObject("Seat").transform;
             anchor.SetPositionAndRotation(new Vector3(2f, 0.5f, 0f), Quaternion.Euler(0f, 90f, 0f));
             try
@@ -134,7 +134,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void AnchorSequence_WithoutAnAnchor_DoesNotPlay()
         {
-            Set("Space", PoseSpace.Anchor);
+            Set("_space", PoseSpace.Anchor);
             UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("anchor"));
             _player.Play(_sequence, 0f);
             Assert.IsFalse(_player.IsPlaying);
@@ -143,7 +143,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void LookAround_OnlyOnceSettled_AndInsideTheRange()
         {
-            Set("LookRange", new Vector2(10f, 20f));
+            Set("_lookRange", new Vector2(10f, 20f));
             _player.Play(_sequence, 0f);
 
             _player.Tick(0.5f, new Vector2(5f, 0f));
@@ -158,7 +158,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void Ended_RaisedOnce_AfterEndAfter()
         {
-            Set("EndAfter", 2f);
+            Set("_endAfter", 2f);
             int ended = 0;
             _player.Ended += _ => ended++;
             _player.Play(_sequence, 0f);
@@ -184,8 +184,8 @@ namespace Aipocalypse.Tests
         [Test]
         public void Continuous_PassesThroughEachBeatOnTime()
         {
-            Set("Continuous", true);
-            Set("Beats", new[] { Beat(1f, 1f, Vector2.zero, 30f, 0f), Beat(1f, 0.4f, new Vector2(0f, -1f), -10f, 0f) });
+            Set("_continuous", true);
+            Set("_beats", new[] { Beat(1f, 1f, Vector2.zero, 30f, 0f), Beat(1f, 0.4f, new Vector2(0f, -1f), -10f, 0f) });
             _player.Play(_sequence, 0f);
 
             _player.Tick(1f, default);
@@ -200,8 +200,8 @@ namespace Aipocalypse.Tests
         [Test]
         public void Continuous_KeepsMovingThroughABeatAndItsHold()
         {
-            Set("Continuous", true);
-            Set("Beats", new[] { Beat(1f, 1f, Vector2.zero, 0f, 1f), Beat(1f, 0.4f, Vector2.zero, 0f, 0f) });
+            Set("_continuous", true);
+            Set("_beats", new[] { Beat(1f, 1f, Vector2.zero, 0f, 1f), Beat(1f, 0.4f, Vector2.zero, 0f, 0f) });
             _player.Play(_sequence, 0f);
 
             _player.Tick(1f, default);
@@ -217,8 +217,8 @@ namespace Aipocalypse.Tests
         [Test]
         public void Continuous_NeverOvershootsABeat()
         {
-            Set("Continuous", true);
-            Set("Beats", new[] { Beat(0.5f, 0.3f, Vector2.zero, 0f, 0f), Beat(2f, 0.35f, Vector2.zero, 0f, 0f) });
+            Set("_continuous", true);
+            Set("_beats", new[] { Beat(0.5f, 0.3f, Vector2.zero, 0f, 0f), Beat(2f, 0.35f, Vector2.zero, 0f, 0f) });
             _player.Play(_sequence, 0f);
 
             float lowest = float.MaxValue;
@@ -233,7 +233,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void Handheld_KeepsTheSettledViewMoving()
         {
-            Set("HandheldAngles", new Vector3(1f, 1f, 1f));
+            Set("_handheldAngles", new Vector3(1f, 1f, 1f));
             _player.Play(_sequence, 0f);
             _player.Tick(2f, default);
 
@@ -248,8 +248,8 @@ namespace Aipocalypse.Tests
         [Test]
         public void Drift_NeverComesToRest()
         {
-            Set("DriftAmplitude", new Vector2(3f, 5f));
-            Set("DriftPeriod", 4f);
+            Set("_driftAmplitude", new Vector2(3f, 5f));
+            Set("_driftPeriod", 4f);
             _player.Play(_sequence, 0f);
             _player.Tick(1f, default);
 

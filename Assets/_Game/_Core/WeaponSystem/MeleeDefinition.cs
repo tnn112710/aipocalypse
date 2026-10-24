@@ -8,17 +8,22 @@ namespace Aipocalypse.Core.WeaponSystem
     [CreateAssetMenu(fileName = "Melee", menuName = "Aipocalypse/Items/Melee")]
     public sealed class MeleeDefinition : EquippableDefinition
     {
-        [field: SerializeField, FoldoutGroup("Swing", true), HideLabel, InlineProperty]
-        public SwingSettings Swing { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Swing", true), HideLabel, InlineProperty]
+        SwingSettings _swing = new();
 
-        [field: SerializeField, FoldoutGroup("Sounds"), HideLabel, InlineProperty]
-        public MeleeSounds Sounds { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Sounds"), HideLabel, InlineProperty]
+        MeleeSounds _sounds = new();
 
-        [field: SerializeField, Tooltip("Spawned where a swing lands; can be the bullet impact")]
-        public PooledEffect ImpactEffect { get; private set; }
+        [SerializeField, Tooltip("Spawned where a swing lands; can be the bullet impact")]
+        PooledEffect _impactEffect;
 
-        [field: SerializeField, Min(0), Tooltip("Impact copies made when the weapon is bound")]
-        public int ImpactPrewarm { get; private set; } = 4;
+        [SerializeField, Min(0), Tooltip("Impact copies made when the weapon is bound")]
+        int _impactPrewarm = 4;
+
+        public SwingSettings Swing => _swing;
+        public MeleeSounds Sounds => _sounds;
+        public PooledEffect ImpactEffect => _impactEffect;
+        public int ImpactPrewarm => _impactPrewarm;
 
         public override ItemCategory Category => ItemCategory.Melee;
     }

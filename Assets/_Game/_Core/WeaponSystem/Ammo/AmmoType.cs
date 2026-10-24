@@ -7,7 +7,10 @@ namespace Aipocalypse.Core.WeaponSystem
     [CreateAssetMenu(fileName = "Ammo", menuName = "Aipocalypse/Weapons/Ammo Type")]
     public sealed class AmmoType : ScriptableObject
     {
-        [field: SerializeField] public string DisplayName { get; private set; }
-        [field: SerializeField, PreviewField(64)] public Sprite Icon { get; private set; }
+        [SerializeField] string _displayName;
+        [SerializeField, PreviewField(64)] Sprite _icon;
+
+        public string DisplayName => _displayName;
+        public Sprite Icon => _icon;
     }
 }

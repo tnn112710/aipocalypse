@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33455aa0eab6a6e45ba267546f3340f4, type: 3}
   m_Name: BulletEffects
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.BulletEffects
-  <MuzzleFlash>k__BackingField: {fileID: 5155674834829136660, guid: e5e6e936a48a2234d981a24882a97d12, type: 3}
-  <Tracer>k__BackingField: {fileID: 5777242195617634285, guid: fd6e6e81f0462994a88867e1102bf309, type: 3}
-  <Impact>k__BackingField: {fileID: 6968849120514067824, guid: dcd2680e30f554740b81e3b702f4ed4c, type: 3}
-  <BulletHole>k__BackingField: {fileID: 7545404437421947817, guid: c5f798282f1f61e42a3efa2b8866078e, type: 3}
-  <BulletHoleLayers>k__BackingField:
+  _muzzleFlash: {fileID: 5155674834829136660, guid: e5e6e936a48a2234d981a24882a97d12, type: 3}
+  _tracer: {fileID: 5777242195617634285, guid: fd6e6e81f0462994a88867e1102bf309, type: 3}
+  _impact: {fileID: 6968849120514067824, guid: dcd2680e30f554740b81e3b702f4ed4c, type: 3}
+  _bulletHole: {fileID: 7545404437421947817, guid: c5f798282f1f61e42a3efa2b8866078e, type: 3}
+  _bulletHoleLayers:
     serializedVersion: 2
     m_Bits: 4294967291
-  <BulletHoleScale>k__BackingField: {x: 0.9, y: 1.1}
-  <BulletHoleOffset>k__BackingField: 0.005
-  <TracerConvergeTime>k__BackingField: 0.08
-  <MuzzleFlashPrewarm>k__BackingField: 4
-  <TracerPrewarm>k__BackingField: 16
-  <ImpactPrewarm>k__BackingField: 8
-  <BulletHolePrewarm>k__BackingField: 16
+  _bulletHoleScale: {x: 0.9, y: 1.1}
+  _bulletHoleOffset: 0.005
+  _tracerConvergeTime: 0.08
+  _muzzleFlashPrewarm: 4
+  _tracerPrewarm: 16
+  _impactPrewarm: 8
+  _bulletHolePrewarm: 16

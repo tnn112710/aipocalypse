@@ -8,32 +8,42 @@ namespace Aipocalypse.Core.WeaponSystem
     [CreateAssetMenu(fileName = "Gun", menuName = "Aipocalypse/Items/Gun")]
     public sealed class GunDefinition : EquippableDefinition
     {
-        [field: SerializeField, FoldoutGroup("Fire", true), HideLabel, InlineProperty]
-        public FireSettings Fire { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Fire", true), HideLabel, InlineProperty]
+        FireSettings _fire = new();
 
-        [field: SerializeField, FoldoutGroup("Bullet", true), HideLabel, InlineProperty]
-        public BulletSettings Bullet { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Bullet", true), HideLabel, InlineProperty]
+        BulletSettings _bullet = new();
 
-        [field: SerializeField, FoldoutGroup("Magazine", true), HideLabel, InlineProperty]
-        public MagazineSettings Magazine { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Magazine", true), HideLabel, InlineProperty]
+        MagazineSettings _magazine = new();
 
-        [field: SerializeField, FoldoutGroup("Jam", true), HideLabel, InlineProperty]
-        public JamSettings Jam { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Jam", true), HideLabel, InlineProperty]
+        JamSettings _jam = new();
 
-        [field: SerializeField, FoldoutGroup("Recoil"), HideLabel, InlineProperty]
-        public RecoilSettings Recoil { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Recoil"), HideLabel, InlineProperty]
+        RecoilSettings _recoil = new();
 
-        [field: SerializeField, FoldoutGroup("Accuracy"), HideLabel, InlineProperty]
-        public AccuracySettings Accuracy { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Accuracy"), HideLabel, InlineProperty]
+        AccuracySettings _accuracy = new();
 
-        [field: SerializeField, FoldoutGroup("Handling"), HideLabel, InlineProperty]
-        public HandlingSettings Handling { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Handling"), HideLabel, InlineProperty]
+        HandlingSettings _handling = new();
 
-        [field: SerializeField, FoldoutGroup("Sounds"), HideLabel, InlineProperty]
-        public GunSounds Sounds { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Sounds"), HideLabel, InlineProperty]
+        GunSounds _sounds = new();
 
-        [field: SerializeField, Tooltip("Muzzle flash, tracer, impact and bullet hole; usually shared by many guns")]
-        public BulletEffects Effects { get; private set; }
+        [SerializeField, Tooltip("Muzzle flash, tracer, impact and bullet hole; usually shared by many guns")]
+        BulletEffects _effects;
+
+        public FireSettings Fire => _fire;
+        public BulletSettings Bullet => _bullet;
+        public MagazineSettings Magazine => _magazine;
+        public JamSettings Jam => _jam;
+        public RecoilSettings Recoil => _recoil;
+        public AccuracySettings Accuracy => _accuracy;
+        public HandlingSettings Handling => _handling;
+        public GunSounds Sounds => _sounds;
+        public BulletEffects Effects => _effects;
 
         public override ItemCategory Category => ItemCategory.Gun;
 

@@ -8,10 +8,10 @@ Guidance for AI coding agents (Claude Code, Codex, …) working in this reposito
 
 **Editor control: Unity CLI** (`unity`, via the `com.unity.pipeline` package). The deprecated Unity MCP is not used. The CLI's docs ship with the package in `Library/PackageCache/com.unity.pipeline@*/Documentation~/` (`commands/`, `authoring-commands.md`, `testing.md`, …); in Claude Code, also load the official `unity:unity-cli` skill. Read them before editor work.
 
-- Use `unity command <name>` to drive the live editor (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML. `unity command` lists all commands; follow the package docs (recompile → `recompile_status` → `run_tests` loop, `run_script` for bulk/plugin work, `eval` for one-liners).
+- Use `unity command <name>` to drive the live editor (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML. `unity command` lists the command groups (`unity command <group>` lists a group); follow the package docs (`script recompile` → `script recompile_status` → `test run` loop, `script run` for bulk/plugin work, `script eval` for one-liners). Older docs and skills may use the pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
 - In Git Bash pass `--project-path "$(cygpath -w "$PWD")"` — the CLI doesn't match `/d/...` paths.
-- Before editor work run `unity status` and `unity command set_autotick --enable true` (commands stall while Unity is unfocused otherwise); if not ready, check Safe Mode (`unity pipeline list`) or ask the user to open the project.
-- Verify changes with `recompile_status` / `console` / `capture_scene_view` instead of guessing. Tests use `com.unity.test-framework` (`unity command run_tests`).
+- Before editor work run `unity status` and `unity command editor set_auto_tick --enable true` (commands stall while Unity is unfocused otherwise); if not ready, check Safe Mode (`unity pipeline list`) or ask the user to open the project.
+- Verify changes with `script recompile_status` / `console status` + `console get` / `capture scene_view` instead of guessing. Tests use `com.unity.test-framework` (`unity command test run --mode editor`).
 - Only one agent drives the editor at a time. When two agents work in parallel, use separate branches/worktrees.
 
 ## Skills
@@ -82,6 +82,14 @@ When writing code, the user's prompt is the spec.
 
 ## Code style
 
+Base convention: the `oss-unity:csharp-unity` skill (Claude Code; other agents read `~/.claude/oss-skills/oss-unity/skills/csharp-unity/SKILL.md`). Read it before writing C#: early returns, one responsibility per class, cached lookups, GC-free hot paths, lifecycle and Unity 6 API rules. Its own house style yields to this file; **where they disagree, this section wins**:
+
+- **Naming:** PascalCase types, methods, properties, public fields, consts and `static readonly`; `_camelCase` for every private field, serialized or not; camelCase locals and parameters; `I` prefix on interfaces; `Async` suffix on UniTask methods. No `m_` / `k_` / `s_` prefixes.
+- Leave out `private` (it's the default) and don't write `this.`. Mark leaf classes `sealed`. No `#region`.
+- **Serialized fields:** always `[SerializeField] T _field;` with a read-only property when other code needs it (`public T Field => _field;`). **Never `[field: SerializeField]` auto-properties**: their serialized name `<Field>k__BackingField` breaks on a rename and can't be found with `FindProperty("_field")`. Public fields only in nested `[Serializable]` data structs/classes. When renaming a serialized field, add `[FormerlySerializedAs("oldName")]` (or migrate the assets and drop it).
+- Block-scoped namespaces matching the folder (CODE_STRUCTURE.md), `using` lines outside the namespace, braces on their own line; a single-statement `if`/loop body may drop its braces. `var` when the type is obvious.
+- A `Tooltip` instead of a comment on serialized fields whose meaning or units aren't obvious.
+- Async, cancellation, events and lookups follow `aipocalypse-architecture` (MessagePipe across systems, VContainer instead of `Find*`, no `destroyCancellationToken` on pooled objects), not the skill's generic advice.
 - No XML/docstring blocks. At most one short `//` line on a method to state its purpose; skip it when the name is self-explanatory.
 - Don't add comments narrating a fix or adjustment ("changed X to Y", "fixed bug"). Comment only for important/critical fixes, workarounds, or non-obvious solutions, and explain the *why*.
 - Serialized key→value data uses Unity 6.6's built-in `[SerializeField] Dictionary<TKey, TValue>` ([manual](https://docs.unity3d.com/6000.6/Documentation/Manual/script-serialization-dictionaries.html)), not a list of key/value structs or a custom `SerializableDictionary`. **Never use Odin serialization** (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`, Odin serialized collections) in any case; Odin is for inspector attributes only.

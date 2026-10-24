@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f735e98defeeb6a4bbf8c8141dc4c638, type: 3}
   m_Name: FireAxe
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.MeleeDefinition
-  <DisplayName>k__BackingField: Fire Axe
-  <Icon>k__BackingField: {fileID: 21300000, guid: 250cdadc7165b93419bc266cc89fb315, type: 3}
-  <Prefab>k__BackingField: {fileID: 2189440422422504720, guid: ec296269a5dcd0b478a192d233eb38b2, type: 3}
-  <EquipTime>k__BackingField: 0.35
-  <HolsterTime>k__BackingField: 0.25
-  <Swing>k__BackingField:
+  _displayName: Fire Axe
+  _icon: {fileID: 21300000, guid: 250cdadc7165b93419bc266cc89fb315, type: 3}
+  _prefab: {fileID: 2189440422422504720, guid: ec296269a5dcd0b478a192d233eb38b2, type: 3}
+  _maxStack: 1
+  _equipTime: 0.35
+  _holsterTime: 0.25
+  _holdFeel:
+    AimMoveSpeedScale: 1
+    SwayScale: 1
+  _swing:
     Damage: 35
     Range: 2
     Radius: 0.25
@@ -29,7 +33,10 @@ MonoBehaviour:
       m_Bits: 4294967291
     StaminaPerSwing: 15
     AlternateResetDelay: 0.5
-  <Sounds>k__BackingField:
+    StrikeTime: 0.1
+    AlternateSides: 1
+    PoseSpeed: 10
+  _sounds:
     Volume: 1
     Equip:
       _entity: {fileID: 0}
@@ -47,5 +54,5 @@ MonoBehaviour:
       _entity: {fileID: 11400000, guid: ccf9f032dce7948488e05a9fdf7613d0, type: 2}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
-  <ImpactEffect>k__BackingField: {fileID: 6968849120514067824, guid: dcd2680e30f554740b81e3b702f4ed4c, type: 3}
-  <ImpactPrewarm>k__BackingField: 4
+  _impactEffect: {fileID: 6968849120514067824, guid: dcd2680e30f554740b81e3b702f4ed4c, type: 3}
+  _impactPrewarm: 4

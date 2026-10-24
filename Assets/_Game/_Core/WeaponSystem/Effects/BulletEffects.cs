@@ -6,23 +6,36 @@ namespace Aipocalypse.Core.WeaponSystem
     [CreateAssetMenu(fileName = "BulletEffects", menuName = "Aipocalypse/Weapons/Bullet Effects")]
     public sealed class BulletEffects : ScriptableObject
     {
-        [field: SerializeField] public PooledEffect MuzzleFlash { get; private set; }
-        [field: SerializeField, Tooltip("Follows the bullet; returned when it hits or runs out of range")] public PooledEffect Tracer { get; private set; }
-        [field: SerializeField] public PooledEffect Impact { get; private set; }
-        [field: SerializeField, Tooltip("Decal left on surfaces; never on things that take damage")] public PooledEffect BulletHole { get; private set; }
+        [SerializeField] PooledEffect _muzzleFlash;
+        [SerializeField, Tooltip("Follows the bullet; returned when it hits or runs out of range")] PooledEffect _tracer;
+        [SerializeField] PooledEffect _impact;
+        [SerializeField, Tooltip("Decal left on surfaces; never on things that take damage")] PooledEffect _bulletHole;
 
-        [field: SerializeField, Tooltip("Surfaces that get bullet holes")]
-        public LayerMask BulletHoleLayers { get; private set; } = Physics.DefaultRaycastLayers;
-        [field: SerializeField, Tooltip("Random scale of each hole")] public Vector2 BulletHoleScale { get; private set; } = new(0.9f, 1.1f);
-        [field: SerializeField, Min(0f), Tooltip("Lift off the surface (m)")] public float BulletHoleOffset { get; private set; } = 0.005f;
+        [SerializeField, Tooltip("Surfaces that get bullet holes")]
+        LayerMask _bulletHoleLayers = Physics.DefaultRaycastLayers;
+        [SerializeField, Tooltip("Random scale of each hole")] Vector2 _bulletHoleScale = new(0.9f, 1.1f);
+        [SerializeField, Min(0f), Tooltip("Lift off the surface (m)")] float _bulletHoleOffset = 0.005f;
 
-        [field: SerializeField, Min(0f), Tooltip("Camera-origin shots: seconds the tracer takes to slide from the muzzle onto the bullet's real path")]
-        public float TracerConvergeTime { get; private set; } = 0.08f;
+        [SerializeField, Min(0f), Tooltip("Camera-origin shots: seconds the tracer takes to slide from the muzzle onto the bullet's real path")]
+        float _tracerConvergeTime = 0.08f;
 
-        [field: Header("Prewarm (copies made when a gun is bound)"), SerializeField, Min(0)] public int MuzzleFlashPrewarm { get; private set; } = 4;
-        [field: SerializeField, Min(0)] public int TracerPrewarm { get; private set; } = 16;
-        [field: SerializeField, Min(0)] public int ImpactPrewarm { get; private set; } = 8;
-        [field: SerializeField, Min(0)] public int BulletHolePrewarm { get; private set; } = 16;
+        [Header("Prewarm (copies made when a gun is bound)"), SerializeField, Min(0)] int _muzzleFlashPrewarm = 4;
+        [SerializeField, Min(0)] int _tracerPrewarm = 16;
+        [SerializeField, Min(0)] int _impactPrewarm = 8;
+        [SerializeField, Min(0)] int _bulletHolePrewarm = 16;
+
+        public PooledEffect MuzzleFlash => _muzzleFlash;
+        public PooledEffect Tracer => _tracer;
+        public PooledEffect Impact => _impact;
+        public PooledEffect BulletHole => _bulletHole;
+        public LayerMask BulletHoleLayers => _bulletHoleLayers;
+        public Vector2 BulletHoleScale => _bulletHoleScale;
+        public float BulletHoleOffset => _bulletHoleOffset;
+        public float TracerConvergeTime => _tracerConvergeTime;
+        public int MuzzleFlashPrewarm => _muzzleFlashPrewarm;
+        public int TracerPrewarm => _tracerPrewarm;
+        public int ImpactPrewarm => _impactPrewarm;
+        public int BulletHolePrewarm => _bulletHolePrewarm;
 
         public void Prewarm(EffectPool pool)
         {

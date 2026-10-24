@@ -12,26 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6f5e19a5b0ab6540b5da8178bffd47a, type: 3}
   m_Name: PlayerMovementTuning
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerMovementTuning
-  <WalkSpeed>k__BackingField: 3.5
-  <SprintSpeed>k__BackingField: 6
-  <StrafeSpeedMultiplier>k__BackingField: 0.9
-  <BackwardSpeedMultiplier>k__BackingField: 0.6
-  <SprintMinForwardInput>k__BackingField: 0.5
-  <GroundAcceleration>k__BackingField: 10
-  <GroundDeceleration>k__BackingField: 12
-  <AirAcceleration>k__BackingField: 1.5
-  <JumpHeight>k__BackingField: 1.1
-  <Gravity>k__BackingField: 22
-  <MaxFallSpeed>k__BackingField: 50
-  <GroundStickSpeed>k__BackingField: 5
-  <CoyoteTime>k__BackingField: 0.12
-  <JumpBufferTime>k__BackingField: 0.12
-  <SteepSlopeSlideAcceleration>k__BackingField: 12
-  <GroundLayers>k__BackingField:
+  _walkSpeed: 3.5
+  _sprintSpeed: 6
+  _strafeSpeedMultiplier: 0.9
+  _backwardSpeedMultiplier: 0.6
+  _sprintMinForwardInput: 0.5
+  _groundAcceleration: 10
+  _groundDeceleration: 12
+  _airAcceleration: 1.5
+  _jumpHeight: 1.1
+  _gravity: 22
+  _maxFallSpeed: 50
+  _groundStickSpeed: 5
+  _coyoteTime: 0.12
+  _jumpBufferTime: 0.12
+  _steepSlopeSlideAcceleration: 12
+  _groundLayers:
     serializedVersion: 2
     m_Bits: 4294967291
-  <HeavyLandingHeight>k__BackingField: 2
-  <HeavyLandingSpeedMultiplier>k__BackingField: 0.5
-  <HeavyLandingRecoveryTime>k__BackingField: 0.4
-  <SprintStaminaPerSecond>k__BackingField: 12
-  <JumpStaminaCost>k__BackingField: 12
+  _heavyLandingHeight: 2
+  _heavyLandingSpeedMultiplier: 0.5
+  _heavyLandingRecoveryTime: 0.4
+  _walkStaminaPerSecond: 2
+  _sprintStaminaPerSecond: 12
+  _jumpStaminaCost: 12
+  _idleMaxSpeed: 0.2

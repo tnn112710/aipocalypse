@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunDefinition
-  <DisplayName>k__BackingField: Pistol
-  <Icon>k__BackingField: {fileID: 21300000, guid: 2d193da356502104ab1cb2d5da99ef54, type: 3}
-  <Prefab>k__BackingField: {fileID: 2388481272432509540, guid: 32e47f2adb00a3c48af5565454aa6224, type: 3}
-  <EquipTime>k__BackingField: 0.3
-  <HolsterTime>k__BackingField: 0.2
-  <Fire>k__BackingField:
+  _displayName: Pistol
+  _icon: {fileID: 21300000, guid: 2d193da356502104ab1cb2d5da99ef54, type: 3}
+  _prefab: {fileID: 2388481272432509540, guid: 32e47f2adb00a3c48af5565454aa6224, type: 3}
+  _maxStack: 1
+  _equipTime: 0.3
+  _holsterTime: 0.2
+  _holdFeel:
+    AimMoveSpeedScale: 1
+    SwayScale: 1
+  _fire:
     Mode: 1
     RoundsPerMinute: 400
     BurstCount: 3
@@ -32,24 +36,25 @@ MonoBehaviour:
     SpreadAngle: 0
     CycleTime: 0
     StaminaPerShot: 0.5
-  <Bullet>k__BackingField:
+  _bullet:
     Speed: 200
     Range: 150
     GravityScale: 0
     HitLayers:
       serializedVersion: 2
       m_Bits: 4294966971
-  <Magazine>k__BackingField:
+    DamageType: 2
+  _magazine:
     AmmoType: {fileID: 11400000, guid: 824935d59cad2c84d8b89c7a7268c247, type: 2}
     Size: 12
     Reload: 0
     ReloadTime: 1.5
     AutoReload: 1
-  <Jam>k__BackingField:
+  _jam:
     Chance: 0.01
     Repair: {fileID: 11400000, guid: ba67d6bda1075ee479f858d951a88a84, type: 2}
     ClearTime: 1.5
-  <Recoil>k__BackingField:
+  _recoil:
     Hip:
       Multiplier: 1
       Vertical: 2.4
@@ -97,16 +102,16 @@ MonoBehaviour:
     SprayPitchJitter: 0.18
     SprayYawJitter: 0.72
     SprayRollFromYaw: 0.55
-  <Accuracy>k__BackingField:
+  _accuracy:
     AirborneSpread: 2
     AimMultiplier: 0.4
     SettleSpeed: 6
-  <Handling>k__BackingField:
+  _handling:
     AimSpeed: 14
     SprintPoseSpeed: 12
     AimZoom: 0.9
     SprintRecoveryTime: 0.1
-  <Sounds>k__BackingField:
+  _sounds:
     Volume: 1
     Equip:
       _entity: {fileID: 11400000, guid: 0e2d7019ea78f5347831c57fb5225924, type: 2}
@@ -164,4 +169,4 @@ MonoBehaviour:
       _entity: {fileID: 0}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
-  <Effects>k__BackingField: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}
+  _effects: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e27e3b4d261888547af6fd92e636ca5f, type: 3}
   m_Name: PlayerDeath
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PoseSequence
-  <Space>k__BackingField: 0
-  <LowerHands>k__BackingField: 1
-  <Beats>k__BackingField:
+  _space: 0
+  _lowerHands: 1
+  _beats:
   - Name: Hit
     Duration: 0.35
     Ease: 6
@@ -105,23 +105,25 @@ MonoBehaviour:
       _entity: {fileID: 0}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
-  <Continuous>k__BackingField: 1
-  <HandheldAngles>k__BackingField: {x: 1.2, y: 1.6, z: 0.9}
-  <HandheldOffset>k__BackingField: 0.012
-  <HandheldSpeed>k__BackingField: 0.45
-  <LookRange>k__BackingField: {x: 0, y: 0}
-  <DriftAmplitude>k__BackingField: {x: 3, y: 6}
-  <DriftPeriod>k__BackingField: 10
-  <EndAfter>k__BackingField: 6
-  <Music>k__BackingField:
+  _continuous: 1
+  _handheldAngles: {x: 1.2, y: 1.6, z: 0.9}
+  _handheldOffset: 0.012
+  _handheldSpeed: 0.45
+  _handheldFadeIn: 0.25
+  _lookRange: {x: 0, y: 0}
+  _driftAmplitude: {x: 3, y: 6}
+  _driftPeriod: 10
+  _driftFadeIn: 2
+  _endAfter: 6
+  _music:
     _entity: {fileID: 11400000, guid: 0cd4ec2ffd408dc4a9ce87f1e785a998, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  <MusicBeat>k__BackingField: 4
-  <MusicDelay>k__BackingField: 0.3
-  <MusicFadeIn>k__BackingField: 1.5
-  <MusicFadeOut>k__BackingField: 1
-  <GroundMask>k__BackingField:
+  _musicBeat: 4
+  _musicDelay: 0.3
+  _musicFadeIn: 1.5
+  _musicFadeOut: 1
+  _groundMask:
     serializedVersion: 2
     m_Bits: 4294967291
-  <HeadRadius>k__BackingField: 0.15
+  _headRadius: 0.15

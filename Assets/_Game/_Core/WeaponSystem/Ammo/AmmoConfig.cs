@@ -6,8 +6,10 @@ namespace Aipocalypse.Core.WeaponSystem
     [CreateAssetMenu(fileName = "AmmoConfig", menuName = "Aipocalypse/Weapons/Ammo Config")]
     public sealed class AmmoConfig : ScriptableObject
     {
-        [field: SerializeField, Tooltip("Reloading never runs the reserve down")]
-        public bool Infinite { get; private set; }
+        [SerializeField, Tooltip("Reloading never runs the reserve down")]
+        bool _infinite;
+
+        public bool Infinite => _infinite;
 
         [SerializeField, Tooltip("Reserve at spawn until an inventory provides ammo")]
         Dictionary<AmmoType, int> _starting = new();

@@ -9,7 +9,7 @@ namespace Aipocalypse.Tests
 {
     public class ItemPrefabTests
     {
-        const string PrefabField = "<Prefab>k__BackingField";
+        const string PrefabField = "_prefab";
 
         GameObject _prefab;
         GameObject _worldModel;

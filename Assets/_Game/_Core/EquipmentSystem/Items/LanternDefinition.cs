@@ -6,22 +6,29 @@ namespace Aipocalypse.Core.EquipmentSystem
     [CreateAssetMenu(fileName = "Lantern", menuName = "Aipocalypse/Items/Lantern")]
     public sealed class LanternDefinition : ItemDefinition
     {
-        [field: SerializeField, Min(0f), Tooltip("Metres added to the player's vision radius")]
-        public float Radius { get; private set; } = 6f;
+        [SerializeField, Min(0f), Tooltip("Metres added to the player's vision radius")]
+        float _radius = 6f;
 
-        [field: SerializeField, ColorUsage(false)] public Color Color { get; private set; } = new(1f, 0.72f, 0.42f);
+        [SerializeField, ColorUsage(false)] Color _color = new(1f, 0.72f, 0.42f);
 
-        [field: SerializeField, Min(0f), Tooltip("How bright the light still is at the radius' edge, in place of the vision light's (PlayerVisionTuning.Brightness)")]
-        public float Brightness { get; private set; } = 0.15f;
+        [SerializeField, Min(0f), Tooltip("How bright the light still is at the radius' edge, in place of the vision light's (PlayerVisionTuning.Brightness)")]
+        float _brightness = 0.15f;
 
-        [field: SerializeField, Range(0f, 0.5f), Tooltip("Share of the intensity the flame wavers by")]
-        public float Flicker { get; private set; } = 0.08f;
+        [SerializeField, Range(0f, 0.5f), Tooltip("Share of the intensity the flame wavers by")]
+        float _flicker = 0.08f;
 
-        [field: SerializeField, Min(0f), Tooltip("How fast the flame wavers")]
-        public float FlickerSpeed { get; private set; } = 6f;
+        [SerializeField, Min(0f), Tooltip("How fast the flame wavers")]
+        float _flickerSpeed = 6f;
 
-        [field: SerializeField, Tooltip("Point-light shadows render six shadow maps; measure before turning them on")]
-        public LightShadows Shadows { get; private set; } = LightShadows.None;
+        [SerializeField, Tooltip("Point-light shadows render six shadow maps; measure before turning them on")]
+        LightShadows _shadows = LightShadows.None;
+
+        public float Radius => _radius;
+        public Color Color => _color;
+        public float Brightness => _brightness;
+        public float Flicker => _flicker;
+        public float FlickerSpeed => _flickerSpeed;
+        public LightShadows Shadows => _shadows;
 
         public override ItemCategory Category => ItemCategory.Lantern;
     }

@@ -12,27 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bef4cc68613b96a46859897d5d4d9c0d, type: 3}
   m_Name: PlayerSoundTuning
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerSoundTuning
-  <FootstepSound>k__BackingField:
+  _footstepSound:
     _entity: {fileID: 11400000, guid: 0e5efbca5670bb24b9b99f89b02d1efa, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  <WalkStepVolume>k__BackingField: 0.7
-  <SprintStepVolume>k__BackingField: 1
-  <JumpSound>k__BackingField:
+  _walkStepVolume: 0.7
+  _sprintStepVolume: 1
+  _jumpSound:
     _entity: {fileID: 11400000, guid: a4f2bd0e175d4f246bee12b9f247197c, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  <LandSound>k__BackingField:
+  _landSound:
     _entity: {fileID: 11400000, guid: ce894af20986fe14ea32b368a61f182e, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  <LandingSoundMinSpeed>k__BackingField: 2
-  <LandingSoundFullSpeed>k__BackingField: 8
-  <BreathSound>k__BackingField:
+  _landingSoundMinSpeed: 2
+  _landingSoundFullSpeed: 8
+  _breathSound:
     _entity: {fileID: 0}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  <Breath>k__BackingField:
+  _breath:
     MinVolume: 0.4
     FadeIn: 0.4
     FadeOut: 1.5

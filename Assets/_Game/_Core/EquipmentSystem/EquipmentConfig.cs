@@ -17,12 +17,15 @@ namespace Aipocalypse.Core.EquipmentSystem
             public ItemDefinition StartingItem;
         }
 
-        [field: SerializeField, Range(0.1f, 5f), Tooltip("Multiplies every item's equip and holster speed. 2 = switching takes half as long")]
-        public float SwitchSpeed { get; private set; } = 1f;
+        [SerializeField, Range(0.1f, 5f), Tooltip("Multiplies every item's equip and holster speed. 2 = switching takes half as long")]
+        float _switchSpeed = 1f;
 
-        [field: SerializeField, EnumToggleButtons, Tooltip("Worn on the belt instead of going into the hotbar: one at a time, works " +
+        [SerializeField, EnumToggleButtons, Tooltip("Worn on the belt instead of going into the hotbar: one at a time, works " +
             "whatever is in the hands")]
-        public ItemCategory BeltAccepts { get; private set; } = ItemCategory.Lantern;
+        ItemCategory _beltAccepts = ItemCategory.Lantern;
+
+        public float SwitchSpeed => _switchSpeed;
+        public ItemCategory BeltAccepts => _beltAccepts;
 
         public Equipment CreateEquipment() => new(CreateHotbar(), BeltAccepts);
 

@@ -11,13 +11,17 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         public override SelectBehaviour Selecting => SelectBehaviour.Hold;
 
-        [field: SerializeField, Min(0f), Tooltip("Seconds to raise it, before EquipmentConfig.SwitchSpeed")]
-        public float EquipTime { get; private set; } = 0.35f;
+        [SerializeField, Min(0f), Tooltip("Seconds to raise it, before EquipmentConfig.SwitchSpeed")]
+        float _equipTime = 0.35f;
 
-        [field: SerializeField, Min(0f), Tooltip("Seconds to put it away, before EquipmentConfig.SwitchSpeed")]
-        public float HolsterTime { get; private set; } = 0.25f;
+        [SerializeField, Min(0f), Tooltip("Seconds to put it away, before EquipmentConfig.SwitchSpeed")]
+        float _holsterTime = 0.25f;
 
-        [field: SerializeField, FoldoutGroup("Hold feel"), HideLabel, InlineProperty]
-        public HoldFeel HoldFeel { get; private set; } = new();
+        [SerializeField, FoldoutGroup("Hold feel"), HideLabel, InlineProperty]
+        HoldFeel _holdFeel = new();
+
+        public float EquipTime => _equipTime;
+        public float HolsterTime => _holsterTime;
+        public HoldFeel HoldFeel => _holdFeel;
     }
 }
