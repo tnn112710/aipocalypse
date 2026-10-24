@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MeteorShower
+  m_Shader: {fileID: 4800000, guid: cb825bd71b04f44129513eb27180f6a0, type: 3}
+  m_ShaderKeywords: SKYBOX_NIGHT
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MoonTex:
+        m_Texture: {fileID: 2800000, guid: d39cb2cf9868345afb044eabbe057309, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 2800000, guid: c6e2f801e750a4d4ea82816b303816ba, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Exposure: 1
+    - _FogAlpha: 0
+    - _FogAmount: 0
+    - _FogMinAmount: 0
+    - _MeteorBrightness: 2
+    - _MeteorCount: 3
+    - _MeteorDuration: 0.7
+    - _MeteorFrequency: 0.65
+    - _MeteorSize: 1
+    - _MeteorSpread: 0.18
+    - _MeteorTrail: 0.5
+    - _MoonFlare: 0.03
+    - _MoonSize: 5
+    - _SkyboxNight: 1
+    - _StarBlinking: 0.2
+    - _StarBrightness: 0.5
+    - _StarDensity: 0.06
+    - _StarSize: 250
+    - _SunFlare: 0.2
+    - _SunSize: 0.1
+    m_Colors:
+    - _MeteorColor: {r: 0.75, g: 0.85, b: 1, a: 1}
+    - _MeteorRadiant: {r: -0.35, g: 0.8, b: 0.45, a: 0}
+    - _NightTintColor: {r: 0, g: 0, b: 0.0002, a: 1}
+    - _SkyNightColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SkyTint: {r: 0.04, g: 0.05, b: 0.12, a: 1}
+    - _StarBrightColor: {r: 0.2, g: 0.9, b: 1, a: 1}
+    - _StarDarkColor: {r: 1, g: 0.3, b: 0.1, a: 1}
+    - _SunColor: {r: 1, g: 0.9568, b: 0.83292, a: 1}
+  m_BuildTextureStacks: []
