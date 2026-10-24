@@ -86,9 +86,8 @@ namespace Aipocalypse.Core.EquipmentSystem
             Switcher.SetTarget(item != null && CanHold(item) ? item : null);
         }
 
-        // Merge: all of it fits on a stack already carried. Store: goes into the first free slot that accepts it, and is switched
-        // to. Swap: no free slot, it replaces the selected item. Belt items are stored on an empty belt or swapped with the worn
-        // one; the hands don't change.
+        // Merge onto a carried stack if it all fits, else Store in the first free accepting slot (switching to it), else Swap
+        // with the selected item. Belt items go on an empty belt or swap with the worn one, without changing the hands.
         public PickUpAction GetPickUpAction(ItemInstance item)
         {
             if (item == null || item.IsEmpty || item == Belt || Hotbar.IndexOf(item) >= 0)

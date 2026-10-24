@@ -11,10 +11,8 @@ namespace Aipocalypse.Core.HandSystem
         AsAuthored,
     }
 
-    // A place on an item where a hand holds it, with the finger pose there. Parent it under the part it holds
-    // (mag, bolt, forend) so the hand follows that part.
-    // Blue (Z) runs along the held part from the little finger to the index; green (Y) is out of the back of the hand
-    // (with TowardElbow only Z matters, plus Roll). Bake fit wraps the fingers and palm onto the item's mesh.
+    // Where a hand holds an item, with its finger pose; parent it under the held part (mag, bolt) so the hand follows it.
+    // Blue (Z) runs little finger → index along the part, green (Y) out of the back of the hand (only Z + Roll with TowardElbow).
     public sealed class HandGrip : MonoBehaviour
     {
         [SerializeField] HandSide _side = HandSide.Right;

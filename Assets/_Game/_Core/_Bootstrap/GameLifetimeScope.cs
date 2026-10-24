@@ -6,9 +6,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.Bootstrap
 {
-    // Scene scope for World and for prototypes that need real systems: installs every SceneInstaller on its GameObject (world
-    // clock, environment, enemies…). An installer that can't install is reported, and a strict scene (World) also reports every
-    // scene system it lacks. Must build before any EntityScope's Awake.
+    // Scene scope for World and prototypes: installs every SceneInstaller on its GameObject, reporting ones that can't install
+    // (a strict scene also reports missing systems). Must build before any EntityScope's Awake.
     [DefaultExecutionOrder(-5000)]
     public sealed class GameLifetimeScope : LifetimeScope
     {

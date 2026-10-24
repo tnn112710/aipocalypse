@@ -4,9 +4,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Ticks the registered enemies' Manual-mode trees, time-sliced so each thinks about every ThinkInterval seconds whatever the
-    // frame rate: each frame thinks its share of the crowd (count × deltaTime / interval), round-robin, at most MaxThinksPerFrame.
-    // Scaled time, so a paused game doesn't think. A tree that removes its enemy mid-tick makes the swapped-in one wait a turn.
+    // Ticks the registered enemies' Manual trees time-sliced on scaled time: each thinks about every ThinkInterval seconds,
+    // round-robin, at most MaxThinksPerFrame; an enemy removed mid-tick makes the swapped-in one wait a turn.
     public sealed class EnemyManager : ITickable
     {
         static readonly ProfilerMarker Think = new("Aipocalypse.EnemyManager.Think");

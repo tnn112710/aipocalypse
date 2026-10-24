@@ -4,9 +4,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.HandSystem
 {
-    // Root of one first-person hand prefab: where its grip point is and how its finger bones bend.
-    // Any skinned hand mesh works: fill the finger joints (Auto-find), place GripPoint, then capture the Open, Closed and
-    // Spread and Fist shapes from bones you bent by hand. HandPoses blend calibrated shapes.
+    // Root of a first-person hand prefab: its grip point and how its finger bones bend. Works with any skinned hand: fill the
+    // joints (Auto-find), place GripPoint, then capture the Open, Closed, Spread and Fist shapes from bones bent by hand.
     [DisallowMultipleComponent]
     public sealed class HandRig : MonoBehaviour
     {

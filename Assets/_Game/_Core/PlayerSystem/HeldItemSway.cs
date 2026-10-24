@@ -108,11 +108,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public bool IsWinded;
     }
 
-    // Procedural motion of the held item: breathing, footstep bob in step with the head bob, and springs that lag behind
-    // turning, moving, jumping and landing. Split in two so the barrel never points away from the crosshair:
-    // AimOffset (pitch / yaw) moves the crosshair, the shots and the model together; Position and Rotation (roll only)
-    // are model-only extras. Aiming calms each part, being out of breath makes the breathing heavier, and the
-    // HeldItemSwayScale stat and the held item's HoldFeel.SwayScale scale all of it.
+    // Procedural held-item motion (breathing, footstep bob, springs lagging turns, moves, jumps, landings). AimOffset moves the
+    // crosshair, shots and model together so the barrel never leaves the crosshair; Position/Rotation (roll) are model-only.
     public sealed class HeldItemSway
     {
         const float SpringStep = 1f / 120f;

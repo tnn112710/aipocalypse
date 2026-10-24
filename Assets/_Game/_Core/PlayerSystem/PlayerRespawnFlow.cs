@@ -8,9 +8,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Root service: brings the active player back once its death sequence ends. Fading (presenters close the view) →
-    // Preparing (the body goes back to its spawn point and every PlayerRespawning subscriber finishes its reset) → Ready
-    // (waits for a confirm press on the UI map) → revive. Works with no HUD; any revive (a cheat) ends it early.
+    // Root service bringing the active player back after its death sequence: Fading → Preparing (body to spawn, PlayerRespawning
+    // subscribers reset) → Ready (waits for confirm on the UI map) → revive. Works without a HUD; any revive ends it early.
     public sealed class PlayerRespawnFlow : IStartable, IDisposable
     {
         readonly PlayerRegistry _registry;

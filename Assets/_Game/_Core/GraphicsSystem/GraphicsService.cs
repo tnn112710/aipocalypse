@@ -5,9 +5,8 @@ using UnityEngine.Rendering.Universal;
 
 namespace Aipocalypse.Core.GraphicsSystem
 {
-    // Root service, sole runtime writer of the shared URP asset's shadow distance. ShadowDistance is the player's setting (a
-    // graphics menu later; the asset's own value until then); systems request a shorter one keyed by owner (the environment's
-    // night distance) and the shortest wins. The asset is saved with the project, so its own value comes back on Dispose.
+    // Root service, sole runtime writer of the URP asset's shadow distance: the player's setting, shortened by owner-keyed
+    // requests (shortest wins). The asset is saved with the project, so its own value is restored on Dispose.
     public sealed class GraphicsService : IDisposable
     {
         readonly Dictionary<object, float> _shadowRequests = new();

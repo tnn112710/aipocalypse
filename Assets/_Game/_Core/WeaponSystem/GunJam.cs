@@ -7,9 +7,8 @@ using MessagePipe;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // A gun's jam and repair, as one part of HeldGun: the repair flow (the timed clear and its optional QTE) and its feedback
-    // (sounds, jolts, the beats the HUD and camera listen to). Built by GunJamFactory; HeldGun ticks it and forwards its
-    // gun's action events.
+    // A gun's jam and repair as one part of HeldGun: the timed clear with its optional QTE, plus its feedback. Built by
+    // GunJamFactory; HeldGun ticks it and forwards the gun's action events.
     public sealed class GunJam : IDisposable
     {
         readonly Gun _gun;

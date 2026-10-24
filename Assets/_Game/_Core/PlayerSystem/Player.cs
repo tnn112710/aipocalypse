@@ -18,9 +18,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The player's view: builds its parts, turns input into an intent and ticks them in order: look → movement → stamina →
-    // fatigue and breathing → head motion → interaction → the item in hand (HeldItemDriver) → pose sequence (death, sitting:
-    // takes the camera, movement and hands) → light in the dark. Life and death live in PlayerLife, move sounds in PlayerFeedback.
+    // The player's view: builds its parts, turns input into an intent and ticks them in order (look → move → vitals → head
+    // motion → interaction → held item → pose sequence → light). Life and death: PlayerLife; move sounds: PlayerFeedback.
     [RequireComponent(typeof(CharacterController))]
     public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser
     {

@@ -4,9 +4,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // An enemy's bridge to the enemy system: injected once (scene-placed ones by the EnemyInstaller, spawned ones by their
-    // EnemySpawner), it starts its Manual-mode tree and joins the EnemyRegistry while enabled; EnemyManager ticks it from there.
-    // What kind of enemy it is (speed, behaviour tuning) is its EnemyDefinition.
+    // An enemy's bridge to the enemy system: once injected, starts its Manual-mode tree and joins the EnemyRegistry while
+    // enabled, where EnemyManager ticks it. Its kind (speed, behaviour tuning) is its EnemyDefinition.
     [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
     public sealed class EnemyBrain : MonoBehaviour
     {

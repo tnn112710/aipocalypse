@@ -5,9 +5,8 @@ using Object = UnityEngine.Object;
 
 namespace Aipocalypse.Core.HandSystem
 {
-    // Editor-only: fits a grip to its item. Slides the palm onto the item's surface along the back-of-hand axis, then
-    // curls each finger until it touches the item's meshes. The result is stored on the grip, so nothing runs in game.
-    // Uses the project's HandSet hand for that side, posed exactly as the player sees it (implied elbow).
+    // Editor-only grip fit: slides the palm onto the item's surface, then curls each finger until it touches the item's meshes,
+    // using the project's HandSet hand posed as in game. The result is stored on the grip; nothing runs in game.
     internal static class HandFit
     {
         const float CurlStep = 0.05f;

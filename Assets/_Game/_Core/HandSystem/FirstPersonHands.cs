@@ -2,9 +2,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.HandSystem
 {
-    // The player's two floating hands. Each frame, after the item in hand has its final pose, puts each hand on the grip
-    // the item names (ItemHands), turned so its wrist leads to the implied elbow. Hidden with no item or no grip.
-    // Spawned from a HandSet, on this object's layer (the first-person overlay layer).
+    // The player's two floating hands, spawned from a HandSet on this object's layer. Each frame, after the item's final pose,
+    // puts each hand on the grip the item names (ItemHands), wrist toward the implied elbow; hidden without a grip.
     public sealed class FirstPersonHands : MonoBehaviour
     {
         sealed class Hand

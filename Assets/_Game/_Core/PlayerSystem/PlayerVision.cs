@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The light around the player in the dark: a soft vision light, or a worn lantern's warmer, wider one. Off by day.
-    // Radius is how far the ground reads clearly. URP light fades with distance squared, so the intensity is worked out
-    // from the radius (bigger radius, brighter light) to keep the same brightness at the edge; the range reaches past it.
+    // The light around the player in the dark (vision light or a worn lantern's), off by day. Intensity is derived from Radius
+    // (URP falls off with distance squared) so the edge brightness stays the same; the range reaches past it.
     public sealed class PlayerVision
     {
         readonly Light _light;

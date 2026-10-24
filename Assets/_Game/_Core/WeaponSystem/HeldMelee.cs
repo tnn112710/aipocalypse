@@ -8,9 +8,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // A melee weapon in hand: runs its MeleeAttack rules from the holder's input and shows them — a procedural swing
-    // between pose markers, the hit check from the camera, damage, knockback, impact effect and sounds.
-    // Prefab layout: Poses (Idle, WindUp, FollowThrough, Sprint markers) and PosePivot > Model.
+    // A melee weapon in hand: runs MeleeAttack from the holder's input and shows it (swing between pose markers, camera hit
+    // check, damage, knockback, effects, sounds). Prefab: Poses (Idle, WindUp, FollowThrough, Sprint) and PosePivot > Model.
     public sealed class HeldMelee : HeldItem
     {
         [SerializeField, Tooltip("Moved to the active pose; parent of the model")] Transform _posePivot;

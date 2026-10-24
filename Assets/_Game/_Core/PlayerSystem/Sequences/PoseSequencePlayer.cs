@@ -6,9 +6,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Plays a PoseSequence on the player's camera (overriding the camera rig): moves the eye through the beats (the look
-    // pitch is folded into it), then holds the last pose with free look and drift until Stop; the handheld wander runs
-    // throughout. Beats are placed once, at Play.
+    // Plays a PoseSequence on the camera, overriding the rig: moves the eye through the beats (placed once, at Play), then holds
+    // the last pose with free look and drift until Stop; the handheld wander runs throughout.
     public sealed class PoseSequencePlayer
     {
         const float GroundProbeUp = 1.5f;

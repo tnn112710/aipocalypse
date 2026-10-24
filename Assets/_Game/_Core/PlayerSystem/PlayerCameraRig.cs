@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Sole writer of the player's camera transforms. Parts hand in their share and the rig composes it: the look pitch and
-    // view kick on the pitch pivot, head motion (bob, landing dip) on the camera root at eye height, and a pose sequence that
-    // takes over both until released. Applied as each share changes, so the eye is right for anything aiming mid-frame.
+    // Sole writer of the player's camera transforms: composes look pitch and view kick (pitch pivot), head motion (camera root)
+    // and a pose sequence that overrides both. Applied as each share changes, so mid-frame aiming sees the right eye.
     public sealed class PlayerCameraRig
     {
         readonly Transform _root;

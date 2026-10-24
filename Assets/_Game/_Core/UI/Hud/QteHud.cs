@@ -12,9 +12,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // Shows the running QTE, whoever started it (a gun's repair today), from the QTE's own events: picks a view by the
-    // challenge's presentation, labels the key to press, shakes on a miss, plays the success burst or fades when it ends.
-    // Hidden while paused or in a menu. Look and result animations: QteStyle.
+    // Shows the running QTE (whoever started it) from its own events: view by presentation, key label, shake on a miss, success
+    // burst or fade at the end. Hidden while paused or in a menu; look and animations in QteStyle.
     public sealed class QteHud : MonoBehaviour
     {
         [SerializeField] QteStyle _style;

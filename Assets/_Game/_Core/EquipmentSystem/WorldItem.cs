@@ -3,10 +3,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.EquipmentSystem
 {
-    // An item lying in the world. Interacting stores it in the actor's hotbar, or swaps it with the selected item,
-    // which is dropped in its place. Root of the item's prefab (ItemDefinition.Prefab) with a trigger collider.
-    // Equippables share that prefab with their HeldItem: in the world only the world model shows, in hand
-    // EquipmentRig strips the world parts off a copy.
+    // An item lying in the world, root of its prefab (ItemDefinition.Prefab) with a trigger collider; interacting stores or
+    // swaps it. Equippables share the prefab with their HeldItem; EquipmentRig strips the world parts off the held copy.
     [DisallowMultipleComponent]
     public sealed class WorldItem : MonoBehaviour, IInteractable
     {

@@ -9,9 +9,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.EnvironmentSystem
 {
-    // Sole writer of the sun light, ambient, fog, reflections, sky globals and the time-of-day grade volumes.
-    // Each frame: profile look at the clock's hour → atmosphere layers (weather later) → apply → reactors.
-    // Without a clock (no installer, edit mode) it uses Preview Hour; in edit mode only while Preview is on.
+    // Sole writer of sun, ambient, fog, reflections, sky globals and grade volumes: profile look at the clock's hour → layers
+    // → apply → reactors. Without a clock it uses Preview Hour (in edit mode only while Preview is on).
     public enum LookTransition
     {
         ByPhases,

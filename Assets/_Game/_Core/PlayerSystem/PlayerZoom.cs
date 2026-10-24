@@ -4,9 +4,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Sole writer of the world camera's field of view: the player's setting (ControlSettings.FieldOfView, read live) narrowed
-    // by the held item's zoom (aiming down sights) or scaled by a pose sequence. The held model keeps the unzoomed field of
-    // view (FirstPersonView), so the gun doesn't swell on screen.
+    // Sole writer of the world camera's FOV: the player's setting narrowed by the held item's zoom or scaled by a pose sequence.
+    // The held model keeps the unzoomed FOV (FirstPersonView) so the gun doesn't swell on screen.
     public sealed class PlayerZoom
     {
         public const float MinScale = 0.1f;

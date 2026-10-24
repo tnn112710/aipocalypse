@@ -6,11 +6,8 @@ using UnityEngine.Rendering.Universal;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Draws first-person held models (the HeldWeapon layer) inside the world camera instead of a second, overlay camera,
-    // which cost a whole extra culling and render-graph pass per frame. For a camera with a FirstPersonView it clears depth
-    // (held models stay in front of walls) and draws with that view's lens; other cameras (Scene view, previews) draw the
-    // layer normally. Needs the layer removed from the renderer's opaque/transparent layer masks and kept in the camera's
-    // culling mask.
+    // Draws the HeldWeapon layer inside the world camera (no overlay camera pass), clearing depth and using the FirstPersonView
+    // lens. Requires the layer removed from the renderer's opaque/transparent masks but kept in the camera's culling mask.
     public sealed class FirstPersonRenderFeature : ScriptableRendererFeature
     {
         [SerializeField] LayerMask _layerMask;

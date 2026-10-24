@@ -6,9 +6,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The player's life: health, fall damage, dying and coming back. A killing hit raises Died (the body hands the camera to
-    // the death sequence) and publishes PlayerDied; once that sequence has played out, PlayerDeathSequenceEnded is published
-    // for the respawn flow. Revive restores health, raises Reviving (the body restores the rest) and publishes PlayerRevived.
+    // Health, fall damage, dying and reviving. A killing hit raises Died and publishes PlayerDied, then PlayerDeathSequenceEnded
+    // once the death sequence has played; Revive restores health, raises Reviving and publishes PlayerRevived.
     public sealed class PlayerLife
     {
         readonly IDamageable _self;

@@ -6,9 +6,8 @@ using UnityEngine.UI;
 
 namespace Aipocalypse.Core.UI
 {
-    // Moves the crosshair to where the active player's aim sway points (shots go there), and fades the dot while aiming
-    // down sights (the gun's sights take over) or sprinting. Spread ticks open out to the held item's spread cone
-    // (airborne spread, a shotgun's pellets) and hide when it's tight. The hit marker is a child, so it follows without fading.
+    // Moves the crosshair to where the aim sway points and fades the dot while aiming or sprinting. Spread ticks open to the
+    // held item's spread cone and hide when it's tight; the hit marker is a child, so it follows without fading.
     public sealed class CrosshairHud : PlayerHudView
     {
         static readonly Vector2[] TickDirections = { Vector2.up, Vector2.right, Vector2.down, Vector2.left };

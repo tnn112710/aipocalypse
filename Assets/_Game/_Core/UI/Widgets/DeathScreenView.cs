@@ -130,9 +130,8 @@ namespace Aipocalypse.Core.UI
             _status.color = _style.StatusColor;
         }
 
-        // Lids: each one is as tall as the screen and anchored at its middle. `closed` is the share of the view covered in the
-        // middle (where the arched lid turns solid): the first EnterShare brings the edge in from off-screen until the solid part
-        // touches the screen's edge, then it covers linearly, ending past the middle so a shut pair overlaps everywhere.
+        // Each lid is screen-tall, anchored at its middle. `closed` is the covered share of the view: the first EnterShare slides
+        // the edge in from off-screen, then it covers linearly, ending past the middle so a shut pair overlaps.
         void SetEyes(float closed, float darkness)
         {
             _closed = closed;

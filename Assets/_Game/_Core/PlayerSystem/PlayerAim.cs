@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Turns the aim sway into what's drawn: where the crosshair sits and how wide the spread cone is on screen
-    // (world camera), and how far the held model turns to point there (weapon camera). Screen values are in units of
-    // half the screen height, x = right, y = up.
+    // Turns the aim sway into what's drawn: crosshair position and spread cone on screen (world camera) and the held model's
+    // turn toward it (weapon camera). Screen values are in half-screen-heights, x right, y up.
     public sealed class PlayerAim
     {
         // Wider cones aren't drawn any wider (the tan would run off).

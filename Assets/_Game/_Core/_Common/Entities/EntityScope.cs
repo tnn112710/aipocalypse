@@ -5,9 +5,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.Entities
 {
-    // Child container on a self-contained prefab: unique entities (player, dog, drone) and the HUD. Works in any scene:
-    // parent is the scene's GameLifetimeScope if there is one, otherwise the root scope.
-    // Runs after GameLifetimeScope (-5000) and before the entity's own components.
+    // Child container on a self-contained prefab (player, dog, drone, HUD), parented to the scene's GameLifetimeScope or else
+    // the root scope, so it works in any scene. Runs after GameLifetimeScope (-5000), before the entity's own components.
     [DefaultExecutionOrder(-4000)]
     public abstract class EntityScope : LifetimeScope
     {

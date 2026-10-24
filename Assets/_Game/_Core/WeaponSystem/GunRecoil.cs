@@ -2,10 +2,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // Procedural recoil: each shot kicks the view (aim: moves the crosshair and where shots go) and adds a smaller kick
-    // to the gun model, along a random spray pattern. KeptShare of the aim kick turns the look for good (LookTurn, the
-    // player pulls down against it); the rest springs back. The gun is attached to the view, so its offset is only the
-    // extra on top. Hip and aiming values blend by the aim weight. HeldGun applies the gun's, the player's look the view's.
+    // Procedural recoil: each shot kicks the view (crosshair and shots) and, less, the gun model along a random spray pattern.
+    // KeptShare of the aim kick turns the look for good (LookTurn), the rest springs back; hip/aim values blend by aim weight.
     public sealed class GunRecoil
     {
         const float SprayNoiseStep = 0.347f;

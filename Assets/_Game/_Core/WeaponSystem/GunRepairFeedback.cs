@@ -7,9 +7,8 @@ using MessagePipe;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // Presents one gun's jam and repair beats: sounds, jolts of the gun model (on the gun's GunJoltPlayer) and the
-    // GunJamBeat / GunRepairCompleted events the camera feedback listens to (the QTE widget follows the QTE's own events).
-    // Plain C#; HeldGun forwards the gun's, the repair flow's and the clip's events to it.
+    // Presents one gun's jam and repair beats: sounds, gun-model jolts and the GunJamBeat / GunRepairCompleted events the
+    // camera feedback listens to. Plain C#; HeldGun forwards the gun's, repair flow's and clip's events to it.
     public sealed class GunRepairFeedback
     {
         readonly GunDefinition _definition;

@@ -4,10 +4,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Runs the item in hand each frame, in the order its parts depend on: slot input → switching and the rig pose → the item
-    // acts (fire, aim, reload) → recoil turn and view kick → zoom (the model's aim turn depends on it) → sway and aim → move
-    // speed → obstacle pose (before shots use the final muzzle position) → LateTick (shots leave the muzzle where it's drawn)
-    // → hands on the grips.
+    // Runs the item in hand each frame in dependency order: input → switching/rig pose → item acts → recoil/view kick → zoom →
+    // sway and aim → move speed → obstacle pose → LateTick (shots leave the drawn muzzle) → hands on grips.
     public sealed class HeldItemDriver
     {
         readonly Transform _body;
