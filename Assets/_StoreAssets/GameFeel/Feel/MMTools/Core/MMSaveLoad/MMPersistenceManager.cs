@@ -77,6 +77,9 @@ namespace MoreMountains.Tools
 			protected static void InitializeStatics()
 			{
 				_instance = null;
+				_resourceItemPath = "Persistence/";
+				_saveFolderName = "MMTools/";
+				_saveFileExtension = ".persistence";
 			}
 		
 			/// <summary>
@@ -328,4 +331,3 @@ namespace MoreMountains.Tools
 		#endregion
 	}	
 }
-

@@ -30,7 +30,55 @@ namespace MoreMountains.Feedbacks
 		public override bool HasCustomInspectors => true; 
 		public override bool HasAutomatedTargetAcquisition => true;
 		protected override void AutomateTargetAcquisition() => TargetRenderer = FindAutomatedTarget<Renderer>();
-		
+		public override bool HasAutomatedMultipleTargetAcquisition => true;
+
+		/// <summary>
+		/// Adds all found renderers to the list of extra target renderers, using the main MaterialID for each of them
+		/// </summary>
+		protected override void AutomateMultipleTargetAcquisition()
+		{
+			List<Renderer> foundRenderers = FindAutomatedTargets<Renderer>(null, TargetRenderer);
+			if (ExtraTargetRenderers == null)
+			{
+				ExtraTargetRenderers = new List<ExtraRendererData>();
+			}
+			if (AutomatedMultipleTargetAcquisition.ListMode == MMFeedbackMultipleTargetAcquisition.ListModes.Replace)
+			{
+				ExtraTargetRenderers.Clear();
+			}
+			foreach (Renderer foundRenderer in foundRenderers)
+			{
+				if (ExtraTargetRenderers.Exists(data => data.TargetRenderer == foundRenderer))
+				{
+					continue;
+				}
+				ExtraTargetRenderers.Add(new ExtraRendererData { TargetRenderer = foundRenderer, MaterialID = MaterialID });
+			}
+		}
+
+		/// <summary>
+		/// When forcing target acquisition after initialization, we make sure all extra renderers have a property block if needed
+		/// </summary>
+		public override void ForceAutomateTargetAcquisition()
+		{
+			base.ForceAutomateTargetAcquisition();
+			if (!_initialized || !AutomatedMultipleTargetAcquisitionActive || !UseMaterialPropertyBlock || (ExtraTargetRenderers == null))
+			{
+				return;
+			}
+			if (_extraPropertyBlocks == null)
+			{
+				_extraPropertyBlocks = new Dictionary<Renderer, MaterialPropertyBlock>();
+			}
+			foreach (ExtraRendererData data in ExtraTargetRenderers)
+			{
+				if ((data.TargetRenderer != null) && !_extraPropertyBlocks.ContainsKey(data.TargetRenderer))
+				{
+					_extraPropertyBlocks[data.TargetRenderer] = new MaterialPropertyBlock();
+				}
+			}
+		}
+
 		public enum PropertyTypes { Color, Float, Integer, Texture, TextureOffset, TextureScale, Vector }
 
 		[Serializable]

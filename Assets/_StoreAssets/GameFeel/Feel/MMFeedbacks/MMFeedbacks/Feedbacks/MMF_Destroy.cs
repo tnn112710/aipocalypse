@@ -26,6 +26,8 @@ namespace MoreMountains.Feedbacks
 		#endif
 		public override bool HasAutomatedTargetAcquisition => true;
 		protected override void AutomateTargetAcquisition() => TargetGameObject = FindAutomatedTargetGameObject();
+		public override bool HasAutomatedMultipleTargetAcquisition => true;
+		protected override void AutomateMultipleTargetAcquisition() => ExtraTargetGameObjects = FindAutomatedTargetGameObjects(ExtraTargetGameObjects, TargetGameObject);
 
 		/// the possible ways to destroy an object
 		public enum Modes { Destroy, DestroyImmediate, Disable }

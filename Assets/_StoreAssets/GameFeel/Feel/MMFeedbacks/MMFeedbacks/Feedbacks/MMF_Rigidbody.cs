@@ -28,6 +28,8 @@ namespace MoreMountains.Feedbacks
 		public enum Spaces { World, Local }
 		public override bool HasAutomatedTargetAcquisition => true;
 		protected override void AutomateTargetAcquisition() => TargetRigidbody = FindAutomatedTarget<Rigidbody>();
+		public override bool HasAutomatedMultipleTargetAcquisition => true;
+		protected override void AutomateMultipleTargetAcquisition() => ExtraTargetRigidbodies = FindAutomatedTargets<Rigidbody>(ExtraTargetRigidbodies, TargetRigidbody);
 
 		[MMFInspectorGroup("Rigidbody", true, 61, true)]
 		/// the rigidbody to target on play

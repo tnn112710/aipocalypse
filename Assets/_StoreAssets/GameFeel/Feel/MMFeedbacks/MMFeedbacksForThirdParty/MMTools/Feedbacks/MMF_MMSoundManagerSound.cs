@@ -33,7 +33,7 @@ namespace MoreMountains.Feedbacks
 		public override bool EvaluateRequiresSetup()
 		{
 			bool requiresSetup = false;
-			if (Sfx == null)
+			if ((Sfx == null) && (AudioResourceToPlay == null))
 			{
 				requiresSetup = true;
 			}

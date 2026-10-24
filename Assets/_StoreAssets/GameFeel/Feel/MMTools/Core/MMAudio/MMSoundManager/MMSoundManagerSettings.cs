@@ -31,6 +31,9 @@ namespace MoreMountains.Tools
 		public const float _minimalVolume = 0.0001f;
 		public const float _maxVolume = 10f;
 		public const float _defaultVolume = 1f;
+		public const float _minimalTrackPitch = 0.01f;
+		public const float _maxTrackPitch = 3f;
+		public const float _defaultTrackPitch = 1f;
         
 		[Header("Audio Mixer Control")] 
 		/// whether or not the settings described below should override the ones defined in the AudioMixer 

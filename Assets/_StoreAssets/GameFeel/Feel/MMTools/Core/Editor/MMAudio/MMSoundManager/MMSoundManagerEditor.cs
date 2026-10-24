@@ -178,6 +178,9 @@ namespace MoreMountains.Tools
 			}
 			EditorGUILayout.EndHorizontal();
 
+			// we draw the pitch slider
+			DrawTrackPitchSlider(track);
+
 			// we draw the buttons
 			EditorGUILayout.BeginHorizontal();
 			{
@@ -200,6 +203,20 @@ namespace MoreMountains.Tools
 			EditorGUI.EndDisabledGroup();
 		}
         
+		/// <summary>
+		/// Draws a slider controlling the pitch multiplier of the specified track
+		/// </summary>
+		/// <param name="track"></param>
+		protected virtual void DrawTrackPitchSlider(MMSoundManager.MMSoundManagerTracks track)
+		{
+			EditorGUILayout.BeginHorizontal();
+			GUILayout.Label("Pitch");
+			float currentPitch = _mmSoundManager.GetTrackPitch(track);
+			float newPitch = EditorGUILayout.Slider(currentPitch, MMSoundManagerSettings._minimalTrackPitch, MMSoundManagerSettings._maxTrackPitch);
+			if (newPitch != currentPitch) { _mmSoundManager.SetTrackPitch(track, newPitch); }
+			EditorGUILayout.EndHorizontal();
+		}
+
 		/// <summary>
 		/// Draws controls for all custom tracks defined in the settings SO
 		/// </summary>
@@ -238,6 +255,14 @@ namespace MoreMountains.Tools
 			float currentVolume = _settingsSO.GetTrackVolume(customTrack);
 			float newVolume = EditorGUILayout.Slider(currentVolume, MMSoundManagerSettings._minimalVolume, MMSoundManagerSettings._maxVolume);
 			if (newVolume != currentVolume) { _mmSoundManager.SetTrackVolume(customTrack, newVolume); }
+			EditorGUILayout.EndHorizontal();
+
+			// pitch slider
+			EditorGUILayout.BeginHorizontal();
+			GUILayout.Label("Pitch");
+			float currentPitch = _mmSoundManager.GetTrackPitch(customTrack);
+			float newPitch = EditorGUILayout.Slider(currentPitch, MMSoundManagerSettings._minimalTrackPitch, MMSoundManagerSettings._maxTrackPitch);
+			if (newPitch != currentPitch) { _mmSoundManager.SetTrackPitch(customTrack, newPitch); }
 			EditorGUILayout.EndHorizontal();
 			
 			// buttons

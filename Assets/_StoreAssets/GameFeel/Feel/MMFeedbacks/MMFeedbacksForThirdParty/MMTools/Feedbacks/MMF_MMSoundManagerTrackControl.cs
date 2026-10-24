@@ -5,13 +5,13 @@ using UnityEngine.Scripting.APIUpdating;
 namespace MoreMountains.Feedbacks
 {
 	/// <summary>
-	/// This feedback will let you control all sounds playing on a specific track (master, UI, music, sfx), and play, pause, mute, unmute, resume, stop, free them all at once. You will need a MMSoundManager in your scene for this to work.
+	/// This feedback will let you control all sounds playing on a specific track (master, UI, music, sfx), and play, pause, mute, unmute, resume, stop, free them all at once, or set their volume or pitch. You will need a MMSoundManager in your scene for this to work.
 	/// </summary>
 	[AddComponentMenu("")]
 	[MovedFrom(false, null, "MoreMountains.Feedbacks.MMTools")]
 	[System.Serializable]
 	[FeedbackPath("Audio/MMSoundManager Track Control")]
-	[FeedbackHelp("This feedback will let you control all sounds playing on a specific track (master, UI, music, sfx), and play, pause, mute, unmute, resume, stop, free them all at once. You will need a MMSoundManager in your scene for this to work.")]
+	[FeedbackHelp("This feedback will let you control all sounds playing on a specific track (master, UI, music, sfx), and play, pause, mute, unmute, resume, stop, free them all at once, or set their volume or pitch. You will need a MMSoundManager in your scene for this to work.")]
 	public class MMF_MMSoundManagerTrackControl : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
@@ -22,8 +22,8 @@ namespace MoreMountains.Feedbacks
 		public override string RequiredTargetText { get { return Track.ToString() + " " + ControlMode.ToString();  } }
 		#endif
         
-		/// the possible modes you can use to interact with the track. Free will stop all sounds and return them to the pool
-		public enum ControlModes { Mute, UnMute, SetVolume, Pause, Play, Stop, Free }
+		/// the possible modes you can use to interact with the track. Free will stop all sounds and return them to the pool. SetPitch sets a pitch multiplier applied on top of each sound's own pitch
+		public enum ControlModes { Mute, UnMute, SetVolume, Pause, Play, Stop, Free, SetPitch }
         
 		[MMFInspectorGroup("MMSoundManager Track Control", true, 30)]
 		/// the track to mute/unmute/pause/play/stop/free/etc
@@ -40,6 +40,11 @@ namespace MoreMountains.Feedbacks
 		[Tooltip("if setting the volume, the volume to assign to the track")]
 		[MMEnumCondition("ControlMode", (int) ControlModes.SetVolume)]
 		public float Volume = 0.5f;
+		/// if setting the pitch, the pitch multiplier to assign to the track (1 is the normal pitch). It multiplies the pitch of every sound playing (or played later) on that track
+		[Tooltip("if setting the pitch, the pitch multiplier to assign to the track (1 is the normal pitch). It multiplies the pitch of every sound playing (or played later) on that track")]
+		[MMEnumCondition("ControlMode", (int) ControlModes.SetPitch)]
+		[Range(MMSoundManagerSettings._minimalTrackPitch, MMSoundManagerSettings._maxTrackPitch)]
+		public float Pitch = 1f;
 
 		/// <summary>
 		/// On play, orders the entire track to follow the specific command, via a MMSoundManager event
@@ -75,6 +80,9 @@ namespace MoreMountains.Feedbacks
 					break;
 				case ControlModes.Free:
 					MMSoundManagerTrackEvent.Trigger(MMSoundManagerTrackEventTypes.FreeTrack, Track, customTrack: CustomTrack);
+					break;
+				case ControlModes.SetPitch:
+					MMSoundManagerTrackEvent.Trigger(MMSoundManagerTrackEventTypes.SetPitchTrack, Track, customTrack: CustomTrack, pitch: Pitch);
 					break;
 			}
 		}

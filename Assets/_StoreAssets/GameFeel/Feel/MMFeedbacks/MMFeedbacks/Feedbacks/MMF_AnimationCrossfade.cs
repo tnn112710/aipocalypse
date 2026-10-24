@@ -38,6 +38,8 @@ namespace MoreMountains.Feedbacks
 		public override bool HasRandomness => true;
 		public override bool HasAutomatedTargetAcquisition => true;
 		protected override void AutomateTargetAcquisition() => BoundAnimator = FindAutomatedTarget<Animator>();
+		public override bool HasAutomatedMultipleTargetAcquisition => true;
+		protected override void AutomateMultipleTargetAcquisition() => ExtraBoundAnimators = FindAutomatedTargets<Animator>(ExtraBoundAnimators, BoundAnimator);
 		
 		public enum Modes { Seconds, Normalized }
 

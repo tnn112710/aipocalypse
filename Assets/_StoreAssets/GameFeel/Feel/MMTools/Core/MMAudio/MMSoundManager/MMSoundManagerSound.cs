@@ -25,5 +25,7 @@ namespace MoreMountains.Tools
 
 		public float PlaybackTime;
 		public float PlaybackDuration;
+		/// the pitch this sound was requested at, before any track pitch multiplier got applied to it
+		public float BasePitch;
 	}
 }

@@ -25,6 +25,14 @@ namespace MoreMountains.Feedbacks
         
 		static List<MMMiniObjectPool> _pools = new List<MMMiniObjectPool>(_initialPoolsListCapacity);
 
+		#if UNITY_EDITOR
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void InitializeStatics()
+		{
+			_pools = new List<MMMiniObjectPool>(_initialPoolsListCapacity);
+		}
+		#endif
+
 		/// <summary>
 		/// Adds a pooler to the static list if needed
 		/// </summary>

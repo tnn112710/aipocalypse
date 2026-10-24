@@ -93,6 +93,43 @@ namespace MoreMountains.Feedbacks
 		protected bool _resetShakerValuesAfterShake;
 		protected bool _resetTargetValuesAfterShake;
 		protected float _journey;
+
+		#if UNITY_EDITOR
+		[InitializeOnEnterPlayMode]
+		private static void ResetShakersOnEnterPlayMode(EnterPlayModeOptions options)
+		{
+			MMShaker[] shakers = FindObjectsByType<MMShaker>(FindObjectsInactive.Include);
+			foreach (MMShaker shaker in shakers)
+			{
+				shaker.Shaking = false;
+				shaker._journey = 0f;
+				shaker._listeningToEvents = false;
+				if (!shaker.PlayOnAwake)
+				{
+					shaker.enabled = false;
+				}
+			}
+		}
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+		private static void InitializeShakersAfterSceneLoad()
+		{
+			MMShaker[] shakers = FindObjectsByType<MMShaker>(FindObjectsInactive.Include);
+			foreach (MMShaker shaker in shakers)
+			{
+				if (!shaker._listeningToEvents)
+				{
+					shaker.StartListening();
+				}
+
+				if (Application.isPlaying && shaker.PlayOnAwake && shaker.isActiveAndEnabled && !shaker.Shaking)
+				{
+					shaker.Initialization();
+					shaker.StartShaking();
+				}
+			}
+		}
+		#endif
         
 		/// <summary>
 		/// On Awake we grab our volume and profile

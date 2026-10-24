@@ -142,6 +142,14 @@ namespace MoreMountains.Feedbacks
 		/// a global switch used to turn all feedbacks on or off globally
 		[Tooltip("a global switch used to turn all feedbacks on or off globally")]
 		public static bool GlobalMMFeedbacksActive = true;
+
+		#if UNITY_EDITOR
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void InitializeStatics()
+		{
+			GlobalMMFeedbacksActive = true;
+		}
+		#endif
         
 		[HideInInspector]
 		/// whether or not this MMFeedbacks is in debug mode

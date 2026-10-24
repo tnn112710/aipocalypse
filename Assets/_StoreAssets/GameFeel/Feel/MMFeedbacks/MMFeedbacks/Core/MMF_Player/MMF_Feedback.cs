@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using MoreMountains.Tools;
 using Random = UnityEngine.Random;
@@ -73,7 +74,11 @@ namespace MoreMountains.Feedbacks
 		/// a set of settings letting you define automated target acquisition for this feedback, to (for example) automatically grab the target on this game object, or a parent, a child, or on a reference holder
 		[Tooltip("a set of settings letting you define automated target acquisition for this feedback, to (for example) automatically grab the target on this game object, or a parent, a child, or on a reference holder")]
 		public MMFeedbackTargetAcquisition AutomatedTargetAcquisition;
-		
+
+		/// a set of settings letting you define automated acquisition of multiple targets for this feedback, to (for example) automatically fill its list of extra targets with all matching components found on this game object, its children, its parents, or on reference holders
+		[Tooltip("a set of settings letting you define automated acquisition of multiple targets for this feedback, to (for example) automatically fill its list of extra targets with all matching components found on this game object, its children, its parents, or on reference holders")]
+		public MMFeedbackMultipleTargetAcquisition AutomatedMultipleTargetAcquisition;
+
 		[MMFInspectorGroup(_randomnessGroupName, true, 58, false, true)]
 		/// if this is true, intensity will be multiplied by a random value on play, picked between RandomMultiplier.x and RandomMultiplier.y
 		[Tooltip(
@@ -170,6 +175,12 @@ namespace MoreMountains.Feedbacks
 
 		/// whether or not this feedback can automatically grab the target on this game object, or a parent, a child, or on a reference holder
 		public virtual bool HasAutomatedTargetAcquisition => false;
+		/// whether or not this feedback can automatically fill its list of extra targets with all matching targets found on this game object, its children, its parents, or on reference holders
+		public virtual bool HasAutomatedMultipleTargetAcquisition => false;
+		/// returns true if this feedback supports multiple target acquisition and has it set to a mode other than None
+		public virtual bool AutomatedMultipleTargetAcquisitionActive => HasAutomatedMultipleTargetAcquisition
+		                                                                 && (AutomatedMultipleTargetAcquisition != null)
+		                                                                 && (AutomatedMultipleTargetAcquisition.Mode != MMFeedbackMultipleTargetAcquisition.Modes.None);
 		/// when in forced reference mode, this will contain the forced reference holder that will be used (usually set by itself)
 		public virtual MMF_ReferenceHolder ForcedReferenceHolder { get; set; }
 
@@ -295,10 +306,10 @@ namespace MoreMountains.Feedbacks
 		{
 			get
 			{
-				if (_skipFirstDeltaTime)
+				if (_skipFirstDeltaTime && Timing.InitialDelay > 0f)
 				{
 					_skipFirstDeltaTime = false;
-					return 0f;
+					return 0.005f;
 				}
 				
 				float timescaleMultiplier = Owner.TimescaleMultiplier;
@@ -539,23 +550,40 @@ namespace MoreMountains.Feedbacks
 		/// </summary>
 		protected virtual void AutomateTargetAcquisitionInternal()
 		{
-			if (!HasAutomatedTargetAcquisition)
+			bool acquired = false;
+
+			if (HasAutomatedTargetAcquisition)
 			{
-				return;
-			}
-			
-			if (AutomatedTargetAcquisition == null)
-			{
-				AutomatedTargetAcquisition = new MMFeedbackTargetAcquisition();
+				if (AutomatedTargetAcquisition == null)
+				{
+					AutomatedTargetAcquisition = new MMFeedbackTargetAcquisition();
+				}
+
+				if (AutomatedTargetAcquisition.Mode != MMFeedbackTargetAcquisition.Modes.None)
+				{
+					AutomateTargetAcquisition();
+					acquired = true;
+				}
 			}
 
-			if (AutomatedTargetAcquisition.Mode == MMFeedbackTargetAcquisition.Modes.None)
+			if (HasAutomatedMultipleTargetAcquisition)
 			{
-				return;
+				if (AutomatedMultipleTargetAcquisition == null)
+				{
+					AutomatedMultipleTargetAcquisition = new MMFeedbackMultipleTargetAcquisition();
+				}
+
+				if (AutomatedMultipleTargetAcquisitionActive)
+				{
+					AutomateMultipleTargetAcquisition();
+					acquired = true;
+				}
 			}
 
-			AutomateTargetAcquisition();
-			CacheRequiresSetup();
+			if (acquired)
+			{
+				CacheRequiresSetup();
+			}
 		}
 
 		/// <summary>
@@ -564,6 +592,10 @@ namespace MoreMountains.Feedbacks
 		public virtual void ForceAutomateTargetAcquisition()
 		{
 			AutomateTargetAcquisition();
+			if (AutomatedMultipleTargetAcquisitionActive)
+			{
+				AutomateMultipleTargetAcquisition();
+			}
 			CacheRequiresSetup();
 		}
 
@@ -572,7 +604,15 @@ namespace MoreMountains.Feedbacks
 		/// </summary>
 		protected virtual void AutomateTargetAcquisition()
 		{
-			
+
+		}
+
+		/// <summary>
+		/// A method meant to be implemented per feedback supporting multiple targets, letting you specify what happens (usually filling a list of extra targets)
+		/// </summary>
+		protected virtual void AutomateMultipleTargetAcquisition()
+		{
+
 		}
 
 		/// <summary>
@@ -593,7 +633,30 @@ namespace MoreMountains.Feedbacks
 		{
 			return MMFeedbackTargetAcquisition.FindAutomatedTarget<T>(AutomatedTargetAcquisition, Owner, _indexInOwnerFeedbackList);
 		}
-		
+
+		/// <summary>
+		/// Finds all targets of type T matching this feedback's multiple target acquisition settings, and adds them to the specified list
+		/// </summary>
+		/// <param name="targetList">the list to fill (if null, a new one will be created)</param>
+		/// <param name="excludedTarget">a target that should never be added to the list, typically this feedback's main target</param>
+		/// <typeparam name="T"></typeparam>
+		/// <returns>the filled list</returns>
+		protected virtual List<T> FindAutomatedTargets<T>(List<T> targetList, T excludedTarget = default(T))
+		{
+			return MMFeedbackMultipleTargetAcquisition.FindAutomatedTargets<T>(AutomatedMultipleTargetAcquisition, Owner, _indexInOwnerFeedbackList, targetList, excludedTarget);
+		}
+
+		/// <summary>
+		/// Finds all game objects matching this feedback's multiple target acquisition settings, and adds them to the specified list
+		/// </summary>
+		/// <param name="targetList">the list to fill (if null, a new one will be created)</param>
+		/// <param name="excludedTarget">a game object that should never be added to the list, typically this feedback's main target</param>
+		/// <returns>the filled list</returns>
+		protected virtual List<GameObject> FindAutomatedTargetGameObjects(List<GameObject> targetList, GameObject excludedTarget = null)
+		{
+			return MMFeedbackMultipleTargetAcquisition.FindAutomatedTargetGameObjects(AutomatedMultipleTargetAcquisition, Owner, _indexInOwnerFeedbackList, targetList, excludedTarget);
+		}
+
 		#endregion Automation
 		
 		#region Target Checks

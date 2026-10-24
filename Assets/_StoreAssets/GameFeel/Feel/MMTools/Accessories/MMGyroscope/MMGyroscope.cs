@@ -165,6 +165,40 @@ namespace MoreMountains.Tools
 		private static Matrix4x4 _accelerationMatrix;
 		private static Matrix4x4 _gravityMatrix;
 		private static float _lastGetValuesAt = 0f;
+
+		#if UNITY_EDITOR
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void InitializeStatics()
+		{
+			GyroscopeActive = true;
+			TimeScale = TimeScales.Scaled;
+			Clamps = new Vector2(-1f, 1f);
+			LerpSpeed = 1f;
+			TestMode = false;
+			m_GyroscopeAttitude = Quaternion.identity;
+			m_GyroscopeRotationRate = Vector3.zero;
+			m_GyroscopeAcceleration = Vector3.zero;
+			m_InputAcceleration = Vector3.zero;
+			m_GyroscopeGravity = Vector3.zero;
+			m_InitialGyroscopeAttitude = Quaternion.identity;
+			m_InitialGyroscopeRotationRate = Vector3.zero;
+			m_InitialGyroscopeAcceleration = Vector3.zero;
+			m_InitialInputAcceleration = Vector3.zero;
+			m_InitialGyroscopeGravity = Vector3.zero;
+			m_CalibratedInputAcceleration = Vector3.zero;
+			m_CalibratedGyroscopeGravity = Vector3.zero;
+			m_LerpedCalibratedInputAcceleration = Vector3.zero;
+			m_LerpedCalibratedGyroscopeGravity = Vector3.zero;
+			#if !ENABLE_INPUT_SYSTEM || ENABLE_LEGACY_INPUT_MANAGER
+			_gyroscope = null;
+			#endif
+			_testVector = Vector3.zero;
+			_initialized = false;
+			_accelerationMatrix = Matrix4x4.identity;
+			_gravityMatrix = Matrix4x4.identity;
+			_lastGetValuesAt = 0f;
+		}
+		#endif
         
 		protected virtual void OnEnable()
 		{

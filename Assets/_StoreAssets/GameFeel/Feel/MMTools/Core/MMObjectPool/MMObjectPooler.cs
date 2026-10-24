@@ -33,6 +33,7 @@ namespace MoreMountains.Tools
 		protected static void InitializeStatics()
 		{
 			Instance = null;
+			_pools = new List<MMObjectPool>(_initialPoolsListCapacity);
 		}
 
 		/// <summary>
