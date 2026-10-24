@@ -371,8 +371,11 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         static void ApplySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
         {
-            Shader.SetGlobalColor(SkyTintId, state.SkyTint);
-            Shader.SetGlobalFloat(SkyExposureId, state.SkyExposure);
+            // Tint and exposure are Skybox/Panoramic values (the looks copied them), which Unity converts from gamma to linear
+            // for a material; globals are passed raw, so convert here or the sky renders ~10x too bright and clips.
+            bool linear = QualitySettings.activeColorSpace == ColorSpace.Linear;
+            Shader.SetGlobalColor(SkyTintId, linear ? state.SkyTint.linear : state.SkyTint);
+            Shader.SetGlobalFloat(SkyExposureId, linear ? Mathf.GammaToLinearSpace(state.SkyExposure) : state.SkyExposure);
             Shader.SetGlobalColor(NightTopId, state.NightSkyTop);
             Shader.SetGlobalColor(NightHorizonId, state.NightSkyHorizon);
             Shader.SetGlobalFloat(NightBlendId, state.NightSkyBlend);

@@ -8,7 +8,7 @@ Shader "Aipocalypse/Skybox/Time Of Day"
         [NoScaleOffset] _MainTex ("Painted Sky (lat-long HDR)", 2D) = "grey" {}
         _Rotation ("Rotation", Range(0, 360)) = 0
         _Tint ("Fallback Tint", Color) = (0.5, 0.5, 0.5, 1)
-        _Exposure ("Fallback Exposure", Range(0, 8)) = 1
+        [Gamma] _Exposure ("Fallback Exposure", Range(0, 8)) = 1
         _SunSize ("Sun Size (degrees)", Range(0.2, 6)) = 1.6
         _MoonSize ("Moon Size (degrees)", Range(0.5, 12)) = 4
         _StarDensity ("Star Density", Range(40, 400)) = 160
