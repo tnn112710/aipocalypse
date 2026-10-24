@@ -8,7 +8,7 @@ How MicroVerse is installed and used here. The library itself (stamps, filters, 
 | --- | --- | --- |
 | MicroVerse 1.7.0: core + Splines, Vegetation, Objects, Ambiance, Demo | `Packages/com.jbooth.microverse*` | **Not installed:** MicroSplat, Masks, Roads (no proxy renderer, no mask stamps, no road tools) |
 | Rowlan height packs: Alpine Mountains, Highlands, Jungle Rivers, Meadows, Swamp, Valleys | `Assets/_StoreAssets/Env/Rowlan/Terrain/Stamps/<Pack>/` | ~3.0 GB in LFS. `Brushes/` holds 140 extracted Terrain Tools brushes (`.brush` / `.asset`) |
-| Genesis for MicroVerse 3.5.0 | `Assets/_StoreAssets/Env/Rowlan/Genesis/` | |
+| Genesis for MicroVerse 3.5.5 | `Assets/_StoreAssets/Env/Rowlan/Genesis/` | |
 | BK Pure Nature 2 presets (14 biomes) | `Assets/_StoreAssets/Env/MicroVerse-Presets/BK/Data/BK_PureNature2_<Biome>/` | Only 6 BK art packs are installed (`Assets/_StoreAssets/Env/BK/`): **AsianValley, FantasyForest, Jungle, Meadows, Mountains, Swamp**. The other 8 biomes are broken (missing references); the kit's `Presets` hides them, the Content Browser still shows the Highlands ones |
 
 All of it is vendor content: reference it, never edit it. Terrain-layer and art-pack inventory: art-packs.md.

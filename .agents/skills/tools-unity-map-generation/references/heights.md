@@ -1,6 +1,6 @@
 # Layout, heights and masks
 
-How the WorldMap generator (`AgentScripts/Maps/WorldMap/WorldMapLayout.cs`, "WML") turns a layout into a terrain, written as a recipe for any map. Line numbers are from the 2026-10-23 file; search by symbol if they moved. The 1500 m variant ("v23") lives on `origin/terrain-4:AgentScripts/MeadowHomeV14/MeadowHomeLayout.cs`; it has several improvements the current file lacks (marked **v23**).
+How the WorldMap generator (`AgentScripts/Maps/WorldMap/WorldMapLayout.cs`, "WML") turns a layout into a terrain, written as a recipe for any map. Line numbers are from the 2026-10-23 file; search by symbol if they moved. An earlier 1500 m rescale of the generator ("v23", not on develop) had several improvements the current file lacks (marked **v23**).
 
 ## 1. Layout as data
 
@@ -38,7 +38,7 @@ Performance: cache region weights per sample (Generate went 129 s → 55 s), ear
 ## 3. Base heightmap → MicroVerse
 
 - `Generate(res, maskRes, preview)` (WML:409): `await Task.Run(() => Parallel.For(...))` over texel centres `(i + 0.5) / res · size`, write `Terrain/Heightmaps/Base.png` as **R16** (value / size.y · 65535), one mask per detail stamp, then `AssetDatabase.Refresh()` and configure each importer. Delete stale outputs of older layouts.
-- Importer (`ConfigureImporter`, WML:2834): Single Channel/Red, sRGB off, no mips, Clamp, Bilinear, not readable, NPOT none, R16 uncompressed (default + Standalone override), max size ≥ res. Apply with `WriteImportSettingsIfDirty` + `ImportAsset`, never `SaveAndReimport` (it wrote unrelated dirty vendor materials).
+- Importer (`ConfigureImporter`, WML:2835): Single Channel/Red, sRGB off, no mips, Clamp, Bilinear, not readable, NPOT none, R16 uncompressed (default + Standalone override), max size ≥ res. Apply with `WriteImportSettingsIfDirty` + `ImportAsset`, never `SaveAndReimport` (it wrote unrelated dirty vendor materials).
 - `BuildHeights()` (WML:937) deletes and rebuilds the `Height` group: `00 Base` = HeightStamp **Override**, Global falloff, centre (size/2, 0, size/2), scale (size, size.y, size) → texture 1.0 = size.y. Then `20 Region Detail`, `90 Gameplay Pads`. Number prefixes keep the evaluation order readable.
 - Then kit `Rebuild false` before anything samples the terrain (CPU heights are stale until a sync).
 - Resolutions: heightmap ≤ 0.5 m per texel where water is carved (1000 m → 2049, base PNG 2048; 1500 m → 4097, base 4096). Height masks ~1 m (1024 on 1000 m). Unity's heightmap max is 4097, so beyond ~2 km at 0.5 m you need tiles. Generate at 4096 takes ~5 min: pass `--timeout_ms`.
@@ -67,7 +67,7 @@ Flat Override HeightStamp, no texture (flat at its Y), last in the height group,
 | Tool | Reads | Use |
 | --- | --- | --- |
 | `Preview(res, png)` (WML:459) | analytic field only | Shaded map with water tint, 5 m contours, outlines, points. Iterate the layout tables and get approval before touching assets. `res` must be a multiple of 1024 (`step = res / 1024`); colour ramp is hard-coded to 18/32/70 m. |
-| `MacroCheck()`, `Profile()` (**v23** only, `cfad84fea`) | analytic | Lowest bank 3 m and 10 m outside each channel vs its surface (negative = perched or spilling), basin rims 8 m out, waterfall lip, pad. Cheap pre-bake gate: port it before the next water change. |
+| `MacroCheck()`, `Profile()` (**v23** only) | analytic | Lowest bank 3 m and 10 m outside each channel vs its surface (negative = perched or spilling), basin rims 8 m out, waterfall lip, pad. Cheap pre-bake gate: port it before the next water change. |
 | `Verify(dir)` (WML:489) | synced CPU heights (`Rebuild` first) | Basin depth and leak cells in a 3–6 m ring, line stations every 20 m (depth, banks at +2/+8/+20 m, slope), region height/slope percentiles, `macroDriftInWater`, pad, a 5 m CSV grid. |
 | `Delta()` (WML:639) | terrain − analytic | What detail stamps and pads changed per region. |
 | `Hillshade(...)` (WML:663) | terrain or analytic | Exaggerated hillshade PNG; diff macro vs final to find stamp seams, creases and cut-off cliffs. |

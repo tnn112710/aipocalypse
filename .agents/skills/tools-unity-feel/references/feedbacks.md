@@ -18,8 +18,8 @@ Every feedback type in the installed Feel, grouped by status. **Use** = fine on 
 | --- | --- | --- |
 | `MMF_Flicker`, `MMF_Material`, `MMF_MaterialSetProperty`, `MMF_TextureOffset`, `MMF_TextureScale`, `MMF_ShaderGlobal` | Use | Unique entities and the player only. Crowd enemy hit flash is our shader code (SKILL.md §6) |
 | `MMF_Light` | Use | Muzzle flash light |
-| `MMF_Skybox` | Care | Conflicts with COZY / time of day if both drive the sky |
-| `MMF_Fog` (MMTools) | Care | Same conflict, with COZY / Volumetric Fog |
+| `MMF_Skybox` | Care | Conflicts with the time of day (`EnvironmentDirector` drives the sky, DAYNIGHT.md) |
+| `MMF_Fog` (MMTools) | Care | Same conflict: `EnvironmentDirector` owns the fog |
 | `MMF_Sprite*`, `MMF_SpriteSheetAnimation` | Use | Rare in a 3D FPS |
 | `MMF_Blink` (MMTools) | Use | |
 
@@ -44,12 +44,12 @@ Every feedback type in the installed Feel, grouped by status. **Use** = fine on 
 | `MMF_CameraShake` (+ `MMCinemachineCameraShaker`) | No | Use impulses |
 | `MMF_CameraZoom`, `MMF_CameraClippingPlanes`, `MMF_CameraOrthographicSize` | No | Not needed for the FPS rig. Zoom/ADS is controller logic |
 
-## Post-processing (URP, needs shakers on the FeedbackFX volume)
+## Post-processing (URP, needs shakers on a feedback volume; none exists yet, SKILL.md §4)
 
 | Feedback | Status |
 | --- | --- |
 | `MMF_Vignette_URP`, `MMF_ChromaticAberration_URP`, `MMF_LensDistortion_URP`, `MMF_ColorAdjustments_URP`, `MMF_Bloom_URP`, `MMF_FilmGrain_URP`, `MMF_DepthOfField_URP`, `MMF_MotionBlur_URP`, `MMF_WhiteBalance_URP`, `MMF_ChannelMixer_URP`, `MMF_PaniniProjection_URP` | Use |
-| `MMF_GlobalPPVolumeAutoBlend_URP` | Care: blends a whole volume, so keep it on the FeedbackFX volume |
+| `MMF_GlobalPPVolumeAutoBlend_URP` | Care: blends a whole volume, so keep it on the feedback volume |
 | `MMF_Light2D_URP` | No (2D) |
 | PPv2 `MMF_Bloom`, `MMF_Vignette`, `MMF_ChromaticAberration`, `MMF_ColorGrading`, `MMF_DepthOfField`, `MMF_LensDistortion`, `MMF_GlobalPPVolumeAutoBlend`, `MMF_PPMovingFilter` | No (not compiled) |
 | `*_HDRP` | No (not compiled) |
@@ -59,7 +59,7 @@ Every feedback type in the installed Feel, grouped by status. **Use** = fine on 
 | Feedback | Status |
 | --- | --- |
 | `MMF_Image`, `MMF_ImageAlpha`, `MMF_ImageFill`, `MMF_ImageMaterial`, `MMF_ImageSprite`, `MMF_ImageTextureOffset`, `MMF_ImageTextureScale`, `MMF_ImageRaycastTarget`, `MMF_Graphic`, `MMF_GraphicCrossFade`, `MMF_CanvasGroup`, `MMF_CanvasGroupBlocksRaycasts`, `MMF_RectTransformAnchor`, `MMF_RectTransformOffset`, `MMF_RectTransformPivot`, `MMF_RectTransformSizeDelta`, `MMF_Text`, `MMF_TextColor`, `MMF_TextFontSize`, `MMF_Fade` | Use (UI players on Unscaled when they must animate while paused) |
-| `MMF_TMPAlpha`, `MMF_TMPColor`, `MMF_TMPCountTo`, `MMF_TMPCountToLong`, `MMF_TMPText`, `MMF_TMPTextReveal`, `MMF_TMPFontSize`, `MMF_TMPDilate`, `MMF_TMPSoftness`, `MMF_TMPOutlineColor`, `MMF_TMPOutlineWidth`, `MMF_TMPCharacterSpacing`, `MMF_TMPLineSpacing`, `MMF_TMPParagraphSpacing`, `MMF_TMPWordSpacing` | Use |
+| `MMF_TMPAlpha`, `MMF_TMPColor`, `MMF_TMPCountTo`, `MMF_TMPCountToLong`, `MMF_TMPText`, `MMF_TMPTextReveal`, `MMF_TMPFontSize`, `MMF_TMPDilate`, `MMF_TMPSoftness`, `MMF_TMPOutlineColor`, `MMF_TMPOutlineWidth`, `MMF_TMPCharacterSpacing`, `MMF_TMPLineSpacing`, `MMF_TMPParagraphSpacing`, `MMF_TMPWordSpacing` | Use. `MMF_TMPTextReveal` only inside an authored MMF_Player for a feedback-style reveal; a code-driven typewriter uses TMP `maxVisibleCharacters` + DOTween (Text Studio only if adopted, `tools-unity-text-studio`) |
 | `MMF_UIToolkit*` | No (UI is uGUI) |
 | `MMF_FloatingText` | No (Damage Numbers Pro) |
 
@@ -87,7 +87,7 @@ Every feedback type in the installed Feel, grouped by status. **Use** = fine on 
 | `MMF_RandomEvents`, `MMF_ReferenceHolder`, `MMF_FloatController`, `MMF_ShaderController`, `MMF_Property` | Use | |
 | `MMF_DebugLog`, `MMF_DebugComment`, `MMF_DebugBreak` | Care | Remove before commit |
 | `MMF_TimescaleModifier`, `MMF_FreezeFrame` | No | TimeService owns timeScale. Use custom `MMF_HitStop` |
-| `MMF_LoadScene`, `MMF_UnloadScene` | No | SceneLoader |
+| `MMF_LoadScene`, `MMF_UnloadScene` | No | Scene flow is owned by game code (a planned `SceneLoader`) |
 | `MMF_Broadcast`, `MMF_BroadcastProxy`, `MMF_RadioSignal`, `MMF_MMGameEvent` | No | Static event buses. Use MessagePipe |
 | `MMF_VideoPlayer` | Use | |
 | `MMF_Haptics`, `MMF_NV*` | No | Not installed / PC |

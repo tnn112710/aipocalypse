@@ -118,7 +118,7 @@ AK47                 HeldGun, ItemHands                first-person side
 | How heavy one item feels (walk speed while aiming, sway) | `Content/<Kind>/<Item>/<Item>.asset` → Hold feel (`AimMoveSpeedScale`, `SwayScale`) |
 | How many fit in one slot | the item's asset → `MaxStack` |
 | What goes on the belt | `EquipmentConfig` → `BeltAccepts` |
-| Which slots exist, what they accept, starting items | `EquipmentConfig` → `Slots` (order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
+| Which slots exist, what they accept, starting items | `EquipmentConfig` → Slots list in the inspector (private serialized `_slots`; order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
 | Reach and thickness of the look ray, drop distance | `Data/Player/PlayerInteractionTuning.asset` |
 | How a pickup lies on the ground, its pickup box | the item prefab → `World/Model` transform, root `BoxCollider` |
 | How far a lantern lights, its colour and flicker | `Content/Items/Lantern/Lantern.asset` (where its light sits: `PlayerVisionTuning` → Lantern Position) |
@@ -153,7 +153,7 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
 
 - **Another gun:** follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun).
 - **A new item of an existing kind** (another gun or melee weapon): follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun) or [Melee](WEAPONS.md#melee). In short: an item prefab copied from an existing one with both models swapped (first-person model: shadows off, no colliders; `World/Model`: lying flat), the root `WorldItem._definition` set to a new item asset, both in a new `Content/<Kind>/<Item>/` folder, and the prefab assigned to the asset's `Prefab`. Drop copies into scenes to place pickups.
-- **More slots** (up to 9): add entries to `EquipmentConfig.Slots`. The HUD spawns one slot view per slot and keys 1–9 are already bound.
+- **More slots** (up to 9): add entries to the Slots list of `EquipmentConfig` in the inspector (private serialized `_slots`). The HUD spawns one slot view per slot and keys 1–9 are already bound.
 - **A new item kind** (bandage, drink, tool):
   1. Add a flag to `ItemCategory`.
   2. Derive a definition: from `EquippableDefinition` if it's held in hand (tools, a fishing rod), or from `ItemDefinition` if not.

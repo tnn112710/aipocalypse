@@ -1,13 +1,13 @@
 ---
 name: tools-unity-text-studio
-description: Text Studio (animated TextMeshPro text, typewriter reveals, effects, reactions) in aipocalypse — its status (installed, Undecided: ask before using it in game code), the project constraints if adopted (uGUI + TMP only, no UI Toolkit, zero-allocation HUD text, DOTween for code tweens, TimeService pause, asmdef references, PLUGINS.md update), and where Text Studio's own skills answer how-to questions. Use for any animated or typewriter text, text effects, text reveal / hide, dialogue or HUD text animation work.
+description: Text Studio (animated TextMeshPro text, typewriter reveals, effects, reactions) in aipocalypse — its status (installed, Undecided, ask before using it in game code), the project constraints if adopted (uGUI + TMP only, no UI Toolkit, zero-allocation HUD text, DOTween for code tweens, TimeService pause, asmdef references, PLUGINS.md update), and where Text Studio's own skills answer how-to questions. Use for any animated or typewriter text, text effects, text reveal / hide, dialogue or HUD text animation work.
 ---
 
 # Text Studio (aipocalypse)
 
-Installed at `Assets/Plugins/TextStudio/` (vendor code, don't modify). The bundled skills say asset version **1.3.1**; PLUGINS.md still lists 1.2.0, so fix that row when Text Studio is adopted.
+Installed at `Assets/Plugins/TextStudio/` (vendor code, don't modify). Version **1.3.1** (its `package.json`; PLUGINS.md agrees).
 
-**Status: Undecided** (PLUGINS.md). No game code uses it. Before building anything with it, ask the user whether to adopt it for this feature; otherwise use plain TMP (`TMP_Text`, `SetText`, `maxVisibleCharacters` for a typewriter) and DOTween.
+**Status: Undecided** (PLUGINS.md). No game code uses it. Before building anything with it, ask the user whether to adopt it for this feature; otherwise use plain TMP (`TMP_Text`, `SetText`, `maxVisibleCharacters` for a typewriter) and DOTween. Exception: an `MMF_TMPTextReveal` inside an authored Feel MMF_Player is fine for a feedback-style reveal (`tools-unity-feel`); code-driven typewriters stay on TMP + DOTween.
 
 ## Text Studio's own skills (vendor how-to)
 
@@ -21,7 +21,7 @@ Text Studio ships agent skills in `Assets/Plugins/TextStudio/AI/Skills/`. No age
 | `text-studio-control-text-at-runtime/` | `TextStudioApi` / `TextStudioText` from C#: set, reveal, hide, pause, resume | Use (from views only) |
 | `text-studio-reuse-animation-profiles/` | Shared defaults with `TextStudioBehaviorProfile` | Use; profiles go in `Assets/_Game/Data/UI/` |
 | `text-studio-author-reactions/` | Particles, audio cues or gameplay signals on reveal / marker | Use, but audio goes through `AudioService` (`tools-unity-broaudio`) and gameplay through MessagePipe, not Text Studio signals into services |
-| `text-studio-connect-supported-integrations/` | Dialogue, localization, tweening, Timeline, splines | Only the integrations the project already uses (DOTween, Timeline); ask before others |
+| `text-studio-connect-supported-integrations/` | Dialogue, localization, tweening, Timeline, splines | DOTween (used); Timeline (installed, unused). Ask before Timeline or any other |
 | `text-studio-preview-and-export-animations/` | Previewing effects, exporting MP4 / GIF | Editor use only |
 | `text-studio-bind-ui-toolkit-text/` | — | **Not applicable:** the game UI is uGUI (UI.md) |
 

@@ -5,7 +5,7 @@ description: Feel (More Mountains, MMF_Player feedbacks) for aipocalypse — whe
 
 # Feel (aipocalypse)
 
-Installed: **Feel** (MMF_Player era, v4+; no version string is shipped, so check the Asset Store page if it matters) at `Assets/_StoreAssets/GameFeel/Feel/` (MMFeedbacks + MMTools only, no demos). It's vendor code, so don't modify it. Custom feedbacks go in `Assets/_Game/`.
+Installed: **Feel 6.1** (MMF_Player era; the version its bundled Skills state; the `.meta` files carry package version 6.3) at `Assets/_StoreAssets/GameFeel/Feel/` (MMFeedbacks + MMTools only, no demos). It's vendor code, so don't modify it. Custom feedbacks go in `Assets/_Game/`.
 
 - **One assembly:** all Feel runtime code (core, feedbacks, third-party feedbacks) compiles into **`MoreMountains.Tools`** via asmrefs. Our asmdef references `MoreMountains.Tools`. Namespaces: `MoreMountains.Feedbacks` (MMF_Player, MMF_Feedback, built-ins), `MoreMountains.FeedbacksForThirdParty` (URP, Cinemachine, TMP), `MoreMountains.Tools`.
 - **Active integration defines** (from the asmdef's versionDefines): `MM_CINEMACHINE3`, `MM_URP`, `MM_UGUI2` (TMP feedbacks), `MM_VISUALEFFECTGRAPH`, `MM_INPUTSYSTEM`, `MM_UI`. **Inactive:** `MM_POSTPROCESSING` (PPv2: `MMF_Bloom`, `MMF_Vignette`… are dead, so use the `_URP` variants) and `MM_HDRP`.
@@ -15,7 +15,7 @@ Feedback catalog with project status: [references/feedbacks.md](references/feedb
 
 ## Feel's own skills (vendor how-to)
 
-Feel 6.1 ships agent skills in `Assets/_StoreAssets/GameFeel/Feel/Skills/`. No agent loads them on its own, so read the one that matches the task for menu paths, inspector steps and API detail. **This skill's rules win wherever they disagree:** check §2 before adding anything a vendor skill suggests.
+Feel ships agent skills (verified against 6.1) in `Assets/_StoreAssets/GameFeel/Feel/Skills/`. No agent loads them on its own, so read the one that matches the task for menu paths, inspector steps and API detail. **This skill's rules win wherever they disagree:** check §2 before adding anything a vendor skill suggests.
 
 | Vendor skill | Read when | Here |
 | --- | --- | --- |
@@ -29,16 +29,16 @@ Feel 6.1 ships agent skills in `Assets/_StoreAssets/GameFeel/Feel/Skills/`. No a
 
 ## 1. Where Feel fits in this architecture
 
-ARCHITECTURE.md: *"Feel / Damage Numbers Pro hook into `Health` and event subscribers, never into weapons directly."*
+PLUGINS.md (Feel row): *"Views play `MMF_Player`s in response to events, never services or weapons directly."*
 
 ```text
-Service (rules)  ──publishes──>  MessagePipe event (ShotFired, DamageDealt, EntityDied…)
+Rules code (DamageService, GunJam…)  ──publishes──>  MessagePipe event (DamageDealt, PlayerDied, GunJamBeat, GunRepairCompleted…)
                                          │
 View MonoBehaviour (subscribes, injected) ──> MMF_Player.PlayFeedbacks(position, intensity)
 ```
 
 - **Services never reference Feel.** No `MMF_Player` field in a service, no Feel calls from rules code.
-- **Weapon logic never plays feedbacks.** `WeaponService` publishes `ShotFired`, and the weapon's *view* (view model) subscribes and plays the muzzle/kick player. Gameplay recoil (aim offset, spread) is WeaponSystem data and code. Feel only does the *visual* kick.
+- **Weapon logic never plays feedbacks.** The gun's jam and repair code publishes `GunJamBeat` / `GunRepairCompleted`, and `GunJamFeedback` (a view on the gun user's entity) subscribes and plays its MMF_Players. A muzzle/kick player would work the same way from a shot event (none exists yet; add one only if a prompt needs it). Gameplay recoil (aim offset, spread) is WeaponSystem data and code. Feel only does the *visual* kick.
 - **Feedback rules live on the view:** which player, intensity from event data (damage → intensity 0–1), positional plays at the hit point.
 - **Feel is not a tween library for code.** Code tweens use DOTween (PLUGINS.md). Feel's position/scale/rotation feedbacks are fine *inside* an MMF_Player authored in the inspector.
 
@@ -46,7 +46,7 @@ View MonoBehaviour (subscribes, injected) ──> MMF_Player.PlayFeedbacks(posit
 // On the Player prefab (unique entity, injected by PlayerScope).
 public sealed class PlayerHitFeedback : MonoBehaviour
 {
-    [SerializeField] MMF_Player _hurt;          // camera impulse + vignette + hurt sound
+    [SerializeField] MMF_Player _hurt;          // camera impulse + vignette (the hurt sound goes through AudioService, not Feel)
     [SerializeField] MMF_Player _heavyHurt;     // adds hit stop
     [SerializeField] float _heavyThreshold = 30f;
     IDamageable _self;
@@ -69,7 +69,7 @@ public sealed class PlayerHitFeedback : MonoBehaviour
 }
 ```
 
-(Event/field names are placeholders. Use the real ones from `_Core/_Common`.)
+(`PlayerHitFeedback` is a sketch, not in the repo; `DamageDealt` and its fields are the real ones from `_Core/_Common/Events/CombatEvents.cs`.)
 
 ## 2. Banned and redirected feedbacks
 
@@ -80,7 +80,7 @@ These conflict with systems that already own the concern. Don't add them to play
 | `MMF_TimescaleModifier`, `MMF_FreezeFrame` (+ `MMTimeManager` in scenes) | **`TimeService` owns `Time.timeScale`.** Both drive `MMTimeManager`, which sets `Time.timeScale` directly. FreezeFrame's "Automatic Shaker Setup" button *adds* an `MMTimeManager`, so don't click it | Custom `MMF_HitStop` feedback → TimeService (§5) |
 | `MMF_Sound`, `MMF_MMSoundManager*`, `MMF_Playlist`, `MMF_AudioSource*`, `MMF_AudioMixerSnapshotTransition`, `MMF_AudioFilter*` | **BroAudio owns audio** (pooling, mixing, rules) | Custom `MMF_BroSound` feedback (§5) |
 | `MMF_FloatingText` (+ `MMFloatingTextSpawner`) | **Damage Numbers Pro** owns hit numbers (pooled) | DNP from the damage view |
-| `MMF_LoadScene`, `MMF_UnloadScene` | **SceneLoader** owns scene flow | Call the scene flow through game code |
+| `MMF_LoadScene`, `MMF_UnloadScene` | Scene flow is owned by game code (a planned `SceneLoader`, ARCHITECTURE.md → Scopes and app flow) | Call the scene flow through game code |
 | `MMF_Broadcast`, `MMF_BroadcastProxy`, `MMF_RadioSignal`, `MMF_MMGameEvent`, `MMF_PlayerChain` via channels, triggering `MMF_PlayerEvent` from code | Static event buses (MMEventManager / MMRadio). Cross-system events go through MessagePipe | MessagePipe event → view plays the player |
 | `MMF_InstantiateObject`, `MMF_ParticlesInstantiation`, `MMF_Destroy` | Spawning is ours (pools, ARCHITECTURE.md) | `MMF_Particles` on pre-placed child systems; world VFX through our VFX pool |
 | `MMF_Bloom`, `MMF_Vignette`, `MMF_ChromaticAberration`… (no `_URP` suffix) | PPv2, not compiled (`MM_POSTPROCESSING` off) | The `_URP` variants |
@@ -101,10 +101,10 @@ The camera rig lives inside the Player prefab (ARCHITECTURE.md).
 ## 4. Post-processing (URP volume shakers)
 
 `MMF_Vignette_URP`, `MMF_ChromaticAberration_URP`, `MMF_LensDistortion_URP`, `MMF_ColorAdjustments_URP`, `MMF_DepthOfField_URP`… send events to a **shaker on a Volume** (`MMVignetteShaker_URP` etc.). The volume's profile must contain that override (Vignette, …) **enabled**.
-- Use **one dedicated "FeedbackFX" global Volume** (higher priority than the scene's base volume) holding the overrides and their shakers, with the override values neutral at rest. Don't put shakers on the base or time-of-day volume. Another system (COZY, day/night) blending the same overrides would fight Feel.
+- **No feedback volume exists yet.** When a feedback first needs one, add one dedicated global Volume holding the overrides and their shakers, with the override values neutral at rest and a priority above the time-of-day grades (`Grade From` 10, `Grade To` 11; there is no base volume, DAYNIGHT.md). Don't put shakers on the grade volumes: the day/night director blends the same overrides and would fight Feel.
 - Use **channels** (`MMChannel` assets, or int channels) when several shakers of the same type exist, e.g. "PlayerHurt" vs "LowHealth" vignette.
-- Don't use the feedback's "Automatic Shaker Setup" in World. It creates a new volume. Wire shakers onto the FeedbackFX volume by hand.
-- The FeedbackFX volume lives with the camera rig (Player prefab) so it works in any scene.
+- Don't use the feedback's "Automatic Shaker Setup" in World. It creates a new volume. Wire shakers onto the feedback volume by hand.
+- Put that volume with the camera rig (Player prefab) so it works in any scene.
 
 ## 5. Custom feedbacks (bridging to our services)
 
@@ -113,13 +113,13 @@ Feedbacks are plain serialized objects inside `MMF_Player`, so **VContainer can'
 ```csharp
 namespace Aipocalypse.Core.Feedback
 {
-    // On entity roots or scene FX objects that host MMF_Players. Injected by the EntityScope (or the scope's auto-inject list).
+    // Gives Feel feedbacks (plain serialized objects VContainer can't inject) access to our services. Put it on or above the MMF_Players.
     public sealed class FeedbackContext : MonoBehaviour
     {
-        public ITimeScaleRequests Time { get; private set; }     // seam owned by TimeSystem
+        public TimeService Time { get; private set; }
 
         [Inject]
-        void Construct(ITimeScaleRequests time) => Time = time;
+        void Construct(TimeService time) => Time = time;
     }
 }
 ```
@@ -139,7 +139,7 @@ namespace Aipocalypse.Core.Feedback
         public static bool FeedbackTypeAuthorized = true;
 
         [MMFInspectorGroup("Hit Stop", true, 12)]
-        public float Duration = 0.06f;
+        [Tooltip("Real seconds")] public float Duration = 0.07f;
         [Range(0f, 1f)] public float TimeScale = 0.05f;
 
         FeedbackContext _context;
@@ -161,7 +161,7 @@ namespace Aipocalypse.Core.Feedback
 }
 ```
 
-- Implemented: `_Core/_Common/Feedback/FeedbackContext.cs` exposes `TimeService` directly (no `ITimeScaleRequests` interface yet) and `MMF_HitStop.cs` calls `TimeService.RequestHitStop(duration, scale)` (real-time, pause beats hit stop, overlapping stops keep the longest time and lowest scale). Don't let a feedback or Feel's `MMTimeManager` own it.
+- Both are implemented in `_Core/_Common/Feedback/` (`FeedbackContext.cs`, `MMF_HitStop.cs`). `TimeService.RequestHitStop(duration, scale)` runs in real time, pause beats hit stop, overlapping stops keep the longest time and lowest scale. Don't let a feedback or Feel's `MMTimeManager` own it.
 - **`MMF_BroSound`** (not built yet; write it when a feedback needs sound), same shape: `[SerializeField] SoundID _sound;` and `CustomPlayFeedback` calls `AudioService.PlayAt(_sound, position)` reached through `FeedbackContext` (add `AudioService` to it), never BroAudio's static facade (`tools-unity-broaudio`).
 - Override points (from `MMF_Feedback.cs`): `CustomInitialization(MMF_Player owner)`, `CustomPlayFeedback(position, intensity)` (abstract), `CustomStopFeedback`, `CustomSkipToTheEnd`, `CustomRestoreInitialValues`, `CustomReset`, `CustomPlayerComplete`, `FeedbackDuration`. Useful members: `Owner`, `Active`, `Timing`, `FeedbackTime` / `FeedbackDeltaTime` (respect the timescale mode), `InScaledTimescaleMode`, `NormalPlayDirection`, `ComputeIntensity(intensity, position)`.
 - Put custom feedbacks in `Assets/_Game/_Core/_Common/Feedback/` (Core) or a feature's folder. The asmdef references `MoreMountains.Tools`.
@@ -172,7 +172,7 @@ AGENTS.md: keep per-instance plugin components off crowd entities.
 - **No `MMF_Player` on crowd enemy prefabs.** Hundreds of players with initialized feedback lists is the per-instance overhead we avoid.
 - Enemy **hit flash**: the enemy view sets a shader property (MaterialPropertyBlock / material instance pooled with the enemy) from the `EnemyManager` tick or the damage router. It's cheap and needs no Feel.
 - Enemy **hit and death VFX**: our VFX pool. **Damage numbers**: Damage Numbers Pro (pooled).
-- **Player-side reaction to hitting enemies** (hit marker punch, hit sound, small impulse on kill, hit stop on headshot): *one* view on the player subscribed to player-sourced `DamageDealt` / `EntityDied`, playing shared players with `PlayFeedbacks(hitPoint, intensity)`. One player serves every enemy.
+- **Player-side reaction to hitting enemies** (hit marker punch, small impulse on kill, hit stop on headshot; the hit sound goes through `AudioService`): *one* view on the player subscribed to player-sourced `DamageDealt` (`Result.Killed` for kills, as `HitFeedbackHud` reads it), playing shared players with `PlayFeedbacks(hitPoint, intensity)`. One player serves every enemy.
 - Unique entities (dog, cat, drone, bosses) may carry their own MMF_Players.
 - Spammy events (automatic fire, many hits per frame): keep `CanPlayWhileAlreadyPlaying = true` for shots, and set `CooldownDuration` on players that shouldn't stack (camera impulse on every hit of a shotgun blast should play once).
 - Turn on `PerformanceMode` on players with many feedbacks (skips inspector refresh). Disable `DebugActive`.

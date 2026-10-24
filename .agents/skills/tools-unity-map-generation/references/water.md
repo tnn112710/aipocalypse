@@ -84,7 +84,7 @@ Design every junction and look at it from above and at eye level. The river-lake
 
 ## 6. Waterfall
 
-`Landmarks.BuildWaterfall(px, pz, heading, top, pond)` (WML:3216), on the Komorebi kit:
+`Landmarks.BuildWaterfall(px, pz, heading, top, pond)` (WML:3217), on the Komorebi kit:
 - Sheet `Waterfall_1`: `sy = (top − pond) / 6.2`, width ×1.6; material copy at queue **3001** so it draws after SW3 water, flow ×0.42.
 - Lip slabs 1 m under the source water, grass-topped notch walls, ripples, splash, SW3 impact splashes, a mist plume (shadows off), ring ripples, fog, a blue point light 0.4 m under the pool floor.
 - Transparent effects at queue 3000 with no depth write need `sortingOrder` 1 to draw after the sheet.
@@ -94,7 +94,7 @@ Design every junction and look at it from above and at eye level. The river-lake
 
 ## 7. Look
 
-- **Connected water shares one palette**; vary it only by depth. Separate palettes per kind showed seams where bodies met. A disconnected, different body (swamp: olive, nearly opaque) may differ. (The shared palette was built on the 1500 m branch, `terrain-2`; the WorldMap on develop still has four materials.)
+- **Connected water shares one palette**; vary it only by depth. Separate palettes per kind showed seams where bodies met. A disconnected, different body (swamp: olive, nearly opaque) may differ. (The shared palette was built for the 1500 m rescale; the WorldMap on develop still has four materials.)
 - Warm/cream shallows over pebble beds read as a dry cobble path; directional caustics on a river read as white streaks.
 - Vendor river materials run time ×16: use `_Speed` ~6 for calm water.
 - Channel beds dark wet mud, not pale pebbles (a pale shelf read as a concrete curb through the water); channel textures stop at a lake or pond shore.

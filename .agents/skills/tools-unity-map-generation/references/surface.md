@@ -4,7 +4,7 @@ Recipe and numbers from the WorldMap (1000 m, `AgentScripts/Maps/WorldMap/WorldM
 
 ## 1. Masks vs filters
 
-- **Analytic terrain-space masks** (C#, R16, one per stamp) for everything the layout decides: biome regions (polygon distance + fbm edge), water bands (from the same height and waterline functions that carved the terrain, so bands follow islands and coves), trails, yard, sight lines. WML:2481 (`GenerateTextureMasks`), 4695 (`Vegetation.GenerateMasks`).
+- **Analytic terrain-space masks** (C#, R16, one per stamp) for everything the layout decides: biome regions (polygon distance + fbm edge), water bands (from the same height and waterline functions that carved the terrain, so bands follow islands and coves), trails, yard, sight lines. WML:2481 (`GenerateTextureMasks`), 4696 (`Vegetation.GenerateMasks`).
 - **MicroVerse filters** for what the terrain decides: slope, height, weight-noise breakup, texture filter (grass only on grass layers).
 - Mask stamps are **whole-terrain**: centre (size/2, size/2), scale (size, 1, size), Texture falloff, channel R, params (1, 0), `clampTexture = true`. Region-sized texture/vegetation stamps with a terrain-space mask don't work (unity-microverse §9).
 - ~1 m per mask pixel (1024 on 1000 m) was enough even for 0.9–1.7 m trail half-widths. 1500 m used 2048 texture masks and 1536 vegetation masks.
@@ -67,13 +67,13 @@ On a bigger tile, scale texture-stamp frequencies by size/1000 to keep these pat
 **Shared layers.** Point near-identical stamps at one `DetailPrototypeSettings` asset (`Assets/_Game/Environment/Vegetation/DetailSettings/`) so they share a terrain detail layer (38 → 34 layers on WorldMap). Shared layers combine with max. The generator doesn't do this yet (drift, SKILL.md §4).
 
 **Prefab rules:**
-- Detail prefabs with a LODGroup *and* a mesh on the root are rejected by Unity: make plain LOD0 mesh copies (`DetailPrefab`, WML:4928; Komorebi `Grass_1_Large`, HIGHLANDS grass/flowers/clovers/stones).
+- Detail prefabs with a LODGroup *and* a mesh on the root are rejected by Unity: make plain LOD0 mesh copies (`DetailPrefab`, WML:4929; Komorebi `Grass_1_Large`, HIGHLANDS grass/flowers/clovers/stones).
 - Check triangles before adding a detail: ≤ ~200 for dense cover. Ferns 360–760, Farfugium 509, clovers 228; `Salvia_Group_1` (960) was swapped for `Salvia_1` (199).
 - Shadows off on anything under ~0.5 m (sorrel, clovers, stones): detail shadows follow the prefab's MeshRenderer.
 - Terrain trees only use primitive colliders: audit each tree prefab (HIGHLANDS `Fir_Tall_*` had MeshColliders → capsule variants in `Environment/Vegetation/Prefabs/`).
 - BK plants need `BK Foliage Globals` (`_Core/EnvironmentSystem/BKFoliageGlobals`, render distance ≈ 2× the detail distance) or they fade out from ~50 m with no micro wind.
 
-**Clearing** (`GenerateClearMasks`, WML:4840): from the scene, every LODGroup ≥ 1.2 m tall under the rock/dressing roots with r = 0.42 × max(size.x, size.z): trees cleared to r + 1.5 … r + 3.5, details 0.7–0.85 r. Plus analytic shapes: yard (trees 7–13 m off the fence), spawn → bridge sight line, bridge box, trail cores. Two ClearStamps, last in the group; dressing that must sit on cleared ground (trail pebbles) goes after them.
+**Clearing** (`GenerateClearMasks`, WML:4841): from the scene, every LODGroup ≥ 1.2 m tall under the rock/dressing roots with r = 0.42 × max(size.x, size.z): trees cleared to r + 1.5 … r + 3.5, details 0.7–0.85 r. Plus analytic shapes: yard (trees 7–13 m off the fence), spawn → bridge sight line, bridge box, trail cores. Two ClearStamps, last in the group; dressing that must sit on cleared ground (trail pebbles) goes after them.
 
 Order: clear masks → `Rebuild true` (terrain trees exist) → dressing that avoids terrain trees (`BuildMeadow` reads `treeInstances`) → clear masks again → `Rebuild true`. Re-run clear masks after every rock or dressing pass.
 

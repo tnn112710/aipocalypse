@@ -1,6 +1,6 @@
 # Map performance
 
-What moved the frame time on the WorldMap and how it was measured. Until a `tools-unity-profiling` skill exists, this is the reference for environment perf. Machine: RTX 5070 Ti Laptop / i7-13700K, 1080p, editor play mode. Target 80–100 fps.
+What moved the frame time on the WorldMap and how it was measured. This is the reference for environment perf; for general profiling and optimisation use the user-scope `unity-optimization-pc` skill and ARCHITECTURE.md → Performance. Machine: RTX 5070 Ti Laptop / i7-13700K, 1080p, editor play mode. Target 80–100 fps.
 
 ## 1. Where it stands
 

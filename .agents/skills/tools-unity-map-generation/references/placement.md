@@ -1,6 +1,6 @@
 # Placement, boundary and atmosphere
 
-Scripted GameObjects (rocks, props, landmarks, mountains, effects), the enclosure around the playable area, and the atmosphere a map needs. From the WorldMap generator (WML = `AgentScripts/Maps/WorldMap/WorldMapLayout.cs`: boundary 1048–1865, `Landmarks`/`Dressing`/`Outcrops` 3087–4556, `Finishing` 5254+, `Atmosphere.cs` = ATM). Concrete WorldMap values are in ENVIRONMENT.md → Boundary / Rocks and dressing / Atmosphere.
+Scripted GameObjects (rocks, props, landmarks, mountains, effects), the enclosure around the playable area, and the atmosphere a map needs. From the WorldMap generator (WML = `AgentScripts/Maps/WorldMap/WorldMapLayout.cs`: boundary 1130–1865 (from `RockBand`; `MassifInfo` 1263), `Landmarks`/`Dressing`/`Outcrops` 3088–4557, `Finishing` 5255+, `Atmosphere.cs` = ATM). Concrete WorldMap values are in ENVIRONMENT.md → Boundary / Rocks and dressing / Atmosphere.
 
 ## 1. Placement primitives
 
@@ -20,13 +20,13 @@ Scripted GameObjects (rocks, props, landmarks, mountains, effects), the enclosur
 
 ## 3. Walking shores and banks
 
-**Shore walker** (lakes, ponds; `BuildWaterEdges`, WML:3463):
+**Shore walker** (lakes, ponds; `BuildWaterEdges`, WML:3446):
 1. Step 1.5 m along the shore polygon; march −9…+9 m along the normal by 0.25 m until the ground rises above the level. That is the **real** waterline, not the design polygon. Skip river mouths.
 2. Classify: land fraction of 12 probes at 15 m > 0.6 → cove, < 0.4 → point, else straight; sand weight > 0.4 → beach.
 3. Dress per class: coves get most stones, reed beds and lilies; points 1–3 big rocks standing in 0.3–1.5 m of water, no reeds; beaches pebbles and driftwood only.
 4. Stone offsets: 55% straddle the waterline (−0.5…+0.6 m), 30% in the water (+1…+4 m), 15% on land. Hero trees 2–5 m from the water leaning 4–9° out, ≥ 90 m apart. Lilies 0.9–2.2 m deep, y = level + 0.028. Reed beds 6–18 m runs with 10–35 m gaps.
 
-**Bank walker** (rivers, streams; `BuildBanks`, WML:3711), 1 m steps on both sides:
+**Bank walker** (rivers, streams; `BuildBanks`, WML:3712), 1 m steps on both sides:
 1. Real edge by marching out until the ground is above the surface.
 2. Bend: outer bank = cut (rock-lined, density ×1.25), inner = bar (few stones, ×0.5), from heading change plus a slow noise.
 3. Stretch character from the surface slope over ±6 m: > 5% or in the highlands = rocky; < 1% = calm (lotus runs); else boulder-lined.
@@ -61,7 +61,7 @@ The user's rules: mountains and rocks are **models**, the terrain is never raise
 
 ## 5. Vendor materials
 
-- `MaterialCopy(vendor, dest, tune)` (WML:2793): `new Material(vendor)` the first time, then `CopyPropertiesFromMaterial(vendor)` + tune on every run (GUID stable, re-tuned each build). `MaterialVariant` makes a prefab **variant** with materials swapped on all LODs.
+- `MaterialCopy(vendor, dest, tune)` (WML:2794): `new Material(vendor)` the first time, then `CopyPropertiesFromMaterial(vendor)` + tune on every run (GUID stable, re-tuned each build). `MaterialVariant` makes a prefab **variant** with materials swapped on all LODs.
 - Fog-ignoring shaders: HIGHLANDS (`Highlands/Background`) and Grasslands (`URP/Mountains`) mountains skip scene fog and haze with their own teal `_FogColor`; copies are retinted to the sky haze. ANGRY MESH takes scene fog. Keep scene fog thin (ExpSq 0.0011: ~5% haze at 200 m, 54% at 800 m) so near layers don't out-haze the peaks.
 - ANGRY MESH rocks are beige and mountains mauve: copies are warm grey / desaturated. Their grass top layer needs the `ASPTopLayerGlobals` component in the scene.
 - Never write to a vendor asset or reset a hand-tuned first-party one from a builder.

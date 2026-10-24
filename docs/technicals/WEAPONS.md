@@ -8,7 +8,7 @@ Today: an **AK-47** (auto), a **pistol** (semi-auto), an **MP5** (auto, shares p
 
 | Input | Action | Binding (`InputSystem_Actions`, Player map) |
 | --- | --- | --- |
-| `Attack` | Fire (hold for auto); swing a melee weapon (hold to keep swinging) | Left mouse, gamepad west |
+| `Attack` | Fire (hold for auto); swing a melee weapon (hold to keep swinging) | Left mouse, Enter, gamepad west |
 | `Aim` | Aim down sights while held | Right mouse, gamepad left trigger |
 | `Reload` | Reload | R (no gamepad binding yet) |
 
@@ -124,10 +124,10 @@ AK47, MP5 and pistol reloads separate the old magazine, an animated replacement,
 
 ## Adding a gun
 
-1. **Folder and prefab:** make `Content/Weapons/<Gun>/` (everything for this gun goes there). Right-click `_Core/WeaponSystem/Prefabs/Gun_Base.prefab` → Create → Prefab Variant and move it into the folder as `<Gun>.prefab`. Drag the store model under `PosePivot/RecoilPivot`, rename it `Model`, turn off its shadows and remove colliders. Move `Muzzle` to the barrel tip (blue axis out of the barrel).
+1. **Folder and prefab:** make `Content/Weapons/<Gun>/` (everything for this gun goes there). Right-click `_Core/WeaponSystem/Prefabs/Gun_Base.prefab` → Create → Prefab Variant and move it into the folder as `<Gun>.prefab`. Under `PosePivot/RecoilPivot`, add `AnimationRoot/Motion/Weapon` and put an unpacked copy of the store model in `Weapon` with generic part names (shadows off, colliders removed; the store prefab stays untouched). Add a `Muzzle` under the animated weapon at the barrel tip (blue axis out of the barrel) and remove the base `Muzzle`.
 2. **Poses:** select the gun root, use the **Aim** preview button, and move `Poses/Aim` until the sights sit on the screen centre in the Game view (enter Play mode to check; edits to the prefab in Play mode are lost). Do the same for Hip and Sprint, then press **Hip** before saving.
 3. **Item:** duplicate `Content/Weapons/AK47/AK47.asset` into the folder as `<Gun>.asset` (or Create → Aipocalypse → Items → Gun). Set `DisplayName`, `Icon`, `Prefab` (the variant), Fire / Bullet / Magazine (pick or create an `AmmoType` in `Content/Weapons/_Shared/Ammo/`) / Jam / Recoil, and `Effects` (`Data/Weapons/BulletEffects.asset`).
-4. **Clips and hands:** add `AnimationRoot` under `RecoilPivot` (Animator with a new Override Controller of `Gun.controller`, RigBuilder, `GunAnimation`) and assign it to `HeldGun` → Animation; move the muzzle into its animated weapon and remove the base `Muzzle`. Until then the gun works as a block-out that only poses and kicks. Point `ItemHands` at the two `Motion/HandTargets` grips ([HANDS.md → Weapon animation authoring](HANDS.md#weapon-animation-authoring)).
+4. **Clips and hands:** give `AnimationRoot` an Animator with a new Override Controller of `Gun.controller`, a RigBuilder and `GunAnimation`, and assign it to `HeldGun` → Animation; point `HeldGun` at the animated `Weapon/Muzzle`. Until then the gun works as a block-out that only poses and kicks. Point `ItemHands` at the two `Motion/HandTargets` grips ([HANDS.md → Weapon animation authoring](HANDS.md#weapon-animation-authoring)).
 5. **World side** (same prefab, see [EQUIPMENT.md → One prefab per item](EQUIPMENT.md#one-prefab-per-item)): add `WorldItem` (`_definition` = the asset) and a trigger `BoxCollider` to the root, and a `World` child with the store model lying flat (shadows on); set `WorldItem._worldModel` to it and turn `World` off. Drop copies of the prefab into a scene to place pickups.
 6. **New ammo type?** Add its starting amount to `Data/Weapons/AmmoConfig.asset`.
 
@@ -175,7 +175,7 @@ FireAxe                       HeldMelee
 
 - **Shots:** `IGunUser.AimOffset` turns the eye's forward; `Camera` and `MuzzleToCrosshair` aim along it.
 - **Crosshair:** `Player.CrosshairPosition` projects it with the world camera's current field of view; `CrosshairHud` moves the dot there.
-- **Model:** `EquipmentRig.SetAimRotation` turns the whole rig, which sits at the eye, so the gun pivots around the eye. The held model keeps the unzoomed field of view while aiming zooms the world, so the rig turns further by the zoom (`Player.ModelAimRotation`): the sights land on the crosshair's pixel at any zoom.
+- **Model:** `EquipmentRig.SetAimRotation` turns the whole rig, which sits at the eye, so the gun pivots around the eye. The held model keeps the unzoomed field of view while aiming zooms the world, so the rig turns further by the zoom (`PlayerAim.ModelRotation`): the sights land on the crosshair's pixel at any zoom.
 
 The model's own extras (position drift, roll) don't change where it points. Gun kick (recoil, model only) and the reload / jam / pump clips do: the barrel leaves the crosshair briefly, while you can't fire anyway.
 

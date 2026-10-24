@@ -1,11 +1,11 @@
 ---
 name: tools-unity-map-generation
-description: Building or changing a whole map in aipocalypse the way the WorldMap was built — an editor generator in AgentScripts/Maps/<Map>/ that turns layout tables (polygons, water basins and lines, anchors) into an analytic height field with carved water, an R16 base heightmap plus MicroVerse stamps, terrain-space texture and vegetation masks, Stylized Water 3 surfaces, a mountain/rock boundary, scripted dressing and atmosphere. Covers working from concept images and annotated screenshots, interpreting the user's size/depth/multiplier requests, build order and timings, verification (layout preview, analytic checks, Verify, fixed views), rebuild discipline (full vs partial rebuilds, folding hand edits into code), surviving long editor runs, map art direction and map performance. Use for any map, level layout, region, lake/river/pond, boundary, map-wide dressing, map rescale, or WorldMap generator change. NOT the MicroVerse API itself (unity-microverse), NOT Stylized Water 3 internals (tools-unity-stylized-water), NOT runtime gameplay systems.
+description: Building or changing a whole map in aipocalypse the WorldMap way — an editor generator in AgentScripts/Maps/<Map>/ that turns layout tables (polygons, water basins and lines, anchors) into an analytic height field with carved water, an R16 base heightmap plus MicroVerse stamps, terrain-space texture and vegetation masks, Stylized Water 3 surfaces, a mountain/rock boundary, scripted dressing and atmosphere. Covers working from concept images and annotated screenshots, reading the user's size/depth/multiplier requests, build order and timings, verification (layout preview, analytic checks, Verify, fixed views), rebuild discipline (full vs partial, folding hand edits into code), surviving long editor runs, map art direction and map performance. Use for any map, level layout, region, lake/river/pond, boundary, map-wide dressing, map rescale, or WorldMap generator change. NOT the MicroVerse API itself (unity-microverse), NOT Stylized Water 3 internals (tools-unity-stylized-water), NOT runtime gameplay systems.
 ---
 
 # Map generation (aipocalypse)
 
-Maps are produced by an editor **generator**, not by hand. The reference implementation is the WorldMap: `AgentScripts/Maps/WorldMap/WorldMapLayout.cs` (classes `WorldMapLayout`, `Landmarks`, `Dressing`, `Outcrops`, `Veg`, `Vegetation`, `Finishing`) + `Atmosphere.cs` + `RiverLevel.cs`, documented in `docs/technicals/ENVIRONMENT.md` (layout tables, rebuild order, water-only rebuild, generator drift). Read ENVIRONMENT.md before touching the WorldMap. The 1500 m variant (v23) lives on `origin/terrain-4` (`AgentScripts/MeadowHomeV14/`) and has improvements the current file lacks.
+Maps are produced by an editor **generator**, not by hand. The reference implementation is the WorldMap: `AgentScripts/Maps/WorldMap/WorldMapLayout.cs` (classes `WorldMapLayout`, `Landmarks`, `Dressing`, `Outcrops`, `Veg`, `Vegetation`, `Finishing`, `Navigation`) + `Atmosphere.cs` + `RiverLevel.cs`, documented in `docs/technicals/ENVIRONMENT.md` (layout tables, rebuild order, water-only rebuild, generator drift). Read ENVIRONMENT.md before touching the WorldMap. An earlier 1500 m rescale of this generator ("v23", not on develop) had improvements the current file lacks; the references mark them **v23**.
 
 Read before acting:
 - **unity-microverse** (user-scope skill): the MicroVerse library — stamps, filters, noise, MicroVerseKit usage, pitfalls. Every terrain step goes through it; run the repo copy of the kit at `scripts/MicroVerseKit.cs` (see references/microverse-in-this-project.md §2).
@@ -30,7 +30,7 @@ Read before acting:
 - **Reproduce a complaint from the user's camera before fixing.** The named cause is often wrong: "grass LOD appears too soon" was contrast; "weird texture near the pond" was a water-mesh staircase.
 - **Deliver the visible goal** or say what's missing (flattening the river wasn't "underwater rendering"; the areas were missing).
 - **Log user overrides of the concept** in ENVIRONMENT.md or the concept doc: the next concept revision silently undoes them.
-- Ask with AskUserQuestion and a recommended default. For "make it more beautiful", give a ranked menu with the ms cost of each item and "needs your OK" on project-wide settings.
+- Ask the user, with a recommended default. For "make it more beautiful", give a ranked menu with the ms cost of each item and "needs your OK" on project-wide settings.
 
 ## 2. Generator architecture
 
@@ -40,7 +40,7 @@ Read before acting:
 - **Terrain size is a parameter.** No `1000`/`500`/`998` literals; noise in world metres; MicroVerse UV-space values converted (heights.md §8).
 - **Builders are idempotent**: each deletes and recreates its own root group with Undo, takes a seed, uses its own `System.Random`, returns counts and throws when inputs are missing (no silent partial groups).
 - **Group paths are an API**: clear masks, the render-policy pass and partial rebuilds read them. Keep them stable, as shared constants.
-- **`run_script` compiles one file**, unoptimised, and loads a new assembly per run. Helper classes must live in the same file (why WorldMapLayout.cs is 5.5k lines; `RiverLevel.cs` keeps copies of layout data). Hot loops: `async Task<object>` + `await Task.Run(() => Parallel.For(...))`, asset calls after the await, `--timeout_ms` and CLI `--timeout`. A timed-out call keeps running: wait for `editor_status` before retrying.
+- **`run_script` compiles one file**, unoptimised, and loads a new assembly per run. Helper classes must live in the same file (why WorldMapLayout.cs is ~5.7k lines; `RiverLevel.cs` keeps copies of layout data). Hot loops: `async Task<object>` + `await Task.Run(() => Parallel.For(...))`, asset calls after the await, `--timeout_ms` and CLI `--timeout`. A timed-out call keeps running: wait for `editor_status` before retrying.
 - **Save specific assets only** (`SaveAssetIfDirty`; importers via `WriteImportSettingsIfDirty` + `ImportAsset`). Known violations to fix when touched: `BuildUnderwater` (WML:2188), `Atmosphere.RenderQuality` (also loads a moved settings path: don't run it), `DayNightSetup.cs:71`.
 - **Vendor content is read-only**: material copies (refresh then tune), prefab variants, first-party copies in `Environment/`. A builder must never reset a hand-tuned shared asset (`BuildBanks` once turned instancing off on a material the user had enabled).
 
@@ -60,7 +60,7 @@ Generic pipeline (WorldMap entry names; full list in ENVIRONMENT.md → "How it 
 | 8 | Landmarks, waterfall, outcrops, dressing, islands | `Landmarks.Build`, `BuildWaterfall`, `Outcrops.Build`, `Dressing.*`, `Finishing.Islands` |
 | 9 | Atmosphere, wind (before shared wind), spawn | `Atmosphere.*`, `Vegetation.Wind`, `Finishing.PlayerSpawn`, `DayNightSetup.Scene` |
 | 10 | Clear masks → bake → tree-aware dressing → clear masks → bake | `GenerateClearMasks`, kit `Rebuild true`, `BuildMeadow`, `BuildHomeTrees`, … |
-| 11 | Render policy, distances, save, reopen, stats | (policy pass: placement.md §6), kit `SaveScene`, `OpenScene`, `DetailStats` |
+| 11 | Render policy, distances, save, reopen, stats | (policy pass: placement.md §6), kit `SaveScene`, `WorldMapLayout.OpenScene`, `DetailStats.Run()` (`DetailStats.cs`) |
 | 12 | Enemy navmesh: water volume, recast bake + startup cache (after anything that adds or moves colliders) | `Navigation.BuildWaterVolume(0.5, true)`, `Navigation.Bake(0.3)` (ENVIRONMENT.md → Navigation; A* library: unity-astar; enemies here: aipocalypse-enemy-ai) |
 
 Timings: the 1000 m map's full rebuild is ~8.3 min over 36 steps (`Generate` 185 s at 2048, `Verify` 33 s, texture masks 48 s, vegetation masks 39 s, clear masks 2 × 20 s, the rest 1–15 s). The 1500 m map took ~35 min (`Generate` ~5 min at 4096). Run step lists in the background with [scripts/run_steps.sh](scripts/run_steps.sh) (`file|Class.Method|json args` per line, LF endings, stops at the first failure, one JSON log per step).
@@ -93,7 +93,7 @@ Capture traps: the GPU Resident Drawer keeps drawing deleted objects until the s
 
 - `unity status` and `set_autotick --enable true` first; one agent drives the editor. Don't touch a dirty scene or the user's play mode without asking.
 - Crashes happen (four in three days). Save at milestones. After a crash, wait for the user to reopen Unity, then check `isDirty`, stamp counts and the terrain data before continuing.
-- Modal dialogs block every CLI command: "modified externally" (git under an open scene), "save modified scenes" before `run_tests`, MicroVerse "Create For Existing Terrains". Memory note `unity-cli-playmode-gotchas` has the user32 trick to find them.
+- Modal dialogs block every CLI command: "modified externally" (git under an open scene), "save modified scenes" before `run_tests`, MicroVerse "Create For Existing Terrains". When the CLI stalls, look for an open dialog (listing top-level windows through user32 finds it) and ask the user to close it.
 - Revert vendor churn after each pass (`git status Assets/_StoreAssets`): Unity rewrites some vendor materials when their prefabs are instanced.
 - Write scripts and step files with the Write tool (LF), parse JSON with node (no python/jq).
 - Persist as you go: pending tasks and decisions to a file or memory at each milestone, research agents writing reports to files. Context exhaustion has killed background research and lost a user request (the highlands rework).

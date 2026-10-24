@@ -6,8 +6,8 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro; precompiled plugin DLLs auto-referenced |
-| `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, test runner, NUnit. Editor only |
+| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime; precompiled plugin DLLs auto-referenced |
+| `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
 | `Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit |
 
 Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Core.PlayerSystem`, `Aipocalypse.Core.Combat`). One exception: input uses **`Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
@@ -250,9 +250,9 @@ Assets/_Game/
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
 │  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain; two in WorldMap), WanderCapsule.asset (its EnemyDefinition)
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat
-├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/, Rocks/, Mountains/ (ENVIRONMENT.md)
+├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/ (detail prefabs in `DetailS/`, committed with a capital S; the generator writes `Details/`, see ENVIRONMENT.md), Rocks/, Mountains/ (ENVIRONMENT.md)
 ├─ Maps/WorldMap/                           what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/, Navigation/ (NavmeshWater mesh, WorldMapNavmesh.bytes cache)
-├─ Scenes/Prototypes/                       WorldMap.unity (the prototype world map; its data in Maps/WorldMap/); Proto_* scenes
+├─ Scenes/Prototypes/                       WorldMap.unity (the prototype world map; its data in Maps/WorldMap/); Proto_* scenes are planned (one per mechanic), none exist yet
 ├─ (Assets/_Placeholder/Audio/)            Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
 │                                          Music/: PLACEHOLDER death music cut from a YouTube Short, not licensed (sources in SOURCES.txt)
 ├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
