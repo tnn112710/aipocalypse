@@ -1,67 +1,90 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters;
-using System;
 using UnityEngine;
 
-public class HS_BackgroundsChanger : MonoBehaviour
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
+namespace Hovl
 {
-    [Header("GUI")]
-    private float windowDpi;
-    public GameObject[] SceneObjects;
-    private int Prefab;
-    private int ActiveObject;
-    private bool GUIswitcher = true;
-
-    void Start()
+    public class HS_BackgroundsChanger : MonoBehaviour
     {
-        if (Screen.dpi < 1) windowDpi = 1;
-        if (Screen.dpi < 200) windowDpi = 1;
-        else windowDpi = Screen.dpi / 200f;
-        Counter(0);
-    }
+        [Header("GUI")]
+        private float windowDpi;
+        public GameObject[] SceneObjects;
+        private int Prefab;
+        private int ActiveObject;
+        private bool GUIswitcher = true;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown("h"))
-            GUIswitcher = !GUIswitcher;
-    }
-
-    private void OnGUI()
-    {
-        if (GUIswitcher)
+        void Start()
         {
-            if (GUI.Button(new Rect(5 * windowDpi, 5 * windowDpi, 110 * windowDpi, 35 * windowDpi), "Previous effect"))
+            if (Screen.dpi < 1) windowDpi = 1;
+            if (Screen.dpi < 200) windowDpi = 1;
+            else windowDpi = Screen.dpi / 200f;
+            Counter(0);
+        }
+
+        private void Update()
+        {
+            if (WasGuiTogglePressed())
+                GUIswitcher = !GUIswitcher;
+        }
+
+        private bool WasGuiTogglePressed()
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null &&
+                Keyboard.current[Key.H].wasPressedThisFrame)
             {
-                Counter(-1);
+                return true;
             }
-            if (GUI.Button(new Rect(120 * windowDpi, 5 * windowDpi, 110 * windowDpi, 35 * windowDpi), "Play again"))
-            {
-                Counter(0);
-            }
-            if (GUI.Button(new Rect(235 * windowDpi, 5 * windowDpi, 110 * windowDpi, 35 * windowDpi), "Next effect"))
-            {
-                Counter(+1);
-            }
-        }
-    }
+#endif
 
-    void Counter(int count)
-    {
-        Prefab += count;
-        if (Prefab > SceneObjects.Length - 1)
-        {
-            Prefab = 0;
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                return true;
+            }
+#endif
+
+            return false;
         }
-        else if (Prefab < 0)
+
+        private void OnGUI()
         {
-            Prefab = SceneObjects.Length - 1;
+            if (GUIswitcher)
+            {
+                if (GUI.Button(new Rect(5 * windowDpi, 5 * windowDpi, 110 * windowDpi, 35 * windowDpi), "Previous effect"))
+                {
+                    Counter(-1);
+                }
+                if (GUI.Button(new Rect(120 * windowDpi, 5 * windowDpi, 110 * windowDpi, 35 * windowDpi), "Play again"))
+                {
+                    Counter(0);
+                }
+                if (GUI.Button(new Rect(235 * windowDpi, 5 * windowDpi, 110 * windowDpi, 35 * windowDpi), "Next effect"))
+                {
+                    Counter(+1);
+                }
+            }
         }
-        if (SceneObjects[ActiveObject].activeInHierarchy)
+
+        void Counter(int count)
         {
-            SceneObjects[ActiveObject].SetActive(false);
+            Prefab += count;
+            if (Prefab > SceneObjects.Length - 1)
+            {
+                Prefab = 0;
+            }
+            else if (Prefab < 0)
+            {
+                Prefab = SceneObjects.Length - 1;
+            }
+            if (SceneObjects[ActiveObject].activeInHierarchy)
+            {
+                SceneObjects[ActiveObject].SetActive(false);
+            }
+            ActiveObject = Prefab;
+            SceneObjects[Prefab].SetActive(true);
         }
-        ActiveObject = Prefab;
-        SceneObjects[Prefab].SetActive(true);
     }
 }
