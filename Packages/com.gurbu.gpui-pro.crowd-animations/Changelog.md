@@ -2,6 +2,11 @@
 All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.10.6] - 2026-10-07
+
+### New
+- Added a replaceable GPUICrowdSkinningSystem.GetTime time provider for driving crowd animations with a custom clock.
+
 ## [0.10.5] - 2026-07-31
 
 ### Fixed

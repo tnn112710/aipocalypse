@@ -30,8 +30,17 @@ namespace TelePresent.SmartMouse
                 SessionState.SetBool(LaunchedRecentlyKey, EditorApplication.timeSinceStartup < 30f);
             }
             _launchedRecently = SessionState.GetBool(LaunchedRecentlyKey, false);
+            // No one to welcome in a command-line run, and the shown-once markers stay unspent.
+            if (Application.isBatchMode) return;
             EditorApplication.update -= TriggerWelcomeScreen;
             EditorApplication.update += TriggerWelcomeScreen;
+        }
+        
+        internal static bool ShouldShowOnThisLoad(bool firstInit, bool showOnLaunch, bool launchedRecently, string lastWelcomed, string version)
+        {
+            if (firstInit) return true;
+            if (!string.Equals(lastWelcomed, version, StringComparison.Ordinal)) return true;
+            return showOnLaunch && launchedRecently;
         }
 
         static void TriggerWelcomeScreen()
@@ -45,19 +54,16 @@ namespace TelePresent.SmartMouse
             if (EditorApplication.isCompiling || EditorApplication.isUpdating)
                 return;
 
-            if (SmartMouse_EditorStartupHelper.FirstInitialization)
-            {
-                SmartMouse_EditorStartupHelper.FirstInitialization = false;
-                EditorApplication.delayCall += ShowWindow;
-            }
-            else if (SmartMouse_EditorStartupHelper.DisplayWelcomeOnLaunch && _launchedRecently)
-            {
-                EditorApplication.delayCall += ShowWindow;
-            }
-
-
             SessionState.SetBool(ShownThisSessionKey, true);
             EditorApplication.update -= TriggerWelcomeScreen;
+
+            if (!ShouldShowOnThisLoad(SmartMouse_EditorStartupHelper.FirstInitialization,
+                    SmartMouse_EditorStartupHelper.DisplayWelcomeOnLaunch, _launchedRecently,
+                    SmartMouse_EditorStartupHelper.LastWelcomedVersion, SmartMouseLinks.Version))
+                return;
+
+            SmartMouse_EditorStartupHelper.MarkWelcomed(SmartMouseLinks.Version);
+            EditorApplication.delayCall += ShowWindow;
         }
 
         public static void ShowWindow()

@@ -768,7 +768,7 @@ namespace GPUInstancerPro.CrowdAnimations
                 instanceCount = crowdRenderSource.renderSource.instanceCount,
                 invalidStatus = new int2(-1, -1),
                 bakedClipDataCount = bakedClipCount,
-                currentTime = Time.time,
+                currentTime = GPUICrowdSkinningSystem.GetTime(),
                 deltaTime = deltaTime,
             };
             writeToTransformsJob.ScheduleByRef(boneRWTAA).Complete();
@@ -838,7 +838,7 @@ namespace GPUInstancerPro.CrowdAnimations
                 bufferStartIndex = crowdRenderSource.renderSource.bufferStartIndex,
                 instanceCount = crowdRenderSource.renderSource.instanceCount,
                 boneCount = crowdRenderSource.crowdRSG.rig.bones.Count,
-                currentTime = Time.time,
+                currentTime = GPUICrowdSkinningSystem.GetTime(),
                 deltaTime = deltaTime
             };
             applyRootMotionJob.Schedule(transformAccessArray).Complete();
@@ -899,7 +899,7 @@ namespace GPUInstancerPro.CrowdAnimations
 
             crowdRSG.CompleteTransition(rsgBufferIndex);
 
-            float currentTime = Time.time;
+            float currentTime = GPUICrowdSkinningSystem.GetTime();
             int previousClipCount = 0;
             var previousAnimatorClipDataValues = GPUICrowdConstants.PREVIOUS_ANIMATOR_CLIP_DATA_VALUES;
             Vector4 previousWeights = UnsafeUtility.ReadArrayElementWithStride<Vector4>(p_clipFramesAndWeightsArray, weightIndex, 16);
@@ -1044,7 +1044,7 @@ namespace GPUInstancerPro.CrowdAnimations
             void* p_animatorClipDataArray = crowdRSG.GetUnsafeAnimatorClipDataArrayPtr();
             int animatorClipDataIndex = rsgBufferIndex * GPUICrowdConstants.ANIMATOR_MAX_CLIPS;
             var bakedClipDataArray = crowdRSG.rig.GetBakedClipDataArray();
-            float currentTime = Time.time;
+            float currentTime = GPUICrowdSkinningSystem.GetTime();
 
             // Load previous clip data
             for (int i = 0; i < GPUICrowdConstants.ANIMATOR_MAX_CLIPS; i++)

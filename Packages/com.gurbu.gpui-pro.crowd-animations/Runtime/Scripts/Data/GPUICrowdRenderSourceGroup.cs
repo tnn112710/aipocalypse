@@ -110,7 +110,7 @@ namespace GPUInstancerPro.CrowdAnimations
 
             ApplySkinWeightsKeywords();
 
-            _lastExecutionTime = Time.time;
+            _lastExecutionTime = GPUICrowdSkinningSystem.GetTime();
         }
 
         internal void ApplySkinWeightsKeywords()
@@ -316,7 +316,7 @@ namespace GPUInstancerPro.CrowdAnimations
             ExecuteAnimatorController();
             AnimateFromBakedClips();
 
-            _lastExecutionTime = Time.time;
+            _lastExecutionTime = GPUICrowdSkinningSystem.GetTime();
         }
 
         private void ExecuteAnimatorController()
@@ -342,7 +342,7 @@ namespace GPUInstancerPro.CrowdAnimations
             cs.SetBuffer(kernelIndex, GPUICrowdConstants.PROP_crowdInstanceBuffer, crowdInstanceDataBuffer.Buffer);
             cs.SetInt(GPUIConstants.PROP_instanceCount, _currentBufferSize);
             cs.SetInt(GPUIConstants.PROP_startIndex, 0);
-            cs.SetFloat(GPUIConstants.PROP_currentTime, Time.time);
+            cs.SetFloat(GPUIConstants.PROP_currentTime, GPUICrowdSkinningSystem.GetTime());
             cs.DispatchX(kernelIndex, _currentBufferSize);
         }
 
@@ -500,7 +500,7 @@ namespace GPUInstancerPro.CrowdAnimations
                 p_clipFramesAndWeightsArray = p_clipFramesAndWeightsArray,
                 p_bakedClipDataArray = rig.GetBakedClipDataArray().GetUnsafeReadOnlyPtr(),
                 p_transitionsArray = p_transitionsArray,
-                currentTime = Time.time,
+                currentTime = GPUICrowdSkinningSystem.GetTime(),
                 clipFramesAndWeightsArraySize = _clipFramesAndWeightsArray.Length
             };
             applyTransitionsJob.Schedule(TransitionCount, 32).Complete();
@@ -571,7 +571,7 @@ namespace GPUInstancerPro.CrowdAnimations
             int transitionCount = TransitionCount;
             if (transitionCount == 0)
                 return;
-            float currentTime = Time.time;
+            float currentTime = GPUICrowdSkinningSystem.GetTime();
             for (int i = transitionCount - 1; i >= 0; i--)
             {
                 var transition = UnsafeUtility.ReadArrayElementWithStride<GPUICrowdTransition>(p_transitionsArray, i, GPUICrowdTransition.STRIDE);
@@ -603,7 +603,7 @@ namespace GPUInstancerPro.CrowdAnimations
                 return;
 
             Profiler.BeginSample("GPUICrowdRenderSourceGroup.ExecuteAnimationEvents");
-            float currentTime = Time.time;
+            float currentTime = GPUICrowdSkinningSystem.GetTime();
             float deltaTime = currentTime - _lastExecutionTime;
             int instanceCount = renderSourceGroup.InstanceCount;
             int rsgKey = renderSourceGroup.Key;

@@ -103,15 +103,26 @@
     white-space: normal;
 }
 
-.ww-toggle-row {
-    align-items: center;
-    margin-top: 2px;
-    margin-bottom: 12px;
+.ww-startup {
+    margin-bottom: 14px;
 }
 
-.ww-toggle {
-    font-size: 12px;
+.ww-startup-button {
+    margin-bottom: 4px;
+}
+
+.ww-startup-button--off {
+    background-color: rgba(0, 0, 0, 0);
     color: rgba(150, 150, 150, 1);
+    border-width: 1px;
+    border-color: rgba(127, 127, 127, 0.25);
+}
+
+.ww-startup-hint {
+    font-size: 11px;
+    color: rgba(150, 150, 150, 1);
+    -unity-text-align: middle-center;
+    white-space: normal;
 }
 
 .ww-section-title {
@@ -178,4 +189,16 @@
 .ww-muted {
     font-size: 11px;
     color: rgba(130, 130, 130, 1);
+}
+
+/* Light editor skin: the 150-grey secondary text is too faint on a light window. */
+.ww-light .ww-intro,
+.ww-light .ww-cta--done,
+.ww-light .ww-card-desc,
+.ww-light .ww-startup-button--off,
+.ww-light .ww-startup-hint,
+.ww-light .ww-news-body,
+.ww-light .ww-status,
+.ww-light .ww-muted {
+    color: rgb(88, 88, 88);
 }

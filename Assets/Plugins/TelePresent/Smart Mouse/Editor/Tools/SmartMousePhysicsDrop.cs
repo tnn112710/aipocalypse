@@ -25,7 +25,7 @@ using PrefabStageUtility = UnityEditor.Experimental.SceneManagement.PrefabStageU
 namespace TelePresent.SmartMouse
 {
     [InitializeOnLoad]
-    internal static class SmartMousePhysicsDrop
+    internal static partial class SmartMousePhysicsDrop
     {
         const double MaxSimSeconds = 30.0;
         const float LinearRestThreshold = 0.02f;
@@ -33,6 +33,10 @@ namespace TelePresent.SmartMouse
         const int RestStepsRequired = 5;
 
         const float SimulationSpeed = 3;
+
+        const float GroundProbeLift = 0.5f;
+        const float FallSlack = 1f;
+        const float NoGroundFallLimit = 50f;
 
         const string ActiveKey = "SmartMouse_PhysicsDrop_Active";
         const string ModeKey = "SmartMouse_PhysicsDrop_OriginalMode";
@@ -42,6 +46,11 @@ namespace TelePresent.SmartMouse
         {
             public GameObject GameObject;
             public Rigidbody Rigidbody;
+            public bool IsRoot;
+            public Body RootBody;
+            public bool GroundFound;
+            public float FloorY;
+            public float Height;
             public bool AddedRigidbody;
             public Collider AddedCollider;
             public readonly List<MeshCollider> MadeConvex = new List<MeshCollider>();
@@ -69,6 +78,8 @@ namespace TelePresent.SmartMouse
         static readonly List<Body> _bodies = new List<Body>();
         static readonly List<FrozenBody> _frozenBodies = new List<FrozenBody>();
         static readonly List<PhysicsScene> _simulationScenes = new List<PhysicsScene>();
+        static readonly List<MeshCollider> _temporaryGroundColliders = new List<MeshCollider>();
+        static GameObject[] _roots;
         static bool _running;
         static bool _manualSimulationModeChanged;
         static int _stepCount;
@@ -138,6 +149,8 @@ namespace TelePresent.SmartMouse
             _bodies.Clear();
             _frozenBodies.Clear();
             _simulationScenes.Clear();
+            _temporaryGroundColliders.Clear();
+            LastStopReason = SettleStopReason.None;
 
             int undoGroup = -1;
             try
@@ -149,16 +162,21 @@ namespace TelePresent.SmartMouse
                     if (!_simulationScenes.Contains(physicsScene))
                         _simulationScenes.Add(physicsScene);
 
-                    var body = new Body
-                    {
-                        GameObject = obj,
-                        OrigPosition = obj.transform.position,
-                        OrigRotation = obj.transform.rotation
-                    };
+                    Body root = NewBody(obj, null);
                     // Register before any temporary mutation so cleanup still covers a partial setup.
-                    _bodies.Add(body);
-                    EnablePhysicsFor(body);
-                    active.Add(body.Rigidbody);
+                    _bodies.Add(root);
+                    EnablePhysicsFor(root);
+                    active.Add(root.Rigidbody);
+
+
+                    foreach (Rigidbody childRb in obj.GetComponentsInChildren<Rigidbody>(false))
+                    {
+                        if (childRb == null || childRb == root.Rigidbody || childRb.isKinematic) continue;
+                        Body child = NewBody(childRb.gameObject, root);
+                        _bodies.Add(child);
+                        EnablePhysicsFor(child);
+                        active.Add(childRb);
+                    }
                 }
 
                 if (_bodies.Count == 0)
@@ -167,6 +185,8 @@ namespace TelePresent.SmartMouse
                     return;
                 }
 
+                _roots = sceneRoots;
+                PrepareGround();
                 FreezeOtherBodies(active);
 
                 Undo.IncrementCurrentGroup();
@@ -203,6 +223,18 @@ namespace TelePresent.SmartMouse
             }
         }
 
+        static Body NewBody(GameObject obj, Body rootBody)
+        {
+            return new Body
+            {
+                GameObject = obj,
+                IsRoot = rootBody == null,
+                RootBody = rootBody,
+                OrigPosition = obj.transform.position,
+                OrigRotation = obj.transform.rotation
+            };
+        }
+
         static void EnablePhysicsFor(Body body)
         {
             GameObject obj = body.GameObject;
@@ -226,7 +258,8 @@ namespace TelePresent.SmartMouse
                 body.OrigSleeping = rb.IsSleeping();
             }
 
-            if (!HasUsableCollider(obj, rb))
+            // Only a root gets a stand-in box; a jointed part without a collider simply has none.
+            if (body.IsRoot && !HasUsableCollider(obj, rb))
                 EnsureCollider(body);
 
             // Every non-convex MeshCollider in this compound body must be convex while the Rigidbody is dynamic.
@@ -311,6 +344,65 @@ namespace TelePresent.SmartMouse
                 }
             }
         }
+        
+        static void PrepareGround()
+        {
+            SmartMouseUtility.EnsureBVH();
+            foreach (Body body in _bodies)
+            {
+                if (!body.IsRoot) continue;
+                GameObject obj = body.GameObject;
+                Vector3 lowest = SnapAndAlignUtility.GetLowestPoint(obj);
+                body.Height = Mathf.Max(0.1f, SnapAndAlignUtility.GetWorldBounds(new[] { obj }).size.y);
+                if (!ProbeGround(body, lowest + Vector3.up * GroundProbeLift, Mathf.Infinity))
+                    body.FloorY = lowest.y - NoGroundFallLimit;
+            }
+
+            foreach (Body body in _bodies)
+            {
+                if (body.IsRoot || body.RootBody == null) continue;
+                body.Height = body.RootBody.Height;
+                body.FloorY = body.RootBody.FloorY;
+                body.GroundFound = body.RootBody.GroundFound;
+            }
+        }
+
+        static bool ProbeGround(Body body, Vector3 origin, float maxDistance)
+        {
+            if (!SnapAndAlignUtility.TryGetClosestHit(origin, Vector3.down, out Vector3 hit, out _, out GameObject ground, _roots, maxDistance))
+                return false;
+            body.GroundFound = true;
+            body.FloorY = hit.y - (2f * body.Height + FallSlack);
+            EnsureGroundCollider(ground);
+            return true;
+        }
+
+        static void EnsureGroundCollider(GameObject ground)
+        {
+            if (ground == null || !ground.activeInHierarchy) return;
+            foreach (Collider existing in ground.GetComponents<Collider>())
+                if (existing != null && existing.enabled && !existing.isTrigger)
+                    return;
+            if (ground.GetComponentInParent<Rigidbody>() != null) return;
+            MeshFilter filter = ground.GetComponent<MeshFilter>();
+            if (filter == null || filter.sharedMesh == null) return;
+
+            MeshCollider temp = ground.AddComponent<MeshCollider>();
+            temp.sharedMesh = filter.sharedMesh;
+            temp.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
+            _temporaryGroundColliders.Add(temp);
+        }
+
+        static Body FindFallenBody()
+        {
+            foreach (Body body in _bodies)
+            {
+                if (body.Rigidbody == null || body.Rigidbody.position.y >= body.FloorY) continue;
+                if (!ProbeGround(body, body.Rigidbody.position + Vector3.up * GroundProbeLift, NoGroundFallLimit))
+                    return body;
+            }
+            return null;
+        }
 
         static void FreezeOtherBodies(HashSet<Rigidbody> active)
         {
@@ -355,6 +447,12 @@ namespace TelePresent.SmartMouse
 #endif
         }
 
+        internal enum SettleStopReason { None, Rest, Timeout, FellThrough, Error, Interrupted }
+
+        internal static SettleStopReason LastStopReason { get; private set; }
+
+        static float FixedStep => Mathf.Max(0.0001f, Time.fixedDeltaTime);
+
         static void Tick()
         {
             if (!_running)
@@ -364,43 +462,66 @@ namespace TelePresent.SmartMouse
             }
 
             double now = EditorApplication.timeSinceStartup;
-            float fixedStep = Mathf.Max(0.0001f, Time.fixedDeltaTime);
+            float fixedStep = FixedStep;
             _accumulator += (float)(now - _lastTickTime) * SimulationSpeed;
             _lastTickTime = now;
             _accumulator = Mathf.Min(_accumulator, fixedStep * 4f);
 
-            while (_accumulator >= fixedStep)
+            while (_running && _accumulator >= fixedStep)
             {
                 _accumulator -= fixedStep;
-
-                try
-                {
-                    foreach (PhysicsScene physicsScene in _simulationScenes)
-                        if (physicsScene.IsValid()) physicsScene.Simulate(fixedStep);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"Smart Mouse: physics simulation step failed. Original transforms were restored. {e.Message}");
-                    StopInternal(true);
-                    return;
-                }
-
-                _stepCount++;
-                if (AllAtRest())
-                {
-                    Stop();
-                    return;
-                }
-
-                if (_stepCount >= _maxSteps)
-                {
-                    Debug.LogWarning("Smart Mouse: physics did not fully settle before the safety timeout; kept the current pose. Press Undo to revert.");
-                    Stop();
-                    return;
-                }
+                if (!StepOnce()) return;
             }
 
             SceneView.RepaintAll();
+        }
+
+        // One fixed step of every simulated scene. False once the run has ended.
+        static bool StepOnce()
+        {
+            float fixedStep = FixedStep;
+            try
+            {
+                foreach (PhysicsScene physicsScene in _simulationScenes)
+                    if (physicsScene.IsValid()) physicsScene.Simulate(fixedStep);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Smart Mouse: physics simulation step failed. Original transforms were restored. {e.Message}");
+                LastStopReason = SettleStopReason.Error;
+                StopInternal(true);
+                return false;
+            }
+
+            _stepCount++;
+            Body fallen = FindFallenBody();
+            if (fallen != null)
+            {
+                Debug.LogWarning($"Smart Mouse: '{fallen.GameObject.name}' fell far below where it started" +
+                    (fallen.GroundFound
+                        ? ": it left the surface found under it and nothing else caught it."
+                        : ": no collider or mesh surface was found under it.") +
+                    " The simulation was stopped and the original transforms were restored.");
+                LastStopReason = SettleStopReason.FellThrough;
+                StopInternal(true);
+                return false;
+            }
+
+            if (AllAtRest())
+            {
+                LastStopReason = SettleStopReason.Rest;
+                StopInternal(false);
+                return false;
+            }
+
+            if (_stepCount >= _maxSteps)
+            {
+                Debug.LogWarning("Smart Mouse: physics did not fully settle before the safety timeout; kept the current pose. Press Undo to revert.");
+                LastStopReason = SettleStopReason.Timeout;
+                StopInternal(false);
+                return false;
+            }
+            return true;
         }
 
         static bool AllAtRest()
@@ -421,17 +542,23 @@ namespace TelePresent.SmartMouse
             return allAtRest;
         }
 
-        public static void Stop() => StopInternal(false);
+        public static void Stop()
+        {
+            if (_running) LastStopReason = SettleStopReason.Interrupted;
+            StopInternal(false);
+        }
 
         static void OnUndoRedoDuringRun()
         {
-            if (_running) StopInternal(false);
+            if (!_running) return;
+            LastStopReason = SettleStopReason.Interrupted;
+            StopInternal(false);
         }
 
         static void StopInternal(bool restoreTransforms)
         {
             if (!_running && _bodies.Count == 0 && _frozenBodies.Count == 0 &&
-                !_manualSimulationModeChanged)
+                _temporaryGroundColliders.Count == 0 && !_manualSimulationModeChanged)
                 return;
 
             _running = false;
@@ -509,6 +636,10 @@ namespace TelePresent.SmartMouse
                         RestoreSleepState(rb, frozen.OrigSleeping);
                     });
                 }
+
+                foreach (MeshCollider temp in _temporaryGroundColliders)
+                    if (temp != null)
+                        TryCleanup(() => Object.DestroyImmediate(temp));
             }
             catch (System.Exception e)
             {
@@ -519,6 +650,8 @@ namespace TelePresent.SmartMouse
                 _bodies.Clear();
                 _frozenBodies.Clear();
                 _simulationScenes.Clear();
+                _temporaryGroundColliders.Clear();
+                _roots = null;
 
                 bool modeRestored = false;
                 try
@@ -596,7 +729,10 @@ namespace TelePresent.SmartMouse
         static void OnEnabledChanged()
         {
             if (!SmartMouseSettings.IsSmartMouseEnabled && _running)
+            {
+                LastStopReason = SettleStopReason.Interrupted;
                 StopInternal(true);
+            }
         }
 
         static bool OnWantsToQuit()

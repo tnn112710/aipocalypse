@@ -37,8 +37,19 @@ namespace TelePresent.SmartMouse
             }
         }
 
-        [SerializeField] private bool displayWelcomeMessageOnLaunch = true;
+        [SerializeField] private bool displayWelcomeMessageOnLaunch = false;
         [SerializeField] private bool firstInitialization = true;
+        [SerializeField] private string lastWelcomedVersion = "";
+
+        public static string LastWelcomedVersion => Singleton.lastWelcomedVersion ?? "";
+
+        // The one-time show consumes both markers in a single write.
+        public static void MarkWelcomed(string version)
+        {
+            Singleton.firstInitialization = false;
+            Singleton.lastWelcomedVersion = version;
+            PersistStartupPreferences();
+        }
 
         public static bool DisplayWelcomeOnLaunch
         {
@@ -86,6 +97,8 @@ namespace TelePresent.SmartMouse
                 EditorUtility.CopySerialized(temporaryCopy, _singletonInstance);
             }
             EditorUtility.SetDirty(Singleton);
+            // A dirty flag alone is lost if the editor is killed; the preference must reach disk now.
+            AssetDatabase.SaveAssetIfDirty(Singleton);
         }
 
 

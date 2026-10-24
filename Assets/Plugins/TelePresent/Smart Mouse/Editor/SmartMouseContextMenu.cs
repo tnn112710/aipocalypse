@@ -39,7 +39,7 @@ namespace TelePresent.SmartMouse
 
         public static void ShowContextMenu(SceneView sceneView, Vector2 mousePosition, Ray worldRay)
         {
-            SmartMouseUtility.EnsureBVH();
+            SmartMouseUtility.EnsureBVHForMenu();
 
             GenericMenu menu = new GenericMenu();
             RegisterDynamicMenuItems(menu, sceneView, mousePosition, worldRay);

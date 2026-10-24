@@ -73,12 +73,12 @@ namespace TelePresent.SmartMouse
             EditorApplication.hierarchyChanged += () =>
             {
                 _gatherDirty = true;
-                if (!_outlineFrozen) _outlineCacheValid = false;
+                if (!OutlineFrozen) _outlineCacheValid = false;
             };
             ObjectChangeEvents.changesPublished += (ref ObjectChangeEventStream _) =>
             {
                 _gatherDirty = true;
-                if (!_outlineFrozen) _outlineCacheValid = false;
+                if (!OutlineFrozen) _outlineCacheValid = false;
             };
         }
 
@@ -158,18 +158,20 @@ namespace TelePresent.SmartMouse
         static readonly List<Renderer> _outlineMeshCache = new List<Renderer>();
         static readonly List<SpriteRenderer> _outlineSpriteCache = new List<SpriteRenderer>();
         static readonly List<RectTransform> _outlineUICache = new List<RectTransform>();
-        static bool _outlineFrozen;
+        static int _outlineFreezeDepth;
         static bool _outlineCacheValid;
+        static bool OutlineFrozen => _outlineFreezeDepth > 0;
 
         internal static void BeginSelectionOutlineFreeze()
         {
-            _outlineFrozen = true;
+            _outlineFreezeDepth++;
             _outlineCacheValid = false;
         }
 
         internal static void EndSelectionOutlineFreeze()
         {
-            _outlineFrozen = false;
+            if (_outlineFreezeDepth > 0) _outlineFreezeDepth--;
+            if (_outlineFreezeDepth > 0) return;
             _outlineCacheValid = false;
             _outlineMeshCache.Clear();
             _outlineSpriteCache.Clear();

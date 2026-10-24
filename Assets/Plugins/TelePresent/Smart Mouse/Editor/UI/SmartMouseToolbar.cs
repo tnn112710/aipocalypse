@@ -327,6 +327,9 @@ namespace TelePresent.SmartMouse
             if (sheet != null && !element.styleSheets.Contains(sheet))
                 element.styleSheets.Add(sheet);
 
+            // USS has no selector for the editor skin, so the light colours key off a class.
+            element.EnableInClassList("sm-light", !EditorGUIUtility.isProSkin);
+
 #if UNITY_2022_1_OR_NEWER
             // transition-* is 2021.2+
             var motion = MotionSheet;
@@ -371,6 +374,12 @@ namespace TelePresent.SmartMouse
 
         public static Texture2D LoadIcon(string assetName, string fallbackBuiltin)
         {
+            if (!EditorGUIUtility.isProSkin)
+            {
+                Texture2D lightIcon = FindIcon(assetName + "_Light");
+                if (lightIcon != null) return lightIcon;
+            }
+
             string expectedGuid = assetName == "SmartMouseIcon" ? MainIconGuid :
                 assetName == "SmartMouseDropdownIcon" ? DropdownIconGuid :
                 assetName == "SurfaceSnapIcon" ? SurfaceSnapIconGuid : null;
@@ -383,13 +392,20 @@ namespace TelePresent.SmartMouse
                 if (expected != null) return expected;
             }
 
+            Texture2D found = FindIcon(assetName);
+            if (found != null) return found;
+            return EditorGUIUtility.IconContent(fallbackBuiltin).image as Texture2D;
+        }
+
+        static Texture2D FindIcon(string assetName)
+        {
             foreach (string guid in AssetDatabase.FindAssets($"{assetName} t:Texture2D"))
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if (string.Equals(System.IO.Path.GetFileNameWithoutExtension(path), assetName, System.StringComparison.OrdinalIgnoreCase))
                     return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             }
-            return EditorGUIUtility.IconContent(fallbackBuiltin).image as Texture2D;
+            return null;
         }
 
         static readonly Color ActiveTint = new Color(0.235f, 0.47f, 0.86f, 0.40f);
@@ -402,7 +418,11 @@ namespace TelePresent.SmartMouse
 
     internal class SmartMouseIconImportWatcher : AssetPostprocessor
     {
-        static readonly string[] IconNames = { "SmartMouseIcon", "SmartMouseDropdownIcon", "SurfaceSnapIcon" };
+        static readonly string[] IconNames =
+        {
+            "SmartMouseIcon", "SmartMouseDropdownIcon", "SurfaceSnapIcon",
+            "SmartMouseIcon_Light", "SmartMouseDropdownIcon_Light", "SurfaceSnapIcon_Light"
+        };
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {

@@ -7,7 +7,6 @@ Product - Smart Mouse Selection Tools
   (c) 2026 Martin Hansen. All rights reserved.
 *******************************************************/
 
-using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -47,7 +46,6 @@ namespace TelePresent.SmartMouse
             Quaternion rotationOffset = Quaternion.Euler(offset);
             _rotationOffsets[obj] = rotationOffset;
             obj.transform.localRotation = baseRotation * rotationOffset;
-            EditorUtility.SetDirty(obj);
         }
 
         public void ApplyScale(GameObject obj, float range)
@@ -58,7 +56,6 @@ namespace TelePresent.SmartMouse
             float factor = Random.Range(Mathf.Max(0.01f, 1f - range), 1f + range);
             _scaleFactors[obj] = factor;
             obj.transform.localScale = baseScale * factor;
-            EditorUtility.SetDirty(obj);
         }
 
         // Placement may tilt/settle an already-varied transform. Fold that placement into the stored base

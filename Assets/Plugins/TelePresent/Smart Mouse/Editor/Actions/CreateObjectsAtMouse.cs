@@ -21,7 +21,7 @@ namespace TelePresent.SmartMouse
         [SmartMouseContextMenuItem(10)]
         public static void RegisterCreateMenuItems(GenericMenu menu, SceneView sceneView, Vector2 mousePosition, Ray worldRay)
         {
-            Vector3 hitPoint = SmartMouseController.GetRayHitPointOrDefault(worldRay, DefaultRayDistance, out _menuSurfaceNormal);
+            Vector3 hitPoint = SmartMouseController.GetRayHitPointOrDefault(worldRay, mousePosition, DefaultRayDistance, out _menuSurfaceNormal);
 
             menu.AddSeparator("Create/");
             menu.AddItem(new GUIContent("Create/Empty GameObject"), false, () => CreateEmptyObjectAtLocation(hitPoint));

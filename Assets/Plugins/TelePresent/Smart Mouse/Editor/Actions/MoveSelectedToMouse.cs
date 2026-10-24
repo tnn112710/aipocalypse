@@ -21,7 +21,7 @@ namespace TelePresent.SmartMouse
         [SmartMouseContextMenuItem(20)]
         public static void RegisterMoveMenuItem(GenericMenu menu, SceneView sceneView, Vector2 mousePosition, Ray worldRay)
         {
-            Vector3 hitPoint = SmartMouseController.GetRayHitPointOrDefault(worldRay, DefaultRayDistance, out _menuSurfaceNormal);
+            Vector3 hitPoint = SmartMouseController.GetRayHitPointOrDefault(worldRay, mousePosition, DefaultRayDistance, out _menuSurfaceNormal);
 
             if (SmartMouseCompat.EditableSceneSelection(topLevelOnly: true).Length > 0)
             {

@@ -33,16 +33,13 @@ namespace TelePresent.SmartMouse
             Undo.undoRedoPerformed -= SyncPrefsFromState;
             Undo.undoRedoPerformed += SyncPrefsFromState;
         }
-        
+
         static SmartMouseUndoState Adopt()
         {
-            SmartMouseUndoState found = null;
             foreach (SmartMouseUndoState candidate in Resources.FindObjectsOfTypeAll<SmartMouseUndoState>())
-            {
-                if (found == null) found = candidate;
-                else DestroyImmediate(candidate);
-            }
-            return found;
+                if (candidate != null)
+                    return candidate;
+            return null;
         }
 
         static SmartMouseUndoState Instance

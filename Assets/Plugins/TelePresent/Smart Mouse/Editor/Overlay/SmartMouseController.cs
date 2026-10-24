@@ -722,10 +722,10 @@ namespace TelePresent.SmartMouse
             return SmartMouse2DPlane.TryGetPlacementPoint(worldRay, out hitPoint);
         }
 
-        public static Vector3 GetRayHitPointOrDefault(Ray worldRay, float fallbackDistance, out Vector3? surfaceNormal)
+        public static Vector3 GetRayHitPointOrDefault(Ray worldRay, Vector2 guiPosition, float fallbackDistance, out Vector3? surfaceNormal)
         {
             surfaceNormal = null;
-            Vector3 point = GetRayHitPointOrDefault(worldRay, fallbackDistance);
+            Vector3 point = GetRayHitPointOrDefault(worldRay, guiPosition, fallbackDistance);
 
             // The two queries can hit different surfaces, so only take the normal when the points agree.
             if (SnapAndAlignUtility.TryGetClosestHit(worldRay.origin, worldRay.direction,
@@ -738,13 +738,30 @@ namespace TelePresent.SmartMouse
             return point;
         }
 
-        public static Vector3 GetRayHitPointOrDefault(Ray worldRay, float fallbackDistance)
+        public static Vector3 GetRayHitPointOrDefault(Ray worldRay, Vector2 guiPosition, float fallbackDistance)
         {
             if (TryRaycastMesh(worldRay, out Vector3 hitPoint)) return hitPoint;
+            
+            if (!SmartMouseUtility.IsBVHCurrent && TryPickedMeshPoint(worldRay, guiPosition, out hitPoint)) return hitPoint;
 
             if (SmartMouse2DPlane.TryGetPlacementPoint(worldRay, out Vector3 planePoint)) return planePoint;
 
             return worldRay.GetPoint(fallbackDistance);
+        }
+
+        static bool TryPickedMeshPoint(Ray worldRay, Vector2 guiPosition, out Vector3 hitPoint)
+        {
+            hitPoint = Vector3.zero;
+            GameObject picked = HandleUtility.PickGameObject(guiPosition, false);
+            if (picked == null || !SmartMouseSettings.IncludesLayer(picked.layer)) return false;
+            if (!picked.TryGetComponent(out MeshFilter filter) || filter.sharedMesh == null) return false;
+
+            Matrix4x4 worldToLocal = filter.transform.worldToLocalMatrix;
+            Ray localRay = new Ray(worldToLocal.MultiplyPoint(worldRay.origin), worldToLocal.MultiplyVector(worldRay.direction));
+            if (!RayIntersectsMesh(localRay, filter.sharedMesh, out Vector3 localHit)) return false;
+
+            hitPoint = filter.transform.TransformPoint(localHit);
+            return true;
         }
 
         static bool TryRaycastMesh(Ray ray, out Vector3 hitPoint)

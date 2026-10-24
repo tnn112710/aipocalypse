@@ -209,6 +209,21 @@ namespace TelePresent.SmartMouse
 				RebuildBVH();
 		}
 
+		// The right-click path. A stale tree can only miss (node bounds are a cull; the per-mesh test uses
+		// current matrices), and a sliced refresh keeps the previous tree until it completes, so the only
+		// case worth a synchronous whole-scene build here is "no tree yet".
+		internal static void EnsureBVHForMenu()
+		{
+			if (!SmartMouseSettings.UseMeshes) return;
+			if (_built) return;
+			if (_building)
+			{
+				while (_building) StepBuild();
+				return;
+			}
+			RebuildBVH();
+		}
+
 		public static void EnsureBVHIfMissing()
 		{
 			if (!_built && !_building && SmartMouseSettings.UseMeshes)

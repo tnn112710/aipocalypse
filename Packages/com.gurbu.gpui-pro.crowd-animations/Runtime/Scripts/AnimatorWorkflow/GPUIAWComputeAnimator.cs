@@ -50,7 +50,7 @@ namespace GPUInstancerPro.CrowdAnimations
                 return;
 #endif
             Profiler.BeginSample("GPUIAWComputeAnimator.CalculateRootMotion");
-            float currentTime = Time.time;
+            float currentTime = GPUICrowdSkinningSystem.GetTime();
             float deltaRootMotionTime = currentTime - _lastRootMotionExecutionTime;
             foreach (var crowdRenderSource in GPUICrowdSkinningSystem.Instance.RenderSourceProvider.Values)
             {

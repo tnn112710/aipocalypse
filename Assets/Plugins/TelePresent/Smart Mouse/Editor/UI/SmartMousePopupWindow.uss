@@ -497,3 +497,118 @@
 .sm-axis-caret:hover {
     background-color: rgba(255, 255, 255, 0.09);
 }
+
+/* Light editor skin. SmartMouseStyle.Apply adds sm-light; only colours change here.
+   The on states are repeated because the off-state overrides above them now outrank the originals. */
+.sm-light .sm-title,
+.sm-light .sm-tab--on,
+.sm-light .sm-axis-value {
+    color: rgb(12, 12, 14);
+}
+
+.sm-light .sm-row-label,
+.sm-light .sm-layer-toggle .unity-base-field__label,
+.sm-light .sm-axis-caption {
+    color: rgb(36, 36, 40);
+}
+
+.sm-light .sm-section-title,
+.sm-light .sm-sublabel,
+.sm-light .sm-tab,
+.sm-light .sm-vslider-cap,
+.sm-light .sm-vslider-tick,
+.sm-light .sm-help {
+    color: rgb(88, 90, 98);
+}
+
+.sm-light .sm-tab:hover,
+.sm-light .sm-axis-caret {
+    color: rgb(60, 62, 68);
+}
+
+.sm-light .sm-muted {
+    color: rgb(100, 102, 108);
+}
+
+.sm-light .sm-link {
+    color: rgb(36, 98, 204);
+}
+
+.sm-light .sm-link:hover {
+    color: rgb(24, 80, 180);
+}
+
+.sm-light .sm-section,
+.sm-light .sm-titlebar {
+    background-color: rgba(255, 255, 255, 0.30);
+}
+
+.sm-light .sm-row:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sm-light .sm-switch {
+    background-color: rgb(165, 165, 170);
+}
+
+.sm-light .sm-switch:hover {
+    background-color: rgb(150, 150, 156);
+}
+
+.sm-light .sm-switch--on {
+    background-color: rgb(58, 120, 222);
+}
+
+.sm-light .sm-switch--on:hover {
+    background-color: rgb(74, 134, 236);
+}
+
+.sm-light .sm-seg-item {
+    color: rgb(60, 62, 68);
+    background-color: rgba(255, 255, 255, 0.45);
+}
+
+.sm-light .sm-seg-item:hover {
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+.sm-light .sm-seg-item--on {
+    background-color: rgb(58, 120, 222);
+    color: rgb(245, 245, 245);
+}
+
+.sm-light .sm-seg-item--on:hover {
+    background-color: rgb(74, 134, 236);
+}
+
+.sm-light .sm-axis-button {
+    background-color: rgba(255, 255, 255, 0.45);
+}
+
+.sm-light .sm-axis-main:hover,
+.sm-light .sm-axis-caret:hover {
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+.sm-light.sm-tb-button:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.sm-light.sm-scene-panel,
+.sm-light.sm-snap-panel {
+    background-color: rgba(200, 200, 200, 0.97);
+    border-color: rgba(0, 0, 0, 0.30);
+}
+
+.sm-light .sm-layer-panel {
+    background-color: rgb(222, 222, 222);
+}
+
+.sm-light .sm-grip-dot {
+    background-color: rgba(0, 0, 0, 0.30);
+}
+
+/* Stays a dark viewport so the diagrams keep their dark-tuned strokes. */
+.sm-light .sm-diagram {
+    background-color: rgb(52, 52, 54);
+}

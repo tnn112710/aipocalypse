@@ -92,6 +92,7 @@ namespace TelePresent.SmartMouse
             ApplyStyleSheet(root, _config.StyleSheetName, _config.StyleSheetGuid,
                 _config.MotionStyleSheetGuid);
             root.AddToClassList("ww-window");
+            root.EnableInClassList("ww-light", !EditorGUIUtility.isProSkin);
 
             var scroll = new ScrollView(ScrollViewMode.Vertical);
 #if UNITY_2022_1_OR_NEWER
@@ -111,10 +112,10 @@ namespace TelePresent.SmartMouse
             if (_config.PrimaryAction != null)
                 content.Add(BuildPrimaryAction());
 
-            content.Add(BuildLinks());
-
             if (_config.GetShowOnStartup != null && _config.SetShowOnStartup != null)
-                content.Add(BuildStartupToggle());
+                content.Add(BuildStartupButton());
+
+            content.Add(BuildLinks());
 
             if (!string.IsNullOrEmpty(_config.NewsUrl))
             {
@@ -233,17 +234,37 @@ namespace TelePresent.SmartMouse
             return card;
         }
 
-        VisualElement BuildStartupToggle()
+        VisualElement BuildStartupButton()
         {
-            var row = new VisualElement();
-            row.AddToClassList("ww-toggle-row");
+            var wrap = new VisualElement();
+            wrap.AddToClassList("ww-startup");
 
-            var toggle = new Toggle(" Show this window on start-up") { value = _config.GetShowOnStartup() };
-            toggle.AddToClassList("ww-toggle");
-            toggle.RegisterValueChangedCallback(evt => _config.SetShowOnStartup(evt.newValue));
+            var button = new Button();
+            button.AddToClassList("ww-cta");
+            button.AddToClassList("ww-startup-button");
+            button.tooltip = "On: opens on every editor launch. Off: opens once after install or an update. " +
+                             "You can always reopen it from Tools > TelePresent > Smart Mouse > Welcome Window.";
 
-            row.Add(toggle);
-            return row;
+            void Refresh()
+            {
+                bool on = _config.GetShowOnStartup();
+                button.text = on ? "Showing on start-up: On" : "Show this window on start-up: Off";
+                button.EnableInClassList("ww-startup-button--off", !on);
+                button.style.backgroundColor = on ? _config.Accent : new StyleColor(StyleKeyword.Null);
+            }
+
+            button.clicked += () =>
+            {
+                _config.SetShowOnStartup(!_config.GetShowOnStartup());
+                Refresh();
+            };
+            Refresh();
+            wrap.Add(button);
+
+            var hint = new Label("Off shows the window only after install or an update.");
+            hint.AddToClassList("ww-startup-hint");
+            wrap.Add(hint);
+            return wrap;
         }
 
         VisualElement BuildNews()

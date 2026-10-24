@@ -23,6 +23,12 @@ namespace GPUInstancerPro.CrowdAnimations
         public bool IsInitialized { get; private set; }
 
         /// <summary>
+        /// Returns the time used by the crowd animation system.
+        /// Assign a custom time provider to drive crowd animations with a custom clock.
+        /// </summary>
+        public static Func<float> GetTime = GetDefaultTime;
+
+        /// <summary>
         /// <para>key => Render Source Group Key</para>
         /// <para>value => Crowd Render Source Group Data</para>
         /// </summary>
@@ -216,6 +222,8 @@ namespace GPUInstancerPro.CrowdAnimations
         }
         #endregion Initialize/Dispose
 
+        private static float GetDefaultTime() => Time.time;
+
         #region Rendering System Extension Methods
 #if UNITY_EDITOR
         [InitializeOnLoadMethod]
@@ -313,7 +321,7 @@ namespace GPUInstancerPro.CrowdAnimations
                 aw.ExecuteOnPreCull();
             Profiler.EndSample();
 
-            float currentTime = Time.time;
+            float currentTime = GetTime();
             Profiler.BeginSample("GPUICrowdSkinningSystem.WriteToBoneTransforms");
             foreach (var crowdRenderSource in RenderSourceProvider.Values)
                 GPUICrowdUtility.WriteToBoneTransforms(crowdRenderSource, currentTime - _lastBoneWriteExecutionTime);

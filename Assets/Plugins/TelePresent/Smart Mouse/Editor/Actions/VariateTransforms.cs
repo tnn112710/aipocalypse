@@ -40,22 +40,75 @@ namespace TelePresent.SmartMouse
         public static void ShowVariateTransformsWindow()
         {
             if (_window.IsOpen) return;
-            _targets = CaptureSceneSelection();
-            if (_targets.Length == 0) return;
+            GameObject[] targets = CaptureSceneSelection();
+            if (targets.Length == 0) return;
 
-            _randomRotationRange = SmartMouseSettings.VariateRotationRange;
-            _randomScaleRange = SmartMouseSettings.VariateScaleRange;
-            _reRegisterUndo = false;
-            if (!_window.Open(BuildContent(), SmartMouseScenePanel.Corner.TopLeft, new Vector2(12f, 12f), 210f, onClose: OnClose))
-            {
-                _targets = null;
+            // The sliders read the ranges while the card is built.
+            LoadRanges();
+            if (!_window.Open(BuildContent(), SmartMouseScenePanel.Corner.TopLeft, new Vector2(12f, 12f), 210f, onClose: EndSession))
                 return;
-            }
 
+            BeginSession(targets);
+        }
+
+        // The session is the panel-independent core; the floating card is a view over it.
+        internal static void BeginSession(GameObject[] targets)
+        {
+            _targets = targets;
+            LoadRanges();
+            _reRegisterUndo = false;
             StoreOriginals();
             Undo.undoRedoPerformed += OnUndoRedo;
+            Selection.selectionChanged += OnSelectionChangedWhileOpen;
+            // The selection is fixed for the session, so the outline gather can stay cached while the objects move.
+            SmartMouseShaderRenderer.BeginSelectionOutlineFreeze();
             ApplyRandomRotation();
             ApplyRandomScale();
+        }
+
+        internal static void EndSession()
+        {
+            _sliderX = _sliderY = _sliderZ = _sliderScale = null;
+            if (_targets == null) return;
+            Undo.undoRedoPerformed -= OnUndoRedo;
+            Selection.selectionChanged -= OnSelectionChangedWhileOpen;
+            SmartMouseShaderRenderer.EndSelectionOutlineFreeze();
+            _variation.Clear();
+            _targets = null;
+        }
+
+        // The panel acts on the selected objects; once that set changes, end the session rather than keep
+        // re-rolling objects that are no longer selected.
+        static void OnSelectionChangedWhileOpen()
+        {
+            if (_targets == null || SameSet(CaptureSceneSelection(), _targets)) return;
+            if (_window.IsOpen) _window.Close();
+            else EndSession();
+        }
+
+        static bool SameSet(GameObject[] a, GameObject[] b)
+        {
+            if (a.Length != b.Length) return false;
+            var set = new System.Collections.Generic.HashSet<GameObject>(a);
+            foreach (GameObject obj in b)
+                if (!set.Contains(obj))
+                    return false;
+            return true;
+        }
+
+        // A fresh roll at the ranges as they stand.
+        internal static void Reroll()
+        {
+            if (_targets == null) return;
+            ReRegisterUndoIfNeeded();
+            ApplyRandomRotation();
+            ApplyRandomScale();
+        }
+
+        static void LoadRanges()
+        {
+            _randomRotationRange = SmartMouseSettings.VariateRotationRange;
+            _randomScaleRange = SmartMouseSettings.VariateScaleRange;
         }
 
         static void OnUndoRedo()
@@ -73,14 +126,6 @@ namespace TelePresent.SmartMouse
             _sliderY?.SetValueWithoutNotify(_randomRotationRange.y);
             _sliderZ?.SetValueWithoutNotify(_randomRotationRange.z);
             _sliderScale?.SetValueWithoutNotify(_randomScaleRange.x);
-        }
-
-        static void OnClose()
-        {
-            Undo.undoRedoPerformed -= OnUndoRedo;
-            _variation.Clear();
-            _targets = null;
-            _sliderX = _sliderY = _sliderZ = _sliderScale = null;
         }
 
         static VisualElement BuildContent()
@@ -101,7 +146,8 @@ namespace TelePresent.SmartMouse
             content.Add(section);
             _sliderX = x; _sliderY = y; _sliderZ = z; _sliderScale = scale;
 
-            content.Add(SmartMouseUI.AccentButton("Reset", () =>
+            content.Add(SmartMouseUI.AccentButton("Randomize Again", Reroll));
+            content.Add(SmartMouseUI.AccentButton("Reset Ranges", () =>
             {
                 ReRegisterUndoIfNeeded();
                 _randomRotationRange = new Vector3(0f, 25f, 0f);
