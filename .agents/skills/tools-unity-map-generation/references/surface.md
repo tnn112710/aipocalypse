@@ -1,12 +1,12 @@
 # Texturing and vegetation
 
-Recipe and numbers from the WorldMap (1000 m, `AgentScripts/Maps/WorldMap/WorldMapLayout.cs` = WML: textures 2449–2825, `Veg`/`Vegetation` 4557–5253). How the MicroVerse stamps behave (claim order, filters, noise units, tree/detail/clear mechanics) is in tools-unity-microverse §1, §6 and §9: read those first.
+Recipe and numbers from the WorldMap (1000 m, `AgentScripts/Maps/WorldMap/WorldMapLayout.cs` = WML: textures 2449–2825, `Veg`/`Vegetation` 4557–5253). How the MicroVerse stamps behave (claim order, filters, noise units, tree/detail/clear mechanics) is in unity-microverse §1, §6 and §9: read those first; the WorldMap stamp groups and generator helpers are in [microverse-in-this-project.md](microverse-in-this-project.md) §5.
 
 ## 1. Masks vs filters
 
 - **Analytic terrain-space masks** (C#, R16, one per stamp) for everything the layout decides: biome regions (polygon distance + fbm edge), water bands (from the same height and waterline functions that carved the terrain, so bands follow islands and coves), trails, yard, sight lines. WML:2481 (`GenerateTextureMasks`), 4695 (`Vegetation.GenerateMasks`).
 - **MicroVerse filters** for what the terrain decides: slope, height, weight-noise breakup, texture filter (grass only on grass layers).
-- Mask stamps are **whole-terrain**: centre (size/2, size/2), scale (size, 1, size), Texture falloff, channel R, params (1, 0), `clampTexture = true`. Region-sized texture/vegetation stamps with a terrain-space mask don't work (tools-unity-microverse §9).
+- Mask stamps are **whole-terrain**: centre (size/2, size/2), scale (size, 1, size), Texture falloff, channel R, params (1, 0), `clampTexture = true`. Region-sized texture/vegetation stamps with a terrain-space mask don't work (unity-microverse §9).
 - ~1 m per mask pixel (1024 on 1000 m) was enough even for 0.9–1.7 m trail half-widths. 1500 m used 2048 texture masks and 1536 vegetation masks.
 - Build masks **after** the heights are final and **before** the stamps. A missing mask makes the vegetation builder throw half-way and leave a partial group (on v23 the Clearing group stayed empty and ~2,400 trees grew in the yard and on the trails): write empty placeholder masks on a first build.
 

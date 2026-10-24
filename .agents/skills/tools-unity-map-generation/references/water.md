@@ -117,7 +117,7 @@ After a water change, rebuild:
 | Waterfall (if the fall or the pond level moved) | `Landmarks.BuildWaterfall` |
 | Boundary near the outlet (gorge, massif clearance) | `BuildBoundary` |
 | Mist heights | `Atmosphere.Particles` or `RiverLevel.MoveMist` |
-| Clear masks, A* graphs | `Vegetation.GenerateClearMasks`; rescan A* |
+| Clear masks, A* graphs | `Vegetation.GenerateClearMasks`; `Navigation.BuildWaterVolume` + `Navigation.Bake` (unity-astar, aipocalypse-enemy-ai) |
 | Placed objects outside rebuilt groups | `RiverLevel.Settle` / `Drowned` / `Floating` |
 
 ### Partial (water-only) rebuild

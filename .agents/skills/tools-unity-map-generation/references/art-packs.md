@@ -1,6 +1,6 @@
 # Art packs for map building
 
-Vendor content: reference it, never edit it. Copies and variants go in `Assets/_Game/Environment/` (reusable; keep the pack prefix `BK_`/`HL_`/`KN_`/`AM_`/`GL_`) or `Assets/_Game/Maps/<Map>/` (one map only). Before placing a prop, vet it: size, LOD0 triangles, LODGroup on the root, collider types, shaders, scripts, lights, audio (`MeasurePrefabs.Run`, `PrefabInfo.Components` in `AgentScripts/Maps/WorldMap/`). Rowlan height packs, BK MicroVerse presets and Genesis are in tools-unity-microverse `references/content.md`.
+Vendor content: reference it, never edit it. Copies and variants go in `Assets/_Game/Environment/` (reusable; keep the pack prefix `BK_`/`HL_`/`KN_`/`AM_`/`GL_`) or `Assets/_Game/Maps/<Map>/` (one map only). Before placing a prop, vet it: size, LOD0 triangles, LODGroup on the root, collider types, shaders, scripts, lights, audio (`MeasurePrefabs.Run`, `PrefabInfo.Components` in `AgentScripts/Maps/WorldMap/`). Rowlan height packs, BK MicroVerse presets and Genesis: what is installed here in [microverse-in-this-project.md](microverse-in-this-project.md) §1, how they work in unity-microverse `references/content.md`.
 
 ## 1. Shared first-party kit (`Assets/_Game/Environment/`): reuse first
 

@@ -90,7 +90,7 @@ Flat Override HeightStamp, no texture (flat at its Y), last in the height group,
 What v23 (1000 → 1500 m) taught:
 - **Retrace, don't scale.** Feature sizes stay in metres (noise wavelengths, bank slopes, widths, depths, island shapes). Only the layout moves.
 - **Parameterise the frame**: size, size.y, resolutions, far clip; derive `hmRes ≈ nextPOT(size / 0.5) + 1` (max 4097), masks ≈ 1 m per pixel, Preview res = 1024 · ceil(size / 1000).
-- **MicroVerse UV-space parameters must be converted**: slope filter values (the same real slope reads ~1.5× steeper on 1500 m than on 1000 m at 300 m height; v23 `SlopeUnits(v) = 64.4 · atan(size/1000 · tan(v / 64.4))`, empirical) and **texture-stamp** noise frequency (× size/1000; vegetation stamps scale themselves). See tools-unity-microverse §9.
+- **MicroVerse UV-space parameters must be converted**: slope filter values (the same real slope reads ~1.5× steeper on 1500 m than on 1000 m at 300 m height; v23 `SlopeUnits(v) = 64.4 · atan(size/1000 · tan(v / 64.4))`, empirical) and **texture-stamp** noise frequency (× size/1000; vegetation stamps scale themselves). See unity-microverse §9.
 - **Far clip ∝ map size**: the player far clip is 1500 m; v23 overrode it to 3000 m on the Cinemachine lens and camera as scene overrides.
 - **Steepen bank caps where water is raised** (v23 `FallCliff`: a river feeding a waterfall sat 11 m above the ground until the pond's cap was steepened behind the lip).
 - **Swap TerrainData on the same Terrain object** to keep GPUI/MicroVerse/collider references (v23:1019).

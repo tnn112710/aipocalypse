@@ -20,20 +20,17 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 
 | Skill | Read before |
 | --- | --- |
-| `tools-unity-vcontainer` | Registrations, scopes, installers, injecting MonoBehaviours/prefabs |
-| `tools-unity-messagepipe` | Gameplay events: defining, publishing, subscribing |
-| `tools-unity-unitask` | Any async/await, delays, scene flow |
+| `aipocalypse-architecture` | Registrations, scopes, installers, injection; gameplay events (MessagePipe); any async/await, delays, pause; C# touching serialization, statics, play-mode hooks, build defines or Unity 6.6 APIs |
 | `tools-unity-object-pooling` | Anything that spawns repeatedly; temporary collections in hot paths |
-| `tools-unity-astar` | Enemy/companion movement, navmesh queries, dynamic obstacles |
-| `tools-unity-behavior-designer` | Any AI decisions — behavior trees for all agents, crowd enemies included (BD Pro 3.3.3) |
+| `aipocalypse-enemy-ai` | Any enemy/companion/NPC movement or AI decision: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager`, A* `FollowerEntity`, navmesh, spawning |
 | `tools-unity-cinemachine` | Player camera rig, FOV, shake, extra cameras (Cinemachine 3 API) |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks) |
 | `tools-unity-profiling` | Measuring or optimising performance, `Proto_Stress` |
-| `tools-unity-map-generation` | Building or changing a map: layout from a concept, generated heights/water/vegetation/boundary/dressing, rebuilds, map art packs and perf (the WorldMap generator; step runner in `scripts/`) |
-| `tools-unity-microverse` | Terrain stamps, filters, masks, texturing and vegetation (MicroVerse 1.7, Rowlan height packs, BK presets; CLI kit in `scripts/`) |
+| `tools-unity-map-generation` | Building or changing a map: layout from a concept, generated heights/water/vegetation/boundary/dressing, rebuilds, map art packs and perf, and how MicroVerse is used here (the WorldMap generator; step runner and MicroVerse kit in `scripts/`) |
 | `tools-unity-stylized-water` | Any Stylized Water 3 work: water bodies, RiverModeler rivers, waterfalls, underwater, height queries, water materials and perf |
-| `tools-unity-6-new-apis` | Any C# touching serialization (dictionaries), statics, init/play-mode hooks, object IDs, build defines, animation events or uGUI layout; whenever a remembered Unity API fails to compile (Unity 6.4–6.6 changes newer than training data) |
 | `tools-unity-addressables` | Generic; Addressables is not used for game content (see ARCHITECTURE.md) |
+
+The project skills hold only what is specific to this repo. Library detail lives in generic user-scope skills in Claude Code (`~/.claude/skills/`): `unity-vcontainer`, `unity-messagepipe`, `unity-unitask`, `unity-6-new-apis`, `unity-behavior-designer-pro`, `unity-astar`, `unity-microverse`. The project skills point to them; when they are not available (other agents, other machines), read the package source under `Packages/` or `Library/PackageCache/` instead of guessing.
 
 To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `description` frontmatter, and add a row here. The `tools-unity-*` skills started from [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, `.agents/skills/THIRD_PARTY_LICENSE-unity-gamedev.txt`).
 
