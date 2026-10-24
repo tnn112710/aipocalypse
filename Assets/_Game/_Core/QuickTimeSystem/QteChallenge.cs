@@ -1,3 +1,4 @@
+using Aipocalypse.Input;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -22,6 +23,8 @@ namespace Aipocalypse.Core.QuickTimeSystem
         public float TimeScale = 1f;
         [Tooltip("IDs of compatible QteView widgets. One is chosen for each event.")]
         public string[] Presentations = { "Circle", "Bar" };
+        [Tooltip("The press that attempts it; that frame's press goes to the QTE only (no reload, jump… with it)")]
+        public GameButton Button = GameButton.Reload;
 
         public abstract IQteSession CreateSession(bool ownerControlled = false);
     }

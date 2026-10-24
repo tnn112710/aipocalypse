@@ -25,5 +25,31 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Key"), FormerlySerializedAs("FontSize"), Min(1f)] public float KeyFontSize = 24f;
         [BoxGroup("Key")] public Color KeyLabelColor = Color.black;
         [BoxGroup("Key"), Min(0f), Tooltip("Pixels between the QTE's bottom edge and the key cap's centre")] public float KeyCapGap = 22f;
+
+        [BoxGroup("Success")] public Color SuccessColor = new(0.5f, 1f, 0.64f, 1f);
+        [BoxGroup("Success"), Min(0.05f)] public float SuccessDuration = 1f;
+        [BoxGroup("Success"), Min(0f), Tooltip("Time to keep the successful widget visible before its final fade.")] public float SuccessHold = 0.32f;
+        [BoxGroup("Success"), Range(1f, 1.8f)] public float SuccessScale = 1.5f;
+        [BoxGroup("Success"), Range(1f, 3f)] public float BurstScale = 2.6f;
+        [BoxGroup("Success"), Range(0.01f, 0.5f), Tooltip("Share of the duration the widget takes to pop up to Success Scale, and again to settle")]
+        public float SuccessPopShare = 0.12f;
+        [BoxGroup("Success"), Range(1f, 1.8f), Tooltip("Scale it settles at after the pop, while held")] public float SuccessSettleScale = 1.08f;
+        [BoxGroup("Success"), Range(0.5f, 1f), Tooltip("Scale it shrinks to while fading out")] public float SuccessEndScale = 0.9f;
+        [BoxGroup("Success"), Range(0.1f, 1f), Tooltip("Share of the duration at which the fade-out ends")] public float SuccessFadeEndShare = 0.76f;
+        [BoxGroup("Success"), Range(0.1f, 1f), Tooltip("Share of the duration the burst ring grows and fades over; also caps Success Hold")]
+        public float BurstShare = 0.65f;
+
+        [BoxGroup("Miss")] public Color MissColor = new(1f, 0.2f, 0.12f, 1f);
+        [BoxGroup("Miss"), Min(0.05f)] public float MissDuration = 0.4f;
+        [BoxGroup("Miss"), Min(0f)] public float MissShakePixels = 22f;
+        [BoxGroup("Miss"), Min(1), Tooltip("Shake oscillations")] public int MissShakeVibrato = 10;
+        [BoxGroup("Miss"), Range(0f, 1f)] public float MissShakeElasticity = 0.7f;
+        [BoxGroup("Miss"), Range(0f, 0.5f), Tooltip("Widget squash on a miss")] public float MissSquash = 0.18f;
+        [BoxGroup("Miss"), Range(0.05f, 1f), Tooltip("Share of the miss duration the squash lasts")] public float MissSquashShare = 0.6f;
+        [BoxGroup("Miss"), Min(1)] public int MissSquashVibrato = 4;
+        [BoxGroup("Miss"), Range(0f, 1f)] public float MissSquashElasticity = 0.5f;
+
+        [BoxGroup("Ended otherwise"), Min(0.05f), Tooltip("Fade when it ends without a success (timed out, the gun cleared by itself, put away)")]
+        public float EndFadeDuration = 0.18f;
     }
 }

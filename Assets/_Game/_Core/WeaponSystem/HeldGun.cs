@@ -1,10 +1,6 @@
-using System;
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.QuickTimeSystem;
 using Ami.BroAudio;
-using MessagePipe;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -12,41 +8,36 @@ using VContainer;
 namespace Aipocalypse.Core.WeaponSystem
 {
     // A gun in hand: runs its Gun rules from the holder's input and shows them — bullets, aim / sprint poses and zoom,
-    // recoil, the gun's clips (GunAnimation), sounds, and the jam repair (GunRepairFlow), presented by GunRepairFeedback.
+    // recoil, the gun's clips (GunAnimation) and sounds. Jams and their repair are one part (GunJam).
     public sealed class HeldGun : HeldItem
     {
         [SerializeField, Tooltip("Moved to the active pose; parent of the recoil pivot")] Transform _posePivot;
         [SerializeField, Tooltip("Gun kick is applied here; parent of the model and the muzzle")] Transform _recoilPivot;
         [SerializeField, Tooltip("Bullets and the muzzle flash leave here, along its forward (blue axis)")] Transform _muzzle;
-        [SerializeField, Tooltip("Plays the gun's clips (equip, fire, reload, repair, pump) and drives its hand targets")] GunAnimation _animation;
+        [SerializeField, Tooltip("Optional: plays the gun's clips (equip, fire, reload, repair, pump) and drives its hand targets. " +
+            "Without it the model only poses and kicks (a block-out from Gun_Base)")] GunAnimation _animation;
 
         [BoxGroup("Poses"), SerializeField, Tooltip("Siblings of the pose pivot; move them to pose the gun")] Transform _hipPose;
         [BoxGroup("Poses"), SerializeField] Transform _aimPose;
         [BoxGroup("Poses"), SerializeField] Transform _sprintPose;
 
         readonly GunJoltPlayer _jolt = new();
+        readonly PoseBlender _pose = new();
 
         BulletSystem _bullets;
         EffectPool _effects;
         AudioService _audio;
-        QuickTimeService _qte;
-        IPublisher<GunRepairCompleted> _repairCompleted;
-        IPublisher<GunRepairQteStarted> _repairQteStarted;
-        IPublisher<GunJamBeat> _beats;
-        IDisposable _qteAttempts;
+        GunJamFactory _jams;
 
         IGunUser _user;
         GunDefinition _definition;
         Gun _gun;
         GunRecoil _recoil;
         GunAccuracy _accuracy;
-        GunRepairFlow _repair;
-        GunRepairFeedback _repairFeedback;
+        GunJam _jam;
 
         Vector3 _restRecoilPosition;
         Quaternion _restRecoilRotation;
-        Vector3 _posePosition;
-        Quaternion _poseRotation;
         float _stateMultiplier = 1f;
         // 0 at the hip, 1 aiming down sights; eases with the aim pose and drives the zoom.
         float _aimWeight;
@@ -68,20 +59,13 @@ namespace Aipocalypse.Core.WeaponSystem
         // Aiming or pulling the trigger ends a sprint.
         public override bool StopsSprint(bool useHeld, bool aimHeld) => _gun != null && (useHeld || aimHeld);
 
-        RepairFeedbackSettings Feedback => _definition.Jam.Feedback;
-
         [Inject]
-        void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, QuickTimeService qte, IPublisher<GunRepairCompleted> repairCompleted,
-            IPublisher<GunRepairQteStarted> repairQteStarted, IPublisher<GunJamBeat> beats, ISubscriber<QteAttempted> qteAttempts)
+        void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, GunJamFactory jams)
         {
             _bullets = bullets;
             _effects = effects;
             _audio = audio;
-            _qte = qte;
-            _repairCompleted = repairCompleted;
-            _repairQteStarted = repairQteStarted;
-            _beats = beats;
-            _qteAttempts = qteAttempts.Subscribe(OnQteAttempted);
+            _jams = jams;
         }
 
         void Awake()
@@ -103,11 +87,6 @@ namespace Aipocalypse.Core.WeaponSystem
                 Debug.LogError($"{name}: not injected; spawn it through the EquipmentRig.", this);
                 return;
             }
-            if (_animation == null)
-            {
-                Debug.LogError($"{name}: no GunAnimation assigned.", this);
-                return;
-            }
 
             _definition = item.Gun;
             if (_definition.Magazine.AmmoType == null)
@@ -116,19 +95,14 @@ namespace Aipocalypse.Core.WeaponSystem
             _gun = new Gun(item, _user.Ammo);
             _recoil = new GunRecoil(_definition.Recoil);
             _accuracy = new GunAccuracy(_definition.Accuracy);
-            _repair = new GunRepairFlow(_gun, _definition.Jam.Repair, _qte, this);
-            _repairFeedback = new GunRepairFeedback(_definition, _audio, _jolt, _beats, _repairQteStarted, _repairCompleted, Owner, Item);
-            _repair.QteStarted += _repairFeedback.QteStarted;
-            _repair.Missed += _repairFeedback.Missed;
+            _jam = _jams.Create(_gun, _definition, _animation, _jolt, this, Owner, Item);
             _gun.Fired += OnFired;
-            _gun.Jammed += _repairFeedback.Jammed;
-            _gun.DryFired += _repairFeedback.DryFired;
             _gun.EmptyFired += OnEmptyFired;
             _gun.ActionStarted += OnActionStarted;
             _gun.RoundLoaded += OnRoundLoaded;
             _gun.ActionEnded += OnActionEnded;
-            _animation.RepairSlapped += OnRepairSlapped;
-            _animation.Bind(_effects);
+            if (_animation != null)
+                _animation.Bind(_effects);
 
             if (_definition.Effects != null)
                 _definition.Effects.Prewarm(_effects);
@@ -155,14 +129,13 @@ namespace Aipocalypse.Core.WeaponSystem
                 Recovering = _sprintRecoveryLeft > 0f,
             }, deltaTime);
 
-            if (input.IsReady)
-                _repair.Tick();
-            _repairFeedback.Tick(deltaTime);
+            _jam.Tick(input.IsReady, deltaTime);
             _jolt.Tick(deltaTime);
             _recoil.Tick(deltaTime, _aimWeight);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
             _accuracy.Tick(input.IsAirborne, _aimWeight, _user.AirSpreadScale, deltaTime);
-            _animation.Tick(deltaTime, _gun.ActionProgress);
+            if (_animation != null)
+                _animation.Tick(deltaTime, _gun.ActionProgress);
         }
 
         public override void LateTick()
@@ -180,20 +153,17 @@ namespace Aipocalypse.Core.WeaponSystem
             if (_gun == null)
                 return;
             Play(_definition.Sounds.Equip);
-            if (_hipPose != null)
-            {
-                _posePosition = _hipPose.localPosition;
-                _poseRotation = _hipPose.localRotation;
-            }
+            _pose.SnapTo(_hipPose);
             ApplyPose();
-            _animation.Show();
+            if (_animation != null)
+                _animation.Show();
         }
 
         protected override void OnHidden()
         {
             _jolt.Stop();
             _aimWeight = 0f;
-            _repairFeedback?.Reset();
+            _jam?.Hide();
             _sprintRecoveryLeft = 0f;
             _pendingShots = 0;
             _gun?.Interrupt();
@@ -203,28 +173,22 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnDestroy()
         {
-            _qteAttempts?.Dispose();
-            _qte?.Cancel(this);
             if (_gun == null)
                 return;
-            _repair.QteStarted -= _repairFeedback.QteStarted;
-            _repair.Missed -= _repairFeedback.Missed;
+            _jam.Dispose();
             _gun.Fired -= OnFired;
-            _gun.Jammed -= _repairFeedback.Jammed;
-            _gun.DryFired -= _repairFeedback.DryFired;
             _gun.EmptyFired -= OnEmptyFired;
             _gun.ActionStarted -= OnActionStarted;
             _gun.RoundLoaded -= OnRoundLoaded;
             _gun.ActionEnded -= OnActionEnded;
-            if (_animation != null)
-                _animation.RepairSlapped -= OnRepairSlapped;
         }
 
         void OnFired()
         {
             _pendingShots++;
             _user.Exert(_definition.Fire.StaminaPerShot);
-            _animation.Fired();
+            if (_animation != null)
+                _animation.Fired();
             Play(_definition.Sounds.Fire);
         }
 
@@ -241,7 +205,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
-            AimShot(bullet, out Vector3 origin, out Vector3 direction);
+            GunAim.Shot(_user, _muzzle, bullet.Range, bullet.HitLayers, _bullets, out Vector3 origin, out Vector3 direction);
             // Airborne spread moves the whole shot; pellets then spread around it.
             direction = BulletSpread.Apply(direction, _accuracy.Spread);
             for (int i = 0; i < fire.Pellets; i++)
@@ -255,6 +219,7 @@ namespace Aipocalypse.Core.WeaponSystem
                     Range = bullet.Range,
                     GravityScale = bullet.GravityScale,
                     Damage = fire.Damage,
+                    DamageType = bullet.DamageType,
                     Knockback = fire.Knockback,
                     Falloff = fire.Falloff,
                     Layers = bullet.HitLayers,
@@ -265,46 +230,11 @@ namespace Aipocalypse.Core.WeaponSystem
             }
         }
 
-        void AimShot(BulletSettings bullet, out Vector3 origin, out Vector3 direction)
-        {
-            Transform eye = _user.Eye;
-            int layers = bullet.HitLayers;
-            Vector3 aim = eye.rotation * (_user.AimOffset * Vector3.forward);
-            Vector3 toMuzzle = _muzzle.position - eye.position;
-            // The view model draws over cover, but a barrel beyond cover must still hit its near face.
-            if (_user.AimFrom != AimOrigin.Camera && toMuzzle.sqrMagnitude > 0.000001f &&
-                _bullets.TryHit(eye.position, toMuzzle.normalized, toMuzzle.magnitude, layers, _user.Root, out _))
-            {
-                direction = toMuzzle.normalized;
-                origin = eye.position;
-                return;
-            }
-            switch (_user.AimFrom)
-            {
-                case AimOrigin.Camera:
-                    origin = eye.position;
-                    direction = aim;
-                    return;
-
-                case AimOrigin.MuzzleToCrosshair:
-                    Vector3 aimPoint = _bullets.TryHit(eye.position, aim, bullet.Range, layers, _user.Root, out RaycastHit hit)
-                        ? hit.point
-                        : eye.position + aim * bullet.Range;
-                    origin = _muzzle.position;
-                    direction = GunAim.MuzzleToPoint(origin, aim, aimPoint);
-                    return;
-
-                default:
-                    origin = _muzzle.position;
-                    direction = _muzzle.forward;
-                    return;
-            }
-        }
-
         void OnActionStarted(GunAction action)
         {
-            _repair.Reset();
-            _animation.StartAction(action, _gun.Item.Rounds == 0, _gun.RepairIsStubborn);
+            _jam.ActionStarted();
+            if (_animation != null)
+                _animation.StartAction(action, _gun.Item.Rounds == 0, _gun.RepairIsStubborn);
             GunSounds sounds = _definition.Sounds;
             Play(action switch
             {
@@ -319,22 +249,24 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnActionEnded(GunAction action, bool finished)
         {
-            _repair.Cancel();
-            bool repaired = finished && action == GunAction.ClearingJam;
-            if (repaired && _repair.QteSucceeded)
-                _animation.FinishRepair();
-            else
-                _animation.EndAction();
+            bool cleared = _jam.ActionEnded(action, finished);
+            if (_animation != null)
+            {
+                if (cleared && _jam.QteSucceeded)
+                    _animation.FinishRepair();
+                else
+                    _animation.EndAction();
+            }
             if (!finished)
                 return;
 
-            if (repaired)
-                _repairFeedback.Repaired(_repair.QteSucceeded);
+            if (cleared)
+                _jam.Cleared();
             GunSounds sounds = _definition.Sounds;
             Play(action switch
             {
                 GunAction.Reloading => sounds.ReloadEnd,
-                GunAction.ClearingJam when Feedback == null => sounds.ClearJamEnd,
+                GunAction.ClearingJam when !_jam.HasFeedback => sounds.ClearJamEnd,
                 GunAction.Cycling => sounds.CycleEnd,
                 _ => default,
             });
@@ -346,11 +278,6 @@ namespace Aipocalypse.Core.WeaponSystem
             Play(sounds.Empty.IsValid() ? sounds.Empty : sounds.DryFire);
         }
 
-        // A slap or punch keyed in the repair clip landed.
-        void OnRepairSlapped() => _repairFeedback.Impact(_animation.ImpactIsPunch);
-
-        void OnQteAttempted(QteAttempted attempt) => _repair?.OnAttempted(attempt);
-
         void Play(SoundID sound) => _audio?.Play(sound, _definition.Sounds.Volume);
 
         void UpdatePose(bool sprinting, float deltaTime)
@@ -361,19 +288,13 @@ namespace Aipocalypse.Core.WeaponSystem
             Transform target = sprinting ? _sprintPose : _gun.IsAiming ? _aimPose : _hipPose;
             if (target == null)
                 target = _hipPose;
-            if (target != null)
-            {
-                float speed = sprinting ? handling.SprintPoseSpeed : handling.AimSpeed;
-                float t = Damping.ByRate(speed, deltaTime);
-                _posePosition = Vector3.Lerp(_posePosition, target.localPosition, t);
-                _poseRotation = Quaternion.Slerp(_poseRotation, target.localRotation, t);
-            }
+            _pose.MoveTowards(target, sprinting ? handling.SprintPoseSpeed : handling.AimSpeed, deltaTime);
             ApplyPose();
         }
 
         void ApplyPose()
         {
-            _posePivot.SetLocalPositionAndRotation(_posePosition, _poseRotation);
+            _pose.ApplyTo(_posePivot);
             Vector3 position = _restRecoilPosition + Vector3.back * _recoil.GunKickBack;
             Quaternion rotation = _restRecoilRotation * Quaternion.Euler(_recoil.GunEuler);
             _jolt.Apply(ref position, ref rotation);
@@ -389,17 +310,9 @@ namespace Aipocalypse.Core.WeaponSystem
         }
 
         // Edit-mode preview in the prefab. In play the gun always starts at Hip.
-        [ButtonGroup("Preview"), Button("Hip")] void PreviewHip() => Preview(_hipPose);
-        [ButtonGroup("Preview"), Button("Aim")] void PreviewAim() => Preview(_aimPose);
-        [ButtonGroup("Preview"), Button("Sprint")] void PreviewSprint() => Preview(_sprintPose);
-
-        void Preview(Transform pose)
-        {
-            if (pose == null || _posePivot == null)
-                return;
-            UnityEditor.Undo.RecordObject(_posePivot, "Preview gun pose");
-            _posePivot.SetLocalPositionAndRotation(pose.localPosition, pose.localRotation);
-        }
+        [ButtonGroup("Preview"), Button("Hip")] void PreviewHip() => PoseBlender.Preview(_posePivot, _hipPose);
+        [ButtonGroup("Preview"), Button("Aim")] void PreviewAim() => PoseBlender.Preview(_posePivot, _aimPose);
+        [ButtonGroup("Preview"), Button("Sprint")] void PreviewSprint() => PoseBlender.Preview(_posePivot, _sprintPose);
 #endif
     }
 }

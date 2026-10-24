@@ -636,7 +636,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c0bbff1d5ac5de4aae546db5fbb5754, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.WanderMover
-  _settings: {fileID: 11400000, guid: ab98956e7ea30b548b29f7c3fda4ffcd, type: 2}
 --- !u!114 &294962974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -764,6 +763,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
+  _definition: {fileID: 11400000, guid: 3dfcf4f77e90d4d46afd65a89967a1f9, type: 2}
 --- !u!1 &308460568
 GameObject:
   m_ObjectHideFlags: 0
@@ -1156,6 +1156,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
+  _definition: {fileID: 11400000, guid: 3dfcf4f77e90d4d46afd65a89967a1f9, type: 2}
 --- !u!114 &711111654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1200,7 +1201,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c0bbff1d5ac5de4aae546db5fbb5754, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.WanderMover
-  _settings: {fileID: 11400000, guid: ab98956e7ea30b548b29f7c3fda4ffcd, type: 2}
 --- !u!114 &711111656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2156,6 +2156,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1814161089}
   - component: {fileID: 1814161088}
+  - component: {fileID: 1814161090}
   m_Layer: 0
   m_Name: GameLifetimeScope
   m_TagString: Untagged
@@ -2180,11 +2181,6 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   _strict: 0
-  _navigation: {fileID: 8120023844371401602}
-  _wanderSettings: {fileID: 11400000, guid: ab98956e7ea30b548b29f7c3fda4ffcd, type: 2}
-  _enemies:
-  - {fileID: 294962976}
-  - {fileID: 711111653}
 --- !u!4 &1814161089
 Transform:
   m_ObjectHideFlags: 0
@@ -2200,6 +2196,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1814161090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1814161087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f33d402c165b0184f872b1595c8ddc79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyInstaller
+  _navigation: {fileID: 8120023844371401602}
+  _settings: {fileID: 11400000, guid: 1efb0b1dc230b2c459a2b10969f2ffbe, type: 2}
+  _sceneEnemies:
+  - {fileID: 294962976}
+  - {fileID: 711111653}
+  _sceneSpawners: []
 --- !u!1001 &1819685105
 PrefabInstance:
   m_ObjectHideFlags: 0

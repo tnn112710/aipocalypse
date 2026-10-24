@@ -1,4 +1,5 @@
 using Aipocalypse.Core.QuickTimeSystem;
+using Aipocalypse.Input;
 
 namespace Aipocalypse.Core.Events
 {
@@ -13,7 +14,15 @@ namespace Aipocalypse.Core.Events
     {
         public readonly IQteSession Session;
         public readonly string Presentation;
-        public QteStarted(IQteSession session, string presentation) { Session = session; Presentation = presentation; }
+        // What to press (QteChallenge.Button).
+        public readonly GameButton Button;
+
+        public QteStarted(IQteSession session, string presentation, GameButton button)
+        {
+            Session = session;
+            Presentation = presentation;
+            Button = button;
+        }
     }
 
     public readonly struct QteEnded

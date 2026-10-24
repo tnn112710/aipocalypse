@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using Aipocalypse.Core.Events;
 using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Input;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using MessagePipe;
@@ -11,90 +10,67 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // When the active player's death sequence ends: eyes close, the death menu shows "Loading..." while the respawn is
-    // prepared, then "Click to continue" revives. Any revive (continue, a cheat) puts the screen away.
+    // Presents PlayerRespawnFlow: the eyes close, the death menu shows "Loading..." while the respawn is prepared (at least the
+    // style's MinLoadingTime), "Click to continue" once it's ready, and fades away when the player is back.
     public sealed class DeathScreenHud : PlayerHudView
     {
         [SerializeField] DeathScreenView _view;
 
-        InputService _input;
-        PlayerRespawnService _respawn;
         IDisposable _subscriptions;
-        CancellationTokenSource _flow;
-        bool _menuInput;
+        bool _open;
 
         [Inject]
-        void Construct(InputService input, PlayerRespawnService respawn, ISubscriber<PlayerDeathSequenceEnded> deathEnded,
-            ISubscriber<PlayerRevived> revived)
+        void Construct(IAsyncSubscriber<PlayerRespawnFading> fading, IAsyncSubscriber<PlayerRespawning> respawning,
+            ISubscriber<RespawnStageChanged> stageChanged)
         {
-            _input = input;
-            _respawn = respawn;
-            _subscriptions = DisposableBag.Create(deathEnded.Subscribe(OnDeathSequenceEnded), revived.Subscribe(OnRevived));
+            _subscriptions = DisposableBag.Create(
+                fading.Subscribe(OnFadingAsync),
+                respawning.Subscribe(OnRespawningAsync),
+                stageChanged.Subscribe(OnStageChanged));
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
             _subscriptions?.Dispose();
-            Cancel();
         }
 
-        protected override void Unbind(Player player) => Close(fade: false);
+        protected override void Unbind(IPlayer player) => Close(fade: false);
 
-        void OnDeathSequenceEnded(PlayerDeathSequenceEnded _)
+        async UniTask OnFadingAsync(PlayerRespawnFading _, CancellationToken cancellation)
         {
-            if (Player == null || !Player.IsDead || _flow != null)
+            if (Player == null)
                 return;
-            _flow = new CancellationTokenSource();
-            RunAsync(Player, _flow.Token).Forget();
-        }
-
-        void OnRevived(PlayerRevived _) => Close(fade: true);
-
-        async UniTaskVoid RunAsync(Player player, CancellationToken cancellation)
-        {
-            DeathScreenStyle style = _view.Style;
+            _open = true;
             Tween eyes = _view.CloseEyes();
             await UniTask.WaitWhile(() => eyes.IsActive() && eyes.IsPlaying(), cancellationToken: cancellation);
-
-            _view.SetStatus(style.LoadingText, pulse: false);
+            if (!_open || this == null)
+                return;
+            _view.SetStatus(_view.Style.LoadingText, pulse: false);
             _view.ShowMenu();
-            _input.EnableUI();
-            _menuInput = true;
-            await UniTask.WhenAll(
-                _respawn.PrepareAsync(player, cancellation),
-                UniTask.Delay(TimeSpan.FromSeconds(style.MinLoadingTime), cancellationToken: cancellation));
+        }
 
-            _view.SetStatus(style.ContinueText, pulse: true);
-            await UniTask.WaitUntil(() => _input.UiConfirmPressed, cancellationToken: cancellation);
-            // Revive publishes PlayerRevived, which closes the screen.
-            _respawn.Continue(player);
+        UniTask OnRespawningAsync(PlayerRespawning _, CancellationToken cancellation) => _open
+            ? UniTask.Delay(TimeSpan.FromSeconds(_view.Style.MinLoadingTime), cancellationToken: cancellation)
+            : UniTask.CompletedTask;
+
+        void OnStageChanged(RespawnStageChanged change)
+        {
+            if (change.Stage == RespawnStage.Ready && _open)
+                _view.SetStatus(_view.Style.ContinueText, pulse: true);
+            else if (change.Stage == RespawnStage.None)
+                Close(fade: true);
         }
 
         void Close(bool fade)
         {
-            bool open = _flow != null;
-            Cancel();
-            if (_menuInput)
-            {
-                _input.EnableGameplay();
-                _menuInput = false;
-            }
-            if (!open)
+            if (!_open)
                 return;
+            _open = false;
             if (fade)
                 _view.HideMenu();
             else
                 _view.HideAll();
-        }
-
-        void Cancel()
-        {
-            if (_flow == null)
-                return;
-            _flow.Cancel();
-            _flow.Dispose();
-            _flow = null;
         }
     }
 }

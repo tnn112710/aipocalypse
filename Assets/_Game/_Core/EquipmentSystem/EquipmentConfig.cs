@@ -20,6 +20,12 @@ namespace Aipocalypse.Core.EquipmentSystem
         [field: SerializeField, Range(0.1f, 5f), Tooltip("Multiplies every item's equip and holster speed. 2 = switching takes half as long")]
         public float SwitchSpeed { get; private set; } = 1f;
 
+        [field: SerializeField, EnumToggleButtons, Tooltip("Worn on the belt instead of going into the hotbar: one at a time, works " +
+            "whatever is in the hands")]
+        public ItemCategory BeltAccepts { get; private set; } = ItemCategory.Lantern;
+
+        public Equipment CreateEquipment() => new(CreateHotbar(), BeltAccepts);
+
         [SerializeField, Tooltip("Hotbar slots in key order: slot 1 is key 1. At most 9")]
         [ListDrawerSettings(ShowIndexLabels = true, ListElementLabelName = nameof(SlotConfig.Name))]
         List<SlotConfig> _slots = new();

@@ -23,7 +23,7 @@ namespace Aipocalypse.Tests
             _root.localPosition = new Vector3(0f, 1.65f, 0f);
             _pivot = new GameObject("CameraPitch").transform;
             _pivot.SetParent(_root, false);
-            _player = new PoseSequencePlayer(_body.transform, _root, _pivot, null);
+            _player = new PoseSequencePlayer(_body.transform, new PlayerCameraRig(_root, _pivot, 0f), null);
             _sequence = ScriptableObject.CreateInstance<PoseSequence>();
             Set("Beats", new[] { Beat(1f, 0.3f, new Vector2(0.5f, -1f), -20f, 0f, 1.2f) });
         }

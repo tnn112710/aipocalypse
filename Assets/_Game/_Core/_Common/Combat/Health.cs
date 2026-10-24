@@ -40,5 +40,14 @@ namespace Aipocalypse.Core.Combat
         }
 
         public void Restore() => _current = _max;
+
+        // A new maximum keeps the current share (a +20% max heals 20% too); the dead stay dead.
+        public void SetMax(float max)
+        {
+            float share = Normalized;
+            _max = Mathf.Max(1f, max);
+            if (_current > 0f)
+                _current = Mathf.Max(Mathf.Min(_max, share * _max), 0.01f);
+        }
     }
 }

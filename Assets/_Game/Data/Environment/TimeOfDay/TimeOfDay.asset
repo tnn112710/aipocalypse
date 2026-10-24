@@ -83,9 +83,16 @@ MonoBehaviour:
     NewMoonLight: 0.33333334
     DaylightStartElevation: -6
     DaylightFullElevation: 10
-  DawnLook: 7
-  MorningLook: 9
-  AfternoonLook: 14
-  DuskLook: 17.5
-  EveningLook: 20.5
-  MidnightLook: 0
+  PhaseLooks:
+  - key: 0
+    value: 7
+  - key: 1
+    value: 9
+  - key: 2
+    value: 14
+  - key: 3
+    value: 17.5
+  - key: 4
+    value: 20.5
+  - key: 5
+    value: 0

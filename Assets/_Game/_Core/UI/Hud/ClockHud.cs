@@ -31,7 +31,8 @@ namespace Aipocalypse.Core.UI
             if ((int)phase != _phase && _view.Style != null)
             {
                 _phase = (int)phase;
-                _view.SetPhase(_view.Style.PhaseLabel(phase), _view.Style.PhaseColor(phase));
+                PhaseLabel label = _view.Style.Phase(phase);
+                _view.SetPhase(label.Text, label.Color);
             }
         }
     }

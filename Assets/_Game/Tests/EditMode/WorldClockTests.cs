@@ -92,8 +92,8 @@ namespace Aipocalypse.Tests
         [Test]
         public void PhaseSpeed_ShortensThatPhaseOnly()
         {
-            _settings.Evening = new PhaseTiming(18f, 3f);
-            _settings.Midnight = new PhaseTiming(0f, 3f);
+            _settings.Phases[DayPhase.Evening] = new PhaseTiming(18f, 3f);
+            _settings.Phases[DayPhase.Midnight] = new PhaseTiming(0f, 3f);
 
             // Evening + Midnight are 18:00–06:00 (12 h): 360 s at speed 1, 120 s at speed 3. The other 12 h stay at 360 s.
             Assert.AreEqual(360d + 120d, _settings.RealSecondsPerDay, 1e-3d);
@@ -241,7 +241,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void RealSecondsUntil_CountsPhaseSpeeds()
         {
-            _settings.Evening = new PhaseTiming(18f, 2f);
+            _settings.Phases[DayPhase.Evening] = new PhaseTiming(18f, 2f);
 
             // 07:00 → 18:00 at speed 1 (330 s), 18:00 → 19:00 at speed 2 (15 s).
             Assert.AreEqual(345d, _clock.RealSecondsUntil(19f), 1e-3d);

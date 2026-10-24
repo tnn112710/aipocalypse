@@ -307,9 +307,9 @@ namespace Aipocalypse.Tests
                 Assert.That(Time.timeScale, Is.EqualTo(0.05f), "overlaps keep the longest stop and lowest scale");
                 time.AdvanceHitStop(0.05f);
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
-                time.SetPaused(true);
+                time.RequestPause(this);
                 time.RequestHitStop(0.1f, 0.05f);
-                time.SetPaused(false);
+                time.ReleasePause(this);
                 Assert.That(Time.timeScale, Is.EqualTo(1f), "no hit stop is queued while paused");
             }
             Assert.That(Time.timeScale, Is.EqualTo(scale));
@@ -353,10 +353,10 @@ namespace Aipocalypse.Tests
                 time.Request(qte, 0.2f);
                 time.Request(other, 0.1f);
                 Assert.That(Time.timeScale, Is.EqualTo(0.1f));
-                time.SetPaused(true);
+                time.RequestPause(this);
                 time.Release(qte);
                 Assert.That(Time.timeScale, Is.Zero);
-                time.SetPaused(false);
+                time.ReleasePause(this);
                 Assert.That(Time.timeScale, Is.EqualTo(0.1f));
                 time.Release(other);
                 Assert.That(Time.timeScale, Is.EqualTo(1f));

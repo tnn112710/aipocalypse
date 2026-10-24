@@ -16,23 +16,30 @@ MonoBehaviour:
   MasterSpeed: 1
   StartDay: 1
   StartHour: 7
-  Dawn:
-    Start: 6
-    Speed: 1
-  Morning:
-    Start: 8
-    Speed: 1
-  Afternoon:
-    Start: 12
-    Speed: 1
-  Dusk:
-    Start: 16
-    Speed: 1
-  Evening:
-    Start: 18
-    Speed: 1
-  Midnight:
-    Start: 0
-    Speed: 1
+  Phases:
+  - key: 0
+    value:
+      Start: 6
+      Speed: 1
+  - key: 1
+    value:
+      Start: 8
+      Speed: 1
+  - key: 2
+    value:
+      Start: 12
+      Speed: 1
+  - key: 3
+    value:
+      Start: 16
+      Speed: 1
+  - key: 4
+    value:
+      Start: 18
+      Speed: 1
+  - key: 5
+    value:
+      Start: 0
+      Speed: 1
   MoonCycleDays: 8
   FirstFullMoonDay: 1

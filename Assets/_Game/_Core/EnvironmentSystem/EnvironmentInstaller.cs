@@ -1,25 +1,30 @@
+using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.WorldTimeSystem;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 namespace Aipocalypse.Core.EnvironmentSystem
 {
-    // Scene scope: the scene's EnvironmentDirector (injected, so it finds the clock) and, with a clock, the time-of-day ambience.
-    public sealed class EnvironmentInstaller : IInstaller
+    // Scene system: the scene's EnvironmentDirector (injected, so it finds the clock) and, with the world clock installed, the
+    // time-of-day ambience.
+    public sealed class EnvironmentInstaller : SceneInstaller
     {
-        readonly EnvironmentDirector _director;
-        readonly TimeOfDayAmbience _ambience;
+        [SerializeField, Tooltip("The scene's time-of-day lighting. Follows the clock when there is one")] EnvironmentDirector _director;
+        [SerializeField, Tooltip("Optional: time-of-day sound beds and calls; needs the WorldTimeInstaller")] TimeOfDayAmbience _ambience;
 
-        public EnvironmentInstaller(EnvironmentDirector director, TimeOfDayAmbience ambience)
-        {
-            _director = director;
-            _ambience = ambience;
-        }
+        public override string Problem => _director == null ? "no Environment Director assigned" : null;
 
-        public void Install(IContainerBuilder builder)
+        public override void Install(IContainerBuilder builder)
         {
             builder.RegisterComponent(_director);
             if (_ambience == null)
                 return;
+            if (!TryGetComponent(out WorldTimeInstaller clock) || clock.Problem != null)
+            {
+                Debug.LogWarning($"{name}: the ambience follows the world clock; add a WorldTimeInstaller to play it.", this);
+                return;
+            }
             builder.RegisterInstance(_ambience);
             builder.RegisterEntryPoint<AmbienceService>().AsSelf();
         }

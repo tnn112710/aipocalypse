@@ -104,22 +104,20 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         [BoxGroup("Sun and moon"), HideLabel] public SunPath Path = new();
 
-        [BoxGroup("Phase looks"), Range(0f, 24f), Tooltip("Transition By Phases: the hour whose look, sun and moon Dawn shows. Pick an hour with the sun or moon up, or the phase gets no direct light")] public float DawnLook = 7f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float MorningLook = 9f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float AfternoonLook = 14f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float DuskLook = 17.5f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float EveningLook = 20.5f;
-        [BoxGroup("Phase looks"), Range(0f, 24f)] public float MidnightLook = 0f;
-
-        public float PhaseLookHour(DayPhase phase) => phase switch
+        [BoxGroup("Phase looks"), SerializeField, Tooltip("Transition By Phases: the hour (0–24) whose look, sun and moon each phase shows. " +
+            "Pick an hour with the sun or moon up, or the phase gets no direct light")]
+        public Dictionary<DayPhase, float> PhaseLooks = new()
         {
-            DayPhase.Dawn => DawnLook,
-            DayPhase.Morning => MorningLook,
-            DayPhase.Afternoon => AfternoonLook,
-            DayPhase.Dusk => DuskLook,
-            DayPhase.Evening => EveningLook,
-            _ => MidnightLook,
+            { DayPhase.Dawn, 7f },
+            { DayPhase.Morning, 9f },
+            { DayPhase.Afternoon, 14f },
+            { DayPhase.Dusk, 17.5f },
+            { DayPhase.Evening, 20.5f },
+            { DayPhase.Midnight, 0f },
         };
+
+        // A missing phase shows midnight.
+        public float PhaseLookHour(DayPhase phase) => PhaseLooks.TryGetValue(phase, out float hour) ? Mathf.Clamp(hour, 0f, 24f) : 0f;
 
         public readonly struct Segment
         {

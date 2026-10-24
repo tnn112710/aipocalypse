@@ -13,9 +13,9 @@ namespace Aipocalypse.Core.UI
     {
         PlayerRegistry _players;
         IDisposable _subscription;
-        Player _bound;
+        IPlayer _bound;
 
-        protected Player Player => _bound;
+        protected IPlayer Player => _bound;
 
         [Inject]
         void ConstructPlayerHud(PlayerRegistry players, ISubscriber<ActivePlayerChanged> playerChanged)
@@ -35,14 +35,14 @@ namespace Aipocalypse.Core.UI
             _bound = null;
         }
 
-        protected virtual void Bind(Player player) { }
-        protected virtual void Unbind(Player player) { }
+        protected virtual void Bind(IPlayer player) { }
+        protected virtual void Unbind(IPlayer player) { }
 
         void OnPlayerChanged(ActivePlayerChanged _) => Rebind();
 
         void Rebind()
         {
-            Player next = _players?.Current;
+            IPlayer next = _players?.Current;
             if (ReferenceEquals(next, _bound))
                 return;
 

@@ -60,7 +60,13 @@ namespace Aipocalypse.Tests
         {
             readonly float _sway;
             public FixedSway(float sway) => _sway = sway;
-            public float Get(StatId stat, float baseValue) => stat == StatId.HeldItemSway ? baseValue * _sway : baseValue;
+            public event System.Action Changed
+            {
+                add { }
+                remove { }
+            }
+
+            public float Get(StatId stat, float baseValue) => stat == StatId.HeldItemSwayScale ? baseValue * _sway : baseValue;
         }
 
         const float Frame = 1f / 60f;

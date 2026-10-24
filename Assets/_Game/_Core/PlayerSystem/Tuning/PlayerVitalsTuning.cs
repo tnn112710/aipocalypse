@@ -17,6 +17,9 @@ namespace Aipocalypse.Core.PlayerSystem
         [field: SerializeField, Min(0f), Tooltip("Seconds stamina stays at 0 after running dry before it starts to recover: heavy breathing, slower moves, shakier aim")]
         public float WindedTime { get; private set; } = 2f;
 
+        [field: Header("Out of breath (breath sound, heavier aim sway)"), SerializeField, InlineProperty, HideLabel]
+        public BreathingSettings Breathing { get; private set; } = new();
+
         [field: Header("Fatigue (low stamina)"), SerializeField, InlineProperty, HideLabel]
         public FatigueSettings Fatigue { get; private set; } = new();
 

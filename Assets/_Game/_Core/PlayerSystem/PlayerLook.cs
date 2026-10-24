@@ -3,23 +3,22 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Yaw turns the body, pitch tilts the camera pivot. A view kick (gun recoil) is added on top of the pitch and springs back.
+    // Yaw turns the body, pitch tilts the camera (through the camera rig). A view kick (gun recoil) is added on top of the
+    // pitch and springs back.
     public sealed class PlayerLook
     {
         readonly Transform _body;
-        readonly Transform _pitchPivot;
+        readonly PlayerCameraRig _rig;
         readonly PlayerCameraTuning _tuning;
-        readonly Vector3 _pivotPosition;
         float _pitch;
         ViewKick _kick;
 
-        public PlayerLook(Transform body, Transform pitchPivot, PlayerCameraTuning tuning)
+        public PlayerLook(Transform body, PlayerCameraRig rig, PlayerCameraTuning tuning)
         {
             _body = body;
-            _pitchPivot = pitchPivot;
+            _rig = rig;
             _tuning = tuning;
-            _pitch = Mathf.DeltaAngle(0f, pitchPivot.localEulerAngles.x);
-            _pivotPosition = pitchPivot.localPosition;
+            _pitch = rig.InitialPitch;
         }
 
         // Degrees, positive = down.
@@ -59,10 +58,6 @@ namespace Aipocalypse.Core.PlayerSystem
             Apply();
         }
 
-        void Apply()
-        {
-            _pitchPivot.localRotation = Quaternion.Euler(_pitch, 0f, 0f) * Quaternion.Euler(_kick.Euler);
-            _pitchPivot.localPosition = _pivotPosition + _kick.Offset;
-        }
+        void Apply() => _rig.SetLook(_pitch, _kick);
     }
 }

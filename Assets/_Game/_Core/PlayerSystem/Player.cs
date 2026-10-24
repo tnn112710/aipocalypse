@@ -1,10 +1,12 @@
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.Entities;
 using Aipocalypse.Core.EnvironmentSystem;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
 using Aipocalypse.Core.HandSystem;
 using Aipocalypse.Core.Stats;
+using Aipocalypse.Core.TimeSystem;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
 using MessagePipe;
@@ -16,11 +18,11 @@ using VContainer;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // The player's view: turns input into an intent and drives look → movement → stamina → fatigue and breathing → head motion → interaction → equipment
-    // (switching, then the item in hand: fire, aim, reload) → recoil turn, view kick and zoom → sway and aim (crosshair, model turn) → pose sequence
-    // (death, sitting: takes the camera, movement and hands) → light in the dark, in that order.
+    // The player's view: builds its parts, turns input into an intent and ticks them in order: look → movement → stamina →
+    // fatigue and breathing → head motion → interaction → the item in hand (HeldItemDriver) → pose sequence (death, sitting:
+    // takes the camera, movement and hands) → light in the dark. Life and death live in PlayerLife, move sounds in PlayerFeedback.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class Player : MonoBehaviour, IDamageable, IEquipmentOwner, IGunUser
+    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser
     {
         [SerializeField] PlayerTuning _tuning;
         [SerializeField] CharacterController _controller;
@@ -37,17 +39,13 @@ namespace Aipocalypse.Core.PlayerSystem
         TimeOfDayWeight _darkness;
 
         InputService _input;
+        TimeService _time;
         IStatProvider _stats;
-        DamageService _damage;
-        AudioService _audio;
-        IPublisher<PlayerDied> _died;
-        IPublisher<PlayerDeathSequenceEnded> _deathEnded;
-        IPublisher<PlayerRevived> _revived;
         PlayerRegistry _registry;
-        Vector3 _spawnPosition;
-        Quaternion _spawnRotation;
 
+        PlayerLife _life;
         PlayerMotor _motor;
+        PlayerCameraRig _cameraRig;
         PlayerLook _look;
         PlayerHeadBob _headBob;
         HeldItemSway _heldSway;
@@ -58,8 +56,10 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerBreathSound _breathSound;
         PlayerAim _aim;
         PoseSequencePlayer _sequence;
+        PlayerFeedback _feedback;
+        HeldItemDriver _held;
 
-        [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health { get; private set; }
+        [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public Fatigue Fatigue { get; private set; }
         [ShowInInspector, ReadOnly, HideInEditorMode] public PlayerVision Vision { get; private set; }
@@ -67,70 +67,71 @@ namespace Aipocalypse.Core.PlayerSystem
         public AmmoReserve Ammo { get; private set; }
         public PlayerInteractor Interactor => _interactor;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
-        public bool IsDead => Health != null && Health.IsDead;
+        public bool IsDead => _life != null && _life.IsDead;
         // A pose sequence (dying, sitting…) has the camera and the body until it's stopped.
         public bool InSequence => _sequence != null && _sequence.IsPlaying;
         public PoseSequence CurrentSequence => _sequence?.Current;
         public bool IsSprinting => _motor != null && _motor.IsSprinting;
-        // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
         public Vector2 CrosshairPosition => _aim != null ? _aim.CrosshairPosition : default;
-        // Radius of the held item's spread cone on screen, in the same units.
         public float CrosshairSpread => _aim != null ? _aim.CrosshairSpread : 0f;
+        // Where the player entered the scene; respawns go back there.
+        public Vector3 SpawnPosition => _life != null ? _life.SpawnPosition : transform.position;
 
+        Transform IPlayerTarget.Transform => transform;
         Transform IWeaponUser.Eye => _cameraPitch;
         Transform IWeaponUser.Root => transform;
         AimOrigin IGunUser.AimFrom => _tuning.HeldItem.AimFrom;
-        float IGunUser.AirSpreadScale => _stats.Get(StatId.AirSpread, 1f);
+        float IGunUser.AirSpreadScale => _stats.GetScale(StatId.AirSpreadScale);
         float IGunUser.FatigueRecoilScale => Fatigue.RecoilMultiplier;
         Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
         float IWeaponUser.MeleePower => Fatigue.MeleePower;
 
-        void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.Get(StatId.AttackStaminaCost, 1f));
+        void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.GetScale(StatId.AttackStaminaCostScale));
 
         [Inject]
-        void Construct(InputService input, IStatProvider stats, DamageService damage, AudioService audio, IPublisher<PlayerDied> died,
-            IPublisher<PlayerDeathSequenceEnded> deathEnded, IPublisher<PlayerRevived> revived, PlayerRegistry registry, IObjectResolver resolver)
+        void Construct(InputService input, TimeService time, ControlSettings controls, IStatProvider stats, DamageService damage, AudioService audio,
+            IPublisher<PlayerDied> died, IPublisher<PlayerDeathSequenceEnded> deathEnded, IPublisher<PlayerRevived> revived, PlayerRegistry registry,
+            IObjectResolver resolver)
         {
             _input = input;
-            _registry = registry;
+            _time = time;
             _stats = stats;
-            _damage = damage;
-            _audio = audio;
-            _died = died;
-            _deathEnded = deathEnded;
-            _revived = revived;
-            _spawnPosition = transform.position;
-            _spawnRotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+            _registry = registry;
 
-            Health = new Health(stats.Get(StatId.MaxHealth, _tuning.Vitals.MaxHealth));
-            Stamina = new Stamina(stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina), _tuning.Vitals.StaminaRegenDelay,
-                _tuning.Vitals.ExhaustionRecoverFraction, _tuning.Vitals.WindedTime);
-            Fatigue = new Fatigue(_tuning.Vitals.Fatigue);
-            _breathing = new PlayerBreathing(_tuning.Sounds.Breathing);
+            PlayerVitalsTuning vitals = _tuning.Vitals;
+            _life = new PlayerLife(this, transform, stats.Get(StatId.MaxHealth, vitals.MaxHealth), vitals, damage, died, deathEnded, revived);
+            Stamina = new Stamina(stats.Get(StatId.MaxStamina, vitals.MaxStamina), vitals.StaminaRegenDelay, vitals.ExhaustionRecoverFraction, vitals.WindedTime);
+            Fatigue = new Fatigue(vitals.Fatigue);
+            _breathing = new PlayerBreathing(vitals.Breathing);
             _breathSound = new PlayerBreathSound(audio, _tuning.Sounds);
             _motor = new PlayerMotor(_controller, _tuning.Movement, stats, Stamina);
-            _look = new PlayerLook(transform, _cameraPitch, _tuning.Camera);
-            _headBob = new PlayerHeadBob(_cameraRoot, _tuning.Camera);
+            _cameraRig = new PlayerCameraRig(_cameraRoot, _cameraPitch, _tuning.Camera.EyeHeight);
+            _look = new PlayerLook(transform, _cameraRig, _tuning.Camera);
+            _headBob = new PlayerHeadBob(_cameraRig, _tuning.Camera);
             _heldSway = new HeldItemSway(_tuning.HeldItem.HeldSway, _tuning.HeldItem.AimSway, stats);
-            _zoom = new PlayerZoom(_camera, _firstPersonView);
+            _zoom = new PlayerZoom(_camera, _firstPersonView, controls);
             _aim = new PlayerAim(_equipmentRig, _zoom);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);
             if (_visionLight != null && _tuning.Vision != null)
                 Vision = new PlayerVision(_visionLight, _tuning.Vision);
-            _sequence = new PoseSequencePlayer(transform, _cameraRoot, _cameraPitch, audio);
-            _sequence.Ended += OnSequenceEnded;
+            _sequence = new PoseSequencePlayer(transform, _cameraRig, audio);
+            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds);
 
-            _motor.Jumped += OnJumped;
-            _motor.Landed += OnLanded;
-            _headBob.Stepped += OnStepped;
+            _life.Died += OnDied;
+            _life.Reviving += OnReviving;
+            _sequence.Ended += OnSequenceEnded;
+            _motor.Landed += _life.OnLanded;
+            _stats.Changed += OnStatsChanged;
             Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
 
             if (_equipmentConfig != null && _equipmentRig != null)
             {
-                Equipment = new Equipment(_equipmentConfig.CreateHotbar());
+                Equipment = _equipmentConfig.CreateEquipment();
                 Equipment.EquipFirstImmediately();
                 _equipmentRig.Bind(Equipment, this, resolver);
+                _held = new HeldItemDriver(transform, Equipment, _equipmentRig, _equipmentConfig, _tuning, _motor, _look, _headBob, _zoom, _heldSway,
+                    _aim, _heldClearance, _interactor, Stamina, Fatigue, _breathing, _hands);
             }
             else
             {
@@ -150,8 +151,9 @@ namespace Aipocalypse.Core.PlayerSystem
         void Update()
         {
             float deltaTime = Time.deltaTime;
-            _breathSound?.SetPaused(deltaTime <= 0f);
-            _sequence?.SetPaused(deltaTime <= 0f);
+            bool paused = _time != null && _time.IsPaused;
+            _breathSound?.SetPaused(paused);
+            _sequence?.SetPaused(paused);
             if (_motor == null || deltaTime <= 0f)
                 return;
 
@@ -166,7 +168,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond), _motor.IsIdle);
-            Fatigue.Tick(Stamina.Normalized, _stats.Get(StatId.FatiguePenalty, 1f), deltaTime, Stamina.IsWinded);
+            Fatigue.Tick(Stamina.Normalized, _stats.GetScale(StatId.FatiguePenaltyScale), deltaTime, Stamina.IsWinded);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
             _breathSound.Tick(_breathing, IsDead);
             if (!inSequence)
@@ -175,8 +177,8 @@ namespace Aipocalypse.Core.PlayerSystem
                 _interactor.Tick(intent.Interact);
             else
                 _interactor.Clear();
-            TickEquipment(intent, deltaTime);
-            // After equipment, so the sequence's camera and field of view win over the held item's kick and zoom.
+            _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
+            // After the held item, so the sequence's camera and field of view win over its kick and zoom.
             if (inSequence)
             {
                 Vector2 look = !IsDead && _input.GameplayEnabled ? _input.ReadLookDegrees(deltaTime) : default;
@@ -191,11 +193,13 @@ namespace Aipocalypse.Core.PlayerSystem
         void OnDestroy()
         {
             _registry?.Unregister(this);
-            if (_motor != null)
+            if (_life != null)
             {
-                _motor.Jumped -= OnJumped;
-                _motor.Landed -= OnLanded;
-                _headBob.Stepped -= OnStepped;
+                _life.Died -= OnDied;
+                _life.Reviving -= OnReviving;
+                _motor.Landed -= _life.OnLanded;
+                _stats.Changed -= OnStatsChanged;
+                _feedback.Dispose();
             }
             _breathSound?.Stop();
             if (_sequence != null)
@@ -206,33 +210,17 @@ namespace Aipocalypse.Core.PlayerSystem
             Equipment?.Dispose();
         }
 
-        public DamageResult TakeDamage(in DamageInfo info)
-        {
-            if (Health == null)
-                return default;
-            float applied = Health.Damage(info.Amount);
-            bool killed = applied > 0f && Health.IsDead;
-            if (killed)
-                Die(info.Type);
-            return new DamageResult(applied, killed);
-        }
+        // Hurt through DamageService.Deal, never directly.
+        DamageResult IDamageable.TakeDamage(in DamageInfo info) => _life != null ? _life.TakeDamage(info) : default;
 
         [Button, HideInEditorMode]
-        public void Revive()
+        public void Revive() => _life?.Revive();
+
+        public void MoveToSpawn()
         {
-            Health?.Restore();
-            Stamina?.Restore();
-            Fatigue?.Reset();
-            _breathing?.Reset();
-            StopSequence();
-            _revived?.Publish(new PlayerRevived(transform.position));
+            if (_life != null)
+                _motor.Teleport(_life.SpawnPosition, _life.SpawnRotation);
         }
-
-        // Where the player entered the scene; respawns go back there.
-        public Vector3 SpawnPosition => _spawnPosition;
-
-        // Teleports the body to the spawn point (a running sequence keeps the camera, now relative to the new spot).
-        public void MoveToSpawn() => _motor?.Teleport(_spawnPosition, _spawnRotation);
 
         // Hands the camera and body to a scripted moment (dying, sitting on a bench…). Anchor-placed sequences need `anchor`.
         public void PlaySequence(PoseSequence sequence, Transform anchor = null)
@@ -259,16 +247,23 @@ namespace Aipocalypse.Core.PlayerSystem
                 Equipment.RaiseHands();
         }
 
-        void Die(DamageType cause)
+        void OnDied(DamageType cause) => PlaySequence(_tuning.DeathSequence);
+
+        void OnReviving()
         {
-            PlaySequence(_tuning.DeathSequence);
-            _died.Publish(new PlayerDied(transform.position, cause));
+            Stamina.Restore();
+            Fatigue.Reset();
+            _breathing.Reset();
+            StopSequence();
         }
 
-        void OnSequenceEnded(PoseSequence sequence)
+        void OnSequenceEnded(PoseSequence sequence) => _life.OnDeathSequenceEnded();
+
+        // A perk or buff changed: maxima are cached in the meters, so they're read again.
+        void OnStatsChanged()
         {
-            if (sequence == _tuning.DeathSequence)
-                _deathEnded.Publish(new PlayerDeathSequenceEnded(transform.position));
+            Health.SetMax(_stats.Get(StatId.MaxHealth, _tuning.Vitals.MaxHealth));
+            Stamina.SetMax(_stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina));
         }
 
         [Button, HideInEditorMode]
@@ -291,68 +286,6 @@ namespace Aipocalypse.Core.PlayerSystem
             Reload = _input.ReloadPressed,
         };
 
-        void TickEquipment(in PlayerIntent intent, float deltaTime)
-        {
-            if (Equipment == null)
-                return;
-
-            if (intent.Drop)
-                DropSelected();
-            else if (intent.SelectSlot is int slot)
-                Equipment.Select(slot);
-            else if (intent.CycleSlot != 0)
-                Equipment.Cycle(intent.CycleSlot);
-
-            Equipment.Tick(deltaTime, _equipmentConfig.SwitchSpeed);
-            _equipmentRig.Tick();
-            _equipmentRig.TickHeld(new HeldItemInput
-            {
-                UseHeld = intent.Fire,
-                UsePressed = intent.FirePressed,
-                AimHeld = intent.Aim,
-                ReloadPressed = intent.Reload,
-                IsSprinting = _motor.IsSprinting,
-                IsMoving = _motor.HorizontalVelocity.sqrMagnitude > _tuning.HeldItem.MovingSpeed * _tuning.HeldItem.MovingSpeed,
-                IsAirborne = !_motor.IsGrounded,
-            }, deltaTime);
-
-            HeldItem held = _equipmentRig.Current;
-            if (held != null)
-                _look.Turn(held.LookTurn);
-            _look.SetKick(held != null ? held.ViewKick : default);
-            // Before the sway: the model's aim turn depends on this frame's zoom.
-            _zoom.Tick(held != null ? held.Zoom : 1f);
-            TickHeldSway(intent, held, deltaTime);
-            _motor.SpeedMultiplier = (held != null && held.IsAiming ? _tuning.HeldItem.AimMoveSpeedMultiplier : 1f) * Fatigue.MoveSpeed;
-            // Apply the obstacle pose before shots use the final muzzle position.
-            _heldClearance.Tick(held, deltaTime);
-            if (held != null)
-                held.LateTick();
-            if (_hands != null)
-                _hands.Tick(held != null ? held.Hands : null);
-        }
-
-        void TickHeldSway(in PlayerIntent intent, HeldItem held, float deltaTime)
-        {
-            Vector3 velocity = transform.InverseTransformDirection(_motor.HorizontalVelocity);
-            velocity.y = _motor.IsGrounded ? 0f : _motor.VerticalVelocity;
-            _heldSway.Tick(new HeldSwayInput
-            {
-                LookDegrees = intent.LookDegrees,
-                LocalVelocity = velocity,
-                IsAirborne = !_motor.IsGrounded,
-                BobPhase = _headBob.Phase,
-                BobIntensity = _headBob.Intensity,
-                SprintBlend = _headBob.SprintBlend,
-                AimWeight = held != null ? held.AimWeight : 0f,
-                IsAiming = held != null && held.IsAiming,
-                Tiredness = _breathing.Tiredness,
-                IsWinded = Stamina.IsWinded,
-            }, deltaTime);
-            _equipmentRig.ApplyHandMotion(_heldSway.Position, _heldSway.Rotation);
-            _aim.Tick(_heldSway.AimRotation, held != null ? held.Spread : 0f);
-        }
-
         void TickVision(float deltaTime)
         {
             if (Vision == null)
@@ -360,33 +293,6 @@ namespace Aipocalypse.Core.PlayerSystem
             float darkness = _darkness != null ? Mathf.Max(0f, _darkness.Weight) : 0f;
             var lantern = Equipment?.Belt?.Definition as LanternDefinition;
             Vision.Tick(darkness, _stats.Get(StatId.VisionRadius, _tuning.Vision.Radius), lantern, Time.time, deltaTime);
-        }
-
-        void DropSelected()
-        {
-            ItemInstance item = Equipment.DropSelected();
-            if (item != null)
-                WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, transform.eulerAngles.y + _tuning.Interaction.DropYaw, 0f), null);
-        }
-
-        void OnStepped() => _audio.Play(_tuning.Sounds.FootstepSound, _motor.IsSprinting ? 1f : _tuning.Sounds.WalkStepVolume);
-
-        void OnJumped()
-        {
-            _heldSway.OnJumped();
-            _audio.Play(_tuning.Sounds.JumpSound);
-        }
-
-        void OnLanded(LandingInfo landing)
-        {
-            _headBob.OnLanded(landing.ImpactSpeed);
-            _heldSway.OnLanded(landing.ImpactSpeed);
-            if (landing.ImpactSpeed >= _tuning.Sounds.LandingSoundMinSpeed)
-                _audio.Play(_tuning.Sounds.LandSound, Mathf.Clamp01(landing.ImpactSpeed / _tuning.Sounds.LandingSoundFullSpeed));
-
-            float damage = FallDamage.For(landing.DropHeight, _tuning.Vitals.SafeFallHeight, _tuning.Vitals.LethalFallHeight, Health.Max);
-            if (damage > 0f)
-                _damage.Deal(this, new DamageInfo(damage, DamageType.Fall, landing.Point, default, gameObject));
         }
 
         void Reset() => _controller = GetComponent<CharacterController>();

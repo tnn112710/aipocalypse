@@ -39,19 +39,20 @@ namespace Aipocalypse.Core.UI
             Refresh();
         }
 
-        // Infinite reserve shows the magazine only. `warning`: empty magazine or jammed.
-        public void SetAmmo(int rounds, int reserve, bool infiniteReserve, bool warning)
+        // "count" or "count/reserve" (rounds over the ammo left, a stack's size). `warning`: empty magazine or jammed.
+        public void SetBadge(int count, int reserve, bool showReserve, bool warning)
         {
             if (_ammoLabel == null)
                 return;
             _ammoLabel.enabled = true;
-            if (rounds != _shownRounds || infiniteReserve != _shownInfinite || (!infiniteReserve && reserve != _shownReserve))
+            bool infiniteReserve = !showReserve;
+            if (count != _shownRounds || infiniteReserve != _shownInfinite || (!infiniteReserve && reserve != _shownReserve))
             {
                 if (infiniteReserve)
-                    _ammoLabel.SetText("{0}", (float)rounds);
+                    _ammoLabel.SetText("{0}", (float)count);
                 else
-                    _ammoLabel.SetText("{0}/{1}", (float)rounds, (float)reserve);
-                _shownRounds = rounds;
+                    _ammoLabel.SetText("{0}/{1}", (float)count, (float)reserve);
+                _shownRounds = count;
                 _shownReserve = reserve;
                 _shownInfinite = infiniteReserve;
             }
@@ -62,7 +63,7 @@ namespace Aipocalypse.Core.UI
             }
         }
 
-        public void HideAmmo()
+        public void HideBadge()
         {
             if (_ammoLabel != null)
                 _ammoLabel.enabled = false;

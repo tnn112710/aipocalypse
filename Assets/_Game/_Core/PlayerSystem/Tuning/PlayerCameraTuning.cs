@@ -5,6 +5,9 @@ namespace Aipocalypse.Core.PlayerSystem
     [CreateAssetMenu(fileName = "PlayerCameraTuning", menuName = "Aipocalypse/Player/Camera Tuning")]
     public sealed class PlayerCameraTuning : ScriptableObject
     {
+        [field: Header("Eye"), SerializeField, Min(0.1f), Tooltip("Camera height above the feet (m) when standing")]
+        public float EyeHeight { get; private set; } = 1.65f;
+
         [field: Header("Look (degrees)"), SerializeField, Range(-90f, 0f)] public float MinPitch { get; private set; } = -85f;
         [field: SerializeField, Range(0f, 90f)] public float MaxPitch { get; private set; } = 85f;
 

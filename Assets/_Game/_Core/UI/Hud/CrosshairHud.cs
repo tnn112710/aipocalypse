@@ -1,5 +1,6 @@
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.PlayerSystem;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,10 +16,7 @@ namespace Aipocalypse.Core.UI
         [SerializeField, Tooltip("Moved each frame; parent of the dot and the hit marker")] RectTransform _crosshair;
         [SerializeField, Tooltip("Faded while aiming down sights or sprinting")] Graphic _dot;
         [SerializeField, Tooltip("Up, right, down, left: pushed out to the spread cone's edge")] Graphic[] _spreadTicks;
-        [SerializeField, Min(0f), Tooltip("Pixels: ticks hide when the cone is smaller than this")] float _minSpread = 8f;
-        [SerializeField, Min(0.1f), Tooltip("Pixels over which the ticks fade in past the minimum")] float _spreadFade = 6f;
-        [SerializeField, Min(0.1f), Tooltip("How fast the ticks follow the spread")] float _spreadSpeed = 20f;
-        [SerializeField, Min(0.1f), Tooltip("Alpha per second when sprinting starts or stops")] float _fadeSpeed = 8f;
+        [SerializeField, InlineEditor, Tooltip("How the dot and the spread ticks fade and follow")] CrosshairStyle _style;
 
         RectTransform _canvas;
         Vector2 _position;
@@ -30,11 +28,16 @@ namespace Aipocalypse.Core.UI
 
         void Awake()
         {
+            if (_style == null)
+            {
+                Debug.LogWarning($"{name}: no CrosshairStyle assigned; using defaults.", this);
+                _style = ScriptableObject.CreateInstance<CrosshairStyle>();
+            }
             Canvas canvas = _crosshair.GetComponentInParent<Canvas>();
             _canvas = canvas != null ? canvas.rootCanvas.transform as RectTransform : null;
         }
 
-        protected override void Unbind(Player player)
+        protected override void Unbind(IPlayer player)
         {
             _sprintAlpha = 1f;
             _spread = 0f;
@@ -45,7 +48,7 @@ namespace Aipocalypse.Core.UI
         // Polled after Player.Update, which places the aim sway for this frame.
         void LateUpdate()
         {
-            Player player = Player;
+            IPlayer player = Player;
             if (player == null || _canvas == null)
                 return;
 
@@ -53,12 +56,12 @@ namespace Aipocalypse.Core.UI
             HeldItem held = player.HeldItem;
             float aimed = held != null ? held.AimWeight : 0f;
             float deltaTime = Time.unscaledDeltaTime;
-            _sprintAlpha = Mathf.MoveTowards(_sprintAlpha, player.IsSprinting ? 0f : 1f, _fadeSpeed * deltaTime);
+            _sprintAlpha = Mathf.MoveTowards(_sprintAlpha, player.IsSprinting ? 0f : 1f, _style.FadeSpeed * deltaTime);
             float alpha = Mathf.Min(_sprintAlpha, 1f - aimed);
             Show(player.CrosshairPosition * pixels, alpha);
 
-            _spread = Mathf.Lerp(_spread, player.CrosshairSpread * pixels, Damping.ByRate(_spreadSpeed, deltaTime));
-            ShowSpread(_spread, alpha * Mathf.Clamp01((_spread - _minSpread) / _spreadFade));
+            _spread = Mathf.Lerp(_spread, player.CrosshairSpread * pixels, Damping.ByRate(_style.SpreadSpeed, deltaTime));
+            ShowSpread(_spread, alpha * Mathf.Clamp01((_spread - _style.MinSpread) / _style.SpreadFade));
         }
 
         void Show(Vector2 position, float alpha)

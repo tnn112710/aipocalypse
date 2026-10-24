@@ -1,21 +1,26 @@
 using Opsive.BehaviorDesigner.Runtime;
-using Pathfinding;
 using UnityEngine;
 using VContainer;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // An enemy's bridge to the enemy system: injected once (by the scene scope when placed, by its spawner when spawned),
-    // it starts its Manual-mode tree and joins the EnemyRegistry while enabled; EnemyManager ticks it from there.
-    [RequireComponent(typeof(BehaviorTree), typeof(WanderMover))]
+    // An enemy's bridge to the enemy system: injected once (scene-placed ones by the EnemyInstaller, spawned ones by their
+    // EnemySpawner), it starts its Manual-mode tree and joins the EnemyRegistry while enabled; EnemyManager ticks it from there.
+    // What kind of enemy it is (speed, behaviour tuning) is its EnemyDefinition.
+    [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
     public sealed class EnemyBrain : MonoBehaviour
     {
+        [SerializeField, Tooltip("This enemy's kind: Content/Enemies/<Name>/<Name>.asset")] EnemyDefinition _definition;
+
         EnemyRegistry _registry;
         AstarPath _navigation;
-        WanderMover _mover;
+        EnemyMover _mover;
         bool _started;
 
+        public EnemyDefinition Definition => _definition;
         public BehaviorTree Tree { get; private set; }
+        // Where the current walk goes; set by the task that chooses it.
+        public Vector3 Destination { get; set; }
         // Slot in the registry's list; -1 while not registered.
         internal int RegistryIndex { get; set; } = -1;
 
@@ -31,18 +36,20 @@ namespace Aipocalypse.Core.EnemySystem
         // First activation waits for Start, so the FollowerEntity and tree have woken up.
         void Start()
         {
-            _mover = GetComponent<WanderMover>();
+            _mover = GetComponent<EnemyMover>();
             Tree = GetComponent<BehaviorTree>();
             _started = true;
-            if (_registry != null)
+            if (_definition == null)
+                Debug.LogError($"{name}: no EnemyDefinition assigned.", this);
+            else if (_registry != null)
                 Activate();
             else
-                Debug.LogError($"{name}: not injected; list it in the scene's GameLifetimeScope or spawn it through the resolver.", this);
+                Debug.LogError($"{name}: not injected; save the scene so its EnemyInstaller lists it, or spawn it through an EnemySpawner.", this);
         }
 
         void OnEnable()
         {
-            if (_started && _registry != null)
+            if (_started && _registry != null && _definition != null)
                 Activate();
         }
 
@@ -59,7 +66,7 @@ namespace Aipocalypse.Core.EnemySystem
         {
             if (RegistryIndex >= 0)
                 return;
-            _mover.Initialize(_navigation);
+            _mover.Initialize(_navigation, _definition);
             Tree.StartBehavior();
             _registry.Add(this);
         }

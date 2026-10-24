@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
-    // Everything that makes one melee weapon swing the way it does. How the swing looks is on its held prefab.
+    // Everything that makes one melee weapon swing the way it does. The pose markers it swings between are on its held prefab.
     [CreateAssetMenu(fileName = "Melee", menuName = "Aipocalypse/Items/Melee")]
     public sealed class MeleeDefinition : EquippableDefinition
     {

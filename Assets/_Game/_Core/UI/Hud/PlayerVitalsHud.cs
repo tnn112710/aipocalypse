@@ -12,7 +12,7 @@ namespace Aipocalypse.Core.UI
         // Polled after Player.Update: two bars, and StatBar ignores unchanged values.
         void LateUpdate()
         {
-            Player player = Player;
+            IPlayer player = Player;
             if (player == null || player.Health == null)
                 return;
 

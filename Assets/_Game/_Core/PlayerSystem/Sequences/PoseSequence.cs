@@ -33,6 +33,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public float HandheldOffset { get; private set; }
         [field: SerializeField, Min(0.01f), Tooltip("How fast it wanders (about cycles per second)")]
         public float HandheldSpeed { get; private set; } = 0.35f;
+        [field: SerializeField, Min(0.01f), Tooltip("Seconds the wander takes to build up from the start")]
+        public float HandheldFadeIn { get; private set; } = 0.25f;
 
         [field: Header("Settled (last beat reached)"), SerializeField, Tooltip("Free look around the last pose (degrees): x = pitch, y = yaw. 0 = locked")]
         public Vector2 LookRange { get; private set; }
@@ -41,6 +43,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public Vector2 DriftAmplitude { get; private set; }
         [field: SerializeField, Min(0.1f), Tooltip("Seconds per drift circle")]
         public float DriftPeriod { get; private set; } = 14f;
+        [field: SerializeField, Min(0.01f), Tooltip("Seconds the drift takes to build up, from the start of the last beat's move")]
+        public float DriftFadeIn { get; private set; } = 2f;
         [field: SerializeField, Tooltip("Seconds after settling until the sequence counts as ended (a fade, a respawn…). Negative = never")]
         public float EndAfter { get; private set; } = -1f;
 
@@ -73,7 +77,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [Tooltip("Positive = down")] public float Pitch;
         public float Yaw;
         [Tooltip("Positive = head tilts left, negative = right")] public float Roll;
-        [Range(0.5f, 1.5f), Tooltip("World field of view multiplier reached at the end of the move")]
+        [Range(0.5f, PlayerZoom.MaxScale), Tooltip("World field of view multiplier reached at the end of the move")]
         public float FovScale = 1f;
         [Min(0f), Tooltip("Seconds held after arriving (Continuous: extra time before the next beat; the eye keeps moving)")] public float Hold;
         [Tooltip("When the move starts")] public SoundID StartSound;

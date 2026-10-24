@@ -1,4 +1,5 @@
 using System;
+using Aipocalypse.Core.Combat;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -75,6 +76,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("0 = flies straight, 1 = normal gravity")] public float GravityScale;
         [Tooltip("What bullets and the crosshair's aim ray can hit. Leave out Debris (dropped magazines) and HeldWeapon")]
         public LayerMask HitLayers = Physics.DefaultRaycastLayers;
+        [Tooltip("What its hits count as (resistances, hit reactions, kill credit)")]
+        public DamageType DamageType = DamageType.Gunshot;
     }
 
     [Serializable]

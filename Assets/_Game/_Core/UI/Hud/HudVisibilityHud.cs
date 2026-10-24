@@ -30,8 +30,8 @@ namespace Aipocalypse.Core.UI
             _fade?.Kill();
         }
 
-        protected override void Bind(Player player) => Show(!player.IsDead, instant: true);
-        protected override void Unbind(Player player) => Show(true, instant: true);
+        protected override void Bind(IPlayer player) => Show(!player.IsDead, instant: true);
+        protected override void Unbind(IPlayer player) => Show(true, instant: true);
 
         void Refresh()
         {

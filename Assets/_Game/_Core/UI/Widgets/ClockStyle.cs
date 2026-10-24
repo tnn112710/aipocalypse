@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -5,6 +7,19 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.UI
 {
+    [Serializable]
+    public struct PhaseLabel
+    {
+        public string Text;
+        public Color Color;
+
+        public PhaseLabel(string text, Color color)
+        {
+            Text = text;
+            Color = color;
+        }
+    }
+
     // Everything the HUD clock looks like. Sizes and placement stay in the HUD prefab (SafeFrame/TopRight/Clock).
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Clock Style", fileName = "ClockStyle")]
     public sealed class ClockStyle : ScriptableObject
@@ -25,38 +40,19 @@ namespace Aipocalypse.Core.UI
         public Sprite BackingSprite;
         [BoxGroup("Backing")] public Color BackingColor = new(0f, 0f, 0f, 0.45f);
 
-        [BoxGroup("Phases")] public string DawnLabel = "Dawn";
-        [BoxGroup("Phases")] public Color DawnColor = new(1f, 0.72f, 0.66f, 1f);
-        [BoxGroup("Phases")] public string MorningLabel = "Morning";
-        [BoxGroup("Phases")] public Color MorningColor = new(1f, 0.86f, 0.45f, 1f);
-        [BoxGroup("Phases")] public string AfternoonLabel = "Afternoon";
-        [BoxGroup("Phases")] public Color AfternoonColor = new(1f, 0.76f, 0.4f, 1f);
-        [BoxGroup("Phases")] public string DuskLabel = "Dusk";
-        [BoxGroup("Phases")] public Color DuskColor = new(1f, 0.56f, 0.32f, 1f);
-        [BoxGroup("Phases")] public string EveningLabel = "Evening";
-        [BoxGroup("Phases")] public Color EveningColor = new(0.72f, 0.7f, 1f, 1f);
-        [BoxGroup("Phases")] public string MidnightLabel = "Midnight";
-        [BoxGroup("Phases")] public Color MidnightColor = new(0.62f, 0.74f, 1f, 1f);
-
-        public string PhaseLabel(DayPhase phase) => phase switch
+        [BoxGroup("Phases"), SerializeField, Tooltip("Name and colour shown for each DayPhase")]
+        public Dictionary<DayPhase, PhaseLabel> Phases = new()
         {
-            DayPhase.Dawn => DawnLabel,
-            DayPhase.Morning => MorningLabel,
-            DayPhase.Afternoon => AfternoonLabel,
-            DayPhase.Dusk => DuskLabel,
-            DayPhase.Evening => EveningLabel,
-            _ => MidnightLabel,
+            { DayPhase.Dawn, new PhaseLabel("Dawn", new Color(1f, 0.72f, 0.66f, 1f)) },
+            { DayPhase.Morning, new PhaseLabel("Morning", new Color(1f, 0.86f, 0.45f, 1f)) },
+            { DayPhase.Afternoon, new PhaseLabel("Afternoon", new Color(1f, 0.76f, 0.4f, 1f)) },
+            { DayPhase.Dusk, new PhaseLabel("Dusk", new Color(1f, 0.56f, 0.32f, 1f)) },
+            { DayPhase.Evening, new PhaseLabel("Evening", new Color(0.72f, 0.7f, 1f, 1f)) },
+            { DayPhase.Midnight, new PhaseLabel("Midnight", new Color(0.62f, 0.74f, 1f, 1f)) },
         };
 
-        public Color PhaseColor(DayPhase phase) => phase switch
-        {
-            DayPhase.Dawn => DawnColor,
-            DayPhase.Morning => MorningColor,
-            DayPhase.Afternoon => AfternoonColor,
-            DayPhase.Dusk => DuskColor,
-            DayPhase.Evening => EveningColor,
-            _ => MidnightColor,
-        };
+        // A missing phase shows its enum name in the day colour.
+        public PhaseLabel Phase(DayPhase phase) => Phases.TryGetValue(phase, out PhaseLabel label) ? label : new PhaseLabel(phase.ToString(), DayColor);
 
 #if UNITY_EDITOR
         // Edit-time preview only: clocks re-apply their style in Awake.

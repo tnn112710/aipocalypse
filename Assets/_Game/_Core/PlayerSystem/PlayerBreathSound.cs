@@ -4,6 +4,17 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
+    [System.Serializable]
+    public sealed class BreathSoundSettings
+    {
+        [Range(0f, 1f), Tooltip("Breath volume just under the breathing threshold; full at 0 / exhausted")]
+        public float MinVolume = 0.4f;
+        [Min(0f), Tooltip("Seconds the breath loop fades in when heavy breathing starts")]
+        public float FadeIn = 0.4f;
+        [Min(0f), Tooltip("Seconds it fades out once you've caught your breath")]
+        public float FadeOut = 1.5f;
+    }
+
     // Loops the breath sound while out of breath, louder the more tired, and pauses it while time is stopped (a loop
     // would otherwise keep playing over the pause menu).
     public sealed class PlayerBreathSound
@@ -38,14 +49,14 @@ namespace Aipocalypse.Core.PlayerSystem
         // `breathing` null or inactive (or `silent`) fades the loop out.
         public void Tick(PlayerBreathing breathing, bool silent)
         {
-            BreathingSettings settings = _tuning.Breathing;
+            BreathSoundSettings settings = _tuning.Breath;
             if (breathing == null || !breathing.IsActive || silent)
             {
                 Stop(settings.FadeOut);
                 return;
             }
 
-            float volume = breathing.Volume;
+            float volume = VolumeFor(breathing.Tiredness, settings.MinVolume);
             if (_loop == null || !_loop.IsActive)
             {
                 _loop = _audio?.Start(_tuning.BreathSound, volume, settings.FadeIn);
@@ -57,6 +68,8 @@ namespace Aipocalypse.Core.PlayerSystem
                 _volume = volume;
             }
         }
+
+        public static float VolumeFor(float tiredness, float minVolume) => Mathf.Lerp(minVolume, 1f, tiredness);
 
         public void Stop(float fadeOut = 0f)
         {

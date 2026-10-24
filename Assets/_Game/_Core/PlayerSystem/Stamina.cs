@@ -69,6 +69,14 @@ namespace Aipocalypse.Core.PlayerSystem
                 _exhausted = false;
         }
 
+        // A new maximum keeps the current share.
+        public void SetMax(float max)
+        {
+            float share = Normalized;
+            _max = Mathf.Max(1f, max);
+            _current = share * _max;
+        }
+
         public void Restore()
         {
             _current = _max;

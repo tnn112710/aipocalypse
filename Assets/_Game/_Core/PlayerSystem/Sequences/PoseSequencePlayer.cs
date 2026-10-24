@@ -6,21 +6,18 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Plays a PoseSequence on the player's camera: moves the camera root through the beats (the look pitch is folded into
-    // it), then holds the last pose with free look and drift until Stop; the handheld wander runs throughout. Beats are
-    // placed once, at Play.
+    // Plays a PoseSequence on the player's camera (overriding the camera rig): moves the eye through the beats (the look
+    // pitch is folded into it), then holds the last pose with free look and drift until Stop; the handheld wander runs
+    // throughout. Beats are placed once, at Play.
     public sealed class PoseSequencePlayer
     {
         const float GroundProbeUp = 1.5f;
         const float GroundProbeDown = 4f;
-        const float SettleFadeIn = 2f;
-        const float HandheldFadeIn = 0.25f;
         // Position xyz, euler xyz, field of view: what a pose interpolates.
         const int Channels = 7;
 
         readonly Transform _body;
-        readonly Transform _root;
-        readonly Transform _pitchPivot;
+        readonly PlayerCameraRig _rig;
         readonly AudioService _audio;
         readonly RaycastHit[] _hits = new RaycastHit[8];
 
@@ -73,11 +70,10 @@ namespace Aipocalypse.Core.PlayerSystem
         // Field of view multiplier for the world camera (1 = normal).
         public float FovScale { get; private set; } = 1f;
 
-        public PoseSequencePlayer(Transform body, Transform cameraRoot, Transform cameraPitch, AudioService audio)
+        public PoseSequencePlayer(Transform body, PlayerCameraRig rig, AudioService audio)
         {
             _body = body;
-            _root = cameraRoot;
-            _pitchPivot = cameraPitch;
+            _rig = rig;
             _audio = audio;
         }
 
@@ -113,7 +109,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _segmentCount = 0;
             _keyCount = 0;
 
-            var pose = new Pose { Position = _root.localPosition, Euler = new Vector3(pitch, 0f, 0f), Fov = 1f };
+            var pose = new Pose { Position = _rig.RootPosition, Euler = new Vector3(pitch, 0f, 0f), Fov = 1f };
             AddKey(0f, pose);
             float time = 0f;
             _driftStart = 0f;
@@ -191,6 +187,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _music = null;
             _sequence = null;
             FovScale = 1f;
+            _rig.ReleaseOverride();
         }
 
         void Add(in Pose from, in Pose to, float duration, Ease ease, SoundID startSound, SoundID endSound, ref float time)
@@ -314,9 +311,7 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             AddDrift(ref pose);
             AddHandheld(ref pose);
-            _root.localPosition = pose.Position;
-            _root.localRotation = Quaternion.Euler(pose.Euler);
-            _pitchPivot.localRotation = Quaternion.identity;
+            _rig.Override(pose.Position, Quaternion.Euler(pose.Euler));
             FovScale = pose.Fov;
         }
 
@@ -329,7 +324,7 @@ namespace Aipocalypse.Core.PlayerSystem
             if (amplitude == Vector2.zero || drifting <= 0f)
                 return;
             float phase = drifting / _sequence.DriftPeriod * 2f * Mathf.PI;
-            float weight = Mathf.SmoothStep(0f, 1f, drifting / SettleFadeIn);
+            float weight = Mathf.SmoothStep(0f, 1f, drifting / Mathf.Max(0.01f, _sequence.DriftFadeIn));
             pose.Euler.x += Mathf.Sin(phase) * amplitude.x * weight;
             pose.Euler.y += (Mathf.Cos(phase) - 1f) * amplitude.y * weight;
         }
@@ -342,7 +337,7 @@ namespace Aipocalypse.Core.PlayerSystem
             if (angles == Vector3.zero && offset <= 0f)
                 return;
             float t = _time * _sequence.HandheldSpeed;
-            float weight = Mathf.Clamp01(_time / HandheldFadeIn);
+            float weight = Mathf.Clamp01(_time / Mathf.Max(0.01f, _sequence.HandheldFadeIn));
             pose.Euler.x += Noise(0, t) * angles.x * weight;
             pose.Euler.y += Noise(1, t) * angles.y * weight;
             pose.Euler.z += Noise(2, t) * angles.z * weight;

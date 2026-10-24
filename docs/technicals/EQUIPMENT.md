@@ -19,31 +19,35 @@ Key labels on the HUD come from the bindings (`InputService.GetSlotKeyLabel`), s
 
 ```text
 Data (ScriptableObjects: items in Content/<Kind>/<Item>/, Data/Equipment/)
-  ItemDefinition                 name, icon, Category, Prefab              abstract; one prefab per item (world + hand)
-  └─ EquippableDefinition        EquipTime, HolsterTime; HeldPrefab = the HeldItem on Prefab's root
+  ItemDefinition                 name, icon, Category, Prefab, MaxStack    abstract; one prefab per item (world + hand)
+                                 Selecting: what its slot key does (None, Hold, QuickUse)
+  └─ EquippableDefinition        Selecting = Hold; EquipTime, HolsterTime; HoldFeel; HeldPrefab = the HeldItem on Prefab's root
      ├─ GunDefinition            Category Gun; all gun numbers (WeaponSystem, see WEAPONS.md)
      └─ MeleeDefinition          Category Melee        (WeaponSystem)
   └─ LanternDefinition           Category Lantern; worn on the belt: radius, colour, brightness, flicker (PlayerVision)
-  EquipmentConfig                SwitchSpeed, slots (name, accepted categories, starting item)
+  EquipmentConfig                SwitchSpeed, BeltAccepts, slots (name, accepted categories, starting item) → CreateEquipment
 
 Rules (plain C#, EditMode-tested)
-  ItemInstance                   one owned item; per-copy state goes in subclasses (GunInstance: rounds, jam)
+  ItemInstance                   one owned item or stack (Count, Merge, Consume), Changed, Badge (what its slot shows);
+                                 per-copy state goes in subclasses (GunInstance: rounds, jam)
   Hotbar                         ≤ 9 slots, category check, SlotChanged event, FindNext for cycling
   EquipmentSwitcher              Held / Target / Raise 0..1 / Phase; HeldChanged, BecameReady events
-  Equipment                      selected slot ↔ switcher target; Select, Cycle; TryPickUp, DropSelected; SelectionChanged event;
-                                 Belt: one worn item (Lantern category), outside the hotbar
+  Equipment                      selected slot ↔ switcher target; Select, Cycle; TryPickUp, DropSelected, Consume; SelectionChanged,
+                                 QuickUseRequested events; Belt: one worn item (a BeltAccepts category), outside the hotbar
 
 Views
   HeldItem                       on the item prefab's root, for its first-person use; subclass for fire / swing / use (HeldGun)
                                  Tick(HeldItemInput) every frame it's in hand; LateTick after the view kick is applied
-                                 (spawn things that must line up with the model); ViewKick (camera offset), IsAiming
+                                 (spawn things that must line up with the model); ViewKick (camera offset), LookTurn (kept recoil),
+                                 IsAiming, AimWeight, Zoom, Spread, StopsSprint, KeepsClear
+  PoseBlender                    a held model's pose pivot easing between pose markers (HeldGun, HeldMelee), editor preview
   EquipmentRig                   spawns one HeldItem per hotbar item (world parts stripped, injected), shows the held one,
                                  poses the hand from Raise, TickHeld passes the input on with IsReady
   HotbarHud → HotbarSlotView     HUD, event-driven (see UI.md)
   WorldItem                      on the same root: the item lying in the world (IInteractable): pick up / swap; Spawn for drops
 ```
 
-`Player` owns the `Equipment` (built from `EquipmentConfig` in `Construct`), feeds it from `PlayerIntent.SelectSlot` / `CycleSlot`, and ticks it and the rig last in its `Update`. Then it builds a `HeldItemInput` (fire / aim / reload + sprinting, moving, airborne) and calls `EquipmentRig.TickHeld`, applies the item's `ViewKick` to the look and its `IsAiming` to the move speed, then calls the item's `LateTick` (guns spawn their shots there, so tracers start at the muzzle as drawn). Nothing else ticks.
+`Player` owns the `Equipment` (`EquipmentConfig.CreateEquipment()` in `Construct`); its `HeldItemDriver` runs it each frame: it feeds it `PlayerIntent.SelectSlot` / `CycleSlot` / `Drop`, ticks it and the rig, builds a `HeldItemInput` (fire / aim / reload + sprinting, moving, airborne) and calls `EquipmentRig.TickHeld`, applies the item's `LookTurn` and `ViewKick` to the look, its `Zoom` to the lens and its `IsAiming` to the move speed (× its `HoldFeel.AimMoveSpeedScale`), then calls the item's `LateTick` (guns spawn their shots there, so tracers start at the muzzle as drawn). Nothing else ticks.
 
 ## Switching
 
@@ -69,19 +73,20 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 
 | You press | When | Result |
 | --- | --- | --- |
+| **E** on a world item | All of it fits on a stack of the same item you carry (`MaxStack` > 1) | **Merge**: it joins that stack; the hands don't change |
 | **E** on a world item | A free slot accepts it | **Store**: it goes into the first free slot that accepts it and you switch to it (the current weapon is holstered, the new one raised) |
 | **E** on a world item | No free slot accepts it, and the selected slot does | **Swap**: it replaces the selected item. The old item drops where the new one lay and leaves your hands at once; the new one is raised (its EquipTime) |
 | **E** on a world item | Neither | Nothing: no prompt is shown |
 | **G** | Something is selected | **Drop**: the held item lands on the ground about `DropDistance` in front of you (short of walls). Hands are empty until you select another slot |
 
-- The prompt ("[E] Pick up Rifle" / "[E] Swap for Rifle") comes from `WorldItem.TryGetPrompt`, using the same `Equipment.GetPickUpAction` the pickup uses, so the prompt always matches what E will do.
+- The prompt ("[E] Pick up Rifle" / "[E] Swap for Rifle"; a merge reads "Pick up") comes from `WorldItem.TryGetPrompt`, using the same `Equipment.GetPickUpAction` the pickup uses, so the prompt always matches what E will do.
 - **Looking at items:** `PlayerInteractor` sphere-casts from the eye each frame (`PlayerInteractionTuning` → `InteractRange` 2.5 m, `InteractRadius` 0.12 m, `InteractMask`). Walls block it; trigger colliders are hit. Pickups have a trigger box, so you walk through them.
 - **The same item object** goes world → hotbar → world. Per-copy state (a gun's rounds and jam) survives drops and swaps. A scene-placed `WorldItem` creates its instance from `_definition` the first time it's used.
 - Rules live in `Equipment` (`GetPickUpAction`, `TryPickUp`, `DropSelected`) and are covered by EditMode tests. `WorldItem` only does the world side: it destroys itself and spawns the swapped-out item.
 
 ### Belt
 
-A lantern is worn, not held: it works whatever is in your hands. `Equipment.Belt` holds one item whose category is `Lantern`, outside the hotbar (no slot, no key, not shown on the HUD yet).
+A lantern is worn, not held: it works whatever is in your hands. `Equipment.Belt` holds one item whose category is in `EquipmentConfig.BeltAccepts` (`Lantern`), outside the hotbar (no slot, no key, not shown on the HUD yet).
 
 - **E** on a lantern: **Store** on an empty belt, **Swap** with the worn one otherwise (the old lantern drops where the new one lay). A full hotbar doesn't matter, and the hands don't change.
 - It can't be dropped with G (that drops the held item).
@@ -110,6 +115,9 @@ AK47                 HeldGun, ItemHands                first-person side
 | --- | --- |
 | Switch speed for everything | `Data/Equipment/EquipmentConfig.asset` → `SwitchSpeed` (live in Play mode) |
 | One item's equip / holster time | `Content/<Kind>/<Item>/<Item>.asset` → `EquipTime` / `HolsterTime` |
+| How heavy one item feels (walk speed while aiming, sway) | `Content/<Kind>/<Item>/<Item>.asset` → Hold feel (`AimMoveSpeedScale`, `SwayScale`) |
+| How many fit in one slot | the item's asset → `MaxStack` |
+| What goes on the belt | `EquipmentConfig` → `BeltAccepts` |
 | Which slots exist, what they accept, starting items | `EquipmentConfig` → `Slots` (order = keys 1…9). Fixed roles (gun-only slot 1) = narrow that slot's `Accepts` |
 | Reach and thickness of the look ray, drop distance | `Data/Player/PlayerInteractionTuning.asset` |
 | How a pickup lies on the ground, its pickup box | the item prefab → `World/Model` transform, root `BoxCollider` |
@@ -139,7 +147,7 @@ Settings: `PlayerHeldItemTuning` → Obstacle pose (on/off, margin, radius, retr
 
 The visible hands are separate from this: `HandSystem/FirstPersonHands` puts floating hands on the held item's `HandGrip`s, so they follow this motion with no extra work ([HANDS.md](HANDS.md)).
 
-`EquipmentRig` moves the `Hand` transform between its rest pose and a lowered, tilted pose using `Raise` through an `AnimationCurve`. It's a placeholder until there are first-person arms. To replace it, drive an Animator from the switcher instead: a `Raise` float parameter, or equip / holster clips whose lengths match `EquipTime` / `HolsterTime`. Do it in the rig or in a `HeldItem` subclass. `EquipmentSwitcher` stays as the single source of timing either way.
+`EquipmentRig` moves the `Hand` transform between its rest pose and a lowered, tilted pose using `Raise` through an `AnimationCurve`. It's a placeholder for equip / holster animations. To replace it, drive an Animator from the switcher instead: a `Raise` float parameter, or equip / holster clips whose lengths match `EquipTime` / `HolsterTime`. Do it in the rig or in a `HeldItem` subclass. `EquipmentSwitcher` stays as the single source of timing either way.
 
 ## Extending
 
@@ -150,9 +158,9 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
   1. Add a flag to `ItemCategory`.
   2. Derive a definition: from `EquippableDefinition` if it's held in hand (tools, a fishing rod), or from `ItemDefinition` if not.
   3. Give it slots in the config that accept the new category.
-  4. If it doesn't sit in your hand, change what selecting it does in `Equipment.CanSelect`. For example, a bandage would play a use action instead of being held: add a `QuickUse` path there rather than branching in `Player`.
-  5. Put per-copy state (stack count, charges) in an `ItemInstance` subclass returned by the definition's `CreateInstance()`.
-- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`. Override `ViewKick`, `IsAiming` and `Zoom` (field of view multiplier, e.g. a scope) for camera effects. For hands, add `ItemHands` + `HandGrip`s to its prefab; moving hands come from the item's clips ([HANDS.md](HANDS.md)). Play sounds through `AudioService` with BroAudio `SoundID`s.
+  4. If it doesn't sit in your hand, override `Selecting` on its definition. `QuickUse` (a bandage, a drink): its key raises `Equipment.QuickUseRequested(item)` and the hands don't change; the system that uses it subscribes there and calls `Equipment.Consume(item)`, which removes an emptied stack. `None`: it's only carried.
+  5. Stacking is built in: set `MaxStack` above 1 and picking up more merges onto the carried stack (its count shows on the slot). Put other per-copy state (charges, durability) in an `ItemInstance` subclass returned by the definition's `CreateInstance()`; raise `Changed` and override `Badge` to show it on the hotbar.
+- **A new kind of held item** (a tool, a consumable): subclass `HeldItem` (like `HeldGun` / `HeldMelee`) and act in `Tick` only while `input.IsReady`; `UseHeld` / `UsePressed` are the use inputs. Do things that must line up with the drawn model or camera in `LateTick`. Override `ViewKick`, `LookTurn`, `IsAiming`, `AimWeight` and `Zoom` (field of view multiplier, e.g. a scope) for camera effects, `Spread` for the crosshair. Pose the model between markers with a `PoseBlender`. For hands, add `ItemHands` + `HandGrip`s to its prefab; moving hands come from the item's clips ([HANDS.md](HANDS.md)). Play sounds through `AudioService` with BroAudio `SoundID`s.
 - **Inventory:** fill the hotbar with `Equipment.TryPickUp` or `Hotbar.TryPlace` / `Remove`. `EquipmentRig` spawns and despawns models, and `HotbarHud` refreshes from `SlotChanged`. `StartingItem` in the config can still hand out items at spawn.
 - **Other interactables** (doors, loot, workbench): implement `IInteractable` (`_Common/Interaction`) on the object with the collider. `PlayerInteractor` and the HUD prompt pick it up with no other changes.
 

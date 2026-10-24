@@ -20,14 +20,8 @@ namespace Aipocalypse.Core.WeaponSystem
         [BoxGroup("Poses"), SerializeField, Tooltip("Where the swing ends, past the hit")] Transform _followThroughPose;
         [BoxGroup("Poses"), SerializeField] Transform _sprintPose;
 
-        [BoxGroup("Swing motion"), SerializeField, Min(0.01f), Tooltip("Seconds from wind-up to follow-through; the hit lands halfway")]
-        float _strikeTime = 0.1f;
-        [BoxGroup("Swing motion"), SerializeField, Tooltip("Every other swing in a row comes from the other side (poses mirrored around Idle)")]
-        bool _alternateSides = true;
-        [BoxGroup("Swing motion"), SerializeField, Min(0f), Tooltip("How fast it moves into and out of the sprint pose")]
-        float _poseSpeed = 10f;
-
         readonly RaycastHit[] _hits = new RaycastHit[16];
+        readonly PoseBlender _pose = new();
 
         EffectPool _effects;
         DamageService _damage;
@@ -36,8 +30,6 @@ namespace Aipocalypse.Core.WeaponSystem
         MeleeDefinition _definition;
         MeleeAttack _attack;
 
-        Vector3 _posePosition;
-        Quaternion _poseRotation;
         Vector3 _swingFromPosition;
         Quaternion _swingFromRotation;
         bool _mirrored;
@@ -105,11 +97,7 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             if (_definition != null)
                 Play(_definition.Sounds.Equip);
-            if (_idlePose != null)
-            {
-                _posePosition = _idlePose.localPosition;
-                _poseRotation = _idlePose.localRotation;
-            }
+            _pose.SnapTo(_idlePose);
             ApplyPose();
         }
 
@@ -129,9 +117,9 @@ namespace Aipocalypse.Core.WeaponSystem
 
         void OnSwingStarted(int index)
         {
-            _swingFromPosition = _posePosition;
-            _swingFromRotation = _poseRotation;
-            _mirrored = _alternateSides && index % 2 == 1;
+            _swingFromPosition = _pose.Position;
+            _swingFromRotation = _pose.Rotation;
+            _mirrored = _definition.Swing.AlternateSides && index % 2 == 1;
             _user.Exert(_definition.Swing.StaminaPerSwing);
             Play(_definition.Sounds.Swing);
         }
@@ -176,17 +164,12 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             if (_attack.Phase != SwingPhase.None)
             {
-                SwingPose(_attack.SwingTime, out _posePosition, out _poseRotation);
+                SwingPose(_attack.SwingTime, out Vector3 position, out Quaternion rotation);
+                _pose.Set(position, rotation);
             }
             else
             {
-                Transform target = sprinting && _sprintPose != null ? _sprintPose : _idlePose;
-                float t = Damping.ByRate(_poseSpeed, deltaTime);
-                if (target != null)
-                {
-                    _posePosition = Vector3.Lerp(_posePosition, target.localPosition, t);
-                    _poseRotation = Quaternion.Slerp(_poseRotation, target.localRotation, t);
-                }
+                _pose.MoveTowards(sprinting && _sprintPose != null ? _sprintPose : _idlePose, _definition.Swing.PoseSpeed, deltaTime);
             }
             ApplyPose();
         }
@@ -195,7 +178,7 @@ namespace Aipocalypse.Core.WeaponSystem
         void SwingPose(float time, out Vector3 position, out Quaternion rotation)
         {
             SwingSettings swing = _definition.Swing;
-            float strike = Mathf.Min(_strikeTime, swing.WindUp * 2f, swing.Duration);
+            float strike = Mathf.Min(swing.StrikeTime, swing.WindUp * 2f, swing.Duration);
             float strikeStart = Mathf.Max(0f, swing.WindUp - strike * 0.5f);
             float strikeEnd = Mathf.Min(swing.Duration, strikeStart + strike);
 
@@ -239,24 +222,16 @@ namespace Aipocalypse.Core.WeaponSystem
             rotation = _idlePose.localRotation * new Quaternion(delta.x, -delta.y, -delta.z, delta.w);
         }
 
-        void ApplyPose() => _posePivot.SetLocalPositionAndRotation(_posePosition, _poseRotation);
+        void ApplyPose() => _pose.ApplyTo(_posePivot);
 
         static float EaseOut(float t) => 1f - (1f - t) * (1f - t);
 
 #if UNITY_EDITOR
         // Edit-mode preview in the prefab. In play the weapon always starts at Idle.
-        [ButtonGroup("Preview"), Button("Idle")] void PreviewIdle() => Preview(_idlePose);
-        [ButtonGroup("Preview"), Button("Wind-up")] void PreviewWindUp() => Preview(_windUpPose);
-        [ButtonGroup("Preview"), Button("Follow-through")] void PreviewFollowThrough() => Preview(_followThroughPose);
-        [ButtonGroup("Preview"), Button("Sprint")] void PreviewSprint() => Preview(_sprintPose);
-
-        void Preview(Transform pose)
-        {
-            if (pose == null || _posePivot == null)
-                return;
-            UnityEditor.Undo.RecordObject(_posePivot, "Preview melee pose");
-            _posePivot.SetLocalPositionAndRotation(pose.localPosition, pose.localRotation);
-        }
+        [ButtonGroup("Preview"), Button("Idle")] void PreviewIdle() => PoseBlender.Preview(_posePivot, _idlePose);
+        [ButtonGroup("Preview"), Button("Wind-up")] void PreviewWindUp() => PoseBlender.Preview(_posePivot, _windUpPose);
+        [ButtonGroup("Preview"), Button("Follow-through")] void PreviewFollowThrough() => PoseBlender.Preview(_posePivot, _followThroughPose);
+        [ButtonGroup("Preview"), Button("Sprint")] void PreviewSprint() => PoseBlender.Preview(_posePivot, _sprintPose);
 #endif
     }
 }

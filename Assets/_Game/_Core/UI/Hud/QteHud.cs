@@ -1,10 +1,7 @@
 using System;
-using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.QuickTimeSystem;
 using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
 using DG.Tweening;
 using MessagePipe;
@@ -15,9 +12,10 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // The jam-repair QTE of the active player's held gun, from gun events only: shown on GunRepairQteStarted, shakes on a
-    // Miss beat, plays the success burst or a fade on GunRepairCompleted. Hidden when the QTE ends or the gun is put away.
-    public sealed class RepairQteHud : PlayerHudView
+    // Shows the running QTE, whoever started it (a gun's repair today), from the QTE's own events: picks a view by the
+    // challenge's presentation, labels the key to press, shakes on a miss, plays the success burst or fades when it ends.
+    // Hidden while paused or in a menu. Look and result animations: QteStyle.
+    public sealed class QteHud : MonoBehaviour
     {
         [SerializeField] QteStyle _style;
         [SerializeField] GameObject _content;
@@ -33,8 +31,6 @@ namespace Aipocalypse.Core.UI
         IDisposable _subscriptions;
         Tween _feedbackTween;
         IQteSession _displayedSession;
-        ItemInstance _displayedItem;
-        RepairFeedbackSettings _feedback;
         QteView _selected;
         bool _finishing;
         bool _successful;
@@ -45,26 +41,17 @@ namespace Aipocalypse.Core.UI
         Vector3 _restScale;
         Vector3 _restPosition;
 
-        ItemInstance HeldInstance
-        {
-            get
-            {
-                HeldItem held = Player != null ? Player.HeldItem : null;
-                return held != null ? held.Item : null;
-            }
-        }
-
         [Inject]
-        void Construct(QuickTimeService qte, TimeService time, InputService input, ISubscriber<GunRepairQteStarted> started,
-            ISubscriber<GunJamBeat> beats, ISubscriber<GunRepairCompleted> repairs)
+        void Construct(QuickTimeService qte, TimeService time, InputService input, ISubscriber<QteStarted> started,
+            ISubscriber<QteAttempted> attempted, ISubscriber<QteEnded> ended)
         {
             _qte = qte;
             _time = time;
             _input = input;
             _subscriptions = DisposableBag.Create(
-                started.Subscribe(OnQteStarted, e => IsMine(e.Owner)),
-                beats.Subscribe(OnMissed, e => e.Kind == GunJamBeatKind.Miss && IsMine(e.Owner)),
-                repairs.Subscribe(OnRepairCompleted, e => IsMine(e.Owner)));
+                started.Subscribe(OnStarted),
+                attempted.Subscribe(OnMissed, e => e.Result == QteAttemptResult.Miss),
+                ended.Subscribe(OnEnded));
         }
 
         void Awake()
@@ -73,12 +60,10 @@ namespace Aipocalypse.Core.UI
             _restPosition = _content.transform.localPosition;
         }
 
-        protected override void Start()
+        void Start()
         {
             ApplyStyle();
-            _key.SetText(_input?.GetReloadKeyLabel() ?? "R");
             ResetFeedback();
-            base.Start();
         }
 
         void ApplyStyle()
@@ -93,29 +78,23 @@ namespace Aipocalypse.Core.UI
                 _burst.sprite = _style.Ring;
         }
 
-        protected override void Unbind(Player player) => ResetFeedback();
-
-        protected override void OnDestroy()
+        void OnDestroy()
         {
             _subscriptions?.Dispose();
             ResetFeedback();
-            base.OnDestroy();
         }
 
         void OnDisable() => ResetFeedback();
 
-        bool IsMine(IEquipmentOwner owner) => Player != null && !Player.IsDead && ReferenceEquals(owner, Player);
-
-        void OnQteStarted(GunRepairQteStarted started)
+        void OnStarted(QteStarted started)
         {
             ResetFeedback();
             _clean = false;
             _displayedSession = started.Session;
-            _displayedItem = started.Item;
-            _feedback = started.Feedback;
+            _key.SetText(_input?.GetKeyLabel(started.Button) ?? started.Button.ToString());
             _selected = null;
             foreach (QteView view in _views)
-                if (view.CanDisplay(_displayedSession) && (_selected == null || view.PresentationId == _qte.Presentation))
+                if (view.CanDisplay(_displayedSession) && (_selected == null || view.PresentationId == started.Presentation))
                     _selected = view;
             foreach (QteView view in _views)
                 view.gameObject.SetActive(view == _selected);
@@ -126,62 +105,63 @@ namespace Aipocalypse.Core.UI
             }
         }
 
-        void OnMissed(GunJamBeat beat)
+        void OnMissed(QteAttempted attempt)
         {
-            if (_feedback == null || _displayedSession == null || !ReferenceEquals(beat.Item, _displayedItem))
+            if (_style == null || !ReferenceEquals(attempt.Session, _displayedSession))
                 return;
+            QteStyle s = _style;
             _feedbackTween?.Kill();
             _content.transform.localPosition = _restPosition;
             _content.transform.localScale = _restScale;
             _flash = 1f;
-            _flashColor = _feedback.MissColor;
-            RepairFeedbackSettings f = _feedback;
-            float duration = f.MissDuration;
+            _flashColor = s.MissColor;
+            float duration = s.MissDuration;
             _feedbackTween = DOTween.Sequence()
-                .Append(_content.transform.DOPunchPosition(Vector3.right * f.MissShakePixels, duration, f.MissShakeVibrato, f.MissShakeElasticity))
-                .Join(_content.transform.DOPunchScale(-_restScale * f.MissSquash, duration * f.MissSquashShare, f.MissSquashVibrato, f.MissSquashElasticity))
+                .Append(_content.transform.DOPunchPosition(Vector3.right * s.MissShakePixels, duration, s.MissShakeVibrato, s.MissShakeElasticity))
+                .Join(_content.transform.DOPunchScale(-_restScale * s.MissSquash, duration * s.MissSquashShare, s.MissSquashVibrato, s.MissSquashElasticity))
                 .Join(DOTween.To(() => _flash, value => _flash = value, 0f, duration).SetEase(Ease.InQuad))
                 .SetUpdate(true);
         }
 
-        void OnRepairCompleted(GunRepairCompleted repair)
+        void OnEnded(QteEnded ended)
         {
-            RepairFeedbackSettings feedback = _feedback;
-            if (feedback == null || _displayedSession == null || !ReferenceEquals(_displayedItem, repair.Item))
+            if (_style == null || !ReferenceEquals(ended.Session, _displayedSession))
                 return;
+            QteStyle s = _style;
+            bool success = ended.Result == QteResult.Success;
             _feedbackTween?.Kill();
             _content.transform.localPosition = _restPosition;
             _content.transform.localScale = _restScale;
             _group.alpha = 1f;
             _finishing = true;
-            _successful = repair.QteSuccess;
-            _keyCap.gameObject.SetActive(!repair.QteSuccess);
-            _flash = repair.QteSuccess ? 1f : 0f;
-            _flashColor = feedback.SuccessColor;
+            _successful = success;
+            _keyCap.gameObject.SetActive(!success);
+            _flash = success ? 1f : 0f;
+            _flashColor = s.SuccessColor;
             Sequence sequence = DOTween.Sequence();
-            if (repair.QteSuccess)
+            if (success)
             {
-                float duration = feedback.SuccessDuration;
-                float pop = duration * feedback.SuccessPopShare;
-                float burst = duration * feedback.BurstShare;
-                float hold = Mathf.Clamp(feedback.SuccessHold, 0f, burst);
-                float fade = Mathf.Max(0f, duration * feedback.SuccessFadeEndShare - hold);
-                sequence.Append(_content.transform.DOScale(_restScale * feedback.SuccessScale, pop).SetEase(Ease.OutCubic))
-                    .Append(_content.transform.DOScale(_restScale * feedback.SuccessSettleScale, pop).SetEase(Ease.OutQuad))
+                float duration = s.SuccessDuration;
+                float pop = duration * s.SuccessPopShare;
+                float burst = duration * s.BurstShare;
+                float hold = Mathf.Clamp(s.SuccessHold, 0f, burst);
+                float fade = Mathf.Max(0f, duration * s.SuccessFadeEndShare - hold);
+                sequence.Append(_content.transform.DOScale(_restScale * s.SuccessScale, pop).SetEase(Ease.OutCubic))
+                    .Append(_content.transform.DOScale(_restScale * s.SuccessSettleScale, pop).SetEase(Ease.OutQuad))
                     .AppendInterval(hold)
                     .Append(_group.DOFade(0f, fade))
-                    .Join(_content.transform.DOScale(_restScale * feedback.SuccessEndScale, fade).SetEase(Ease.InCubic));
+                    .Join(_content.transform.DOScale(_restScale * s.SuccessEndScale, fade).SetEase(Ease.InCubic));
                 if (_burst != null)
                 {
                     _burst.gameObject.SetActive(true);
-                    _burst.color = feedback.SuccessColor;
+                    _burst.color = s.SuccessColor;
                     _burst.transform.localScale = Vector3.one;
-                    sequence.Insert(0f, _burst.transform.DOScale(feedback.BurstScale, burst).SetEase(Ease.OutCubic))
+                    sequence.Insert(0f, _burst.transform.DOScale(s.BurstScale, burst).SetEase(Ease.OutCubic))
                         .Insert(0f, _burst.DOFade(0f, burst));
                 }
             }
             else
-                sequence.Append(_group.DOFade(0f, feedback.NaturalFadeDuration));
+                sequence.Append(_group.DOFade(0f, s.EndFadeDuration));
             // Real time, so the success hit stop doesn't freeze the widget.
             _feedbackTween = sequence.SetUpdate(true).OnComplete(ResetFeedback);
         }
@@ -197,8 +177,6 @@ namespace Aipocalypse.Core.UI
             _successful = false;
             _flash = 0f;
             _displayedSession = null;
-            _displayedItem = null;
-            _feedback = null;
             if (_content == null)
                 return;
             _content.transform.localScale = _restScale;
@@ -216,9 +194,7 @@ namespace Aipocalypse.Core.UI
             if (_clean)
                 return;
             bool live = _qte != null && ReferenceEquals(_qte.Session, _displayedSession);
-            bool allowed = _input != null && _input.GameplayEnabled && Player != null && !Player.IsDead &&
-                           ReferenceEquals(_displayedItem, HeldInstance);
-            if (!allowed || (!live && !_finishing))
+            if (_input == null || !_input.GameplayEnabled || (!live && !_finishing))
             {
                 ResetFeedback();
                 return;

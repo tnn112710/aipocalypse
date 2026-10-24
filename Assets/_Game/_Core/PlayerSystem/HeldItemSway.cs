@@ -56,6 +56,8 @@ namespace Aipocalypse.Core.PlayerSystem
         [Header("Walking (in step with the head bob)"), Tooltip("Degrees at walking speed, moving forward / back: sideways (once per two steps), up / down (each step)")]
         public Vector2 WalkBob = new(0.35f, 1f);
         [Tooltip("Degrees at walking speed, strafing")] public Vector2 StrafeBob = new(1.6f, 0.3f);
+        [Min(0f), Tooltip("Radians the item's up / down bob trails the head's, so it settles just after each footfall")]
+        public float StepLag = 0.5f;
         [Min(0f), Tooltip("Bob multiplier at full sprint (the crosshair is hidden; the gun swings)")] public float SprintBob = 2.5f;
         [Tooltip("Degrees the aim trails per m/s: against a strafe (sideways), down while moving forward. Springs back with a small overshoot when you stop")]
         public Vector2 MoveDrift = new(0.2f, 0.08f);
@@ -73,6 +75,8 @@ namespace Aipocalypse.Core.PlayerSystem
 
         [Header("Spring (drift, lag, kicks)"), Min(1f), Tooltip("Higher = settles faster")] public float Stiffness = 90f;
         [Range(0.1f, 1f), Tooltip("Below 1 overshoots and wobbles before settling")] public float DampingRatio = 0.5f;
+        [Min(0.01f), Tooltip("Seconds to blend into / out of the airborne drift, the winded breathing and a new move direction")]
+        public float BlendTime = 0.15f;
 
         [Header("Aiming down sights (share kept)"), Range(0f, 1f)] public float AimBreath = 0.7f;
         [Range(0f, 1f), Tooltip("Walking bob (aiming already walks slower, so it bobs less)")] public float AimBob = 1f;
@@ -80,6 +84,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [Range(0f, 1f)] public float AimLook = 0.5f;
         [Range(0f, 1f), Tooltip("Jump and landing kicks")] public float AimLanding = 0.5f;
         [Min(0f), Tooltip("Degrees the sights overshoot upwards when raised, then settle")] public float AimInKick = 0.5f;
+        [Range(0f, 1f), Tooltip("Random sideways part of that kick, as a share of it")] public float AimInKickSideways = 0.5f;
 
         [Header("Limits"), Min(0f), Tooltip("Most degrees off the screen centre, at the hip")] public float MaxOffset = 4f;
         [Min(0f)] public float AimMaxOffset = 3f;
@@ -107,16 +112,12 @@ namespace Aipocalypse.Core.PlayerSystem
     // turning, moving, jumping and landing. Split in two so the barrel never points away from the crosshair:
     // AimOffset (pitch / yaw) moves the crosshair, the shots and the model together; Position and Rotation (roll only)
     // are model-only extras. Aiming calms each part, being out of breath makes the breathing heavier, and the
-    // HeldItemSway stat scales all of it (skills can steady the hands).
+    // HeldItemSwayScale stat and the held item's HoldFeel.SwayScale scale all of it.
     public sealed class HeldItemSway
     {
         const float SpringStep = 1f / 120f;
         const float MaxDeltaTime = 0.1f;
-        // The item's up / down bob trails the head's by this many radians, so it settles just after each footfall.
-        const float BobLag = 0.5f;
         const float TwoPi = Mathf.PI * 2f;
-        // Seconds to blend into / out of the airborne drift, the winded breathing and a new move direction.
-        const float BlendTime = 0.15f;
 
         readonly HeldSwaySettings _settings;
         readonly AimSwaySettings _aim;
@@ -143,6 +144,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public Vector2 AimOffset { get; private set; }
         // AimOffset as a rotation in the eye's space.
         public Quaternion AimRotation => Quaternion.Euler(-AimOffset.y, AimOffset.x, 0f);
+        // The held item's own multiplier (HoldFeel.SwayScale): 1 = as tuned, higher = heavier.
+        public float ItemScale { get; set; } = 1f;
 
         public HeldItemSway(HeldSwaySettings settings, AimSwaySettings aim, IStatProvider stats)
         {
@@ -170,13 +173,13 @@ namespace Aipocalypse.Core.PlayerSystem
             deltaTime = Mathf.Min(deltaTime, MaxDeltaTime);
 
             float aim = _aimWeight = Mathf.Clamp01(input.AimWeight);
-            float scale = Mathf.Max(0f, _stats.Get(StatId.HeldItemSway, 1f));
-            float blend = Damping.ByTime(BlendTime, deltaTime);
+            float scale = Mathf.Max(0f, _stats.GetScale(StatId.HeldItemSwayScale) * ItemScale);
+            float blend = Damping.ByTime(_aim.BlendTime, deltaTime);
             _time += deltaTime;
             _airborne = Mathf.Lerp(_airborne, input.IsAirborne ? 1f : 0f, blend);
             _winded = Mathf.Lerp(_winded, input.IsWinded ? 1f : 0f, blend);
             if (input.IsAiming && !_wasAiming)
-                Kick(new Vector2(((float)_random.NextDouble() * 2f - 1f) * 0.5f, 1f) * _aim.AimInKick);
+                Kick(new Vector2(((float)_random.NextDouble() * 2f - 1f) * _aim.AimInKickSideways, 1f) * _aim.AimInKick);
             _wasAiming = input.IsAiming;
 
             // Breathing: up / down once per breath, slower sideways drift (period 4π covers both): a figure-8.
@@ -191,7 +194,7 @@ namespace Aipocalypse.Core.PlayerSystem
             float bob = Mathf.Clamp01(input.BobIntensity);
             float sprint = Mathf.Clamp01(input.SprintBlend);
             float side = Mathf.Cos(input.BobPhase);
-            float step = Mathf.Sin(input.BobPhase * 2f - BobLag);
+            float step = Mathf.Sin(input.BobPhase * 2f - _aim.StepLag);
 
             Vector2 aimSway = AimTick(input, aim, b, heavy, bob * Mathf.Lerp(1f, _aim.SprintBob, sprint), side, step, blend, deltaTime);
             AimOffset = Vector2.ClampMagnitude(aimSway * scale, Mathf.Lerp(_aim.MaxOffset, _aim.AimMaxOffset, aim));

@@ -536,7 +536,7 @@ public static class DayNightSetup
         style.LabelFontSize = 26f;
         style.BackingSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
         style.BackingColor = new Color(0.05f, 0.06f, 0.08f, 0.7f);
-        style.MorningColor = new Color(1f, 0.86f, 0.45f, 1f);
+        style.Phases[DayPhase.Morning] = new PhaseLabel("Morning", new Color(1f, 0.86f, 0.45f, 1f));
         style.DayColor = new Color(0.97f, 0.97f, 0.95f, 1f);
         EditorUtility.SetDirty(style);
         return style;
@@ -637,13 +637,19 @@ public static class DayNightSetup
         lso.ApplyModifiedPropertiesWithoutUndo();
         log.Add("door light at " + doorLight.transform.position.ToString("F1"));
 
-        // Scope: clock, environment, ambience.
+        // Scope: the clock and environment installers (with the ambience) next to the GameLifetimeScope.
         var scope = Object.FindAnyObjectByType<GameLifetimeScope>();
-        var sso = new SerializedObject(scope);
-        sso.FindProperty("_clock").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ClockSettings>(ClockPath);
-        sso.FindProperty("_environment").objectReferenceValue = director;
-        sso.FindProperty("_ambience").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TimeOfDayAmbience>(AmbiencePath);
-        sso.ApplyModifiedPropertiesWithoutUndo();
+        if (!scope.TryGetComponent(out WorldTimeInstaller clockInstaller))
+            clockInstaller = scope.gameObject.AddComponent<WorldTimeInstaller>();
+        var cso = new SerializedObject(clockInstaller);
+        cso.FindProperty("_settings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ClockSettings>(ClockPath);
+        cso.ApplyModifiedPropertiesWithoutUndo();
+        if (!scope.TryGetComponent(out EnvironmentInstaller environmentInstaller))
+            environmentInstaller = scope.gameObject.AddComponent<EnvironmentInstaller>();
+        var eso = new SerializedObject(environmentInstaller);
+        eso.FindProperty("_director").objectReferenceValue = director;
+        eso.FindProperty("_ambience").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TimeOfDayAmbience>(AmbiencePath);
+        eso.ApplyModifiedPropertiesWithoutUndo();
 
         director.CollectSceneReactors();
         EditorSceneManager.MarkSceneDirty(scene);

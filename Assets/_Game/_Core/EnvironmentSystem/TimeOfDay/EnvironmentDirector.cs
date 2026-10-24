@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Aipocalypse.Core.GraphicsSystem;
 using Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -86,8 +87,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         float _glide = 1f;
         bool _lightPlaced;
         bool _sunLit;
-        UniversalRenderPipelineAsset _pipeline;
-        float _dayShadowDistance;
+        GraphicsService _graphics;
         // What was last applied; Apply skips an unchanged look.
         float _appliedLookHour = -1f;
         float _appliedMoonPhase = -1f;
@@ -106,7 +106,11 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public float Daylight { get; private set; }
 
         [Inject]
-        void Construct(IObjectResolver resolver) => resolver.TryResolve(out _clock);
+        void Construct(IObjectResolver resolver)
+        {
+            resolver.TryResolve(out _clock);
+            resolver.TryResolve(out _graphics);
+        }
 
         void Awake()
         {
@@ -143,28 +147,17 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 ApplySkyOnly();
         }
 
-        // The pipeline asset is shared and saved with the project, so its own distance always comes back.
         void OnDisable() => SetShadowDistance(false);
 
-        // _pipeline is set only while the night distance is in place.
+        // A request to GraphicsService, which owns the shared pipeline asset's distance.
         void SetShadowDistance(bool night)
         {
-            night &= _nightShadowDistance > 0f && Application.isPlaying;
-            if (night && _pipeline == null)
-            {
-                _pipeline = UniversalRenderPipeline.asset;
-                if (_pipeline == null)
-                    return;
-                _dayShadowDistance = _pipeline.shadowDistance;
-            }
-            if (_pipeline == null)
+            if (_graphics == null)
                 return;
-
-            float distance = night ? _nightShadowDistance : _dayShadowDistance;
-            if (_pipeline.shadowDistance != distance)
-                _pipeline.shadowDistance = distance;
-            if (!night)
-                _pipeline = null;
+            if (night && _nightShadowDistance > 0f && Application.isPlaying)
+                _graphics.RequestShadowDistance(this, _nightShadowDistance);
+            else
+                _graphics.ReleaseShadowDistance(this);
         }
 
         void OnValidate()

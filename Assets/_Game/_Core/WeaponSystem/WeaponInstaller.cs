@@ -10,6 +10,7 @@ namespace Aipocalypse.Core.WeaponSystem
         {
             builder.RegisterEntryPoint<EffectPool>().AsSelf();
             builder.RegisterEntryPoint<BulletSystem>().AsSelf();
+            builder.Register<GunJamFactory>(Lifetime.Singleton);
         }
     }
 }

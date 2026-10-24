@@ -38,7 +38,8 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    └─ Center
       ├─ Crosshair           nested Canvas · CrosshairHud; 6×6 dot (built-in Knob sprite, white 90 %, thin dark outline)
       │  ├─ SpreadUp/Right/Down/Left   2×7 px ticks pushed out to the spread cone (pivot on the inner end)
-      │  └─ HitMarker        HitFeedbackHud
+      │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
+      ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
       └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
          └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
 ```
@@ -60,6 +61,9 @@ PlayerRegistry (root) ── ActivePlayerChanged ──> PlayerHudView.Rebind �
    ▲ Register / Unregister                         ├─ PlayerVitalsHud   polls the bound player in LateUpdate
 Player (Construct / OnDestroy)                    ├─ CrosshairHud      polls Player.CrosshairPosition in LateUpdate
                                                   └─ HotbarHud         spawns slot views, listens to Hotbar / Equipment
+```
+
+`PlayerHudView.Player` is an `IPlayer`: the read-only state and respawn steps the HUD may use, never the `Player` MonoBehaviour itself.
 
 ## StatBar widget
 
@@ -94,13 +98,13 @@ HotbarSlot                   HotbarSlotView component
 │  ├─ Background             9-sliced box; dimmer when empty
 │  ├─ Icon                   item icon (ItemDefinition.Icon), preserve aspect; hidden when empty
 │  ├─ Frame                  selection outline, only on the selected slot
-│  └─ Ammo                   TMP, bottom-right: "30/90" (magazine / reserve) for guns; hidden for other items
+│  └─ Ammo                   TMP badge, bottom-right: "30/90" (magazine / reserve) for guns, a stack's count; hidden when the item shows no badge
 └─ KeyCap                    key sprite + TMP label ("1", "2"… from the input binding)
 ```
 
-- `HotbarSlotView` API: `SetKey(string)`, `SetIcon(Sprite)` (null = empty), `SetSelected(bool)`, `SetAmmo(rounds, reserve, infiniteReserve, warning)`, `HideAmmo()`, `ApplyStyle()`.
-- `HotbarHud` (presenter on `Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig` (up to 9). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight, `GunInstance.Changed` / `AmmoReserve.Changed` → ammo counts. Nothing is polled.
-- **Ammo count** (as in Escape from Duckov): magazine / reserve of that gun's ammo type, magazine only when the reserve is infinite, `AmmoWarningColor` when the magazine is empty or the gun is jammed.
+- `HotbarSlotView` API: `SetKey(string)`, `SetIcon(Sprite)` (null = empty), `SetSelected(bool)`, `SetBadge(count, reserve, showReserve, warning)`, `HideBadge()`, `ApplyStyle()`.
+- `HotbarHud` (presenter on `Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig` (up to 9). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight, each slot item's `ItemInstance.Changed` / `AmmoReserve.Changed` → badges. Nothing is polled.
+- **Badge:** each item says what its slot shows (`ItemInstance.Badge`, an `ItemBadge`): a stack shows its count, a gun its rounds with its `AmmoType` as the reserve to look up. The reserve is shown only for an `AmmoType` when the reserve isn't infinite, so a gun reads as in Escape from Duckov: magazine / reserve, magazine only with infinite ammo, `AmmoWarningColor` when the magazine is empty or the gun is jammed. HotbarHud knows no item kinds.
 - The highlight moves as soon as a slot is selected, not when the switch animation finishes.
 - Behavior and switching rules: [EQUIPMENT.md](EQUIPMENT.md).
 
@@ -135,7 +139,9 @@ InteractPrompt               InteractPromptView component
 | Clock fonts, sizes, colors, backing panel, phase labels / colors, day format | `Data/UI/ClockStyle.asset` |
 | Clock position, size, text placement | `HUD` → `TopRight/Clock` RectTransforms (Clock size, Time and Labels offsets) |
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
-| Crosshair sprint fade speed, spread tick threshold / speed | `HUD` → `Center/Crosshair` → `CrosshairHud` |
+| Crosshair sprint fade speed, spread tick threshold / speed | `Data/UI/CrosshairStyle.asset` |
+| Hit marker colors, durations, pops, kill number color | `Data/UI/HitFeedbackStyle.asset` (sounds and the number prefab: `HitFeedbackHud`) |
+| QTE sprites, colors, key cap, success / miss animation | `Data/UI/RepairQteStyle.asset` (`QteStyle`) |
 | How the crosshair moves | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway ([WEAPONS.md](WEAPONS.md#aim-sway)) |
 | Spacing between bars | `Vitals` → VerticalLayoutGroup spacing |
 | Distance from the screen edge | `HUD` → `SafeFrame` offsets |
@@ -173,7 +179,7 @@ DeathScreen                  nested Canvas (override sorting 100) · CanvasGroup
 ```
 
 - **HUD hidden while dying:** `HudVisibilityHud` on the HUD root fades the HUD's CanvasGroup out on `PlayerDied` (0.35 s) and back in on `PlayerRevived` (0.5 s). The death screen's own CanvasGroup has `ignoreParentGroups`, so it stays visible. Fade times are on the component.
-- **Flow** (`DeathScreenHud`, a `PlayerHudView`): `PlayerDeathSequenceEnded` (the death sequence's `EndAfter`, 6 s after the camera settles) → `CloseEyes` plays the style's eye steps (by default: close to 40%, open to 30%, close to 80%, open to 70%, shut and black) → the menu fades in with "Loading...", `InputService.EnableUI` (cursor free) → `PlayerRespawnService.PrepareAsync` (and at least `MinLoadingTime`) → "Click to continue" → a click or Submit (`InputService.UiConfirmPressed`) → `PlayerRespawnService.Continue` → `Player.Revive` → `PlayerRevived` → the menu fades out over the respawned player, `EnableGameplay`. Any revive (the L cheat) closes it the same way.
+- **Flow:** `PlayerRespawnFlow` (root, `PlayerSystem`) runs the respawn; `DeathScreenHud` (a `PlayerHudView`) only presents it and switches no input. `PlayerDeathSequenceEnded` (the death sequence's `EndAfter`, 6 s after the camera settles) → the flow publishes `PlayerRespawnFading` and waits for its subscribers: the HUD's `CloseEyes` plays the style's eye steps (by default: close to 40%, open to 30%, close to 80%, open to 70%, shut and black), then the menu fades in with "Loading..." → the flow takes the UI input (`InputService.RequestUI`, cursor free), moves the body to its spawn point and awaits `PlayerRespawning` (the HUD holds it for at least `MinLoadingTime`) → stage Ready: "Click to continue" → a click or Submit (`InputService.UiConfirmPressed`) → `Player.Revive` → `PlayerRevived` → the flow releases the UI input and its stage goes to None → the menu fades out over the respawned player. Any revive (the L cheat) ends it the same way. Without a HUD the flow still runs (the click revives).
 - **Eyelids:** `Eyelid.png` is black above an arched soft edge, so a half-closed pair leaves a lens-shaped gap. A step's `Closed` is the share of the view the lids cover in the middle (0.4 = 40%), measured where the lid turns solid; the lids first slide in from off-screen over the first 10%. `EyelidSolidAt` (arch + soft edge, 0.3) is where the texture turns solid and how far past the middle a shut lid goes, so a shut pair leaves no seam. To change the shape, edit and rerun `AgentScripts/DeathScreen/gen_textures.py` (numpy).
 - **Not raycast:** nothing on it is clickable; the click is read from the UI input map, so the canvas has no `GraphicRaycaster`.
 - **To change:** colors, font, sizes, texts, eye steps, fades, minimum loading time, continue pulse → `DeathScreenStyle.asset`; title / illustration / footer placement → `HUD` → `DeathScreen/Menu` RectTransforms. A tip line under the status (as in the reference) is not built yet.
@@ -203,8 +209,8 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
 `CrosshairHud` (presenter on `SafeFrame/Center/Crosshair`) polls the active player in `LateUpdate`:
 
 - **Position:** `Player.CrosshairPosition` (the aim sway, in half-screen-heights) × half the root canvas height. Shots go exactly there with `Camera` / `MuzzleToCrosshair` aim. Moves under half a pixel are skipped; its own nested Canvas keeps the per-frame move from rebuilding the HUD.
-- **Fade:** only the dot (its `CanvasRenderer` alpha), so the hit marker child still shows. Hidden in proportion to the held item's `AimWeight` (the gun's sights take over) and faded out at `_fadeSpeed` while sprinting.
-- **Spread ticks:** `Player.CrosshairSpread` (the held item's `Spread` cone, in half-screen-heights) × half the canvas height, eased at `_spreadSpeed`. They hide under `_minSpread` px (8) and fade in over `_spreadFade` px, so a rifle shows them only while airborne and a shotgun always; they share the dot's fade.
+- **Fade:** only the dot (its `CanvasRenderer` alpha), so the hit marker child still shows. Hidden in proportion to the held item's `AimWeight` (the gun's sights take over) and faded out at `FadeSpeed` while sprinting.
+- **Spread ticks:** `Player.CrosshairSpread` (the held item's `Spread` cone, in half-screen-heights) × half the canvas height, eased at `SpreadSpeed`. They hide under `MinSpread` px (8) and fade in over `SpreadFade` px (`Data/UI/CrosshairStyle.asset`), so a rifle shows them only while airborne and a shotgun always; they share the dot's fade.
 - On unbind it snaps back to the centre, fully visible.
 
 ## Hit feedback
@@ -215,14 +221,22 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
 - **Sound:** `Combat/HitMarker` or `Combat/KillConfirm` BroAudio entities, once per frame.
 - **Damage number:** `Prefabs/Widgets/DamageNumber.prefab` (Damage Numbers Pro mesh number, 3D, constant screen size, 0.8 s, combines rapid hits, pooled 40, prewarmed on Start) at the hit point; red on a kill. Its font is the first-party copy `Data/UI/DamageNumberFont.asset` (DNP's setup rewrites its font's material, so the vendor asset stays untouched).
 
-Colors, durations and pop sizes are on the component (no style asset yet).
+Colors, durations and pop sizes are in `Data/UI/HitFeedbackStyle.asset` (`HitFeedbackStyle`); the sounds and the number prefab stay on the component. With no style assigned it warns and uses the defaults (so does `CrosshairHud` without its `CrosshairStyle`).
 
-## Repair QTE
+## QTE
 
-HUD.prefab has a nested Canvas at SafeFrame/Center/RepairQte. Its centre anchor is offset (-80, -60) at the 1920x1080 reference resolution, placing a compact widget beside the gun near the screen centre. The circle is 112x112; the bar is 210x20. A small R key cap sits below the selected view. The panel, title, hint and remaining-time strip are disabled. RepairQteHud shows Content while a repair QTE is active and briefly during completion feedback; there is no initial prompt or result popup.
+`SafeFrame/Center/RepairQte`: a nested Canvas whose centre anchor is offset (-80, -60) at 1080p, so a compact widget sits beside the gun near the screen centre. The circle is 112×112, the bar 210×20, with a small key cap below the selected view. No panel, title, countdown or result popup.
 
-Circle and bar are TimingQteView components behind QteView. Their IDs match the challenge's Presentations list; leave one ID to force that view. The fill/marker show cycle progress and the green segment shows the success interval. A missed attempt flashes red, shakes the widget by 22 reference pixels and squashes it by 18% over 0.4 seconds (the repair also gets 0.5 s longer, see WEAPONS.md). The pointer holds for 0.24 seconds, then the green zone relocates before the pointer resumes from the same position; the fill remains in its miss color until the next pass. Success fills the whole widget green, hides its pointer/key cap, punches to 150% scale and sends an expanding ring outward to 260%. It settles and holds for 0.32 seconds before fading, for a total one-second result. Automatic completion fades it over 0.18 seconds. Cancellation hides it immediately without result feedback. Ignoring it has no effect on repair timing.
+```text
+RepairQte                    nested Canvas · QteHud (QteStyle)
+└─ Content                   CanvasGroup: shown while a QTE runs and during its result
+   ├─ Circle / Bar           TimingQteView (a QteView each), one chosen per QTE
+   ├─ SuccessBurst           pre-placed ring image for the success burst
+   ├─ KeyCap                 key sprite + TMP label
+   └─ Panel, Title, Hint, Remaining   disabled
+```
 
-The Content CanvasGroup fades the whole widget and its pre-placed SuccessBurst image supplies the ring. RepairQteHud listens to gun events only: GunRepairQteStarted (shows the session with that gun's feedback preset), GunJamBeat Miss (shake and flash) and GunRepairCompleted (success burst or fade), all filtered to the active player. It hides when the QTE session ends without a result, or when the held item changes. QteView.Flash and DisplaySuccess are presentation hooks for current and future widgets. DOTween sequences use unscaled time (so a success hit stop doesn't freeze them), stop/reset on disable, unbind, input lock, death or weapon changes, and hide while paused. Idle frames skip all work. RepairFeedback.asset supplies colors, timing and strength through each gun's repair profile; duplicate the preset for a per-gun variation. Pointer holds and green-zone movement belong to TimingQteChallenge, shared by both visual layouts.
-
-RepairQteStyle.asset owns Synty Apocalypse ring/bar art, the Interface Core key cap, colors and the first-party RepairQteFont.asset copy. The copy owns its material, atlas and generated glyph data. Layout stays in the HUD prefab. Graphics are not raycast targets; InputService owns the Reload confirmation input. Vendor prefabs and sample scripts are not used. Rules and tuning are in WEAPONS.md.
+- **`QteHud`** (a plain MonoBehaviour, not a `PlayerHudView`) shows whatever QTE is running, whoever started it (a gun's jam repair today), from the QTE's own events: `QteStarted` picks the view whose ID matches the presentation (the challenge's `Presentations`; one ID forces that view, a missing one falls back to a compatible view) and labels the key with `InputService.GetKeyLabel(started.Button)`; `QteAttempted` Miss flashes and shakes it; `QteEnded` Success plays the burst, any other end fades it out over `EndFadeDuration`. It never reads the gun. It hides while `TimeService.IsPaused` or while gameplay input is off, and idle frames skip all work.
+- **Views:** `TimingQteView` draws a timing session as a circle or a bar behind the `QteView` contract: the fill / marker show the cycle, the green segment the success interval. Pointer holds and green-zone moves after a miss belong to `TimingQteChallenge`, shared by both layouts. A new widget is a `QteView` with its ID in the HUD's views and the challenge's `Presentations`.
+- **Results** (defaults in `QteStyle`): a miss flashes red, shakes the widget 22 reference pixels and squashes it 18% over 0.4 s; the fill keeps its no-attempt color until the next pass. Success fills the widget green, hides the pointer and key cap, pops to 150% and sends the ring out to 260%, then holds 0.32 s and fades: one second in all. Any other end fades over 0.18 s. DOTween sequences run on unscaled time (a success hit stop doesn't freeze them) and reset on disable or when the QTE goes away.
+- **Look:** `Data/UI/RepairQteStyle.asset` (`QteStyle`): Synty Apocalypse ring / bar art, the Interface Core key cap, colors, the key font (the first-party `RepairQteFont.asset` copy, which owns its material, atlas and glyph data) and the success / miss animation. Layout stays in the HUD prefab. Graphics are not raycast targets. How a gun's repair uses the QTE: [WEAPONS.md → Gun jam clearing and QTE](WEAPONS.md#gun-jam-clearing-and-qte).

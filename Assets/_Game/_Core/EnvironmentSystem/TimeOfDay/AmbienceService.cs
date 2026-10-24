@@ -1,5 +1,6 @@
 using System;
 using Aipocalypse.Core.AudioSystem;
+using Aipocalypse.Core.TimeSystem;
 using Aipocalypse.Core.WorldTimeSystem;
 using Ami.BroAudio;
 using UnityEngine;
@@ -17,16 +18,18 @@ namespace Aipocalypse.Core.EnvironmentSystem
         readonly TimeOfDayAmbience _ambience;
         readonly WorldClock _clock;
         readonly AudioService _audio;
+        readonly TimeService _time;
         IAudioPlayer[] _beds = Array.Empty<IAudioPlayer>();
         float[] _volumes = Array.Empty<float>();
         float[] _callTimers = Array.Empty<float>();
         float _sinceUpdate;
 
-        public AmbienceService(TimeOfDayAmbience ambience, WorldClock clock, AudioService audio)
+        public AmbienceService(TimeOfDayAmbience ambience, WorldClock clock, AudioService audio, TimeService time)
         {
             _ambience = ambience;
             _clock = clock;
             _audio = audio;
+            _time = time;
         }
 
         public void Start()
@@ -67,7 +70,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             }
 
             // A fast-forward would fire every call at once; a paused game shouldn't call at all.
-            if (_clock.IsSkipping || Time.timeScale <= 0f)
+            if (_clock.IsSkipping || _time.IsPaused)
                 return;
             for (int i = 0; i < _callTimers.Length; i++)
             {

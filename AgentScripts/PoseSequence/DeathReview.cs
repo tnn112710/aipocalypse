@@ -1,6 +1,7 @@
 using System.Linq;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.PlayerSystem;
+using Ami.BroAudio;
 using UnityEngine;
 
 // Play-mode helpers for the death pose sequence (use VisionReview.Give for a gun, DayNight/Review for the hour).
@@ -58,7 +59,7 @@ public static class DeathReview
     public static object Kill()
     {
         Player player = Player;
-        player.TakeDamage(new DamageInfo(player.Health.Current, DamageType.Generic, player.transform.position));
+        ((IDamageable)player).TakeDamage(new DamageInfo(player.Health.Current, DamageType.Generic, player.transform.position));
         return State();
     }
 

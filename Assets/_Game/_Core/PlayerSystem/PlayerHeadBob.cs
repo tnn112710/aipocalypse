@@ -3,16 +3,14 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Procedural head motion on the camera root: footstep bob driven by distance travelled, and a spring dip on landing.
+    // Procedural head motion (through the camera rig): footstep bob driven by distance travelled, and a spring dip on landing.
     // Stepped fires at the bottom of each bob, when a foot plants.
     public sealed class PlayerHeadBob
     {
         const float MaxSpringStep = 0.05f;
 
-        readonly Transform _root;
+        readonly PlayerCameraRig _rig;
         readonly PlayerCameraTuning _tuning;
-        readonly Vector3 _basePosition;
-        readonly Quaternion _baseRotation;
 
         float _phase;
         float _intensity;
@@ -27,12 +25,10 @@ namespace Aipocalypse.Core.PlayerSystem
         public float Intensity => _intensity;
         public float SprintBlend => _sprintBlend;
 
-        public PlayerHeadBob(Transform root, PlayerCameraTuning tuning)
+        public PlayerHeadBob(PlayerCameraRig rig, PlayerCameraTuning tuning)
         {
-            _root = root;
+            _rig = rig;
             _tuning = tuning;
-            _basePosition = root.localPosition;
-            _baseRotation = root.localRotation;
         }
 
         public void OnLanded(float impactSpeed)
@@ -67,8 +63,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             UpdateDip(Mathf.Min(deltaTime, MaxSpringStep));
 
-            _root.localPosition = _basePosition + bob + Vector3.up * _dip;
-            _root.localRotation = _baseRotation * Quaternion.Euler(-_dip * _tuning.LandingDipPitch, 0f, 0f);
+            _rig.SetHeadMotion(bob + Vector3.up * _dip, -_dip * _tuning.LandingDipPitch);
         }
 
         // Which half of the cycle; flips at each bob bottom, not at the 2π wrap.

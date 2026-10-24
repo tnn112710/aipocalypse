@@ -6,6 +6,7 @@ using Ami.BroAudio;
 using DamageNumbersPro;
 using DG.Tweening;
 using MessagePipe;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -20,13 +21,7 @@ namespace Aipocalypse.Core.UI
         [SerializeField, Tooltip("The X round the crosshair; scaled and faded")] RectTransform _marker;
         [SerializeField] CanvasGroup _markerGroup;
         [SerializeField, Tooltip("Tinted hit / kill")] Graphic[] _markerParts = Array.Empty<Graphic>();
-        [SerializeField] Color _hitColor = Color.white;
-        [SerializeField] Color _killColor = new(1f, 0.25f, 0.2f, 1f);
-        [SerializeField, Min(0.01f), Tooltip("Seconds to fade (real time)")] float _hitDuration = 0.18f;
-        [SerializeField, Min(0.01f)] float _killDuration = 0.4f;
-        [SerializeField, Min(1f), Tooltip("Pop size at the start of a hit marker")] float _hitPop = 1.3f;
-        [SerializeField, Min(1f)] float _killPop = 1.8f;
-        [SerializeField, Range(0.05f, 1f), Tooltip("Share of the fade the marker takes to shrink back from its pop")] float _popShare = 0.4f;
+        [SerializeField, InlineEditor, Tooltip("Colors, timing and pop of the marker and kill numbers")] HitFeedbackStyle _style;
 
         [Header("Sound")]
         [SerializeField] SoundID _hitSound;
@@ -34,7 +29,6 @@ namespace Aipocalypse.Core.UI
 
         [Header("Damage numbers")]
         [SerializeField, Tooltip("Damage Numbers Pro prefab with pooling on; empty = no numbers")] DamageNumber _damageNumber;
-        [SerializeField] Color _killNumberColor = new(1f, 0.3f, 0.25f, 1f);
 
         AudioService _audio;
         IDisposable _subscription;
@@ -52,6 +46,11 @@ namespace Aipocalypse.Core.UI
 
         void Awake()
         {
+            if (_style == null)
+            {
+                Debug.LogWarning($"{name}: no HitFeedbackStyle assigned; using defaults.", this);
+                _style = ScriptableObject.CreateInstance<HitFeedbackStyle>();
+            }
             _markerScale = _marker.localScale;
             _markerGroup.alpha = 0f;
         }
@@ -63,7 +62,7 @@ namespace Aipocalypse.Core.UI
             base.Start();
         }
 
-        protected override void Unbind(Player player) => HideMarker();
+        protected override void Unbind(IPlayer player) => HideMarker();
 
         protected override void OnDestroy()
         {
@@ -74,8 +73,8 @@ namespace Aipocalypse.Core.UI
 
         void OnDamageDealt(DamageDealt hit)
         {
-            Player player = Player;
-            if (player == null || hit.Info.Source != player.gameObject || ReferenceEquals(hit.Target, player))
+            IPlayer player = Player;
+            if (player == null || hit.Info.Source != player.Transform.gameObject || ReferenceEquals(hit.Target, player))
                 return;
 
             bool kill = hit.Result.Killed;
@@ -83,7 +82,7 @@ namespace Aipocalypse.Core.UI
             {
                 DamageNumber number = _damageNumber.Spawn(hit.Info.Point, hit.Result.Applied);
                 if (kill)
-                    number.SetColor(_killNumberColor);
+                    number.SetColor(_style.KillNumberColor);
             }
 
             // One marker and sound per frame; a kill among them wins.
@@ -98,15 +97,16 @@ namespace Aipocalypse.Core.UI
         void ShowMarker(bool kill)
         {
             _tween?.Kill();
-            Color color = kill ? _killColor : _hitColor;
+            HitFeedbackStyle style = _style;
+            Color color = kill ? style.KillColor : style.HitColor;
             foreach (Graphic part in _markerParts)
                 part.color = color;
-            float duration = kill ? _killDuration : _hitDuration;
+            float duration = kill ? style.KillDuration : style.HitDuration;
             _markerGroup.alpha = 1f;
-            _marker.localScale = _markerScale * (kill ? _killPop : _hitPop);
+            _marker.localScale = _markerScale * (kill ? style.KillPop : style.HitPop);
             // Real time, so a kill's hit stop doesn't freeze the marker.
             _tween = DOTween.Sequence()
-                .Append(_marker.DOScale(_markerScale, duration * _popShare).SetEase(Ease.OutCubic))
+                .Append(_marker.DOScale(_markerScale, duration * style.PopShare).SetEase(Ease.OutCubic))
                 .Join(_markerGroup.DOFade(0f, duration).SetEase(Ease.InQuad))
                 .SetUpdate(true);
         }

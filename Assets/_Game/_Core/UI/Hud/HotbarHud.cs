@@ -7,7 +7,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // One slot view per slot of the active player's hotbar, refreshed on events (items, selection and ammo), never polled.
+    // One slot view per slot of the active player's hotbar, refreshed on events (items, selection, badges and the ammo
+    // reserve), never polled. Each item says what its badge shows (ItemInstance.Badge).
     public sealed class HotbarHud : PlayerHudView
     {
         [SerializeField] HotbarSlotView _slotPrefab;
@@ -17,12 +18,12 @@ namespace Aipocalypse.Core.UI
         Equipment _equipment;
         AmmoReserve _ammo;
         HotbarSlotView[] _slots;
-        GunInstance[] _guns;
+        ItemInstance[] _items;
 
         [Inject]
         void Construct(InputService input) => _input = input;
 
-        protected override void Bind(Player player)
+        protected override void Bind(IPlayer player)
         {
             _equipment = player.Equipment;
             if (_equipment == null)
@@ -31,7 +32,7 @@ namespace Aipocalypse.Core.UI
             _ammo = player.Ammo;
             Hotbar hotbar = _equipment.Hotbar;
             _slots = new HotbarSlotView[hotbar.Count];
-            _guns = new GunInstance[hotbar.Count];
+            _items = new ItemInstance[hotbar.Count];
             for (int i = 0; i < _slots.Length; i++)
             {
                 HotbarSlotView slot = Instantiate(_slotPrefab, _slotParent, false);
@@ -48,7 +49,7 @@ namespace Aipocalypse.Core.UI
                 _ammo.Changed += OnReserveChanged;
         }
 
-        protected override void Unbind(Player player)
+        protected override void Unbind(IPlayer player)
         {
             if (_equipment == null)
                 return;
@@ -57,14 +58,14 @@ namespace Aipocalypse.Core.UI
             _equipment.SelectionChanged -= OnSelectionChanged;
             if (_ammo != null)
                 _ammo.Changed -= OnReserveChanged;
-            foreach (GunInstance gun in _guns)
+            foreach (ItemInstance item in _items)
             {
-                if (gun != null)
-                    gun.Changed -= RefreshAmmo;
+                if (item != null)
+                    item.Changed -= RefreshBadges;
             }
             _equipment = null;
             _ammo = null;
-            _guns = null;
+            _items = null;
 
             foreach (HotbarSlotView slot in _slots)
             {
@@ -84,40 +85,40 @@ namespace Aipocalypse.Core.UI
                 _slots[current].SetSelected(true);
         }
 
-        void OnReserveChanged(AmmoType _) => RefreshAmmo();
+        void OnReserveChanged(AmmoType _) => RefreshBadges();
 
         void ShowItem(int index, ItemInstance item)
         {
             _slots[index].SetIcon(item?.Definition.Icon);
 
-            if (_guns[index] != null)
-                _guns[index].Changed -= RefreshAmmo;
-            _guns[index] = item as GunInstance;
-            if (_guns[index] != null)
-                _guns[index].Changed += RefreshAmmo;
-            RefreshAmmo(index);
+            if (_items[index] != null)
+                _items[index].Changed -= RefreshBadges;
+            _items[index] = item;
+            if (item != null)
+                item.Changed += RefreshBadges;
+            RefreshBadge(index);
         }
 
         // Few slots and rare changes (a shot, a reload): refresh them all.
-        void RefreshAmmo()
+        void RefreshBadges()
         {
             for (int i = 0; i < _slots.Length; i++)
-                RefreshAmmo(i);
+                RefreshBadge(i);
         }
 
-        void RefreshAmmo(int index)
+        void RefreshBadge(int index)
         {
-            GunInstance gun = _guns[index];
-            if (gun == null)
+            ItemBadge badge = _items[index]?.Badge ?? ItemBadge.None;
+            if (!badge.Visible)
             {
-                _slots[index].HideAmmo();
+                _slots[index].HideBadge();
                 return;
             }
 
-            AmmoType type = gun.Gun.Magazine.AmmoType;
-            bool infinite = _ammo == null || _ammo.Infinite;
-            int reserve = _ammo != null ? _ammo.Count(type) : 0;
-            _slots[index].SetAmmo(gun.Rounds, reserve, infinite, gun.Rounds == 0 || gun.IsJammed);
+            // A reserve is shown only for ammo the player can run out of.
+            bool showReserve = badge.Reserve is AmmoType && _ammo != null && !_ammo.Infinite;
+            int reserve = showReserve ? _ammo.Count((AmmoType)badge.Reserve) : 0;
+            _slots[index].SetBadge(badge.Count, reserve, showReserve, badge.Warning);
         }
     }
 }

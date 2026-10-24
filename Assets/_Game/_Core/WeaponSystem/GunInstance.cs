@@ -1,4 +1,3 @@
-using System;
 using Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
@@ -13,13 +12,12 @@ namespace Aipocalypse.Core.WeaponSystem
             Rounds = definition.Magazine.Size;
         }
 
-        // Rounds or jam changed.
-        public event Action Changed;
-
         public GunDefinition Gun { get; }
         public int Rounds { get; private set; }
         public bool IsJammed { get; private set; }
         public bool IsFull => Rounds >= Gun.Magazine.Size;
+        // Rounds in the magazine over the owner's reserve of its ammo; flagged when empty or jammed.
+        public override ItemBadge Badge => new(Rounds, Rounds == 0 || IsJammed, Gun.Magazine.AmmoType);
 
         public void SetRounds(int rounds)
         {
@@ -27,7 +25,7 @@ namespace Aipocalypse.Core.WeaponSystem
             if (rounds == Rounds)
                 return;
             Rounds = rounds;
-            Changed?.Invoke();
+            RaiseChanged();
         }
 
         public void SetJammed(bool jammed)
@@ -35,7 +33,7 @@ namespace Aipocalypse.Core.WeaponSystem
             if (jammed == IsJammed)
                 return;
             IsJammed = jammed;
-            Changed?.Invoke();
+            RaiseChanged();
         }
     }
 }

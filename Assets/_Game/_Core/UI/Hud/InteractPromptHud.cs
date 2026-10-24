@@ -23,7 +23,7 @@ namespace Aipocalypse.Core.UI
             base.Start();
         }
 
-        protected override void Unbind(Player player) => _view.Hide();
+        protected override void Unbind(IPlayer player) => _view.Hide();
 
         void LateUpdate()
         {

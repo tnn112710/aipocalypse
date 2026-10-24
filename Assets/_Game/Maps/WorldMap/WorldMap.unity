@@ -283883,6 +283883,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1051055994}
   - component: {fileID: 1051055993}
+  - component: {fileID: 1051055996}
+  - component: {fileID: 1051055995}
   m_Layer: 0
   m_Name: GameLifetimeScope
   m_TagString: Untagged
@@ -283907,14 +283909,6 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   _strict: 0
-  _navigation: {fileID: 0}
-  _wanderSettings: {fileID: 11400000, guid: ab98956e7ea30b548b29f7c3fda4ffcd, type: 2}
-  _enemies:
-  - {fileID: 0}
-  - {fileID: 0}
-  _clock: {fileID: 11400000, guid: 71d85645d9f52fb41b625fd61bd9cebe, type: 2}
-  _environment: {fileID: 1372274712}
-  _ambience: {fileID: 11400000, guid: 0179d8f79ceb5f944a5b3aa5153b5919, type: 2}
 --- !u!4 &1051055994
 Transform:
   m_ObjectHideFlags: 0
@@ -283930,6 +283924,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1051055995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a98deb45797764b439ebae89127cecd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.EnvironmentInstaller
+  _director: {fileID: 1372274712}
+  _ambience: {fileID: 11400000, guid: 0179d8f79ceb5f944a5b3aa5153b5919, type: 2}
+--- !u!114 &1051055996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83210c040b5f809489c1f582493469be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WorldTimeSystem.WorldTimeInstaller
+  _settings: {fileID: 11400000, guid: 71d85645d9f52fb41b625fd61bd9cebe, type: 2}
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0

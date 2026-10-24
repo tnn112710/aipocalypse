@@ -8,7 +8,7 @@ using MessagePipe;
 namespace Aipocalypse.Core.WeaponSystem
 {
     // Presents one gun's jam and repair beats: sounds, jolts of the gun model (on the gun's GunJoltPlayer) and the
-    // GunJamBeat / GunRepairQteStarted / GunRepairCompleted events the camera feedback and the HUD listen to.
+    // GunJamBeat / GunRepairCompleted events the camera feedback listens to (the QTE widget follows the QTE's own events).
     // Plain C#; HeldGun forwards the gun's, the repair flow's and the clip's events to it.
     public sealed class GunRepairFeedback
     {
@@ -16,7 +16,6 @@ namespace Aipocalypse.Core.WeaponSystem
         readonly AudioService _audio;
         readonly GunJoltPlayer _jolt;
         readonly IPublisher<GunJamBeat> _beats;
-        readonly IPublisher<GunRepairQteStarted> _qteStarted;
         readonly IPublisher<GunRepairCompleted> _completed;
         readonly IEquipmentOwner _owner;
         readonly ItemInstance _item;
@@ -24,13 +23,12 @@ namespace Aipocalypse.Core.WeaponSystem
         float _mechanismIn = -1f;
 
         public GunRepairFeedback(GunDefinition definition, AudioService audio, GunJoltPlayer jolt, IPublisher<GunJamBeat> beats,
-            IPublisher<GunRepairQteStarted> qteStarted, IPublisher<GunRepairCompleted> completed, IEquipmentOwner owner, ItemInstance item)
+            IPublisher<GunRepairCompleted> completed, IEquipmentOwner owner, ItemInstance item)
         {
             _definition = definition;
             _audio = audio;
             _jolt = jolt;
             _beats = beats;
-            _qteStarted = qteStarted;
             _completed = completed;
             _owner = owner;
             _item = item;
@@ -67,8 +65,6 @@ namespace Aipocalypse.Core.WeaponSystem
                 _jolt.Play(punch ? feedback.PunchJolt : feedback.SlapJolt);
             Beat(punch ? GunJamBeatKind.Punch : GunJamBeatKind.Slap);
         }
-
-        public void QteStarted(IQteSession session) => _qteStarted?.Publish(new GunRepairQteStarted(_owner, _item, session, Feedback));
 
         public void Missed()
         {

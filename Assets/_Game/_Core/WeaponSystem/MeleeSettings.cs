@@ -19,6 +19,13 @@ namespace Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Swings within this many seconds of the last one alternate sides; after a longer pause the next starts on the first side")]
         public float AlternateResetDelay = 0.5f;
 
+        [Header("Swing motion (first-person model)"), Min(0.01f), Tooltip("Seconds from wind-up to follow-through; the hit lands halfway")]
+        public float StrikeTime = 0.1f;
+        [Tooltip("Every other swing in a row comes from the other side (poses mirrored around Idle)")]
+        public bool AlternateSides = true;
+        [Min(0f), Tooltip("How fast it moves into and out of the sprint pose")]
+        public float PoseSpeed = 10f;
+
         public float Duration => WindUp + Recovery;
     }
 

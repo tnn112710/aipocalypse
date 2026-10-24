@@ -40,7 +40,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
         public Fatigue(FatigueSettings settings) => _settings = settings;
 
-        // `penaltyScale` (StatId.FatiguePenalty): 1 = the tier values, 0 = no penalty.
+        // `penaltyScale` (StatId.FatiguePenaltyScale): 1 = the tier values, 0 = no penalty.
         public void Tick(float staminaFraction, float penaltyScale, float deltaTime, bool winded = false)
         {
             FatigueTier tier = TierFor(_settings.Tiers, staminaFraction);

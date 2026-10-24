@@ -15,6 +15,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Range;
         public float GravityScale;
         public float Damage;
+        public DamageType DamageType;
         // Push (N·s) along the flight; falls off with the damage.
         public float Knockback;
         // Null = full damage at any range.
@@ -41,6 +42,7 @@ namespace Aipocalypse.Core.WeaponSystem
             public float Range;
             public float GravityScale;
             public float Damage;
+            public DamageType DamageType;
             public float Knockback;
             public DamageFalloff Falloff;
             public int Layers;
@@ -73,6 +75,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 Range = shot.Range,
                 GravityScale = shot.GravityScale,
                 Damage = shot.Damage,
+                DamageType = shot.DamageType,
                 Knockback = shot.Knockback,
                 Falloff = shot.Falloff,
                 Layers = shot.Layers,
@@ -157,7 +160,7 @@ namespace Aipocalypse.Core.WeaponSystem
 
             float share = bullet.Falloff != null ? bullet.Falloff.At(travelled) : 1f;
             Vector3 force = bullet.Velocity.normalized * (bullet.Knockback * share);
-            IDamageable target = _damage.DealHit(hit, new DamageInfo(bullet.Damage * share, DamageType.Gunshot, hit.point, force, bullet.Source));
+            IDamageable target = _damage.DealHit(hit, new DamageInfo(bullet.Damage * share, bullet.DamageType, hit.point, force, bullet.Source));
 
             BulletEffects effects = bullet.Effects;
             if (effects == null)

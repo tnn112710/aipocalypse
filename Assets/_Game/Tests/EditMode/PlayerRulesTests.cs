@@ -208,7 +208,7 @@ namespace Aipocalypse.Tests
 
     public class BreathingTests
     {
-        static BreathingSettings Settings() => new() { Below = 0.25f, MinVolume = 0.4f, EaseTime = 0f };
+        static BreathingSettings Settings() => new() { Below = 0.25f, EaseTime = 0f };
 
         [Test]
         public void Active_OnlyWhenLowOrExhausted()
@@ -225,7 +225,7 @@ namespace Aipocalypse.Tests
             breathing.Tick(0.5f, exhausted: true, deltaTime: 0.1f);
             Assert.IsTrue(breathing.IsActive, "exhausted keeps breathing above the threshold");
             Assert.AreEqual(1f, breathing.Tiredness);
-            Assert.AreEqual(1f, breathing.Volume, 0.001f);
+            Assert.AreEqual(1f, PlayerBreathSound.VolumeFor(breathing.Tiredness, 0.4f), 0.001f);
         }
 
         [Test]
@@ -234,7 +234,7 @@ namespace Aipocalypse.Tests
             var breathing = new PlayerBreathing(Settings());
             breathing.Tick(0.125f, exhausted: false, deltaTime: 0.1f);
             Assert.AreEqual(0.5f, breathing.Tiredness, 0.001f);
-            Assert.AreEqual(0.7f, breathing.Volume, 0.001f);
+            Assert.AreEqual(0.7f, PlayerBreathSound.VolumeFor(breathing.Tiredness, 0.4f), 0.001f);
 
             BreathingSettings eased = Settings();
             eased.EaseTime = 0.6f;

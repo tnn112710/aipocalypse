@@ -68,6 +68,7 @@ namespace Aipocalypse.Core.EquipmentSystem
 
             switch (owner.Equipment.GetPickUpAction(Item))
             {
+                case PickUpAction.Merge:
                 case PickUpAction.Store:
                     prompt = new InteractionPrompt(PickUpVerb, Item.Definition.DisplayName);
                     return true;

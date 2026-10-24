@@ -1,24 +1,35 @@
+using Aipocalypse.Input;
 using Unity.Cinemachine;
 using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Narrows the Cinemachine lens by the held item's zoom (aiming down sights). The held model keeps the unzoomed field
-    // of view (FirstPersonView), so the gun doesn't swell on screen.
+    // Sole writer of the world camera's field of view: the player's setting (ControlSettings.FieldOfView, read live) narrowed
+    // by the held item's zoom (aiming down sights) or scaled by a pose sequence. The held model keeps the unzoomed field of
+    // view (FirstPersonView), so the gun doesn't swell on screen.
     public sealed class PlayerZoom
     {
-        readonly CinemachineCamera _camera;
-        readonly float _baseFov;
-        readonly float _baseTan;
+        public const float MinScale = 0.1f;
+        public const float MaxScale = 1.5f;
 
-        public PlayerZoom(CinemachineCamera camera, FirstPersonView firstPersonView)
+        readonly CinemachineCamera _camera;
+        readonly FirstPersonView _firstPersonView;
+        readonly ControlSettings _controls;
+        readonly float _prefabFov;
+        float _baseFov;
+        float _baseTan;
+
+        public PlayerZoom(CinemachineCamera camera, FirstPersonView firstPersonView, ControlSettings controls)
         {
             _camera = camera;
-            _baseFov = camera != null ? camera.Lens.FieldOfView : 60f;
-            _baseTan = Mathf.Tan(_baseFov * 0.5f * Mathf.Deg2Rad);
-            if (firstPersonView != null)
-                firstPersonView.SetFieldOfView(_baseFov);
+            _firstPersonView = firstPersonView;
+            _controls = controls;
+            _prefabFov = camera != null ? camera.Lens.FieldOfView : 60f;
+            SetBase(BaseFieldOfView);
+            Tick(1f);
         }
+
+        float BaseFieldOfView => _controls != null && _controls.FieldOfView > 0f ? _controls.FieldOfView : _prefabFov;
 
         // Look speed scale that keeps aim feel the same at any zoom (1 unzoomed, < 1 zoomed in).
         public float LookScale { get; private set; } = 1f;
@@ -30,9 +41,20 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             if (_camera == null)
                 return;
-            float fov = _baseFov * Mathf.Clamp(zoom, 0.1f, 1.5f);
+            float baseFov = BaseFieldOfView;
+            if (!Mathf.Approximately(baseFov, _baseFov))
+                SetBase(baseFov);
+            float fov = _baseFov * Mathf.Clamp(zoom, MinScale, MaxScale);
             _camera.Lens.FieldOfView = fov;
             LookScale = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) / _baseTan;
+        }
+
+        void SetBase(float fieldOfView)
+        {
+            _baseFov = fieldOfView;
+            _baseTan = Mathf.Tan(_baseFov * 0.5f * Mathf.Deg2Rad);
+            if (_firstPersonView != null)
+                _firstPersonView.SetFieldOfView(_baseFov);
         }
     }
 }

@@ -1,5 +1,9 @@
+using System;
+
 namespace Aipocalypse.Core.Stats
 {
+    // Two kinds of stat. Values (no suffix): the caller passes its tuning value as the base and gets the modified value.
+    // Scales (…Scale suffix): multipliers with base 1, read with GetScale; a perk "+10%" returns 1.1.
     public enum StatId
     {
         WalkSpeed,
@@ -10,20 +14,30 @@ namespace Aipocalypse.Core.Stats
         StaminaRegen,
         SprintStaminaCost,
         JumpStaminaCost,
-        // Multipliers (base 1, lower = steadier): held-item sway and bob, and gun spread while airborne.
-        HeldItemSway,
-        AirSpread,
-        // Multipliers (base 1): stamina spent per shot / swing, and how hard low stamina hits recoil, melee and speed (0 = not at all).
-        AttackStaminaCost,
-        FatiguePenalty,
+        // Lower = steadier: held-item sway and bob.
+        HeldItemSwayScale,
+        // Gun spread while airborne.
+        AirSpreadScale,
+        // Stamina spent per shot / swing.
+        AttackStaminaCostScale,
+        // How hard low stamina hits recoil, melee and speed (0 = not at all).
+        FatiguePenaltyScale,
         // Metres around the player that read clearly in the dark; a belt lantern adds its own radius on top.
         VisionRadius,
         WalkStaminaCost,
     }
 
-    // Core reads tunable numbers through this seam; perks, XP and buffs plug in a modifying implementation.
+    // Core reads tunable numbers through this seam; perks, XP and buffs plug in a modifying implementation and raise Changed
+    // when their modifiers change, so cached values (max health, max stamina) are read again.
     public interface IStatProvider
     {
+        event Action Changed;
+
         float Get(StatId stat, float baseValue);
+    }
+
+    public static class StatProviderExtensions
+    {
+        public static float GetScale(this IStatProvider stats, StatId stat) => stats.Get(stat, 1f);
     }
 }

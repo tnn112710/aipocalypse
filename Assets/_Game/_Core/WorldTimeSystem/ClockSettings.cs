@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Aipocalypse.Core.WorldTimeSystem
 {
@@ -32,12 +32,16 @@ namespace Aipocalypse.Core.WorldTimeSystem
         [BoxGroup("Start"), Min(1)] public int StartDay = 1;
         [BoxGroup("Start"), Range(0f, 24f)] public float StartHour = 7f;
 
-        [BoxGroup("Phases")] public PhaseTiming Dawn = new(6f);
-        [BoxGroup("Phases"), FormerlySerializedAs("Day")] public PhaseTiming Morning = new(8f);
-        [BoxGroup("Phases")] public PhaseTiming Afternoon = new(12f);
-        [BoxGroup("Phases")] public PhaseTiming Dusk = new(16f);
-        [BoxGroup("Phases"), FormerlySerializedAs("Night")] public PhaseTiming Evening = new(18f);
-        [BoxGroup("Phases")] public PhaseTiming Midnight = new(0f);
+        [BoxGroup("Phases"), SerializeField, Tooltip("Every DayPhase needs an entry: when it starts and how fast it runs")]
+        public Dictionary<DayPhase, PhaseTiming> Phases = new()
+        {
+            { DayPhase.Dawn, new PhaseTiming(6f) },
+            { DayPhase.Morning, new PhaseTiming(8f) },
+            { DayPhase.Afternoon, new PhaseTiming(12f) },
+            { DayPhase.Dusk, new PhaseTiming(16f) },
+            { DayPhase.Evening, new PhaseTiming(18f) },
+            { DayPhase.Midnight, new PhaseTiming(0f) },
+        };
 
         [BoxGroup("Moon"), Min(1), Tooltip("Days from one full moon to the next")]
         public int MoonCycleDays = 8;
@@ -45,15 +49,16 @@ namespace Aipocalypse.Core.WorldTimeSystem
 
         static readonly DayPhase[] Order = { DayPhase.Dawn, DayPhase.Morning, DayPhase.Afternoon, DayPhase.Dusk, DayPhase.Evening, DayPhase.Midnight };
 
-        public PhaseTiming Timing(DayPhase phase) => phase switch
+        // A missing phase starts at midnight at normal speed (OnValidate warns).
+        public PhaseTiming Timing(DayPhase phase) => Phases.TryGetValue(phase, out PhaseTiming timing) ? timing : new PhaseTiming(0f);
+
+        public bool HasEveryPhase()
         {
-            DayPhase.Dawn => Dawn,
-            DayPhase.Morning => Morning,
-            DayPhase.Afternoon => Afternoon,
-            DayPhase.Dusk => Dusk,
-            DayPhase.Evening => Evening,
-            _ => Midnight,
-        };
+            foreach (DayPhase phase in Order)
+                if (!Phases.ContainsKey(phase))
+                    return false;
+            return true;
+        }
 
         public static DayPhase Next(DayPhase phase) => Order[((int)phase + 1) % Order.Length];
 
@@ -160,6 +165,8 @@ namespace Aipocalypse.Core.WorldTimeSystem
 
         void OnValidate()
         {
+            if (!HasEveryPhase())
+                Debug.LogWarning($"{name}: every phase needs an entry in Phases", this);
             if (!StartsInOrder())
                 Debug.LogWarning($"{name}: phase starts must follow Dawn → Morning → Afternoon → Dusk → Evening → Midnight around the clock", this);
         }

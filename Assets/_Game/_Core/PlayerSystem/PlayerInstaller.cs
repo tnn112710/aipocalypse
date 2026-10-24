@@ -9,7 +9,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public void Install(IContainerBuilder builder)
         {
             builder.Register<PlayerRegistry>(Lifetime.Singleton);
-            builder.Register<PlayerRespawnService>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<PlayerRespawnFlow>().AsSelf();
             // Editor and development builds only.
             if (UnityEngine.Debug.isDebugBuild)
                 builder.RegisterEntryPoint<PlayerCheats>();

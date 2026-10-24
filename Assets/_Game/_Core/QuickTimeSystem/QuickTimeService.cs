@@ -8,6 +8,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.QuickTimeSystem
 {
+    // Runs one QTE at a time for any owner (a gun's repair today): ticks it in real time while gameplay input is on and the
+    // game isn't paused, feeds it the challenge's button and announces QteStarted / QteAttempted / QteEnded for the HUD.
     public sealed class QuickTimeService : ITickable, IDisposable
     {
         readonly InputService _input;
@@ -34,6 +36,7 @@ namespace Aipocalypse.Core.QuickTimeSystem
 
         public IQteSession Session { get; private set; }
         public string Presentation { get; private set; }
+        public GameButton Button { get; private set; }
         public bool IsActive => Session != null;
         public bool IsActiveFor(object owner) => IsActive && ReferenceEquals(owner, _owner);
 
@@ -50,9 +53,10 @@ namespace Aipocalypse.Core.QuickTimeSystem
             string[] presentations = challenge.Presentations;
             Presentation = presentations != null && presentations.Length > 0
                 ? presentations[UnityEngine.Random.Range(0, presentations.Length)] : string.Empty;
+            Button = challenge.Button;
             if (challenge.TimeScale < 1f)
                 _time.Request(this, challenge.TimeScale);
-            _started.Publish(new QteStarted(session, Presentation));
+            _started.Publish(new QteStarted(session, Presentation, Button));
             return true;
         }
 
@@ -60,9 +64,10 @@ namespace Aipocalypse.Core.QuickTimeSystem
         {
             if (!IsActive || _time.IsPaused || !_input.GameplayEnabled)
                 return;
-            bool pressed = _input.ReloadPressed;
+            // Consumed here, before Player.Update reads it, so a press that completes a gun repair doesn't also start a reload.
+            bool pressed = _input.WasPressed(Button);
             if (pressed)
-                _input.ConsumeReloadPress();
+                _input.Consume(Button);
             Advance(Time.unscaledDeltaTime, pressed);
         }
 
