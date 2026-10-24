@@ -66,6 +66,7 @@ The WorldMap navmesh setup (Navigation prefab, cached recast graph, water exclus
 | SC Screen Effects (`xyz.staggart-creations.screen-effects`, local package) | 3.0.2 | `Packages/xyz.staggart-creations.screen-effects` | Undecided | Extra URP volume effects (blur, colour split, fog, …). Not used. Its components appear in `_Game/Settings/DefaultVolumeProfile.asset` only because Unity lists every installed volume component there; a stray `PostProcessingVolumeRenderer` (no volume set) sits on WorldMap's `Post-Processing` object. |
 | Kronnect Skybox Plus, Volumetric Fog 2, Dynamic Fog URP, Highlight Plus | — | `Assets/_StoreAssets/Rendering/Kronnect` | Should | Skybox, fog, outlines (e.g. interactables). Not used yet. Sky and fog are owned by `EnvironmentDirector` (DAYNIGHT.md): drive these from it, don't let them run their own time of day. |
 | Kronnect Beautify, Global Snow, Transitions Plus | — | `Assets/_StoreAssets/Rendering/Kronnect` | Undecided | Post FX, snow, screen transitions. Overlap URP post-processing and our grade. Beautify appears in `DefaultVolumeProfile.asset` only because Unity lists every installed volume component there. |
+| MK Glow | — | `Assets/Plugins/MK` | Could | Glow / bloom post-processing: a URP renderer feature (`MKGlowRendererFeature`) plus a volume component (`MKGlow`). Overlaps URP Bloom in our time-of-day grades (DAYNIGHT.md). Not used yet; not added to `PC_Renderer`. |
 
 ## Day/night, sky, weather
 
