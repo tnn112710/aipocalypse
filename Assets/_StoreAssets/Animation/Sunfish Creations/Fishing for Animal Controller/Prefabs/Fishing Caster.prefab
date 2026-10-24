@@ -1,0 +1,958 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &696530048123232804
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8941539383797887497}
+  - component: {fileID: 5272127800156667119}
+  m_Layer: 0
+  m_Name: Retreat Position
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8941539383797887497
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696530048123232804}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.102, y: 1.744, z: -1.534}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3286156217891085088}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5272127800156667119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696530048123232804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0bf002ae94689547a1fa8c20cfe15c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SunfishCreations::BobberRetreatPosition
+--- !u!1 &800719150068735834
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3286156217891085088}
+  - component: {fileID: 1137834708893764954}
+  - component: {fileID: 7301873146750911028}
+  - component: {fileID: 4976075731811133488}
+  - component: {fileID: 8540840833382364655}
+  - component: {fileID: 437516603052948332}
+  - component: {fileID: 2030908556517390577}
+  m_Layer: 0
+  m_Name: Fishing Caster
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3286156217891085088
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.5999985}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6628043294609934759}
+  - {fileID: 8941539383797887497}
+  - {fileID: 4602714343230146668}
+  - {fileID: 7023965432838052536}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1137834708893764954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6b02a063e49163469148e8ebcff8af4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FishingAddon::FishingRodSettings
+  active:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  castDistance:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 10
+    Variable: {fileID: 11400000, guid: ceffc0af050f33448ab8da5753888ce6, type: 2}
+  searchRadius:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 3
+    Variable: {fileID: 11400000, guid: 25ea0493905a6bc479da094c053867ba, type: 2}
+  heightOffset:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: -1.6
+    Variable: {fileID: 11400000, guid: 09f74964b6e968440b8881fbb28c451b, type: 2}
+  castStartHeight:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 2.2
+    Variable: {fileID: 11400000, guid: 3d81ba27c56a2ab46b958d8145ed4293, type: 2}
+  leftBiasStrength:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 0.6
+    Variable: {fileID: 11400000, guid: 5ccd87962560e934da30031243986cfa, type: 2}
+  rightBiasStrength:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 0.3
+    Variable: {fileID: 11400000, guid: 1c4fbf73516631746ab77c9c60003a42, type: 2}
+  preferCloserSpots:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 1
+    Variable: {fileID: 11400000, guid: d2190c9e6658eb142b799dcbd504e429, type: 2}
+  waterLayer:
+    serializedVersion: 2
+    m_Bits: 16
+  blockingLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  debug: 1
+  _maxBisectionIterations: 8
+  _retrievalGizmoSize: 0.15
+  _minShoreDistance:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 10
+    Variable: {fileID: 0}
+--- !u!114 &7301873146750911028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3a21988191886f4f87da27ab6bb8af1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FishingAddon::FishCatcher
+  _fishCount:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 610b30f159ebe7f4c9eb42b8733a29e2, type: 2}
+  FishingEndPresentationEvent: {fileID: 11400000, guid: 7fa30eb8e6cb87f459ae5c04cfd52c70, type: 2}
+  OnFishPresented:
+    m_PersistentCalls:
+      m_Calls: []
+  fishHolder: {fileID: 1167749540252815911}
+--- !u!114 &4976075731811133488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db429e0797c0f194bb62ed2829b05c46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FishingAddon::BobberController
+  OnBobberTouchWater:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 11400000, guid: 0357634d6a30bcd45a1369c010eb7f55, type: 2}
+        m_TargetAssemblyTypeName: FishingAddon.FEvent, FishingAddon
+        m_MethodName: Invoke
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnBobberExitWater:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 11400000, guid: 0f88298f4da273a449f79d552c5137cb, type: 2}
+        m_TargetAssemblyTypeName: FishingAddon.FEvent, FishingAddon
+        m_MethodName: Invoke
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnReelerComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  _bobberPrefab: {fileID: 8011764058660414240, guid: c9247e92d3cbfd4478b87790354ff305, type: 3}
+  _rodTip:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 11400000, guid: 11a0ec7218da24943948cedde430de84, type: 2}
+  _fisherRef:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 11400000, guid: 0c45a2c5e368c004eb9efaa6152aa0ea, type: 2}
+  _spawnInterpolation: 0
+  _useArcTrajectory: 1
+  _arcHeight: 2.92
+  _animateToSurface: 1
+  _animationDuration: 0.66
+  _animationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _retreatAnimationDuration: 0.66
+  _retreatDespawn: 0.867
+  _retreatAnimationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _baseReelingSpeed: 3
+  _reelingBobAmount: 0.2
+  _reelingBobSpeed: 2
+  RetreatPositionOffset:
+    Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Scale: {x: 0, y: 0, z: 0}
+--- !u!114 &8540840833382364655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f42ab500bf8564946ab68feec7bf7522, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FishingAddon::FishingAddon.FEventListener
+  Events:
+  - Event: {fileID: 11400000, guid: 3acf8a52f6924894885e37381a0bd397, type: 2}
+    active: 1
+    debug: 0
+    ignoreOwnerFilter: 0
+    useInt: 0
+    useFloat: 0
+    useVoid: 1
+    useString: 0
+    useBool: 0
+    useGO: 0
+    useTransform: 0
+    useVector3: 0
+    useVector2: 0
+    useComponent: 0
+    useSprite: 0
+    useSender: 0
+    Response:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 7301873146750911028}
+          m_TargetAssemblyTypeName: FishingAddon.FishCatcher, FishingAddon
+          m_MethodName: FishPresentation
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    ResponseNull:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseSender:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseFloat:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseInt:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseBool:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseBoolFalse:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseBoolTrue:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseString:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseGO:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseGOasT:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseTransform:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseComponent:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseSprite:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseVector3:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseVector2:
+      m_PersistentCalls:
+        m_Calls: []
+    IntEventList: []
+    FloatEventList: []
+    AdvancedInteger: 0
+    AdvancedFloat: 0
+    AdvancedBool: 0
+    InvertBool: 0
+    multiplier:
+      UseConstant: 1
+      UseMember: 0
+      Member:
+        target: {fileID: 0}
+        memberName: 
+        memberKind: 0
+        args: []
+        paramSignature: 
+        invert: 0
+      ConstantValue: 1
+      Variable: {fileID: 0}
+  - Event: {fileID: 11400000, guid: 2e894107627b5e54097b66f976d34894, type: 2}
+    active: 1
+    debug: 0
+    ignoreOwnerFilter: 0
+    useInt: 0
+    useFloat: 0
+    useVoid: 1
+    useString: 0
+    useBool: 0
+    useGO: 0
+    useTransform: 0
+    useVector3: 0
+    useVector2: 0
+    useComponent: 0
+    useSprite: 0
+    useSender: 0
+    Response:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 4976075731811133488}
+          m_TargetAssemblyTypeName: FishingAddon.BobberController, FishingAddon
+          m_MethodName: HandleFishingEnd
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 7301873146750911028}
+          m_TargetAssemblyTypeName: FishingAddon.FishCatcher, FishingAddon
+          m_MethodName: HandleFishingEnd
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    ResponseNull:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseSender:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseFloat:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseInt:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseBool:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseBoolFalse:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseBoolTrue:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseString:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseGO:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseGOasT:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseTransform:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseComponent:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseSprite:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseVector3:
+      m_PersistentCalls:
+        m_Calls: []
+    ResponseVector2:
+      m_PersistentCalls:
+        m_Calls: []
+    IntEventList: []
+    FloatEventList: []
+    AdvancedInteger: 0
+    AdvancedFloat: 0
+    AdvancedBool: 0
+    InvertBool: 0
+    multiplier:
+      UseConstant: 1
+      UseMember: 0
+      Member:
+        target: {fileID: 0}
+        memberName: 
+        memberKind: 0
+        args: []
+        paramSignature: 
+        invert: 0
+      ConstantValue: 1
+      Variable: {fileID: 0}
+  ShowEvents: 1
+  SelectedEvent: 2
+  FilterMode: 0
+  OwnerFilter:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  MatchHierarchy: 1
+  fishEvent: {fileID: 11400000, guid: addbee906355d764c96208b2bfaca75a, type: 2}
+  fishResponse:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7301873146750911028}
+        m_TargetAssemblyTypeName: FishingAddon.FishCatcher, FishingAddon
+        m_MethodName: HandleFishCatched
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &437516603052948332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea6d5dd50fb6c7243912c359e447b21c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FishingAddon::FishingReeler
+  rodReeler: {fileID: 0}
+  animal: {fileID: 0}
+  speed:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 1
+    Variable: {fileID: 11400000, guid: 580942db648b10846bd107bf8f296895, type: 2}
+  requiredDistance:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 5
+    Variable: {fileID: 11400000, guid: 38c903cc5bb85894caba4dda7d95f5ba, type: 2}
+--- !u!114 &2030908556517390577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800719150068735834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8037aed873aedd644b49dd5166f87396, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SunfishCreations::SunfishCreations.FishingRigCapabilities
+  supportsHandSwap: 0
+  supportsIK: 1
+--- !u!1 &850461970171492031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6628043294609934759}
+  - component: {fileID: 4041102792125904891}
+  - component: {fileID: 6052125648380819564}
+  m_Layer: 0
+  m_Name: Tug Of War
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6628043294609934759
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 850461970171492031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3286156217891085088}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4041102792125904891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 850461970171492031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28f27e9d2c060a74783e67533b7d54b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SunfishCreations::SunfishCreations.Controller.FishTugOfWar
+  bobber:
+    UseConstant: 0
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 11400000, guid: 8d672e796325dfb4a9931abe272fb035, type: 2}
+--- !u!114 &6052125648380819564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 850461970171492031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f42ab500bf8564946ab68feec7bf7522, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SunfishCreations::SunfishCreations.Events.FEventListener
+  Events: []
+  ShowEvents: 1
+  SelectedEvent: 0
+  FilterMode: 0
+  OwnerFilter:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  MatchHierarchy: 1
+  fishEvent: {fileID: 11400000, guid: 31b4128935d4f854db207640df3ffcc6, type: 2}
+  fishResponse:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4041102792125904891}
+        m_TargetAssemblyTypeName: SunfishCreations.FishTugOfWar, SunfishCreations
+        m_MethodName: HandleNewFishGenerated
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!1 &1889283763952680340
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4602714343230146668}
+  - component: {fileID: 1167749540252815911}
+  - component: {fileID: 5468636409310966117}
+  - component: {fileID: 1605164772659224975}
+  m_Layer: 0
+  m_Name: Fish Holder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4602714343230146668
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889283763952680340}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.0000001, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3286156217891085088}
+  m_LocalEulerAnglesHint: {x: -40, y: -100, z: 100}
+--- !u!114 &1167749540252815911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889283763952680340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03d1caab7df479e4ead4c6b037166cdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SunfishCreations::FishHolder
+--- !u!114 &5468636409310966117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889283763952680340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b4de088e089c164bb239be84964ea4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MalbersAnimations::MalbersAnimations.GizmoVisualizer
+  UseColliders: 0
+  gizmoType: 0
+  debugSize: 0.03
+  height: 2
+  DebugColor: {r: 0.68805015, g: 0.1842742, b: 0.05804324, a: 0.22487342}
+  DrawAxis: 0
+  AxisSize: 0.65
+  _colliders: []
+  HasColliders: 0
+  DrawLineTo: 0
+  ConnectTo: {fileID: 0}
+  Rect: {x: 1, y: 1, z: 1}
+  Center: {x: 0, y: 0, z: 0}
+  FirstSearch: 1
+  CapsuleMesh: {fileID: 0}
+--- !u!114 &1605164772659224975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889283763952680340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e77eb7d06c33944491558655d9ff7a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MalbersAnimations::MalbersAnimations.Utilities.HumanoidParent
+  animator: {fileID: 0}
+  parent: 17
+  LocalPos:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  LocalRot:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  PosOffset:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {x: 0, y: 0, z: 0}
+    Variable: {fileID: 0}
+  RotOffset:
+    UseConstant: 1
+    UseMember: 0
+    Member:
+      target: {fileID: 0}
+      memberName: 
+      memberKind: 0
+      args: []
+      paramSignature: 
+      invert: 0
+    ConstantValue: {x: 0, y: 0, z: 0}
+    Variable: {fileID: 0}
+--- !u!1 &8390384290847289454
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7023965432838052536}
+  - component: {fileID: 5440066022205197624}
+  m_Layer: 0
+  m_Name: Fisher IK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7023965432838052536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8390384290847289454}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3286156217891085088}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5440066022205197624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8390384290847289454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb33322a655e7048895d8bbcf7e3ea5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SunfishCreations.Common::SunfishCreations.IK.IKSolver
+  leftHandWeight: 1
+  rightHandWeight: 1
+  footIKWeight: 0

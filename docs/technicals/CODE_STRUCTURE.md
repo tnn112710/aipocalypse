@@ -253,7 +253,7 @@ Assets/_Game/
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/, Rocks/, Mountains/ (ENVIRONMENT.md)
 ├─ Maps/WorldMap/                           what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/, Navigation/ (NavmeshWater mesh, WorldMapNavmesh.bytes cache)
 ├─ Scenes/Prototypes/                       WorldMap.unity (the prototype world map; its data in Maps/WorldMap/); Proto_* scenes
-├─ (Assets/_Samples/Audio/)                Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
+├─ (Assets/_Placeholder/Audio/)            Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
 │                                          Music/: PLACEHOLDER death music cut from a YouTube Short, not licensed (sources in SOURCES.txt)
 ├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
 │  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience, Music .asset) + one folder of entities each

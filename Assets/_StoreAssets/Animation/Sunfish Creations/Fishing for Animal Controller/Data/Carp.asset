@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ca4bca16f97f1e4897935e102da183d, type: 3}
+  m_Name: Carp
+  m_EditorClassIdentifier: FishingAddon::FishingAddon.FishData
+  FishPrefab: {fileID: 5408004430149508114, guid: ad566ce1d57795745835075fc7d3c5ab, type: 3}
+  fishName: Carp
+  fishIcon: {fileID: 21300000, guid: f2205cf11f027bc4fad11a8808aa8846, type: 3}
+  rarity: 0
+  minWeight:
+    UseConstant: 1
+    ConstantValue: 5
+    Variable: {fileID: 0}
+  maxWeight:
+    UseConstant: 1
+    ConstantValue: 15
+    Variable: {fileID: 0}
+  minStrikeTime:
+    UseConstant: 1
+    ConstantValue: 5
+    Variable: {fileID: 0}
+  maxStrikeTime:
+    UseConstant: 1
+    ConstantValue: 10
+    Variable: {fileID: 0}
+  minNibbles:
+    UseConstant: 1
+    ConstantValue: 2
+    Variable: {fileID: 0}
+  maxNibbles:
+    UseConstant: 1
+    ConstantValue: 6
+    Variable: {fileID: 0}
+  minTimeBetweenNibbles:
+    UseConstant: 1
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  maxTimeBetweenNibbles:
+    UseConstant: 1
+    ConstantValue: 4
+    Variable: {fileID: 0}
+  fleeRangeAngle:
+    minValue: 40
+    maxValue: 140
+  fleeSpeed:
+    UseConstant: 1
+    ConstantValue: 2
+    Variable: {fileID: 0}
+  minStruggleStageDuration:
+    UseConstant: 1
+    ConstantValue: 2
+    Variable: {fileID: 0}
+  maxStruggleStageDuration:
+    UseConstant: 1
+    ConstantValue: 3
+    Variable: {fileID: 0}
+  minTiredStageDuration:
+    UseConstant: 1
+    ConstantValue: 2
+    Variable: {fileID: 0}
+  maxTiredStageDuration:
+    UseConstant: 1
+    ConstantValue: 3
+    Variable: {fileID: 0}
+  debug: 0

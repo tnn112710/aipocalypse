@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf4e70a8f2ae6c045955bcc510522358, type: 3}
+  m_Name: Fish End Presentation
+  m_EditorClassIdentifier: FishingAddon::FishingAddon.FEvent
+  Description: 'This event is called inside the Animator, using a animator behaviour,
+    Find Invokers button will not show events inside the animator, it can only search
+    for events in the scene. You can turn debug on for this, or any other event called
+    by the animator, the log message will show where it''s being called.
+
+
+    Fish
+    End Presentation is called inside the Fishing State, in the clip ''Store_Fish_from_Holding''
+    using the React2Behaviour  when Fish was already presented'
+  debug: 0
+  m_int:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  m_float:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  m_string:
+    UseConstant: 1
+    ConstantValue: 
+    Variable: {fileID: 0}
+  m_bool:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  m_V2:
+    UseConstant: 1
+    ConstantValue: {x: 0, y: 0}
+    Variable: {fileID: 0}
+  m_V3:
+    UseConstant: 1
+    ConstantValue: {x: 0, y: 0, z: 0}
+    Variable: {fileID: 0}
+  m_go:
+    UseConstant: 1
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  m_transform:
+    UseConstant: 1
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  m_Sprite: {fileID: 0}
+  onEventRaised:
+    m_PersistentCalls:
+      m_Calls: []
