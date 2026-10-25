@@ -111,6 +111,32 @@ Narrow revision at 8K, seed 271828 and band scale 1.0: generation 66.3 s,
 RGB/sRGB encoding, seam continuity, both polar PSFs and unchanged stellar
 directions/magnitudes/colours/counts were checked; all previews were inspected.
 
+## Converting a real star map EXR (`convert_exr_starmap.py`)
+
+Turns a real equirectangular star map (e.g. NASA SVS Deep Star Maps 2020, `starmap_2020_8k.exr`) into our PNG layout. NumPy and zlib only: it reads scanline EXRs (half or float RGB, NONE / ZIPS / ZIP compression).
+
+```powershell
+& $starPython AgentScripts/DayNight/StarMap/convert_exr_starmap.py <path>\starmap_2020_8k.exr `
+  --out Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap_NASA2020.png `
+  --reference Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap3_8K.png --preview-dir <scratch dir>
+```
+
+The source's RA layout is fitted, not assumed: for each of the four layouts (RA 0h at the left edge or the centre, growing right or left) it fits the band's great circle and brightest point and keeps the layout that matches the real north galactic pole and centre; a mirror image puts the centre right but the pole ~60 deg off, so it cannot win. NASA's 2020 map came out as RA 0h at the centre growing leftward (pole 2.6 deg, centre 5.6 deg off, from a blurred 1/8 copy). It refuses a map no layout fits. Brightness: `--reference` matches the median sky of a map the scene was tuned for (`--gain` sets it directly). That EXR only reaches 1.0, so the 8-bit PNG loses nothing. 8K takes about 25 s.
+
+## Stylized version (`stylize_starmap.py`)
+
+Makes a stylized copy of a star map PNG in our layout, every star kept at its pixel (checked on NASA's map: all 300 brightest stars land on the same pixel).
+
+```powershell
+& $starPython AgentScripts/DayNight/StarMap/stylize_starmap.py `
+  Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap_NASA2020.png `
+  --out Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap_NASA2020_Stylized.png --preview-dir <scratch dir>
+```
+
+The glow (Milky Way, dust) is separated from the stars on a 1/4-size copy (stars are at most a pixel there, so a round radius-2 opening removes them), smoothed, given a power curve (`--contrast`, 1.2: faint sky darker, the bright band end kept) and a hue ramp over its brightness: indigo, blue-violet, violet, pink-mauve, warm cream core (`--saturation` 1.6, `--hue-mix` 0.15 of the source's own colour). The ramp sets hue only; brightness stays on the source's scale, so Star Map Intensity still fits. Matching the median sky instead blew the band out to white, because the ramp darkens the faint sky. Stars are the local peaks of source minus glow at full size; the brightest `--stars` (60,000) are redrawn at their centroids in four size tiers, their energy range compressed around the median star (power 0.6), colours `--star-saturation` 1.25; the faintest are dropped. The top 0.3% get a thin 4-point sparkle along RA and Dec (`--sparkle`, 0 = none). `--palette` picks the hue ramp: `violet` (above) or `teal` (deep navy, teal, icy cyan, gold core). `--pepper` adds the source's own faint star layer back (source minus glow, capped at `--pepper-cap` 0.05 so the redrawn stars are not doubled); 0, the default, keeps the first stylized version's look, which drops them and reads empty. 8K takes about 40-50 s.
+
+Versions made from `StarMap_NASA2020.png`: `_Stylized` (defaults), `_Stylized2` (`--pepper 1.6`), `_Stylized3` (`--palette teal --pepper 1.6`).
+
 ## Upscaling a generated panorama (`upscale_starmap.py`)
 
 Turns a low-res Milky Way panorama (e.g. an AI-generated 1774x887 equirectangular image) into an

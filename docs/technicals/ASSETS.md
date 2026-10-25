@@ -100,6 +100,18 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 | Kroma | Maybe | `GameFeel/Kroma` | In use: `Kroma_Particle_Dandelions_Prefab` as meadow seed fluff, with `KromaCameraFollow` and `KromaParticleController` disabled and collision off. Avoid `Dust_Glow` (emission 191) unless through a material copy, and Kroma's zone, lighting and LUT tools. |
 | Unluck Software (Insect Particles, Stylized Weather, Simple Particle Scaler) | Maybe | `VFX/Unluck Software` | Not used. Weather will be ours ([DAYNIGHT.md](DAYNIGHT.md)): its particles at most, never its weather controller. |
 
+## Sky
+
+Not vendor packs: source images converted into `Assets/_Game/Data/Environment/TimeOfDay/StarMap/` by the scripts in `AgentScripts/DayNight/StarMap/` (README there). How the sky uses them: [DAYNIGHT.md](DAYNIGHT.md).
+
+| Source | Tag | File | Notes |
+| --- | --- | --- | --- |
+| NASA SVS Deep Star Maps 2020 (`starmap_2020_8k.exr`, real sky from Hipparcos, Tycho-2 and Gaia DR2) | Should | `StarMap_NASA2020.png` | The photographic real sky. Converted by `convert_exr_starmap.py`. NASA imagery is free to use; credit it, e.g. "Star map: NASA/Goddard Space Flight Center Scientific Visualization Studio; Gaia DR2: ESA/Gaia/DPAC". Check the exact credit line on the SVS page before shipping. |
+| NASA SVS Deep Star Maps 2020, stylized | Should | `StarMap_NASA2020_Stylized.png` | The same real stars at the same pixels, with a smoothed violet-pink Milky Way and clean tiered stars, made from `StarMap_NASA2020.png` by `stylize_starmap.py`. Same credit as the row above. In use on `SkyboxPlus_Sky.mat`; set Star Map back to `StarMap_NASA2020` for the photographic sky. |
+| NASA SVS Deep Star Maps 2020, stylized 2 and 3 | Should | `StarMap_NASA2020_Stylized2.png`, `StarMap_NASA2020_Stylized3.png` | Like the stylized version, plus the source's own faint stars added back (`--pepper 1.6`; without them the sky reads empty). 2: violet palette; 3: teal palette with a gold core. Same credit. |
+| Procedural (`generate_starmap.py`) | Could | `StarMap.png` | Our generated sky (styles natural, vivid, subtle, rift). |
+| AI-generated panoramas | Avoid | `StarMap2…6.png`, `StarMap2…6_8K.png` (upscaled by `upscale_starmap.py`) | Trial images; AI-generated content belongs in `Assets/_Placeholder/` and does not ship. |
+
 ## Audio
 
 All sound plays through BroAudio entities in `Assets/_Game/Data/Audio/` (`tools-unity-broaudio`). No final audio is chosen yet. Clips in use today come from `Assets/_Placeholder/Audio` (below), Malbers `Common/Audio` and the Raygeas packs (their rows above).

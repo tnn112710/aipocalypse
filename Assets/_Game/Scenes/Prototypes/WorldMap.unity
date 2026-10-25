@@ -15,14 +15,14 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.7592, g: 0.6704, b: 0.61744, a: 1}
+  m_FogColor: {r: 0.06, g: 0.08, b: 0.15, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.0017272
+  m_FogDensity: 0.0013
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.58624, g: 0.61352, b: 0.73456, a: 1}
-  m_AmbientEquatorColor: {r: 0.66752, g: 0.55208004, b: 0.46416, a: 1}
-  m_AmbientGroundColor: {r: 0.36624002, g: 0.30936, b: 0.25624, a: 1}
+  m_AmbientSkyColor: {r: 0.24, g: 0.29, b: 0.48, a: 1}
+  m_AmbientEquatorColor: {r: 0.17, g: 0.21, b: 0.34, a: 1}
+  m_AmbientGroundColor: {r: 0.09, g: 0.1, b: 0.14, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0.2
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 308460570}
   m_UseRadianceAmbientProbe: 0
@@ -84577,8 +84577,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
-  m_Color: {r: 1, g: 0.6459145, b: 0.4178205, a: 1}
-  m_Intensity: 2.0831494
+  m_Color: {r: 1, g: 0.86917806, b: 0.7436589, a: 1}
+  m_Intensity: 0
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -84587,7 +84587,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.9104
+    m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -84640,7 +84640,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308460568}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.071697466, y: -0.7218827, z: 0.075655, w: 0.6841207}
+  m_LocalRotation: {x: 0.003871818, y: 0.9960263, z: -0.069648944, w: 0.055369575}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -370225,7 +370225,8 @@ MonoBehaviour:
   _shadowGlide: 0.3
   _nightShadowDistance: 60
   _skyboxPlusDuskElevation: 6
-  _skyboxPlusNightSink: 3.5
+  _skyboxPlusMorningSink: 3.5
+  _skyboxPlusEveningSink: 5
   _starLatitude: 30
   _starAzimuth: 180
   _galacticCoreTransit: 23
@@ -370249,7 +370250,7 @@ MonoBehaviour:
   - {fileID: 2137827535}
   - {fileID: 1254163443}
   _preview: 1
-  _previewHour: 7
+  _previewHour: 24
   _previewSpeed: 0
   _previewMoonPhase: 0.5
 --- !u!1001 &1372299832
@@ -392088,7 +392089,7 @@ MonoBehaviour:
   priority: 10
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: b2d76805e3c37dd40a6bc021a91bb74b, type: 2}
+  sharedProfile: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
 --- !u!1001 &1453393562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -558062,7 +558063,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2033497263}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
@@ -558070,8 +558071,8 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 11
   blendDistance: 0
-  weight: 0.104
-  sharedProfile: {fileID: 11400000, guid: 437bdca698d6cbc479a65b1df2f1f6b5, type: 2}
+  weight: 0
+  sharedProfile: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
 --- !u!1 &2033916209
 GameObject:
   m_ObjectHideFlags: 0
