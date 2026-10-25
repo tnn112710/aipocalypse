@@ -181,19 +181,20 @@ namespace Aipocalypse.Core.WeaponSystem
 
             // Things that take damage move and die; a hole would float in the air.
             if (target == null && (effects.BulletHoleLayers.value & (1 << hit.collider.gameObject.layer)) != 0)
-                SpawnBulletHole(effects, hit.point, normal);
+                SpawnBulletHole(effects, hit, normal);
         }
 
         // URP decal projectors project along their forward, so the hole faces into the surface.
-        void SpawnBulletHole(BulletEffects effects, Vector3 point, Vector3 normal)
+        // Parented to what it hit so it rides along when that moves.
+        void SpawnBulletHole(BulletEffects effects, in RaycastHit hit, Vector3 normal)
         {
             Vector3 into = -normal;
             Vector3 up = Mathf.Abs(Vector3.Dot(into, Vector3.up)) > 0.98f ? Vector3.forward : Vector3.up;
             Quaternion rotation = Quaternion.LookRotation(into, up) * Quaternion.AngleAxis(Random.Range(0f, 360f), Vector3.forward);
 
-            PooledEffect hole = _effects.Spawn(effects.BulletHole, point + normal * effects.BulletHoleOffset, rotation);
+            PooledEffect hole = _effects.Spawn(effects.BulletHole, hit.point + normal * effects.BulletHoleOffset, rotation, hit.collider.transform);
             if (hole != null)
-                hole.transform.localScale = Vector3.one * Random.Range(effects.BulletHoleScale.x, effects.BulletHoleScale.y);
+                hole.ScaleDecal(Random.Range(effects.BulletHoleScale.x, effects.BulletHoleScale.y));
         }
     }
 }

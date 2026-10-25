@@ -5,6 +5,7 @@ using MessagePipe;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using VContainer;
 
 namespace Aipocalypse.Tests
@@ -136,6 +137,32 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(1, LiveTracers().Count, "2 m out, short of the wall");
             _bullets.Advance(0.02f);
             Assert.AreEqual(0, LiveTracers().Count, "stopped at the wall");
+        }
+
+        [Test]
+        public void BulletHole_StaysOnTheTargetItHit_AtItsOwnSize()
+        {
+            PooledEffect hole = Effect("Hole", maxActive: 0);
+            var decalGo = new GameObject("Decal");
+            decalGo.transform.SetParent(hole.transform, false);
+            var decal = decalGo.AddComponent<DecalProjector>();
+            decal.scaleMode = DecalScaleMode.ScaleInvariant;
+            decal.size = new Vector3(0.1f, 0.1f, 0.1f);
+            var so = new SerializedObject(_bulletEffects);
+            so.FindProperty("_bulletHole").objectReferenceValue = hole;
+            so.FindProperty("_bulletHoleScale").vector2Value = new Vector2(2f, 2f);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            GameObject target = Box(new Vector3(0f, 0f, 3f), new Vector3(4f, 1f, 0.2f));
+            Fire(Vector3.zero, range: 100f);
+            _bullets.Advance(0.05f);
+
+            DecalProjector spawned = target.GetComponentInChildren<DecalProjector>();
+            Assert.IsNotNull(spawned, "the hole is parented to the collider it hit");
+            Assert.AreEqual(new Vector3(0.2f, 0.2f, 0.1f), spawned.size, "only width and height scale");
+
+            target.transform.position += Vector3.right * 5f;
+            Assert.AreEqual(target.transform.position.x, spawned.transform.position.x, 0.01f, "it moves with the target");
         }
 
         [Test]

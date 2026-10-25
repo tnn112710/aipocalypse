@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace Aipocalypse.Core.WeaponSystem
 {
@@ -14,6 +15,9 @@ namespace Aipocalypse.Core.WeaponSystem
 
         ParticleSystem[] _particles;
         TrailRenderer[] _trails;
+        DecalProjector _decal;
+        Vector3 _decalSize;
+        bool _decalSearched;
 
         public float Lifetime => _lifetime;
         public int MaxActive => _maxActive;
@@ -36,6 +40,20 @@ namespace Aipocalypse.Core.WeaponSystem
                 particles.Clear(false);
                 particles.Play(false);
             }
+        }
+
+        // Decals are scale-invariant so a scaled parent can't stretch them; their width and height scale here instead.
+        public void ScaleDecal(float scale)
+        {
+            if (!_decalSearched)
+            {
+                _decal = GetComponentInChildren<DecalProjector>(true);
+                if (_decal != null)
+                    _decalSize = _decal.size;
+                _decalSearched = true;
+            }
+            if (_decal != null)
+                _decal.size = new Vector3(_decalSize.x * scale, _decalSize.y * scale, _decalSize.z);
         }
     }
 }

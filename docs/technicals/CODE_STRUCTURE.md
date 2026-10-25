@@ -236,9 +236,9 @@ Assets/_Game/
 │     ├─ RepairFeedbackSettings.cs          SO preset: gun jolts (jam, dry fire, slap, punch, miss, success) and result sounds (+ MechanismDelay)
 │     ├─ GunJamFeedback.cs                  on Player/GunJamFeedback (with FeedbackContext): its owner's GunJamBeat / GunRepairCompleted → one MMF_Player per beat (camera impulse; hit stop for punch and success)
 │     ├─ GunAnimation.cs                    a gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
-│     ├─ Ballistics/BulletSystem.cs         root service (ITickable, Advance(dt) for tests): bullets as data, each following only the tracer it was handed (spawn id), ray-tested against each shot's HitLayers, damage of the shot's DamageType through DamageService (source = shooter), impacts, holes (+ BulletShot)
+│     ├─ Ballistics/BulletSystem.cs         root service (ITickable, Advance(dt) for tests): bullets as data, each following only the tracer it was handed (spawn id), ray-tested against each shot's HitLayers, damage of the shot's DamageType through DamageService (source = shooter), impacts, holes parented to the collider hit (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
-│     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
+│     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart, ScaleDecal (scale-invariant decal size)
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) and GunJamFactory in the root scope
 │     └─ Prefabs/Gun_Base.prefab            HeldGun skeleton: Poses (Hip, Aim, Sprint), PosePivot > RecoilPivot > Muzzle; every gun is a variant of it, and the base alone is a working block-out
@@ -296,7 +296,7 @@ Assets/_Game/
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
    ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
    ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)
-   ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet
+   ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet; a hole sticks to the moving target it hit
    └─ TestConsumableDefinition.cs           quick-use stackable ItemDefinition for EquipmentTests
 ```
 
