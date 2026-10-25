@@ -28,5 +28,16 @@ Full docs: https://man572142s-organization.gitbook.io/broaudio/
 - **No-code components** (`SoundSource`, `SoundVolume`, `SpectrumAnalyzer`) are not used; they bypass `AudioService`. Ask before adding one (e.g. `SoundVolume` for an options menu).
 - **Pause:** there is no global audio pause. Each kept player is paused by its owner while `TimeService.IsPaused`: `Player` calls `_breathSound.SetPaused(...)` and `_sequence.SetPaused(...)`, which call `AudioService.Pause` / `UnPause` on the breath loop and the sequence music. `AmbienceService` stops its one-shot calls while paused, but its beds keep playing. Follow that pattern for a new kept player (aipocalypse-architecture §4); don't add a global pause rule without asking.
 - **Clip editing** before a clip goes into an entity: `tools-unity-audio-tools`.
-- **Import settings:** every clip an entity uses has Preload Audio Data on (a clip with it off loads on its first play, ~11 ms hitch), and beds longer than 60 s use Load Type Streaming. Run `AgentScripts/Perf/AudioPreload.Apply` (`[true]` = dry run) after adding sounds; it fixes the default and Standalone settings, vendor clips included.
+- **Import settings:** every clip an entity uses gets one of three Unity Presets in `Assets/_Game/Settings/Audio/`, picked by length. After adding or replacing sounds run `AgentScripts/Audio/AudioImport.Apply` (`[true]` = dry run). It applies vendor clips' presets too, and a re-run changes nothing. The vendor audio packs in `Assets/_StoreAssets/Audio/` have the presets applied to every clip. For a newly imported pack, run `AudioImport.ApplyFolder("<pack folder>")` (~0.1 s per clip; `max` times a sample first).
+
+  | Preset | Clips | Settings | Why |
+  | --- | --- | --- | --- |
+  | `AudioImport_Sfx` | ≤ 2 s: guns, footsteps, hits, UI, short calls | Decompress On Load, ADPCM, Force To Mono, Optimize Sample Rate, Preload | No decode when played; mono halves memory; ADPCM loads fast |
+  | `AudioImport_Medium` | 2–60 s: stingers, longer calls, voice | Compressed In Memory, Vorbis 0.7, Preload | ~10× less memory than PCM; decoded while playing |
+  | `AudioImport_Stream` | > 60 s: music, ambience beds | Streaming, Vorbis 0.6, no Preload | ~200 KB per playing stream |
+
+  - **Preload is required:** a clip with Preload Audio Data off loads on its first play, an ~11 ms hitch.
+  - **Starting a stream costs 1–3 ms of main thread**, and BroAudio pays it again on each loop, because it hands the loop to a fresh source. Load In Background is off until it has been A/B'd: the handover is scheduled only a short warm-up ahead, so a late background open could leave a gap.
+  - **Tune the presets in the Inspector:** `Apply` uses whatever the preset assets hold. `AudioImport.CreatePresets` rewrites them from the table in the script.
+  - **A clip that must stay stereo** (a stereo music stinger under 2 s) needs a rule in `AudioImport.For` rather than a hand edit, which the next run would undo.
 - Adding a sound: add the entity in the Library Manager (`Tools > BroAudio > Library Manager`) in the right library, add a `SoundID` field on the data asset, play it through `AudioService`. Update CODE_STRUCTURE.md / PLUGINS.md if a new library or service method appears.
