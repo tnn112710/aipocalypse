@@ -15,14 +15,14 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.06, g: 0.08, b: 0.15, a: 1}
+  m_FogColor: {r: 0.6979136, g: 0.7010432, b: 0.7277555, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.0013
+  m_FogDensity: 0.0015126977
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.24, g: 0.29, b: 0.48, a: 1}
-  m_AmbientEquatorColor: {r: 0.17, g: 0.21, b: 0.34, a: 1}
-  m_AmbientGroundColor: {r: 0.09, g: 0.1, b: 0.14, a: 1}
+  m_AmbientSkyColor: {r: 0.6046259, g: 0.6533562, b: 0.7774605, a: 1}
+  m_AmbientEquatorColor: {r: 0.63074815, g: 0.55820864, b: 0.47641727, a: 1}
+  m_AmbientGroundColor: {r: 0.3846259, g: 0.3369389, b: 0.27462593, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0.2
+  m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 308460570}
   m_UseRadianceAmbientProbe: 0
@@ -84577,8 +84577,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
-  m_Color: {r: 1, g: 0.86917806, b: 0.7436589, a: 1}
-  m_Intensity: 0
+  m_Color: {r: 1, g: 0.72227067, b: 0.52925724, a: 1}
+  m_Intensity: 2.3283455
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -84587,7 +84587,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 1
+    m_Strength: 0.9410432
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -84640,7 +84640,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308460568}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.003871818, y: 0.9960263, z: -0.069648944, w: 0.055369575}
+  m_LocalRotation: {x: 0.12274973, y: -0.6531747, z: 0.10845299, w: 0.7392789}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -370249,8 +370249,8 @@ MonoBehaviour:
   - {fileID: 951622588}
   - {fileID: 2137827535}
   - {fileID: 1254163443}
-  _preview: 1
-  _previewHour: 24
+  _preview: 0
+  _previewHour: 7.6
   _previewSpeed: 0
   _previewMoonPhase: 0.5
 --- !u!1001 &1372299832
@@ -392089,7 +392089,7 @@ MonoBehaviour:
   priority: 10
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
+  sharedProfile: {fileID: 11400000, guid: b2d76805e3c37dd40a6bc021a91bb74b, type: 2}
 --- !u!1001 &1453393562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -558063,7 +558063,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2033497263}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
@@ -558071,8 +558071,8 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 11
   blendDistance: 0
-  weight: 0
-  sharedProfile: {fileID: 11400000, guid: c8d380b281c060542888885298ea7ffe, type: 2}
+  weight: 0.41043195
+  sharedProfile: {fileID: 11400000, guid: 437bdca698d6cbc479a65b1df2f1f6b5, type: 2}
 --- !u!1 &2033916209
 GameObject:
   m_ObjectHideFlags: 0
