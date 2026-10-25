@@ -103,7 +103,7 @@ public static class HandFistReview
         }
         int clips=0;
         foreach(string name in new[]{"AK47","MP5","Pistol","PumpShotgun","DoubleBarrel"})
-        foreach(string state in new[]{"Repairing","RepairingStubborn","RepairFocus","RepairEnd"})
+        foreach(string state in new[]{"Repairing","RepairingStubborn","RepairEnd"})
         {
             var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Game/Content/Weapons/" + name + "/Animations/"+name+"_"+state+".anim");
             var bindings=AnimationUtility.GetCurveBindings(clip);

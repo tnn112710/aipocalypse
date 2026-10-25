@@ -104,7 +104,7 @@ namespace Aipocalypse.Tests
         public void TurningRight_LeavesItemBehindToTheLeft()
         {
             var sway = Calm();
-            Vector3 position = SettledPosition(sway, new HeldSwayInput { LookDegrees = new Vector2(100f * Frame, 0f) });
+            Vector3 position = SettledPosition(sway, new HeldSwayInput { LookRate = new Vector2(100f, 0f) });
             Assert.Less(position.x, -0.001f);
         }
 
@@ -122,7 +122,7 @@ namespace Aipocalypse.Tests
         [Test]
         public void Aiming_CalmsTheSway_ButKeepsMostOfTheMoveLag()
         {
-            var input = new HeldSwayInput { LocalVelocity = new Vector3(3f, 0f, 3f), LookDegrees = new Vector2(1f, 0.5f) };
+            var input = new HeldSwayInput { LocalVelocity = new Vector3(3f, 0f, 3f), LookRate = new Vector2(1f, 0.5f) / Frame };
             float hip = SettledPosition(Calm(), input).magnitude;
             input.AimWeight = 1f;
             float aimed = SettledPosition(Calm(), input).magnitude;
@@ -266,7 +266,7 @@ namespace Aipocalypse.Tests
         {
             var sway = new HeldItemSway(NoBreathing(), new AimSwaySettings { MaxOffset = 1f }, new BaseStats());
             sway.OnLanded(30f);
-            Vector2 range = AimRange(sway, new HeldSwayInput { IsAirborne = true, LookDegrees = new Vector2(10f, 0f) }, 60);
+            Vector2 range = AimRange(sway, new HeldSwayInput { IsAirborne = true, LookRate = new Vector2(10f, 0f) / Frame }, 60);
             Assert.LessOrEqual(range.magnitude, 1.42f);
         }
 
@@ -274,7 +274,7 @@ namespace Aipocalypse.Tests
         public void TheModel_OnlyRolls()
         {
             var sway = new HeldItemSway(new HeldSwaySettings(), new AimSwaySettings(), new BaseStats());
-            Run(sway, new HeldSwayInput { LocalVelocity = new Vector3(3f, 0f, 3f), LookDegrees = new Vector2(2f, 1f), BobPhase = 1f, BobIntensity = 1f }, 30);
+            Run(sway, new HeldSwayInput { LocalVelocity = new Vector3(3f, 0f, 3f), LookRate = new Vector2(2f, 1f) / Frame, BobPhase = 1f, BobIntensity = 1f }, 30);
             Vector3 forward = sway.Rotation * Vector3.forward;
             Assert.AreEqual(1f, forward.z, 0.00001f, "pitch and yaw come from the aim offset, so the barrel stays on the crosshair");
         }

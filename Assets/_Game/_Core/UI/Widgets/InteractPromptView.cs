@@ -44,7 +44,7 @@ namespace Aipocalypse.Core.UI
                 return;
 
             _keyCap.sprite = _style.KeySprite;
-            _keyCap.type = _style.KeySprite != null && _style.KeySprite.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
+            _keyCap.type = StyleUtils.ImageTypeFor(_style.KeySprite);
             _keyCap.color = _style.KeyColor;
             if (_style.KeyFont != null)
                 _keyLabel.font = _style.KeyFont;

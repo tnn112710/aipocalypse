@@ -42,33 +42,17 @@ namespace Aipocalypse.Core.EnvironmentSystem
             for (int i = 0; i < ids.Length; i++)
                 ids[i] = Shader.PropertyToID(_properties[i]);
 
-            var copies = new Dictionary<Material, Material>();
-            foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
-            {
-                Material[] materials = renderer.sharedMaterials;
-                bool changed = false;
-                for (int i = 0; i < materials.Length; i++)
+            RuntimeMaterials.CopyUnder(this,
+                source => HasAny(source, ids) && (_materials.Length == 0 || System.Array.IndexOf(_materials, source) >= 0),
+                source =>
                 {
-                    Material source = materials[i];
-                    if (source == null || !HasAny(source, ids))
-                        continue;
-                    if (_materials.Length > 0 && System.Array.IndexOf(_materials, source) < 0)
-                        continue;
-                    if (!copies.TryGetValue(source, out Material copy))
-                    {
-                        copy = new Material(source) { name = source.name + " (Atmosphere)" };
-                        copies.Add(source, copy);
-                        _copies.Add(copy);
-                        foreach (int id in ids)
-                            if (source.HasProperty(id))
-                                _slots.Add(new Slot { Copy = copy, Id = id, Original = source.GetColor(id) });
-                    }
-                    materials[i] = copy;
-                    changed = true;
-                }
-                if (changed)
-                    renderer.sharedMaterials = materials;
-            }
+                    var copy = new Material(source) { name = source.name + " (Atmosphere)" };
+                    foreach (int id in ids)
+                        if (source.HasProperty(id))
+                            _slots.Add(new Slot { Copy = copy, Id = id, Original = source.GetColor(id) });
+                    return copy;
+                },
+                _copies);
         }
 
         static bool HasAny(Material material, int[] ids)
@@ -105,8 +89,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         protected override void OnDestroy()
         {
-            foreach (Material copy in _copies)
-                Destroy(copy);
+            RuntimeMaterials.Destroy(_copies);
             base.OnDestroy();
         }
     }

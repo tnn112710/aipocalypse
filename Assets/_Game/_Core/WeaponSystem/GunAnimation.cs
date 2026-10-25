@@ -17,7 +17,6 @@ namespace Aipocalypse.Core.WeaponSystem
         ReloadingEmpty,
         Repairing,
         RepairingStubborn,
-        RepairFocus,
         RepairEnd,
         Cycling,
     }
@@ -75,9 +74,9 @@ namespace Aipocalypse.Core.WeaponSystem
         public float Progress { get; private set; }
 
         bool IsAction => _state is GunClip.Reloading or GunClip.ReloadingEmpty or GunClip.Repairing or GunClip.RepairingStubborn
-            or GunClip.RepairFocus or GunClip.Cycling;
+            or GunClip.Cycling;
         bool IsRepairing => _state is GunClip.Repairing or GunClip.RepairingStubborn;
-        bool Loops => _state is GunClip.Idle or GunClip.RepairFocus;
+        bool Loops => _state == GunClip.Idle;
 
         public void Bind(EffectPool effects)
         {
@@ -111,18 +110,10 @@ namespace Aipocalypse.Core.WeaponSystem
 
         public void EndAction() => SetState(GunClip.Idle);
 
-        // Holds the repair on its looping focus clip (while a QTE waits), or goes back to the repair sequence.
-        public void FocusRepair(bool focus)
-        {
-            int impacts = _notifiedImpacts;
-            SetState(focus ? GunClip.RepairFocus : _repairState);
-            _notifiedImpacts = impacts;
-        }
-
         // The repair succeeded early: RepairEnd plays from the current pose back to the grips.
         public void FinishRepair()
         {
-            bool capture = IsRepairing || _state == GunClip.RepairFocus;
+            bool capture = IsRepairing;
             if (capture)
             {
                 EnsureGraph();
@@ -147,7 +138,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 TickReturn(deltaTime);
                 return;
             }
-            if (IsAction && _state != GunClip.RepairFocus)
+            if (IsAction)
             {
                 Evaluate(Mathf.Clamp01(actionProgress));
                 if (IsRepairing)

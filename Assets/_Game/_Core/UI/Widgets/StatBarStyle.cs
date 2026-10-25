@@ -33,20 +33,8 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Label"), ShowIf(nameof(ShowLabel)), Min(1f)] public float FontSize = 20f;
 
 #if UNITY_EDITOR
-        // Edit-time preview only: bars re-apply their style in Awake, so play mode and builds never depend on this.
-        void OnValidate() => UnityEditor.EditorApplication.delayCall += RefreshOpenBars;
-
-        void RefreshOpenBars()
-        {
-            if (this == null)
-                return;
-
-            foreach (StatBar bar in FindObjectsByType<StatBar>(FindObjectsInactive.Include))
-            {
-                if (bar.Style == this)
-                    bar.ApplyStyle();
-            }
-        }
+        // Edit-time preview only: bars re-apply their style in Awake.
+        void OnValidate() => StyleUtils.RefreshViews<StatBar>(this, bar => bar.Style, bar => bar.ApplyStyle());
 #endif
     }
 }

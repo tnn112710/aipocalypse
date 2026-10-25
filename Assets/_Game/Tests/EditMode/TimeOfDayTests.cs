@@ -102,5 +102,27 @@ namespace Aipocalypse.Tests
             Assert.Less(midnight, 0f);
             Assert.Greater(moonMidnight, 0f);
         }
+
+        [Test]
+        public void Reactor_KeepsFading_AtHighFrameRates()
+        {
+            // Inactive, so the director's edit-mode hooks stay quiet.
+            var go = new GameObject("Director");
+            go.SetActive(false);
+            _created.Add(go);
+            var director = go.AddComponent<EnvironmentDirector>();
+            var reactor = go.AddComponent<TimeOfDayEmission>();
+            var hour = typeof(EnvironmentDirector).GetProperty(nameof(EnvironmentDirector.Hour))!;
+
+            hour.SetValue(director, 0f);
+            reactor.React(director, 0.002f);
+            Assert.AreEqual(1f, reactor.Weight, "the first reaction snaps to the night weight");
+
+            hour.SetValue(director, 12f);
+            for (int i = 0; i < 150; i++)
+                reactor.React(director, 0.002f);
+
+            Assert.AreEqual(1f - 0.3f / 1.5f, reactor.Weight, 0.01f, "0.3 s of a 1.5 s fade at 500 fps");
+        }
     }
 }

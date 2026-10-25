@@ -21,19 +21,7 @@ namespace Aipocalypse.Core.UI
 
 #if UNITY_EDITOR
         // Edit-time preview only: prompts re-apply their style in Awake.
-        void OnValidate() => UnityEditor.EditorApplication.delayCall += RefreshOpenPrompts;
-
-        void RefreshOpenPrompts()
-        {
-            if (this == null)
-                return;
-
-            foreach (InteractPromptView prompt in FindObjectsByType<InteractPromptView>(FindObjectsInactive.Include))
-            {
-                if (prompt.Style == this)
-                    prompt.ApplyStyle();
-            }
-        }
+        void OnValidate() => StyleUtils.RefreshViews<InteractPromptView>(this, prompt => prompt.Style, prompt => prompt.ApplyStyle());
 #endif
     }
 }

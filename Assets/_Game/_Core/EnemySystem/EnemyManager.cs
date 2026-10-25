@@ -36,7 +36,8 @@ namespace Aipocalypse.Core.EnemySystem
             _owed -= thinks;
             using (Think.Auto())
             {
-                for (int i = 0; i < thinks && _enemies.Count > 0; i++)
+                // Bounded by the live count too: a tree that removes others mustn't get the survivors ticked twice.
+                for (int i = 0; i < thinks && i < _enemies.Count; i++)
                 {
                     if (_cursor >= _enemies.Count)
                         _cursor = 0;

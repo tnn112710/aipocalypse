@@ -193,12 +193,13 @@ namespace Aipocalypse.Core.UI
             if (_clean)
                 return;
             bool live = _qte != null && ReferenceEquals(_qte.Session, _displayedSession);
-            if (_input == null || !_input.GameplayEnabled || (!live && !_finishing))
+            if (!live && !_finishing)
             {
                 ResetFeedback();
                 return;
             }
-            bool visible = !_time.IsPaused;
+            // Paused or in a menu it's only hidden: the QTE keeps its session and shows again with gameplay.
+            bool visible = !_time.IsPaused && _input != null && _input.GameplayEnabled;
             _content.SetActive(visible);
             if (!visible || _selected == null)
                 return;

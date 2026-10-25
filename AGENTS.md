@@ -24,6 +24,8 @@ Guidance for AI coding agents (Claude Code, Codex, …) working in this reposito
 - The first frame after a `script run` includes its in-memory compile (~0.5 s): skip it when measuring. For clean editor perf numbers hide the Hierarchy window (it rebuilds per change and spikes with ~16k objects).
 - `capture game_view --save_path` resolves under `Assets/` and imports the image: delete it with `AssetDatabase.DeleteAsset` afterwards.
 - In Git Bash, heredocs containing an apostrophe break; write edit scripts to a file and run that.
+- `test run` blocks the editor on a modal "Scene(s) Have Been Modified" dialog when an open scene is dirty (the CLI just times out). Check `SceneManager.GetActiveScene().isDirty` first and ask the user before discarding anything.
+- The EditMode test assembly is editor-only, so its MonoBehaviours can't be added to GameObjects; a test component goes in the PlayMode test assembly (see `ControllerHitRelay`).
 
 ## Skills
 
@@ -112,7 +114,7 @@ Base convention: the `oss-unity:csharp-unity` skill (Claude Code; other agents r
 
 - **Naming:** PascalCase types, methods, properties, public fields, consts and `static readonly`; `_camelCase` for every private field, serialized or not; camelCase locals and parameters; `I` prefix on interfaces; `Async` suffix on UniTask methods. No `m_` / `k_` / `s_` prefixes.
 - Leave out `private` (it's the default) and don't write `this.`. Mark leaf classes `sealed`. No `#region`.
-- **Serialized fields:** always `[SerializeField] T _field;` with a read-only property when other code needs it (`public T Field => _field;`). **Never `[field: SerializeField]` auto-properties**: their serialized name `<Field>k__BackingField` breaks on a rename and can't be found with `FindProperty("_field")`. Public fields only in nested `[Serializable]` data structs/classes.
+- **Serialized fields:** always `[SerializeField] T _field;` with a read-only property when other code needs it (`public T Field => _field;`). **Never `[field: SerializeField]` auto-properties**: their serialized name `<Field>k__BackingField` breaks on a rename and can't be found with `FindProperty("_field")`. Public fields only in nested `[Serializable]` data structs/classes and in pure data ScriptableObjects (styles, settings, definitions, profiles: assets that are only tuned in the Inspector and read by code). Runtime code never writes to those fields: in the editor the change would stick to the asset after Play.
 - **Renaming or retyping a serialized field loses its saved values** on every asset, prefab and scene. Add `[FormerlySerializedAs("oldName")]`; to drop it later, reserialize the affected assets (`AssetDatabase.ForceReserializeAssets` via `script run`), check the new YAML against the old values (`git diff`), then remove the attribute. Also update anything that finds the field by name (`FindProperty`, reflection in tests and `AgentScripts/`).
 - Formatting and naming are also in the root `.editorconfig` (Rider/VS apply it; severities are suggestions so the Unity console stays clean).
 - Block-scoped namespaces matching the folder (CODE_STRUCTURE.md), `using` lines outside the namespace, braces on their own line; a single-statement `if`/loop body may drop its braces. `var` when the type is obvious.

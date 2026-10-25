@@ -84,7 +84,7 @@ namespace Aipocalypse.Tests
             var animator = _animation.GetComponent<Animator>();
             var overrides = animator.runtimeAnimatorController as AnimatorOverrideController;
             Assert.That(overrides, Is.Not.Null);
-            foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "RepairingStubborn", "RepairFocus", "RepairEnd" })
+            foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "RepairingStubborn", "RepairEnd" })
             {
                 AnimationClip clip = overrides[state];
                 Assert.That(clip, Is.Not.Null, state);
@@ -175,34 +175,11 @@ namespace Aipocalypse.Tests
             Assert.That(Vector3.Distance(bolt.localPosition, boltRest), Is.LessThan(0.0001f));
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void QteFocusKeepsTheSlapPoseAndCanResumeTheSelectedSequence(bool stubborn)
-        {
-            _animation.StartAction(GunAction.ClearingJam, false, stubborn);
-            _animation.Tick(0.01f, 0.5f);
-            var hand = _root.Find("Motion/HandTargets/Left");
-            var contact = _root.Find("Motion/Controls/LeftFree");
-            Vector3 start = hand.position;
-            _animation.FocusRepair(true);
-            _animation.Tick(0.001f, 0.5f);
-            Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.001f));
-            _animation.Tick(1.9f, 0.5f);
-            Assert.That(_animation.State, Is.EqualTo(GunClip.RepairFocus));
-            Assert.That(Vector3.Distance(hand.position, contact.position), Is.LessThan(0.0001f));
-            _animation.FocusRepair(false);
-            _animation.Tick(0.01f, 0.6f);
-            Assert.That(_animation.State, Is.EqualTo(stubborn ? GunClip.RepairingStubborn : GunClip.Repairing));
-            Assert.That(Vector3.Distance(hand.position, contact.position), Is.LessThan(0.0001f));
-        }
-
         [Test]
         public void PerfectRepairReturnsToGripThenIdle()
         {
             _animation.StartAction(GunAction.ClearingJam, false);
             _animation.Tick(0.01f, 0.5f);
-            _animation.FocusRepair(true);
-            _animation.Tick(0.001f, 0.5f);
             var hand = _root.Find("Motion/HandTargets/Left");
             Vector3 start = hand.position;
             _animation.FinishRepair();

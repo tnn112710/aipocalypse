@@ -35,7 +35,6 @@ namespace Aipocalypse.Core.QuickTimeSystem
         }
 
         public IQteSession Session { get; private set; }
-        public string Presentation { get; private set; }
         public GameButton Button { get; private set; }
         public bool IsActive => Session != null;
         public bool IsActiveFor(object owner) => IsActive && ReferenceEquals(owner, _owner);
@@ -51,12 +50,12 @@ namespace Aipocalypse.Core.QuickTimeSystem
             _completed = completed;
             Session = session;
             string[] presentations = challenge.Presentations;
-            Presentation = presentations != null && presentations.Length > 0
+            string presentation = presentations != null && presentations.Length > 0
                 ? presentations[UnityEngine.Random.Range(0, presentations.Length)] : string.Empty;
             Button = challenge.Button;
-            if (challenge.TimeScale < 1f)
+            if (!ownerControlled && challenge.TimeScale < 1f)
                 _time.Request(this, challenge.TimeScale);
-            _started.Publish(new QteStarted(session, Presentation, Button));
+            _started.Publish(new QteStarted(session, presentation, Button));
             return true;
         }
 
@@ -75,18 +74,20 @@ namespace Aipocalypse.Core.QuickTimeSystem
         {
             if (!IsActive || _time.IsPaused)
                 return;
-            Session.Tick(unscaledDeltaTime);
             IQteSession session = Session;
+            // Judged where the pointer was drawn, before this frame moves it, so a hitch can't push a good press out of the zone.
             if (pressed)
             {
                 QteAttemptResult attempt = session.Press();
                 if (attempt != QteAttemptResult.Ignored)
                     _attempted.Publish(new QteAttempted(session, attempt));
+                if (!ReferenceEquals(Session, session))
+                    return;
             }
-            if (!ReferenceEquals(Session, session))
-                return;
-            if (Session.Result != QteResult.Running)
-                Finish(Session.Result);
+            if (session.Result == QteResult.Running)
+                session.Tick(Mathf.Min(unscaledDeltaTime, Time.maximumDeltaTime));
+            if (session.Result != QteResult.Running)
+                Finish(session.Result);
         }
 
         public void Cancel(object owner)
@@ -110,7 +111,6 @@ namespace Aipocalypse.Core.QuickTimeSystem
             Session = null;
             _owner = null;
             _completed = null;
-            Presentation = null;
             _time.Release(this);
             _ended.Publish(new QteEnded(session, result));
             completed?.Invoke(result);

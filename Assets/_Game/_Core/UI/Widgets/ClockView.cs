@@ -88,7 +88,7 @@ namespace Aipocalypse.Core.UI
             if (_backing != null)
             {
                 _backing.sprite = _style.BackingSprite;
-                _backing.type = _style.BackingSprite != null && _style.BackingSprite.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
+                _backing.type = StyleUtils.ImageTypeFor(_style.BackingSprite);
                 _backing.color = _style.BackingColor;
                 _backing.enabled = _style.BackingSprite != null || _style.BackingColor.a > 0f;
             }

@@ -88,14 +88,7 @@ namespace Aipocalypse.Core.WorldTimeSystem
         }
 
         // Instantly to the next time the clock shows this hour (no-op if it shows it now).
-        // Built from the day start in double: adding a float-derived delta lands just short, and the clock reads 05:59.
-        public void JumpTo(float hour)
-        {
-            double target = Math.Floor(_totalHours / WorldTime.HoursPerDay) * WorldTime.HoursPerDay + hour;
-            if (target < _totalHours)
-                target += WorldTime.HoursPerDay;
-            SetTime(new WorldTime(target));
-        }
+        public void JumpTo(float hour) => SetTime(NextTimeAt(hour));
 
         public void JumpToPhase(DayPhase phase) => JumpTo(_settings.Timing(phase).Start);
         public void JumpToNextHour() => SetTime(new WorldTime(Math.Floor(_totalHours + Epsilon) + 1d));
@@ -131,22 +124,24 @@ namespace Aipocalypse.Core.WorldTimeSystem
 
         // Fast-forward to the next time the clock shows this hour over realSeconds (scaled time). Hours pass normally,
         // so every HourChanged / DayPhaseChanged is sent. 0 seconds = JumpTo.
-        public void SkipTo(float hour, float realSeconds) => SkipTo(Now.AddHours(Now.HoursUntil(hour)), realSeconds);
+        public void SkipTo(float hour, float realSeconds) => SkipTo(NextTimeAt(hour), realSeconds);
 
+        // Replaces a running skip. Always ends with TimeSkipEnded, even with nothing to skip, so a sleep is never left hanging.
         public void SkipTo(WorldTime target, float realSeconds)
         {
+            CancelSkip();
             double hours = target.TotalHours - _totalHours;
-            if (hours <= Epsilon)
-                return;
-            if (realSeconds <= 0f)
+            if (hours > Epsilon && realSeconds > 0f)
             {
-                SetTime(target);
+                _skipping = true;
+                _skipTarget = target.TotalHours;
+                _skipRate = hours / realSeconds;
                 return;
             }
 
-            _skipping = true;
-            _skipTarget = target.TotalHours;
-            _skipRate = hours / realSeconds;
+            if (hours > Epsilon)
+                SetTime(target);
+            _skipEnded.Publish(new TimeSkipEnded(Now));
         }
 
         public void CancelSkip()
@@ -171,8 +166,17 @@ namespace Aipocalypse.Core.WorldTimeSystem
         }
 
         // Real seconds until the clock next shows this hour at the current speed (skips not included).
-        public double RealSecondsUntil(float hour) =>
-            _settings.RealSecondsBetween(Now, Now.AddHours(Now.HoursUntil(hour)), SpeedScale);
+        public double RealSecondsUntil(float hour) => _settings.RealSecondsBetween(Now, NextTimeAt(hour), SpeedScale);
+
+        // The next time the clock shows this hour, or now if it does. Built from the day start in double: adding a
+        // float-derived delta lands just short, and the clock reads 05:59.
+        WorldTime NextTimeAt(float hour)
+        {
+            double target = Math.Floor(_totalHours / WorldTime.HoursPerDay) * WorldTime.HoursPerDay + hour;
+            if (target < _totalHours - Epsilon)
+                target += WorldTime.HoursPerDay;
+            return new WorldTime(Math.Max(target, _totalHours));
+        }
 
         void Reset(WorldTime time)
         {

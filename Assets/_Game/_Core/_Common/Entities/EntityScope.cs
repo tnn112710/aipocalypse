@@ -23,8 +23,10 @@ namespace Aipocalypse.Core.Entities
         // A child registration would shadow the real service, so the default is only added when no ancestor provides one.
         protected void RegisterDefault<TService, TDefault>(IContainerBuilder builder) where TDefault : TService
         {
-            if (Parent != null && Parent.Container.TryGetRegistration(typeof(TService), out _))
-                return;
+            // TryGetRegistration only looks in that one container, so walk up to the root.
+            for (LifetimeScope scope = Parent; scope != null; scope = scope.Parent)
+                if (scope.Container != null && scope.Container.TryGetRegistration(typeof(TService), out _))
+                    return;
 
             if (Parent is GameLifetimeScope { Strict: true })
                 throw new VContainerException(typeof(TService), $"{name}: no installer provides {typeof(TService).Name} (strict scene)");

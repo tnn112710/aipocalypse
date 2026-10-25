@@ -158,7 +158,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             bool inSequence = InSequence;
             bool canAct = !IsDead && !inSequence && _input.GameplayEnabled;
-            PlayerIntent intent = canAct ? ReadIntent(deltaTime) : default;
+            PlayerIntent intent = canAct ? ReadIntent() : default;
             HeldItem held = HeldItem;
             if (intent.Sprint && held != null && held.StopsSprint(intent.Fire, intent.Aim))
                 intent.Sprint = false;
@@ -166,6 +166,13 @@ namespace Aipocalypse.Core.PlayerSystem
             if (!inSequence)
                 _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
+            // A lethal landing kills inside the motor tick: the rest of this frame already belongs to the dead.
+            if (canAct && (IsDead || InSequence))
+            {
+                canAct = false;
+                inSequence = InSequence;
+                intent = default;
+            }
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond), _motor.IsIdle);
             Fatigue.Tick(Stamina.Normalized, _stats.GetScale(StatId.FatiguePenaltyScale), deltaTime, Stamina.IsWinded);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
@@ -180,8 +187,7 @@ namespace Aipocalypse.Core.PlayerSystem
             // After the held item, so the sequence's camera and field of view win over its kick and zoom.
             if (inSequence)
             {
-                Vector2 look = !IsDead && _input.GameplayEnabled ? _input.ReadLookDegrees(deltaTime) : default;
-                _sequence.Tick(deltaTime, look);
+                _sequence.Tick(deltaTime);
                 _zoom.Tick(_sequence.FovScale);
             }
             TickVision(deltaTime);
@@ -221,8 +227,8 @@ namespace Aipocalypse.Core.PlayerSystem
                 _motor.Teleport(_life.SpawnPosition, _life.SpawnRotation);
         }
 
-        // Hands the camera and body to a scripted moment (dying, sitting on a bench…). Anchor-placed sequences need `anchor`.
-        public void PlaySequence(PoseSequence sequence, Transform anchor = null)
+        // Hands the camera and body to a scripted moment (dying, resting…).
+        public void PlaySequence(PoseSequence sequence)
         {
             if (_sequence == null || sequence == null)
                 return;
@@ -230,7 +236,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 Equipment.LowerHands();
             else if (Equipment != null && Equipment.HandsLowered)
                 Equipment.RaiseHands();
-            _sequence.Play(sequence, _look.Pitch, anchor);
+            _sequence.Play(sequence, _look.Pitch);
         }
 
         // Gives the camera back, level, and raises the held item again.
@@ -269,10 +275,10 @@ namespace Aipocalypse.Core.PlayerSystem
         void AddAmmo(AmmoType type, int amount = 30) => Ammo?.Add(type, amount);
 
         // Look follows the zoom, so the crosshair sweeps the same share of the screen per mouse move when aiming.
-        PlayerIntent ReadIntent(float deltaTime) => new()
+        PlayerIntent ReadIntent() => new()
         {
             Move = _input.Move,
-            LookDegrees = _input.ReadLookDegrees(deltaTime) * _zoom.LookScale,
+            LookDegrees = _input.ReadLookDegrees(Time.unscaledDeltaTime) * _zoom.LookScale,
             Sprint = _input.SprintHeld,
             Jump = _input.JumpPressed,
             SelectSlot = _input.SlotPressed is var slot and >= 0 ? slot : null,

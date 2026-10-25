@@ -5,21 +5,11 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    public enum PoseSpace
-    {
-        // Beats sit on the ground around where the sequence started (dying, kneeling, lying in the grass).
-        Feet,
-        // Beats are exact, in an anchor's space (a seat: x right, y up, z the way it faces).
-        Anchor,
-    }
-
-    // A scripted first-person moment: the eye moves through beats (kneel, fall, sit down, lean back…), then settles on the
-    // last one, where the player may look around a little while the view drifts. Played by PoseSequencePlayer.
+    // A scripted first-person moment: the eye moves through beats placed on the ground around where it started (kneel, fall,
+    // lie back…), then settles on the last one while the view drifts. Played by PoseSequencePlayer.
     [CreateAssetMenu(fileName = "PoseSequence", menuName = "Aipocalypse/Player/Pose Sequence")]
     public sealed class PoseSequence : ScriptableObject
     {
-        [SerializeField, Tooltip("Feet: beats are placed on the ground around the start. Anchor: in the anchor's space, exact")]
-        PoseSpace _space = PoseSpace.Feet;
         [SerializeField, Tooltip("Puts the held item away while it plays")]
         bool _lowerHands = true;
         [SerializeField] PoseBeat[] _beats = Array.Empty<PoseBeat>();
@@ -36,9 +26,7 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0.01f), Tooltip("Seconds the wander takes to build up from the start")]
         float _handheldFadeIn = 0.25f;
 
-        [Header("Settled (last beat reached)"), SerializeField, Tooltip("Free look around the last pose (degrees): x = pitch, y = yaw. 0 = locked")]
-        Vector2 _lookRange;
-        [SerializeField, Tooltip("Slow elliptical circling of the view (degrees): x = pitch, y = yaw. Fades in from the start of the last " +
+        [Header("Settled (last beat reached)"), SerializeField, Tooltip("Slow elliptical circling of the view (degrees): x = pitch, y = yaw. Fades in from the start of the last " +
             "beat's move and never stops")]
         Vector2 _driftAmplitude;
         [SerializeField, Min(0.1f), Tooltip("Seconds per drift circle")]
@@ -57,12 +45,11 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f)] float _musicFadeIn = 1.5f;
         [SerializeField, Min(0f)] float _musicFadeOut = 1f;
 
-        [Header("Placement (Feet)"), SerializeField, Tooltip("What the eye lands on and is kept out of")]
+        [Header("Placement"), SerializeField, Tooltip("What the eye lands on and is kept out of")]
         LayerMask _groundMask = Physics.DefaultRaycastLayers;
         [SerializeField, Min(0.01f), Tooltip("Room kept around the eye near walls (m)")]
         float _headRadius = 0.15f;
 
-        public PoseSpace Space => _space;
         public bool LowerHands => _lowerHands;
         public PoseBeat[] Beats => _beats;
         public bool Continuous => _continuous;
@@ -70,7 +57,6 @@ namespace Aipocalypse.Core.PlayerSystem
         public float HandheldOffset => _handheldOffset;
         public float HandheldSpeed => _handheldSpeed;
         public float HandheldFadeIn => _handheldFadeIn;
-        public Vector2 LookRange => _lookRange;
         public Vector2 DriftAmplitude => _driftAmplitude;
         public float DriftPeriod => _driftPeriod;
         public float DriftFadeIn => _driftFadeIn;
@@ -91,9 +77,9 @@ namespace Aipocalypse.Core.PlayerSystem
         public string Name;
         [Min(0f)] public float Duration = 0.5f;
         [Tooltip("Ignored when the sequence is Continuous")] public Ease Ease = Ease.InOutSine;
-        [Tooltip("Feet: eye height above the ground. Anchor: height above the anchor (m)")]
+        [Tooltip("Eye height above the ground (m)")]
         public float Height = 1.65f;
-        [Tooltip("Eye offset (m): x = right, z = forward. Feet: from where the sequence started, in the body's facing")]
+        [Tooltip("Eye offset (m) from where the sequence started, in the body's facing: x = right, z = forward")]
         public Vector2 Offset;
         [Tooltip("Positive = down")] public float Pitch;
         public float Yaw;

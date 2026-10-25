@@ -43,6 +43,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         float _response = 1.5f;
 
         float _weight = -1f;
+        float _applied = -1f;
 
         public float Weight => _weight;
 
@@ -55,13 +56,14 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 _ => _hours.Weight(director.Hour),
             };
 
-            float weight = _weight < 0f || _response <= 0f ? target : Mathf.MoveTowards(_weight, target, deltaTime / _response);
-            bool settled = weight == 0f || weight == 1f;
-            if (Mathf.Abs(weight - _weight) < 0.002f && !(settled && weight != _weight))
+            // The fade always advances; only Apply is skipped for tiny changes, or high frame rates would never move it.
+            _weight = _weight < 0f || _response <= 0f ? target : Mathf.MoveTowards(_weight, target, deltaTime / _response);
+            bool settled = _weight == 0f || _weight == 1f;
+            if (Mathf.Abs(_weight - _applied) < 0.002f && !(settled && _weight != _applied))
                 return;
 
-            _weight = weight;
-            Apply(weight);
+            _applied = _weight;
+            Apply(_weight);
         }
 
         protected abstract void Apply(float weight);

@@ -55,7 +55,6 @@ public static class PoseSequenceSetup
             AssetDatabase.CreateAsset(death, DeathPath);
         if (created || resetBeats)
         {
-            Set(death, "Space", PoseSpace.Feet);
             Set(death, "LowerHands", true);
             Set(death, "Beats", new[]
             {
@@ -69,7 +68,6 @@ public static class PoseSequenceSetup
             Set(death, "HandheldAngles", new Vector3(1.2f, 1.6f, 0.9f));
             Set(death, "HandheldOffset", 0.012f);
             Set(death, "HandheldSpeed", 0.45f);
-            Set(death, "LookRange", Vector2.zero);
             Set(death, "DriftAmplitude", new Vector2(3f, 6f));
             Set(death, "DriftPeriod", 10f);
             Set(death, "EndAfter", 6f);

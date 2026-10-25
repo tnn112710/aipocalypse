@@ -15,7 +15,6 @@ namespace Aipocalypse.Core.WeaponSystem
         readonly Action<QteResult> _completed;
         bool _requested;
 
-        public event Action<IQteSession> QteStarted;
         public event Action Missed;
 
         // `owner` identifies this gun's QTE in the QuickTimeService.
@@ -44,8 +43,7 @@ namespace Aipocalypse.Core.WeaponSystem
                 _gun.ActionProgress < _profile.QteStartProgress)
                 return;
             _requested = true;
-            if (_qte.TryStart(_owner, _profile.Qte, _completed, ownerControlled: true))
-                QteStarted?.Invoke(_qte.Session);
+            _qte.TryStart(_owner, _profile.Qte, _completed, ownerControlled: true);
         }
 
         public void Cancel() => _qte?.Cancel(_owner);

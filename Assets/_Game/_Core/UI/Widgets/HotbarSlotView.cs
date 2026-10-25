@@ -91,15 +91,15 @@ namespace Aipocalypse.Core.UI
                 return;
 
             _background.sprite = _style.BackgroundSprite;
-            _background.type = TypeFor(_style.BackgroundSprite);
+            _background.type = StyleUtils.ImageTypeFor(_style.BackgroundSprite);
             _frame.sprite = _style.FrameSprite;
-            _frame.type = TypeFor(_style.FrameSprite);
+            _frame.type = StyleUtils.ImageTypeFor(_style.FrameSprite);
             _frame.color = _style.FrameColor;
             _icon.color = _style.IconColor;
             _icon.preserveAspect = true;
 
             _keyCap.sprite = _style.KeySprite;
-            _keyCap.type = TypeFor(_style.KeySprite);
+            _keyCap.type = StyleUtils.ImageTypeFor(_style.KeySprite);
             if (_style.KeyFont != null)
                 _keyLabel.font = _style.KeyFont;
             _keyLabel.color = _style.KeyLabelColor;
@@ -130,9 +130,6 @@ namespace Aipocalypse.Core.UI
             _keyCap.color = _selected ? _style.SelectedKeyColor : _style.KeyColor;
             _tile.localScale = Vector3.one * (_selected ? _style.SelectedScale : 1f);
         }
-
-        static Image.Type TypeFor(Sprite sprite) =>
-            sprite != null && sprite.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
 
 #if UNITY_EDITOR
         void OnValidate() => UnityEditor.EditorApplication.delayCall += () =>

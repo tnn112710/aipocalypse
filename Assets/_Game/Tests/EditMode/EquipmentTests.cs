@@ -14,6 +14,7 @@ namespace Aipocalypse.Tests
         const ItemCategory Weapon = ItemCategory.Gun | ItemCategory.Melee;
 
         ItemInstance _rifle, _pistol, _axe, _rifle2, _lantern, _lantern2;
+        readonly System.Collections.Generic.List<Object> _created = new();
 
         [SetUp]
         public void SetUp()
@@ -33,6 +34,27 @@ namespace Aipocalypse.Tests
             Object.DestroyImmediate(_pistol.Definition);
             Object.DestroyImmediate(_axe.Definition);
             Object.DestroyImmediate(_lantern.Definition);
+            foreach (Object created in _created)
+                Object.DestroyImmediate(created);
+            _created.Clear();
+        }
+
+        ItemInstance Bandage(int maxStack = 3)
+        {
+            var definition = ScriptableObject.CreateInstance<TestConsumableDefinition>();
+            _created.Add(definition);
+            var so = new UnityEditor.SerializedObject(definition);
+            so.FindProperty("_maxStack").intValue = maxStack;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return definition.CreateInstance();
+        }
+
+        Equipment HoldingRifle()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+            equipment.TryPickUp(_rifle, out _);
+            Settle(equipment);
+            return equipment;
         }
 
         static Hotbar GunsAndMelee() => new(new[] { ItemCategory.Gun, ItemCategory.Gun, ItemCategory.Melee });
@@ -274,7 +296,7 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void DropSelected_EmptiesSlotAndHands_AndFreesTheSlotForPickUp()
+        public void DropHeld_EmptiesSlotAndHands_AndFreesTheSlotForPickUp()
         {
             Equipment equipment = Empty(AnyWeapon());
             equipment.TryPickUp(_rifle, out _);
@@ -283,11 +305,11 @@ namespace Aipocalypse.Tests
             equipment.Select(0);
             Settle(equipment);
 
-            Assert.AreSame(_rifle, equipment.DropSelected());
+            Assert.AreSame(_rifle, equipment.DropHeld());
             Assert.IsNull(equipment.Hotbar[0]);
             Assert.AreEqual(-1, equipment.SelectedIndex);
             Assert.AreEqual(SwitchPhase.Empty, equipment.Switcher.Phase);
-            Assert.IsNull(equipment.DropSelected());
+            Assert.IsNull(equipment.DropHeld());
 
             Assert.AreEqual(PickUpAction.Store, equipment.GetPickUpAction(_rifle2));
             equipment.TryPickUp(_rifle2, out _);
@@ -331,6 +353,82 @@ namespace Aipocalypse.Tests
 
             Assert.AreSame(_lantern, dropped);
             Assert.AreSame(_lantern2, equipment.Belt);
+        }
+
+        [Test]
+        public void DropHeld_MidSwitch_DropsTheItemBeingPutAway()
+        {
+            Equipment equipment = Loaded();
+            equipment.Select(2);
+            Assert.AreEqual(SwitchPhase.Holstering, equipment.Switcher.Phase);
+
+            Assert.AreSame(_rifle, equipment.DropHeld());
+
+            Assert.IsNull(equipment.Hotbar[0]);
+            Assert.AreSame(_axe, equipment.Hotbar[2], "the newly selected item stays");
+            Assert.AreEqual(2, equipment.SelectedIndex);
+            Settle(equipment);
+            Assert.AreSame(_axe, equipment.Switcher.Held);
+        }
+
+        [Test]
+        public void PickUp_QuickUseItem_IsStored_NotUsedOrSelected()
+        {
+            Equipment equipment = HoldingRifle();
+            int used = 0;
+            equipment.QuickUseRequested += _ => used++;
+            ItemInstance bandage = Bandage();
+
+            Assert.IsTrue(equipment.TryPickUp(bandage, out _));
+
+            Assert.AreSame(bandage, equipment.Hotbar[1]);
+            Assert.AreEqual(0, used);
+            Assert.AreEqual(0, equipment.SelectedIndex);
+            Assert.AreSame(_rifle, equipment.Switcher.Target);
+        }
+
+        [Test]
+        public void Select_QuickUseItem_AsksForAUse_AndKeepsTheHands()
+        {
+            Equipment equipment = HoldingRifle();
+            ItemInstance bandage = Bandage();
+            equipment.TryPickUp(bandage, out _);
+            ItemInstance used = null;
+            equipment.QuickUseRequested += item => used = item;
+
+            Assert.IsTrue(equipment.Select(1));
+
+            Assert.AreSame(bandage, used);
+            Assert.AreEqual(0, equipment.SelectedIndex);
+        }
+
+        [Test]
+        public void PickUp_SameConsumable_MergesOntoTheCarriedStack()
+        {
+            Equipment equipment = HoldingRifle();
+            ItemInstance bandage = Bandage();
+            ItemInstance second = bandage.Definition.CreateInstance();
+            equipment.TryPickUp(bandage, out _);
+
+            Assert.AreEqual(PickUpAction.Merge, equipment.GetPickUpAction(second));
+            Assert.IsTrue(equipment.TryPickUp(second, out _));
+
+            Assert.AreEqual(2, bandage.Count);
+            Assert.IsTrue(second.IsEmpty);
+            Assert.IsNull(equipment.Hotbar[2]);
+        }
+
+        [Test]
+        public void Consume_TheLastOfAStack_LeavesTheHotbar()
+        {
+            Equipment equipment = HoldingRifle();
+            ItemInstance bandage = Bandage();
+            equipment.TryPickUp(bandage, out _);
+
+            Assert.IsTrue(equipment.Consume(bandage));
+
+            Assert.Less(equipment.Hotbar.IndexOf(bandage), 0);
+            Assert.IsFalse(equipment.Consume(bandage), "nothing left to use");
         }
     }
 }

@@ -17,30 +17,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         void Awake()
         {
-            var copies = new Dictionary<Material, Material>();
-            foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+            RuntimeMaterials.CopyUnder(this, source => System.Array.IndexOf(_materials, source) >= 0, source =>
             {
-                Material[] materials = renderer.sharedMaterials;
-                bool changed = false;
-                for (int i = 0; i < materials.Length; i++)
-                {
-                    Material source = materials[i];
-                    if (source == null || System.Array.IndexOf(_materials, source) < 0)
-                        continue;
-                    if (!copies.TryGetValue(source, out Material copy))
-                    {
-                        copy = new Material(source) { name = source.name + " (Time Of Day)" };
-                        copy.EnableKeyword("_EMISSION");
-                        copy.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                        copies.Add(source, copy);
-                        _copies.Add(copy);
-                    }
-                    materials[i] = copy;
-                    changed = true;
-                }
-                if (changed)
-                    renderer.sharedMaterials = materials;
-            }
+                var copy = new Material(source) { name = source.name + " (Time Of Day)" };
+                copy.EnableKeyword("_EMISSION");
+                copy.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                return copy;
+            }, _copies);
         }
 
         protected override void Apply(float weight)
@@ -52,8 +35,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         protected override void OnDestroy()
         {
-            foreach (Material copy in _copies)
-                Destroy(copy);
+            RuntimeMaterials.Destroy(_copies);
             base.OnDestroy();
         }
     }

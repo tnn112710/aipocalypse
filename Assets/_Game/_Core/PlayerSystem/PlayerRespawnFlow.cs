@@ -71,11 +71,14 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             SetStage(RespawnStage.Fading);
             await _fading.PublishAsync(new PlayerRespawnFading(), cancellation);
+            // A handler that ignores the token still returns after a revive: stop here, or the UI request would never be released.
+            cancellation.ThrowIfCancellationRequested();
 
             _input.RequestUI(this);
             SetStage(RespawnStage.Preparing);
             player.MoveToSpawn();
             await _respawning.PublishAsync(new PlayerRespawning(player.SpawnPosition), cancellation);
+            cancellation.ThrowIfCancellationRequested();
 
             SetStage(RespawnStage.Ready);
             await UniTask.WaitUntil(() => _input.UiConfirmPressed, cancellationToken: cancellation);

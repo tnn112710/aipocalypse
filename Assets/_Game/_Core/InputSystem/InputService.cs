@@ -25,7 +25,7 @@ namespace Aipocalypse.Input
         readonly ControlSettings _controls;
         readonly InputAction[] _slots;
         readonly HashSet<object> _uiOwners = new();
-        readonly int[] _consumedFrame = { -1, -1, -1, -1 };
+        readonly int[] _consumedFrame = new int[Enum.GetValues(typeof(GameButton)).Length];
         bool _disposed;
 
         public InputService(ControlSettings controls)
@@ -33,6 +33,7 @@ namespace Aipocalypse.Input
             _controls = controls;
             GameInputActions.PlayerActions player = _actions.Player;
             _slots = new[] { player.Slot1, player.Slot2, player.Slot3, player.Slot4, player.Slot5, player.Slot6, player.Slot7, player.Slot8, player.Slot9 };
+            Array.Fill(_consumedFrame, -1);
         }
 
         public bool GameplayEnabled => _actions.Player.enabled;
@@ -99,7 +100,8 @@ namespace Aipocalypse.Input
             GameButton.Interact => _actions.Player.Interact,
             GameButton.Attack => _actions.Player.Attack,
             GameButton.Jump => _actions.Player.Jump,
-            _ => _actions.Player.Reload,
+            GameButton.Reload => _actions.Player.Reload,
+            _ => throw new ArgumentOutOfRangeException(nameof(button), button, "no input action mapped"),
         };
 
         public void Initialize()
@@ -115,7 +117,11 @@ namespace Aipocalypse.Input
             _disposed = true;
             _uiOwners.Clear();
             _actions.Disable();
-            _actions.Dispose();
+            // The generated Dispose calls Destroy, which edit mode (tests, editor tools) refuses.
+            if (Application.isPlaying)
+                _actions.Dispose();
+            else
+                UnityEngine.Object.DestroyImmediate(_actions.asset);
         }
 
         public bool IsUIRequested => _uiOwners.Count > 0;

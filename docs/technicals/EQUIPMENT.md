@@ -32,7 +32,7 @@ Rules (plain C#, EditMode-tested)
                                  per-copy state goes in subclasses (GunInstance: rounds, jam)
   Hotbar                         ≤ 9 slots, category check, SlotChanged event, FindNext for cycling
   EquipmentSwitcher              Held / Target / Raise 0..1 / Phase; HeldChanged, BecameReady events
-  Equipment                      selected slot ↔ switcher target; Select, Cycle; TryPickUp, DropSelected, Consume; SelectionChanged,
+  Equipment                      selected slot ↔ switcher target; Select, Cycle; TryPickUp, DropHeld, Consume; SelectionChanged,
                                  QuickUseRequested events; Belt: one worn item (a BeltAccepts category), outside the hotbar
 
 Views
@@ -74,15 +74,15 @@ Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and t
 | You press | When | Result |
 | --- | --- | --- |
 | **E** on a world item | All of it fits on a stack of the same item you carry (`MaxStack` > 1) | **Merge**: it joins that stack; the hands don't change |
-| **E** on a world item | A free slot accepts it | **Store**: it goes into the first free slot that accepts it and you switch to it (the current weapon is holstered, the new one raised) |
+| **E** on a world item | A free slot accepts it | **Store**: it goes into the first free slot that accepts it and you switch to it (the current weapon is holstered, the new one raised). A quick-use item is only stored: it isn't used and the hands don't change |
 | **E** on a world item | No free slot accepts it, and the selected slot does | **Swap**: it replaces the selected item. The old item drops where the new one lay and leaves your hands at once; the new one is raised (its EquipTime) |
 | **E** on a world item | Neither | Nothing: no prompt is shown |
-| **G** | Something is selected | **Drop**: the held item lands on the ground about `DropDistance` in front of you (short of walls). Hands are empty until you select another slot |
+| **G** | Something is in your hands | **Drop**: the held item lands on the ground about `DropDistance` in front of you (short of walls). Mid-switch that's the item being put away; the newly selected one is raised next. Otherwise hands are empty until you select another slot |
 
 - The prompt ("[E] Pick up Rifle" / "[E] Swap for Rifle"; a merge reads "Pick up") comes from `WorldItem.TryGetPrompt`, using the same `Equipment.GetPickUpAction` the pickup uses, so the prompt always matches what E will do.
 - **Looking at items:** `PlayerInteractor` sphere-casts from the eye each frame (`PlayerInteractionTuning` → `InteractRange` 2.5 m, `InteractRadius` 0.12 m, `InteractMask`). Walls block it; trigger colliders are hit. Pickups have a trigger box, so you walk through them.
 - **The same item object** goes world → hotbar → world. Per-copy state (a gun's rounds and jam) survives drops and swaps. A scene-placed `WorldItem` creates its instance from `_definition` the first time it's used.
-- Rules live in `Equipment` (`GetPickUpAction`, `TryPickUp`, `DropSelected`) and are covered by EditMode tests. `WorldItem` only does the world side: it destroys itself and spawns the swapped-out item.
+- Rules live in `Equipment` (`GetPickUpAction`, `TryPickUp`, `DropHeld`) and are covered by EditMode tests. `WorldItem` only does the world side: it destroys itself and spawns the swapped-out item.
 
 ### Belt
 

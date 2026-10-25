@@ -9,7 +9,6 @@ RULES  WorldClock (scene scope, ticked)  ── HourChanged · DayPhaseChanged �
           │ Now / Phase / MoonPhase (read every frame)
 VIEW   EnvironmentDirector (one per scene)            ClockHud → ClockView (HUD, top right)
           look = TimeOfDayProfile at the hour
-               → IAtmosphereLayer[] (weather later)
                → sun/moon light, ambient, fog, reflections, sky globals, grade volumes
                → EnvironmentReactors (lamps, windows, particles, material tints)
 DATA   ClockSettings · TimeOfDayProfile → LightingPreset + VolumeProfile per key · TimeOfDayAmbience
@@ -78,7 +77,7 @@ Phases are for gameplay and stay fixed while the look changes: retuning a sunset
 | **By Hours** (WorldMap) | The look at the current whole hour; changes on the hour. |
 | Continuous | The look at the exact time, every frame. |
 
-While a held look stays the same (no glide running, no atmosphere layer, the moon phase barely moved), the director skips re-applying it: no light, `RenderSettings`, sky-global or volume writes. Editing a `LightingPreset`, the profile or the director bumps a revision, so tuning in Play mode still shows at once.
+While a held look stays the same (no glide running, the moon phase barely moved), the director skips re-applying it: no light, `RenderSettings`, sky-global or volume writes. Editing a `LightingPreset`, the profile or the director bumps a revision, so tuning in Play mode still shows at once.
 
 A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the hour the look is sampled at, the short way round, so an Afternoon → Dusk change plays afternoon → golden hour in 5 s and the grades still blend key to key. The sun and moon belong to the look too: in By Phases / By Hours the light and the sky's sun and moon hold still between transitions (no shadow shimmer) and swing to their new place during the change. Light still fades by the shown sun's height, so pick phase hours with the sun or moon up: at 19:00 the sun is on the horizon and Dusk would get no direct light. Reactors with an hour window (lamps, mist, birds) follow the clock; Daylight / Darkness reactors follow the shown sun. `EnvironmentDirector.LookHour` is the hour shown; layers still get the real hour. Edit-mode preview is always continuous.
 
@@ -107,7 +106,7 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 - **Preview** (edit mode): tick Preview and drag Preview Hour, or set Preview Speed to watch the day play. It writes the scene's lighting, so turn it off before saving. With Preview off, edit mode still feeds the sky shader at Preview Hour (globals only, nothing saved).
 - **Jump To Hour** button: in Play mode it moves the clock, in edit mode the preview.
 
-**Weather seam:** `IAtmosphereLayer.Modify(ref AtmosphereState, hour)` runs after the profile, in `Order`. Add one with `EnvironmentDirector.AddLayer`. Keep changes relative (sun ×0.35, fog ×4, lerp the fog toward grey) so one rain layer works at any hour. A layer that needs its own grade adds its own global volume. Nothing implements it yet.
+**Weather:** not built. The planned seam is a layer that modifies the evaluated `AtmosphereState` in `EnvironmentDirector.Apply`, after the profile and before anything is written (an unused `IAtmosphereLayer` version was removed: see git history). The held-look early-out must then re-apply while a layer runs. Keep changes relative (sun ×0.35, fog ×4, lerp the fog toward grey) so one rain layer works at any hour; a layer that needs its own grade adds its own global volume.
 
 ## Things that follow the time
 

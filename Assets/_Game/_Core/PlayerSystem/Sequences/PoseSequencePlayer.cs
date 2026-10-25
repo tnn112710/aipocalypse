@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Aipocalypse.Core.PlayerSystem
 {
     // Plays a PoseSequence on the camera, overriding the rig: moves the eye through the beats (placed once, at Play), then holds
-    // the last pose with free look and drift until Stop; the handheld wander runs throughout.
+    // the last pose with drift until Stop; the handheld wander runs throughout.
     public sealed class PoseSequencePlayer
     {
         const float GroundProbeUp = 1.5f;
@@ -36,7 +36,6 @@ namespace Aipocalypse.Core.PlayerSystem
         // Cues up to here have played. Starts below 0 so cues at 0 play once, even if the first ticks don't advance time.
         float _cuedTo;
         float _handheldSeed;
-        Vector2 _look;
         bool _ended;
         bool _paused;
         IAudioPlayer _music;
@@ -76,22 +75,16 @@ namespace Aipocalypse.Core.PlayerSystem
             _audio = audio;
         }
 
-        // `pitch` is where the player was looking (degrees, positive = down). `anchor` is needed for PoseSpace.Anchor.
-        public void Play(PoseSequence sequence, float pitch, Transform anchor = null)
+        // `pitch` is where the player was looking (degrees, positive = down).
+        public void Play(PoseSequence sequence, float pitch)
         {
             Stop();
             if (sequence == null)
                 return;
-            if (sequence.Space == PoseSpace.Anchor && anchor == null)
-            {
-                Debug.LogError($"{sequence.name} is placed on an anchor, but none was given.", sequence);
-                return;
-            }
 
             _sequence = sequence;
             _time = 0f;
             _cuedTo = -1f;
-            _look = Vector2.zero;
             _ended = false;
             _musicTime = float.MaxValue;
             _handheldSeed = UnityEngine.Random.value * 100f;
@@ -115,7 +108,7 @@ namespace Aipocalypse.Core.PlayerSystem
             for (int i = 0; i < beats.Length; i++)
             {
                 PoseBeat beat = beats[i];
-                Pose next = sequence.Space == PoseSpace.Anchor ? PlaceOnAnchor(beat, anchor) : PlaceOnGround(beat, pose);
+                Pose next = PlaceOnGround(beat, pose);
                 if (i == sequence.MusicBeat)
                     _musicTime = time + sequence.MusicDelay;
                 if (i == beats.Length - 1)
@@ -134,8 +127,7 @@ namespace Aipocalypse.Core.PlayerSystem
             Apply(Evaluate(0f));
         }
 
-        // `lookDegrees` turns the view inside the sequence's LookRange once settled (mouse x = yaw, y = pitch up).
-        public void Tick(float deltaTime, Vector2 lookDegrees)
+        public void Tick(float deltaTime)
         {
             if (_sequence == null)
                 return;
@@ -150,13 +142,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 return;
             }
 
-            Vector2 range = _sequence.LookRange;
-            _look.x = Mathf.Clamp(_look.x - lookDegrees.y, -range.x, range.x);
-            _look.y = Mathf.Clamp(_look.y + lookDegrees.x, -range.y, range.y);
-            Pose pose = _settled;
-            pose.Euler.x += _look.x;
-            pose.Euler.y += _look.y;
-            Apply(pose);
+            Apply(_settled);
 
             float settledFor = _time - _settleTime;
             if (!_ended && _sequence.EndAfter >= 0f && settledFor >= _sequence.EndAfter)
@@ -349,15 +335,6 @@ namespace Aipocalypse.Core.PlayerSystem
         float Noise(int channel, float t) => (Mathf.PerlinNoise(_handheldSeed + channel * 17.3f, t) - 0.5f) * 2f;
 
         static float Fov(PoseBeat beat) => beat.FovScale > 0f ? beat.FovScale : 1f;
-
-        // Exact, in the anchor's space; the anchor's facing turns the yaw.
-        Pose PlaceOnAnchor(PoseBeat beat, Transform anchor)
-        {
-            Vector3 world = anchor.TransformPoint(new Vector3(beat.Offset.x, beat.Height, beat.Offset.y));
-            Vector3 euler = beat.Euler;
-            euler.y += Mathf.DeltaAngle(_body.eulerAngles.y, anchor.eulerAngles.y);
-            return new Pose { Position = _body.InverseTransformPoint(world), Euler = euler, Fov = Fov(beat) };
-        }
 
         // On the ground under the beat's offset (the feet's level when none is found), pulled back from walls between the
         // previous eye position and this one.

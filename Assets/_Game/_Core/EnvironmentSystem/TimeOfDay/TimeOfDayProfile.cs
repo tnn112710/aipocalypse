@@ -175,7 +175,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         {
             KeyBlend.Linear => t,
             KeyBlend.Hold => 0f,
-            _ => t * t * (3f - 2f * t),
+            _ => Mathf.SmoothStep(0f, 1f, t),
         };
 
         [Button("Sort keys by hour"), PropertyOrder(-1)]

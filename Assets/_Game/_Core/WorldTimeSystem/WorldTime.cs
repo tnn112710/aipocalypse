@@ -37,13 +37,6 @@ namespace Aipocalypse.Core.WorldTimeSystem
 
         long TotalMinutes => (long)Math.Floor(TotalHours * 60d);
 
-        // Hours from this moment until the clock next shows the given hour (0 when it shows it now).
-        public double HoursUntil(float hour)
-        {
-            double delta = hour - Hour;
-            return delta < 0d ? delta + HoursPerDay : delta;
-        }
-
         public WorldTime AddHours(double hours) => new(TotalHours + hours);
 
         public bool Equals(WorldTime other) => TotalHours.Equals(other.TotalHours);

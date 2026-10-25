@@ -56,16 +56,7 @@ namespace Aipocalypse.Core.UI
 
 #if UNITY_EDITOR
         // Edit-time preview only: clocks re-apply their style in Awake.
-        void OnValidate() => UnityEditor.EditorApplication.delayCall += RefreshOpenClocks;
-
-        void RefreshOpenClocks()
-        {
-            if (this == null)
-                return;
-            foreach (ClockView clock in FindObjectsByType<ClockView>(FindObjectsInactive.Include))
-                if (clock.Style == this)
-                    clock.ApplyStyle();
-        }
+        void OnValidate() => StyleUtils.RefreshViews<ClockView>(this, clock => clock.Style, clock => clock.ApplyStyle());
 #endif
     }
 }

@@ -9,8 +9,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.EnvironmentSystem
 {
-    // Sole writer of sun, ambient, fog, reflections, sky globals and grade volumes: profile look at the clock's hour → layers
-    // → apply → reactors. Without a clock it uses Preview Hour (in edit mode only while Preview is on).
+    // Sole writer of sun, ambient, fog, reflections, sky globals and grade volumes: profile look at the clock's hour → apply
+    // → reactors. Without a clock it uses Preview Hour (in edit mode only while Preview is on).
     public enum LookTransition
     {
         ByPhases,
@@ -72,7 +72,6 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [BoxGroup("Preview"), SerializeField, Range(0f, 1f), Tooltip("0 new moon, 0.5 full")] float _previewMoonPhase = 0.5f;
 
         readonly List<EnvironmentReactor> _reactors = new();
-        readonly List<IAtmosphereLayer> _layers = new();
         WorldClock _clock;
         AtmosphereState _state;
         VolumeProfile _fromProfile;
@@ -127,21 +126,11 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         public void Unregister(EnvironmentReactor reactor) => _reactors.Remove(reactor);
 
-        public void AddLayer(IAtmosphereLayer layer)
-        {
-            if (_layers.Contains(layer))
-                return;
-            int index = 0;
-            while (index < _layers.Count && _layers[index].Order <= layer.Order)
-                index++;
-            _layers.Insert(index, layer);
-        }
-
-        public void RemoveLayer(IAtmosphereLayer layer) => _layers.Remove(layer);
-
         // Edit mode with Preview off still feeds the sky shader (globals only, nothing saved) so the sky isn't left unset.
         void OnEnable()
         {
+            // OnDisable released the night shadow distance: the next LateUpdate applies in full and asks again.
+            _appliedRevision = -1;
             if (!Application.isPlaying && !_preview)
                 ApplySkyOnly();
         }
@@ -246,13 +235,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
             }
             if (_lookGlide < 1f)
                 _lookGlide = Mathf.Min(1f, _lookGlide + Time.unscaledDeltaTime / _transitionDuration);
-            return Mathf.Repeat(_lookFrom + _lookSpan * Smooth01(_lookGlide), 24f);
+            return Mathf.Repeat(_lookFrom + _lookSpan * Mathf.SmoothStep(0f, 1f, _lookGlide), 24f);
         }
 
         void Apply(float hour, float lookHour, float moonPhase)
         {
-            // By Phases / By Hours hold the look for minutes: with no layer and no light glide running, nothing to redo.
-            if (Application.isPlaying && _layers.Count == 0 && _glide >= 1f && lookHour == _appliedLookHour &&
+            // By Phases / By Hours hold the look for minutes: with no light glide running, nothing to redo.
+            if (Application.isPlaying && _glide >= 1f && lookHour == _appliedLookHour &&
                 Mathf.Abs(moonPhase - _appliedMoonPhase) < MoonPhaseStep && _appliedRevision == _editRevision)
             {
                 Hour = hour;
@@ -261,9 +250,6 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
             if (_profile == null || !_profile.Evaluate(lookHour, out AtmosphereState state, out TimeOfDayProfile.Segment segment))
                 return;
-
-            for (int i = 0; i < _layers.Count; i++)
-                _layers[i].Modify(ref state, hour);
 
             _state = state;
             Hour = hour;
@@ -280,7 +266,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             SunDirection = sun;
             MoonDirection = moon;
             SunElevation = sunElevation;
-            Daylight = Smooth01(Mathf.InverseLerp(path.DaylightStartElevation, path.DaylightFullElevation, sunElevation));
+            Daylight = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(path.DaylightStartElevation, path.DaylightFullElevation, sunElevation));
 
             ApplyLight(path, state, sun, sunElevation, moon, moonElevation, moonPhase);
             ApplyRenderSettings(state);
@@ -294,8 +280,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 return;
 
             float fullness = 1f - Mathf.Abs(moonPhase - 0.5f) * 2f;
-            float sunIntensity = state.SunIntensity * Smooth01(sunElevation / path.HorizonFade);
-            float moonIntensity = state.MoonIntensity * Smooth01(moonElevation / path.HorizonFade) * Mathf.Lerp(path.NewMoonLight, 1f, fullness);
+            float sunIntensity = state.SunIntensity * Mathf.SmoothStep(0f, 1f, sunElevation / path.HorizonFade);
+            float moonIntensity = state.MoonIntensity * Mathf.SmoothStep(0f, 1f, moonElevation / path.HorizonFade) * Mathf.Lerp(path.NewMoonLight, 1f, fullness);
             bool sunLights = sunIntensity >= moonIntensity;
 
             // The swap happens while both are near zero at twilight, so it can't be seen.
@@ -347,7 +333,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             }
             if (_glide < 1f)
                 _glide = _shadowGlide > 0f ? Mathf.Min(1f, _glide + Time.unscaledDeltaTime / _shadowGlide) : 1f;
-            return Quaternion.Slerp(_lightFrom, _lightTo, Smooth01(_glide));
+            return Quaternion.Slerp(_lightFrom, _lightTo, Mathf.SmoothStep(0f, 1f, _glide));
         }
 
         static void ApplyRenderSettings(in AtmosphereState state)
@@ -412,12 +398,6 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 volume.enabled = on;
         }
 
-        static float Smooth01(float x)
-        {
-            x = Mathf.Clamp01(x);
-            return x * x * (3f - 2f * x);
-        }
-
         // Inspector: Play mode jumps the clock, edit mode moves the preview.
         [Button, PropertyOrder(-1)]
         void JumpToHour(float hour)
@@ -430,47 +410,11 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
 #if UNITY_EDITOR
         [Button("Collect scene reactors"), PropertyOrder(-1)]
-        public void CollectSceneReactors()
-        {
-            var found = new List<EnvironmentReactor>();
-            foreach (EnvironmentReactor reactor in FindObjectsByType<EnvironmentReactor>(FindObjectsInactive.Include))
-                if (reactor.gameObject.scene == gameObject.scene)
-                    found.Add(reactor);
-
-            // Compared as a set: re-sorting the same reactors must not dirty the scene on every Play.
-            if (found.Count == _sceneReactors.Count && new HashSet<EnvironmentReactor>(found).SetEquals(_sceneReactors))
-                return;
-
-            found.Sort((a, b) =>
-            {
-                int byName = string.CompareOrdinal(a.name, b.name);
-                return byName != 0 ? byName : string.CompareOrdinal(a.GetType().Name, b.GetType().Name);
-            });
-
-            _sceneReactors = found;
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
+        public void CollectSceneReactors() => SceneCollection.Collect(this, _sceneReactors);
 
         // Keeps the scene list current without anyone pressing the button: on save and when entering Play mode.
         [UnityEditor.InitializeOnLoadMethod]
-        static void HookCollection()
-        {
-            UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += (scene, _) => CollectIn(scene);
-            UnityEditor.EditorApplication.playModeStateChanged += state =>
-            {
-                if (state != UnityEditor.PlayModeStateChange.ExitingEditMode)
-                    return;
-                for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
-                    CollectIn(UnityEngine.SceneManagement.SceneManager.GetSceneAt(i));
-            };
-        }
-
-        static void CollectIn(UnityEngine.SceneManagement.Scene scene)
-        {
-            foreach (EnvironmentDirector director in FindObjectsByType<EnvironmentDirector>(FindObjectsInactive.Include))
-                if (director.gameObject.scene == scene)
-                    director.CollectSceneReactors();
-        }
+        static void HookCollection() => SceneCollection.Hook<EnvironmentDirector>(director => director.CollectSceneReactors());
 #endif
     }
 }

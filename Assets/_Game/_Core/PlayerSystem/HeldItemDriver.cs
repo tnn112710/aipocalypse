@@ -54,7 +54,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public void Tick(in PlayerIntent intent, bool ownsZoom, float deltaTime)
         {
             if (intent.Drop)
-                DropSelected();
+                DropHeld();
             else if (intent.SelectSlot is int slot)
                 _equipment.Select(slot);
             else if (intent.CycleSlot != 0)
@@ -98,7 +98,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _sway.ItemScale = feel?.SwayScale ?? 1f;
             _sway.Tick(new HeldSwayInput
             {
-                LookDegrees = intent.LookDegrees,
+                LookRate = Time.unscaledDeltaTime > 0f ? intent.LookDegrees / Time.unscaledDeltaTime : Vector2.zero,
                 LocalVelocity = velocity,
                 IsAirborne = !_motor.IsGrounded,
                 BobPhase = _headBob.Phase,
@@ -113,9 +113,9 @@ namespace Aipocalypse.Core.PlayerSystem
             _aim.Tick(_sway.AimRotation, held != null ? held.Spread : 0f);
         }
 
-        void DropSelected()
+        void DropHeld()
         {
-            ItemInstance item = _equipment.DropSelected();
+            ItemInstance item = _equipment.DropHeld();
             if (item != null)
                 WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, _body.eulerAngles.y + _tuning.Interaction.DropYaw, 0f), null);
         }

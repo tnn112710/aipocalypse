@@ -194,7 +194,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
         void Move(float deltaTime)
         {
-            bool wasGrounded = IsGrounded;
+            bool wasStable = IsGrounded && !IsOnSteepSlope;
             float impactSpeed = -_verticalVelocity;
             Vector3 before = _body.position;
             _hasGroundHit = false;
@@ -216,9 +216,10 @@ namespace Aipocalypse.Core.PlayerSystem
                     _horizontalVelocity = actual;
             }
 
-            if (!IsGrounded)
+            // Sliding down a steep slope counts as falling: the drop and the landing are measured to stable ground.
+            if (!IsGrounded || IsOnSteepSlope)
             {
-                if (wasGrounded)
+                if (wasStable)
                 {
                     _apexY = _body.position.y;
                     if (!_isJumping && _verticalVelocity < 0f)
@@ -231,7 +232,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 return;
             }
 
-            if (!wasGrounded)
+            if (!wasStable)
             {
                 float drop = _apexY - _body.position.y;
                 if (drop >= _tuning.HeavyLandingHeight)

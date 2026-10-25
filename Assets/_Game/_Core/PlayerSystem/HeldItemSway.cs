@@ -92,8 +92,8 @@ namespace Aipocalypse.Core.PlayerSystem
 
     public struct HeldSwayInput
     {
-        // This frame's look turn (x = right, y = up).
-        public Vector2 LookDegrees;
+        // Turn rate in degrees per real second (x = right, y = up), so hit stop and slow-mo don't exaggerate it.
+        public Vector2 LookRate;
         // In the body's space: x = strafe, y = vertical (0 on the ground), z = forward.
         public Vector3 LocalVelocity;
         public bool IsAirborne;
@@ -112,7 +112,6 @@ namespace Aipocalypse.Core.PlayerSystem
     // crosshair, shots and model together so the barrel never leaves the crosshair; Position/Rotation (roll) are model-only.
     public sealed class HeldItemSway
     {
-        const float SpringStep = 1f / 120f;
         const float MaxDeltaTime = 0.1f;
         const float TwoPi = Mathf.PI * 2f;
 
@@ -206,9 +205,9 @@ namespace Aipocalypse.Core.PlayerSystem
             // Lag behind moving (a strafe pushes the aim the other way, walking forward dips it) and turning.
             Vector3 v = input.LocalVelocity;
             Vector2 drift = new Vector2(-v.x * s.MoveDrift.x, -v.z * s.MoveDrift.y) * move;
-            Vector2 rate = input.LookDegrees / deltaTime * 0.01f;
+            Vector2 rate = input.LookRate * 0.01f;
             Vector2 look = Vector2.ClampMagnitude(-rate * s.LookLag, s.MaxLookLag) * Mathf.Lerp(1f, s.AimLook, aim);
-            StepSpring(ref _aimLag, ref _aimLagVelocity, drift + look, s.Stiffness, s.DampingRatio, deltaTime);
+            Spring.Step(ref _aimLag, ref _aimLagVelocity, drift + look, s.Stiffness, s.DampingRatio, deltaTime);
 
             Vector2 breath = Vector2.Scale(s.Breath, new Vector2(Mathf.Sin(b * 0.5f + 1.3f), Mathf.Sin(b))) * (heavy * Mathf.Lerp(1f, s.AimBreath, aim));
 
@@ -230,7 +229,7 @@ namespace Aipocalypse.Core.PlayerSystem
             HeldSwaySettings s = _settings;
 
             // Turning right leaves the item behind to the left, rolled the other way; looking up leaves it low.
-            Vector2 rate = input.LookDegrees / deltaTime * 0.01f;
+            Vector2 rate = input.LookRate * 0.01f;
             float look = Mathf.Lerp(1f, s.AimLook, aim);
             Vector3 lookShift = Vector3.ClampMagnitude(new Vector3(-rate.x, -rate.y, 0f) * s.LookShift, s.MaxLookShift) * look;
             float lookRoll = Mathf.Clamp(-rate.x * s.LookRoll, -s.MaxLookRoll, s.MaxLookRoll) * look;
@@ -243,7 +242,8 @@ namespace Aipocalypse.Core.PlayerSystem
                 Mathf.Clamp(-v.y * s.VerticalShift, -s.MaxVerticalShift, s.MaxVerticalShift),
                 -v.z * s.MoveShift) * move;
 
-            StepModelLag(lookShift + moveShift, lookRoll - v.x * s.StrafeRoll * move, deltaTime);
+            Spring.Step(ref _lagPosition, ref _lagPositionVelocity, lookShift + moveShift, s.Stiffness, s.DampingRatio, deltaTime);
+            Spring.Step(ref _lagRoll, ref _lagRollVelocity, lookRoll - v.x * s.StrafeRoll * move, s.Stiffness, s.DampingRatio, deltaTime);
 
             float breath = heavy * Mathf.Lerp(1f, s.AimBreath, aim);
             Vector3 breathPosition = Vector3.Scale(s.BreathPosition, new Vector3(Mathf.Sin(b * 0.5f + 1.3f), Mathf.Sin(b), 0f)) * breath;
@@ -275,29 +275,5 @@ namespace Aipocalypse.Core.PlayerSystem
             return Mathf.Exp(-zeta / root * Mathf.Atan2(root, zeta));
         }
 
-        void StepModelLag(Vector3 positionTarget, float rollTarget, float deltaTime)
-        {
-            float stiffness = _settings.Stiffness;
-            float damping = 2f * _settings.DampingRatio * Mathf.Sqrt(stiffness);
-            for (float left = deltaTime; left > 0f; left -= SpringStep)
-            {
-                float dt = Mathf.Min(left, SpringStep);
-                _lagPositionVelocity += (stiffness * (positionTarget - _lagPosition) - damping * _lagPositionVelocity) * dt;
-                _lagPosition += _lagPositionVelocity * dt;
-                _lagRollVelocity += (stiffness * (rollTarget - _lagRoll) - damping * _lagRollVelocity) * dt;
-                _lagRoll += _lagRollVelocity * dt;
-            }
-        }
-
-        static void StepSpring(ref Vector2 value, ref Vector2 velocity, Vector2 target, float stiffness, float dampingRatio, float deltaTime)
-        {
-            float damping = 2f * dampingRatio * Mathf.Sqrt(stiffness);
-            for (float left = deltaTime; left > 0f; left -= SpringStep)
-            {
-                float dt = Mathf.Min(left, SpringStep);
-                velocity += (stiffness * (target - value) - damping * velocity) * dt;
-                value += velocity * dt;
-            }
-        }
     }
 }

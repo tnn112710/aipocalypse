@@ -44,6 +44,8 @@ Assets/_Game/
 │  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum (values; …Scale multipliers with base 1) + stat seam with a Changed event; GetScale(stat) extension
 │  │  └─ Utils/                             Aipocalypse.Core
 │  │     ├─ Damping.cs                      ByRate / ByTime: frame-rate independent smoothing share for Lerp (0 = instant)
+│  │     ├─ Spring.cs                       Step(value, velocity, target, stiffness, dampingRatio, dt) for float / Vector2 / Vector3, in 1/120 s substeps (held-item sway, landing dip)
+│  │     ├─ SceneCollection.cs              editor only: Collect(owner, list) keeps a serialized list of scene objects current; Hook<TOwner>(collect) runs it on scene save and entering Play (EnemyInstaller, EnvironmentDirector)
 │  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
 │  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
@@ -51,14 +53,13 @@ Assets/_Game/
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
-│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager (entry point); injects the scene's enemies and spawners (lists collected on scene save / entering Play, "Collect scene enemies" button)
+│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager (entry point); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
 │  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; Advance(deltaTime)
 │  │  ├─ EnemyDefinition.cs                 SO per enemy kind: MoveSpeed, StopDistance, Wander (WanderSettings); lives in Content/Enemies/<Name>/
 │  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Destination; on its first Start (and each re-enable) initializes its mover, starts its tree and registers; stops both and leaves when disabled
 │  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition), Home, TryFindDestination, MoveTo(destination, timeout), Arrived, TimedOut, Halt
-│  │  ├─ EnemySpawner.cs                    scene MonoBehaviour injected by EnemyInstaller: Spawn(prefab, position, rotation) through the resolver (injected before Awake), parented under it
 │  │  ├─ WanderTasks.cs                     ChooseWanderDestination / WalkToWanderDestination / PauseWander ActionNodes of the shared subtree (read EnemyBrain.Definition.Wander, move through EnemyMover)
 │  │  ├─ WanderSettings.cs                  SO: wander radius, pause, travel timeout, destination attempts, minimum travel; asset in Data/Enemies/, the shared subtree in Content/Enemies/_Shared/
 │  │  └─ Prefabs/Navigation.prefab          AstarPath (default: small terrain-following grid, scanned on startup) + RVOSimulator: goes into every scene with agents; WorldMap's instance overrides the graph (recast + cache, ENVIRONMENT.md → Navigation)
@@ -66,14 +67,14 @@ Assets/_Game/
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
 │  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in the world map
 │  │  ├─ EnvironmentInstaller.cs            SceneInstaller: RegisterComponent(EnvironmentDirector); optional TimeOfDayAmbience → AmbienceService entry point, only with a ready WorldTimeInstaller on the scope (else a warning)
-│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ sky globals, Grade From / To volumes; profile → layers → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
+│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ sky globals, Grade From / To volumes; profile → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
 │  │  ├─ TimeOfDay/TimeOfDayProfile.cs      SO: keys (hour, LightingPreset, grade VolumeProfile, blend) → Evaluate(hour); PhaseLooks (DayPhase → hour, PhaseLookHour); SunPath (sun / moon directions); grade-override warning
 │  │  ├─ TimeOfDay/LightingPreset.cs        SO: one look (sun, moon, ambient, reflections, fog, sky, haze, unlit tint) → AtmosphereState
 │  │  ├─ TimeOfDay/AtmosphereState.cs       every value the director applies in a frame; Lerp
-│  │  ├─ TimeOfDay/IAtmosphereLayer.cs      Modify(ref state, hour) after the profile (weather, zones, special nights)
-│  │  ├─ TimeOfDay/EnvironmentReactor.cs    base of scene objects ticked by the director (injected spawns register themselves); TimeOfDayReactor: 0–1 weight from hours / daylight / darkness, eased, Apply(weight)
+│  │  ├─ TimeOfDay/EnvironmentReactor.cs    base of scene objects ticked by the director (injected spawns register themselves); TimeOfDayReactor: 0–1 weight from hours / daylight / darkness, eased over real seconds (the fade advances every frame, Apply skips tiny changes), Apply(weight)
 │  │  ├─ TimeOfDay/TimeOfDayLight.cs        fades lights to their authored intensity
 │  │  ├─ TimeOfDay/TimeOfDayEmission.cs     runtime emissive copies of chosen materials (windows)
+│  │  ├─ TimeOfDay/RuntimeMaterials.cs      CopyUnder(root, wanted, makeCopy, copies): one runtime copy per source material on the renderers under an object; Destroy(copies) — used by TimeOfDayEmission and AtmosphereTint
 │  │  ├─ TimeOfDay/TimeOfDayParticles.cs    scales / stops emitters, optional align to the sun (god rays)
 │  │  ├─ TimeOfDay/TimeOfDayActive.cs       shows objects only during their hours
 │  │  ├─ TimeOfDay/TimeOfDayWeight.cs       a weight for other code to read (Weight, -1 before the first tick): the player's darkness for PlayerVision
@@ -91,7 +92,7 @@ Assets/_Game/
 │  │  ├─ Items/LanternDefinition.cs         SO: worn on the belt, not held: radius added to the vision light, colour, edge brightness, flicker, shadows
 │  │  ├─ Hotbar.cs                          ≤ 9 slots, category check, SlotChanged, FindNext, FindFreeSlot
 │  │  ├─ EquipmentSwitcher.cs               holster → swap → equip timing (Raise 0..1, SwitchPhase)
-│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle (Hold items are held, QuickUse items raise QuickUseRequested); pick up (merge / store / swap), DropSelected, Consume(item, amount); Belt (worn item, BeltAccepts); LowerHands / RaiseHands (holster but keep the slot)
+│  │  ├─ Equipment.cs                       selected slot ↔ switcher target; Select / Cycle (Hold items are held, QuickUse items raise QuickUseRequested); pick up (merge / store / swap; a stored QuickUse item is not selected), DropHeld (mid-switch: the item being put away), Consume(item, amount); Belt (worn item, BeltAccepts); LowerHands / RaiseHands (holster but keep the slot)
 │  │  ├─ PickUpAction.cs                    None / Merge / Store / Swap
 │  │  ├─ IEquipmentOwner.cs                 on an actor's root: exposes its Equipment to world items
 │  │  ├─ WorldItem.cs                       item lying in the world (on the item prefab's root): IInteractable, picks up / swaps; Spawn for drops; Awake shows only the World child; StripForHand
@@ -114,7 +115,7 @@ Assets/_Game/
 │  │  ├─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  │  └─ Prefabs/FPHand_Left, FPHand_Right.prefab   the hand prefabs (VR Low Poly Hand), listed in Data/Hands/HandSet.asset
 │  ├─ InputSystem/                          Aipocalypse.Input
-│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock: RequestUI / ReleaseUI(owner) (gameplay map only while nobody holds a UI request), GameplayEnabled; hotbar keys + cycling, interact, drop, attack, aim, reload; GameButton enum (Reload, Interact, Attack, Jump) with WasPressed / Consume (claims this frame's press) / GetKeyLabel; UiConfirmPressed (UI map click / submit); Debug map (N / M / K / L) enabled in dev builds
+│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock: RequestUI / ReleaseUI(owner) (gameplay map only while nobody holds a UI request), GameplayEnabled; hotbar keys + cycling, interact, drop, attack, aim, reload; GameButton enum (Reload, Interact, Attack, Jump; sized from the enum, an unmapped button throws) with WasPressed / Consume (claims this frame's press) / GetKeyLabel; UiConfirmPressed (UI map click / submit); Debug map (N / M / K / L) enabled in dev builds
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control and view options: mouse sensitivity, gamepad look speed, invert Y, FieldOfView (read live by PlayerZoom)
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
@@ -127,13 +128,13 @@ Assets/_Game/
 │  │  ├─ PlayerCameraRig.cs                 sole writer of the CameraRoot / CameraPitch transforms: SetLook(pitch, kick), SetHeadMotion(offset, pitch), Override / ReleaseOverride (pose sequences); applied as each share changes; EyeHeight
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry, PlayerRespawnFlow (entry point) (+ PlayerCheats in dev builds)
-│  │  ├─ PlayerRespawnFlow.cs               root IStartable: on PlayerDeathSequenceEnded → Fading (awaits PlayerRespawnFading) → RequestUI → Preparing (MoveToSpawn, awaits PlayerRespawning) → Ready (waits for UiConfirmPressed) → Revive; any PlayerRevived or active-player change ends it (ReleaseUI, stage None); publishes RespawnStageChanged; works without the HUD
+│  │  ├─ PlayerRespawnFlow.cs               root IStartable: on PlayerDeathSequenceEnded → Fading (awaits PlayerRespawnFading) → RequestUI → Preparing (MoveToSpawn, awaits PlayerRespawning) → Ready (waits for UiConfirmPressed) → Revive, re-checking cancellation after each await; any PlayerRevived or active-player change ends it (ReleaseUI, stage None); publishes RespawnStageChanged; works without the HUD
 │  │  ├─ PlayerCheats.cs                    editor and dev builds: K kills the active player through DamageService, L revives it (InputService debug presses)
-│  │  ├─ Sequences/PoseSequence.cs          SO: a scripted first-person moment (death, sitting, resting): PoseSpace (Feet = on the ground around the start, Anchor = exact in a seat's space), beats (move + hold: eye height, offset, pitch / yaw / roll, FOV, ease, start / arrive sounds), Continuous (one smooth path, never stops), handheld wander (+ HandheldFadeIn), elliptical drift (+ DriftFadeIn), settled look range, EndAfter, music, LowerHands
-│  │  ├─ Sequences/PoseSequencePlayer.cs    plays one PoseSequence through the camera rig's override (look pitch folded in): beats placed once (ground probe, wall sphere cast), DOVirtual eased moves or a monotone cubic path through the beats (no overshoot into the ground), Perlin handheld from a fresh seed, drift from the last beat on, cues through AudioService, settled free look, Ended, FovScale
+│  │  ├─ Sequences/PoseSequence.cs          SO: a scripted first-person moment (death, resting): beats placed on the ground around the start (move + hold: eye height, offset, pitch / yaw / roll, FOV, ease, start / arrive sounds), Continuous (one smooth path, never stops), handheld wander (+ HandheldFadeIn), elliptical drift (+ DriftFadeIn), EndAfter, music, LowerHands
+│  │  ├─ Sequences/PoseSequencePlayer.cs    plays one PoseSequence through the camera rig's override (look pitch folded in): beats placed once (ground probe, wall sphere cast), DOVirtual eased moves or a monotone cubic path through the beats (no overshoot into the ground), Perlin handheld from a fresh seed, drift from the last beat on, cues through AudioService, Ended, FovScale
 │  │  ├─ PlayerRegistry.cs                  the active player (Current, an IPlayer); players register themselves, publishes ActivePlayerChanged
 │  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop, Fire, FirePressed, Aim, Reload
-│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo); Jumped / Landed events; SpeedMultiplier (aiming, fatigue); Teleport (no momentum, no fall damage)
+│  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo; sliding down a steep slope counts as falling until stable ground); Jumped / Landed events; SpeedMultiplier (aiming, fatigue); Teleport (no momentum, no fall damage)
 │  │  ├─ PlayerLook.cs                      yaw on the body, pitch + the held item's ViewKick (recoil) into the camera rig; Turn (kept recoil), Pitch, ResetPitch (after a sequence)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip into the camera rig's head motion; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
 │  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSwayScale × ItemScale (the held item's HoldFeel.SwayScale)
@@ -162,7 +163,7 @@ Assets/_Game/
 │  ├─ QuickTimeSystem/                      Aipocalypse.Core.QuickTimeSystem
 │  │  ├─ QteChallenge.cs                    abstract challenge SO (TimeScale, Presentations, Button: the GameButton that attempts it), IQteSession contract, QteResult / QteAttemptResult
 │  │  ├─ TimingQteChallenge.cs              timing challenge + TimingQteSession: repeating fill, green zone, duration (or owner-controlled), attempts per cycle, miss hold and bounded zone relocation; optional random delegate for tests
-│  │  ├─ QuickTimeService.cs                root ITickable: one owner-bound session at a time, unscaled tick while gameplay input is on and TimeService isn't paused; reads WasPressed(Button) and Consume(Button) (ticks before Player.Update, so a press completing a repair doesn't also reload); timed or owner-controlled lifetime, cancel, optional time request, completion callback; QteStarted / QteAttempted / QteEnded
+│  │  ├─ QuickTimeService.cs                root ITickable: one owner-bound session at a time, unscaled tick while gameplay input is on and TimeService isn't paused; reads WasPressed(Button) and Consume(Button) (ticks before Player.Update, so a press completing a repair doesn't also reload); a press is judged before the frame moves the session, which advances at most Time.maximumDeltaTime per frame; timed or owner-controlled lifetime, cancel, optional slow motion (standalone QTEs only), completion callback; QteStarted / QteAttempted / QteEnded
 │  │  └─ QuickTimeInstaller.cs              registers QuickTimeService as a root entry point
 │  ├─ TimeSystem/                           Aipocalypse.Core.TimeSystem
 │  │  ├─ TimeService.cs                     root ITickable, sole writer of Time.timeScale and the fixed step: owner-keyed Request / Release (slowest wins), RequestPause / ReleasePause (IsPaused = any owner holds one; beats every request), RequestHitStop (real-time, overlaps keep the longest / lowest, ignored while paused); restores Unity's values on Dispose
@@ -170,6 +171,7 @@ Assets/_Game/
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
+│  │  ├─ Widgets/StyleUtils.cs              ImageTypeFor(sprite) (Sliced when the sprite has 9-slice borders); editor: RefreshViews re-applies a style asset to the open views using it (the *Style OnValidate)
 │  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / SetBadge(count, reserve, showReserve, warning) / HideBadge / ApplyStyle
 │  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font, ammo badge font + colors
 │  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
@@ -190,7 +192,7 @@ Assets/_Game/
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread (CrosshairStyle)
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker (HitFeedbackStyle), hit / kill sound, pooled damage numbers
-│  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden while paused or when gameplay input is off (QteStyle)
+│  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
 │  │  ├─ Hud/DeathScreenHud.cs              PlayerHudView presenting PlayerRespawnFlow: PlayerRespawnFading → eyes close, menu "Loading..."; PlayerRespawning → at least MinLoadingTime; RespawnStageChanged Ready → "Click to continue", None → fade out
@@ -200,7 +202,7 @@ Assets/_Game/
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
 │  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled), font Data/UI/DamageNumberFont.asset
 │  ├─ WorldTimeSystem/                      Aipocalypse.Core.WorldTimeSystem — the in-game clock, see DAYNIGHT.md
-│  │  ├─ WorldTime.cs                       WorldTime (hours since day 1: Day, Hour, WholeHour, Minute, HoursUntil) + DayPhase enum
+│  │  ├─ WorldTime.cs                       WorldTime (hours since day 1: Day, Hour, WholeHour, Minute) + DayPhase enum
 │  │  ├─ ClockSettings.cs                   SO: seconds per game hour, master speed, start, Phases (DayPhase → PhaseTiming: start + speed; Timing, HasEveryPhase), moon cycle; PhaseAt, RealSecondsBetween, Real time inspector box
 │  │  ├─ WorldClock.cs                      scene service (ITickable, scaled time): Advance steps hour by hour and phase by phase (events in order); JumpTo / SetTime / SkipTo; speed requests (slowest wins); MoonPhase
 │  │  ├─ TimeWindow.cs                      On / Off / Fade hours, may wrap past midnight → Weight(hour)
@@ -229,12 +231,12 @@ Assets/_Game/
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets (GunAim.Shot), aim / sprint poses (PoseBlender) + aim zoom, recoil + jolts on the recoil pivot, drives its optional GunAnimation, sprint recovery, empty click, its GunJam, sounds (AudioService)
 │     ├─ GunJam.cs                          GunJam: one gun's jam part (GunRepairFlow + GunRepairFeedback + QteAttempted subscription; Tick, ActionStarted, ActionEnded → cleared?, Cleared, Hide, Dispose); GunJamFactory: root service holding AudioService, QuickTimeService and the jam publishers / subscriber
 │     ├─ GunRepairProfile.cs                SO per gun: automatic / manual start, jam pause, quick / stubborn duration and chance, QTE onset, miss penalty and cap, challenge, feedback preset
-│     ├─ GunRepairFlow.cs                   the jam repair's QTE rules: start at QteStartProgress, early finish, miss penalty, interrupt on cancel; QteStarted / Missed
+│     ├─ GunRepairFlow.cs                   the jam repair's QTE rules: start at QteStartProgress, early finish, miss penalty, interrupt on cancel; Missed
 │     ├─ GunRepairFeedback.cs               presents one gun's jam / repair beats: sounds, gun jolts, GunJamBeat / GunRepairCompleted
 │     ├─ RepairFeedbackSettings.cs          SO preset: gun jolts (jam, dry fire, slap, punch, miss, success) and result sounds (+ MechanismDelay)
 │     ├─ GunJamFeedback.cs                  on Player/GunJamFeedback (with FeedbackContext): its owner's GunJamBeat / GunRepairCompleted → one MMF_Player per beat (camera impulse; hit stop for punch and success)
 │     ├─ GunAnimation.cs                    a gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
-│     ├─ Ballistics/BulletSystem.cs         root service (ITickable): bullets as data, ray-tested against each shot's HitLayers, damage of the shot's DamageType through DamageService (source = shooter), impacts, holes (+ BulletShot)
+│     ├─ Ballistics/BulletSystem.cs         root service (ITickable, Advance(dt) for tests): bullets as data, each following only the tracer it was handed (spawn id), ray-tested against each shot's HitLayers, damage of the shot's DamageType through DamageService (source = shooter), impacts, holes (+ BulletShot)
 │     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
@@ -271,12 +273,13 @@ Assets/_Game/
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, ClockStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
+├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
 ├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)
-   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop, lantern onto the belt / swap, lower / raise hands
-   ├─ PoseSequenceTests.cs                  PoseSequencePlayer: start pose, beat moves, ground and wall placement, anchor space, settled look range, Ended, Stop
+   ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop (also mid-switch), lantern onto the belt / swap, lower / raise hands, quick-use items and stacks (TestConsumableDefinition)
+   ├─ PoseSequenceTests.cs                  PoseSequencePlayer: start pose, beat moves, ground and wall placement, Ended, Stop
    ├─ GunTests.cs                           fire modes and rate, magazine, reloads, jams, interrupts, shared ammo, recoil, spread
    ├─ RepairQteTests.cs                     timing passes, zone tuning, miss hold and relocation, timeouts, automatic / manual repair, jam pause, miss penalty, early completion, interruption, hit stop, gun jolt, time request arbitration
    ├─ GunAnimationTests.cs                  AK47 override/curve bindings, automatic Animator overwrite regression, controller restoration, hand contacts, magazine visibility, interrupt reset, pause/equip/fire, repair, scaled-hand grip alignment
@@ -287,8 +290,14 @@ Assets/_Game/
    ├─ HeldMotionTests.cs                    GunAccuracy (speed, airborne, aiming, steadiness, settling); HeldItemSway (look / move lag, aiming, sway stat, landing)
    ├─ WorldClockTests.cs                    clock speed, real minutes per day, phase speeds, events in one long frame, no skipped phase at a boundary, midnight, jumps, N / M cheats, skip (and a jump ending it), freeze, moon phase
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
-   ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path
-   └─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
+   ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
+   ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
+   ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored)
+   ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
+   ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
+   ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)
+   ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet
+   └─ TestConsumableDefinition.cs           quick-use stackable ItemDefinition for EquipmentTests
 ```
 
 ## Who depends on whom
@@ -301,7 +310,7 @@ ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings
 GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats)
    EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), AmbienceService (needs WorldTimeInstaller)
-   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager; injects the listed scene enemies (EnemyBrain) and EnemySpawners
+   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager; injects the listed scene enemies (EnemyBrain)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
@@ -362,7 +371,7 @@ PlayerBreathing.Tick out of breath → eased Tiredness → PlayerBreathSound sta
 PlayerHeadBob.Tick   bob + dip → PlayerCameraRig.SetHeadMotion; Stepped → PlayerFeedback footstep (skipped in a pose sequence)
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 HeldItemDriver.Tick
-  Equipment          intent.Drop → DropSelected → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
+  Equipment          intent.Drop → DropHeld → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)
                        └─ HeldChanged → EquipmentRig shows/hides models; SelectionChanged → HotbarHud highlight
   EquipmentRig.Tick  restore hand pose from Raise before measuring obstacles
   EquipmentRig.TickHeld  the held item: HeldGun → Gun.Tick (reload / jam clear / pump, aim, trigger → Fired counts shots), GunJam.Tick; pose + recoil pivots,

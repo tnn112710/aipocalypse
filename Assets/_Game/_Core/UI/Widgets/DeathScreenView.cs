@@ -35,7 +35,6 @@ namespace Aipocalypse.Core.UI
         Tween _pulse;
 
         public DeathScreenStyle Style => _style;
-        public RectTransform Illustration => _illustration;
 
         void Awake()
         {

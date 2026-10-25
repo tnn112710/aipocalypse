@@ -52,7 +52,8 @@ namespace Aipocalypse.Core.PlayerSystem
         void Refocus()
         {
             Collider nearest = FindNearestHit();
-            if (nearest == _focusCollider)
+            // By reference: Unity's == says a destroyed collider equals null, which would keep a destroyed item in focus.
+            if (ReferenceEquals(nearest, _focusCollider))
                 return;
             _focusCollider = nearest;
             _focus = nearest != null ? nearest.GetComponentInParent<IInteractable>() : null;

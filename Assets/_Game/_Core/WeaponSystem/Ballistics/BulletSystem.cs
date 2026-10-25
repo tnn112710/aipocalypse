@@ -50,6 +50,7 @@ namespace Aipocalypse.Core.WeaponSystem
             public GameObject Source;
             public BulletEffects Effects;
             public PooledEffect Tracer;
+            public int TracerSpawnId;
         }
 
         readonly EffectPool _effects;
@@ -85,13 +86,18 @@ namespace Aipocalypse.Core.WeaponSystem
             };
 
             if (shot.Effects != null)
+            {
                 bullet.Tracer = _effects.Spawn(shot.Effects.Tracer, shot.VisualOrigin, Quaternion.LookRotation(direction), null, 0f);
+                if (bullet.Tracer != null)
+                    bullet.TracerSpawnId = bullet.Tracer.SpawnId;
+            }
             _bullets.Add(bullet);
         }
 
-        public void Tick()
+        public void Tick() => Advance(Time.deltaTime);
+
+        public void Advance(float deltaTime)
         {
-            float deltaTime = Time.deltaTime;
             if (deltaTime <= 0f)
                 return;
 
@@ -104,7 +110,8 @@ namespace Aipocalypse.Core.WeaponSystem
                     continue;
                 }
 
-                _effects.Return(bullet.Tracer);
+                if (OwnsTracer(bullet))
+                    _effects.Return(bullet.Tracer);
                 // Order doesn't matter: swap-remove.
                 int last = _bullets.Count - 1;
                 _bullets[i] = _bullets[last];
@@ -139,13 +146,17 @@ namespace Aipocalypse.Core.WeaponSystem
             bullet.Velocity = velocity;
             bullet.Travelled += distance;
 
-            if (bullet.Tracer != null)
+            if (OwnsTracer(bullet))
             {
                 bullet.VisualOffset *= 1f - Damping.ByTime(bullet.Effects.TracerConvergeTime, deltaTime);
                 bullet.Tracer.transform.SetPositionAndRotation(bullet.Position + bullet.VisualOffset, Quaternion.LookRotation(velocity));
             }
             return !lastStep;
         }
+
+        // A capped pool recycles its oldest effect: once the tracer was handed to a newer bullet, this one stops moving it.
+        static bool OwnsTracer(in Bullet bullet) =>
+            bullet.Tracer != null && bullet.Tracer.IsSpawned && bullet.Tracer.SpawnId == bullet.TracerSpawnId;
 
         // Nearest hit that isn't the shooter. Triggers (pickups) are ignored. Also what aiming uses to find the crosshair point.
         public bool TryHit(Vector3 origin, Vector3 direction, float distance, int layers, Transform ignore, out RaycastHit nearest)

@@ -103,8 +103,13 @@ namespace Aipocalypse.Core.EquipmentSystem
             return PickUpAction.None;
         }
 
-        // Takes the selected item out of the hotbar and empties the hands. The caller puts it in the world.
-        public ItemInstance DropSelected() => SelectedIndex >= 0 ? Hotbar.Remove(SelectedIndex) : null;
+        // Takes the item in the hands out of the hotbar: mid-switch that's the one being put away, not the newly selected one.
+        // The caller puts it in the world.
+        public ItemInstance DropHeld()
+        {
+            int index = Switcher.Held != null ? Hotbar.IndexOf(Switcher.Held) : -1;
+            return index >= 0 ? Hotbar.Remove(index) : null;
+        }
 
         // `dropped` is the item a swap pushed out of the hotbar; the caller puts it in the world.
         public bool TryPickUp(ItemInstance item, out ItemInstance dropped)
@@ -127,7 +132,9 @@ namespace Aipocalypse.Core.EquipmentSystem
                 case PickUpAction.Store:
                     int slot = Hotbar.FindFreeSlot(item);
                     Hotbar.TryPlace(slot, item);
-                    Select(slot);
+                    // Only a held item is switched to; selecting a quick-use item would use it on pickup.
+                    if (CanHold(item))
+                        Select(slot);
                     return true;
 
                 case PickUpAction.Swap:

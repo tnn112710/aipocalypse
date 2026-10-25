@@ -27,7 +27,6 @@ namespace Aipocalypse.Core.EquipmentSystem
 
         public int Count => _items.Length;
         public ItemInstance this[int index] => _items[index];
-        public ItemCategory Accepts(int index) => _accepts[index];
 
         public bool CanPlace(int index, ItemInstance item) =>
             IsValid(index) && (item == null || (_accepts[index] & item.Definition.Category) != 0);

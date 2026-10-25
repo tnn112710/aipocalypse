@@ -39,14 +39,16 @@ namespace Aipocalypse.Core.PlayerSystem
 
         public void Tick(PlayerMotor motor, float deltaTime)
         {
+            // Sliding down a steep slope isn't walking: no bob, no footsteps.
+            bool onFoot = motor.IsGrounded && !motor.IsOnSteepSlope;
             float speed = motor.HorizontalVelocity.magnitude;
             float fade = Damping.ByRate(_tuning.BobFadeSpeed, deltaTime);
-            float targetIntensity = motor.IsGrounded ? Mathf.Clamp01(speed / Mathf.Max(motor.WalkSpeed, 0.01f)) : 0f;
+            float targetIntensity = onFoot ? Mathf.Clamp01(speed / Mathf.Max(motor.WalkSpeed, 0.01f)) : 0f;
             _intensity = Mathf.Lerp(_intensity, targetIntensity, fade);
             _sprintBlend = Mathf.Lerp(_sprintBlend, motor.IsSprinting ? 1f : 0f, fade);
 
             // Half a cycle per step: vertical bob once per step, sideways sway once per two steps.
-            if (motor.IsGrounded)
+            if (onFoot)
             {
                 float previous = _phase;
                 _phase = (_phase + speed * deltaTime / _tuning.StepLength * Mathf.PI) % (2f * Mathf.PI);
@@ -72,10 +74,7 @@ namespace Aipocalypse.Core.PlayerSystem
         // Critically damped spring back to rest.
         void UpdateDip(float deltaTime)
         {
-            float stiffness = _tuning.LandingDipStiffness;
-            float acceleration = -stiffness * _dip - 2f * Mathf.Sqrt(stiffness) * _dipVelocity;
-            _dipVelocity += acceleration * deltaTime;
-            _dip += _dipVelocity * deltaTime;
+            Spring.Step(ref _dip, ref _dipVelocity, 0f, _tuning.LandingDipStiffness, 1f, deltaTime);
 
             if (_dip < -_tuning.LandingDipMax)
             {

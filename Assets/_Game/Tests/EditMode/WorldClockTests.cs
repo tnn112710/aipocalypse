@@ -256,5 +256,36 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(0.5d, _settings.MoonPhaseAt(WorldTime.At(1, 0f)), 1e-6d);
             Assert.AreEqual(0d, _settings.MoonPhaseAt(WorldTime.At(5, 0f)), 1e-6d);
         }
+
+        [Test]
+        public void SkipTo_TheHourShownNow_StillEndsTheSkip()
+        {
+            _clock.SkipTo(7f, 3f);
+
+            Assert.IsFalse(_clock.IsSkipping);
+            Assert.AreEqual(1, _skips.Count, "a sleep waiting for TimeSkipEnded must still hear it");
+            Assert.AreEqual(0, _jumps.Count);
+        }
+
+        [Test]
+        public void SkipTo_InNoTime_JumpsAndEndsTheSkip()
+        {
+            _clock.SkipTo(13f, 0f);
+
+            Assert.AreEqual(13, _clock.Now.WholeHour);
+            Assert.AreEqual(1, _skips.Count);
+        }
+
+        [Test]
+        public void SkipTo_FromBetweenHours_EndsExactlyOnTheHour()
+        {
+            Run(37f);
+            _clock.SkipTo(13f, 3f);
+            Run(3.1f);
+
+            Assert.AreEqual(1, _skips.Count);
+            Assert.AreEqual(WorldTime.At(1, 13f).TotalHours, _skips[0].Now.TotalHours, 1e-9, "not 12:59.99");
+            Assert.AreEqual(13, _skips[0].Now.WholeHour);
+        }
     }
 }

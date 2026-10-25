@@ -31,19 +31,7 @@ namespace Aipocalypse.Core.UI
 
 #if UNITY_EDITOR
         // Edit-time preview only: slots re-apply their style in Awake.
-        void OnValidate() => UnityEditor.EditorApplication.delayCall += RefreshOpenSlots;
-
-        void RefreshOpenSlots()
-        {
-            if (this == null)
-                return;
-
-            foreach (HotbarSlotView slot in FindObjectsByType<HotbarSlotView>(FindObjectsInactive.Include))
-            {
-                if (slot.Style == this)
-                    slot.ApplyStyle();
-            }
-        }
+        void OnValidate() => StyleUtils.RefreshViews<HotbarSlotView>(this, slot => slot.Style, slot => slot.ApplyStyle());
 #endif
     }
 }

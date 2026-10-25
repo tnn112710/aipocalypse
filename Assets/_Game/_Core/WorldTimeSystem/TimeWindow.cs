@@ -33,8 +33,7 @@ namespace Aipocalypse.Core.WorldTimeSystem
                 return 0f;
             if (Fade <= 0f)
                 return 1f;
-            float w = Mathf.Min(Mathf.Clamp01(into / Fade), Mathf.Clamp01((length - into) / Fade));
-            return w * w * (3f - 2f * w);
+            return Mathf.SmoothStep(0f, 1f, Mathf.Min(into / Fade, (length - into) / Fade));
         }
     }
 }

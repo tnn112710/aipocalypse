@@ -11,7 +11,7 @@ namespace Aipocalypse.Core.PlayerSystem
         readonly Transform _pitchPivot;
         readonly Quaternion _rootRestRotation;
         readonly Vector3 _pivotRest;
-        Vector3 _rootRest;
+        readonly Vector3 _rootRest;
         float _pitch;
         ViewKick _kick;
         Vector3 _headOffset;
@@ -38,17 +38,6 @@ namespace Aipocalypse.Core.PlayerSystem
         public float InitialPitch => _pitch;
         // Where the camera root is now, head motion included, in the body's space.
         public Vector3 RootPosition => _root.localPosition;
-
-        // Metres above the feet; crouching or lying down moves it.
-        public float EyeHeight
-        {
-            get => _rootRest.y;
-            set
-            {
-                _rootRest.y = value;
-                Apply();
-            }
-        }
 
         public void SetLook(float pitch, in ViewKick kick)
         {

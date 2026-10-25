@@ -69,7 +69,7 @@ namespace Aipocalypse.Tests
             var overrides = _animation.GetComponent<Animator>().runtimeAnimatorController as AnimatorOverrideController;
             Assert.That(overrides.runtimeAnimatorController, Is.SameAs(AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
                 "Assets/_Game/Content/Weapons/_Shared/Animations/Gun.controller")));
-            foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "Cycling", "RepairingStubborn", "RepairFocus", "RepairEnd" })
+            foreach (string state in new[] { "Equipped", "Idle", "Firing", "Reloading", "ReloadingEmpty", "Repairing", "Cycling", "RepairingStubborn", "RepairEnd" })
             {
                 var clip = overrides[state];
                 Assert.That(clip.name, Is.EqualTo(name + "_" + state));
