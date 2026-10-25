@@ -28,16 +28,17 @@ Full docs: https://man572142s-organization.gitbook.io/broaudio/
 - **No-code components** (`SoundSource`, `SoundVolume`, `SpectrumAnalyzer`) are not used; they bypass `AudioService`. Ask before adding one (e.g. `SoundVolume` for an options menu).
 - **Pause:** there is no global audio pause. Each kept player is paused by its owner while `TimeService.IsPaused`: `Player` calls `_breathSound.SetPaused(...)` and `_sequence.SetPaused(...)`, which call `AudioService.Pause` / `UnPause` on the breath loop and the sequence music. `AmbienceService` stops its one-shot calls while paused, but its beds keep playing. Follow that pattern for a new kept player (aipocalypse-architecture §4); don't add a global pause rule without asking.
 - **Clip editing** before a clip goes into an entity: `tools-unity-audio-tools`.
-- **Import settings:** every clip an entity uses gets one of three Unity Presets in `Assets/_Game/Settings/Audio/`, picked by length. After adding or replacing sounds run `AgentScripts/Audio/AudioImport.Apply` (`[true]` = dry run). It applies vendor clips' presets too, and a re-run changes nothing. The vendor audio packs in `Assets/_StoreAssets/Audio/` have the presets applied to every clip. For a newly imported pack, run `AudioImport.ApplyFolder("<pack folder>")` (~0.1 s per clip; `max` times a sample first).
+- **Import settings:** every clip gets one of three Unity Presets in `Assets/_Game/Settings/Audio/`, picked by length (thresholds in `AudioImport.json` there). The tool is `AgentScripts/Audio/AudioImportKit.cs`, a copy of the user-scope skill `unity-audio-import-optimization`; read that skill for entries, rules and tuning, and keep the two copies identical. Pass the project's preset folder as `presetFolder`.
+  - **After adding or replacing sounds:** `Apply` with `["used:Assets/_Game/Data/Audio", false, "Assets/_Game/Settings/Audio"]`. `true` instead of `false` is a dry run, and a re-run must report `would change 0`.
+  - **After importing a pack:** `Apply` with `["<pack folder>", false, "Assets/_Game/Settings/Audio"]`. The packs in `Assets/_StoreAssets/Audio/` already have the presets on every clip.
 
-  | Preset | Clips | Settings | Why |
-  | --- | --- | --- | --- |
-  | `AudioImport_Sfx` | ≤ 2 s: guns, footsteps, hits, UI, short calls | Decompress On Load, ADPCM, Force To Mono, Optimize Sample Rate, Preload | No decode when played; mono halves memory; ADPCM loads fast |
-  | `AudioImport_Medium` | 2–60 s: stingers, longer calls, voice | Compressed In Memory, Vorbis 0.7, Preload | ~10× less memory than PCM; decoded while playing |
-  | `AudioImport_Stream` | > 60 s: music, ambience beds | Streaming, Vorbis 0.6, no Preload | ~200 KB per playing stream |
+  | Preset | Clips | Settings |
+  | --- | --- | --- |
+  | `AudioImport_Sfx` | ≤ 2 s: guns, footsteps, hits, UI, short calls | Decompress On Load, ADPCM, Force To Mono, Optimize Sample Rate, Preload |
+  | `AudioImport_Medium` | 2–60 s: stingers, longer calls, voice | Compressed In Memory, Vorbis 0.7, Preload |
+  | `AudioImport_Stream` | > 60 s: music, ambience beds | Streaming, Vorbis 0.6, no Preload |
 
   - **Preload is required:** a clip with Preload Audio Data off loads on its first play, an ~11 ms hitch.
   - **Starting a stream costs 1–3 ms of main thread**, and BroAudio pays it again on each loop, because it hands the loop to a fresh source. Load In Background is off until it has been A/B'd: the handover is scheduled only a short warm-up ahead, so a late background open could leave a gap.
-  - **Tune the presets in the Inspector:** `Apply` uses whatever the preset assets hold. `AudioImport.CreatePresets` rewrites them from the table in the script.
-  - **A clip that must stay stereo** (a stereo music stinger under 2 s) needs a rule in `AudioImport.For` rather than a hand edit, which the next run would undo.
+  - **To change a setting**, tune the preset in the Inspector and run `Apply` again. A hand edit on one clip is undone by the next `Apply`.
 - Adding a sound: add the entity in the Library Manager (`Tools > BroAudio > Library Manager`) in the right library, add a `SoundID` field on the data asset, play it through `AudioService`. Update CODE_STRUCTURE.md / PLUGINS.md if a new library or service method appears.
