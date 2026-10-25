@@ -8,15 +8,18 @@ public static class SkyboxPlusSetup
     const string PresetDir = "Assets/_StoreAssets/Rendering/Kronnect/SkyboxPlus/Materials/";
     const string SkyPath = "Assets/_Game/Data/Environment/TimeOfDay/SkyboxPlus_Sky.mat";
     const string TimeOfDaySkyPath = "Assets/_Game/Data/Environment/TimeOfDay/TimeOfDay_Sky.mat";
+    const string StarMapPath = "Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap.png";
+    // First-party fork of the vendor Clouds shader with a star map layer (SkyStarMap.shader).
+    const string StarMapShader = "Aipocalypse/Skybox/Skybox Plus Star Map";
 
-    // Copies a vendor preset (e.g. "Clouds-B1") to the first-party sky with night, stars and the scene's fog colour on.
-    // Overwrites SkyboxPlus_Sky.mat: hand tuning is lost.
+    // Copies a vendor preset (e.g. "Clouds-B1") to the first-party sky with night, stars and the scene's fog colour on,
+    // on the star map fork (StarMap.png when it exists, else the procedural stars). Overwrites SkyboxPlus_Sky.mat: hand tuning is lost.
     public static object Create(string preset)
     {
         var source = AssetDatabase.LoadAssetAtPath<Material>(PresetDir + preset + ".mat");
         if (source == null)
             return "no preset " + preset;
-        var sky = new Material(source) { name = "SkyboxPlus_Sky" };
+        var sky = new Material(source) { name = "SkyboxPlus_Sky", shader = Shader.Find(StarMapShader) };
         sky.SetFloat("_SkyboxNight", 1f);
         sky.EnableKeyword("SKYBOX_NIGHT");
         // Horizon blends into the look's fog colour (RenderSettings.fogColor, set by the director).
@@ -38,6 +41,7 @@ public static class SkyboxPlusSetup
             sky.SetTexture("_MoonTex", AssetDatabase.LoadAssetAtPath<Material>(PresetDir + "StarryNight.mat").GetTexture("_MoonTex"));
         if (sky.GetTexture("_NoiseTex") == null)
             sky.SetTexture("_NoiseTex", AssetDatabase.LoadAssetAtPath<Material>(PresetDir + "StarryNight.mat").GetTexture("_NoiseTex"));
+        SetStarMap(sky, true, 1f);
 
         if (AssetDatabase.LoadAssetAtPath<Material>(SkyPath) is { } existing)
         {
@@ -51,6 +55,56 @@ public static class SkyboxPlusSetup
             AssetDatabase.CreateAsset(sky, SkyPath);
         AssetDatabase.SaveAssets();
         return "sky from " + preset + ": " + string.Join(" ", AssetDatabase.LoadAssetAtPath<Material>(SkyPath).shaderKeywords);
+    }
+
+    // Imports StarMap.png as a cubemap and turns the star map on (or back to the procedural stars) on SkyboxPlus_Sky.mat.
+    public static object StarMap(bool on, float intensity)
+    {
+        var sky = AssetDatabase.LoadAssetAtPath<Material>(SkyPath);
+        string result = SetStarMap(sky, on, intensity);
+        EditorUtility.SetDirty(sky);
+        AssetDatabase.SaveAssets();
+        return result;
+    }
+
+    static string SetStarMap(Material sky, bool on, float intensity)
+    {
+        var importer = AssetImporter.GetAtPath(StarMapPath) as TextureImporter;
+        if (importer == null)
+            on = false;
+        else
+            ImportStarMap(importer);
+        sky.SetFloat("_StarMapOn", on ? 1f : 0f);
+        sky.SetKeyword(new UnityEngine.Rendering.LocalKeyword(sky.shader, "STAR_MAP"), on);
+        sky.SetFloat("_StarMapIntensity", intensity);
+        sky.SetTexture("_StarMap", on ? AssetDatabase.LoadAssetAtPath<Cubemap>(StarMapPath) : null);
+        return on ? "star map on, intensity " + intensity : importer == null ? "no " + StarMapPath + ": procedural stars" : "procedural stars";
+    }
+
+    // Equirectangular PNG → cubemap (Unity's latitude-longitude layout). BC7 keeps the coloured single-pixel stars clean.
+    static void ImportStarMap(TextureImporter importer)
+    {
+        var settings = new TextureImporterSettings();
+        importer.ReadTextureSettings(settings);
+        bool changed = settings.textureShape != TextureImporterShape.TextureCube || settings.generateCubemap != TextureImporterGenerateCubemap.Cylindrical;
+        settings.textureShape = TextureImporterShape.TextureCube;
+        settings.generateCubemap = TextureImporterGenerateCubemap.Cylindrical;
+        settings.cubemapConvolution = TextureImporterCubemapConvolution.None;
+        settings.seamlessCubemap = true;
+        settings.sRGBTexture = true;
+        settings.mipmapEnabled = true;
+        settings.wrapMode = TextureWrapMode.Clamp;
+        settings.filterMode = FilterMode.Trilinear;
+        importer.SetTextureSettings(settings);
+        var platform = importer.GetDefaultPlatformTextureSettings();
+        changed |= platform.format != TextureImporterFormat.BC7 || platform.maxTextureSize != 2048;
+        // Max size is the cube face: 2048 ≈ 23 texels per degree, sharper than 1080p shows the sky; 4096 costs 4× the memory.
+        platform.maxTextureSize = 2048;
+        platform.format = TextureImporterFormat.BC7;
+        platform.textureCompression = TextureImporterCompression.CompressedHQ;
+        importer.SetPlatformTextureSettings(platform);
+        if (changed)
+            importer.SaveAndReimport();
     }
 
     // Sets the open scene's skybox: true = Skybox Plus, false = back to the Time Of Day sky. Saves the scene.

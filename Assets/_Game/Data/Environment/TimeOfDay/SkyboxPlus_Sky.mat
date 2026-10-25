@@ -8,12 +8,13 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SkyboxPlus_Sky
-  m_Shader: {fileID: 4800000, guid: cb825bd71b04f44129513eb27180f6a0, type: 3}
+  m_Shader: {fileID: 4800000, guid: 6b236f701b0e7ac4aa086ba3e4c2fc9b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - SKYBOX_LAYER_1
   - SKYBOX_NIGHT
+  - STAR_MAP
   - USE_UNITY_FOG_COLOR
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -55,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Moon2Tex:
-        m_Texture: {fileID: 2800000, guid: d39cb2cf9868345afb044eabbe057309, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MoonTex:
@@ -72,6 +73,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StarMap:
+        m_Texture: {fileID: 8900000, guid: 4d121b12291b3a84f92d374fce4d46ab, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Tex:
@@ -151,7 +156,7 @@ Material:
     - _MeteorBrightness: 1.5
     - _MeteorCount: 2
     - _MeteorDuration: 0.7
-    - _MeteorFrequency: 0.3
+    - _MeteorFrequency: 0
     - _MeteorSize: 1
     - _MeteorSpread: 0.2
     - _MeteorTrail: 0.5
@@ -163,7 +168,7 @@ Material:
     - _MoonFlare: 0.08
     - _MoonPhase: 1
     - _MoonPhaseAngle: 0
-    - _MoonSize: 3
+    - _MoonSize: 4
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _PhaseLayer1: 0.02
@@ -206,9 +211,11 @@ Material:
     - _StarBrightness: 0.9
     - _StarClustering: 0.9
     - _StarDensity: 0.09
+    - _StarMapIntensity: 4
+    - _StarMapOn: 1
     - _StarSize: 150
     - _SunFlare: 0.4
-    - _SunSize: 0.2
+    - _SunSize: 0.15
     - _UVSec: 0
     - _UseUnityFogColor: 1
     - _VShiftLayer1: 0

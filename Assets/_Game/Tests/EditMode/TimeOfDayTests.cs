@@ -120,6 +120,24 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void StarMapRotation_PutsAStarDueSouthAtTransit_ThenTurnsItWest()
+        {
+            const float ra = 266.4f, dec = -29f, latitude = 45f;
+            float a = ra * Mathf.Deg2Rad, d = dec * Mathf.Deg2Rad;
+            // Unity's latitude-longitude cubemap: u = 0.5 + atan2(x, z) / 2π, u = RA / 360.
+            var mapDir = new Vector3(-Mathf.Cos(d) * Mathf.Sin(a), Mathf.Sin(d), -Mathf.Cos(d) * Mathf.Cos(a));
+
+            // The rotation is orthonormal: its transpose takes the map direction back to the sky.
+            Vector3 atTransit = EnvironmentDirector.StarMapRotation(latitude, ra, 0f).transpose.MultiplyVector(mapDir);
+            Vector3 hourLater = EnvironmentDirector.StarMapRotation(latitude, ra + 15f, 0f).transpose.MultiplyVector(mapDir);
+            Vector3 turned = EnvironmentDirector.StarMapRotation(latitude, ra, 180f).transpose.MultiplyVector(mapDir);
+
+            Assert.AreEqual(0f, Vector3.Angle(SunPath.Direction(180f, 90f - latitude + dec), atTransit), 1e-2f, "due south, 16° up");
+            Assert.Less(hourLater.x, -0.1f, "the sky turns toward the west (−X)");
+            Assert.AreEqual(0f, Vector3.Angle(SunPath.Direction(0f, 90f - latitude + dec), turned), 1e-2f, "azimuth 180: due north instead");
+        }
+
+        [Test]
         public void Reactor_KeepsFading_AtHighFrameRates()
         {
             // Inactive, so the director's edit-mode hooks stay quiet.

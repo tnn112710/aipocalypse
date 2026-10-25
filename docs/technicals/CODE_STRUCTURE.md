@@ -67,7 +67,7 @@ Assets/_Game/
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
 │  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in the world map
 │  │  ├─ EnvironmentInstaller.cs            SceneInstaller: RegisterComponent(EnvironmentDirector); optional TimeOfDayAmbience → AmbienceService entry point, only with a ready WorldTimeInstaller on the scope (else a warning)
-│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ and Skybox Plus sky globals (Play mode: Skybox Plus moon phase on a runtime copy of the sky material), Grade From / To volumes; profile → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
+│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ and Skybox Plus sky globals (Play mode: Skybox Plus moon phase on a runtime copy of the sky material), _StarMapRotation (latitude + sidereal time), Grade From / To volumes; profile → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
 │  │  ├─ TimeOfDay/TimeOfDayProfile.cs      SO: keys (hour, LightingPreset, grade VolumeProfile, blend) → Evaluate(hour); PhaseLooks (DayPhase → hour, PhaseLookHour); SunPath (sun / moon directions); grade-override warning
 │  │  ├─ TimeOfDay/LightingPreset.cs        SO: one look (sun, moon, ambient, reflections, fog, sky, haze, unlit tint) → AtmosphereState
 │  │  ├─ TimeOfDay/AtmosphereState.cs       every value the director applies in a frame; Lerp
@@ -81,6 +81,7 @@ Assets/_Game/
 │  │  ├─ TimeOfDay/AtmosphereTint.cs        multiplies / replaces colour properties on runtime material copies by an atmosphere channel
 │  │  ├─ TimeOfDay/TimeOfDayAmbience.cs     SO: sound beds with a volume curve over the day, calls inside hours (BroAudio SoundIDs)
 │  │  ├─ TimeOfDay/AmbienceService.cs       plays the ambience against the clock through AudioService (scene entry point); calls wait while TimeService is paused or the clock skips
+│  │  ├─ Shaders/SkyStarMap.shader          "Aipocalypse/Skybox/Skybox Plus Star Map": fork of Kronnect Skybox Plus Clouds; STAR_MAP draws a star cubemap (StarMap.png) turned by _StarMapRotation instead of the procedural stars
 │  │  └─ Shaders/SkyTimeOfDay.shader        "Aipocalypse/Skybox/Time Of Day": painted panorama + night gradient, horizon glow, sun disc, stars, moon phases from _TOD_ globals
 │  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts; Lantern: goes on the belt

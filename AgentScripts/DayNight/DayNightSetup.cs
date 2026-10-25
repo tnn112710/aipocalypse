@@ -576,7 +576,7 @@ public static class DayNightSetup
         log.Add("director " + PathOf(tod.transform));
 
         // Keeps a Skybox Plus sky (SkyboxPlusSetup.Use switches between the two).
-        if (RenderSettings.skybox == null || !RenderSettings.skybox.shader.name.StartsWith("Skybox/Skybox Plus"))
+        if (RenderSettings.skybox == null || !RenderSettings.skybox.HasProperty("_MoonPhaseAngle"))
             RenderSettings.skybox = AssetDatabase.LoadAssetAtPath<Material>(SkyPath);
         log.Add("skybox " + RenderSettings.skybox.name);
 

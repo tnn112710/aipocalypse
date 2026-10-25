@@ -43,6 +43,9 @@ namespace Aipocalypse.Core.EnvironmentSystem
         static readonly int SbpMoonMatrixId = Shader.PropertyToID("_MoonLightWL");
         static readonly int SbpMoonPhaseId = Shader.PropertyToID("_MoonPhase");
         static readonly int SbpMoonPhaseAngleId = Shader.PropertyToID("_MoonPhaseAngle");
+        static readonly int StarMapRotationId = Shader.PropertyToID("_StarMapRotation");
+        // Right ascension of the Milky Way's core (Sagittarius A*), degrees.
+        const float GalacticCoreRightAscension = 266.405f;
 
         // Moon phase drift smaller than this doesn't re-apply an unchanged look (the phase creeps every frame).
         const float MoonPhaseStep = 0.0001f;
@@ -75,6 +78,12 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [SerializeField, Range(1f, 6f), Tooltip("Skybox Plus sky only: how many times faster its sun sinks below Dusk Elevation. " +
             "Its sky is dark with stars only once its sun is ~27° down; 3.5 = full night about half an hour after sunset")]
         float _skyboxPlusNightSink = 3.5f;
+        [SerializeField, Range(-90f, 90f), Tooltip("Star map sky: the world's latitude. The celestial pole stands this many degrees above the north horizon and the stars turn around it")]
+        float _starLatitude = 30f;
+        [SerializeField, Range(0f, 360f), Tooltip("Star map sky: turns the whole star sky around the vertical by this bearing. 180 puts the Milky Way's core in the north (over WorldMap's northern mountains) instead of the real south")]
+        float _starAzimuth = 180f;
+        [SerializeField, Range(0f, 24f), Tooltip("Star map sky: hour the Milky Way's core crosses due south, at its highest. The sky turns 15° per hour like the real one")]
+        float _galacticCoreTransit = 23f;
         [SerializeField, Tooltip("Reactors placed in this scene. Collected automatically when the scene is saved or Play starts")]
         List<EnvironmentReactor> _sceneReactors = new();
 
@@ -187,7 +196,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 return;
             Vector3 sun = _profile.Path.Sun(_previewHour, out _);
             Vector3 moon = _profile.Path.Moon(_previewHour, out _);
-            ApplySky(state, sun, moon, _previewMoonPhase);
+            ApplySky(state, _previewHour, sun, moon, _previewMoonPhase);
         }
 
         void LateUpdate()
@@ -296,7 +305,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
             ApplyLight(path, state, sun, sunElevation, moon, moonElevation, moonPhase);
             ApplyRenderSettings(state);
-            ApplySky(state, sun, moon, moonPhase);
+            ApplySky(state, lookHour, sun, moon, moonPhase);
             ApplyGrades(segment);
         }
 
@@ -381,10 +390,36 @@ namespace Aipocalypse.Core.EnvironmentSystem
         }
 
         // Feeds both skies, so switching the scene's skybox material (Time Of Day or Skybox Plus) switches the sky.
-        void ApplySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
+        void ApplySky(in AtmosphereState state, float lookHour, Vector3 sun, Vector3 moon, float moonPhase)
         {
             ApplyTimeOfDaySky(state, sun, moon, moonPhase);
             ApplySkyboxPlus(sun, moon, moonPhase);
+            float siderealTime = GalacticCoreRightAscension + 15f * (lookHour - _galacticCoreTransit);
+            Shader.SetGlobalMatrix(StarMapRotationId, StarMapRotation(_starLatitude, siderealTime, _starAzimuth));
+        }
+
+        // World sky direction → star map direction. The map is equirectangular in celestial coordinates (right ascension 0h at
+        // its left edge, growing rightward; +90° declination at the top) imported as a cubemap with Unity's latitude-longitude
+        // layout, where u = 0.5 + atan2(x, z) / 2π (measured: +X holds u 0.75). North is +Z, east +X. Sidereal time in degrees (15° per hour).
+        // Azimuth turns the whole sky clockwise seen from above (a star due south moves to bearing 180 + azimuth).
+        public static Matrix4x4 StarMapRotation(float latitude, float siderealTime, float azimuth)
+        {
+            float lat = latitude * Mathf.Deg2Rad;
+            float lst = siderealTime * Mathf.Deg2Rad;
+            float cosLst = Mathf.Cos(lst);
+            float sinLst = Mathf.Sin(lst);
+            // Hour-angle frame in world space: where the equator crosses the meridian, west, and the celestial pole.
+            var meridian = new Vector3(0f, Mathf.Cos(lat), -Mathf.Sin(lat));
+            Vector3 west = Vector3.left;
+            var pole = new Vector3(0f, Mathf.Sin(lat), Mathf.Cos(lat));
+            // Right ascension = sidereal time − hour angle; map direction = (−cos δ sin α, sin δ, −cos δ cos α).
+            Vector3 rowX = -sinLst * meridian + cosLst * west;
+            Vector3 rowZ = -cosLst * meridian - sinLst * west;
+            Matrix4x4 m = Matrix4x4.identity;
+            m.SetRow(0, rowX);
+            m.SetRow(1, pole);
+            m.SetRow(2, rowZ);
+            return m * Matrix4x4.Rotate(Quaternion.Euler(0f, -azimuth, 0f));
         }
 
         static void ApplyTimeOfDaySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
