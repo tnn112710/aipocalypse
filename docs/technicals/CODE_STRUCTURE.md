@@ -103,7 +103,7 @@ Assets/_Game/
 │  │  ├─ PoseBlender.cs                     a held model's pose pivot easing between pose markers: SnapTo, Set, MoveTowards, ApplyTo; static editor Preview (HeldGun / HeldMelee preview buttons)
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ GraphicsSystem/                       Aipocalypse.Core.GraphicsSystem
-│  │  ├─ GraphicsService.cs                 root service, sole runtime writer of the URP asset's shadow distance: ShadowDistance (player setting; the asset's value until a graphics menu exists), RequestShadowDistance(owner, d) / ReleaseShadowDistance (shortest wins); restores the asset's value on Dispose
+│  │  ├─ GraphicsService.cs                 root service, sole runtime writer of the URP asset's shadow distance: ShadowDistance (player setting; the asset's value until a graphics menu exists), RequestShadowDistance(owner, d) / ReleaseShadowDistance (shortest wins); restores the asset's value on Dispose; StarTwinkle (player setting, on by default) = the global STAR_TWINKLE shader keyword, off on Dispose
 │  │  └─ GraphicsInstaller.cs               registers GraphicsService in the root scope
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
@@ -293,7 +293,7 @@ Assets/_Game/
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
    ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
    ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
-   ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored)
+   ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose)
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
    ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
    ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)

@@ -1,5 +1,6 @@
 // Fork of Kronnect Skybox Plus 2.1 "Skybox/Skybox Plus/Clouds" (Assets/_StoreAssets/Rendering/Kronnect/SkyboxPlus): the vendor shader
-// unchanged except for STAR_MAP, a star cubemap in place of the procedural stars, turned by EnvironmentDirector's _StarMapRotation.
+// unchanged except for STAR_MAP, a star cubemap in place of the procedural stars, turned by EnvironmentDirector's _StarMapRotation,
+// and STAR_TWINKLE (global, GraphicsService), which makes the map's point stars twinkle.
 Shader "Aipocalypse/Skybox/Skybox Plus Star Map" {
 Properties {
 	[Toggle(SKYBOX_HAZE)] _SkyboxHaze("Procedural Haze", Float) = 0
@@ -57,6 +58,10 @@ Properties {
     [Toggle(STAR_MAP)] _StarMapOn ("Star Map (replaces procedural stars)", Float) = 0
     [NoScaleOffset] _StarMap ("Star Map", Cube) = "black" {}
     _StarMapIntensity ("Star Map Intensity", Float) = 1
+    _StarTwinkle ("Star Map Twinkle Level (0 calm .. 1 strong)", Range(0, 1)) = 0.5
+    _StarTwinkleSpeed ("Star Map Twinkle Speed (changes per second)", Range(0.5, 12)) = 4
+    _StarTwinkleHorizon ("Star Map Twinkle Horizon Boost", Range(0, 3)) = 1.5
+    _StarTwinkleCells ("Star Map Twinkle Cells (per radian, ~one per star)", Float) = 250
     _StarBandAxis ("Star Band Axis", Vector) = (0.35,0.85,0.4)
     _StarBandWidth ("Star Band Width", Range(0.05,1)) = 0.28
     _Moon2Size ("Second Moon Size", Range(0,0.5)) = 0
@@ -121,6 +126,8 @@ SubShader {
 		#pragma shader_feature_local SKYBOX_HAZE
 		#pragma shader_feature_local USE_UNITY_FOG_COLOR
 		#pragma shader_feature_local STAR_MAP
+		// Global, set by GraphicsService (a player setting): off compiles the twinkle out entirely.
+		#pragma multi_compile_fragment _ STAR_TWINKLE
 
 		#include "UnityCG.cginc"
 		#include "Lighting.cginc"
@@ -155,6 +162,8 @@ SubShader {
 		half _StarClustering, _StarBandWidth;
 		samplerCUBE _StarMap;
 		half _StarMapIntensity;
+		half _StarTwinkle, _StarTwinkleSpeed, _StarTwinkleHorizon;
+		float _StarTwinkleCells;
 		// Global from EnvironmentDirector: sky direction -> star map direction (latitude and sidereal time).
 		float4x4 _StarMapRotation;
 		float3 _StarBandAxis;
@@ -231,6 +240,23 @@ SubShader {
 			p3  = frac(p3 * float3(.1031,.11369,.13787));
 			p3 += dot(p3, p3.yzx + 19.19);
 			return frac((p3.x + p3.y) * p3.z);
+		}
+
+		// How much a star dims now (0..1). Each cell (about one star wide, turning with the star map) eases
+		// between random values `_StarTwinkleSpeed` times a second at its own offset, faster and deeper low in
+		// the sky. Not blended between cells: averaging neighbours cancels the flicker out.
+		half StarTwinkleDim(float3 starDir, float altitude) {
+			float3 cell = floor(normalize(starDir) * _StarTwinkleCells);
+			half low = 1.0 - saturate(altitude * 2.0);
+			float t = _Time.y * _StarTwinkleSpeed * (0.7 + 0.6 * hash13(cell + 5.1)) * (1.0 + low) + hash13(cell) * 64.0;
+			float i = floor(t);
+			float f = t - i;
+			f = f * f * (3.0 - 2.0 * f);
+			// Wrapped so the hash input stays small (precise) however long the game runs; both ends wrap together.
+			float n = lerp(hash13(cell + float3(0, 0, fmod(i, 4096.0) * 7.13)),
+			               hash13(cell + float3(0, 0, fmod(i + 1.0, 4096.0) * 7.13)), f);
+			half amount = saturate(_StarTwinkle * 0.9 * (1.0 + _StarTwinkleHorizon * low));
+			return amount * n * n;
 		}
 
 		float3 SafeNormalize(float3 value, float3 fallback) {
@@ -448,7 +474,13 @@ SubShader {
 				#if STAR_MAP
 					float3 starDir = mul((float3x3)_StarMapRotation, ray);
 					if (dot(starDir, starDir) < 1e-6) starDir = ray;
-					half3 starColor = texCUBE(_StarMap, starDir).rgb * _StarMapIntensity;
+					half3 starColor = texCUBE(_StarMap, starDir).rgb;
+					#if STAR_TWINKLE
+						// Only the point stars twinkle: a blurrier mip holds the Milky Way's glow, which stays steady.
+						half3 steady = texCUBEbias(_StarMap, float4(starDir, 3.0)).rgb;
+						starColor -= max(starColor - steady, 0.0) * StarTwinkleDim(starDir, normalize(ray).y);
+					#endif
+					starColor *= _StarMapIntensity;
 					starColor *= saturate(1.0 - fog) * saturate(1.0 - moonFlare * 25.0 - daylight * daylight * 64.0);
 				#else
 				// stars

@@ -107,5 +107,25 @@ namespace Aipocalypse.Tests
             }
             Assert.AreEqual(saved, ShadowDistance(), 1e-3f);
         }
+
+        [Test]
+        public void GraphicsService_StarTwinkle_IsOnByDefault_TogglesTheKeyword_AndDisposeTurnsItOff()
+        {
+            var keyword = GlobalKeyword.Create(GraphicsService.StarTwinkleKeyword);
+            var graphics = new GraphicsService();
+            try
+            {
+                Assert.IsTrue(graphics.StarTwinkle);
+                Assert.IsTrue(Shader.IsKeywordEnabled(keyword));
+                graphics.StarTwinkle = false;
+                Assert.IsFalse(Shader.IsKeywordEnabled(keyword));
+                graphics.StarTwinkle = true;
+            }
+            finally
+            {
+                graphics.Dispose();
+            }
+            Assert.IsFalse(Shader.IsKeywordEnabled(keyword));
+        }
     }
 }
