@@ -104,6 +104,22 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void SkyboxPlusSun_SinksFasterBelowDusk_KeepingItsBearing()
+        {
+            Vector3 high = SunPath.Direction(120f, 30f);
+            Vector3 low = SunPath.Direction(250f, -4f);
+
+            Vector3 keptHigh = EnvironmentDirector.SkyboxPlusSun(high, 6f, 3.5f);
+            Vector3 sunk = EnvironmentDirector.SkyboxPlusSun(low, 6f, 3.5f);
+            Vector3 midnight = EnvironmentDirector.SkyboxPlusSun(SunPath.Direction(0f, -30f), 6f, 3.5f);
+
+            Assert.AreEqual(0f, Vector3.Angle(high, keptHigh), 1e-3f, "above dusk the sky sun is the real sun");
+            Assert.AreEqual(6f - 10f * 3.5f, Mathf.Asin(sunk.y) * Mathf.Rad2Deg, 1e-2f);
+            Assert.AreEqual(250f, Mathf.Atan2(sunk.x, sunk.z) * Mathf.Rad2Deg + 360f, 1e-2f);
+            Assert.AreEqual(-85f, Mathf.Asin(midnight.y) * Mathf.Rad2Deg, 1e-2f, "clamped short of straight down");
+        }
+
+        [Test]
         public void Reactor_KeepsFading_AtHighFrameRates()
         {
             // Inactive, so the director's edit-mode hooks stay quiet.

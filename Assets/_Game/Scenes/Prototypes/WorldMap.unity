@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 5e1e9589db9483a4181106a98ed2054e, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: e5cb82a4cb002f04e8f264eec8017322, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -284113,7 +284113,6 @@ MonoBehaviour:
   _sceneEnemies:
   - {fileID: 1477310529}
   - {fileID: 1680668758}
-  _sceneSpawners: []
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -371716,6 +371715,8 @@ MonoBehaviour:
   _shadowStep: 1
   _shadowGlide: 0.3
   _nightShadowDistance: 60
+  _skyboxPlusDuskElevation: 6
+  _skyboxPlusNightSink: 3.5
   _sceneReactors:
   - {fileID: 886257610}
   - {fileID: 886257611}

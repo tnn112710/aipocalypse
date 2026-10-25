@@ -35,6 +35,14 @@ namespace Aipocalypse.Core.EnvironmentSystem
         static readonly int MoonPhaseId = Shader.PropertyToID("_TOD_MoonPhase");
         static readonly int MoonGlowId = Shader.PropertyToID("_TOD_MoonGlow");
         static readonly int StarsId = Shader.PropertyToID("_TOD_Stars");
+        // Skybox Plus (Kronnect) custom sun/moon positions, normally set by its own SkyboxPlus component (not used here).
+        static readonly int SbpCustomPositionsId = Shader.PropertyToID("_SBPCustomPositions");
+        static readonly int SbpSunDirId = Shader.PropertyToID("_WorldSpaceSunDir");
+        static readonly int SbpSunMatrixId = Shader.PropertyToID("_LightWL");
+        static readonly int SbpMoonDirId = Shader.PropertyToID("_WorldSpaceMoonDir");
+        static readonly int SbpMoonMatrixId = Shader.PropertyToID("_MoonLightWL");
+        static readonly int SbpMoonPhaseId = Shader.PropertyToID("_MoonPhase");
+        static readonly int SbpMoonPhaseAngleId = Shader.PropertyToID("_MoonPhaseAngle");
 
         // Moon phase drift smaller than this doesn't re-apply an unchanged look (the phase creeps every frame).
         const float MoonPhaseStep = 0.0001f;
@@ -61,6 +69,12 @@ namespace Aipocalypse.Core.EnvironmentSystem
         float _shadowGlide = 0.3f;
         [SerializeField, Min(0f), Tooltip("Play mode: URP shadow distance (m) while the moon lights the scene. Swaps at twilight with the light. 0 = keep the asset's")]
         float _nightShadowDistance = 60f;
+        [SerializeField, Range(0f, 15f), Tooltip("Skybox Plus sky only: sun elevation (degrees) below which its sun sinks faster than the sun path. " +
+            "Its sky stays day-blue until the sun is well below the horizon, so this starts its twilight before sunset")]
+        float _skyboxPlusDuskElevation = 6f;
+        [SerializeField, Range(1f, 6f), Tooltip("Skybox Plus sky only: how many times faster its sun sinks below Dusk Elevation. " +
+            "Its sky is dark with stars only once its sun is ~27° down; 3.5 = full night about half an hour after sunset")]
+        float _skyboxPlusNightSink = 3.5f;
         [SerializeField, Tooltip("Reactors placed in this scene. Collected automatically when the scene is saved or Play starts")]
         List<EnvironmentReactor> _sceneReactors = new();
 
@@ -86,6 +100,9 @@ namespace Aipocalypse.Core.EnvironmentSystem
         bool _lightPlaced;
         bool _sunLit;
         GraphicsService _graphics;
+        // Play mode: runtime copy of a Skybox Plus sky, whose moon phase is a material property.
+        Material _skySource;
+        Material _skyCopy;
         // What was last applied; Apply skips an unchanged look.
         float _appliedLookHour = -1f;
         float _appliedMoonPhase = -1f;
@@ -136,6 +153,15 @@ namespace Aipocalypse.Core.EnvironmentSystem
         }
 
         void OnDisable() => SetShadowDistance(false);
+
+        void OnDestroy()
+        {
+            if (_skyCopy == null)
+                return;
+            if (RenderSettings.skybox == _skyCopy)
+                RenderSettings.skybox = _skySource;
+            Destroy(_skyCopy);
+        }
 
         // A request to GraphicsService, which owns the shared pipeline asset's distance.
         void SetShadowDistance(bool night)
@@ -354,7 +380,14 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 RenderSettings.fogDensity = state.FogDensity;
         }
 
-        static void ApplySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
+        // Feeds both skies, so switching the scene's skybox material (Time Of Day or Skybox Plus) switches the sky.
+        void ApplySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
+        {
+            ApplyTimeOfDaySky(state, sun, moon, moonPhase);
+            ApplySkyboxPlus(sun, moon, moonPhase);
+        }
+
+        static void ApplyTimeOfDaySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
         {
             // Tint and exposure are Skybox/Panoramic values (the looks copied them), which Unity converts from gamma to linear
             // for a material; globals are passed raw, so convert here or the sky renders ~10x too bright and clips.
@@ -373,6 +406,46 @@ namespace Aipocalypse.Core.EnvironmentSystem
             Shader.SetGlobalFloat(MoonPhaseId, moonPhase);
             Shader.SetGlobalFloat(MoonGlowId, state.MoonGlow);
             Shader.SetGlobalFloat(StarsId, state.Stars);
+        }
+
+        // Skybox Plus darkens its sky and shows stars from its sun's height alone, so near and below the horizon its sun sinks faster.
+        public static Vector3 SkyboxPlusSun(Vector3 sun, float duskElevation, float sink)
+        {
+            float elevation = Mathf.Asin(Mathf.Clamp(sun.y, -1f, 1f)) * Mathf.Rad2Deg;
+            if (elevation >= duskElevation)
+                return sun;
+            elevation = duskElevation + (elevation - duskElevation) * sink;
+            float bearing = Mathf.Atan2(sun.x, sun.z) * Mathf.Rad2Deg;
+            return SunPath.Direction(bearing, Mathf.Max(elevation, -85f));
+        }
+
+        void ApplySkyboxPlus(Vector3 sun, Vector3 moon, float moonPhase)
+        {
+            sun = SkyboxPlusSun(sun, _skyboxPlusDuskElevation, _skyboxPlusNightSink);
+            Shader.SetGlobalFloat(SbpCustomPositionsId, 1f);
+            Shader.SetGlobalVector(SbpSunDirId, sun);
+            Shader.SetGlobalMatrix(SbpSunMatrixId, Matrix4x4.Rotate(Quaternion.Inverse(Quaternion.LookRotation(-sun))));
+            Shader.SetGlobalVector(SbpMoonDirId, new Vector4(moon.x, moon.y, moon.z, -1f));
+            Shader.SetGlobalMatrix(SbpMoonMatrixId, Matrix4x4.Rotate(Quaternion.Inverse(Quaternion.LookRotation(-moon))));
+
+            // The phase is a material property: Play mode writes it to a runtime copy, so the asset is never written.
+            if (!Application.isPlaying)
+                return;
+            Material sky = RenderSettings.skybox;
+            if (sky == null || !sky.HasProperty(SbpMoonPhaseAngleId))
+                return;
+            if (sky != _skyCopy)
+            {
+                if (_skyCopy != null)
+                    Destroy(_skyCopy);
+                _skySource = sky;
+                _skyCopy = new Material(sky) { name = sky.name + " (runtime)" };
+                RenderSettings.skybox = _skyCopy;
+            }
+            // Ours: 0 new, 0.5 full. Skybox Plus: -1 new, 1 full; angle 0 lights the right side (waxing), 180 the left.
+            float fullness = 1f - Mathf.Abs(moonPhase - 0.5f) * 2f;
+            _skyCopy.SetFloat(SbpMoonPhaseId, fullness * 2f - 1f);
+            _skyCopy.SetFloat(SbpMoonPhaseAngleId, moonPhase < 0.5f ? 0f : 180f);
         }
 
         // From = the key before the hour at full weight, To = the next key at the blend weight: URP's volume stack lerps them.
