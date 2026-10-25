@@ -5,7 +5,7 @@ What moved the frame time on the WorldMap and how it was measured. This is the r
 ## 1. Where it stands
 
 - 2026-10-20 pass: nine test views at 107–131 fps (from 83–113). Main thread 5.0–6.5 ms, of which the editor loop ~3 ms; GPU 1.5–2.8 ms; draws at the spawn 4.1k → 2.5k. The editor is CPU-bound (GPU at ~13% load).
-- The coordinates of those nine views were never recorded. Write view lists into ENVIRONMENT.md as `name:x,z,yaw` so runs are comparable.
+- 2026-10-25 pass (Core Ultra 7 255HX + RTX 5070 Ti Laptop): the recorded views (`PerfSuite.DefaultViews`, also in ENVIRONMENT.md) at 09:00 run at 101–116 fps. Game PlayerLoop is 6.3–7.5 ms (render submission 3.5–4.6 ms of it); GPU is 1.3–2.7 ms. Still main-thread bound. Scenario results (actions, day/night, first use, A/B) are in ENVIRONMENT.md → Performance.
 - The 1500 m map (v23: ~11k terrain trees, ~29k scripted renderers, 228 particle systems, far clip 3000 m) was never measured.
 
 ## 2. What moved it
@@ -29,6 +29,11 @@ What moved the frame time on the WorldMap and how it was measured. This is the r
 | GPUI **Detail** Manager | Faster: ~28 indirect draws for hundreds of thousands of instances | Needs the GPUI setup node in every Shader Graph (Raygeas graphs lack it) |
 | GPUI **Tree** Manager | Slower: CPU issues `RenderMeshIndirect` per prototype × LOD × material × camera every frame even when culled to 0; 43 prototypes ≈ 750 calls per camera (estimate, not profiled); many prototypes had 1–10 instances | Consolidate prototypes, shadow LOD map, billboards before retrying |
 | Firing in the editor | 25–50 ms spikes: the Hierarchy window rebuilds its 16k-object tree when pooled FX re-parent | Collapse the Hierarchy; builds unaffected |
+| Mip streaming off | −0.4 to −0.6 ms main thread at every view (no texture streams; `TextureStreamingManager.UpdateRenderers` walked 13k renderers) | `QualitySettings` PC; `PerfSettings.Apply` |
+| GPU occlusion culling (GRD) | +1.1 ms GPU, +0.9 ms CPU at the spawn | Keep off |
+| 2 shadow cascades / soft shadows Medium / render scale 0.8 | −0.28 / −0.07 / −0.15 ms GPU at the spawn | Quality-tier knobs, not needed at the target |
+| SW3 height pre-pass off | No measurable change | Left on |
+| Atmosphere particles off | −0.34 ms main, −0.16 ms render thread | Art; reference cost only |
 
 Rules of thumb for map content: details ≤ ~200 triangles for dense cover; detail distance ≤ ~120 m on Unity's renderer; shadows only on things near the player and tall enough to show one; no colliders beyond the walls; Pause culling on ambient particles; price every "beauty" feature (SSAO, longer shadows, reflections) in ms at the fixed views before proposing it. SSAO, 150 m/4096 shadows, SSR and a lake probe were all added in a beauty pass and reverted for cost.
 
@@ -38,6 +43,10 @@ Scripts in `AgentScripts/Perf/` (run with `unity command run_script` in play mod
 
 | Script | Does |
 | --- | --- |
+| `PerfSuite.Views(views, seconds, profile, hour)` | Per-view sweep at a frozen hour: frame time, game cost (PlayerLoop minus the present wait), render submission, FrameTiming GPU, draws / SetPass / triangles / shadow casters, cameras per frame; `profile` adds top markers outside the editor loop. |
+| `PerfSuite.Actions` / `FirstUse` / `DayNight` | Idle, look, walk, sprint, jump, fire (hip, aim, turning), switch, reload, melee through a virtual keyboard and mouse; first-use hitches in a fresh play session; hour transitions, holds and night with the lantern. |
+| `PerfSuite.Ab(only, frames, hour, at)` | Runtime A/B of ~30 toggles (post components, shadows, GRD occlusion, render scale, features, terrain, LOD, far clip, atmosphere, FPS counter, HUD, mip streaming, SW3 height pre-pass), four headings each, everything restored. |
+| `PerfSuite.Gpu`, `SpikeDump`, `PickupDump`, `GcStacks`, `Movers`, `OnGuiUsers`, `Bare` | GPU Usage module per pass; the call tree of the worst or median frame; GC call stacks by mode; renderers that move each frame plus texture streaming state; live `OnGUI` users; bare frame time. |
 | `PerfProbe.Run("name:x,z,yaw;…", frames)` | Teleports the player to each view (CharacterController off/on), settles 2 s, then median/p95 frame time, CPU/GPU from `FrameTimingManager`, draw calls. |
 | `PerfAB.Run(outName, frames, from, to)` | A/B of runtime toggles (shadows, depth priming, LOD bias, terrain distances/density/shadows, render features, atmosphere) averaged over 4 yaws; "baseline" first and last to catch drift; snapshot/restore in `finally` (URP asset edits made in play mode persist to disk otherwise). Writes `%TEMP%/claude_perf_<outName>.txt`. |
 | `PerfCapture.Run(outName, seconds, look)` | Idle / look / fire / look+fire phases through a virtual mouse on the real input path; `ProfilerDriver` capture without the editor; Batches, SetPass, draws, triangles, shadow casters, GC per frame. |
@@ -51,3 +60,7 @@ Traps:
 - Error Pause freezes play mode when firing logs an error. The player spawns empty-handed: give it a weapon by script to profile firing.
 - Noise: a long-running editor session ran at 14–19 ms PlayerLoop vs 7.5–9 ms after a restart (broken audio device, memory eviction); baselines drift ~2 ms while warming up; the Profiler window itself causes 25–30 ms frames; an open Scene view is an extra camera; a selected Light slowed frames. Average several yaws (one spot drew 1.6k vs 3k calls by heading).
 - Judge final numbers in a development build; in the editor close the Scene view and collapse the Hierarchy.
+- While Unity is not the foreground app (`InternalEditorUtility.isApplicationActive` false), the main thread stalls about 500 ms every 0.5–1.5 s in `UpdateScene > WaitForLastPresentation`; `editor focus` does not fix it. `PerfSuite` subtracts that wait from PlayerLoop and counts stalls. Medians survive it, p95 / max do not.
+- The GPU Usage profiler area inflates GPU time (5 ms vs FrameTiming's 2 ms) and the render thread, and it stays on after a capture: restore it (`PerfSuite.GpuArea(false)`). FrameTiming GPU reads ~0 for a while after a keyword or shader-variant change (shadows off, cookie off, terrain basemap); ignore those rows.
+- Any memory-category `ProfilerRecorder` (GC Allocated In Frame) or a profiler capture adds `Profiler.FlushMemoryCounters` (~2.4 ms per frame, outside PlayerLoop). While the profiler records, Addressables' profiler emitter (`MonoBehaviourCallbackHooks.LateUpdate`) can spike 45–60 ms. Neither is game cost.
+- `await` continuations run inside PlayerLoop (`ScriptRunDelayedTasks`); `ConfigureAwait(false)` moves them off the main thread. Sample and drive input from an `EditorApplication.update` callback, as `PerfSuite.Record` does.

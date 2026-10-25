@@ -46,7 +46,7 @@ The WorldMap navmesh setup (Navigation prefab, cached recast graph, water exclus
 | Plugin | Version | Location | Tag | Notes |
 | --- | --- | --- | --- | --- |
 | Behavior Designer Pro (+ Opsive Graph Designer 3.3.4, Opsive Shared 2.3.2) | 3.3.3 | `Packages/com.opsive.*`, `Assets/Plugins/Opsive` | Must | Behaviour trees for **all** AI: crowd enemies, companions, drone, bosses. Crowd trees run in `Manual` mode, ticked time-sliced by `EnemyManager`; tasks delegate to our parts. Skill: `aipocalypse-enemy-ai`. |
-| A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Must | Enemy navigation with `FollowerEntity` agents, driven directly by `EnemyMover`. The scene's `AstarPath` is injected through `EnemyInstaller` (no `AstarPath.active` in game code). Scenes with agents need the `Navigation` prefab (AstarPath + RVOSimulator). |
+| A* Pathfinding Project | 5.4.7 | `Packages/com.arongranberg.astar` | Must | Enemy navigation with `FollowerEntity` agents, driven directly by `EnemyMover`. The scene's `AstarPath` is injected through `EnemyInstaller` (no `AstarPath.active` in game code). Scenes with agents need the `Navigation` prefab (AstarPath + RVOSimulator). Standalone defines `ASTAR_NO_GUI` (A*'s documented optimization): it compiles out `AstarPath.OnGUI`, the only `OnGUI` left in builds, so IMGUI doesn't run and allocate every frame. |
 | Fishing for Animal Controller (Sunfish Creations) | — | `Assets/_StoreAssets/Animation/Sunfish Creations` | Undecided | Malbers add-on (Malbers: ASSETS.md). Not used. |
 
 ## Weapons & animation
@@ -98,7 +98,7 @@ Time of day, sky, lighting, fog and grade are first-party (`EnvironmentDirector`
 
 | Plugin | Version | Location | Tag | Notes |
 | --- | --- | --- | --- | --- |
-| Advanced FPS Counter (CodeStage) | 1.5.7 | `Assets/Plugins/CodeStage` | Maybe | FPS overlay. Debug overlay only (editor and dev builds). |
+| Advanced FPS Counter (CodeStage) | 1.5.7 | `Assets/Plugins/CodeStage` | Maybe | FPS overlay. Debug overlay only (editor and dev builds). Nothing gates it yet: WorldMap's root `Advanced FPS Counter` would ship in a release build (~0.2 ms main thread and ~0.1 KB GC per frame in the editor, 2026-10-25). |
 
 ## Editor tools
 
