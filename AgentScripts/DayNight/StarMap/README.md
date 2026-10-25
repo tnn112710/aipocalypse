@@ -123,10 +123,14 @@ Turns a low-res Milky Way panorama (e.g. an AI-generated 1774x887 equirectangula
   --out Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap4_8K.png --preview-dir <scratch dir>
 ```
 
-How it works: a 7x7 opening separates the diffuse glow and dust from the stars; the glow is
-resampled smoothly with a little fine mottling (`--detail`). Stars brighter than
-`--star-threshold` are detected and redrawn as sharp spherical points with `--star-gain` of their
-energy (the source's blurred stars look harsh at full energy). Unresolved grain left over becomes
+How it works: an opening with a round radius-3 window separates the diffuse glow and dust from the
+stars (a square window leaves square contours around bright stars); the glow is resampled smoothly
+with a little fine mottling (`--detail`). Stars brighter than `--star-threshold` are detected; each
+core (3x3, measured above the star's own halo level) is redrawn as a sharp spherical point with
+`--star-gain` of its energy (the source's blurred stars look harsh at full energy). Bright stars'
+halos (up to 6 source pixels) become a smooth glow with `--halo-gain` of their energy, and the grain
+under them continues from the surroundings. Zeroing the grain under each star instead left a dark
+square with a speckled ring around every bright star. Unresolved grain left over becomes
 `--grain-stars` faint stars where it was, carrying exactly its energy. Above |latitude| 72 deg the
 source's pinched poles are not trusted: their stars are copies of the 45-68 deg ones at the same
 density per solid angle, and their grain is the mid-latitude mean (not the median: grain is skewed,

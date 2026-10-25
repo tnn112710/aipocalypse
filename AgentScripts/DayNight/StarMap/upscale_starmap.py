@@ -22,6 +22,8 @@ from generate_starmap import (DEG, EQ_TO_GAL, PngWriter, encode, fbm, paint_star
 # Above this |latitude| a generated panorama's pinched, streaky poles are not trusted: no detected
 # stars, and the grain there is replaced by the mid-latitude sky's.
 POLAR_CAP = 72.0
+# Widest bright-star halo measured, in source pixels.
+MAX_HALO = 6
 
 
 def srgb_to_linear(pixels):
@@ -66,9 +68,19 @@ def source_dirs(h, w):
     return unit(lon, lat_grid).astype(np.float32), lat
 
 
+def disc_window(a, radius, op):
+    # A round window: a square one leaves square contours around bright, blurred stars.
+    out = a.copy()
+    for dy in range(-radius, radius + 1):
+        for dx in range(-radius, radius + 1):
+            if (dx or dy) and dx * dx + dy * dy <= radius * radius + radius:
+                out = op(out, shifted(shifted(a, dy, 0), dx, 1))
+    return out
+
+
 def separate(linear):
-    """Opening (min then max) removes stars; blur hides its blockiness."""
-    bg = window(window(linear, 3, np.minimum), 3, np.maximum)
+    """Opening (min then max) removes stars; blur hides what is left of its edges."""
+    bg = disc_window(disc_window(linear, 3, np.minimum), 3, np.maximum)
     bg = np.minimum(box(box(bg, 2), 2), linear)
     h = linear.shape[0]
     lat = 90 - (np.arange(h) + 0.5) * 180 / h
@@ -78,27 +90,60 @@ def separate(linear):
     return bg.astype(np.float32), np.maximum(linear - bg, 0.0)
 
 
+def offsets(radius):
+    return [(dy, dx) for dy in range(-radius, radius + 1) for dx in range(-radius, radius + 1)]
+
+
 def detect(residual, lat, threshold):
+    """Stars as sharp cores, plus what is left: the residual minus the cores, and where bright halos are.
+
+    A generated image blurs bright stars into halos several pixels wide. Each star's core is
+    measured above its own halo level, so cutting it out leaves the halo and grain intact (no hole).
+    """
     lum = luma(residual)
+    h, w = lum.shape
     peak = lum >= window(lum, 2, np.maximum)
     keep = peak & (lum > threshold) & (np.abs(lat)[:, None] < POLAR_CAP * DEG)
     ys, xs = np.nonzero(keep)
-    energy = np.zeros((len(ys), 3), np.float32)
-    weight_x = np.zeros(len(ys), np.float32)
-    weight_y = np.zeros(len(ys), np.float32)
-    w = residual.shape[1]
-    footprint = np.zeros(lum.shape, bool)
-    for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-            yy = np.clip(ys + dy, 0, lum.shape[0] - 1)
-            xx = (xs + dx) % w
-            e = residual[yy, xx]
-            energy += e
+    n = len(ys)
+    radius = np.clip(np.floor(1 + 1.3 * np.log2(lum[ys, xs] / threshold)), 1, MAX_HALO).astype(int)
+    ring = np.zeros((n, 3), np.float32)
+    ring_count = 0
+    for dy, dx in offsets(2):
+        if 2 < dy * dy + dx * dx <= 8:
+            ring += residual[np.clip(ys + dy, 0, h - 1), (xs + dx) % w]
+            ring_count += 1
+    halo_level = ring / ring_count
+    core = np.zeros((n, 3), np.float32)
+    weight_x = np.zeros(n, np.float32)
+    weight_y = np.zeros(n, np.float32)
+    core_part = np.zeros_like(residual)
+    halo_mask = np.zeros((h, w), bool)
+    for dy, dx in offsets(MAX_HALO):
+        d2 = dy * dy + dx * dx
+        yy = np.clip(ys + dy, 0, h - 1)
+        xx = (xs + dx) % w
+        if d2 <= 2:
+            e = np.maximum(residual[yy, xx] - halo_level, 0.0)
+            core += e
             weight_x += luma(e) * dx
             weight_y += luma(e) * dy
-            footprint[yy, xx] = True
-    total = np.maximum(luma(energy), 1e-9)
-    return xs + weight_x / total, ys + weight_y / total, energy, footprint
+            core_part[yy, xx] = np.maximum(core_part[yy, xx], e)
+        inside = (radius >= 2) & (d2 <= radius * radius + radius)
+        halo_mask[yy[inside], xx[inside]] = True
+    total = np.maximum(luma(core), 1e-9)
+    stars = dict(x=xs + weight_x / total, y=ys + weight_y / total, energy=core)
+    return stars, np.maximum(residual - core_part, 0.0), halo_mask
+
+
+def split_halos(rest, halo_mask):
+    """Inside bright halos: grain continues from the surroundings, and the halo above it becomes a smooth glow."""
+    open_ = (~halo_mask).astype(np.float32)[..., None]
+    reach = MAX_HALO + 2
+    surrounding = box(rest * open_, reach) / np.maximum(box(open_, reach), 1e-3)
+    grain = np.where(halo_mask[..., None], np.minimum(surrounding, rest), rest)
+    glow = np.where(halo_mask[..., None], np.maximum(rest - surrounding, 0.0), 0.0)
+    return grain.astype(np.float32), box(glow, 1).astype(np.float32)
 
 
 def fit_frame(bg, dirs):
@@ -265,6 +310,8 @@ def main():
                         help="Linear peak above the glow that counts as a star")
     parser.add_argument("--star-gain", type=float, default=0.5,
                         help="Energy kept by detected stars: the source's blurred stars turn harsh at full energy")
+    parser.add_argument("--halo-gain", type=float, default=0.6,
+                        help="Energy kept by bright stars' halos, drawn as a smooth glow")
     parser.add_argument("--grain-stars", type=int, default=1_200_000)
     parser.add_argument("--detail", type=float, default=1.0)
     parser.add_argument("--preview-dir", type=Path)
@@ -278,11 +325,13 @@ def main():
     h, w = linear.shape[:2]
     dirs, lat = source_dirs(h, w)
     bg, residual = separate(linear)
-    xs, ys, energy, footprint = detect(residual, lat, args.star_threshold)
-    grain = polar_grain(np.where(footprint[..., None], 0.0, residual), lat)
-    detected = len(xs)
-    xs, ys, energy = polar_stars(xs, ys, energy, w, h, args.seed)
+    found, rest, halo_mask = detect(residual, lat, args.star_threshold)
+    grain, glow = split_halos(rest, halo_mask)
+    grain = polar_grain(grain, lat)
+    detected = len(found["x"])
+    xs, ys, energy = polar_stars(found["x"], found["y"], found["energy"], w, h, args.seed)
     rotation = np.eye(3) if args.keep_frame else fit_frame(bg, dirs)
+    bg = bg + args.halo_gain * glow
     extra = grain_stars(grain, w, h, rotation, args.width, args.grain_stars, args.seed)
     stars = star_catalogue(xs, ys, energy, w, h, rotation, args.width, extra, args.star_gain)
     print(f"Source {w}x{h}: {detected:,} detected stars, {len(xs) - detected:,} polar fill, "
