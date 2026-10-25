@@ -297,6 +297,7 @@ Assets/_Game/
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
    ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
    ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)
+   ├─ StylizedGrassTests.cs                 Stylized Grass detail prefabs carry a vertex-colour wind mask; the lawn colour map is the repeating 25 m tile; the player prefab has its grass bender
    ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet; a hole sticks to the moving target it hit
    └─ TestConsumableDefinition.cs           quick-use stackable ItemDefinition for EquipmentTests
 ```

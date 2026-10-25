@@ -4970,8 +4970,401 @@ public static class Vegetation
     }
 
     // Same mean as BK's _Grass.mat (no tone step where the details end), with a wider sunlit/cool spread in 10-15 m blobs.
-    static void MeadowGrass(Material m) { m.SetColor("_Color01", new Color(0.58f, 0.72f, 0.30f)); m.SetColor("_Color02", new Color(0.27f, 0.51f, 0.18f)); m.SetFloat("_NoiseTiling", 0.04f); }
-    static void TallGrass(Material m) { m.SetColor("_Color01", new Color(0.66f, 0.73f, 0.33f)); m.SetColor("_Color02", new Color(0.46f, 0.60f, 0.22f)); m.SetFloat("_NoiseTiling", 0.04f); }
+    static readonly Color LawnSun = new(0.58f, 0.72f, 0.30f), LawnCool = new(0.27f, 0.51f, 0.18f);
+    static readonly Color TallSun = new(0.66f, 0.73f, 0.33f), TallCool = new(0.46f, 0.60f, 0.22f);
+    const float BlobTiling = 0.04f;   // BK noise UV per metre: the blobs repeat every 25 m
+    static void MeadowGrass(Material m) { m.SetColor("_Color01", LawnSun); m.SetColor("_Color02", LawnCool); m.SetFloat("_NoiseTiling", BlobTiling); }
+    static void TallGrass(Material m) { m.SetColor("_Color01", TallSun); m.SetColor("_Color02", TallCool); m.SetFloat("_NoiseTiling", BlobTiling); }
+
+    // ---- Stylized Grass on the meadow lawn and tall grass ----
+    // Same BK meshes, prefabs and stamps; only the material changes, so a rollback is one call (StylizedMeadow(false)).
+    // BK/Grass albedo = lerp(sun, cool, worldNoise) * texture. Stylized Grass can only lerp toward its colour map, so the
+    // look is split: the colour map (share s) carries the blobs, and a contrast-boosted texture copy (x 1/(1-s)) carries the
+    // blade streaks, so (1-s) * base * tex' + s * map lands back on colour x texture.
+    const string SGFolder = "Assets/_StoreAssets/Rendering/Staggart Creations/Stylized Grass/";
+    const string ColormapPath = Folder + "/Textures/BK_Meadow_Colormap";
+    static readonly Vector3 GrassWind = new(0.5f, 0f, 0.866f);   // yaw 30, the scene's wind drivers
+
+    public static object StylizedMeadow(bool on)
+    {
+        if (!on)
+        {
+            TintedDetail(BKP + "Grass1.prefab", "BK_Grass1_Meadow", MeadowGrass, false);
+            TintedDetail(BKP + "Grass2.prefab", "BK_Grass2_Meadow", MeadowGrass, false);
+            TintedDetail(BKP + "Grass3.prefab", "BK_Grass3_Tall", TallGrass, true);
+            var old = ColormapObject(false);
+            RefreshTerrainDetails();
+            return new { stylized = false, colormapRemoved = old };
+        }
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>(BKP + "Grass1.prefab").GetComponentInChildren<MeshRenderer>().sharedMaterial;
+        var tex = src.GetTexture("_MainTex");
+        var noiseTex = src.GetTexture("_Noise") ?? throw new InvalidOperationException("BK grass has no _Noise");
+        var noise = ReadLinear(noiseTex, out _, out _).Select(p => Mathf.Clamp01(p.r)).ToArray();
+        float nMean = noise.Average(), nMax = noise.Max();
+        Color L(float n) => Color.Lerp(LawnSun.linear, LawnCool.linear, n);
+        Color Lt(float n) => Color.Lerp(TallSun.linear, TallCool.linear, n);
+
+        var px = ReadLinear(tex, out int tw, out int th);
+        var grey = px.Where(p => p.a >= 0.5f).Select(p => (p.r + p.g + p.b) / 3f).OrderBy(v => v).ToArray();
+        float tm = grey.Average(), hi = grey[(int)(grey.Length * 0.98f)];
+
+        // Smallest colour-map share whose map stays non-negative at the coolest blob (more share = more texture boost and clipping).
+        float s = 0.4f, k = 0, c = 0;
+        for (; s < 0.9f; s += 0.05f)
+        {
+            k = 1f / (1 - s); c = 1 - (hi - tm) * k;
+            var dark = L(nMax) * tm - L(nMean) * ((1 - s) * Mathf.Max(0, c));
+            if (c > 0.1f && dark.r >= 0 && dark.g >= 0 && dark.b >= 0) break;
+        }
+        float Boost(float v) => Mathf.Clamp01(c + k * (v - tm));
+        var boosted = px.Select(p => new Color(Boost(p.r), Boost(p.g), Boost(p.b), p.a)).ToArray();
+        float cMean = boosted.Where(p => p.a >= 0.5f).Average(p => (p.r + p.g + p.b) / 3f);
+        float clipped = grey.Count(v => c + k * (v - tm) < 0 || c + k * (v - tm) > 1) / (float)grey.Length;
+        var texSG = WriteTexture(Folder + "/Textures/BK_Grass_a_SG.png", boosted, tw, th, AssetDatabase.GetAssetPath(tex));
+
+        Color Map(float n)
+        {
+            var m = (L(n) * tm - L(nMean) * ((1 - s) * cMean)) * (1f / s);
+            return new Color(Mathf.Max(0, m.r), Mathf.Max(0, m.g), Mathf.Max(0, m.b));
+        }
+        WriteColormap(noiseTex, Map);
+
+        // Tall grass shares the map: its share follows the ratio of blob spreads, its base colour fixes the mean.
+        Color dl = L(1) - L(0), dt = Lt(1) - Lt(0);
+        float st = Mathf.Clamp(s * (dt.r / dl.r + dt.g / dl.g + dt.b / dl.b) / 3f, 0.05f, 0.95f);
+        var tb = (Lt(nMean) * tm - Map(nMean) * st) * (1f / ((1 - st) * cMean));
+        var tallBase = new Color(Mathf.Clamp01(tb.r), Mathf.Clamp01(tb.g), Mathf.Clamp01(tb.b)).gamma;
+        var lawnBase = L(nMean).gamma;
+
+        var made = new List<string>();
+        foreach (var (mesh, name, tall) in new[] { ("Grass1", "BK_Grass1_Meadow", false), ("Grass2", "BK_Grass2_Meadow", false), ("Grass3", "BK_Grass3_Tall", true) })
+        {
+            var vendor = AssetDatabase.LoadAssetAtPath<GameObject>(BKP + mesh + ".prefab").GetComponentInChildren<MeshRenderer>();
+            var mat = StylizedMaterial("SG_" + name.Substring(3), texSG, tall ? tallBase : lawnBase, tall ? st : s);
+            string dest = Folder + "/Details/" + name + "_Detail.prefab";
+            var go = new GameObject(name + "_Detail");
+            go.AddComponent<MeshFilter>().sharedMesh = vendor.GetComponent<MeshFilter>().sharedMesh;
+            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
+            mr.shadowCastingMode = tall ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            PrefabUtility.SaveAsPrefabAsset(go, dest);
+            UnityEngine.Object.DestroyImmediate(go);
+            made.Add(dest);
+        }
+        ColormapObject(true);
+        RefreshTerrainDetails();
+        return new { stylized = true, texMean = tm, texHi = hi, share = s, boost = k, pivot = c, boostedMean = cMean, clipped, tallShare = st,
+            lawnBase = lawnBase.ToString("F3"), tallBase = tallBase.ToString("F3"), noise = new { nMean, nMax }, made };
+    }
+
+    // ---- Stylized Grass on the other grass and flower details ----
+    // Each family gets a _Game detail prefab (plain mesh) whose material is a Stylized Grass copy matched to the vendor shader:
+    // BK/Grass = texture x lerp(c1, c2, noise) -> the colour at the mean noise; Raygeas grass = texture x lerp(base, gradient,
+    // uvGradient x worldNoise) -> the UV gradient baked into a texture copy, the 6 m world-noise patches replaced by a per-clump
+    // tip tint; HIGHLANDS foliage = texture x colour. Meshes without vertex colours get a copy with a root-to-tip mask in red
+    // (Stylized Grass reads wind and bending from it). StylizedDetails(false) puts the vendor materials and meshes back.
+    static readonly (string src, string name)[] SGFamilies =
+    {
+        (BKP + "Daisy.prefab", "BK_Daisy"), (BKP + "CommonBlue.prefab", "BK_CommonBlue"), (BKP + "CommonPink.prefab", "BK_CommonPink"),
+        (BKP + "FlowerMeadow1.prefab", "BK_FlowerMeadow1"), (BKP + "FlowerMeadow3.prefab", "BK_FlowerMeadow3"), (BKP + "Lavender.prefab", "BK_Lavender"),
+        (BKP + "Gorse1.prefab", "BK_Gorse1"), (BKP + "GrassMeadows3.prefab", "BK_GrassMeadows3"), (BKP + "Lupin2.prefab", "BK_Lupin2"),
+        (BKP + "Carot1.prefab", "BK_Carot1"), (BKP + "Reeds.prefab", "BK_Reeds"), (BKP + "Sorrel.prefab", "BK_Sorrel_Dark"),
+        (KN + "Grass_1.prefab", "KN_Grass_1"), (KN + "Grass_1_Large.prefab", "KN_Grass_1_Large"), (KN + "Clovers_1.prefab", "KN_Clovers_1"),
+        (KN + "Salvia_1.prefab", "KN_Salvia_1"), (HF + "Flowers_1.prefab", "HL_Flowers_1"),
+    };
+
+    // Detail prefab the stamps use for a vendor prefab (itself when it isn't converted).
+    static string SGD(string src)
+    {
+        foreach (var f in SGFamilies) if (f.src == src) return Folder + "/Details/" + f.name + "_Detail.prefab";
+        return src;
+    }
+
+    public static object StylizedDetails(bool on)
+    {
+        var report = new List<string>();
+        var swap = new Dictionary<GameObject, GameObject>();
+        foreach (var (src, name) in SGFamilies)
+        {
+            var vendor = AssetDatabase.LoadAssetAtPath<GameObject>(src) ?? throw new ArgumentException("Missing " + src);
+            var lod = vendor.GetComponent<LODGroup>();
+            var r = lod != null && lod.GetLODs().Length > 0 ? lod.GetLODs()[0].renderers.First(x => x != null) : vendor.GetComponentInChildren<MeshRenderer>();
+            var mesh = r.GetComponent<MeshFilter>().sharedMesh;
+            var orig = name == "BK_Sorrel_Dark" ? AssetDatabase.LoadAssetAtPath<Material>(Folder + "/Materials/BK_Sorrel_Dark.mat") : r.sharedMaterial;
+            string dest = SGD(src);
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(dest);
+            var shadows = existing != null ? existing.GetComponent<MeshRenderer>().shadowCastingMode : r.shadowCastingMode;
+
+            Material mat = orig; Mesh useMesh = mesh; string note = "vendor";
+            if (on) (mat, useMesh, note) = StylizedFamily(name, orig, mesh);
+
+            var go = new GameObject(name + "_Detail");
+            go.AddComponent<MeshFilter>().sharedMesh = useMesh;
+            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat; mr.shadowCastingMode = shadows;
+            var saved = PrefabUtility.SaveAsPrefabAsset(go, dest);
+            UnityEngine.Object.DestroyImmediate(go);
+            swap[vendor] = saved;
+            report.Add(name + ": " + note);
+        }
+        return new { stylized = on, repointed = RepointDetails(swap), families = report };
+    }
+
+    static (Material, Mesh, string) StylizedFamily(string name, Material orig, Mesh mesh)
+    {
+        string shader = orig.shader.name;
+        float flatten = MeshUpNormals(mesh) ? 1f : 0f;
+        if (shader == "BK/Grass")
+        {
+            // BK's colour noise uses its own tiling, so it can't share the lawn's colour map: take the colour at the mean noise.
+            var c = Color.Lerp(orig.GetColor("_Color01").linear, orig.GetColor("_Color02").linear, BKNoiseMean).gamma;
+            return (StylizedMaterial("SG_" + name.Substring(3), orig.GetTexture("_MainTex"), c, 0, 0.5f, flatten), mesh, "BK colour " + c.ToString("F2"));
+        }
+        var masked = HeightMaskedMesh(mesh, name);
+        if (shader.StartsWith("Raygeas/Highlands"))
+            return (StylizedMaterial("SG_" + name.Substring(3), orig.GetTexture("_Albedo"), orig.GetColor("_MainColor"), 0, orig.GetFloat("_AlphaCutoff"), flatten), masked, "HIGHLANDS colour");
+
+        // Raygeas Shader Graphs/Grass
+        var tex = orig.GetTexture("_Base_Texture");
+        float cutoff = orig.GetFloat("_Alpha_Cutoff");
+        if (orig.GetFloat("_Enable_Color_Gradient") < 0.5f)
+            return (StylizedMaterial("SG_" + name.Substring(3), tex, orig.GetColor("_Base_Color"), 0, cutoff, flatten, default, 0.12f, orig.GetFloat("_Smoothness")), masked, "flat colour");
+        bool radial = !orig.IsKeywordEnabled("_GRADIENT_METHOD_LINEAR");
+        float off = orig.GetFloat("_Gradient_Offset"), fade = orig.GetFloat("_Gradient_Fade");
+        float G(float u, float v)
+        {
+            float g = radial ? Mathf.SmoothStep(0, 1, new Vector2(u - 0.5f, v - 0.5f).magnitude) : v;
+            float d = g - off;
+            return Mathf.Clamp01(Mathf.Lerp(1 - d, d, fade + 0.5f));
+        }
+        // World noise mask: Unity gradient noise (about 0.15-0.85) through the graph's offset and fade; low end baked, high end as the tint.
+        bool noise = orig.GetFloat("_World_Noise_Mask") > 0.5f;
+        float nOff = orig.GetFloat("_World_Noise_Offset"), nFade = orig.GetFloat("_World_Noise_Fade");
+        float N(float n) { float nn = n - nOff; return Mathf.Clamp01(Mathf.Lerp(nn, 1 - nn, nFade + 0.5f)); }
+        // Baked level nB keeps the mean: the tint (intensity 0.85 x random x tip mask) lifts it by about a quarter toward nHi.
+        const float TintShare = 0.25f;
+        float nHi = noise ? Mathf.Max(N(0.15f), N(0.85f)) : 1, nMean = 0;
+        for (int s = 0; s <= 10; s++) nMean += N(Mathf.Lerp(0.15f, 0.85f, s / 10f)) / 11f;
+        float nLo = noise ? Mathf.Clamp01((nMean - TintShare * nHi) / (1 - TintShare)) : 1;
+        Color b = orig.GetColor("_Base_Color").linear, gr = orig.GetColor("_Gradient_Color").linear;
+        var px = ReadLinear(tex, out int w, out int h);
+        var outPx = new Color[px.Length];
+        float gMax = 0;
+        for (int j = 0; j < h; j++) for (int i = 0; i < w; i++) if (px[j * w + i].a >= 0.5f) gMax = Mathf.Max(gMax, G((i + 0.5f) / w, (j + 0.5f) / h));
+        Color tip = Color.black; int tipN = 0;
+        for (int j = 0; j < h; j++)
+            for (int i = 0; i < w; i++)
+            {
+                int k = j * w + i; var p = px[k];
+                float g = G((i + 0.5f) / w, (j + 0.5f) / h);
+                var c = p * Color.Lerp(b, gr, g * nLo); c.a = p.a;
+                outPx[k] = c;
+                if (noise && p.a >= 0.5f && g >= 0.7f * gMax) { tip += p * Color.Lerp(b, gr, g * nHi); tipN++; }
+            }
+        var baked = WriteTexture(Folder + "/Textures/" + tex.name + "_SG.png", outPx, w, h, AssetDatabase.GetAssetPath(tex));
+        Color hue = default;
+        if (tipN > 0) { hue = (tip * (1f / tipN)).gamma; hue.a = 0.85f; }
+        return (StylizedMaterial("SG_" + name.Substring(3), baked, Color.white, 0, cutoff, flatten, hue, 0.18f, orig.GetFloat("_Smoothness")), masked,
+            $"gradient baked ({(radial ? "radial" : "linear")}){(noise ? ", tip tint " + hue.ToString("F2") : "")}");
+    }
+
+    const float BKNoiseMean = 0.426f;   // mean of BK's _NoiseGrass (measured by StylizedMeadow)
+
+    static bool MeshUpNormals(Mesh mesh)
+    {
+        using var data = Mesh.AcquireReadOnlyMeshData(mesh);
+        var n = new Unity.Collections.NativeArray<Vector3>(data[0].vertexCount, Unity.Collections.Allocator.Temp);
+        data[0].GetNormals(n);
+        float y = 0; foreach (var v in n) y += v.y;
+        return y / Mathf.Max(1, n.Length) > 0.95f;
+    }
+
+    // Copy of a mesh with red = 0 at its lowest vertex and 1 at its highest; returned as is when it already has vertex colours.
+    static Mesh HeightMaskedMesh(Mesh src, string name)
+    {
+        using var data = Mesh.AcquireReadOnlyMeshData(src);
+        var d = data[0];
+        if (d.HasVertexAttribute(VertexAttribute.Color)) return src;
+        int n = d.vertexCount;
+        var pos = new Unity.Collections.NativeArray<Vector3>(n, Unity.Collections.Allocator.Temp); d.GetVertices(pos);
+        var nrm = new Unity.Collections.NativeArray<Vector3>(n, Unity.Collections.Allocator.Temp); d.GetNormals(nrm);
+        var uv = new Unity.Collections.NativeArray<Vector2>(n, Unity.Collections.Allocator.Temp); d.GetUVs(0, uv);
+        float lo = float.MaxValue, hi = float.MinValue;
+        foreach (var p in pos) { lo = Mathf.Min(lo, p.y); hi = Mathf.Max(hi, p.y); }
+        var cols = new Color[n];
+        for (int i = 0; i < n; i++) cols[i] = new Color(Mathf.InverseLerp(lo, hi, pos[i].y), 0, 0, 1);
+        string path = Folder + "/Meshes/" + name + "_SG.asset";
+        WorldMapLayout.EnsureFolderPublic(Folder + "/Meshes");
+        var m = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+        bool create = m == null;
+        if (create) m = new Mesh();
+        m.Clear();
+        m.name = name + "_SG";
+        m.SetVertices(pos); m.SetNormals(nrm); m.SetUVs(0, uv); m.SetColors(cols);
+        m.subMeshCount = d.subMeshCount;
+        for (int s = 0; s < d.subMeshCount; s++)
+        {
+            var idx = new Unity.Collections.NativeArray<int>(d.GetSubMesh(s).indexCount, Unity.Collections.Allocator.Temp);
+            d.GetIndices(idx, s);
+            m.SetIndices(idx, MeshTopology.Triangles, s);
+        }
+        m.RecalculateBounds();
+        m.UploadMeshData(true);   // not readable at runtime, like the source
+        if (create) AssetDatabase.CreateAsset(m, path); else EditorUtility.SetDirty(m);
+        AssetDatabase.SaveAssetIfDirty(m);
+        return m;
+    }
+
+    // Points detail stamps, shared DetailPrototypeSettings and the baked terrain prototypes at the new prefabs
+    // (same layers and density maps, so no MicroVerse regeneration is needed).
+    static int RepointDetails(Dictionary<GameObject, GameObject> swap)
+    {
+        int count = 0;
+        GameObject Map(GameObject g) => g != null && swap.TryGetValue(g, out var to) ? to : g;
+        foreach (var to in swap.Values.ToList()) swap[to] = to;
+        foreach (var s in UnityEngine.Object.FindObjectsByType<DetailStamp>(FindObjectsInactive.Include))
+        {
+            var to = Map(s.prototype.prototype);
+            if (to != s.prototype.prototype) { Undo.RecordObject(s, "Stylized details"); s.prototype.prototype = to; EditorUtility.SetDirty(s); count++; }
+            if (s.settings != null && Map(s.settings.prototype.prototype) != s.settings.prototype.prototype)
+            {
+                s.settings.prototype.prototype = Map(s.settings.prototype.prototype);
+                EditorUtility.SetDirty(s.settings); AssetDatabase.SaveAssetIfDirty(s.settings); count++;
+            }
+        }
+        foreach (var t in Terrain.activeTerrains)
+        {
+            var protos = t.terrainData.detailPrototypes;
+            bool changed = false;
+            foreach (var p in protos) { var to = Map(p.prototype); if (to != p.prototype) { p.prototype = to; changed = true; count++; } }
+            if (changed) { Undo.RecordObject(t.terrainData, "Stylized details"); t.terrainData.detailPrototypes = protos; EditorUtility.SetDirty(t.terrainData); }
+            t.terrainData.RefreshPrototypes(); t.Flush();
+        }
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        return count;
+    }
+
+    // hue: per-clump tint (alpha = intensity, tips only); flatten 1 lights the blades like the ground (meshes with up normals).
+    static Material StylizedMaterial(string name, Texture tex, Color baseColor, float colormap, float cutoff = 0.5f, float flatten = 1f, Color hue = default, float wind = 0.12f, float smoothness = 0f)
+    {
+        string path = Folder + "/Materials/" + name + ".mat";
+        var vendor = AssetDatabase.LoadAssetAtPath<Material>(SGFolder + "Materials/StylizedGrass.mat") ?? throw new ArgumentException("Missing Stylized Grass material");
+        var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (m == null) { m = new Material(vendor); AssetDatabase.CreateAsset(m, path); }
+        else { m.shader = vendor.shader; m.CopyPropertiesFromMaterial(vendor); }
+        m.SetTexture("_BaseMap", tex); m.SetTexture("_MainTex", tex);
+        m.SetTexture("_BumpMap", null);
+        m.SetColor("_BaseColor", baseColor); m.SetColor("_Color", baseColor);
+        m.SetFloat("_Cutoff", cutoff); m.SetFloat("_Cull", 0);
+        m.SetFloat("_ColorMapStrength", colormap); m.SetFloat("_ColorMapHeight", 1f);
+        m.SetColor("_HueVariation", hue); m.SetFloat("_HueVariationHeight", 1f);
+        m.SetFloat("_OcclusionStrength", 0); m.SetFloat("_VertexDarkening", 0);
+        m.SetFloat("_Smoothness", smoothness); m.SetFloat("_PerspectiveCorrection", 0);
+        m.SetFloat("_NormalFlattening", flatten);
+        m.SetFloat("_TranslucencyDirect", 1); m.SetFloat("_TranslucencyIndirect", 0);
+        m.SetFloat("_SnowReceiving", 0); m.SetFloat("_Scalemap", 0); m.SetFloat("_FadingOn", 0);
+        bool spec = smoothness > 0;   // the Raygeas grass sheen toward the sun comes from its smoothness
+        m.SetFloat("_SpecularHighlights", spec ? 1 : 0); m.SetFloat("_EnvironmentReflections", spec ? 1 : 0);
+        m.SetFloat("_BendPushStrength", 1); m.SetFloat("_BendFlattenStrength", 1); m.SetColor("_BendTint", new Color(1, 1, 1, 0));
+        m.SetVector("_WindDirection", GrassWind);
+        m.SetFloat("_WindAmbientStrength", wind); m.SetFloat("_WindSpeed", 2.5f);
+        m.SetFloat("_WindGustStrength", 0.15f); m.SetFloat("_WindGustFreq", 3f); m.SetFloat("_WindGustSpeed", 3f); m.SetFloat("_WindGustTint", 0.05f);
+        foreach (var k in new[] { "_FADING", "_NORMALMAP", "_SCALEMAP", "_SCALEMAP_ON", "_SNOWRECEIVING_ON", "_ENVIRONMENTREFLECTIONS_ON" }) m.DisableKeyword(k);
+        m.EnableKeyword("_ADVANCED_LIGHTING");
+        foreach (var k in new[] { "_SPECULARHIGHLIGHTS_OFF", "_ENVIRONMENTREFLECTIONS_OFF" }) if (spec) m.DisableKeyword(k); else m.EnableKeyword(k);
+        m.enableInstancing = true;
+        EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m);
+        return m;
+    }
+
+    // Texture as the shader samples it (sRGB decoded), linear RGBA.
+    static Color[] ReadLinear(Texture tex, out int w, out int h)
+    {
+        w = tex.width; h = tex.height;
+        var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        Graphics.Blit(tex, rt);
+        var prev = RenderTexture.active; RenderTexture.active = rt;
+        var read = new Texture2D(w, h, TextureFormat.RGBAFloat, false, true);
+        read.ReadPixels(new Rect(0, 0, w, h), 0, 0); read.Apply();
+        RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
+        var px = read.GetPixels();
+        UnityEngine.Object.DestroyImmediate(read);
+        return px;
+    }
+
+    // Linear pixels -> sRGB PNG with the source texture's import settings (mips, alpha-test coverage, size).
+    static Texture2D WriteTexture(string path, Color[] linear, int w, int h, string like)
+    {
+        WorldMapLayout.EnsureFolderPublic(System.IO.Path.GetDirectoryName(path).Replace('\\', '/'));
+        var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        tex.SetPixels(linear.Select(p => { var g = p.gamma; g.a = p.a; return g; }).ToArray()); tex.Apply();
+        File.WriteAllBytes(path, tex.EncodeToPNG());
+        UnityEngine.Object.DestroyImmediate(tex);
+        AssetDatabase.ImportAsset(path);
+        var src = (TextureImporter)AssetImporter.GetAtPath(like);
+        var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+        imp.sRGBTexture = true; imp.mipmapEnabled = src.mipmapEnabled; imp.alphaIsTransparency = src.alphaIsTransparency;
+        imp.mipMapsPreserveCoverage = src.mipMapsPreserveCoverage; imp.alphaTestReferenceValue = src.alphaTestReferenceValue;
+        imp.maxTextureSize = src.maxTextureSize; imp.textureCompression = src.textureCompression; imp.wrapMode = src.wrapMode;
+        imp.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
+    // The colour map is one repeating tile of BK's noise: its UV is (xz - origin) / size with no clamp, so 25 m bounds at
+    // the world origin and Repeat wrapping give BK's xz * tiling lookup texel for texel (BK's patches are 0.3-2 m wide).
+    static void WriteColormap(Texture noise, Func<float, Color> colour)
+    {
+        var px = ReadLinear(noise, out int w, out int h);
+        var tex = new Texture2D(w, h, TextureFormat.RGB24, true);
+        tex.SetPixels(px.Select(p => colour(Mathf.Clamp01(p.r)).gamma).ToArray()); tex.Apply();
+        string png = ColormapPath + ".png";
+        File.WriteAllBytes(png, tex.EncodeToPNG());
+        UnityEngine.Object.DestroyImmediate(tex);
+        AssetDatabase.ImportAsset(png);
+        var imp = (TextureImporter)AssetImporter.GetAtPath(png);
+        imp.sRGBTexture = true; imp.wrapMode = TextureWrapMode.Repeat; imp.mipmapEnabled = true;
+        imp.textureCompression = TextureImporterCompression.CompressedHQ; imp.maxTextureSize = Mathf.Max(w, h);
+        imp.SaveAndReimport();
+
+        string assetPath = ColormapPath + ".asset";
+        var map = AssetDatabase.LoadAssetAtPath<sc.stylizedgrass.runtime.GrassColorMap>(assetPath);
+        if (map == null) { map = ScriptableObject.CreateInstance<sc.stylizedgrass.runtime.GrassColorMap>(); AssetDatabase.CreateAsset(map, assetPath); }
+        float tile = 1f / BlobTiling;
+        map.bounds = new Bounds(new Vector3(tile * 0.5f, 0, tile * 0.5f), new Vector3(tile, 1, tile));
+        map.uv = sc.stylizedgrass.runtime.ColorMapRendering.BoundsToUV(map.bounds);
+        map.overrideTexture = true;
+        map.customTex = AssetDatabase.LoadAssetAtPath<Texture2D>(png);
+        map.texture = map.customTex;
+        map.hasScalemap = false;
+        EditorUtility.SetDirty(map); AssetDatabase.SaveAssetIfDirty(map);
+    }
+
+    // Environment/Grass Colormap: the vendor renderer component only activates our baked map (never press Render on it).
+    static bool ColormapObject(bool on)
+    {
+        var env = SceneManager.GetActiveScene().GetRootGameObjects().First(g => g.name == "Environment");
+        var old = env.transform.Find("Grass Colormap");
+        bool existed = old != null;
+        if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+        if (on)
+        {
+            var go = new GameObject("Grass Colormap");
+            go.SetActive(false);
+            Undo.RegisterCreatedObjectUndo(go, "Grass Colormap");
+            go.transform.SetParent(env.transform, false);
+            var r = go.AddComponent<sc.stylizedgrass.runtime.GrassColorMapRenderer>();
+            r.colorMap = AssetDatabase.LoadAssetAtPath<sc.stylizedgrass.runtime.GrassColorMap>(ColormapPath + ".asset");
+            r.terrainObjects = new List<GameObject> { Terrain.activeTerrain.gameObject };
+            r.resolution = 1024;
+            go.SetActive(true);
+        }
+        else sc.stylizedgrass.runtime.GrassColorMap.DisableGlobally();
+        EditorSceneManager.MarkSceneDirty(env.scene);
+        return existed;
+    }
+
+    static void RefreshTerrainDetails()
+    {
+        foreach (var t in Terrain.activeTerrains) { t.terrainData.RefreshPrototypes(); t.Flush(); }
+    }
 
     // Detail draw distance and the matching BK fade distance (keep bk = 2x detail).
     public static object DrawDistances(float detail, float bk)
@@ -5007,10 +5400,10 @@ public static class Vegetation
         string FT(int i) => Folder + "/Prefabs/Fir_Tall_" + i + "_Capsule.prefab";
         var c = new Vector2(500, 500);
         uint seed = 100;
-        string L1 = TintedDetail(BKP + "Grass1.prefab", "BK_Grass1_Meadow", MeadowGrass, false);
-        string L2 = TintedDetail(BKP + "Grass2.prefab", "BK_Grass2_Meadow", MeadowGrass, false);
-        string G3 = TintedDetail(BKP + "Grass3.prefab", "BK_Grass3_Tall", TallGrass, true);
+        StylizedMeadow(true);
+        string L1 = Folder + "/Details/BK_Grass1_Meadow_Detail.prefab", L2 = Folder + "/Details/BK_Grass2_Meadow_Detail.prefab", G3 = Folder + "/Details/BK_Grass3_Tall_Detail.prefab";
         string SO = TintedDetail(BKP + "Sorrel.prefab", "BK_Sorrel_Dark", m => { m.SetColor("_Color01", new Color(0.30f, 0.52f, 0.17f)); m.SetColor("_Color02", new Color(0.25f, 0.45f, 0.16f)); }, true);
+        StylizedDetails(true);
         TreeStamp T(Transform p, string name, string[] prefabs, float[] weights, Vector2 scale, float density, string mask)
         {
             var s = Veg.Trees(p, name, prefabs, weights, scale, density, seed++, c, 1000);
@@ -5100,46 +5493,46 @@ public static class Vegetation
         var mgl = D("Meadow Tall Grass", G3, new Vector2(0.7f, 1.1f), new Vector2(0.8f, 1.2f), 1.6f, "Meadow"); TexFilter(mgl.filterSet, grassLayers); Proto(mgl, 0.6f, 0.6f, 0.9f);
         mgl.maxDistanceFromTree = 7f; mgl.filterSet.weight = 0.7f; Veg.Noise(mgl.filterSet.weightNoise, 2, 30, 6f, 0.10f);
         // heads speckle the lawn in loose patches (BK foreground), fields and lavender form large drifts, gorse adds yellow accents
-        var daisy = D("Meadow Daisies", BKP + "Daisy.prefab", new Vector2(1.0f, 1.6f), new Vector2(2.5f, 5.0f), 1.5f, "MeadowFlowers"); TexFilter(daisy.filterSet, grassLayers); Proto(daisy, 1, 0.7f, 1.6f);
+        var daisy = D("Meadow Daisies", SGD(BKP + "Daisy.prefab"), new Vector2(1.0f, 1.6f), new Vector2(2.5f, 5.0f), 1.5f, "MeadowFlowers"); TexFilter(daisy.filterSet, grassLayers); Proto(daisy, 1, 0.7f, 1.6f);
         daisy.minDistanceFromTree = 4f; Veg.Noise(daisy.filterSet.weightNoise, 2, 30, 6f, 0.12f, 0f);
-        var blue = D("Meadow Blue Heads", BKP + "CommonBlue.prefab", new Vector2(1.0f, 1.6f), new Vector2(2.5f, 5.0f), 1.2f, "MeadowFlowers"); TexFilter(blue.filterSet, grassLayers); Proto(blue, 1, 0.7f, 1.0f);
+        var blue = D("Meadow Blue Heads", SGD(BKP + "CommonBlue.prefab"), new Vector2(1.0f, 1.6f), new Vector2(2.5f, 5.0f), 1.2f, "MeadowFlowers"); TexFilter(blue.filterSet, grassLayers); Proto(blue, 1, 0.7f, 1.0f);
         blue.minDistanceFromTree = 4f; Veg.Noise(blue.filterSet.weightNoise, 2, 30, 6f, 0.12f, 0.15f);
-        var pink = D("Meadow Pink Heads", BKP + "CommonPink.prefab", new Vector2(1.0f, 1.6f), new Vector2(2.0f, 4.0f), 1.0f, "MeadowFlowers"); TexFilter(pink.filterSet, grassLayers); Proto(pink, 1, 0.7f, 0.5f);
+        var pink = D("Meadow Pink Heads", SGD(BKP + "CommonPink.prefab"), new Vector2(1.0f, 1.6f), new Vector2(2.0f, 4.0f), 1.0f, "MeadowFlowers"); TexFilter(pink.filterSet, grassLayers); Proto(pink, 1, 0.7f, 0.5f);
         pink.minDistanceFromTree = 4f; Veg.Noise(pink.filterSet.weightNoise, 2, 30, 6f, 0.14f, 0.45f);
-        var orange = D("Meadow Orange Field", BKP + "FlowerMeadow1.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 1.0f, "MeadowFlowers"); TexFilter(orange.filterSet, grassLayers); Proto(orange, 0.5f, 0.7f, 0.4f);
+        var orange = D("Meadow Orange Field", SGD(BKP + "FlowerMeadow1.prefab"), new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 1.0f, "MeadowFlowers"); TexFilter(orange.filterSet, grassLayers); Proto(orange, 0.5f, 0.7f, 0.4f);
         Veg.Slope(orange.filterSet, 0, 20, 0, 4); Veg.Noise(orange.filterSet.weightNoise, 2, 20, 10f, 0.17f, 2f);
-        var blueField = D("Meadow Blue Field", BKP + "FlowerMeadow3.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 0.8f, "MeadowFlowers"); TexFilter(blueField.filterSet, grassLayers); Proto(blueField, 0.5f, 0.7f, 0.55f);
+        var blueField = D("Meadow Blue Field", SGD(BKP + "FlowerMeadow3.prefab"), new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 0.8f, "MeadowFlowers"); TexFilter(blueField.filterSet, grassLayers); Proto(blueField, 0.5f, 0.7f, 0.55f);
         Veg.Slope(blueField.filterSet, 0, 20, 0, 4); Veg.Noise(blueField.filterSet.weightNoise, 2, 20, 10f, 0.17f, 6.5f);   // off the orange field's cells
-        var lavender = D("Meadow Lavender", BKP + "Lavender.prefab", new Vector2(0.8f, 1.3f), new Vector2(0.8f, 1.3f), 2.0f, "MeadowFlowers"); TexFilter(lavender.filterSet, grassLayers); Proto(lavender, 0, 0.7f, 0.6f);
+        var lavender = D("Meadow Lavender", SGD(BKP + "Lavender.prefab"), new Vector2(0.8f, 1.3f), new Vector2(0.8f, 1.3f), 2.0f, "MeadowFlowers"); TexFilter(lavender.filterSet, grassLayers); Proto(lavender, 0, 0.7f, 0.6f);
         lavender.minDistanceFromTree = 5f; Veg.Slope(lavender.filterSet, 0, 27, 0, 6); Veg.Noise(lavender.filterSet.weightNoise, 2, 16, 8f, 0.12f, 5f);
-        var gorse = D("Meadow Gorse", BKP + "Gorse1.prefab", new Vector2(0.8f, 1.2f), new Vector2(0.8f, 1.2f), 0.8f, "MeadowFlowers"); TexFilter(gorse.filterSet, grassLayers); Proto(gorse, 0, 0.7f, 2.4f);
+        var gorse = D("Meadow Gorse", SGD(BKP + "Gorse1.prefab"), new Vector2(0.8f, 1.2f), new Vector2(0.8f, 1.2f), 0.8f, "MeadowFlowers"); TexFilter(gorse.filterSet, grassLayers); Proto(gorse, 0, 0.7f, 2.4f);
         gorse.minDistanceFromTree = 5f; Veg.Noise(gorse.filterSet.weightNoise, 2, 45, 10f, 0.2f, 3f);
-        var barley = D("Meadow Barley Tufts", BKP + "GrassMeadows3.prefab", new Vector2(0.7f, 1.0f), new Vector2(0.8f, 1.15f), 0.8f, "MeadowLawn"); TexFilter(barley.filterSet, grassLayers); Proto(barley, 0, 0.7f, 0.5f);
+        var barley = D("Meadow Barley Tufts", SGD(BKP + "GrassMeadows3.prefab"), new Vector2(0.7f, 1.0f), new Vector2(0.8f, 1.15f), 0.8f, "MeadowLawn"); TexFilter(barley.filterSet, grassLayers); Proto(barley, 0, 0.7f, 0.5f);
         barley.filterSet.weight = 0.7f; Veg.Noise(barley.filterSet.weightNoise, 2, 90, 12f, 0.21f, 7f);
         // knee-high unmown clumps, dark leafy patches and upright spikes (violet salvia, lupins, white wild carrot) in drifts
         var tallClumps = D("Meadow Tall Clumps", G3, new Vector2(0.6f, 1.0f), new Vector2(0.6f, 1.0f), 2.0f, "MeadowTall"); TexFilter(tallClumps.filterSet, grassLayers); Proto(tallClumps, 0.6f, 0.6f, 0.9f);
         var sorrel = D("Meadow Sorrel", SO, new Vector2(1.0f, 2.0f), new Vector2(2.0f, 3.5f), 2.5f, "MeadowCover"); TexFilter(sorrel.filterSet, grassLayers); Proto(sorrel, 1, 0.5f, 0.6f);
         var salvia = D("Meadow Violet Spikes", KN + "Salvia_Group_1.prefab", new Vector2(0.6f, 1.0f), new Vector2(0.6f, 0.85f), 1.2f, "MeadowSpikes"); TexFilter(salvia.filterSet, grassLayers); Proto(salvia, 0.3f, 0.8f, 1.0f);
         Veg.Slope(salvia.filterSet, 0, 40, 0, 6);
-        var lupins = D("Meadow Lupins", BKP + "Lupin2.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.8f, 1.15f), 0.5f, "MeadowSpikes"); TexFilter(lupins.filterSet, grassLayers); Proto(lupins, 0, 0.8f, 0.6f);
+        var lupins = D("Meadow Lupins", SGD(BKP + "Lupin2.prefab"), new Vector2(0.7f, 1.1f), new Vector2(0.8f, 1.15f), 0.5f, "MeadowSpikes"); TexFilter(lupins.filterSet, grassLayers); Proto(lupins, 0, 0.8f, 0.6f);
         Veg.Noise(lupins.filterSet.weightNoise, 2, 60, 4f, 0f, 4f);
-        var carrot = D("Meadow Wild Carrot", BKP + "Carot1.prefab", new Vector2(0.6f, 0.9f), new Vector2(0.7f, 1.0f), 0.45f, "MeadowSpikes"); TexFilter(carrot.filterSet, grassLayers); Proto(carrot, 0.3f, 0.8f, 0.8f);
+        var carrot = D("Meadow Wild Carrot", SGD(BKP + "Carot1.prefab"), new Vector2(0.6f, 0.9f), new Vector2(0.7f, 1.0f), 0.45f, "MeadowSpikes"); TexFilter(carrot.filterSet, grassLayers); Proto(carrot, 0.3f, 0.8f, 0.8f);
         Veg.Noise(carrot.filterSet.weightNoise, 2, 60, 4f, 0f, 8f);
-        var wg = D("Wild Grass", KN + "Grass_1.prefab", new Vector2(0.9f, 1.15f), new Vector2(0.75f, 1.05f), 1.3f, "Wild"); TexFilter(wg.filterSet, grassLayers);
+        var wg = D("Wild Grass", SGD(KN + "Grass_1.prefab"), new Vector2(0.9f, 1.15f), new Vector2(0.75f, 1.05f), 1.3f, "Wild"); TexFilter(wg.filterSet, grassLayers);
         Veg.Slope(wg.filterSet, 0, 46, 0, 6);
         var wt = D("Wild Tufts", DetailPrefab(KN + "Grass_1_Large.prefab"), new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 0.7f, "Wild"); TexFilter(wt.filterSet, grassLayers);
         Veg.Noise(wt.filterSet.weightNoise, 2, 35, 2.5f, 0.15f);
         var pathTufts = D("Trail Edge Tufts", DetailPrefab(KN + "Grass_1_Large.prefab"), new Vector2(0.6f, 0.85f), new Vector2(0.9f, 1.3f), 1.1f, "TrailEdge"); TexFilter(pathTufts.filterSet, grassLayers); Proto(pathTufts, 0.3f, 0.8f, 0.6f);
         var wf = D("Wild Flowers", DetailPrefab(HF + "Flowers_1.prefab"), new Vector2(0.9f, 1.1f), new Vector2(0.9f, 1.1f), 1.0f, "Wild"); TexFilter(wf.filterSet, grassLayers);
         Veg.Noise(wf.filterSet.weightNoise, 2, 30, 3f, 0.42f);
-        var cl = D("Clovers", KN + "Clovers_1.prefab", new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 1.4f, "Wild");
+        var cl = D("Clovers", SGD(KN + "Clovers_1.prefab"), new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 1.4f, "Wild");
         Veg.Noise(cl.filterSet.weightNoise, 2, 45, 3f, 0.3f);
         var f1 = D("Ferns A", KN + "Fern_1.prefab", new Vector2(0.8f, 1.2f), new Vector2(0.8f, 1.2f), 1.0f, "Forest"); f1.maxDistanceFromTree = 7f;
         Veg.Noise(f1.filterSet.weightNoise, 2, 45, 3f, 0.25f);
         var f2 = D("Ferns B", KN + "Fern_3.prefab", new Vector2(0.8f, 1.2f), new Vector2(0.8f, 1.2f), 1.0f, "Forest"); f2.maxDistanceFromTree = 7f;
         Veg.Noise(f2.filterSet.weightNoise, 2, 45, 3f, 0.25f);
         var lv = D("Needle Litter", KN + "Fallen_Leaves_1.prefab", new Vector2(0.8f, 1.3f), new Vector2(0.8f, 1.3f), 1.2f, "Forest"); lv.maxDistanceFromTree = 5.5f;
-        var rd = D("Reeds", BKP + "Reeds.prefab", new Vector2(0.8f, 1.3f), new Vector2(0.9f, 1.4f), 1.8f, "Reeds");
+        var rd = D("Reeds", SGD(BKP + "Reeds.prefab"), new Vector2(0.8f, 1.3f), new Vector2(0.9f, 1.4f), 1.8f, "Reeds");
         Veg.Noise(rd.filterSet.weightNoise, 2, 70, 3.5f, 0.38f);   // clumps, not a hedge
         // Komorebi paints its three ferns together along the water
         var wefe = D("Waterside Ferns", KN + "Fern_2.prefab", new Vector2(0.8f, 1.1f), new Vector2(0.8f, 1.1f), 1.0f, "WaterEdge");
@@ -5151,10 +5544,10 @@ public static class Vegetation
         var wefa = D("Waterside Farfugium", KN + "Farfugium_2.prefab", new Vector2(1.0f, 1.3f), new Vector2(1.0f, 1.3f), 0.6f, "WaterEdge");
         Veg.Noise(wefa.filterSet.weightNoise, 2, 45, 3f, 0.45f);
         // lush shore grass and orange flowers down to the water (ref 7)
-        var shoreGrass = D("Shore Grass", KN + "Grass_1.prefab", new Vector2(1.0f, 1.3f), new Vector2(1.0f, 1.35f), 2.0f, "LakeLip"); TexFilter(shoreGrass.filterSet, grassLayers);
-        var shoreClover = D("Shore Clovers", KN + "Clovers_1.prefab", new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 1.0f, "LakeLip");
+        var shoreGrass = D("Shore Grass", SGD(KN + "Grass_1.prefab"), new Vector2(1.0f, 1.3f), new Vector2(1.0f, 1.35f), 2.0f, "LakeLip"); TexFilter(shoreGrass.filterSet, grassLayers);
+        var shoreClover = D("Shore Clovers", SGD(KN + "Clovers_1.prefab"), new Vector2(0.9f, 1.2f), new Vector2(0.9f, 1.2f), 1.0f, "LakeLip");
         Veg.Noise(shoreClover.filterSet.weightNoise, 2, 30, 3f, 0.15f, 2.2f);
-        var shoreFl = D("Shore Flowers", BKP + "FlowerMeadow1.prefab", new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 0.9f, "LakeFlowers"); TexFilter(shoreFl.filterSet, grassLayers);
+        var shoreFl = D("Shore Flowers", SGD(BKP + "FlowerMeadow1.prefab"), new Vector2(0.7f, 1.1f), new Vector2(0.7f, 1.1f), 0.9f, "LakeFlowers"); TexFilter(shoreFl.filterSet, grassLayers);
         Proto(shoreFl, 0.5f, 0.7f, 0.5f); Veg.Noise(shoreFl.filterSet.weightNoise, 2, 18, 8f, 0.16f, 9f);
         var sc = D("Highland Scree", HF + "Stones.prefab", new Vector2(0.5f, 0.9f), new Vector2(0.5f, 0.9f), 0.35f, "Highlands");
         Veg.Noise(sc.filterSet.weightNoise, 2, 40, 3f, 0.35f);   // scattered patches, not a carpet

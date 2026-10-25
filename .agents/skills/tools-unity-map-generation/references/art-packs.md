@@ -57,7 +57,7 @@ Summer/Autumn/Winter sets: trees, `P_Rock_01-12`, rock groups, `Background/P_Hil
 ### Water, grass and effects
 
 - **Stylized Water 3** (3.3.3, `Assets/_StoreAssets/Rendering/Staggart Creations/Stylized Water 3/`): tools-unity-stylized-water.
-- **Stylized Grass** (same folder): terrain grass/flower prefabs, benders, `GrassColorMapRenderer`. Not used on the world map.
+- **Stylized Grass** (same folder): use it for every new grass or flower detail (add it to `SGFamilies`). Draws all grass and flower details on the world map through first-party material copies matched to the BK and Raygeas look (`Vegetation.StylizedMeadow`, `Vegetation.StylizedDetails`; ENVIRONMENT.md → Stylized Grass). Its colour map is the BK lawn noise as one repeating 25 m tile, not a rendered terrain map.
 - **SICS** particles used on the world map: `TFF_Fireflies_01A`, `TEM_Dust_01A` (gold motes). **Kroma** `Kroma_Particle_Dandelions_Prefab` (meadow fluff): disable `KromaCameraFollow` and collision.
 
 ### Other packs (not used; ask first, styles clash)

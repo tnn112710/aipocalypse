@@ -77,7 +77,7 @@ On a bigger tile, scale texture-stamp frequencies by size/1000 to keep these pat
 
 Order: clear masks → `Rebuild true` (terrain trees exist) → dressing that avoids terrain trees (`BuildMeadow` reads `treeInstances`) → clear masks again → `Rebuild true`. Re-run clear masks after every rock or dressing pass.
 
-**Wind:** one driver per shader family (Komorebi `Wind_Controller`, HIGHLANDS `Wind Settings`, `Raygeas.WindSettings` for Grasslands/Lakefell) at yaw = sun yaw + 90, plus BK Foliage Globals. `Vegetation.Wind()` deletes the Wind root that `Atmosphere.SharedWind()` fills: run Wind first.
+**Wind:** one driver per shader family (Komorebi `Wind_Controller`, HIGHLANDS `Wind Settings`, `Raygeas.WindSettings` for Grasslands/Lakefell) at yaw = sun yaw + 90, plus BK Foliage Globals. Stylized Grass details take their direction from the materials (`GrassWind` in `Vegetation`, same yaw): change both together. `Vegetation.Wind()` deletes the Wind root that `Atmosphere.SharedWind()` fills: run Wind first.
 
 ## 4. Draw distances and cost
 

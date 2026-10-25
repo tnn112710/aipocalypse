@@ -27196,7 +27196,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 3429271475585376614, guid: 3677aa374c3b4f7883c60f603a11b466, type: 3}
+    prototype: {fileID: 642317794875700171, guid: 1b3d15951218bb84f97dafa7a313c590, type: 3}
     alignToGround: 1
     density: 1
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -86050,7 +86050,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 5728903360357139749, guid: 1b0189253bfb4ec8baa2d6605fd145d2, type: 3}
+    prototype: {fileID: 4140247911307452325, guid: 8424973e6fdd9af43a4141d3f874a0eb, type: 3}
     alignToGround: 1
     density: 1.2
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -191105,6 +191105,64 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1456041864836313060, guid: 438d9294ab921fc459831c63054252d4, type: 3}
   m_PrefabInstance: {fileID: 713388779}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &713684396
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 713684397}
+  - component: {fileID: 713684398}
+  m_Layer: 0
+  m_Name: Grass Colormap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &713684397
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713684396}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 810801751}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &713684398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713684396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b2de55126dda534cac6d505fc89f393, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: sc.stylizedgrass.runtime::sc.stylizedgrass.runtime.GrassColorMapRenderer
+  colorMap: {fileID: 11400000, guid: 67114158c7d2c5d47b401caff37b105d, type: 2}
+  terrainObjects:
+  - {fileID: 2061627886}
+  resIdx: 0
+  resolution: 1024
+  cullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  textureDetail: 0
+  useOriginalMaterials: 0
+  layerScaleSettings: []
+  terrainAlbedoShader: {fileID: 4800000, guid: 28d453dc10844f4418372200603a88e5, type: 3}
+  terrainAlbedoAddPassShader: {fileID: 4800000, guid: 1d1870faec500c446a59e746823c3838, type: 3}
+  terrainSplatMaskShader: {fileID: 4800000, guid: 97d1632355d56c14fb963d128feac8d8, type: 3}
 --- !u!1001 &713813335
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -198253,7 +198311,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 8005442796129016659, guid: f12674a4b3f947ec8db5c0ead67d1691, type: 3}
+    prototype: {fileID: 9011183437969082348, guid: 3c384145219ea954c862bc4415e3e448, type: 3}
     alignToGround: 0.3
     density: 0.45
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -221303,6 +221361,7 @@ Transform:
   - {fileID: 319041307}
   - {fileID: 1566288170}
   - {fileID: 31464785}
+  - {fileID: 713684397}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &811216258
@@ -253595,7 +253654,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 264146682395569308, guid: 4f17a3c4ce214899adc37bdafa550c7d, type: 3}
+    prototype: {fileID: 8579745576875842698, guid: fdb47a19db94d2f4493a1f0635c9ce4e, type: 3}
     alignToGround: 0
     density: 0.8
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -263197,7 +263256,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 5481756482434176464, guid: eb684d38c38f2f8449a299aa9cbd5067, type: 3}
+    prototype: {fileID: 1252988706141916380, guid: ad6cbd65ffa1bcf42a72a2c012a84ebb, type: 3}
     alignToGround: 0.3
     density: 1.5
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -289617,7 +289676,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1989307434397701040, guid: 0f13d49c177e49e788fa993de0f028c3, type: 3}
+    prototype: {fileID: 5787408889143416388, guid: bd72874e23c06624097170bd9ad8907c, type: 3}
     alignToGround: 0.6
     density: 1.8
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -350471,7 +350530,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1500982763442207621, guid: 9cda081ce36d445296ac4ee06307766b, type: 3}
+    prototype: {fileID: 1244515824603215426, guid: 1105c9b0e204d5747b2bba088e523e0a, type: 3}
     alignToGround: 0.5
     density: 1
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -366448,7 +366507,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1712516623653571424, guid: 91d22406d21c488085a08701237f758f, type: 3}
+    prototype: {fileID: 2169680594964358274, guid: 8c396c930d7419d4e81a2b740ce7252c, type: 3}
     alignToGround: 0.6
     density: 1.3
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -407278,7 +407337,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1280562064192467064, guid: c1afc2a00340eb4499fd8eb946534530, type: 3}
+    prototype: {fileID: 3648582875924112873, guid: d965375c6adc57248a43ced6e9f40351, type: 3}
     alignToGround: 0.6
     density: 1.4
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -407888,7 +407947,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1712516623653571424, guid: 91d22406d21c488085a08701237f758f, type: 3}
+    prototype: {fileID: 2169680594964358274, guid: 8c396c930d7419d4e81a2b740ce7252c, type: 3}
     alignToGround: 0.6
     density: 2
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -409546,7 +409605,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1280562064192467064, guid: c1afc2a00340eb4499fd8eb946534530, type: 3}
+    prototype: {fileID: 3648582875924112873, guid: d965375c6adc57248a43ced6e9f40351, type: 3}
     alignToGround: 0.6
     density: 1
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -412395,7 +412454,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 7559663927838335691, guid: 89c7fac2d9b8456da7b422cabb9bebed, type: 3}
+    prototype: {fileID: 8499181375855646224, guid: 2325fc5e4f025764ba7da7881a3ae310, type: 3}
     alignToGround: 0.5
     density: 0.8
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -447715,7 +447774,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 4848102130540397860, guid: ababef5d05864bef8b22e474678f72a6, type: 3}
+    prototype: {fileID: 7072701092864725942, guid: 37cfd538854834e4399e59ae0f95c263, type: 3}
     alignToGround: 0
     density: 0.8
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -490626,7 +490685,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 4586472033715033344, guid: 973cea1577714411acc66c44203f4b7d, type: 3}
+    prototype: {fileID: 4540968236048225576, guid: 17c9f20dba30f5a4d816dd34e564c0b8, type: 3}
     alignToGround: 0
     density: 0.5
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -493703,7 +493762,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 1500982763442207621, guid: 9cda081ce36d445296ac4ee06307766b, type: 3}
+    prototype: {fileID: 1244515824603215426, guid: 1105c9b0e204d5747b2bba088e523e0a, type: 3}
     alignToGround: 0.5
     density: 0.9
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -559420,7 +559479,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 6948050365062324295, guid: 6a9ffef01fe544e68fb3b6b20e15234d, type: 3}
+    prototype: {fileID: 9001115406716512650, guid: 218211badc27b0c4f9aba4137becedc3, type: 3}
     alignToGround: 1
     density: 1.5
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -560239,7 +560298,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JBooth.MicroVerseCore::JBooth.MicroVerseCore.DetailStamp
   stampVersion: 1
   prototype:
-    prototype: {fileID: 6212621123848149967, guid: cba9c56f71914973adda2c8acc62b0dc, type: 3}
+    prototype: {fileID: 4345425843522992355, guid: 7d35361303a234148b22b1773b595eff, type: 3}
     alignToGround: 0
     density: 2
     dryColor: {r: 1, g: 1, b: 1, a: 1}
@@ -577339,6 +577398,10 @@ PrefabInstance:
     - target: {fileID: 2353183024738727536, guid: 1144b94f7343f5a409716110c146f3ab, type: 3}
       propertyPath: m_RenderPostProcessing
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4012902633162794131, guid: 1144b94f7343f5a409716110c146f3ab, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 6102316466898910966, guid: 1144b94f7343f5a409716110c146f3ab, type: 3}
       propertyPath: orthographic size

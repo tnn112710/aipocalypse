@@ -77,4 +77,4 @@ The dependents and their order are in ENVIRONMENT.md ("How it is built", "Water-
 
 - **A\***: the WorldMap's `Navigation` instance loads a cached recast graph (`Maps/WorldMap/Navigation/WorldMapNavmesh.bytes`), which doesn't follow the terrain: after heights, water or colliders change run `Navigation.BuildWaterVolume(0.5, true)` then `Navigation.Bake(0.3)` (ENVIRONMENT.md → Navigation). Other scenes use `_Core/EnemySystem/Prefabs/Navigation.prefab` as is: a small terrain-following grid scanned on startup, so it picks up the baked terrain by itself. Library detail: **unity-astar**; how this project's enemies use it: **aipocalypse-enemy-ai**.
 - **GPUI**: no GPUI manager in any `_Game` scene; Unity's terrain renderer draws the WorldMap vegetation (surface.md §4).
-- **Stylized Grass** colour map: not used on the WorldMap.
+- **Stylized Grass** colour map: a repeating 25 m tile of the BK lawn noise (`Environment/Grass Colormap`), independent of the terrain, so terrain changes don't need a re-bake. Never press Render on its `GrassColorMapRenderer`: that would replace the tile with a terrain render.
