@@ -1,5 +1,5 @@
 // Play-mode perf suite for the world map (run with `unity command script run` while in play mode):
-// Views (fixed spots), Actions (move, look, fire, aim, switch, melee), DayNight (hour transitions, night lights), Ab (settings A/B).
+// Views (fixed spots), Actions (move, look, fire, aim, switch, melee), DayNight (hour transitions, night lights), Audio (audio counters), Ab (settings A/B).
 // Frame time, PlayerLoop (game cost without the editor loop), FrameTiming CPU/GPU, render counters, GC, cameras per frame,
 // and the top profiler markers outside the editor loop. Results also go to %TEMP%/claude_perf_<name>.txt.
 using System;
@@ -265,6 +265,84 @@ public static class PerfSuite
             clock.Release("PerfSuite");
         }
         return Finish("daynight", sb);
+    }
+
+    // Audio module counters (CPU, voices, memory) at the spawn: idle, hip fire, reload, then day phase changes (ambience beds and
+    // calls fading); ends with the pooled AudioSources.
+    public static async Task<string> Audio(float seconds = 5f, string hours = "6,18,20")
+    {
+        if (!EditorApplication.isPlaying) return "enter play mode first";
+        var sb = Header("audio");
+        var player = Player;
+        var clock = Clock;
+        var handles = new List<Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle>();
+        Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetAvailable(handles);
+        var defs = handles.Select(Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetDescription).Where(d => d.Category == ProfilerCategory.Audio).OrderBy(d => d.Name).ToArray();
+        var jams = new List<(JamSettings jam, float chance)>();
+        using var s = new Session(input: true, profile: false);
+
+        async Task Run(string name, float secs, Action<int> drive)
+        {
+            var recs = defs.Select(d => ProfilerRecorder.StartNew(d.Category, d.Name, 6000)).ToArray();
+            var seg = await Measure(name, s, secs, drive, false);
+            sb.AppendLine(Row(seg));
+            sb.Append("    ");
+            for (int k = 0; k < defs.Length; k++)
+            {
+                var v = Samples(recs[k], 1f);
+                recs[k].Dispose();
+                if (v.Length == 0 || v.Max() == 0f) continue;
+                bool time = defs[k].UnitType == ProfilerMarkerDataUnit.TimeNanoseconds, bytes = defs[k].UnitType == ProfilerMarkerDataUnit.Bytes;
+                float scale = time ? 1e-6f : bytes ? 1f / (1024f * 1024f) : 1f;
+                string unit = time ? "ms" : bytes ? "MB" : "";
+                sb.Append($"{defs[k].Name} {Median(v) * scale:0.###}/{v.Max() * scale:0.###}{unit}  ");
+            }
+            sb.AppendLine();
+            await Frames(10);
+        }
+
+        try
+        {
+            clock?.SetTime(WorldTime.At(clock.Now.Day, 9f));
+            clock?.Freeze("PerfSuite");
+            player.Ammo.Infinite = true;
+            Teleport(player, player.SpawnPosition, 50f, 0f);
+            await Seconds(6f);
+            var none = Array.Empty<Key>();
+            await Run("idle 9h", seconds, null);
+            Give(player, "AK47");
+            foreach (var g in Resources.FindObjectsOfTypeAll<GunDefinition>())
+            {
+                jams.Add((g.Jam, g.Jam.Chance));
+                g.Jam.Chance = 0f;
+            }
+            player.Equipment.Select(0);
+            await Seconds(1.5f);
+            var pitchHold = PitchSetter(player);
+            await Run("fire_hip", seconds, i => { s.Send(none, Vector2.zero, true, false); pitchHold(0f); AutoReload(player, s, none, i); });
+            s.Send(none, Vector2.zero, false, false);
+            await Run("reload", seconds, i => s.Send(i % 120 is >= 10 and < 13 ? new[] { Key.R } : none, Vector2.zero, false, false));
+            s.Send(none, Vector2.zero, false, false);
+            clock?.Release("PerfSuite");
+            foreach (var h in hours.Split(',').Select(float.Parse))
+            {
+                clock.SetTime(WorldTime.At(clock.Now.Day + (h < clock.Now.Hour ? 1 : 0), h - 1f / 60f));
+                await Frames(2);
+                await Run($"to {h:00}h", 6.5f, null);
+            }
+        }
+        finally
+        {
+            foreach (var (jam, chance) in jams) jam.Chance = chance;
+            player.Ammo.Infinite = false;
+            clock?.Release("PerfSuite");
+        }
+
+        var sources = Object.FindObjectsByType<AudioSource>(FindObjectsInactive.Include);
+        sb.AppendLine($"AudioSources {sources.Length}, playing {sources.Count(a => a.isPlaying)}, 3D {sources.Count(a => a.spatialBlend > 0f)}, listeners {Object.FindObjectsByType<AudioListener>().Length}");
+        foreach (var a in sources.Where(a => a.isPlaying || a.clip != null).Take(20))
+            sb.AppendLine($"  {a.name}: {a.clip?.name} ch {a.clip?.channels} {a.clip?.loadType} blend {a.spatialBlend} playing {a.isPlaying} group {(a.outputAudioMixerGroup ? a.outputAudioMixerGroup.name : "-")}");
+        return Finish("audio", sb);
     }
 
     // A/B of runtime toggles at the spawn, averaged over four headings. "baseline" runs first and last to catch drift.
