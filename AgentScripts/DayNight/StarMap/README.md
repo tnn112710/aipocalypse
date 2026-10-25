@@ -110,3 +110,27 @@ Narrow revision at 8K, seed 271828 and band scale 1.0: generation 66.3 s,
 `c9edcbe18aa5b16a891f9492aa756c5de4e271ecd62e092151293bc52b862e83`.
 RGB/sRGB encoding, seam continuity, both polar PSFs and unchanged stellar
 directions/magnitudes/colours/counts were checked; all previews were inspected.
+
+## Upscaling a generated panorama (`upscale_starmap.py`)
+
+Turns a low-res Milky Way panorama (e.g. an AI-generated 1774x887 equirectangular image) into an
+8K map in the same J2000 layout as above. Same Python environment; it imports helpers from
+`generate_starmap.py`, so run it as a script (not with `-I`).
+
+```powershell
+& $starPython AgentScripts/DayNight/StarMap/upscale_starmap.py `
+  Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap4.png `
+  --out Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap4_8K.png --preview-dir <scratch dir>
+```
+
+How it works: a 7x7 opening separates the diffuse glow and dust from the stars; the glow is
+resampled smoothly with a little fine mottling (`--detail`). Stars brighter than
+`--star-threshold` are detected and redrawn as sharp spherical points with `--star-gain` of their
+energy (the source's blurred stars look harsh at full energy). Unresolved grain left over becomes
+`--grain-stars` faint stars where it was, carrying exactly its energy. Above |latitude| 72 deg the
+source's pinched poles are not trusted: their stars are copies of the 45-68 deg ones at the same
+density per solid angle, and their grain is the mid-latitude mean (not the median: grain is skewed,
+and a median left an 18-deg dim hole around each galactic pole). The band's great circle is fitted and its brightest point taken as the core, then the whole
+panorama is rotated (a proper rotation, never mirrored) onto the real galactic plane, so
+`EnvironmentDirector`'s Star Azimuth / Latitude / Galactic Core Transit place it as documented.
+`--keep-frame` skips that rotation. 8K takes about 90 s.

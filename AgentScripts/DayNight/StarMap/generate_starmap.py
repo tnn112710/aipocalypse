@@ -16,7 +16,7 @@ from PIL import Image
 
 
 DEFAULT_SEED = 271828
-DEFAULT_BAND_SCALE = 1.0
+DEFAULT_STYLE = "natural"
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUT = ROOT / "Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap.png"
 DEG = np.pi / 180.0
@@ -26,6 +26,36 @@ EQ_TO_GAL = np.array([
     [0.4941094279, -0.4448296300, 0.7469822445],
     [-0.8676661490, -0.1980763734, 0.4559837762],
 ], dtype=np.float64)
+
+# Looks, all linear light before the encoder's shoulder. size scales every angular extent of the
+# Milky Way (band, bulge, nebulae, dust); band / wing / bulge / nebula are emission levels; the
+# star values set count, brightness and how strongly stars crowd into the band.
+STYLES = {
+    # Neutral silver band, soft warm core, mottled dust: refs with desert / lake skies.
+    "natural": dict(size=0.62, band=0.016, wing=0.005, bulge=0.075, clouds=1.0, grain=0.55,
+                    dust=1.0, rift=1.0, nebula=0.25, band_color=(0.82, 0.87, 1.0),
+                    core_color=(1.0, 0.80, 0.60), nebula_color=(1.0, 0.42, 0.55),
+                    field_stars=1_100_000, disk_stars=1_500_000, star_flux=1.0, star_band=1.0,
+                    star_saturation=0.40, halo=1.0, saturation=0.85),
+    # Colourful astrophoto: rosy core, pink emission, violet band edges.
+    "vivid": dict(size=0.66, band=0.018, wing=0.006, bulge=0.095, clouds=1.15, grain=0.6,
+                  dust=1.25, rift=1.2, nebula=1.0, band_color=(0.80, 0.80, 1.0),
+                  core_color=(1.0, 0.74, 0.62), nebula_color=(1.0, 0.36, 0.62),
+                  field_stars=1_100_000, disk_stars=1_600_000, star_flux=1.0, star_band=1.0,
+                  star_saturation=0.55, halo=1.1, saturation=1.15),
+    # Mostly a star field: a faint, narrow, cool band that blends in.
+    "subtle": dict(size=0.52, band=0.010, wing=0.0035, bulge=0.045, clouds=0.9, grain=0.7,
+                   dust=0.8, rift=0.8, nebula=0.15, band_color=(0.78, 0.85, 1.0),
+                   core_color=(0.98, 0.86, 0.72), nebula_color=(1.0, 0.45, 0.6),
+                   field_stars=1_400_000, disk_stars=1_700_000, star_flux=1.15, star_band=1.25,
+                   star_saturation=0.35, halo=1.0, saturation=0.75),
+    # Dramatic dust: a darker, branching Great Rift through a warm band.
+    "rift": dict(size=0.6, band=0.017, wing=0.0045, bulge=0.085, clouds=1.25, grain=0.5,
+                 dust=1.6, rift=1.6, nebula=0.45, band_color=(0.86, 0.86, 0.96),
+                 core_color=(1.0, 0.76, 0.54), nebula_color=(1.0, 0.40, 0.52),
+                 field_stars=1_100_000, disk_stars=1_500_000, star_flux=1.0, star_band=0.9,
+                 star_saturation=0.45, halo=1.0, saturation=0.95),
+}
 
 
 def unit(lon, lat):
@@ -66,85 +96,143 @@ def noise(p, frequency, seed):
     return result
 
 
+_FBM_STD = {}
+
+
+def fbm(p, frequency, seed, octaves, gain=0.55):
+    """Zero-mean fractal noise scaled to unit standard deviation."""
+    total = np.zeros(len(p), np.float32)
+    amplitude = 1.0
+    for i in range(octaves):
+        total += amplitude * (noise(p, frequency * 2.03 ** i, seed + 97 * i) - 0.5)
+        amplitude *= gain
+    key = (octaves, gain)
+    if key not in _FBM_STD:
+        probe = np.random.Generator(np.random.PCG64(7)).normal(size=(65536, 3)).astype(np.float32)
+        probe /= np.linalg.norm(probe, axis=1, keepdims=True)
+        sample = np.zeros(len(probe), np.float32)
+        amplitude = 1.0
+        for i in range(octaves):
+            sample += amplitude * (noise(probe, 40.0 * 2.03 ** i, 1 + 97 * i) - 0.5)
+            amplitude *= gain
+        _FBM_STD[key] = float(sample.std())
+    return total / np.float32(_FBM_STD[key])
+
+
 def gaussian(x, sigma):
     return np.exp(-0.5 * (x / sigma) ** 2)
+
+
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def smoothstep(a, b, x):
+    t = np.clip((x - a) / (b - a), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
 
 
 def longitude_delta(lon, center):
     return (lon - center + 180.0) % 360.0 - 180.0
 
 
-def cloud(lon, lat, center, width, b, height):
+def blob(lon, lat, center, b, width, height):
     return gaussian(longitude_delta(lon, center), width) * gaussian(lat - b, height)
 
 
-def milky_way(p, seed, band_scale=DEFAULT_BAND_SCALE):
-    """Continuous 3D noise on the unit sphere, including at seams and poles."""
+def milky_way(p, seed, s):
+    """Galactic unit vectors -> (linear RGB, dust transmission, star crowding 0..1).
+
+    3D noise on the unit sphere keeps it continuous at seams and poles.
+    """
+    k = s["size"]
     lon = np.arctan2(p[:, 1], p[:, 0]) / DEG
     lat = np.arcsin(np.clip(p[:, 2], -1.0, 1.0)) / DEG
-    rgb = np.zeros((len(p), 3), np.float32)
-    transmission = np.ones(len(p), np.float32)
-    mask = np.abs(lat) < 30.0 * band_scale
+    n = len(p)
+    rgb = np.zeros((n, 3), np.float32)
+    transmission = np.ones(n, np.float32)
+    crowding = np.zeros(n, np.float32)
+    mask = np.abs(lat) < 34.0 * k
     if not np.any(mask):
-        return rgb, transmission
-    q, l, b = p[mask], lon[mask], lat[mask] / band_scale
-    # Stretch noise along the plane so absorption forms long, fine filaments.
-    filament_q = q * np.array([0.28, 0.28, 2.4], np.float32)
+        return rgb, transmission, crowding
+    q, l = p[mask], lon[mask]
+    b = lat[mask] / k  # latitude in the style's scaled degrees
+    inv = 1.0 / k
+    # Noise squeezed across the plane makes features stretch along it, like the real band.
+    flat = q * np.array([1.0, 1.0, 2.2], np.float32)
+    thin = q * np.array([1.0, 1.0, 3.4], np.float32)
     along = q.copy()
     along[:, 2] = 0.0
     along[:, :2] /= np.linalg.norm(along[:, :2], axis=1, keepdims=True)
-    spine0 = noise(along, 17.0, seed + 131)
-    spine1 = noise(along, 51.0, seed + 151)
-    n0 = noise(q, 4.0, seed + 11)
-    n1 = noise(filament_q, 11.0, seed + 23)
-    n2 = noise(filament_q, 29.0, seed + 37)
-    n3 = noise(filament_q, 73.0, seed + 51)
-    n4 = noise(q, 183.0, seed + 71)
-    n5 = noise(q, 457.0, seed + 91)
-    n6 = noise(q, 1051.0, seed + 111)
-    texture = (1.0 + 0.15 * (n0 - 0.5) + 0.50 * (n1 - 0.5)
-               + 0.70 * (n2 - 0.5) + 0.60 * (n3 - 0.5)
-               + 0.35 * (n4 - 0.5) + 0.20 * (n5 - 0.5) + 0.10 * (n6 - 0.5))
-    texture = np.maximum(texture, 0.25)
-    center = gaussian(longitude_delta(l, 0.0), 14.5 * band_scale)
-    inner = gaussian(longitude_delta(l, 12.0), 71.0)
-    width = (2.6 + 2.9 * inner + 2.0 * center) * (0.48 + 0.12 * inner)
-    bend = 0.35 * np.sin(l * DEG * 2.0) + 0.35 * (n0 - 0.5)
-    band = gaussian(b - bend, width)
-    envelope = gaussian(b, width * 1.9)
-    clouds = (0.8 * cloud(l, b, 76, 10, 0.65, 1.5)
-              + 1.05 * cloud(l, b, 28, 5.5, -0.5, 1.0)
-              + 0.60 * cloud(l, b, 305, 18, -0.4, 1.5)
-              + 0.65 * cloud(l, b, 287, 8, -0.35, 1.15)
-              + 0.22 * cloud(l, b, 145, 13, 0.4, 1.0))
-    cold = (0.006 * envelope * (0.25 + 0.75 * inner)
-            + 0.043 * band * (0.28 + 0.72 * inner)
-            + 0.012 * clouds) * texture
-    bulge = 0.29 * center * gaussian(b + 0.45, 3.5) * texture ** 0.55
-    # A ragged, branching absorption lane from Sagittarius through Cygnus.
-    rift_extent = (1.0 / (1.0 + np.exp(-(l + 13.0) / 5.0))
-                   * 1.0 / (1.0 + np.exp((l - 94.0) / 7.0)))
-    lane_center = (0.15 + 0.55 * np.sin((l - 5.0) * DEG * 2.6)
-                   + 1.25 * (spine0 - 0.5) + 0.55 * (spine1 - 0.5) + 0.12 * (n2 - 0.5))
-    lane_width = 0.24 + 0.70 * spine0 + 0.18 * center
-    lane = gaussian(b - lane_center, lane_width) * rift_extent
-    branch = gaussian(b - lane_center + 0.60 + 0.90 * spine0, 0.12 + 0.18 * spine1) * inner
-    upper_branch = gaussian(b - lane_center - 0.9 - 0.65 * spine1, 0.18 + 0.14 * n2) * inner
-    ridges = (1.0 - np.abs(2.0 * n2 - 1.0)) ** 10
-    fine_dust = (0.80 * ridges + 0.30 * n3) * gaussian(b - lane_center, 1.25 + 0.65 * center)
-    dust = 2.3 * lane * (0.8 + spine1) + 1.3 * branch + 0.65 * upper_branch + fine_dust
-    dust += 3.2 * cloud(l, b, 303, 2.8, -0.25, 1.0) * (0.9 + 0.2 * n3)
+
+    inner = gaussian(longitude_delta(l, 10.0), 62.0)
+    center = gaussian(longitude_delta(l, 0.0), 13.0 * k)
+    warp = fbm(along, 2.6, seed + 3, 3) * 1.1 + fbm(q, 5.0 * inv, seed + 5, 3) * 0.45
+    width = 3.2 + 2.2 * inner + 2.4 * center
+    bb = b - warp - 0.3 * np.sin(l * DEG * 2.0)
+    core = gaussian(bb, width)
+    # The taper keeps the wide glow off the noise mask's edge.
+    wing = gaussian(b - 0.5 * warp, width * 2.2) * smoothstep(33.0, 22.0, np.abs(b))
+
+    clouds = fbm(flat, 5.5 * inv, seed + 11, 5)
+    patch = np.maximum(1.0 + 0.42 * s["clouds"] * clouds, 0.08) ** 1.6
+    grain = np.maximum(1.0 + 0.30 * s["grain"] * fbm(q, 120.0 * inv, seed + 13, 3), 0.2)
+    # Bright star clouds and the fainter anticenter.
+    along_light = (0.30 + 0.70 * inner
+                   + 0.55 * blob(l, b, 28, -0.6, 6.0 * k, 2.2)     # Scutum
+                   + 0.45 * blob(l, b, 76, 0.8, 10.0 * k, 2.6)     # Cygnus
+                   + 0.40 * blob(l, b, 305, -0.4, 14.0 * k, 2.4)   # Crux / Centaurus
+                   + 0.35 * blob(l, b, 287, -0.4, 7.0 * k, 2.0)    # Carina
+                   + 0.30 * blob(l, b, 333, -0.5, 9.0 * k, 2.0))   # Norma
+    band = (s["band"] * core * patch + s["wing"] * wing * (0.6 + 0.4 * patch)) * along_light * grain
+    bulge = (s["bulge"] * gaussian(longitude_delta(l, 0.0), 8.5 * k)
+             * gaussian(b + 1.6 - 0.4 * warp, 4.6) * patch ** 0.7 * grain)
+    crowding[mask] = np.clip((core * patch * along_light + 0.25 * wing
+                              + 1.5 * bulge / max(s["bulge"], 1e-6)) / 2.2, 0.0, 1.0)
+
+    # Dust: blotchy lanes along a wandering spine, darkest and branching through the Great Rift.
+    spine = fbm(along, 8.0, seed + 131, 4) * 0.9 + fbm(thin, 9.0 * inv, seed + 137, 3) * 0.35
+    rift = sigmoid((l + 14.0) / 4.0) * sigmoid((92.0 - l) / 6.0)
+    blotch = smoothstep(-0.9, 1.6, fbm(flat, 9.0 * inv, seed + 201, 7, gain=0.62)) ** 1.4
+    lane = gaussian(b - spine, width * (0.30 + 0.18 * center))
+    branch = gaussian(b - spine + 1.3 + 0.8 * fbm(along, 13.0, seed + 211, 2), 0.55) * inner
+    # Thin dark veins, wispy rather than solid.
+    ridged = (1.0 - np.abs(np.tanh(0.7 * fbm(thin, 22.0 * inv, seed + 223, 5)))) ** 9
+    dust = (1.3 * s["dust"] * lane * blotch * (0.35 + 1.1 * s["rift"] * rift)
+            + 0.6 * s["rift"] * branch * blotch * rift
+            + 0.7 * s["dust"] * ridged * (0.4 + blotch) * gaussian(b - spine, width * 0.75) * inner)
+    dust += 2.2 * blob(l, b, 303, -0.5, 2.6 * k, 1.1 / k ** 0.3)                   # Coalsack
+    dust += 1.6 * blob(l, b, 2.0, 5.5, 2.2 * k, 1.3) * (0.7 + 0.6 * blotch)        # Pipe Nebula
+    dust += 1.0 * blob(l, b, 356, 13.0, 6.0 * k, 1.4) * blotch     # Ophiuchus streamers
     trans = np.exp(-dust)
-    # Extinction removes blue more strongly, leaving brown/amber lane edges.
-    extinction = np.exp(-dust[:, None] * np.array([0.78, 1.0, 1.27], np.float32))
-    light = cold[:, None] * np.array([0.69, 0.83, 1.0], np.float32)
-    light += bulge[:, None] * np.array([1.0, 0.74, 0.43], np.float32)
-    rgb[mask] = light * extinction
+    # Dust reddens what it lets through: brown lane edges.
+    extinction = np.exp(-dust[:, None] * np.array([0.80, 1.0, 1.25], np.float32))
+
+    wisps = fbm(q, 16.0 * inv, seed + 301, 5)
+    hii = np.maximum(wisps - 0.9, 0.0)
+    nebula = 0.025 * gaussian(b - 0.3 * warp, width * 0.35) * inner * hii + np.maximum(0.55 + 0.45 * wisps, 0.0) * (
+              0.10 * blob(l, b, 6.0, -1.2, 1.1 * k, 0.9)    # Lagoon
+              + 0.05 * blob(l, b, 7.0, -0.3, 0.6 * k, 0.6)    # Trifid
+              + 0.05 * blob(l, b, 16.0, 0.6, 1.0 * k, 0.8)    # Eagle / Omega
+              + 0.06 * blob(l, b, 352.0, 16.5, 2.5 * k, 2.0)  # Rho Ophiuchi
+              + 0.08 * blob(l, b, 287.6, -0.6, 1.4 * k, 1.0)  # Eta Carinae
+              + 0.05 * blob(l, b, 85.0, -1.0, 2.2 * k, 1.6)   # North America
+              + 0.04 * blob(l, b, 79.0, 1.5, 4.0 * k, 2.0)    # Sadr region
+              + 0.03 * blob(l, b, 134.0, 0.8, 2.0 * k, 1.2))  # Heart and Soul
+    nebula = s["nebula"] * nebula * (0.5 + 0.5 * patch) * grain
+
+    light = (band[:, None] * np.array(s["band_color"], np.float32)
+             + bulge[:, None] * np.array(s["core_color"], np.float32)
+             + nebula[:, None] * np.array(s["nebula_color"], np.float32))
+    light *= extinction
+    luma = light @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    light = luma[:, None] + s["saturation"] * (light - luma[:, None])
+    rgb[mask] = np.maximum(light, 0.0)
     transmission[mask] = trans
-    return rgb, transmission
+    return rgb, transmission, crowding
 
 
-def star_colors(rng, count):
+def star_colors(rng, count, saturation):
     # Approximate blackbody colours with a mostly F/G/A stellar population.
     bv = np.clip(rng.normal(0.48, 0.43, count), -0.30, 1.9)
     temp = 4600.0 * (1.0 / (0.92 * bv + 1.7) + 1.0 / (0.92 * bv + 0.62)) / 100.0
@@ -155,59 +243,68 @@ def star_colors(rng, count):
                     np.where(temp <= 19, 0.0, 138.5177 * np.log(np.maximum(temp - 10, 1)) - 305.0448))
     srgb = np.clip(np.stack((red, green, blue), axis=1) / 255.0, 0, 1)
     linear = np.where(srgb <= 0.04045, srgb / 12.92, ((srgb + 0.055) / 1.055) ** 2.4)
-    return (0.62 * linear + 0.38).astype(np.float32)
+    return (saturation * linear + (1.0 - saturation)).astype(np.float32)
 
 
-def catalogue(seed, width, band_scale=DEFAULT_BAND_SCALE):
+def catalogue(seed, width, s):
     rng = np.random.Generator(np.random.PCG64(seed))
     # These counts are angular, independent of output resolution.
-    field_count, disk_count = 430_000, 1_170_000
+    field_count, disk_count = s["field_stars"], s["disk_stars"]
     field = unit(rng.uniform(0, 2 * np.pi, field_count),
-                 np.arcsin(rng.uniform(-1, 1, field_count)))
-    disk_parts = []
+                 np.arcsin(rng.uniform(-1, 1, field_count))).astype(np.float32)
+    # Disk stars crowd where the band is bright, so the star clouds read as made of stars.
+    disk_parts, transmissions = [], []
     remaining = disk_count
     while remaining:
-        n = int(remaining * 2.8) + 64
+        n = int(remaining * 3.0) + 4096
         l = rng.uniform(-np.pi, np.pi, n)
-        b = rng.normal(0.0, (4.7 + 1.8 * np.cos(l)) * DEG, n)
-        # cos(b) is the solid-angle Jacobian; the longitudinal factor adds bulge density.
-        accept = ((np.abs(b) < np.pi / 2)
-                  & (rng.random(n) < np.cos(b) * (0.53 + 0.47 * np.cos(l))))
-        part = unit(l[accept][:remaining], b[accept][:remaining])
-        disk_parts.append(part)
-        remaining -= len(part)
-    gal = np.concatenate([field, *disk_parts]).astype(np.float32)
+        b = rng.normal(0.0, (5.0 + 2.0 * np.cos(l)) * s["size"] * DEG, n)
+        b = np.clip(b, -np.pi / 2, np.pi / 2)
+        candidates = unit(l, b).astype(np.float32)
+        crowd = np.empty(n, np.float32)
+        trans = np.empty(n, np.float32)
+        for start in range(0, n, 65536):
+            _, t, c = milky_way(candidates[start:start + 65536], seed, s)
+            crowd[start:start + len(c)], trans[start:start + len(t)] = c, t
+        weight = (0.18 + 0.82 * crowd ** s["star_band"]) * np.cos(b)
+        accept = np.flatnonzero(rng.random(n) < weight)[:remaining]
+        disk_parts.append(candidates[accept])
+        transmissions.append(trans[accept])
+        remaining -= len(accept)
+    field_trans = np.empty(field_count, np.float32)
+    for start in range(0, field_count, 65536):
+        _, t, _ = milky_way(field[start:start + 65536], seed, s)
+        field_trans[start:start + len(t)] = t
+    gal = np.concatenate([field, *disk_parts])
+    # Field stars are mostly nearby, in front of the dust; disk stars sit in or behind it.
+    attenuation = np.concatenate([0.75 + 0.25 * field_trans,
+                                  0.08 + 0.92 * np.concatenate(transmissions) ** 0.8])
     eq = gal.astype(np.float64) @ EQ_TO_GAL
     ra = np.arctan2(eq[:, 1], eq[:, 0]) % (2 * np.pi)
     dec = np.arcsin(np.clip(eq[:, 2], -1, 1))
     n = len(gal)
-    m_max, m_min = 13.0, -1.5
-    low = 3.0 ** (m_min - m_max)
-    magnitude = m_max + np.log(low + (1 - low) * rng.random(n)) / np.log(3.0)
-    color = star_colors(rng, n)
-    attenuation = np.empty(n, np.float32)
-    for start in range(0, n, 65536):
-        _, trans = milky_way(gal[start:start + 65536], seed, band_scale)
-        attenuation[start:start + len(trans)] = 0.12 + 0.88 * trans ** 0.65
-        foreground_end = min(field_count, start + len(trans))
-        if start < foreground_end:
-            attenuation[start:foreground_end] = 0.70 + 0.30 * trans[:foreground_end - start]
-    flux = (0.0075 * 10.0 ** (0.4 * (m_max - magnitude))).astype(np.float32)
+    m_max, m_min = 13.5, -1.4
+    growth = 2.75
+    low = growth ** (m_min - m_max)
+    magnitude = m_max + np.log(low + (1 - low) * rng.random(n)) / np.log(growth)
+    color = star_colors(rng, n, s["star_saturation"])
+    # Flatter than the real 0.4 slope: faint stars stay visible after mipmapping and the night grade.
+    flux = (0.011 * s["star_flux"] * 10.0 ** (0.32 * (m_max - magnitude))).astype(np.float32)
     flux *= attenuation
-    flux = 3.0 * np.tanh(flux / 3.0)
+    flux = 2.5 * np.tanh(flux / 2.5)
     scale = width / 8192.0
-    sigma = (0.40 + 0.30 * np.clip((11.5 - magnitude) / 6.5, 0, 1)) * scale
+    sigma = (0.42 + 0.55 * np.clip((9.5 - magnitude) / 8.0, 0, 1)) * scale
     x = ra * width / (2 * np.pi) - 0.5
     y = (0.5 - dec / np.pi) * (width // 2) - 0.5
     order = np.argsort(y, kind="stable")
     stars = dict(x=x[order], y=y[order], dec=dec[order], sigma=sigma[order],
                  flux=flux[order], color=color[order], magnitude=magnitude[order])
     print(f"Stars: {n:,}; m<6: {np.count_nonzero(magnitude < 6)}; "
-          f"m<8: {np.count_nonzero(magnitude < 8)}", flush=True)
+          f"m<9: {np.count_nonzero(magnitude < 9)}", flush=True)
     return stars
 
 
-def paint_stars(image, row, stars, width):
+def paint_stars(image, row, stars, width, halo_strength):
     """Spherical Gaussian PSFs: local 1/cos(dec), exact distance in polar caps."""
     height, scale = width // 2, width / 8192.0
     margin = int(math.ceil(10 * scale)) + 2
@@ -219,7 +316,7 @@ def paint_stars(image, row, stars, width):
         if not len(s["x"]):
             continue
         sigma = np.full(len(s["x"]), 2.4 * scale) if halo else s["sigma"]
-        peak = np.minimum(s["flux"], 0.40) * 0.045 if halo else s["flux"]
+        peak = np.minimum(s["flux"], 0.40) * 0.05 * halo_strength if halo else s["flux"]
         # Binning avoids giving all faint stars the support of a bright halo.
         radius_y = np.ceil(3.5 * sigma).astype(int)
         cosdec = np.cos(s["dec"])
@@ -313,8 +410,8 @@ def encode(linear, row, seed):
     return np.clip(np.floor(srgb * 255 + 0.5 + dither[:, :, None]), 0, 255).astype(np.uint8)
 
 
-def generate(width, seed, out, strip_rows, band_scale=DEFAULT_BAND_SCALE):
-    stars = catalogue(seed, width, band_scale)
+def generate(width, seed, out, strip_rows, s):
+    stars = catalogue(seed, width, s)
     height = width // 2
     ra = (np.arange(width, dtype=np.float64) + 0.5) * (2 * np.pi / width)
     cosra, sinra = np.cos(ra), np.sin(ra)
@@ -327,9 +424,9 @@ def generate(width, seed, out, strip_rows, band_scale=DEFAULT_BAND_SCALE):
         eq[:, :, 1] = np.cos(dec)[:, None] * sinra
         eq[:, :, 2] = np.sin(dec)[:, None]
         gal = eq.reshape(-1, 3) @ EQ_TO_GAL.astype(np.float32).T
-        linear, _ = milky_way(gal, seed, band_scale)
+        linear, _, _ = milky_way(gal, seed, s)
         linear = linear.reshape(rows, width, 3)
-        paint_stars(linear, row, stars, width)
+        paint_stars(linear, row, stars, width, s["halo"])
         writer.rows(encode(linear, row, seed))
         if row % (strip_rows * 16) == 0:
             print(f"Rows {row + rows}/{height}", flush=True)
@@ -341,7 +438,7 @@ def srgb_to_linear(pixels):
     return np.where(p <= 0.04045, p / 12.92, ((p + 0.055) / 1.055) ** 2.4)
 
 
-def pinhole(pixels, lon, lat, roll=0.0, fov=90, size=(1920, 1080)):
+def pinhole(pixels, lon, lat, roll=0.0, fov=90, size=(1920, 1080), gain=1.0):
     w, h = size
     forward = gal_to_eq(lon * DEG, lat * DEG)
     north = gal_to_eq(lon * DEG, (lat + 0.01) * DEG) - forward
@@ -367,29 +464,32 @@ def pinhole(pixels, lon, lat, roll=0.0, fov=90, size=(1920, 1080)):
                              + fx * srgb_to_linear(pixels[y0, x1]))
                   + fy * ((1 - fx) * srgb_to_linear(pixels[y1, x0])
                           + fx * srgb_to_linear(pixels[y1, x1])))
+        linear = np.minimum(linear * gain, 1.0)
         srgb = np.where(linear <= 0.0031308, 12.92 * linear,
                         1.055 * np.maximum(linear, 0) ** (1 / 2.4) - 0.055)
         output[row:row + len(d)] = np.clip(srgb * 255 + 0.5, 0, 255).astype(np.uint8)
     return Image.fromarray(output)
 
 
-def previews(out, directory):
+def previews(out, directory, gain):
     directory.mkdir(parents=True, exist_ok=True)
     with Image.open(out) as source:
         pixels = np.asarray(source)
         source.resize((2048, 1024), Image.Resampling.LANCZOS).save(directory / "whole_map_2048.png")
-    views = [("galactic_center", 5.0, -1.0, 24.0),
-             ("cygnus_great_rift", 65.0, 0.0, -30.0),
-             ("high_galactic_latitude", 155.0, 65.0, 0.0)]
-    for name, l, b, roll in views:
-        pinhole(pixels, l, b, roll).save(directory / f"{name}_1920.png")
+    # Gain approximates the material's Star Map Intensity, so previews read like the game.
+    views = [("galactic_center", 5.0, -1.0, 24.0, 90),
+             ("cygnus_great_rift", 65.0, 0.0, -30.0, 90),
+             ("high_galactic_latitude", 155.0, 65.0, 0.0, 90),
+             ("core_closeup", 0.0, 0.0, 30.0, 40)]
+    for name, l, b, roll, fov in views:
+        pinhole(pixels, l, b, roll, fov, gain=gain).save(directory / f"{name}_1920.png")
     # Both cap views and the RA=0 crossing make projection defects inspectable.
     for name, eq in [("north_pole", np.array([0., 0., 1.])),
                      ("south_pole", np.array([0., 0., -1.])),
                      ("ra_seam", np.array([1., 0., 0.]))]:
         gal = EQ_TO_GAL @ eq
         l, b = np.arctan2(gal[1], gal[0]) / DEG, np.arcsin(gal[2]) / DEG
-        pinhole(pixels, l, b, fov=35, size=(960, 960)).save(directory / f"check_{name}.png")
+        pinhole(pixels, l, b, fov=35, size=(960, 960), gain=gain).save(directory / f"check_{name}.png")
 
 
 def sha256(path):
@@ -428,10 +528,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--width", type=int, default=8192)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
-    parser.add_argument("--band-scale", type=float, default=DEFAULT_BAND_SCALE,
-                        help="Angular scale relative to the NEW narrow baseline (default 1.0); 0.25..2.0")
+    parser.add_argument("--style", choices=sorted(STYLES), default=DEFAULT_STYLE)
+    parser.add_argument("--size", type=float, help="Overrides the style's Milky Way angular size (0.3..1.5)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--preview-dir", type=Path, help="Optional previews outside Assets; omit for minimum memory")
+    parser.add_argument("--preview-gain", type=float, default=4.0, help="Preview exposure, ~ Star Map Intensity")
     parser.add_argument("--strip-rows", type=int, default=64, help="Working strip height (default 64)")
     args = parser.parse_args()
     if args.width < 512 or args.width % 2:
@@ -440,16 +541,19 @@ def main():
         parser.error("--strip-rows must be 1..256")
     if not 0 <= args.seed <= 0xFFFFFFFF:
         parser.error("--seed must be a uint32")
-    if not np.isfinite(args.band_scale) or not 0.25 <= args.band_scale <= 2.0:
-        parser.error("--band-scale must be finite and within 0.25..2.0")
+    style = dict(STYLES[args.style])
+    if args.size is not None:
+        if not np.isfinite(args.size) or not 0.3 <= args.size <= 1.5:
+            parser.error("--size must be finite and within 0.3..1.5")
+        style["size"] = args.size
     args.out.parent.mkdir(parents=True, exist_ok=True)
     start = time.perf_counter()
-    generate(args.width, args.seed, args.out, args.strip_rows, args.band_scale)
+    generate(args.width, args.seed, args.out, args.strip_rows, style)
     generation_seconds = time.perf_counter() - start
     if args.preview_dir:
-        previews(args.out, args.preview_dir)
+        previews(args.out, args.preview_dir, args.preview_gain)
     print(json.dumps(dict(out=str(args.out.resolve()), width=args.width, height=args.width // 2,
-                          mode="RGB", seed=args.seed, band_scale=args.band_scale,
+                          mode="RGB", seed=args.seed, style=args.style, size=style["size"],
                           generation_seconds=round(generation_seconds, 3),
                           total_seconds=round(time.perf_counter() - start, 3),
                           peak_working_set_mib=peak_memory_mib(), sha256=sha256(args.out)), indent=2), flush=True)
