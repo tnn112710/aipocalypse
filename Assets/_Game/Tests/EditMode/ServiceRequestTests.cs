@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using Aipocalypse.Core.GraphicsSystem;
 using Aipocalypse.Core.TimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace Aipocalypse.Tests
 {
@@ -126,6 +128,36 @@ namespace Aipocalypse.Tests
                 graphics.Dispose();
             }
             Assert.IsFalse(Shader.IsKeywordEnabled(keyword));
+        }
+
+        [Test]
+        public void GraphicsService_ShowsTheGrassFeatureToGameCameras_AndDisposeRestoresItsFlags()
+        {
+            if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset pipeline)
+            {
+                Assert.Ignore("no URP asset");
+                return;
+            }
+            var features = new List<(ScriptableRendererFeature Feature, HideFlags Flags)>();
+            foreach (ScriptableRendererData data in pipeline.rendererDataList)
+                foreach (ScriptableRendererFeature feature in data.rendererFeatures)
+                    if (feature.GetType().Name == "GrassRenderFeature")
+                        features.Add((feature, feature.hideFlags));
+            if (features.Count == 0)
+                Assert.Ignore("no Stylized Grass render feature");
+
+            var graphics = new GraphicsService();
+            try
+            {
+                foreach ((ScriptableRendererFeature feature, _) in features)
+                    Assert.AreEqual(HideFlags.None, feature.hideFlags, "Stylized Grass skips game cameras while its feature has hide flags");
+            }
+            finally
+            {
+                graphics.Dispose();
+            }
+            foreach ((ScriptableRendererFeature feature, HideFlags flags) in features)
+                Assert.AreEqual(flags, feature.hideFlags);
         }
     }
 }

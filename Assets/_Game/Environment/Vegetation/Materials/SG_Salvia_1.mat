@@ -13,7 +13,8 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ADVANCED_LIGHTING
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _ENVIRONMENTREFLECTIONS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -86,10 +87,10 @@ Material:
     - _AlphaClip: 0
     - _AlphaToCoverage: 0
     - _AngleFading: 0
-    - _BendFlattenStrength: 1
+    - _BendFlattenStrength: 0.5
     - _BendInfluence: 1
-    - _BendMode: 0
-    - _BendPushStrength: 1
+    - _BendMode: 1
+    - _BendPushStrength: 0.5
     - _Billboard: 0
     - _BillboardKwToggle: 0
     - _BillboardShadowFade: 0.5

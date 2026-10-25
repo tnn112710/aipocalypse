@@ -57,8 +57,8 @@ Assets/_Game/
 │  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; Advance(deltaTime)
-│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: MoveSpeed, StopDistance, Wander (WanderSettings); lives in Content/Enemies/<Name>/
-│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Destination; on its first Start (and each re-enable) initializes its mover, starts its tree and registers; stops both and leaves when disabled
+│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: MoveSpeed, StopDistance, GrassBendRadius, Wander (WanderSettings); lives in Content/Enemies/<Name>/
+│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Destination; on its first Start (and each re-enable) initializes its mover, starts its tree and registers (and joins the scene's GrassBendField, if any); stops both and leaves when disabled
 │  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition), Home, TryFindDestination, MoveTo(destination, timeout), Arrived, TimedOut, Halt
 │  │  ├─ WanderTasks.cs                     ChooseWanderDestination / WalkToWanderDestination / PauseWander ActionNodes of the shared subtree (read EnemyBrain.Definition.Wander, move through EnemyMover)
 │  │  ├─ WanderSettings.cs                  SO: wander radius, pause, travel timeout, destination attempts, minimum travel; asset in Data/Enemies/, the shared subtree in Content/Enemies/_Shared/
@@ -66,7 +66,8 @@ Assets/_Game/
 │  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
 │  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in the world map
-│  │  ├─ EnvironmentInstaller.cs            SceneInstaller: RegisterComponent(EnvironmentDirector); optional TimeOfDayAmbience → AmbienceService entry point, only with a ready WorldTimeInstaller on the scope (else a warning)
+│  │  ├─ GrassBendField.cs                  one Stylized Grass bender for crowd movers: a sphere mesh particle per Add(transform, radius)'d mover, moved in LateUpdate (ParticleSystem + GrassBender on the same object); Environment/Grass Bending in the world map
+│  │  ├─ EnvironmentInstaller.cs            SceneInstaller: RegisterComponent(EnvironmentDirector); optional GrassBendField (RegisterComponent); optional TimeOfDayAmbience → AmbienceService entry point, only with a ready WorldTimeInstaller on the scope (else a warning)
 │  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ and Skybox Plus sky globals (Play mode: Skybox Plus moon phase on a runtime copy of the sky material), _StarMapRotation (latitude + sidereal time), Grade From / To volumes; profile → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
 │  │  ├─ TimeOfDay/TimeOfDayProfile.cs      SO: keys (hour, LightingPreset, grade VolumeProfile, blend) → Evaluate(hour); PhaseLooks (DayPhase → hour, PhaseLookHour); SunPath (sun / moon directions); grade-override warning
 │  │  ├─ TimeOfDay/LightingPreset.cs        SO: one look (sun, moon, ambient, reflections, fog, sky, haze, unlit tint) → AtmosphereState
@@ -103,7 +104,7 @@ Assets/_Game/
 │  │  ├─ PoseBlender.cs                     a held model's pose pivot easing between pose markers: SnapTo, Set, MoveTowards, ApplyTo; static editor Preview (HeldGun / HeldMelee preview buttons)
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ GraphicsSystem/                       Aipocalypse.Core.GraphicsSystem
-│  │  ├─ GraphicsService.cs                 root service, sole runtime writer of the URP asset's shadow distance: ShadowDistance (player setting; the asset's value until a graphics menu exists), RequestShadowDistance(owner, d) / ReleaseShadowDistance (shortest wins); restores the asset's value on Dispose; StarTwinkle (player setting, on by default) = the global STAR_TWINKLE shader keyword, off on Dispose
+│  │  ├─ GraphicsService.cs                 root service, sole runtime writer of the URP asset's shadow distance: ShadowDistance (player setting; the asset's value until a graphics menu exists), RequestShadowDistance(owner, d) / ReleaseShadowDistance (shortest wins); restores the asset's value on Dispose; StarTwinkle (player setting, on by default) = the global STAR_TWINKLE shader keyword, off on Dispose; clears the Stylized Grass render feature's hide flags before each frame (else it skips game cameras), restored on Dispose
 │  │  └─ GraphicsInstaller.cs               registers GraphicsService in the root scope
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
@@ -293,11 +294,11 @@ Assets/_Game/
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
    ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
    ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
-   ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose)
+   ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose; Stylized Grass feature shown to game cameras, flags restored)
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
    ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
    ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)
-   ├─ StylizedGrassTests.cs                 Stylized Grass detail prefabs carry a vertex-colour wind mask; the lawn colour map is the repeating 25 m tile; the player prefab has its grass bender
+   ├─ StylizedGrassTests.cs                 Stylized Grass detail prefabs carry a vertex-colour wind mask; the lawn colour map is the repeating 25 m tile; the player prefab has its grass bender; GrassBendField adds each mover once and forgets removed ones; details whose bend mask is 1 down to the root (flat ground flowers) do not bend
    ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet; a hole sticks to the moving target it hit
    └─ TestConsumableDefinition.cs           quick-use stackable ItemDefinition for EquipmentTests
 ```
@@ -311,7 +312,7 @@ ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings
                                                 │
 GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats)
-   EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), AmbienceService (needs WorldTimeInstaller)
+   EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), GrassBendField, AmbienceService (needs WorldTimeInstaller)
    EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager; injects the listed scene enemies (EnemyBrain)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
@@ -344,6 +345,7 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
 - Outside systems see the player through `PlayerRegistry.Current`, an `IPlayer` (HUD, respawn flow, cheats); enemies and companions only need `IPlayerTarget` (`_Common/Entities`: transform + `IDamageable`).
 - `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser`, a `HeldMelee` its eye and root through `IWeaponUser` (Player implements all of them). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
+- `EnemySystem` → `EnvironmentSystem`: `EnemyBrain` `TryResolve`s the scene's `GrassBendField` and joins it while active. No field = no bending.
 - `PlayerSystem` → `EnvironmentSystem`: the player's `VisionLight` carries a `TimeOfDayWeight` (Darkness) that the scene's director ticks; `Player` only reads its `Weight`. No director (prototype scenes) = never dark, light off.
 - Bullets, swings and falls hurt anything with an `IDamageable` (`_Common/Combat`) through `DamageService.Deal`, which applies `TakeDamage` and publishes `DamageDealt` (source, result). Targets only apply their own rules.
 - Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).

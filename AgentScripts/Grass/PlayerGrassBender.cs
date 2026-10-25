@@ -1,5 +1,5 @@
 // Adds a Stylized Grass bender at the player's feet (child "Grass Bender" of Player.prefab). Idempotent.
-// Run: unity command script run --file AgentScripts/Grass/PlayerGrassBender.cs --entry PlayerGrassBender.Run
+// Run: unity command script run --file AgentScripts/Grass/PlayerGrassBender.cs --entry PlayerGrassBender.Run --args "[0.8, 0.1, 1, 2]"
 using System.Linq;
 using sc.stylizedgrass.runtime;
 using UnityEditor;
@@ -10,7 +10,7 @@ public static class PlayerGrassBender
 {
     const string PlayerPrefab = "Assets/_Game/_Core/PlayerSystem/Prefabs/Player.prefab";
 
-    public static object Run(float radius, float height)
+    public static object Run(float radius, float height, float flatten, float push)
     {
         var root = PrefabUtility.LoadPrefabContents(PlayerPrefab);
         try
@@ -33,8 +33,8 @@ public static class PlayerGrassBender
             var bender = go.AddComponent<GrassBender>();
             bender.renderer = mr;
             bender.meshFilter = go.GetComponent<MeshFilter>();
-            bender.flattenStrength = 0.6f;
-            bender.pushStrength = 1f;
+            bender.flattenStrength = flatten;
+            bender.pushStrength = push;
             go.SetActive(true);
             mr.sharedMaterial = null;   // the bender assigns its own runtime material in OnEnable
             PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefab);

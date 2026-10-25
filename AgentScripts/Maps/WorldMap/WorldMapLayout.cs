@@ -5095,7 +5095,11 @@ public static class Vegetation
             var shadows = existing != null ? existing.GetComponent<MeshRenderer>().shadowCastingMode : r.shadowCastingMode;
 
             Material mat = orig; Mesh useMesh = mesh; string note = "vendor";
-            if (on) (mat, useMesh, note) = StylizedFamily(name, orig, mesh);
+            if (on)
+            {
+                (mat, useMesh, note) = StylizedFamily(name, orig, mesh);
+                FlowerBending(name, mat);
+            }
 
             var go = new GameObject(name + "_Detail");
             go.AddComponent<MeshFilter>().sharedMesh = useMesh;
@@ -5106,6 +5110,36 @@ public static class Vegetation
             report.Add(name + ": " + note);
         }
         return new { stylized = on, repointed = RepointDetails(swap), families = report };
+    }
+
+    // Per-vertex bending tears flower heads apart (each vertex samples the bend map at its own spot), so flowers bend uniformly
+    // from their pivot at half strength and lean as a whole. The flat ground flowers (bend mask 1 everywhere) would only slide
+    // or sink, so they don't bend; the grass around them does.
+    static readonly string[] GroundFlowers = { "BK_Daisy", "BK_CommonBlue", "BK_CommonPink", "BK_Sorrel_Dark" };
+    static readonly string[] TallFlowers = { "BK_FlowerMeadow1", "BK_FlowerMeadow3", "BK_Lavender", "BK_Gorse1", "BK_Lupin2", "BK_Carot1", "KN_Salvia_1", "HL_Flowers_1" };
+
+    // Applies FlowerBending to the existing SG_* materials without rebuilding the details.
+    public static object ApplyFlowerBending()
+    {
+        var done = new List<string>();
+        foreach (var (_, name) in SGFamilies)
+        {
+            string path = Folder + "/Materials/SG_" + name.Substring(3) + ".mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path) ?? throw new ArgumentException("Missing " + path);
+            FlowerBending(name, m);
+            done.Add($"{m.name} mode {m.GetFloat("_BendMode")} strength {m.GetFloat("_BendPushStrength")}");
+        }
+        return done;
+    }
+
+    static void FlowerBending(string name, Material m)
+    {
+        float strength = GroundFlowers.Contains(name) ? 0f : TallFlowers.Contains(name) ? 0.5f : 1f;
+        m.SetFloat("_BendMode", TallFlowers.Contains(name) ? 1f : 0f);
+        m.SetFloat("_BendPushStrength", strength);
+        m.SetFloat("_BendFlattenStrength", strength);
+        EditorUtility.SetDirty(m);
+        AssetDatabase.SaveAssetIfDirty(m);
     }
 
     static (Material, Mesh, string) StylizedFamily(string name, Material orig, Mesh mesh)

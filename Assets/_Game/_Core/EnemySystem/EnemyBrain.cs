@@ -1,3 +1,4 @@
+using Aipocalypse.Core.EnvironmentSystem;
 using Opsive.BehaviorDesigner.Runtime;
 using UnityEngine;
 using VContainer;
@@ -5,7 +6,8 @@ using VContainer;
 namespace Aipocalypse.Core.EnemySystem
 {
     // An enemy's bridge to the enemy system: once injected, starts its Manual-mode tree and joins the EnemyRegistry while
-    // enabled, where EnemyManager ticks it. Its kind (speed, behaviour tuning) is its EnemyDefinition.
+    // enabled, where EnemyManager ticks it (and the scene's GrassBendField, if any, bends grass around it). Its kind (speed,
+    // behaviour tuning) is its EnemyDefinition.
     [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
     public sealed class EnemyBrain : MonoBehaviour
     {
@@ -13,6 +15,7 @@ namespace Aipocalypse.Core.EnemySystem
 
         EnemyRegistry _registry;
         AstarPath _navigation;
+        GrassBendField _grassBending;
         EnemyMover _mover;
         bool _started;
 
@@ -24,10 +27,11 @@ namespace Aipocalypse.Core.EnemySystem
         internal int RegistryIndex { get; set; } = -1;
 
         [Inject]
-        void Construct(EnemyRegistry registry, AstarPath navigation)
+        void Construct(EnemyRegistry registry, AstarPath navigation, IObjectResolver resolver)
         {
             _registry = registry;
             _navigation = navigation;
+            resolver.TryResolve(out _grassBending);
             if (_started && isActiveAndEnabled)
                 Activate();
         }
@@ -55,6 +59,8 @@ namespace Aipocalypse.Core.EnemySystem
         void OnDisable()
         {
             _registry?.Remove(this);
+            if (_grassBending != null)
+                _grassBending.Remove(transform);
             if (Tree != null)
                 Tree.StopBehavior(false);
             if (_mover != null)
@@ -68,6 +74,8 @@ namespace Aipocalypse.Core.EnemySystem
             _mover.Initialize(_navigation, _definition);
             Tree.StartBehavior();
             _registry.Add(this);
+            if (_grassBending != null)
+                _grassBending.Add(transform, _definition.GrassBendRadius);
         }
     }
 }
