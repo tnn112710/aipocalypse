@@ -5,6 +5,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Serialization;
 using VContainer;
 
 namespace Aipocalypse.Core.EnvironmentSystem
@@ -75,9 +76,12 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [SerializeField, Range(0f, 15f), Tooltip("Skybox Plus sky only: sun elevation (degrees) below which its sun sinks faster than the sun path. " +
             "Its sky stays day-blue until the sun is well below the horizon, so this starts its twilight before sunset")]
         float _skyboxPlusDuskElevation = 6f;
-        [SerializeField, Range(1f, 6f), Tooltip("Skybox Plus sky only: how many times faster its sun sinks below Dusk Elevation. " +
-            "Its sky is dark with stars only once its sun is ~27° down; 3.5 = full night about half an hour after sunset")]
-        float _skyboxPlusNightSink = 3.5f;
+        [SerializeField, Range(1f, 6f), FormerlySerializedAs("_skyboxPlusNightSink"), Tooltip("Skybox Plus sky only, before noon: how many times faster its sun sinks below Dusk Elevation. " +
+            "Its sky is dark with stars only once its sun is ~27° down; 3.5 = a twilight-blue sky at sunrise, matching the dawn grade's lit ground")]
+        float _skyboxPlusMorningSink = 3.5f;
+        [SerializeField, Range(1f, 6f), Tooltip("Skybox Plus sky only, after noon: as Morning Sink. " +
+            "Higher than the morning because the night grade already darkens the ground at sunset; 5 = deep indigo with the first stars at sunset")]
+        float _skyboxPlusEveningSink = 5f;
         [SerializeField, Range(-90f, 90f), Tooltip("Star map sky: the world's latitude. The celestial pole stands this many degrees above the north horizon and the stars turn around it")]
         float _starLatitude = 30f;
         [SerializeField, Range(0f, 360f), Tooltip("Star map sky: turns the whole star sky around the vertical by this bearing. 180 puts the Milky Way's core in the north (over WorldMap's northern mountains) instead of the real south")]
@@ -393,7 +397,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         void ApplySky(in AtmosphereState state, float lookHour, Vector3 sun, Vector3 moon, float moonPhase)
         {
             ApplyTimeOfDaySky(state, sun, moon, moonPhase);
-            ApplySkyboxPlus(sun, moon, moonPhase);
+            ApplySkyboxPlus(sun, moon, moonPhase, SkyboxPlusSink(lookHour, _skyboxPlusMorningSink, _skyboxPlusEveningSink));
             float siderealTime = GalacticCoreRightAscension + 15f * (lookHour - _galacticCoreTransit);
             Shader.SetGlobalMatrix(StarMapRotationId, StarMapRotation(_starLatitude, siderealTime, _starAzimuth));
         }
@@ -454,9 +458,12 @@ namespace Aipocalypse.Core.EnvironmentSystem
             return SunPath.Direction(bearing, Mathf.Max(elevation, -85f));
         }
 
-        void ApplySkyboxPlus(Vector3 sun, Vector3 moon, float moonPhase)
+        // Switches at noon and midnight, where the sun is high or deep enough that either sink gives the same sky.
+        public static float SkyboxPlusSink(float hour, float morning, float evening) => hour >= 12f ? evening : morning;
+
+        void ApplySkyboxPlus(Vector3 sun, Vector3 moon, float moonPhase, float sink)
         {
-            sun = SkyboxPlusSun(sun, _skyboxPlusDuskElevation, _skyboxPlusNightSink);
+            sun = SkyboxPlusSun(sun, _skyboxPlusDuskElevation, sink);
             Shader.SetGlobalFloat(SbpCustomPositionsId, 1f);
             Shader.SetGlobalVector(SbpSunDirId, sun);
             Shader.SetGlobalMatrix(SbpSunMatrixId, Matrix4x4.Rotate(Quaternion.Inverse(Quaternion.LookRotation(-sun))));

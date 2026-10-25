@@ -120,6 +120,20 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void SkyboxPlusSink_UsesTheEveningSinkAfterNoon_AndSwitchesWhereItCannotShow()
+        {
+            Assert.AreEqual(3.5f, EnvironmentDirector.SkyboxPlusSink(6f, 3.5f, 5f));
+            Assert.AreEqual(5f, EnvironmentDirector.SkyboxPlusSink(19f, 3.5f, 5f));
+
+            Vector3 noon = SunPath.Direction(180f, 50f);
+            Vector3 midnight = SunPath.Direction(0f, -30f);
+            Assert.AreEqual(0f, Vector3.Angle(EnvironmentDirector.SkyboxPlusSun(noon, 6f, 3.5f),
+                EnvironmentDirector.SkyboxPlusSun(noon, 6f, 5f)), 1e-3f, "noon switch");
+            Assert.AreEqual(0f, Vector3.Angle(EnvironmentDirector.SkyboxPlusSun(midnight, 6f, 3.5f),
+                EnvironmentDirector.SkyboxPlusSun(midnight, 6f, 5f)), 1e-3f, "midnight switch");
+        }
+
+        [Test]
         public void StarMapRotation_PutsAStarDueSouthAtTransit_ThenTurnsItWest()
         {
             const float ra = 266.4f, dec = -29f, latitude = 45f;
