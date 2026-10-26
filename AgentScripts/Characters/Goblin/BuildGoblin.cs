@@ -4,6 +4,7 @@
 // and upgrades existing prefabs in place (LoadPrefabContents keeps file IDs): rebuilding Goblin.prefab would give its
 // children new file IDs and break the variants' removed-Model overrides.
 using System;
+using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EnemySystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -19,6 +20,13 @@ public static class BuildGoblin
     const string ReactionSettings = "Assets/_Game/Data/Enemies/EnemyReactionSettings.asset";
     const int Fidgets = 3;
     const int Deaths = 2;
+    // Head hitbox: a sphere this far above the head bone (the skull's middle), and its radius (m).
+    const float HeadLift = 0.12f;
+    const float HeadRadius = 0.2f;
+    // Root capsule: legs and hips up to the hips bone + margin; the torso sphere on the upper chest.
+    const float BodyRadius = 0.4f;
+    const float HipsMargin = 0.2f;
+    const float ChestRadius = 0.24f;
     // Goblin.prefab wears Goblin_01; each other look is a variant Goblin_NN.prefab.
     static readonly string[] VariantLooks = { "Goblin_02", "Goblin_03", "Goblin_04", "Goblin_05", "Goblin_06" };
 
@@ -148,6 +156,7 @@ public static class BuildGoblin
                 body = root.AddComponent<EnemyBody>();
             }
             SetVisual(body, model);
+            AddHeadHitbox(root, model);
             if (isBase)
             {
                 var serialized = new SerializedObject(root.GetComponent<EnemyAnimator>());
@@ -161,6 +170,36 @@ public static class BuildGoblin
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+    }
+
+    // Hit colliders that follow the pose (goblins hunch, so the head sits low and forward): the root capsule covers legs and
+    // hips only, a sphere on the upper chest (halfway to the neck) the torso, and a critical sphere on the head bone.
+    static void AddHeadHitbox(GameObject root, Transform model)
+    {
+        var animator = model.GetComponent<Animator>();
+        Transform hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+        Transform chest = animator.GetBoneTransform(HumanBodyBones.UpperChest);
+        if (chest == null)
+            chest = animator.GetBoneTransform(HumanBodyBones.Chest);
+        Transform neck = animator.GetBoneTransform(HumanBodyBones.Neck);
+        Transform head = animator.GetBoneTransform(HumanBodyBones.Head);
+
+        var capsule = root.GetComponent<CapsuleCollider>();
+        capsule.radius = BodyRadius;
+        capsule.height = root.transform.InverseTransformPoint(hips.position).y + HipsMargin;
+        capsule.center = new Vector3(0f, capsule.height * 0.5f, 0f);
+
+        if (!chest.TryGetComponent(out SphereCollider torso))
+            torso = chest.gameObject.AddComponent<SphereCollider>();
+        torso.center = chest.InverseTransformPoint(Vector3.Lerp(chest.position, neck.position, 0.5f));
+        torso.radius = ChestRadius / Mathf.Max(0.0001f, chest.lossyScale.x);
+
+        if (!head.TryGetComponent(out SphereCollider sphere))
+            sphere = head.gameObject.AddComponent<SphereCollider>();
+        sphere.center = head.InverseTransformPoint(head.position + Vector3.up * HeadLift);
+        sphere.radius = HeadRadius / Mathf.Max(0.0001f, head.lossyScale.x);
+        if (!head.TryGetComponent(out Hitbox _))
+            head.gameObject.AddComponent<Hitbox>();
     }
 
     static void SetVisual(EnemyBody body, Transform visual)

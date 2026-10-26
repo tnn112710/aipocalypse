@@ -519,7 +519,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3439621217784795854, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4981954722925409403}
+    - targetCorrespondingSourceObject: {fileID: 2156440953220847134, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 440158248159194751}
+    - targetCorrespondingSourceObject: {fileID: 2156440953220847134, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4708398921104680794}
   m_SourcePrefab: {fileID: 100100000, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
 --- !u!95 &281066338659616479 stripped
 Animator:
@@ -531,6 +540,72 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6617037366503686022, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
   m_PrefabInstance: {fileID: 5009885683663506835}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6371335509016402829 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2156440953220847134, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
+  m_PrefabInstance: {fileID: 5009885683663506835}
+  m_PrefabAsset: {fileID: 0}
+--- !u!135 &440158248159194751
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6371335509016402829}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.20000003
+  m_Center: {x: -0.12, y: 0.00000003678724, z: 0.00000011573842}
+--- !u!114 &4708398921104680794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6371335509016402829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ff9c05a3dedc0b4faf96112167b3c74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.Combat.Hitbox
+  _damageMultiplier: 2
+  _critical: 1
+--- !u!1 &7655359854510448477 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3439621217784795854, guid: fb67b5cdd4dd17647b29410797fd1d8d, type: 3}
+  m_PrefabInstance: {fileID: 5009885683663506835}
+  m_PrefabAsset: {fileID: 0}
+--- !u!135 &4981954722925409403
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7655359854510448477}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.23999996
+  m_Center: {x: -0.15991504, y: 0.018311987, z: 0.0000003649814}
 --- !u!1001 &8281546306825088295
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EnemySystem;
 using NUnit.Framework;
 using UnityEditor;
@@ -130,6 +131,39 @@ namespace Aipocalypse.Tests
                 Assert.That(prefab.GetComponentsInChildren<Collider>(true).Any(c => !c.isTrigger), Is.True, $"{path}: nothing for hits to land on");
             }
             Assert.That(enemies, Is.GreaterThan(0));
+        }
+    
+
+        [Test]
+        public void Hitbox_MultipliesTheHit_AndMarksItCritical()
+        {
+            var info = new DamageInfo(20f, DamageType.Gunshot, Vector3.one, Vector3.forward);
+            DamageInfo head = info.OnHitbox(2f, true);
+            Assert.That(head.Amount, Is.EqualTo(40f));
+            Assert.That(head.Critical, Is.True);
+            Assert.That(head.Force, Is.EqualTo(info.Force), "knockback doesn't scale");
+            Assert.That(info.OnHitbox(0.5f, false).Critical, Is.False);
+        }
+
+        [Test]
+        public void AnimatedEnemyPrefabs_HaveACriticalHeadAboveTheBody()
+        {
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/_Game/Content/Enemies" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                var enemyAnimator = prefab.GetComponent<EnemyAnimator>();
+                if (enemyAnimator == null)
+                    continue;
+                Transform head = enemyAnimator.Animator.GetBoneTransform(HumanBodyBones.Head);
+                var hitbox = head.GetComponent<Hitbox>();
+                Assert.That(hitbox != null && hitbox.Critical && hitbox.DamageMultiplier > 1f, Is.True, $"{path}: no critical Hitbox on the head bone");
+                var sphere = head.GetComponent<SphereCollider>();
+                var body = prefab.GetComponent<CapsuleCollider>();
+                float headBottom = head.TransformPoint(sphere.center).y - sphere.radius * head.lossyScale.x;
+                float bodyTop = prefab.transform.TransformPoint(body.center).y + body.height * 0.5f;
+                Assert.That(headBottom, Is.GreaterThanOrEqualTo(bodyTop - 0.01f), $"{path}: the body collider swallows the head");
+            }
         }
     }
 }

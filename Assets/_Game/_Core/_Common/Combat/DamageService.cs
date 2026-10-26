@@ -22,12 +22,15 @@ namespace Aipocalypse.Core.Combat
             return result;
         }
 
-        // A physics hit (bullet, swing): damages the IDamageable the collider belongs to and pushes a loose rigidbody by
-        // info.Force. Returns the damageable, or null when the hit was on scenery.
+        // A physics hit (bullet, swing): damages the IDamageable the collider belongs to (scaled by its Hitbox, if any: a head
+        // doubles and crits) and pushes a loose rigidbody by info.Force. Returns the damageable, or null on scenery.
         public IDamageable DealHit(in RaycastHit hit, in DamageInfo info)
         {
             IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-            Deal(target, info);
+            if (target != null && hit.collider.TryGetComponent(out Hitbox hitbox))
+                Deal(target, info.OnHitbox(hitbox.DamageMultiplier, hitbox.Critical));
+            else
+                Deal(target, info);
 
             Rigidbody body = hit.rigidbody;
             if (body != null && !body.isKinematic && info.Force != Vector3.zero)

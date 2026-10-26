@@ -14,7 +14,8 @@ using VContainer;
 namespace Aipocalypse.Core.UI
 {
     // Hits the active player lands (DamageDealt from the player): a hit marker round the crosshair, bigger and red on a
-    // kill, a hit or kill sound, and a pooled damage number at the hit point. Shotgun pellets in one frame mark once.
+    // kill, a hit or kill sound, and a pooled damage number at the hit point (the critical prefab for headshots). Shotgun pellets in
+    // one frame mark once.
     public sealed class HitFeedbackHud : PlayerHudView
     {
         [Header("Marker")]
@@ -29,6 +30,8 @@ namespace Aipocalypse.Core.UI
 
         [Header("Damage numbers")]
         [SerializeField, Tooltip("Damage Numbers Pro prefab with pooling on; empty = no numbers")] DamageNumber _damageNumber;
+        [SerializeField, Tooltip("Number for critical hits (headshots): its own color and spam group, so it never combines with " +
+            "normal numbers; empty = the normal one")] DamageNumber _criticalNumber;
 
         AudioService _audio;
         IDisposable _subscription;
@@ -78,12 +81,10 @@ namespace Aipocalypse.Core.UI
                 return;
 
             bool kill = hit.Result.Killed;
-            if (_damageNumber != null)
-            {
-                DamageNumber number = _damageNumber.Spawn(hit.Info.Point, hit.Result.Applied);
-                if (kill)
-                    number.SetColor(_style.KillNumberColor);
-            }
+            // Colors live on the prefabs: tinting a pooled number would stick to it, and combined numbers keep the absorber's.
+            DamageNumber prefab = hit.Info.Critical && _criticalNumber != null ? _criticalNumber : _damageNumber;
+            if (prefab != null)
+                prefab.Spawn(hit.Info.Point, hit.Result.Applied);
 
             // One marker and sound per frame; a kill among them wins.
             if (_markedFrame == Time.frameCount && (_markedKill || !kill))

@@ -1,6 +1,6 @@
 // Play-mode probe for enemy damage, knockback and death (enter Play first, runInBackground on):
 //   script run --file AgentScripts/Characters/Goblin/ProbeCombat.cs --entry ProbeCombat.Hit --args '["Goblin 1", 30, 6]'
-// Hit: a ray from the player's camera to the goblin's chest through DamageService.DealHit (the path bullets and swings use).
+// Hit: a ray from the player's camera to the goblin at aimHeight (0.9 chest; negative = its head hitbox wherever the pose put it) through DamageService.DealHit (the path bullets and swings use).
 // Watch: samples hp, knockback, animator states. Fire: aims the player at a goblin with an AK47 and holds the trigger
 // through a virtual mouse. Revive: disables and re-enables a goblin (dead or sunk), which revives it.
 using System;
@@ -24,15 +24,26 @@ public static class ProbeCombat
 {
     const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
-    public static string Hit(string goblin, float damage, float force)
+    public static string Hit(string goblin, float damage, float force, float aimHeight = 0.9f)
     {
         EnemyBrain brain = Find(goblin);
         if (brain == null)
             return "no " + goblin;
         Camera camera = Camera.main;
-        Vector3 chest = brain.transform.position + Vector3.up * 0.9f;
-        Vector3 direction = (chest - camera.transform.position).normalized;
-        if (!Physics.Raycast(camera.transform.position, direction, out RaycastHit hit, 200f, ~0, QueryTriggerInteraction.Ignore))
+        Vector3 aim = aimHeight < 0f ? HeadCenter(brain) : brain.transform.position + Vector3.up * aimHeight;
+        Vector3 direction = (aim - camera.transform.position).normalized;
+        // Nearest hit that isn't the shooter, as bullets do.
+        RaycastHit hit = default;
+        bool found = false;
+        foreach (RaycastHit candidate in Physics.RaycastAll(camera.transform.position, direction, 200f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+        {
+            if (candidate.collider.transform.IsChildOf(Player.transform))
+                continue;
+            hit = candidate;
+            found = true;
+            break;
+        }
+        if (!found)
             return "ray hit nothing";
         var damageService = Scope.Resolve<DamageService>();
         var info = new DamageInfo(damage, DamageType.Gunshot, hit.point, direction * force, Player.gameObject);
@@ -41,9 +52,9 @@ public static class ProbeCombat
     }
 
     // Hit, then samples every `every` seconds for `seconds` in the same call (frame-accurate, no command gap).
-    public static async Task<string> Strike(string goblin, float damage, float force, float seconds, float every)
+    public static async Task<string> Strike(string goblin, float damage, float force, float seconds, float every, float aimHeight = 0.9f)
     {
-        var sb = new StringBuilder(Hit(goblin, damage, force)).AppendLine();
+        var sb = new StringBuilder(Hit(goblin, damage, force, aimHeight)).AppendLine();
         EnemyBrain brain = Find(goblin);
         float next = 0f, start = Time.realtimeSinceStartup;
         await Seconds(seconds, () =>
@@ -71,6 +82,26 @@ public static class ProbeCombat
         }
         return sb.ToString();
     }
+
+    // Rays at the live head hitbox from 3 m in front, behind and both sides (and from above-front): which collider each hits.
+    public static string HeadRays(string goblin)
+    {
+        EnemyBrain brain = Find(goblin);
+        if (brain == null)
+            return "no " + goblin;
+        Vector3 head = HeadCenter(brain);
+        Transform t = brain.transform;
+        var sb = new StringBuilder();
+        foreach (var (side, from) in new[] { ("front", t.forward), ("back", -t.forward), ("left", -t.right), ("right", t.right), ("above-front", (t.forward + Vector3.up).normalized) })
+        {
+            Vector3 origin = head + from * 3f;
+            bool hit = Physics.Raycast(origin, head - origin, out RaycastHit info, 4f, ~0, QueryTriggerInteraction.Ignore);
+            sb.Append($"{side}: {(hit ? info.collider.name + (info.collider.TryGetComponent(out Hitbox _) ? " (HEAD)" : "") : "nothing")}; ");
+        }
+        return sb.ToString();
+    }
+
+    static Vector3 HeadCenter(EnemyBrain brain) => brain.GetComponentInChildren<Hitbox>().GetComponent<Collider>().bounds.center;
 
     public static string State()
     {

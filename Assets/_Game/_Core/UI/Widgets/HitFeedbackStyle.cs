@@ -16,6 +16,5 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Marker"), Min(1f)] public float KillPop = 1.8f;
         [BoxGroup("Marker"), Range(0.05f, 1f), Tooltip("Share of the fade the marker takes to shrink back from its pop")] public float PopShare = 0.4f;
 
-        [BoxGroup("Damage numbers"), Tooltip("Tint of the number on a killing hit")] public Color KillNumberColor = new(1f, 0.3f, 0.25f, 1f);
     }
 }

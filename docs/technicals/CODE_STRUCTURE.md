@@ -28,8 +28,9 @@ Assets/_Game/
 │  │  ├─ Entities/IPlayerTarget.cs          IDamageable + Transform: what enemies and companions need from the player
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage: TakeDamage → DamageResult (hurt it through DamageService)
-│  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force, Source) + DamageType enum (Generic, Fall, Gunshot, Melee) + DamageResult (Applied, Killed)
-│  │  │  ├─ DamageService.cs                root service: Deal(target, info) → TakeDamage, publishes DamageDealt with the result; DealHit(hit, info) for physics hits (finds the IDamageable, pushes a loose rigidbody)
+│  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force, Source, Critical; OnHitbox(multiplier, critical)) + DamageType enum (Generic, Fall, Gunshot, Melee) + DamageResult (Applied, Killed)
+│  │  │  ├─ DamageService.cs                root service: Deal(target, info) → TakeDamage, publishes DamageDealt with the result; DealHit(hit, info) for physics hits (finds the IDamageable, applies the hit collider's Hitbox, pushes a loose rigidbody)
+│  │  │  ├─ Hitbox.cs                       on a damageable's collider (a head): DamageMultiplier (2) and Critical for hits landing on it, applied by DealHit
 │  │  │  ├─ CombatInstaller.cs              registers DamageService in the root scope
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore; SetMax keeps the current share
 │  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied, PlayerDeathSequenceEnded (the death sequence played out: the respawn starts)
@@ -214,7 +215,7 @@ Assets/_Game/
 │  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
 │  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
 │  │  ├─ Widgets/CrosshairStyle.cs          ScriptableObject: MinSpread, SpreadFade, SpreadSpeed, FadeSpeed
-│  │  ├─ Widgets/HitFeedbackStyle.cs        ScriptableObject: hit / kill marker colors, durations, pops, PopShare, KillNumberColor
+│  │  ├─ Widgets/HitFeedbackStyle.cs        ScriptableObject: hit / kill marker colors, durations, pops, PopShare
 │  │  ├─ Widgets/ClockView.cs               passive digital clock: SetTime (monospaced HH:MM, char buffer) / SetPhase / SetDay / Show / ApplyStyle
 │  │  ├─ Widgets/ClockStyle.cs              ScriptableObject: fonts + underlay materials, sizes, colors, backing panel, Phases (DayPhase → PhaseLabel: text, colour; Phase(phase))
 │  │  ├─ Widgets/DeathScreenView.cs         passive: eyelids + darkness (CloseEyes from the style's steps), menu (ShowMenu / HideMenu fades), SetStatus (pulse), HideAll, Illustration slot
@@ -228,7 +229,7 @@ Assets/_Game/
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment; each item's Changed → its Badge, AmmoReserve.Changed → reserve counts (events, no polling)
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread (CrosshairStyle)
-│  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker (HitFeedbackStyle), hit / kill sound, pooled damage numbers
+│  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker (HitFeedbackStyle), hit / kill sound, pooled damage numbers (critical hits: the critical prefab)
 │  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
@@ -237,7 +238,7 @@ Assets/_Game/
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
-│  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled), font Data/UI/DamageNumberFont.asset
+│  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled, white), font Data/UI/DamageNumberFont.asset; DamageNumber_Critical.prefab: variant, red, spam group Critical
 │  ├─ WorldTimeSystem/                      Aipocalypse.Core.WorldTimeSystem — the in-game clock, see DAYNIGHT.md
 │  │  ├─ WorldTime.cs                       WorldTime (hours since day 1: Day, Hour, WholeHour, Minute) + DayPhase enum
 │  │  ├─ ClockSettings.cs                   SO: seconds per game hour, master speed, start, Phases (DayPhase → PhaseTiming: start + speed; Timing, HasEveryPhase), moon cycle; PhaseAt, RealSecondsBetween, Real time inspector box
@@ -289,7 +290,7 @@ Assets/_Game/
 │  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
 │  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain, EnemyBody; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
-│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, EnemyBody, Model = Goblin_01_Model) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
+│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, EnemyBody, Model = Goblin_01_Model; hit colliders: root capsule to the hips, a sphere on spine_03, a critical Hitbox sphere on the head bone) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
 │  │                                        Goblin.asset (EnemyDefinition, 100 HP, walk 1.4 m/s), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
 │  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Model/ (<Look>.sk sources + SidekickKit output: _Model.prefab, _Mesh, _Avatar, .mat, color map)
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat
