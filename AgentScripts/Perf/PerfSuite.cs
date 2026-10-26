@@ -1,5 +1,5 @@
 // Play-mode perf suite for the world map (run with `unity command script run` while in play mode):
-// Views (fixed spots), Actions (move, look, fire, aim, switch, melee), DayNight (hour transitions, night lights), Audio (audio counters), Ab (settings A/B).
+// Views (fixed spots), Actions (move, look, fire, aim, switch, melee), DayNight (hour transitions, night lights), Audio (audio counters), Crowd (enemy count), Ab (settings A/B).
 // Frame time, PlayerLoop (game cost without the editor loop), FrameTiming CPU/GPU, render counters, GC, cameras per frame,
 // and the top profiler markers outside the editor loop. Results also go to %TEMP%/claude_perf_<name>.txt.
 using System;
@@ -9,12 +9,14 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.EnvironmentSystem;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Core.WorldTimeSystem;
 using Unity.Profiling;
+using Unity.Profiling.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Profiling;
 using UnityEditorInternal;
@@ -24,6 +26,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using VContainer;
+using VContainer.Unity;
 using Object = UnityEngine.Object;
 
 public static class PerfSuite
@@ -343,6 +346,165 @@ public static class PerfSuite
         foreach (var a in sources.Where(a => a.isPlaying || a.clip != null).Take(20))
             sb.AppendLine($"  {a.name}: {a.clip?.name} ch {a.clip?.channels} {a.clip?.loadType} blend {a.spatialBlend} playing {a.isPlaying} group {(a.outputAudioMixerGroup ? a.outputAudioMixerGroup.name : "-")}");
         return Finish("audio", sb);
+    }
+
+    // Enemy crowd cost: hides the scene's enemies, spawns goblins (cycling the looks) on a growing disc in front of the player,
+    // and measures each count facing the crowd (everything) and facing away (no goblin on screen: think, move, animate,
+    // shadows). `ab` then measures runtime variants at the largest count (cull, nodebug, nolayers, noshadow, lodN = force Mesh LOD N, thrX = Mesh LOD threshold X, biasX = goblin Mesh LOD bias X, base),
+    // each restored after. Spawned goblins are destroyed and the scene's restored at the end unless `keep`.
+    public static async Task<string> Crowd(string counts = "0,10,25,50,100,200", float seconds = 4f, float hour = 9f, bool profile = true, bool keep = false,
+        string ab = "")
+    {
+        if (!EditorApplication.isPlaying) return "enter play mode first";
+        var sb = Header("crowd");
+        var player = Player;
+        var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
+        var prefabs = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/_Game/Content/Enemies/Goblin" })
+            .Select(g => AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(g)))
+            .Where(p => p.GetComponent<EnemyBrain>() != null).OrderBy(p => p.name).ToArray();
+        var sceneEnemies = Object.FindObjectsByType<EnemyBrain>(FindObjectsInactive.Exclude);
+        var steps = counts.Split(',').Select(int.Parse).ToArray();
+        float Radius(int n) => 1.4f * Mathf.Sqrt(Mathf.Max(1, n));
+
+        Vector3 center = Vector3.zero;
+        foreach (var e in sceneEnemies) center += e.transform.position;
+        center /= Mathf.Max(1, sceneEnemies.Length);
+        Vector3 away = Vector3.ProjectOnPlane(center - player.SpawnPosition, Vector3.up).normalized;
+        float back = Radius(steps.Max()) + 12f;
+        Vector3 stand = Ground(center.x + away.x * back, center.z + away.z * back);
+        float facing = Quaternion.LookRotation(-away).eulerAngles.y;
+
+        var markerNames = new[]
+        {
+            "Aipocalypse.EnemyManager.Think", "Aipocalypse.EnemyAnimationManager.Animate", "PreLateUpdate.DirectorUpdateAnimationBegin",
+            "PreLateUpdate.DirectorUpdateAnimationEnd", "PostLateUpdate.UpdateAllSkinnedMeshes", "Update.ScriptRunBehaviourUpdate",
+            "FixedUpdate.PhysicsFixedUpdate", "PreLateUpdate.ScriptRunBehaviourLateUpdate",
+        };
+        var available = new List<ProfilerRecorderHandle>();
+        ProfilerRecorderHandle.GetAvailable(available);
+        var descs = available.Select(ProfilerRecorderHandle.GetDescription).GroupBy(d => d.Name).ToDictionary(g => g.Key, g => g.First());
+
+        sb.AppendLine($"looks {prefabs.Length} ({string.Join(",", prefabs.Select(p => p.name))}) | scene enemies hidden {sceneEnemies.Length} | crowd centre {center:F0} stand {stand:F0} yaw {facing:F0}");
+        sb.AppendLine("markers (median ms/frame): " + string.Join(", ", markerNames.Select((m, k) => $"m{k}={m}{(descs.ContainsKey(m) ? "" : " (n/a)")}")));
+        sb.AppendLine("A* / ECS markers seen: " + string.Join(", ", descs.Keys.Where(k => k.Contains("Follower") || k.Contains("RVO") || k.Contains("SimulationSystemGroup") || k.Contains("Pathfind")).Take(12)));
+
+        var spawned = new List<GameObject>();
+        using var s = new Session(input: false, profile: false);
+        using var frozen = new FrozenClock(hour);
+        var pitch = PitchSetter(player);
+        try
+        {
+            foreach (var e in sceneEnemies) e.gameObject.SetActive(false);
+            Teleport(player, stand, facing, 0f);
+            await Seconds(4f);
+
+            async Task<Seg> Step(string name, float yaw)
+            {
+                Teleport(player, stand, yaw, 0f);
+                await Seconds(1.5f);
+                var recs = markerNames.Where(descs.ContainsKey).Select(m => (name: m, rec: ProfilerRecorder.StartNew(descs[m].Category, m, 6000))).ToList();
+                var seg = await Measure(name, s, seconds, _ => pitch(0f), false);
+                var planes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+                int visible = spawned.Count(g => GeometryUtility.TestPlanesAABB(planes, g.GetComponentInChildren<SkinnedMeshRenderer>().bounds));
+                int moving = spawned.Count(g => g.GetComponent<EnemyMover>().Velocity.sqrMagnitude > 0.04f);
+                seg.Note = $"on-screen {visible} moving {moving} | " +
+                           string.Join(" ", recs.Select(r => $"m{Array.IndexOf(markerNames, r.name)} {Median(Samples(r.rec, 1e-6f)):F2}"));
+                foreach (var r in recs) r.rec.Dispose();
+                return seg;
+            }
+
+            foreach (int n in steps)
+            {
+                while (spawned.Count < n)
+                {
+                    int i = spawned.Count;
+                    float a = i * 2.39996f, r = 1.4f * Mathf.Sqrt(i + 0.5f);
+                    Vector3 at = Ground(center.x + Mathf.Cos(a) * r, center.z + Mathf.Sin(a) * r);
+                    var go = Object.Instantiate(prefabs[i % prefabs.Length], at, Quaternion.Euler(0f, i * 137 % 360, 0f));
+                    go.name = $"Crowd Goblin {i}";
+                    resolver.InjectGameObject(go);
+                    spawned.Add(go);
+                }
+                await Seconds(3f);
+                sb.AppendLine(Row(await Step($"{n} facing", facing)));
+                sb.AppendLine(Row(await Step($"{n} away", facing + 180f)));
+            }
+            foreach (string variant in ab.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var undo = new List<Action>();
+                foreach (var go in spawned)
+                {
+                    var animator = go.GetComponentInChildren<Animator>();
+                    var skin = go.GetComponentInChildren<SkinnedMeshRenderer>();
+                    var follower = go.GetComponent<Pathfinding.FollowerEntity>();
+                    switch (variant)
+                    {
+                        case "cull":
+                            var culling = animator.cullingMode;
+                            animator.cullingMode = AnimatorCullingMode.CullCompletely;
+                            undo.Add(() => animator.cullingMode = culling);
+                            break;
+                        case "nodebug":
+                            var flags = follower.debugFlags;
+                            follower.debugFlags = Pathfinding.PID.PIDMovement.DebugFlags.Nothing;
+                            undo.Add(() => follower.debugFlags = flags);
+                            break;
+                        case "nolayers":
+                            for (int l = 1; l < animator.layerCount; l++)
+                            {
+                                int layer = l;
+                                float weight = animator.GetLayerWeight(layer);
+                                animator.SetLayerWeight(layer, 0f);
+                                undo.Add(() => animator.SetLayerWeight(layer, weight));
+                            }
+                            break;
+                        case "noshadow":
+                            var shadows = skin.shadowCastingMode;
+                            skin.shadowCastingMode = ShadowCastingMode.Off;
+                            undo.Add(() => skin.shadowCastingMode = shadows);
+                            break;
+                        case { } thr when thr.StartsWith("thr"):
+                            float threshold = QualitySettings.meshLodThreshold;
+                            QualitySettings.meshLodThreshold = float.Parse(thr[3..]);
+                            undo.Add(() => QualitySettings.meshLodThreshold = threshold);
+                            break;
+                        case { } bias when bias.StartsWith("bias"):
+                            float oldBias = skin.meshLodSelectionBias;
+                            skin.meshLodSelectionBias = float.Parse(bias[4..]);
+                            undo.Add(() => skin.meshLodSelectionBias = oldBias);
+                            break;
+                        case { } lod when lod.StartsWith("lod"):
+                            var forced = skin.forceMeshLod;
+                            skin.forceMeshLod = short.Parse(lod[3..]);
+                            undo.Add(() => skin.forceMeshLod = forced);
+                            break;
+                    }
+                }
+                await Seconds(1f);
+                sb.AppendLine(Row(await Step($"{steps.Max()} {variant} facing", facing)));
+                sb.AppendLine(Row(await Step($"{steps.Max()} {variant} away", facing + 180f)));
+                for (int u = undo.Count - 1; u >= 0; u--) undo[u]();
+            }
+            Teleport(player, stand, facing, 0f);
+
+            if (profile && steps.Max() > 0)
+            {
+                using var ps = new Session(input: false, profile: true);
+                await Seconds(1.5f);
+                var seg = await Measure($"{steps.Max()} profiled", ps, seconds, _ => pitch(0f), true);
+                sb.AppendLine(Row(seg));
+                sb.Append(Analyze(seg, 24, 2));
+            }
+        }
+        finally
+        {
+            if (!keep)
+            {
+                foreach (var go in spawned) Object.Destroy(go);
+                foreach (var e in sceneEnemies) if (e != null) e.gameObject.SetActive(true);
+            }
+        }
+        return Finish("crowd", sb);
     }
 
     // A/B of runtime toggles at the spawn, averaged over four headings. "baseline" runs first and last to catch drift.

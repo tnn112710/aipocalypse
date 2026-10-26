@@ -1,9 +1,10 @@
 // Vendor-neutral character helpers for `unity command script run`. Nothing here touches the open scene.
 //
 //   Describe(prefabPath)                          renderers, bones, blendshapes, animator facts (JSON)
-//   Snapshot(prefabPath, pngPath, clipPath, time, yaw, size)
+//   Snapshot(prefabPath, pngPath, clipPath, time, yaw, size, meshLod = -1)
 //                                                 offscreen render of a prefab, optionally posed by a humanoid clip
-//                                                 at `time` seconds ("" = bind pose); view the PNG to check the look
+//                                                 at `time` seconds ("" = bind pose); view the PNG to check the look.
+//                                                 meshLod >= 0 forces that Mesh LOD level (check generated LODs)
 //   ClipInfo(fbxOrAnimPath)                       clips in a model/anim file: length, loop, root-motion bake flags,
 //                                                 average root speed (m/s; 0 when baked into pose) and turn rate
 //   BuildLocomotionController(specPath)           AnimatorController with the project parameter contract from a spec
@@ -53,7 +54,7 @@ public static class CharacterKit
         return sb.Append("]}").ToString();
     }
 
-    public static string Snapshot(string prefabPath, string pngPath, string clipPath, float time, float yaw, int size)
+    public static string Snapshot(string prefabPath, string pngPath, string clipPath, float time, float yaw, int size, int meshLod = -1)
     {
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         if (prefab == null)
@@ -76,6 +77,9 @@ public static class CharacterKit
                 AnimatorUtility.DeoptimizeTransformHierarchy(animator.gameObject);
             if (clip != null && animator != null)
                 clip.SampleAnimation(animator.gameObject, time);
+            if (meshLod >= 0)
+                foreach (Renderer r in instance.GetComponentsInChildren<Renderer>())
+                    r.forceMeshLod = (short)meshLod;
 
             Bounds bounds = WorldBounds(instance);
             // Height-led framing: bind-pose (T-pose) bounds are wide, a diagonal would leave the character small.

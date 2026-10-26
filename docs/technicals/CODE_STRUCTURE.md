@@ -284,7 +284,7 @@ Assets/_Game/
 │  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
 │  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
-│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, Model = Goblin_01_Model) and Goblin_02…06.prefab (variants: other Model); one of each in WorldMap.
+│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, Model = Goblin_01_Model) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
 │  │                                        Goblin.asset (EnemyDefinition, walk 1.4 m/s), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
 │  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Model/ (<Look>.sk sources + SidekickKit output: _Model.prefab, _Mesh, _Avatar, .mat, color map)
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat

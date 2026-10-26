@@ -11,7 +11,7 @@ A character is two things kept apart:
 
 Vendor skills make models: **tools-unity-synty-characters** for Synty. This skill turns any model into a working character and keeps the vendors interchangeable. Behaviour (trees, navigation, spawning) is **aipocalypse-enemy-ai**.
 
-Worked example, built with this skill: **`Content/Enemies/Goblin/`**, six wandering Sidekick goblins in WorldMap (Goblin 1–6 outside the home gate): looks 01–05 copied from Goblin Fighters `.sk` files, look 06 written from presets. The setup scripts are in `AgentScripts/Characters/Goblin/`.
+Worked example, built with this skill: **`Content/Enemies/Goblin/`**, ten wandering Sidekick goblins in WorldMap (Goblin 1–10 outside the home gate, six looks): looks 01–05 copied from Goblin Fighters `.sk` files, look 06 written from presets. The setup scripts are in `AgentScripts/Characters/Goblin/`.
 
 ## 1. What exists
 
@@ -25,7 +25,7 @@ Worked example, built with this skill: **`Content/Enemies/Goblin/`**, six wander
 | `CharacterKit.cs` | `scripts/` here | `Describe`, `Snapshot`, `ClipInfo`, `BuildLocomotionController`: run with `unity command script run`. |
 | `EnemyAnimationTests` | `Tests/EditMode/` | Rules, plus `AnimatedEnemyPrefabs_AreWiredToTheParameterContract` over every enemy prefab with an `EnemyAnimator`. |
 
-**Not built** (don't assume): animated NPCs, companions, animals or bosses; LODs; attack / hit / death animations; pooling.
+**Not built** (don't assume): animated NPCs, companions, animals or bosses; animation LOD (fewer layers or a lower rate far away); attack / hit / death animations; pooling.
 - Unique characters (companions, NPCs) will be `EntityScope` entities (ARCHITECTURE.md → Entities). Reuse `LocomotionAnimation` and the parameter contract, ticked by their own system.
 - Propose the design before building any of these.
 - Animals from Malbers bring the heavy per-instance Animal Controller and its own NavMeshAgent AI: ASSETS.md allows it only for a few unique animals, never crowds, and asks first.
@@ -40,7 +40,8 @@ Worked example, built with this skill: **`Content/Enemies/Goblin/`**, six wander
    - Vendor prefabs often carry vendor AI / controller scripts and NavMeshAgents (PolyartStudio `NPCStateMachine`, SICS `CharacterEdit`, Malbers AC). Those never go on our prefabs.
 2. **Model prefab** in `Content/<Kind>/<Name>/Model/` (one per look). Contract:
    - The root holds the Animator, with an avatar built from **this** hierarchy (humanoid if the clips are humanoid).
-   - No controller (the entity assigns it). `applyRootMotion` off. Culling `CullUpdateTransforms`.
+   - No controller (the entity assigns it). `applyRootMotion` off. Culling `CullCompletely`: safe because the mover moves the body, and off-screen enemies then skip their animation.
+   - Mesh LODs where the model has none, kept to levels that don't tear (Sidekick: LOD2 and bias 2, §5).
    - SkinnedMeshRenderer `updateWhenOffscreen` off; mesh not readable unless something reads it.
    - No vendor MonoBehaviours.
    - Synty Sidekick: `SidekickKit.Build`. Other vendors: a first-party prefab nesting or unpacking the vendor model, never an edited vendor prefab.
@@ -80,7 +81,7 @@ Layers: Base (Locomotion + fidget states), HeadLook (additive, 1), BodyLook (add
 
 ## 4. Verify (don't assume)
 
-- **Model:** `CharacterKit.Describe(prefab)` (bones vs unique bones, blendshapes, readable, culling, avatar). `CharacterKit.Snapshot(prefab, png, clip, time, yaw, size)` renders offscreen (no scene touched) posed by a clip; open the PNG.
+- **Model:** `CharacterKit.Describe(prefab)` (bones vs unique bones, blendshapes, readable, culling, avatar). `CharacterKit.Snapshot(prefab, png, clip, time, yaw, size, meshLod)` renders offscreen (no scene touched) posed by a clip, optionally at a forced Mesh LOD; open the PNG.
   - Use a scratchpad path for `png`, never `Assets/`.
   - Yaw ~25 shows the front three-quarters.
 - **Controller and prefabs:** `test run --mode editor`. `AnimatedEnemyPrefabs_AreWiredToTheParameterContract` catches a missing Animator, avatar, controller or parameter, root motion turned on, a fidget count too high, or missing settings.
@@ -94,16 +95,36 @@ Layers: Base (Locomotion + fidget states), HeadLook (additive, 1), BodyLook (add
 ## 5. Performance (crowds)
 
 Per character: one Animator (state machine + 4 layers), one SkinnedMeshRenderer with ~100–115 bones, and the vertex count.
-- The Goblins are **17–23k vertices each**. That's fine for a few, but 300 of them (the ROADMAP `Proto_Stress` gate) is ~6–7M skinned vertices.
-- Measure before the crowd work (unity-optimization-pc). Levers, cheapest first:
-  - Culling `CullUpdateTransforms`, or `CullCompletely` (safe without root motion).
-  - Fewer layers for distant enemies (look and lean are cosmetic).
-  - Fewer vertices: smaller parts, or a vendor LOD pack, since Sidekick ships no LODs.
-  - Single combined mesh, no blendshapes (already done by SidekickKit).
-  - GPU skinning (Player Settings).
-  - **GPU Instancer Pro – Crowd Animations** (PLUGINS.md, Undecided: ask).
+- Measure with `PerfSuite.Crowd(counts, seconds, hour, profile, keep, ab)` (`AgentScripts/Perf/`, in Play).
+  - It hides the scene's enemies, spawns goblins in front of the player and reports each count facing the crowd and facing away, with enemy, Animator and skinning markers.
+  - `ab` measures runtime variants at the largest count, each restored after: `cull`, `nodebug`, `nolayers`, `noshadow`, `lodN`, `thrX`, `biasX`, `base`.
+- **Measured 2026-10-27** (editor Play, 1080p, RTX 5070 Ti Laptop + Core Ultra 7 255HX; linear from 0 to 300 goblins):
+
+  | Per goblin | Before | Now (LOD2 bias 2, `CullCompletely`) |
+  | --- | --- | --- |
+  | Main thread, on screen | ~27 µs | ~28 µs |
+  | Main thread, off screen | ~17 µs | ~13 µs |
+  | GPU, on screen | ~15 µs | ~12 µs |
+  | Triangles drawn (depth, color, shadows) | ~72k | ~25k |
+
+  - Main thread at 80 goblins, on screen, per frame:
+    - Animator ~1 ms (`DirectorUpdateAnimationBegin` + `End`; ~0.1 ms when off screen with `CullCompletely`);
+    - `EnemyAnimationManager` ~0.3 ms;
+    - Behavior Designer ~0.2 ms;
+    - physics ~0.2 ms;
+    - skinning ~0.1 ms;
+    - `EnemyManager.Think` ~0.03 ms.
+  - Baseline without enemies: ~7 ms PlayerLoop and ~2.3 ms GPU. Editor numbers: confirm in a development build.
+  - Budget: 80 goblins are ~2.3 ms of main thread and ~1 ms of GPU here (≈2.5–3 ms on a 2060).
+- **Tried, no gain:**
+  - FollowerEntity `debugFlags` off: nothing measurable. Goblin.prefab has it off anyway.
+  - Project-wide Mesh LOD Threshold: works (8 ≈ bias 4), but it changes every Mesh LOD asset. Use the per-renderer bias.
+- Next levers, cheapest first:
+  - Fewer layers for distant enemies. All three look / lean layers off saved ~25% of the Animator cost.
+  - Shadows off for far enemies (−0.36 ms GPU at 80 with all of them off).
+  - **GPU Instancer Pro – Crowd Animations** for hundreds (PLUGINS.md, Undecided: ask).
   - Optimize Transform Hierarchy is unverified here (tools-unity-synty-characters §2).
-- `EnemyAnimationManager` itself is a loop of `SetFloat`s with cached hashes: zero allocations.
+- `EnemyAnimationManager` itself is a loop of `SetFloat`s with cached hashes: zero allocations. Its per-call costs (`SetFloat`, `FollowerEntity.velocity`) are under 1 µs, so it's not worth optimizing.
 
 ## 6. Traps learned building the Goblins
 

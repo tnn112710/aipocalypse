@@ -34,6 +34,10 @@ public static class SidekickKit
     const string BaseMaterial = "Materials/M_BaseMaterial";
     const string BaseColorMap = "Assets/Synty/SidekickCharacters/Resources/Textures/T_ColorMap.png";
     static readonly int ColorMapId = Shader.PropertyToID("_ColorMap");
+    // Mesh LOD levels past LOD0: deeper ones tear (the generator ignores skin weights). LOD2 is ~35% of the triangles and
+    // holds up at combat range; the bias puts crowds on it (aipocalypse-characters §5 has the numbers).
+    const int MeshLods = 2;
+    const float MeshLodBias = 2f;
 
     public static string ListPresets(string species)
     {
@@ -251,6 +255,7 @@ public static class SidekickKit
         Mesh mesh = renderer.sharedMesh;
         mesh.name = name;
         mesh = SaveOrReplace(mesh, $"{outFolder}/{name}_Mesh.asset");
+        MeshLodUtility.GenerateMeshLods(mesh, MeshLods);
         // No CPU copy at runtime; skinning and rendering don't need one.
         var serializedMesh = new SerializedObject(mesh);
         serializedMesh.FindProperty("m_IsReadable").boolValue = false;
@@ -260,10 +265,12 @@ public static class SidekickKit
         renderer.updateWhenOffscreen = false;
         renderer.skinnedMotionVectors = false;
         renderer.localBounds = mesh.bounds;
+        renderer.meshLodSelectionBias = MeshLodBias;
 
         var animator = model.GetComponent<Animator>();
         animator.applyRootMotion = false;
-        animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+        // Safe without root motion (the mover moves the body): off-screen enemies skip their animation entirely.
+        animator.cullingMode = AnimatorCullingMode.CullCompletely;
         // An avatar of this exact hierarchy (the shared SK_BaseModelAvatar lacks the parts' *_dyn_* bones and the moved
         // attach bones): same human map, this model's skeleton as its rest pose. Optimize Hierarchy needs it to skin.
         HumanDescription human = animator.avatar.humanDescription;

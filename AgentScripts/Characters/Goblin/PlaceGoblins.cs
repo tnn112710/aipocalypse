@@ -1,4 +1,4 @@
-// Places the six goblins in WorldMap's Enemies group outside the home gate (where the wander capsules stood, now removed)
+// Places the ten goblins in WorldMap's Enemies group outside the home gate (where the wander capsules stood, now removed)
 // and saves the scene, which makes EnemyInstaller collect them. Re-running moves the existing ones instead of adding more.
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -15,6 +15,11 @@ public static class PlaceGoblins
         ("Goblin 4", "Goblin_04", new Vector2(282f, 303f), 300f),
         ("Goblin 5", "Goblin_05", new Vector2(279f, 317f), 180f),
         ("Goblin 6", "Goblin_06", new Vector2(266f, 305f), 90f),
+        // Looks repeat from here.
+        ("Goblin 7", "Goblin", new Vector2(285f, 298f), 250f),
+        ("Goblin 8", "Goblin_02", new Vector2(268f, 319f), 120f),
+        ("Goblin 9", "Goblin_03", new Vector2(291f, 316f), 160f),
+        ("Goblin 10", "Goblin_04", new Vector2(273f, 297f), 30f),
     };
     static readonly string[] Removed = { "Wander Capsule 1", "Wander Capsule 2" };
 
