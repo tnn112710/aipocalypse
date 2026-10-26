@@ -1,7 +1,8 @@
 // Builds the Goblin enemy kind from the WanderCapsule enemy contract: unity command script run --file
 // AgentScripts/Characters/Goblin/BuildGoblin.cs --entry BuildGoblin.All. Needs the models (SidekickKit.Build) and the
-// controller (CharacterKit.BuildLocomotionController, Goblin.animspec.txt) first. Re-running creates only what's missing:
-// rebuilding Goblin.prefab would give its children new file IDs and break the variants' removed-Model overrides.
+// controller (CharacterKit.BuildLocomotionController, Goblin.animspec.txt) first. Re-running creates only what's missing
+// and upgrades existing prefabs in place (LoadPrefabContents keeps file IDs): rebuilding Goblin.prefab would give its
+// children new file IDs and break the variants' removed-Model overrides.
 using System;
 using Aipocalypse.Core.EnemySystem;
 using UnityEditor;
@@ -15,13 +16,16 @@ public static class BuildGoblin
     const string Folder = "Assets/_Game/Content/Enemies/Goblin";
     const string Template = "Assets/_Game/Content/Enemies/WanderCapsule/WanderCapsule.prefab";
     const string AnimationSettings = "Assets/_Game/Data/Enemies/EnemyAnimationSettings.asset";
+    const string ReactionSettings = "Assets/_Game/Data/Enemies/EnemyReactionSettings.asset";
     const int Fidgets = 3;
+    const int Deaths = 2;
     // Goblin.prefab wears Goblin_01; each other look is a variant Goblin_NN.prefab.
     static readonly string[] VariantLooks = { "Goblin_02", "Goblin_03", "Goblin_04", "Goblin_05", "Goblin_06" };
 
     public static string All()
     {
         EnemyAnimationSettings animation = LoadOrCreate<EnemyAnimationSettings>(AnimationSettings, _ => { });
+        EnemyReactionSettings reaction = LoadOrCreate<EnemyReactionSettings>(ReactionSettings, _ => { });
         WanderSettings wander = LoadOrCreate<WanderSettings>($"{Folder}/Goblin_Wander.asset", w =>
         {
             w.Radius = 10f;
@@ -32,14 +36,17 @@ public static class BuildGoblin
         });
         EnemyDefinition definition = LoadOrCreate<EnemyDefinition>($"{Folder}/Goblin.asset", d =>
         {
-            d.MoveSpeed = 1.4f;
             d.StopDistance = 0.3f;
             d.GrassBendRadius = 0.6f;
         });
+        definition.SetBaseStat(EnemyStat.MaxHealth, 100f);
+        // The walk clip's authored speed, so it plays at its own pace.
+        definition.SetBaseStat(EnemyStat.MoveSpeed, 1.4f);
         definition.Wander = wander;
         definition.Animation = animation;
+        definition.Reaction = reaction;
         EditorUtility.SetDirty(definition);
-        foreach (ScriptableObject asset in new ScriptableObject[] { animation, wander, definition })
+        foreach (ScriptableObject asset in new ScriptableObject[] { animation, reaction, wander, definition })
             AssetDatabase.SaveAssetIfDirty(asset);
 
         var controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>($"{Folder}/Goblin.controller");
@@ -54,9 +61,13 @@ public static class BuildGoblin
             var results = new System.Collections.Generic.List<string>();
             if (AssetDatabase.LoadAssetAtPath<GameObject>($"{Folder}/Goblin.prefab") == null)
                 results.Add(BuildBase(definition, controller));
+            else
+                results.Add(Upgrade($"{Folder}/Goblin.prefab", isBase: true));
             foreach (string look in VariantLooks)
                 if (AssetDatabase.LoadAssetAtPath<GameObject>($"{Folder}/{look}.prefab") == null)
                     results.Add(BuildVariant(look, controller));
+                else
+                    results.Add(Upgrade($"{Folder}/{look}.prefab", isBase: false));
             return results.Count == 0 ? "nothing missing" : string.Join("; ", results);
         }
         finally
@@ -82,7 +93,9 @@ public static class BuildGoblin
         var serialized = new SerializedObject(enemyAnimator);
         serialized.FindProperty("_animator").objectReferenceValue = animator;
         serialized.FindProperty("_fidgets").intValue = Fidgets;
+        serialized.FindProperty("_deaths").intValue = Deaths;
         serialized.ApplyModifiedPropertiesWithoutUndo();
+        SetVisual(root.AddComponent<EnemyBody>(), animator.transform);
         var brain = new SerializedObject(root.GetComponent<EnemyBrain>());
         brain.FindProperty("_definition").objectReferenceValue = definition;
         brain.ApplyModifiedPropertiesWithoutUndo();
@@ -112,10 +125,49 @@ public static class BuildGoblin
         var serialized = new SerializedObject(root.GetComponent<EnemyAnimator>());
         serialized.FindProperty("_animator").objectReferenceValue = animator;
         serialized.ApplyModifiedPropertiesWithoutUndo();
+        SetVisual(root.GetComponent<EnemyBody>(), animator.transform);
         string path = $"{Folder}/{look}.prefab";
         PrefabUtility.SaveAsPrefabAsset(root, path, out bool saved);
         Object.DestroyImmediate(root);
         return saved ? path : "failed to save " + path;
+    }
+
+    // Adds what later versions of the enemy contract need to an existing prefab, in place: EnemyBody sinking its own Model,
+    // the death count on the base.
+    static string Upgrade(string path, bool isBase)
+    {
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            Transform model = root.transform.Find("Model");
+            var body = root.GetComponent<EnemyBody>();
+            if (body == null)
+            {
+                if (!isBase)
+                    return path + ": no EnemyBody (upgrade Goblin.prefab first)";
+                body = root.AddComponent<EnemyBody>();
+            }
+            SetVisual(body, model);
+            if (isBase)
+            {
+                var serialized = new SerializedObject(root.GetComponent<EnemyAnimator>());
+                serialized.FindProperty("_deaths").intValue = Deaths;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+            PrefabUtility.SaveAsPrefabAsset(root, path, out bool saved);
+            return saved ? path + " upgraded" : "failed to save " + path;
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    static void SetVisual(EnemyBody body, Transform visual)
+    {
+        var serialized = new SerializedObject(body);
+        serialized.FindProperty("_visual").objectReferenceValue = visual;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
     }
 
     static Animator AddModel(GameObject root, string model, RuntimeAnimatorController controller)

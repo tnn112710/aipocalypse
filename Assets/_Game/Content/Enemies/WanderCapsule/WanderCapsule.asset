@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d677ffea554c1a847963cac2f0afd0b4, type: 3}
   m_Name: WanderCapsule
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyDefinition
-  MoveSpeed: 2
+  _stats:
+  - key: 0
+    value: 100
+  - key: 1
+    value: 2
   StopDistance: 0.3
+  GrassBendRadius: 0.6
+  Reaction: {fileID: 11400000, guid: 7dcd6109388675345815d2d54ac60c8e, type: 2}
   Wander: {fileID: 11400000, guid: ab98956e7ea30b548b29f7c3fda4ffcd, type: 2}
+  Animation: {fileID: 0}

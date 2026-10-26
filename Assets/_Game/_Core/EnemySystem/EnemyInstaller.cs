@@ -26,6 +26,7 @@ namespace Aipocalypse.Core.EnemySystem
             builder.Register<EnemyRegistry>(Lifetime.Singleton);
             builder.RegisterEntryPoint<EnemyManager>();
             builder.RegisterEntryPoint<EnemyAnimationManager>();
+            builder.RegisterEntryPoint<EnemyBodyManager>().AsSelf();
             // Editor and development builds only.
             if (Debug.isDebugBuild)
                 builder.RegisterEntryPoint<EnemyCommands>();

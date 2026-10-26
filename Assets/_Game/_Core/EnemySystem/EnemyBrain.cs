@@ -6,8 +6,8 @@ using VContainer;
 namespace Aipocalypse.Core.EnemySystem
 {
     // An enemy's bridge to the enemy system: once injected, starts its Manual-mode tree and joins the EnemyRegistry while
-    // enabled, where EnemyManager ticks it (and the scene's GrassBendField, if any, bends grass around it). Its kind (speed,
-    // behaviour tuning) is its EnemyDefinition.
+    // enabled, where EnemyManager ticks it (and the scene's GrassBendField, if any, bends grass around it). Its kind (base
+    // stats, behaviour tuning) is its EnemyDefinition; each activation gets fresh EnemyStats and a revived EnemyBody.
     [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
     public sealed class EnemyBrain : MonoBehaviour
     {
@@ -20,6 +20,11 @@ namespace Aipocalypse.Core.EnemySystem
         bool _started;
 
         public EnemyDefinition Definition => _definition;
+        // This life's stats (base values + modifiers); null before the first activation.
+        public EnemyStats Stats { get; private set; }
+        // Null for enemies that can't be hurt.
+        public EnemyBody Body { get; private set; }
+        public bool IsDead => Body != null && Body.IsDead;
         public BehaviorTree Tree { get; private set; }
         // Null for enemies without an animated model.
         public EnemyAnimator Animation { get; private set; }
@@ -44,6 +49,7 @@ namespace Aipocalypse.Core.EnemySystem
             _mover = GetComponent<EnemyMover>();
             Tree = GetComponent<BehaviorTree>();
             Animation = GetComponent<EnemyAnimator>();
+            Body = GetComponent<EnemyBody>();
             _started = true;
             if (_definition == null)
                 Debug.LogError($"{name}: no EnemyDefinition assigned.", this);
@@ -59,7 +65,12 @@ namespace Aipocalypse.Core.EnemySystem
                 Activate();
         }
 
-        void OnDisable()
+        void OnDisable() => StopActing();
+
+        // Killed (EnemyBody): stops thinking and walking; the body stays until it disables itself, and enabling revives it.
+        public void Die() => StopActing();
+
+        void StopActing()
         {
             _registry?.Remove(this);
             if (_grassBending != null)
@@ -74,13 +85,31 @@ namespace Aipocalypse.Core.EnemySystem
         {
             if (RegistryIndex >= 0)
                 return;
-            _mover.Initialize(_navigation, _definition);
+            Stats = new EnemyStats(_definition);
+            Stats.Changed += ApplyStat;
+            _mover.Initialize(_navigation, _definition, Stats);
+            if (Body != null)
+                Body.Revive(Stats, _definition.Reaction);
             if (Animation != null)
                 Animation.Initialize(_definition.Animation);
             Tree.StartBehavior();
             _registry.Add(this);
             if (_grassBending != null)
                 _grassBending.Add(transform, _definition.GrassBendRadius);
+        }
+
+        void ApplyStat(EnemyStat stat)
+        {
+            switch (stat)
+            {
+                case EnemyStat.MoveSpeed:
+                    _mover.SetSpeed(Stats.Get(stat));
+                    break;
+                case EnemyStat.MaxHealth:
+                    if (Body != null)
+                        Body.SetMaxHealth(Stats.Get(stat));
+                    break;
+            }
         }
     }
 }

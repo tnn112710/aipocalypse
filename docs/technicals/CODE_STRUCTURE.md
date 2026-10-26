@@ -75,15 +75,20 @@ Assets/_Game/
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
-│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager + EnemyAnimationManager (entry points) (+ EnemyCommands in dev builds); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
+│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager + EnemyAnimationManager + EnemyBodyManager (entry points) (+ EnemyCommands in dev builds); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
 │  │  ├─ EnemyCommands.cs                   console: enemy.count
 │  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; Advance(deltaTime)
-│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: MoveSpeed, StopDistance, GrassBendRadius, Wander (WanderSettings), Animation (EnemyAnimationSettings, empty if unanimated); lives in Content/Enemies/<Name>/
-│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Destination, Animation (optional EnemyAnimator); on its first Start (and each re-enable) initializes its mover (and animator), starts its tree and registers (and joins the scene's GrassBendField, if any); stops both and leaves when disabled
-│  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition), Home, TryFindDestination, MoveTo(destination, timeout), Arrived, TimedOut, Halt, Velocity
-│  │  ├─ EnemyAnimator.cs                   on animated enemies: drives the Model's Animator (parameter contract Speed, LookX/LookY, Lean, Fidget/FidgetIndex) from the mover's velocity and turn rate; Advance(deltaTime), no Update
+│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: base stats (Dictionary<EnemyStat, float>: MaxHealth, MoveSpeed), StopDistance, GrassBendRadius, Reaction (EnemyReactionSettings), Wander (WanderSettings), Animation (EnemyAnimationSettings, empty if unanimated); lives in Content/Enemies/<Name>/
+│  │  ├─ EnemyStats.cs                      EnemyStat enum (append only: definitions store values by number), EnemyStatModifier (add / multiply, by source), EnemyStats: one life's values = base + modifiers, Get, AddModifier, RemoveModifiers(source), Changed (EnemyCombatTests)
+│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Stats, Body, IsDead, Destination, Animation (optional EnemyAnimator); on its first Start (and each re-enable) builds fresh EnemyStats, initializes its mover, revives its body (and animator), starts its tree and registers (and joins the scene's GrassBendField, if any); Die() or disabling stops both and leaves; applies MoveSpeed / MaxHealth changes
+│  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition, stats), SetSpeed, Push(delta) (knockback), Home, TryFindDestination, MoveTo(destination, timeout), Arrived, TimedOut, Halt, Velocity
+│  │  ├─ EnemyBody.cs                       IDamageable on every enemy root: Health from MaxHealth, knockback from DamageInfo.Force, hit / death reactions on EnemyAnimator; killed = colliders off, EnemyBrain.Die, lies CorpseTime, sinks its _visual (the Model), disables itself; re-enabling revives
+│  │  ├─ Knockback.cs                       plain C# rules: horizontal push velocity per N·s, capped, exponential drag (slides speed / drag metres at any frame rate) (EnemyCombatTests)
+│  │  ├─ EnemyBodyManager.cs                ITickable: advances only the bodies being pushed or lying dead, on scaled time; Track(body), Advance(deltaTime)
+│  │  ├─ EnemyReactionSettings.cs           SO: knockback per force, drag, max speed, heavy-hit speed, corpse and sink time, sink depth; asset in Data/Enemies/
+│  │  ├─ EnemyAnimator.cs                   on animated enemies: drives the Model's Animator (parameter contract Speed, LookX/LookY, Lean, Fidget/FidgetIndex) from the mover's velocity and turn rate; Advance(deltaTime), no Update; Hit(push, heavy) sets Hit + HitIndex (front / back / left / right, +4 heavy), Die() sets Dead + a random DeathIndex and mutes the upper layers
 │  │  ├─ LocomotionAnimation.cs             plain C# rules behind it: glances while standing, look and lean into turns, one fidget roll per stop (EnemyAnimationTests)
 │  │  ├─ EnemyAnimationManager.cs           ITickable: advances every registered enemy's EnemyAnimator each frame on scaled time; Advance(deltaTime)
 │  │  ├─ EnemyAnimationSettings.cs          SO: still speed, damping, glance interval / range, look and lean into turns, fidget delay / chance; asset in Data/Enemies/
@@ -283,9 +288,9 @@ Assets/_Game/
 │  ├─ Weapons/_Shared/                      Animations/ (Gun.controller + base clips); Effects/ (MuzzleFlash, Tracer, BulletImpact, BulletHole PooledEffect roots,
 │  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
-│  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
-│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, Model = Goblin_01_Model) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
-│  │                                        Goblin.asset (EnemyDefinition, walk 1.4 m/s), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
+│  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain, EnemyBody; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
+│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, EnemyBody, Model = Goblin_01_Model) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
+│  │                                        Goblin.asset (EnemyDefinition, 100 HP, walk 1.4 m/s), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
 │  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Model/ (<Look>.sk sources + SidekickKit output: _Model.prefab, _Mesh, _Avatar, .mat, color map)
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/ (detail prefabs in `DetailS/`, committed with a capital S; the generator writes `Details/`, see ENVIRONMENT.md), Rocks/, Mountains/ (ENVIRONMENT.md)
@@ -304,6 +309,7 @@ Assets/_Game/
 │  ├─ Enemies/EnemySystemSettings.asset     think interval, thinks per frame
 │  ├─ Enemies/WanderSettings.asset          wander tuning
 │  ├─ Enemies/EnemyAnimationSettings.asset  glances, fidgets, lean (EnemyDefinition.Animation of animated kinds)
+│  ├─ Enemies/EnemyReactionSettings.asset   knockback, heavy hits, corpse time (EnemyDefinition.Reaction of every kind)
 │  ├─ Debug/ConsoleSettings.asset, ConsoleStyle.asset   the dev console's behaviour and look (font: TMP's LiberationSans SDF)
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
@@ -316,6 +322,7 @@ Assets/_Game/
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ EnemyAnimationTests.cs                LocomotionAnimation (look / lean into turns, glances, one fidget per stop) + every animated enemy prefab wired to the parameter contract
+   ├─ EnemyCombatTests.cs                   EnemyStats (base, modifiers, Changed), Knockback (slide length at any frame rate, cap), every definition has every stat + Reaction, every enemy prefab can be hurt
    ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop (also mid-switch), lantern onto the belt / swap, lower / raise hands, quick-use items and stacks (TestConsumableDefinition)
    ├─ PoseSequenceTests.cs                  PoseSequencePlayer: start pose, beat moves, ground and wall placement, Ended, Stop
@@ -353,7 +360,7 @@ ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings
 GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats, WorldClockCommands)
    EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), GrassBendField, AmbienceService (needs WorldTimeInstaller)
-   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager, EnemyAnimationManager (+ EnemyCommands); injects the listed scene enemies (EnemyBrain)
+   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager, EnemyAnimationManager, EnemyBodyManager (+ EnemyCommands); injects the listed scene enemies (EnemyBrain)
    (scene ConsoleCommands add themselves to the root CommandRegistry on Initialize and leave on Dispose)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
@@ -405,7 +412,8 @@ VContainer ticks     TimeService counts down a hit stop (real time); ScreenLog e
                      PlayerCheats (K / L); EffectPool returns expired effects
                      BulletSystem moves and ray-tests the bullets fired in earlier frames → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes
                      scene scope: WorldClock advances (HourChanged / DayPhaseChanged / DayStarted), WorldClockCheats; AmbienceService bed volumes and calls;
-                     EnemyManager thinks its share of the enemy trees; EnemyAnimationManager sets every animated enemy's Animator parameters
+                     EnemyManager thinks its share of the enemy trees; EnemyAnimationManager sets every animated enemy's Animator parameters;
+                       EnemyBodyManager slides knocked-back enemies and sinks the dead
 
 Player.Update
 intent = dead, in a pose sequence or gameplay input disabled ? default : read InputService (look × PlayerZoom.LookScale; aim / trigger end a sprint)

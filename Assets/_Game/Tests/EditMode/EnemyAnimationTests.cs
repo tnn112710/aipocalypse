@@ -9,7 +9,7 @@ namespace Aipocalypse.Tests
 {
     public class EnemyAnimationTests
     {
-        static readonly string[] ContractParameters = { "Speed", "LookX", "LookY", "Lean", "Fidget", "FidgetIndex" };
+        static readonly string[] ContractParameters = { "Speed", "LookX", "LookY", "Lean", "Fidget", "FidgetIndex", "Hit", "HitIndex", "Dead", "DeathIndex" };
         EnemyAnimationSettings _settings;
 
         [SetUp]
@@ -120,9 +120,12 @@ namespace Aipocalypse.Tests
                 Assert.That(controller, Is.Not.Null, $"{path}: no AnimatorController");
                 string[] parameters = controller.parameters.Select(p => p.name).ToArray();
                 Assert.That(parameters, Is.SupersetOf(ContractParameters), $"{path}: controller misses contract parameters");
-                int fidgetStates = controller.layers[0].stateMachine.states.Count(s => s.state.name != "Locomotion");
+                var baseStates = controller.layers[0].stateMachine.states.Select(s => s.state.name).ToArray();
+                int deathStates = baseStates.Count(n => n.StartsWith("Death_"));
+                int fidgetStates = baseStates.Length - deathStates - 1;
                 var serialized = new SerializedObject(enemyAnimator);
                 Assert.That(fidgetStates, Is.GreaterThanOrEqualTo(serialized.FindProperty("_fidgets").intValue), $"{path}: more fidgets than states");
+                Assert.That(deathStates, Is.GreaterThanOrEqualTo(serialized.FindProperty("_deaths").intValue), $"{path}: more deaths than states");
                 var definition = prefab.GetComponent<EnemyBrain>().Definition;
                 Assert.That(definition != null && definition.Animation != null, Is.True, $"{path}: definition has no Animation settings");
             }

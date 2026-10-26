@@ -139,7 +139,7 @@ public static class CharacterKit
     }
 
     // Builds (or rebuilds in place, keeping the GUID) a locomotion AnimatorController with the project's parameter contract
-    // from a spec file of `key = value` lines (# comments). Clip refs: "file.fbx" or "file.fbx#ClipName".
+    // from a spec file of `key = value` lines (# comment lines, or " #" after a value). Clip refs: "file.fbx" or "file.fbx#ClipName".
     //   controller = Assets/_Game/Content/<Kind>/<Name>/<Name>.controller
     //   neutral    = Assets/.../<Name>_AdditiveNeutral.anim   generated: first frame of headLook.left, a zero-delta centre
     //   move       = <clip> @ <m/s>                         one per line, idle at 0 (thresholds = the clips' authored speeds)
@@ -147,6 +147,10 @@ public static class CharacterKit
     //   headLook.left|right|up|down = <clip>                additive, 2D on LookX/LookY
     //   bodyLook.left|right|up|down = <clip>                additive, same parameters, layer weight bodyLook.weight
     //   lean.left|right = <clip>                            additive, 1D on Lean
+    //   hit.front|back|left|right = <clip>                  hit reactions on the Hit trigger by HitIndex 0..3 (where the hit
+    //   heavy.front|back|left|right = <clip>                came from), heavy ones at HitIndex 4..7 (missing = the light clip),
+    //   hit.mask = upper | full                             in an override layer; upper (default) keeps the legs walking
+    //   death = <clip>                                      one per line, base layer, from any state on Dead by DeathIndex
     public static string BuildLocomotionController(string specPath)
     {
         if (!File.Exists(specPath))
@@ -154,7 +158,13 @@ public static class CharacterKit
         var spec = new List<KeyValuePair<string, string>>();
         foreach (string raw in File.ReadAllLines(specPath))
         {
-            string line = raw.Split('#')[0].Trim();
+            // Comments: whole lines starting with #, or " #" after a value ("file.fbx#Clip" is a clip reference).
+            string line = raw.Trim();
+            if (line.StartsWith("#"))
+                continue;
+            int comment = line.IndexOf(" #", StringComparison.Ordinal);
+            if (comment >= 0)
+                line = line.Substring(0, comment).Trim();
             int eq = line.IndexOf('=');
             if (eq > 0)
                 spec.Add(new KeyValuePair<string, string>(line.Substring(0, eq).Trim(), line.Substring(eq + 1).Trim()));
@@ -186,6 +196,10 @@ public static class CharacterKit
         var headLook = directions.Select(d => Clip(Get("headLook." + d))).ToArray();
         var bodyLook = directions.Select(d => Clip(Get("bodyLook." + d))).ToArray();
         var lean = new[] { Clip(Get("lean.left")), Clip(Get("lean.right")) };
+        string[] sides = { "front", "back", "left", "right" };
+        var hits = sides.Select(d => Clip(Get("hit." + d))).ToArray();
+        var heavyHits = sides.Select(d => Clip(Get("heavy." + d))).ToArray();
+        var deaths = spec.Where(p => p.Key == "death").Select(p => Clip(p.Value)).ToList();
         if (missing.Count > 0)
             return Fail("clips not found: " + string.Join(", ", missing));
         if (moves.Count == 0)
@@ -206,6 +220,10 @@ public static class CharacterKit
         controller.AddParameter("LookX", AnimatorControllerParameterType.Float);
         controller.AddParameter("LookY", AnimatorControllerParameterType.Float);
         controller.AddParameter("Lean", AnimatorControllerParameterType.Float);
+        controller.AddParameter("Hit", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("HitIndex", AnimatorControllerParameterType.Int);
+        controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("DeathIndex", AnimatorControllerParameterType.Int);
 
         controller.AddLayer("Base Layer");
         AnimatorControllerLayer[] baseLayers = controller.layers;
@@ -240,6 +258,23 @@ public static class CharacterKit
             interrupted.AddCondition(AnimatorConditionMode.Greater, 0.3f, "Speed");
         }
 
+        for (int i = 0; i < deaths.Count; i++)
+        {
+            AnimatorState death = root.AddState("Death_" + i, new Vector3(600f, 120f * i, 0f));
+            death.motion = deaths[i];
+            AnimatorStateTransition fall = root.AddAnyStateTransition(death);
+            fall.hasExitTime = false;
+            fall.duration = 0.15f;
+            fall.canTransitionToSelf = false;
+            fall.AddCondition(AnimatorConditionMode.If, 0f, "Dead");
+            fall.AddCondition(AnimatorConditionMode.Equals, i, "DeathIndex");
+            // Revived (a pooled enemy reused without a reset).
+            AnimatorStateTransition up = death.AddTransition(locomotion);
+            up.hasExitTime = false;
+            up.duration = 0.2f;
+            up.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
+        }
+
         AddDirectionalLayer(controller, "HeadLook", headLook, positions, neutral, 1f);
         float bodyWeight = float.TryParse(Get("bodyLook.weight"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float w) ? w : 0.5f;
         AddDirectionalLayer(controller, "BodyLook", bodyLook, positions, neutral, bodyWeight);
@@ -254,13 +289,65 @@ public static class CharacterKit
             tree.AddChild(neutral, 0f);
             tree.AddChild(lean[1], 1f);
         }
+        int hitStates = AddHitLayer(controller, hits, heavyHits, Get("hit.mask") != "full");
 
         EditorUtility.SetDirty(controller);
         // Only what this wrote: SaveAssets() would also write unrelated dirty assets (e.g. the WorldMap terrain).
         AssetDatabase.SaveAssetIfDirty(controller);
         if (neutral != null)
             AssetDatabase.SaveAssetIfDirty(neutral);
-        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+    }
+
+    // Override layer "Hit": an empty default state, and Hit_<index> entered from any state on Hit + HitIndex (a new hit
+    // restarts it), back to empty near its end. `upper` masks it to the spine, head and arms.
+    static int AddHitLayer(AnimatorController controller, AnimationClip[] light, AnimationClip[] heavy, bool upper)
+    {
+        if (light.All(c => c == null) && heavy.All(c => c == null))
+            return 0;
+        controller.AddLayer("Hit");
+        AnimatorControllerLayer[] layers = controller.layers;
+        int index = layers.Length - 1;
+        layers[index].blendingMode = AnimatorLayerBlendingMode.Override;
+        layers[index].defaultWeight = 1f;
+        if (upper)
+        {
+            var mask = new AvatarMask { name = "UpperBody" };
+            for (int part = 0; part < (int)AvatarMaskBodyPart.LastBodyPart; part++)
+                mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)part, true);
+            foreach (AvatarMaskBodyPart part in new[] { AvatarMaskBodyPart.Root, AvatarMaskBodyPart.LeftLeg, AvatarMaskBodyPart.RightLeg, AvatarMaskBodyPart.LeftFootIK, AvatarMaskBodyPart.RightFootIK })
+                mask.SetHumanoidBodyPartActive(part, false);
+            AssetDatabase.AddObjectToAsset(mask, controller);
+            layers[index].avatarMask = mask;
+        }
+        controller.layers = layers;
+
+        AnimatorStateMachine machine = controller.layers[index].stateMachine;
+        AnimatorState empty = machine.AddState("Empty", new Vector3(300f, -120f, 0f));
+        machine.defaultState = empty;
+        int count = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            AnimationClip clip = i < 4 ? light[i] : heavy[i - 4] ?? light[i - 4];
+            if (clip == null)
+                continue;
+            count++;
+            AnimatorState state = machine.AddState("Hit_" + i, new Vector3(300f + 250f * (i / 4), 80f * (i % 4), 0f));
+            state.motion = clip;
+            AnimatorStateTransition enter = machine.AddAnyStateTransition(state);
+            enter.hasExitTime = false;
+            enter.duration = 0.08f;
+            enter.canTransitionToSelf = true;
+            enter.AddCondition(AnimatorConditionMode.If, 0f, "Hit");
+            enter.AddCondition(AnimatorConditionMode.Equals, i, "HitIndex");
+            AnimatorStateTransition done = state.AddTransition(empty);
+            done.hasExitTime = true;
+            done.exitTime = 0.85f;
+            done.duration = 0.25f;
+            // A hit while it blends out still lands (any-state transitions count as the source's).
+            done.interruptionSource = TransitionInterruptionSource.Source;
+        }
+        return count;
     }
 
     static void AddDirectionalLayer(AnimatorController controller, string name, AnimationClip[] clips, Vector2[] positions, AnimationClip neutral, float weight)

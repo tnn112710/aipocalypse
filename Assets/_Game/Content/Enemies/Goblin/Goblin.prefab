@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2255017217848346113}
   - component: {fileID: 2244294816847891178}
   - component: {fileID: 362247493749007618}
+  - component: {fileID: 150208522003893482}
   m_Layer: 23
   m_Name: Goblin
   m_TagString: Untagged
@@ -224,6 +225,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyAnimator
   _animator: {fileID: 8755988595185826393}
   _fidgets: 3
+  _deaths: 2
+--- !u!114 &150208522003893482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832095286261106595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07a972ebe5c737044a57160a0b14ff15, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBody
+  _visual: {fileID: 5857946922758741817}
 --- !u!1001 &7470840064389687322
 PrefabInstance:
   m_ObjectHideFlags: 0
