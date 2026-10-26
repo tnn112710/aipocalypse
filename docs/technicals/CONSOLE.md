@@ -1,10 +1,12 @@
 # Dev console
 
-In-game console for commands, cheats and the Unity logs, Unreal style. Editor and development builds only: release builds don't register it. Code in `_Core/_Debug/Console/`, script map in [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The on-screen log and the debug hotkeys are in [DEBUG.md](DEBUG.md).
+In-game console for commands and cheats, Unreal style, with the Unity logs on request. Editor and development builds only: release builds don't register it. Code in `_Core/_Debug/Console/`, script map in [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The on-screen log and the debug hotkeys are in [DEBUG.md](DEBUG.md).
 
 ## Using it
 
-Press the backquote key `` ` `` (left of 1, the same key on any keyboard layout) to open or close it. It drops down over the top 45% of the screen: the scrollback (Unity logs and command results), the input line, and suggestions under it. The game keeps running (`ConsoleSettings.PauseWhileOpen` to pause it).
+Press the backquote key `` ` `` (left of 1, the same key on any keyboard layout) to open or close it. It drops down over the top 45% of the screen: the scrollback, the input line, and suggestions under it. The game keeps running (`ConsoleSettings.PauseWhileOpen` to pause it).
+
+**Unity logs are off by default:** the scrollback shows only your commands and their results. `log.screen.error`, `log.screen.info` or `log.screen.all` start showing Unity logs from then on, in the scrollback and on screen ([DEBUG.md → Screen log](DEBUG.md#screen-log)); `log.screen.clear` stops them. Logs from before you turned them on aren't kept. The starting level is `ConsoleSettings.ScreenLogLevel`.
 
 While it's open it holds `InputService`'s text input: the Player, UI and Debug maps are off, so typing never moves the player, fires a hotkey (typing `k` doesn't kill you) or confirms a menu. The cursor keeps its state.
 
@@ -24,14 +26,17 @@ While it's open it holds `InputService`'s text input: the Player, UI and Debug m
 
 ## Commands
 
-In the game, `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
+With nothing typed, the line under the input lists this scene's command groups (`afps  clear  clock  enemy  gfx  help  log  pause  player  time`). `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
 
 | Command | Does |
 | --- | --- |
 | `help`, `help <command>`, `help <group>` | Every command; one command's usage; a group's commands (`help clock`) |
 | `clear` | Empty the scrollback |
-| `log.screen [Off/Error/Warning/All]` | Which Unity logs the screen log mirrors (default `ConsoleSettings.ScreenLogLevel`: Error) |
-| `log.screenclear` | Remove every on-screen message |
+| `log.screen.all` | Show every Unity log (logs, warnings, errors) in the scrollback and on screen |
+| `log.screen.error` | Show Unity errors only (errors, exceptions, asserts) |
+| `log.screen.info` | Show `Debug.Log` messages only |
+| `log.screen.clear` | Stop showing Unity logs (the default) and remove the messages on screen |
+| `log.screen` | Which level is on (Off, Error, Info, All) |
 | `log.trace` | Stack trace of the last error Unity logged |
 | `player.kill`, `player.revive` | Kill the player with a real hit (through `DamageService`, like K) / revive (like L) |
 | `player.heal [amount]` | Heal to full, or by an amount |
@@ -42,6 +47,7 @@ In the game, `help` lists exactly what works in the current scene, `help clock` 
 | `time.scale [0–1]` | Game speed (slow motion); 1 drops the console's request |
 | `pause` | Pause the game, or resume it |
 | `gfx.shadows [metres]`, `gfx.startwinkle [on/off]` | The player's graphics settings (`GraphicsService`) |
+| `afps.show`, `afps.hide` | Advanced FPS Counter overlay, off by default (`show` adds one to a scene without it) |
 | `clock.now`, `clock.set <hour>`, `clock.phase <phase>`, `clock.nexthour`, `clock.nextphase` | World clock: read, jump (scenes with a `WorldTimeInstaller` only) |
 | `clock.skip <hour> <seconds>`, `clock.speed [0–1]`, `clock.freeze <on/off>` | Fast-forward with every hour passing; slow or stop the clock |
 | `enemy.count` | Enemies in play (scenes with an `EnemyInstaller` only) |
@@ -89,9 +95,10 @@ if (Debug.isDebugBuild)
 InputService  (Console map: ` always on in dev builds; editing keys + typed characters only while text input is held)
    │
 ConsoleService (root ITickable, dev builds)    LogBuffer: Application.logMessageReceivedThreaded (any thread) → ring of
-   ├─ ConsoleLine + ConsoleHistory + KeyRepeat     ConsoleSettings.LogCapacity lines, moved in by Flush each tick
+   ├─ ConsoleLine + ConsoleHistory + KeyRepeat     ConsoleSettings.LogCapacity lines, moved in by Flush each tick, keeping
+   │                                               only the kinds ScreenLog.MirrorLevel shows (none by default)
    ├─ CommandRegistry.Execute / Suggest  ◄── ConsoleCommands subclasses Add / Remove themselves (Initialize / Dispose)
-   └─ ScreenLog.Mirror (Unity logs at MirrorLevel)
+   └─ ScreenLog.Mirror (the same logs, on screen)
 ConsoleView (DebugConsole.prefab, created by ConsoleInstaller, DontDestroyOnLoad) draws the service in LateUpdate; ScreenLogView draws ScreenLog
 ```
 

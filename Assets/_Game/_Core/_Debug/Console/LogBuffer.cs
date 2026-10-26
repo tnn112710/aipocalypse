@@ -72,8 +72,9 @@ namespace Aipocalypse.Core.Debugging
 
         public void Dispose() => Application.logMessageReceivedThreaded -= OnLog;
 
-        // Main thread: moves the Unity logs received since the last call into the buffer, handing each to added.
-        public void Flush(Action<ConsoleEntry> added = null)
+        // Main thread: moves the Unity logs received since the last call into the buffer, handing each to added. Logs whose kind
+        // keep rejects are dropped (an error's stack trace is still kept for LastStackTrace).
+        public void Flush(Func<ConsoleEntryKind, bool> keep = null, Action<ConsoleEntry> added = null)
         {
             lock (_lock)
             {
@@ -91,6 +92,8 @@ namespace Aipocalypse.Core.Debugging
                 };
                 if (kind == ConsoleEntryKind.Error && !string.IsNullOrEmpty(log.StackTrace))
                     LastStackTrace = log.Text + "\n" + log.StackTrace;
+                if (keep != null && !keep(kind))
+                    continue;
                 Add(log.Text, kind);
                 added?.Invoke(new ConsoleEntry(log.Text, kind));
             }

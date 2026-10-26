@@ -48,15 +48,31 @@ namespace Aipocalypse.Core.Debugging
         [Command("Empty the console", Name = "clear")]
         void Clear() => _logs.Clear();
 
-        [Command("Unity logs shown on screen: Off, Error, Warning or All", Name = "log.screen")]
-        ScreenLogLevel ScreenLevel
+        [Command("Which Unity logs show (Off, Error, Info, All)", Name = "log.screen")]
+        ScreenLogLevel ScreenLevel() => _screen.MirrorLevel;
+
+        [Command("Show every Unity log: logs, warnings, errors", Name = "log.screen.all")]
+        string ShowAll() => ShowLogs(ScreenLogLevel.All);
+
+        [Command("Show Unity errors only", Name = "log.screen.error")]
+        string ShowErrors() => ShowLogs(ScreenLogLevel.Error);
+
+        [Command("Show Debug.Log messages only", Name = "log.screen.info")]
+        string ShowInfo() => ShowLogs(ScreenLogLevel.Info);
+
+        [Command("Stop showing Unity logs and remove the ones on screen", Name = "log.screen.clear")]
+        string StopLogs()
         {
-            get => _screen.MirrorLevel;
-            set => _screen.MirrorLevel = value;
+            _screen.Clear();
+            return ShowLogs(ScreenLogLevel.Off);
         }
 
-        [Command("Remove every message on screen", Name = "log.screenclear")]
-        void ScreenClear() => _screen.Clear();
+        // From now on, in the scrollback and on screen.
+        string ShowLogs(ScreenLogLevel level)
+        {
+            _screen.MirrorLevel = level;
+            return level == ScreenLogLevel.Off ? "Unity logs hidden" : $"Showing Unity logs: {level}";
+        }
 
         [Command("Stack trace of the last error Unity logged", Name = "log.trace")]
         string Trace() => _logs.LastStackTrace ?? "No error logged yet";

@@ -173,6 +173,9 @@ namespace Aipocalypse.Tests
 
             _registry.Suggest("", suggestions);
             Assert.AreEqual(0, suggestions.Count);
+
+            _registry.Groups(suggestions);
+            CollectionAssert.AreEqual(new[] { "shout", "test" }, suggestions, "each group once; a top-level name is its own group");
         }
 
         [Test]
@@ -261,13 +264,49 @@ namespace Aipocalypse.Tests
             var added = new List<ConsoleEntry>();
             Debug.LogWarning("console test warning");
             Assert.AreEqual("d", logs[2].Text, "Unity logs wait for Flush");
-            logs.Flush(added.Add);
+            logs.Flush(null, added.Add);
             Assert.AreEqual("console test warning", logs[2].Text);
             Assert.AreEqual(ConsoleEntryKind.Warning, logs[2].Kind);
             Assert.AreEqual(1, added.Count);
 
             logs.Clear();
             Assert.AreEqual(0, logs.Count);
+        }
+
+        [Test]
+        public void LogScreen_UnityLogsStayOutUntilALevelIsChosen()
+        {
+            using var logs = new LogBuffer(16);
+            var screen = new ScreenLog(true);
+            var builtIns = new BuiltInCommands(_registry, logs, screen);
+            builtIns.Initialize();
+            void Log()
+            {
+                Debug.Log("console info");
+                Debug.LogWarning("console warning");
+                logs.Flush(screen.Mirrors);
+            }
+
+            Log();
+            Assert.AreEqual(0, logs.Count, "off by default: the console shows only commands");
+
+            _registry.Execute("log.screen.info");
+            Log();
+            Assert.AreEqual(1, logs.Count);
+            Assert.AreEqual(ConsoleEntryKind.Log, logs[0].Kind);
+
+            _registry.Execute("log.screen.all");
+            Log();
+            Assert.AreEqual(2, logs.Count, "the repeated info line collapses into one");
+            Assert.AreEqual(2, logs[0].Count);
+            Assert.AreEqual(ConsoleEntryKind.Warning, logs[1].Kind);
+            Assert.AreEqual("All", _registry.Execute("log.screen").Message);
+
+            screen.Print("on screen");
+            _registry.Execute("log.screen.clear");
+            Assert.AreEqual(ScreenLogLevel.Off, screen.MirrorLevel);
+            Assert.AreEqual(0, screen.Count);
+            builtIns.Dispose();
         }
 
         [Test]

@@ -5,12 +5,15 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.Debugging
 {
-    // Which Unity logs the ScreenLog mirrors.
+    // Which Unity logs show, on screen and in the console's scrollback.
     public enum ScreenLogLevel
     {
         Off,
+        // Errors, exceptions, asserts.
         Error,
-        Warning,
+        // Debug.Log only.
+        Info,
+        // Logs, warnings and errors.
         All,
     }
 
@@ -53,7 +56,7 @@ namespace Aipocalypse.Core.Debugging
 
         public ScreenLog(bool enabled) => _enabled = enabled;
 
-        public ScreenLogLevel MirrorLevel { get; set; } = ScreenLogLevel.Error;
+        public ScreenLogLevel MirrorLevel { get; set; }
         public int Count => _messages.Count;
         // Bumped by every change, so the view redraws only then.
         public int Version { get; private set; }
@@ -69,9 +72,9 @@ namespace Aipocalypse.Core.Debugging
 
         public bool Mirrors(ConsoleEntryKind kind) => kind switch
         {
-            ConsoleEntryKind.Error => MirrorLevel >= ScreenLogLevel.Error,
-            ConsoleEntryKind.Warning => MirrorLevel >= ScreenLogLevel.Warning,
-            ConsoleEntryKind.Log => MirrorLevel >= ScreenLogLevel.All,
+            ConsoleEntryKind.Error => MirrorLevel is ScreenLogLevel.Error or ScreenLogLevel.All,
+            ConsoleEntryKind.Warning => MirrorLevel == ScreenLogLevel.All,
+            ConsoleEntryKind.Log => MirrorLevel is ScreenLogLevel.Info or ScreenLogLevel.All,
             _ => false,
         };
 

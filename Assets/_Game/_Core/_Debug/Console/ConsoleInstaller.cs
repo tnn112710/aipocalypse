@@ -23,6 +23,7 @@ namespace Aipocalypse.Core.Debugging
             if (!Debug.isDebugBuild)
                 return;
             builder.Register<CommandRegistry>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<FpsCounterCommands>();
             if (_settings == null || _overlay == null)
             {
                 Debug.LogWarning("Dev console off: ProjectLifetimeScope has no Console Settings or Console Overlay assigned");

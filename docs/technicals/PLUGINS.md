@@ -98,7 +98,7 @@ Time of day, sky, lighting, fog and grade are first-party (`EnvironmentDirector`
 
 | Plugin | Version | Location | Tag | Notes |
 | --- | --- | --- | --- | --- |
-| Advanced FPS Counter (CodeStage) | 1.5.7 | `Assets/Plugins/CodeStage` | Maybe | FPS overlay. Debug overlay only (editor and dev builds). Nothing gates it yet: WorldMap's root `Advanced FPS Counter` would ship in a release build (~0.2 ms main thread and ~0.1 KB GC per frame in the editor, 2026-10-25). |
+| Advanced FPS Counter (CodeStage) | 1.5.7 | `Assets/Plugins/CodeStage` | Maybe | FPS overlay. Debug overlay only (editor and dev builds), driven by the dev console (`FpsCounterCommands`): off whenever a scene loads, `afps.show` / `afps.hide`; its own hotkey (default `` ` ``, the console's key) is cleared and it draws at sort order 999, under the console. Release builds don't gate it yet: WorldMap's root `Advanced FPS Counter` would still show there (~0.2 ms main thread and ~0.1 KB GC per frame in the editor, 2026-10-25). `Aipocalypse.Core` references `CodeStage.AFPSCounter.Runtime`. |
 
 ## Editor tools
 

@@ -10,8 +10,9 @@ using VContainer.Unity;
 namespace Aipocalypse.Core.Debugging
 {
     // The dev console (editor and development builds): ` opens and closes it, a typed line runs through the CommandRegistry
-    // (';' chains statements), Unity logs fill the scrollback and, at the chosen level, the ScreenLog. While open it holds
-    // InputService's text input, so the gameplay, UI and Debug maps are off and typing never fires a cheat. ConsoleView draws it.
+    // (';' chains statements). Unity logs show only at the ScreenLog level (log.screen.*, off by default), in the scrollback and
+    // on screen. While open it holds InputService's text input, so the gameplay, UI and Debug maps are off and typing never
+    // fires a cheat. ConsoleView draws it.
     public sealed class ConsoleService : IInitializable, ITickable, IDisposable
     {
         const string HistoryFile = "console_history.txt";
@@ -26,11 +27,13 @@ namespace Aipocalypse.Core.Debugging
         readonly ConsoleHistory _history;
         readonly List<string> _suggestions = new();
         readonly List<string> _statements = new();
+        readonly List<string> _groups = new();
         readonly StringBuilder _typed = new();
         readonly KeyRepeat _backspace = new();
         readonly KeyRepeat _delete = new();
         readonly KeyRepeat _left = new();
         readonly KeyRepeat _right = new();
+        readonly Func<ConsoleEntryKind, bool> _keep;
         readonly Action<ConsoleEntry> _mirror;
         string _historyPath;
         string _completionBase;
@@ -45,6 +48,7 @@ namespace Aipocalypse.Core.Debugging
             _time = time;
             _settings = settings;
             _history = new ConsoleHistory(settings.HistorySize);
+            _keep = screen.Mirrors;
             _mirror = entry => _screen.Mirror(entry.Kind, entry.Text, _settings.ScreenLogSeconds);
         }
 
@@ -83,7 +87,7 @@ namespace Aipocalypse.Core.Debugging
 
         public void Tick()
         {
-            _logs.Flush(_mirror);
+            _logs.Flush(_keep, _mirror);
             if (_input.ConsoleTogglePressed)
             {
                 if (IsOpen)
@@ -135,7 +139,7 @@ namespace Aipocalypse.Core.Debugging
             {
                 CommandResult result = _commands.Execute(statement);
                 // Logs written by the command come before its result.
-                _logs.Flush(_mirror);
+                _logs.Flush(_keep, _mirror);
                 if (!string.IsNullOrEmpty(result.Message))
                     _logs.Add(result.Message, result.Succeeded ? ConsoleEntryKind.Output : ConsoleEntryKind.Error);
             }
@@ -278,6 +282,13 @@ namespace Aipocalypse.Core.Debugging
         void UpdateHint()
         {
             string statement = _line.Text.Substring(CommandParser.LastStatementStart(_line.Text)).TrimStart();
+            if (statement.Length == 0)
+            {
+                // Nothing typed yet: what there is to type here (this scene's command groups).
+                _commands.Groups(_groups);
+                Hint = _groups.Count == 0 ? null : "Commands: " + string.Join("  ", _groups) + "   (help <group>, Tab completes)";
+                return;
+            }
             int space = statement.IndexOf(' ');
             string name = space >= 0 ? statement.Substring(0, space) : statement;
             if (space < 0 && SelectedSuggestion < 0 && _suggestions.Count > 0 && !_commands.TryGet(name, out _))

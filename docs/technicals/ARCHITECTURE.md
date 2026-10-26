@@ -111,7 +111,7 @@ Any scene (World, Proto_*, test arenas)
 
 Editor and development builds only, details in [DEBUG.md](DEBUG.md) and, for the console, [CONSOLE.md](CONSOLE.md):
 
-- **Dev console** (backquote key, `ConsoleService`, root): Unreal-style drop-down with the Unity logs, commands and cheats. Each system owns its commands in a `<System>Commands : ConsoleCommands` class with `[Command]` members, registered as an entry point by its installer when `Debug.isDebugBuild`; it adds itself to the root `CommandRegistry` while its scope lives, so scene systems' commands exist only in their scenes. Commands go through the system's services and owner-keyed requests, never around them.
+- **Dev console** (backquote key, `ConsoleService`, root): Unreal-style drop-down for commands and cheats; Unity logs show in it (and on screen) only after `log.screen.*`. Each system owns its commands in a `<System>Commands : ConsoleCommands` class with `[Command]` members, registered as an entry point by its installer when `Debug.isDebugBuild`; it adds itself to the root `CommandRegistry` while its scope lives, so scene systems' commands exist only in their scenes. Commands go through the system's services and owner-keyed requests, never around them.
 - **`ScreenLog`** (root, always registered, no-op in release builds): on-screen messages, keyed lines, mirrored Unity errors.
 - **Hotkeys:** the `Debug` input map (N / M: next hour / phase, `WorldClockCheats`; K / L: kill / revive the player, `PlayerCheats`), off while the console has text input. Odin buttons on views (e.g. `Player.Revive`).
 

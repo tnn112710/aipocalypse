@@ -6,7 +6,7 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime; precompiled plugin DLLs auto-referenced |
+| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime, sc.stylizedgrass.runtime, CodeStage.AFPSCounter.Runtime; precompiled plugin DLLs auto-referenced |
 | `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
 | `Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit |
 
@@ -49,6 +49,7 @@ Assets/_Game/
 │  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
 │  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/                               Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
+│  │  ├─ FpsCounterCommands.cs              console afps.show / afps.hide (Advanced FPS Counter: off on every scene load, hotkey cleared, sort order 999 under the console); registered by ConsoleInstaller in dev builds
 │  │  ├─ TargetDummy.cs                     shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
 │  │  └─ Console/                           the dev console (editor and dev builds) and the screen log
 │  │     ├─ ConsoleInstaller.cs             root: ScreenLog always; dev builds: CommandRegistry, and with settings + overlay assigned LogBuffer, ConsoleService, BuiltInCommands, the overlay (RegisterComponentInNewPrefab, DontDestroyOnLoad, created on build)
@@ -56,8 +57,8 @@ Assets/_Game/
 │  │     ├─ ConsoleLine.cs                  input line: text + caret, insert / backspace / delete / moves, word-wise with Ctrl
 │  │     ├─ ConsoleHistory.cs               Up / Down history with the typed draft, no repeats, capped (saved by ConsoleService)
 │  │     ├─ KeyRepeat.cs                    held-key repeat (delay, interval, once a frame) for the editing keys
-│  │     ├─ LogBuffer.cs                    scrollback ring: Unity logs from any thread (logMessageReceivedThreaded → Flush on the main thread), console lines; repeats collapse with a count; LastStackTrace; ConsoleEntry / ConsoleEntryKind
-│  │     ├─ ScreenLog.cs                    root ITickable (real time): Print / Show(key) on-screen messages, Mirror Unity logs at MirrorLevel (one line per repeated log), max 24; no-op in release builds; ScreenMessage, ScreenLogLevel
+│  │     ├─ LogBuffer.cs                    scrollback ring: Unity logs from any thread (logMessageReceivedThreaded → Flush on the main thread, which keeps only the kinds asked for), console lines; repeats collapse with a count; LastStackTrace; ConsoleEntry / ConsoleEntryKind
+│  │     ├─ ScreenLog.cs                    root ITickable (real time): Print / Show(key) on-screen messages, MirrorLevel (Off by default, Error, Info, All) decides which Unity logs show on screen and in the scrollback, Mirror (one line per repeated log), max 24; no-op in release builds; ScreenMessage, ScreenLogLevel
 │  │     ├─ ConsoleSettings.cs              SO: scrollback / history size, pause while open, screen log level + seconds, key repeat, wheel lines; asset in Data/Debug/
 │  │     ├─ ConsoleStyle.cs                 SO: font, size, monospace em, panel / line / caret / suggestion / screen-log colours; asset in Data/Debug/
 │  │     ├─ Commands/CommandAttribute.cs    [Command(description, Name)] on methods and properties; [CommandGroup(prefix)] on the class
@@ -65,7 +66,7 @@ Assets/_Game/
 │  │     ├─ Commands/CommandRegistry.cs     the commands that exist now: Add / Remove(provider) by reflection, Execute(statement) → CommandResult (forms by argument count, throwing commands logged), Suggest, Describe, "did you mean"
 │  │     ├─ Commands/CommandParser.cs       statements (';'), tokens (quotes, escapes), argument parsing (numbers, on / off, enum prefixes, vectors, colours), Format, choices for completion
 │  │     ├─ Commands/ConsoleCommands.cs     base of a system's commands: adds itself to the registry on Initialize, removes itself on Dispose
-│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen, log.screenclear, log.trace
+│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen.all / .error / .info / .clear, log.screen (level), log.trace
 │  │     ├─ View/ConsoleView.cs             root of DebugConsole.prefab, injected: draws ConsoleService (scrollback in text lines, input + caret image from TMP character positions, suggestions + hint) when versions change; binds ScreenLogView, hidden while open
 │  │     ├─ View/ScreenLogView.cs           draws ScreenLog top-left, newest on top, each line on a band
 │  │     ├─ View/RichText.cs                allocation-free TMP tags into a StringBuilder: colour, mark, <noparse> literals
@@ -389,7 +390,7 @@ VContainer's update loop runs before MonoBehaviour `Update`s, so every `ITickabl
 
 ```text
 VContainer ticks     TimeService counts down a hit stop (real time); ScreenLog expires messages (real time)
-                     ConsoleService (dev builds): Flush Unity logs (→ ScreenLog mirror), ` toggles; while open: typed text, editing keys, Enter runs
+                     ConsoleService (dev builds): Flush the Unity logs at the log.screen level (→ scrollback, ScreenLog), ` toggles; while open: typed text, editing keys, Enter runs
                        commands (CommandRegistry). Holding text input turns the Player, UI and Debug maps off, so nothing below sees gameplay input
                      QuickTimeService ticks the QTE (unscaled) and Consumes its Button press, so the player doesn't also see it
                      PlayerCheats (K / L); EffectPool returns expired effects

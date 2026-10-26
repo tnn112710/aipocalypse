@@ -91,6 +91,19 @@ namespace Aipocalypse.Core.Debugging
             }
         }
 
+        // The first part of every name, sorted, once each: "clock" for clock.set, "pause" for pause.
+        public void Groups(List<string> groups)
+        {
+            groups.Clear();
+            foreach (string name in _names)
+            {
+                int dot = name.IndexOf('.');
+                string group = dot > 0 ? name.Substring(0, dot) : name;
+                if (groups.Count == 0 || !string.Equals(groups[^1], group, StringComparison.OrdinalIgnoreCase))
+                    groups.Add(group);
+            }
+        }
+
         public bool TryGet(string name, out IReadOnlyList<ConsoleCommand> forms)
         {
             bool found = _commands.TryGetValue(name ?? string.Empty, out List<ConsoleCommand> list);

@@ -4,7 +4,7 @@ Tools for testing in the editor and development builds. Release builds register 
 
 | Tool | What |
 | --- | --- |
-| Dev console | `` ` `` opens it: commands, cheats, the Unity logs. Usage, the command list and how to add one: [CONSOLE.md](CONSOLE.md) |
+| Dev console | `` ` `` opens it: commands, cheats, and the Unity logs on request (`log.screen.*`). Usage, the command list and how to add one: [CONSOLE.md](CONSOLE.md) |
 | Screen log | Messages on screen, Unreal style (below) |
 | Debug hotkeys | N / M / K / L (below) |
 | `TargetDummy` | Shooting-range target: logs each hit, heals back when emptied, tips over from knockback ([WEAPONS.md](WEAPONS.md)) |
@@ -20,7 +20,7 @@ Unreal-style messages on screen, top-left, newest on top, also while the console
 | `Show(key, text, seconds = 0)`, `Show(key, text, color, seconds)` | A line that replaces the previous one with the same key; `0` = this frame only, so a value shown every frame stays one line |
 | `Remove(key)`, `Clear()` | |
 
-Unity logs at `MirrorLevel` and above are mirrored there for `ConsoleSettings.ScreenLogSeconds` (`log.screen` changes the level while playing); an error logged every frame stays one line. It runs on real time, so a pause doesn't freeze it. At most 24 lines. The console's overlay draws it ([CONSOLE.md → How it's built](CONSOLE.md#how-its-built)).
+Unity logs show there too (and in the console's scrollback) only once you pick a level in the console: `log.screen.error` (errors), `log.screen.info` (`Debug.Log` only), `log.screen.all` (everything), `log.screen.clear` (off again, the default; also clears the screen). Each stays `ConsoleSettings.ScreenLogSeconds`; an error logged every frame stays one line. It runs on real time, so a pause doesn't freeze it. At most 24 lines. The console's overlay draws it ([CONSOLE.md → How it's built](CONSOLE.md#how-its-built)).
 
 In release builds `ScreenLog` does nothing and nothing draws it, but the string you build for it is still built: wrap per-frame `Show` calls in `if (Debug.isDebugBuild)`.
 

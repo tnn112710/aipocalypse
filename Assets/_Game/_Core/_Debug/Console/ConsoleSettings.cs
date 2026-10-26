@@ -10,8 +10,8 @@ namespace Aipocalypse.Core.Debugging
         [Min(1), Tooltip("Lines kept in the Up / Down history, saved between sessions")] public int HistorySize = 100;
         [Tooltip("Pause the game (TimeService) while the console is open")] public bool PauseWhileOpen;
 
-        [Tooltip("Unity logs shown on screen at start (log.screen changes it while playing)")]
-        public ScreenLogLevel ScreenLogLevel = ScreenLogLevel.Error;
+        [Tooltip("Unity logs shown on screen and in the scrollback at start (log.screen.* change it while playing). Off: the console shows only commands")]
+        public ScreenLogLevel ScreenLogLevel = ScreenLogLevel.Off;
         [Min(0f), Tooltip("Seconds a mirrored log stays on screen")] public float ScreenLogSeconds = 5f;
 
         [Min(0f), Tooltip("Seconds a held editing key (Backspace, arrows…) waits before repeating")] public float RepeatDelay = 0.4f;

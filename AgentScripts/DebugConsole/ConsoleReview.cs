@@ -44,7 +44,7 @@ public static class ConsoleReview
             report.AppendLine($"after Esc: open={console.IsOpen}");
 
             await Press(keyboard, Key.Backquote);
-            await Type(keyboard, "log.screen w");
+            await Type(keyboard, "log.screen.a");
             await Frames(2);
             report.AppendLine($"reopened: line='{console.Line.Text}' suggestions={string.Join(",", console.Suggestions)}");
 
