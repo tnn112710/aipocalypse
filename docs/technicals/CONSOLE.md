@@ -1,0 +1,104 @@
+# Dev console
+
+In-game console for commands, cheats and the Unity logs, Unreal style. Editor and development builds only: release builds don't register it. Code in `_Core/_Debug/Console/`, script map in [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The on-screen log and the debug hotkeys are in [DEBUG.md](DEBUG.md).
+
+## Using it
+
+Press the backquote key `` ` `` (left of 1, the same key on any keyboard layout) to open or close it. It drops down over the top 45% of the screen: the scrollback (Unity logs and command results), the input line, and suggestions under it. The game keeps running (`ConsoleSettings.PauseWhileOpen` to pause it).
+
+While it's open it holds `InputService`'s text input: the Player, UI and Debug maps are off, so typing never moves the player, fires a hotkey (typing `k` doesn't kill you) or confirms a menu. The cursor keeps its state.
+
+| Key | Does |
+| --- | --- |
+| Enter | Run the line |
+| Esc, or the console key | Close (the line is kept) |
+| Tab | Complete the command name or argument; again to cycle the suggestions |
+| ↑ / ↓ | History (saved between sessions in `persistentDataPath/console_history.txt`) |
+| ← → Home End, Backspace Delete | Edit; with Ctrl, a whole word (`clock.set` is two words) |
+| Ctrl+V | Paste the clipboard's first line |
+| PageUp / PageDown, mouse wheel | Scroll the scrollback |
+
+**Typing commands:** `name arg1 arg2`. Names ignore case. `"double quotes"` keep spaces in one argument (`\"` inside them); `;` runs several statements in a row (`time.scale 0.2; clock.phase dusk`). Arguments: numbers with a dot (`7.5`), `on`/`off` (also `true`/`false`, `1`/`0`), enum names or any unique start of one (`du` → `Dusk`), vectors `1,2,3`, colours `#ff8800`. A property command reads with no argument and sets with one (`time.scale`, `time.scale 0.5`).
+
+**Results:** what a command returns prints in green, failures in red; logs a command writes come before its result. Identical lines in a row collapse into one with a count.
+
+## Commands
+
+In the game, `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
+
+| Command | Does |
+| --- | --- |
+| `help`, `help <command>`, `help <group>` | Every command; one command's usage; a group's commands (`help clock`) |
+| `clear` | Empty the scrollback |
+| `log.screen [Off/Error/Warning/All]` | Which Unity logs the screen log mirrors (default `ConsoleSettings.ScreenLogLevel`: Error) |
+| `log.screenclear` | Remove every on-screen message |
+| `log.trace` | Stack trace of the last error Unity logged |
+| `player.kill`, `player.revive` | Kill the player with a real hit (through `DamageService`, like K) / revive (like L) |
+| `player.heal [amount]` | Heal to full, or by an amount |
+| `player.stamina` | Refill stamina |
+| `player.ammo [amount=100]` | Add rounds of each ammo type the guns in the hotbar use |
+| `player.infammo [on/off]` | Reloads never use up the reserve (`AmmoReserve.Infinite`) |
+| `player.pos` | Where the player stands |
+| `time.scale [0–1]` | Game speed (slow motion); 1 drops the console's request |
+| `pause` | Pause the game, or resume it |
+| `gfx.shadows [metres]`, `gfx.startwinkle [on/off]` | The player's graphics settings (`GraphicsService`) |
+| `clock.now`, `clock.set <hour>`, `clock.phase <phase>`, `clock.nexthour`, `clock.nextphase` | World clock: read, jump (scenes with a `WorldTimeInstaller` only) |
+| `clock.skip <hour> <seconds>`, `clock.speed [0–1]`, `clock.freeze <on/off>` | Fast-forward with every hour passing; slow or stop the clock |
+| `enemy.count` | Enemies in play (scenes with an `EnemyInstaller` only) |
+
+Speed, pause and freeze are the console's own owner-keyed requests (`TimeService`, `WorldClock`), so other systems' requests still apply, and they're released when the scope that registered them ends.
+
+## Adding a command
+
+Each system owns its commands in `<System>/<System>Commands.cs`, a `ConsoleCommands` subclass registered as an entry point in the system's installer, inside its `Debug.isDebugBuild` check. Add the new command to the table above in the same change.
+
+```csharp
+// WorldTimeSystem/WorldClockCommands.cs
+[CommandGroup("clock")]
+public sealed class WorldClockCommands : ConsoleCommands
+{
+    readonly WorldClock _clock;
+
+    public WorldClockCommands(CommandRegistry registry, WorldClock clock) : base(registry) => _clock = clock;
+
+    [Command("Jump to the start of a phase")]
+    string Phase(DayPhase phase)           // → clock.phase <phase:DayPhase>
+    {
+        _clock.JumpToPhase(phase);
+        return Now();                       // printed as the result
+    }
+}
+
+// WorldTimeInstaller.Install
+if (Debug.isDebugBuild)
+    builder.RegisterEntryPoint<WorldClockCommands>();
+```
+
+- **Name:** the class's `[CommandGroup]` + the member name in lower case (`clock.phase`). `[Command(Name = "pause")]` sets the whole name. Members can be private.
+- **Methods and properties:** a method's parameters are the arguments (defaults make them optional); a property reads with no argument and sets with one. Several methods with one name are one command, told apart by argument count.
+- **Argument types:** `string`, `bool`, `int`, `long`, `float`, `double`, any enum, `Vector2`, `Vector3`, `Color`. A command with another type is skipped with a warning.
+- **Output:** the return value prints (`null` / `void` prints nothing; collections one item per line). Return `CommandResult.Fail("why")` for a failure (`CommandResult.Ok(text)` for success). A command that throws is logged and reported, never rethrown.
+- **Scope:** the commands exist while their scope does. Root systems' commands are always there; a scene system's (clock, enemies) only in scenes that install it, so `help` lists what works in the current scene.
+- **Owner-keyed requests:** pass `this` as the owner and release in an override of `Dispose` (call `base.Dispose()`), as `TimeCommands` and `WorldClockCommands` do.
+- Commands go through the system's services, never around them: a kill is a `DamageService.Deal`, not a health write.
+- Add EditMode tests through a `CommandRegistry` (`ConsoleTests`: `TimeCommands`, `WorldClockCommands`).
+
+## How it's built
+
+```text
+InputService  (Console map: ` always on in dev builds; editing keys + typed characters only while text input is held)
+   │
+ConsoleService (root ITickable, dev builds)    LogBuffer: Application.logMessageReceivedThreaded (any thread) → ring of
+   ├─ ConsoleLine + ConsoleHistory + KeyRepeat     ConsoleSettings.LogCapacity lines, moved in by Flush each tick
+   ├─ CommandRegistry.Execute / Suggest  ◄── ConsoleCommands subclasses Add / Remove themselves (Initialize / Dispose)
+   └─ ScreenLog.Mirror (Unity logs at MirrorLevel)
+ConsoleView (DebugConsole.prefab, created by ConsoleInstaller, DontDestroyOnLoad) draws the service in LateUpdate; ScreenLogView draws ScreenLog
+```
+
+- `ConsoleInstaller` (root, from `ProjectLifetimeScope`): `ScreenLog` always; in dev builds `CommandRegistry` (so systems can register commands), and with the root prefab's `ConsoleSettings` and overlay assigned, `LogBuffer`, `ConsoleService`, `BuiltInCommands` and the overlay. Without them it warns and the console is off (commands still register).
+- **Overlay:** `_Core/_Debug/Console/Prefabs/DebugConsole.prefab`, its own Screen Space Overlay canvas, sort order 1000 (over the HUD and the death screen), 1920×1080 reference, no raycaster. It also draws the screen log. Built by `AgentScripts/DebugConsole/DebugConsoleSetup.All()` (rebuilds the prefab, keeps the assets' values). The panel height (45%), input bar and margins are on the prefab.
+- **Look:** `Data/Debug/ConsoleStyle.asset`: TMP's LiberationSans SDF drawn monospaced with `<mspace>` (`Monospace`, em), colours per line kind, caret, suggestions, the screen log's band. Backgrounds need a high alpha: UI blends in linear space here, so 0.9 still lets a bright scene through.
+- **Behaviour:** `Data/Debug/ConsoleSettings.asset`: scrollback size, history size, pause while open, screen log level and time, key repeat, wheel step.
+- **Cost:** closed, the console checks one key and empties the log queue each frame; the views redraw only when something changed (version counters), with rich text built in reused `StringBuilder`s. Typed text is escaped with `<noparse>`, so a log containing `<b>` or `List<int>` prints as is.
+
+Not built: key binds (`bind F5 "clock.phase dusk"`), live watches (`stat fps`), commands that run over several frames.

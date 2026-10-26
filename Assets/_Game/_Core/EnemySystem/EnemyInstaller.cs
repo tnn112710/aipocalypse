@@ -25,6 +25,9 @@ namespace Aipocalypse.Core.EnemySystem
             builder.RegisterInstance(_settings);
             builder.Register<EnemyRegistry>(Lifetime.Singleton);
             builder.RegisterEntryPoint<EnemyManager>();
+            // Editor and development builds only.
+            if (Debug.isDebugBuild)
+                builder.RegisterEntryPoint<EnemyCommands>();
             builder.RegisterBuildCallback(resolver =>
             {
                 foreach (EnemyBrain enemy in _sceneEnemies)

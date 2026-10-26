@@ -18,8 +18,8 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 Assets/_Game/
 ├─ _Core/                                   asmdef Aipocalypse.Core
 │  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
-│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, AudioInstaller, CombatInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
-│  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y, field of view…)
+│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
+│  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y, field of view…), the console's ConsoleSettings and DebugConsole overlay prefab
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  ├─ GameLifetimeScope.cs               per-scene scope: installs every SceneInstaller on its GameObject, reports one with a Problem (warning, error when Strict); a Strict scene also reports each SceneInstaller type it lacks; execution order -5000
 │  │  └─ SceneInstaller.cs                  abstract MonoBehaviour + IInstaller next to the GameLifetimeScope: one scene system's settings and registrations; Problem (null = ready)
@@ -48,12 +48,34 @@ Assets/_Game/
 │  │     ├─ SceneCollection.cs              editor only: Collect(owner, list) keeps a serialized list of scene objects current; Hook<TOwner>(collect) runs it on scene save and entering Play (EnemyInstaller, EnvironmentDirector)
 │  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
 │  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
-│  ├─ _Debug/TargetDummy.cs                 Aipocalypse.Core.Debugging — shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
+│  ├─ _Debug/                               Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
+│  │  ├─ TargetDummy.cs                     shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
+│  │  └─ Console/                           the dev console (editor and dev builds) and the screen log
+│  │     ├─ ConsoleInstaller.cs             root: ScreenLog always; dev builds: CommandRegistry, and with settings + overlay assigned LogBuffer, ConsoleService, BuiltInCommands, the overlay (RegisterComponentInNewPrefab, DontDestroyOnLoad, created on build)
+│  │     ├─ ConsoleService.cs               root ITickable: Flush logs (mirror to ScreenLog), ` toggles (RequestTextInput, optional pause), typed text + editing keys → ConsoleLine, history, Tab completion, scroll; Run(line): echo, ';' statements → CommandRegistry, results; Version for the view
+│  │     ├─ ConsoleLine.cs                  input line: text + caret, insert / backspace / delete / moves, word-wise with Ctrl
+│  │     ├─ ConsoleHistory.cs               Up / Down history with the typed draft, no repeats, capped (saved by ConsoleService)
+│  │     ├─ KeyRepeat.cs                    held-key repeat (delay, interval, once a frame) for the editing keys
+│  │     ├─ LogBuffer.cs                    scrollback ring: Unity logs from any thread (logMessageReceivedThreaded → Flush on the main thread), console lines; repeats collapse with a count; LastStackTrace; ConsoleEntry / ConsoleEntryKind
+│  │     ├─ ScreenLog.cs                    root ITickable (real time): Print / Show(key) on-screen messages, Mirror Unity logs at MirrorLevel (one line per repeated log), max 24; no-op in release builds; ScreenMessage, ScreenLogLevel
+│  │     ├─ ConsoleSettings.cs              SO: scrollback / history size, pause while open, screen log level + seconds, key repeat, wheel lines; asset in Data/Debug/
+│  │     ├─ ConsoleStyle.cs                 SO: font, size, monospace em, panel / line / caret / suggestion / screen-log colours; asset in Data/Debug/
+│  │     ├─ Commands/CommandAttribute.cs    [Command(description, Name)] on methods and properties; [CommandGroup(prefix)] on the class
+│  │     ├─ Commands/ConsoleCommand.cs      one callable form: method or property, argument types and defaults, Usage, TryBind, Invoke
+│  │     ├─ Commands/CommandRegistry.cs     the commands that exist now: Add / Remove(provider) by reflection, Execute(statement) → CommandResult (forms by argument count, throwing commands logged), Suggest, Describe, "did you mean"
+│  │     ├─ Commands/CommandParser.cs       statements (';'), tokens (quotes, escapes), argument parsing (numbers, on / off, enum prefixes, vectors, colours), Format, choices for completion
+│  │     ├─ Commands/ConsoleCommands.cs     base of a system's commands: adds itself to the registry on Initialize, removes itself on Dispose
+│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen, log.screenclear, log.trace
+│  │     ├─ View/ConsoleView.cs             root of DebugConsole.prefab, injected: draws ConsoleService (scrollback in text lines, input + caret image from TMP character positions, suggestions + hint) when versions change; binds ScreenLogView, hidden while open
+│  │     ├─ View/ScreenLogView.cs           draws ScreenLog top-left, newest on top, each line on a band
+│  │     ├─ View/RichText.cs                allocation-free TMP tags into a StringBuilder: colour, mark, <noparse> literals
+│  │     └─ Prefabs/DebugConsole.prefab     overlay canvas (sort 1000, 1920×1080): ScreenLog, Panel (Background, LogArea mask > Log, InputBar > Input > Caret, Suggestions); built by AgentScripts/DebugConsole/DebugConsoleSetup
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
-│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager (entry point); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
+│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager (entry point) (+ EnemyCommands in dev builds); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
+│  │  ├─ EnemyCommands.cs                   console: enemy.count
 │  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; Advance(deltaTime)
@@ -105,7 +127,8 @@ Assets/_Game/
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
 │  ├─ GraphicsSystem/                       Aipocalypse.Core.GraphicsSystem
 │  │  ├─ GraphicsService.cs                 root service, sole runtime writer of the URP asset's shadow distance: ShadowDistance (player setting; the asset's value until a graphics menu exists), RequestShadowDistance(owner, d) / ReleaseShadowDistance (shortest wins); restores the asset's value on Dispose; StarTwinkle (player setting, on by default) = the global STAR_TWINKLE shader keyword, off on Dispose; clears the Stylized Grass render feature's hide flags before each frame (else it skips game cameras), restored on Dispose
-│  │  └─ GraphicsInstaller.cs               registers GraphicsService in the root scope
+│  │  ├─ GraphicsCommands.cs                console: gfx.shadows, gfx.startwinkle (the player's settings)
+│  │  └─ GraphicsInstaller.cs               registers GraphicsService in the root scope (+ GraphicsCommands in dev builds)
 │  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
@@ -117,7 +140,7 @@ Assets/_Game/
 │  │  ├─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  │  └─ Prefabs/FPHand_Left, FPHand_Right.prefab   the hand prefabs (VR Low Poly Hand), listed in Data/Hands/HandSet.asset
 │  ├─ InputSystem/                          Aipocalypse.Input
-│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock: RequestUI / ReleaseUI(owner) (gameplay map only while nobody holds a UI request), GameplayEnabled; hotbar keys + cycling, interact, drop, attack, aim, reload; GameButton enum (Reload, Interact, Attack, Jump; sized from the enum, an unmapped button throws) with WasPressed / Consume (claims this frame's press) / GetKeyLabel; UiConfirmPressed (UI map click / submit); Debug map (N / M / K / L) enabled in dev builds
+│  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock: RequestUI / ReleaseUI(owner) (gameplay map only while nobody holds a UI request), GameplayEnabled; hotbar keys + cycling, interact, drop, attack, aim, reload; GameButton enum (Reload, Interact, Attack, Jump; sized from the enum, an unmapped button throws) with WasPressed / Consume (claims this frame's press) / GetKeyLabel; UiConfirmPressed (UI map click / submit); Debug map (N / M / K / L) enabled in dev builds; RequestTextInput / ReleaseTextInput(owner): Player, UI and Debug maps off, Console map on, TakeTypedText (Keyboard.onTextInput, control characters dropped); Console map in dev builds (Toggle always on; ConsoleButton editing keys, WordModifier, Scroll)
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control and view options: mouse sensitivity, gamepad look speed, invert Y, FieldOfView (read live by PlayerZoom)
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
@@ -129,7 +152,8 @@ Assets/_Game/
 │  │  ├─ HeldItemDriver.cs                  the item in hand each frame: drop / select / cycle → Equipment.Tick → rig Tick → TickHeld → LookTurn + ViewKick → zoom (unless a pose sequence owns it) → sway + aim → move speed (aim speed × HoldFeel × fatigue) → clearance → LateTick → hands
 │  │  ├─ PlayerCameraRig.cs                 sole writer of the CameraRoot / CameraPitch transforms: SetLook(pitch, kick), SetHeadMotion(offset, pitch), Override / ReleaseOverride (pose sequences); applied as each share changes; EyeHeight
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
-│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry, PlayerRespawnFlow (entry point) (+ PlayerCheats in dev builds)
+│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry, PlayerRespawnFlow (entry point) (+ PlayerCheats and PlayerCommands in dev builds)
+│  │  ├─ PlayerCommands.cs                  console on the active player: player.kill (through DamageService), revive, heal, stamina, ammo, infammo, pos
 │  │  ├─ PlayerRespawnFlow.cs               root IStartable: on PlayerDeathSequenceEnded → Fading (awaits PlayerRespawnFading) → RequestUI → Preparing (MoveToSpawn, awaits PlayerRespawning) → Ready (waits for UiConfirmPressed) → Revive, re-checking cancellation after each await; any PlayerRevived or active-player change ends it (ReleaseUI, stage None); publishes RespawnStageChanged; works without the HUD
 │  │  ├─ PlayerCheats.cs                    editor and dev builds: K kills the active player through DamageService, L revives it (InputService debug presses)
 │  │  ├─ Sequences/PoseSequence.cs          SO: a scripted first-person moment (death, resting): beats placed on the ground around the start (move + hold: eye height, offset, pitch / yaw / roll, FOV, ease, start / arrive sounds), Continuous (one smooth path, never stops), handheld wander (+ HandheldFadeIn), elliptical drift (+ DriftFadeIn), EndAfter, music, LowerHands
@@ -169,7 +193,8 @@ Assets/_Game/
 │  │  └─ QuickTimeInstaller.cs              registers QuickTimeService as a root entry point
 │  ├─ TimeSystem/                           Aipocalypse.Core.TimeSystem
 │  │  ├─ TimeService.cs                     root ITickable, sole writer of Time.timeScale and the fixed step: owner-keyed Request / Release (slowest wins), RequestPause / ReleasePause (IsPaused = any owner holds one; beats every request), RequestHitStop (real-time, overlaps keep the longest / lowest, ignored while paused); restores Unity's values on Dispose
-│  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point
+│  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
+│  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point (+ TimeCommands in dev builds)
 │  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
@@ -209,7 +234,8 @@ Assets/_Game/
 │  │  ├─ WorldClock.cs                      scene service (ITickable, scaled time): Advance steps hour by hour and phase by phase (events in order); JumpTo / SetTime / SkipTo; speed requests (slowest wins); MoonPhase
 │  │  ├─ TimeWindow.cs                      On / Off / Fade hours, may wrap past midnight → Weight(hour)
 │  │  ├─ WorldClockCheats.cs                editor and dev builds (registered when Debug.isDebugBuild): N → JumpToNextHour, M → JumpToNextPhase (InputService debug presses)
-│  │  └─ WorldTimeInstaller.cs              SceneInstaller (_settings: ClockSettings): ClockSettings + WorldClock (entry point) + cheats
+│  │  ├─ WorldClockCommands.cs              console: clock.now, set, phase, nexthour, nextphase, skip, speed, freeze (speed / freeze are its own request, released on Dispose)
+│  │  └─ WorldTimeInstaller.cs              SceneInstaller (_settings: ClockSettings): ClockSettings + WorldClock (entry point) + cheats and console commands
 │  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, accuracy, handling, sounds, effects
 │     ├─ GunSettings.cs                     the setting groups above (BulletSettings.DamageType, default Gunshot) + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
@@ -269,6 +295,7 @@ Assets/_Game/
 │  ├─ Hands/HandSet.asset, Poses/           the hand prefabs + shared hand poses
 │  ├─ Enemies/EnemySystemSettings.asset     think interval, thinks per frame
 │  ├─ Enemies/WanderSettings.asset          wander tuning
+│  ├─ Debug/ConsoleSettings.asset, ConsoleStyle.asset   the dev console's behaviour and look (font: TMP's LiberationSans SDF)
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
 │  ├─ Weapons/RepairFeedback.asset          the repair feedback preset every gun's repair profile uses
@@ -294,6 +321,7 @@ Assets/_Game/
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
    ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
    ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
+   ├─ ConsoleTests.cs                       dev console: tokens, statements, argument parsing, registry (optional args, properties, names, errors, throwing commands, remove), suggestions, help, line editing, history, scrollback, screen log, key repeat, Run, InputService text input mode, TimeCommands / WorldClockCommands
    ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose; Stylized Grass feature shown to game cameras, flags restored)
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
    ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
@@ -308,12 +336,15 @@ Assets/_Game/
 ```text
 ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, AudioService, DamageService, TimeService,
                                            GraphicsService, QuickTimeService, PlayerRegistry, PlayerRespawnFlow, EffectPool, BulletSystem,
-                                           GunJamFactory (+ PlayerCheats in dev builds); entry points are ticked by VContainer
+                                           GunJamFactory, ScreenLog (+ in dev builds: PlayerCheats, CommandRegistry, ConsoleSettings, LogBuffer,
+                                           ConsoleService, the ConsoleView overlay, and BuiltIn / Player / Time / Graphics ConsoleCommands);
+                                           entry points are ticked by VContainer
                                                 │
 GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
-   WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats)
+   WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats, WorldClockCommands)
    EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), GrassBendField, AmbienceService (needs WorldTimeInstaller)
-   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager; injects the listed scene enemies (EnemyBrain)
+   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager (+ EnemyCommands); injects the listed scene enemies (EnemyBrain)
+   (scene ConsoleCommands add themselves to the root CommandRegistry on Initialize and leave on Dispose)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
@@ -357,7 +388,9 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 VContainer's update loop runs before MonoBehaviour `Update`s, so every `ITickable` ticks before `Player.Update` in the same frame (root scope first, then the scene scope).
 
 ```text
-VContainer ticks     TimeService counts down a hit stop (real time)
+VContainer ticks     TimeService counts down a hit stop (real time); ScreenLog expires messages (real time)
+                     ConsoleService (dev builds): Flush Unity logs (→ ScreenLog mirror), ` toggles; while open: typed text, editing keys, Enter runs
+                       commands (CommandRegistry). Holding text input turns the Player, UI and Debug maps off, so nothing below sees gameplay input
                      QuickTimeService ticks the QTE (unscaled) and Consumes its Button press, so the player doesn't also see it
                      PlayerCheats (K / L); EffectPool returns expired effects
                      BulletSystem moves and ray-tests the bullets fired in earlier frames → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes
@@ -402,6 +435,7 @@ LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      QteHud reads the running session → its QteView (idle frames skip)
                      EnvironmentDirector reads WorldClock.Now → light, RenderSettings, sky globals, grades → reactors
                      ClockHud reads WorldClock.Now / Phase → ClockView
+                     ConsoleView / ScreenLogView redraw the console and the screen log when their versions changed (dev builds)
 StatBar.Update       only while a trail is catching up, otherwise disabled
 ```
 
@@ -427,5 +461,6 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 - **New system:** folder under `_Core/` (or `Features/` / `_Experimental/`), namespace `Aipocalypse.Core.<System>`, one installer. A root service installs from `ProjectLifetimeScope` (`<System>Installer : IInstaller`); a scene system is a `SceneInstaller` component added to the scene's `GameLifetimeScope` GameObject. Add it to the map above.
 - **Rules go in plain C#** (testable, EditMode tests in `Tests/EditMode/`). MonoBehaviours are views: they wire components and forward to the rules.
 - **Numbers go in a ScriptableObject** type next to the system, with the asset in `Data/<System>/`.
+- **Console commands and cheats:** `<System>Commands.cs` next to the system's installer, registered there when `Debug.isDebugBuild` ([CONSOLE.md → Adding a command](CONSOLE.md#adding-a-command)).
 - **New `*LifetimeScope.cs`:** `DisableScriptModifier` is on, but check that VContainer didn't replace the file with its template.
 - **Generated code** (`GameInputActions.cs`): change the `.inputactions` asset, never the file.

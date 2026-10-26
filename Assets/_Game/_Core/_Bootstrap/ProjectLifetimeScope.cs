@@ -1,5 +1,6 @@
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.GraphicsSystem;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.WeaponSystem;
@@ -17,6 +18,8 @@ namespace Aipocalypse.Core.Bootstrap
     public sealed class ProjectLifetimeScope : LifetimeScope
     {
         [SerializeField] ControlSettings _controls = new();
+        [SerializeField, Tooltip("Dev console (editor and development builds): Data/Debug/ConsoleSettings")] ConsoleSettings _consoleSettings;
+        [SerializeField, Tooltip("_Debug/Console/Prefabs/DebugConsole")] ConsoleView _consoleOverlay;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -31,6 +34,7 @@ namespace Aipocalypse.Core.Bootstrap
                 builder.RegisterBuildCallback(resolver => GlobalMessagePipe.SetProvider(resolver.AsServiceProvider()));
 
             new InputInstaller(_controls).Install(builder);
+            new ConsoleInstaller(_consoleSettings, _consoleOverlay).Install(builder);
             new AudioInstaller().Install(builder);
             new CombatInstaller().Install(builder);
             new TimeInstaller().Install(builder);

@@ -61,7 +61,7 @@ Events (MessagePipe, `_Common/Events/WorldTimeEvents.cs`):
 
 Phases are for gameplay and stay fixed while the look changes: retuning a sunset never moves when Dusk starts.
 
-**Cheats** (editor and development builds, `Debug` action map in `InputSystem_Actions`): **N** jumps to the next whole hour, **M** to the start of the next phase. `WorldClockCheats` reads them through `InputService`.
+**Cheats** (editor and development builds, `Debug` action map in `InputSystem_Actions`): **N** jumps to the next whole hour, **M** to the start of the next phase. `WorldClockCheats` reads them through `InputService`. The dev console has the `clock.*` commands (`WorldClockCommands`: set, phase, skip, speed, freeze…, [CONSOLE.md](CONSOLE.md#commands)).
 
 **Scope:** a `WorldTimeInstaller` component on the scene's `GameLifetimeScope` (`Settings` = `ClockSettings.asset`) installs the clock. No installer = no clock: the HUD clock hides and the sky keeps its preview hour. Tests: `Tests/EditMode/WorldClockTests.cs`, `TimeOfDayTests.cs` (time windows, profile blending, sun path), `PhaseDataTests.cs` (every `ClockSettings`, `ClockStyle` and `TimeOfDayProfile` asset has every phase). `AgentScripts/DayNight/Sweep.cs` samples the director over a day in Play mode and flags sudden jumps in light, ambient or fog; one frame costs about 8 µs and allocates nothing.
 

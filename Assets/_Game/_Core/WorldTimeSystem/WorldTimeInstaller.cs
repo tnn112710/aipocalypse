@@ -19,7 +19,10 @@ namespace Aipocalypse.Core.WorldTimeSystem
             builder.RegisterEntryPoint<WorldClock>().AsSelf();
             // Editor and development builds only.
             if (Debug.isDebugBuild)
+            {
                 builder.RegisterEntryPoint<WorldClockCheats>();
+                builder.RegisterEntryPoint<WorldClockCommands>();
+            }
         }
     }
 }

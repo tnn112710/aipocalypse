@@ -12,7 +12,10 @@ namespace Aipocalypse.Core.PlayerSystem
             builder.RegisterEntryPoint<PlayerRespawnFlow>().AsSelf();
             // Editor and development builds only.
             if (UnityEngine.Debug.isDebugBuild)
+            {
                 builder.RegisterEntryPoint<PlayerCheats>();
+                builder.RegisterEntryPoint<PlayerCommands>();
+            }
         }
     }
 }

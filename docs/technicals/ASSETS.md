@@ -84,7 +84,7 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 
 | Pack | Tag | Folder | Notes |
 | --- | --- | --- | --- |
-| TextMesh Pro samples | Must | `Assets/Samples/TextMesh Pro` | TMP SDF shaders and fonts. |
+| TextMesh Pro samples | Must | `Assets/Samples/TextMesh Pro` | TMP SDF shaders and fonts. LiberationSans SDF is the dev console's font (`Data/Debug/ConsoleStyle.asset`, drawn monospaced with `<mspace>`). |
 | Synty Interface Apocalypse HUD | Should | `Assets/Synty/InterfaceApocalypseHUD` | HUD art and item icons. **Sprites and the SairaCondensed TMP fonts only**, never its prefabs or sample scripts. Widgets reference the sprites through style assets ([UI.md](UI.md)); the repair QTE uses its ring/bar/panel sprites; all current item icons come from `Sprites/Icons_Weapons`. |
 | Synty Interface Core | Should | `Assets/Synty/InterfaceCore` | Input prompts: the hotbar key cap uses `Sprites/Icons_Input`. |
 | Crosshairs | Should | `UI/Crosshairs` | Crosshair sprites. Not used yet: the crosshair today is a 6×6 dot from the built-in Knob sprite ([UI.md](UI.md)). |
