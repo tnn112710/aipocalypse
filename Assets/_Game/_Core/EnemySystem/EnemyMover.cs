@@ -15,6 +15,8 @@ namespace Aipocalypse.Core.EnemySystem
         public Vector3 Home { get; private set; }
         public bool Arrived => _agent.reachedDestination;
         public bool TimedOut => Time.time >= _deadline;
+        // World velocity (m/s), for animation.
+        public Vector3 Velocity => _agent.velocity;
 
         public void Initialize(AstarPath navigation, EnemyDefinition definition)
         {

@@ -6,8 +6,9 @@
 //   WriteSk(skPath, name, species, head, upper, lower, body, speciesColors, outfitColors, attachmentColors)
 //                                                  a .sk from presets ("" = skip that group); open it in the tool to tweak
 //   Build(skPath, outFolder, name, keepFacialBlendShapes, optimizeHierarchy, exposedBones)
-//                                                  .sk -> <outFolder>/<name>_Model.prefab + mesh, material, color map
-//   Describe(prefabPath)                           renderer, bone, blendshape and animator facts of a built model (JSON)
+//                                                  .sk -> <outFolder>/<name>_Model.prefab + mesh, avatar, material, color map
+//                                                  (keep optimizeHierarchy false: see the skill's §2)
+//   Check a build with CharacterKit.Describe / Snapshot (aipocalypse-characters skill).
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -64,13 +65,16 @@ public static class SidekickKit
             if (sp == null)
                 return Fail($"no species '{species}'");
             var parts = new Dictionary<CharacterPartType, string>();
-            foreach (string presetName in new[] { headPreset, upperPreset, lowerPreset })
+            // Preset names repeat across groups ("Goblin Fighters 04" is a head, an upper and a lower body preset): look each
+            // up within its own group.
+            var groups = new[] { (PartGroup.Head, headPreset), (PartGroup.UpperBody, upperPreset), (PartGroup.LowerBody, lowerPreset) };
+            foreach ((PartGroup group, string presetName) in groups)
             {
                 if (string.IsNullOrEmpty(presetName))
                     continue;
-                SidekickPartPreset preset = SidekickPartPreset.GetByName(db, presetName);
+                SidekickPartPreset preset = SidekickPartPreset.GetAllBySpeciesAndGroup(db, sp, group).FirstOrDefault(p => p.Name == presetName);
                 if (preset == null)
-                    return Fail($"no part preset '{presetName}'");
+                    return Fail($"no {group} preset '{presetName}' for {sp.Name}");
                 foreach (SidekickPartPresetRow row in SidekickPartPresetRow.GetAllByPreset(db, preset))
                     if (!string.IsNullOrEmpty(row.PartName))
                         parts[Enum.Parse<CharacterPartType>(CharacterPartTypeUtils.GetTypeNameFromShortcode(row.PartType))] = row.PartName;
@@ -88,13 +92,15 @@ public static class SidekickKit
             // Start from the default color set, then let each chosen preset override its properties.
             SidekickColorSet defaultSet = SidekickColorSet.GetDefault(db);
             var rows = SidekickColorRow.GetAllBySet(db, defaultSet).ToDictionary(r => r.PtrColorProperty, r => new SerializedColorRow(r));
-            foreach (string presetName in new[] { speciesColors, outfitColors, attachmentColors })
+            var colorGroups = new[] { (ColorGroup.Species, speciesColors), (ColorGroup.Outfits, outfitColors), (ColorGroup.Attachments, attachmentColors) };
+            foreach ((ColorGroup group, string presetName) in colorGroups)
             {
                 if (string.IsNullOrEmpty(presetName))
                     continue;
-                SidekickColorPreset preset = SidekickColorPreset.GetByName(db, presetName);
+                SidekickColorPreset preset = SidekickColorPreset.GetAllByColorGroup(db, group)
+                    .FirstOrDefault(p => p.Name == presetName && (p.PtrSpecies == sp.ID || p.PtrSpecies <= 0));
                 if (preset == null)
-                    return Fail($"no color preset '{presetName}'");
+                    return Fail($"no {group} color preset '{presetName}' for {sp.Name}");
                 foreach (SidekickColorPresetRow row in SidekickColorPresetRow.GetAllByPreset(db, preset))
                     rows[row.PtrColorProperty] = new SerializedColorRow(SidekickColorRow.CreateFromPresetColorRow(row));
             }
@@ -186,33 +192,6 @@ public static class SidekickKit
                 EditorUtility.UnloadUnusedAssetsImmediate();
             }
         });
-    }
-
-    public static string Describe(string prefabPath)
-    {
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-        if (prefab == null)
-            return Fail($"no prefab at {prefabPath}");
-        var sb = new StringBuilder("{");
-        sb.Append($"\"prefab\":{Json(prefabPath)},\"transforms\":{prefab.GetComponentsInChildren<Transform>(true).Length}");
-        var animator = prefab.GetComponentInChildren<Animator>(true);
-        if (animator != null)
-            sb.Append($",\"animator\":{{\"avatar\":{Json(animator.avatar ? AssetDatabase.GetAssetPath(animator.avatar) + ":" + animator.avatar.name : null)},\"human\":{(animator.avatar && animator.avatar.isHuman ? "true" : "false")},\"controller\":{Json(animator.runtimeAnimatorController ? animator.runtimeAnimatorController.name : null)},\"culling\":{Json(animator.cullingMode.ToString())},\"rootMotion\":{(animator.applyRootMotion ? "true" : "false")},\"hasTransformHierarchy\":{(animator.hasTransformHierarchy ? "true" : "false")}}}");
-        sb.Append(",\"renderers\":[");
-        bool first = true;
-        foreach (SkinnedMeshRenderer smr in prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-        {
-            Mesh mesh = smr.sharedMesh;
-            int weighted = 0;
-            if (mesh != null)
-                for (int i = 0; i < mesh.blendShapeCount; i++)
-                    if (smr.GetBlendShapeWeight(i) != 0f)
-                        weighted++;
-            sb.Append(first ? "" : ",");
-            first = false;
-            sb.Append($"{{\"name\":{Json(smr.name)},\"mesh\":{Json(mesh ? AssetDatabase.GetAssetPath(mesh) : null)},\"vertices\":{(mesh ? mesh.vertexCount : 0)},\"bones\":{smr.bones.Length},\"uniqueBones\":{smr.bones.Distinct().Count()},\"blendShapes\":{(mesh ? mesh.blendShapeCount : 0)},\"nonZeroBlendShapeWeights\":{weighted},\"materials\":{smr.sharedMaterials.Length},\"updateWhenOffscreen\":{(smr.updateWhenOffscreen ? "true" : "false")},\"readable\":{(mesh && mesh.isReadable ? "true" : "false")}}}");
-        }
-        return sb.Append("]}").ToString();
     }
 
     static SkinnedMeshRenderer LoadPart(DatabaseManager db, SerializedPart part, List<string> warnings, out SidekickPart dto)
@@ -307,7 +286,9 @@ public static class SidekickKit
         PrefabUtility.SaveAsPrefabAsset(model, prefabPath, out bool saved);
         if (!saved)
             return Fail($"could not save {prefabPath}");
-        AssetDatabase.SaveAssets();
+        // Only what this wrote: SaveAssets() would also write unrelated dirty assets (e.g. the WorldMap terrain).
+        foreach (Object asset in new Object[] { mesh, material, animator.avatar })
+            AssetDatabase.SaveAssetIfDirty(asset);
         return $"{{\"ok\":true,\"prefab\":{Json(prefabPath)},\"vertices\":{mesh.vertexCount},\"bones\":{renderer.bones.Length},\"blendShapes\":{mesh.blendShapeCount},\"warnings\":{JsonList(warnings)}}}";
     }
 

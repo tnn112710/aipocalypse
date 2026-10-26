@@ -5,13 +5,15 @@
 //                                                 offscreen render of a prefab, optionally posed by a humanoid clip
 //                                                 at `time` seconds ("" = bind pose); view the PNG to check the look
 //   ClipInfo(fbxOrAnimPath)                       clips in a model/anim file: length, loop, root-motion bake flags,
-//                                                 average speed (m/s) and turn rate, for picking clips and thresholds
+//                                                 average root speed (m/s; 0 when baked into pose) and turn rate
+//   BuildLocomotionController(specPath)           AnimatorController with the project parameter contract from a spec
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -76,7 +78,8 @@ public static class CharacterKit
                 clip.SampleAnimation(animator.gameObject, time);
 
             Bounds bounds = WorldBounds(instance);
-            float radius = Mathf.Max(bounds.extents.magnitude, 0.5f);
+            // Height-led framing: bind-pose (T-pose) bounds are wide, a diagonal would leave the character small.
+            float radius = Mathf.Max(bounds.extents.y * 1.1f, bounds.extents.z, 0.5f);
             Camera camera = preview.camera;
             camera.fieldOfView = 30f;
             camera.nearClipPlane = 0.05f;
@@ -129,6 +132,196 @@ public static class CharacterKit
         if (importer != null)
             sb.Insert(0, $"{{\"animationType\":{Json(importer.animationType.ToString())},\"avatarSource\":{Json(importer.sourceAvatar ? AssetDatabase.GetAssetPath(importer.sourceAvatar) : null)},\"clips\":").Append('}');
         return sb.ToString();
+    }
+
+    // Builds (or rebuilds in place, keeping the GUID) a locomotion AnimatorController with the project's parameter contract
+    // from a spec file of `key = value` lines (# comments). Clip refs: "file.fbx" or "file.fbx#ClipName".
+    //   controller = Assets/_Game/Content/<Kind>/<Name>/<Name>.controller
+    //   neutral    = Assets/.../<Name>_AdditiveNeutral.anim   generated: first frame of headLook.left, a zero-delta centre
+    //   move       = <clip> @ <m/s>                         one per line, idle at 0 (thresholds = the clips' authored speeds)
+    //   fidget     = <clip>                                 idle variations, played on the Fidget trigger by FidgetIndex
+    //   headLook.left|right|up|down = <clip>                additive, 2D on LookX/LookY
+    //   bodyLook.left|right|up|down = <clip>                additive, same parameters, layer weight bodyLook.weight
+    //   lean.left|right = <clip>                            additive, 1D on Lean
+    public static string BuildLocomotionController(string specPath)
+    {
+        if (!File.Exists(specPath))
+            return Fail($"no spec at {specPath}");
+        var spec = new List<KeyValuePair<string, string>>();
+        foreach (string raw in File.ReadAllLines(specPath))
+        {
+            string line = raw.Split('#')[0].Trim();
+            int eq = line.IndexOf('=');
+            if (eq > 0)
+                spec.Add(new KeyValuePair<string, string>(line.Substring(0, eq).Trim(), line.Substring(eq + 1).Trim()));
+        }
+        string Get(string key) => spec.FirstOrDefault(p => p.Key == key).Value;
+        string controllerPath = Get("controller");
+        if (string.IsNullOrEmpty(controllerPath) || !controllerPath.StartsWith("Assets/_Game/"))
+            return Fail("controller must be under Assets/_Game/");
+
+        var missing = new List<string>();
+        AnimationClip Clip(string reference)
+        {
+            if (string.IsNullOrEmpty(reference))
+                return null;
+            AnimationClip clip = LoadClip(reference);
+            if (clip == null)
+                missing.Add(reference);
+            return clip;
+        }
+
+        var moves = spec.Where(p => p.Key == "move").Select(p =>
+        {
+            string[] parts = p.Value.Split('@');
+            return (clip: Clip(parts[0].Trim()), speed: parts.Length > 1 ? float.Parse(parts[1].Trim(), System.Globalization.CultureInfo.InvariantCulture) : 0f);
+        }).ToList();
+        var fidgets = spec.Where(p => p.Key == "fidget").Select(p => Clip(p.Value)).ToList();
+        string[] directions = { "left", "right", "up", "down" };
+        Vector2[] positions = { Vector2.left, Vector2.right, Vector2.up, Vector2.down };
+        var headLook = directions.Select(d => Clip(Get("headLook." + d))).ToArray();
+        var bodyLook = directions.Select(d => Clip(Get("bodyLook." + d))).ToArray();
+        var lean = new[] { Clip(Get("lean.left")), Clip(Get("lean.right")) };
+        if (missing.Count > 0)
+            return Fail("clips not found: " + string.Join(", ", missing));
+        if (moves.Count == 0)
+            return Fail("at least one move clip (idle @ 0) is needed");
+
+        AnimationClip neutral = null;
+        AnimationClip neutralSource = headLook.FirstOrDefault(c => c != null) ?? lean.FirstOrDefault(c => c != null);
+        if (neutralSource != null)
+        {
+            string neutralPath = Get("neutral") ?? controllerPath.Replace(".controller", "_AdditiveNeutral.anim");
+            neutral = SaveStaticPose(neutralSource, neutralPath);
+        }
+
+        AnimatorController controller = ResetController(controllerPath);
+        controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
+        controller.AddParameter("Fidget", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("FidgetIndex", AnimatorControllerParameterType.Int);
+        controller.AddParameter("LookX", AnimatorControllerParameterType.Float);
+        controller.AddParameter("LookY", AnimatorControllerParameterType.Float);
+        controller.AddParameter("Lean", AnimatorControllerParameterType.Float);
+
+        controller.AddLayer("Base Layer");
+        AnimatorControllerLayer[] baseLayers = controller.layers;
+        baseLayers[0].defaultWeight = 1f;
+        controller.layers = baseLayers;
+        AnimatorState locomotion = controller.CreateBlendTreeInController("Locomotion", out BlendTree moveTree, 0);
+        moveTree.blendType = BlendTreeType.Simple1D;
+        moveTree.blendParameter = "Speed";
+        moveTree.useAutomaticThresholds = false;
+        foreach (var move in moves.OrderBy(m => m.speed))
+            moveTree.AddChild(move.clip, move.speed);
+        AnimatorStateMachine root = controller.layers[0].stateMachine;
+        root.defaultState = locomotion;
+        for (int i = 0; i < fidgets.Count; i++)
+        {
+            AnimatorState fidget = root.AddState(fidgets[i].name, new Vector3(300f, 120f * i, 0f));
+            fidget.motion = fidgets[i];
+            AnimatorStateTransition enter = locomotion.AddTransition(fidget);
+            enter.hasExitTime = false;
+            enter.duration = 0.25f;
+            enter.AddCondition(AnimatorConditionMode.If, 0f, "Fidget");
+            enter.AddCondition(AnimatorConditionMode.Equals, i, "FidgetIndex");
+            enter.AddCondition(AnimatorConditionMode.Less, 0.2f, "Speed");
+            AnimatorStateTransition done = fidget.AddTransition(locomotion);
+            done.hasExitTime = true;
+            done.exitTime = 0.9f;
+            done.duration = 0.25f;
+            // Setting off mid-fidget cuts it short.
+            AnimatorStateTransition interrupted = fidget.AddTransition(locomotion);
+            interrupted.hasExitTime = false;
+            interrupted.duration = 0.2f;
+            interrupted.AddCondition(AnimatorConditionMode.Greater, 0.3f, "Speed");
+        }
+
+        AddDirectionalLayer(controller, "HeadLook", headLook, positions, neutral, 1f);
+        float bodyWeight = float.TryParse(Get("bodyLook.weight"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float w) ? w : 0.5f;
+        AddDirectionalLayer(controller, "BodyLook", bodyLook, positions, neutral, bodyWeight);
+        if (lean[0] != null && lean[1] != null && neutral != null)
+        {
+            int index = AddAdditiveLayer(controller, "Lean", 1f);
+            controller.CreateBlendTreeInController("Lean", out BlendTree tree, index);
+            tree.blendType = BlendTreeType.Simple1D;
+            tree.blendParameter = "Lean";
+            tree.useAutomaticThresholds = false;
+            tree.AddChild(lean[0], -1f);
+            tree.AddChild(neutral, 0f);
+            tree.AddChild(lean[1], 1f);
+        }
+
+        EditorUtility.SetDirty(controller);
+        // Only what this wrote: SaveAssets() would also write unrelated dirty assets (e.g. the WorldMap terrain).
+        AssetDatabase.SaveAssetIfDirty(controller);
+        if (neutral != null)
+            AssetDatabase.SaveAssetIfDirty(neutral);
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+    }
+
+    static void AddDirectionalLayer(AnimatorController controller, string name, AnimationClip[] clips, Vector2[] positions, AnimationClip neutral, float weight)
+    {
+        if (neutral == null || clips.All(c => c == null))
+            return;
+        int index = AddAdditiveLayer(controller, name, weight);
+        controller.CreateBlendTreeInController(name, out BlendTree tree, index);
+        tree.blendType = BlendTreeType.SimpleDirectional2D;
+        tree.blendParameter = "LookX";
+        tree.blendParameterY = "LookY";
+        tree.AddChild(neutral, Vector2.zero);
+        for (int i = 0; i < clips.Length; i++)
+            if (clips[i] != null)
+                tree.AddChild(clips[i], positions[i]);
+    }
+
+    static int AddAdditiveLayer(AnimatorController controller, string name, float weight)
+    {
+        controller.AddLayer(name);
+        AnimatorControllerLayer[] layers = controller.layers;
+        int index = layers.Length - 1;
+        layers[index].blendingMode = AnimatorLayerBlendingMode.Additive;
+        layers[index].defaultWeight = weight;
+        controller.layers = layers;
+        return index;
+    }
+
+    // Empties an existing controller (keeping its GUID, so prefabs stay wired) or creates a new one with no layers.
+    static AnimatorController ResetController(string path)
+    {
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+        if (controller == null)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+        }
+        foreach (Object sub in AssetDatabase.LoadAllAssetsAtPath(path))
+            if (sub != controller && sub != null)
+                Object.DestroyImmediate(sub, true);
+        controller.parameters = new AnimatorControllerParameter[0];
+        controller.layers = new AnimatorControllerLayer[0];
+        return controller;
+    }
+
+    // A one-frame copy of the clip's first frame: as an additive child it adds nothing (its delta to its own reference is 0).
+    static AnimationClip SaveStaticPose(AnimationClip source, string path)
+    {
+        var clip = new AnimationClip { name = Path.GetFileNameWithoutExtension(path), frameRate = source.frameRate };
+        float end = 1f / Mathf.Max(1f, source.frameRate);
+        foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(source))
+        {
+            float value = AnimationUtility.GetEditorCurve(source, binding).Evaluate(0f);
+            AnimationUtility.SetEditorCurve(clip, binding, AnimationCurve.Constant(0f, end, value));
+        }
+        var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+        if (existing == null)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            AssetDatabase.CreateAsset(clip, path);
+            return clip;
+        }
+        EditorUtility.CopySerialized(clip, existing);
+        existing.name = clip.name;
+        return existing;
     }
 
     static AnimationClip LoadClip(string path)

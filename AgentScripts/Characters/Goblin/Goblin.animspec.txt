@@ -1,0 +1,26 @@
+# Goblin locomotion controller: Synty Goblin Locomotion, Sidekick (A_MOD_GBL) clips without root motion.
+# Build: unity command script run --file .agents/skills/aipocalypse-characters/scripts/CharacterKit.cs
+#        --entry CharacterKit.BuildLocomotionController --args '["AgentScripts/Characters/Goblin/Goblin.animspec.txt"]'
+controller = Assets/_Game/Content/Enemies/Goblin/Goblin.controller
+neutral = Assets/_Game/Content/Enemies/Goblin/Animations/Goblin_AdditiveNeutral.anim
+
+# Speeds are the pack's authored gaits (user guide): walk 1.4 m/s, run 3.5 m/s.
+move = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Standing_Neut.fbx @ 0
+move = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Locomotion/Walk/A_MOD_GBL_Walk_F_Neut.fbx @ 1.4
+move = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Locomotion/Run/A_MOD_GBL_Run_F_Neut.fbx @ 3.5
+
+fidget = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Fidget_Menacing_Neut.fbx
+fidget = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Fidget_Scratching_Neut.fbx
+fidget = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Fidget_Swipe_Neut.fbx
+
+headLook.left = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_L_Additive_Neut.fbx
+headLook.right = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_R_Additive_Neut.fbx
+headLook.up = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_U_Additive_Neut.fbx
+headLook.down = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_D_Additive_Neut.fbx
+bodyLook.left = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_L_Additive_Neut.fbx
+bodyLook.right = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_R_Additive_Neut.fbx
+bodyLook.up = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_U_Additive_Neut.fbx
+bodyLook.down = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_D_Additive_Neut.fbx
+bodyLook.weight = 0.5
+lean.left = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Lean/A_MOD_GBL_Lean_L_Additive_Neut.fbx
+lean.right = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Lean/A_MOD_GBL_Lean_R_Additive_Neut.fbx

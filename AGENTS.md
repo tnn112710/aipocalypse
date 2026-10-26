@@ -35,12 +35,14 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | --- | --- |
 | `aipocalypse-architecture` | Registrations, scopes, installers, injection; gameplay events (MessagePipe); any async/await, delays, pause; C# touching serialization, statics, play-mode hooks, build defines or Unity 6.6 APIs |
 | `aipocalypse-enemy-ai` | Any enemy/companion/NPC movement or AI decision: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager`, A* `FollowerEntity`, navmesh, spawning |
+| `aipocalypse-characters` | Adding, swapping or animating any character model (enemy, NPC, companion, animal), from any vendor: model vs entity prefab, the animator parameter contract and `CharacterKit`, `EnemyAnimator`, verifying looks and animation |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks; points to Feel's own skills) |
 | `tools-unity-broaudio` | Any sound, music or ambience: `AudioService`, `SoundID`s, BroAudio libraries (points to BroAudio's `CLAUDE.md`) |
 | `tools-unity-audio-tools` | Editing audio clips in the editor: trim, normalize, fade, export (points to Audio Tools' own skills) |
 | `tools-unity-text-studio` | Animated / typewriter text (Text Studio is Undecided: ask first; points to its own skills) |
 | `tools-unity-map-generation` | Building or changing a map: layout from a concept, generated heights/water/vegetation/boundary/dressing, rebuilds, map art packs and perf, and how MicroVerse is used here (the WorldMap generator; step runner and MicroVerse kit in `scripts/`) |
 | `tools-unity-stylized-water` | Any Stylized Water 3 work: water bodies, RiverModeler rivers, waterfalls, underwater, height queries, water materials and perf |
+| `tools-unity-synty-characters` | Synty characters and clips: building / customizing Sidekick characters without the window (`SidekickKit`), Sidekick and Polygon packs, Base / Goblin Locomotion clips, vendor traps |
 
 The project skills hold only what is specific to this repo. Library detail lives in generic user-scope skills in Claude Code (`~/.claude/skills/`): `unity-vcontainer`, `unity-messagepipe`, `unity-unitask`, `unity-6-new-apis`, `unity-behavior-designer-pro`, `unity-astar`, `unity-microverse`, and `unity-optimization-pc` for measuring or optimising performance. The project skills point to them; when they are not available (other agents, other machines), read the package source under `Packages/` or `Library/PackageCache/` instead of guessing.
 

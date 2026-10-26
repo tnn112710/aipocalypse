@@ -21,6 +21,8 @@ namespace Aipocalypse.Core.EnemySystem
 
         public EnemyDefinition Definition => _definition;
         public BehaviorTree Tree { get; private set; }
+        // Null for enemies without an animated model.
+        public EnemyAnimator Animation { get; private set; }
         // Where the current walk goes; set by the task that chooses it.
         public Vector3 Destination { get; set; }
         // Slot in the registry's list; -1 while not registered.
@@ -41,6 +43,7 @@ namespace Aipocalypse.Core.EnemySystem
         {
             _mover = GetComponent<EnemyMover>();
             Tree = GetComponent<BehaviorTree>();
+            Animation = GetComponent<EnemyAnimator>();
             _started = true;
             if (_definition == null)
                 Debug.LogError($"{name}: no EnemyDefinition assigned.", this);
@@ -72,6 +75,8 @@ namespace Aipocalypse.Core.EnemySystem
             if (RegistryIndex >= 0)
                 return;
             _mover.Initialize(_navigation, _definition);
+            if (Animation != null)
+                Animation.Initialize(_definition.Animation);
             Tree.StartBehavior();
             _registry.Add(this);
             if (_grassBending != null)

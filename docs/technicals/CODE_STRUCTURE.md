@@ -75,14 +75,18 @@ Assets/_Game/
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
-│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager (entry point) (+ EnemyCommands in dev builds); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
+│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager + EnemyAnimationManager (entry points) (+ EnemyCommands in dev builds); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
 │  │  ├─ EnemyCommands.cs                   console: enemy.count
 │  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; Advance(deltaTime)
-│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: MoveSpeed, StopDistance, GrassBendRadius, Wander (WanderSettings); lives in Content/Enemies/<Name>/
-│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Destination; on its first Start (and each re-enable) initializes its mover, starts its tree and registers (and joins the scene's GrassBendField, if any); stops both and leaves when disabled
-│  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition), Home, TryFindDestination, MoveTo(destination, timeout), Arrived, TimedOut, Halt
+│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: MoveSpeed, StopDistance, GrassBendRadius, Wander (WanderSettings), Animation (EnemyAnimationSettings, empty if unanimated); lives in Content/Enemies/<Name>/
+│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Destination, Animation (optional EnemyAnimator); on its first Start (and each re-enable) initializes its mover (and animator), starts its tree and registers (and joins the scene's GrassBendField, if any); stops both and leaves when disabled
+│  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition), Home, TryFindDestination, MoveTo(destination, timeout), Arrived, TimedOut, Halt, Velocity
+│  │  ├─ EnemyAnimator.cs                   on animated enemies: drives the Model's Animator (parameter contract Speed, LookX/LookY, Lean, Fidget/FidgetIndex) from the mover's velocity and turn rate; Advance(deltaTime), no Update
+│  │  ├─ LocomotionAnimation.cs             plain C# rules behind it: glances while standing, look and lean into turns, one fidget roll per stop (EnemyAnimationTests)
+│  │  ├─ EnemyAnimationManager.cs           ITickable: advances every registered enemy's EnemyAnimator each frame on scaled time; Advance(deltaTime)
+│  │  ├─ EnemyAnimationSettings.cs          SO: still speed, damping, glance interval / range, look and lean into turns, fidget delay / chance; asset in Data/Enemies/
 │  │  ├─ WanderTasks.cs                     ChooseWanderDestination / WalkToWanderDestination / PauseWander ActionNodes of the shared subtree (read EnemyBrain.Definition.Wander, move through EnemyMover)
 │  │  ├─ WanderSettings.cs                  SO: wander radius, pause, travel timeout, destination attempts, minimum travel; asset in Data/Enemies/, the shared subtree in Content/Enemies/_Shared/
 │  │  └─ Prefabs/Navigation.prefab          AstarPath (default: small terrain-following grid, scanned on startup) + RVOSimulator: goes into every scene with agents; WorldMap's instance overrides the graph (recast + cache, ENVIRONMENT.md → Navigation)
@@ -279,7 +283,10 @@ Assets/_Game/
 │  ├─ Weapons/_Shared/                      Animations/ (Gun.controller + base clips); Effects/ (MuzzleFlash, Tracer, BulletImpact, BulletHole PooledEffect roots,
 │  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
-│  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain; two in WorldMap), WanderCapsule.asset (its EnemyDefinition)
+│  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
+│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, Model = Goblin_01_Model) and Goblin_02…06.prefab (variants: other Model); one of each in WorldMap.
+│  │                                        Goblin.asset (EnemyDefinition, walk 1.4 m/s), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
+│  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Model/ (<Look>.sk sources + SidekickKit output: _Model.prefab, _Mesh, _Avatar, .mat, color map)
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Materials/WanderCapsule1-2.mat
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/ (detail prefabs in `DetailS/`, committed with a capital S; the generator writes `Details/`, see ENVIRONMENT.md), Rocks/, Mountains/ (ENVIRONMENT.md)
 ├─ Maps/WorldMap/                           what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/, Navigation/ (NavmeshWater mesh, WorldMapNavmesh.bytes cache)
@@ -296,6 +303,7 @@ Assets/_Game/
 │  ├─ Hands/HandSet.asset, Poses/           the hand prefabs + shared hand poses
 │  ├─ Enemies/EnemySystemSettings.asset     think interval, thinks per frame
 │  ├─ Enemies/WanderSettings.asset          wander tuning
+│  ├─ Enemies/EnemyAnimationSettings.asset  glances, fidgets, lean (EnemyDefinition.Animation of animated kinds)
 │  ├─ Debug/ConsoleSettings.asset, ConsoleStyle.asset   the dev console's behaviour and look (font: TMP's LiberationSans SDF)
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
@@ -307,6 +315,7 @@ Assets/_Game/
 ├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
+   ├─ EnemyAnimationTests.cs                LocomotionAnimation (look / lean into turns, glances, one fidget per stop) + every animated enemy prefab wired to the parameter contract
    ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop (also mid-switch), lantern onto the belt / swap, lower / raise hands, quick-use items and stacks (TestConsumableDefinition)
    ├─ PoseSequenceTests.cs                  PoseSequencePlayer: start pose, beat moves, ground and wall placement, Ended, Stop
@@ -344,7 +353,7 @@ ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings
 GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats, WorldClockCommands)
    EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), GrassBendField, AmbienceService (needs WorldTimeInstaller)
-   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager (+ EnemyCommands); injects the listed scene enemies (EnemyBrain)
+   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager, EnemyAnimationManager (+ EnemyCommands); injects the listed scene enemies (EnemyBrain)
    (scene ConsoleCommands add themselves to the root CommandRegistry on Initialize and leave on Dispose)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
@@ -396,7 +405,7 @@ VContainer ticks     TimeService counts down a hit stop (real time); ScreenLog e
                      PlayerCheats (K / L); EffectPool returns expired effects
                      BulletSystem moves and ray-tests the bullets fired in earlier frames → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes
                      scene scope: WorldClock advances (HourChanged / DayPhaseChanged / DayStarted), WorldClockCheats; AmbienceService bed volumes and calls;
-                     EnemyManager thinks its share of the enemy trees
+                     EnemyManager thinks its share of the enemy trees; EnemyAnimationManager sets every animated enemy's Animator parameters
 
 Player.Update
 intent = dead, in a pose sequence or gameplay input disabled ? default : read InputService (look × PlayerZoom.LookScale; aim / trigger end a sprint)

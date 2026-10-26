@@ -2000,6 +2000,79 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 140, z: 16.714588}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &10690066
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 808704269}
+    m_Modifications:
+    - target: {fileID: 2832095286261106595, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_Name
+      value: Goblin 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 271
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 28.970518
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 312
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.34202015
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9396926
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+--- !u!4 &10690067 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+  m_PrefabInstance: {fileID: 10690066}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &10690068 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2244294816847891178, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+  m_PrefabInstance: {fileID: 10690066}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &10933230
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -193589,6 +193662,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1559648213962070532, guid: fbfe7b2d8dc742a8989dfe21753240cd, type: 3}
   m_PrefabInstance: {fileID: 713813335}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &713842036
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 808704269}
+    m_Modifications:
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 277
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.39337
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 306
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9848078
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.1736482
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5185489276345928701, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+      propertyPath: m_Name
+      value: Goblin 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+--- !u!4 &713842037 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2024326792902316360, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+  m_PrefabInstance: {fileID: 713842036}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &713842038 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9195865088423921332, guid: 1d401fc0e88c2a94a903a353662d2505, type: 3}
+  m_PrefabInstance: {fileID: 713842036}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &713965073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -203097,6 +203243,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6057975673772477519, guid: 06bc2ce5250a9534ab0d95abd95a6935, type: 3}
   m_PrefabInstance: {fileID: 746207928}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &746939076
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 808704269}
+    m_Modifications:
+    - target: {fileID: 2788363297918868171, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_Name
+      value: Goblin 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 282
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.39718
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 303
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.8660254
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.50000006
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+--- !u!4 &746939077 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9030584623976743038, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+  m_PrefabInstance: {fileID: 746939076}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &746939078 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2223239122039740290, guid: 0bc03e19168c30747bab67f8015f33ea, type: 3}
+  m_PrefabInstance: {fileID: 746939076}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1 &747527740
 GameObject:
   m_ObjectHideFlags: 0
@@ -205050,6 +205269,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1582463048081441742, guid: 1848bc6f75c65a841a108d07acb2e169, type: 3}
   m_PrefabInstance: {fileID: 753700958}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &753729535
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 808704269}
+    m_Modifications:
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 266
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.500092
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 305
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6170047854974282372, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+      propertyPath: m_Name
+      value: Goblin 6
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+--- !u!4 &753729536 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1027168910285926449, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+  m_PrefabInstance: {fileID: 753729535}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &753729537 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7910748958592985037, guid: d5868bc3e8690a94badbc03b2aa434ae, type: 3}
+  m_PrefabInstance: {fileID: 753729535}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &753802967
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -221016,6 +221308,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8104533397509216970, guid: 1a62bd8182f6ac34495daee0dd7c2727, type: 3}
   m_PrefabInstance: {fileID: 795544305}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &795581097
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 808704269}
+    m_Modifications:
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 287
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 28.136606
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 309
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.34202015
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9396927
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5349576396276807957, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+      propertyPath: m_Name
+      value: Goblin 2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+--- !u!4 &795581098 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1287138993865581472, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+  m_PrefabInstance: {fileID: 795581097}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &795581099 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8238573510482097244, guid: c72139ff2d066d94998dba28ee85c0f1, type: 3}
+  m_PrefabInstance: {fileID: 795581097}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &795961948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -223410,8 +223775,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1477310528}
-  - {fileID: 1680668757}
+  - {fileID: 10690067}
+  - {fileID: 795581098}
+  - {fileID: 713842037}
+  - {fileID: 746939077}
+  - {fileID: 1690711066}
+  - {fileID: 753729536}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &809648676
@@ -285297,8 +285666,12 @@ MonoBehaviour:
   _navigation: {fileID: 1847031691}
   _settings: {fileID: 11400000, guid: 1efb0b1dc230b2c459a2b10969f2ffbe, type: 2}
   _sceneEnemies:
-  - {fileID: 1477310529}
-  - {fileID: 1680668758}
+  - {fileID: 10690068}
+  - {fileID: 795581099}
+  - {fileID: 713842038}
+  - {fileID: 746939078}
+  - {fileID: 1690711067}
+  - {fileID: 753729537}
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -400686,79 +401059,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2741646396555107104, guid: 97d1b6a9f6f0c4f4ab856b652edbec7b, type: 3}
   m_PrefabInstance: {fileID: 1477248002}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1477310527
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 808704269}
-    m_Modifications:
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 276.53876
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 29.178616
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 307.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: -0.25027165
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.96817565
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5657556925493235871, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_Name
-      value: Wander Capsule 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
---- !u!4 &1477310528 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-  m_PrefabInstance: {fileID: 1477310527}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1477310529 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 986745409898665001, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-  m_PrefabInstance: {fileID: 1477310527}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &1477443195
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -457956,83 +458256,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7313511043491527608, guid: 5552785af7c93634d9244c4add8e8ed8, type: 3}
   m_PrefabInstance: {fileID: 1680599053}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1680668756
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 808704269}
-    m_Modifications:
-    - target: {fileID: 681486460303439069, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 3f7b7d199e3069b42ba1f97404df1e6e, type: 2}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 282.02014
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 29.092594
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 303.589
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: -0.25027165
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.96817565
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5657556925493235871, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-      propertyPath: m_Name
-      value: Wander Capsule 2
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
---- !u!4 &1680668757 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3912942090654724542, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-  m_PrefabInstance: {fileID: 1680668756}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1680668758 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 986745409898665001, guid: e1c46142f3f83af4c9ccc02a32ff6e7a, type: 3}
-  m_PrefabInstance: {fileID: 1680668756}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &1680794194
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -461205,6 +461428,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2483451816689174669, guid: 19c0fbd67cfac6e4cbd54b7e92bda8b7, type: 3}
   m_PrefabInstance: {fileID: 1690321973}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1690711065
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 808704269}
+    m_Modifications:
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 279
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 27.605711
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 317
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000004371139
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8946579659902864565, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+      propertyPath: m_Name
+      value: Goblin 5
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+--- !u!4 &1690711066 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2867095004226196992, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+  m_PrefabInstance: {fileID: 1690711065}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1690711067 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4918048827746812412, guid: e37c46342aaaf13498a690f630201dcf, type: 3}
+  m_PrefabInstance: {fileID: 1690711065}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c91b10a5d711b46ba9abd6c4574727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBrain
 --- !u!1001 &1690847858
 PrefabInstance:
   m_ObjectHideFlags: 0

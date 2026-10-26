@@ -25,6 +25,7 @@ Checked against `Content/Enemies/WanderCapsule/WanderCapsule.prefab` and `_Core/
 - `EnemyMover` and `EnemyBrain` (`[RequireComponent]` enforces `BehaviorTree` + `EnemyMover`; `EnemyMover` requires `FollowerEntity`). `EnemyBrain._definition` set to the kind's `EnemyDefinition`, or it logs an error and never starts.
 - Layer **`Enemy`**, which keeps the enemies out of the recast scan and out of grounding queries.
 - No `EntityScope`, no `Seeker`/`RVOController`, no other per-instance plugin components, no `Update()`.
+- Animated kinds (the Goblins) add `EnemyAnimator` and a nested `Model` child with the Animator, and their definition links `Animation` settings. Everything about the model and animation is in **aipocalypse-characters**.
 
 ## 2. Lifecycle and ticking (what tasks can rely on)
 
@@ -62,14 +63,14 @@ Follow `_Core/EnemySystem/WanderTasks.cs`:
 
 - Every scene with agents needs `_Core/EnemySystem/Prefabs/Navigation.prefab` (AstarPath + RVOSimulator) and an `EnemyInstaller` on its `GameLifetimeScope` with that `AstarPath` and the settings asset assigned (the installer reports a `Problem` otherwise).
 - The prefab's default graph (small terrain-following grid, scanned on startup) is for small prototype scenes. WorldMap's instance holds the cached recast graph produced by the map generator: re-bake with the generator's `Navigation` steps after collider, terrain or water changes, never a hand scan without the water mesh (ENVIRONMENT.md → Navigation). Changing the enemy `FollowerEntity` radius/height means re-baking at the new size, or a second graph per size.
-- Scenes today: only `Scenes/Prototypes/WorldMap.unity` (two capsules outside the home gate). `Proto_Enemies` / `Proto_Stress` are planned (ROADMAP), not created. `Tests/PlayMode/WorldMapSmokeTests` asserts at least one registered enemy in WorldMap, so keep one placed there or update the test.
+- Scenes today: only `Scenes/Prototypes/WorldMap.unity` (six animated goblins outside the home gate; the capsules were removed, `WanderCapsule.prefab` remains as the bare contract). `Proto_Enemies` / `Proto_Stress` are planned (ROADMAP), not created. `Tests/PlayMode/WorldMapSmokeTests` asserts at least one registered enemy in WorldMap, so keep one placed there or update the test.
 
 ## 6. Performance
 
 - No per-system enemy budget is written in ARCHITECTURE.md yet. The ROADMAP gate stands: 300 tree-driven enemies within budget in `Proto_Stress` before adding more archetypes; record the measured budget in ARCHITECTURE.md → Performance when it exists.
 - First levers are the settings asset (`ThinkInterval`, `MaxThinksPerFrame`); then the escalation order in unity-behavior-designer-pro §5. Entity (ECS) tasks or baking agents to subscenes break "no ECS in our code" and need the user's sign-off.
 - Profile with the Behavior Designer window closed and A\* gizmos off; watch `Aipocalypse.EnemyManager.Think`, `AIMovementSystemGroup`, `RVOSystem`.
-- Known deviation: `WanderCapsule.prefab`'s `FollowerEntity.debugFlags` is `Path` (64); set it to none before stress tests.
+- Known deviation: `WanderCapsule.prefab`'s `FollowerEntity.debugFlags` is `Path` (64), and the Goblin prefabs inherited it from it; set it to none before stress tests.
 
 ## 7. Not built yet (don't assume these exist)
 
