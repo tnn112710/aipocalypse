@@ -15,6 +15,8 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Marker"), Min(1f), Tooltip("Pop size at the start of a hit marker")] public float HitPop = 1.3f;
         [BoxGroup("Marker"), Min(1f)] public float KillPop = 1.8f;
         [BoxGroup("Marker"), Range(0.05f, 1f), Tooltip("Share of the fade the marker takes to shrink back from its pop")] public float PopShare = 0.4f;
+        [BoxGroup("Damage numbers"), Min(0f), Tooltip("Metres above the hit point a damage number starts, so it rises clear of the target")]
+        public float NumberLift = 0.5f;
 
     }
 }

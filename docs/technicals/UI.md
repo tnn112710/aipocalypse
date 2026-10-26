@@ -140,7 +140,7 @@ InteractPrompt               InteractPromptView component
 | Clock position, size, text placement | `HUD` → `TopRight/Clock` RectTransforms (Clock size, Time and Labels offsets) |
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
 | Crosshair sprint fade speed, spread tick threshold / speed | `Data/UI/CrosshairStyle.asset` |
-| Hit marker colors, durations, pops | `Data/UI/HitFeedbackStyle.asset` (sounds and the number prefabs: `HitFeedbackHud`) |
+| Hit marker colors, durations, pops; how far above the hit a number starts | `Data/UI/HitFeedbackStyle.asset` (sounds and the number prefabs: `HitFeedbackHud`) |
 | Damage number look (normal white, critical red) | `Prefabs/Widgets/DamageNumber.prefab`, `DamageNumber_Critical.prefab` (a variant) |
 | QTE sprites, colors, key cap, success / miss animation | `Data/UI/RepairQteStyle.asset` (`QteStyle`) |
 | How the crosshair moves | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway ([WEAPONS.md](WEAPONS.md#aim-sway)) |
@@ -220,7 +220,7 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
 
 - **Marker:** pops to 1.3× and fades over 0.18 s; on a kill it turns red, pops to 1.8× and fades over 0.4 s. Unscaled time, so a hit stop doesn't freeze it. Several hits in one frame (shotgun pellets) mark once; a kill among them wins.
 - **Sound:** `Combat/HitMarker` or `Combat/KillConfirm` BroAudio entities, once per frame.
-- **Damage number:** `Prefabs/Widgets/DamageNumber.prefab` (Damage Numbers Pro mesh number, 3D, constant screen size, 0.8 s, combines rapid hits, pooled 40, prewarmed on Start) at the hit point, white. Critical hits (headshots, `DamageInfo.Critical`) spawn `DamageNumber_Critical.prefab` instead: a variant with red text in its own spam group (`Critical`), so crits combine only with crits. Colors live on the prefabs, never set at spawn: a tinted pooled number keeps the tint, and a combined number keeps the absorber's color. Its font is the first-party copy `Data/UI/DamageNumberFont.asset` (DNP's setup rewrites its font's material, so the vendor asset stays untouched).
+- **Damage number:** `Prefabs/Widgets/DamageNumber.prefab` (Damage Numbers Pro mesh number, 3D, constant screen size, font size 3, 0.8 s, combines rapid hits, pooled 40, prewarmed on Start) `HitFeedbackStyle.NumberLift` (0.5 m) above the hit point, white; it only rises straight up (1.6, no sideways drift, slide or pop) so the target stays visible. Critical hits (headshots, `DamageInfo.Critical`) spawn `DamageNumber_Critical.prefab` instead: a variant with red text in its own spam group (`Critical`), so crits combine only with crits. Colors live on the prefabs, never set at spawn: a tinted pooled number keeps the tint, and a combined number keeps the absorber's color. Its font is the first-party copy `Data/UI/DamageNumberFont.asset` (DNP's setup rewrites its font's material, so the vendor asset stays untouched).
 
 Colors, durations and pop sizes are in `Data/UI/HitFeedbackStyle.asset` (`HitFeedbackStyle`); the sounds and the number prefab stay on the component. With no style assigned it warns and uses the defaults (so does `CrosshairHud` without its `CrosshairStyle`).
 

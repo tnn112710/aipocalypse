@@ -84,7 +84,7 @@ namespace Aipocalypse.Core.UI
             // Colors live on the prefabs: tinting a pooled number would stick to it, and combined numbers keep the absorber's.
             DamageNumber prefab = hit.Info.Critical && _criticalNumber != null ? _criticalNumber : _damageNumber;
             if (prefab != null)
-                prefab.Spawn(hit.Info.Point, hit.Result.Applied);
+                prefab.Spawn(hit.Info.Point + Vector3.up * _style.NumberLift, hit.Result.Applied);
 
             // One marker and sound per frame; a kill among them wins.
             if (_markedFrame == Time.frameCount && (_markedKill || !kill))
