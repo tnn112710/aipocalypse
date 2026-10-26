@@ -9,7 +9,7 @@ docs="${docs,,}"
 
 # Bash matching instead of grep -i: Git Bash grep aborts on the docs' non-ASCII characters.
 missing=()
-for dir in Assets/_StoreAssets/*/*/ Assets/Synty/*/ Assets/Plugins/*/; do
+for dir in Assets/_StoreAssets/*/*/ Assets/Synty/*/ Assets/Synty/SidekickCharacters/Characters/*/ Assets/Plugins/*/; do
   [ -d "$dir" ] || continue
   name="$(basename "$dir")"
   [[ "$docs" == *"${name,,}"* ]] || missing+=("${dir%/}")
