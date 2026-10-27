@@ -3,7 +3,8 @@ using UnityEngine;
 namespace Aipocalypse.Core.EnemySystem
 {
     // Drives an enemy model's Animator from how its mover moves: Speed (m/s), LookX/LookY, Lean, and the Fidget trigger with
-    // FidgetIndex; EnemyBody adds hits (Hit + HitIndex) and death (Dead + DeathIndex). No Update of its own:
+    // FidgetIndex; EnemyBody adds hits (Hit + HitIndex) and death (Dead + DeathIndex), melee tasks swings (Attack +
+    // AttackIndex). No Update of its own:
     // EnemyAnimationManager advances every registered enemy each frame. Controllers follow the parameter contract of the
     // aipocalypse-characters skill (CharacterKit.BuildLocomotionController).
     [RequireComponent(typeof(EnemyMover))]
@@ -19,12 +20,15 @@ namespace Aipocalypse.Core.EnemySystem
         static readonly int HitIndexId = Animator.StringToHash("HitIndex");
         static readonly int DeadId = Animator.StringToHash("Dead");
         static readonly int DeathIndexId = Animator.StringToHash("DeathIndex");
+        static readonly int AttackId = Animator.StringToHash("Attack");
+        static readonly int AttackIndexId = Animator.StringToHash("AttackIndex");
         // HitIndex: where the hit came from, + Heavy for a hard push.
         const int HitFront = 0, HitBack = 1, HitLeft = 2, HitRight = 3, Heavy = 4;
 
         [SerializeField, Tooltip("The model's Animator (on the Model child)")] Animator _animator;
         [SerializeField, Min(0), Tooltip("Fidget states in the controller, picked by FidgetIndex 0..n-1")] int _fidgets;
         [SerializeField, Min(0), Tooltip("Death states in the controller, picked at random by DeathIndex 0..n-1")] int _deaths;
+        [SerializeField, Min(0), Tooltip("Attack states in the controller, picked at random by AttackIndex 0..n-1")] int _attacks;
 
         EnemyMover _mover;
         EnemyAnimationSettings _settings;
@@ -63,6 +67,16 @@ namespace Aipocalypse.Core.EnemySystem
             _animator.SetTrigger(HitId);
         }
 
+        // Plays a random swing (full body; the enemy stands while it plays).
+        public void Attack()
+        {
+            if (_motion == null || _attacks == 0)
+                return;
+            _animator.ResetTrigger(FidgetId);
+            _animator.SetInteger(AttackIndexId, Random.Range(0, _attacks));
+            _animator.SetTrigger(AttackId);
+        }
+
         // Plays a death and mutes the layers above the base one (look, lean, hits), even off screen so it's done when seen.
         public void Die()
         {
@@ -70,6 +84,7 @@ namespace Aipocalypse.Core.EnemySystem
                 return;
             _animator.ResetTrigger(HitId);
             _animator.ResetTrigger(FidgetId);
+            _animator.ResetTrigger(AttackId);
             _animator.SetInteger(DeathIndexId, _deaths > 0 ? Random.Range(0, _deaths) : 0);
             _animator.SetBool(DeadId, true);
             for (int i = 1; i < _animator.layerCount; i++)

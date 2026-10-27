@@ -8,9 +8,14 @@ namespace Aipocalypse.Core.EnemySystem
     [RequireComponent(typeof(FollowerEntity))]
     public sealed class EnemyMover : MonoBehaviour
     {
+        // Face re-targets once the wanted facing turns past this (cos 10 deg).
+        const float FacingTolerance = 0.985f;
+
         FollowerEntity _agent;
         AstarPath _navigation;
         float _deadline;
+        // Facing set by Face (zero while walking or halted), so a still target doesn't re-path every think.
+        Vector3 _facing;
 
         // Where it was when it started (wander circles around it).
         public Vector3 Home { get; private set; }
@@ -69,12 +74,30 @@ namespace Aipocalypse.Core.EnemySystem
         public void MoveTo(Vector3 destination, float timeout)
         {
             _agent.destination = destination;
+            _facing = Vector3.zero;
             _deadline = Time.time + timeout;
+            _agent.isStopped = false;
+        }
+
+        // Stands where it is and turns towards `point` (A* turns an agent in place toward the facing of a destination it's on).
+        public void Face(Vector3 point)
+        {
+            Vector3 direction = point - transform.position;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.0001f)
+                return;
+            direction.Normalize();
+            if (!_agent.isStopped && Vector3.Dot(direction, _facing) >= FacingTolerance)
+                return;
+            _facing = direction;
+            _agent.SetDestination(transform.position, direction);
+            _deadline = float.PositiveInfinity;
             _agent.isStopped = false;
         }
 
         public void Halt()
         {
+            _facing = Vector3.zero;
             if (_agent != null)
                 _agent.isStopped = true;
         }

@@ -15,6 +15,8 @@ namespace Aipocalypse.Core.EnemySystem
         [Min(0f), Tooltip("Radius (m) of grass it bends around its feet, through the scene's GrassBendField; 0 = none")] public float GrassBendRadius = 0.6f;
         [Required, InlineEditor, Tooltip("Knockback, hit reactions and how long the body stays (EnemyBody)")] public EnemyReactionSettings Reaction;
         [Required, InlineEditor, Tooltip("Read by the Wander subtree's tasks")] public WanderSettings Wander;
+        [InlineEditor, Tooltip("Read by the Melee subtree's tasks; empty for kinds that don't fight (they ignore the player)")]
+        public MeleeSettings Melee;
         [InlineEditor, Tooltip("Glances, fidgets and leaning of an animated model (EnemyAnimator); empty for unanimated kinds")]
         public EnemyAnimationSettings Animation;
 

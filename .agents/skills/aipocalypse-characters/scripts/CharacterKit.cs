@@ -151,6 +151,10 @@ public static class CharacterKit
     //   heavy.front|back|left|right = <clip>                came from), heavy ones at HitIndex 4..7 (missing = the light clip),
     //   hit.mask = upper | full                             in an override layer; upper (default) keeps the legs walking
     //   death = <clip>                                      one per line, base layer, from any state on Dead by DeathIndex
+    //   attack = <clip>                                     one per line, base layer (full body, tagged Attack), from any
+    //                                                       state on the Attack trigger by AttackIndex, back to locomotion
+    //   grip = <clip>                                       a held pose (closed hand round a weapon) in an override layer
+    //   grip.mask = <AvatarMask asset>                      what the grip layer covers (e.g. a right-hand mask)
     public static string BuildLocomotionController(string specPath)
     {
         if (!File.Exists(specPath))
@@ -200,6 +204,11 @@ public static class CharacterKit
         var hits = sides.Select(d => Clip(Get("hit." + d))).ToArray();
         var heavyHits = sides.Select(d => Clip(Get("heavy." + d))).ToArray();
         var deaths = spec.Where(p => p.Key == "death").Select(p => Clip(p.Value)).ToList();
+        var attacks = spec.Where(p => p.Key == "attack").Select(p => Clip(p.Value)).ToList();
+        AnimationClip grip = Clip(Get("grip"));
+        AvatarMask gripMask = null;
+        if (grip != null && (gripMask = AssetDatabase.LoadAssetAtPath<AvatarMask>(Get("grip.mask") ?? "")) == null)
+            missing.Add("grip.mask " + Get("grip.mask"));
         if (missing.Count > 0)
             return Fail("clips not found: " + string.Join(", ", missing));
         if (moves.Count == 0)
@@ -224,6 +233,8 @@ public static class CharacterKit
         controller.AddParameter("HitIndex", AnimatorControllerParameterType.Int);
         controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
         controller.AddParameter("DeathIndex", AnimatorControllerParameterType.Int);
+        controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("AttackIndex", AnimatorControllerParameterType.Int);
 
         controller.AddLayer("Base Layer");
         AnimatorControllerLayer[] baseLayers = controller.layers;
@@ -275,6 +286,23 @@ public static class CharacterKit
             up.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
         }
 
+        for (int i = 0; i < attacks.Count; i++)
+        {
+            AnimatorState attack = root.AddState("Attack_" + i, new Vector3(900f, 120f * i, 0f));
+            attack.motion = attacks[i];
+            attack.tag = "Attack";
+            AnimatorStateTransition swing = root.AddAnyStateTransition(attack);
+            swing.hasExitTime = false;
+            swing.duration = 0.1f;
+            swing.canTransitionToSelf = false;
+            swing.AddCondition(AnimatorConditionMode.If, 0f, "Attack");
+            swing.AddCondition(AnimatorConditionMode.Equals, i, "AttackIndex");
+            AnimatorStateTransition done = attack.AddTransition(locomotion);
+            done.hasExitTime = true;
+            done.exitTime = 0.9f;
+            done.duration = 0.15f;
+        }
+
         AddDirectionalLayer(controller, "HeadLook", headLook, positions, neutral, 1f);
         float bodyWeight = float.TryParse(Get("bodyLook.weight"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float w) ? w : 0.5f;
         AddDirectionalLayer(controller, "BodyLook", bodyLook, positions, neutral, bodyWeight);
@@ -290,13 +318,25 @@ public static class CharacterKit
             tree.AddChild(lean[1], 1f);
         }
         int hitStates = AddHitLayer(controller, hits, heavyHits, Get("hit.mask") != "full");
+        if (grip != null)
+        {
+            controller.AddLayer("Grip");
+            AnimatorControllerLayer[] layers = controller.layers;
+            int index = layers.Length - 1;
+            layers[index].blendingMode = AnimatorLayerBlendingMode.Override;
+            layers[index].defaultWeight = 1f;
+            layers[index].avatarMask = gripMask;
+            controller.layers = layers;
+            AnimatorState hold = controller.layers[index].stateMachine.AddState("Grip");
+            hold.motion = grip;
+        }
 
         EditorUtility.SetDirty(controller);
         // Only what this wrote: SaveAssets() would also write unrelated dirty assets (e.g. the WorldMap terrain).
         AssetDatabase.SaveAssetIfDirty(controller);
         if (neutral != null)
             AssetDatabase.SaveAssetIfDirty(neutral);
-        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
     }
 
     // Override layer "Hit": an empty default state, and Hit_<index> entered from any state on Hit + HitIndex (a new hit

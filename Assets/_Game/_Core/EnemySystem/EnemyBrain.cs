@@ -1,4 +1,6 @@
+using Aipocalypse.Core.Entities;
 using Aipocalypse.Core.EnvironmentSystem;
+using Aipocalypse.Core.PlayerSystem;
 using Opsive.BehaviorDesigner.Runtime;
 using UnityEngine;
 using VContainer;
@@ -16,6 +18,7 @@ namespace Aipocalypse.Core.EnemySystem
         EnemyRegistry _registry;
         AstarPath _navigation;
         GrassBendField _grassBending;
+        PlayerRegistry _players;
         EnemyMover _mover;
         bool _started;
 
@@ -30,6 +33,12 @@ namespace Aipocalypse.Core.EnemySystem
         public EnemyAnimator Animation { get; private set; }
         // Where the current walk goes; set by the task that chooses it.
         public Vector3 Destination { get; set; }
+        // The player in play; null in scenes without one.
+        public IPlayerTarget Player => _players?.Current;
+        // The player this enemy is fighting (set by the Melee subtree's PlayerInReach); null while it isn't.
+        public IPlayerTarget Target { get; set; }
+        // Earliest Time.time the next swing may start.
+        public float NextAttackTime { get; set; }
         // Slot in the registry's list; -1 while not registered.
         internal int RegistryIndex { get; set; } = -1;
 
@@ -39,6 +48,7 @@ namespace Aipocalypse.Core.EnemySystem
             _registry = registry;
             _navigation = navigation;
             resolver.TryResolve(out _grassBending);
+            resolver.TryResolve(out _players);
             if (_started && isActiveAndEnabled)
                 Activate();
         }
@@ -72,6 +82,7 @@ namespace Aipocalypse.Core.EnemySystem
 
         void StopActing()
         {
+            Target = null;
             _registry?.Remove(this);
             if (_grassBending != null)
                 _grassBending.Remove(transform);
@@ -85,6 +96,7 @@ namespace Aipocalypse.Core.EnemySystem
         {
             if (RegistryIndex >= 0)
                 return;
+            NextAttackTime = 0f;
             Stats = new EnemyStats(_definition);
             Stats.Changed += ApplyStat;
             _mover.Initialize(_navigation, _definition, Stats);

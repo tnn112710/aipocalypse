@@ -3,6 +3,7 @@
 // Hit: a ray from the player's camera to the goblin at aimHeight (0.9 chest; negative = its head hitbox wherever the pose put it) through DamageService.DealHit (the path bullets and swings use).
 // Watch: samples hp, knockback, animator states. Fire: aims the player at a goblin with an AK47 and holds the trigger
 // through a virtual mouse. Revive: disables and re-enables a goblin (dead or sunk), which revives it.
+// Place: stands the player `distance` m in front of a goblin and samples it (melee: notice, chase, swing, give up).
 using System;
 using System.Linq;
 using System.Reflection;
@@ -122,6 +123,31 @@ public static class ProbeCombat
         return Line(brain);
     }
 
+    // Stands the player `distance` m in front of the goblin (facing it), then samples the goblin every `every` s for `seconds`.
+    public static async Task<string> Place(string goblin, float distance, float seconds, float every)
+    {
+        EnemyBrain brain = Find(goblin);
+        if (brain == null)
+            return "no " + goblin;
+        Player player = Player;
+        Vector3 at = brain.transform.position + brain.transform.forward * distance;
+        var controller = player.GetComponent<CharacterController>();
+        controller.enabled = false;
+        player.transform.SetPositionAndRotation(at + Vector3.up * 0.2f, Quaternion.LookRotation(-brain.transform.forward));
+        controller.enabled = true;
+        var sb = new StringBuilder().AppendLine($"player at {distance} m");
+        float next = 0f, start = Time.realtimeSinceStartup;
+        await Seconds(seconds, () =>
+        {
+            float t = Time.realtimeSinceStartup - start;
+            if (t < next)
+                return;
+            next += every;
+            sb.AppendLine($"+{t:F2}s {Line(brain)}");
+        });
+        return sb.ToString();
+    }
+
     // Stands the player `distance` m from the goblin, gives and selects `item` (a gun or melee weapon), then aims at its chest
     // and holds the attack button.
     public static async Task<string> Fire(string goblin, float distance, float seconds, string item = "AK47")
@@ -189,9 +215,12 @@ public static class ProbeCombat
                 states += $" hit={StateName(animator, hitLayer)}";
         }
         bool colliders = brain.GetComponentsInChildren<Collider>(true).Any(c => c.enabled && !c.isTrigger);
+        Vector3 toPlayer = Player.transform.position - brain.transform.position;
+        toPlayer.y = 0f;
+        string melee = $" target={brain.Target != null} playerDist={toPlayer.magnitude:F2} facing={Vector3.Angle(brain.transform.forward, toPlayer):F0}deg";
         return $"{brain.name} active={brain.gameObject.activeInHierarchy} hp={body?.Health?.Current:F0}/{body?.Health?.Max:F0} dead={brain.IsDead} " +
                $"pos={brain.transform.position:F2} speed={Speed(brain):F2} colliders={colliders} " +
-               $"visualY={body?.Visual?.localPosition.y:F2}{states}";
+               $"visualY={body?.Visual?.localPosition.y:F2}{melee}{states}";
     }
 
     static float Speed(EnemyBrain brain)

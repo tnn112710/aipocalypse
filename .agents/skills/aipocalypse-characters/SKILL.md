@@ -55,9 +55,11 @@ Worked example, built with this skill: **`Content/Enemies/Goblin/`**, ten wander
    - Move thresholds are the clips' **authored** speeds.
    - Set the definition's `MoveSpeed` stat near the walk speed so the walk plays at its own pace.
    - Hits and deaths: `hit.*` / `heavy.*` lines (front, back, left, right) and `death` lines. Hits go in an upper-body override layer so the legs keep walking. Humanoid clips from any vendor retarget; the Goblin's come from Malbers Common (ASSETS.md). Check them on the model with `Snapshot` first: `H_Death2.anim` threw the body off its origin.
+   - Attacks and held weapons: `attack` lines (full-body base-layer states, tagged `Attack`) and `grip` + `grip.mask` (a held hand pose in an override layer masked to one hand, so the hand stays closed while walking). The Goblin's are Kevin Iglesias Human Melee (ASSETS.md): pick clips by its PDF's naming (`1H` one-handed, `_R` right hand, `HumanM` masculine rig), and prefer the ones its own demo controllers use.
 4. **Entity prefab.** For enemies, a builder in `AgentScripts/Characters/<Name>/Build<Name>.cs` (see `BuildGoblin.cs`):
-   - **Base prefab:** start from the WanderCapsule enemy contract (aipocalypse-enemy-ai §1), unpacked. Replace its `Capsule` child with the model as child **`Model`**, on the root's layer (`Enemy`). Assign the controller on the model's Animator. Add `EnemyAnimator` (`_animator`, `_fidgets`, `_deaths`) and `EnemyBody` (`_visual` = the `Model`, which sinks after death), plus the hit colliders on the bones (aipocalypse-enemy-ai §1 → weak spots). Point `EnemyBrain._definition` at the kind's `EnemyDefinition`, whose base stats, `Reaction`, `Wander` and `Animation` are set.
+   - **Base prefab:** start from the WanderCapsule enemy contract (aipocalypse-enemy-ai §1), unpacked. Replace its `Capsule` child with the model as child **`Model`**, on the root's layer (`Enemy`). Assign the controller on the model's Animator. Add `EnemyAnimator` (`_animator`, `_fidgets`, `_deaths`, `_attacks`) and `EnemyBody` (`_visual` = the `Model`, which sinks after death), plus the hit colliders on the bones (aipocalypse-enemy-ai §1 → weak spots). Point `EnemyBrain._definition` at the kind's `EnemyDefinition`, whose base stats, `Reaction`, `Wander` and `Animation` are set.
    - **Extra looks:** a **prefab variant** of the base that deletes the base `Model` (Unity 6.6 records it as a removed-GameObject override), adds another `Model` and overrides `EnemyAnimator._animator` and `EnemyBody._visual`. The Goblin's `Goblin_02…06.prefab` work this way. A builder must never rebuild a base prefab that has variants: the base's children would get new file IDs and break the variants' removed-Model overrides, so `BuildGoblin` creates only missing prefabs.
+   - **Held weapon:** a first-party prefab holding an unpacked copy of the vendor model with no collider (hits must reach the body), nested on the hand bone of each look's `Model`. Place it from bone positions in the bind pose so it fits any skeleton: blade along little → index knuckles, edge along the fingers, grip a little into the palm (`BuildGoblin.HoldSword`); check with `Snapshot` and in Play (Snapshot samples one clip, so the grip layer's closed fingers show only in Play).
    - Re-running a builder updates in place. Upgrade existing prefabs with `PrefabUtility.LoadPrefabContents` → edit → `SaveAsPrefabAsset` (`BuildGoblin.Upgrade`), which keeps file IDs.
 5. **Scene.**
    - A placement script (`PlaceGoblins.cs`) puts instances under `Enemies`, snaps them to the terrain and saves the scene. Saving makes `EnemyInstaller` collect them.
@@ -77,8 +79,9 @@ Every locomotion controller has these parameters, so `EnemyAnimator` drives any 
 | `Fidget` | trigger | With `FidgetIndex` (int, 0..n−1): plays fidget state n from Locomotion when Speed < 0.2. It ends at 90% or as soon as Speed > 0.3. |
 | `Hit` | trigger | With `HitIndex` (int): where the hit came from, 0 front, 1 back, 2 left, 3 right, +4 when heavy (push speed ≥ `EnemyReactionSettings.HeavyHitSpeed`). Plays `Hit_<index>` in the Hit layer from any state; a new hit restarts it. |
 | `Dead` | bool | With `DeathIndex` (int, random 0..`_deaths`−1): `Death_<index>` in the base layer from any state. `EnemyAnimator.Die` also zeroes the upper layers' weights and switches culling to AlwaysAnimate until revived. |
+| `Attack` | trigger | With `AttackIndex` (int, random 0..`_attacks`−1): `Attack_<index>` (tag `Attack`) in the base layer from any state, back to Locomotion at 90%. Set by `EnemyAnimator.Attack` (melee tasks); the enemy stands while it plays. |
 
-Layers: Base (Locomotion, fidget and death states), HeadLook (additive, 1), BodyLook (additive, `bodyLook.weight`), Lean (additive, 1), Hit (override, 1, upper-body mask sub-asset `UpperBody`).
+Layers: Base (Locomotion, fidget, death and attack states), HeadLook (additive, 1), BodyLook (additive, `bodyLook.weight`), Lean (additive, 1), Hit (override, 1, upper-body mask sub-asset `UpperBody`), Grip (override, 1, the spec's hand mask; only with a `grip` line).
 - A clip set without look or lean clips just leaves those layers out.
 - A Generic rig gets its own controller from the same spec format.
 - Adding a parameter means updating `EnemyAnimator`, the builder and the contract test together.
@@ -98,6 +101,7 @@ Layers: Base (Locomotion, fidget and death states), HeadLook (additive, 1), Body
     - `Fire(goblin, distance, seconds, item)` stands the player in front, gives the item (AK47, FireAxe…) and holds the attack through a virtual mouse.
     - `Strike(goblin, damage, force, seconds, every)` deals one hit through `DamageService.DealHit` and samples HP, position and the Hit layer state in the same call.
     - `State()` lists every enemy, and `Revive(goblin)` re-enables a dead one.
+    - Melee: `Place(goblin, distance, seconds, every)` stands the player `distance` m in front of the goblin (negative = behind) and samples it: `target`, `playerDist`, `facing` (degrees off the player) and the base clip. Expect a chase at ~3.5 m/s, a stop at the attack range, swings with a cooldown, and the target dropped past the lose radius.
     - Off-screen enemies don't animate (`CullCompletely`), so face them before judging a hit reaction.
   - Then stop Play and check `console get --level error` for new entries.
 
