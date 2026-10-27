@@ -153,6 +153,8 @@ public static class CharacterKit
     //   death = <clip>                                      one per line, base layer, from any state on Dead by DeathIndex
     //   attack = <clip>                                     one per line, base layer (full body, tagged Attack), from any
     //                                                       state on the Attack trigger by AttackIndex, back to locomotion
+    //   combatIdle = <clip>                                 idle while fighting: a second blend tree (this idle, the same
+    //                                                       moves) entered on the Combat bool; swings return to it
     //   grip = <clip>                                       a held pose (closed hand round a weapon) in an override layer
     //   grip.mask = <AvatarMask asset>                      what the grip layer covers (e.g. a right-hand mask)
     public static string BuildLocomotionController(string specPath)
@@ -205,6 +207,7 @@ public static class CharacterKit
         var heavyHits = sides.Select(d => Clip(Get("heavy." + d))).ToArray();
         var deaths = spec.Where(p => p.Key == "death").Select(p => Clip(p.Value)).ToList();
         var attacks = spec.Where(p => p.Key == "attack").Select(p => Clip(p.Value)).ToList();
+        AnimationClip combatIdle = Clip(Get("combatIdle"));
         AnimationClip grip = Clip(Get("grip"));
         AvatarMask gripMask = null;
         if (grip != null && (gripMask = AssetDatabase.LoadAssetAtPath<AvatarMask>(Get("grip.mask") ?? "")) == null)
@@ -235,6 +238,7 @@ public static class CharacterKit
         controller.AddParameter("DeathIndex", AnimatorControllerParameterType.Int);
         controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
         controller.AddParameter("AttackIndex", AnimatorControllerParameterType.Int);
+        controller.AddParameter("Combat", AnimatorControllerParameterType.Bool);
 
         controller.AddLayer("Base Layer");
         AnimatorControllerLayer[] baseLayers = controller.layers;
@@ -286,6 +290,26 @@ public static class CharacterKit
             up.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
         }
 
+        AnimatorState combat = null;
+        if (combatIdle != null)
+        {
+            combat = controller.CreateBlendTreeInController("Combat", out BlendTree combatTree, 0);
+            combatTree.blendType = BlendTreeType.Simple1D;
+            combatTree.blendParameter = "Speed";
+            combatTree.useAutomaticThresholds = false;
+            foreach (var move in moves.OrderBy(m => m.speed))
+                combatTree.AddChild(move.speed <= 0f ? combatIdle : move.clip, move.speed);
+            root.defaultState = locomotion;
+            AnimatorStateTransition engage = locomotion.AddTransition(combat);
+            engage.hasExitTime = false;
+            engage.duration = 0.25f;
+            engage.AddCondition(AnimatorConditionMode.If, 0f, "Combat");
+            AnimatorStateTransition calm = combat.AddTransition(locomotion);
+            calm.hasExitTime = false;
+            calm.duration = 0.4f;
+            calm.AddCondition(AnimatorConditionMode.IfNot, 0f, "Combat");
+        }
+
         for (int i = 0; i < attacks.Count; i++)
         {
             AnimatorState attack = root.AddState("Attack_" + i, new Vector3(900f, 120f * i, 0f));
@@ -297,10 +321,18 @@ public static class CharacterKit
             swing.canTransitionToSelf = false;
             swing.AddCondition(AnimatorConditionMode.If, 0f, "Attack");
             swing.AddCondition(AnimatorConditionMode.Equals, i, "AttackIndex");
-            AnimatorStateTransition done = attack.AddTransition(locomotion);
+            AnimatorStateTransition done = attack.AddTransition(combat ?? locomotion);
             done.hasExitTime = true;
             done.exitTime = 0.9f;
             done.duration = 0.15f;
+            if (combat == null)
+                continue;
+            done.AddCondition(AnimatorConditionMode.If, 0f, "Combat");
+            AnimatorStateTransition calm = attack.AddTransition(locomotion);
+            calm.hasExitTime = true;
+            calm.exitTime = 0.9f;
+            calm.duration = 0.15f;
+            calm.AddCondition(AnimatorConditionMode.IfNot, 0f, "Combat");
         }
 
         AddDirectionalLayer(controller, "HeadLook", headLook, positions, neutral, 1f);
@@ -336,7 +368,7 @@ public static class CharacterKit
         AssetDatabase.SaveAssetIfDirty(controller);
         if (neutral != null)
             AssetDatabase.SaveAssetIfDirty(neutral);
-        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
     }
 
     // Override layer "Hit": an empty default state, and Hit_<index> entered from any state on Hit + HitIndex (a new hit

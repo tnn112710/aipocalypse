@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Aipocalypse.Core.EnemySystem
 {
     // Drives an enemy model's Animator from how its mover moves: Speed (m/s), LookX/LookY, Lean, and the Fidget trigger with
-    // FidgetIndex; EnemyBody adds hits (Hit + HitIndex) and death (Dead + DeathIndex), melee tasks swings (Attack +
-    // AttackIndex). No Update of its own:
+    // FidgetIndex; EnemyBody adds hits (Hit + HitIndex) and death (Dead + DeathIndex), the brain the fighting stance
+    // (Combat) and melee tasks swings (Attack + AttackIndex). No Update of its own:
     // EnemyAnimationManager advances every registered enemy each frame. Controllers follow the parameter contract of the
     // aipocalypse-characters skill (CharacterKit.BuildLocomotionController).
     [RequireComponent(typeof(EnemyMover))]
@@ -22,6 +22,7 @@ namespace Aipocalypse.Core.EnemySystem
         static readonly int DeathIndexId = Animator.StringToHash("DeathIndex");
         static readonly int AttackId = Animator.StringToHash("Attack");
         static readonly int AttackIndexId = Animator.StringToHash("AttackIndex");
+        static readonly int CombatId = Animator.StringToHash("Combat");
         // HitIndex: where the hit came from, + Heavy for a hard push.
         const int HitFront = 0, HitBack = 1, HitLeft = 2, HitRight = 3, Heavy = 4;
 
@@ -67,6 +68,13 @@ namespace Aipocalypse.Core.EnemySystem
             _animator.SetTrigger(HitId);
         }
 
+        // Fighting stance (combat idle between swings, no fidgets) while engaged.
+        public void SetCombat(bool combat)
+        {
+            if (_motion != null)
+                _animator.SetBool(CombatId, combat);
+        }
+
         // Plays a random swing (full body; the enemy stands while it plays).
         public void Attack()
         {
@@ -103,6 +111,7 @@ namespace Aipocalypse.Core.EnemySystem
             }
             _animator.cullingMode = _culling;
             _animator.SetBool(DeadId, false);
+            _animator.SetBool(CombatId, false);
             for (int i = 1; i < _layerWeights.Length; i++)
                 _animator.SetLayerWeight(i, _layerWeights[i]);
         }

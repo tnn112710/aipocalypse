@@ -19,6 +19,7 @@ namespace Aipocalypse.Core.EnemySystem
         AstarPath _navigation;
         GrassBendField _grassBending;
         PlayerRegistry _players;
+        IPlayerTarget _target;
         EnemyMover _mover;
         bool _started;
 
@@ -35,8 +36,21 @@ namespace Aipocalypse.Core.EnemySystem
         public Vector3 Destination { get; set; }
         // The player in play; null in scenes without one.
         public IPlayerTarget Player => _players?.Current;
-        // The player this enemy is fighting (set by the Melee subtree's PlayerInReach); null while it isn't.
-        public IPlayerTarget Target { get; set; }
+        // The player this enemy is fighting (set by the Melee subtree's PlayerInReach); null while it isn't. Switches the
+        // model's fighting stance.
+        public IPlayerTarget Target
+        {
+            get => _target;
+            set
+            {
+                if (ReferenceEquals(_target, value))
+                    return;
+                bool engaged = value != null;
+                if (Animation != null && engaged != (_target != null))
+                    Animation.SetCombat(engaged);
+                _target = value;
+            }
+        }
         // Earliest Time.time the next swing may start.
         public float NextAttackTime { get; set; }
         // Slot in the registry's list; -1 while not registered.
