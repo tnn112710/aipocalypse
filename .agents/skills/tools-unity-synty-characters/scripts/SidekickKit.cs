@@ -35,9 +35,10 @@ public static class SidekickKit
     const string BaseColorMap = "Assets/Synty/SidekickCharacters/Resources/Textures/T_ColorMap.png";
     static readonly int ColorMapId = Shader.PropertyToID("_ColorMap");
     // Mesh LOD levels past LOD0: deeper ones tear (the generator ignores skin weights). LOD2 is ~35% of the triangles and
-    // holds up at combat range; the bias puts crowds on it (aipocalypse-characters §5 has the numbers).
+    // holds up at range. No selection bias: a positive one keeps close-up characters on the coarse levels (blocky faces,
+    // segmented arms); screen size alone drops distant ones (aipocalypse-characters §5 has the numbers).
     const int MeshLods = 2;
-    const float MeshLodBias = 2f;
+    const float MeshLodBias = 0f;
 
     public static string ListPresets(string species)
     {

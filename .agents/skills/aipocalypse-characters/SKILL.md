@@ -42,7 +42,7 @@ Worked example, built with this skill: **`Content/Enemies/Goblin/`**, ten wander
 2. **Model prefab** in `Content/<Kind>/<Name>/Model/` (one per look). Contract:
    - The root holds the Animator, with an avatar built from **this** hierarchy (humanoid if the clips are humanoid).
    - No controller (the entity assigns it). `applyRootMotion` off. Culling `CullCompletely`: safe because the mover moves the body, and off-screen enemies then skip their animation.
-   - Mesh LODs where the model has none, kept to levels that don't tear (Sidekick: LOD2 and bias 2, §5).
+   - Mesh LODs where the model has none, kept to levels that don't tear (Sidekick: up to LOD2, selection bias 0, §5).
    - SkinnedMeshRenderer `updateWhenOffscreen` off; mesh not readable unless something reads it.
    - No vendor MonoBehaviours.
    - Synty Sidekick: `SidekickKit.Build`. Other vendors: a first-party prefab nesting or unpacking the vendor model, never an edited vendor prefab.
@@ -129,10 +129,11 @@ Per character: one Animator (state machine + 4 layers), one SkinnedMeshRenderer 
     - skinning ~0.1 ms;
     - `EnemyManager.Think` ~0.03 ms.
   - Baseline without enemies: ~7 ms PlayerLoop and ~2.3 ms GPU. Editor numbers: confirm in a development build.
-  - Budget: 80 goblins are ~2.3 ms of main thread and ~1 ms of GPU here (≈2.5–3 ms on a 2060).
+  - Budget: 80 goblins are ~2.3 ms of main thread and ~1 ms of GPU here (≈2.5–3 ms on a 2060) with bias 2.
+- **Bias back to 0 (2026-10-28):** bias 2 kept every goblin on LOD2 even at arm's length: blocky faces, arms broken into segments, very visible in the T-pose of edit mode and in melee range. With bias 0, screen size picks the level (LOD0 close, LOD1/2 farther). Cost at 80 goblins clustered in view (`ab` `bias2` vs `base`): 14.1 M vs 10.2 M triangles, about +0.6 ms GPU here (≈+1.5–2 ms on a 2060), main thread unchanged; facing away, identical. Bias 1 sits between (12.3 M). If crowds need the GPU back, raise the bias only for far enemies (a distance tier), never on close ones.
 - **Tried, no gain:**
   - FollowerEntity `debugFlags` off: nothing measurable. Goblin.prefab has it off anyway.
-  - Project-wide Mesh LOD Threshold: works (8 ≈ bias 4), but it changes every Mesh LOD asset. Use the per-renderer bias.
+  - Project-wide Mesh LOD Threshold: works (8 ≈ bias 4), but it changes every Mesh LOD asset and every distance. Prefer a per-renderer bias on far enemies only.
 - Next levers, cheapest first:
   - Fewer layers for distant enemies. All three look / lean layers off saved ~25% of the Animator cost.
   - Shadows off for far enemies (−0.36 ms GPU at 80 with all of them off).
