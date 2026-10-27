@@ -77,6 +77,39 @@ public static class ConsoleReview
         return $"screen log: {screen.Count} message(s) (the mirrored error lands next frame)";
     }
 
+    // Up / Down through suggestions while there are some, through history on an empty line.
+    public static async Task<string> Arrows()
+    {
+        var keyboard = InputSystem.AddDevice<Keyboard>("AgentKeyboard");
+        var report = new StringBuilder();
+        try
+        {
+            ConsoleService console = Resolve<ConsoleService>();
+            console.Close();
+            console.Line.Clear();
+            await Frames(2);
+            await Press(keyboard, Key.Backquote);
+            await Type(keyboard, "log.");
+            report.AppendLine($"typed: '{console.Line.Text}' suggestions={string.Join(",", console.Suggestions)}");
+            await Press(keyboard, Key.DownArrow);
+            report.AppendLine($"down: '{console.Line.Text}' selected={console.SelectedSuggestion}");
+            await Press(keyboard, Key.DownArrow);
+            report.AppendLine($"down: '{console.Line.Text}' selected={console.SelectedSuggestion}");
+            await Press(keyboard, Key.UpArrow);
+            report.AppendLine($"up: '{console.Line.Text}' selected={console.SelectedSuggestion}");
+            await Press(keyboard, Key.Enter);
+            report.AppendLine($"enter → last: '{console.Logs[console.Logs.Count - 1].Text}'");
+            await Press(keyboard, Key.UpArrow);
+            report.AppendLine($"empty line, up: '{console.Line.Text}'");
+            await Press(keyboard, Key.Escape);
+        }
+        finally
+        {
+            InputSystem.RemoveDevice(keyboard);
+        }
+        return report.ToString();
+    }
+
     public static string Caret()
     {
         var view = Object.FindAnyObjectByType<ConsoleView>();

@@ -203,9 +203,9 @@ namespace Aipocalypse.Core.Debugging
             if (_line.Version != version)
                 Changed();
 
-            if (_input.WasPressed(ConsoleButton.HistoryPrevious) && _history.TryPrevious(_line.Text, out string previous))
+            if (_input.WasPressed(ConsoleButton.HistoryPrevious) && !Browsing(-1) && _history.TryPrevious(_line.Text, out string previous))
                 SetLine(previous);
-            if (_input.WasPressed(ConsoleButton.HistoryNext) && _history.TryNext(out string next))
+            if (_input.WasPressed(ConsoleButton.HistoryNext) && !Browsing(1) && _history.TryNext(out string next))
                 SetLine(next);
             if (_input.WasPressed(ConsoleButton.Complete))
                 Complete();
@@ -232,8 +232,17 @@ namespace Aipocalypse.Core.Debugging
             _line.Insert(end >= 0 ? clip.Substring(0, end) : clip);
         }
 
-        // Tab: completes the token being typed; pressed again, cycles through the other suggestions.
-        void Complete()
+        // Up / Down move through the suggestions while there's a choice to make; otherwise they browse the history.
+        bool Browsing(int direction)
+        {
+            if (_suggestions.Count == 0 || (_completing && _suggestions.Count == 1))
+                return false;
+            Complete(direction);
+            return true;
+        }
+
+        // Tab / Down: completes the token being typed with the first suggestion, then the next ones; Up goes backwards.
+        void Complete(int direction = 1)
         {
             if (!_completing)
             {
@@ -241,12 +250,12 @@ namespace Aipocalypse.Core.Debugging
                 if (_suggestions.Count == 0)
                     return;
                 _completionBase = _line.Text.Substring(0, start);
-                SelectedSuggestion = 0;
+                SelectedSuggestion = direction > 0 ? 0 : _suggestions.Count - 1;
                 _completing = true;
             }
             else
             {
-                SelectedSuggestion = (SelectedSuggestion + 1) % _suggestions.Count;
+                SelectedSuggestion = (SelectedSuggestion + direction + _suggestions.Count) % _suggestions.Count;
             }
             string completed = _completionBase + _suggestions[SelectedSuggestion];
             _line.Set(_suggestions.Count == 1 ? completed + " " : completed);

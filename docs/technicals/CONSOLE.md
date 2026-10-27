@@ -15,7 +15,7 @@ While it's open it holds `InputService`'s text input: the Player, UI and Debug m
 | Enter | Run the line |
 | Esc, or the console key | Close (the line is kept) |
 | Tab | Complete the command name or argument; again to cycle the suggestions |
-| ↑ / ↓ | History (saved between sessions in `persistentDataPath/console_history.txt`) |
+| ↑ / ↓ | Move through the suggestions while there's a choice (↓ like Tab, ↑ backwards); otherwise the history (saved between sessions in `persistentDataPath/console_history.txt`) |
 | ← → Home End, Backspace Delete | Edit; with Ctrl, a whole word (`clock.set` is two words) |
 | Ctrl+V | Paste the clipboard's first line |
 | PageUp / PageDown, mouse wheel | Scroll the scrollback |
