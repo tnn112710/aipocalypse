@@ -119,12 +119,12 @@ Not vendor packs: source images converted into `Assets/_Game/Data/Environment/Ti
 
 ## Audio
 
-All sound plays through BroAudio entities in `Assets/_Game/Data/Audio/` (`tools-unity-broaudio`). No final audio is chosen yet. Clips in use today come from `Assets/_Placeholder/Audio` (below), Malbers `Common/Audio` and the Raygeas packs (their rows above).
+All sound plays through BroAudio entities in `Assets/_Game/Data/Audio/` (`tools-unity-broaudio`). No final audio is chosen yet. Clips in use today come from `Assets/_Placeholder/Audio` (below), Malbers `Common/Audio`, the Raygeas packs (their rows above) and PlaceHolder Inc (below).
 
 | Pack | Tag | Folder | Notes |
 | --- | --- | --- | --- |
 | ithappy Nature Sound FX | Should | `Audio/ithappy` | Nature ambience. Not used yet. |
-| PlaceHolder Inc (Environment Sounds, Gun Sounds Vol 1, Interface & Item Sounds Lite, Survival Game Sounds Lite) | Should | `Audio/PlaceHolder Inc` | Environment, gun, UI and survival sounds. Not used yet. |
+| PlaceHolder Inc (Environment Sounds, Gun Sounds Vol 1, Interface & Item Sounds Lite, Survival Game Sounds Lite) | Should | `Audio/PlaceHolder Inc` | Environment, gun, UI and survival sounds. In use: hit marker (`Interface Click 6-1`). |
 | Gamemaster Audio Pro Sound Collection | Could | `Audio/Gamemaster Audio - Pro Sound Collection` | General library (guns, UI, zombies, doors, foley, …). Not used. |
 
 ## Placeholder content
