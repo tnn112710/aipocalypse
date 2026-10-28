@@ -4,6 +4,8 @@ Every art, animation, UI, VFX and audio pack in the project, grouped by kind, on
 
 Vendor folders (`Assets/_StoreAssets/`, `Assets/Synty/`) are never modified. Make variants, material copies or prefabs under `Assets/_Game/`. Paths below are relative to `Assets/_StoreAssets/` unless they start with `Assets/`.
 
+**Not installed yet:** the project has a SyntyPass (every Synty pack). [SYNTY_CATALOG.md](SYNTY_CATALOG.md) lists the store's packs with their purpose and fit; when no installed pack covers a need, check it and suggest one (importing still needs the user's OK, then a row here).
+
 **Before using assets for a task**, check `Assets/_StoreAssets/` for packs this file doesn't list yet (`bash .claude/hooks/check-undeclared-packs.sh`) and the Undecided rows. If one could be useful, ask the user for a decision (suggest a tag), add or update its row, then pick by tag.
 
 ## Priority tags
