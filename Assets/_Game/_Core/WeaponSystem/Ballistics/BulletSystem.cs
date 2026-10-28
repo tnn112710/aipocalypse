@@ -110,8 +110,12 @@ namespace Aipocalypse.Core.WeaponSystem
                     continue;
                 }
 
+                // The tracer stops where the bullet ended and lingers so its trail reaches it, even on point-blank hits.
                 if (OwnsTracer(bullet))
-                    _effects.Return(bullet.Tracer);
+                {
+                    bullet.Tracer.transform.position = bullet.Position;
+                    _effects.ReturnAfter(bullet.Tracer, bullet.Effects.TracerLinger);
+                }
                 // Order doesn't matter: swap-remove.
                 int last = _bullets.Count - 1;
                 _bullets[i] = _bullets[last];
@@ -139,6 +143,7 @@ namespace Aipocalypse.Core.WeaponSystem
             if (TryHit(bullet.Position, step / distance, distance, bullet.Layers, bullet.Ignore, out RaycastHit hit))
             {
                 Impact(bullet, hit, bullet.Travelled + hit.distance);
+                bullet.Position = hit.point;
                 return false;
             }
 

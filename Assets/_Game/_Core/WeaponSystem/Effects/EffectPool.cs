@@ -95,6 +95,18 @@ namespace Aipocalypse.Core.WeaponSystem
                 pool.Objects.Release(effect);
         }
 
+        // Unless it's returned or recycled first; 0 returns it now.
+        public void ReturnAfter(PooledEffect effect, float seconds)
+        {
+            if (seconds <= 0f)
+            {
+                Return(effect);
+                return;
+            }
+            if (!ReferenceEquals(effect, null) && effect.IsSpawned)
+                _timed.Add(new Timed { Effect = effect, SpawnId = effect.SpawnId, ReturnAt = Time.time + seconds });
+        }
+
         public void Tick()
         {
             float now = Time.time;

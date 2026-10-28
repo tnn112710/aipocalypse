@@ -41,6 +41,7 @@ namespace Aipocalypse.Tests
             var so = new SerializedObject(_bulletEffects);
             so.FindProperty("_tracer").objectReferenceValue = _tracer;
             so.FindProperty("_tracerConvergeTime").floatValue = 0f;
+            so.FindProperty("_tracerLinger").floatValue = 0f;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -121,6 +122,22 @@ namespace Aipocalypse.Tests
 
             _bullets.Advance(0.06f);
             Assert.AreEqual(0, LiveTracers().Count);
+        }
+
+        [Test]
+        public void Tracer_StopsAtTheHitPoint_AndLingersForItsTrail()
+        {
+            var so = new SerializedObject(_bulletEffects);
+            so.FindProperty("_tracerLinger").floatValue = 1f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Box(new Vector3(0f, 0f, 3f), new Vector3(4f, 4f, 0.2f));
+
+            Fire(Vector3.zero, range: 100f);
+            _bullets.Advance(0.05f);
+
+            List<Transform> live = LiveTracers();
+            Assert.AreEqual(1, live.Count, "kept after the hit so its trail can reach the wall");
+            Assert.AreEqual(2.9f, live[0].position.z - Far.z, 0.01f, "at the hit point, not where the step would have ended");
         }
 
         [Test]

@@ -7,7 +7,7 @@ namespace Aipocalypse.Core.WeaponSystem
     public sealed class BulletEffects : ScriptableObject
     {
         [SerializeField] PooledEffect _muzzleFlash;
-        [SerializeField, Tooltip("Follows the bullet; returned when it hits or runs out of range")] PooledEffect _tracer;
+        [SerializeField, Tooltip("Follows the bullet; stops where it hits or runs out of range, then lingers for Tracer Linger")] PooledEffect _tracer;
         [SerializeField] PooledEffect _impact;
         [SerializeField, Tooltip("Decal left on surfaces; never on things that take damage")] PooledEffect _bulletHole;
 
@@ -18,6 +18,8 @@ namespace Aipocalypse.Core.WeaponSystem
 
         [SerializeField, Min(0f), Tooltip("Camera-origin shots: seconds the tracer takes to slide from the muzzle onto the bullet's real path")]
         float _tracerConvergeTime = 0.08f;
+        [SerializeField, Min(0f), Tooltip("Seconds the tracer stays at the bullet's end point so its trail can catch up and fade; at least the trail's time")]
+        float _tracerLinger = 0.12f;
 
         [Header("Prewarm (copies made when a gun is bound)"), SerializeField, Min(0)] int _muzzleFlashPrewarm = 4;
         [SerializeField, Min(0)] int _tracerPrewarm = 16;
@@ -32,6 +34,7 @@ namespace Aipocalypse.Core.WeaponSystem
         public Vector2 BulletHoleScale => _bulletHoleScale;
         public float BulletHoleOffset => _bulletHoleOffset;
         public float TracerConvergeTime => _tracerConvergeTime;
+        public float TracerLinger => _tracerLinger;
         public int MuzzleFlashPrewarm => _muzzleFlashPrewarm;
         public int TracerPrewarm => _tracerPrewarm;
         public int ImpactPrewarm => _impactPrewarm;

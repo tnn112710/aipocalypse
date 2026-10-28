@@ -277,8 +277,8 @@ Assets/_Game/
 │     ├─ RepairFeedbackSettings.cs          SO preset: gun jolts (jam, dry fire, slap, punch, miss, success) and result sounds (+ MechanismDelay)
 │     ├─ GunJamFeedback.cs                  on Player/GunJamFeedback (with FeedbackContext): its owner's GunJamBeat / GunRepairCompleted → one MMF_Player per beat (camera impulse; hit stop for punch and success)
 │     ├─ GunAnimation.cs                    a gun's clip view: GunClip enum = Gun.controller states, per-gun Override Controller, manual controller/Animation Rigging graph (hashes + clip lengths cached, no per-frame allocation), action-progress sampling, repair impact events, pooled cosmetic magazine release
-│     ├─ Ballistics/BulletSystem.cs         root service (ITickable, Advance(dt) for tests): bullets as data, each following only the tracer it was handed (spawn id), ray-tested against each shot's HitLayers, damage of the shot's DamageType through DamageService (source = shooter), impacts, holes parented to the collider hit (+ BulletShot)
-│     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns, caps
+│     ├─ Ballistics/BulletSystem.cs         root service (ITickable, Advance(dt) for tests): bullets as data, each following only the tracer it was handed (spawn id), which stops at the bullet's end and lingers (BulletEffects.TracerLinger), ray-tested against each shot's HitLayers, damage of the shot's DamageType through DamageService (source = shooter), impacts, holes parented to the collider hit (+ BulletShot)
+│     ├─ Effects/EffectPool.cs              root service (ITickable): one ObjectPool per effect prefab, timed returns (lifetime or ReturnAfter), caps
 │     ├─ Effects/PooledEffect.cs            root of a pooled effect prefab: lifetime, max alive, Restart, ScaleDecal (scale-invariant decal size)
 │     ├─ Effects/BulletEffects.cs           SO: muzzle flash, tracer, impact, bullet hole + hole settings
 │     ├─ WeaponInstaller.cs                 registers EffectPool + BulletSystem (entry points) and GunJamFactory in the root scope
@@ -289,7 +289,7 @@ Assets/_Game/
 │  │                                        lying flat). <Gun>.asset (GunDefinition: all its numbers), <Gun>_Repair / _RepairQte.asset, Animations/ (<Gun>.overrideController + clips), <Gun>_Magazine.prefab
 │  ├─ Weapons/FireAxe/                      FireAxe.prefab (HeldMelee: Poses (Idle, WindUp, FollowThrough, Sprint), PosePivot > Model; WorldItem + World), FireAxe.asset
 │  ├─ Weapons/_Shared/                      Animations/ (Gun.controller + base clips); Effects/ (MuzzleFlash, Tracer, BulletImpact, BulletHole PooledEffect roots,
-│  │                                        BulletHoleDecal.mat, BulletHole.png); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
+│  │                                        BulletHoleDecal.mat, BulletHole.png, MuzzleFlash_Hovl3 (the guns' flash) + its URP MuzzleFlash_*.mat, MuzzleFlashLight.prefab, Tracer_Line.mat; built by AgentScripts/Weapons/ShotEffectsSetup); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
 │  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain, EnemyBody; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
 │  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, EnemyBody, Model = Goblin_01_Model; hit colliders: root capsule to the hips, a sphere on spine_03, a critical Hitbox sphere on the head bone) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
