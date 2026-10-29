@@ -4,7 +4,7 @@ Design intent, split into topic files. Current direction revised 2026-10-30. Tec
 
 Start with [CORE.md](CORE.md). The current loop combines a farm and safe daytime meadow, exploration unlocked by repairing the bridge, and night defense against thieves and attackers. Cute robot services provide the trading direction, with upgrade and storage services considered for later.
 
-Player biome portals are removed; the outer-zone map remains to be designed. Ordinary raids end at midnight with attacks stopping and surviving raiders retreating. Trading sales pay immediately.
+Player biome portals are removed; the outer-zone map remains to be designed. Quiet nights allow activities such as night fishing; ordinary raids end at midnight with attacks stopping and surviving raiders retreating. Blood Moons occur every 10 days, with an eclipse replacing the Blood Moon every 30 days. Trading sales pay immediately. See the [major-event calendar](CORE.md#major-event-calendar).
 
 ## Reading the draft
 

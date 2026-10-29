@@ -8,7 +8,7 @@ Current direction from the design discussion on 2026-10-30. [CORE.md](CORE.md) d
 - Animals can remain within the farm or roam freely in the meadow. Both produce; free-roaming animals produce faster.
 - Animals drop their products as physical pickups near themselves. The player walks over to collect them, including products left out in the meadow.
 - Production is not restricted to a morning collection at a barn or coop. The earlier suggestion of fixed nests, milking stalls and next-morning grazing rewards is replaced by physical drops and a faster grazing production rate.
-- Before night, bring roaming animals back inside the farm to protect them. Animals left outside are exposed to goblin theft. How much protection fences and animal shelters provide after a breach remains open.
+- Before night attacks, bring roaming animals back inside the farm to protect them. Animals left outside during raids are exposed to goblin theft. Quiet-night animal routines and the protection provided by fences and shelters after a breach remain open.
 - Later, a dog assigned to the inner zone can help automate gathering animals. The player may instead take the dog exploring; exact commands and training progression remain open.
 
 ## Animal products

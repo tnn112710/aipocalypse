@@ -33,7 +33,9 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 - Make theft visible and interruptible. A rescue expedition for stolen animals is a proposal, not an established recovery rule.
 - Keep attackers' objectives readable: theft, breaking defenses and attacking the player.
 - Review sanity effects so threats remain understandable. Exact effects, mystical entities and light protection still need design.
-- What happens at home while the player explores at night and Blood Moon/eclipse schedules remain open. Ordinary raids have a confirmed midnight retreat; stolen animals carried by retreating thieves still need a rule.
+- Quiet nights are confirmed, allowing activities such as night fishing without a home raid. Their distribution among ordinary raid nights remains open.
+- The major-event calendar is confirmed: Blood Moons on days 10, 20, 40, 50, and so on; eclipses on days 30, 60, and so on, replacing that slot's Blood Moon. Preparation/recovery periods and the night after an eclipse remain open.
+- What happens at home while the player explores on raid nights remains open. Ordinary raids have a confirmed midnight retreat; stolen animals carried by retreating thieves still need a rule.
 
 ## Decisions replaced by the current direction
 
@@ -48,6 +50,8 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 | Selling and buying have no chosen home service | A cute robot trading station is chosen; upgrade/storage services are possible later |
 | Ordinary-night ending remains unresolved | At midnight, new attacks stop and surviving raiders retreat |
 | Immediate versus next-morning sale payment remains unresolved | Sales pay immediately; purchase delivery timing remains open |
+| Every ordinary night may require a defense | Quiet nights are part of the loop; the distribution of ordinary raids and quiet nights is undecided |
+| Major-event dates remain undecided | A major event every 10 days: two Blood Moons, then an eclipse on every 30th day |
 
 ## Historical notebook — before 2026-10-30
 

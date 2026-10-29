@@ -4,7 +4,7 @@ Current design direction, revised 2026-10-30: a first-person shooter with farmin
 
 ## Pitch
 
-A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore beyond the river, and bring resources home to prepare for the night. Animals produce faster when roaming the meadow, but must be gathered before goblins can steal them. At night, defend the farm against thieves and attackers arriving from the outer zone and through portals. Cute service robots handle trading and, potentially later, upgrades and storage.
+A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore beyond the river, and bring resources home to prepare for threats. Animals produce faster when roaming the meadow, but must be gathered before goblins can steal them during raids. Defend the farm against thieves and attackers arriving from the outer zone and through portals, or enjoy fishing and other activities on quiet nights. Cute service robots handle trading and, potentially later, upgrades and storage.
 
 ## Pillars
 
@@ -28,8 +28,8 @@ A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — wh
 ~~~text
 MORNING: collect, trade, prepare; choose animals' freedom and the dog's assignment
    -> DAY: farm / fish / gather locally, or explore beyond the repaired bridge
-   -> DUSK: return, gather animals, ready the defenses
-   -> NIGHT: defend against thieves and attackers
+   -> DUSK: gather animals and ready defenses when an attack is expected
+   -> NIGHT: defend against thieves and attackers, or enjoy a quiet night
    -> RECOVERY: secure the farm, use rewards and supplies, rest
    -> NEXT DAY: invest in the player, animals, home and future expeditions
 ~~~
@@ -37,7 +37,7 @@ MORNING: collect, trade, prepare; choose animals' freedom and the dog's assignme
 | Scale | What the player does |
 | --- | --- |
 | Seconds | Shoot, swing, collect produce, harvest, fish, react to theft and threats |
-| One day | Choose local work or exploration, manage roaming animals, prepare and defend |
+| One day | Choose local work or exploration, manage roaming animals, and prepare for a raid or use a quiet night for activities such as fishing |
 | Long term | Improve the home and equipment, train the dog, explore farther and face stronger events |
 
 Animal products are available as physical drops during production, not only through a morning collection routine.
@@ -48,11 +48,11 @@ Animal products are available as physical drops during production, not only thro
 2. **Repair the bridge to explore** — the broken bridge initially prevents access across the river. Once repaired, it connects the meadow to the dangerous outer zone.
 3. **Freedom increases production** — animals within the farm still produce; animals roaming freely in the meadow produce faster.
 4. **Collect what animals drop** — products appear near animals as physical pickups for the player to collect.
-5. **Bring animals home before night** — exposed animals can be stolen by goblins. The protection provided by fences and shelters needs detailed rules.
+5. **Bring animals home before night attacks** — exposed animals can be stolen by goblins during raids. The protection provided by fences and shelters, and animal routines on quiet nights, need detailed rules.
 6. **Time passes in real time** — also at home. Local work, exploration, preparation and travel share the day's time.
 7. **The farm supports the next outing and defense** — products, crops and fish can become food or money; sales pay immediately, so today's production can fund tonight's supplies.
-8. **Night raids are part of the daily rhythm** — attackers can come from the outer zone and appear through portals. Ordinary raids stop at midnight: new attacks cease and surviving raiders retreat. Lighting a fire is no longer the condition that invites an attack.
-9. **Special events escalate the challenge** — Blood Moons are full-night miniboss events; eclipses are full-day boss events. Cadence and escalation rules remain open.
+8. **Some nights bring raids; others are quiet** — rest nights allow activities such as night fishing without a home raid. On raid nights, attackers can come from the outer zone and appear through portals. Ordinary raids stop at midnight: new attacks cease and surviving raiders retreat. Lighting a fire is no longer the condition that invites an attack.
+9. **A major event occurs every 10 days** — Blood Moons are full-night miniboss events on days 10 and 20 of each 30-day cycle. An eclipse replaces the Blood Moon on every 30th day and is a full-day boss event. Encounter details and difficulty escalation remain open.
 10. **Death does not end the run** — permanent growth and the safe home stash remain part of the design. Exact losses and recovery rules need review for this world structure.
 
 ## Day, dusk and exploration
@@ -61,7 +61,7 @@ Animal products are available as physical drops during production, not only thro
 - **Animals:** choose whether to keep them within the farm for slower production or let them roam the safe meadow for faster production.
 - **Outer zone:** after repairing the bridge, cross the river to explore for resources and loot while watching for wandering enemies and dangers.
 - **Daytime aggression:** enemies stay in the outer zone rather than actively raiding across the bridge, unless provoked. Pursuit limits and what counts as provocation are open.
-- **Dusk:** return with supplies, gather roaming animals and prepare to defend.
+- **Dusk:** return with supplies, gather roaming animals and prepare when a night attack is expected. Quiet nights allow other activities, including night fishing.
 - **Dog assignment:** take the dog exploring for help, or leave it in the inner zone. Later training can help automate animal gathering; exact abilities and commands are open.
 - **Minigames:** the existing direction keeps them inside activities, such as shooting jumping fish at bait. Further minigame systems remain optional ideas.
 - **Player biome portals:** removed. Exploration beyond the repaired bridge leads into the outer-zone map; its structure, extent and detailed design are deferred. Enemy attack portals remain a separate feature.
@@ -70,10 +70,26 @@ Animal products are available as physical drops during production, not only thro
 
 | Situation | Current direction | Still open |
 | --- | --- | --- |
-| Ordinary night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat | Quiet-night frequency, sleep rules and how retreating thieves handle stolen animals |
-| Blood Moon | Defense lasts the full night; a miniboss-level event | Schedule, warnings, phases, rewards and how the night resolves |
-| Eclipse | A boss event that occupies the day and requires preparation | Trigger, warnings, stages, rewards and recovery afterward |
+| Quiet night | No home raid; rest or pursue activities such as night fishing | Distribution of quiet nights, sleep, animal routines and lighting needs |
+| Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat | Raid frequency, sleep rules and how retreating thieves handle stolen animals |
+| Blood Moon | Full-night miniboss event on every 10th day except eclipse days | Warnings, phases, rewards and how the night resolves |
+| Eclipse | Full-day boss event on every 30th day, replacing that day's Blood Moon | Warnings, stages, rewards and recovery afterward |
 | Outer zone after dark | Extremely dangerous enemies, darkness draining sanity and attacks by mystical entities | Light protection, entity behavior, dog benefits and escape options |
+
+### Major-event calendar
+
+| Day | Event | Duration |
+| --- | --- | --- |
+| 10 | Blood Moon | Night of day 10 through the following dawn |
+| 20 | Blood Moon | Night of day 20 through the following dawn |
+| 30 | Eclipse | Daytime boss event |
+| 40 | Blood Moon | Night of day 40 through the following dawn |
+| 50 | Blood Moon | Night of day 50 through the following dawn |
+| 60 | Eclipse | Daytime boss event |
+
+The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that major-event slot; the two events do not stack on the same date. The other dates contain a mix of ordinary raids and quiet nights; their exact distribution remains undecided. Whether an eclipse day is followed by a quiet night, and the preparation/recovery periods around major events, are also open.
+
+### Raid and safety rules
 
 - Enemies include goblins, robots and zombies. Some steal; others attack the player, with broken fences allowing threats into the defended area.
 - Night threats can approach from the outer zone and through portals. Portal locations, warnings and the relationship between those routes are not fixed.
@@ -139,8 +155,8 @@ The previous draft's player and combat direction is retained for further design:
 | Area | Needed decision |
 | --- | --- |
 | World | Outer-zone map structure, extent and exploration progression; player biome portals are removed |
-| Ordinary raids | Quiet nights, sleeping, attacks while away and retreating thieves carrying stolen animals |
-| Major events | Blood Moon/eclipse cadence, triggers, warnings, stages, escalation and recovery |
+| Ordinary raids and quiet nights | Their distribution, sleeping, quiet-night animal routines, attacks while away and retreating thieves carrying stolen animals |
+| Major events | Warnings, stages, rewards, difficulty escalation and preparation/recovery around the fixed 10-day/30-day calendar |
 | Animal safety | Fence/shelter protection, theft, rescue and loss |
 | Farm and trade | Production, pickup persistence, recipes, purchase delivery timing, prices and stock; sale payment is immediate |
 | Services | Upgrade/storage functions, unlocks, robot presentation and station layout |

@@ -4,6 +4,8 @@ Review of [CORE.md](../gdd/CORE.md), [FARM_AND_ECONOMY.md](../gdd/FARM_AND_ECONO
 
 **Status: review findings and proposals, not additional approved game rules.** No gameplay changes are authorized by this document alone. P0 means decide before specifying the complete loop; P1 means a significant experience risk to test; P2 means scope or document cleanup.
 
+**Subsequent decisions, 2026-10-30:** Quiet nights are confirmed. The major-event calendar is fixed: Blood Moons on days 10, 20, 40, 50, and so on; eclipses replace them on days 30, 60, and so on. The review below predates those choices; its questions about whether quiet nights exist and major-event dates are resolved. Ordinary raid/rest distribution and event recovery periods remain open. See the current [calendar](../gdd/CORE.md#major-event-calendar).
+
 ## Overall assessment
 
 The revised loop is coherent: build a livelihood, choose local work or exploration, prepare before dark, defend the home, and reinvest. The bridge, physical produce, cute service robots and enemies with theft/attack objectives give it a recognizable identity.
