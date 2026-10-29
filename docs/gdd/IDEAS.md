@@ -1,14 +1,63 @@
-# Ideas (draft, not canon)
+# Ideas — proposals and history
 
-Unvetted ideas. Nothing here is a commitment. When an idea is accepted, move it into `GDD.md` and delete it here; when rejected, move it to Rejected with a one-line reason.
+Current design lives in [CORE.md](CORE.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Suggestions here are not permission to implement them. Confirm an idea with the user before moving it into the current design.
 
-Tags: `(???)` = unsure, needs adjusting/correcting/changing to fit the game. `[TBD]` = postponed, decide later.
+Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook preserves earlier discussions and approvals in their original context; it is not a second source of current rules.
 
-## Inbox
+## Current review proposals — not confirmed
+
+### Farm and economy
+
+- Give animals, crops, fishing and exploration distinct economic roles: recurring production, planned harvests, active income and rare discoveries.
+- Keep useful progress after reasonable ammunition, supply and repair costs; provide an economic recovery path after a bad night.
+- Keep raw products worthwhile to sell; avoid making cooking every item compulsory for income.
+- Consider stable base prices and optional product orders before adding fluctuating markets.
+- Keep ingredients, products for sale and stored materials easy to distinguish.
+- Make the first bridge repair achievable with resources obtainable before crossing.
+- Possible later product collection or sorting upgrades should be considered separately from the dog's animal-gathering job.
+- Starting species, pig output, production rates, pickup persistence, recipes, prices and stock remain open in the economy topic file.
+
+### Robot services and presentation
+
+- Cute service robots are the chosen direction. A trader and mechanic could use different tools and expressions; the number of robots and exact models remain undecided.
+- Goods could pass through an intake tray/scanner; purchases could arrive in a cargo compartment or locker.
+- A shelter with farm crates and work surfaces could grow into a small service area as storage and upgrade functions are added.
+- Brief reactions, occasional customer-service jokes and visible station improvements could give services personality.
+- Trading-station names, the wooden-shelter concept and a particular robot silhouette are suggestions, not selected assets or approved pack imports.
+
+### Raids, pacing and recovery
+
+- Give major events advance warnings, distinct stages and recovery time. Avoid repeated major events with no chance to replenish supplies.
+- Consider progression milestones for major difficulty increases rather than relying only on days passed.
+- Teach gathering and theft in low-risk situations before combining them with a large defense.
+- Make theft visible and interruptible. A rescue expedition for stolen animals is a proposal, not an established recovery rule.
+- Keep attackers' objectives readable: theft, breaking defenses and attacking the player.
+- Review sanity effects so threats remain understandable. Exact effects, mystical entities and light protection still need design.
+- What happens at home while the player explores at night and Blood Moon/eclipse schedules remain open. Ordinary raids have a confirmed midnight retreat; stolen animals carried by retreating thieves still need a rule.
+
+## Decisions replaced by the current direction
+
+| Earlier direction | Current direction |
+| --- | --- |
+| Farming is a small optional extra | Animals, crops/plants and fishing contribute to the core economy |
+| Fire out / small fire / bonfire chooses whether and how much to fight | Night raids are part of the loop; Blood Moons and eclipses provide major-event directions |
+| Night enemies never arrive through portals | Night threats can come from the outer zone and appear through portals |
+| A completely peaceful progression path with no required defense | Safe ordinary days coexist with night defense; special-event and sleep rules still need detail |
+| Daily player biome portals provide the main expeditions | Player biome portals are removed; repairing the bridge unlocks the outer-zone map, whose detailed design is deferred |
+| Possible fixed morning product collection and next-day grazing bonuses | Animals physically drop products near themselves, with faster production while roaming in the meadow |
+| Selling and buying have no chosen home service | A cute robot trading station is chosen; upgrade/storage services are possible later |
+| Ordinary-night ending remains unresolved | At midnight, new attacks stop and surviving raiders retreat |
+| Immediate versus next-morning sale payment remains unresolved | Sales pay immediately; purchase delivery timing remains open |
+
+## Historical notebook — before 2026-10-30
+
+The following is preserved context. Its earlier **Promising** and **Rejected** labels describe past decisions, not current approval. In particular, old fire rules, tiny-farm scope, player-portal rules and bans on portal attacks must be read against the current documents above. Older reference claims and numerical suggestions have not been newly verified in this revision.
+
+### Inbox
 
 Raw and still-open ideas.
 
-### Foundation
+#### Foundation
 
 - Engine: Unity, asset-store based
 - Team: solo programmer; art/audio/content bought from asset stores; placeholders first for prototype
@@ -19,26 +68,26 @@ Raw and still-open ideas.
 - Core experiences: gun shooting (melee when out of ammo), fishing (let the player have fun), item collecting (food, materials while exploring). An Escape from Duckov-style loop in first person, with Dome Keeper's go-out ↔ defend rhythm
 - Always first-person view, including activities and minigames
 
-### Economy & crafting [TBD]
+#### Economy & crafting [TBD]
 
 - Shipping, selling, buying, crafting — postponed. Where to sell crops and spend coins while mostly alone
 - Ammo must be buyable and craftable, so the ammo loop depends on this
 - The "no recipes" rule (see Promising > Wood & resources) gets revisited together with crafting
 - Options raised so far: shipping bin, daily "hot item", vending terminal, drone delivery, wandering trader, arcade ticket counter, Lord's night market, the AI Lord's vending machine with surge pricing / "Ammo+ subscription" (AI satire)
 
-### Length & scaling
+#### Length & scaling
 
 - Survive as many days as possible; surviving longer makes you stronger
 - 30+ days for a normal run, but endless: scalable, loopable, incremental systems, no fixed end
 
-### Combat & enemies
+#### Combat & enemies
 
 - Combat: melee, guns
 - Enemies: predators, monsters, robots/terminators/AI, dinosaurs, zombies, dragons, kaiju
 - Use as many store asset packs as possible for variety; enemies don't need a consistent theme — the randomness itself is the hint that the world is an AI-generated sandbox
 - Enemies may reference other games (cross-references, déjà vu)
 
-### World & environment (???)
+#### World & environment (???)
 
 - Update (user, 2026-10-10): the home map shrinks to the ridge, near meadow and river; beyond the river, portals lead to mission biomes (see Promising > Portal biomes beyond the river). The far-bank, woods, mine and deep-forest design below becomes biome #1
 - Fixed map, not too big, with many places to explore; mostly alone, non-human NPCs in some places (low priority)
@@ -103,7 +152,7 @@ Raw and still-open ideas.
 - The home map has one consistent look (one terrain/vegetation family, one color grade, Cozy lighting); mixed styles belong to the portal biomes and enemies
 - Glitch spots: patches the AI "didn't finish" (Synty Prototype grid material, missing-texture magenta) that hide secrets (relics, easter eggs)
 
-### Grand trial portal (???)
+#### Grand trial portal (???)
 
 - Updated (user, 2026-10-10): the portals beyond the river lead to daily mission biomes (see Promising > Portal biomes beyond the river). A separate grand trial portal unlocks once all the relics are found
 - Ref: Megabonk — each stage has a ~10 min timer, a boss portal hidden somewhere on the map, and a final swarm at 0:00; beating the boss opens the portal to the next stage
@@ -112,21 +161,21 @@ Raw and still-open ideas.
   - Sun timer: suggested the run costs the rest of the day; you come back at dusk and still choose the fire. Alternative: the run replaces the night fight
   - Death inside: lose only that run's rewards (???)
 
-### Activities
+#### Activities
 
 - Core activities (user, 2026-10-10): fishing and tree chopping. The tiny farm and minigames moved to Extras
 - Build up base
 - Wood, log chopping — agreed, see Promising > Wood & resources
 - Fishing, gun fishing
 
-### Night types & night map (???)
+#### Night types & night map (???)
 
 - Fight or hide is now the fire choice (see Promising > The fire); revisit what's left of this section
 - Quiet nights (peaceful, rainy, no threat): sleep, or go out at night for fishing and special things that only appear at night
 - Signals show what will come; some are hidden "?" signals
 - Think like a rogue-like progression map: each night is a node/room where you decide what to do; some are "?" secret rooms
 
-### Story & tone
+#### Story & tone
 
 - Comedy, fun, lots of funny lines and cross-references/déjà vu, cozy environment, not too serious; nights a bit scary
 - MC works in the game industry, gets overwhelmed by AI, decides to resign and become a farmer somewhere peaceful
@@ -134,11 +183,11 @@ Raw and still-open ideas.
 - The place isn't normal; the guide explains the world and how to escape
 - Later twist: the world is a sandbox created by an AI boss/lord (???)
 
-### Objectives & ending
+#### Objectives & ending
 
 - Stay-forever ending (???): no ending defined yet
 
-### Review suggestions (not agreed yet)
+#### Review suggestions (not agreed yet)
 
 Raised while reworking the core loop; not reviewed yet.
 
@@ -161,11 +210,11 @@ Raised while reworking the core loop; not reviewed yet.
 - Real-time starting values (???): day ~10 min, dusk warning ~2 min, night fight ~4–5 min; sleeping skips the night
   - Ref: Darkwood — 9.5 min day / 4.5 min night, ~3 min of red dusk plus a siren; Stardew Valley — ~14 min day
 
-## Promising
+### Promising
 
-Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details stay here until they move into their own topic files.
+Direction recorded before this revision, with suggestions mixed in. Some decisions below have been replaced; use the current topic files for current rules.
 
-### Extraction loop — Duckov in first person, plus base defense
+#### Extraction loop — Duckov in first person, plus base defense
 
 - Direction (user, 2026-10-10): more like Escape from Duckov — an extraction shooter FPS + base defense. Defend the base at night; explore and wander freely by day
 - Home is the hub; raids happen in portal biomes beyond the river, and loot only counts once it's home (user, 2026-10-10; replaces "the home map is the raid"). Entry is one-way, so you extract through exits inside the biome (see Portal biomes beyond the river)
@@ -184,7 +233,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   - Gear becomes progression too (gun mods, armor tiers, bigger backpacks), next to XP and perk cards: three systems, one may need trimming
   - Ready-made from Review suggestions: backpack weight limit, container search with rarity colors, 3 ammo types, low-ammo safety net
 
-### Portal biomes beyond the river
+#### Portal biomes beyond the river
 
 - Idea (user, 2026-10-10): beyond the river, mission biomes change every day, each a different map with its own lootables, enemies and easter eggs
 - Portals, not a seamless far side (user, 2026-10-10): you preview each biome from home, enter through a portal, then find a way out or search for relics. Like Duckov's other maps: you have to extract to get back to base
@@ -218,7 +267,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   - Suggested: one relic per biome, found by searching (possibly over several visits). The locked portal sits behind the waterfall near home, a goal you can see from day one (answers the waterfall-portal question in World & environment)
 - Suggested (tech): each biome is its own scene; the home map can unload while you're inside
 
-### Stats — two groups
+#### Stats — two groups
 
 - Survival meters (change daily): HP, Hunger, Stamina, Sanity
 - Growth (from XP → level points): Fitness (HP, stamina, carry — replaces "strength"), Gunsmanship (recoil, jams, reload), Luck
@@ -228,7 +277,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   - Ref: Kingdom Come: Deliverance — leveling the bow skill cuts both sway and the stamina spent per shot; the same two levers as here
 - Coins/currency; killing enemies gives coins and XP
 
-### Real-time day
+#### Real-time day
 
 - Time passes gradually in real time (like Escape from Duckov), also at base; get home before dark
 - Dusk gives a warning before dark
@@ -237,14 +286,14 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Ref: Escape from Duckov — time keeps passing in the bunker; day runs 06:00–22:00
 - Ref: Dredge — the clock only moves while you sail or fish; resting at a dock skips to 06:00. Fallback if real time at base feels too stressful
 
-### Guns, ammo & jamming
+#### Guns, ammo & jamming
 
 - Office-worker start: more recoil, frequent jams
 - Jams are temporary: player repairs the gun (active unjam); luck, sanity and gun skill speed up or make it instant
 - Ammo is limited — no spraying anytime, anywhere. Save it, buy or craft more (Economy & crafting [TBD]); out of ammo → melee
 - Ref: Escape from Duckov — vendors sell ammo, a workbench crafts gear, melee is the fallback
 
-### Light is safety
+#### Light is safety
 
 - Inside firelight/lamps/torches = safe from the Dark (not from monsters — fire attracts them); in the dark, sanity drains fast
 - Going a bit far into the dark for loot is allowed but risky (greed is the player's choice)
@@ -256,23 +305,23 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Torch/lantern burns fuel to push the safe radius out temporarily
 - Ref: Dredge — panic builds at night and its effects hit your loot (crows steal fish, hallucinated monsters damage the boat); only sleep resets it. Sanity could cost loot, not just blur the screen
 
-### Daytime danger
+#### Daytime danger
 
 - Some daytime threats exist out in the world: snakes, predators, enemies far from base
 - The base is never attacked during the day: the challenge is out in the world, and the sunset is the timer
 - Ref: Escape from Duckov — unannounced storms drew "please add storm warning" threads; threats the player can't react to feel unfair
 
-### Weather
+#### Weather
 
 - Weather has gameplay effects (fishing, vision, etc.), starting with ~3 types with 1–2 clear effects each
 - Combines with day/night (e.g. a rainy night is scarier)
 
-### Enemies
+#### Enemies
 
 - AI built per behaviour archetype (rusher, tank, ranged, flyer, swarm, sneaker); each enemy = archetype + skin from any pack
 - Shared glitch spawn effect/outline to tie mixed packs together
 
-### The fire — lights on or lights off
+#### The fire — lights on or lights off
 
 - At dusk the player sets the campfire; it decides the night:
   - Out: put out the fire, go to bed in the tent/house, skip the night ("pretend nobody's home")
@@ -283,7 +332,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Ref: 7 Days to Die — campfires and forges create "heat" that attracts screamers, who call hordes
 - Ref: Thronefall — day: build, night: defend; opt-in mutators make enemies stronger for bigger rewards. Bonfire extras (more torches) could work like mutators: each adds a rule and a reward
 
-### Night fights & death
+#### Night fights & death
 
 - Fights happen at base; the fire decides whether a night is a fight
 - Cozy is optional (user, 2026-10-10): no required fights and no big fights. Night fights only happen when the player lights the campfire
@@ -295,7 +344,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Upgrades reduce the loss
 - Dogs fight at a low rate; upgradable
 
-### Sleep nights — sounds from outside
+#### Sleep nights — sounds from outside
 
 - While sleeping, you hear what happens outside (sound only, with subtitles)
 
@@ -307,7 +356,7 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 | Scary moments | Footsteps on the porch… scratching at the door… then it turns out to be the cat |
 | Comedy | The MC talking in his sleep: "Per my last email…", "No, the deadline is Friday…" |
 
-### Perk cards after fights
+#### Perk cards after fights
 
 - XP = permanent skill tree (Fitness, Gunsmanship, Luck); perk cards = perks. Two separate systems
 - After a night fight, 3 cards appear; pick 1. Max 1 reroll
@@ -325,18 +374,18 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
 - Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
 - Ref: Thronefall — max 5 perks active at once; supports keeping the active card count small
 
-### Luck as karma [TBD]
+#### Luck as karma [TBD]
 
 - Removed from the design for now (2026-10-04); luck stays as a growth stat
 - Up for good actions (feeding animals, releasing rare fish, petting the cat), down for bad ones (breaking things)
 - Affects loot, crits, fishing, lottery, jam rate
 
-### Companions
+#### Companions
 
 - Cats: raise sanity (petting, sleeping nearby), boost luck, hiss to warn of sneakers at night. No combat, no pest-catching
 - Guide: cute drone — cheerful tech-support voice, doubles as in-world UI (scans, tips); turns out to be the AI Lord's eyes
 
-### Wood & resources
+#### Wood & resources
 
 - Chop trees for wood (inspired by Chop Chop Inc.); stumps regrow after some days
 - Rule (???): resources are spent directly, like money — no recipes, no workbench, no intermediate items. Revisit with Economy & crafting [TBD]: ammo crafting needs at least a simple conversion
@@ -346,59 +395,59 @@ Agreed direction. The high-level summary is in [CORE.md](CORE.md); the details s
   - Sell wood for money (Economy & crafting [TBD])
 - Felling gives wood directly; no log-splitting step for now
 
-### Minigames — built into day actions
+#### Minigames — built into day actions
 
 - Minigames happen inside normal actions in the world, not in arcade cabinets
 - Fish shooting: hang bait over the water, fish jump out, shoot them
 - Sky Invaders: night fight mission — a small-fire version and a bonfire version with a mothership boss
   - Formation moves side to side, steps down, speeds up as fewer remain; barn roofs/fences act as shields; landed invaders abduct animals
 
-### Grand trial (escape) — deferred until after main gameplay
+#### Grand trial (escape) — deferred until after main gameplay
 
 - Megabonk-inspired run-and-gun, 2–3 levels, rogue-like card selection to level up during the run
 - Not designing further for now
 
-### Endings
+#### Endings
 
 - Beat the grand trial: wake at your desk; the sandbox is the game you were making, but you used AI too much and it took control. Choose: delete it / fix it / leave it / go back into the game
 - Secret: win the lottery at an extremely rare chance → instantly win the game
 
-## Extras — nice to have
+### Extras — nice to have
 
 Liked, but not part of the core loop. They add fun, comedy and "wow" on top of it; not in CORE.md. Build after the core loop works.
 
-### Fishing up enemies
+#### Fishing up enemies
 
 - Sometimes the bite isn't a fish: a zombie in a snorkel, a robot, a shark with legs → instant fight on the riverbank
 - More likely at dusk, at night, or in glitched water; reuses enemy prefabs
 - Ref: Terraria — during a Blood Moon, 1 in 6 bites is an enemy (Zombie Merman, Wandering Eye Fish)
 
-### Message-in-a-bottle maps
+#### Message-in-a-bottle maps
 
 - Fishing sometimes pulls up a bottle with a treasure map, badly drawn by the AI ("map not to scale")
 - Leads far from base to dig up loot: fishing → exploring → collecting
 
-### Daily AI patch notes
+#### Daily AI patch notes
 
 - Each morning the AI Lord pushes a "patch" with 1–2 random rules for the day, shown by the drone / on the signals board
 - e.g. "v0.13.2 — Gravity −30%. Chickens are now explosive. Fish prices +50%. Fixed a bug where the player was happy."
 - Cheap variety: each rule toggles or tweaks an existing system
 - Ref: Deep Rock Galactic — missions roll Warnings (harder) and Anomalies (Low Gravity, Gold Rush, Golden Bugs)
 
-### AI-prompted bosses
+#### AI-prompted bosses
 
 - Over the days before a boss night (see Night fights & death (???)), the signals board shows the prompt the Lord is "typing", one piece at a time: "a chicken… but huge… with a minigun… photorealistic, 8k"
 - Fight night: a giant low-poly chicken with a minigun ("photorealistic" never works)
 - Boss = body + scale + weapon + archetype from the asset packs → endless boss variety
 - Ref: Scribblenauts — type a noun + adjectives and it spawns
 
-### Screensaver sleep
+#### Screensaver sleep
 
 - Skipping a night shows a retro screensaver (3D pipes, flying toasters, bouncing DVD logo) over the sleep sounds
 - If the DVD logo hits the corner exactly: +luck the next day
 - Ref: The Office (US) "Launch Party" cold open — the whole office cheers when the DVD logo hits the corner
 
-### Office-joke perks (???)
+#### Office-joke perks (???)
 
 - Level-up perks named after office life, each with a real effect. List to polish later:
   - Ctrl+Z: once per night, undo the last hit taken
@@ -407,13 +456,13 @@ Liked, but not part of the core loop. They add fun, comedy and "wow" on top of i
   - Copy-Paste: once a day, duplicate a caught fish
   - Per My Last Email: melee hits knock enemies far back
 
-### Tiny farm
+#### Tiny farm
 
 - Moved out of the core loop (user, 2026-10-10)
 - Light farming, kept tiny: small garden, a few animals (chickens, ducks), collect eggs
 - Whack-a-mole: happens occasionally while checking crops
 
-### Minigame system (???)
+#### Minigame system (???)
 
 - Moved out of the core loop (user, 2026-10-10), together with duck shooting, the lottery and other classic minigames
 
@@ -457,7 +506,7 @@ Many short "one more go" minigames, each a simpler take on a famous game. Extend
 | Solitaire | Windows Solitaire | Cards | Laptop | Pure office joke; the bouncing-cards win screen |
 | Fish shooting, whack-a-mole, Sky Invaders | (already agreed) | Shooting gallery | Fishing / crops / night | — |
 
-## Rejected
+### Rejected
 
 - Attacks on the base during the day — no agency while away, rewards staying home
 - Tired (fight-streak penalty) — ammo cost already limits fighting every night
