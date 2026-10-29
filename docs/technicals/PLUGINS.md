@@ -54,6 +54,7 @@ The WorldMap navmesh setup (Navigation prefab, cached recast graph, water exclus
 | Plugin | Version | Location | Tag | Notes |
 | --- | --- | --- | --- | --- |
 | KINEMATION FPS Animation Framework, Procedural Recoil Animation System | — | `Assets/_StoreAssets/Animation/KINEMATION` | Avoid | Our weapon animation and recoil are first-party (HANDS.md, WEAPONS.md). Retarget Pro is under Editor tools; the FPS Animation Pack in ASSETS.md. |
+| Kevin Iglesias IK Helper Tool | — | `Assets/_StoreAssets/Animation/Kevin Iglesias/IKHelperTool` | Could | Fixes a hand that misses a two-handed hold after retargeting onto a model with different arm lengths: `IKHelperTool` (on the Animator's GameObject) pulls one hand onto an effector parented to the other hand, weighted by an `IK Switch` child whose `localPosition.y` a duplicated clip keys (0 off, 1 on); `IKHelperToolAnimationCurve` takes the weight from an Animator float instead and adds an elbow hint. Needs IK Pass on the layer. Guide: `IKHelperTool Documentation.pdf`; examples in `IKHelperTool Examples.unity` (bazooka, greatsword, rifle, spear). Each instance runs its own `Update` and IK pass, so only on a few unique characters (companions, bosses), **never crowd enemies**: those would need a first-party component without the `Update` (skill `aipocalypse-characters`). Keyed clips are copies under `_Game` (never key the vendor FBX). Not used. Clips: Kevin Iglesias rows in ASSETS.md. |
 
 ## Rendering & post-processing
 

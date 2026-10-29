@@ -28,9 +28,9 @@ Humanoid clips that retarget onto Sidekick and POLYGON characters (and any human
 | Pack | Fit | Purpose |
 | --- | --- | --- |
 | ANIMATION - Bow Combat | High | Bow draw, aim, fire, reload, locomotion with a bow. **The missing clips for goblin archers** (the Malbers bow clips don't pose standalone). |
-| ANIMATION - Sword Combat | High | Sword attacks, blocks, hits, combat locomotion. Alternative or extra variety for melee goblins (today: Kevin Iglesias). |
-| ANIMATION - Idles | Med | Many idle variations: fidgets for enemies and NPCs, the drone's people, base dwellers. |
-| ANIMATION - Emotes and Taunts | Med | Salutes, taunts, celebrations: enemy taunts, NPC reactions, "everything is a game" jokes. |
+| ANIMATION - Sword Combat | Low | Sword attacks, blocks, hits, combat locomotion. Kevin Iglesias Melee (installed, in use on the goblins) already covers it; only for extra variety. |
+| ANIMATION - Idles | Low | Many idle variations: fidgets for enemies and NPCs, the drone's people, base dwellers. Kevin Iglesias Basic Motions and Soldier (installed) have idles, idle breaks and military idles. |
+| ANIMATION - Emotes and Taunts | Med | Salutes, taunts, celebrations: enemy taunts, NPC reactions, "everything is a game" jokes. Kevin Iglesias Basic Motions (installed) covers everyday emotes (cheer, angry, wave, clap, talk) and Soldier the salutes; this pack is for taunts. |
 | ANIMATION - Base Locomotion | Installed | Walk, run, crouch, jump, strafe (human). |
 | ANIMATION - Goblin Locomotion | Installed | Goblin-styled locomotion (in use). |
 
