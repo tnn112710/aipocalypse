@@ -14,8 +14,13 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 - Consider stable base prices and optional product orders before adding fluctuating markets.
 - Keep ingredients, products for sale and stored materials easy to distinguish.
 - Make the first bridge repair achievable with resources obtainable before crossing.
-- Possible later product collection or sorting upgrades should be considered separately from the dog's animal-gathering job.
-- Starting species, pig output, production rates, pickup persistence, recipes, prices and stock remain open in the economy topic file.
+- Give every product a clear job: it feeds you, heals you or pays for bullets. E.g. eggs and milk → meals, wool → bandages, pig truffles → coins; fish and crops → food or coins.
+- Pig: it only produces while roaming, digging up truffles (or buried goods) in the meadow, which makes it the clearest example of "freedom increases production".
+  - Ref: Stardew Valley — a pig only finds truffles when it has been fed and let outside, and leaves them on the ground
+- Launch scope: 3 species (chicken, sheep, pig), 3–4 crops, about 6 recipes.
+- Purchase delivery: instant for consumables (ammunition, food, healing), since sales pay immediately so the player can buy before a raid; a delay would add frustration without a decision. Larger items (animals, structures) could arrive the next morning.
+- Daily box extras: a 4th box, or peeking inside one box, as further upgrades.
+- Starting species, pig output, production rates, the drop cap, recipes, prices and stock sizes remain open in the economy topic file.
 
 ### Robot services and presentation
 
@@ -29,13 +34,31 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 
 - Give major events advance warnings, distinct stages and recovery time. Avoid repeated major events with no chance to replenish supplies.
 - Consider progression milestones for major difficulty increases rather than relying only on days passed.
-- Teach gathering and theft in low-risk situations before combining them with a large defense.
-- Make theft visible and interruptible. A rescue expedition for stolen animals is a proposal, not an established recovery rule.
-- Keep attackers' objectives readable: theft, breaking defenses and attacking the player.
+- Make theft visible and interruptible: a thief carrying an animal is slow and can't fight; shoot it and it drops the animal.
+- At dawn, the drone marks the rough area where a stolen animal was taken ("last seen near the Highlands"); the mark goes when the 3 days run out.
+- For the enemy-system revision: three enemy jobs keep raids readable. Thieves (goblins) grab animals and produce and flee; breakers (robots) go for fences; hunters (zombies) go for the player. A raid type is then mostly a different mix.
 - Review sanity effects so threats remain understandable. Exact effects, mystical entities and light protection still need design.
-- Quiet nights are confirmed, allowing activities such as night fishing without a home raid. Their distribution among ordinary raid nights remains open.
-- The major-event calendar is confirmed: Blood Moons on days 10, 20, 40, 50, and so on; eclipses on days 30, 60, and so on, replacing that slot's Blood Moon. Preparation/recovery periods and the night after an eclipse remain open.
-- What happens at home while the player explores on raid nights remains open. Ordinary raids have a confirmed midnight retreat; stolen animals carried by retreating thieves still need a rule.
+- Eclipse: the Dark comes to the meadow for the day, so campfires and torches matter at home too, while mystical entities roam; the giant boss arrives around midday. Decide with the enemy-system revision.
+- (Tech) Goblins crossing the river only at night: an A* tag on the river that raiders may walk at night and not by day, so daytime enemies reach the meadow only over the bridge, while chasing the player.
+
+### Forecast and progress bar (TBD)
+
+- Set the moon cycle to 10 days (the clock uses 8 today) so the full moon always falls on a Blood Moon night; the sky becomes the countdown.
+  - Ref: Kingdom Two Crowns — the moon's phases hint at the next Blood Moon
+- Progress bar: a 10-segment bar under the HUD clock, one segment per day of the current block, ending in the Blood Moon or eclipse icon; tonight's segment shows raid or quiet once the morning forecast is known.
+- Later, maybe: an uncertain forecast (e.g. "raid 70%" in the morning, confirmed at dusk) would make leaving animals out while exploring a real bet. Tonight's type is known for sure for now (user, 2026-10-31).
+- Story reason: the AI Lord runs the world on sprints. The Blood Moon is the "sprint review", the eclipse the "quarterly release", and the morning forecast arrives as the AI Lord's patch notes (see Extras > Daily AI patch notes).
+
+### Outer zone and progression (later)
+
+- One 30-day cycle per outer region of the current map: Pine Forest (days 1–30) → Highlands (31–60) → Swamps (61–90). Each eclipse boss drops the gear that opens the next region (climbing gear, waders…); Blood Moon minibosses drop the materials for it. Difficulty then scales by cycle. Could also give the grand trial its entry (relics as eclipse-boss drops).
+  - Ref: Valheim — each boss drops the item that unlocks the next biome's tools (Eikthyr's antlers → antler pickaxe → Black Forest ores)
+  - Ref: Atomicrops — farm by day, defend the crops at night, and a boss on the farm at the end of each season
+- A drowned player's grave washes up on the nearest bank.
+
+### Scope
+
+- Playtest slice before cycles 2–3: days 1–10 with 2 species, crops, the trading robot, the bridge repair, the Pine Forest, goblin-thief raids and the first Blood Moon.
 
 ## Decisions replaced by the current direction
 
@@ -44,7 +67,7 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 | Farming is a small optional extra | Animals, crops/plants and fishing contribute to the core economy |
 | Fire out / small fire / bonfire chooses whether and how much to fight | Night raids are part of the loop; Blood Moons and eclipses provide major-event directions |
 | Night enemies never arrive through portals | Night threats can come from the outer zone and appear through portals |
-| A completely peaceful progression path with no required defense | Safe ordinary days coexist with night defense; special-event and sleep rules still need detail |
+| A completely peaceful progression path with no required defense; fights only when the player lights the fire | Fights are required on raid nights; no full-cozy mode. Ordinary days and quiet nights stay safe (user, 2026-10-31) |
 | Daily player biome portals provide the main expeditions | Player biome portals are removed; repairing the bridge unlocks the outer-zone map, whose detailed design is deferred |
 | Possible fixed morning product collection and next-day grazing bonuses | Animals physically drop products near themselves, with faster production while roaming in the meadow |
 | Selling and buying have no chosen home service | A cute robot trading station is chosen; upgrade/storage services are possible later |
@@ -52,10 +75,25 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 | Immediate versus next-morning sale payment remains unresolved | Sales pay immediately; purchase delivery timing remains open |
 | Every ordinary night may require a defense | Quiet nights are part of the loop; the distribution of ordinary raids and quiet nights is undecided |
 | Major-event dates remain undecided | A major event every 10 days: two Blood Moons, then an eclipse on every 30th day |
+| Big fights every 10th night were rejected as forced | The Blood Moon is a required full-night event every 10 days |
+| Night enemies arrive from the outer zone and portals | Goblins cross the river at night, some over the bridge; some enemies fly; some appear inside the meadow. The bridge is not a chokepoint |
+| Enemies never cross into the meadow by day unless provoked | An enemy chasing the player can follow across the bridge |
+| The broken bridge is the only way across | The bridge is the safe way; the river can't be swum until an upgrade, but a player who makes it across is not stopped |
+| Ordinary raids versus quiet nights undistributed; forecasts undesigned | Tonight's type is known for sure in the morning; days 1–4 quiet, about 4 raids per 9-night block, never 3 in a row, quiet nights around major events, dealt from a shuffle bag |
+| What happens at home while the player is away on a raid night | The raid resolves without the player: exposed animals are stolen and fences damaged; the morning shows the result |
+| Stolen animals' fate undecided | They are held deep in the outer zone for 3 days, then lost forever; replacements can be bought |
+| Pickup persistence undecided | Drops never despawn; each animal stops producing at a cap; a collector robot later |
+| Animals managed only by the player at dusk | A bell calls them home; they walk slowly and hurry when the player interacts with them. At night they sleep and produce nothing |
+| Death loses 50–70% of loot anywhere; the stash is safe | Deposits with the robots are safe; knocked out at home means waking the next morning, losing part of what you carry and some animals (more on major events) |
+| Ammunition bought or crafted | Bought from the trading robot (every item has a daily stock limit) or looted from enemies; crafting open |
+| XP skills, Luck, perk cards and the cat as core growth and companions | Upgrades and gear are the growth; skills, Luck, perk cards and the cat are extras for later (user, 2026-10-31) |
+| Perk cards as the reward for night fights | Enemy loot and a better free daily box (pick one of three) |
+| Sleep skips the night | Sleep restores sanity per hour slept: any time on quiet nights, after midnight on raid nights, never on Blood Moons |
+| 30+ days to an ending through biome relics and the grand trial | Endless for now; the grand trial is on hold, not forgotten |
 
 ## Historical notebook — before 2026-10-30
 
-The following is preserved context. Its earlier **Promising** and **Rejected** labels describe past decisions, not current approval. In particular, old fire rules, tiny-farm scope, player-portal rules and bans on portal attacks must be read against the current documents above. Older reference claims and numerical suggestions have not been newly verified in this revision.
+The following is preserved context. Its earlier **Promising** and **Rejected** labels describe past decisions, not current approval. In particular, tiny-farm scope, extraction and player-portal rules, opt-in fights and bans on portal attacks must be read against the current documents above. The old fire choice and its leftovers were removed on 2026-10-31. Older reference claims and numerical suggestions have not been newly verified in this revision.
 
 ### Inbox
 
@@ -101,7 +139,7 @@ Raw and still-open ideas.
   - Suggested: ~1 km playable (2×2 tiles of 512 m) inside a ring of mountains you can see but can't walk on. Walking at ~5 m/s, center → edge takes ~100 s on 1 km but ~200 s on 2 km, so on 2 km one far trip eats most of a ~10 min day
   - Decided (user, 2026-10-19): 1000 × 1000 m terrain; the map itself is 700 × 700 m in the middle, with unwalkable boundary mountains in the outer ~150 m; southern mountains pushed north so the meadow is ~200 × 70 m (concept v13 in `docs/concepts/world-map.md`). Fenced base (cabin, yard, campfire, garden) ~30 × 30 m; base → broken bridge 80–100 m
 - Base position (???): middle of the meadow (open 360°) or against a mountain (open 180°)
-  - Suggested: near the center, backed by a cliff or a river bend. Every direction stays the same distance away, nights come from 1–2 readable sides (in first person you can't watch behind you), and there are fewer spawn lanes. Bonfire nights can open the back ("they climb down the cliff")
+  - Suggested: near the center, backed by a cliff or a river bend. Every direction stays the same distance away, nights come from 1–2 readable sides (in first person you can't watch behind you), and there are fewer spawn lanes
   - Ref: Kingdom Two Crowns — Greed attack from both ends of the island; two readable fronts keep night defense manageable
 - Layout suggestion: one direction = one zone + one landmark you can see from base (N mountains & caves, E big river, S meadow & pond, W forest). The farther from base, the higher the risk and the reward. The mountain ring is the map border, so no invisible walls. The river can block the far side until you build a bridge
   - Ref: Breath of the Wild — "triangle rule": big hills are landmarks, medium hills hide what's behind them; borrow it so players want to look past each hill
@@ -111,14 +149,14 @@ Raw and still-open ideas.
   - Suggested: the main river is deep (a bridge is needed to reach the west mountains and caves); the branch and creek are shallow (wade or stepping stones). Night enemies cross the branch at fords, which gives readable lanes
   - Suggested: each water body has its own fish: the waterfall pond for common fish near home, the branch pond for calm-water fish, the river for river fish, the far north for rare fish
   - Suggested: hide each river junction under rocks or rapids. Stylized Water 3's River Modeler builds one mesh per spline, so branch seams need cover
-  - Suggested: a low cliff (~5–8 m) with two ramps = two night lanes you watch from above; climbers come up the cliff face on bonfire nights
+  - Suggested: a low cliff (~5–8 m) with two ramps = two night lanes you watch from above
   - Open: what is north of the meadow? Where does the river leave the map (a gorge in the north mountains, or a lake)? Is the U-shaped line in the first sketch the valley rim (low hills) or the map border? Should the portal behind the waterfall stay so close to home (e.g. locked until later)?
 - House on a ridge (user, 2026-10-04, side-view sketch): the ground rises gently from the meadow up to the house; behind the house the ridge drops into empty space. Replaces the "cliff in front + ramps" version
   - Suggested: the empty space is the edge of the AI-made world, a void with clouds far below. It fits the story, needs no mountain wall behind the house, and nothing can attack from behind
     - Ref: Valheim — water pours off the world's edge into a black void; a strong current drags you toward it and falling is instant death. Here, falling could be an "out of bounds" joke instead: the drone teleports you back ("Please stay inside the play area")
   - Suggested: let the pond near the house spill over the edge as a waterfall into the void. The river then flows south from the north mountains, along the west side, to the house
   - Suggested: distant floating chunks of other biomes (desert, snow, jungle) drift in the void behind the house, a hint at the portal biomes
-  - Suggested: with no cliff in front, the slope is the defense: attackers walk uphill in the open, and a low stone wall with 2 gaps around the garden keeps 2 readable night lanes. On bonfire nights, climbers can come up from the void as a rare, signalled surprise
+  - Suggested: with no cliff in front, the slope is the defense: attackers walk uphill in the open, and a low stone wall with 2 gaps around the garden keeps 2 readable night lanes
   - Decided (user, 2026-10-04): the empty space is a sea far below; the house sits 5–10 m above the meadow; the waterfall drops off the edge into the sea
   - Wanted (user, 2026-10-04): a more complex map: rocks, hills, more forest past the river in front, denser the further out, more small river branches, a mine entrance (place open)
   - Suggested layout, in rings from the house:
@@ -145,7 +183,7 @@ Raw and still-open ideas.
     - Ref: Sons of the Forest — cave items (rebreather → rope gun → shovel) unlock the next caves; use 1–2 such items at most
   - Shortcuts home: ziplines from far lookouts down to the cliff top. These solve the long walk back from far zones before dark instead of shrinking the map
     - Ref: Dome Keeper — lifts/teleporters remove hauling later in a run
-  - Tree types by zone: fast-burning birch near home, slow-burning oak in the east forest (bonfire fuel), pine in the mountains, glitched metal/electronic trees at glitch spots that drop special materials. A big bonfire then needs a trip to the far forest
+  - Tree types by zone: birch near home, oak in the east forest, pine in the mountains, glitched metal/electronic trees at glitch spots that drop special materials
     - Ref: Chop Chop Inc. — 8 tree types (incl. Metal, Electronic, Crystal) and new regions gated by tool upgrades; reviews say it runs out of things to do, so keep the map refreshing
   - Landmarks seen from the porch: the waterfall (W), a lookout tower in the north, one giant tree in the east forest, and one AI-glitch landmark (e.g. a half-rendered mountain or an oversized floating object). Every far zone has a silhouette you can point at
     - Ref: Grounded — the big oak is visible from the starting base and works as a compass
@@ -162,19 +200,18 @@ Raw and still-open ideas.
 - Ref: Megabonk — each stage has a ~10 min timer, a boss portal hidden somewhere on the map, and a final swarm at 0:00; beating the boss opens the portal to the next stage
 - Open questions for the trial run:
   - Ammo vs hordes: suggested "trial ammo", plentiful inside and gone at the exit, so ammo stays scarce at home. Level-up cards that last only for the run reuse the perk card UI
-  - Sun timer: suggested the run costs the rest of the day; you come back at dusk and still choose the fire. Alternative: the run replaces the night fight
+  - Sun timer: suggested the run costs the rest of the day and you come back at dusk. Alternative: the run replaces the night fight
   - Death inside: lose only that run's rewards (???)
 
 #### Activities
 
-- Core activities (user, 2026-10-10): fishing and tree chopping. The tiny farm and minigames moved to Extras
+- Core activities (user, 2026-10-10): fishing and tree chopping. The tiny farm and minigames moved to Extras (the farm is core again since 2026-10-30)
 - Build up base
 - Wood, log chopping — agreed, see Promising > Wood & resources
 - Fishing, gun fishing
 
 #### Night types & night map (???)
 
-- Fight or hide is now the fire choice (see Promising > The fire); revisit what's left of this section
 - Quiet nights (peaceful, rainy, no threat): sleep, or go out at night for fishing and special things that only appear at night
 - Signals show what will come; some are hidden "?" signals
 - Think like a rogue-like progression map: each night is a node/room where you decide what to do; some are "?" secret rooms
@@ -204,8 +241,6 @@ Raised while reworking the core loop; not reviewed yet.
   - Ref: Resident Evil 4 — drops check your inventory; invisible to the player, prevents death spirals
 - 3 ammo types max (pistol, shotgun, rifle) to keep scope down
 - Crafted ammo is cheap but jams more; bought ammo is reliable (ties into Guns & jamming)
-- Bonfire torches also widen the light around base: more room to fight, but more enemies coming
-- Lights-out comedy: enemies knock and sniff at the window, the MC whispers "we're not interested"; plugs into the sleep-sounds table
 - Fishing depth: species by spot × time × weather; a fish log that's never lost; glitched fish (AI-made world) bite more at dusk or at low sanity
   - Ref: Dredge — aberrant fish are far more common at high panic at night; tempts you to stay out too long
 - Container search with a short reveal and rarity colors
@@ -223,7 +258,7 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 - Direction (user, 2026-10-10): more like Escape from Duckov — an extraction shooter FPS + base defense. Defend the base at night; explore and wander freely by day
 - Home is the hub; raids happen in portal biomes beyond the river, and loot only counts once it's home (user, 2026-10-10; replaces "the home map is the raid"). Entry is one-way, so you extract through exits inside the biome (see Portal biomes beyond the river)
 - Safe or risky is the player's choice (user): fish and chop around the house to play safe, or cross the river and take a portal
-  - Suggested: home pays for food and the fire (fish, wood); guns, ammo, gear and materials come from the biomes, so playing safe never covers everything
+  - Suggested: home pays for food and wood (fish, chopping); guns, ammo, gear and materials come from the biomes, so playing safe never covers everything
 - Loadout risk: you choose what to take from the stash; what you carry can be lost
 - Death (user: Duckov's grave merged with the 50–70% rule): lose 50–70%; the lost share drops in a grave where you died, with one chance to recover it — gone if you die again first. The dog's backpack and equipped melee are always kept
   - (???) 50–70% of what you carried only, or stored items too? Suggested: carried only, so the stash is safe (matches Night stakes)
@@ -263,7 +298,6 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
   - Ref: Kate Compton's "10,000 bowls of oatmeal" — procedural output that's unique on paper but feels the same; why hand-made biomes beat generated ones here
 - The home map shrinks to the ridge, near meadow and river (user): base, fishing, chopping, the night arena. Anything you build stays at home; gates and shortcuts inside a biome belong to it, and permanent upgrades (e.g. a better axe for the fallen log) open them on every visit
 - Night enemies don't come out of the portals (user): night themes roll on their own
-- Death inside: the grave stays while that portal is open, so you have until you sleep to recover it
 - The sun keeps running inside. Staying out at night (user): if you're still in a biome at night, the base isn't attacked, but the risk is on you
   - Suggested: the Dark still applies in there (carry a light); night enemies are tougher and loot is better, like Duckov's night raids. No base fight means no perk card
   - Portals only reroll when you sleep, so staying out could stretch one biome over several days; staying out costs your sleep, so sanity doesn't recover and you can't keep it up (user, 2026-10-10)
@@ -274,11 +308,9 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 #### Stats — two groups
 
 - Survival meters (change daily): HP, Hunger, Stamina, Sanity
-- Growth (from XP → level points): Fitness (HP, stamina, carry — replaces "strength"), Gunsmanship (recoil, jams, reload), Luck
+- Growth: XP skills moved to Extras (user, 2026-10-31); see Extras > Player skills
 - Stamina is for sprinting and fighting
 - Fighting tires you (user, 2026-10-17): each shot and swing costs stamina (per weapon, so spraying drains you); low stamina never blocks firing, it adds recoil and cuts melee damage in tiers (< 50%, < 25%, < 10%)
-  - Later growth: Fitness lowers the stamina cost of fighting; a Gunsmanship skill eases the low-stamina recoil penalty
-  - Ref: Kingdom Come: Deliverance — leveling the bow skill cuts both sway and the stamina spent per shot; the same two levers as here
 - Coins/currency; killing enemies gives coins and XP
 
 #### Real-time day
@@ -299,7 +331,7 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 
 #### Light is safety
 
-- Inside firelight/lamps/torches = safe from the Dark (not from monsters — fire attracts them); in the dark, sanity drains fast
+- Inside firelight/lamps/torches = safe from the Dark (not from monsters); in the dark, sanity drains fast
 - Going a bit far into the dark for loot is allowed but risky (greed is the player's choice)
 - Danger rings with escalating warnings:
   1. Edge of the light: sanity drains, whispers, eyes blinking in the dark
@@ -325,25 +357,10 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 - AI built per behaviour archetype (rusher, tank, ranged, flyer, swarm, sneaker); each enemy = archetype + skin from any pack
 - Shared glitch spawn effect/outline to tie mixed packs together
 
-#### The fire — lights on or lights off
-
-- At dusk the player sets the campfire; it decides the night:
-  - Out: put out the fire, go to bed in the tent/house, skip the night ("pretend nobody's home")
-  - Small fire: a small wave comes to the base; normal loot and XP
-  - Bonfire: more wood, more torches lit → bigger wave, better loot
-- Wood is the night-difficulty knob
-- Ref: Darkwood — the hideout's generator light attracts enemies; keeping the light from the windows can prevent attacks
-- Ref: 7 Days to Die — campfires and forges create "heat" that attracts screamers, who call hordes
-- Ref: Thronefall — day: build, night: defend; opt-in mutators make enemies stronger for bigger rewards. Bonfire extras (more torches) could work like mutators: each adds a rule and a reward
-
 #### Night fights & death
 
-- Fights happen at base; the fire decides whether a night is a fight
-- Cozy is optional (user, 2026-10-10): no required fights and no big fights. Night fights only happen when the player lights the campfire
-  - (???) Where do bosses live now? Suggested: an opt-in top fire tier (e.g. a "beacon" bonfire) that summons a boss, or a boss inside a biome
-- Signals: symbols on the ground in front of the house hint at what's coming if the fire is lit; each shows a % chance to happen
 - Death never ends the run; XP, buildings and upgrades are always kept (like Escape from Duckov)
-- Any death (in a biome or on a fire night): wake at base and lose 50–70% of loot (???: carried only, or stored items too — see Extraction loop)
+- Any death (in a biome or at night): wake at base and lose 50–70% of loot (???: carried only, or stored items too — see Extraction loop)
 - The lost share drops in a grave where you died; one chance to recover it, gone if you die again first (user, 2026-10-10)
 - Upgrades reduce the loss
 - Dogs fight at a low rate; upgradable
@@ -355,38 +372,13 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 | Situation | Sounds |
 | --- | --- |
 | Quiet night | Crickets, wind, the cat purring, the dog snoring, the drone's quiet "zzz… standby mode" |
-| Tonight's signal threat nearby | Distant roars (dinos), groans (zombies), 8-bit beeps (invaders), all matching the morning's symbols |
 | Weather | Rain on the roof, thunder, wind shaking the shutters |
 | Scary moments | Footsteps on the porch… scratching at the door… then it turns out to be the cat |
 | Comedy | The MC talking in his sleep: "Per my last email…", "No, the deadline is Friday…" |
 
-#### Perk cards after fights
-
-- XP = permanent skill tree (Fitness, Gunsmanship, Luck); perk cards = perks. Two separate systems
-- After a night fight, 3 cards appear; pick 1. Max 1 reroll
-- Cards are temporary: each lasts 3–5 days, then expires
-- Nights without a fire give no cards
-- (???) Permanent cards came from big fights, which are gone. Suggested: drop permanent cards; XP and gear are the permanent growth
-- Suggested (not agreed yet):
-  - Duration by rarity (common 3 days, rare from bonfire 5 days); cards expire at dawn; each card shows days left
-  - Picking a card you already have refreshes its timer (or levels it up)
-  - Cards survive death (death already costs loot)
-  - Pool mixes combat, activity (fishing/chopping speed) and base/companion perks; Office-joke perks (Extras) are the content
-  - The grand trial reuses the same card system
-  - Open (???): is the reroll per pick or per few days? Can Luck grant an extra reroll?
-- Ref: Cult of the Lamb — tarot cards last only until the crusade ends; each run feels different without permanent power creep
-- Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
-- Ref: Thronefall — max 5 perks active at once; supports keeping the active card count small
-
-#### Luck as karma [TBD]
-
-- Removed from the design for now (2026-10-04); luck stays as a growth stat
-- Up for good actions (feeding animals, releasing rare fish, petting the cat), down for bad ones (breaking things)
-- Affects loot, crits, fishing, lottery, jam rate
-
 #### Companions
 
-- Cats: raise sanity (petting, sleeping nearby), boost luck, hiss to warn of sneakers at night. No combat, no pest-catching
+- Cat: moved to Extras (user, 2026-10-31)
 - Guide: cute drone — cheerful tech-support voice, doubles as in-world UI (scans, tips); turns out to be the AI Lord's eyes
 
 #### Wood & resources
@@ -394,7 +386,7 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 - Chop trees for wood (inspired by Chop Chop Inc.); stumps regrow after some days
 - Rule (???): resources are spent directly, like money — no recipes, no workbench, no intermediate items. Revisit with Economy & crafting [TBD]: ammo crafting needs at least a simple conversion
 - Simple spend/repair system, extendable later as the game grows:
-  - Feed the night fire and torches: costs wood (a bonfire costs more)
+  - Fuel campfires and torches: costs wood
   - Build/repair fences and barricades: costs wood
   - Sell wood for money (Economy & crafting [TBD])
 - Felling gives wood directly; no log-splitting step for now
@@ -403,13 +395,13 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 
 - Minigames happen inside normal actions in the world, not in arcade cabinets
 - Fish shooting: hang bait over the water, fish jump out, shoot them
-- Sky Invaders: night fight mission — a small-fire version and a bonfire version with a mothership boss
+- Sky Invaders: a night raid type, with a mothership boss as a possible major-event version
   - Formation moves side to side, steps down, speeds up as fewer remain; barn roofs/fences act as shields; landed invaders abduct animals
 
-#### Grand trial (escape) — deferred until after main gameplay
+#### Grand trial (escape) — on hold, not forgotten (user, 2026-10-31)
 
 - Megabonk-inspired run-and-gun, 2–3 levels, rogue-like card selection to level up during the run
-- Not designing further for now
+- Not designing further for now; the game is endless until it returns. Its entry needs a new design now that biome relics are gone (proposal: relics as eclipse-boss drops, see Outer zone and progression)
 
 #### Endings
 
@@ -419,6 +411,43 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 ### Extras — nice to have
 
 Liked, but not part of the core loop. They add fun, comedy and "wow" on top of it; not in CORE.md. Build after the core loop works.
+
+#### Player skills (XP)
+
+- Moved to Extras (user, 2026-10-31); upgrades and gear are the growth for now
+- Growth from XP → level points: Fitness (HP, stamina, carry — replaces "strength"), Gunsmanship (recoil, jams, reload), Luck
+- Fitness lowers the stamina cost of fighting; a Gunsmanship skill eases the low-stamina recoil penalty
+  - Ref: Kingdom Come: Deliverance — leveling the bow skill cuts both sway and the stamina spent per shot; the same two levers as here
+- Suggested: a farm skill ("Homestead": farm, fish, chop and repair speed) in place of Luck when skills come back
+
+#### Perk cards
+
+- Moved to Extras (user, 2026-10-31); enemy loot and the daily box are the fight rewards for now
+- After a night fight, 3 cards appear; pick 1. Max 1 reroll
+- Cards are temporary: each lasts 3–5 days, then expires
+- Suggested (not agreed yet):
+  - No permanent cards; gear and upgrades are the permanent growth
+  - Duration by rarity (common 3 days, rare 5 days); cards expire at dawn; each card shows days left
+  - Or cards only from major events, lasting until the next one (exactly 10 days)
+  - Picking a card you already have refreshes its timer (or levels it up)
+  - Cards survive death (death already costs loot)
+  - Pool mixes combat, activity (fishing/chopping speed) and base/companion perks; Office-joke perks are the content
+  - The grand trial reuses the same card system
+  - Open (???): is the reroll per pick or per few days? Can Luck grant an extra reroll?
+- Ref: Cult of the Lamb — tarot cards last only until the crusade ends; each run feels different without permanent power creep
+- Ref: The Last Spell — after nights, level-ups offer random stat choices with rerolls; perk points capped at 10
+- Ref: Thronefall — max 5 perks active at once; supports keeping the active card count small
+
+#### Luck
+
+- Moved to Extras with the skills (user, 2026-10-31)
+- A growth stat; earlier also proposed as karma [TBD]: up for good actions (feeding animals, releasing rare fish, petting the cat), down for bad ones (breaking things)
+- Affects loot, crits, fishing, lottery, jam rate
+
+#### Cat
+
+- Moved to Extras (user, 2026-10-31)
+- Raises sanity (petting, sleeping nearby), boosts luck, hisses to warn of sneakers at night. No combat, no pest-catching
 
 #### Fishing up enemies
 
@@ -440,7 +469,7 @@ Liked, but not part of the core loop. They add fun, comedy and "wow" on top of i
 
 #### AI-prompted bosses
 
-- Over the days before a boss night (see Night fights & death (???)), the signals board shows the prompt the Lord is "typing", one piece at a time: "a chicken… but huge… with a minigun… photorealistic, 8k"
+- Over the days before a Blood Moon or eclipse, the signals board shows the prompt the Lord is "typing", one piece at a time: "a chicken… but huge… with a minigun… photorealistic, 8k"
 - Fight night: a giant low-poly chicken with a minigun ("photorealistic" never works)
 - Boss = body + scale + weapon + archetype from the asset packs → endless boss variety
 - Ref: Scribblenauts — type a noun + adjectives and it spawns
@@ -460,12 +489,6 @@ Liked, but not part of the core loop. They add fun, comedy and "wow" on top of i
   - Copy-Paste: once a day, duplicate a caught fish
   - Per My Last Email: melee hits knock enemies far back
 
-#### Tiny farm
-
-- Moved out of the core loop (user, 2026-10-10)
-- Light farming, kept tiny: small garden, a few animals (chickens, ducks), collect eggs
-- Whack-a-mole: happens occasionally while checking crops
-
 #### Minigame system (???)
 
 - Moved out of the core loop (user, 2026-10-10), together with duck shooting, the lottery and other classic minigames
@@ -483,7 +506,7 @@ Many short "one more go" minigames, each a simpler take on a famous game. Extend
   - Interruption: pops up during an activity (whack-a-mole while checking crops)
   - Activity: the activity itself is the minigame (fishing, cooking)
   - Device: in-world objects with a story reason — the MC's old work laptop, the AI Lord's vending machine, the drone's screen. Still no arcade cabinets
-- When to play device games (???): by day at base (costs daylight) / lights-out nights before sleep, where the laptop glow may draw sniffers ("pretend nobody's home") / quiet rainy nights
+- When to play device games (???): by day at base (costs daylight) / quiet nights before sleep (costs sleep, so sanity) / quiet rainy nights
 - Guardrails:
   - Sessions 30 s – 3 min; the sun keeps moving, so playing costs daylight
   - Rewards feed core resources (coins, food, luck, gunpowder, XP) but stay small next to going out; device games have daily limits ("machine restocks tomorrow")
@@ -512,12 +535,12 @@ Many short "one more go" minigames, each a simpler take on a famous game. Extend
 
 ### Rejected
 
-- Attacks on the base during the day — no agency while away, rewards staying home
+- Attacks on the base during ordinary days — no agency while away, rewards staying home (the eclipse is the scheduled exception)
 - Tired (fight-streak penalty) — ammo cost already limits fighting every night
-- Big fights every 10th night (forced, can't be skipped) — cozy is optional; fights only happen when you light the fire (user, 2026-10-10)
-- Skip streak (thieves and raiders after nights without a fire) — it forced fights on players who want to stay cozy (user, 2026-10-10)
 - Field campfire when caught outside at dusk — not wanted
 - "Days without incident" streak sign with a growing bonus — not wanted
 - Run-ending death (Dome Keeper / Don't Starve style) — death costs loot, never the run, like Escape from Duckov
-- A seamless far side that swaps daily (walk across the river into it) — every world would have to fit the same river edge, bridge ends, terrain heights and footprint, and a bridge home is always nearby, so extraction loses its tension; portals instead
-- Night enemies coming out of the open portals — night themes stay separate from the portals
+- A far side that swaps daily (walk across the river into a different world each day) — every world would have to fit the same river edge, bridge ends, terrain heights and footprint. The current outer zone is one fixed map across the river
+- A full-cozy mode or a raids-off setting — fights are required on raid nights (user, 2026-10-31)
+- A barricade at the bridge as the night's front line — goblins cross the river anyway, so the bridge is not a chokepoint (user, 2026-10-31)
+- A daytime leash at the bridge (chasers give up there) — an enemy chasing the player can follow across (user, 2026-10-31)
