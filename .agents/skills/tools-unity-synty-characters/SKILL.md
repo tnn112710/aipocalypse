@@ -55,6 +55,8 @@ What Build does differently from the tool's own export, and why:
 
 ## 3. Sidekick traps
 
+- `RandomStateBehaviourAutoRefresh` (in `SidekickCharacters.dll`) loads every AnimatorController in the project and calls `SaveAssets` after each domain reload and Play press, which took ~12 s here. `_Core/_Common/Utils/SidekickAutoRefreshBlocker.cs` unhooks it. If a controller ever uses `RandomStateBehaviour`, press its inspector "Refresh Destinations" button after editing transitions.
+
 - The tool's prefab button is now **"Export Character as FBX"**: modal save dialog, FBX export, modal validation dialog, exceptions swallowed into a warning. It can't be scripted; use SidekickKit.
 - The tool's `.sk` writer **drops zero values**: a saved BodyType or Muscle of 0 reloads as **50** (`SerializedBlendShapeValues` defaults). `SidekickKit.WriteSk` writes them (`EmitDefaults`). The `.sk` `SourceColorPath` is stale (points at the previous export); it's only read when `ColorRows` is empty.
 - The DB connection is **static and shared** with the tool window. Close it only if you opened it and the window isn't open (SidekickKit does this); a handle left open locks the `.db` on Windows.
