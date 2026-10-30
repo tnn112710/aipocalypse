@@ -55,7 +55,10 @@ namespace JBooth.MicroVerseCore
                     }
                 }
                 //instance.Modify(true, true, false);
-                instance.SaveBackToTerrain(saveHoles: false); // your save terrain function
+                // aipocalypse patch: a disabled MicroVerse (baked mode) leaves the TerrainData alone. The GPU readback isn't
+                // bit-exact, so syncing on every save rewrote the 59 MB terrain asset with noise.
+                if (instance.isActiveAndEnabled)
+                    instance.SaveBackToTerrain(saveHoles: false); // your save terrain function
             }
 #if __MICROSPLAT__ && __MICROSPLAT_TESSELLATION__
             if (instance != null && instance.terrains != null && instance.proxyRenderMode != MicroVerse.ProxyRenderMode.AlwaysUnity)

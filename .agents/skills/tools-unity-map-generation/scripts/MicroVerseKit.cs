@@ -312,7 +312,7 @@ public static class MicroVerseKit
     public static object Rebuild(bool bake)
     {
         var mv = RequireMicroVerse();
-        if (!mv.enabled) throw new InvalidOperationException("MicroVerse component is disabled (baked/hand-edit mode). Enable it first if regenerating from stamps is intended.");
+        if (!mv.enabled) throw new InvalidOperationException("MicroVerse component is disabled (baked mode). Run Enable(true) first if regenerating from stamps is intended.");
         mv.SyncTerrainList();
         mv.Invalidate();
         mv.Modify(true, true);
@@ -326,6 +326,19 @@ public static class MicroVerseKit
         }
         EditorSceneManager.MarkSceneDirty(mv.gameObject.scene);
         return new { baked = bake, terrains = mv.terrains.Select(DescribeHeights).ToArray() };
+    }
+
+    // Baked mode (false): stamps stop regenerating the terrain on scene open, recompile and save, so the TerrainData asset
+    // only changes on a deliberate Rebuild. Enabling queues a full async rebuild; Rebuild runs it synchronously instead.
+    public static object Enable(bool enabled)
+    {
+        var mv = RequireMicroVerse();
+        if (mv.enabled == enabled) return new { mv.enabled, changed = false };
+        if (!enabled && mv.IsModifyingTerrain) throw new InvalidOperationException("MicroVerse is still rebuilding; wait until Status shows modifying: false.");
+        Undo.RecordObject(mv, enabled ? "Enable MicroVerse" : "Disable MicroVerse");
+        mv.enabled = enabled;
+        EditorSceneManager.MarkSceneDirty(mv.gameObject.scene);
+        return new { mv.enabled, changed = true };
     }
 
     // Height grid between two corners (world XZ), steps x steps samples. Run Rebuild first so the CPU copy is current.
