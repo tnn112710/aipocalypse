@@ -10,16 +10,16 @@ Weapon, ammunition, and attachment settings are stored in ScriptableObjects. The
 | --- | ---: |
 | Weapon prefabs and weapon definitions | 191 each |
 | Attachment prefabs and attachment definitions | 59 each |
-| Ammunition definitions | 92 |
+| Ammunition definitions | 29 |
 | FBX model files | 244 |
 | PNG textures | 243 |
-| Weapon shot sounds | 23 |
+| Weapon sounds (shots, suppressed shots, reloads, dry fire) | 299 |
 
 The package also contains a showcase scene with a firing range, a first-person weapon rig, custom inspectors, damage components, and projectile simulation scripts.
 
 | Folder | Contents |
 | --- | --- |
-| `Audio` | Weapon shot sounds grouped by weapon type. |
+| `Audio/Weapons` | Weapon sounds grouped by weapon category, with shared sounds in `Common`. |
 | `Models` | Weapon and attachment meshes with their textures. |
 | `Materials` | Materials used by the models. |
 | `Prefabs/Weapons` | Weapon prefabs with controllers and attachment slots. |
@@ -119,6 +119,14 @@ An ammunition definition controls projectile mass, diameter, muzzle velocity, ae
 
 **Maximum Segment Length Meters** and **Maximum Substeps Per Frame** control simulation detail. Shorter segments require more work; set the substep budget to suit projectile speed and the scene's collision detail.
 
+### Rockets
+
+Set an ammunition definition's **Projectile Type** to **Rocket** to fire it with `ArmoryCoreRocketProjectile` instead of the bullet simulation. The Ordan RG7, RG18, RG28, and RG84 launchers use rocket ammunition.
+
+A rocket leaves the launcher at the ammunition's muzzle velocity, then its sustainer motor ignites after **Motor Ignition Delay** and accelerates it for **Motor Burn Time** up to **Maximum Rocket Speed**. Drag, gravity, and wind still apply. The rocket is drawn as a body with a motor flame and a smoke trail.
+
+The warhead arms after **Arming Distance Meters**. An armed rocket explodes on impact: every target within **Explosion Radius Meters** that is not shielded by other geometry receives one hit, with damage falling from **Explosion Damage** at the centre to **Explosion Damage At Edge** at the rim. The directly hit target also receives the weapon's damage per projectile. Rigidbodies are pushed by **Explosion Force**. Explosion hits have `ArmoryCoreBallisticHit.IsExplosion` set. A rocket that hits something before arming does not explode and only deals the weapon's damage. With **Explode On Timeout**, a rocket that reaches its maximum flight time or range detonates in the air.
+
 ### Damage and surface response
 
 Add `ArmoryCoreHealth` to a target to receive damage, track health, and expose damaged and killed events. To connect another health system, implement `IArmoryCoreBallisticTarget`:
@@ -186,7 +194,7 @@ Use the **Mods** inspector tab or `SelectAttachment(slot, attachmentId)` to chan
 
 The controller's **Effects** tab connects muzzle particles, a muzzle light, casing ejection, visual recoil, an Animator, and an AudioSource. Set casing position, force, torque, and lifetime on the controller. Assign firing, suppressed firing, reload, and empty-click clips in the weapon definition, with volume, pitch variation, and distance settings.
 
-The weapon shot sounds are taken from our asset **Low Poly Firearms Pack + Attachments**. They are assigned to weapon definitions by weapon type. Suppressor modules adjust playback volume through their sound-pressure settings.
+Weapon sounds are stored in `Audio/Weapons/<Category>` and named `<Weapon>-Shot`, `<Weapon>-Shot-Suppressed`, and `<Weapon>-Reload` after the weapon that owns them; several weapons may share one set. The dry-fire click is `Audio/Weapons/Common/Dry-Fire`. Suppressor modules adjust playback volume through their sound-pressure settings.
 
 For Animator integration, the default parameters are:
 

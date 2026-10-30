@@ -26,19 +26,6 @@ namespace ArmoryCoreEditor
         private Editor definitionEditor;
         private ArmoryCoreWeaponDefinition definitionEditorTarget;
 
-        private bool showDefinition = true;
-        private bool showSceneSetup = true;
-        private bool showInitialization = true;
-        private bool showPlayerInput = true;
-        private bool showCamera = true;
-        private bool showAudio = true;
-        private bool showAnimator = true;
-        private bool showMuzzleEffects = true;
-        private bool showCasings = true;
-        private bool showVisualRecoil = true;
-        private bool showFireEvents = true;
-        private bool showStateEvents = true;
-        private bool showAimEvents = true;
 
         private void OnEnable()
         {
@@ -243,234 +230,369 @@ namespace ArmoryCoreEditor
             EditorGUILayout.Space(2f);
         }
 
+        private static readonly ArmoryCoreGraph.Spec HipFovScale = new ArmoryCoreGraph.Spec(20f, 120f, "°", 1f, "0").Captions("narrow", "wide").Limits(20f, 120f)
+            .With(ArmoryCoreGraph.M(60f, "standard"), ArmoryCoreGraph.M(90f, "wide"));
+        private static readonly ArmoryCoreGraph.Spec AimFovScale = new ArmoryCoreGraph.Spec(5f, 100f, "°", 1f, "0").Captions("zoomed", "wide").Limits(5f, 100f)
+            .With(ArmoryCoreGraph.M(42f, "standard"));
+        private static readonly ArmoryCoreGraph.Spec FovSpeedScale = new ArmoryCoreGraph.Spec(1f, 40f, "", 1f, "0.#", true).Captions("smooth", "instant").Limits(0.01f)
+            .With(ArmoryCoreGraph.M(14f, "standard"));
+        internal static readonly ArmoryCoreGraph.Spec FlashScale = new ArmoryCoreGraph.Spec(0f, 20f, "particles", 1f, "0").Captions("none", "big").Limits(0f).With(ArmoryCoreGraph.M(4f, "standard"));
+        internal static readonly ArmoryCoreGraph.Spec LightScale = new ArmoryCoreGraph.Spec(0f, 0.2f, "ms", 1000f, "0").Captions("blink", "long").Limits(0f).With(ArmoryCoreGraph.M(0.045f, "standard"));
+        internal static readonly ArmoryCoreGraph.Spec EjectForceScale = new ArmoryCoreGraph.Spec(0f, 8f, "N·s", 1f, "0.#").Captions("drops", "flies").Limits(0f).With(ArmoryCoreGraph.M(2.4f, "standard"));
+        internal static readonly ArmoryCoreGraph.Spec EjectSpinScale = new ArmoryCoreGraph.Spec(0f, 4f, "N·m·s", 1f, "0.#").Captions("flat", "tumbles").Limits(0f).With(ArmoryCoreGraph.M(1.2f, "standard"));
+        internal static readonly ArmoryCoreGraph.Spec CasingLifeScale = new ArmoryCoreGraph.Spec(1f, 60f, "s", 1f, "0", true).Captions("short", "long").Limits(0.01f).With(ArmoryCoreGraph.M(8f, "standard"));
+        internal static readonly ArmoryCoreGraph.Spec KickScale = new ArmoryCoreGraph.Spec(0f, 0.01f, "mm/°", 1000f, "0.#").Captions("none", "strong").Limits(0f).With(ArmoryCoreGraph.M(0.003f, "standard"));
+        private static readonly ArmoryCoreGraph.Spec ReserveScale = new ArmoryCoreGraph.Spec(0f, 600f, "rounds", 1f, "0").Captions("none", "plenty").Limits(0f)
+            .With(ArmoryCoreGraph.M(120f, "standard"));
+
         private void DrawWeaponPage()
         {
             DrawPageIntro(
                 "Weapon configuration",
-                "Assign the reusable definition, edit all of its gameplay values inline, and configure this scene instance.");
+                "The definition as setup steps, then the scene references of this weapon object. Weapon Setup… places the muzzle on the 3D model.");
 
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showDefinition,
-                    "Weapon definition",
-                    "The definition stores firing, ballistic, handling, reliability, compatibility, and sound values."))
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                DrawProperty(
-                    "definition",
-                    "Definition",
-                    "Reusable gameplay configuration shared by weapon instances.");
-            }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showDefinition);
-
-            if (!serializedObject.isEditingMultipleObjects)
-            {
-                var definition = serializedObject.FindProperty("definition")?.objectReferenceValue
-                    as ArmoryCoreWeaponDefinition;
-                if (definition == null)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.HelpBox(
-                        "Assign a Weapon Definition to expose all weapon parameters here.",
-                        MessageType.Info);
+                    DrawProperty("definition", "Definition", "Reusable gameplay configuration shared by weapon instances.");
+                    using (new EditorGUI.DisabledScope(serializedObject.isEditingMultipleObjects))
+                    {
+                        if (ArmoryCoreSetupGUI.MiniButton("Weapon Setup…", "Open this weapon in the Weapon Setup window: muzzle and ejection port on the 3D model, cartridges and ballistics", 104f))
+                            ArmoryCoreWeaponSetupWindow.Open(((ArmoryCoreWeaponController)target).gameObject);
+                    }
                 }
+            }
+
+            if (serializedObject.isEditingMultipleObjects)
+            {
+                DrawSceneSetup(1, null);
+                return;
+            }
+
+            var definition = serializedObject.FindProperty("definition")?.objectReferenceValue as ArmoryCoreWeaponDefinition;
+            if (definition == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Assign a Weapon Definition to set up the weapon here, or open Weapon Setup… to create one from a weapon type.",
+                    MessageType.Info);
+            }
+            else
+            {
+                EnsureDefinitionEditor(definition);
+                EditorGUILayout.Space(3f);
+                if (definitionEditor is ArmoryCoreWeaponDefinitionEditor weaponDefinitionEditor)
+                    weaponDefinitionEditor.DrawEmbeddedInspector();
                 else
+                    definitionEditor?.OnInspectorGUI();
+                EditorGUILayout.Space(3f);
+            }
+            DrawSceneSetup(10, (ArmoryCoreWeaponController)target);
+        }
+
+        private void DrawSceneSetup(int number, ArmoryCoreWeaponController weapon)
+        {
+            var muzzle = serializedObject.FindProperty("muzzle");
+            var placed = muzzle.objectReferenceValue is Transform point && point.localPosition.sqrMagnitude > 0.000001f;
+            var muzzleState = muzzle.hasMultipleDifferentValues || placed ? ArmoryCoreSetupGUI.StepState.Done : ArmoryCoreSetupGUI.StepState.Current;
+            var muzzleSummary = muzzle.hasMultipleDifferentValues ? "—" : placed ? "muzzle placed" : muzzle.objectReferenceValue ? "muzzle at the origin" : "no muzzle";
+            if (ArmoryCoreSetupGUI.Step("weapon.controller.step.scene", number, "Muzzle & aim", muzzleState, muzzleSummary, "Where projectiles leave and what they can hit"))
+            {
+                using (ArmoryCoreSetupGUI.CardBody())
                 {
-                    EnsureDefinitionEditor(definition);
-                    EditorGUILayout.Space(5f);
-                    EditorGUILayout.LabelField("WEAPON PARAMETERS", EditorStyles.miniBoldLabel);
-                    if (definitionEditor is ArmoryCoreWeaponDefinitionEditor weaponDefinitionEditor)
-                        weaponDefinitionEditor.DrawEmbeddedInspector();
-                    else
-                        definitionEditor?.OnInspectorGUI();
+                    DrawProperty("muzzle", "Muzzle", "Projectile origin; its forward axis must point along the barrel.");
+                    DrawProperty("aimReference", "Aim reference", "Optional fallback aiming direction when a sight is not active.");
+                    DrawProperty("hitMask", "Projectile hit mask", "Physics layers that projectiles are allowed to hit.");
+                    if (weapon != null && ArmoryCoreSetupGUI.Button("Place the muzzle on the 3D model…", true, "Drag the muzzle and the ejection port on the model in the Weapon Setup window"))
+                        ArmoryCoreWeaponSetupWindow.Open(weapon.gameObject);
                 }
             }
 
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showSceneSetup,
-                    "Scene references",
-                    "Required transforms define projectile origin and aiming direction for this prefab instance."))
+            var reserve = serializedObject.FindProperty("reserveRounds");
+            if (ArmoryCoreSetupGUI.Step("weapon.controller.step.state", number + 1, "Initial state", ArmoryCoreSetupGUI.StepState.Done,
+                    reserve.hasMultipleDifferentValues ? "—" : $"{reserve.intValue} in reserve", "Automatic initialization and the ammunition this object carries"))
             {
-                DrawProperty("muzzle", "Muzzle", "Projectile origin; its forward axis must point along the barrel.");
-                DrawProperty("aimReference", "Aim Reference", "Optional fallback aiming direction when a sight is not active.");
-                DrawProperty("hitMask", "Projectile Hit Mask", "Physics layers that projectiles are allowed to hit.");
+                using (ArmoryCoreSetupGUI.CardBody())
+                {
+                    ArmoryCoreGraph.ToggleTile(serializedObject.FindProperty("initializeOnAwake"), new ArmoryCoreGraph.Tile(
+                        "Initialize on Awake", "ready when the scene starts", "Loads the magazine and chamber and installs attachments in Awake. Turn off when your code calls InitializeState().")
+                        { Glyph = "▶", Color = ArmoryCoreGraph.Good }, 34f);
+                    if (reserve.hasMultipleDifferentValues)
+                        DrawProperty("reserveRounds", "Starting reserve rounds");
+                    else
+                        ArmoryCoreGraph.Scale(serializedObject, "reserveRounds", "Starting reserve", "Rounds carried for reloads.", ReserveScale);
+                }
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showSceneSetup);
-
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showInitialization,
-                    "Initial state",
-                    "Controls automatic initialization and ammunition carried by this instance."))
-            {
-                DrawProperty("initializeOnAwake", "Initialize On Awake");
-                DrawProperty("reserveRounds", "Starting Reserve Rounds");
-            }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showInitialization);
         }
+
+        // ---------- Shared step helpers ----------
+
+        private bool Step(string id, int number, string title, ArmoryCoreSetupGUI.StepState state, string summary, string tooltip = null)
+        {
+            return ArmoryCoreSetupGUI.Step("weapon.controller.step." + id, number, title, state, summary, tooltip);
+        }
+
+        /// <summary>A scale for one object; the plain field when several objects disagree on the value.</summary>
+        private void Scale(string name, string title, string tooltip, ArmoryCoreGraph.Spec spec)
+        {
+            var property = serializedObject.FindProperty(name);
+            if (property == null)
+                return;
+            if (property.hasMultipleDifferentValues)
+                EditorGUILayout.PropertyField(property, new GUIContent(title, tooltip));
+            else
+                ArmoryCoreGraph.Scale(serializedObject, name, title, tooltip, spec);
+        }
+
+        private void Toggle(string name, ArmoryCoreGraph.Tile tile, float height = 34f)
+        {
+            var property = serializedObject.FindProperty(name);
+            if (property == null)
+                return;
+            if (property.hasMultipleDifferentValues)
+                EditorGUILayout.PropertyField(property, new GUIContent(tile.Title, tile.Tooltip));
+            else
+                ArmoryCoreGraph.ToggleTile(property, tile, height);
+        }
+
+        /// <summary>Two tiles standing for false and true of a flag.</summary>
+        private void Either(string name, ArmoryCoreGraph.Tile whenFalse, ArmoryCoreGraph.Tile whenTrue, float height = 36f)
+        {
+            var property = serializedObject.FindProperty(name);
+            if (property == null)
+                return;
+            if (property.hasMultipleDifferentValues)
+            {
+                EditorGUILayout.PropertyField(property, new GUIContent(ObjectNames.NicifyVariableName(name)));
+                return;
+            }
+            var picked = ArmoryCoreGraph.Choice(property.boolValue ? 1 : 0, new[] { whenFalse, whenTrue }, 2, height);
+            property.boolValue = picked == 1;
+        }
+
+        private bool Assigned(string name)
+        {
+            var property = serializedObject.FindProperty(name);
+            return property != null && (property.hasMultipleDifferentValues || property.objectReferenceValue != null);
+        }
+
+        private bool Flag(string name)
+        {
+            var property = serializedObject.FindProperty(name);
+            return property != null && (property.hasMultipleDifferentValues || property.boolValue);
+        }
+
+        // ---------- Control ----------
 
         private void DrawControlPage()
         {
             DrawPageIntro(
                 "Input & aiming",
-                "Choose whether this component reads local input and configure camera aiming behavior.");
+                "Who drives the weapon and how aiming changes the camera.");
 
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showPlayerInput,
-                    "Player input",
-                    "Disable local input when another player, AI, or network system drives the weapon through its public API."))
+            var input = Flag("processPlayerInput");
+            if (Step("input", 1, "Who fires", ArmoryCoreSetupGUI.StepState.Done, input ? "local player" : "your code or AI",
+                    "Local input, or the public API driven by a player, AI or network script"))
             {
-                DrawProperty("processPlayerInput", "Read Local Player Input");
-                var processInput = serializedObject.FindProperty("processPlayerInput");
-                if (processInput == null || processInput.hasMultipleDifferentValues || processInput.boolValue)
+                using (ArmoryCoreSetupGUI.CardBody())
                 {
-                    EditorGUILayout.HelpBox(
-                        "Controls: LMB fire · RMB aim · R reload · B fire mode · C cycle action · "
-                        + "T clear malfunction · F light · Z bipod/stock · mouse wheel zoom.",
-                        MessageType.None);
+                    Either("processPlayerInput",
+                        new ArmoryCoreGraph.Tile("Code or AI", "public API", "Another script calls SetTriggerHeld, StartReload, SetAiming… Use it for AI, network and your own player controller.") { Glyph = "{ }", Color = ArmoryCoreGraph.Info },
+                        new ArmoryCoreGraph.Tile("Local player", "keyboard and mouse", "The weapon reads the input itself. Enable it only on the locally controlled weapon.") { Glyph = "⌨", Color = ArmoryCoreGraph.Accent });
+                    ArmoryCoreGraph.Hint(input
+                        ? "LMB fire · RMB aim · R reload · B fire mode · C cycle action · T clear malfunction · F light · Z bipod/stock · wheel zoom."
+                        : "Nothing is read from the keyboard: drive the weapon through its public methods.");
                 }
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showPlayerInput);
 
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showCamera,
-                    "Aim camera & field of view",
-                    "The camera may be assigned explicitly or resolved from Camera.main at runtime."))
+            var autoFind = Flag("autoFindMainCamera");
+            var cameraSummary = (autoFind ? "main camera" : Assigned("aimCamera") ? "assigned camera" : "no camera")
+                + (Flag("controlCameraFieldOfView") ? $" · {serializedObject.FindProperty("hipFieldOfView").floatValue:0}°→{serializedObject.FindProperty("aimFieldOfView").floatValue:0}°" : "");
+            var cameraState = !autoFind && !Assigned("aimCamera") && input ? ArmoryCoreSetupGUI.StepState.Current : ArmoryCoreSetupGUI.StepState.Done;
+            if (Step("camera", 2, "Aim camera & field of view", cameraState, cameraSummary, "The camera aimed through and how much aiming zooms"))
             {
-                DrawProperty("autoFindMainCamera", "Find Main Camera Automatically");
-                var autoFind = serializedObject.FindProperty("autoFindMainCamera");
-                if (autoFind == null || autoFind.hasMultipleDifferentValues || !autoFind.boolValue)
-                    DrawProperty("aimCamera", "Aim Camera");
-
-                DrawProperty("controlCameraFieldOfView", "Control Camera Field Of View");
-                var controlFov = serializedObject.FindProperty("controlCameraFieldOfView");
-                if (controlFov == null || controlFov.hasMultipleDifferentValues || controlFov.boolValue)
+                using (ArmoryCoreSetupGUI.CardBody())
                 {
-                    DrawProperty("hipFieldOfView", "Hip Field Of View (°)");
-                    DrawProperty("aimFieldOfView", "Aim Field Of View (°)");
-                    DrawProperty("fieldOfViewSpeed", "Field Of View Transition Speed");
+                    Either("autoFindMainCamera",
+                        new ArmoryCoreGraph.Tile("Assigned camera", "set below", "Aim through the camera assigned below.") { Glyph = "◎", Color = ArmoryCoreGraph.Info },
+                        new ArmoryCoreGraph.Tile("Main camera", "Camera.main at runtime", "Find the camera tagged MainCamera when the weapon starts.") { Glyph = "◉", Color = ArmoryCoreGraph.Info });
+                    var find = serializedObject.FindProperty("autoFindMainCamera");
+                    if (find.hasMultipleDifferentValues || !find.boolValue)
+                        DrawProperty("aimCamera", "Aim camera");
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        Toggle("controlCameraFieldOfView", new ArmoryCoreGraph.Tile("Zoom when aiming", "changes the field of view", "The weapon narrows the camera's field of view while aiming and restores it after.") { Glyph = "⊕" });
+                        Toggle("compensateSightZero", new ArmoryCoreGraph.Tile("Sight zero", "hits where the sight points", "Aims the shot up so it meets the line of sight at the sight's zero distance.") { Glyph = "⌖", Color = ArmoryCoreGraph.Good });
+                    }
+                    if (Flag("controlCameraFieldOfView"))
+                    {
+                        Scale("hipFieldOfView", "Hip field of view", "Vertical field of view without aiming.", HipFovScale);
+                        Scale("aimFieldOfView", "Aim field of view", "Vertical field of view while aiming; sights with magnification narrow it further.", AimFovScale);
+                        Scale("fieldOfViewSpeed", "Zoom speed", "How quickly the field of view follows.", FovSpeedScale);
+                        if (!serializedObject.isEditingMultipleObjects)
+                            DrawFieldOfView(serializedObject.FindProperty("hipFieldOfView").floatValue, serializedObject.FindProperty("aimFieldOfView").floatValue);
+                    }
                 }
-                DrawProperty("compensateSightZero", "Compensate Sight Zero");
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showCamera);
         }
+
+        /// <summary>The hip and aim cones from the eye, and how many times aiming magnifies.</summary>
+        private static void DrawFieldOfView(float hip, float aim)
+        {
+            var rect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(140f, 110f, GUILayout.ExpandWidth(true)));
+            ArmoryCoreGraph.Panel(rect);
+            var eye = new Vector2(rect.x + 18f, rect.center.y);
+            // Both views are sectors of one radius, sized so the wider one fits: their angles compare true.
+            var widest = Mathf.Clamp(Mathf.Max(hip, aim), 1f, 170f) * 0.5f * Mathf.Deg2Rad;
+            var radius = Mathf.Min(rect.width * 0.55f, 200f, (rect.height * 0.5f - 6f) / Mathf.Sin(widest));
+            void Cone(float degrees, Color color)
+            {
+                var half = Mathf.Clamp(degrees, 1f, 170f) * 0.5f * Mathf.Deg2Rad;
+                const int Steps = 16;
+                var fan = new Vector2[Steps + 2];
+                fan[0] = eye;
+                for (var i = 0; i <= Steps; i++)
+                {
+                    var angle = Mathf.Lerp(-half, half, i / (float)Steps);
+                    fan[i + 1] = eye + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+                }
+                ArmoryCoreGraph.Fill(new Color(color.r, color.g, color.b, 0.3f), fan);
+                ArmoryCoreGraph.Line(eye, fan[1], color, 1.5f);
+                ArmoryCoreGraph.Line(eye, fan[fan.Length - 1], color, 1.5f);
+            }
+            Cone(hip, ArmoryCoreGraph.Muted);
+            Cone(aim, ArmoryCoreGraph.Accent);
+            var reach = radius;
+            ArmoryCoreGraph.Disc(eye, 4f, ArmoryCoreGraph.Ink);
+            var zoom = Mathf.Tan(hip * 0.5f * Mathf.Deg2Rad) / Mathf.Max(0.001f, Mathf.Tan(aim * 0.5f * Mathf.Deg2Rad));
+            var text = new Rect(eye.x + reach + 12f, rect.y + 14f, rect.xMax - eye.x - reach - 16f, 16f);
+            GUI.Label(text, $"hip {hip:0}°", EditorStyles.miniLabel);
+            text.y += 18f;
+            GUI.Label(text, $"aimed {aim:0}°", EditorStyles.miniBoldLabel);
+            text.y += 18f;
+            GUI.Label(text, zoom >= 1f ? $"×{zoom:0.##} closer" : "wider when aiming!", EditorStyles.miniLabel);
+        }
+
+        // ---------- Effects ----------
 
         private void DrawEffectsPage()
         {
             DrawPageIntro(
                 "Presentation",
-                "Configure each optional presentation system independently; unused systems stay compact.");
-            DrawAudioSettings();
-            DrawAnimatorSettings();
-            DrawMuzzleEffectSettings();
-            DrawCasingSettings();
-            DrawVisualRecoilSettings();
-        }
+                "Sound, animation, flash, casings and kick of this weapon object. Every system is optional.");
 
-        private void DrawAudioSettings()
-        {
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showAudio,
-                    "Weapon audio",
-                    "The Audio Source handles spatial playback; clip selection and ranges are configured in the Weapon Definition."))
+            var audio = Assigned("audioSource");
+            if (Step("audio", 1, "Sound source", audio ? ArmoryCoreSetupGUI.StepState.Done : ArmoryCoreSetupGUI.StepState.Current, audio ? "assigned" : "silent",
+                    "The Audio Source that plays the clips of the definition"))
             {
-                DrawProperty("audioSource", "Audio Source");
-            }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showAudio);
-        }
-
-        private void DrawAnimatorSettings()
-        {
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showAnimator,
-                    "Animator",
-                    "Parameter names are only used when an Animator is assigned."))
-            {
-                DrawProperty("animator", "Animator");
-                var animator = serializedObject.FindProperty("animator");
-                if (animator == null || animator.hasMultipleDifferentValues || animator.objectReferenceValue != null)
+                using (ArmoryCoreSetupGUI.CardBody())
                 {
-                    ArmoryCoreDefinitionEditorUtility.DrawSubheading("Trigger parameters");
-                    DrawProperty("fireTrigger", "Fire");
-                    DrawProperty("reloadTrigger", "Reload");
-                    DrawProperty("emptyTrigger", "Empty Trigger");
-                    DrawProperty("cycleTrigger", "Cycle Action");
-                    DrawProperty("malfunctionTrigger", "Malfunction");
-                    ArmoryCoreDefinitionEditorUtility.DrawSubheading("State parameters");
-                    DrawProperty("aimingParameter", "Aiming Bool");
-                    DrawProperty("fireModeParameter", "Fire Mode Integer");
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("No Animator assigned; animation events are skipped.", MessageType.None);
+                    DrawProperty("audioSource", "Audio source");
+                    ArmoryCoreGraph.Hint("Clips, volumes and audible range are set in the definition (Weapon tab, «Sound»); the source is made 3D on start.");
+                    if (!audio && !serializedObject.isEditingMultipleObjects && ArmoryCoreSetupGUI.Button("Add an Audio Source to this object"))
+                    {
+                        var weapon = (ArmoryCoreWeaponController)target;
+                        var source = weapon.GetComponent<AudioSource>() ? weapon.GetComponent<AudioSource>() : Undo.AddComponent<AudioSource>(weapon.gameObject);
+                        source.playOnAwake = false;
+                        source.spatialBlend = 1f;
+                        serializedObject.FindProperty("audioSource").objectReferenceValue = source;
+                    }
                 }
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showAnimator);
-        }
 
-        private void DrawMuzzleEffectSettings()
-        {
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showMuzzleEffects,
-                    "Muzzle flash & light",
-                    "Particle and light effects are optional and scale with installed muzzle devices."))
+            var animated = Assigned("animator");
+            if (Step("animator", 2, "Animator", animated ? ArmoryCoreSetupGUI.StepState.Done : ArmoryCoreSetupGUI.StepState.Optional, animated ? "triggers and states" : "none",
+                    "Animator parameters set on shots, reloads and aiming"))
             {
-                DrawProperty("muzzleFlash", "Muzzle Flash Particles");
-                var flash = serializedObject.FindProperty("muzzleFlash");
-                if (flash == null || flash.hasMultipleDifferentValues || flash.objectReferenceValue != null)
-                    DrawProperty("muzzleFlashParticles", "Particles Per Shot");
-
-                DrawProperty("muzzleLight", "Muzzle Light");
-                var light = serializedObject.FindProperty("muzzleLight");
-                if (light == null || light.hasMultipleDifferentValues || light.objectReferenceValue != null)
-                    DrawProperty("muzzleLightDuration", "Light Duration (s)");
-            }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showMuzzleEffects);
-        }
-
-        private void DrawCasingSettings()
-        {
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showCasings,
-                    "Casing ejection",
-                    "Assign both an ejection point and a rigidbody prefab to enable physical casings."))
-            {
-                DrawProperty("casingEjectionPoint", "Ejection Point");
-                DrawProperty("casingPrefab", "Casing Prefab");
-                var point = serializedObject.FindProperty("casingEjectionPoint");
-                var prefab = serializedObject.FindProperty("casingPrefab");
-                var configured = point == null || prefab == null
-                    || point.hasMultipleDifferentValues || prefab.hasMultipleDifferentValues
-                    || point.objectReferenceValue != null || prefab.objectReferenceValue != null;
-                if (configured)
+                using (ArmoryCoreSetupGUI.CardBody())
                 {
-                    DrawProperty("casingEjectionForce", "Ejection Force");
-                    DrawProperty("casingEjectionTorque", "Ejection Torque");
-                    DrawProperty("casingLifetime", "Casing Lifetime (s)");
+                    DrawProperty("animator", "Animator");
+                    if (animated)
+                    {
+                        EditorGUILayout.LabelField("Triggers", EditorStyles.miniBoldLabel);
+                        DrawProperty("fireTrigger", "Fire");
+                        DrawProperty("reloadTrigger", "Reload");
+                        DrawProperty("emptyTrigger", "Empty trigger");
+                        DrawProperty("cycleTrigger", "Cycle action");
+                        DrawProperty("malfunctionTrigger", "Malfunction");
+                        EditorGUILayout.LabelField("States", EditorStyles.miniBoldLabel);
+                        DrawProperty("aimingParameter", "Aiming (bool)");
+                        DrawProperty("fireModeParameter", "Fire mode (int)");
+                    }
+                    else
+                    {
+                        ArmoryCoreGraph.Hint("Without an Animator the weapon still fires; no animation parameters are set.");
+                    }
                 }
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showCasings);
-        }
 
-        private void DrawVisualRecoilSettings()
-        {
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(
-                    ref showVisualRecoil,
-                    "Visual recoil",
-                    "The target transform receives positional and rotational kick without changing projectile ballistics."))
+            var flash = Assigned("muzzleFlash");
+            var light = Assigned("muzzleLight");
+            if (Step("flash", 3, "Muzzle flash & light", flash || light ? ArmoryCoreSetupGUI.StepState.Done : ArmoryCoreSetupGUI.StepState.Optional,
+                    flash && light ? "particles · light" : flash ? "particles" : light ? "light" : "none", "Particles and a short light at the muzzle; muzzle devices scale them"))
             {
-                DrawProperty("recoilTarget", "Recoil Target");
-                var targetProperty = serializedObject.FindProperty("recoilTarget");
-                if (targetProperty == null || targetProperty.hasMultipleDifferentValues
-                    || targetProperty.objectReferenceValue != null)
+                using (ArmoryCoreSetupGUI.CardBody())
                 {
-                    DrawProperty("visualKickMetersPerDegree", "Kick Distance Per Degree (m)");
+                    DrawProperty("muzzleFlash", "Flash particles", "Particle system emitted at the muzzle on every shot.");
+                    if (flash)
+                        Scale("muzzleFlashParticles", "Particles per shot", null, FlashScale);
+                    DrawProperty("muzzleLight", "Flash light", "Light switched on for a moment on every shot.");
+                    if (light)
+                        Scale("muzzleLightDuration", "Light duration", null, LightScale);
+                    ArmoryCoreGraph.Hint("Suppressors and flash hiders multiply both.");
                 }
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(showVisualRecoil);
+
+            var port = Assigned("casingEjectionPoint");
+            var casing = Assigned("casingPrefab");
+            var casingState = port && casing ? ArmoryCoreSetupGUI.StepState.Done : port || casing ? ArmoryCoreSetupGUI.StepState.Current : ArmoryCoreSetupGUI.StepState.Optional;
+            if (Step("casings", 4, "Casing ejection", casingState, port && casing ? "ejects casings" : port || casing ? "incomplete" : "none",
+                    "Physical casings thrown out of the ejection port"))
+            {
+                using (ArmoryCoreSetupGUI.CardBody())
+                {
+                    DrawProperty("casingEjectionPoint", "Ejection port", "Casings fly along its right axis and a little up.");
+                    DrawProperty("casingPrefab", "Casing prefab", "Rigidbody prefab of a spent casing.");
+                    if (port || casing)
+                    {
+                        Scale("casingEjectionForce", "Ejection impulse", "Impulse that throws the casing out of the port.", EjectForceScale);
+                        Scale("casingEjectionTorque", "Spin", "Random spin given to the casing.", EjectSpinScale);
+                        Scale("casingLifetime", "Casing lifetime", "Seconds before a casing is removed.", CasingLifeScale);
+                    }
+                    if (port != casing)
+                        ArmoryCoreGraph.Line(port ? "No casing prefab: nothing flies out." : "No ejection port: casings have nowhere to fly from.", ArmoryCoreGraph.Warn);
+                    if (!serializedObject.isEditingMultipleObjects && ArmoryCoreSetupGUI.Button("Place the ejection port on the 3D model…"))
+                        ArmoryCoreWeaponSetupWindow.Open(((ArmoryCoreWeaponController)target).gameObject);
+                }
+            }
+
+            var kick = Assigned("recoilTarget");
+            if (Step("kick", 5, "Visual kick", kick ? ArmoryCoreSetupGUI.StepState.Done : ArmoryCoreSetupGUI.StepState.Optional, kick ? "kicks the model" : "none",
+                    "Pushes and tilts a transform with the recoil, without changing where shots go"))
+            {
+                using (ArmoryCoreSetupGUI.CardBody())
+                {
+                    DrawProperty("recoilTarget", "Kick target", "Transform pushed back and tilted by recoil; usually the visible model.");
+                    if (kick)
+                        Scale("visualKickMetersPerDegree", "Kick distance", "How far the target moves back per degree of recoil.", KickScale);
+                }
+            }
         }
+
+        // ---------- Mods ----------
+
+        private static readonly ArmoryCoreAttachmentSlot[] Slots =
+        {
+            ArmoryCoreAttachmentSlot.Sights, ArmoryCoreAttachmentSlot.Barrel, ArmoryCoreAttachmentSlot.Grip, ArmoryCoreAttachmentSlot.Stock
+        };
+
+        private static readonly string[] SlotGlyphs = { "⌖", "▬", "┃", "◣" };
 
         private void DrawAttachmentsPage(ArmoryCoreWeaponController weapon)
         {
             DrawPageIntro(
                 "Installed attachments",
-                "Choose the active child for each slot. Options are filtered by the Weapon Definition compatibility rules.");
+                "Pick what is installed in each slot. Only attachments the definition allows are offered.");
 
             if (serializedObject.isEditingMultipleObjects)
             {
@@ -478,116 +600,223 @@ namespace ArmoryCoreEditor
                 return;
             }
 
-            DrawSlot(weapon, ArmoryCoreAttachmentSlot.Sights);
-            DrawSlot(weapon, ArmoryCoreAttachmentSlot.Barrel);
-            DrawSlot(weapon, ArmoryCoreAttachmentSlot.Grip);
-            DrawSlot(weapon, ArmoryCoreAttachmentSlot.Stock);
+            for (var i = 0; i < Slots.Length; i++)
+                DrawSlot(weapon, Slots[i], i + 1);
+            DrawAttachmentEffect(weapon, Slots.Length + 1);
         }
 
-        private static void DrawSlot(ArmoryCoreWeaponController weapon, ArmoryCoreAttachmentSlot slot)
+        private void DrawSlot(ArmoryCoreWeaponController weapon, ArmoryCoreAttachmentSlot slot, int number)
         {
             var title = ObjectNames.NicifyVariableName(slot.ToString());
             var root = weapon.GetAttachmentSlotRoot(slot);
-            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            var options = new List<Transform> { null };
+            var hidden = 0;
+            var selected = 0;
+            if (root != null)
             {
-                EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-                if (root == null)
-                {
-                    EditorGUILayout.LabelField($"No {title} Slot child exists on this weapon.", EditorStyles.wordWrappedMiniLabel);
-                    return;
-                }
-                if (root.childCount == 0)
-                {
-                    EditorGUILayout.LabelField("The slot exists but contains no attachment prefabs.", EditorStyles.wordWrappedMiniLabel);
-                    return;
-                }
-
-                var transforms = new List<Transform> { null };
-                var labels = new List<string> { "None" };
-                var selected = 0;
                 for (var index = 0; index < root.childCount; index++)
                 {
                     var option = root.GetChild(index);
-                    var module = option.GetComponent<ArmoryCoreAttachmentModule>();
-                    var definition = module == null ? null : module.Definition;
+                    var definition = ModuleDefinition(option);
                     if (definition != null && !weapon.CanInstall(definition))
+                    {
+                        hidden++;
                         continue;
-
-                    transforms.Add(option);
-                    labels.Add(definition == null || string.IsNullOrWhiteSpace(definition.displayName)
-                        ? ObjectNames.NicifyVariableName(option.name)
-                        : definition.displayName);
+                    }
+                    options.Add(option);
                     if (option.gameObject.activeSelf)
-                        selected = transforms.Count - 1;
-                }
-
-                EditorGUI.BeginChangeCheck();
-                var next = EditorGUILayout.Popup("Installed", selected, labels.ToArray());
-                if (EditorGUI.EndChangeCheck())
-                {
-                    var objects = new UnityEngine.Object[root.childCount];
-                    for (var index = 0; index < root.childCount; index++)
-                        objects[index] = root.GetChild(index).gameObject;
-                    Undo.RecordObjects(objects, $"Change {title} attachment");
-                    var nextTransform = transforms[next];
-                    var nextModule = nextTransform == null
-                        ? null
-                        : nextTransform.GetComponent<ArmoryCoreAttachmentModule>();
-                    var nextDefinition = nextModule == null ? null : nextModule.Definition;
-                    var nextId = nextTransform == null
-                        ? null
-                        : string.IsNullOrWhiteSpace(nextDefinition?.id)
-                            ? nextTransform.name
-                            : nextDefinition.id;
-                    weapon.SelectAttachment(slot, nextId);
-                    EditorUtility.SetDirty(weapon.gameObject);
-                }
-
-                if (selected > 0)
-                {
-                    var active = transforms[selected];
-                    var module = active == null ? null : active.GetComponent<ArmoryCoreAttachmentModule>();
-                    var definition = module == null ? null : module.Definition;
-                    var details = definition == null
-                        ? "No Attachment Definition on the active child."
-                        : $"{ObjectNames.NicifyVariableName(module.GetType().Name)}  •  "
-                          + $"{definition.massKilograms:0.###} kg  •  recoil "
-                          + ArmoryCoreDefinitionEditorUtility.FormatModifier(definition.recoilMultiplier);
-                    EditorGUILayout.LabelField(details, EditorStyles.wordWrappedMiniLabel);
-                }
-                else
-                {
-                    EditorGUILayout.LabelField("No attachment installed.", EditorStyles.miniLabel);
+                        selected = options.Count - 1;
                 }
             }
-            EditorGUILayout.Space(2f);
+
+            var state = root == null || options.Count == 1 ? ArmoryCoreSetupGUI.StepState.Locked
+                : selected > 0 ? ArmoryCoreSetupGUI.StepState.Done
+                : ArmoryCoreSetupGUI.StepState.Optional;
+            var summary = root == null ? "no slot" : options.Count == 1 ? "nothing fits" : selected > 0 ? OptionName(options[selected]) : "empty";
+            if (!Step("slot." + slot, number, title, state, summary, $"What is installed in the {title.ToLowerInvariant()} slot"))
+                return;
+            using (ArmoryCoreSetupGUI.CardBody())
+            {
+                if (root == null)
+                {
+                    ArmoryCoreGraph.Hint($"The weapon has no «{title}» slot object, so nothing can be installed here.");
+                    return;
+                }
+                var glyph = SlotGlyphs[Array.IndexOf(Slots, slot)];
+                var tiles = new List<ArmoryCoreGraph.Tile>
+                {
+                    new ArmoryCoreGraph.Tile("None", "bare weapon", "Remove whatever is installed in this slot.") { Glyph = "○", Color = ArmoryCoreGraph.Muted }
+                };
+                for (var i = 1; i < options.Count; i++)
+                {
+                    var definition = ModuleDefinition(options[i]);
+                    tiles.Add(new ArmoryCoreGraph.Tile(OptionName(options[i]), Effect(definition), definition == null ? "No Attachment Definition on this object." : definition.id)
+                    {
+                        Glyph = glyph,
+                        Color = ArmoryCoreGraph.Accent,
+                        Preview = ArmoryCoreHoverPreview.PrefabOf(options[i], definition)
+                    });
+                }
+                var picked = ArmoryCoreGraph.Choice(selected, tiles, 2, 38f);
+                ArmoryCoreHoverPreview.Draw();
+                if (picked != selected)
+                    Install(weapon, slot, root, options[picked], title);
+                if (hidden > 0)
+                    ArmoryCoreGraph.Hint($"{hidden} more in the slot do not fit this definition (its attachment list or tags); allow them on the Weapon tab, «Identity & attachments».");
+            }
         }
+
+        private static ArmoryCoreAttachmentDefinition ModuleDefinition(Transform option)
+        {
+            var module = option == null ? null : option.GetComponent<ArmoryCoreAttachmentModule>();
+            return module == null ? null : module.Definition;
+        }
+
+        private static string OptionName(Transform option)
+        {
+            var definition = ModuleDefinition(option);
+            return definition == null || string.IsNullOrWhiteSpace(definition.displayName)
+                ? ObjectNames.NicifyVariableName(option.name)
+                : definition.displayName;
+        }
+
+        /// <summary>Mass and the two changes that matter most, as a tile caption.</summary>
+        private static string Effect(ArmoryCoreAttachmentDefinition definition)
+        {
+            if (definition == null)
+                return "no definition";
+            var parts = new List<string>();
+            if (definition.slot == ArmoryCoreAttachmentSlot.Sights && definition.GameplayMaximumMagnification > 1f)
+                parts.Add($"{definition.GameplayMaximumMagnification:0.#}×");
+            if (definition.suppressesMuzzleBlast)
+                parts.Add("suppressed");
+            void Add(string name, float multiplier)
+            {
+                if (Mathf.Abs(multiplier - 1f) >= 0.02f)
+                    parts.Add(name + " " + ArmoryCoreDefinitionEditorUtility.FormatModifier(multiplier));
+            }
+            Add("recoil", definition.recoilMultiplier);
+            Add("spread", definition.spreadMultiplier);
+            Add("aim", definition.aimTimeMultiplier);
+            Add("velocity", definition.muzzleVelocityMultiplier);
+            if (parts.Count == 0)
+                parts.Add("no stat change");
+            return $"{definition.massKilograms:0.##} kg · " + string.Join(" · ", parts.GetRange(0, Mathf.Min(2, parts.Count)));
+        }
+
+        private static void Install(ArmoryCoreWeaponController weapon, ArmoryCoreAttachmentSlot slot, Transform root, Transform option, string title)
+        {
+            var objects = new UnityEngine.Object[root.childCount];
+            for (var index = 0; index < root.childCount; index++)
+                objects[index] = root.GetChild(index).gameObject;
+            Undo.RecordObjects(objects, $"Change {title} attachment");
+            var definition = ModuleDefinition(option);
+            var id = option == null ? null : string.IsNullOrWhiteSpace(definition?.id) ? option.name : definition.id;
+            weapon.SelectAttachment(slot, id);
+            foreach (var changed in objects)
+                ArmoryCoreSetupGUI.MarkChanged(changed);
+        }
+
+        /// <summary>The weapon with its installed attachments against the bare weapon.</summary>
+        private void DrawAttachmentEffect(ArmoryCoreWeaponController weapon, int number)
+        {
+            var definition = weapon.Definition;
+            var modules = new List<ArmoryCoreAttachmentModule>();
+            foreach (var slot in Slots)
+            {
+                var root = weapon.GetAttachmentSlotRoot(slot);
+                if (root == null)
+                    continue;
+                for (var index = 0; index < root.childCount; index++)
+                {
+                    var child = root.GetChild(index);
+                    var module = child.gameObject.activeSelf ? child.GetComponent<ArmoryCoreAttachmentModule>() : null;
+                    if (module != null)
+                        modules.Add(module);
+                }
+            }
+            var state = definition == null ? ArmoryCoreSetupGUI.StepState.Locked : ArmoryCoreSetupGUI.StepState.Done;
+            if (!Step("mods.effect", number, "What the attachments change", state, definition == null ? "no definition" : $"{modules.Count} installed",
+                    "Effective values with the installed attachments against the bare weapon"))
+                return;
+            using (ArmoryCoreSetupGUI.CardBody())
+            {
+                if (definition == null)
+                {
+                    ArmoryCoreGraph.Hint("Assign a definition on the Weapon tab first.");
+                    return;
+                }
+                var bare = ArmoryCoreWeaponRuntimeStats.Build(definition, new List<ArmoryCoreAttachmentModule>());
+                var with = ArmoryCoreWeaponRuntimeStats.Build(definition, modules);
+                Compare("Mass", bare.MassKilograms, with.MassKilograms, "kg", false);
+                Compare("Rate of fire", bare.RoundsPerMinute, with.RoundsPerMinute, "rpm", true);
+                Compare("Muzzle velocity", bare.MuzzleVelocityMetersPerSecond, with.MuzzleVelocityMetersPerSecond, "m/s", true);
+                Compare("Spread", bare.AccuracyMinutesOfAngle, with.AccuracyMinutesOfAngle, "MOA", false);
+                Compare("Vertical recoil", bare.VerticalRecoilDegrees, with.VerticalRecoilDegrees, "°", false);
+                Compare("Aim time", bare.AimTimeSeconds, with.AimTimeSeconds, "s", false);
+                Compare("Empty reload", bare.EmptyReloadSeconds, with.EmptyReloadSeconds, "s", false);
+                Compare("Rounds between stoppages", bare.MeanRoundsBetweenFailures, with.MeanRoundsBetweenFailures, "", true);
+                Compare("Shot loudness", bare.SoundPressureMultiplier, with.SoundPressureMultiplier, "×", false);
+                if (with.Magnification > 1f)
+                    ArmoryCoreGraph.Hint($"Sight: <b>{with.Magnification:0.#}×</b>, zeroed at {with.ZeroDistanceMeters:0} m.");
+                if (with.Suppressed)
+                    ArmoryCoreGraph.Hint("The shot is suppressed: the definition's suppressed shot sound plays.");
+            }
+        }
+
+        /// <summary>A bar of the effective value: green when the attachments make it better, red when worse, half full when unchanged.</summary>
+        private static void Compare(string title, float bare, float with, string unit, bool higherIsBetter)
+        {
+            var ratio = with / Mathf.Max(0.0001f, bare);
+            var better = higherIsBetter ? ratio > 1.001f : ratio < 0.999f;
+            var worse = higherIsBetter ? ratio < 0.999f : ratio > 1.001f;
+            var color = better ? ArmoryCoreGraph.Good : worse ? ArmoryCoreGraph.Bad : ArmoryCoreGraph.Muted;
+            var change = better || worse ? "  (" + ArmoryCoreDefinitionEditorUtility.FormatModifier(ratio) + ")" : "";
+            var format = with >= 100f ? "0" : with >= 10f ? "0.#" : "0.##";
+            var suffix = unit.Length > 0 ? " " + unit : "";
+            ArmoryCoreGraph.Bar(title, Mathf.Clamp01(ratio * 0.5f), color, with.ToString(format) + suffix + change,
+                $"Bare weapon: {bare.ToString(format)}{suffix}. The bar is half full when nothing changes.");
+        }
+
+        // ---------- Events ----------
 
         private void DrawEventsPage()
         {
             DrawPageIntro(
                 "Gameplay events",
-                "Connect UI, animation, sound, analytics, and other systems without modifying the weapon controller.");
+                "Connect UI, animation, sound and other systems without changing the weapon controller.");
 
-            DrawEventSection(ref showFireEvents, "Firing & ammunition", new[]
+            DrawEventStep(1, "fire", "Firing & ammunition", "Every shot, an empty trigger pull and every change of the round count", new[]
             {
-                "onShot", "onEmpty", "onAmmoChanged"
+                ("onShot", "Shot"), ("onEmpty", "Empty trigger"), ("onAmmoChanged", "Ammo changed (in weapon, reserve)")
             });
-            DrawEventSection(ref showStateEvents, "Reload & malfunctions", new[]
+            DrawEventStep(2, "state", "Reload & malfunctions", "Start and end of a reload, a stoppage and its clearing", new[]
             {
-                "onReloadStarted", "onReloadCompleted", "onMalfunction", "onMalfunctionCleared"
+                ("onReloadStarted", "Reload started"), ("onReloadCompleted", "Reload completed"), ("onMalfunction", "Malfunction"), ("onMalfunctionCleared", "Malfunction cleared")
             });
-            DrawEventSection(ref showAimEvents, "Aiming", new[] { "onAimChanged" });
+            DrawEventStep(3, "aim", "Aiming", "Raising and lowering the sights", new[] { ("onAimChanged", "Aim changed (is aiming)") });
+            ArmoryCoreGraph.Hint("Code can also subscribe to the ShotAttempted and RecoilApplied C# events of ArmoryCoreWeaponController.");
         }
 
-        private void DrawEventSection(ref bool expanded, string title, string[] propertyNames)
+        private void DrawEventStep(int number, string id, string title, string tooltip, (string name, string label)[] events)
         {
-            if (ArmoryCoreDefinitionEditorUtility.BeginSection(ref expanded, title))
+            var listeners = 0;
+            foreach (var (name, _) in events)
+                listeners += Listeners(name);
+            var state = listeners > 0 ? ArmoryCoreSetupGUI.StepState.Done : ArmoryCoreSetupGUI.StepState.Optional;
+            if (!Step("events." + id, number, title, state, listeners == 0 ? "not connected" : listeners == 1 ? "1 listener" : $"{listeners} listeners", tooltip))
+                return;
+            using (ArmoryCoreSetupGUI.CardBody())
             {
-                for (var index = 0; index < propertyNames.Length; index++)
-                    DrawProperty(propertyNames[index], ObjectNames.NicifyVariableName(propertyNames[index]));
+                foreach (var (name, label) in events)
+                    DrawProperty(name, label);
             }
-            ArmoryCoreDefinitionEditorUtility.EndSection(expanded);
+        }
+
+        private int Listeners(string name)
+        {
+            var calls = serializedObject.FindProperty(name + ".m_PersistentCalls.m_Calls");
+            return calls == null || calls.hasMultipleDifferentValues ? 0 : calls.arraySize;
         }
 
         private void DrawProperty(string propertyName, string label, string tooltip = null)

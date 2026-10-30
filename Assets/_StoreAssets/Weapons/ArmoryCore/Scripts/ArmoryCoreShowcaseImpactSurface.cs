@@ -9,14 +9,43 @@ namespace ArmoryCore
         [SerializeField] private Color sparkColor = new(1f, 0.56f, 0.12f, 1f);
         [SerializeField, Range(0.01f, 0.1f)] private float markRadius = 0.028f;
         [SerializeField, Min(1f)] private float markLifetime = 24f;
+        [SerializeField, Range(0.1f, 3f)] private float scorchDiameter = 1.1f;
 
         private static Material markMaterial;
         private static Material sparkMaterial;
 
         public void ReceiveBallisticHit(ArmoryCoreBallisticHit hit)
         {
+            if (hit.IsExplosion)
+            {
+                CreateScorchMark(hit);
+                return;
+            }
             CreateImpactMark(hit);
             CreateSparks(hit);
+        }
+
+        private void CreateScorchMark(ArmoryCoreBallisticHit hit)
+        {
+            var radius = hit.Ammunition == null ? 5f : hit.Ammunition.explosionRadiusMeters;
+            var strength = hit.Ammunition == null || hit.Ammunition.explosionDamage <= 0f
+                ? 1f
+                : Mathf.Clamp01(hit.Damage / hit.Ammunition.explosionDamage);
+            if (strength < 0.45f)
+                return;
+            var mark = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            mark.name = "Explosion Scorch";
+            var collider = mark.GetComponent<Collider>();
+            if (collider != null)
+                Destroy(collider);
+            mark.transform.SetParent(hit.Collider == null ? transform : hit.Collider.transform, true);
+            mark.transform.position = hit.Point + hit.Normal * 0.003f;
+            mark.transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.Normal)
+                * Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+            var diameter = scorchDiameter * Mathf.Clamp(radius / 5f, 0.4f, 3f) * strength;
+            mark.transform.localScale = new Vector3(diameter, 0.0012f, diameter);
+            mark.GetComponent<Renderer>().sharedMaterial = GetMarkMaterial();
+            Destroy(mark, markLifetime);
         }
 
         private void CreateImpactMark(ArmoryCoreBallisticHit hit)

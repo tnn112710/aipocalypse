@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fa7c6c09bc955b44bc363e1d10ffb6b, type: 3}
+  m_Name: 9x39
+  m_EditorClassIdentifier: Assembly-CSharp::ArmoryCore.ArmoryCoreAmmunitionDefinition
+  id: 9x39
+  displayName: 9x39 mm
+  projectileType: 0
+  projectileMassGrams: 16
+  projectileDiameterMillimeters: 9.3
+  noseShape: 1
+  bulletLengthMillimeters: 0
+  muzzleVelocityMetersPerSecond: 295
+  aerodynamicDragCoefficient: 0.34
+  gravityMultiplier: 1
+  maximumFlightTime: 4.237288
+  maximumRangeMeters: 500
+  minimumLethalVelocity: 60
+  retainedDamageAtMinimumVelocity: 0.12
+  penetrationMultiplier: 1
+  ricochetEnergyRetention: 0.55
+  maximumSegmentLengthMeters: 2
+  maximumSubstepsPerFrame: 24
+  motorAccelerationMetersPerSecondSquared: 180
+  motorIgnitionDelay: 0.08
+  motorBurnTime: 1
+  maximumRocketSpeedMetersPerSecond: 295
+  armingDistanceMeters: 5
+  explosionRadiusMeters: 5
+  explosionDamage: 250
+  explosionDamageAtEdge: 0.1
+  explosionForce: 600
+  explosionAffectsOwner: 0
+  explodeOnTimeout: 1
+  rocketLengthMeters: 0.9
+  smokeTrailTime: 1.6

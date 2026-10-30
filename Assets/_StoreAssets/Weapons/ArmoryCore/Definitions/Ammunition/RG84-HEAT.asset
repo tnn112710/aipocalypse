@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fa7c6c09bc955b44bc363e1d10ffb6b, type: 3}
+  m_Name: RG84-HEAT
+  m_EditorClassIdentifier: Assembly-CSharp::ArmoryCore.ArmoryCoreAmmunitionDefinition
+  id: RG84-HEAT
+  displayName: Ordan RG84 HEAT rocket
+  projectileType: 1
+  projectileMassGrams: 1800
+  projectileDiameterMillimeters: 84
+  noseShape: 1
+  muzzleVelocityMetersPerSecond: 200
+  aerodynamicDragCoefficient: 0.28
+  gravityMultiplier: 0.3
+  maximumFlightTime: 5
+  maximumRangeMeters: 1000
+  minimumLethalVelocity: 60
+  retainedDamageAtMinimumVelocity: 0.12
+  penetrationMultiplier: 1
+  ricochetEnergyRetention: 0.55
+  maximumSegmentLengthMeters: 2
+  maximumSubstepsPerFrame: 24
+  motorAccelerationMetersPerSecondSquared: 120
+  motorIgnitionDelay: 0.05
+  motorBurnTime: 0.7
+  maximumRocketSpeedMetersPerSecond: 285
+  armingDistanceMeters: 5
+  explosionRadiusMeters: 4.5
+  explosionDamage: 300
+  explosionDamageAtEdge: 0.1
+  explosionForce: 600
+  explosionAffectsOwner: 0
+  explodeOnTimeout: 1
+  rocketLengthMeters: 0.9
+  smokeTrailTime: 1.6

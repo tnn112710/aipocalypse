@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fa7c6c09bc955b44bc363e1d10ffb6b, type: 3}
+  m_Name: RG7
+  m_EditorClassIdentifier: Assembly-CSharp::ArmoryCore.ArmoryCoreAmmunitionDefinition
+  id: RG7
+  displayName: Ordan RG7 rocket
+  projectileType: 1
+  projectileMassGrams: 2250
+  projectileDiameterMillimeters: 85
+  noseShape: 1
+  muzzleVelocityMetersPerSecond: 115
+  aerodynamicDragCoefficient: 0.3
+  gravityMultiplier: 0.35
+  maximumFlightTime: 4.5
+  maximumRangeMeters: 920
+  minimumLethalVelocity: 60
+  retainedDamageAtMinimumVelocity: 0.12
+  penetrationMultiplier: 1
+  ricochetEnergyRetention: 0.55
+  maximumSegmentLengthMeters: 2
+  maximumSubstepsPerFrame: 24
+  motorAccelerationMetersPerSecondSquared: 200
+  motorIgnitionDelay: 0.1
+  motorBurnTime: 0.9
+  maximumRocketSpeedMetersPerSecond: 295
+  armingDistanceMeters: 5
+  explosionRadiusMeters: 5
+  explosionDamage: 260
+  explosionDamageAtEdge: 0.1
+  explosionForce: 700
+  explosionAffectsOwner: 0
+  explodeOnTimeout: 1
+  rocketLengthMeters: 0.95
+  smokeTrailTime: 1.8

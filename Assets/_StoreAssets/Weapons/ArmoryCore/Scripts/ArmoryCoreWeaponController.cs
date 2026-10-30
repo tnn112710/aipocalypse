@@ -166,7 +166,7 @@ namespace ArmoryCore
 
         private void Awake()
         {
-            random = new System.Random();
+            random = new System.Random(GetInstanceID() ^ Environment.TickCount);
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
             if (animator == null)
@@ -776,7 +776,7 @@ namespace ArmoryCore
             for (var i = 0; i < definition.projectilesPerShot; i++)
             {
                 var direction = ApplyConeSpread(baseDirection, coneHalfAngleDegrees);
-                ArmoryCoreBallisticProjectile.Launch(new ArmoryCoreProjectileLaunchData
+                var launchData = new ArmoryCoreProjectileLaunchData
                 {
                     position = muzzle.position,
                     direction = direction,
@@ -785,7 +785,11 @@ namespace ArmoryCore
                     baseDamage = definition.damagePerProjectile,
                     hitMask = hitMask,
                     owner = transform.root.gameObject
-                });
+                };
+                if (definition.ammunition.IsRocket)
+                    ArmoryCoreRocketProjectile.Launch(launchData);
+                else
+                    ArmoryCoreBallisticProjectile.Launch(launchData);
             }
         }
 
@@ -1103,8 +1107,7 @@ namespace ArmoryCore
                 return direction;
 
             var distance = Mathf.Max(1f, sight.CurrentZeroDistanceMeters);
-            var velocity = Mathf.Max(1f, stats.MuzzleVelocityMetersPerSecond);
-            var flightTime = distance / velocity;
+            var flightTime = definition.ammunition.EstimateFlightTime(distance, stats.MuzzleVelocityMetersPerSecond);
             var origin = aimReference == null ? muzzle.position : aimReference.position;
             var gravityCompensation = -Physics.gravity
                 * definition.ammunition.gravityMultiplier

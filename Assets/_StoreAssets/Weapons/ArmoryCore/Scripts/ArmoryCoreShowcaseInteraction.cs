@@ -16,8 +16,8 @@ namespace ArmoryCore
         [SerializeField] private Transform demoSpawn;
         [SerializeField, Min(1f)] private float interactionDistance = 300f;
         [SerializeField, Range(40f, 100f)] private float demoFieldOfView = 65f;
-        [SerializeField] private Vector3 heldViewPosition = new(0.23f, -0.24f, 0.96f);
-        [SerializeField] private Vector3 heldViewRotation = new(0.5f, 82.5f, 0f);
+        [SerializeField] private Vector3 heldViewPosition = new(0.2f, -0.21f, 0.6f);
+        [SerializeField] private Vector3 heldViewRotation = new(0.5f, 90f, 0f);
         [SerializeField, Min(0.1f)] private float heldWeaponLength = 0.88f;
 
         private ArmoryCoreShowcaseWeaponCard hoveredCard;
@@ -47,12 +47,12 @@ namespace ArmoryCore
 
         private void UpgradeLegacyHeldPose()
         {
-            // Existing showcase scenes may still contain the older, oversized
-            // 76-degree hip pose even after the script defaults have changed.
-            if (heldViewRotation.y < 80f || heldWeaponLength > 0.9f || heldViewPosition.z < 0.92f)
+            // Existing showcase scenes may still contain an older hip pose that held
+            // the weapon far from the shoulder and angled toward the crosshair.
+            if (heldViewRotation.y < 88f || heldWeaponLength > 0.9f || heldViewPosition.z > 0.75f)
             {
-                heldViewPosition = new Vector3(0.23f, -0.24f, 0.96f);
-                heldViewRotation = new Vector3(0.5f, 82.5f, 0f);
+                heldViewPosition = new Vector3(0.2f, -0.21f, 0.6f);
+                heldViewRotation = new Vector3(0.5f, 90f, 0f);
                 heldWeaponLength = 0.88f;
             }
         }
@@ -188,12 +188,12 @@ namespace ArmoryCore
                 return (heldWeaponLength, heldViewPosition);
             var mass = definition.weaponMassKilograms;
             if (mass <= 1.35f)
-                return (0.46f, new Vector3(0.14f, -0.17f, 0.55f));
+                return (0.46f, new Vector3(0.13f, -0.16f, 0.46f));
             if (mass <= 2.35f)
-                return (0.68f, new Vector3(0.18f, -0.2f, 0.74f));
+                return (0.68f, new Vector3(0.17f, -0.19f, 0.5f));
             if (mass <= 4.8f)
                 return (heldWeaponLength, heldViewPosition);
-            return (0.96f, new Vector3(0.26f, -0.29f, 1.05f));
+            return (0.96f, new Vector3(0.23f, -0.24f, 0.66f));
         }
 
         public void CycleAttachment(ArmoryCoreAttachmentSlot slot)

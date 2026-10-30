@@ -13,6 +13,8 @@ namespace ArmoryCore
         public readonly ArmoryCoreAmmunitionDefinition Ammunition;
         public readonly GameObject Shooter;
         public readonly Collider Collider;
+        /// <summary>True when the hit comes from a rocket warhead blast rather than a projectile strike.</summary>
+        public readonly bool IsExplosion;
 
         public ArmoryCoreBallisticHit(
             Vector3 point,
@@ -23,7 +25,8 @@ namespace ArmoryCore
             float distanceMeters,
             ArmoryCoreAmmunitionDefinition ammunition,
             GameObject shooter,
-            Collider collider)
+            Collider collider,
+            bool isExplosion = false)
         {
             Point = point;
             Normal = normal;
@@ -34,6 +37,7 @@ namespace ArmoryCore
             Ammunition = ammunition;
             Shooter = shooter;
             Collider = collider;
+            IsExplosion = isExplosion;
         }
     }
 
