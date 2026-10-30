@@ -8,6 +8,8 @@ Guidance for AI coding agents (Claude Code, Codex, …) working in this reposito
 
 **Performance target: 60 fps at 1080p on an RTX 2060-class GPU** (16.6 ms per frame, CPU and GPU). Judge perf work against it, measured in a build or with the editor overhead accounted for (`unity-optimization-pc`).
 
+**Polish levels:** each area has an effort level (Very High / High / Medium / Low) in `docs/ROADMAP.md` → "Polish levels". Scale work to it, and ask before polishing an area beyond its level.
+
 **Editor control: Unity CLI** (`unity`, via the `com.unity.pipeline` package). The deprecated Unity MCP is not used. The CLI's docs ship with the package in `Library/PackageCache/com.unity.pipeline@*/Documentation~/` (`commands/`, `authoring-commands.md`, `testing.md`, …); in Claude Code, also load the official `unity:unity-cli` skill. Read them before editor work.
 
 - Use `unity command <name>` to drive the live editor (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML. `unity command` lists the command groups (`unity command <group>` lists a group); follow the package docs (`script recompile` → `script recompile_status` → `test run` loop, `script run` for bulk/plugin work, `script eval` for one-liners). Older docs and skills may use the pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.

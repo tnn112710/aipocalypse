@@ -26,6 +26,56 @@ Core feel prototypes — the mechanics are currently tested together in `Scenes/
 
 - DayNight rules (dusk warning, sleeping with `SkipTo`, night enemies), Weather (an atmosphere layer in `EnvironmentDirector`, see DAYNIGHT.md), Progression, Persistence (save, death, rewind), Activities, Economy — scope follows the GDD
 
+## Polish levels
+
+How much effort and polish each area gets (user, 2026-10-31). Scale work to the level: don't polish a Low area past working and readable, and ask before raising an area's level.
+
+| Level | Meaning | Done looks like |
+| --- | --- | --- |
+| **Very High** | The reason to buy the game | Tuned by feel over many passes; custom feedback on every action (sound, VFX, animation, camera); playtested again and again |
+| **High** | Used every day in the loop | Complete, clear feedback, polished main paths; store assets adapted to fit; a couple of tuning passes |
+| **Medium** | Supports the loop | Works and reads clearly; store assets with light setup; one tuning pass; edge cases handled simply |
+| **Low** | Needed but rarely noticed | Works without bugs; defaults and placeholders that read fine; no tuning pass |
+
+| Area | Covers | Level |
+| --- | --- | --- |
+| Shooting | Guns, recoil, hit feedback, first-person hands, gun audio, muzzle and impact VFX | Very High |
+| Inner zone | The yard and meadow (the home side of the river): layout, dressing, house and farm look, the cozy feel | Very High |
+| Day/night | Clock, sky, time-of-day looks, the night look | High |
+| Enemies & bosses | AI, behaviours, theft, roster and looks, raid spawns, Blood Moon minibosses, the eclipse boss | High |
+| Fishing | Rod, gun fishing, fish variety | High |
+| Animals | Roaming, drops, the bell, theft, sleep | High |
+| Environment | The whole map: terrain, water, vegetation, boundary, atmosphere | High |
+| Outer-zone content | Points of interest, loot spots, landmarks, secrets | High |
+| Movement & camera | Walk, sprint, jump, look, head bob | High |
+| Level balancing | Raid difficulty and schedule tuning, economy numbers, progression pacing | High |
+| Tutorial | Wake-up intro, teaching the loop, the bridge repair, the first raid | High |
+| Performance | 60 fps at 1080p on an RTX 2060 (here the level means reliability) | High |
+| Save/load | Progress across days, never lost (here the level means reliability) | High |
+| Crafting | Recipes, workbench | Medium |
+| Trading | The trading robot, buy and sell, daily stock, the robots' look and personality | Medium |
+| Audio | Everything outside shooting: ambience, music, farm, enemy and UI sounds | Medium |
+| VFX | Everything outside shooting: atmosphere, farm, enemy and UI effects | Medium |
+| Melee | Axe and fallback weapons | Medium |
+| Defense | Fences, barricades, repair | Medium |
+| Player upgrades | All player and home growth | Medium |
+| Sanity & the Dark | Effects, drain, warnings | Medium |
+| Inventory | Hotbar, backpack, carrying | Medium |
+| Sleep | Sleeping, time skip, sanity recovery | Medium |
+| Crops & plants | Planting, growth, harvest | Medium |
+| Daily box | The pick, rarity, the opening moment | Medium |
+| Interaction | Pickups, prompts | Medium |
+| Looting | Searching, containers, loot tables | Medium |
+| HUD | Bars, clock, prompts, the progress bar | Medium |
+| Menus | Main and pause menus, settings (FOV, sensitivity, key rebinding, graphics) | Medium |
+| Writing | Drone, robots, AI Lord, item names, humor | Medium |
+| Swimming | River crossing, drowning | Low |
+| Tree chopping | Felling, regrowth | Low |
+| Cooking | Recipes, eating | Low |
+| Deposit | The safe stash | Low |
+
+Not set yet (suggestions until the user decides): weapon roster & mods Medium, survival meters (HP, hunger, stamina) Medium, death, knockout & losses Medium, dog Medium, guide drone Medium, weather Low, Steam features (achievements, cloud saves) Low, accessibility Low, controller / Steam Deck Low, localization Later (English only at launch).
+
 ## Done
 
 - Project setup, URP, store assets imported
