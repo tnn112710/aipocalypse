@@ -1,6 +1,6 @@
 ---
 name: tools-unity-synty-characters
-description: Synty character content in aipocalypse. Covers the Sidekick Character Creator (tool 1.2.7, its SQLite DB, .sk files, species / part / body / color presets) and building Sidekick characters without the window using scripts/SidekickKit.cs (no DB writes, first-party model prefabs with their own avatar). Also covers the Sidekick character packs (Goblin Fighters / Species), the Polygon character packs (Goblin War Camp, Generic), the Synty animation packs (Base Locomotion and Goblin Locomotion — A_MOD_ vs POLY clips, the misleading _RM_ names, authored gait speeds, the two-frame additive look / lean clips), the rigs and avatars, and vendor traps (180 MB Resources in builds, the tool's update check, banned sample scripts, the EULA's generative-AI clause). Use whenever a task creates, customizes, rebuilds or animates a Synty character, picks Synty clips, or imports a new Sidekick or Synty character / animation pack. Turning the model into an enemy or NPC (prefab contract, controller, EnemyAnimator) is aipocalypse-characters; behaviour is aipocalypse-enemy-ai.
+description: Synty character content in aipocalypse. Covers the Sidekick Character Creator (tool 1.2.7, its SQLite DB, .sk files, species / part / body / color presets) and building Sidekick characters without the window using scripts/SidekickKit.cs (no DB writes, first-party model prefabs with their own avatar). Also covers the Sidekick character packs (Goblin Fighters / Species), the Polygon character packs (Goblin War Camp, Generic), the Synty animation packs (Base Locomotion and Goblin Locomotion — A_MOD_ vs POLY clips, the misleading _RM_ names, authored gait speeds, the two-frame additive look / lean clips; Bow Combat, Sword Combat, Idles, Emotes and Taunts — prop bones and masks, synced bow clips, attack wind-up / hit sub-clips, shared base poses, the Prop Bone Binder), the rigs and avatars, and vendor traps (180 MB Resources in builds, the tool's update check, banned sample scripts, the EULA's generative-AI clause). Use whenever a task creates, customizes, rebuilds or animates a Synty character, picks Synty clips, or imports a new Sidekick or Synty character / animation pack. Turning the model into an enemy or NPC (prefab contract, controller, EnemyAnimator) is aipocalypse-characters; behaviour is aipocalypse-enemy-ai.
 ---
 
 # Synty characters and animations (aipocalypse)
@@ -11,14 +11,18 @@ Source-level facts (DB tables, runtime API, the tool's export path, file:line): 
 
 ## 0. Status: ask before using
 
-ASSETS.md tags every pack below **Undecided** (Polygon Generic and Prototype are **Avoid**). The Goblin enemy (`Content/Enemies/Goblin/`) uses Sidekick + Goblin Locomotion as a test the user asked for; any other use asks first (AGENTS.md → Ask the user first), then updates the pack's row.
+ASSETS.md tags the Sidekick, Polygon and locomotion packs below **Undecided** (Polygon Generic and Prototype are **Avoid**). The Goblin enemy (`Content/Enemies/Goblin/`) uses Sidekick + Goblin Locomotion as a test the user asked for; any other use asks first (AGENTS.md → Ask the user first), then updates the pack's row. The four action packs (Bow Combat, Sword Combat, Idles, Emotes and Taunts) are **Could**: use them for what the Kevin Iglesias packs (Should) lack, and add what you took to their row.
 
 | Pack | Folder | What |
 | --- | --- | --- |
 | Sidekick Characters (tool 1.2.7, DB 1.0.2) | `Assets/Synty/SidekickCharacters` | Modular character builder: one Humanoid rig, ~530 part FBX in `Resources/`, SQLite DB of parts / presets / colors |
-| Sidekick character packs | `SidekickCharacters/Characters/<Pack>/<Name>/` | Ready characters: `.sk` + prefab + mesh/avatar assets (GoblinFighters, GoblinSpecies today; more get imported) |
+| Sidekick character packs | `SidekickCharacters/Characters/<Pack>/<Name>/` | Ready characters: `.sk` + prefab + mesh/avatar assets (GoblinFighters, GoblinSpecies, ApocalypseZombies (Could) today; more get imported) |
 | Animation Base Locomotion | `Assets/Synty/AnimationBaseLocomotion` | 346 Sidekick + 346 Polygon clips, Masculine / Feminine sets + neutral additives |
 | Animation Goblin Locomotion | `Assets/Synty/AnimationGoblinLocomotion` | 194 Sidekick + 194 Polygon clips, neutral only, + idle fidgets and a stumble |
+| Animation Bow Combat | `Assets/Synty/AnimationBowCombat` | 190 character + 309 synced bow clips per format, rigged bows, arrows, quivers |
+| Animation Sword Combat | `Assets/Synty/AnimationSwordCombat` | 118 clips per format: combos with wind-up / hit sub-clips, blocks, parries, dodges, hits, deaths |
+| Animation Idles | `Assets/Synty/AnimationIdles` | 330 clips per format, Masc / Femn idle actions and Enter / Loop / Exit stances |
+| Animation Emotes and Taunts | `Assets/Synty/AnimationEmotesAndTaunts` | 140 clips per format, Masc / Femn emotes and taunts |
 | Polygon Goblin War Camp | `Assets/Synty/PolygonGoblinWarCamp` | 15 fixed `SM_Chr_*` characters (Polygon rig) + camp props |
 
 ## 1. Pick the source
@@ -79,6 +83,20 @@ What Build does differently from the tool's own export, and why:
 - Synty's tutorial videos ("Getting Animated", "Base Locomotion – Character setup guide") only show swapping a character into `PF_Player`. Two points carry over:
   - Keep **one Animator per character**, on the model root, with the character's own avatar. Drop any nested Animator.
   - Keep characters off the **Default** layer, which ground checks use. Our enemies are on `Enemy`.
+
+### Action packs: Bow Combat, Sword Combat, Idles, Emotes and Taunts
+
+Each pack's guide is its `Documentation/*.pdf` (Read can't render PDFs without poppler; `pdftotext -layout` in Git Bash works). Clip lists in ASSETS.md.
+
+- **Same format as the locomotion packs:** `A_MOD_<PACK>_*` Sidekick / `A_POLY_<PACK>_*` Polygon (pack tags `BOW`, `SWD`, `IDL`, `EMOT`; Sword Combat's Polygon clips keep the old `A_<Type>_…_Sword` names). Humanoid, compression Off, loop set per clip, the same `_RM_` trap (most `_RM_` and even `_RMH_` clips bake everything into the pose), so use the in-place clips. Suffix `_Masc` / `_Femn` / `_Neut`.
+- **Base poses chain across packs.** Base Locomotion, Bow, Idles and Emotes clips start and end on the shared `Idle_Base_Masc` / `_Femn` pose; Sword Combat runs on its own neutral combat idle and links to the Masc / Femn base through its draw / sheathe and `ToIdle` / `ToBase` clips. Goblin Locomotion is neutral, so moving between it and these packs needs a crossfade (~0.2 s), not an exact pose match.
+- **Prop bones and clip masks.** The clips key `prop_l` / `prop_r` and the `*Attach` bones. Each clip carries a transform mask (`Mask_SidekickSyntyCharacter` / `Mask_PolygonSyntyCharacter`, in each pack's `Meshes/` or `Samples/Meshes/`) that lists those non-humanoid bones, so they play. Paths are relative to the Animator (`root/pelvis/…/hand_r/prop_r`). SidekickKit-built models keep that hierarchy, so they have both prop bones. Hold weapons and props under `prop_r` (sword, phone, cup) or `prop_l` (bow) at zero local transform, never under `hand_r`: stabs, grip changes and bow draws move the prop bone inside the hand.
+- **Holstering:** during equip / stow / sheathe the prop bone counter-animates against the moving arm and jitters. Swap to a second copy parented to the body (spine_03 for a bow, pelvis for a sword) at the moment the clip parks it, using an Animation Event or our own timer on the clip's normalized time.
+- **Bow Combat:** a clip with a bow has a twin of the same name in `Cmp/` / `Lng/` / `Rcv/` (compound, long, recurve bow) that plays on the **bow's own Animator**: start both together, same length. The arrow goes on the bow's `arrow_rest_jnt` or on `prop_r`, and at release a separate projectile takes over. A rigged bow is a second Animator per archer. For crowds, use the `Models/Bows/Unrigged/` mesh on `prop_l` (the string stays still) and measure before adding bow Animators. The five `Stand_Aiming_Undrawn_Additive_*` two-frame clips (N, L90, R90, U90, D90) make an aim-offset blend tree, with `_N` (neutral, aiming forward) as the centre; check that its delta is zero with `CharacterKit.Snapshot` before relying on it.
+- **Sword Combat:** each attack FBX holds the full clip plus `_WindUp`, `_Hit` and `_FollowThrough` sub-clips, so the `_Hit` frame range gives the damage window (enemy hit timing) and wind-up length gives the telegraph. Combo steps `A` / `B` end ready for the next step's wind-up or their own `ReturnToIdle` file. `BaseLocomotionMasking.controller` in `Samples/` is the vendor's upper-body sword-arm layering example (arm override ~0.6–0.7, hand override 1 with `Meshes/Mask_Arm_R` / `Mask_Hand_R`). It's a reference only.
+- **Idles:** `Actions/` are one-offs that start and end on their category's pose (a few end elsewhere: `Drink_Shot` and `Eat_Scoff` return to Base); `Stances/` are `Enter` / `Loop` / `Exit` sets. An idle variety system plays `Base` → stance `Enter` → `Loop` (n times) or an action → `Exit`. Masc / Femn only, no neutral.
+- **Prop Bone Binder** (`Assets/Synty/Tools/SyntyPropBoneTool`, menu Synty → Tools → Animation → Setup Prop Bones) adds virtual prop bones to rigs that lack them (old POLYGON, Kid, Big). It is an `[ExecuteInEditMode]` MonoBehaviour copying transforms every `LateUpdate`, in Assembly-CSharp. Sidekick models don't need it. Keep it off crowd entities and out of `_Game` unless PLUGINS.md tags it.
+- **Not for the player:** Bow's `_FPV_` clips pose a full body for a head camera; our first-person view is the hand system ([HANDS.md](../../../docs/technicals/HANDS.md)). Gallery scenes, timelines, sample characters and the Built-in Standard materials (bows, arrows, samples: pink in URP) stay out of `_Game`.
 
 ## 5. License
 

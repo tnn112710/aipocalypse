@@ -12,13 +12,18 @@ What we *could* import from [syntystore.com](https://syntystore.com/). The proje
 | Pack | Folder | ASSETS.md tag |
 | --- | --- | --- |
 | ANIMATION - Base Locomotion | `Assets/Synty/AnimationBaseLocomotion` | Undecided |
+| ANIMATION - Bow Combat | `Assets/Synty/AnimationBowCombat` | Could |
+| ANIMATION - Emotes and Taunts | `Assets/Synty/AnimationEmotesAndTaunts` | Could |
 | ANIMATION - Goblin Locomotion | `Assets/Synty/AnimationGoblinLocomotion` | Undecided |
+| ANIMATION - Idles | `Assets/Synty/AnimationIdles` | Could |
+| ANIMATION - Sword Combat | `Assets/Synty/AnimationSwordCombat` | Could |
 | INTERFACE - Apocalypse HUD | `Assets/Synty/InterfaceApocalypseHUD` | Should |
 | INTERFACE - Core (comes with the Interface packs) | `Assets/Synty/InterfaceCore` | Should |
 | POLYGON - Generic (shared Synty content) | `Assets/Synty/PolygonGeneric` | Avoid |
 | POLYGON - Goblin War Camp | `Assets/Synty/PolygonGoblinWarCamp` | Undecided |
 | POLYGON - Prototype Pack | `Assets/Synty/PolygonPrototype` | Avoid |
 | Sidekick Characters (tool) + Goblin Fighters, Goblin Species | `Assets/Synty/SidekickCharacters` | Undecided |
+| Sidekick Apocalypse Zombies | `Assets/Synty/SidekickCharacters/Characters/ApocalypseZombies` | Could |
 | Synty Package Helper (importer tool) | `Assets/Synty/SyntyPackageHelper` | Avoid (PLUGINS.md) |
 
 ## Animation
@@ -27,10 +32,10 @@ Humanoid clips that retarget onto Sidekick and POLYGON characters (and any human
 
 | Pack | Fit | Purpose |
 | --- | --- | --- |
-| ANIMATION - Bow Combat | High | Bow draw, aim, fire, reload, locomotion with a bow. **The missing clips for goblin archers** (the Malbers bow clips don't pose standalone). |
-| ANIMATION - Sword Combat | Low | Sword attacks, blocks, hits, combat locomotion. Kevin Iglesias Melee (installed, in use on the goblins) already covers it; only for extra variety. |
-| ANIMATION - Idles | Low | Many idle variations: fidgets for enemies and NPCs, the drone's people, base dwellers. Kevin Iglesias Basic Motions and Soldier (installed) have idles, idle breaks and military idles. |
-| ANIMATION - Emotes and Taunts | Med | Salutes, taunts, celebrations: enemy taunts, NPC reactions, "everything is a game" jokes. Kevin Iglesias Basic Motions (installed) covers everyday emotes (cheer, angry, wave, clap, talk) and Soldier the salutes; this pack is for taunts. |
+| ANIMATION - Bow Combat | Installed | Bow stances, aim, shoot, reload, rolls, hits and deaths, with synced bow clips: the clips for goblin archers. |
+| ANIMATION - Sword Combat | Installed | Sword combos, blocks, parries, dodges, hits and deaths; extra variety next to Kevin Iglesias Melee. |
+| ANIMATION - Idles | Installed | 330 idle actions and stances for NPCs, base dwellers and enemy fidgets. |
+| ANIMATION - Emotes and Taunts | Installed | Taunts, celebrations and reactions for enemies and NPCs. |
 | ANIMATION - Base Locomotion | Installed | Walk, run, crouch, jump, strafe (human). |
 | ANIMATION - Goblin Locomotion | Installed | Goblin-styled locomotion (in use). |
 
@@ -42,7 +47,7 @@ Modular characters built with the Sidekick tool we already use (`SidekickKit`, t
 | --- | --- | --- |
 | Apocalypse Survivors | High | Scavenger survivors: NPCs, traders, rival raiders, player-model references. |
 | Apocalypse Outlaws | High | Raider/bandit faction: human enemies. |
-| Apocalypse Zombies | High | Zombie horde: night-defense enemies. |
+| Apocalypse Zombies | Installed | Zombie horde: night-defense enemies. |
 | Goblin Fighters | Installed | Goblin warriors (current enemies). |
 | Modern Civilians | Med | Everyday people: office workers (the MC's former life), town NPCs. |
 | Modern Police | Med | Police NPCs or enemies. |
