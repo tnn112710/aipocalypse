@@ -130,6 +130,7 @@ Time of day, sky, lighting, fog and grade are first-party (`EnvironmentDirector`
 | Colorize Palette Modifier (Smitesoft) | — | `Assets/Plugins/Smitesoft` | Could | |
 | Smart Mouse (TelePresent) | — | `Assets/Plugins/TelePresent` | Could | |
 | Scene List Tool | — | `Assets/Plugins/SceneListTool` | Could | |
+| FolderColor | — | `Assets/Plugins/FolderColor` | Undecided | Editor-only folder icons and colours in the Project window, plus Hierarchy row colours (`Editor/`, own asmdef). Suggested Should: editor-only and already used to colour the project's folders. |
 | Auxilium Dev Toolbox | — | `Assets/Plugins/Auxilium Dev Toolbox` | Could | |
 | FImpossible Creations shared tools | — | `Assets/Plugins/FImpossible Creations` | Could | |
 | SyntyPackageHelper | — | `Assets/Synty/SyntyPackageHelper` | Avoid | Synty package import helper. |
