@@ -3,7 +3,9 @@
     "rootNamespace": "TelePresent.SmartMouse",
     "references": [
         "TelePresent.SmartMouse",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.Splines",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,6 +16,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.splines",
+            "expression": "2.5.2",
+            "define": "SMARTMOUSE_SPLINES"
+        }
+    ],
     "noEngineReferences": false
 }

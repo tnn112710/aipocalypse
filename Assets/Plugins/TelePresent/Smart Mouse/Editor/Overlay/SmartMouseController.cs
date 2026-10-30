@@ -400,6 +400,9 @@ namespace TelePresent.SmartMouse
             _cachedCanvases = null;
             _cachedSprites = null;
             _cachedColliders2D = null;
+#if SMARTMOUSE_SPLINES
+            SmartMouseSplineHits.Invalidate();
+#endif
         }
 
         static Terrain[] GetCachedTerrains()
@@ -543,6 +546,9 @@ namespace TelePresent.SmartMouse
             if (type == EventType.Repaint)
             {
                 SmartMouseShaderRenderer.RenderHighlights(_hoverTarget, currentEvent.mousePosition, _lastHitPoint, sceneView);
+#if SMARTMOUSE_SPLINES
+                SmartMouseSplineHits.DrawHighlight(_lockedHoverObject);
+#endif
             }
 
             if (type == EventType.MouseDown && currentEvent.button == 0 && SmartMouseSettings.FocusOnGameObjects)
@@ -971,6 +977,9 @@ namespace TelePresent.SmartMouse
             _uniqueBuffer.Clear();
             _hitsBuffer.Clear();
             GetPotentialHits(ray, _uniqueBuffer, _hitsBuffer);
+#if SMARTMOUSE_SPLINES
+            SmartMouseSplineHits.CheckSplineHits(ray, _hitsBuffer);
+#endif
 
             _hitsBuffer.RemoveAll(_notSceneSelectable);
 
