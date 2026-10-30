@@ -4101,6 +4101,53 @@ public static class Dressing
         return new { heroTrees = nTrees, stoneClusters = centres.Count - nBig, stones = nStones, bigStones = nBig };
     }
 
+    // Hovl butterfly swarms and two wide drifts over the meadow, off water, trails and the yard fence.
+    // The vendor systems are tuned per instance (recorded overrides): they ship with world collision against every layer,
+    // AlwaysSimulate culling, high-quality noise and a 1000-particle cap for ~60 live butterflies.
+    public static object Butterflies(int seed, int swarms, int areas)
+    {
+        const string HB = "Assets/_StoreAssets/VFX/Hovl Studio/Butterflies/Prefabs/";
+        terrain = Terrain.activeTerrain;
+        rng = new System.Random(seed);
+        var root = Group("Butterflies");
+        var area = WorldMapLayout.MeadowArea;
+        Vector2 min = new(area.Min(p => p.x), area.Min(p => p.y)), max = new(area.Max(p => p.x), area.Max(p => p.y));
+        var spots = new List<Vector2>();
+        Vector2? Find(float edgeGap, float gap)
+        {
+            for (int i = 0; i < 4000; i++)
+            {
+                var p = new Vector2(R(min.x, max.x), R(min.y, max.y));
+                if (WorldMapLayout.SignedDistance(p, area) > -edgeGap) continue;
+                if (WorldMapLayout.WaterEdgeDistancePublic(p) < 8f || WorldMapLayout.TrailDistancePublic(p) < 3f) continue;
+                if (WorldMapLayout.FenceDistance(p) < 4f || spots.Any(q => (q - p).sqrMagnitude < gap * gap)) continue;
+                spots.Add(p);
+                return p;
+            }
+            return null;
+        }
+        void Place(string prefab, Vector2 p, float height)
+        {
+            var go = Put(root, HB + prefab + ".prefab", new Vector3(p.x, terrain.SampleHeight(new Vector3(p.x, 0, p.y)) + height, p.y), Quaternion.Euler(0, R(0, 360), 0), 1f);
+            foreach (var ps in go.GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = ps.main; main.cullingMode = ParticleSystemCullingMode.Pause; main.maxParticles = 100;
+                var col = ps.collision; col.enabled = false;
+                var noise = ps.noise; noise.quality = ParticleSystemNoiseQuality.Medium;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(ps);
+            }
+        }
+        // areas first: their 25 m boxes need the most room
+        int nAreas = 0, nSwarms = 0;
+        for (int i = 0; i < areas; i++)
+            if (Find(14f, 40f) is { } p) { Place("Butterflies Area " + (i % 2 + 1), p, 1f); nAreas++; }
+        var variants = Enumerable.Range(1, 49).OrderBy(_ => rng.Next()).ToList();   // 50 and 51 are single burst effects
+        for (int i = 0; i < swarms; i++)
+            if (Find(6f, 22f) is { } p) { Place("Butterflies " + variants[i % variants.Count], p, 1.2f); nSwarms++; }
+        EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+        return new { areas = nAreas, swarms = nSwarms, at = spots.Select(s => $"{s.x:0},{s.y:0}").ToArray() };
+    }
+
     // The home pond after the Komorebi demo (measured in scratchpad research4/komorebi_pond.md): a near-continuous ring of
     // grey stones, half of them breaking the surface, around every shore; a few boulders in the water; lily clusters beside
     // the island, the islets and the front bays (none near the fall); pines, Sakura and flowering bushes on the island and
