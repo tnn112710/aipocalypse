@@ -16,7 +16,7 @@ ASSETS.md tags the Sidekick, Polygon and locomotion packs below **Undecided** (P
 | Pack | Folder | What |
 | --- | --- | --- |
 | Sidekick Characters (tool 1.2.7, DB 1.0.2) | `Assets/Synty/SidekickCharacters` | Modular character builder: one Humanoid rig, ~530 part FBX in `Resources/`, SQLite DB of parts / presets / colors |
-| Sidekick character packs | `SidekickCharacters/Characters/<Pack>/<Name>/` | Ready characters: `.sk` + prefab + mesh/avatar assets (GoblinFighters, GoblinSpecies, ApocalypseZombies (Could) today; more get imported) |
+| Sidekick character packs | `SidekickCharacters/Characters/<Pack>/<Name>/` | Ready characters: `.sk` + prefab + mesh/avatar assets (GoblinFighters, GoblinSpecies; ApocalypseZombies, FantasySkeletons, SkeletonSpecies, FantasySorcerers, ScifiRobots are Could; more get imported) |
 | Animation Base Locomotion | `Assets/Synty/AnimationBaseLocomotion` | 346 Sidekick + 346 Polygon clips, Masculine / Feminine sets + neutral additives |
 | Animation Goblin Locomotion | `Assets/Synty/AnimationGoblinLocomotion` | 194 Sidekick + 194 Polygon clips, neutral only, + idle fidgets and a stumble |
 | Animation Bow Combat | `Assets/Synty/AnimationBowCombat` | 190 character + 309 synced bow clips per format, rigged bows, arrows, quivers |
@@ -29,7 +29,7 @@ ASSETS.md tags the Sidekick, Polygon and locomotion packs below **Undecided** (P
 
 - **Sidekick** (preferred for humanoids we build): one rig and one avatar layout for every part, so every Sidekick clip fits every Sidekick character. Customizable by parts, body shape and colors; built into our own clean prefab by SidekickKit.
 - **Sidekick pack characters** (`Characters/<Pack>/<Name>/`): use their **`.sk`** as the starting point, never their prefabs. The shipped prefabs come from an older tool: SkinnedMeshRenderer bone arrays of 1.7k–2.9k entries for ~115 real bones, readable 5–15 MB meshes, 82 facial blendshapes, `updateWhenOffscreen` on, culling AlwaysAnimate (`CharacterKit.Describe` shows it).
-- **Polygon packs** (Goblin War Camp, Generic): fixed prefabs on the classic Polygon rig (Hips = `Root`, 40 humanoid bones), one avatar per pack, several body meshes per prefab. They need the Polygon clips (`A_*` / `A_POLY_*`), not the Sidekick ones. When making an avatar for a Polygon model, map the third "mitt" finger chain to **Middle** (Unity guesses Little and the finger animation breaks).
+- **Polygon packs** (Goblin War Camp, Generic, City / Boss Zombies, Werewolf, Kaiju, Mech, Fantasy Rivals, Farm's farmers; Dog is a Generic quadruped rig): fixed prefabs on the classic Polygon rig (Hips = `Root`, 40 humanoid bones), one avatar per model FBX, several body meshes per prefab. Their materials use PolygonGeneric's shader graphs, so that folder stays installed. They need the Polygon clips (`A_*` / `A_POLY_*`), not the Sidekick ones. When making an avatar for a Polygon model, map the third "mitt" finger chain to **Middle** (Unity guesses Little and the finger animation breaks).
 
 ## 2. Make a Sidekick character (no window needed)
 

@@ -20,10 +20,20 @@ What we *could* import from [syntystore.com](https://syntystore.com/). The proje
 | INTERFACE - Apocalypse HUD | `Assets/Synty/InterfaceApocalypseHUD` | Should |
 | INTERFACE - Core (comes with the Interface packs) | `Assets/Synty/InterfaceCore` | Should |
 | POLYGON - Generic (shared Synty content) | `Assets/Synty/PolygonGeneric` | Avoid |
+| POLYGON - Boss Zombies | `Assets/Synty/PolygonBossZombies` | Could |
+| POLYGON - Bow and Crossbow (free) | `Assets/Synty/PolygonBowCrossbow` | Could |
+| POLYGON - City Zombies Pack | `Assets/Synty/PolygonCityZombies` | Could |
+| POLYGON - Dog Pack | `Assets/Synty/PolygonDog` | Could |
+| POLYGON - Fantasy Rivals | `Assets/Synty/PolygonFantasyRivals` | Could |
+| POLYGON - Farm Pack | `Assets/Synty/PolygonFarm` | Could |
 | POLYGON - Goblin War Camp | `Assets/Synty/PolygonGoblinWarCamp` | Undecided |
+| POLYGON - Kaiju Pack | `Assets/Synty/PolygonKaiju` | Could |
+| POLYGON - Mech Pack | `Assets/Synty/PolygonMech` | Could |
+| POLYGON - Nature Biomes: Alpine Mountain, Meadow Forest, Swamp Marshland, Tropical Jungle (+ PNB Core shaders) | `Assets/Synty/PolygonNatureBiomes`, `Assets/Synty/PNB_Core` | Could |
 | POLYGON - Prototype Pack | `Assets/Synty/PolygonPrototype` | Avoid |
+| POLYGON - Werewolf | `Assets/Synty/PolygonWerewolf` | Could |
 | Sidekick Characters (tool) + Goblin Fighters, Goblin Species | `Assets/Synty/SidekickCharacters` | Undecided |
-| Sidekick Apocalypse Zombies | `Assets/Synty/SidekickCharacters/Characters/ApocalypseZombies` | Could |
+| Sidekick Apocalypse Zombies, Fantasy Skeletons, Skeleton Species, Fantasy Sorcerers, Sci-fi Robots | `Assets/Synty/SidekickCharacters/Characters/<Pack>` | Could |
 | Synty Package Helper (importer tool) | `Assets/Synty/SyntyPackageHelper` | Avoid (PLUGINS.md) |
 
 ## Animation
@@ -52,12 +62,12 @@ Modular characters built with the Sidekick tool we already use (`SidekickKit`, t
 | Modern Civilians | Med | Everyday people: office workers (the MC's former life), town NPCs. |
 | Modern Police | Med | Police NPCs or enemies. |
 | Modern Thugs | Med | Street gang enemies. |
-| Sci-Fi Robots | Med | Robots: AI Lord's minions, drones' bigger cousins. |
+| Sci-Fi Robots | Installed | Robots: AI Lord's minions, drones' bigger cousins. |
 | Sci-Fi Soldiers | Med | Armoured soldiers: AI enforcer faction. |
-| Fantasy Skeletons | Med | Undead enemies for night waves or dungeon areas. |
+| Fantasy Skeletons | Installed | Undead enemies for night waves or dungeon areas. |
 | Fantasy Knights | Low | Armoured knights (reference zones). |
 | Fantasy Villagers | Low | Medieval villagers. |
-| Fantasy Sorcerers | Low | Mages: caster enemies. |
+| Fantasy Sorcerers | Installed | Mages: caster enemies. |
 | Elven Warriors | Low | Elves. |
 | Viking Warriors | Low | Vikings. |
 | Samurai Warriors | Low | Samurai. |
@@ -85,8 +95,8 @@ UI sprites, fonts and prefabs (we use sprites and fonts only, never their prefab
 | POLYGON - Apocalypse Pack | High | Ruined town, survivors, zombies, weapons, vehicles, barricades: loot sites and base-defense props. |
 | POLYGON - Apocalypse Wasteland | High | Post-disaster wasteland: scrap buildings, makeshift camps, vehicles, survivors. Base building and raid areas. |
 | POLYGON - Woodland Apocalypse Map | Med | Map add-on (needs Apocalypse Pack + Alpine Mountain): a forest demo map to borrow layouts from. |
-| POLYGON - City Zombies Pack | Med | Zombie characters (POLYGON, non-modular). |
-| POLYGON - Boss Zombies | Med | Zombie bosses with weapons: night-wave bosses. |
+| POLYGON - City Zombies Pack | Installed | Zombie characters (POLYGON, non-modular). |
+| POLYGON - Boss Zombies | Installed | Zombie bosses with weapons: night-wave bosses. |
 | POLYGON - Bubblegum Killstick Kit (free) | Low | Kawaii melee weapons: joke loot. |
 
 ## POLYGON: nature biomes
@@ -95,19 +105,19 @@ The world map is a meadow; these match the Synty style if we ever move off the c
 
 | Pack | Fit | Purpose |
 | --- | --- | --- |
-| POLYGON - Meadow Forest - Nature Biome | High | Meadow, flowers, trees: the dream meadow and home area. |
+| POLYGON - Meadow Forest - Nature Biome | Installed | Meadow, flowers, trees: the dream meadow and home area. |
 | POLYGON - Nature Pack | Med | Generic trees, rocks, plants, terrain bits. |
-| POLYGON - Alpine Mountain - Nature Biome | Med | Mountains, pines, snow: map edges, cold region. |
-| POLYGON - Swamp Marshland - Nature Biome | Med | Rotting swamp: goblin territory. |
+| POLYGON - Alpine Mountain - Nature Biome | Installed | Mountains, pines, snow: map edges, cold region. |
+| POLYGON - Swamp Marshland - Nature Biome | Installed | Rotting swamp: goblin territory. |
 | POLYGON - Enchanted Forest - Nature Biome | Med | Magical forest: "AI glitch" zones. |
 | POLYGON - Arid Desert - Nature Biome | Low | Desert region. |
-| POLYGON - Tropical Jungle - Nature Biome | Low | Jungle region. |
+| POLYGON - Tropical Jungle - Nature Biome | Installed | Jungle region. |
 
 ## POLYGON: modern world (loot sites, reference zones)
 
 | Pack | Fit | Purpose |
 | --- | --- | --- |
-| POLYGON - Farm Pack | High | Farm buildings, crops, animals, tractors: the farmer dream, home base. |
+| POLYGON - Farm Pack | Installed | Farm buildings, crops, tractors (no animals): the farmer dream, home base. |
 | POLYGON - Town Pack | High | Small-town buildings, cars, props: raid towns. |
 | POLYGON - Office Pack | High | Offices and desks: the MC's old job, opening scene, joke loot sites. |
 | POLYGON - Shops Pack (+ Shopping Plaza Map) | Med | Modular shops and interiors: supermarket and mall raids. |
@@ -116,7 +126,7 @@ The world map is a meadow; these match the Synty style if we ever move off the c
 | POLYGON - Police Station (+ Prison Map) | Med | Police station interiors, armoury loot. |
 | POLYGON - Gang Warfare Pack | Med | Gang hideouts, weapons, vehicles. |
 | POLYGON - Heist Pack | Med | Bank, vault, heist props: loot vault references. |
-| POLYGON - Dog Pack | Med | Rigged dogs: companion or enemy dogs. |
+| POLYGON - Dog Pack | Installed | Rigged dogs: companion or enemy dogs. |
 | POLYGON - Kids Pack | Low | Playgrounds, toys: "everything is a game" props. |
 | POLYGON - Casino / Nightclubs / Palm City | Low | Themed reference zones. |
 | POLYGON - Street Racer / Pro Racer | Low | Cars. |
@@ -130,7 +140,7 @@ The world map is a meadow; these match the Synty style if we ever move off the c
 | POLYGON - Military Pack (+ Military Warehouse Map) | High | Bunkers, crates, vehicles, soldiers, weapons: high-value loot sites, base defenses, ammo crates. |
 | POLYGON - Battle Royale Pack | Med | Loot crates, airdrops, weapons, characters: extraction-shooter props. |
 | POLYGON - War Pack (+ War Map - WWI) | Low | WW2/WWI trenches and weapons. |
-| POLYGON - Mech Pack | Low | Mechs: an AI boss idea. |
+| POLYGON - Mech Pack | Installed | Mechs: an AI boss idea. |
 
 ## POLYGON: fantasy
 
@@ -139,10 +149,11 @@ Goblins are already in, and the AI sandbox can mix genres, so these are referenc
 | Pack | Fit | Purpose |
 | --- | --- | --- |
 | POLYGON - Goblin War Camp | Installed | Goblin camp, weapons (bows, arrows, quiver), props. |
-| POLYGON - Bow and Crossbow (free) | Med | Bows, crossbows, arrows (props for archers or player loot). |
+| POLYGON - Bow and Crossbow (free) | Installed | Bows, crossbows, arrows (props for archers or player loot). |
 | POLYGON - Dungeon Pack / Dungeon Realms (+ map add-ons) | Med | Dungeons: a "game level" raid site. |
 | POLYGON - Dark Fantasy / Dark Fortress (+ Manor Map) | Low | Gothic fantasy. |
-| POLYGON - Fantasy Kingdom / Fantasy Village / Knights / Fantasy Characters / Fantasy Rivals / Modular Fantasy Hero | Low | Medieval fantasy. |
+| POLYGON - Fantasy Kingdom / Fantasy Village / Knights / Fantasy Characters / Modular Fantasy Hero | Low | Medieval fantasy. |
+| POLYGON - Fantasy Rivals | Installed | Fantasy bosses and rivals (ork, troll, golems, demon…). |
 | POLYGON - Elven Realm / Vikings / Viking Realm / Samurai / Samurai Empire / Pirate Pack / Pirate Realm (+ Pirate Isles Map) / Adventure Pack | Low | Themed fantasy and historical worlds. |
 | POLYGON - Ancient Egypt / Ancient Empire / Western Pack / Western Frontier | Low | Historical worlds. |
 | POLYGON - Frog Shrine / Legendary Chest | Low | Single set pieces (a legendary chest could be a loot gag). |
@@ -154,8 +165,8 @@ Goblins are already in, and the AI sandbox can mix genres, so these are referenc
 | POLYGON - Sci-Fi Worlds / Sci-Fi Cyber City / Sci-Fi City / Sci-Fi Space (+ Sci-Fi Outpost Map) | Med | AI Lord tech: servers, terminals, robots for AI-themed areas. |
 | POLYGON - Sci-Fi Horror | Med | Dark corridors and creatures: the AI's lair. |
 | POLYGON - Horror Mansion / Horror Asylum / Horror Carnival / Hearse Kit | Low | Scary reference zones for nights. |
-| POLYGON - Werewolf | Med | A rigged werewolf: night monster. |
-| POLYGON - Kaiju Pack | Low | Giant monsters: boss joke. |
+| POLYGON - Werewolf | Installed | A rigged werewolf: night monster. |
+| POLYGON - Kaiju Pack | Installed | Giant monsters: boss joke. |
 | POLYGON - Halloween Horror Masks / Pumpkins (free) | Low | Seasonal props. |
 
 ## POLYGON: effects and utility
