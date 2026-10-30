@@ -47,6 +47,7 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 | --- | --- | --- | --- |
 | Raygeas Lakefell Village | Maybe | `Env/Raygeas` | In use: home base house, fence, bridge; its audio (birds, kneel). Avoid its particles and `Buildings (Combined Meshes)`: they use the built-in `Particles/Standard Unlit` shader (magenta in URP). |
 | Animpic Polygon-Mega Survival Construction | Maybe | `Env/Animpic` | Low-poly structures. Not used. |
+| EmaceArt Fences 2026 | Maybe | `Env/EmaceArt/Fences 2026` | 128 fence prefabs (`Prefabs/Fence`, `Prefabs/Wooden`), URP Lit materials, no scripts. For home base or farm fencing when the Should / Could packs lack a fence; ask first. Its own URP pipeline assets and post-processing profile (`Post Processing_profile/`) and demo scene stay unused. Not used. |
 | Synty Polygon Farm | Could | `Assets/Synty/PolygonFarm` | Farm set (~500 prefabs): barns, farmhouses, silos, greenhouses, water tower, garage, produce stand (`Buildings/`); 173 crops and plants (`Plants/`); fences, tools, coops and other props; tractors, harvester, pickup and implements (`Vehicles/`); 6 farmer / scarecrow characters with hat attachments (POLYGON rig, `Characters.fbx` Humanoid). **No animals** (props like a chicken coop only). Generic shader graph from PolygonGeneric; a few FX materials are built-in. For the home base and farm loot sites; check the style next to Raygeas first. Not used. |
 
 ### Props, pickups, tools
