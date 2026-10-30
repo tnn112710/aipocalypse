@@ -1,8 +1,8 @@
-﻿#if UNITY_6000_0_OR_NEWER
+#if ULTIMATE_PREVIEW_PRO && UNITY_6000_0_OR_NEWER
 using System;
 using UnityEditor;
 using UnityEngine.TextCore.Text;
-using VoxelLabs.UltimatePreview.Core;
+using VoxelLabs.Preview.Core;
 
 namespace VoxelLabs.UltimatePreview.CustomPreview
 {

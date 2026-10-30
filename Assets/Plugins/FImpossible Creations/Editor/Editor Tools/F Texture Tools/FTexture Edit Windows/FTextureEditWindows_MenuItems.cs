@@ -52,5 +52,11 @@ namespace FIMSpace.FTextureTools
         {
             FHueSaturationWindow.Init();
         }
+
+        [MenuItem( "Assets/FImpossible Creations/Texture Tools/Channel Tweak Tool", false, 3 )]
+        public static void ChannelTweakToolWindow()
+        {
+            FChannelTweakWindow.Init();
+        }
     }
 }

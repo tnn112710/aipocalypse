@@ -298,7 +298,7 @@ namespace FIMSpace.FEditor
             return allTexture;
         }
 
-        private static int GetShaderPropertyCount( Shader shader )
+        internal static int GetShaderPropertyCount( Shader shader )
         {
 #if UNITY_2019_3_OR_NEWER
             return shader.GetPropertyCount();
@@ -307,7 +307,7 @@ namespace FIMSpace.FEditor
 #endif
         }
 
-        private static bool IsShaderTextureProperty( Shader shader, int propertyIndex )
+        internal static bool IsShaderTextureProperty( Shader shader, int propertyIndex )
         {
 #if UNITY_2019_3_OR_NEWER
             return shader.GetPropertyType( propertyIndex ) == UnityEngine.Rendering.ShaderPropertyType.Texture;
@@ -316,7 +316,7 @@ namespace FIMSpace.FEditor
 #endif
         }
 
-        private static string GetShaderPropertyName( Shader shader, int propertyIndex )
+        internal static string GetShaderPropertyName( Shader shader, int propertyIndex )
         {
 #if UNITY_2019_3_OR_NEWER
             return shader.GetPropertyName( propertyIndex );

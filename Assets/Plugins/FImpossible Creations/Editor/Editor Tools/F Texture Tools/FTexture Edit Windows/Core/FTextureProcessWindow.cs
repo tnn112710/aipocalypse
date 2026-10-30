@@ -30,6 +30,30 @@ namespace FIMSpace.FTextureTools
         private Texture2D previewWorkTex;
         private Texture2D previewTex;
 
+        [SerializeField] private Material previewOnMaterial;
+        [SerializeField] private string previewMaterialProperty = "";
+        private Shader previewMaterialShader;
+        private readonly List<MaterialPreviewOverride> materialPreviewOverrides = new List<MaterialPreviewOverride>();
+
+        private class MaterialPreviewOverride
+        {
+            public Renderer Renderer;
+            public int MaterialIndex;
+            public MaterialPropertyBlock OriginalBlock;
+        }
+
+        protected virtual void OnEnable()
+        {
+            EditorApplication.hierarchyChanged += RefreshMaterialPreview;
+            somethingChanged = true;
+        }
+
+        protected virtual void OnDisable()
+        {
+            EditorApplication.hierarchyChanged -= RefreshMaterialPreview;
+            ClearTextures();
+        }
+
         protected int previewSize = 128;
         protected int seed;
 
@@ -49,26 +73,11 @@ namespace FIMSpace.FTextureTools
         protected virtual Texture Logo => titleContent.image;
         protected virtual string SubTitle => titleContent.tooltip;
 
-
-        //public static void Init()
-        //{
-        //    FTextureProcessWindow window = (FTextureProcessWindow)GetWindow(typeof(FTextureProcessWindow));
-        //    window.InitializeWindow(window);
-        //    called = true;
-        //}
-
         void OnSelectionChange()
         {
-            if (Selection.objects.Length > 0)
-                for (int i = 0; i < Selection.objects.Length; i++)
-                {
-                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GetAssetPath(Selection.objects[i]));
-                    if (texture != null) return;
-                }
-
-            ClearTextures();
+            // Keep the texture available while selecting a scene object or prefab to drag onto the material field.
+            Repaint();
         }
-
 
         void Reset()
         {
@@ -101,18 +110,19 @@ namespace FIMSpace.FTextureTools
 
             //if (headerTitle == null) headerTitle = Resources.Load("S_SeamlessTextureGenerator_Header", typeof(Texture2D)) as Texture2D;
             if (textures == null) textures = new List<Texture2D>();
-            var ev = Event.current;
-
-            textures.Clear();
+            List<Texture2D> selectedTextures = new List<Texture2D>();
 
             if (Selection.objects.Length > 0)
             {
                 for (int i = 0; i < Selection.objects.Length; i++)
                 {
                     Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GetAssetPath(Selection.objects[i]));
-                    if (texture != null) textures.Add(texture);
+                    if (texture != null) selectedTextures.Add(texture);
                 }
             }
+
+            if (selectedTextures.Count > 0) textures = selectedTextures;
+            else textures.RemoveAll(texture => texture == null);
 
             if (textures.Count == 0)
             {
@@ -122,7 +132,7 @@ namespace FIMSpace.FTextureTools
             }
 
             rand = new System.Random(seed);
-            if (Selection.objects[0] != mainSelection) ClearTextures();
+            if (GetFirstTexture != mainSelection) ClearTextures();
 
             #endregion
 
@@ -194,7 +204,7 @@ namespace FIMSpace.FTextureTools
 
             if (!previewTex || !previewWorkTex)
             {
-                mainSelection = Selection.objects[0];
+                mainSelection = GetFirstTexture;
                 GeneratePreviewTexture(targetprevSize);
             }
 
@@ -245,12 +255,12 @@ namespace FIMSpace.FTextureTools
                 Rect pos = new Rect(0, 0, previewSize * 2f + 4, previewSize * 2f + 4);
                 pos.x = position.width / 4 - previewSize;
                 pos.y = currY;
-                GUI.Label(pos, previewWorkTex);
+                DrawPreviewTexture(pos, previewWorkTex, true);
 
                 pos = new Rect(0, 0, previewSize * 2f + 4, previewSize * 2f + 4);
                 pos.x = position.width / 2 + position.width / 4 - previewSize;
                 pos.y = currY;
-                GUI.Label(pos, previewTex);
+                DrawPreviewTexture(pos, previewTex, false);
             }
             else
             {
@@ -263,7 +273,7 @@ namespace FIMSpace.FTextureTools
                             Rect pos = new Rect(0, 0, targetprevSize + 4, targetprevSize + 4);
                             pos.x = position.width / 4 - targetprevSize / 2 + (targetprevSize / 2) * x;
                             pos.y = currY + targetprevSize * yi;
-                            GUI.Label(pos, previewWorkTex);
+                            DrawPreviewTexture(pos, previewWorkTex, true);
                             yi++;
                         }
                     }
@@ -276,7 +286,7 @@ namespace FIMSpace.FTextureTools
                         Rect pos = new Rect(0, 0, targetprevSize + 4, targetprevSize + 4);
                         pos.x = position.width / 2 + position.width / 4 - targetprevSize / 2 + (targetprevSize / 2) * x;
                         pos.y = currY + targetprevSize * yi;
-                        GUI.Label(pos, previewTex);
+                        DrawPreviewTexture(pos, previewTex, false);
                         yi++;
                     }
                 }
@@ -293,16 +303,211 @@ namespace FIMSpace.FTextureTools
             // Parameters GUI ----------------------------
             EditorGUI.BeginChangeCheck();
             OnGUICustom();
-            if (EditorGUI.EndChangeCheck()) somethingChanged = true; else somethingChanged = false;
+            somethingChanged = EditorGUI.EndChangeCheck();
+            if (somethingChanged) Repaint();
+
+            DrawMaterialPreviewControls();
 
             OnGUIFooter();
 
             EditorGUILayout.EndScrollView();
         }
 
+        protected virtual void DrawPreviewTexture(Rect position, Texture2D texture, bool isSource)
+        {
+            // Ignore alpha only when drawing the window preview, keep the texture data intact
+            if (texture != null) GUI.DrawTexture(position, texture, ScaleMode.ScaleToFit, false);
+        }
+
         protected virtual void OnGUICustom()
         {
 
+        }
+
+        private void DrawMaterialPreviewControls()
+        {
+            GUILayout.Space(8);
+            float labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUIUtility.labelWidth = 140;
+            Rect materialRect = EditorGUILayout.GetControlRect();
+            Material selected = previewOnMaterial;
+            Event dragEvent = Event.current;
+
+            if (materialRect.Contains(dragEvent.mousePosition) && (dragEvent.type == EventType.DragUpdated || dragEvent.type == EventType.DragPerform))
+            {
+                foreach (Object draggedObject in DragAndDrop.objectReferences)
+                {
+                    Material draggedMaterial = GetDraggedPreviewMaterial(draggedObject);
+                    if (draggedMaterial == null) continue;
+
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+
+                    if (dragEvent.type == EventType.DragPerform)
+                    {
+                        DragAndDrop.AcceptDrag();
+                        selected = draggedMaterial;
+
+                        GUI.changed = true;
+                        Repaint();
+                    }
+
+                    dragEvent.Use();
+
+                    break;
+                }
+            }
+
+            selected = (Material)EditorGUI.ObjectField(materialRect, new GUIContent("Preview On Material:", "Drop a material, scene object or prefab. Objects use the first material of their renderer (also searched in children). Uses Preview Resolution; no texture or material asset is changed."), selected, typeof(Material), true);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                RestoreMaterialPreview();
+                previewOnMaterial = selected;
+                previewMaterialProperty = "";
+                previewMaterialShader = null;
+            }
+
+            if (previewOnMaterial != null && previewMaterialShader != previewOnMaterial.shader)
+            {
+                RestoreMaterialPreview();
+                previewMaterialShader = previewOnMaterial.shader;
+
+                if (!previewOnMaterial.HasProperty(previewMaterialProperty)) previewMaterialProperty = "";
+                
+                if (previewMaterialShader != null && string.IsNullOrEmpty(previewMaterialProperty))
+                {
+                    // Select the material property using the edited texture.
+                    for (int i = 0; i < FTextureQuickConverter.GetShaderPropertyCount(previewMaterialShader); i++)
+                    {
+                        if (!IsPreviewTextureProperty(previewMaterialShader, i)) continue;
+
+                        string property = FTextureQuickConverter.GetShaderPropertyName(previewMaterialShader, i);
+
+                        if (previewOnMaterial.GetTexture(property) == GetFirstTexture)
+                        {
+                            previewMaterialProperty = property;
+                            break;
+                        }
+                    }
+                }
+
+                RefreshMaterialPreview();
+            }
+
+            EditorGUILayout.LabelField("On Tex:", EditorStyles.boldLabel, GUILayout.Width(70));
+
+            bool previousGUIEnabled = GUI.enabled;
+            GUI.enabled = previousGUIEnabled && previewOnMaterial != null && previewOnMaterial.shader != null;
+            if (GUILayout.Button(string.IsNullOrEmpty(previewMaterialProperty) ? "Select" : previewMaterialProperty, EditorStyles.popup, GUILayout.MinWidth(100))) ShowMaterialPreviewPropertyMenu();
+            GUI.enabled = previousGUIEnabled;
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = labelWidth;
+
+            if (previewOnMaterial != null && !string.IsNullOrEmpty(previewMaterialProperty) && materialPreviewOverrides.Count == 0)
+                EditorGUILayout.HelpBox("No loaded scene renderer uses this material. Assign it to an object to see the preview.", MessageType.Info);
+        }
+
+        private static Material GetDraggedPreviewMaterial(Object draggedObject)
+        {
+            Material material = draggedObject as Material;
+            if (material != null) return material;
+
+            GameObject gameObject = draggedObject as GameObject;
+            Component component = draggedObject as Component;
+            if (gameObject == null && component != null) gameObject = component.gameObject;
+            if (gameObject == null) return null;
+
+            Renderer renderer = gameObject.GetComponent<Renderer>();
+            if (renderer == null) renderer = gameObject.GetComponentInChildren<Renderer>(true);
+            return renderer != null ? renderer.sharedMaterial : null;
+        }
+
+        private static bool IsPreviewTextureProperty(Shader shader, int index)
+        {
+            return FTextureQuickConverter.IsShaderTextureProperty(shader, index) && ShaderUtil.GetTexDim(shader, index) == UnityEngine.Rendering.TextureDimension.Tex2D;
+        }
+
+        private void ShowMaterialPreviewPropertyMenu()
+        {
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("None"), string.IsNullOrEmpty(previewMaterialProperty), () => SetMaterialPreviewProperty(""));
+            Shader shader = previewOnMaterial.shader;
+
+            for (int i = 0; i < FTextureQuickConverter.GetShaderPropertyCount(shader); i++)
+            {
+                if (!IsPreviewTextureProperty(shader, i)) continue;
+
+                string property = FTextureQuickConverter.GetShaderPropertyName(shader, i);
+
+                string description = ShaderUtil.GetPropertyDescription(shader, i);
+
+                menu.AddItem(new GUIContent(property + " (" + description + ")"), previewMaterialProperty == property, () => SetMaterialPreviewProperty(property));
+            }
+
+            menu.ShowAsContext();
+        }
+
+        private void SetMaterialPreviewProperty(string property)
+        {
+            RestoreMaterialPreview();
+            previewMaterialProperty = property;
+            RefreshMaterialPreview();
+            Repaint();
+        }
+
+        private void RefreshMaterialPreview()
+        {
+            RestoreMaterialPreview();
+
+            if (previewTex == null || previewOnMaterial == null || string.IsNullOrEmpty(previewMaterialProperty) || !previewOnMaterial.HasProperty(previewMaterialProperty)) return;
+
+            foreach (Renderer renderer in Resources.FindObjectsOfTypeAll<Renderer>())
+            {
+                if (EditorUtility.IsPersistent(renderer) || !renderer.gameObject.scene.IsValid() || !renderer.gameObject.scene.isLoaded) continue;
+                
+                Material[] materials = renderer.sharedMaterials;
+
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    if (materials[i] != previewOnMaterial) continue;
+                    MaterialPropertyBlock original = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(original, i);
+                    MaterialPropertyBlock previewBlock = new MaterialPropertyBlock();
+
+                    if (original.isEmpty) renderer.GetPropertyBlock(previewBlock); else renderer.GetPropertyBlock(previewBlock, i);
+
+                    materialPreviewOverrides.Add(new MaterialPreviewOverride { Renderer = renderer, MaterialIndex = i, OriginalBlock = original });
+                    previewBlock.SetTexture(previewMaterialProperty, previewTex);
+                    renderer.SetPropertyBlock(previewBlock, i);
+                }
+            }
+
+            SceneView.RepaintAll();
+            EditorApplication.QueuePlayerLoopUpdate();
+        }
+
+        private void RestoreMaterialPreview()
+        {
+            bool hadOverrides = materialPreviewOverrides.Count > 0;
+
+            foreach (MaterialPreviewOverride entry in materialPreviewOverrides)
+            {
+                if (entry.Renderer == null || entry.MaterialIndex >= entry.Renderer.sharedMaterials.Length) continue;
+
+                entry.Renderer.SetPropertyBlock(entry.OriginalBlock.isEmpty ? null : entry.OriginalBlock, entry.MaterialIndex);
+            }
+
+            materialPreviewOverrides.Clear();
+
+            if (hadOverrides)
+            {
+                SceneView.RepaintAll();
+                EditorApplication.QueuePlayerLoopUpdate();
+            }
         }
 
         protected void OnGUIFooter()
@@ -412,7 +617,7 @@ namespace FIMSpace.FTextureTools
             #endregion
 
 
-            // HERE YOUR OPERATIONS ON PIXELS ARRAY
+            // IF YOU MAKING YOUR OWN WINDOW -> HERE YOUR OPERATIONS ON PIXELS ARRAY
 
 
             // Finalizing changes
@@ -435,6 +640,7 @@ namespace FIMSpace.FTextureTools
             //seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
             previewWorkTex = new Texture2D(previewSize, previewSize, TextureFormat.ARGB32, false, false);
+            previewWorkTex.hideFlags = HideFlags.HideAndDontSave;
 
             if (textures.Count > 0)
                 if (textures[0] != null)
@@ -627,6 +833,9 @@ namespace FIMSpace.FTextureTools
 
         private void ClearTextures()
         {
+            RestoreMaterialPreview();
+            if (previewTex != null) DestroyImmediate(previewTex);
+            if (previewWorkTex != null) DestroyImmediate(previewWorkTex);
             previewTex = null;
             previewWorkTex = null;
             somethingChanged = true;
@@ -637,8 +846,18 @@ namespace FIMSpace.FTextureTools
         {
             rand = new System.Random(seed);
 
-            previewTex = new Texture2D(previewWorkTex.width, previewWorkTex.height, TextureFormat.ARGB32, false, false);
+            if (previewTex == null)
+            {
+                previewTex = new Texture2D(previewWorkTex.width, previewWorkTex.height, TextureFormat.ARGB32, false, false);
+                previewTex.hideFlags = HideFlags.HideAndDontSave;
+            }
+            if (GetFirstTexture != null)
+            {
+                previewTex.wrapMode = GetFirstTexture.wrapMode;
+                previewTex.filterMode = GetFirstTexture.filterMode;
+            }
             ProcessTexture(previewWorkTex, previewTex);
+            RefreshMaterialPreview();
         }
 
         #endregion

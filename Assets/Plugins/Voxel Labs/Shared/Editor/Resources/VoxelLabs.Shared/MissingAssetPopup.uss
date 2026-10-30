@@ -1,0 +1,8 @@
+/* Keep the banner flush with the window; pad text and actions separately. */
+.missing-asset-popup { padding: 0; }
+.missing-asset-content { flex-grow: 1; padding: 12px; }
+.missing-asset-image { height: 220px; margin: 0; flex-shrink: 0; padding: 8px; padding-bottom: 0 }
+.missing-asset-heading { font-size: 14px; -unity-font-style: bold; white-space: normal; margin-bottom: 8px; }
+.missing-asset-description { white-space: normal; margin-bottom: 12px; }
+.missing-asset-buttons { flex-direction: row; margin: 12px; flex-shrink: 0; }
+.missing-asset-buttons > Button { flex-grow: 1; height: 28px; }

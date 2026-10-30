@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -713853457, guid: 6dc376da4ef1e124f8d62136d690a372, type: 3}
+  m_Script: {fileID: -713853457, guid: 0a84cb847c4129a48937059e0dde0c0d, type: 3}
   m_Name: UltimateThumbnails - Settings
   m_EditorClassIdentifier: VoxelLabs.UltimateThumbnails.Core.dll::VoxelLabs.UltimateThumbnails.Core.UltimateThumbnailsSettingsData
-  "\u2001\u2025": 1
+  "\u1680\u202D": 1
   iconGenerationSettings:
     autoGenerateIcons: 1
     iconSize: 2
@@ -51,6 +51,9 @@ MonoBehaviour:
     inverseSpriteDirection: 0
   iconPreviewSettings:
     isEnable: 1
+    enableLazyLoading: 0
+    prefetchNearbyThumbnails: 1
+    lazyLoadingBudgetMs: 20
     enhanceVisibility: 0
     backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     gridViewSettings:
@@ -70,5 +73,8 @@ MonoBehaviour:
   toolbarSettings:
     showToolbar: 1
     showPreviewToggle: 1
+    showLazyLoadingToggle: 0
     showVisibilityEnhancerToggle: 1
     showBgColorPicker: 1
+    showUltimateInspectorFieldsToggle: 1
+  "\u1680\u202E": 1

@@ -113,7 +113,7 @@ namespace FIMSpace.FTextureTools
                     }
                 }
 
-                int smoothingPixels = Mathf.RoundToInt( Mathf.Lerp( 1, ( source.width + source.height ) / 128f, Range ) );
+                int smoothingPixels = GetNormalRange( source.width, source.height );
 
                 if( Range == 0 )
                 {
@@ -121,7 +121,18 @@ namespace FIMSpace.FTextureTools
                 }
                 else
                 {
-                    newPixels = GenerateNormalMap( sourcePixels, source.width, source.height, smoothingPixels, RangeSens );
+                    Vector2 gradientScale = Vector2.one;
+                    Texture2D reference = preview ? GetFirstTexture : null;
+                    if( reference != null )
+                    {
+                        int referenceRange = GetNormalRange( reference.width, reference.height );
+                        // Match the final kernel's response to a slope, including rounded preview radii.
+                        float responseScale = GetRangeResponse( referenceRange, RangeSens ) / GetRangeResponse( smoothingPixels, RangeSens );
+                        gradientScale.x = responseScale * source.width / reference.width;
+                        gradientScale.y = responseScale * source.height / reference.height;
+                    }
+
+                    newPixels = GenerateNormalMap( sourcePixels, source.width, source.height, smoothingPixels, RangeSens, gradientScale );
                 }
 
                 // Finalizing changes
@@ -317,40 +328,73 @@ namespace FIMSpace.FTextureTools
             return ( pixel.r + pixel.g + pixel.b ) / 3.0f / 255.0f;
         }
 
+        int GetNormalRange( int width, int height ) => Mathf.Max( 1, Mathf.RoundToInt( Mathf.Lerp( 1, ( width + height ) / 128f, Range ) ) );
+
+        static float GetRangeWeight( int x, int y, float maxDistanceSquared )
+        {
+            return Mathf.Max( 0f, 1f - ( x * x + y * y ) / maxDistanceSquared );
+        }
+
+        static float GetRangeResponse( int range, float sensitivity )
+        {
+            float maxDistance = range * sensitivity + 0.1f;
+            float response = 0f;
+            for( int y = -range; y <= range; y++ )
+                for( int x = -range; x <= range; x++ )
+                    response += GetRangeWeight( x, y, maxDistance * maxDistance ) * x * x;
+            return response;
+        }
+
         public Color[] GenerateNormalMap( Color[] imagePixels, int width, int height, int range, float rangeSensitivity )
+        {
+            return GenerateNormalMap( imagePixels, width, height, range, rangeSensitivity, Vector2.one );
+        }
+
+        Color[] GenerateNormalMap( Color[] imagePixels, int width, int height, int range, float rangeSensitivity, Vector2 gradientScale )
         {
             Color[] normalMapPixels = new Color[imagePixels.Length];
             float blend = Blend * ( 1f + Boost );
             float maxDistance = range * rangeSensitivity + 0.1f;
+            int diameter = range * 2 + 1;
+            Vector2[] weights = new Vector2[diameter * diameter];
+            for( int y = -range, index = 0; y <= range; y++ )
+                for( int x = -range; x <= range; x++, index++ )
+                {
+                    float weight = GetRangeWeight( x, y, maxDistance * maxDistance );
+                    weights[index] = new Vector2( x * weight, y * weight );
+                }
+
+            float[] intensities = new float[imagePixels.Length];
+            for( int i = 0; i < intensities.Length; i++ )
+                intensities[i] = ( imagePixels[i].r + imagePixels[i].g + imagePixels[i].b ) / 3f;
 
             for( int y = 0; y < height; y++ )
             {
                 for( int x = 0; x < width; x++ )
                 {
                     float dx = 0f, dy = 0f;
+                    int pixelIndex = y * width + x;
+                    float centerIntensity = intensities[pixelIndex];
+                    int weightIndex = 0;
 
                     for( int offsetY = -range; offsetY <= range; offsetY++ )
                     {
-                        for( int offsetX = -range; offsetX <= range; offsetX++ )
+                        int sampleY = ( ( y + offsetY ) % height + height ) % height;
+                        int row = sampleY * width;
+                        for( int offsetX = -range; offsetX <= range; offsetX++, weightIndex++ )
                         {
-                            float distance = Vector2.Distance( Vector2.zero, new Vector2( offsetX, offsetY ) );
-                            float distanceBlend = Mathf.Min( 1f, distance / maxDistance );
-                            distanceBlend *= distanceBlend;
-                            distanceBlend = 1f - distanceBlend;
-
-                            // Get intensities of neighboring pixels
-                            float neighborIntensity = GetIntensity( imagePixels, width, height, x + offsetX, y + offsetY ) * blend * distanceBlend;
-                            float centerIntensity = GetIntensity( imagePixels, width, height, x, y ) * blend * distanceBlend;
-
-                            // Compute gradient contributions
-                            dx += ( neighborIntensity - centerIntensity ) * offsetX;
-                            dy += ( neighborIntensity - centerIntensity ) * offsetY;
+                            Vector2 weight = weights[weightIndex];
+                            if( weight.x == 0f && weight.y == 0f ) continue;
+                            int sampleX = x + offsetX;
+                            if( sampleX < 0 || sampleX >= width ) sampleX = ( sampleX % width + width ) % width;
+                            float difference = intensities[row + sampleX] - centerIntensity;
+                            dx += difference * weight.x;
+                            dy += difference * weight.y;
                         }
                     }
 
-                    // Normalize direction gradients
-                    float magnitude = Mathf.Sqrt( dx * dx + dy * dy + 1.0f );
-                    Vector3 normal = new Vector3( -dx / magnitude, -dy / magnitude, 1.0f / magnitude );
+                    Vector3 normal = new Vector3( -dx * blend * gradientScale.x, -dy * blend * gradientScale.y, 1f ).normalized;
+                    normal = LerpBumpPlusMinus( normal, BrightnessIntensity.Evaluate( centerIntensity ) );
 
                     Color normalColor = new Color(
                         normal.x * 0.5f + 0.5f,
