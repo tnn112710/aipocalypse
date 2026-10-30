@@ -48,6 +48,7 @@ Assets/_Game/
 │  │     ├─ Spring.cs                       Step(value, velocity, target, stiffness, dampingRatio, dt) for float / Vector2 / Vector3, in 1/120 s substeps (held-item sway, landing dip)
 │  │     ├─ SceneCollection.cs              editor only: Collect(owner, list) keeps a serialized list of scene objects current; Hook<TOwner>(collect) runs it on scene save and entering Play (EnemyInstaller, EnvironmentDirector)
 │  │     ├─ SidekickAutoRefreshBlocker.cs   editor only: unhooks Sidekick's RandomStateBehaviourAutoRefresh (loads all ~1000 AnimatorControllers + SaveAssets on every reload and Play, ~12 s); no controller uses RandomStateBehaviour
+│  │     ├─ MicroVerseBakedGuard.cs         editor only: disables MicroVerse on scene open and domain reload (baked mode) unless MicroVerseKit.Enable(true) set the session's rebuild flag; stops the terrain regenerating and the LFS TerrainData being rewritten on every save
 │  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
 │  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/                               Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)

@@ -34,7 +34,7 @@ Player spawn: inside the gate on the gate→bridge line (`HomeSpawn` ≈ (272.0,
 
 Order of a full rebuild (entry points of `WorldMapLayout.cs` unless noted):
 
-0. Kit `MicroVerseKit.Enable(true)`. Between rebuilds the scene keeps MicroVerse disabled (baked mode), so opening the scene, recompiling or saving never regenerates or rewrites `Terrain_0_0.asset` (tools-unity-map-generation → "Rebuild discipline"). Kit `Rebuild` refuses while it is disabled.
+0. Kit `MicroVerseKit.Enable(true)`. Between rebuilds the scene keeps MicroVerse disabled (baked mode), so opening the scene, recompiling or saving never regenerates or rewrites `Terrain_0_0.asset` (tools-unity-map-generation → "Rebuild discipline"). Kit `Rebuild` refuses while it is disabled. `MicroVerseBakedGuard` re-disables it on scene open and domain reload unless `Enable(true)` ran in this editor session.
 1. `Generate(2048, 1024, preview)`: analytic height field → `Terrain/Heightmaps/Base.png` (R16) plus one mask per Rowlan detail stamp. Polygons and water lines at the top of the file are the layout; edit them there.
    - Water is carved into the field: basins (lake, ponds) and lines (river, streams) with a shelved channel profile; banks never dip below the water surface.
    - Rowlan detail stamps (`Details` table: Highlands 09/07, Meadows 05/16/26, Swamp 12) are `Add` stamps at Y = 0. The shader clamps stamp heights at 0, so the base map is lowered by `median × amplitude × mask` to make them zero-mean.
