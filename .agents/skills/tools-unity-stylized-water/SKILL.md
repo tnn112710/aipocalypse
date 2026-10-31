@@ -1,6 +1,6 @@
 ---
 name: tools-unity-stylized-water
-description: "Stylized Water 3 3.3.3 (Staggart Creations) in aipocalypse, how SW3 works and how this project uses it. WaterObject flat water (transform Y = level), RiverModeler spline rivers built from code (build order, RIVER_SCALE widths, segment and tip-fade math, junctions, sorting), Underwater Rendering (one UnderwaterArea per flat level), waterfall draw order, first-party material copies, toggle keywords and property units, water height queries (CPU, GPU, river), render feature settings, test captures, water perf. Use for any SW3 work - lakes, ponds, rivers, streams, waterfalls, a pool in a building, buoyancy or water-height queries, swimming/drowning/underwater code, underwater rendering, water materials or water perf. NOT the procedural map recipe (carving beds, flood-filled sheets, ribbon trimming, what to rebuild after a terrain change - tools-unity-map-generation), NOT Dynamic Effects, PlanarReflectionRenderer or the RiverModeler MicroVerse integration (unused here), NOT river or underwater audio (BroAudio)."
+description: Stylized Water 3 in aipocalypse — WaterObject flat water, RiverModeler rivers built from code, underwater rendering, waterfalls, water materials, height queries and water perf. Use for any lake, pond, river, stream, waterfall, buoyancy, swimming / underwater code or water material work. NOT the map recipe for carving beds or rebuilding water after terrain changes (tools-unity-map-generation).
 ---
 
 # Stylized Water 3 (aipocalypse)

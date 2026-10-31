@@ -1,6 +1,6 @@
 ---
 name: tools-unity-map-generation
-description: Building or changing a whole map in aipocalypse the WorldMap way — an editor generator in AgentScripts/Maps/<Map>/ that turns layout tables (polygons, water basins and lines, anchors) into an analytic height field with carved water, an R16 base heightmap plus MicroVerse stamps, terrain-space texture and vegetation masks, Stylized Water 3 surfaces, a mountain/rock boundary, scripted dressing and atmosphere. Covers working from concept images and annotated screenshots, reading the user's size/depth/multiplier requests, build order and timings, verification (layout preview, analytic checks, Verify, fixed views), rebuild discipline (full vs partial, folding hand edits into code), surviving long editor runs, map art direction and map performance. Use for any map, level layout, region, lake/river/pond, boundary, map-wide dressing, map rescale, or WorldMap generator change. NOT the MicroVerse API itself (unity-microverse), NOT Stylized Water 3 internals (tools-unity-stylized-water), NOT runtime gameplay systems.
+description: Building or changing a map in aipocalypse the WorldMap way — the editor generator in AgentScripts/Maps/<Map>/ (layout tables to height field, MicroVerse stamps, masks, water, boundary, dressing), rebuild discipline, verification and map perf. Use for any map, layout, region, lake / river / pond, boundary, map-wide dressing, rescale or WorldMap generator change. NOT the MicroVerse API (unity-microverse) or SW3 internals (tools-unity-stylized-water).
 ---
 
 # Map generation (aipocalypse)

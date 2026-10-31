@@ -1,6 +1,6 @@
 ---
 name: tools-unity-animation-rigging
-description: "Unity Animation Rigging 6.6.0 (com.unity.animation.rigging) and Control Rig Pro (Ash Assets) in aipocalypse. Rig structure built from code (RigBuilder, Rig, TwoBoneIK, MultiAim, MultiParent, Damped Transform, Twist Correction, Chain IK), evaluation order, automatic vs manual evaluation (the GunAnimation pattern, a central tick placing targets), baking a rig into a plain clip from the CLI with scripts/RigKit.cs (Generic rigs only; Humanoid is unsupported), reading a rig with RigKit.Describe, Control Rig Pro's builders, jiggle constraints and FootGrounder with their traps, crowd rules, and first-person forearms on the floating hands. Use for any IK, aim, look-at, hand-on-weapon, foot grounding, secondary motion (hair, tails, straps), arm or forearm, or rig-driven clip authoring work, together with aipocalypse-characters for character models and oss-unity:animation-authoring for the generic clip and Animator API."
+description: Unity Animation Rigging and Control Rig Pro in aipocalypse — rigs built from code, manual evaluation from a central tick, baking rigs into clips with RigKit (Generic only), FootGrounder and jiggle traps, first-person forearms. Use for any IK, aim / look-at, hand-on-weapon, foot grounding, secondary motion (hair, tails, straps), arm or forearm, or rig-driven clip work.
 ---
 
 # Animation Rigging (aipocalypse)

@@ -1,6 +1,6 @@
 ---
 name: tools-unity-shader-graph
-description: Shader Graph 17.6 in aipocalypse (URP 17.6, Forward+, depth priming, GPU Resident Drawer). Use for any shader or material effect work - creating or editing a .shadergraph / .shadersubgraph, copying a vendor graph (Synty Sidekick, Raygeas, AllIn1 demos) into _Game, hit flash, dissolve, rim / fresnel, intersection glow, hologram, scrolling or vertex wobble, custom HLSL nodes, AllIn1 Shader Nodes, per-object shader values driven from C#, keywords and variants - and when a shader is magenta, dark at night, missing in a build, or breaks batching. Also whenever an agent must build or wire graph nodes without the Shader Graph window.
+description: Shader Graph in aipocalypse (URP 17.6, Forward+) — creating or editing graphs without the window (ShaderGraphKit), copying vendor graphs into _Game, custom HLSL and AllIn1 nodes, values driven from C#, keywords and variants. Use for any shader or material effect (hit flash, dissolve, rim, hologram, wobble), or when a shader is magenta, dark at night, missing in a build or breaks batching.
 ---
 
 # Shader Graph (aipocalypse)

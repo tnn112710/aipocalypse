@@ -1,6 +1,6 @@
 ---
 name: tools-unity-audio-tools
-description: Audio Tools 1.2.0 (editor-only audio clip editor) in aipocalypse — previewing, selecting, trimming, removing silence, normalizing, adjusting volume, fading and exporting processed WAVs, where processed clips go (never over vendor clips) and how they reach the game (BroAudio entities), plus where Audio Tools' own skills answer how-to questions. Use when asked to edit, trim, normalize, fade or export an audio clip in the editor.
+description: Audio Tools (editor-only clip editor) in aipocalypse — trim, remove silence, normalize, volume, fade and export WAVs, where processed clips go (never over vendor clips) and how they reach BroAudio. Use when asked to edit, trim, normalize, fade or export an audio clip in the editor.
 ---
 
 # Audio Tools (aipocalypse)

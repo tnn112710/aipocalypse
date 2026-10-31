@@ -1,6 +1,6 @@
 ---
 name: aipocalypse-architecture
-description: How aipocalypse wires its code — VContainer scopes and installers (ProjectLifetimeScope root installers, GameLifetimeScope + SceneInstaller components, strict mode, EntityScope / RegisterDefault, optional services via TryResolve), entry points and central ticks, MessagePipe event conventions and who publishes / subscribes what, UniTask ownership (PlayerRespawnFlow, async events, DOTween awaits), owner-keyed requests (TimeService pause / slow-mo / hit stop, InputService UI, GraphicsService), pause behaviour, pooled-object cancellation, and the Unity 6.6 project state (Enter Play Mode setting, statics, Dictionary serialization, Debug.isDebugBuild gating, InputService-only input, Logs/Editor.log). Use for any DI / registration / scope / installer / injection work, any gameplay event or subscriber, any async / delay work, and any C# touching serialization, statics, build defines or Unity 6.6 APIs in this repo, with the library skills unity-vcontainer, unity-messagepipe, unity-unitask and unity-6-new-apis.
+description: How aipocalypse wires its code — VContainer scopes and installers, entry points and central ticks, MessagePipe events, UniTask ownership and cancellation, TimeService pause / slow-mo, InputService-only input, Unity 6.6 project state. Use for any DI, registration, injection, gameplay event, subscriber or async / delay work, and any C# touching serialization, statics or build defines in this repo.
 ---
 
 # Architecture rules in aipocalypse

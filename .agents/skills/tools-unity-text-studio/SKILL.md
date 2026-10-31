@@ -1,6 +1,6 @@
 ---
 name: tools-unity-text-studio
-description: Text Studio (animated TextMeshPro text, typewriter reveals, effects, reactions) in aipocalypse — its status (installed, Undecided, ask before using it in game code), the project constraints if adopted (uGUI + TMP only, no UI Toolkit, zero-allocation HUD text, DOTween for code tweens, TimeService pause, asmdef references, PLUGINS.md update), and where Text Studio's own skills answer how-to questions. Use for any animated or typewriter text, text effects, text reveal / hide, dialogue or HUD text animation work.
+description: Text Studio (animated TextMeshPro text) in aipocalypse — Undecided, ask before using it in game code; the project constraints if adopted. Use for any animated or typewriter text, text reveal / hide, dialogue or HUD text animation work.
 ---
 
 # Text Studio (aipocalypse)

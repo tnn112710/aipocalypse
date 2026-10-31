@@ -1,6 +1,6 @@
 ---
 name: aipocalypse-characters
-description: How characters get into aipocalypse, whatever the vendor (Synty, Malbers, Kevin Iglesias clips, PolyartStudio, SICS, anything imported later). Covers enemies, NPCs, companions, animals and bosses. Choosing a source pack by its ASSETS.md tag; the model prefab vs entity prefab split under Content/<Kind>/<Name>/; rig / avatar / import checks. The animator parameter contract (Speed, LookX/LookY, Lean, Fidget/FidgetIndex) and building controllers from a text spec with scripts/CharacterKit.cs. EnemyAnimator, LocomotionAnimation and EnemyAnimationManager (a central tick, no root motion, A* FollowerEntity moves the body). Prefab variants for extra looks, placing characters in WorldMap, verifying with offscreen snapshots, Play-mode probes and the wiring test, and crowd performance levers. Use for any task that adds, swaps, re-skins, animates or tunes a character model in the game, together with the vendor skill (tools-unity-synty-characters for Synty) and aipocalypse-enemy-ai for behaviour trees and navigation.
+description: How characters get into aipocalypse from any vendor — model vs entity prefab under Content/<Kind>/<Name>/, the animator parameter contract and CharacterKit, EnemyAnimator and the central animation tick, prefab variants, verifying looks and animation. Use for any task that adds, swaps, re-skins, animates or tunes an enemy, NPC, companion, animal or boss model. Behaviour is aipocalypse-enemy-ai; Synty specifics are tools-unity-synty-characters.
 ---
 
 # Characters in aipocalypse

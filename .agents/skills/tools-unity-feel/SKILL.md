@@ -1,6 +1,6 @@
 ---
 name: tools-unity-feel
-description: Feel (More Mountains, MMF_Player feedbacks) for aipocalypse — where game feel belongs (views reacting to MessagePipe events, never services or weapons directly), which feedbacks are allowed vs banned here (time scale, sound, scene loading, floating text, static event buses), Cinemachine 3 impulses, URP volume shakers, custom feedbacks bridging to TimeService/BroAudio, crowd-enemy limits, pooling and timescale modes. Use for any juice/feedback/screen shake/hit stop/flash/recoil-visual/UI punch work. NOT the legacy MMFeedbacks component (removed in Feel v4).
+description: Feel (MMF_Player feedbacks) in aipocalypse — views reacting to MessagePipe events, allowed vs banned feedbacks, Cinemachine impulses, custom feedbacks bridging to TimeService / BroAudio, crowd limits. Use for any juice, feedback, screen shake, hit stop, flash, recoil visual or UI punch work. NOT the legacy MMFeedbacks component.
 ---
 
 # Feel (aipocalypse)

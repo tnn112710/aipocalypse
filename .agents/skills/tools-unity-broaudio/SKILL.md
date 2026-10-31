@@ -1,6 +1,6 @@
 ---
 name: tools-unity-broaudio
-description: BroAudio (audio middleware) in aipocalypse — every sound goes through AudioService (root scope), never the static BroAudio facade; SoundID fields on data; libraries and entities in Data/Audio edited in the Library Manager; one-shots (Play / PlayAt) vs kept players (Start → SetVolume / Pause / UnPause / Stop) for loops, ambience beds and music; what Feel and other plugins may not do with audio; and where BroAudio's own guide (Assets/Plugins/BroAudio/CLAUDE.md) answers API questions. Use for any sound, music, ambience, footstep, weapon or UI audio work, adding a SoundID, or touching AudioService, AmbienceService or audio libraries.
+description: BroAudio in aipocalypse — every sound goes through AudioService, never the static BroAudio facade; SoundID fields, libraries in Data/Audio, one-shots vs kept players for loops, ambience and music. Use for any sound, music, ambience, footstep, weapon or UI audio, adding a SoundID, or touching AudioService, AmbienceService or audio libraries.
 ---
 
 # BroAudio (aipocalypse)

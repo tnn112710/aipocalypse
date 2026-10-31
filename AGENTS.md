@@ -13,9 +13,9 @@ Guidance for AI coding agents (Claude Code, Codex, …) working in this reposito
 **Editor control: Unity CLI** (`unity`, via the `com.unity.pipeline` package). The deprecated Unity MCP is not used. The CLI's docs ship with the package in `Library/PackageCache/com.unity.pipeline@*/Documentation~/` (`commands/`, `authoring-commands.md`, `testing.md`, …); in Claude Code, also load the official `unity:unity-cli` skill. Read them before editor work.
 
 ```bash
-P="$(cygpath -w "$PWD")"                                    # Git Bash
-unity status --project-path "$P"
-unity command --project-path "$P" editor set_auto_tick --enable true
+P="$(cygpath -w "$PWD")"                                    # Git Bash: the CLI doesn't match /d/... paths
+unity status --project-path "$P"                            # not ready: Safe Mode (unity pipeline list) or ask the user to open the project
+unity command --project-path "$P" editor set_auto_tick --enable true   # commands stall while Unity is unfocused otherwise
 unity command --project-path "$P" script recompile          # then poll until completed / up_to_date:
 unity command --project-path "$P" script recompile_status
 unity command --project-path "$P" console status            # console get for the messages
@@ -23,10 +23,7 @@ unity command --project-path "$P" test run --mode editor
 bash .claude/hooks/check-undeclared-packs.sh                # vendor folders missing from ASSETS/PLUGINS.md
 ```
 
-- Use `unity command <name>` to drive the live editor (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML. `unity command` lists the command groups (`unity command <group>` lists a group); follow the package docs (`script recompile` → `script recompile_status` → `test run` loop, `script run` for bulk/plugin work, `script eval` for one-liners). Older docs and skills may use the pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
-- In Git Bash pass `--project-path "$(cygpath -w "$PWD")"` — the CLI doesn't match `/d/...` paths.
-- Before editor work run `unity status` and `unity command editor set_auto_tick --enable true` (commands stall while Unity is unfocused otherwise); if not ready, check Safe Mode (`unity pipeline list`) or ask the user to open the project.
-- Verify changes with `script recompile_status` / `console status` + `console get` / `capture scene_view` instead of guessing. Tests use `com.unity.test-framework` (`unity command test run --mode editor`).
+- Drive the live editor with `unity command` (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML: `script run` for bulk/plugin work, `script eval` for one-liners, `capture scene_view` to check results. `unity command` lists the groups, `unity command <group>` a group's commands. Older docs may use pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
 - Only one agent drives the editor at a time. When two agents work in parallel, use separate branches/worktrees.
 
 **Editor gotchas** (learned the hard way):
@@ -65,29 +62,27 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 
 ## Where things live
 
-- `Assets/_Game/` — **all first-party game code and content go here.** Stable mechanics live in `Assets/_Game/_Core/` (one folder per system plus `_Bootstrap`, `_Common`, `_Debug`); design-dependent rules will go in `Assets/_Game/Features/` and trial mechanics in `Assets/_Game/_Experimental/`, both created with their first code (only the `Aipocalypse.Core` and two test asmdefs exist today). Features depend on Core, never the reverse; their asmdefs will enforce it once they exist. Content lives in one folder per thing (`Assets/_Game/Content/<Kind>/<Name>/`: `Enemies`, `Items` and `Weapons` exist; other kinds such as animals or companions get a folder when the first one is added); system-wide settings ScriptableObjects in `Assets/_Game/Data/<System>/`; maps in `Assets/_Game/Maps/<Map>/` with the shared environment kit in `Assets/_Game/Environment/`. Full layout and rules and system ownership: `docs/technicals/ARCHITECTURE.md`; script map: `docs/technicals/CODE_STRUCTURE.md`.
-- `Assets/_Game/Scenes/Prototypes/` — `WorldMap.unity`, the prototype world map, not in Build Settings. Mechanics are currently tested there; `Proto_*` scenes that test one mechanic each are planned. Prototype scenes use the real code and prefabs, never copies (rules in ARCHITECTURE.md → "Prototypes → main game").
-- `Assets/_StoreAssets/` and `Assets/Synty/` — third-party art/asset-store content (Synty packs, Castle Bravo Low Poly Weapon Bundles 1–3 and 5, Stylized Grass/Water 3, Damage Numbers Pro, Feel…). Treat as vendor code: don't modify; reference or make variants/prefabs under `_Game`. Content packs (3D, UI, VFX, audio): `docs/technicals/ASSETS.md`; code plugins and tools: `docs/technicals/PLUGINS.md`.
+- `Assets/_Game/` — **all first-party game code and content go here**: systems in `_Core/` (Features depend on Core, never the reverse), content per thing in `Content/<Kind>/<Name>/`, settings ScriptableObjects in `Data/<System>/`, per-map assets in `Maps/<Map>/`. Full layout, asmdefs, system ownership and the prototype → main game rules: `docs/technicals/ARCHITECTURE.md`; script map: `docs/technicals/CODE_STRUCTURE.md`.
+- `Assets/_Game/Scenes/Prototypes/WorldMap.unity` — the prototype world map where mechanics are tested (Build Settings list no scenes yet). Prototype scenes use the real code and prefabs, never copies.
+- `Assets/_StoreAssets/` and `Assets/Synty/` — third-party art/asset-store content. Treat as vendor code: don't modify; reference or make variants/prefabs under `_Game`. Content packs: `docs/technicals/ASSETS.md`; code plugins and tools: `docs/technicals/PLUGINS.md`.
 - `Assets/_Placeholder/` — temporary storage for placeholder and AI-generated assets (e.g. borrowed audio). Tagged Avoid in ASSETS.md: nothing ships from here, don't add new references from `_Game`, and replace the existing ones with real assets.
 - `Assets/Plugins/` — third-party editor/runtime tooling (Odin Inspector, DOTween/Demigiant, GPUInstancerPro, etc.). Don't modify.
-- `Assets/_Game/Settings/` — URP assets (`PC_RPAsset`, `PC_Renderer`), volume profile, Input System config, and audio import presets (`Audio/`). `Assets/Settings/` holds the Build Profiles and an unused URP global settings asset (the live one is in `_Game/Settings`).
-- Build Settings list no scenes yet. What only one map uses lives in `Assets/_Game/Maps/<Map>/` (WorldMap's terrain, water meshes, navmesh and backdrop are in `Maps/WorldMap/`, its scene in `Scenes/Prototypes/`). When a map becomes official, its scene goes to `Maps/<Map>/<Map>.unity` and into Build Settings.
-- `Packages/` — local packages: A* Pathfinding Project (`com.arongranberg.astar`), GPU Instancer Pro (`com.gurbu.gpui-pro` + modules), Behavior Designer Pro (`com.opsive.*`), COZY, MicroVerse, Spline Spawner, SC Screen Effects (`xyz.staggart-creations.screen-effects`).
+- `Assets/_Game/Settings/` — the live URP assets (`PC_RPAsset`, `PC_Renderer`), volume profile, Input System config, audio import presets. `Assets/Settings/` holds only the Build Profiles and an unused URP global settings asset.
+- `Packages/` — embedded vendor packages (A*, GPU Instancer Pro, Behavior Designer Pro, COZY, MicroVerse, Spline Spawner, SC Screen Effects); treat as vendor code, listed in PLUGINS.md.
 - `AgentScripts/` — editor scripts outside `Assets/`, run with `unity command script run` (the map generator in `AgentScripts/Maps/<Map>/`, setup, review and perf scripts per feature). `Tools/` holds the same kind of one-off editor script (e.g. `HandFistReview.cs`).
 
 ## Key tech choices (from `Packages/manifest.json`)
 
-- **Input**: new Input System only (`activeInputHandler: 1`). Actions asset is `Assets/_Game/Settings/InputSystem_Actions.inputactions` with a `Player` map: Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, Slot1–Slot9, Drop, Aim, Reload; a `Debug` map (editor and dev builds only): NextHour (N), NextPhase (M), KillPlayer (K), RevivePlayer (L); and a `Console` map (editor and dev builds): Toggle (backquote) opens the dev console, its editing keys are live only while the console holds text input, which turns the Player, UI and Debug maps off. Use these actions; don't call the legacy `UnityEngine.Input`. Game code reads input only through `InputService` (root scope, generated wrapper `GameInputActions`); never enable/disable actions or set the cursor lock elsewhere.
+- **Input**: new Input System only (`activeInputHandler: 1`). Actions asset is `Assets/_Game/Settings/InputSystem_Actions.inputactions`: `Player` map (Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, Slot1–Slot9, Drop, Aim, Reload), `UI`, plus `Debug` and `Console` maps for editor and dev builds (keys in DEBUG.md / CONSOLE.md). Use these actions; don't call the legacy `UnityEngine.Input`. Game code reads input only through `InputService` (root scope, generated wrapper `GameInputActions`); never enable/disable actions or set the cursor lock elsewhere.
 - **Architecture / DI**: VContainer (`jp.hadashikick.vcontainer`) + UniTask. Cross-system events go through MessagePipe. No `X.Instance` singletons in game code — services are plain C# registered in lifetime scopes; each system registers through its own installer. Entity prefabs (player, enemies…) carry their own `EntityScope` and must work dropped into any scene. See `docs/technicals/ARCHITECTURE.md`.
 - **AI**: Behavior Designer Pro 3.3 trees for every agent; crowd enemy trees ticked time-sliced by `EnemyManager`.
 - **Enemy navigation**: A* Pathfinding Project 5.4 (`FollowerEntity` agents).
 - **Camera**: Cinemachine 6.6 (Cinemachine 3 API, namespace `Unity.Cinemachine`).
 - **Rendering/perf**: URP, GPU Instancer Pro for foliage/props, VFX Graph, Splines, Terrain Tools.
-- **Editor conveniences**: Odin Inspector (`Sirenix`), DOTween, Feel (MoreMountains), Damage Numbers Pro are available for game code.
 
 ## Plugins and content packs — check before building, use them correctly
 
-Many runtime and editor plugins are installed (Feel, BroAudio, Easy Save 3, Damage Numbers Pro, DOTween, Odin, GPU Instancer Pro, A*, Behavior Designer Pro, Localization…), plus many art, UI, VFX and audio packs. **Read `docs/technicals/PLUGINS.md` before any task that a plugin might cover, and `docs/technicals/ASSETS.md` before building, dressing or sounding anything.**
+Many plugins (Feel, BroAudio, Easy Save 3, Damage Numbers Pro, DOTween, Odin, Localization…) and art, UI, VFX and audio packs are installed. **Read `docs/technicals/PLUGINS.md` before any task that a plugin might cover, and `docs/technicals/ASSETS.md` before building, dressing or sounding anything.**
 
 Both files declare each package once, with one tag: **Must** (the only choice), **Should** (the default), **Could** (fallback for what the higher tags lack), **Maybe** (last resort, ask first), **Avoid** (reference only, nothing in `_Game` points at it), **Undecided** (ask first). Pick the highest-tagged package that has what you need; using a lower one means writing why in its row.
 
@@ -122,7 +117,7 @@ When writing code, the user's prompt is the spec.
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
 - `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` is the index of per-topic files; start with `docs/gdd/CORE.md` (pitch, pillars, core loop). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
-- `docs/technicals/` — technical docs. Architecture and data flow: `docs/technicals/ARCHITECTURE.md`. Script map (what each script owns, dependencies, frame order): `docs/technicals/CODE_STRUCTURE.md` — update it whenever you add, move or remove a script. Plugin inventory and usage rules: `docs/technicals/PLUGINS.md`. Content packs (3D, animation, UI, VFX, audio) and which to use per purpose: `docs/technicals/ASSETS.md`; Synty packs we can import with the SyntyPass but haven't: `docs/technicals/SYNTY_CATALOG.md`. UI (HUD canvas, widgets, styles, adding info): `docs/technicals/UI.md`. Equipment (items, hotbar, switching, belt lantern, adding item kinds): `docs/technicals/EQUIPMENT.md`. Weapons (guns, ammo, bullets, recoil, melee, adding a weapon): `docs/technicals/WEAPONS.md`. First-person hands (grips, hand poses, weapon clip authoring, swapping the hand mesh): `docs/technicals/HANDS.md`. World map environment (terrain generator, water, vegetation, atmosphere, rebuild order): `docs/technicals/ENVIRONMENT.md`. Day/night cycle (world clock, time-of-day looks, sky, reactors, player light at night, ambience, HUD clock): `docs/technicals/DAYNIGHT.md`. Dev console (keys, command list, adding a command or cheat): `docs/technicals/CONSOLE.md`. Other debug tools (on-screen log, hotkeys, target dummy): `docs/technicals/DEBUG.md`.
+- `docs/technicals/` — one doc per system; read the one you touch: `ARCHITECTURE` (layout, data flow), `CODE_STRUCTURE` (script map — update whenever you add, move or remove a script), `PLUGINS`, `ASSETS`, `SYNTY_CATALOG` (Synty packs not yet imported), `UI` (HUD), `EQUIPMENT` (items, hotbar), `WEAPONS`, `HANDS` (first-person grips, poses, clips), `ENVIRONMENT` (world map), `DAYNIGHT`, `CONSOLE` (dev console, cheats), `DEBUG` (other debug tools).
 - Current milestone/tasks: `docs/ROADMAP.md`.
 
 ## Code style
