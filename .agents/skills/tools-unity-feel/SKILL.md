@@ -170,7 +170,7 @@ namespace Aipocalypse.Core.Feedback
 
 AGENTS.md: keep per-instance plugin components off crowd entities.
 - **No `MMF_Player` on crowd enemy prefabs.** Hundreds of players with initialized feedback lists is the per-instance overhead we avoid.
-- Enemy **hit flash**: the enemy view sets a shader property (MaterialPropertyBlock / material instance pooled with the enemy) from the `EnemyManager` tick or the damage router. It's cheap and needs no Feel.
+- Enemy **hit flash**: the enemy's renderer gets a shader user value (`SetShaderUserValue`, read by the graph; not a MaterialPropertyBlock, which takes it off the SRP Batcher; `tools-unity-shader-graph`) from a central enemy tick or the damage router. It's cheap and needs no Feel.
 - Enemy **hit and death VFX**: our VFX pool. **Damage numbers**: Damage Numbers Pro (pooled).
 - **Player-side reaction to hitting enemies** (hit marker punch, small impulse on kill, hit stop on headshot; the hit sound goes through `AudioService`): *one* view on the player subscribed to player-sourced `DamageDealt` (`Result.Killed` for kills, as `HitFeedbackHud` reads it), playing shared players with `PlayFeedbacks(hitPoint, intensity)`. One player serves every enemy.
 - Unique entities (dog, cat, drone, bosses) may carry their own MMF_Players.
