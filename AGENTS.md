@@ -23,7 +23,7 @@ unity command --project-path "$P" test run --mode editor
 bash .claude/hooks/check-undeclared-packs.sh                # vendor folders missing from ASSETS/PLUGINS.md
 ```
 
-- Drive the live editor with `unity command` (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML: `script run` for bulk/plugin work, `script eval` for one-liners, `capture scene_view` to check results. `unity command` lists the groups, `unity command <group>` a group's commands. Older docs may use pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
+- Drive the live editor with `unity command` (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML: `script run` for bulk/plugin work, `script eval` for one-liners, `capture screenshot --view scene|game` to check results (saves a PNG under `Temp/` and returns its path; the game view needs an open Game window). `unity command` lists the groups, `unity command <group>` a group's commands. Older docs may use pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
 - Only one agent drives the editor at a time. When two agents work in parallel, use separate branches/worktrees.
 
 **Editor gotchas** (learned the hard way):
@@ -32,7 +32,7 @@ bash .claude/hooks/check-undeclared-packs.sh                # vendor folders mis
 - Keyboard/mouse reach the game only while the Game view has focus. For scripted play tests drive input with a virtual gamepad (`InputSystem.AddDevice<Gamepad>` + `QueueStateEvent`).
 - Right after `script recompile`, poll `script recompile_status` before anything else; a command during the domain reload fails with "Connection reset by server".
 - The first frame after a `script run` includes its in-memory compile (~0.5 s): skip it when measuring. For clean editor perf numbers hide the Hierarchy window (it rebuilds per change and spikes with ~16k objects).
-- `capture game_view --save_path` resolves under `Assets/` and imports the image: delete it with `AssetDatabase.DeleteAsset` afterwards.
+- Don't use `capture scene_view` / `capture game_view` with `--save_path`: it resolves under `Assets/` and imports the image. Use `capture screenshot` instead.
 - In Git Bash, heredocs containing an apostrophe break; write edit scripts to a file and run that.
 - **Save only what you wrote.** Never `AssetDatabase.SaveAssets()` in editor scripts: it writes every dirty asset in the editor, e.g. vendor materials upgraded in memory, or WorldMap's 59 MB LFS TerrainData through MicroVerse's save hook. Save each asset with `AssetDatabase.SaveAssetIfDirty(asset)` (importers: `WriteImportSettingsIfDirty` + `ImportAsset`), then check `git status` for unrelated files.
 - `test run` blocks the editor on a modal "Scene(s) Have Been Modified" dialog when an open scene is dirty (the CLI just times out). Check `SceneManager.GetActiveScene().isDirty` first and ask the user before discarding anything.
@@ -90,7 +90,7 @@ Both files declare each package once, with one tag: **Must** (the only choice), 
 - **Check first:** before writing a system or tool, check whether an installed plugin already does it. Use the plugin rather than reinventing it, unless PLUGINS.md says otherwise.
 - **Use it the documented way:** follow the plugin's rules in PLUGINS.md (e.g. no plugin singletons/static event systems in gameplay code, `TimeService` owns `Time.timeScale`, uGUI for UI, DOTween for code tweens, behavior trees for all AI with crowd trees ticked by `EnemyManager`). When unsure how a plugin works, read its docs or source in `Assets/Plugins/` / `Packages/` instead of guessing (some ship their own guide, e.g. `Assets/Plugins/BroAudio/CLAUDE.md`).
 - **Use it efficiently:** prefer the plugin's pooling, batching and caching features (Damage Numbers Pro and BroAudio pooling, GPUI instancing) and keep per-instance plugin components off crowd entities (exceptions: BD `BehaviorTree` in Manual mode, A* `FollowerEntity`).
-- **Before using assets, look for undeclared and Undecided packs:** whenever a task picks art, animation, UI, VFX or audio, compare `Assets/_StoreAssets/` with ASSETS.md and check the Undecided rows. If an undeclared or Undecided pack could serve the task, stop and ask the user: say what it contains, suggest a tag with a one-line reason, then add or update the row with their decision (Undecided if they don't decide) before using it then update the file.
+- **Before using assets, look for undeclared and Undecided packs:** whenever a task picks art, animation, UI, VFX or audio, compare `Assets/_StoreAssets/` with ASSETS.md and check the Undecided rows. If an undeclared or Undecided pack could serve the task, stop and ask the user: say what it contains, suggest a tag with a one-line reason, then add or update the row with their decision (Undecided if they don't decide) before using it.
 - **Keep PLUGINS.md and ASSETS.md current:** when adding, removing or starting to use a plugin or pack in a new way (or for a new purpose), update its row in the same change. Each vendor folder (`_StoreAssets/<Kind>/<Pack>`, `Synty/<Pack>`, `Synty/SidekickCharacters/Characters/<Pack>`, `Plugins/<Name>`) must appear by its exact folder name. `bash .claude/hooks/check-undeclared-packs.sh` lists the ones that don't (Claude Code runs it at session start); for each, suggest a tag, ask the user, then add the row.
 
 ## Ask the user first
@@ -147,7 +147,7 @@ Base convention: the `oss-unity:csharp-unity` skill (Claude Code; other agents r
 
 1. `script recompile` → `script recompile_status` is clean, and `console status` shows no new errors.
 2. `test run --mode editor` passes, with tests added or updated for changed rules.
-3. Changed editor content is checked (`capture scene_view`, `component get_fields`), not assumed.
+3. Changed editor content is checked (`capture screenshot`, `component get_fields`), not assumed.
 4. Docs updated in the same change: CODE_STRUCTURE.md for any script added, moved or removed; PLUGINS.md / ASSETS.md for plugin or pack use; the system's doc for behaviour changes.
 5. Report what was verified and what wasn't. Don't commit unless asked.
 
