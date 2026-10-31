@@ -132,7 +132,7 @@ Use one when a full rebuild would wipe hand edits (SKILL.md §4). The WorldMap r
 | `Drowned(level, within, apply)`, `Floating(within, above)` | Lists objects now under water or floating. |
 
 - Old terrain: copy the TerrainData asset before regenerating, or recover it with `git show HEAD:<path> | git lfs smudge` (TerrainData is LFS).
-- `RiverLevel.cs` keeps its own copy of the river knots and pond centre (run_script compiles one file): update it with the layout.
+- `RiverLevel.cs` keeps its own copy of the river knots and pond centre (`script run` compiles one file): update it with the layout.
 - A generic version should find the changed region by diffing old and new heights instead of copying knots, read water surfaces from the scene, and snapshot material instancing as well as shadows.
 - Revert with git only after switching Unity to an empty scene, or a modal "modified externally" dialog blocks the CLI.
 

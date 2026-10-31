@@ -46,7 +46,7 @@ unity command script run --file .agents/skills/tools-unity-synty-characters/scri
 ```
 
 `Build(skPath, outFolder, name, keepFacialBlendShapes, optimizeHierarchy, exposedBones)` writes, in `outFolder`:
-`<name>_Model.prefab` (root Animator + `mesh` SkinnedMeshRenderer + `root` bones), `<name>_Mesh.asset`, `<name>_Avatar.asset`, `<name>.mat`, `T_<name>ColorMap.png`. Rebuilding overwrites in place and keeps every GUID, so prefabs that nest the model stay wired. Then check it with `CharacterKit.Snapshot` / `Describe` (aipocalypse-characters §6).
+`<name>_Model.prefab` (root Animator + `mesh` SkinnedMeshRenderer + `root` bones), `<name>_Mesh.asset`, `<name>_Avatar.asset`, `<name>.mat`, `T_<name>ColorMap.png`. Rebuilding overwrites in place and keeps every GUID, so prefabs that nest the model stay wired. Then check it with `CharacterKit.Snapshot` / `Describe` (aipocalypse-characters §4).
 
 What Build does differently from the tool's own export, and why:
 - **Reads the vendor package only.** It never calls `SidekickRuntime.PopulateToolData` (that writes `file_exists` into `Side_Kick_Data.db`, a binary diff in git) and never paints the shared `M_BaseMaterial` textures (the runtime paints them in place for the whole editor session).

@@ -80,7 +80,7 @@ namespace Aipocalypse.Core.EnemySystem
             else if (_registry != null)
                 Activate();
             else
-                Debug.LogError($"{name}: not injected; save the scene so its EnemyInstaller lists it, or spawn it through an EnemySpawner.", this);
+                Debug.LogError($"{name}: not injected; save the scene so its EnemyInstaller lists it, or spawn it with the scene resolver (resolver.Instantiate).", this);
         }
 
         void OnEnable()

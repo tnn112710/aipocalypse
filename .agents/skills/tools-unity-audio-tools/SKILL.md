@@ -23,5 +23,5 @@ Audio Tools ships agent skills in `Assets/Plugins/AudioTools/AI/Skills/` (writte
 - **Never overwrite a vendor clip** (`Assets/_StoreAssets/`, `Assets/Synty/`, `Assets/Plugins/`). Export the processed WAV as a new file under `Assets/_Game/`, next to the content that uses it; ask the user for the folder if it isn't obvious.
 - **Keep the source:** processing is destructive to the exported file only; keep the original clip referenced until the new one is checked.
 - **Getting it into the game:** swap the clip in the BroAudio entity in the Library Manager (`tools-unity-broaudio`). Don't add `AudioClip` fields to game code.
-- **Import settings** of new clips (load type, compression, mono) follow the audio import guidance of the user-scope `unity-optimization-pc` skill (`references/assets-memory.md`, audio import); set them on the exported file, not on the vendor original.
+- **Import settings** of exported clips come from the project's audio presets: run `Apply` on the exported file as `tools-unity-broaudio` describes ("Import settings"), never on the vendor original.
 - PLUGINS.md lists Audio Tools without usage notes; add one there if the project starts relying on it.

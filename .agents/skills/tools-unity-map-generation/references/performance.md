@@ -39,7 +39,7 @@ Rules of thumb for map content: details ≤ ~200 triangles for dense cover; deta
 
 ## 3. Measuring
 
-Scripts in `AgentScripts/Perf/` (run with `unity command run_script` in play mode; last run 2026-10-20, recompile-check before relying on them) and `AgentScripts/DayNight/Prof.cs`:
+Scripts in `AgentScripts/Perf/` (run with `unity command script run` in play mode; last run 2026-10-20, recompile-check before relying on them) and `AgentScripts/DayNight/Prof.cs`:
 
 | Script | Does |
 | --- | --- |
@@ -55,9 +55,9 @@ Scripts in `AgentScripts/Perf/` (run with `unity command run_script` in play mod
 | `Prof.Window/Compare/Spikes/Report` | Median CPU/GPU in a frame window, markers that grew most between two windows, spike frames. |
 
 Traps:
-- Play mode doesn't tick while Unity is in the background: `Application.runInBackground = true` **right after** `editor_play` (in edit mode it writes ProjectSettings).
-- `run_script` budget: `--timeout_ms` + CLI `--timeout`; async entries keep running after the CLI gives up, so also write results to a file.
-- Modal dialogs (scene modified externally, save prompt before tests) block every command including `editor_status`.
+- Play mode doesn't tick while Unity is in the background: `Application.runInBackground = true` **right after** `editor.playmode start` (in edit mode it writes ProjectSettings).
+- `script run` budget: the CLI's `--timeout` (one timeout per request); async entries keep running after the CLI gives up, so also write results to a file.
+- Modal dialogs (scene modified externally, save prompt before tests) block every command including `editor status`.
 - Error Pause freezes play mode when firing logs an error. The player spawns empty-handed: give it a weapon by script to profile firing.
 - Noise: a long-running editor session ran at 14–19 ms PlayerLoop vs 7.5–9 ms after a restart (broken audio device, memory eviction); baselines drift ~2 ms while warming up; the Profiler window itself causes 25–30 ms frames; an open Scene view is an extra camera; a selected Light slowed frames. Average several yaws (one spot drew 1.6k vs 3k calls by heading).
 - Judge final numbers in a development build; in the editor close the Scene view and collapse the Hierarchy.

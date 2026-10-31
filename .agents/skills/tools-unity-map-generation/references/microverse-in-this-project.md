@@ -15,12 +15,12 @@ All of it is vendor content: reference it, never edit it. Terrain-layer and art-
 
 ## 2. Running the kit here
 
-The kit is `.agents/skills/tools-unity-map-generation/scripts/MicroVerseKit.cs`, a copy of the user-scope `unity-microverse` kit kept in the repo so the map rebuilds on any clone and for any agent (`run_script` takes an absolute path). "Kit `Rebuild`" in ENVIRONMENT.md and in these references means that file. When the user-scope kit is improved, copy it back here.
+The kit is `.agents/skills/tools-unity-map-generation/scripts/MicroVerseKit.cs`, a copy of the user-scope `unity-microverse` kit kept in the repo so the map rebuilds on any clone and for any agent (`script run` takes an absolute path). "Kit `Rebuild`" in ENVIRONMENT.md and in these references means that file. When the user-scope kit is improved, copy it back here.
 
 ```bash
 K="$(cygpath -m "$PWD/.agents/skills/tools-unity-map-generation/scripts/MicroVerseKit.cs")"
 P="$(cygpath -w "$PWD")"
-unity command run_script --file "$K" --entry MicroVerseKit.Rebuild --args '[false]' --project-path "$P" --result-only
+unity command script run --file "$K" --entry MicroVerseKit.Rebuild --args '[false]' --project-path "$P" --result-only
 ```
 
 - In a `run_steps.sh` step file, write the kit as that `cygpath -m` path (`D:/.../tools-unity-map-generation/scripts/MicroVerseKit.cs|MicroVerseKit.Rebuild|[true]`).
@@ -55,7 +55,7 @@ unity command run_script --file "$K" --entry MicroVerseKit.Rebuild --args '[fals
 
 Not used on the WorldMap: BK presets, SplinePath / SplineArea, ObjectStamp, Hole / Occlusion / CopyPaste stamps, `FalloffOverride`, SW3 RiverModeler's MicroVerse section (water is carved in the height function, water.md §2; tools-unity-stylized-water).
 
-**Helpers to copy into a new builder** (`run_script` compiles one file, so copy rather than reference):
+**Helpers to copy into a new builder** (`script run` compiles one file, so copy rather than reference):
 
 | Helper | WML | Does |
 | --- | --- | --- |

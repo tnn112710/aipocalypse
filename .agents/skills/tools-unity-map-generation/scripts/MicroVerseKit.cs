@@ -1,6 +1,6 @@
-// MicroVerse terrain kit for the Unity CLI (`unity command run_script`, package com.unity.pipeline). Editor-only; keep it
+// MicroVerse terrain kit for the Unity CLI (`unity command script run`, package com.unity.pipeline). Editor-only; keep it
 // outside Assets/ so running it triggers no import or domain reload. Checked against MicroVerse 1.7.0 on Unity 6000.6.
-// Usage: unity command run_script --file <absolute path>/MicroVerseKit.cs --entry MicroVerseKit.Status
+// Usage: unity command script run --file <absolute path>/MicroVerseKit.cs --entry MicroVerseKit.Status
 // Entry points and argument order are documented in the unity-microverse skill's SKILL.md ("The kit").
 using System;
 using System.Collections.Generic;
@@ -361,7 +361,7 @@ public static class MicroVerseKit
         return new { northUp = rows };
     }
 
-    // Puts the Scene-view camera exactly at (x,y,z) looking along pitch/yaw, for `unity command screenshot --view scene`.
+    // Puts the Scene-view camera exactly at (x,y,z) looking along pitch/yaw, for `unity command capture screenshot --view scene`.
     // aboveGround: y is metres above the terrain (1.7 = a typical FPS eye). Gizmos off, sky/fog/effects on.
     // hideRoots: comma-separated scene root names to hide from the view (e.g. "HUD,Player"; scene visibility is per user,
     // not saved in the scene).

@@ -43,7 +43,7 @@ Read before acting:
 - **Audio**: every RiverModeler gets `settings.audio.enable = false; settings.audio.profile = null` (`Reset()` assigns a profile and the default is on, `Settings.cs:171`). Never add a `RiverAudioManager`. Leave `UnderwaterArea.environmentAudioMixer` empty (it drives a mixer low-pass from render code).
 - **Gameplay code never touches SW3 statics directly** (`WaterObject.Instances/Find/CustomTime/PositionOffset`, `UnderwaterArea.Instances`, `HeightQuerySystem`, `RiverModeler.onPre/PostRebuildRiver`, `RiverSegment.onTrigger*`). If a prompt needs water queries, one Core service registered by its system's installer wraps them, with scene water refs injected (as `EnemyMover` gets the scene's `AstarPath` injected rather than using `AstarPath.active`), and game code sees an interface. No `AlignToWater` on crowd entities (per-instance FixedUpdate; `Start` turns off Rigidbody gravity, `AlignToWater.cs:74-83`).
 - **Saving**: `AssetDatabase.SaveAssetIfDirty(asset)` only, never `SaveAssets()` (WML `BuildUnderwater` still calls it at 2188: fix it when you touch that code).
-- **Editor control** via the Unity CLI (`run_script`). These SW3 helpers open modal dialogs and stall the CLI: `StylizedWaterEditor.EnableDepthTexture/EnableOpaqueTexture` (`StylizedWaterEditor.cs:356, 384`), `PipelineUtilities.ValidateRenderFeatureSetup` (`PipelineUtilities.cs:254`), `RiverModelerEditor.CreateRiverObject(true)` (`:84`), the "Add River" context menu (`:139`).
+- **Editor control** via the Unity CLI (`script run`). These SW3 helpers open modal dialogs and stall the CLI: `StylizedWaterEditor.EnableDepthTexture/EnableOpaqueTexture` (`StylizedWaterEditor.cs:356, 384`), `PipelineUtilities.ValidateRenderFeatureSetup` (`PipelineUtilities.cs:254`), `RiverModelerEditor.CreateRiverObject(true)` (`:84`), the "Add River" context menu (`:139`).
 - **Performance decisions stay** unless the user reopens them: environment reflections and SSR off in every water material (`WaterReflectionsOff`, WML:2083), lake probe deactivated, no planar reflections, no Dynamic Effects.
 
 ## 4. Recipes
@@ -118,7 +118,7 @@ River segment transforms sit at the curve centre: their Y is **not** a water lev
 **4.6 Testing and captures.**
 - Use the Scene view, the Game view or a plain visible camera. SW3 renders nothing for cameras with `hideFlags` set, preview or overlay cameras, so a hidden temp camera shows no underwater.
 - Underwater shows only when the camera's near plane is inside an area box. The Scene view needs image effects on (`RenderFeature.UnderwaterRendering.cs:125`).
-- Play mode: `Application.runInBackground = true` right after `editor_play`; `capture_game_view` without `--save_path` + `AgentScripts/Vision/shot.sh`. Never set runInBackground in edit mode.
+- Play mode: `Application.runInBackground = true` right after `editor.playmode start`; `capture game_view` without `--save_path` + `AgentScripts/Vision/shot.sh`. Never set runInBackground in edit mode.
 - After scene open, ribbons log GRD "invalid Mesh" for a few seconds; deleted water keeps drawing until the scene reopens (`OpenScene()`).
 - Numbers before pixels: `m.LastProcessingTime`, `rivers[i].Segments.Count`, material keyword lists (`m.shaderKeywords`).
 

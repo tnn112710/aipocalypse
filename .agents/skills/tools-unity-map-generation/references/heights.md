@@ -41,7 +41,7 @@ Performance: cache region weights per sample (Generate went 129 s → 55 s), ear
 - Importer (`ConfigureImporter`, WML:2835): Single Channel/Red, sRGB off, no mips, Clamp, Bilinear, not readable, NPOT none, R16 uncompressed (default + Standalone override), max size ≥ res. Apply with `WriteImportSettingsIfDirty` + `ImportAsset`, never `SaveAndReimport` (it wrote unrelated dirty vendor materials).
 - `BuildHeights()` (WML:937) deletes and rebuilds the `Height` group: `00 Base` = HeightStamp **Override**, Global falloff, centre (size/2, 0, size/2), scale (size, size.y, size) → texture 1.0 = size.y. Then `20 Region Detail`, `90 Gameplay Pads`. Number prefixes keep the evaluation order readable.
 - Then kit `Rebuild false` before anything samples the terrain (CPU heights are stale until a sync).
-- Resolutions: heightmap ≤ 0.5 m per texel where water is carved (1000 m → 2049, base PNG 2048; 1500 m → 4097, base 4096). Height masks ~1 m (1024 on 1000 m). Unity's heightmap max is 4097, so beyond ~2 km at 0.5 m you need tiles. Generate at 4096 takes ~5 min: pass `--timeout_ms`.
+- Resolutions: heightmap ≤ 0.5 m per texel where water is carved (1000 m → 2049, base PNG 2048; 1500 m → 4097, base 4096). Height masks ~1 m (1024 on 1000 m). Unity's heightmap max is 4097, so beyond ~2 km at 0.5 m you need tiles. Generate at 4096 takes ~5 min: pass a long `--timeout`.
 
 ## 4. Rowlan detail stamps as zero-mean relief
 

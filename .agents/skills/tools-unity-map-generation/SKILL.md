@@ -34,13 +34,13 @@ Read before acting:
 
 ## 2. Generator architecture
 
-- One generator per map in `AgentScripts/Maps/<Map>/`, outside `Assets/` (no import, no domain reload), run with `unity command run_script`. Map-only output in `Assets/_Game/Maps/<Map>/` (the WorldMap scene itself is `Scenes/Prototypes/WorldMap.unity` while it is a prototype); reusable first-party copies in `Assets/_Game/Environment/`.
+- One generator per map in `AgentScripts/Maps/<Map>/`, outside `Assets/` (no import, no domain reload), run with `unity command script run`. Map-only output in `Assets/_Game/Maps/<Map>/` (the WorldMap scene itself is `Scenes/Prototypes/WorldMap.unity` while it is a prototype); reusable first-party copies in `Assets/_Game/Environment/`.
 - **Layout is data**: polygons, basins, lines, anchors (100 m grid), bumps, islands, landmark frames and the detail-stamp table at the top of the file, in metres (x east, z north). Everything derives from them.
 - **One height function** and **one canonical waterline**: masks, water meshes, ribbons and dressing call the same functions that carved the terrain.
 - **Terrain size is a parameter.** No `1000`/`500`/`998` literals; noise in world metres; MicroVerse UV-space values converted (heights.md §8).
 - **Builders are idempotent**: each deletes and recreates its own root group with Undo, takes a seed, uses its own `System.Random`, returns counts and throws when inputs are missing (no silent partial groups).
 - **Group paths are an API**: clear masks, the render-policy pass and partial rebuilds read them. Keep them stable, as shared constants.
-- **`run_script` compiles one file**, unoptimised, and loads a new assembly per run. Helper classes must live in the same file (why WorldMapLayout.cs is ~5.7k lines; `RiverLevel.cs` keeps copies of layout data). Hot loops: `async Task<object>` + `await Task.Run(() => Parallel.For(...))`, asset calls after the await, `--timeout_ms` and CLI `--timeout`. A timed-out call keeps running: wait for `editor_status` before retrying.
+- **`script run` compiles one file**, unoptimised, and loads a new assembly per run. Helper classes must live in the same file (why WorldMapLayout.cs is ~5.7k lines; `RiverLevel.cs` keeps copies of layout data). Hot loops: `async Task<object>` + `await Task.Run(() => Parallel.For(...))`, asset calls after the await, a long enough CLI `--timeout` (one timeout per request). A timed-out call keeps running: wait for `editor status` before retrying.
 - **Save specific assets only** (`SaveAssetIfDirty`; importers via `WriteImportSettingsIfDirty` + `ImportAsset`). Known violations to fix when touched: `BuildUnderwater` (WML:2188), `Atmosphere.RenderQuality` (also loads a moved settings path: don't run it), `DayNightSetup.cs:71`.
 - **Vendor content is read-only**: material copies (refresh then tune), prefab variants, first-party copies in `Environment/`. A builder must never reset a hand-tuned shared asset (`BuildBanks` once turned instancing off on a material the user had enabled).
 
@@ -88,13 +88,13 @@ Timings: the 1000 m map's full rebuild is ~8.3 min over 36 steps (`Generate` 185
 | Boundary | `BoundaryAngles(3)` | bearings where peaks don't clear the front layers |
 | Pixels | `OpenScene()`, then `Look(x, y, z, pitch, yaw, fov)` at named views (eye 1.7 m) + aerials; before/after from the user's camera | the user's complaint, every water junction, the spawn view |
 
-Capture traps: the GPU Resident Drawer keeps drawing deleted objects until the scene reloads (`OpenScene`); never force a domain reload after MicroVerse work (it corrupted the TerrainData wrapper and the next save crashed). The Scene view doesn't repaint while Unity is unfocused, and the user moves it between calls. SW3 skips cameras with `hideFlags`. The Scene view clips at 4 km, the player at 1500 m. Particles don't simulate in the Scene view (use play mode with `runInBackground`). Screenshots: `unity command screenshot --view scene` (lands in ignored `Temp/`); not `capture_scene_view --save_path` (writes under `Assets/`). Keep the named view list as coordinates in ENVIRONMENT.md.
+Capture traps: the GPU Resident Drawer keeps drawing deleted objects until the scene reloads (`OpenScene`); never force a domain reload after MicroVerse work (it corrupted the TerrainData wrapper and the next save crashed). The Scene view doesn't repaint while Unity is unfocused, and the user moves it between calls. SW3 skips cameras with `hideFlags`. The Scene view clips at 4 km, the player at 1500 m. Particles don't simulate in the Scene view (use play mode with `runInBackground`). Screenshots: `unity command capture screenshot --view scene` (lands in ignored `Temp/`); not `capture scene_view --save_path` (writes under `Assets/`). Keep the named view list as coordinates in ENVIRONMENT.md.
 
 ## 6. Long editor runs
 
-- `unity status` and `set_autotick --enable true` first; one agent drives the editor. Don't touch a dirty scene or the user's play mode without asking.
+- `unity status` and `editor set_auto_tick --enable true` first; one agent drives the editor. Don't touch a dirty scene or the user's play mode without asking.
 - Crashes happen (four in three days). Save at milestones. After a crash, wait for the user to reopen Unity, then check `isDirty`, stamp counts and the terrain data before continuing.
-- Modal dialogs block every CLI command: "modified externally" (git under an open scene), "save modified scenes" before `run_tests`, MicroVerse "Create For Existing Terrains". When the CLI stalls, look for an open dialog (listing top-level windows through user32 finds it) and ask the user to close it.
+- Modal dialogs block every CLI command: "modified externally" (git under an open scene), "save modified scenes" before `test run`, MicroVerse "Create For Existing Terrains". When the CLI stalls, look for an open dialog (listing top-level windows through user32 finds it) and ask the user to close it.
 - Revert vendor churn after each pass (`git status Assets/_StoreAssets`): Unity rewrites some vendor materials when their prefabs are instanced.
 - Write scripts and step files with the Write tool (LF), parse JSON with node (no python/jq).
 - Persist as you go: pending tasks and decisions to a file or memory at each milestone, research agents writing reports to files. Context exhaustion has killed background research and lost a user request (the highlands rework).
