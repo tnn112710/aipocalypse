@@ -25,6 +25,7 @@ Core feel prototypes — the mechanics are currently tested together in `Scenes/
 
 ## Later (Features — after the core feels good)
 
+- Enemy liveliness backlog (user, 2026-11-01; design each before building): **wounded goblins** limp (slower, hunched walk) or sometimes flee below ~30% health; **group reactions**: nearby goblins flinch or hesitate when one dies, duck at a headshot kill, taunt when the player retreats (Synty Emotes taunts are imported).
 - DayNight rules (dusk warning, sleeping with `SkipTo`, night enemies), Weather (an atmosphere layer in `EnvironmentDirector`, see DAYNIGHT.md), Progression, Persistence (save, death, rewind), Activities, Economy — scope follows the GDD
 
 ## Polish levels

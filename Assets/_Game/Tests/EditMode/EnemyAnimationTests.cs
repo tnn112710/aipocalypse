@@ -130,6 +130,11 @@ namespace Aipocalypse.Tests
                 Assert.That(deathStates, Is.GreaterThanOrEqualTo(serialized.FindProperty("_deaths").intValue), $"{path}: more deaths than states");
                 Assert.That(attackStates, Is.GreaterThanOrEqualTo(serialized.FindProperty("_attacks").intValue), $"{path}: more attacks than states");
                 Assert.That(celebrateStates, Is.GreaterThanOrEqualTo(serialized.FindProperty("_celebrations").intValue), $"{path}: more celebrations than states");
+                SerializedProperty sideDeaths = serialized.FindProperty("_sideDeaths");
+                string[] sides = { "front", "back", "left", "right" };
+                for (int side = 0; side < sideDeaths.arraySize && side < sides.Length; side++)
+                    Assert.That(baseStates.Count(n => n.StartsWith($"Death_{sides[side]}_")), Is.GreaterThanOrEqualTo(sideDeaths.GetArrayElementAtIndex(side).intValue),
+                        $"{path}: more {sides[side]} deaths than states");
                 var definition = prefab.GetComponent<EnemyBrain>().Definition;
                 Assert.That(definition != null && definition.Animation != null, Is.True, $"{path}: definition has no Animation settings");
             }

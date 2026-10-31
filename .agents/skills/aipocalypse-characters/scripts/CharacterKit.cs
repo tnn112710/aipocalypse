@@ -151,6 +151,8 @@ public static class CharacterKit
     //   heavy.front|back|left|right = <clip>                came from), heavy ones at HitIndex 4..7 (missing = the light clip),
     //   hit.mask = upper | full                             in an override layer; upper (default) keeps the legs walking
     //   death = <clip>                                      one per line, base layer, from any state on Dead by DeathIndex
+    //   death.front|back|left|right = <clip>                one per line: where the killing hit came from (falls away from
+    //                                                       it), state Death_<side>_<n> on Dead by DeathIndex 10 × (side + 1) + n
     //   attack = <clip>                                     one per line, base layer (full body, tagged Attack), from any
     //                                                       state on the Attack trigger by AttackIndex, back to locomotion
     //   appear = <clip>                                     one clip, base layer, played once on the Appear trigger when
@@ -210,6 +212,7 @@ public static class CharacterKit
         var hits = sides.Select(d => Clip(Get("hit." + d))).ToArray();
         var heavyHits = sides.Select(d => Clip(Get("heavy." + d))).ToArray();
         var deaths = spec.Where(p => p.Key == "death").Select(p => Clip(p.Value)).ToList();
+        var sideDeaths = sides.Select(side => spec.Where(p => p.Key == "death." + side).Select(p => Clip(p.Value)).ToList()).ToArray();
         var attacks = spec.Where(p => p.Key == "attack").Select(p => Clip(p.Value)).ToList();
         AnimationClip appear = Clip(Get("appear"));
         var celebrations = spec.Where(p => p.Key == "celebrate").Select(p => Clip(p.Value)).ToList();
@@ -298,6 +301,23 @@ public static class CharacterKit
             up.duration = 0.2f;
             up.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
         }
+
+        for (int side = 0; side < sideDeaths.Length; side++)
+            for (int i = 0; i < sideDeaths[side].Count; i++)
+            {
+                AnimatorState death = root.AddState($"Death_{sides[side]}_{i}", new Vector3(750f, 120f * (side * 3 + i), 0f));
+                death.motion = sideDeaths[side][i];
+                AnimatorStateTransition fall = root.AddAnyStateTransition(death);
+                fall.hasExitTime = false;
+                fall.duration = 0.15f;
+                fall.canTransitionToSelf = false;
+                fall.AddCondition(AnimatorConditionMode.If, 0f, "Dead");
+                fall.AddCondition(AnimatorConditionMode.Equals, 10 * (side + 1) + i, "DeathIndex");
+                AnimatorStateTransition up = death.AddTransition(locomotion);
+                up.hasExitTime = false;
+                up.duration = 0.2f;
+                up.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
+            }
 
         AnimatorState combat = null;
         if (combatIdle != null)
@@ -421,7 +441,7 @@ public static class CharacterKit
         AssetDatabase.SaveAssetIfDirty(controller);
         if (neutral != null)
             AssetDatabase.SaveAssetIfDirty(neutral);
-        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"appear\":{B(appear != null)},\"celebrations\":{celebrations.Count},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"sideDeaths\":\"{string.Join("/", sideDeaths.Select(d => d.Count))}\",\"attacks\":{attacks.Count},\"appear\":{B(appear != null)},\"celebrations\":{celebrations.Count},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
     }
 
     // Override layer "Hit": an empty default state, and Hit_<index> entered from any state on Hit + HitIndex (a new hit

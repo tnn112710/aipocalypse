@@ -182,7 +182,8 @@ namespace Aipocalypse.Core.WeaponSystem
             if (effects == null)
                 return;
 
-            _effects.Spawn(effects.Impact, hit.point, Quaternion.LookRotation(normal));
+            if (target is not IShowsOwnHits)
+                _effects.Spawn(effects.Impact, hit.point, Quaternion.LookRotation(normal));
 
             // Things that take damage move and die; a hole would float in the air.
             if (target == null && (effects.BulletHoleLayers.value & (1 << hit.collider.gameObject.layer)) != 0)

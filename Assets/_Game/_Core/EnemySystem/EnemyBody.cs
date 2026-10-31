@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.WeaponSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -9,7 +10,7 @@ namespace Aipocalypse.Core.EnemySystem
     // An enemy's physical side: takes hits, knockback and its stagger meter (flinch, stagger: EnemyBrain), reacts and cries, and when killed lies, sinks and disables itself
     // (enabling revives it). No Update: EnemyBodyManager advances it while it moves or dies.
     [RequireComponent(typeof(EnemyBrain), typeof(EnemyMover))]
-    public sealed class EnemyBody : MonoBehaviour, IDamageable
+    public sealed class EnemyBody : MonoBehaviour, IDamageable, IShowsOwnHits
     {
         [SerializeField, Tooltip("Sinks into the ground after death: the Model (or mesh) child")] Transform _visual;
 
@@ -17,6 +18,7 @@ namespace Aipocalypse.Core.EnemySystem
 
         readonly List<Collider> _colliders = new();
         EnemyBodyManager _manager;
+        EffectPool _effects;
         EnemyBrain _brain;
         EnemyMover _mover;
         EnemyReactionSettings _settings;
@@ -32,9 +34,10 @@ namespace Aipocalypse.Core.EnemySystem
         internal bool Tracked { get; set; }
 
         [Inject]
-        void Construct(EnemyBodyManager manager, EnemySystemSettings settings)
+        void Construct(EnemyBodyManager manager, EnemySystemSettings settings, EffectPool effects)
         {
             _manager = manager;
+            _effects = effects;
             uint layer = settings.RenderingLayer.value;
             if (layer == 0)
                 return;
@@ -78,13 +81,13 @@ namespace Aipocalypse.Core.EnemySystem
 
             Vector3 push = info.Force;
             StaggerProfile weight = _settings != null ? _settings.Stagger : null;
-            _knockback?.Add(weight != null ? push * weight.PushScale : push);
+            _knockback?.Add(push * ((weight != null ? weight.PushScale : 1f) * (killed ? _settings.KillPushScale : 1f)));
             HitReaction reaction = _stagger != null ? _stagger.Add(push.magnitude, info.Critical, Time.time) : HitReaction.Twitch;
             if (push.sqrMagnitude < 0.0001f)
                 push = transform.position - info.Point;
             bool heavy = reaction == HitReaction.Stagger || (_knockback != null && _knockback.Speed >= _settings.HeavyHitSpeed);
             if (killed)
-                Die();
+                Die(push);
             else
             {
                 if (reaction == HitReaction.Stagger)
@@ -97,10 +100,25 @@ namespace Aipocalypse.Core.EnemySystem
             }
             if (_knockback != null && (_knockback.Active || IsDead))
                 _manager?.Track(this);
-            return new DamageResult(applied, killed);
+            ShowHit(info, killed);
+            return new DamageResult(applied, killed, reaction == HitReaction.Stagger && !killed);
         }
 
-        void Die()
+        // Blood (the kind's effects): the hit spurts back towards the shooter, a kill sprays out along the shot.
+        void ShowHit(in DamageInfo info, bool killed)
+        {
+            if (_effects == null || _settings == null)
+                return;
+            Vector3 along = info.Force.sqrMagnitude > 0.0001f ? info.Force.normalized : (transform.position - info.Point).normalized;
+            if (along.sqrMagnitude < 0.0001f)
+                along = -transform.forward;
+            PooledEffect hit = info.Critical && _settings.CriticalEffect != null ? _settings.CriticalEffect : _settings.HitEffect;
+            _effects.Spawn(hit, info.Point, Quaternion.LookRotation(-along));
+            if (killed)
+                _effects.Spawn(_settings.KillEffect, info.Point, Quaternion.LookRotation(along));
+        }
+
+        void Die(Vector3 push)
         {
             IsDead = true;
             _deadFor = 0f;
@@ -108,7 +126,7 @@ namespace Aipocalypse.Core.EnemySystem
                 c.enabled = false;
             _brain.Die();
             if (_brain.Animation != null)
-                _brain.Animation.Die();
+                _brain.Animation.Die(push);
             _brain.Voice?.Death();
         }
 

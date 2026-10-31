@@ -1,3 +1,4 @@
+using Aipocalypse.Core.WeaponSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -16,6 +17,13 @@ namespace Aipocalypse.Core.EnemySystem
         public float KnockbackDrag = 8f;
         [Min(0f), Tooltip("Fastest push (m/s), whatever lands in one frame (a full shotgun blast)")]
         public float MaxKnockbackSpeed = 8f;
+        [Min(0f), Tooltip("The killing hit pushes this many times harder, so a body is thrown back by a heavy shot")]
+        public float KillPushScale = 2f;
+
+        [Header("Hit effects (pooled; empty = none)")]
+        [Tooltip("At the hit point, facing back along the shot")] public PooledEffect HitEffect;
+        [Tooltip("A hit on a critical hitbox (headshot); empty = HitEffect")] public PooledEffect CriticalEffect;
+        [Tooltip("Added on the killing hit")] public PooledEffect KillEffect;
         [Min(0f), Tooltip("Push speed (m/s) at which a hit plays the heavy reaction instead of the light one")]
         public float HeavyHitSpeed = 4f;
         [Min(0f), Tooltip("Seconds a body lies after dying before it sinks")]

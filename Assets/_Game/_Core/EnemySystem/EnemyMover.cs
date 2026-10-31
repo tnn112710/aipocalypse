@@ -13,6 +13,9 @@ namespace Aipocalypse.Core.EnemySystem
 
         FollowerEntity _agent;
         AstarPath _navigation;
+        // The prefab's local avoidance setting, restored on each activation.
+        bool _avoids;
+        bool _avoidsRead;
         float _deadline;
         // Facing set by Face (zero while walking or halted), so a still target doesn't re-path every think.
         Vector3 _facing;
@@ -28,6 +31,12 @@ namespace Aipocalypse.Core.EnemySystem
         {
             _navigation = navigation;
             _agent = GetComponent<FollowerEntity>();
+            if (!_avoidsRead)
+            {
+                _avoids = _agent.enableLocalAvoidance;
+                _avoidsRead = true;
+            }
+            _agent.enableLocalAvoidance = _avoids;
             Home = transform.position;
             _agent.maxSpeed = stats.Get(EnemyStat.MoveSpeed);
             _agent.stopDistance = definition.StopDistance;
@@ -101,6 +110,13 @@ namespace Aipocalypse.Core.EnemySystem
             _agent.SetDestination(transform.position, direction);
             _deadline = float.PositiveInfinity;
             _agent.isStopped = false;
+        }
+
+        // Dead: others walk through the body instead of steering round it (its colliders are off too).
+        public void StopAvoiding()
+        {
+            if (_agent != null)
+                _agent.enableLocalAvoidance = false;
         }
 
         public void Halt()

@@ -136,7 +136,7 @@ namespace Aipocalypse.Core.WeaponSystem
             Vector3 force = eye.forward * (swing.Knockback * power);
             IDamageable target = _damage?.DealHit(hit, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
 
-            if (_effects != null)
+            if (_effects != null && target is not IShowsOwnHits)
                 _effects.Spawn(_definition.ImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
             Play(target != null ? _definition.Sounds.HitFlesh : _definition.Sounds.HitSurface);
         }

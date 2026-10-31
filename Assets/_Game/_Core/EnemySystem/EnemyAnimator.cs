@@ -36,6 +36,9 @@ namespace Aipocalypse.Core.EnemySystem
         [SerializeField, Tooltip("The model's Animator (on the Model child)")] Animator _animator;
         [SerializeField, Min(0), Tooltip("Fidget states in the controller, picked by FidgetIndex 0..n-1")] int _fidgets;
         [SerializeField, Min(0), Tooltip("Death states in the controller, picked at random by DeathIndex 0..n-1")] int _deaths;
+        [SerializeField, Tooltip("Directional death states per side the killing hit came from (front, back, left, right: falls away " +
+            "from it), DeathIndex 10 × (side + 1) + n; a side without any uses the random deaths")]
+        int[] _sideDeaths = new int[4];
         [SerializeField, Min(0), Tooltip("Attack states in the controller, picked at random by AttackIndex 0..n-1")] int _attacks;
         [SerializeField, Min(0), Tooltip("Celebration (dance) states in the controller, picked at random by CelebrateIndex 0..n-1")]
         int _celebrations;
@@ -68,11 +71,9 @@ namespace Aipocalypse.Core.EnemySystem
         {
             if (_motion == null)
                 return;
-            Vector3 local = transform.InverseTransformDirection(push);
-            if (local.x * local.x + local.z * local.z < 0.0001f)
+            int from = SideHitFrom(push);
+            if (from < 0)
                 return;
-            // Pushed backwards = hit from the front; pushed to the right = hit from the left.
-            int from = Mathf.Abs(local.z) >= Mathf.Abs(local.x) ? (local.z < 0f ? HitFront : HitBack) : (local.x > 0f ? HitLeft : HitRight);
             _animator.SetInteger(HitIndexId, from + (heavy ? Heavy : 0));
             _animator.SetTrigger(HitId);
         }
@@ -131,20 +132,33 @@ namespace Aipocalypse.Core.EnemySystem
         }
 
         // Plays a death and mutes the layers above the base one (look, lean, hits), even off screen so it's done when seen.
-        public void Die()
+        // Falls away from `push` (the killing hit's direction) when the controller has a death for that side.
+        public void Die(Vector3 push)
         {
             if (_motion == null)
                 return;
+            int side = SideHitFrom(push);
+            int sideDeaths = side >= 0 && _sideDeaths != null && side < _sideDeaths.Length ? _sideDeaths[side] : 0;
             _animator.ResetTrigger(HitId);
             _animator.ResetTrigger(FidgetId);
             _animator.ResetTrigger(AttackId);
             _animator.ResetTrigger(AppearId);
             _animator.SetBool(CelebrateId, false);
-            _animator.SetInteger(DeathIndexId, _deaths > 0 ? Random.Range(0, _deaths) : 0);
+            _animator.SetInteger(DeathIndexId, sideDeaths > 0 ? 10 * (side + 1) + Random.Range(0, sideDeaths) : _deaths > 0 ? Random.Range(0, _deaths) : 0);
             _animator.SetBool(DeadId, true);
             for (int i = 1; i < _animator.layerCount; i++)
                 _animator.SetLayerWeight(i, 0f);
             _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
+
+        // HitFront / HitBack / HitLeft / HitRight from a push in world space; -1 when it has no horizontal direction. Pushed
+        // backwards = hit from the front; pushed to the right = hit from the left.
+        int SideHitFrom(Vector3 push)
+        {
+            Vector3 local = transform.InverseTransformDirection(push);
+            if (local.x * local.x + local.z * local.z < 0.0001f)
+                return -1;
+            return Mathf.Abs(local.z) >= Mathf.Abs(local.x) ? (local.z < 0f ? HitFront : HitBack) : (local.x > 0f ? HitLeft : HitRight);
         }
 
         void Revive()

@@ -37,16 +37,24 @@ namespace Aipocalypse.Core.Combat
             new(Amount * multiplier, Type, Point, Force, Source, Critical || critical);
     }
 
-    // What a hit actually did: damage taken after the target's own rules, and whether it emptied the target's health.
+    // What a hit actually did: damage taken after the target's own rules, whether it emptied the target's health, and whether
+    // it staggered the target (stopped it for a moment; enemies only).
     public readonly struct DamageResult
     {
         public readonly float Applied;
         public readonly bool Killed;
+        public readonly bool Staggered;
 
-        public DamageResult(float applied, bool killed)
+        public DamageResult(float applied, bool killed, bool staggered = false)
         {
             Applied = applied;
             Killed = killed;
+            Staggered = staggered;
         }
+    }
+
+    // A damageable that shows its own hit effects (enemies bleed): guns skip their generic impact on it.
+    public interface IShowsOwnHits
+    {
     }
 }

@@ -136,7 +136,11 @@ namespace Aipocalypse.Core.EnemySystem
         }
 
         // Killed (EnemyBody): stops thinking and walking; the body stays until it disables itself, and enabling revives it.
-        public void Die() => StopActing();
+        public void Die()
+        {
+            StopActing();
+            Mover.StopAvoiding();
+        }
 
         // Just spawned: plays its appear clip and stands still for AppearTime (+ jitter) before its tree first thinks. Called by
         // EnemySpawner; a fresh instance begins it on its first activation.

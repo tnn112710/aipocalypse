@@ -36,8 +36,18 @@ heavy.back = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anim
 heavy.left = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Left_Heavy
 heavy.right = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Right_Heavy
 hit.mask = upper
+# Deaths fall away from the killing hit: Kevin Iglesias Human Animations (Should), sorted by where each clip leaves the head
+# (front = shot from the front, falls backwards). The Malbers deaths stay as the fallback for a hit with no direction.
 death = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Deaths/H_Death1.fbx
 death = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Deaths/H_Death3.fbx
+death.front = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath02.fbx
+death.front = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death02.fbx
+death.front = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death05.fbx
+death.back = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath04.fbx
+death.back = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death01.fbx
+death.back = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death03.fbx
+death.left = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath06.fbx
+death.right = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath01.fbx
 
 # Sword swings and grip: Kevin Iglesias Human Animations (ASSETS.md), the right-hand 1H attacks its own sword demo uses, and
 # its grip pose on the right hand only, so the sword stays held while walking. Its 1H combat idle replaces the calm idle while
