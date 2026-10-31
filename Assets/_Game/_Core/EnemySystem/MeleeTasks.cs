@@ -7,35 +7,32 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Tasks of the shared Melee subtree. Tuning comes from the enemy's definition (EnemyDefinition.Melee); the engaged
-    // player is EnemyBrain.Target.
+    // Tasks of the shared Melee subtree. Tuning comes from the enemy's definition (EnemyDefinition.Melee); the hunted target
+    // is EnemyBrain.Target.
     [Category("Aipocalypse/Melee")]
-    public sealed class PlayerInReach : ConditionalNode
+    public sealed class ChooseTarget : ConditionalNode
     {
         EnemyBrain _brain;
 
         public override void OnAwake() => _brain = GetComponent<EnemyBrain>();
 
-        // Also the abort check: re-run every think while the fight or the wander below it runs.
-        public override TaskStatus OnUpdate()
-        {
-            MeleeSettings melee = _brain.Definition.Melee;
-            IPlayerTarget player = _brain.Player;
-            bool inReach = melee != null && player != null && !player.IsDead
-                && melee.InReach(_brain.Target != null, MeleeMath.SqrFlatDistance(_brain.transform.position, player.Transform.position));
-            _brain.Target = inReach ? player : null;
-            return inReach ? TaskStatus.Success : TaskStatus.Failure;
-        }
+        // Also the abort check: re-run every think while the hunt or the wander below it runs.
+        public override TaskStatus OnUpdate() => _brain.ChooseTarget() != null ? TaskStatus.Success : TaskStatus.Failure;
     }
 
-    // Runs at the target, faster than it walks, until within attack range.
+    // Runs at the target (approach pace far away, sprint and fighting stance inside EngageRadius) until within attack range.
+    // Without a free attack slot it waits at HoldDistance, facing the target.
     [Category("Aipocalypse/Melee")]
     public sealed class ChaseTarget : ActionNode
     {
+        // Slack on EngageRadius and HoldDistance before letting go, so the stance and the slot don't flicker at the edge.
+        const float Slack = 1.25f;
+
         EnemyBrain _brain;
         EnemyMover _mover;
         Vector3 _heading;
         bool _moving;
+        bool _sprinting;
 
         public override void OnAwake()
         {
@@ -46,19 +43,44 @@ namespace Aipocalypse.Core.EnemySystem
         public override void OnStart()
         {
             _moving = false;
-            _brain.Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this, multiply: _brain.Definition.Melee.ChaseSpeedMultiplier));
+            _sprinting = _brain.Engaged;
+            ApplyPace();
         }
 
         public override TaskStatus OnUpdate()
         {
-            IPlayerTarget target = _brain.Target;
+            ITargetable target = _brain.Target;
             if (target == null)
                 return TaskStatus.Failure;
             MeleeSettings melee = _brain.Definition.Melee;
             Vector3 position = target.Transform.position;
-            if (MeleeMath.SqrFlatDistance(_brain.transform.position, position) <= melee.AttackRange * melee.AttackRange)
+            float sqrDistance = MeleeHit.SqrFlatDistance(_brain.transform.position, position);
+
+            float engage = _brain.Engaged ? melee.EngageRadius * Slack : melee.EngageRadius;
+            _brain.Engaged = sqrDistance <= engage * engage;
+            if (_brain.Engaged != _sprinting)
+            {
+                _sprinting = _brain.Engaged;
+                ApplyPace();
+            }
+
+            float hold = _brain.HoldsSlot ? melee.HoldDistance * Slack : melee.HoldDistance;
+            if (sqrDistance <= hold * hold)
+            {
+                if (!_brain.TryHoldSlot())
+                {
+                    _moving = false;
+                    _mover.Face(position);
+                    return TaskStatus.Running;
+                }
+            }
+            else
+                _brain.ReleaseSlot();
+
+            if (sqrDistance <= melee.AttackRange * melee.AttackRange && _brain.HoldsSlot)
                 return TaskStatus.Success;
-            if (!_moving || (position - _heading).sqrMagnitude > melee.RepathDistance * melee.RepathDistance)
+            float repath = Mathf.Max(melee.RepathDistance, 0.1f * Mathf.Sqrt(sqrDistance));
+            if (!_moving || (position - _heading).sqrMagnitude > repath * repath)
             {
                 _mover.MoveTo(position, float.PositiveInfinity);
                 _heading = position;
@@ -72,10 +94,19 @@ namespace Aipocalypse.Core.EnemySystem
             _mover.Halt();
             _brain.Stats.RemoveModifiers(this);
         }
+
+        void ApplyPace()
+        {
+            MeleeSettings melee = _brain.Definition.Melee;
+            _brain.Stats.RemoveModifiers(this);
+            _brain.Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this,
+                multiply: _sprinting ? melee.ChaseSpeedMultiplier : melee.ApproachSpeedMultiplier));
+        }
     }
 
-    // Faces the target and swings once (after the cooldown since the last swing); a swing always finishes. Succeeds after
-    // the swing, or straight away when the target stepped out of range so the fight chases again.
+    // Faces the target and swings once (after the cooldown since the last swing); a swing always finishes. The blow lands at
+    // HitTime if the target is still within HitReach and HitArc. Succeeds after the swing, or straight away when the target
+    // stepped out of range or the slot was lost, so the hunt chases again.
     [Category("Aipocalypse/Melee")]
     public sealed class MeleeAttack : ActionNode
     {
@@ -85,6 +116,8 @@ namespace Aipocalypse.Core.EnemySystem
         EnemyBrain _brain;
         EnemyMover _mover;
         float _swingEnd;
+        float _hitAt;
+        bool _struck;
 
         public override void OnAwake()
         {
@@ -92,40 +125,45 @@ namespace Aipocalypse.Core.EnemySystem
             _mover = GetComponent<EnemyMover>();
         }
 
-        public override void OnStart() => _swingEnd = 0f;
+        public override void OnStart()
+        {
+            _swingEnd = 0f;
+            _struck = false;
+        }
 
         public override TaskStatus OnUpdate()
         {
-            IPlayerTarget target = _brain.Target;
+            ITargetable target = _brain.Target;
             if (target == null)
                 return TaskStatus.Failure;
+            MeleeSettings melee = _brain.Definition.Melee;
             Vector3 position = target.Transform.position;
             _mover.Face(position);
             if (_swingEnd > 0f)
+            {
+                if (!_struck && Time.time >= _hitAt)
+                {
+                    _struck = true;
+                    if (!target.IsDead && MeleeHit.Lands(_brain.transform.position, _brain.transform.forward, position, melee.HitReach, melee.HitArc))
+                        _brain.Strike(target);
+                }
                 return Time.time >= _swingEnd ? TaskStatus.Success : TaskStatus.Running;
+            }
 
-            MeleeSettings melee = _brain.Definition.Melee;
             float reach = melee.AttackRange * RangeSlack;
-            if (MeleeMath.SqrFlatDistance(_brain.transform.position, position) > reach * reach)
+            if (MeleeHit.SqrFlatDistance(_brain.transform.position, position) > reach * reach || !_brain.HoldsSlot)
                 return TaskStatus.Success;
             if (Time.time < _brain.NextAttackTime)
                 return TaskStatus.Running;
             _swingEnd = Time.time + melee.AttackDuration;
+            _hitAt = Time.time + melee.HitTime;
             _brain.NextAttackTime = _swingEnd + melee.AttackCooldown;
             if (_brain.Animation != null)
                 _brain.Animation.Attack();
+            _brain.Voice.Swing();
             return TaskStatus.Running;
         }
 
         public override void OnEnd() => _mover.Halt();
-    }
-
-    static class MeleeMath
-    {
-        public static float SqrFlatDistance(Vector3 a, Vector3 b)
-        {
-            float x = a.x - b.x, z = a.z - b.z;
-            return x * x + z * z;
-        }
     }
 }

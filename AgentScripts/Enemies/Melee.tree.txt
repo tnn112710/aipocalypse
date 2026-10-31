@@ -1,13 +1,19 @@
-# The goblins' tree: fight the player while in reach (chase, swing), else wander. The fight's abort (Both) re-checks
-# PlayerInReach every think: it cuts into the wander when the player comes near, and ends the fight when they get away.
+# The goblins' tree: hunt a target (TargetSelector picks it: the player for now, fences, crops and animals later), chase,
+# swing; wander when there is nothing to hunt (player dead, cheat.notarget). The hunt's abort (Both) re-checks ChooseTarget
+# every think: it cuts into the wander as soon as a target exists, and ends the hunt when none is left.
+# Job: punish standing in the open at night; it runs at the player from wherever it spawned.
+# Notices: always knows its target (raiders are sent at it); takes its fighting stance and shouts within EngageRadius.
+# Warns: a visible wind-up before each blow, which lands at HitTime and misses if the player stepped out of reach or arc.
+# Gives up: when the target can't be targeted any more (dead, notarget); at most AttackSlots' share swing at once, the
+# rest wait at HoldDistance.
 # Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
 #        --args '["AgentScripts/Enemies/Melee.tree.txt"]'
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
 tree Assets/_Game/Content/Enemies/_Shared/Melee.asset
 Repeater "Repeat forever"
-  Selector "Fight, else wander"
-    Sequence AbortType=Both "Fight (aborts both ways)"
-      PlayerInReach "Player in reach?"
+  Selector "Hunt, else wander"
+    Sequence AbortType=Both "Hunt (aborts both ways)"
+      ChooseTarget "Target?"
       ChaseTarget "Chase"
       MeleeAttack "Swing"
     Sequence "Wander"

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Aipocalypse.Core.Entities;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,8 +10,10 @@ namespace Aipocalypse.Core.EnemySystem
     [CreateAssetMenu(fileName = "Enemy", menuName = "Aipocalypse/Enemies/Enemy")]
     public sealed class EnemyDefinition : ScriptableObject
     {
-        [SerializeField, Tooltip("Base value of each stat (MaxHealth, MoveSpeed in m/s); runtime modifiers apply on top (EnemyStats)")]
-        Dictionary<EnemyStat, float> _stats = new() { { EnemyStat.MaxHealth, 100f }, { EnemyStat.MoveSpeed, 2f } };
+        [SerializeField, Tooltip("Base value of each stat (MaxHealth, MoveSpeed in m/s, AttackDamage per blow); runtime modifiers apply on top (EnemyStats)")]
+        Dictionary<EnemyStat, float> _stats = new() { { EnemyStat.MaxHealth, 100f }, { EnemyStat.MoveSpeed, 2f }, { EnemyStat.AttackDamage, 0f } };
+        [SerializeField, Tooltip("What it hunts and how much it prefers each kind (TargetSelector: weight per metre); none = it hunts nothing")]
+        Dictionary<TargetKind, float> _targets = new() { { TargetKind.Player, 1f } };
         [Min(0.05f), Tooltip("Metres from a destination that count as arrived")] public float StopDistance = 0.3f;
         [Min(0f), Tooltip("Radius (m) of grass it bends around its feet, through the scene's GrassBendField; 0 = none")] public float GrassBendRadius = 0.6f;
         [Required, InlineEditor, Tooltip("Knockback, hit reactions and how long the body stays (EnemyBody)")] public EnemyReactionSettings Reaction;
@@ -19,6 +22,9 @@ namespace Aipocalypse.Core.EnemySystem
         public MeleeSettings Melee;
         [InlineEditor, Tooltip("Glances, fidgets and leaning of an animated model (EnemyAnimator); empty for unanimated kinds")]
         public EnemyAnimationSettings Animation;
+        [InlineEditor, Tooltip("Voice, swing, impact and footsteps (EnemyVoice); empty = silent")] public EnemySoundSet Sounds;
+
+        public IReadOnlyDictionary<TargetKind, float> Targets => _targets;
 
         public float BaseStat(EnemyStat stat) => _stats != null && _stats.TryGetValue(stat, out float value) ? value : 0f;
         public bool HasBaseStat(EnemyStat stat) => _stats != null && _stats.ContainsKey(stat);

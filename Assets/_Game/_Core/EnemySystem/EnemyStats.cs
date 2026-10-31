@@ -12,6 +12,8 @@ namespace Aipocalypse.Core.EnemySystem
         MaxHealth,
         // Walking speed (m/s).
         MoveSpeed,
+        // Damage of one melee blow.
+        AttackDamage,
     }
 
     // A change from one source (a slow, a buff, an elite tier): value = (base + every Add) * every Multiply.

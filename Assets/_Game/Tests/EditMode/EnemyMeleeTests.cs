@@ -3,7 +3,6 @@ using Aipocalypse.Core.EnemySystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Aipocalypse.Tests
 {
@@ -12,28 +11,20 @@ namespace Aipocalypse.Tests
         const string MeleeTree = "Assets/_Game/Content/Enemies/_Shared/Melee.asset";
 
         [Test]
-        public void InReach_NoticesInsideDetectRadius_AndKeepsUntilPastLoseRadius()
+        public void Lands_InsideReachAndArc_Only()
         {
-            var melee = ScriptableObject.CreateInstance<MeleeSettings>();
-            melee.DetectRadius = 5f;
-            melee.LoseRadius = 8f;
-            try
-            {
-                Assert.That(melee.InReach(false, 4.9f * 4.9f), Is.True, "noticed inside the detect radius");
-                Assert.That(melee.InReach(false, 6f * 6f), Is.False, "not noticed between the radii");
-                Assert.That(melee.InReach(true, 6f * 6f), Is.True, "kept between the radii while engaged");
-                Assert.That(melee.InReach(true, 8.1f * 8.1f), Is.False, "given up past the lose radius");
-                melee.LoseRadius = 2f;
-                Assert.That(melee.InReach(true, 4f * 4f), Is.True, "a lose radius below the detect radius never drops a noticed player");
-            }
-            finally
-            {
-                Object.DestroyImmediate(melee);
-            }
+            Vector3 forward = Vector3.forward;
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 0f, 1.9f), 2f, 90f), Is.True, "straight ahead in reach");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 0f, 2.1f), 2f, 90f), Is.False, "past the reach");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(1f, 0f, 1.1f), 2f, 90f), Is.True, "inside the 45 degree half-arc");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(1.2f, 0f, 0.8f), 2f, 90f), Is.False, "outside the half-arc");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 0f, -1f), 2f, 90f), Is.False, "behind");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 0f, -1f), 2f, 360f), Is.True, "a full circle hits behind");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 5f, 1f), 2f, 90f), Is.True, "height is ignored");
         }
 
         [Test]
-        public void MeleeDefinitions_ReachBeforeTheyLose()
+        public void MeleeDefinitions_HoldOutsideTheSwing_AndHitWithinIt()
         {
             foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(EnemyDefinition), new[] { "Assets/_Game/Content/Enemies" }))
             {
@@ -41,8 +32,10 @@ namespace Aipocalypse.Tests
                 MeleeSettings melee = AssetDatabase.LoadAssetAtPath<EnemyDefinition>(path).Melee;
                 if (melee == null)
                     continue;
-                Assert.That(melee.LoseRadius, Is.GreaterThan(melee.DetectRadius), $"{path}: lose radius must exceed the detect radius");
-                Assert.That(melee.AttackRange, Is.LessThan(melee.DetectRadius), $"{path}: swings start farther than it notices");
+                Assert.That(melee.AttackRange, Is.LessThan(melee.HoldDistance), $"{path}: enemies waiting for a slot would stand in swing range");
+                Assert.That(melee.HoldDistance, Is.LessThanOrEqualTo(melee.EngageRadius), $"{path}: they'd wait before engaging");
+                Assert.That(melee.HitTime, Is.LessThanOrEqualTo(melee.AttackDuration), $"{path}: the blow lands after the swing ended");
+                Assert.That(melee.HitReach, Is.GreaterThanOrEqualTo(melee.AttackRange), $"{path}: a swing started in range can't reach");
             }
         }
 

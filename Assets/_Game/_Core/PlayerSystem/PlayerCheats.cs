@@ -23,8 +23,8 @@ namespace Aipocalypse.Core.PlayerSystem
             IPlayer player = _registry.Current;
             if (player == null || player.Health == null)
                 return;
-            if (_input.DebugKillPlayerPressed)
-                _damage.Deal(player, new DamageInfo(player.Health.Current, DamageType.Generic, player.Transform.position));
+            if (_input.DebugKillPlayerPressed && !player.IsDead)
+                PlayerCheatCommands.Kill(player, _damage);
             if (_input.DebugRevivePlayerPressed)
                 player.Revive();
         }

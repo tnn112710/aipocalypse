@@ -4,7 +4,9 @@ using Aipocalypse.Core.Bootstrap;
 using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.PlayerSystem;
+using Aipocalypse.Core.RaidSystem;
 using Aipocalypse.Core.WeaponSystem;
+using Aipocalypse.Core.WorldTimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,8 +16,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Tests
 {
-    // Loads the world map and plays the core loop through public APIs: everything injects, enemies register,
-    // a gun is picked up, fires and reloads. Any error logged along the way fails the test.
+    // Loads the world map and plays the core loop through public APIs: everything injects, a gun is picked up, fires and
+    // reloads; at the raid's start hour raiders spawn. Any error logged along the way fails the test.
     public sealed class WorldMapSmokeTests
     {
         const string ScenePath = "Assets/_Game/Scenes/Prototypes/WorldMap.unity";
@@ -36,8 +38,7 @@ namespace Aipocalypse.Tests
 
             var scope = LifetimeScope.Find<GameLifetimeScope>();
             Assert.IsNotNull(scope, "no GameLifetimeScope");
-            // Enemies start (and register) on their first Start, a frame after the scene loads.
-            Assert.That(scope.Container.Resolve<EnemyRegistry>().Count, Is.GreaterThan(0), "scene enemies didn't register");
+            Assert.IsNotNull(scope.Container.Resolve<EnemyRegistry>(), "enemy system not installed");
 
             if (player.HeldItem is not HeldGun)
             {
@@ -70,6 +71,29 @@ namespace Aipocalypse.Tests
             for (float t = 0f; t < 10f && gun.Action != GunAction.None; t += Time.deltaTime)
                 yield return null;
             Assert.That(gun.Item.Rounds, Is.GreaterThan(0), "reload loaded nothing");
+        }
+
+        [UnityTest]
+        public IEnumerator WorldMap_RaidSpawnsRaidersAtItsStartHour()
+        {
+#if UNITY_EDITOR
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath,
+                new LoadSceneParameters(LoadSceneMode.Single));
+#endif
+            yield return null;
+            yield return null;
+
+            var scope = LifetimeScope.Find<GameLifetimeScope>();
+            Assert.IsNotNull(scope, "no GameLifetimeScope");
+            var director = scope.Container.Resolve<RaidDirector>();
+            var enemies = scope.Container.Resolve<EnemyRegistry>();
+            scope.Container.Resolve<WorldClock>().JumpTo(scope.Container.Resolve<RaidSettings>().StartHour);
+
+            // Spawned enemies start (and register) on their first Start, a frame after they're made.
+            for (float t = 0f; t < 5f && enemies.Count == 0; t += Time.deltaTime)
+                yield return null;
+            Assert.IsTrue(director.IsRunning, "no raid at the start hour");
+            Assert.That(enemies.Count, Is.GreaterThan(0), "the raid spawned nobody");
         }
     }
 }

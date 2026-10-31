@@ -1,5 +1,6 @@
 using System;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.Entities;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
 using Aipocalypse.Core.PlayerSystem;
@@ -30,6 +31,12 @@ namespace Aipocalypse.Tests
             public Vector2 CrosshairPosition => default;
             public float CrosshairSpread => 0f;
             public Vector3 SpawnPosition => default;
+            public Transform View => null;
+            public bool Invulnerable { get; set; }
+            public bool IgnoredByEnemies { get; set; }
+            public IPlayerIntentSource IntentSource { get; set; }
+            public TargetKind Kind => TargetKind.Player;
+            public bool IsTargetable => !IsDead;
             public DamageResult TakeDamage(in DamageInfo info) => default;
             public void MoveToSpawn() => MovedToSpawn++;
             public void Revive() => IsDead = false;

@@ -6,8 +6,9 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Health, fall damage, dying and reviving. A killing hit raises Died and publishes PlayerDied, then PlayerDeathSequenceEnded
-    // once the death sequence has played; Revive restores health, raises Reviving and publishes PlayerRevived.
+    // Health, fall damage, dying and reviving. A hit that doesn't kill raises Hurt; a killing hit raises Died and publishes
+    // PlayerDied, then PlayerDeathSequenceEnded once the death sequence has played; Revive restores health, raises Reviving
+    // and publishes PlayerRevived. While Invulnerable (cheat), hits apply nothing.
     public sealed class PlayerLife
     {
         readonly IDamageable _self;
@@ -34,10 +35,12 @@ namespace Aipocalypse.Core.PlayerSystem
             SpawnRotation = Quaternion.Euler(0f, body.eulerAngles.y, 0f);
         }
 
+        public event Action<DamageInfo, float> Hurt;
         public event Action<DamageType> Died;
         public event Action Reviving;
 
         public Health Health { get; }
+        public bool Invulnerable { get; set; }
         public bool IsDead => Health.IsDead;
         // Where the player entered the scene; respawns go back there.
         public Vector3 SpawnPosition { get; }
@@ -45,6 +48,8 @@ namespace Aipocalypse.Core.PlayerSystem
 
         public DamageResult TakeDamage(in DamageInfo info)
         {
+            if (Invulnerable)
+                return default;
             float applied = Health.Damage(info.Amount);
             bool killed = applied > 0f && Health.IsDead;
             if (killed)
@@ -53,6 +58,8 @@ namespace Aipocalypse.Core.PlayerSystem
                 Died?.Invoke(info.Type);
                 _died.Publish(new PlayerDied(_body.position, info.Type));
             }
+            else if (applied > 0f)
+                Hurt?.Invoke(info, applied);
             return new DamageResult(applied, killed);
         }
 

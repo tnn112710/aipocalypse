@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
-    // Procedural head motion (through the camera rig): footstep bob driven by distance travelled, and a spring dip on landing.
-    // Stepped fires at the bottom of each bob, when a foot plants.
+    // Procedural head motion (through the camera rig): footstep bob driven by distance travelled, a spring dip on landing and
+    // a flinch when hurt. Stepped fires at the bottom of each bob, when a foot plants.
     public sealed class PlayerHeadBob
     {
         const float MaxSpringStep = 0.05f;
@@ -17,6 +17,9 @@ namespace Aipocalypse.Core.PlayerSystem
         float _sprintBlend;
         float _dip;
         float _dipVelocity;
+        // Degrees, negative = up.
+        float _flinch;
+        float _flinchVelocity;
 
         public event Action Stepped;
 
@@ -36,6 +39,9 @@ namespace Aipocalypse.Core.PlayerSystem
             if (impactSpeed >= _tuning.LandingDipMinSpeed)
                 _dipVelocity -= impactSpeed * _tuning.LandingDipPerSpeed;
         }
+
+        // The view jerks up at once and springs back; hits close together add up to HurtKickMax.
+        public void OnHurt(float damage) => _flinch = Mathf.Max(_flinch - damage * _tuning.HurtKickPerDamage, -_tuning.HurtKickMax);
 
         public void Tick(PlayerMotor motor, float deltaTime)
         {
@@ -63,9 +69,11 @@ namespace Aipocalypse.Core.PlayerSystem
                 Mathf.Sin(_phase * 2f) * amplitude,
                 0f);
 
-            UpdateDip(Mathf.Min(deltaTime, MaxSpringStep));
+            float springStep = Mathf.Min(deltaTime, MaxSpringStep);
+            UpdateDip(springStep);
+            Spring.Step(ref _flinch, ref _flinchVelocity, 0f, _tuning.HurtKickStiffness, 1f, springStep);
 
-            _rig.SetHeadMotion(bob + Vector3.up * _dip, -_dip * _tuning.LandingDipPitch);
+            _rig.SetHeadMotion(bob + Vector3.up * _dip, -_dip * _tuning.LandingDipPitch + _flinch);
         }
 
         // Which half of the cycle; flips at each bob bottom, not at the 2π wrap.

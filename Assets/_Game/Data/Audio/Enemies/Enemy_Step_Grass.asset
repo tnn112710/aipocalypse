@@ -1,0 +1,365 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad670d1adcf8be84f891f82b894c08a5, type: 3}
+  m_Name: Enemy_Step_Grass
+  m_EditorClassIdentifier: BroAudio::Ami.BroAudio.Data.AudioEntity
+  UseAddressables: 0
+  _localizedAudio:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+  <ID>k__BackingField: 0
+  MulticlipsPlayMode: 3
+  _group: {fileID: 11400000, guid: 244f2067a497e19478066c212eee3065, type: 2}
+  Clips:
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 65ac77ff573d95c458b76c9177749513, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 6033f7b51b2cdec4c9788026518da42c, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: e0139f8334bdae84f8771de3dfd065a3, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 580a6577fb121c5409d30e656b97ca74, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 42ecf0e9801791d4d950bd9014570dc9, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 702540121995756438851905edb57286, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: f3858143870ca6c47af4b41100adb7e4, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 9af9ab348f6ff4844b797dd3185d6da1, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 65a0adb53cf59aa49a301a97d28eb41d, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 21b08ea78e9b29e419ca586bb3ab4042, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 5375e76405742b143a52b25378f9c903, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 7a1ebdc359129984bb0c095062ffc6ca, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: ce678848ef49b8c4c99552612cd0e951, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: ef6204c231e258142b6cf27c9a294383, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 6928763e8949b1340a1ad8b1e60a020c, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 114663d57a1e79c40be0686f3b2f5bf5, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 6f4750db70f1bc24aaa267f9b44d418c, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: 9af1ac8179d29ff43936b62394c41335, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: ec6f91c5836677548b223eab5a3a5566, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  - AudioClipAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Locale:
+      m_Code: 
+    AudioClip: {fileID: 8300000, guid: f0239bf04ab5ca04180ee54dada4c976, type: 3}
+    Volume: 1
+    Delay: 0
+    StartPosition: 0
+    EndPosition: 0
+    FadeIn: 0
+    FadeOut: 0
+    Weight: 0
+  <AudioAsset>k__BackingField: {fileID: 11400000, guid: 6d1f60cfcd3f07340800dfde5569b327, type: 2}
+  <AudioType>k__BackingField: 8
+  <MasterVolume>k__BackingField: 0.45
+  <Loop>k__BackingField: 0
+  <SeamlessLoop>k__BackingField: 0
+  <TransitionTime>k__BackingField: 0
+  <SpatialSetting>k__BackingField: {fileID: 11400000, guid: 7b6d02e530aaa8c42ae7f6704ba4499f, type: 2}
+  <Priority>k__BackingField: 128
+  <Pitch>k__BackingField: 1
+  <PitchRandomRange>k__BackingField: 0.15
+  <VolumeRandomRange>k__BackingField: 0
+  <RandomFlags>k__BackingField: 1
+  <Flags>k__BackingField: 0
+  SeamlessTransitionType: 0
+  TransitionTempo:
+    BPM: 0
+    Beats: 0
+  SnapToFullVolume: 0

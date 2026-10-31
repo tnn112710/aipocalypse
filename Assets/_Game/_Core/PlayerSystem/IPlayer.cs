@@ -22,6 +22,13 @@ namespace Aipocalypse.Core.PlayerSystem
         // Radius of the held item's spread cone on screen, in the same units.
         float CrosshairSpread { get; }
         Vector3 SpawnPosition { get; }
+        // The camera's pivot: its forward is where the player looks (kick and sequences included).
+        Transform View { get; }
+        // Cheats: hits apply nothing (god); enemies don't choose it as a target (notarget).
+        bool Invulnerable { get; set; }
+        bool IgnoredByEnemies { get; set; }
+        // Dev tools: plays the player instead of the keyboard, mouse and gamepad while set (null = InputService).
+        IPlayerIntentSource IntentSource { get; set; }
 
         // Teleports the body to the spawn point (a running sequence keeps the camera, now relative to the new spot).
         void MoveToSpawn();

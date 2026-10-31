@@ -29,6 +29,11 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Head nod in degrees per metre of dip")]
         float _landingDipPitch = 15f;
 
+        [Header("Hurt flinch"), SerializeField, Min(0f), Tooltip("Degrees the view jerks up per point of damage taken")]
+        float _hurtKickPerDamage = 0.15f;
+        [SerializeField, Min(0f), Tooltip("Most degrees of flinch, however hard or often it's hit")] float _hurtKickMax = 5f;
+        [SerializeField, Min(1f), Tooltip("Higher = the view settles back faster")] float _hurtKickStiffness = 150f;
+
         public float EyeHeight => _eyeHeight;
         public float MinPitch => _minPitch;
         public float MaxPitch => _maxPitch;
@@ -43,5 +48,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public float LandingDipMax => _landingDipMax;
         public float LandingDipStiffness => _landingDipStiffness;
         public float LandingDipPitch => _landingDipPitch;
+        public float HurtKickPerDamage => _hurtKickPerDamage;
+        public float HurtKickMax => _hurtKickMax;
+        public float HurtKickStiffness => _hurtKickStiffness;
     }
 }

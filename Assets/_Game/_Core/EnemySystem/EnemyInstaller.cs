@@ -7,8 +7,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Scene system: enemy services, and injection of the enemies placed in the scene. They are listed automatically when the
-    // scene is saved or Play starts, so nobody keeps the list by hand.
+    // Scene system: enemy services (ticking, spawning and pooling, targeting, sounds), and injection of the enemies placed in
+    // the scene. Those are listed automatically when the scene is saved or Play starts, so nobody keeps the list by hand.
     public sealed class EnemyInstaller : SceneInstaller
     {
         [SerializeField, Tooltip("AstarPath of the scene's Navigation prefab")] AstarPath _navigation;
@@ -24,12 +24,23 @@ namespace Aipocalypse.Core.EnemySystem
             builder.RegisterInstance(_navigation);
             builder.RegisterInstance(_settings);
             builder.Register<EnemyRegistry>(Lifetime.Singleton);
+            builder.Register<EnemyNavigation>(Lifetime.Singleton);
+            builder.Register<TargetRegistry>(Lifetime.Singleton);
+            builder.Register<TargetSelector>(Lifetime.Singleton);
+            builder.Register<AttackSlots>(Lifetime.Singleton);
+            builder.Register<EnemySpawner>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<EnemyPool>().AsSelf();
             builder.RegisterEntryPoint<EnemyManager>();
             builder.RegisterEntryPoint<EnemyAnimationManager>();
             builder.RegisterEntryPoint<EnemyBodyManager>().AsSelf();
+            builder.RegisterEntryPoint<EnemySoundManager>();
             // Editor and development builds only.
             if (Debug.isDebugBuild)
+            {
                 builder.RegisterEntryPoint<EnemyCommands>();
+                builder.RegisterEntryPoint<EnemyCheatCommands>();
+                builder.RegisterEntryPoint<Debugging.RaidAutopilot>();
+            }
             builder.RegisterBuildCallback(resolver =>
             {
                 foreach (EnemyBrain enemy in _sceneEnemies)

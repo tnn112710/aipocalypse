@@ -20,6 +20,10 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0.1f), Tooltip("Landings this fast (m/s) play at full volume")]
         float _landingSoundFullSpeed = 8f;
 
+        [Header("Hurt"), SerializeField, Tooltip("Pain grunt on a hit that doesn't kill (death has its own sounds in the death sequence)")]
+        SoundID _hurtSound;
+        [SerializeField, Min(0f), Tooltip("Seconds before another grunt")] float _hurtSoundCooldown = 0.4f;
+
         [Header("Out of breath"), SerializeField, Tooltip("Looped while out of breath (turn Loop on in its entity), louder as stamina drops")]
         SoundID _breathSound;
         [SerializeField, InlineProperty, HideLabel, Tooltip("When it breathes heavily: PlayerVitalsTuning → Out of breath")]
@@ -32,6 +36,8 @@ namespace Aipocalypse.Core.PlayerSystem
         public SoundID LandSound => _landSound;
         public float LandingSoundMinSpeed => _landingSoundMinSpeed;
         public float LandingSoundFullSpeed => _landingSoundFullSpeed;
+        public SoundID HurtSound => _hurtSound;
+        public float HurtSoundCooldown => _hurtSoundCooldown;
         public SoundID BreathSound => _breathSound;
         public BreathSoundSettings Breath => _breath;
     }

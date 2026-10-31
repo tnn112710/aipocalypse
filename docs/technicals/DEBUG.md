@@ -26,4 +26,4 @@ In release builds `ScreenLog` does nothing and nothing draws it, but the string 
 
 ## Debug hotkeys
 
-The `Debug` input map (editor and dev builds): **N** next hour, **M** next phase (`WorldClockCheats`), **K** kill the player, **L** revive (`PlayerCheats`). They're off while the console has text input. The console has the same actions and more (`clock.nexthour`, `player.kill`…).
+The `Debug` input map (editor and dev builds): **N** next hour, **M** next phase (`WorldClockCheats`), **K** kill the player, **L** revive (`PlayerCheats`). They're off while the console has text input. The console has the same actions and more (`clock.nexthour`, `cheat.kill`…).

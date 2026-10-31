@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191a1e950d7764c4ea629787aed06c57, type: 3}
+  m_Name: Goblin_Sounds
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemySoundSet
+  Attack:
+    _entity: {fileID: 11400000, guid: c339c47f6c57ac148b65abf3b2fcfc89, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  AttackVoiceChance: 0.6
+  Swing:
+    _entity: {fileID: 11400000, guid: 24d986ec2456acc4bb00b873eeceedde, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  Impact:
+    _entity: {fileID: 11400000, guid: 3270f2f21b2e2b74ab6f28f82c1685d4, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  Hurt:
+    _entity: {fileID: 11400000, guid: b5e5c9cb15a7c52469658c291584058a, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  HurtCooldown: 0.3
+  Death:
+    _entity: {fileID: 11400000, guid: dd5479f5caae4cf49bbdbac350f3acb9, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  Shout:
+    _entity: {fileID: 11400000, guid: a9056943bfca4394f8d85a064de6f57c, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  ShoutCooldown: 8
+  Footstep:
+    _entity: {fileID: 11400000, guid: de637671ddbdb704c9f02974dd0d04f1, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  StrideLength: 1.2
+  FootstepRange: 20

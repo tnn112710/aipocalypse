@@ -14,6 +14,9 @@ namespace Aipocalypse.Core.WeaponSystem
         [SerializeField, Tooltip("Reserve at spawn until an inventory provides ammo")]
         Dictionary<AmmoType, int> _starting = new();
 
+        // Rounds of `type` a new reserve starts with.
+        public int StartingAmount(AmmoType type) => type != null && _starting.TryGetValue(type, out int amount) ? amount : 0;
+
         public AmmoReserve CreateReserve()
         {
             var reserve = new AmmoReserve(Infinite);

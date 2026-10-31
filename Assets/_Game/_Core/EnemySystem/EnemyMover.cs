@@ -34,6 +34,14 @@ namespace Aipocalypse.Core.EnemySystem
             _agent.isStopped = true;
         }
 
+        // Puts it at `position` with no path left over (pooled respawns: call after enabling, the agent's entity exists then).
+        public void Teleport(Vector3 position)
+        {
+            if (_agent == null)
+                _agent = GetComponent<FollowerEntity>();
+            _agent.Teleport(position, true);
+        }
+
         public void SetSpeed(float speed)
         {
             if (_agent != null)

@@ -26,7 +26,7 @@ While it's open it holds `InputService`'s text input: the Player, UI and Debug m
 
 ## Commands
 
-With nothing typed, the line under the input lists this scene's command groups (`afps  clear  clock  enemy  gfx  help  log  pause  player  time`). `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
+With nothing typed, the line under the input lists this scene's command groups (`afps  cheat  clear  clock  enemy  gfx  help  log  pause  player  raid  time`). `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
 
 | Command | Does |
 | --- | --- |
@@ -38,11 +38,15 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `log.screen.clear` | Stop showing Unity logs (the default) and remove the messages on screen |
 | `log.screen` | Which level is on (Off, Error, Info, All) |
 | `log.trace` | Stack trace of the last error Unity logged |
-| `player.kill`, `player.revive` | Kill the player with a real hit (through `DamageService`, like K) / revive (like L) |
-| `player.heal [amount]` | Heal to full, or by an amount |
-| `player.stamina` | Refill stamina |
-| `player.ammo [amount=100]` | Add rounds of each ammo type the guns in the hotbar use |
-| `player.infammo [on/off]` | Reloads never use up the reserve (`AmmoReserve.Infinite`) |
+| `cheat.kill`, `cheat.revive` | Kill the player with a real hit (through `DamageService`, like K, even in god mode) / revive (like L) |
+| `cheat.hp [amount]` | Heal to full, or by an amount |
+| `cheat.stamina` | Refill stamina |
+| `cheat.ammo [amount=100]` | Add rounds of each ammo type the guns in the hotbar use |
+| `cheat.infammo [on/off]` | Reloads never use up the reserve (`AmmoReserve.Infinite`) |
+| `cheat.god [on/off]` | Hits apply nothing to the player (`PlayerLife.Invulnerable`): no damage, no hurt feedback |
+| `cheat.notarget [on/off]` | Enemies don't choose the player as a target (`IPlayer.IgnoredByEnemies`); hunters wander instead |
+| `cheat.killall` | Kill every enemy in play with a real hit (scenes with an `EnemyInstaller` only) |
+| `cheat.autopilot [on/off]` | The player fights by itself: aims at the nearest enemy in sight, fires, reloads, swaps guns (`RaidAutopilot`; scenes with an `EnemyInstaller` only) |
 | `player.pos` | Where the player stands |
 | `time.scale [0–1]` | Game speed (slow motion); 1 drops the console's request |
 | `pause` | Pause the game, or resume it |
@@ -50,7 +54,8 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `afps.show`, `afps.hide` | Advanced FPS Counter overlay, off by default (`show` adds one to a scene without it) |
 | `clock.now`, `clock.set <hour>`, `clock.phase <phase>`, `clock.nexthour`, `clock.nextphase` | World clock: read, jump (scenes with a `WorldTimeInstaller` only) |
 | `clock.skip <hour> <seconds>`, `clock.speed [0–1]`, `clock.freeze <on/off>` | Fast-forward with every hour passing; slow or stop the clock |
-| `enemy.count` | Enemies in play (scenes with an `EnemyInstaller` only) |
+| `enemy.spawn <card> [count=1]`, `enemy.clear`, `enemy.count` | Spawn enemies of a card (`EnemySystemSettings.Cards`, any unique start of its name: `goblin`) 15 m in front of the player; despawn every enemy; enemies in play (scenes with an `EnemyInstaller` only) |
+| `raid.start`, `raid.stop`, `raid.next`, `raid.status` | Start tonight's raid now (even by day); end it and despawn its raiders; start the next wave now; the night, wave, spawned / alive and how the last raid ended (scenes with a `RaidInstaller` only, [RAIDS.md](RAIDS.md)) |
 
 Speed, pause and freeze are the console's own owner-keyed requests (`TimeService`, `WorldClock`), so other systems' requests still apply, and they're released when the scope that registered them ends.
 
@@ -84,7 +89,7 @@ if (Debug.isDebugBuild)
 - **Methods and properties:** a method's parameters are the arguments (defaults make them optional); a property reads with no argument and sets with one. Several methods with one name are one command, told apart by argument count.
 - **Argument types:** `string`, `bool`, `int`, `long`, `float`, `double`, any enum, `Vector2`, `Vector3`, `Color`. A command with another type is skipped with a warning.
 - **Output:** the return value prints (`null` / `void` prints nothing; collections one item per line). Return `CommandResult.Fail("why")` for a failure (`CommandResult.Ok(text)` for success). A command that throws is logged and reported, never rethrown.
-- **Scope:** the commands exist while their scope does. Root systems' commands are always there; a scene system's (clock, enemies) only in scenes that install it, so `help` lists what works in the current scene.
+- **Scope:** the commands exist while their scope does. Root systems' commands are always there; a scene system's (clock, enemies, raids) only in scenes that install it, so `help` lists what works in the current scene.
 - **Owner-keyed requests:** pass `this` as the owner and release in an override of `Dispose` (call `base.Dispose()`), as `TimeCommands` and `WorldClockCommands` do.
 - Commands go through the system's services, never around them: a kill is a `DamageService.Deal`, not a health write.
 - Add EditMode tests through a `CommandRegistry` (`ConsoleTests`: `TimeCommands`, `WorldClockCommands`).

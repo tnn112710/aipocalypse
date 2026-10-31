@@ -75,8 +75,22 @@ namespace Aipocalypse.Core.PlayerSystem
         public float CrosshairSpread => _aim != null ? _aim.CrosshairSpread : 0f;
         // Where the player entered the scene; respawns go back there.
         public Vector3 SpawnPosition => _life != null ? _life.SpawnPosition : transform.position;
+        public Transform View => _cameraPitch;
+        public bool Invulnerable
+        {
+            get => _life != null && _life.Invulnerable;
+            set
+            {
+                if (_life != null)
+                    _life.Invulnerable = value;
+            }
+        }
+        public bool IgnoredByEnemies { get; set; }
+        public IPlayerIntentSource IntentSource { get; set; }
+        public bool IsTargetable => !IsDead && !IgnoredByEnemies;
 
-        Transform IPlayerTarget.Transform => transform;
+        Transform ITargetable.Transform => transform;
+        TargetKind ITargetable.Kind => TargetKind.Player;
         Transform IWeaponUser.Eye => _cameraPitch;
         Transform IWeaponUser.Root => transform;
         AimOrigin IGunUser.AimFrom => _tuning.HeldItem.AimFrom;
@@ -115,7 +129,7 @@ namespace Aipocalypse.Core.PlayerSystem
             if (_visionLight != null && _tuning.Vision != null)
                 Vision = new PlayerVision(_visionLight, _tuning.Vision);
             _sequence = new PoseSequencePlayer(transform, _cameraRig, audio);
-            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds);
+            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds, _life);
 
             _life.Died += OnDied;
             _life.Reviving += OnReviving;
@@ -158,7 +172,7 @@ namespace Aipocalypse.Core.PlayerSystem
 
             bool inSequence = InSequence;
             bool canAct = !IsDead && !inSequence && _input.GameplayEnabled;
-            PlayerIntent intent = canAct ? ReadIntent() : default;
+            PlayerIntent intent = canAct ? ReadIntent(deltaTime) : default;
             HeldItem held = HeldItem;
             if (intent.Sprint && held != null && held.StopsSprint(intent.Fire, intent.Aim))
                 intent.Sprint = false;
@@ -274,8 +288,9 @@ namespace Aipocalypse.Core.PlayerSystem
         [Button, HideInEditorMode]
         void AddAmmo(AmmoType type, int amount = 30) => Ammo?.Add(type, amount);
 
-        // Look follows the zoom, so the crosshair sweeps the same share of the screen per mouse move when aiming.
-        PlayerIntent ReadIntent() => new()
+        // Look follows the zoom, so the crosshair sweeps the same share of the screen per mouse move when aiming. An intent
+        // source (dev autopilot) replaces the devices.
+        PlayerIntent ReadIntent(float deltaTime) => IntentSource?.Read(deltaTime) ?? new PlayerIntent
         {
             Move = _input.Move,
             LookDegrees = _input.ReadLookDegrees(Time.unscaledDeltaTime) * _zoom.LookScale,

@@ -15,6 +15,7 @@ namespace Aipocalypse.Core.PlayerSystem
             {
                 builder.RegisterEntryPoint<PlayerCheats>();
                 builder.RegisterEntryPoint<PlayerCommands>();
+                builder.RegisterEntryPoint<PlayerCheatCommands>();
             }
         }
     }

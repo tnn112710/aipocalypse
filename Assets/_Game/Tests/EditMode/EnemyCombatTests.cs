@@ -106,7 +106,11 @@ namespace Aipocalypse.Tests
                 foreach (EnemyStat stat in Enum.GetValues(typeof(EnemyStat)))
                 {
                     Assert.That(definition.HasBaseStat(stat), Is.True, $"{path}: no base {stat}");
-                    Assert.That(definition.BaseStat(stat), Is.GreaterThan(0f), $"{path}: {stat} must be positive");
+                    // A kind that never swings deals no damage.
+                    if (stat == EnemyStat.AttackDamage)
+                        Assert.That(definition.BaseStat(stat), Is.GreaterThanOrEqualTo(0f), $"{path}: {stat} can't be negative");
+                    else
+                        Assert.That(definition.BaseStat(stat), Is.GreaterThan(0f), $"{path}: {stat} must be positive");
                 }
                 Assert.That(definition.Reaction, Is.Not.Null, $"{path}: no Reaction settings");
             }
