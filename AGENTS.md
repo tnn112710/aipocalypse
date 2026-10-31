@@ -48,9 +48,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `aipocalypse-enemy-ai` | Any enemy/companion/animal/NPC movement or AI decision, and designing behaviours: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager` and built from text specs (`TreeKit`), A* `FollowerEntity`, navmesh, spawning, the GDD behaviour catalogue and AI building blocks |
 | `aipocalypse-characters` | Adding, swapping or animating any character model (enemy, NPC, companion, animal), from any vendor: model vs entity prefab, the animator parameter contract and `CharacterKit`, `EnemyAnimator`, verifying looks and animation |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks; points to Feel's own skills) |
-| `tools-unity-broaudio` | Any sound, music or ambience: `AudioService`, `SoundID`s, BroAudio libraries (points to BroAudio's `CLAUDE.md`) |
-| `tools-unity-audio-tools` | Editing audio clips in the editor: trim, normalize, fade, export (points to Audio Tools' own skills) |
-| `tools-unity-text-studio` | Animated / typewriter text (Text Studio is Undecided: ask first; points to its own skills) |
+| `tools-unity-broaudio` | Any sound, music or ambience: `AudioService`, `SoundID`s, BroAudio libraries (points to BroAudio's `CLAUDE.md`), audio import presets, editing clips with Audio Tools |
 | `tools-unity-map-generation` | Building or changing a map: layout from a concept, generated heights/water/vegetation/boundary/dressing, rebuilds, map art packs and perf, and how MicroVerse is used here (the WorldMap generator; step runner and MicroVerse kit in `scripts/`) |
 | `tools-unity-stylized-water` | Any Stylized Water 3 work: water bodies, RiverModeler rivers, waterfalls, underwater, height queries, water materials and perf |
 | `tools-unity-shader-graph` | Any shader or material effect: creating or editing Shader Graphs (agents use its `ShaderGraphKit`), copying vendor graphs into `_Game`, AllIn1 Shader Nodes, custom HLSL nodes, shader values driven from C#, keywords and variants |

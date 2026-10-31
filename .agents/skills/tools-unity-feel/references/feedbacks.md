@@ -59,7 +59,7 @@ Every feedback type in the installed Feel, grouped by status. **Use** = fine on 
 | Feedback | Status |
 | --- | --- |
 | `MMF_Image`, `MMF_ImageAlpha`, `MMF_ImageFill`, `MMF_ImageMaterial`, `MMF_ImageSprite`, `MMF_ImageTextureOffset`, `MMF_ImageTextureScale`, `MMF_ImageRaycastTarget`, `MMF_Graphic`, `MMF_GraphicCrossFade`, `MMF_CanvasGroup`, `MMF_CanvasGroupBlocksRaycasts`, `MMF_RectTransformAnchor`, `MMF_RectTransformOffset`, `MMF_RectTransformPivot`, `MMF_RectTransformSizeDelta`, `MMF_Text`, `MMF_TextColor`, `MMF_TextFontSize`, `MMF_Fade` | Use (UI players on Unscaled when they must animate while paused) |
-| `MMF_TMPAlpha`, `MMF_TMPColor`, `MMF_TMPCountTo`, `MMF_TMPCountToLong`, `MMF_TMPText`, `MMF_TMPTextReveal`, `MMF_TMPFontSize`, `MMF_TMPDilate`, `MMF_TMPSoftness`, `MMF_TMPOutlineColor`, `MMF_TMPOutlineWidth`, `MMF_TMPCharacterSpacing`, `MMF_TMPLineSpacing`, `MMF_TMPParagraphSpacing`, `MMF_TMPWordSpacing` | Use. `MMF_TMPTextReveal` only inside an authored MMF_Player for a feedback-style reveal; a code-driven typewriter uses TMP `maxVisibleCharacters` + DOTween (Text Studio only if adopted, `tools-unity-text-studio`) |
+| `MMF_TMPAlpha`, `MMF_TMPColor`, `MMF_TMPCountTo`, `MMF_TMPCountToLong`, `MMF_TMPText`, `MMF_TMPTextReveal`, `MMF_TMPFontSize`, `MMF_TMPDilate`, `MMF_TMPSoftness`, `MMF_TMPOutlineColor`, `MMF_TMPOutlineWidth`, `MMF_TMPCharacterSpacing`, `MMF_TMPLineSpacing`, `MMF_TMPParagraphSpacing`, `MMF_TMPWordSpacing` | Use. `MMF_TMPTextReveal` only inside an authored MMF_Player for a feedback-style reveal; a code-driven typewriter uses TMP `maxVisibleCharacters` + DOTween (Text Studio only if adopted: PLUGINS.md, Text Studio row) |
 | `MMF_UIToolkit*` | No (UI is uGUI) |
 | `MMF_FloatingText` | No (Damage Numbers Pro) |
 

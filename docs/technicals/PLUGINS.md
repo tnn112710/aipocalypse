@@ -90,7 +90,7 @@ Time of day, sky, lighting, fog and grade are first-party (`EnvironmentDirector`
 | Damage Numbers Pro | — | `Assets/_StoreAssets/GameFeel/DamageNumbersPro` | Could | Damage numbers: `_Core/UI/Prefabs/Widgets/DamageNumber.prefab` (built with DNP's own menu item, pooling on, prewarmed by `HitFeedbackHud`). DNP's setup rewrites its font's material, so our prefab uses the first-party copy `Data/UI/DamageNumberFont.asset`. A view spawns numbers in response to `DamageDealt`. |
 | UIEffect (`com.coffee.ui-effect`) | 5.11.7 | UPM git | Should | uGUI effects (shiny, dissolve, transitions). Not used yet. |
 | All In 1 Sprite Shader (Seaside Studios) | 4.68 | `Assets/Plugins/AllIn1Assets/AllIn1SpriteShader` | Maybe | Effects shader for 2D sprites and uGUI images (70+ keyword-toggled effects, set up per object by its `AllIn1Shader` component). UIEffect covers uGUI and the game has no 2D sprites. Possible niche: HUD icon effects UIEffect lacks (hologram, glitch, hit flash). Its lit shaders (Better Shaders output for older URP) render magenta under our Forward+ renderer; the unlit ones work. Its docs warn that toggling effect keywords at runtime can leave sprites invisible in builds: enable the effects on the material and drive their amounts instead. Not used. |
-| Text Studio | 1.3.1 | `Assets/Plugins/TextStudio` | Undecided | Animated / typewriter text. Skill: `tools-unity-text-studio`. |
+| Text Studio | 1.3.1 | `Assets/Plugins/TextStudio` | Undecided | Animated / typewriter text. Not used; ask before adopting it. Until then a code-driven typewriter is TMP `maxVisibleCharacters` + DOTween (an `MMF_TMPTextReveal` in an authored Feel player is fine). If adopted: uGUI + TMP only (its UI Toolkit binding doesn't apply), views drive it from MessagePipe events (never services), no reveal on per-frame HUD numbers, scaled time for gameplay text and unscaled for menus, add its asmdef reference, and change this row to Should with usage rules. Vendor how-to: `Assets/Plugins/TextStudio/AI/Skills/`. |
 | LeanTransition (CW) | — | `Assets/Plugins/CW/LeanTransition` | Avoid | Overlaps DOTween. |
 | LeanGUI, LeanTexture, LeanTexture+ (CW, + LeanCommon) | — | `Assets/Plugins/CW` | Undecided | LeanGUI overlaps our uGUI widgets. Not used. |
 
@@ -127,7 +127,7 @@ Time of day, sky, lighting, fog and grade are first-party (`EnvironmentDirector`
 | Inspect Plus | 2.1.1 | UPM git (yasirkula) | Could | Inspector extras. |
 | Better Inspector (Tiny Giant Studio) | — | `Assets/Plugins/Tiny Giant Studio` | Could | Inspector extras; overlaps Inspect Plus and Odin. |
 | KINEMATION Retarget Pro | — | `Assets/_StoreAssets/Animation/KINEMATION/RetargetPro` | Should | Animation retargeting. |
-| Audio Tools | 1.2.0 | `Assets/Plugins/AudioTools` | Should | Trim, normalize, fade, export clips. Skill: `tools-unity-audio-tools`. |
+| Audio Tools | 1.2.0 | `Assets/Plugins/AudioTools` | Should | Trim, normalize, fade, export clips (editor only). Skill: `tools-unity-broaudio` → Clip editing. |
 | Audio Preview Tool | — | `Assets/Plugins/WarpedImagination` | Could | Clip preview in the Project window. |
 | Easy Collider Editor | — | `Assets/Plugins/EasyColliderEditor` | Should | Collider authoring. |
 | Rowlan Fullscreen Editor Play Mode | 1.9.0 | `Assets/Plugins/Rowlan/Fullscreen` | Could | |
