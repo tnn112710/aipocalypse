@@ -12,6 +12,17 @@ Guidance for AI coding agents (Claude Code, Codex, …) working in this reposito
 
 **Editor control: Unity CLI** (`unity`, via the `com.unity.pipeline` package). The deprecated Unity MCP is not used. The CLI's docs ship with the package in `Library/PackageCache/com.unity.pipeline@*/Documentation~/` (`commands/`, `authoring-commands.md`, `testing.md`, …); in Claude Code, also load the official `unity:unity-cli` skill. Read them before editor work.
 
+```bash
+P="$(cygpath -w "$PWD")"                                    # Git Bash
+unity status --project-path "$P"
+unity command --project-path "$P" editor set_auto_tick --enable true
+unity command --project-path "$P" script recompile          # then poll until completed / up_to_date:
+unity command --project-path "$P" script recompile_status
+unity command --project-path "$P" console status            # console get for the messages
+unity command --project-path "$P" test run --mode editor
+bash .claude/hooks/check-undeclared-packs.sh                # vendor folders missing from ASSETS/PLUGINS.md
+```
+
 - Use `unity command <name>` to drive the live editor (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML. `unity command` lists the command groups (`unity command <group>` lists a group); follow the package docs (`script recompile` → `script recompile_status` → `test run` loop, `script run` for bulk/plugin work, `script eval` for one-liners). Older docs and skills may use the pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
 - In Git Bash pass `--project-path "$(cygpath -w "$PWD")"` — the CLI doesn't match `/d/...` paths.
 - Before editor work run `unity status` and `unity command editor set_auto_tick --enable true` (commands stall while Unity is unfocused otherwise); if not ready, check Safe Mode (`unity pipeline list`) or ask the user to open the project.
@@ -90,7 +101,7 @@ Both files declare each package once, with one tag: **Must** (the only choice), 
 
 Stop and ask before:
 
-- Implementing anything taken from `docs/gdd/` (see below) or `IDEAS.md`.
+- Implementing anything taken from `docs/gdd/` (see below), including `docs/gdd/IDEAS.md`.
 - Adding a package, plugin or content pack, relying on one PLUGINS.md or ASSETS.md marks Undecided (e.g. Text Studio), or using one marked Avoid.
 - Adding or renaming BroAudio entities/libraries (Library Manager authoring) or `SoundID`s.
 - Renaming or moving a Behavior Designer task class (trees store its full type name).
