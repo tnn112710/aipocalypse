@@ -105,6 +105,7 @@ namespace Aipocalypse.Tests
                 var card = AssetDatabase.LoadAssetAtPath<EnemySpawnCard>(path);
                 cards++;
                 Assert.That(card.Variants.Count, Is.GreaterThan(0), $"{path}: no variant");
+                Assert.That(card.PickVariant(0.5f), Is.Not.Null, $"{path}: no variant with a weight");
                 foreach ((EnemyBrain prefab, float weight) in card.Variants)
                 {
                     Assert.That(prefab, Is.Not.Null, $"{path}: empty variant");

@@ -8,10 +8,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // An enemy's bridge to the enemy system: once injected, starts its Manual-mode tree and joins the EnemyRegistry while
-    // enabled, where EnemyManager ticks it (and the scene's GrassBendField, if any, bends grass around it). Its kind (base
-    // stats, behaviour tuning, sounds) is its EnemyDefinition; each activation gets fresh EnemyStats and a revived EnemyBody.
-    // Spawned ones belong to the EnemyPool and go back to it when disabled.
+    // An enemy's bridge to the enemy system: while enabled, its Manual tree runs and it's in the EnemyRegistry (ticked by
+    // EnemyManager); each activation gets fresh EnemyStats from its EnemyDefinition. Spawned ones return to the EnemyPool.
     [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
     public sealed class EnemyBrain : MonoBehaviour
     {
@@ -146,8 +144,10 @@ namespace Aipocalypse.Core.EnemySystem
         public void Strike(ITargetable target)
         {
             Vector3 point = target.Transform.position;
-            _damage.Deal(target, new DamageInfo(Stats.Get(EnemyStat.AttackDamage), DamageType.Melee, point, default, gameObject));
-            Voice.Impact(point);
+            var blow = new DamageInfo(Stats.Get(EnemyStat.AttackDamage), DamageType.Melee, point, default, gameObject);
+            DamageResult result = _damage.Deal(target, blow);
+            if (result.Applied > 0f)
+                Voice.Impact(point);
         }
 
         void CacheParts()

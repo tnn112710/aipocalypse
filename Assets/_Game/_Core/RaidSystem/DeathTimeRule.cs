@@ -9,21 +9,24 @@ using VContainer.Unity;
 namespace Aipocalypse.Core.RaidSystem
 {
     // A death costs time, applied behind the death screen (PlayerRespawning): during a raid the raid is lost and the player
-    // wakes at the next DefeatWakeHour; any other death moves the clock on HoursLostOnDeath. TimeJumped lets the world resync.
+    // wakes at the next DefeatWakeHour; any other death moves the clock on HoursLostOnDeath and despawns dawn's leftovers.
     public sealed class DeathTimeRule : IStartable, IDisposable
     {
         const double Epsilon = 1e-9;
 
         readonly IAsyncSubscriber<PlayerRespawning> _respawning;
         readonly RaidDirector _director;
+        readonly IRaidSpawner _spawner;
         readonly WorldClock _clock;
         readonly RaidSettings _settings;
         IDisposable _subscription;
 
-        public DeathTimeRule(IAsyncSubscriber<PlayerRespawning> respawning, RaidDirector director, WorldClock clock, RaidSettings settings)
+        public DeathTimeRule(IAsyncSubscriber<PlayerRespawning> respawning, RaidDirector director, IRaidSpawner spawner,
+            WorldClock clock, RaidSettings settings)
         {
             _respawning = respawning;
             _director = director;
+            _spawner = spawner;
             _clock = clock;
             _settings = settings;
         }
@@ -49,6 +52,8 @@ namespace Aipocalypse.Core.RaidSystem
             bool raidRunning = _director.IsRunning;
             if (raidRunning)
                 _director.EndRaid(RaidEndReason.Defeat);
+            else
+                _spawner.Withdraw(true);
             _clock.SetTime(WakeTime(_clock.Now, raidRunning, _settings));
             return UniTask.CompletedTask;
         }

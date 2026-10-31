@@ -197,15 +197,18 @@ public static class AmmoCrateSetup
     static void CreateEmpty(string path)
     {
         Scene preview = EditorSceneManager.NewPreviewScene();
+        // ObjectFactory.CreateGameObject(preview, …) still lands in the active scene, so make it and move it explicitly.
+        var root = new GameObject(Path.GetFileNameWithoutExtension(path));
         try
         {
-            GameObject root = ObjectFactory.CreateGameObject(preview, HideFlags.None, Path.GetFileNameWithoutExtension(path));
+            SceneManager.MoveGameObjectToScene(root, preview);
             PrefabUtility.SaveAsPrefabAsset(root, path, out bool saved);
             if (!saved)
                 throw new Exception("failed to save " + path);
         }
         finally
         {
+            Object.DestroyImmediate(root);
             EditorSceneManager.ClosePreviewScene(preview);
         }
     }

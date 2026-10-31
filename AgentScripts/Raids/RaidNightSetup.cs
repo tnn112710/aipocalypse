@@ -144,11 +144,14 @@ public static class RaidNightSetup
         return string.Join("\n", log);
     }
 
-    // The raid data (Data/Raids: settings + the nightly plan of three goblin waves) and the open WorldMap's wiring: a
-    // RaidInstaller on its GameLifetimeScope and Raid/Spawn Zone (Front) at the gate, facing out. Saves only those.
+    // The raid data (Data/Raids: settings + the nightly plan, rewritten to three goblin waves) and the open WorldMap's
+    // wiring: a RaidInstaller on its GameLifetimeScope and Raid/Spawn Zone (Front) at the gate, facing out. Saves only those.
     public static object Raid()
     {
         var log = new List<string>();
+        Scene open = SceneManager.GetActiveScene();
+        if (open.path == WorldMapPath && open.isDirty)
+            return "WorldMap has unsaved changes: save or discard them, then run Raid again (nothing changed)";
         Folder(RaidsDir);
         var card = Load<EnemySpawnCard>(GoblinCard);
         var plan = AssetDatabase.LoadAssetAtPath<RaidPlan>(PlanPath);
@@ -218,15 +221,7 @@ public static class RaidNightSetup
 
     static AudioEntity Entity(string library, string name) => Load<AudioEntity>($"{AudioDir}/{library}/{name}.asset");
 
-    static SoundID Id(string enemyEntity)
-    {
-        var id = new SoundID();
-        var field = typeof(SoundID).GetField("_entity", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-            ?? throw new Exception("SoundID._entity not found");
-        object boxed = id;
-        field.SetValue(boxed, Entity("Enemies", enemyEntity));
-        return (SoundID)boxed;
-    }
+    static SoundID Id(string enemyEntity) => new(Entity("Enemies", enemyEntity));
 
     static string[] Range(string prefix, int count)
     {

@@ -6,7 +6,8 @@ using VContainer.Unity;
 namespace Aipocalypse.Core.EnemySystem
 {
     // Footsteps of the registered enemies, once a frame on scaled time: each walking enemy within its kind's FootstepRange of
-    // the player steps per stride, all of them together at most MaxFootstepsPerSecond (the nearest crowd still sounds busy).
+    // the player steps per stride, all together at most MaxFootstepsPerSecond (the walk starts at a rotating index, so the
+    // cap is shared fairly).
     public sealed class EnemySoundManager : ITickable
     {
         static readonly ProfilerMarker Steps = new("Aipocalypse.EnemySoundManager.Steps");
@@ -14,6 +15,7 @@ namespace Aipocalypse.Core.EnemySystem
         readonly EnemySystemSettings _settings;
         readonly PlayerRegistry _players;
         float _allowance;
+        int _start;
 
         public EnemySoundManager(EnemyRegistry enemies, EnemySystemSettings settings, PlayerRegistry players)
         {
@@ -33,8 +35,11 @@ namespace Aipocalypse.Core.EnemySystem
             _allowance = Mathf.Min(_allowance + _settings.MaxFootstepsPerSecond * deltaTime, _settings.MaxFootstepsPerSecond);
             using (Steps.Auto())
             {
-                for (int i = 0; i < _enemies.Count; i++)
+                int count = _enemies.Count;
+                _start = count > 0 ? (_start + 1) % count : 0;
+                for (int n = 0; n < count; n++)
                 {
+                    int i = (_start + n) % count;
                     EnemyVoice voice = _enemies[i].Voice;
                     EnemySoundSet sounds = voice?.Sounds;
                     if (sounds == null)

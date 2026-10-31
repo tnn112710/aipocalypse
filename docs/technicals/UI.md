@@ -23,6 +23,8 @@ How the in-game UI is built and how to extend or restyle it. Script locations an
 
 ```text
 HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibilityHud (fades the HUD out while the player is dead)
+├─ HurtFeedback              first child (draws under the widgets), stretched full screen past the SafeFrame inset · nested Canvas · HurtFeedbackHud (HurtFeedbackStyle), see Hurt feedback below
+│  └─ Top / Bottom / Left / Right   RawImage edges, off until a hit; gradient made in code
 └─ SafeFrame                 stretch, inset 48/40
    ├─ TopLeft                corner anchors (zero size): widgets anchor to these
    ├─ TopRight
@@ -141,6 +143,7 @@ InteractPrompt               InteractPromptView component
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
 | Crosshair sprint fade speed, spread tick threshold / speed | `Data/UI/CrosshairStyle.asset` |
 | Hit marker colors, durations, pops; how far above the hit a number starts | `Data/UI/HitFeedbackStyle.asset` (sounds and the number prefabs: `HitFeedbackHud`) |
+| Hurt flash color, max alpha, edge thickness, strength by damage, fade-out | `Data/UI/HurtFeedbackStyle.asset` (the pain grunt: `Data/Player/PlayerSoundTuning.asset` → Hurt; the view flinch: `PlayerCameraTuning.asset` → Hurt flinch) |
 | Damage number look (normal white, critical red) | `Prefabs/Widgets/DamageNumber.prefab`, `DamageNumber_Critical.prefab` (a variant) |
 | QTE sprites, colors, key cap, success / miss animation | `Data/UI/RepairQteStyle.asset` (`QteStyle`) |
 | How the crosshair moves | `Data/Player/PlayerHeldItemTuning.asset` → Aim sway ([WEAPONS.md](WEAPONS.md#aim-sway)) |
@@ -202,7 +205,7 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
 - Fixed rects, no layout groups: the digits are monospaced, so the clock never changes size, and nothing layout-driven is written as an override onto the HUD instance in a scene.
 
 - `ClockView` API: `SetTime(hour, minute)`, `SetPhase(label, color)`, `SetDay(day)`, `Show(bool)`, `ApplyStyle()`. Each setter skips repeats; the time is written from a cached char buffer (`SetCharArray`), so updates allocate nothing.
-- `ClockHud` resolves the `WorldClock` if the scene has one (else the clock hides) and polls it in `LateUpdate`: 24-hour time, one-minute steps (every 0.5 s at 30 s per game hour).
+- `ClockHud` resolves the `WorldClock` if the scene has one (else the clock hides) and polls it in `LateUpdate`: 24-hour time, one-minute steps (every 0.75 s at 45 s per game hour).
 - A weather line goes under `Labels` when weather exists.
 
 ## Crosshair
@@ -223,6 +226,17 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
 - **Damage number:** `Prefabs/Widgets/DamageNumber.prefab` (Damage Numbers Pro mesh number, 3D, constant screen size, font size 3, 0.8 s, one number per hit (combination off: merged totals read as one big hit), pooled 40, prewarmed on Start) `HitFeedbackStyle.NumberLift` (0.5 m) above the hit point, white; it only rises straight up (1.6, no sideways drift, slide or pop) so the target stays visible. Critical hits (headshots, `DamageInfo.Critical`) spawn `DamageNumber_Critical.prefab` instead: a variant with red text (and its own spam group, `Critical`, in case combination is turned back on). Colors live on the prefabs, never set at spawn: a tinted pooled number keeps the tint. Its font is the first-party copy `Data/UI/DamageNumberFont.asset` (DNP's setup rewrites its font's material, so the vendor asset stays untouched).
 
 Colors, durations and pop sizes are in `Data/UI/HitFeedbackStyle.asset` (`HitFeedbackStyle`); the sounds and the number prefab stay on the component. With no style assigned it warns and uses the defaults (so does `CrosshairHud` without its `CrosshairStyle`).
+
+## Hurt feedback
+
+`HurtFeedbackHud` (a `PlayerHudView` on `HUD/HurtFeedback`, built by `AgentScripts/Hud/HurtFeedbackSetup.Build`) flashes the screen edge red toward whatever hurt the active player. It subscribes to `DamageDealt` and reacts only to hits whose target is the active player:
+
+- **Direction:** from the hit's `Info.Source` (its `Info.Point` when it has none) against the yaw of `IPlayer.View`, on the ground plane: in front lights the top edge, behind the bottom, left and right their sides, shared by angle (`EdgeWeights`). A hit with no direction (the player as its own source, a fall; a source under 0.3 m away) lights every edge.
+- **Strength:** `max(MinStrength, applied / max health / FullStrengthShare)` × `MaxAlpha` × the edge's share: a quarter of max health or more flashes fully, a light hit at 35 %. An edge keeps the brighter of its current and the new flash, so pellets in one frame count once and a light hit never cuts a strong one short.
+- **Fade:** eases out over `FadeOut` (0.7 s) in real time, so a hit stop doesn't hold it; frozen while `TimeService.IsPaused`. The component turns itself off once every edge has faded.
+- **Look:** the four `RawImage` edges use two white gradient textures made in code (no art asset), tinted `FlashColor`, each `Thickness` (0.2) of the HUD height deep. Sizes are recomputed at runtime from the live HUD height; the prefab's are placeholders for 1080 px. Style edits show on the next hit in Play mode.
+- It draws under the widgets, so the bars stay readable, and hides with the rest of the HUD while the player is dead (`HudVisibilityHud`). Damage that applies nothing (`cheat.god`) publishes no `DamageDealt`, so nothing flashes.
+- The pain grunt and the view flinch belong to the player: `PlayerFeedback` reacts to `PlayerLife.Hurt` (a hit that doesn't kill).
 
 ## QTE
 

@@ -6,10 +6,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // An enemy's physical side: takes hits (health from its EnemyStats), is knocked back by DamageInfo.Force, plays hit and
-    // death reactions on its EnemyAnimator and EnemyVoice, and when killed stops thinking, lies for a while, sinks and
-    // disables itself. Enabling it again revives it (EnemyBrain re-activates). No Update: EnemyBodyManager advances it while
-    // it moves or dies.
+    // An enemy's physical side: takes hits and knockback, reacts and cries, and when killed lies, sinks and disables itself
+    // (enabling revives it). No Update: EnemyBodyManager advances it while it moves or dies.
     [RequireComponent(typeof(EnemyBrain), typeof(EnemyMover))]
     public sealed class EnemyBody : MonoBehaviour, IDamageable
     {

@@ -33,6 +33,7 @@ namespace Aipocalypse.Core.EnemySystem
         Vector3 _heading;
         bool _moving;
         bool _sprinting;
+        bool _waiting;
 
         public override void OnAwake()
         {
@@ -43,6 +44,7 @@ namespace Aipocalypse.Core.EnemySystem
         public override void OnStart()
         {
             _moving = false;
+            _waiting = false;
             _sprinting = _brain.Engaged;
             ApplyPace();
         }
@@ -64,11 +66,13 @@ namespace Aipocalypse.Core.EnemySystem
                 ApplyPace();
             }
 
-            float hold = _brain.HoldsSlot ? melee.HoldDistance * Slack : melee.HoldDistance;
+            float hold = _brain.HoldsSlot || _waiting ? melee.HoldDistance * Slack : melee.HoldDistance;
+            _waiting = false;
             if (sqrDistance <= hold * hold)
             {
                 if (!_brain.TryHoldSlot())
                 {
+                    _waiting = true;
                     _moving = false;
                     _mover.Face(position);
                     return TaskStatus.Running;
@@ -77,7 +81,8 @@ namespace Aipocalypse.Core.EnemySystem
             else
                 _brain.ReleaseSlot();
 
-            if (sqrDistance <= melee.AttackRange * melee.AttackRange && _brain.HoldsSlot)
+            float rise = Mathf.Abs(position.y - _brain.transform.position.y);
+            if (sqrDistance <= melee.AttackRange * melee.AttackRange && rise <= MeleeHit.MaxHeightDifference && _brain.HoldsSlot)
                 return TaskStatus.Success;
             float repath = Mathf.Max(melee.RepathDistance, 0.1f * Mathf.Sqrt(sqrDistance));
             if (!_moving || (position - _heading).sqrMagnitude > repath * repath)
@@ -115,6 +120,7 @@ namespace Aipocalypse.Core.EnemySystem
 
         EnemyBrain _brain;
         EnemyMover _mover;
+        ITargetable _swingTarget;
         float _swingEnd;
         float _hitAt;
         bool _struck;
@@ -144,7 +150,8 @@ namespace Aipocalypse.Core.EnemySystem
                 if (!_struck && Time.time >= _hitAt)
                 {
                     _struck = true;
-                    if (!target.IsDead && MeleeHit.Lands(_brain.transform.position, _brain.transform.forward, position, melee.HitReach, melee.HitArc))
+                    // Only the target the swing was aimed at: a new one may not have given this enemy a slot.
+                    if (ReferenceEquals(target, _swingTarget) && !target.IsDead && MeleeHit.Lands(_brain.transform.position, _brain.transform.forward, position, melee.HitReach, melee.HitArc))
                         _brain.Strike(target);
                 }
                 return Time.time >= _swingEnd ? TaskStatus.Success : TaskStatus.Running;
@@ -155,6 +162,7 @@ namespace Aipocalypse.Core.EnemySystem
                 return TaskStatus.Success;
             if (Time.time < _brain.NextAttackTime)
                 return TaskStatus.Running;
+            _swingTarget = target;
             _swingEnd = Time.time + melee.AttackDuration;
             _hitAt = Time.time + melee.HitTime;
             _brain.NextAttackTime = _swingEnd + melee.AttackCooldown;

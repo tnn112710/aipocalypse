@@ -129584,6 +129584,7 @@ Transform:
   - {fileID: 1789043550}
   - {fileID: 1808552296}
   - {fileID: 957436697}
+  - {fileID: 1156023921}
   m_Father: {fileID: 1665737319}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &480268733
@@ -142542,6 +142543,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 286197698383361655, guid: 27334ac90b57aca4ab3a4a20bb726500, type: 3}
   m_PrefabInstance: {fileID: 520637176}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &520858187
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 520858188}
+  - component: {fileID: 520858189}
+  m_Layer: 0
+  m_Name: Spawn Zone (Front)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &520858188
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520858187}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.4226183, z: -0, w: 0.9063078}
+  m_LocalPosition: {x: 274.43, y: 29.500092, z: 294.15}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 895650189}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &520858189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520858187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8324fa32104d08409f9135006ca2ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.RaidSystem.SpawnZone
+  _id: Front
+  _minRadius: 60
+  _maxRadius: 80
+  _halfAngle: 120
 --- !u!1001 &521764889
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -243089,6 +243138,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3084225315998236452, guid: cadff4c272df64c4895d61c0a0ad221e, type: 3}
   m_PrefabInstance: {fileID: 895445821}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &895650188
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 895650189}
+  m_Layer: 0
+  m_Name: Raid
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &895650189
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895650188}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 520858188}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &895671612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -285681,6 +285762,7 @@ GameObject:
   - component: {fileID: 1051055996}
   - component: {fileID: 1051055995}
   - component: {fileID: 1051055997}
+  - component: {fileID: 1051055998}
   m_Layer: 0
   m_Name: GameLifetimeScope
   m_TagString: Untagged
@@ -285703,7 +285785,8 @@ MonoBehaviour:
   parentReference:
     TypeName: 
   autoRun: 1
-  autoInjectGameObjects: []
+  autoInjectGameObjects:
+  - {fileID: 1156023922}
   _strict: 0
 --- !u!4 &1051055994
 Transform:
@@ -285763,6 +285846,21 @@ MonoBehaviour:
   _navigation: {fileID: 1847031691}
   _settings: {fileID: 11400000, guid: 1efb0b1dc230b2c459a2b10969f2ffbe, type: 2}
   _sceneEnemies: []
+--- !u!114 &1051055998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2439475320a3be0439ea1d7635fed4e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.RaidSystem.RaidInstaller
+  _settings: {fileID: 11400000, guid: 6a2f0cf721eca5e46a3c1af7f13be7d7, type: 2}
+  _zones:
+  - {fileID: 520858189}
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -313190,6 +313288,73 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 6598544644045921893, guid: cd106d803c5a51d4d85b6a0b04937ff5, type: 3}
   m_PrefabInstance: {fileID: 1155259473}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1156023920
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 480241712}
+    m_Modifications:
+    - target: {fileID: 4248690414130840699, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_Name
+      value: AmmoCrate
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 268.87546
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.500092
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 287.40857
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9063078
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.42261833
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+--- !u!4 &1156023921 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4521915562075219261, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+  m_PrefabInstance: {fileID: 1156023920}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1156023922 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4248690414130840699, guid: 2f8a7f6f1f569ec49a2982dc35b52ab9, type: 3}
+  m_PrefabInstance: {fileID: 1156023920}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1156515011
 PrefabInstance:
@@ -594310,3 +594475,4 @@ SceneRoots:
   - {fileID: 1048338942}
   - {fileID: 1847031690}
   - {fileID: 808704269}
+  - {fileID: 895650189}

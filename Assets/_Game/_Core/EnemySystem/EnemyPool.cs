@@ -7,10 +7,8 @@ using Object = UnityEngine.Object;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Reuses enemies per prefab. Instances are made with the scene resolver (injected before Awake); an enemy comes back when
-    // it disables itself (its corpse sank) or is despawned. Prewarming spreads the instantiation over frames
-    // (EnemySystemSettings.PrewarmPerFrame) under an inactive parking root, so the first wave doesn't hitch and parked
-    // enemies never wake (no A* entity, no Awake) until they're taken.
+    // Reuses enemies per prefab (made with the scene resolver, injected before Awake); back when disabled or despawned.
+    // Prewarmed ones wait under an inactive parking root, never woken until taken (PrewarmPerFrame a frame).
     public sealed class EnemyPool : ITickable, IDisposable
     {
         readonly IObjectResolver _resolver;
@@ -38,9 +36,10 @@ namespace Aipocalypse.Core.EnemySystem
             EnemyBrain enemy = TakeFree(prefab);
             if (enemy == null)
                 return Create(prefab, position, rotation, Root);
-            // Placed before it wakes, so the agent's entity and the brain's Home start there; the teleport clears old paths.
-            enemy.transform.SetParent(Root, true);
+            // Placed before it wakes (a parked one wakes on leaving the parking root), so the agent's entity and the brain's
+            // Home start there; the teleport clears old paths.
             enemy.transform.SetPositionAndRotation(position, rotation);
+            enemy.transform.SetParent(Root, true);
             enemy.gameObject.SetActive(true);
             enemy.GetComponent<EnemyMover>().Teleport(position);
             return enemy;
@@ -100,7 +99,10 @@ namespace Aipocalypse.Core.EnemySystem
             {
                 EnemyBrain enemy = free.Pop();
                 if (enemy == null)
+                {
+                    _made[prefab] = Made(prefab) - 1;
                     continue;
+                }
                 enemy.InPool = false;
                 return enemy;
             }

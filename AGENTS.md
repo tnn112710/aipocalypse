@@ -45,7 +45,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | Skill | Read before |
 | --- | --- |
 | `aipocalypse-architecture` | Registrations, scopes, installers, injection; gameplay events (MessagePipe); any async/await, delays, pause; C# touching serialization, statics, play-mode hooks, build defines or Unity 6.6 APIs |
-| `aipocalypse-enemy-ai` | Any enemy/companion/animal/NPC movement or AI decision, and designing behaviours: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager` and built from text specs (`TreeKit`), A* `FollowerEntity`, navmesh, spawning, the GDD behaviour catalogue and AI building blocks |
+| `aipocalypse-enemy-ai` | Any enemy/companion/animal/NPC movement or AI decision, and designing behaviours: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager` and built from text specs (`TreeKit`), A* `FollowerEntity`, navmesh, spawning and raids, targeting, the GDD behaviour catalogue and AI building blocks |
 | `aipocalypse-characters` | Adding, swapping or animating any character model (enemy, NPC, companion, animal), from any vendor: model vs entity prefab, the animator parameter contract and `CharacterKit`, `EnemyAnimator`, verifying looks and animation |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks; points to Feel's own skills) |
 | `tools-unity-broaudio` | Any sound, music or ambience: `AudioService`, `SoundID`s, BroAudio libraries (points to BroAudio's `CLAUDE.md`), audio import presets, editing clips with Audio Tools |
@@ -118,7 +118,7 @@ When writing code, the user's prompt is the spec.
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
 - `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` is the index of per-topic files; start with `docs/gdd/CORE.md` (pitch, pillars, core loop). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
-- `docs/technicals/` — one doc per system; read the one you touch: `ARCHITECTURE` (layout, data flow), `CODE_STRUCTURE` (script map — update whenever you add, move or remove a script), `PLUGINS`, `ASSETS`, `SYNTY_CATALOG` (Synty packs not yet imported), `UI` (HUD), `EQUIPMENT` (items, hotbar), `WEAPONS`, `HANDS` (first-person grips, poses, clips), `ENVIRONMENT` (world map), `DAYNIGHT`, `CONSOLE` (dev console, cheats), `DEBUG` (other debug tools).
+- `docs/technicals/` — one doc per system; read the one you touch: `ARCHITECTURE` (layout, data flow), `CODE_STRUCTURE` (script map — update whenever you add, move or remove a script), `PLUGINS`, `ASSETS`, `SYNTY_CATALOG` (Synty packs not yet imported), `UI` (HUD), `EQUIPMENT` (items, hotbar), `WEAPONS`, `HANDS` (first-person grips, poses, clips), `ENVIRONMENT` (world map), `DAYNIGHT`, `RAIDS` (raids, spawning schedule, death costs time), `CONSOLE` (dev console, cheats), `DEBUG` (other debug tools).
 - Current milestone/tasks: `docs/ROADMAP.md`.
 
 ## Code style

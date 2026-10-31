@@ -6,8 +6,9 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.RaidSystem
 {
-    // The world side of raids: groups from the scene's SpawnZones with each card's arrival cue, and the raiders still alive.
-    // Withdrawn raiders despawn at once, or each as soon as the player can't see it.
+    // The world side of raids: groups from the scene's SpawnZones with each card's arrival cue, and the raiders still alive
+    // (a group's members still to spawn count as alive). Withdrawn raiders despawn at once, or each as soon as the player
+    // can't see it; members still to spawn are dropped.
     public sealed class RaidSpawner : IRaidSpawner, ITickable
     {
         readonly EnemySpawner _spawner;
@@ -16,7 +17,7 @@ namespace Aipocalypse.Core.RaidSystem
         readonly IReadOnlyList<SpawnZone> _zones;
         readonly List<EnemyBrain> _raiders = new();
         readonly List<EnemyBrain> _leaving = new();
-        readonly List<EnemyBrain> _group = new();
+        readonly List<SpawnBatch> _batches = new();
         readonly Dictionary<EnemySpawnCard, int> _planned = new();
         readonly HashSet<string> _unknownZones = new();
 
@@ -33,7 +34,15 @@ namespace Aipocalypse.Core.RaidSystem
             get
             {
                 Prune(_raiders);
-                return _raiders.Count;
+                int pending = 0;
+                for (int i = _batches.Count - 1; i >= 0; i--)
+                {
+                    if (_batches[i].Pending > 0)
+                        pending += _batches[i].Pending;
+                    else
+                        _batches.RemoveAt(i);
+                }
+                return _raiders.Count + pending;
             }
         }
 
@@ -56,18 +65,20 @@ namespace Aipocalypse.Core.RaidSystem
             SpawnZone from = FindZone(zone);
             if (card == null || count <= 0 || from == null || !_picker.TryPick(from, out Vector3 point))
                 return 0;
-            // Pruned first: a raider despawned this frame may come straight back from the pool as one of this group.
-            Prune(_raiders);
-            _group.Clear();
-            int made = _spawner.SpawnGroup(card, point, count, from.Origin - point, _group);
-            _raiders.AddRange(_group);
-            if (made > 0 && announce)
+            SpawnBatch batch = _spawner.SpawnGroup(card, point, count, from.Origin - point, _raiders);
+            if (batch.Count == 0)
+                return 0;
+            _batches.Add(batch);
+            if (announce)
                 _audio.PlayAt(card.ArrivalCue, point);
-            return made;
+            return batch.Count;
         }
 
         public void Withdraw(bool now)
         {
+            foreach (SpawnBatch batch in _batches)
+                batch.Cancel();
+            _batches.Clear();
             Prune(_raiders);
             _leaving.AddRange(_raiders);
             _raiders.Clear();
@@ -87,7 +98,7 @@ namespace Aipocalypse.Core.RaidSystem
             for (int i = _leaving.Count - 1; i >= 0; i--)
             {
                 EnemyBrain enemy = _leaving[i];
-                if (_picker.IsSeen(enemy.transform.position))
+                if (_picker.IsSeen(enemy.transform))
                     continue;
                 _spawner.Despawn(enemy);
                 _leaving.RemoveAt(i);

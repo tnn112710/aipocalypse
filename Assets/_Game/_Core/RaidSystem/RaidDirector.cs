@@ -143,6 +143,7 @@ namespace Aipocalypse.Core.RaidSystem
             _manual = manual;
             Night = night;
             Plan = plan;
+            Wave = -1;
             Spawned = 0;
             LastEnd = null;
             _time = 0f;

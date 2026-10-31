@@ -2,9 +2,12 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Where a melee blow lands, on the horizontal plane (heights are ignored: enemies and targets share the ground).
+    // Where a melee blow lands: reach and arc on the horizontal plane, within MaxHeightDifference up or down.
     public static class MeleeHit
     {
+        // Metres: a target farther above or below (on a roof, a ledge) is out of reach.
+        public const float MaxHeightDifference = 2f;
+
         public static float SqrFlatDistance(Vector3 a, Vector3 b)
         {
             float x = a.x - b.x, z = a.z - b.z;
@@ -16,7 +19,7 @@ namespace Aipocalypse.Core.EnemySystem
         public static bool Lands(Vector3 attacker, Vector3 forward, Vector3 target, float reach, float arc)
         {
             float sqrDistance = SqrFlatDistance(attacker, target);
-            if (sqrDistance > reach * reach)
+            if (sqrDistance > reach * reach || Mathf.Abs(target.y - attacker.y) > MaxHeightDifference)
                 return false;
             if (sqrDistance < 0.0001f)
                 return true;

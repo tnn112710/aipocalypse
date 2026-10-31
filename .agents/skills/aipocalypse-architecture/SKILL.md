@@ -27,37 +27,38 @@ The rest is what those docs don't spell out.
 
 ## 2. Entry points and ticks
 
-- `RegisterEntryPoint<T>().AsSelf()` whenever anything injects the concrete type (`TimeService`, `InputService`, `QuickTimeService`, `EffectPool`, `BulletSystem`, `WorldClock`, `AmbienceService`, `PlayerRespawnFlow`). Without `.AsSelf()` only its interfaces resolve (nothing injects `EnemyManager` or the cheats, so they're registered bare).
-- Put the tick's logic in a public `Advance(deltaTime)` (or `AdvanceHitStop`) that `Tick()` calls with `Time.deltaTime`, so EditMode tests step it without a PlayerLoop (`EnemyManager`, `WorldClock`, `TimeService`).
+- `RegisterEntryPoint<T>().AsSelf()` whenever anything injects the concrete type (`TimeService`, `InputService`, `QuickTimeService`, `EffectPool`, `BulletSystem`, `WorldClock`, `AmbienceService`, `PlayerRespawnFlow`, `EnemySpawner`, `EnemyPool`, `RaidDirector`). Without `.AsSelf()` only its interfaces resolve (nothing injects `EnemyManager` or the cheats, so they're registered bare).
+- Put the tick's logic in a public `Advance(deltaTime)` (or `AdvanceHitStop`) that `Tick()` calls with `Time.deltaTime`, so EditMode tests step it without a PlayerLoop (`EnemyManager`, `WorldClock`, `TimeService`, `RaidDirector`).
 - A reader that must see input before `Player.Update` is an `ITickable` (VContainer ticks first). `QuickTimeService` uses that to `Consume` its button press.
 - Bindings to registry state happen in `Start`, not `Construct`: scopes build in `Awake` order, so the player may not be registered when the HUD is injected (`PlayerHudView.Start → Rebind`).
 - A base class names its `[Inject]` method uniquely (`PlayerHudView.ConstructPlayerHud`) so subclasses can still have their own `Construct`.
 - Per-instance plain C# parts that need root services get them from a root factory service (`GunJamFactory` builds each gun's `GunJam`), not from the resolver.
 - Third-party objects reach services through an injected bridge: `FeedbackContext` for Feel feedbacks (`MMF_HitStop`), `EnemyBrain` for Behavior Designer tasks.
-- Crowd entities: injected once by their system's installer (scene-placed list collected on save / entering Play) or spawner (`resolver.Instantiate`); no scope each, no per-instance subscriptions. Details in aipocalypse-enemy-ai.
+- Crowd entities: injected once by their system's installer (scene-placed list collected on save / entering Play) or, when spawned, by the pool that creates them with the scene resolver (`EnemySpawner` → `EnemyPool`, `resolver.Instantiate`); no scope each, no per-instance subscriptions. Details in aipocalypse-enemy-ai.
 
 ## 3. Events (MessagePipe)
 
 - Brokers: `RegisterMessagePipe()` once in `ProjectLifetimeScope` (stack traces in the editor). Nowhere else, including installers. Tests build `new ContainerBuilder()` + `RegisterMessagePipe()` (`CombatTests`, `WorldClockTests`).
-- Event types: `readonly struct`, past tense, namespace `Aipocalypse.Core.Events` in `_Core/_Common/Events/`: mostly one file per area (`CombatEvents.cs`: `DamageDealt`, `PlayerDied`, `PlayerDeathSequenceEnded`; `PlayerEvents.cs`: active player and respawn flow; `QteEvents.cs`; `WorldTimeEvents.cs`), plus one file per event for the gun jam pair (`GunJamBeat.cs`, `GunRepairCompleted.cs`). `_Common` events carry no weapon or feature types.
+- Event types: `readonly struct`, past tense, namespace `Aipocalypse.Core.Events` in `_Core/_Common/Events/`: mostly one file per area (`CombatEvents.cs`: `DamageDealt`, `PlayerDied`, `PlayerDeathSequenceEnded`; `PlayerEvents.cs`: active player and respawn flow; `QteEvents.cs`; `WorldTimeEvents.cs`; `RaidEvents.cs`: raid start, waves and end with `RaidEndReason`), plus one file per event for the gun jam pair (`GunJamBeat.cs`, `GunRepairCompleted.cs`). `_Common` events carry no weapon or feature types.
 - "Something changed" events are empty or minimal; subscribers read the owner's current state (`ActivePlayerChanged` → `PlayerRegistry.Current`, `DayPhaseChanged` → `WorldClock.Phase`). No buffered brokers are used: late subscribers read the service on bind.
-- Per-owner events carry an `Owner` and subscribers filter with the predicate overload (`GunJamFeedback` on `GunJamBeat` / `GunRepairCompleted`). `HitFeedbackHud` filters `DamageDealt` by `Info.Source`.
-- Async events (`IAsyncPublisher`) are for steps the publisher must wait on: `PlayerRespawnFading`, `PlayerRespawning`. Handlers honour the token and check `this == null` after each await.
+- Per-owner events carry an `Owner` and subscribers filter with the predicate overload (`GunJamFeedback` on `GunJamBeat` / `GunRepairCompleted`). `HitFeedbackHud` filters `DamageDealt` by `Info.Source`, `HurtFeedbackHud` by `Target` (the active player).
+- Async events (`IAsyncPublisher`) are for steps the publisher must wait on: `PlayerRespawnFading`, `PlayerRespawning`. Handlers honour the token and check `this == null` after each await; a handler with nothing to await returns `UniTask.CompletedTask` (`DeathTimeRule`).
 
 Who publishes → who subscribes today:
 
 | Event | Publisher | Subscribers |
 | --- | --- | --- |
-| `DamageDealt` | `DamageService` | `HitFeedbackHud` |
+| `DamageDealt` | `DamageService` | `HitFeedbackHud`, `HurtFeedbackHud` |
 | `PlayerDied` | `PlayerLife` (publishers injected into `Player`) | `QuickTimeService` (cancels the QTE), `HudVisibilityHud` |
 | `PlayerDeathSequenceEnded` | `PlayerLife` | `PlayerRespawnFlow` |
 | `PlayerRevived` | `PlayerLife` | `PlayerRespawnFlow`, `HudVisibilityHud` |
 | `ActivePlayerChanged` | `PlayerRegistry` | every `PlayerHudView`, `PlayerRespawnFlow`, `QuickTimeService` |
-| `PlayerRespawnFading`, `PlayerRespawning` (async) | `PlayerRespawnFlow` | `DeathScreenHud` |
+| `PlayerRespawnFading`, `PlayerRespawning` (async) | `PlayerRespawnFlow` | `DeathScreenHud`; `DeathTimeRule` (`PlayerRespawning`: ends a running raid, moves the clock) |
 | `RespawnStageChanged` | `PlayerRespawnFlow` | `DeathScreenHud` |
 | `QteStarted`, `QteAttempted`, `QteEnded` | `QuickTimeService` | `QteHud`; `GunJam` (`QteAttempted`) |
 | `GunJamBeat`, `GunRepairCompleted` | `GunRepairFeedback` (per gun) | `GunJamFeedback` |
-| `HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded` | `WorldClock` | none yet (HUD, director and ambience read `WorldClock` directly) |
+| `HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded` | `WorldClock` | none yet (HUD, director, ambience and `RaidDirector` read `WorldClock` directly) |
+| `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | none yet (raid HUD, music and morning report later) |
 
 Update this table when you add an event or a subscriber.
 
@@ -75,8 +76,8 @@ Update this table when you add an event or a subscriber.
 
 - Editor: check `ProjectSettings/ProjectVersion.txt` (6000.6.7f1 when this was written).
 - **Enter Play Mode Options:** enabled with flags `0`, so domain and scene still reload and statics reset. Mutable statics today: a type cache (`GameLifetimeScope._installerTypes`), editor-preview state (`EnvironmentDirector._editRevision`, `HandPreview`) and Feel's `MMF_HitStop.FeedbackTypeAuthorized`; the rest are readonly tables and `ProfilerMarker`s. Before anyone turns domain reload off, audit statics with `[AutoStaticsCleanup]` (unity-6-new-apis §2).
-- Serialized key→value data uses the built-in `[SerializeField] Dictionary<,>` (in use: `ClockSettings.Phases`, `ClockStyle` phases, `TimeOfDayProfile.PhaseLooks`, `AmmoConfig` starting reserve). Enum-keyed tables get an EditMode test that every value has an entry (`PhaseDataTests`).
-- Existing `[InitializeOnLoadMethod]` + `playModeStateChanged` hooks (`EnemyInstaller`, `EnvironmentDirector`, `HandPreview`) stay until that code is touched; new hooks use the 6.5 lifecycle attributes.
-- Input is read only through `InputService` (no `OnMouseDown`, no `UnityEngine.Input`, no cursor or action-map changes elsewhere). The `Debug` map is enabled when `Debug.isDebugBuild`.
+- Serialized key→value data uses the built-in `[SerializeField] Dictionary<,>` (in use: `ClockSettings.Phases`, `ClockStyle` phases, `TimeOfDayProfile.PhaseLooks`, `AmmoConfig` starting reserve, `EnemyDefinition` stats and targets, `EnemySystemSettings.AttackersPerTarget`, `EnemySpawnCard` variants). Enum-keyed tables get an EditMode test that every value has an entry (`PhaseDataTests`).
+- Existing `[InitializeOnLoadMethod]` + `playModeStateChanged` hooks (`EnemyInstaller`, `EnvironmentDirector`, `HandPreview`) stay until that code is touched; new hooks use the 6.5 lifecycle attributes (`RaidInstaller`: `[OnCodeInitializing]` on a `partial` class, which the lifecycle source generator needs).
+- Input is read only through `InputService` (no `OnMouseDown`, no `UnityEngine.Input`, no cursor or action-map changes elsewhere). The `Debug` map is enabled when `Debug.isDebugBuild`. The one sanctioned stand-in is `IPlayer.IntentSource`: a dev tool (`RaidAutopilot`, `cheat.autopilot`) implements `IPlayerIntentSource` and hands `Player` its `PlayerIntent` instead of the `InputService` read; it reads no devices itself, and `Player` still asks for intent only while it can act.
 - URP custom passes use Render Graph (`FirstPersonRenderFeature.RecordRenderGraph` is the example).
 - Editor log: `Logs/Editor.log` in the repo root (gitignored).

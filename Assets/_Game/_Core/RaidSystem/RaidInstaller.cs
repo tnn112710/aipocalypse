@@ -11,7 +11,7 @@ namespace Aipocalypse.Core.RaidSystem
 {
     // Scene system: raid nights, their spawning from the scene's SpawnZones (collected on save / Play) and DeathTimeRule.
     // Needs WorldClock (WorldTimeInstaller) and the enemy services (EnemyInstaller) on the same scope.
-    public sealed class RaidInstaller : SceneInstaller
+    public sealed partial class RaidInstaller : SceneInstaller
     {
         [SerializeField, InlineEditor] RaidSettings _settings;
         [SerializeField, ReadOnly, Tooltip("Collected on save / Play")] List<SpawnZone> _zones = new();
@@ -42,7 +42,8 @@ namespace Aipocalypse.Core.RaidSystem
         [Button("Collect spawn zones"), PropertyOrder(-1)]
         public void CollectSpawnZones() => SceneCollection.Collect(this, _zones);
 
-        [UnityEditor.InitializeOnLoadMethod]
+        // The lifecycle source generator registers this hook, hence the partial class.
+        [Unity.Scripting.LifecycleManagement.OnCodeInitializing]
         static void HookCollection() => SceneCollection.Hook<RaidInstaller>(installer => installer.CollectSpawnZones());
 #endif
     }

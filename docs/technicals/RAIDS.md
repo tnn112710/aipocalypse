@@ -18,7 +18,7 @@ Raid nights: when they run, what spawns and from where, how they end, and what a
 | `Stopped` | `raid.stop` | despawn at once |
 
 - A night that ended, for any reason, never restarts. Jumping the clock into a night that hasn't run starts it.
-- **Death costs time** (`DeathTimeRule`, during the black part of the death screen): dying during a raid ends it (`Defeat`) and the player wakes at the next `DefeatWakeHour` (07:00); any other death moves the clock forward `HoursLostOnDeath` (1 h). Nothing is lost yet (losses come with the inventory).
+- **Death costs time** (`DeathTimeRule`, during the black part of the death screen): dying during a raid ends it (`Defeat`) and the player wakes at the next `DefeatWakeHour` (07:00); any other death moves the clock forward `HoursLostOnDeath` (1 h) and despawns raiders left over from a dawn withdrawal. Nothing is lost yet (losses come with the inventory).
 - **Arrival cue:** the first group of each card in a wave plays the card's `ArrivalCue` (goblins: `Raid_Horn_Goblin`, a war horn heard to 220 m) at its spawn point, so the player hears where a wave comes from. Each kind sounds once per wave.
 
 ## Where raiders spawn
@@ -29,7 +29,7 @@ Raid nights: when they run, what spawns and from where, how they end, and what a
 2. `SpawnPointScorer` drops points closer than `MinPlayerDistance` (30 m) to the player, then prefers points the player can't see: outside the view cone (90° plus `ViewMargin`), farther than `VisibleDistance` (90 m), or behind terrain and props (`SightBlockers` line of sight from the camera to the point's chest height).
 3. With no hidden point it tries again next tick; after `MaxHiddenWait` (5 s) it takes the visible point farthest from the view centre (night darkness hides most of it).
 
-The group then spawns on a spiral round the point (`EnemySpawner.SpawnGroup`), facing the gate, and hunts the player through the open gate. Raiders always know their target (the player for now; see the enemy-ai skill → Targeting).
+The group then spawns on a spiral round the point (`EnemySpawner.SpawnGroup`), one member per frame (`EnemySystemSettings.SpawnsPerFrame`: waking a pooled goblin costs about 3–4 ms, six at once made a 22 ms frame), facing the gate; members still to come count as alive, so a raid can't end Cleared before they appear, and hunts the player through the open gate. Raiders always know their target (the player for now; see the enemy-ai skill → Targeting).
 
 ## Testing a raid
 

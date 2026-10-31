@@ -56,6 +56,7 @@ namespace Aipocalypse.Tests
             builder.RegisterInstance<IRaidSchedule>(_schedule);
             builder.RegisterInstance<IRaidSpawner>(_spawner);
             builder.Register<RaidDirector>(Lifetime.Singleton);
+            builder.Register<DeathTimeRule>(Lifetime.Singleton);
             _resolver = builder.Build();
             _clock = _resolver.Resolve<WorldClock>();
             _director = _resolver.Resolve<RaidDirector>();
@@ -365,6 +366,50 @@ namespace Aipocalypse.Tests
             StartAt(2, 20f);
             Assert.IsTrue(_director.IsRunning);
             Assert.AreEqual(2, _director.Night);
+        }
+
+        [Test]
+        public void RaidStarted_SeesNoWaveYet_EvenAfterAnEarlierRaid()
+        {
+            var wavesAtStart = new List<int>();
+            _subscriptions.Add(_resolver.Resolve<ISubscriber<RaidStarted>>().Subscribe(_ => wavesAtStart.Add(_director.Wave)));
+            StartAt(1, 20f);
+            _director.NextWave();
+            _director.Stop();
+
+            StartAt(2, 20f);
+            CollectionAssert.AreEqual(new[] { -1, -1 }, wavesAtStart);
+        }
+
+        [Test]
+        public void DeathDuringARaid_EndsItInDefeat_AndWakesAtDefeatWakeHour()
+        {
+            _resolver.Resolve<DeathTimeRule>().Start();
+            StartAt(1, 21f);
+
+            _resolver.Resolve<IAsyncPublisher<PlayerRespawning>>().Publish(new PlayerRespawning(Vector3.zero));
+
+            Assert.IsFalse(_director.IsRunning);
+            Assert.AreEqual(RaidEndReason.Defeat, _director.LastEnd);
+            CollectionAssert.AreEqual(new[] { true }, _spawner.Withdrawals);
+            Assert.AreEqual(WorldTime.At(2, _settings.DefeatWakeHour).TotalHours, _clock.Now.TotalHours, 1e-6);
+        }
+
+        [Test]
+        public void DeathAfterDawn_WithdrawsTheLeftoversAtOnce_AndCostsHoursLostOnDeath()
+        {
+            _resolver.Resolve<DeathTimeRule>().Start();
+            StartAt(1, 20f);
+            _clock.SetTime(WorldTime.At(2, 6.5f));
+            Run(0.1f);
+            CollectionAssert.AreEqual(new[] { false }, _spawner.Withdrawals, "dawn: they leave out of sight");
+            double before = _clock.Now.TotalHours;
+
+            _resolver.Resolve<IAsyncPublisher<PlayerRespawning>>().Publish(new PlayerRespawning(Vector3.zero));
+
+            CollectionAssert.AreEqual(new[] { false, true }, _spawner.Withdrawals, "behind the death screen they all go");
+            Assert.AreEqual(RaidEndReason.Dawn, _director.LastEnd);
+            Assert.AreEqual(before + _settings.HoursLostOnDeath, _clock.Now.TotalHours, 1e-6);
         }
 
         sealed class FakeSchedule : IRaidSchedule

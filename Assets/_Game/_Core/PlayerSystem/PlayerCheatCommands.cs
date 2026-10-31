@@ -29,8 +29,14 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             bool god = player.Invulnerable;
             player.Invulnerable = false;
-            damage.Deal(player, new DamageInfo(player.Health.Current, DamageType.Generic, player.Transform.position));
-            player.Invulnerable = god;
+            try
+            {
+                damage.Deal(player, new DamageInfo(player.Health.Current, DamageType.Generic, player.Transform.position));
+            }
+            finally
+            {
+                player.Invulnerable = god;
+            }
         }
 
         [Command("Kill the player with a real hit")]

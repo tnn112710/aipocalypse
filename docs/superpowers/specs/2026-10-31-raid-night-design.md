@@ -65,7 +65,7 @@ Dependencies point one way: RaidSystem → EnemySystem, WorldTimeSystem, PlayerS
 
 ### 4.3 Attack slots
 
-`AttackSlots` (EnemySystem, scene): per target, how many enemies may swing at once (`EnemySystemSettings.AttackersPerTarget`, `Dictionary<TargetKind, int>`: Player 3; a missing kind is unlimited). `ChaseTarget` holds at `HoldDistance` facing the target while no slot is free; `MeleeAttack` takes a slot for the swing and releases it on end or abort. Unit-tested.
+`AttackSlots` (EnemySystem, scene): per target, how many enemies may swing at once (`EnemySystemSettings.AttackersPerTarget`, `Dictionary<TargetKind, int>`: Player 3; a missing kind is unlimited). An enemy takes a slot when it comes within `HoldDistance` (`ChaseTarget`) and keeps it while it stays close; it frees it when it backs off past `HoldDistance` (with slack), switches target, dies or despawns. Without a free slot it waits at `HoldDistance` facing the target. Unit-tested.
 
 ### 4.4 Goblin tree
 

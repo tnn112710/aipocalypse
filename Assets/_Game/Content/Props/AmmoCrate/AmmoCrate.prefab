@@ -1,0 +1,170 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4248690414130840699
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4521915562075219261}
+  - component: {fileID: 3793871335170865605}
+  - component: {fileID: 8966059785963769264}
+  - component: {fileID: 117214471139137360}
+  m_Layer: 0
+  m_Name: AmmoCrate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4521915562075219261
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4248690414130840699}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5334240843795145933}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3793871335170865605
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4248690414130840699}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.9989045, y: 0.64812064, z: 0.70197797}
+  m_Center: {x: 0.3863784, y: 0.32406032, z: -0.0033239722}
+--- !u!114 &8966059785963769264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4248690414130840699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bee0a6fa1f5d4f4db481219040523c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NavmeshCut
+  version: 1073741824
+  graphMask:
+    value: -1
+  type: 3
+  mesh: {fileID: 0}
+  rectangleSize: {x: 1.9989045, y: 0.70197797}
+  circleRadius: 1
+  circleResolution: 6
+  height: 0.64812064
+  meshScale: 1
+  center: {x: 0.3863784, y: 0.32406032, z: -0.0033239722}
+  updateDistance: 0.4
+  isDual: 0
+  radiusExpansionMode: 1
+  cutsAddedGeom: 1
+  updateRotationDistance: 10
+  useRotationAndScale: 1
+--- !u!114 &117214471139137360
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4248690414130840699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf2b7bc69810cbf46a6f6b95e481c286, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.AmmoCrate
+  _ammo: {fileID: 11400000, guid: ad3b6b14e622d504896ab06b0365a255, type: 2}
+  _takeSound:
+    _entity: {fileID: 11400000, guid: 7f19c0d40a6293f4a963c9f256d88bd1, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+--- !u!1001 &6104975463236923302
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4521915562075219261}
+    m_Modifications:
+    - target: {fileID: 1369817412337361892, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1582432197460890065, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_Name
+      value: Model
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.037104666
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+--- !u!4 &5334240843795145933 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2215275272355990379, guid: 65173457bf15b174b90fc24bacbe49a1, type: 3}
+  m_PrefabInstance: {fileID: 6104975463236923302}
+  m_PrefabAsset: {fileID: 0}

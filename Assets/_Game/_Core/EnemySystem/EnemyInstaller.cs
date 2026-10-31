@@ -28,7 +28,7 @@ namespace Aipocalypse.Core.EnemySystem
             builder.Register<TargetRegistry>(Lifetime.Singleton);
             builder.Register<TargetSelector>(Lifetime.Singleton);
             builder.Register<AttackSlots>(Lifetime.Singleton);
-            builder.Register<EnemySpawner>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<EnemySpawner>().AsSelf();
             builder.RegisterEntryPoint<EnemyPool>().AsSelf();
             builder.RegisterEntryPoint<EnemyManager>();
             builder.RegisterEntryPoint<EnemyAnimationManager>();

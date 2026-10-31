@@ -21,6 +21,8 @@ namespace Aipocalypse.Core.EnemySystem
         [Tooltip("Kinds this scene can spawn by name (enemy.spawn) and prewarm")] public List<EnemySpawnCard> Cards = new();
         [Min(1), Tooltip("Pooled enemies created per frame while prewarming, so filling the pool doesn't hitch")]
         public int PrewarmPerFrame = 2;
+        [Min(1), Tooltip("Enemies a spawned group brings into play per frame (waking one costs several ms), so a wave doesn't hitch")]
+        public int SpawnsPerFrame = 1;
 
         [Header("Sound")]
         [Min(1), Tooltip("Most enemy footsteps played per second, all enemies together")] public int MaxFootstepsPerSecond = 12;

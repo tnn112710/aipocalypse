@@ -52,11 +52,19 @@ namespace Aipocalypse.Core.RaidSystem
             return true;
         }
 
-        // Whether the player could see an enemy standing at `point` now.
-        public bool IsSeen(Vector3 point)
+        // Whether the player could see `enemy` now (dawn withdrawal): in the view cone at any distance, and the first
+        // SightBlockers hit on the line to its chest, if any, is the enemy itself.
+        public bool IsSeen(Transform enemy)
         {
             Transform view = _players.Current?.View;
-            return view != null && Sees(view, point, out _);
+            if (view == null || enemy == null)
+                return false;
+            Vector3 eye = view.position;
+            Vector3 target = enemy.position + Vector3.up * _rules.TargetHeight;
+            if (!InViewCone(view, target - eye, out _))
+                return false;
+            return !Physics.Linecast(eye, target, out RaycastHit hit, _rules.SightBlockers, QueryTriggerInteraction.Ignore)
+                || hit.transform.IsChildOf(enemy);
         }
 
         // Forgets the zones' waits (a raid starts).
@@ -93,11 +101,17 @@ namespace Aipocalypse.Core.RaidSystem
             Vector3 eye = view.position;
             Vector3 target = point + Vector3.up * _rules.TargetHeight;
             Vector3 toTarget = target - eye;
-            Vector3 forward = view.forward;
-            angle = Vector3.Angle(new Vector3(forward.x, 0f, forward.z), new Vector3(toTarget.x, 0f, toTarget.z));
-            if (angle > AssumedFieldOfView * 0.5f + _rules.ViewMargin || toTarget.sqrMagnitude > _rules.VisibleDistance * _rules.VisibleDistance)
+            if (!InViewCone(view, toTarget, out angle) || toTarget.sqrMagnitude > _rules.VisibleDistance * _rules.VisibleDistance)
                 return false;
             return !Physics.Linecast(eye, target, _rules.SightBlockers, QueryTriggerInteraction.Ignore);
+        }
+
+        // Within the assumed horizontal field of view plus ViewMargin; `angle` is the horizontal angle from the view's centre.
+        bool InViewCone(Transform view, Vector3 toTarget, out float angle)
+        {
+            Vector3 forward = view.forward;
+            angle = Vector3.Angle(new Vector3(forward.x, 0f, forward.z), new Vector3(toTarget.x, 0f, toTarget.z));
+            return angle <= AssumedFieldOfView * 0.5f + _rules.ViewMargin;
         }
     }
 }

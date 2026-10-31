@@ -25,7 +25,8 @@ Assets/_Game/
 │  │  └─ SceneInstaller.cs                  abstract MonoBehaviour + IInstaller next to the GameLifetimeScope: one scene system's settings and registrations; Problem (null = ready)
 │  ├─ _Common/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
-│  │  ├─ Entities/IPlayerTarget.cs          IDamageable + Transform: what enemies and companions need from the player
+│  │  ├─ Entities/ITargetable.cs            ITargetable : IDamageable (Transform, Kind, IsTargetable: false while dead or hidden by a cheat) + TargetKind enum (Player; append only, definitions store weights by number): what enemies may hunt (EnemySystem's TargetSelector)
+│  │  ├─ Entities/IPlayerTarget.cs          ITargetable of the player: what enemies, companions and outside systems need from it
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage: TakeDamage → DamageResult (hurt it through DamageService)
 │  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force, Source, Critical; OnHitbox(multiplier, critical)) + DamageType enum (Generic, Fall, Gunshot, Melee) + DamageResult (Applied, Killed)
@@ -39,6 +40,7 @@ Assets/_Game/
 │  │  ├─ Events/GunRepairCompleted.cs       owner, item and QTE-success flag of a finished repair (interruptions don't publish it)
 │  │  ├─ Events/QteEvents.cs                QteStarted (session, presentation, Button), QteAttempted (accepted presses only: Miss / Success), QteEnded (result); no per-frame messages
 │  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
+│  │  ├─ Events/RaidEvents.cs               RaidStarted (night), RaidWaveStarted (night, wave from 0, count), RaidEnded (night, RaidEndReason: Cleared, Dawn, Defeat, Stopped) (published by RaidDirector)
 │  │  ├─ Feedback/FeedbackContext.cs        Aipocalypse.Core.Feedback — injected bridge on hosts of MMF_Players so custom Feel feedbacks reach our services
 │  │  ├─ Feedback/MMF_HitStop.cs            Feel feedback "Aipocalypse/Hit Stop" → TimeService.RequestHitStop; never touches Time.timeScale
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
@@ -54,6 +56,7 @@ Assets/_Game/
 │  ├─ _Debug/                               Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
 │  │  ├─ FpsCounterCommands.cs              console afps.show / afps.hide (Advanced FPS Counter: off on every scene load, hotkey cleared, sort order 999 under the console); registered by ConsoleInstaller in dev builds
 │  │  ├─ TargetDummy.cs                     shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
+│  │  ├─ Autopilot/RaidAutopilot.cs         console cheat.autopilot [on/off] (dev builds, registered by EnemyInstaller) + ITickable + IPlayerIntentSource: the player stands still, turns (≤ 540°/s) to the nearest living enemy within 70 m in sight, fires when its real shot direction (view × IGunUser.AimOffset) is within 2° (tighter far away), reloads when empty or jammed, takes up another hotbar gun when the held one is spent; used by AgentScripts/Raids/RaidSoak
 │  │  └─ Console/                           the dev console (editor and dev builds) and the screen log
 │  │     ├─ ConsoleInstaller.cs             root: ScreenLog always; dev builds: CommandRegistry, and with settings + overlay assigned LogBuffer, ConsoleService, BuiltInCommands, the overlay (RegisterComponentInNewPrefab, DontDestroyOnLoad, created on build)
 │  │     ├─ ConsoleService.cs               root ITickable: Flush logs (mirror to ScreenLog), ` toggles (RequestTextInput, optional pause), typed text + editing keys → ConsoleLine, history, Tab completion, scroll; Run(line): echo, ';' statements → CommandRegistry, results; Version for the view
@@ -78,16 +81,17 @@ Assets/_Game/
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
 │  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
-│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyManager + EnemyAnimationManager + EnemyBodyManager (entry points) (+ EnemyCommands in dev builds); injects the scene's enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
-│  │  ├─ EnemyCommands.cs                   console: enemy.count
-│  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200); asset in Data/Enemies/
+│  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyNavigation, TargetRegistry, TargetSelector, AttackSlots, EnemySpawner + EnemyPool + EnemyManager + EnemyAnimationManager + EnemyBodyManager + EnemySoundManager (entry points) (+ EnemyCommands, EnemyCheatCommands and RaidAutopilot in dev builds); injects the scene's placed enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
+│  │  ├─ EnemyCommands.cs                   console: enemy.spawn <card> [count] (15 m ahead of the player, off the crosshair), enemy.clear (despawn all, drop the console's own queued spawns), enemy.count
+│  │  ├─ EnemyCheatCommands.cs              console: cheat.killall (a real hit through DamageService on every enemy in play)
+│  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200), AttackersPerTarget (Dictionary<TargetKind, int>: Player 3; no entry = unlimited), Cards (spawnable by name and prewarmed), PrewarmPerFrame (2), SpawnsPerFrame (1), MaxFootstepsPerSecond (12); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; Advance(deltaTime)
-│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: base stats (Dictionary<EnemyStat, float>: MaxHealth, MoveSpeed), StopDistance, GrassBendRadius, Reaction (EnemyReactionSettings), Wander (WanderSettings), Melee (MeleeSettings, empty = ignores the player), Animation (EnemyAnimationSettings, empty if unanimated); lives in Content/Enemies/<Name>/
+│  │  ├─ EnemyDefinition.cs                 SO per enemy kind: base stats (Dictionary<EnemyStat, float>: MaxHealth, MoveSpeed, AttackDamage), Targets (Dictionary<TargetKind, float>: weight per kind, none = hunts nothing), StopDistance, GrassBendRadius, Reaction (EnemyReactionSettings), Wander (WanderSettings), Melee (MeleeSettings, empty = hunts nothing), Animation (EnemyAnimationSettings, empty if unanimated), Sounds (EnemySoundSet, empty = silent); lives in Content/Enemies/<Name>/
 │  │  ├─ EnemyStats.cs                      EnemyStat enum (append only: definitions store values by number), EnemyStatModifier (add / multiply, by source), EnemyStats: one life's values = base + modifiers, Get, AddModifier, RemoveModifiers(source), Changed (EnemyCombatTests)
-│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover): Definition, Stats, Body, IsDead, Destination, Player (PlayerRegistry.Current, optional), Target (the engaged player; setting it switches EnemyAnimator.SetCombat), NextAttackTime, Animation (optional EnemyAnimator); on its first Start (and each re-enable) builds fresh EnemyStats, initializes its mover, revives its body (and animator), starts its tree and registers (and joins the scene's GrassBendField, if any); Die() or disabling stops both and leaves; applies MoveSpeed / MaxHealth changes
-│  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition, stats), SetSpeed, Push(delta) (knockback), Home, TryFindDestination, MoveTo(destination, timeout), Face(point) (stand and turn in place: a destination on itself with a facing), Arrived, TimedOut, Halt, Velocity
-│  │  ├─ EnemyBody.cs                       IDamageable on every enemy root: Health from MaxHealth, knockback from DamageInfo.Force, hit / death reactions on EnemyAnimator; killed = colliders off, EnemyBrain.Die, lies CorpseTime, sinks its _visual (the Model), disables itself; re-enabling revives
+│  │  ├─ EnemyBrain.cs                      injected bridge (requires BehaviorTree + EnemyMover; Construct: EnemyRegistry, AstarPath, TargetSelector, AttackSlots, DamageService, AudioService): Definition, Stats, Body, IsDead, Voice (EnemyVoice), Destination, Target (ITargetable; changing it frees the attack slot), Engaged (inside EngageRadius: EnemyAnimator.SetCombat + shout), ChooseTarget (TargetSelector every RetargetInterval, at once when the target can't be targeted any more), TryHoldSlot / HoldsSlot / ReleaseSlot (AttackSlots), Strike(target) (AttackDamage through DamageService + impact sound), NextAttackTime, Animation (optional EnemyAnimator); on its first Start (and each re-enable) builds fresh EnemyStats, initializes its mover, revives its body (and animator), resets its voice, starts its tree and registers (and joins the scene's GrassBendField, if any); Die() or disabling stops both and leaves (disabling also hands a spawned one back to its EnemyPool); applies MoveSpeed / MaxHealth changes
+│  │  ├─ EnemyMover.cs                      an enemy's legs over A* FollowerEntity: Initialize(navigation, definition, stats), Teleport(position) (pooled respawns, after enabling: no old path), SetSpeed, Push(delta) (knockback), Home, TryFindDestination, MoveTo(destination, timeout), Face(point) (stand and turn in place: a destination on itself with a facing), Arrived, TimedOut, Halt, Velocity
+│  │  ├─ EnemyBody.cs                       IDamageable on every enemy root: Health from MaxHealth, knockback from DamageInfo.Force, hit / death reactions on EnemyAnimator, hurt / death voice (EnemyVoice); killed = colliders off, EnemyBrain.Die, lies CorpseTime, sinks its _visual (the Model), disables itself (a spawned one goes back to its pool); re-enabling revives
 │  │  ├─ Knockback.cs                       plain C# rules: horizontal push velocity per N·s, capped, exponential drag (slides speed / drag metres at any frame rate) (EnemyCombatTests)
 │  │  ├─ EnemyBodyManager.cs                ITickable: advances only the bodies being pushed or lying dead, on scaled time; Track(body), Advance(deltaTime)
 │  │  ├─ EnemyReactionSettings.cs           SO: knockback per force, drag, max speed, heavy-hit speed, corpse and sink time, sink depth; asset in Data/Enemies/
@@ -97,8 +101,20 @@ Assets/_Game/
 │  │  ├─ EnemyAnimationSettings.cs          SO: still speed, damping, glance interval / range, look and lean into turns, fidget delay / chance; asset in Data/Enemies/
 │  │  ├─ WanderTasks.cs                     ChooseWanderDestination / WalkToWanderDestination / PauseWander ActionNodes of the shared subtree (read EnemyBrain.Definition.Wander, move through EnemyMover)
 │  │  ├─ WanderSettings.cs                  SO: wander radius, pause, travel timeout, destination attempts, minimum travel; asset in Data/Enemies/, the shared subtree in Content/Enemies/_Shared/
-│  │  ├─ MeleeTasks.cs                      tasks of the shared Melee subtree: PlayerInReach (ConditionalNode: sets / clears EnemyBrain.Target), ChaseTarget (runs at it with a MoveSpeed modifier until in range), MeleeAttack (faces it, swings once after the cooldown)
-│  │  ├─ MeleeSettings.cs                   SO: detect / lose radius (InReach), attack range, chase speed multiplier, swing duration, cooldown, repath distance (EnemyMeleeTests)
+│  │  ├─ MeleeTasks.cs                      tasks of the shared Melee subtree: ChooseTarget (ConditionalNode: EnemyBrain.ChooseTarget, the hunt's abort check), ChaseTarget (runs at the target with a MoveSpeed modifier: approach pace far, sprint + Engaged inside EngageRadius; inside HoldDistance takes an attack slot or waits there facing the target; repaths past max(RepathDistance, 10% of the distance)), MeleeAttack (faces it, swings once after the cooldown with the swing / attack sounds, at HitTime EnemyBrain.Strike if MeleeHit.Lands; succeeds when the target steps out of range or the slot is gone)
+│  │  ├─ MeleeSettings.cs                   SO: RetargetInterval, EngageRadius (stance + sprint), approach / chase speed multipliers, repath distance, HoldDistance (waiting without a slot); swing: attack range, duration, cooldown, HitTime, HitReach, HitArc; damage is the AttackDamage stat (EnemyMeleeTests)
+│  │  ├─ MeleeHit.cs                        pure: Lands(attacker, forward, target, reach, arc) on the ground plane, SqrFlatDistance (EnemyMeleeTests)
+│  │  ├─ TargetRegistry.cs                  what enemies may target: the active player (PlayerRegistry.Current; nothing registers it) + Add / Remove(ITargetable) for other kinds later (EnemyTargetingTests)
+│  │  ├─ TargetSelector.cs                  Choose(from, weights): the best kind weight per metre (EnemyDefinition.Targets), skipping untargetable targets and kinds without a weight (EnemyTargetingTests)
+│  │  ├─ AttackSlots.cs                     how many enemies may close in on one target at once (AttackersPerTarget by TargetKind; no entry = unlimited): TryTake / Holds / Taken / Release, taking a slot on another target frees the previous one (EnemyTargetingTests)
+│  │  ├─ EnemySpawnCard.cs                  SO per spawnable kind: prefab variants by weight (Dictionary<EnemyBrain, float>), GroupSize (min, max), ArrivalCue (SoundID); PickVariant / PickGroupSize; lives in Content/Enemies/<Name>/<Name>_Card.asset (EnemySpawningTests)
+│  │  ├─ EnemySpawner.cs                    ITickable, the one way code spawns enemies: Spawn(card, position, rotation) at once; SpawnGroup(card, center, count, facing, into) snaps each member to the navmesh (≤ 2 m) on a 1.5 m sunflower spiral and queues it → SpawnBatch; the tick brings in SpawnsPerFrame queued members a frame (none while paused); CancelQueued, Despawn (disable → back to the pool), Prewarm(card, count) split over the variants by weight
+│  │  ├─ SpawnBatch.cs                      one queued group: Count, Pending (still to spawn), Cancelled / Cancel; arrivals go into the caller's list, each once
+│  │  ├─ EnemyPool.cs                       ITickable: a stack per prefab; resolver.Instantiate (injected before Awake) under an "Enemies" root; Get positions a free one, enables it, then EnemyMover.Teleport; enemies come back on disable; Prewarm creates PrewarmPerFrame a frame under an inactive "Enemies (parked)" root (never woken until taken)
+│  │  ├─ EnemyNavigation.cs                 navmesh queries on the injected AstarPath for spawners: TrySnap(point, maxDistance), IsReachable(from, to)
+│  │  ├─ EnemySoundSet.cs                   SO per kind (EnemyDefinition.Sounds): Attack (+ AttackVoiceChance), Swing, Impact, Hurt (+ HurtCooldown), Death, Shout (+ ShoutCooldown), Footstep, StrideLength, FootstepRange; unset = silent
+│  │  ├─ EnemyVoice.cs                      one enemy's sounds (plain C#, made by EnemyBrain) through AudioService.PlayAt: Swing (+ attack voice by chance), Impact, Hurt and Shout rate-limited, Death; Walk counts strides for EnemySoundManager (EnemySpawningTests)
+│  │  ├─ EnemySoundManager.cs               ITickable, scaled time: a footstep per stride for every registered enemy within its kind's FootstepRange of the player, at most MaxFootstepsPerSecond all together
 │  │  └─ Prefabs/Navigation.prefab          AstarPath (default: small terrain-following grid, scanned on startup) + RVOSimulator: goes into every scene with agents; WorldMap's instance overrides the graph (recast + cache, ENVIRONMENT.md → Navigation)
 │  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
@@ -160,24 +176,26 @@ Assets/_Game/
 │  │  ├─ ControlSettings.cs                 player-facing control and view options: mouse sensitivity, gamepad look speed, invert Y, FieldOfView (read live by PlayerZoom)
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
 │  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
-│  │  ├─ Player.cs                          view MonoBehaviour: builds its parts, input → intent (look scaled by zoom; aim / trigger end a sprint via HeldItem.StopsSprint) and ticks them in order; IPlayer, IEquipmentOwner, IGunUser (owns the AmmoReserve); IDamageable explicitly (only through DamageService); PlaySequence / StopSequence (dying plays PlayerTuning.DeathSequence); MoveToSpawn, Revive; re-reads max health / stamina on IStatProvider.Changed
-│  │  ├─ IPlayer.cs                         IPlayerTarget + Health, Stamina, Equipment, Ammo, HeldItem, Interactor, IsSprinting, CrosshairPosition, CrosshairSpread, SpawnPosition, MoveToSpawn, Revive: the player as PlayerRegistry hands it out
-│  │  ├─ PlayerLife.cs                      Health, TakeDamage, fall damage (OnLanded, through DamageService), Died event + PlayerDied, OnDeathSequenceEnded → PlayerDeathSequenceEnded, Revive (Reviving event + PlayerRevived), SpawnPosition / SpawnRotation
-│  │  ├─ PlayerFeedback.cs                  footstep per head-bob step (walk / sprint volume), jump and landing sounds, head-bob landing dip and held-sway jump / land kicks (IDisposable)
+│  │  ├─ Player.cs                          view MonoBehaviour: builds its parts, input (or IntentSource while set) → intent (look scaled by zoom; aim / trigger end a sprint via HeldItem.StopsSprint) and ticks them in order; IPlayer, IEquipmentOwner, IGunUser (owns the AmmoReserve); IDamageable explicitly (only through DamageService); ITargetable of kind Player, targetable while alive and not IgnoredByEnemies; PlaySequence / StopSequence (dying plays PlayerTuning.DeathSequence); MoveToSpawn, Revive; re-reads max health / stamina on IStatProvider.Changed
+│  │  ├─ IPlayer.cs                         IPlayerTarget + Health, Stamina, Equipment, Ammo, HeldItem, Interactor, IsSprinting, CrosshairPosition, CrosshairSpread, SpawnPosition, View (the camera pivot), Invulnerable / IgnoredByEnemies (cheat.god / cheat.notarget), IntentSource (dev tools), MoveToSpawn, Revive: the player as PlayerRegistry hands it out
+│  │  ├─ IPlayerIntentSource.cs             Read(deltaTime) → PlayerIntent: plays the player instead of InputService while set on IPlayer.IntentSource (RaidAutopilot); read only while the player can act
+│  │  ├─ PlayerLife.cs                      Health, TakeDamage (nothing while Invulnerable), fall damage (OnLanded, through DamageService), Hurt event (DamageInfo, applied) on a hit that doesn't kill, Died event + PlayerDied, OnDeathSequenceEnded → PlayerDeathSequenceEnded, Revive (Reviving event + PlayerRevived), SpawnPosition / SpawnRotation
+│  │  ├─ PlayerFeedback.cs                  footstep per head-bob step (walk / sprint volume), jump and landing sounds, head-bob landing dip and held-sway jump / land kicks, pain grunt (rate-limited) and head-bob flinch on PlayerLife.Hurt (IDisposable)
 │  │  ├─ HeldItemDriver.cs                  the item in hand each frame: drop / select / cycle → Equipment.Tick → rig Tick → TickHeld → LookTurn + ViewKick → zoom (unless a pose sequence owns it) → sway + aim → move speed (aim speed × HoldFeel × fatigue) → clearance → LateTick → hands
 │  │  ├─ PlayerCameraRig.cs                 sole writer of the CameraRoot / CameraPitch transforms: SetLook(pitch, kick), SetHeadMotion(offset, pitch), Override / ReleaseOverride (pose sequences); applied as each share changes; EyeHeight
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
-│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry, PlayerRespawnFlow (entry point) (+ PlayerCheats and PlayerCommands in dev builds)
-│  │  ├─ PlayerCommands.cs                  console on the active player: player.kill (through DamageService), revive, heal, stamina, ammo, infammo, pos
+│  │  ├─ PlayerInstaller.cs                 root-scope services: PlayerRegistry, PlayerRespawnFlow (entry point) (+ PlayerCheats, PlayerCommands and PlayerCheatCommands in dev builds)
+│  │  ├─ PlayerCommands.cs                  console on the active player, read only: player.pos
+│  │  ├─ PlayerCheatCommands.cs             console cheats on the active player: cheat.kill (a real hit through DamageService, even in god mode; Kill is shared with K), revive, hp [amount], stamina, ammo [amount] (each ammo type the hotbar guns use, HotbarAmmo), infammo [on/off], god [on/off] (PlayerLife.Invulnerable), notarget [on/off] (IPlayer.IgnoredByEnemies)
 │  │  ├─ PlayerRespawnFlow.cs               root IStartable: on PlayerDeathSequenceEnded → Fading (awaits PlayerRespawnFading) → RequestUI → Preparing (MoveToSpawn, awaits PlayerRespawning) → Ready (waits for UiConfirmPressed) → Revive, re-checking cancellation after each await; any PlayerRevived or active-player change ends it (ReleaseUI, stage None); publishes RespawnStageChanged; works without the HUD
-│  │  ├─ PlayerCheats.cs                    editor and dev builds: K kills the active player through DamageService, L revives it (InputService debug presses)
+│  │  ├─ PlayerCheats.cs                    editor and dev builds: K kills the active player through DamageService (PlayerCheatCommands.Kill, also in god mode), L revives it (InputService debug presses)
 │  │  ├─ Sequences/PoseSequence.cs          SO: a scripted first-person moment (death, resting): beats placed on the ground around the start (move + hold: eye height, offset, pitch / yaw / roll, FOV, ease, start / arrive sounds), Continuous (one smooth path, never stops), handheld wander (+ HandheldFadeIn), elliptical drift (+ DriftFadeIn), EndAfter, music, LowerHands
 │  │  ├─ Sequences/PoseSequencePlayer.cs    plays one PoseSequence through the camera rig's override (look pitch folded in): beats placed once (ground probe, wall sphere cast), DOVirtual eased moves or a monotone cubic path through the beats (no overshoot into the ground), Perlin handheld from a fresh seed, drift from the last beat on, cues through AudioService, Ended, FovScale
 │  │  ├─ PlayerRegistry.cs                  the active player (Current, an IPlayer); players register themselves, publishes ActivePlayerChanged
 │  │  ├─ PlayerIntent.cs                    per-frame wish: Move, LookDegrees, Sprint, Jump, SelectSlot, CycleSlot, Interact, Drop, Fire, FirePressed, Aim, Reload
 │  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo; sliding down a steep slope counts as falling until stable ground); Jumped / Landed events; SpeedMultiplier (aiming, fatigue); Teleport (no momentum, no fall damage)
 │  │  ├─ PlayerLook.cs                      yaw on the body, pitch + the held item's ViewKick (recoil) into the camera rig; Turn (kept recoil), Pitch, ResetPitch (after a sequence)
-│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip into the camera rig's head motion; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
+│  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip + hurt flinch (OnHurt: the view jerks up by damage, capped, springs back) into the camera rig's head motion; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
 │  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSwayScale × ItemScale (the held item's HoldFeel.SwayScale)
 │  │  ├─ PlayerZoom.cs                      sole writer of the lens field of view: ControlSettings.FieldOfView (read live) × the held item's Zoom or a pose sequence's FovScale (MinScale 0.1 … MaxScale 1.5); keeps FirstPersonView on the unzoomed base; LookScale, TanHalfFov
 │  │  ├─ PlayerAim.cs                       aim sway → CrosshairPosition and CrosshairSpread on screen (world FOV) + the rig's zoom-corrected turn (EquipmentRig.SetAimRotation); static ScreenPosition / ScreenRadius / ModelRotation
@@ -194,10 +212,10 @@ Assets/_Game/
 │  │  ├─ Tuning/PlayerTuning.cs             ScriptableObject that links the groups below (+ DeathSequence, a PoseSequence); Player hands each rule only its group
 │  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, walk / sprint / jump stamina costs, idle speed for regen → PlayerMotor
 │  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, out of breath (BreathingSettings), fatigue tiers, fall damage heights → Player, PlayerLife
-│  │  ├─ Tuning/PlayerCameraTuning.cs       eye height, pitch limits, head bob, landing dip → PlayerCameraRig, PlayerLook, PlayerHeadBob
+│  │  ├─ Tuning/PlayerCameraTuning.cs       eye height, pitch limits, head bob, landing dip, hurt flinch → PlayerCameraRig, PlayerLook, PlayerHeadBob
 │  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
 │  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, AimSwaySettings, HeldSwaySettings → HeldItemDriver, HeldItemClearance, HeldItemSway
-│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep (walk / sprint volume) / jump / land / breath SoundIDs and volumes, breath sound volume and fades (BreathSoundSettings) → PlayerFeedback, PlayerBreathSound
+│  │  ├─ Tuning/PlayerSoundTuning.cs        footstep (walk / sprint volume) / jump / land / hurt (+ cooldown) / breath SoundIDs and volumes, breath sound volume and fades (BreathSoundSettings) → PlayerFeedback, PlayerBreathSound
 │  │  ├─ Tuning/PlayerVisionTuning.cs       vision radius, colour, edge brightness, light / lantern positions, range scale, max intensity, blend → PlayerVision
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values; Changed never fires
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
@@ -206,6 +224,20 @@ Assets/_Game/
 │  │  ├─ TimingQteChallenge.cs              timing challenge + TimingQteSession: repeating fill, green zone, duration (or owner-controlled), attempts per cycle, miss hold and bounded zone relocation; optional random delegate for tests
 │  │  ├─ QuickTimeService.cs                root ITickable: one owner-bound session at a time, unscaled tick while gameplay input is on and TimeService isn't paused; reads WasPressed(Button) and Consume(Button) (ticks before Player.Update, so a press completing a repair doesn't also reload); a press is judged before the frame moves the session, which advances at most Time.maximumDeltaTime per frame; timed or owner-controlled lifetime, cancel, optional slow motion (standalone QTEs only), completion callback; QteStarted / QteAttempted / QteEnded
 │  │  └─ QuickTimeInstaller.cs              registers QuickTimeService as a root entry point
+│  ├─ RaidSystem/                           Aipocalypse.Core.RaidSystem — raid nights, see RAIDS.md
+│  │  ├─ RaidInstaller.cs                   SceneInstaller (_settings: RaidSettings; SpawnZones collected on scene save / entering Play, "Collect spawn zones" button): RaidSettings, EveryNightSchedule (IRaidSchedule), SpawnPointPicker, RaidSpawner (IRaidSpawner + tick), RaidDirector (entry point, AsSelf), DeathTimeRule (+ RaidCommands in dev builds); needs a ready WorldTimeInstaller and EnemyInstaller on the scope
+│  │  ├─ RaidDirector.cs                    ITickable + IStartable, pure timing over IRaidSpawner: night N = StartHour day N → DawnHour day N + 1, read from WorldClock.Now each tick (NightOf), a handled night never restarts; waves → groups of the card's group size GroupInterval apart under AliveCap (partial groups), none while the player is dead; next wave once fully spawned and NextWhenAliveAtMost alive after MinBreather, or MaxWait; ends Cleared / Dawn / Defeat / Stopped; StartNow (ignores the window), NextWave, Stop, EndRaid; Start prewarms the pool for tonight; publishes RaidStarted / RaidWaveStarted / RaidEnded; Advance(deltaTime) (RaidDirectorTests)
+│  │  ├─ IRaidSchedule.cs                   PlanFor(night) → RaidPlan, null = a quiet night: the seam for quiet nights, a ladder, Blood Moons
+│  │  ├─ EveryNightSchedule.cs              IRaidSchedule: RaidSettings.Plan for every night
+│  │  ├─ IRaidSpawner.cs                    the world side RaidDirector drives (faked in tests): Alive, Prepare(plan, aliveCap), SpawnGroup(card, count, zone, announce), Withdraw(now)
+│  │  ├─ RaidSpawner.cs                     IRaidSpawner + ITickable: SpawnPointPicker point → EnemySpawner.SpawnGroup facing the zone origin, arrival cue (AudioService.PlayAt) on announced groups; tracks its raiders (dead / disabled drop out; members still queued count as alive); Withdraw cancels the queued members, then despawns all now or, at dawn, each once unseen; Prepare → EnemySpawner.Prewarm per card (≤ AliveCap); unknown zone id → first zone + warning
+│  │  ├─ RaidSettings.cs                    SO: StartHour (20), DawnHour (6), AliveCap (12), Plan, DefeatWakeHour (7), HoursLostOnDeath (1), Spawning (SpawnRules: candidates, snap distance, min player distance, visible distance, view margin, max hidden wait, target height, ground mask, sight blockers); asset in Data/Raids/
+│  │  ├─ RaidPlan.cs                        SO: Waves (RaidWave: Entries of card + count, GroupInterval, Zone id, NextWhenAliveAtMost, MinBreather, MaxWait), TotalEnemies; assets in Data/Raids/
+│  │  ├─ SpawnZone.cs                       scene component at the gate facing outward: Id, Min / MaxRadius, HalfAngle; Origin; Sample(rolls) even over the arc's area; selected gizmo arc
+│  │  ├─ SpawnPointPicker.cs                samples SpawnRules.Candidates zone points: ground raycast (GroundMask), EnemyNavigation.TrySnap + IsReachable(zone origin); seen = in an assumed 90° (+ ViewMargin each side) cone of IPlayer.View, within VisibleDistance, clear Linecast (SightBlockers) to TargetHeight; waits up to MaxHiddenWait per zone; IsSeen(enemy) at any distance for the dawn withdrawal
+│  │  ├─ SpawnPointScorer.cs                pure: SpawnCandidate (position, player distance, seen, view angle); Choose drops points under MinPlayerDistance, picks a hidden one by roll, else -1 until visible ones are allowed, then the widest view angle (SpawnPointScorerTests)
+│  │  ├─ DeathTimeRule.cs                   IStartable / IDisposable, async PlayerRespawning: a raid running → EndRaid(Defeat) + clock to the next DefeatWakeHour; else dawn's leftover raiders despawn + HoursLostOnDeath; pure WakeTime(now, raidRunning, settings) (DeathTimeRuleTests, RaidDirectorTests)
+│  │  └─ RaidCommands.cs                    console: raid.start, stop, next, status
 │  ├─ TimeSystem/                           Aipocalypse.Core.TimeSystem
 │  │  ├─ TimeService.cs                     root ITickable, sole writer of Time.timeScale and the fixed step: owner-keyed Request / Release (slowest wins), RequestPause / ReleasePause (IsPaused = any owner holds one; beats every request), RequestHitStop (real-time, overlaps keep the longest / lowest, ignored while paused); restores Unity's values on Dispose
 │  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
@@ -220,6 +252,7 @@ Assets/_Game/
 │  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
 │  │  ├─ Widgets/CrosshairStyle.cs          ScriptableObject: MinSpread, SpreadFade, SpreadSpeed, FadeSpeed
 │  │  ├─ Widgets/HitFeedbackStyle.cs        ScriptableObject: hit / kill marker colors, durations, pops, PopShare
+│  │  ├─ Widgets/HurtFeedbackStyle.cs       ScriptableObject: hurt flash color, max alpha, thickness (share of screen height), min strength, full-strength damage (share of max health), fade-out (real time)
 │  │  ├─ Widgets/ClockView.cs               passive digital clock: SetTime (monospaced HH:MM, char buffer) / SetPhase / SetDay / Show / ApplyStyle
 │  │  ├─ Widgets/ClockStyle.cs              ScriptableObject: fonts + underlay materials, sizes, colors, backing panel, Phases (DayPhase → PhaseLabel: text, colour; Phase(phase))
 │  │  ├─ Widgets/DeathScreenView.cs         passive: eyelids + darkness (CloseEyes from the style's steps), menu (ShowMenu / HideMenu fades), SetStatus (pulse), HideAll, Illustration slot
@@ -234,11 +267,12 @@ Assets/_Game/
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread (CrosshairStyle)
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker (HitFeedbackStyle), hit / kill sound, pooled damage numbers (critical hits: the critical prefab)
+│  │  ├─ Hud/HurtFeedbackHud.cs             PlayerHudView → DamageDealt to the active player: screen-edge flash toward the source against the View yaw (top front, bottom back, left, right; no direction = every edge), strength by damage / max health (HurtFeedbackStyle); gradient textures made in code; unscaled, frozen while paused
 │  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
 │  │  ├─ Hud/DeathScreenHud.cs              PlayerHudView presenting PlayerRespawnFlow: PlayerRespawnFading → eyes close, menu "Loading..."; PlayerRespawning → at least MinLoadingTime; RespawnStageChanged Ready → "Click to continue", None → fade out
-│  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, SafeFrame + regions, HudScope (placed in the scene)
+│  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, HurtFeedback edges, SafeFrame + regions, HudScope (placed in the scene)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
@@ -261,7 +295,9 @@ Assets/_Game/
 │     ├─ HeldMelee.cs                       HeldItem for melee: runs MeleeAttack, procedural swing between pose markers (PoseBlender, the definition's swing motion), sphere-cast hit → DamageService, knockback, impact, sounds (AudioService)
 │     ├─ Ammo/AmmoType.cs                   SO: a kind of round; guns of one type share a pool
 │     ├─ Ammo/AmmoReserve.cs                the holder's spare rounds by type; Take / Add / Infinite, Changed
-│     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve
+│     ├─ Ammo/AmmoConfig.cs                 SO: starting reserve + Infinite → CreateReserve; StartingAmount(type)
+│     ├─ Ammo/HotbarAmmo.cs                 TypesInUse(hotbar, types): each ammo type the hotbar's guns load, once (AmmoCrate, cheat.ammo)
+│     ├─ AmmoCrate.cs                       test aid, IInteractable "[E] Take ammo" while the actor carries a gun: TopUp refills each ammo type its hotbar guns use to the AmmoConfig starting amount (never above, unlimited uses); AmmoCrate_Take through AudioService (scene-placed: injected through the scope's Auto Inject Game Objects)
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root, MeleePower, Exert (stamina per attack; StatId.AttackStaminaCostScale)
 │     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, AirSpreadScale, FatigueRecoilScale, AimOffset (Player implements it; StatId.AirSpreadScale)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
@@ -293,43 +329,53 @@ Assets/_Game/
 │  ├─ Weapons/_Shared/                      Animations/ (Gun.controller + base clips); Effects/ (MuzzleFlash, Tracer, BulletImpact, BulletHole PooledEffect roots,
 │  │                                        BulletHoleDecal.mat, BulletHole.png, MuzzleFlash_Hovl3 (the guns' flash) + its URP MuzzleFlash_*.mat, MuzzleFlashLight.prefab, Tracer_Line.mat; built by AgentScripts/Weapons/ShotEffectsSetup); Ammo/ (RifleAmmo, PistolAmmo, ShotgunShells); Materials/ShotgunShell.mat
 │  ├─ Items/Lantern/                        Lantern.asset + Lantern.prefab (belt lantern pickup: WorldItem + trigger box, World > Model, Polygon Mega Survival kerosene lamp)
+│  ├─ Props/AmmoCrate/                      AmmoCrate.prefab (test ammo crate: root AmmoCrate + solid BoxCollider + box NavmeshCut, Model = nested Animpic Mega Weapons Kit SM_Ammo_Box_Wood_Open with its
+│  │                                        mesh collider off; built and placed by AgentScripts/Props/AmmoCrateSetup); one in WorldMap under Landmarks/Home Base/Yard Props, in front of the house
 │  ├─ Enemies/WanderCapsule/                WanderCapsule.prefab (capsule enemy: FollowerEntity, EnemyMover, BehaviorTree, EnemyBrain, EnemyBody; the template BuildGoblin starts from, none placed), WanderCapsule.asset (its EnemyDefinition)
-│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, EnemyBody, Model = Goblin_01_Model; hit colliders: root capsule to the hips, a sphere on spine_03, a critical Hitbox sphere on the head bone) and Goblin_02…06.prefab (variants: other Model); ten in WorldMap (Goblin 1–10, looks repeat).
-│  │                                        Goblin.asset (EnemyDefinition, 100 HP, walk 1.4 m/s), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
-│  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Goblin_Melee.asset (MeleeSettings: notice 5 m, give up past 8 m), Goblin_Sword.prefab
+│  ├─ Enemies/Goblin/                       Goblin.prefab (the capsule's enemy components + EnemyAnimator, EnemyBody, Model = Goblin_01_Model; hit colliders: root capsule to the hips, a sphere on spine_03, a critical Hitbox sphere on the head bone) and Goblin_02…06.prefab (variants: other Model); none placed in WorldMap: raids and enemy.spawn spawn them.
+│  │                                        Goblin.asset (EnemyDefinition, 100 HP, walk 1.4 m/s, 15 per blow, hunts the player), Goblin_Card.asset (EnemySpawnCard: the six looks, groups of 2–3,
+│  │                                        Raid_Horn_Goblin), Goblin_Sounds.asset (EnemySoundSet, Enemies library), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
+│  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Goblin_Melee.asset (MeleeSettings: engage 5 m, hold 3.5 m, blow at 0.5 s within 2 m and 90°), Goblin_Sword.prefab
 │  │                                        (Animpic sword model, no collider; nested on each model's right hand by BuildGoblin), Model/ (<Look>.sk sources + SidekickKit output: _Model.prefab, _Mesh, _Avatar, .mat, color map)
-│  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Melee.asset (fight the player when near, else wander: the goblins'; generated from AgentScripts/Enemies/Melee.tree.txt by TreeKit), Materials/WanderCapsule1-2.mat
+│  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Melee.asset (hunt the chosen target: chase, wait for a slot, swing; else wander: the goblins'; generated from AgentScripts/Enemies/Melee.tree.txt by TreeKit), Materials/WanderCapsule1-2.mat
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/ (detail prefabs in `DetailS/`, committed with a capital S; the generator writes `Details/`, see ENVIRONMENT.md), Rocks/, Mountains/ (ENVIRONMENT.md)
 ├─ Maps/WorldMap/                           what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/, Navigation/ (NavmeshWater mesh, WorldMapNavmesh.bytes cache)
 ├─ Scenes/Prototypes/                       WorldMap.unity (the prototype world map; its data in Maps/WorldMap/); Proto_* scenes are planned (one per mechanic), none exist yet
 ├─ (Assets/_Placeholder/Audio/)            Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
 │                                          Music/: PLACEHOLDER death music cut from a YouTube Short, not licensed (sources in SOURCES.txt)
 ├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
-│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience, Music .asset) + one folder of entities each
+│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience, Music, Enemies .asset) + one folder of entities each; Enemies/ also holds
+│  │                                        Enemy_Spatial / Horn_Spatial (SpatialSetting) and the per-entity voice-limit PlaybackGroups (*_Group.asset)
 │  ├─ Camera/ImpulseReaction.asset          rotation-only noise played by the player camera's impulse listener
-│  ├─ WorldTime/ClockSettings.asset         30 s per game hour (12-minute day), start day 1 07:00, phases Dawn 06 / Morning 08 / Afternoon 12 / Dusk 16 / Evening 18 / Midnight 00, speed 1
+│  ├─ WorldTime/ClockSettings.asset         45 s per game hour (18-minute day), start day 1 07:00, phases Dawn 06 / Morning 08 / Afternoon 12 / Dusk 16 / Evening 18 / Midnight 00, speed 1
 │  ├─ Environment/TimeOfDay/                TimeOfDay (profile), Looks/TOD_*.asset, Grades/PP_*.asset, TimeOfDay_Sky.mat, TimeOfDay_Ambience.asset, Base_PostProcessing / Base_Skybox (setup sources)
 │  ├─ Player/PlayerTuning.asset             used in every scene; links Player{Movement,Vitals,Camera,Interaction,HeldItem,Sound,Vision}Tuning.asset beside it and Sequences/PlayerDeath.asset
 │  ├─ Equipment/EquipmentConfig.asset       3 slots "Weapon 1–3", each takes Gun | Melee, empty at spawn; belt takes Lantern
 │  ├─ Hands/HandSet.asset, Poses/           the hand prefabs + shared hand poses
-│  ├─ Enemies/EnemySystemSettings.asset     think interval, thinks per frame
+│  ├─ Enemies/EnemySystemSettings.asset     think interval, thinks per frame, attackers per target (Player 3), spawn cards (Goblin_Card), prewarm and spawns per frame, footsteps per second
 │  ├─ Enemies/WanderSettings.asset          wander tuning
 │  ├─ Enemies/EnemyAnimationSettings.asset  glances, fidgets, lean (EnemyDefinition.Animation of animated kinds)
 │  ├─ Enemies/EnemyReactionSettings.asset   knockback, heavy hits, corpse time (EnemyDefinition.Reaction of every kind)
+│  ├─ Raids/                                RaidSettings.asset (20:00–06:00, alive cap 12, wake 07:00 after a raid death, +1 h after any other, spawn-point rules), Night_Default.asset (RaidPlan: goblin waves of 5, 6, 7)
 │  ├─ Debug/ConsoleSettings.asset, ConsoleStyle.asset   the dev console's behaviour and look (font: TMP's LiberationSans SDF)
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
 │  ├─ Weapons/RepairFeedback.asset          the repair feedback preset every gun's repair profile uses
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, ClockStyle.asset,
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
-├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and enemy registration, picks up a gun, fires and reloads; any logged error fails it
+├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and the enemy system, picks up a gun, fires and reloads; jumps the clock to the raid's start hour and checks raiders spawned; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ EnemyAnimationTests.cs                LocomotionAnimation (look / lean into turns, glances, one fidget per stop) + every animated enemy prefab wired to the parameter contract
-   ├─ EnemyMeleeTests.cs                    MeleeSettings.InReach (notice / give up), melee definitions reach before they lose, prefabs on the Melee subtree have settings and a colliderless sword in hand
+   ├─ EnemyMeleeTests.cs                    MeleeHit.Lands (reach, arc, height ignored), melee definitions hold outside swing range and hit within it (HoldDistance, EngageRadius, HitTime, HitReach), prefabs on the Melee subtree have settings and a colliderless sword in hand
    ├─ EnemyCombatTests.cs                   EnemyStats (base, modifiers, Changed), Knockback (slide length at any frame rate, cap), every definition has every stat + Reaction, every enemy prefab can be hurt
+   ├─ EnemyTargetingTests.cs                TargetSelector (nearest wanted target, skips untargetable ones and kinds without weight), TargetRegistry add / remove, AttackSlots (cap per target, release, switching target, zero capacity, no target)
+   ├─ EnemySpawningTests.cs                 EnemySpawnCard (variants by weight, group size range), EnemyVoice (a step per stride, only while audible); data: cards have variants with definitions and a cue, fighting definitions have sounds, damage and targets, EnemySystemSettings lists every card
+   ├─ RaidDirectorTests.cs                  real WorldClock + fake spawner / schedule: start at StartHour + events + prewarm, GroupInterval pacing and one announce, AliveCap partial groups, retry when no point, next wave by alive (after MinBreather) / MaxWait / never before fully spawned, Cleared stays over, jump into the window, Dawn → withdraw out of sight, Defeat / Stopped → withdraw at once, next night, StartNow by day, NextWave by hand, quiet night, RaidStarted sees no wave yet; DeathTimeRule: raid death → Defeat + 07:00, death after dawn → leftovers withdrawn + 1 h
+   ├─ SpawnPointScorerTests.cs              no candidates, hidden first, roll among hidden, MinPlayerDistance, visible only after the wait, widest view angle
+   ├─ DeathTimeRuleTests.cs                 WakeTime: raid death → next 07:00 (evening, after midnight, by day), other death → + 1 h (also across midnight)
    ├─ PlayerRulesTests.cs                   Stamina, Fatigue, PlayerBreathing, Health, FallDamage, directional speed, PlayerVision (off by day, range / intensity from the radius, lantern)
    ├─ EquipmentTests.cs                     Hotbar, EquipmentSwitcher timing, Equipment select / cycle, pick up / swap / drop (also mid-switch), lantern onto the belt / swap, lower / raise hands, quick-use items and stacks (TestConsumableDefinition)
    ├─ PoseSequenceTests.cs                  PoseSequencePlayer: start pose, beat moves, ground and wall placement, Ended, Stop
@@ -361,13 +407,17 @@ Assets/_Game/
 ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, AudioService, DamageService, TimeService,
                                            GraphicsService, QuickTimeService, PlayerRegistry, PlayerRespawnFlow, EffectPool, BulletSystem,
                                            GunJamFactory, ScreenLog (+ in dev builds: PlayerCheats, CommandRegistry, ConsoleSettings, LogBuffer,
-                                           ConsoleService, the ConsoleView overlay, and BuiltIn / Player / Time / Graphics ConsoleCommands);
+                                           ConsoleService, the ConsoleView overlay, and BuiltIn / Player / PlayerCheat / Time / Graphics ConsoleCommands);
                                            entry points are ticked by VContainer
                                                 │
 GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats, WorldClockCommands)
    EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), GrassBendField, AmbienceService (needs WorldTimeInstaller)
-   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyManager, EnemyAnimationManager, EnemyBodyManager (+ EnemyCommands); injects the listed scene enemies (EnemyBrain)
+   EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyNavigation, TargetRegistry (PlayerRegistry), TargetSelector, AttackSlots, EnemySpawner, EnemyPool,
+                          EnemyManager, EnemyAnimationManager, EnemyBodyManager, EnemySoundManager (+ EnemyCommands, EnemyCheatCommands, RaidAutopilot); injects the listed scene enemies;
+                          EnemyPool makes spawned ones with the scene resolver → EnemyBrain.Construct(EnemyRegistry, AstarPath, TargetSelector, AttackSlots, DamageService, AudioService)
+   RaidInstaller        → RaidSettings, EveryNightSchedule (IRaidSchedule), SpawnPointPicker, RaidSpawner (IRaidSpawner), RaidDirector, DeathTimeRule (+ RaidCommands);
+                          needs WorldTimeInstaller (WorldClock) + EnemyInstaller (EnemySpawner, EnemyNavigation); the scene's SpawnZones (collected list)
    (scene ConsoleCommands add themselves to the root CommandRegistry on Initialize and leave on Dispose)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
@@ -382,7 +432,7 @@ PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one,
              PlayerMotor(CharacterController, tuning.Movement, stats, stamina), PlayerCameraRig(cameraRoot, cameraPitch, tuning.Camera.EyeHeight),
              PlayerLook(body, rig, tuning.Camera), PlayerHeadBob(rig, tuning.Camera), HeldItemSway(HeldSway, AimSway, stats), PlayerZoom(Cinemachine camera, FirstPersonView, ControlSettings),
              PlayerAim(EquipmentRig, zoom), PlayerInteractor(cameraPitch, gameObject, tuning.Interaction), HeldItemClearance, PlayerVision(VisionLight, tuning.Vision),
-             PoseSequencePlayer(body, rig, AudioService), PlayerFeedback(motor, head bob, sway, AudioService, tuning.Sounds), AmmoReserve(AmmoConfig.CreateReserve()),
+             PoseSequencePlayer(body, rig, AudioService), PlayerFeedback(motor, head bob, sway, AudioService, tuning.Sounds, life), AmmoReserve(AmmoConfig.CreateReserve()),
              Equipment(EquipmentConfig.CreateEquipment()) → EquipmentRig.Bind(Equipment, owner: this, resolver); HeldItemDriver(equipment, rig, parts…)
                rig spawns item prefabs (staged inactive, resolver.InjectGameObject, world parts stripped) → HeldGun.Construct(BulletSystem, EffectPool, AudioService, GunJamFactory),
                HeldMelee.Construct(EffectPool, DamageService, AudioService)
@@ -393,12 +443,14 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
    └─ injects the HUD GameObject
          PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active IPlayer
            PlayerVitalsHud, CrosshairHud, HotbarHud, InteractPromptHud (+ InputService for key labels), HitFeedbackHud (+ AudioService, DamageDealt),
-           HudVisibilityHud (PlayerDied / PlayerRevived), DeathScreenHud (PlayerRespawnFading, PlayerRespawning, RespawnStageChanged)
+           HurtFeedbackHud (+ TimeService, DamageDealt), HudVisibilityHud (PlayerDied / PlayerRevived), DeathScreenHud (PlayerRespawnFading, PlayerRespawning, RespawnStageChanged)
          QteHud (QuickTimeService, TimeService, InputService, QteStarted / QteAttempted / QteEnded), ClockHud (TryResolve WorldClock)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.
-- Outside systems see the player through `PlayerRegistry.Current`, an `IPlayer` (HUD, respawn flow, cheats); enemies and companions only need `IPlayerTarget` (`_Common/Entities`: transform + `IDamageable`).
+- Outside systems see the player through `PlayerRegistry.Current`, an `IPlayer` (HUD, respawn flow, cheats, raids). Enemies hunt `ITargetable`s (`_Common/Entities`: transform, `TargetKind`, `IsTargetable` + `IDamageable`): `TargetRegistry` hands them the active player, the one target today; their blows go through `DamageService.Deal`.
+- `RaidSystem` → `EnemySystem` (spawning through `EnemySpawner`, navmesh checks through `EnemyNavigation`), `WorldTimeSystem` (`WorldClock`) and `PlayerSystem` (`PlayerRegistry`; `PlayerRespawning` from its respawn flow); `EnemySystem` never knows about raids. `DeathTimeRule` ends a raid and moves the clock behind the death screen.
+- Dev tools may play the player through `IPlayer.IntentSource` (`RaidAutopilot`), which replaces only the `InputService` read; nothing else reads devices.
 - `PlayerSystem` → `EquipmentSystem` ← `WeaponSystem`: the player owns an `Equipment`; weapon kinds derive from equipment's definitions. `EquipmentSystem` knows neither the player nor weapons: `WorldItem` finds the picker's hotbar through `IEquipmentOwner`, and a `HeldGun` finds its holder's ammo and aim through `IGunUser`, a `HeldMelee` its eye and root through `IWeaponUser` (Player implements all of them). The player also uses a few `WeaponSystem` types directly (`AmmoReserve`, `AimOrigin` in its tuning).
 - `EnemySystem` → `EnvironmentSystem`: `EnemyBrain` `TryResolve`s the scene's `GrassBendField` and joins it while active. No field = no bending.
 - `PlayerSystem` → `EnvironmentSystem`: the player's `VisionLight` carries a `TimeOfDayWeight` (Darkness) that the scene's director ticks; `Player` only reads its `Weight`. No director (prototype scenes) = never dark, light off.
@@ -419,18 +471,22 @@ VContainer ticks     TimeService counts down a hit stop (real time); ScreenLog e
                      PlayerCheats (K / L); EffectPool returns expired effects
                      BulletSystem moves and ray-tests the bullets fired in earlier frames → DamageService → DamageDealt → HitFeedbackHud (marker, sound, number); impacts, holes
                      scene scope: WorldClock advances (HourChanged / DayPhaseChanged / DayStarted), WorldClockCheats; AmbienceService bed volumes and calls;
-                     EnemyManager thinks its share of the enemy trees; EnemyAnimationManager sets every animated enemy's Animator parameters;
-                       EnemyBodyManager slides knocked-back enemies and sinks the dead
+                     EnemySpawner brings in SpawnsPerFrame queued group members (EnemyPool.Get); EnemyPool creates PrewarmPerFrame pooled enemies while a prewarm is pending;
+                     EnemyManager thinks its share of the enemy trees (a blow landing: EnemyBrain.Strike → DamageService → DamageDealt → HurtFeedbackHud; PlayerLife.Hurt → grunt, flinch);
+                       EnemyAnimationManager sets every animated enemy's Animator parameters; EnemyBodyManager slides knocked-back enemies and sinks the dead;
+                       EnemySoundManager plays the footsteps due; RaidAutopilot (dev builds, while on) picks its target
+                     RaidSpawner despawns withdrawn raiders the player can't see; RaidDirector reads the night from WorldClock.Now, starts or ends the raid,
+                       queues the groups due (SpawnPointPicker → EnemySpawner.SpawnGroup; they arrive from the next frame) and moves waves on
 
 Player.Update
-intent = dead, in a pose sequence or gameplay input disabled ? default : read InputService (look × PlayerZoom.LookScale; aim / trigger end a sprint)
+intent = dead, in a pose sequence or gameplay input disabled ? default : IntentSource if set (dev autopilot), else read InputService (look × PlayerZoom.LookScale); aim / trigger end a sprint
 PlayerLook.Tick      yaw + pitch → PlayerCameraRig.SetLook   (movement uses the new facing this frame; skipped in a pose sequence)
 PlayerMotor.Tick     velocity, jump, CharacterController.Move, landing → Jumped / Landed
                        └─ PlayerFeedback: jump / landing sound, head-bob dip, sway kicks; PlayerLife.OnLanded: fall damage → DamageService → Health → DamageDealt / PlayerDied
 Stamina.Tick         regen while the motor is idle (spending happened inside the motor, and in the held item last frame)
 Fatigue.Tick         tier for the stamina (+ winded) → eased recoil / melee power / move speed (used by this frame's held item and next frame's motor)
 PlayerBreathing.Tick out of breath → eased Tiredness → PlayerBreathSound starts / fades / stops the breath loop (AudioService.Start)
-PlayerHeadBob.Tick   bob + dip → PlayerCameraRig.SetHeadMotion; Stepped → PlayerFeedback footstep (skipped in a pose sequence)
+PlayerHeadBob.Tick   bob + dip + hurt flinch → PlayerCameraRig.SetHeadMotion; Stepped → PlayerFeedback footstep (skipped in a pose sequence)
 PlayerInteractor     look cast → focus + prompt; intent.Interact → IInteractable.Interact (pickup / swap)
 HeldItemDriver.Tick
   Equipment          intent.Drop → DropHeld → WorldItem.Spawn at the drop point; else SelectSlot / CycleSlot → Select / Cycle; EquipmentSwitcher.Tick (holster → swap → equip)

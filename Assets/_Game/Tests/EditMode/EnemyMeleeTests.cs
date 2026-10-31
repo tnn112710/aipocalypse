@@ -20,7 +20,8 @@ namespace Aipocalypse.Tests
             Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(1.2f, 0f, 0.8f), 2f, 90f), Is.False, "outside the half-arc");
             Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 0f, -1f), 2f, 90f), Is.False, "behind");
             Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 0f, -1f), 2f, 360f), Is.True, "a full circle hits behind");
-            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 5f, 1f), 2f, 90f), Is.True, "height is ignored");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 1.5f, 1f), 2f, 90f), Is.True, "a small step up still reaches");
+            Assert.That(MeleeHit.Lands(Vector3.zero, forward, new Vector3(0f, 5f, 1f), 2f, 90f), Is.False, "a target on a roof doesn't");
         }
 
         [Test]

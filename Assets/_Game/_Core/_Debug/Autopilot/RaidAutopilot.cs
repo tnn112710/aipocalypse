@@ -7,9 +7,8 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.Debugging
 {
-    // cheat.autopilot (editor and development builds): the player stands still and fights by itself to soak-test raids. It plays
-    // through the player's intent (IPlayerIntentSource): turns at a capped rate to the nearest enemy in sight, fires once on it,
-    // reloads an empty gun and takes up another gun of the hotbar when the one in hand is spent.
+    // cheat.autopilot (dev builds): through IPlayerIntentSource the player stands still and shoots the nearest enemy in sight,
+    // reloading and taking up another gun when the held one is spent.
     [CommandGroup("cheat")]
     public sealed class RaidAutopilot : ConsoleCommands, ITickable, IPlayerIntentSource
     {
@@ -120,7 +119,9 @@ namespace Aipocalypse.Core.Debugging
             float tolerance = Mathf.Min(FireAngle, Mathf.Atan2(TargetRadius, distance) * Mathf.Rad2Deg);
             // A press during a per-round reload stops it once the next round is in, as a player would.
             bool canFire = gun != null && player.Equipment.Switcher.IsReady && !gun.Item.IsJammed && gun.Item.Rounds > 0;
-            intent.Fire = canFire && Vector3.Angle(forward, toTarget) <= tolerance;
+            // Shots follow the crosshair (IGunUser.AimOffset: aim sway, which lags behind turns), not the view's forward.
+            Vector3 aim = player is IGunUser user ? view.rotation * (user.AimOffset * Vector3.forward) : forward;
+            intent.Fire = canFire && Vector3.Angle(aim, toTarget) <= tolerance;
             intent.FirePressed = intent.Fire;
             return intent;
         }
