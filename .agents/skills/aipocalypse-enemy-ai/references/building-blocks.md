@@ -12,6 +12,18 @@ Research done 2026-10-31. Sources are at the end; claims marked (unverified) had
 - **Data over trees.** A new enemy, attack or boss move is data on a shared tree before it is a new tree.
 - **Readability beats cleverness.** F.E.A.R.'s "flanking" was mostly cover choice plus barks; telegraphs, barks and visible state sell intelligence cheaper than planners.
 
+## Readable and fair
+
+Design rules every agent's spec answers (SKILL.md §0 step 3). Check them in play, not only in the tree.
+
+- **Every attack has a telegraph** (wind-up, glow, sound, ground marker) longer than the player's reaction time. A cue means one thing everywhere: if a red glow means "can't be blocked" on one enemy, it means that on all of them. Telegraphs are data on the attack, like its damage and cooldown.
+- **Damage matches how the attack looks.** A small, quick-looking swing never deals heavy damage.
+- **Harder means faster or denser, never harder to read.** Raise difficulty by chaining attacks, tightening timing, shortening the punish window, raising speed or adding a second enemy; a telegraph never gets shorter than what a player can react to, and never disappears.
+- **Senses are tuned to what the player believes the enemy can know**, not to realism. Nothing notices the player from off-screen, through a wall or by a sound the player didn't hear themselves make. Raiders that are told their target by a service (block 3) still show it: they look at it and head straight for it.
+- **Show state changes.** Moving to suspicious, alert or giving up gets a bark, a sound, an animation or an icon. The cue matters more than the logic behind it.
+- **Predictable, not repetitive.** Keep the numbers the player learns fixed per kind (detection range, reaction delay, speed, attack reach); vary only the presentation (animation, bark, small timing jitter).
+- **Every agent can lose or give up.** Each spec says when the agent stops chasing, retreats or changes tactics. An agent that chases forever with no way to shake it reads as unfair.
+
 ## Ranked blocks
 
 ### 1. Engagement slots and attack tokens (Kingdoms of Amalur, Doom 2016)
@@ -34,7 +46,8 @@ Blood-moon hordes in 7DTD always know where the player is: zero perception cost.
 
 - `PerceptionService`: a fixed raycast budget per frame, round-robin over agents that need sight, 2–3 points on the target (Splinter Cell uses 8 bones; overkill here), batched with `RaycastCommand` (a suggestion, not sourced).
 - `NoiseService.Emit(position, radius, kind)`: logical sound events (gunshot, sprint, bell), not real audio (The Last of Us). Radius multiplied per enemy kind; one occlusion ray per listener in range.
-- Per agent: awareness (Unaware → Suspicious → Alert) and a last-known position (Halo 2's "beliefs"). Suspicious is the player's warning window (TLOU "agitated", Splinter Cell's detection timer).
+- Per agent: awareness (Unaware → Suspicious → Alert) and a last-known position (Halo 2's "beliefs"). Suspicious is the player's warning window (TLOU "agitated", Splinter Cell's detection timer): it plays a bark or sound and the agent turns to look, so the player knows they were noticed and why. A filling meter or icon is an option to ask the user about, since the HUD is theirs to decide.
+- Sight is a cone plus range with a line-of-sight check; hearing is a radius. Tune both by playtest toward "fair" rather than realistic (Readable and fair).
 - Tree: conditionals `CanSeeTarget`, `HeardNoise` under aborts; a Search subtree at the last-known position.
 - Cost: medium (sight is the expensive part). Also covers the daytime leash: a chaser that loses its target for N seconds gives up and returns home.
 
@@ -54,6 +67,9 @@ Dog and drone. Every 0.25–0.5 s, sample ~8 candidate points in a ring around t
 ### 6. Boss = phase selector + data maneuvers (Psychonauts 2, Amalur, Left 4 Dead)
 
 One boss tree reused per boss. Top: a phase selector with conditional aborts on HP thresholds. Each phase: a weighted-random (or utility) selector over **maneuvers**, each a data entry of telegraph → attack → recovery (the recovery is the punish window). Filter by range bucket, cooldown and "no more than N repeats"; shuffle like a deck (L4D's no-back-to-back rule). Enrage = a phase. A boss is unique: own `EntityScope`, ticked every frame. IDEAS.md's "boss = body + scale + weapon + archetype" fits: the maneuver set is the data. Psychonauts 2 built two bosses in about two months this way.
+
+- Design the maneuver set from the player skills it tests (dodge, take cover, aim at the weak spot, move away from range): at least one maneuver per skill, styled to the boss's body and personality, plus a defensive option (block, retreat, armour phase) so the fight isn't only "shoot until dead".
+- Phase 1 teaches the patterns one at a time. Later phases recombine and speed them up and add one new trick under the same rules; follow the Readable and fair difficulty rule. The fight builds up to an introduction, rises to full intensity and ends with a clear defeat and reward beat.
 
 - Cost: medium per boss, mostly animation and tuning.
 
@@ -77,4 +93,4 @@ Stay with **behaviour trees + a utility selector where choices are fuzzy + centr
 ## Sources
 
 Game AI Pro (gameaipro.com): Beyond the Kung-Fu Circle (Amalur engagement); Squad Coordination in Days Gone; Perception and Awareness in Splinter Cell Blacklist; Ellie: Buddy AI in The Last of Us; Infected AI in The Last of Us; 1000 NPCs at 60 FPS (Project Highrise); Building Utility Decisions into Your Existing Behavior Tree; Managing Pacing in Procedural Levels in Warframe; AI LOD Control with the LOD Trader; Advanced Techniques for Robust, Efficient Crowds; A Control-Based Architecture for Animal Behavior; Hierarchical AI for Multiplayer Bots in Killzone 3.
-Other: Orkin, "Three States and a Plan: The AI of F.E.A.R." (GDC 2006); Booth, "The AI Systems of Left 4 Dead"; gamedeveloper.com: the AI of Doom (2016), the AI of Alien: Isolation, Handling Complexity in the Halo 2 AI, Psychonauts 2's modular boss maneuvers; riskofrain2.wiki.gg → Directors; 7daystodie.wiki.gg → Blood Moon Horde. Unverified (no primary source found): Batman / God of War / Sifu attack rules, Souls / Monster Hunter boss selection, RDR2 / Far Cry animals, Valheim / ARK taming, Far Cry and Fallout dog companions.
+Other: Orkin, "Three States and a Plan: The AI of F.E.A.R." (GDC 2006); Booth, "The AI Systems of Left 4 Dead"; gamedeveloper.com: the AI of Doom (2016), the AI of Alien: Isolation, Handling Complexity in the Halo 2 AI, Psychonauts 2's modular boss maneuvers; riskofrain2.wiki.gg → Directors; 7daystodie.wiki.gg → Blood Moon Horde; Unity blog, "How enemy AI works in video games" (unity.com/blog/how-enemy-ai-works-video-games: design checklist, telegraph, perceived-fairness and boss-phase rules in Readable and fair and block 6). Unverified (no primary source found): Batman / God of War / Sifu attack rules, Souls / Monster Hunter boss selection, RDR2 / Far Cry animals, Valheim / ARK taming, Far Cry and Fallout dog companions.

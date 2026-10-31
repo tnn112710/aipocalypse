@@ -41,6 +41,7 @@ OnReceivedEvent EventName="Bell" "Bell rang"                more top-level lines
 
 ## Rules
 
+- **A spec starts with its design answers** as `#` comments (SKILL.md §0 step 3: unaware, notices, then, warns, gives up), followed by how its branches work.
 - **Generated trees are edited in their spec, never in the window**: Build overwrites window edits. A tree someone draws by hand stays hand-drawn; `Describe` gives its text for review and design discussions.
 - `Check` before `Build`; `Build` returns the asset described back, so compare it with the spec. Commit the spec and the asset together.
 - Renaming a task class breaks every asset that stores it (SKILL.md §3), but a spec survives: fix the name in the spec and rebuild.
