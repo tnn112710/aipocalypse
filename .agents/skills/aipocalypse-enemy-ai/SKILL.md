@@ -1,6 +1,6 @@
 ---
 name: aipocalypse-enemy-ai
-description: How AI is built in aipocalypse — the EnemySystem (EnemyInstaller, EnemyRegistry, EnemyManager time-sliced ticking of Manual Behavior Designer Pro trees, EnemyBrain bridge, EnemyMover over A* FollowerEntity, EnemyDefinition data), the shared Wander subtree and its tasks, writing new enemy tasks and subtrees, adding an enemy kind, getting enemies into WorldMap and prototype scenes, the Navigation prefab and WorldMap's cached recast graph, VContainer/MessagePipe/A* wiring rules here, spawning and pooling, enemy performance gates, and what is not built yet (combat, senses, pooling, companions, drone, bosses). Use for any enemy, crowd, companion, NPC or boss movement, pathfinding, navmesh, behaviour tree or AI decision work in this repo, together with the library skills unity-behavior-designer-pro and unity-astar.
+description: How AI is built in aipocalypse — the EnemySystem (EnemyInstaller, EnemyRegistry, EnemyManager time-sliced ticking of Manual Behavior Designer Pro trees, EnemyBrain bridge, EnemyMover over A* FollowerEntity, EnemyDefinition data), the shared Wander subtree and its tasks, writing new enemy tasks and subtrees, adding an enemy kind, getting enemies into WorldMap and prototype scenes, the Navigation prefab and WorldMap's cached recast graph, VContainer/MessagePipe/A* wiring rules here, spawning and pooling, enemy performance gates, the Movement Pack through an A* adapter, Atlas for BD Pro API checks, what is not built yet (combat, senses, pooling, companions, drone, bosses), a catalogue of every agent behaviour the GDD asks for (raiders, thieves, bosses, farm animals, wildlife, dog, drone, service robots) and the proven building blocks for complex AI (engagement slots, raid director, perception, think-rate LOD, companion follow, boss maneuvers, needs/routines, squads). Use for any enemy, crowd, companion, animal, NPC, robot or boss movement, pathfinding, navmesh, behaviour tree or AI decision work in this repo, and when planning or designing complex AI, together with the library skills unity-behavior-designer-pro and unity-astar.
 ---
 
 # Enemy AI in aipocalypse
@@ -14,7 +14,9 @@ What exists, file by file, is already documented. Read it, don't re-derive it:
 - `docs/technicals/ENVIRONMENT.md` → **Navigation** (WorldMap's graph, water volume, `Navigation.Bake`, when to re-bake).
 - `docs/ROADMAP.md` → `Proto_Enemies` (next enemy work and its gate).
 
-The rest of this file is what those docs don't spell out: the contracts the code relies on, and the rules for extending it.
+The rest of this file is what those docs don't spell out: the contracts the code relies on, and the rules for extending it. For agents and behaviours beyond today's wandering and melee goblins, read the two references first:
+- [references/behaviour-catalogue.md](references/behaviour-catalogue.md): what the GDD asks of each agent family, with source (canon / idea / open) and the blocks it needs.
+- [references/patterns.md](references/patterns.md): eight building blocks from shipped games (engagement slots, raid director, perception, think-rate LOD, companion follow, boss maneuvers, routines and needs, squads), ranked, mapped to our services and trees. None is built.
 
 ## 1. Enemy prefab contract
 
