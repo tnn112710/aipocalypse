@@ -21,9 +21,6 @@ namespace Polyart
             if (anim == null)
                 return;
 
-            if (context.agent == null || !context.agent.isOnNavMesh)
-                return;
-
             Vector3 randomPoint = RandomNavSphere(context.agent.transform.position, range, -1);
             context.animController.SetMoveAnim(anim);
             context.agent.isStopped = false;
@@ -47,18 +44,12 @@ namespace Polyart
 
         public override void ExitState()
         {
-            if (context.agent == null || !context.agent.isOnNavMesh)
-                return;
-
             context.agent.isStopped = true;
         }
 
         public override NPCStateMachine.NPCState GetNextState()
         {
             if (anim == null || isStateImplemented == false)
-                return NPCState.Idle;
-
-            if (context.agent == null || !context.agent.isOnNavMesh)
                 return NPCState.Idle;
 
             if (context.agent.remainingDistance > 0f)

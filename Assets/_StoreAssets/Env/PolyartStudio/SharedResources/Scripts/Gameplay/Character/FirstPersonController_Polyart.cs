@@ -1,16 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Polyart {
 public class FirstPersonController_Polyart : MonoBehaviour
 {
     public static FirstPersonController_Polyart instance;
     public bool CanMove { get; private set; } = true;
-    private bool isSprinting => canSprint && IsKeyHeld(sprintKey);
-    private bool ShouldJump => IsKeyDownThisFrame(jumpKey) && characterController.isGrounded;
-    private bool ShouldCrouch => IsKeyDownThisFrame(crouchKey) && !duringCrouchAnim && characterController.isGrounded;
+    private bool isSprinting => canSprint && Input.GetKey(sprintKey);
+    private bool ShouldJump => Input.GetKeyDown(jumpKey) && characterController.isGrounded;
+    private bool ShouldCrouch => Input.GetKeyDown(crouchKey) && !duringCrouchAnim && characterController.isGrounded;
 
     [Header("Character Options")]
     [SerializeField] private bool canSprint = true;
@@ -144,8 +143,7 @@ public class FirstPersonController_Polyart : MonoBehaviour
 
     private void HandleMovementInput()
     {
-        float speed = isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed;
-        currentInput = new Vector2(speed * ReadVerticalAxis(), speed * ReadHorizontalAxis());
+        currentInput = new Vector2((isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed) * Input.GetAxis("Vertical"), (isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed) * Input.GetAxis("Horizontal"));
 
         float moveDirectionY = moveDirection.y;
         moveDirection = (transform.TransformDirection(Vector3.forward) * currentInput.x) + (transform.TransformDirection(Vector3.right) * currentInput.y);
@@ -167,11 +165,10 @@ public class FirstPersonController_Polyart : MonoBehaviour
 
         private void HandleMouseLook()
         {
-            Vector2 mouseDelta = ReadMouseDelta();
-            rotationX -= mouseDelta.y * lookSpeedY;
+            rotationX -= Input.GetAxis("Mouse Y") * lookSpeedY;
             rotationX = Mathf.Clamp(rotationX, -upperLookLimit, lowerLookLimit);
             playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-            transform.rotation *= Quaternion.Euler(0, mouseDelta.x * lookSpeedX, 0);
+            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeedX, 0);
 
         }
         private void HandleJump()
@@ -256,96 +253,7 @@ public class FirstPersonController_Polyart : MonoBehaviour
         }
     }
 
-    // ---- Input System helpers ------------------------------------------------
-    // These bridge the legacy KeyCode-based inspector fields to the new Input System
-    // so existing serialized bindings (sprintKey, jumpKey, crouchKey, ...) keep working.
 
-    [SerializeField] private float mouseLookScale = 0.05f; // approximates old Input.GetAxis("Mouse X/Y") sensitivity
-
-    private static bool IsKeyHeld(KeyCode keyCode)
-    {
-        if (Keyboard.current == null) return false;
-        Key key = KeyCodeToKey(keyCode);
-        return key != Key.None && Keyboard.current[key].isPressed;
-    }
-
-    private static bool IsKeyDownThisFrame(KeyCode keyCode)
-    {
-        if (Keyboard.current == null) return false;
-        Key key = KeyCodeToKey(keyCode);
-        return key != Key.None && Keyboard.current[key].wasPressedThisFrame;
-    }
-
-    private static float ReadVerticalAxis()
-    {
-        if (Keyboard.current == null) return 0f;
-        float v = 0f;
-        if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) v += 1f;
-        if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) v -= 1f;
-        return v;
-    }
-
-    private static float ReadHorizontalAxis()
-    {
-        if (Keyboard.current == null) return 0f;
-        float h = 0f;
-        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) h += 1f;
-        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) h -= 1f;
-        return h;
-    }
-
-    private Vector2 ReadMouseDelta()
-    {
-        if (Mouse.current == null) return Vector2.zero;
-        return Mouse.current.delta.ReadValue() * mouseLookScale;
-    }
-
-    private static Key KeyCodeToKey(KeyCode keyCode)
-    {
-        // Letters A-Z
-        if (keyCode >= KeyCode.A && keyCode <= KeyCode.Z)
-            return (Key)((int)Key.A + (int)(keyCode - KeyCode.A));
-
-        // Top-row digits 0-9
-        if (keyCode >= KeyCode.Alpha0 && keyCode <= KeyCode.Alpha9)
-            return (Key)((int)Key.Digit0 + (int)(keyCode - KeyCode.Alpha0));
-
-        // Numpad digits 0-9
-        if (keyCode >= KeyCode.Keypad0 && keyCode <= KeyCode.Keypad9)
-            return (Key)((int)Key.Numpad0 + (int)(keyCode - KeyCode.Keypad0));
-
-        // Function keys F1-F12
-        if (keyCode >= KeyCode.F1 && keyCode <= KeyCode.F12)
-            return (Key)((int)Key.F1 + (int)(keyCode - KeyCode.F1));
-
-        switch (keyCode)
-        {
-            case KeyCode.Space:        return Key.Space;
-            case KeyCode.LeftShift:    return Key.LeftShift;
-            case KeyCode.RightShift:   return Key.RightShift;
-            case KeyCode.LeftControl:  return Key.LeftCtrl;
-            case KeyCode.RightControl: return Key.RightCtrl;
-            case KeyCode.LeftAlt:      return Key.LeftAlt;
-            case KeyCode.RightAlt:     return Key.RightAlt;
-            case KeyCode.Tab:          return Key.Tab;
-            case KeyCode.Return:       return Key.Enter;
-            case KeyCode.KeypadEnter:  return Key.NumpadEnter;
-            case KeyCode.Escape:       return Key.Escape;
-            case KeyCode.Backspace:    return Key.Backspace;
-            case KeyCode.UpArrow:      return Key.UpArrow;
-            case KeyCode.DownArrow:    return Key.DownArrow;
-            case KeyCode.LeftArrow:    return Key.LeftArrow;
-            case KeyCode.RightArrow:   return Key.RightArrow;
-            case KeyCode.PageUp:       return Key.PageUp;
-            case KeyCode.PageDown:     return Key.PageDown;
-            case KeyCode.Home:         return Key.Home;
-            case KeyCode.End:          return Key.End;
-            case KeyCode.Insert:       return Key.Insert;
-            case KeyCode.Delete:       return Key.Delete;
-            case KeyCode.CapsLock:     return Key.CapsLock;
-            default:                   return Key.None;
-        }
-    }
 
 }
 

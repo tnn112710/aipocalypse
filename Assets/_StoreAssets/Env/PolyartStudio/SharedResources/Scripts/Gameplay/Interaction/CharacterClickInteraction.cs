@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Polyart
 {
@@ -12,7 +11,7 @@ namespace Polyart
 
         void Update()
         {
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) // Left click
+            if (Input.GetMouseButtonDown(0)) // Left click
             {
                 FireRay();
             }

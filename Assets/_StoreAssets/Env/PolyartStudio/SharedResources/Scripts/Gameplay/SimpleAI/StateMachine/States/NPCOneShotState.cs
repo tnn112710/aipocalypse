@@ -11,9 +11,6 @@ namespace Polyart
 
         public NPCOneShotState(NPCStateContext context, NPCState key, bool isStateImplemented, AnimationClip animation) : base(context, key, isStateImplemented)
         {
-            if (animation == null)
-                return;
-
             animationLength = animation.length;
             float blendTime = animationLength > 0.5f ? 0.2f : animationLength / 10f;
 
@@ -22,9 +19,6 @@ namespace Polyart
 
         public override void EnterState()
         {
-            if (oneShotSettings.oneShotAnim == null || isStateImplemented == false)
-                return;
-
             context.animController.StartOneShot(oneShotSettings);
 
             timeLeft = animationLength;
@@ -32,14 +26,11 @@ namespace Polyart
 
         public override void ExitState()
         {
-
+            
         }
 
         public override NPCState GetNextState()
         {
-            if (oneShotSettings.oneShotAnim == null || isStateImplemented == false)
-                return NPCState.Idle;
-
             if (timeLeft <= 0f)
             {
                 return NPCState.Idle;
