@@ -155,6 +155,8 @@ public static class CharacterKit
     //                                                       state on the Attack trigger by AttackIndex, back to locomotion
     //   appear = <clip>                                     one clip, base layer, played once on the Appear trigger when
     //                                                       spawned, back to locomotion near its end or once it walks
+    //   celebrate = <clip>                                  one per line, base layer, from Locomotion while the Celebrate bool
+    //                                                       is on, by CelebrateIndex; repeats until it goes off or it walks
     //   combatIdle = <clip>                                 idle while fighting: a second blend tree (this idle, the same
     //                                                       moves) entered on the Combat bool; swings return to it
     //   grip = <clip>                                       a held pose (closed hand round a weapon) in an override layer
@@ -210,6 +212,7 @@ public static class CharacterKit
         var deaths = spec.Where(p => p.Key == "death").Select(p => Clip(p.Value)).ToList();
         var attacks = spec.Where(p => p.Key == "attack").Select(p => Clip(p.Value)).ToList();
         AnimationClip appear = Clip(Get("appear"));
+        var celebrations = spec.Where(p => p.Key == "celebrate").Select(p => Clip(p.Value)).ToList();
         AnimationClip combatIdle = Clip(Get("combatIdle"));
         AnimationClip grip = Clip(Get("grip"));
         AvatarMask gripMask = null;
@@ -243,6 +246,8 @@ public static class CharacterKit
         controller.AddParameter("AttackIndex", AnimatorControllerParameterType.Int);
         controller.AddParameter("Combat", AnimatorControllerParameterType.Bool);
         controller.AddParameter("Appear", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Celebrate", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("CelebrateIndex", AnimatorControllerParameterType.Int);
 
         controller.AddLayer("Base Layer");
         AnimatorControllerLayer[] baseLayers = controller.layers;
@@ -358,6 +363,31 @@ public static class CharacterKit
             interrupted.AddCondition(AnimatorConditionMode.Greater, 0.3f, "Speed");
         }
 
+        for (int i = 0; i < celebrations.Count; i++)
+        {
+            AnimatorState dance = root.AddState("Celebrate_" + i, new Vector3(300f, -300f - 120f * i, 0f));
+            dance.motion = celebrations[i];
+            AnimatorStateTransition begin = locomotion.AddTransition(dance);
+            begin.hasExitTime = false;
+            begin.duration = 0.3f;
+            begin.AddCondition(AnimatorConditionMode.If, 0f, "Celebrate");
+            begin.AddCondition(AnimatorConditionMode.Equals, i, "CelebrateIndex");
+            begin.AddCondition(AnimatorConditionMode.Less, 0.2f, "Speed");
+            AnimatorStateTransition again = dance.AddTransition(dance);
+            again.hasExitTime = true;
+            again.exitTime = 0.95f;
+            again.duration = 0.2f;
+            again.AddCondition(AnimatorConditionMode.If, 0f, "Celebrate");
+            AnimatorStateTransition stop = dance.AddTransition(locomotion);
+            stop.hasExitTime = false;
+            stop.duration = 0.25f;
+            stop.AddCondition(AnimatorConditionMode.IfNot, 0f, "Celebrate");
+            AnimatorStateTransition walk = dance.AddTransition(locomotion);
+            walk.hasExitTime = false;
+            walk.duration = 0.25f;
+            walk.AddCondition(AnimatorConditionMode.Greater, 0.3f, "Speed");
+        }
+
         AddDirectionalLayer(controller, "HeadLook", headLook, positions, neutral, 1f);
         float bodyWeight = float.TryParse(Get("bodyLook.weight"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float w) ? w : 0.5f;
         AddDirectionalLayer(controller, "BodyLook", bodyLook, positions, neutral, bodyWeight);
@@ -391,7 +421,7 @@ public static class CharacterKit
         AssetDatabase.SaveAssetIfDirty(controller);
         if (neutral != null)
             AssetDatabase.SaveAssetIfDirty(neutral);
-        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"appear\":{B(appear != null)},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"appear\":{B(appear != null)},\"celebrations\":{celebrations.Count},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
     }
 
     // Override layer "Hit": an empty default state, and Hit_<index> entered from any state on Hit + HitIndex (a new hit

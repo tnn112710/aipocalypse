@@ -20,6 +20,45 @@ namespace Aipocalypse.Core.EnemySystem
         public override TaskStatus OnUpdate() => _brain.ChooseTarget() != null ? TaskStatus.Success : TaskStatus.Failure;
     }
 
+    // What it last hunted died (EnemyBrain.TargetDefeated).
+    [Category("Aipocalypse/Melee")]
+    public sealed class TargetDefeated : ConditionalNode
+    {
+        EnemyBrain _brain;
+
+        public override void OnAwake() => _brain = GetComponent<EnemyBrain>();
+        public override TaskStatus OnUpdate() => _brain.TargetDefeated ? TaskStatus.Success : TaskStatus.Failure;
+    }
+
+    // Stands where it is and celebrates (a random dance, repeated) until something aborts it (a new target).
+    [Category("Aipocalypse/Melee")]
+    public sealed class Celebrate : ActionNode
+    {
+        EnemyBrain _brain;
+        EnemyMover _mover;
+
+        public override void OnAwake()
+        {
+            _brain = GetComponent<EnemyBrain>();
+            _mover = GetComponent<EnemyMover>();
+        }
+
+        public override void OnStart()
+        {
+            _mover.Halt();
+            if (_brain.Animation != null)
+                _brain.Animation.Celebrate(true);
+        }
+
+        public override TaskStatus OnUpdate() => TaskStatus.Running;
+
+        public override void OnEnd()
+        {
+            if (_brain.Animation != null)
+                _brain.Animation.Celebrate(false);
+        }
+    }
+
     // Runs at the target (approach pace far away, sprint and fighting stance inside EngageRadius) until within attack range.
     // From afar it comes in from its own side (CrowdSpread.FlankPoint), straightening as it closes. Without a free attack
     // slot it waits at HoldDistance, facing the target.

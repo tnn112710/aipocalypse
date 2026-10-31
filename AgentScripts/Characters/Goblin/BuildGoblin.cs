@@ -24,6 +24,7 @@ public static class BuildGoblin
     const int Fidgets = 3;
     const int Deaths = 2;
     const int Attacks = 3;
+    const int Celebrations = 4;
     // The sword: scaled to goblin size, held at this height up its handle (model units; the handle spans -0.2..0.14, the
     // blade's edges face its local +-Z), a little into the palm from the knuckles.
     const float SwordScale = 0.75f;
@@ -180,6 +181,7 @@ public static class BuildGoblin
                 var serialized = new SerializedObject(root.GetComponent<EnemyAnimator>());
                 serialized.FindProperty("_deaths").intValue = Deaths;
                 serialized.FindProperty("_attacks").intValue = Attacks;
+                serialized.FindProperty("_celebrations").intValue = Celebrations;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
                 var tree = new SerializedObject(root.GetComponent<Opsive.BehaviorDesigner.Runtime.BehaviorTree>());
                 tree.FindProperty("m_Subtree").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ScriptableObject>(MeleeTree);

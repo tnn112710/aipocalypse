@@ -1,6 +1,7 @@
 # The goblins' tree: hunt a target (TargetSelector picks it: the player for now, fences, crops and animals later), chase,
-# swing; wander when there is nothing to hunt (player dead, cheat.notarget). The hunt's abort (Both) re-checks ChooseTarget
-# every think: it cuts into the wander as soon as a target exists, and ends the hunt when none is left.
+# swing; when what it hunted died (the player), it stays where it is and dances; otherwise, with nothing to hunt
+# (cheat.notarget), it wanders. The hunt's abort (Both) re-checks ChooseTarget every think: it cuts into the dance or the
+# wander as soon as a target exists, and ends the hunt when none is left.
 # Job: punish standing in the open at night; it runs at the player from wherever it spawned, from afar coming in from its
 # own side (MeleeSettings.FlankAngle, straightening inside FlankFadeDistance) so a group fans out.
 # Notices: always knows its target (raiders are sent at it); takes its fighting stance and shouts within EngageRadius.
@@ -12,11 +13,14 @@
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
 tree Assets/_Game/Content/Enemies/_Shared/Melee.asset
 Repeater "Repeat forever"
-  Selector "Hunt, else wander"
+  Selector "Hunt, else celebrate, else wander"
     Sequence AbortType=Both "Hunt (aborts both ways)"
       ChooseTarget "Target?"
       ChaseTarget "Chase"
       MeleeAttack "Swing"
+    Sequence "Celebrate the kill"
+      TargetDefeated "Target died?"
+      Celebrate "Dance in place"
     Sequence "Wander"
       ChooseWanderDestination "Choose reachable point"
       WalkToWanderDestination "Walk to point"

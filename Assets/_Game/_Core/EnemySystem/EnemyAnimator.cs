@@ -4,7 +4,8 @@ namespace Aipocalypse.Core.EnemySystem
 {
     // Drives an enemy model's Animator from how its mover moves: Speed (m/s), LookX/LookY, Lean, and the Fidget trigger with
     // FidgetIndex; EnemyBody adds hits (Hit + HitIndex) and death (Dead + DeathIndex), the brain the fighting stance
-    // (Combat) and arrival (Appear), melee tasks swings (Attack + AttackIndex). No Update of its own:
+    // (Combat) and arrival (Appear), melee tasks swings (Attack + AttackIndex) and celebrating a kill (Celebrate +
+    // CelebrateIndex). No Update of its own:
     // EnemyAnimationManager advances every registered enemy each frame. Controllers follow the parameter contract of the
     // aipocalypse-characters skill (CharacterKit.BuildLocomotionController).
     [RequireComponent(typeof(EnemyMover))]
@@ -24,6 +25,8 @@ namespace Aipocalypse.Core.EnemySystem
         static readonly int AttackIndexId = Animator.StringToHash("AttackIndex");
         static readonly int CombatId = Animator.StringToHash("Combat");
         static readonly int AppearId = Animator.StringToHash("Appear");
+        static readonly int CelebrateId = Animator.StringToHash("Celebrate");
+        static readonly int CelebrateIndexId = Animator.StringToHash("CelebrateIndex");
         // HitIndex: where the hit came from, + Heavy for a hard push.
         const int HitFront = 0, HitBack = 1, HitLeft = 2, HitRight = 3, Heavy = 4;
 
@@ -31,6 +34,8 @@ namespace Aipocalypse.Core.EnemySystem
         [SerializeField, Min(0), Tooltip("Fidget states in the controller, picked by FidgetIndex 0..n-1")] int _fidgets;
         [SerializeField, Min(0), Tooltip("Death states in the controller, picked at random by DeathIndex 0..n-1")] int _deaths;
         [SerializeField, Min(0), Tooltip("Attack states in the controller, picked at random by AttackIndex 0..n-1")] int _attacks;
+        [SerializeField, Min(0), Tooltip("Celebration (dance) states in the controller, picked at random by CelebrateIndex 0..n-1")]
+        int _celebrations;
 
         EnemyMover _mover;
         EnemyAnimationSettings _settings;
@@ -92,6 +97,16 @@ namespace Aipocalypse.Core.EnemySystem
                 _animator.ResetTrigger(AppearId);
         }
 
+        // A random celebration, repeated while `on` (the enemy stands); none in the controller = it just idles.
+        public void Celebrate(bool on)
+        {
+            if (_motion == null)
+                return;
+            if (on && _celebrations > 0)
+                _animator.SetInteger(CelebrateIndexId, Random.Range(0, _celebrations));
+            _animator.SetBool(CelebrateId, on && _celebrations > 0);
+        }
+
         // Plays a random swing (full body; the enemy stands while it plays).
         public void Attack()
         {
@@ -111,6 +126,7 @@ namespace Aipocalypse.Core.EnemySystem
             _animator.ResetTrigger(FidgetId);
             _animator.ResetTrigger(AttackId);
             _animator.ResetTrigger(AppearId);
+            _animator.SetBool(CelebrateId, false);
             _animator.SetInteger(DeathIndexId, _deaths > 0 ? Random.Range(0, _deaths) : 0);
             _animator.SetBool(DeadId, true);
             for (int i = 1; i < _animator.layerCount; i++)
@@ -130,6 +146,7 @@ namespace Aipocalypse.Core.EnemySystem
             _animator.cullingMode = _culling;
             _animator.SetBool(DeadId, false);
             _animator.SetBool(CombatId, false);
+            _animator.SetBool(CelebrateId, false);
             for (int i = 1; i < _layerWeights.Length; i++)
                 _animator.SetLayerWeight(i, _layerWeights[i]);
         }

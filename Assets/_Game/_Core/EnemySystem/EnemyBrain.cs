@@ -56,8 +56,14 @@ namespace Aipocalypse.Core.EnemySystem
                 _target = value;
                 if (value == null)
                     Engaged = false;
+                else
+                    LastTarget = value;
             }
         }
+        // The last target it hunted this life (kept after the hunt ends).
+        public ITargetable LastTarget { get; private set; }
+        // Hunting nothing because what it last hunted died (the Melee subtree celebrates).
+        public bool TargetDefeated => _target == null && LastTarget != null && LastTarget.IsDead;
         // Close to the target: fighting stance and sprint (set by ChaseTarget). Shouts when it starts.
         public bool Engaged
         {
@@ -210,6 +216,7 @@ namespace Aipocalypse.Core.EnemySystem
             NextAttackTime = 0f;
             _nextRetarget = 0f;
             _engaged = false;
+            LastTarget = null;
             _appearEnd = 0f;
             Stats = new EnemyStats(_definition);
             Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this,
