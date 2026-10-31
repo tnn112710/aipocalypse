@@ -2,14 +2,16 @@
 
 How enemies combine: a fight's mix, a raid night's shape, where and how enemies spawn, how new kinds are introduced and how difficulty grows over days. Single-enemy design (jobs, telegraphs, thieves, bosses) is in [enemy-design.md](enemy-design.md); the raid director that runs all this is [building-blocks.md](building-blocks.md) block 2.
 
-Research done 2026-10-31. **Nothing here is approved for implementation**; raid rules come from CORE.md and are proposed before they're built (AGENTS.md → Prompt first, GDD second). *Proposal* marks a mapping onto our game; numbers are the source game's starting points. Level Up! (Scott Rogers, 2nd ed., 2014) could not be read in full: [TOC] = from its table of contents, [excerpt] = from a quoted passage, (unverified) = from summaries or memory. Sources are at the end.
+Research done 2026-10-31. **Nothing here is approved for implementation**; raid rules come from CORE.md and are proposed before they're built (AGENTS.md → Prompt first, GDD second). *Proposal* marks a mapping onto our game; numbers are the source game's starting points. Level Up! rules come from the `game-design` skill's notes on the book; (unverified) = from summaries or memory. Sources are at the end.
 
 ## 1. A spec sheet per enemy kind (Level Up!)
 
-- **Describe each kind by the same attributes:** size, behaviour, speed relative to the player, movement style, attack [TOC: Level 11 "They All Want You Dead"; template in Bonus Level 8]. *Proposal:* the tree spec's header answers (SKILL.md §0 step 3) plus these attributes are the kind's design sheet; the numbers live in its `EnemyDefinition`.
-- **Behaviour types** [excerpt]: patroller (fixed route), chaser (pursues once triggered), shooter (projectiles), guard (protects a thing or place, turns chaser or shooter if it's taken), bomber (attacks from above), burrower (repositions in an invulnerable state, with a window to counter; a teleporter gives none). Swarm, tank and the rest of his list (unverified). Ours: thieves are reverse guards (take a thing, then flee), breakers are chasers whose target is a structure, flyers are bombers.
-- **Combine so one enemy pins the player while another punishes from a different axis** [excerpt: guards holding the player while bombers attack from above]. Ground rushers plus a flyer, or hunters on the player while thieves work the paddock.
-- **The arena matters as much as the boss** [excerpt]; narrow areas carry danger, wide ones are for exploring (Rogers' Disneyland talk). The yard gate and fence gaps are our narrow places.
+Rogers' general rules (enemy attributes, behaviour vocabulary, encounters, bosses) are in the user-scope `game-design` skill: `references/enemies.md`, `encounters.md` and `bosses.md`, notes from the book itself with printed page numbers. This section only maps them onto aipocalypse and stands on its own where that skill isn't installed.
+
+- *Proposal:* a kind's design sheet is the tree spec's header answers (SKILL.md §0 step 3) plus his attributes: size, behaviour, speed relative to the player, movement style, attack. The numbers live in its `EnemyDefinition`.
+- His behaviour types (patroller, chaser, shooter, guard, bomber, burrower…) map onto ours: thieves are reverse guards (take a thing, then flee), breakers are chasers whose target is a structure, flyers are bombers.
+- Pin the player with one enemy and punish from another axis: ground rushers plus a flyer, or hunters on the player while thieves work the paddock.
+- Narrow places carry the danger, wide ones are for exploring (also his Disneyland talk): the yard gate and fence gaps are ours.
 
 ## 2. Composing a fight
 
@@ -68,6 +70,6 @@ Fields for when the raid director is built (data in `Data/Enemies/` or per map, 
 
 ## Sources
 
-Books and talks: Scott Rogers, *Level Up! The Guide to Great Video Game Design* 2nd ed. (Wiley 2014; table of contents via perlego.com/book/998835) and "Everything I Learned About Level Design I Learned from Disneyland" (GDC 2009; notes at craphound.com/disneylandleveldesign.txt); Jesse Schell, *The Art of Game Design* (interest curves); Valve, "Replayable Cooperative Game Design: Left 4 Dead" (GDC 2009 slides); Bungie, "The Illusion of Intelligence" (Halo, GDC 2002) and Halo 3 Objectives (web.cs.wpi.edu/~rich/courses/imgd4000-d09/lectures/halo3.pdf); Mike Stout, "Trinity part 5: setups" (gamedeveloper.com).
+Books and talks: Scott Rogers, *Level Up! The Guide to Great Video Game Design* (Wiley 2010; notes in the user-scope `game-design` skill) and "Everything I Learned About Level Design I Learned from Disneyland" (GDC 2009; notes at craphound.com/disneylandleveldesign.txt); Jesse Schell, *The Art of Game Design* (interest curves); Valve, "Replayable Cooperative Game Design: Left 4 Dead" (GDC 2009 slides); Bungie, "The Illusion of Intelligence" (Halo, GDC 2002) and Halo 3 Objectives (web.cs.wpi.edu/~rich/courses/imgd4000-d09/lectures/halo3.pdf); Mike Stout, "Trinity part 5: setups" (gamedeveloper.com).
 Articles: gamedeveloper.com → "The secret to Mario level design" (Hayashida), the AI of Doom 2016; pcgamesn.com Vermintide 2 enemy guide.
 Wikis (exact rules): 7daystodie.wiki.gg (Blood Moon Horde, Gamestage), 7d2dmodding.wiki.gg (Gamestages.xml), dontstarve.wiki.gg (Periodic hound attacks), minecraft.wiki (Raid), terraria.wiki.gg (Blood Moon, Pumpkin Moon, Solar Eclipse, Goblin Army), riskofrain2.wiki.gg (Difficulty, Directors, Elites), deeprockgalactic.wiki.gg (Swarm), brotato.wiki.spellsandguns.com (Endless Mode), they-are-billions.fandom.com; Plants vs. Zombies (Wikipedia).

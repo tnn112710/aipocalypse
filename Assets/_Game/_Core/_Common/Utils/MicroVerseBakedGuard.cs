@@ -12,7 +12,7 @@ namespace Aipocalypse.Core
     // bit-exact, so the 59 MB asset changed with nothing edited. MicroVerseKit.Enable(true) sets RebuildKey for the session.
     static class MicroVerseBakedGuard
     {
-        public const string RebuildKey = "Aipocalypse.MicroVerseRebuild";
+        public const string RebuildKey = "MicroVerseKit.Enabled";
 
         static Type _microVerseType;
 

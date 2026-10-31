@@ -333,8 +333,8 @@ public static class MicroVerseKit
     public static object Enable(bool enabled)
     {
         var mv = RequireMicroVerse();
-        // aipocalypse: MicroVerseBakedGuard disables MicroVerse on scene open and reload unless this session flag is set.
-        SessionState.SetBool("Aipocalypse.MicroVerseRebuild", enabled);
+        // Session flag for an editor guard that keeps MicroVerse off between rebuilds (baked mode): set means a deliberate Enable.
+        SessionState.SetBool("MicroVerseKit.Enabled", enabled);
         if (mv.enabled == enabled) return new { mv.enabled, changed = false };
         if (!enabled && mv.IsModifyingTerrain) throw new InvalidOperationException("MicroVerse is still rebuilding; wait until Status shows modifying: false.");
         Undo.RecordObject(mv, enabled ? "Enable MicroVerse" : "Disable MicroVerse");

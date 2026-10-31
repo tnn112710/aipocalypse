@@ -1,6 +1,6 @@
 ---
 name: tools-unity-map-generation
-description: Building or changing a map in aipocalypse the WorldMap way — the editor generator in AgentScripts/Maps/<Map>/ (layout tables to height field, MicroVerse stamps, masks, water, boundary, dressing), rebuild discipline, verification and map perf. Use for any map, layout, region, lake / river / pond, boundary, map-wide dressing, rescale or WorldMap generator change. NOT the MicroVerse API (unity-microverse) or SW3 internals (tools-unity-stylized-water).
+description: Building or changing a map in aipocalypse the WorldMap way — the editor generator in AgentScripts/Maps/[Map]/ (layout tables to height field, MicroVerse stamps, masks, water, boundary, dressing), rebuild discipline, verification and map perf. Use for any map, layout, region, lake / river / pond, boundary, map-wide dressing, rescale or WorldMap generator change. NOT the MicroVerse API (unity-microverse) or SW3 internals (tools-unity-stylized-water).
 ---
 
 # Map generation (aipocalypse)
@@ -41,7 +41,7 @@ Read before acting:
 - **Builders are idempotent**: each deletes and recreates its own root group with Undo, takes a seed, uses its own `System.Random`, returns counts and throws when inputs are missing (no silent partial groups).
 - **Group paths are an API**: clear masks, the render-policy pass and partial rebuilds read them. Keep them stable, as shared constants.
 - **`script run` compiles one file**, unoptimised, and loads a new assembly per run. Helper classes must live in the same file (why WorldMapLayout.cs is ~5.7k lines; `RiverLevel.cs` keeps copies of layout data). Hot loops: `async Task<object>` + `await Task.Run(() => Parallel.For(...))`, asset calls after the await, a long enough CLI `--timeout` (one timeout per request). A timed-out call keeps running: wait for `editor status` before retrying.
-- **Save specific assets only** (`SaveAssetIfDirty`; importers via `WriteImportSettingsIfDirty` + `ImportAsset`). Known violations to fix when touched: `BuildUnderwater` (WML:2188), `Atmosphere.RenderQuality` (also loads a moved settings path: don't run it), `DayNightSetup.cs:71`.
+- **Save specific assets only** (AGENTS.md editor gotchas). Known violations to fix when touched: `BuildUnderwater` (WML:2188), `Atmosphere.RenderQuality` (also loads a moved settings path: don't run it), `DayNightSetup.cs:71`.
 - **Vendor content is read-only**: material copies (refresh then tune), prefab variants, first-party copies in `Environment/`. A builder must never reset a hand-tuned shared asset (`BuildBanks` once turned instancing off on a material the user had enabled).
 
 ## 3. Build order

@@ -1,6 +1,6 @@
 ---
 name: aipocalypse-characters
-description: How characters get into aipocalypse from any vendor — model vs entity prefab under Content/<Kind>/<Name>/, the animator parameter contract and CharacterKit, EnemyAnimator and the central animation tick, prefab variants, verifying looks and animation. Use for any task that adds, swaps, re-skins, animates or tunes an enemy, NPC, companion, animal or boss model. Behaviour is aipocalypse-enemy-ai; Synty specifics are tools-unity-synty-characters.
+description: How characters get into aipocalypse from any vendor — model vs entity prefab under Content/[Kind]/[Name]/, the animator parameter contract and CharacterKit, EnemyAnimator and the central animation tick, prefab variants, verifying looks and animation. Use for any task that adds, swaps, re-skins, animates or tunes an enemy, NPC, companion, animal or boss model. Behaviour is aipocalypse-enemy-ai; Synty specifics are tools-unity-synty-characters.
 ---
 
 # Characters in aipocalypse
@@ -110,45 +110,14 @@ Layers: Base (Locomotion, Combat, fidget, death and attack states), HeadLook (ad
 
 ## 5. Performance (crowds)
 
-Per character: one Animator (state machine + 4 layers), one SkinnedMeshRenderer with ~100–115 bones, and the vertex count.
-- Measure with `PerfSuite.Crowd(counts, seconds, hour, profile, keep, ab)` (`AgentScripts/Perf/`, in Play).
-  - It hides the scene's enemies, spawns goblins in front of the player and reports each count facing the crowd and facing away, with enemy, Animator and skinning markers.
-  - `ab` measures runtime variants at the largest count, each restored after: `cull`, `nodebug`, `nolayers`, `noshadow`, `lodN`, `thrX`, `biasX`, `base`.
-- **Measured 2026-10-27** (editor Play, 1080p, RTX 5070 Ti Laptop + Core Ultra 7 255HX; linear from 0 to 300 goblins):
-
-  | Per goblin | Before | Now (LOD2 bias 2, `CullCompletely`) |
-  | --- | --- | --- |
-  | Main thread, on screen | ~27 µs | ~28 µs |
-  | Main thread, off screen | ~17 µs | ~13 µs |
-  | GPU, on screen | ~15 µs | ~12 µs |
-  | Triangles drawn (depth, color, shadows) | ~72k | ~25k |
-
-  - Main thread at 80 goblins, on screen, per frame:
-    - Animator ~1 ms (`DirectorUpdateAnimationBegin` + `End`; ~0.1 ms when off screen with `CullCompletely`);
-    - `EnemyAnimationManager` ~0.3 ms;
-    - Behavior Designer ~0.2 ms;
-    - physics ~0.2 ms;
-    - skinning ~0.1 ms;
-    - `EnemyManager.Think` ~0.03 ms.
-  - Baseline without enemies: ~7 ms PlayerLoop and ~2.3 ms GPU. Editor numbers: confirm in a development build.
-  - Budget: 80 goblins are ~2.3 ms of main thread and ~1 ms of GPU here (≈2.5–3 ms on a 2060) with bias 2.
-- **Bias back to 0 (2026-10-28):** bias 2 kept every goblin on LOD2 even at arm's length: blocky faces, arms broken into segments, very visible in the T-pose of edit mode and in melee range. With bias 0, screen size picks the level (LOD0 close, LOD1/2 farther). Cost at 80 goblins clustered in view (`ab` `bias2` vs `base`): 14.1 M vs 10.2 M triangles, about +0.6 ms GPU here (≈+1.5–2 ms on a 2060), main thread unchanged; facing away, identical. Bias 1 sits between (12.3 M). If crowds need the GPU back, raise the bias only for far enemies (a distance tier), never on close ones.
-- **Tried, no gain:**
-  - FollowerEntity `debugFlags` off: nothing measurable. Goblin.prefab has it off anyway.
-  - Project-wide Mesh LOD Threshold: works (8 ≈ bias 4), but it changes every Mesh LOD asset and every distance. Prefer a per-renderer bias on far enemies only.
-- Next levers, cheapest first:
-  - Fewer layers for distant enemies. All three look / lean layers off saved ~25% of the Animator cost.
-  - Shadows off for far enemies (−0.36 ms GPU at 80 with all of them off).
-  - **GPU Instancer Pro – Crowd Animations** for hundreds (PLUGINS.md, Undecided: ask).
-  - Optimize Transform Hierarchy is unverified here (tools-unity-synty-characters §2).
-- `EnemyAnimationManager` itself is a loop of `SetFloat`s with cached hashes: zero allocations. Its per-call costs (`SetFloat`, `FollowerEntity.velocity`) are under 1 µs, so it's not worth optimizing.
+Per-character cost drivers, how to measure (`PerfSuite.Crowd`), the measured per-goblin timings, why the Mesh LOD bias went back to 0, what was tried without gain, and the next levers, cheapest first: [references/performance.md](references/performance.md). Read it before changing enemy counts, LODs, shadows or Animator layers.
 
 ## 6. Traps learned building the Goblins
 
-- **Save only what you wrote.** `AssetDatabase.SaveAssets()` writes every dirty asset in the editor. During the Goblin work it re-saved WorldMap's terrain (a 59 MB LFS blob). Use `AssetDatabase.SaveAssetIfDirty(asset)` per asset, as the kits do, and check `git status` for unrelated files before finishing.
+- **Save only what you wrote** (AGENTS.md editor gotchas). During the Goblin work `SaveAssets()` re-saved WorldMap's terrain; the kits save per asset.
 - **Instantiating in the active scene dirties it.** Build models in a throwaway additive scene (`SidekickKit`, `BuildGoblin`) and preview through `PreviewRenderUtility.InstantiatePrefabInScene` (`CharacterKit.Snapshot`).
 - **Unpack before restructuring.** A prefab instance's hierarchy can't change, so unpack it first: `DeoptimizeTransformHierarchy` silently does nothing on a connected instance.
-- **Optimized hierarchies don't skin outside an updating Animator.** Previews show nothing, and thumbnail generators log "Bones do not match bindpose".
+- **Optimized hierarchies don't skin outside an updating Animator** (tools-unity-synty-characters §2, `optimizeHierarchy`).
 - **Posing:** `AnimationClip.SampleAnimation` poses a humanoid instance in a preview scene; a PlayableGraph evaluated there didn't.
 - **Root speed:** `ClipInfo.averageSpeed` is 0 when root motion is baked into the pose. Take speeds from the vendor's documentation.
 - **IDs:** `Object.GetInstanceID()` is obsolete (an error) in Unity 6.6. Seed per-instance randomness with `Random.Range`, or use `GetEntityId()`.

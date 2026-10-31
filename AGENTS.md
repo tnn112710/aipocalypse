@@ -34,6 +34,7 @@ bash .claude/hooks/check-undeclared-packs.sh                # vendor folders mis
 - The first frame after a `script run` includes its in-memory compile (~0.5 s): skip it when measuring. For clean editor perf numbers hide the Hierarchy window (it rebuilds per change and spikes with ~16k objects).
 - `capture game_view --save_path` resolves under `Assets/` and imports the image: delete it with `AssetDatabase.DeleteAsset` afterwards.
 - In Git Bash, heredocs containing an apostrophe break; write edit scripts to a file and run that.
+- **Save only what you wrote.** Never `AssetDatabase.SaveAssets()` in editor scripts: it writes every dirty asset in the editor, e.g. vendor materials upgraded in memory, or WorldMap's 59 MB LFS TerrainData through MicroVerse's save hook. Save each asset with `AssetDatabase.SaveAssetIfDirty(asset)` (importers: `WriteImportSettingsIfDirty` + `ImportAsset`), then check `git status` for unrelated files.
 - `test run` blocks the editor on a modal "Scene(s) Have Been Modified" dialog when an open scene is dirty (the CLI just times out). Check `SceneManager.GetActiveScene().isDirty` first and ask the user before discarding anything.
 - The EditMode test assembly is editor-only, so its MonoBehaviours can't be added to GameObjects; a test component goes in the PlayMode test assembly (see `ControllerHitRelay`).
 
@@ -56,7 +57,9 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `tools-unity-synty-characters` | Synty characters and clips: building / customizing Sidekick characters without the window (`SidekickKit`), Sidekick and Polygon packs, Base / Goblin Locomotion clips, vendor traps |
 | `tools-unity-animation-rigging` | Any IK, aim / look-at, hand-on-weapon, foot grounding, secondary motion, arms / forearms or rig-driven clip work: Animation Rigging rigs built from code, manual evaluation, baking rigs into clips (`RigKit`), Control Rig Pro and its traps |
 
-The project skills hold only what is specific to this repo. Library detail lives in generic user-scope skills in Claude Code (`~/.claude/skills/`): `unity-vcontainer`, `unity-messagepipe`, `unity-unitask`, `unity-6-new-apis`, `unity-behavior-designer-pro`, `unity-astar`, `unity-microverse`, and `unity-optimization-pc` for measuring or optimising performance. The project skills point to them; when they are not available (other agents, other machines), read the package source under `Packages/` or `Library/PackageCache/` instead of guessing.
+The project skills hold only what is specific to this repo. Library detail lives in generic user-scope skills in Claude Code (`~/.claude/skills/`): `unity-vcontainer`, `unity-messagepipe`, `unity-unitask`, `unity-6-new-apis`, `unity-behavior-designer-pro`, `unity-astar`, `unity-microverse`, `unity-optimization-pc` for measuring or optimising performance, and `unity-audio-import-optimization` for audio import presets. Design: `game-design` and `open-world-design` (engine-neutral; design reviews of this game go in `docs/reviews/`). Behavior Designer via the Atlas MCP: `build-opsive-behavior`, `diagnose-opsive-problem`, `review-opsive-code`. The project skills point to them; when they are not available (other agents, other machines), read the package source under `Packages/` or `Library/PackageCache/` instead of guessing.
+
+Plugin skills that conflict with this project, ignore them: `unity:initialize-ai-navigation` (NavMesh; enemies use A*), `unity:audio-setup-mixers` and `unity:optimize-audio` (BroAudio and `unity-audio-import-optimization` own audio), `unity:ui-uitk` (game UI is uGUI). Generic `oss-unity` skills yield to the project and user skills above.
 
 To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `description` frontmatter, and add a row here. The `tools-unity-*` skills started from [tjboudreaux/cc-plugin-unity-gamedev](https://github.com/tjboudreaux/cc-plugin-unity-gamedev) (MIT, `.agents/skills/THIRD_PARTY_LICENSE-unity-gamedev.txt`).
 
@@ -118,6 +121,7 @@ When writing code, the user's prompt is the spec.
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
 - `docs/gdd/` — game design. Design intent: `docs/gdd/GDD.md` is the index of per-topic files; start with `docs/gdd/CORE.md` (pitch, pillars, core loop). `docs/gdd/IDEAS.md` is a draft scratchpad, not canon — never implement from it unless explicitly asked.
 - `docs/technicals/` — one doc per system; read the one you touch: `ARCHITECTURE` (layout, data flow), `CODE_STRUCTURE` (script map — update whenever you add, move or remove a script), `PLUGINS`, `ASSETS`, `SYNTY_CATALOG` (Synty packs not yet imported), `UI` (HUD), `EQUIPMENT` (items, hotbar), `WEAPONS`, `HANDS` (first-person grips, poses, clips), `ENVIRONMENT` (world map), `DAYNIGHT`, `CONSOLE` (dev console, cheats), `DEBUG` (other debug tools).
+- `docs/reviews/` — dated design reviews (proposals and review directions, not canon; same ask-first rule as the GDD).
 - Current milestone/tasks: `docs/ROADMAP.md`.
 
 ## Code style

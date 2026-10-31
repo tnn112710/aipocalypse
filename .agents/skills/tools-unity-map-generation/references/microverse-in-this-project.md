@@ -15,7 +15,7 @@ All of it is vendor content: reference it, never edit it. Terrain-layer and art-
 
 ## 2. Running the kit here
 
-The kit is `.agents/skills/tools-unity-map-generation/scripts/MicroVerseKit.cs`, a copy of the user-scope `unity-microverse` kit kept in the repo so the map rebuilds on any clone and for any agent (`script run` takes an absolute path). "Kit `Rebuild`" in ENVIRONMENT.md and in these references means that file. When the user-scope kit is improved, copy it back here.
+The kit is `.agents/skills/tools-unity-map-generation/scripts/MicroVerseKit.cs`, a copy of the user-scope `unity-microverse` kit kept in the repo so the map rebuilds on any clone and for any agent (`script run` takes an absolute path). "Kit `Rebuild`" in ENVIRONMENT.md and in these references means that file. Keep the two copies byte-identical: after editing either, copy it over the other and `diff` them.
 
 ```bash
 K="$(cygpath -m "$PWD/.agents/skills/tools-unity-map-generation/scripts/MicroVerseKit.cs")"

@@ -68,6 +68,8 @@ Every spec answers these (SKILL.md §0 step 3); check them in play, not only in 
 
 ## 5. Bosses and minibosses
 
+General boss structure from *Level Up!*: user-scope `game-design` skill, `references/bosses.md`. Below: rules picked for this game.
+
 **Structure**
 - Teach, then test: Build-up → Reveal → Business as usual (basic attacks, any new mechanic taught safely) → Escalation → Midpoint → "It's ON!" (full moveset) → Kill → Victory (Stout).
 - Each phase changes a rule or the arena, not only stats: Death's Gambit introduces a two-part boss's halves separately before combining them, and its harder versions add one twist instead of more health. *Proposal:* a later phase targets fences or animals, or calls adds.
