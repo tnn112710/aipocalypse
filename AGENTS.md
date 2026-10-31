@@ -46,6 +46,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | `tools-unity-stylized-water` | Any Stylized Water 3 work: water bodies, RiverModeler rivers, waterfalls, underwater, height queries, water materials and perf |
 | `tools-unity-shader-graph` | Any shader or material effect: creating or editing Shader Graphs (agents use its `ShaderGraphKit`), copying vendor graphs into `_Game`, AllIn1 Shader Nodes, custom HLSL nodes, shader values driven from C#, keywords and variants |
 | `tools-unity-synty-characters` | Synty characters and clips: building / customizing Sidekick characters without the window (`SidekickKit`), Sidekick and Polygon packs, Base / Goblin Locomotion clips, vendor traps |
+| `tools-unity-animation-rigging` | Any IK, aim / look-at, hand-on-weapon, foot grounding, secondary motion, arms / forearms or rig-driven clip work: Animation Rigging rigs built from code, manual evaluation, baking rigs into clips (`RigKit`), Control Rig Pro and its traps |
 
 The project skills hold only what is specific to this repo. Library detail lives in generic user-scope skills in Claude Code (`~/.claude/skills/`): `unity-vcontainer`, `unity-messagepipe`, `unity-unitask`, `unity-6-new-apis`, `unity-behavior-designer-pro`, `unity-astar`, `unity-microverse`, and `unity-optimization-pc` for measuring or optimising performance. The project skills point to them; when they are not available (other agents, other machines), read the package source under `Packages/` or `Library/PackageCache/` instead of guessing.
 
