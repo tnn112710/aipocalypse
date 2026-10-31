@@ -2,7 +2,7 @@
 
 Every agent behaviour the design mentions, read from `docs/gdd/` on 2026-10-31, with where it comes from and the building blocks it needs. **Nothing here is approved for implementation.** Each behaviour is proposed and confirmed with the user before it is built (AGENTS.md → Prompt first, GDD second), and the GDD moves: re-read the cited section before relying on a row.
 
-Source tags: **Canon** = `CORE.md` / `FARM_AND_ECONOMY.md`; **Idea** = `IDEAS.md` (draft, never build from it unless asked); **Open** = the GDD names it as undecided. Building blocks are in [building-blocks.md](building-blocks.md).
+Source tags: **Canon** = `CORE.md` / `FARM_AND_ECONOMY.md`; **Idea** = `IDEAS.md` (draft, never build from it unless asked); **Open** = the GDD names it as undecided. Building blocks are in [building-blocks.md](building-blocks.md); design guidance per family (thieves, breakers, raid end, pursuit limits, night, bosses) is in [enemy-design.md](enemy-design.md) and for raids, waves and difficulty in [encounters-and-waves.md](encounters-and-waves.md).
 
 ## Agent families
 
