@@ -24,6 +24,10 @@ namespace Aipocalypse.Core.EnemySystem
         [Min(1), Tooltip("Enemies a spawned group brings into play per frame (waking one costs several ms), so a wave doesn't hitch")]
         public int SpawnsPerFrame = 1;
 
+        [Header("Looks")]
+        [Tooltip("Added to every enemy renderer: the night highlight (a light only enemies receive) picks them by it")]
+        public RenderingLayerMask RenderingLayer;
+
         [Header("Sound")]
         [Min(1), Tooltip("Most enemy footsteps played per second, all enemies together")] public int MaxFootstepsPerSecond = 12;
 

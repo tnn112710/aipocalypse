@@ -54,6 +54,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `afps.show`, `afps.hide` | Advanced FPS Counter overlay, off by default (`show` adds one to a scene without it) |
 | `clock.now`, `clock.set <hour>`, `clock.phase <phase>`, `clock.nexthour`, `clock.nextphase` | World clock: read, jump (scenes with a `WorldTimeInstaller` only) |
 | `clock.skip <hour> <seconds>`, `clock.speed [0–1]`, `clock.freeze <on/off>` | Fast-forward with every hour passing; slow or stop the clock |
+| `highlight.light [on/off]`, `highlight.reset` | The enemies' night light ([DAYNIGHT.md](DAYNIGHT.md#enemies-at-night)): read, switch for this session, back to the settings asset (scenes with a `NightHighlight` on the `EnvironmentInstaller` only) |
 | `enemy.spawn <card> [count=1]`, `enemy.clear`, `enemy.count` | Spawn enemies of a card (`EnemySystemSettings.Cards`, any unique start of its name: `goblin`) 15 m in front of the player, one per frame; despawn every enemy and drop the console's queued spawns (a raid's stay); enemies in play (scenes with an `EnemyInstaller` only) |
 | `raid.start`, `raid.stop`, `raid.next`, `raid.status` | Start tonight's raid now (even by day); end it and despawn its raiders; start the next wave now; the night, wave, spawned / alive and how the last raid ended (scenes with a `RaidInstaller` only, [RAIDS.md](RAIDS.md)) |
 

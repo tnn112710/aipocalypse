@@ -13,6 +13,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [SerializeField, Tooltip("The scene's time-of-day lighting. Follows the clock when there is one")] EnvironmentDirector _director;
         [SerializeField, Tooltip("Optional: bends Stylized Grass around enemies and animals")] GrassBendField _grassBending;
         [SerializeField, Tooltip("Optional: time-of-day sound beds and calls; needs the WorldTimeInstaller")] TimeOfDayAmbience _ambience;
+        [SerializeField, Tooltip("Optional: keeps enemies readable at night (a light only they receive)")] NightHighlight _nightHighlight;
 
         public override string Problem => _director == null ? "no Environment Director assigned" : null;
 
@@ -21,6 +22,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
             builder.RegisterComponent(_director);
             if (_grassBending != null)
                 builder.RegisterComponent(_grassBending);
+            if (_nightHighlight != null)
+            {
+                builder.RegisterComponent(_nightHighlight);
+                // Editor and development builds only.
+                if (Debug.isDebugBuild)
+                    builder.RegisterEntryPoint<NightHighlightCommands>();
+            }
             if (_ambience == null)
                 return;
             if (!TryGetComponent(out WorldTimeInstaller clock) || clock.Problem != null)

@@ -31,7 +31,15 @@ namespace Aipocalypse.Core.EnemySystem
         internal bool Tracked { get; set; }
 
         [Inject]
-        void Construct(EnemyBodyManager manager) => _manager = manager;
+        void Construct(EnemyBodyManager manager, EnemySystemSettings settings)
+        {
+            _manager = manager;
+            uint layer = settings.RenderingLayer.value;
+            if (layer == 0)
+                return;
+            foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
+                r.renderingLayerMask |= layer;
+        }
 
         // On every activation (EnemyBrain): full health from the stats, colliders back on, the visual back in place.
         public void Revive(EnemyStats stats, EnemyReactionSettings settings)

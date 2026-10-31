@@ -159,6 +159,18 @@ At night a light around the player lights the near ground, so things close by re
 - **No shadows** by default: a point light renders six shadow maps. `LanternDefinition.Shadows` turns them on per lantern; measure first.
 - Against the current night looks (moonlit, fairly bright ambient) the lit area shows near you, but the far field stays readable. Darker `TOD_Night` / `TOD_Midnight` ambient would make the radius matter more.
 
+## Enemies at night
+
+Enemies stay readable in the dark with a light only they receive. Code: `EnvironmentSystem/NightHighlight/`; tuning: `Data/Environment/NightHighlight.asset`.
+
+- **Who:** renderers on the **Enemy** rendering layer (Tags and Layers → Rendering Layers, index 8). Every enemy joins it on injection: `EnemyBody` adds `EnemySystemSettings.RenderingLayer` to its renderers, so a new enemy kind needs nothing. Physics layers are untouched.
+- **When:** `Environment/Time Of Day/Night Highlight` is a `TimeOfDayReactor` on **Darkness** (response 1.5 s): the light scales with it and is off by day.
+- **Light** (`LightEnabled`): `Night Highlight/Enemy Light`, a directional light with no shadows whose rendering layers are the Enemy layer only, so nothing else gets brighter. It shines the way the player looks, kept level (`LightPitch` 35° down, `LightYaw` 35° to the side), so the side facing the player is lit wherever the moon is. Shape and colour come from the enemy's own shading, so it needs a lit shader. No distance fade (a directional light reaches everywhere): fog and size hide far enemies.
+- **Switch:** `LightEnabled` in the asset (live in Play mode); `highlight.light on|off` overrides it for the session, `highlight.reset` drops the override.
+- **Tried and dropped:** a fresnel rim around enemies (a renderer feature): on these faceted low-poly models it sparkled per facet and wasn't liked.
+- **Cost** (editor, 69 goblins in view): no measurable GPU change. Not measured in a build or at 300 enemies.
+- **Setup:** `NightHighlightSetup.All()` (`AgentScripts/DayNight/`) adds the layer, the asset and the scene objects; safe to re-run.
+
 ## Ambience
 
 `TimeOfDay/TimeOfDay_Ambience.asset` (`TimeOfDayAmbience`), played by `AmbienceService` (scene scope): the `EnvironmentInstaller`'s optional Ambience, installed only when the scope also has a ready `WorldTimeInstaller` (else a warning):
@@ -193,6 +205,7 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 | Unlit effects at night | Each look's Unlit Tint |
 | Lamps, windows | `TimeOfDayLight` / `TimeOfDayEmission` hours and colours |
 | The player's light at night | `Data/Player/PlayerVisionTuning.asset`; a lantern's share: `Content/Items/Lantern/Lantern.asset` |
+| How enemies read at night | `Data/Environment/NightHighlight.asset` (on switch, colour, intensity, direction) |
 | Ambience | `TimeOfDay_Ambience` curves and calls |
 
 ## Setup scripts
