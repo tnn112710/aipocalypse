@@ -117,7 +117,7 @@ HotbarSlot                   HotbarSlotView component
 ```text
 InteractPrompt               InteractPromptView component
 └─ Content                   HorizontalLayoutGroup + ContentSizeFitter: grows with the text; shown / hidden as a whole
-   ├─ KeyCap                 36×36 key sprite + TMP label (from the Interact binding)
+   ├─ KeyCap                 36×36 key sprite + bold TMP label: the Interact key only ("E", not "Hold E")
    └─ Text                   TMP: verb in VerbColor, target name in TargetColor
 ```
 

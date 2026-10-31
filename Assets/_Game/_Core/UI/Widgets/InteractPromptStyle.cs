@@ -13,11 +13,12 @@ namespace Aipocalypse.Core.UI
         [BoxGroup("Key")] public TMP_FontAsset KeyFont;
         [BoxGroup("Key")] public Color KeyLabelColor = new(0.1f, 0.1f, 0.1f, 1f);
         [BoxGroup("Key"), Min(1f)] public float KeyFontSize = 20f;
+        [BoxGroup("Key")] public bool KeyBold = true;
 
         [BoxGroup("Text")] public TMP_FontAsset Font;
         [BoxGroup("Text")] public Color VerbColor = new(0.95f, 0.95f, 0.95f, 1f);
         [BoxGroup("Text"), Tooltip("Color of the item / object name")] public Color TargetColor = new(1f, 0.72f, 0.6f, 1f);
-        [BoxGroup("Text"), Min(1f)] public float FontSize = 26f;
+        [BoxGroup("Text"), Min(1f)] public float FontSize = 31f;
 
 #if UNITY_EDITOR
         // Edit-time preview only: prompts re-apply their style in Awake.

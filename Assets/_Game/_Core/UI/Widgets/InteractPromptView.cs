@@ -50,6 +50,7 @@ namespace Aipocalypse.Core.UI
                 _keyLabel.font = _style.KeyFont;
             _keyLabel.color = _style.KeyLabelColor;
             _keyLabel.fontSize = _style.KeyFontSize;
+            _keyLabel.fontStyle = _style.KeyBold ? FontStyles.Bold : FontStyles.Normal;
 
             if (_style.Font != null)
                 _text.font = _style.Font;

@@ -124,11 +124,12 @@ namespace Aipocalypse.Input
                 : string.Empty;
 
         // Key name for Interact ("E"), follows rebinding. Allocates: call at setup, not per frame.
-        public string GetInteractKeyLabel() =>
-            _actions.Player.Interact.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+        public string GetInteractKeyLabel() => GetKeyLabel(GameButton.Interact);
 
-        // Key name for a button ("R"), follows rebinding. Allocates: call when it's shown, not per frame.
-        public string GetKeyLabel(GameButton button) => Action(button).GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+        // Key name for a button ("R"), follows rebinding. The key only: Interact's Hold interaction would read "Hold E".
+        // Allocates: call when it's shown, not per frame.
+        public string GetKeyLabel(GameButton button) =>
+            Action(button).GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup), InputBinding.DisplayStringOptions.DontIncludeInteractions);
 
         InputAction Action(GameButton button) => button switch
         {
