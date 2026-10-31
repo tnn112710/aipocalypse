@@ -36,7 +36,7 @@ Skills live in **`.agents/skills/<name>/SKILL.md`** (Codex reads this path; `.cl
 | Skill | Read before |
 | --- | --- |
 | `aipocalypse-architecture` | Registrations, scopes, installers, injection; gameplay events (MessagePipe); any async/await, delays, pause; C# touching serialization, statics, play-mode hooks, build defines or Unity 6.6 APIs |
-| `aipocalypse-enemy-ai` | Any enemy/companion/NPC movement or AI decision: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager`, A* `FollowerEntity`, navmesh, spawning |
+| `aipocalypse-enemy-ai` | Any enemy/companion/animal/NPC movement or AI decision, and designing behaviours: EnemySystem, Behavior Designer Pro trees ticked by `EnemyManager` and built from text specs (`TreeKit`), A* `FollowerEntity`, navmesh, spawning, the GDD behaviour catalogue and AI building blocks |
 | `aipocalypse-characters` | Adding, swapping or animating any character model (enemy, NPC, companion, animal), from any vendor: model vs entity prefab, the animator parameter contract and `CharacterKit`, `EnemyAnimator`, verifying looks and animation |
 | `tools-unity-feel` | Game feel / feedbacks (allowed vs banned feedbacks; points to Feel's own skills) |
 | `tools-unity-broaudio` | Any sound, music or ambience: `AudioService`, `SoundID`s, BroAudio libraries (points to BroAudio's `CLAUDE.md`) |

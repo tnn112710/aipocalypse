@@ -1,7 +1,7 @@
 // Builds the Goblin enemy kind from the WanderCapsule enemy contract: unity command script run --file
 // AgentScripts/Characters/Goblin/BuildGoblin.cs --entry BuildGoblin.All. Needs the models (SidekickKit.Build) and the
-// controller (CharacterKit.BuildLocomotionController, Goblin.animspec.txt) and the Melee subtree (AgentScripts/Enemies/
-// EnemyTrees.cs) first. Re-running creates only what's missing
+// controller (CharacterKit.BuildLocomotionController, Goblin.animspec.txt) and the Melee subtree (TreeKit.Build of
+// AgentScripts/Enemies/Melee.tree.txt) first. Re-running creates only what's missing
 // and upgrades existing prefabs in place (LoadPrefabContents keeps file IDs): rebuilding Goblin.prefab would give its
 // children new file IDs and break the variants' removed-Model overrides.
 using System;
@@ -73,7 +73,7 @@ public static class BuildGoblin
         if (controller == null)
             return "no Goblin.controller: build it from AgentScripts/Characters/Goblin/Goblin.animspec.txt first";
         if (AssetDatabase.LoadAssetAtPath<ScriptableObject>(MeleeTree) == null)
-            return "no Melee subtree: build it with AgentScripts/Enemies/EnemyTrees.cs (EnemyTrees.Melee) first";
+            return "no Melee subtree: build it from AgentScripts/Enemies/Melee.tree.txt (TreeKit.Build, aipocalypse-enemy-ai skill) first";
         GameObject sword = SwordPrefab();
 
         Scene active = SceneManager.GetActiveScene();

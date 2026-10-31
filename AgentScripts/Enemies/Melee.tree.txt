@@ -1,0 +1,16 @@
+# The goblins' tree: fight the player while in reach (chase, swing), else wander. The fight's abort (Both) re-checks
+# PlayerInReach every think: it cuts into the wander when the player comes near, and ends the fight when they get away.
+# Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
+#        --args '["AgentScripts/Enemies/Melee.tree.txt"]'
+# Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
+tree Assets/_Game/Content/Enemies/_Shared/Melee.asset
+Repeater "Repeat forever"
+  Selector "Fight, else wander"
+    Sequence AbortType=Both "Fight (aborts both ways)"
+      PlayerInReach "Player in reach?"
+      ChaseTarget "Chase"
+      MeleeAttack "Swing"
+    Sequence "Wander"
+      ChooseWanderDestination "Choose reachable point"
+      WalkToWanderDestination "Walk to point"
+      PauseWander "Pause"
