@@ -23,6 +23,9 @@ namespace Aipocalypse.Core.EnemySystem
         GrassBendField _grassBending;
         ITargetable _target;
         float _nextRetarget;
+        // Time.time its appear ends (0: not appearing); requested by the spawner, begun on activation.
+        float _appearEnd;
+        bool _appearRequested;
         bool _engaged;
         bool _started;
 
@@ -123,6 +126,31 @@ namespace Aipocalypse.Core.EnemySystem
         // Killed (EnemyBody): stops thinking and walking; the body stays until it disables itself, and enabling revives it.
         public void Die() => StopActing();
 
+        // Just spawned: plays its appear clip and stands still for AppearTime (+ jitter) before its tree first thinks. Called by
+        // EnemySpawner; a fresh instance begins it on its first activation.
+        public void Appear()
+        {
+            _appearRequested = true;
+            if (RegistryIndex >= 0)
+                BeginAppear();
+        }
+
+        public bool Appearing => _appearEnd > 0f;
+
+        // One think (EnemyManager): nothing while appearing, else a tick of the tree.
+        internal void Think()
+        {
+            if (_appearEnd > 0f)
+            {
+                if (Time.time < _appearEnd)
+                    return;
+                _appearEnd = 0f;
+                if (Animation != null)
+                    Animation.EndAppear();
+            }
+            Tree.Tick();
+        }
+
         // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more.
         public ITargetable ChooseTarget()
         {
@@ -162,6 +190,7 @@ namespace Aipocalypse.Core.EnemySystem
 
         void StopActing()
         {
+            _appearRequested = false;
             Target = null;
             _slots?.Release(this);
             _registry?.Remove(this);
@@ -181,7 +210,10 @@ namespace Aipocalypse.Core.EnemySystem
             NextAttackTime = 0f;
             _nextRetarget = 0f;
             _engaged = false;
+            _appearEnd = 0f;
             Stats = new EnemyStats(_definition);
+            Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this,
+                multiply: CrowdSpread.SpeedFactor(_definition.SpeedVariance, Random.value)));
             Stats.Changed += ApplyStat;
             Mover.Initialize(_navigation, _definition, Stats);
             if (Body != null)
@@ -193,6 +225,16 @@ namespace Aipocalypse.Core.EnemySystem
             _registry.Add(this);
             if (_grassBending != null)
                 _grassBending.Add(transform, _definition.GrassBendRadius);
+            if (_appearRequested)
+                BeginAppear();
+        }
+
+        void BeginAppear()
+        {
+            _appearRequested = false;
+            _appearEnd = Mathf.Max(Time.time + _definition.AppearTime + Random.Range(0f, _definition.AppearJitter), 0.0001f);
+            if (Animation != null)
+                Animation.Appear();
         }
 
         void ApplyStat(EnemyStat stat)

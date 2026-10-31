@@ -4,7 +4,7 @@ namespace Aipocalypse.Core.EnemySystem
 {
     // Drives an enemy model's Animator from how its mover moves: Speed (m/s), LookX/LookY, Lean, and the Fidget trigger with
     // FidgetIndex; EnemyBody adds hits (Hit + HitIndex) and death (Dead + DeathIndex), the brain the fighting stance
-    // (Combat) and melee tasks swings (Attack + AttackIndex). No Update of its own:
+    // (Combat) and arrival (Appear), melee tasks swings (Attack + AttackIndex). No Update of its own:
     // EnemyAnimationManager advances every registered enemy each frame. Controllers follow the parameter contract of the
     // aipocalypse-characters skill (CharacterKit.BuildLocomotionController).
     [RequireComponent(typeof(EnemyMover))]
@@ -23,6 +23,7 @@ namespace Aipocalypse.Core.EnemySystem
         static readonly int AttackId = Animator.StringToHash("Attack");
         static readonly int AttackIndexId = Animator.StringToHash("AttackIndex");
         static readonly int CombatId = Animator.StringToHash("Combat");
+        static readonly int AppearId = Animator.StringToHash("Appear");
         // HitIndex: where the hit came from, + Heavy for a hard push.
         const int HitFront = 0, HitBack = 1, HitLeft = 2, HitRight = 3, Heavy = 4;
 
@@ -75,6 +76,22 @@ namespace Aipocalypse.Core.EnemySystem
                 _animator.SetBool(CombatId, combat);
         }
 
+        // Plays the controller's appear clip, if it has one (just spawned; the enemy stands while it plays).
+        public void Appear()
+        {
+            if (_motion == null)
+                return;
+            _animator.ResetTrigger(FidgetId);
+            _animator.SetTrigger(AppearId);
+        }
+
+        // The appear time is over: a trigger still pending (the model was culled off screen) must not play it late.
+        public void EndAppear()
+        {
+            if (_motion != null)
+                _animator.ResetTrigger(AppearId);
+        }
+
         // Plays a random swing (full body; the enemy stands while it plays).
         public void Attack()
         {
@@ -93,6 +110,7 @@ namespace Aipocalypse.Core.EnemySystem
             _animator.ResetTrigger(HitId);
             _animator.ResetTrigger(FidgetId);
             _animator.ResetTrigger(AttackId);
+            _animator.ResetTrigger(AppearId);
             _animator.SetInteger(DeathIndexId, _deaths > 0 ? Random.Range(0, _deaths) : 0);
             _animator.SetBool(DeadId, true);
             for (int i = 1; i < _animator.layerCount; i++)

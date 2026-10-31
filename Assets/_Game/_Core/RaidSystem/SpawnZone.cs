@@ -39,9 +39,18 @@ namespace Aipocalypse.Core.RaidSystem
 
         void OnValidate() => _maxRadius = Mathf.Max(_maxRadius, _minRadius);
 
-        void OnDrawGizmosSelected()
+        // Always drawn (Gizmos on in the Scene or Game view): a translucent band over the arc, brighter when selected.
+        void OnDrawGizmos() => DrawArc(false);
+        void OnDrawGizmosSelected() => DrawArc(true);
+
+        void DrawArc(bool selected)
         {
-            Gizmos.color = new Color(1f, 0.35f, 0.2f);
+            var edge = new Color(1f, 0.35f, 0.2f, selected ? 1f : 0.6f);
+#if UNITY_EDITOR
+            var fill = new Color(1f, 0.35f, 0.2f, selected ? 0.25f : 0.12f);
+            var quad = new Vector3[4];
+#endif
+            Gizmos.color = edge;
             Vector3 inner = Point(-_halfAngle, _minRadius);
             Vector3 outer = Point(-_halfAngle, _maxRadius);
             Gizmos.DrawLine(inner, outer);
@@ -50,6 +59,14 @@ namespace Aipocalypse.Core.RaidSystem
                 float angle = Mathf.Lerp(-_halfAngle, _halfAngle, i / (float)GizmoSegments);
                 Vector3 nextInner = Point(angle, _minRadius);
                 Vector3 nextOuter = Point(angle, _maxRadius);
+#if UNITY_EDITOR
+                quad[0] = inner;
+                quad[1] = outer;
+                quad[2] = nextOuter;
+                quad[3] = nextInner;
+                UnityEditor.Handles.color = fill;
+                UnityEditor.Handles.DrawAAConvexPolygon(quad);
+#endif
                 Gizmos.DrawLine(inner, nextInner);
                 Gizmos.DrawLine(outer, nextOuter);
                 inner = nextInner;
@@ -57,6 +74,11 @@ namespace Aipocalypse.Core.RaidSystem
             }
             Gizmos.DrawLine(inner, outer);
             Gizmos.DrawLine(transform.position, Point(0f, _minRadius));
+            Gizmos.DrawLine(transform.position, Point(-_halfAngle, _minRadius));
+            Gizmos.DrawLine(transform.position, Point(_halfAngle, _minRadius));
+#if UNITY_EDITOR
+            UnityEditor.Handles.Label(Point(0f, (_minRadius + _maxRadius) * 0.5f), $"Spawn zone '{_id}' ({_halfAngle * 2f:0}°)");
+#endif
         }
     }
 }

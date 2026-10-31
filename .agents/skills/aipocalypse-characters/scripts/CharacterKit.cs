@@ -153,6 +153,8 @@ public static class CharacterKit
     //   death = <clip>                                      one per line, base layer, from any state on Dead by DeathIndex
     //   attack = <clip>                                     one per line, base layer (full body, tagged Attack), from any
     //                                                       state on the Attack trigger by AttackIndex, back to locomotion
+    //   appear = <clip>                                     one clip, base layer, played once on the Appear trigger when
+    //                                                       spawned, back to locomotion near its end or once it walks
     //   combatIdle = <clip>                                 idle while fighting: a second blend tree (this idle, the same
     //                                                       moves) entered on the Combat bool; swings return to it
     //   grip = <clip>                                       a held pose (closed hand round a weapon) in an override layer
@@ -207,6 +209,7 @@ public static class CharacterKit
         var heavyHits = sides.Select(d => Clip(Get("heavy." + d))).ToArray();
         var deaths = spec.Where(p => p.Key == "death").Select(p => Clip(p.Value)).ToList();
         var attacks = spec.Where(p => p.Key == "attack").Select(p => Clip(p.Value)).ToList();
+        AnimationClip appear = Clip(Get("appear"));
         AnimationClip combatIdle = Clip(Get("combatIdle"));
         AnimationClip grip = Clip(Get("grip"));
         AvatarMask gripMask = null;
@@ -239,6 +242,7 @@ public static class CharacterKit
         controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
         controller.AddParameter("AttackIndex", AnimatorControllerParameterType.Int);
         controller.AddParameter("Combat", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("Appear", AnimatorControllerParameterType.Trigger);
 
         controller.AddLayer("Base Layer");
         AnimatorControllerLayer[] baseLayers = controller.layers;
@@ -335,6 +339,25 @@ public static class CharacterKit
             calm.AddCondition(AnimatorConditionMode.IfNot, 0f, "Combat");
         }
 
+        if (appear != null)
+        {
+            AnimatorState arrive = root.AddState("Appear", new Vector3(300f, -150f, 0f));
+            arrive.motion = appear;
+            AnimatorStateTransition start = locomotion.AddTransition(arrive);
+            start.hasExitTime = false;
+            start.duration = 0.1f;
+            start.AddCondition(AnimatorConditionMode.If, 0f, "Appear");
+            AnimatorStateTransition done = arrive.AddTransition(locomotion);
+            done.hasExitTime = true;
+            done.exitTime = 0.9f;
+            done.duration = 0.25f;
+            // Setting off before the clip ends cuts it short.
+            AnimatorStateTransition interrupted = arrive.AddTransition(locomotion);
+            interrupted.hasExitTime = false;
+            interrupted.duration = 0.25f;
+            interrupted.AddCondition(AnimatorConditionMode.Greater, 0.3f, "Speed");
+        }
+
         AddDirectionalLayer(controller, "HeadLook", headLook, positions, neutral, 1f);
         float bodyWeight = float.TryParse(Get("bodyLook.weight"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float w) ? w : 0.5f;
         AddDirectionalLayer(controller, "BodyLook", bodyLook, positions, neutral, bodyWeight);
@@ -368,7 +391,7 @@ public static class CharacterKit
         AssetDatabase.SaveAssetIfDirty(controller);
         if (neutral != null)
             AssetDatabase.SaveAssetIfDirty(neutral);
-        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
+        return $"{{\"ok\":true,\"controller\":{Json(controllerPath)},\"moves\":{moves.Count},\"fidgets\":{fidgets.Count},\"hits\":{hitStates},\"deaths\":{deaths.Count},\"attacks\":{attacks.Count},\"appear\":{B(appear != null)},\"combatIdle\":{B(combatIdle != null)},\"layers\":{JsonList(controller.layers.Select(l => $"{l.name} ({l.blendingMode}, {l.defaultWeight})"))},\"neutral\":{Json(neutral ? AssetDatabase.GetAssetPath(neutral) : null)}}}";
     }
 
     // Override layer "Hit": an empty default state, and Hit_<index> entered from any state on Hit + HitIndex (a new hit

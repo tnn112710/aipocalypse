@@ -23,6 +23,10 @@ namespace Aipocalypse.Core.EnemySystem
         public int PrewarmPerFrame = 2;
         [Min(1), Tooltip("Enemies a spawned group brings into play per frame (waking one costs several ms), so a wave doesn't hitch")]
         public int SpawnsPerFrame = 1;
+        [Tooltip("Metres round its spawn point a group spreads over: a random radius in this range per group (widened for big groups)")]
+        public Vector2 GroupRadius = new(3f, 5f);
+        [Min(0.5f), Tooltip("Metres kept between neighbours in a group; a big group spreads wider than GroupRadius to keep it")]
+        public float GroupSpacing = 1.2f;
 
         [Header("Looks")]
         [Tooltip("Added to every enemy renderer: the night highlight (a light only enemies receive) picks them by it")]

@@ -18,6 +18,10 @@ namespace Aipocalypse.Core.EnemySystem
         public float RepathDistance = 0.5f;
         [Min(0.5f), Tooltip("Metres from the target where an enemy without an attack slot (AttackSlots) waits its turn")]
         public float HoldDistance = 3.5f;
+        [Range(0f, 60f), Tooltip("Most degrees an enemy's approach turns off the straight line (each picks its own side and amount), so a group fans out instead of running single file")]
+        public float FlankAngle = 30f;
+        [Min(0f), Tooltip("Metres from the target beyond which the approach keeps its full angle; it straightens towards the target from here in to EngageRadius")]
+        public float FlankFadeDistance = 25f;
 
         [Header("Swing")]
         [Min(0.1f), Tooltip("Metres from the target (horizontal) a swing starts at")] public float AttackRange = 1.5f;

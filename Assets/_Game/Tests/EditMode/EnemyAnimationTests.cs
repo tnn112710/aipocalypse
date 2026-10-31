@@ -9,7 +9,7 @@ namespace Aipocalypse.Tests
 {
     public class EnemyAnimationTests
     {
-        static readonly string[] ContractParameters = { "Speed", "LookX", "LookY", "Lean", "Fidget", "FidgetIndex", "Hit", "HitIndex", "Dead", "DeathIndex", "Attack", "AttackIndex", "Combat" };
+        static readonly string[] ContractParameters = { "Speed", "LookX", "LookY", "Lean", "Fidget", "FidgetIndex", "Hit", "HitIndex", "Dead", "DeathIndex", "Attack", "AttackIndex", "Combat", "Appear" };
         EnemyAnimationSettings _settings;
 
         [SetUp]

@@ -11,9 +11,6 @@ namespace Aipocalypse.Core.EnemySystem
     {
         // Metres a spawn point may move to reach the navmesh.
         const float SnapDistance = 2f;
-        // Metres between neighbours in a group (a sunflower spiral round the centre).
-        const float GroupSpacing = 1.5f;
-        const float GoldenAngle = 2.39996f;
 
         readonly EnemyPool _pool;
         readonly EnemyNavigation _navigation;
@@ -30,28 +27,33 @@ namespace Aipocalypse.Core.EnemySystem
         // Members queued by every group, cancelled ones included until their turn.
         public int Queued => _queue.Count;
 
-        // One enemy of `card` exactly at `position` (already on the navmesh); null if the card has no variant.
+        // One enemy of `card` exactly at `position` (already on the navmesh), appearing; null if the card has no variant.
         public EnemyBrain Spawn(EnemySpawnCard card, Vector3 position, Quaternion rotation)
         {
             EnemyBrain prefab = card != null ? card.PickVariant(Random.value) : null;
             if (prefab != null)
-                return _pool.Get(prefab, position, rotation);
+            {
+                EnemyBrain enemy = _pool.Get(prefab, position, rotation);
+                enemy.Appear();
+                return enemy;
+            }
             Debug.LogWarning($"EnemySpawner: {(card != null ? card.name : "no card")} has no prefab variant to spawn.", card);
             return null;
         }
 
-        // `count` enemies of `card` round `center`, facing `facing`, each snapped to the navmesh now and spawned over the next
-        // frames; arrivals are added to `into`. The batch says how many were queued and how many are still to come.
+        // `count` enemies of `card` spread over GroupRadius round `center`, facing `facing`, each snapped to the navmesh now and
+        // spawned over the next frames, where they appear (EnemyBrain.Appear); arrivals are added to `into`. The batch says how
+        // many were queued and how many are still to come.
         public SpawnBatch SpawnGroup(EnemySpawnCard card, Vector3 center, int count, Vector3 facing, List<EnemyBrain> into = null)
         {
             var batch = new SpawnBatch(into);
             facing.y = 0f;
             Quaternion rotation = facing.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(facing) : Quaternion.identity;
+            float radius = Random.Range(_settings.GroupRadius.x, Mathf.Max(_settings.GroupRadius.x, _settings.GroupRadius.y));
+            float turn = Random.Range(0f, 2f * Mathf.PI);
             for (int i = 0; i < count; i++)
             {
-                float radius = GroupSpacing * Mathf.Sqrt(i);
-                float angle = i * GoldenAngle;
-                Vector3 point = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+                Vector3 point = center + CrowdSpread.GroupOffset(i, count, radius, _settings.GroupSpacing, turn);
                 if (!_navigation.TrySnap(point, SnapDistance, out Vector3 snapped) && !_navigation.TrySnap(center, SnapDistance, out snapped))
                     continue;
                 _queue.Enqueue(new Member(card, snapped, rotation, batch));

@@ -1,7 +1,8 @@
 # The goblins' tree: hunt a target (TargetSelector picks it: the player for now, fences, crops and animals later), chase,
 # swing; wander when there is nothing to hunt (player dead, cheat.notarget). The hunt's abort (Both) re-checks ChooseTarget
 # every think: it cuts into the wander as soon as a target exists, and ends the hunt when none is left.
-# Job: punish standing in the open at night; it runs at the player from wherever it spawned.
+# Job: punish standing in the open at night; it runs at the player from wherever it spawned, from afar coming in from its
+# own side (MeleeSettings.FlankAngle, straightening inside FlankFadeDistance) so a group fans out.
 # Notices: always knows its target (raiders are sent at it); takes its fighting stance and shouts within EngageRadius.
 # Warns: a visible wind-up before each blow, which lands at HitTime and misses if the player stepped out of reach or arc.
 # Gives up: when the target can't be targeted any more (dead, notarget); at most AttackSlots' share swing at once, the

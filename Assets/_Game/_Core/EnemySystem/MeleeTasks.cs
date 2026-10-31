@@ -21,16 +21,22 @@ namespace Aipocalypse.Core.EnemySystem
     }
 
     // Runs at the target (approach pace far away, sprint and fighting stance inside EngageRadius) until within attack range.
-    // Without a free attack slot it waits at HoldDistance, facing the target.
+    // From afar it comes in from its own side (CrowdSpread.FlankPoint), straightening as it closes. Without a free attack
+    // slot it waits at HoldDistance, facing the target.
     [Category("Aipocalypse/Melee")]
     public sealed class ChaseTarget : ActionNode
     {
         // Slack on EngageRadius and HoldDistance before letting go, so the stance and the slot don't flicker at the edge.
         const float Slack = 1.25f;
+        // A flanking chase re-aims once its squared distance drops below this share of the last aim's. Must stay above
+        // sin² of the widest FlankAngle (60°: 0.75), the closest its line to the aim passes the target.
+        const float FlankReaim = 0.8f;
 
         EnemyBrain _brain;
         EnemyMover _mover;
         Vector3 _heading;
+        float _side;
+        float _reaimInside;
         bool _moving;
         bool _sprinting;
         bool _waiting;
@@ -45,6 +51,7 @@ namespace Aipocalypse.Core.EnemySystem
         {
             _moving = false;
             _waiting = false;
+            _side = Random.Range(-1f, 1f);
             _sprinting = _brain.Engaged;
             ApplyPace();
         }
@@ -85,10 +92,15 @@ namespace Aipocalypse.Core.EnemySystem
             if (sqrDistance <= melee.AttackRange * melee.AttackRange && rise <= MeleeHit.MaxHeightDifference && _brain.HoldsSlot)
                 return TaskStatus.Success;
             float repath = Mathf.Max(melee.RepathDistance, 0.1f * Mathf.Sqrt(sqrDistance));
-            if (!_moving || (position - _heading).sqrMagnitude > repath * repath)
+            bool reaim = _reaimInside > 0f && (sqrDistance < _reaimInside || _mover.Arrived);
+            if (!_moving || reaim || (position - _heading).sqrMagnitude > repath * repath)
             {
-                _mover.MoveTo(position, float.PositiveInfinity);
+                Vector3 aim = CrowdSpread.FlankPoint(_brain.transform.position, position, _side, melee.FlankAngle,
+                    melee.FlankFadeDistance, melee.EngageRadius);
+                _mover.MoveTo(aim, float.PositiveInfinity);
                 _heading = position;
+                // The aim sits beside the target, so it must be renewed on the way in or the chase would stop there.
+                _reaimInside = aim != position ? sqrDistance * FlankReaim : 0f;
                 _moving = true;
             }
             return TaskStatus.Running;

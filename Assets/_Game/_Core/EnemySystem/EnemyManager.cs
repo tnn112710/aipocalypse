@@ -41,7 +41,7 @@ namespace Aipocalypse.Core.EnemySystem
                 {
                     if (_cursor >= _enemies.Count)
                         _cursor = 0;
-                    _enemies[_cursor++].Tree.Tick();
+                    _enemies[_cursor++].Think();
                 }
             }
         }
