@@ -6,7 +6,7 @@ using VContainer;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // An enemy's physical side: takes hits and knockback, reacts and cries, and when killed lies, sinks and disables itself
+    // An enemy's physical side: takes hits, knockback and its stagger meter (flinch, stagger: EnemyBrain), reacts and cries, and when killed lies, sinks and disables itself
     // (enabling revives it). No Update: EnemyBodyManager advances it while it moves or dies.
     [RequireComponent(typeof(EnemyBrain), typeof(EnemyMover))]
     public sealed class EnemyBody : MonoBehaviour, IDamageable
@@ -21,6 +21,7 @@ namespace Aipocalypse.Core.EnemySystem
         EnemyMover _mover;
         EnemyReactionSettings _settings;
         Knockback _knockback;
+        StaggerMeter _stagger;
         Vector3 _visualRest;
         float _deadFor;
 
@@ -56,6 +57,7 @@ namespace Aipocalypse.Core.EnemySystem
             }
             _settings = settings;
             _knockback = settings != null ? new Knockback(settings) : null;
+            _stagger = settings != null && settings.Stagger != null ? new StaggerMeter(settings.Stagger) : null;
             _health = new Health(stats.Get(EnemyStat.MaxHealth));
             IsDead = false;
             _deadFor = 0f;
@@ -75,14 +77,20 @@ namespace Aipocalypse.Core.EnemySystem
             bool killed = _health.IsDead;
 
             Vector3 push = info.Force;
-            _knockback?.Add(push);
+            StaggerProfile weight = _settings != null ? _settings.Stagger : null;
+            _knockback?.Add(weight != null ? push * weight.PushScale : push);
+            HitReaction reaction = _stagger != null ? _stagger.Add(push.magnitude, info.Critical, Time.time) : HitReaction.Twitch;
             if (push.sqrMagnitude < 0.0001f)
                 push = transform.position - info.Point;
-            bool heavy = _knockback != null && _knockback.Speed >= _settings.HeavyHitSpeed;
+            bool heavy = reaction == HitReaction.Stagger || (_knockback != null && _knockback.Speed >= _settings.HeavyHitSpeed);
             if (killed)
                 Die();
             else
             {
+                if (reaction == HitReaction.Stagger)
+                    _brain.Stagger(weight.StaggerTime);
+                else if (reaction == HitReaction.Flinch)
+                    _brain.Flinch(weight.FlinchSlow, weight.FlinchTime);
                 if (_brain.Animation != null)
                     _brain.Animation.Hit(push, heavy);
                 _brain.Voice?.Hurt();

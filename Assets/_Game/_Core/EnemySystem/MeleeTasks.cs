@@ -76,6 +76,7 @@ namespace Aipocalypse.Core.EnemySystem
         Vector3 _heading;
         float _side;
         float _reaimInside;
+        int _interruptions;
         bool _moving;
         bool _sprinting;
         bool _waiting;
@@ -132,7 +133,9 @@ namespace Aipocalypse.Core.EnemySystem
                 return TaskStatus.Success;
             float repath = Mathf.Max(melee.RepathDistance, 0.1f * Mathf.Sqrt(sqrDistance));
             bool reaim = _reaimInside > 0f && (sqrDistance < _reaimInside || _mover.Arrived);
-            if (!_moving || reaim || (position - _heading).sqrMagnitude > repath * repath)
+            // A stagger halted the walk: set off again.
+            bool interrupted = _brain.Interruptions != _interruptions;
+            if (!_moving || reaim || interrupted || (position - _heading).sqrMagnitude > repath * repath)
             {
                 Vector3 aim = CrowdSpread.FlankPoint(_brain.transform.position, position, _side, melee.FlankAngle,
                     melee.FlankFadeDistance, melee.EngageRadius);
@@ -140,6 +143,7 @@ namespace Aipocalypse.Core.EnemySystem
                 _heading = position;
                 // The aim sits beside the target, so it must be renewed on the way in or the chase would stop there.
                 _reaimInside = aim != position ? sqrDistance * FlankReaim : 0f;
+                _interruptions = _brain.Interruptions;
                 _moving = true;
             }
             return TaskStatus.Running;
@@ -162,7 +166,7 @@ namespace Aipocalypse.Core.EnemySystem
 
     // Faces the target and swings once (after the cooldown since the last swing); a swing always finishes. The blow lands at
     // HitTime if the target is still within HitReach and HitArc. Succeeds after the swing, or straight away when the target
-    // stepped out of range or the slot was lost, so the hunt chases again.
+    // stepped out of range, the slot was lost or it was staggered (the swing is cancelled), so the hunt chases again.
     [Category("Aipocalypse/Melee")]
     public sealed class MeleeAttack : ActionNode
     {
@@ -172,6 +176,7 @@ namespace Aipocalypse.Core.EnemySystem
         EnemyBrain _brain;
         EnemyMover _mover;
         ITargetable _swingTarget;
+        int _interruptions;
         float _swingEnd;
         float _hitAt;
         bool _struck;
@@ -185,6 +190,7 @@ namespace Aipocalypse.Core.EnemySystem
         public override void OnStart()
         {
             _swingEnd = 0f;
+            _interruptions = _brain.Interruptions;
             _struck = false;
         }
 
@@ -194,6 +200,9 @@ namespace Aipocalypse.Core.EnemySystem
             if (target == null)
                 return TaskStatus.Failure;
             MeleeSettings melee = _brain.Definition.Melee;
+            // Staggered (mid-swing or not): the swing is cancelled, back to the chase.
+            if (_brain.Interruptions != _interruptions)
+                return TaskStatus.Success;
             Vector3 position = target.Transform.position;
             _mover.Face(position);
             if (_swingEnd > 0f)

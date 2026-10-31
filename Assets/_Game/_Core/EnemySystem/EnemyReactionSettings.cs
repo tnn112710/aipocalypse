@@ -1,11 +1,15 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // How an enemy kind takes hits and dies: knockback from DamageInfo.Force, hit animations, and how long the body stays.
+    // How an enemy kind takes hits and dies: its weight class (Stagger), knockback from DamageInfo.Force, hit animations, and
+    // how long the body stays.
     [CreateAssetMenu(fileName = "EnemyReactionSettings", menuName = "Aipocalypse/Enemies/Enemy Reaction Settings")]
     public sealed class EnemyReactionSettings : ScriptableObject
     {
+        [InlineEditor, Tooltip("Weight class: push scale and the stagger meter (flinch, stagger). Empty = full push, hits only twitch")]
+        public StaggerProfile Stagger;
         [Min(0f), Tooltip("Push speed (m/s) per N·s of hit force. The push slides about speed / Drag metres")]
         public float KnockbackPerForce = 1.6f;
         [Min(0.1f), Tooltip("How fast the push dies out (1/s): higher = shorter, snappier slide")]

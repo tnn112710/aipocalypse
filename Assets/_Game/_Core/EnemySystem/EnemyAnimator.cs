@@ -27,6 +27,9 @@ namespace Aipocalypse.Core.EnemySystem
         static readonly int AppearId = Animator.StringToHash("Appear");
         static readonly int CelebrateId = Animator.StringToHash("Celebrate");
         static readonly int CelebrateIndexId = Animator.StringToHash("CelebrateIndex");
+        static readonly int AttackTagId = Animator.StringToHash("Attack");
+        static readonly int CombatStateId = Animator.StringToHash("Combat");
+        static readonly int LocomotionStateId = Animator.StringToHash("Locomotion");
         // HitIndex: where the hit came from, + Heavy for a hard push.
         const int HitFront = 0, HitBack = 1, HitLeft = 2, HitRight = 3, Heavy = 4;
 
@@ -105,6 +108,16 @@ namespace Aipocalypse.Core.EnemySystem
             if (on && _celebrations > 0)
                 _animator.SetInteger(CelebrateIndexId, Random.Range(0, _celebrations));
             _animator.SetBool(CelebrateId, on && _celebrations > 0);
+        }
+
+        // Staggered: a swing in progress blends back to the stance (no blow lands), a queued one is dropped.
+        public void CancelAttack()
+        {
+            if (_motion == null)
+                return;
+            _animator.ResetTrigger(AttackId);
+            if (_animator.GetCurrentAnimatorStateInfo(0).tagHash == AttackTagId)
+                _animator.CrossFadeInFixedTime(_animator.GetBool(CombatId) ? CombatStateId : LocomotionStateId, 0.15f, 0);
         }
 
         // Plays a random swing (full body; the enemy stands while it plays).

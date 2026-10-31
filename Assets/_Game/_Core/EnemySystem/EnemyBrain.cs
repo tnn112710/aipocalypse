@@ -23,8 +23,14 @@ namespace Aipocalypse.Core.EnemySystem
         GrassBendField _grassBending;
         ITargetable _target;
         float _nextRetarget;
+        // Source of the flinch's MoveSpeed modifier.
+        static readonly object FlinchSource = new();
+
         // Time.time its appear ends (0: not appearing); requested by the spawner, begun on activation.
         float _appearEnd;
+        // Time.time a flinch or a stagger ends (0: none).
+        float _flinchEnd;
+        float _staggerEnd;
         bool _appearRequested;
         bool _engaged;
         bool _started;
@@ -142,10 +148,44 @@ namespace Aipocalypse.Core.EnemySystem
         }
 
         public bool Appearing => _appearEnd > 0f;
+        public bool Staggered => _staggerEnd > 0f;
+        // Counts staggers: a task that walks or swings compares it with the count it started with and starts over when it
+        // changed (the stagger halted the walk; a swing in progress must not land).
+        public int Interruptions { get; private set; }
 
-        // One think (EnemyManager): nothing while appearing, else a tick of the tree.
+        // A flinching hit (EnemyBody, StaggerProfile): MoveSpeed × `slow` for `seconds`, restarted by each such hit.
+        public void Flinch(float slow, float seconds)
+        {
+            if (_flinchEnd <= 0f)
+                Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, FlinchSource, multiply: slow));
+            _flinchEnd = Mathf.Max(_flinchEnd, Time.time + seconds);
+        }
+
+        // A staggering hit: stops walking, its swing is cancelled, and the tree doesn't think for `seconds`.
+        public void Stagger(float seconds)
+        {
+            _staggerEnd = Mathf.Max(Time.time + seconds, 0.0001f);
+            Interruptions++;
+            Mover.Halt();
+            if (Animation != null)
+                Animation.CancelAttack();
+        }
+
+        // One think (EnemyManager): ends a flinch that ran out; nothing while appearing or staggered, else a tick of the tree.
         internal void Think()
         {
+            float now = Time.time;
+            if (_flinchEnd > 0f && now >= _flinchEnd)
+            {
+                _flinchEnd = 0f;
+                Stats.RemoveModifiers(FlinchSource);
+            }
+            if (_staggerEnd > 0f)
+            {
+                if (now < _staggerEnd)
+                    return;
+                _staggerEnd = 0f;
+            }
             if (_appearEnd > 0f)
             {
                 if (Time.time < _appearEnd)
@@ -218,6 +258,8 @@ namespace Aipocalypse.Core.EnemySystem
             _engaged = false;
             LastTarget = null;
             _appearEnd = 0f;
+            _flinchEnd = 0f;
+            _staggerEnd = 0f;
             Stats = new EnemyStats(_definition);
             Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this,
                 multiply: CrowdSpread.SpeedFactor(_definition.SpeedVariance, Random.value)));
