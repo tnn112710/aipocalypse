@@ -15,6 +15,10 @@ namespace Aipocalypse.Core.SpawnSystem
         public int PrewarmPerFrame = 2;
         [Tooltip("Where prewarmed instances wake for a frame (Awake, Start) before they're parked: out of sight and off the navmesh")]
         public Vector3 StagingPoint = new(0f, -1000f, 0f);
+        [Min(0f), Tooltip("Seconds a prefab goes untaken before its free copies past every owner's reservation are destroyed; " +
+            "0 = never (released ones still are)")]
+        public float IdleTrimDelay = 60f;
+        [Min(0), Tooltip("Pooled copies destroyed per frame when trimming; 0 = never trim")] public int TrimPerFrame = 2;
 
         [Header("Groups")]
         [Tooltip("Metres round its anchor a group spreads over when its request names no formation: a random radius in this range " +

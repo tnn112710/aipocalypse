@@ -65,5 +65,83 @@ namespace Aipocalypse.Tests
                 Assert.That(Vector3.Distance(point, ring.Origin), Is.InRange(4f - 1e-3f, 6f + 1e-3f));
             }
         }
+
+        [Test]
+        public void RiverCourse_GivesTheSurfaceInsideItsWidth_FollowingTheSlope()
+        {
+            // A river 10 m wide running along +X, dropping 1 m every 10 m.
+            var river = new RiverCourse();
+            for (float x = 0f; x <= 100f; x += RiverCourse.Step)
+                river.Add(new Vector3(x, 20f - x * 0.1f, 0f), Vector3.right, 5f);
+            river.Close();
+            Assert.That(river.TryGetLevel(new Vector3(51f, 0f, 4f), out float level), Is.True);
+            Assert.That(level, Is.EqualTo(15f).Within(0.3f), "the level of the reach it's over");
+            Assert.That(river.TryGetLevel(new Vector3(51f, 0f, 6f), out _), Is.False, "past the bank");
+            Assert.That(river.TryGetLevel(new Vector3(110f, 0f, 0f), out _), Is.False, "past its end");
+        }
+
+        [Test]
+        public void RiverCourse_HasNoGapsOnTheOutsideOfABend()
+        {
+            // A quarter circle of radius 30 m, 8 m wide.
+            var river = new RiverCourse();
+            for (float a = 0f; a <= 90f; a += 3f)
+            {
+                float rad = a * Mathf.Deg2Rad;
+                river.Add(new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad)) * 30f, new Vector3(-Mathf.Sin(rad), 0f, Mathf.Cos(rad)), 4f);
+            }
+            river.Close();
+            for (float a = 0f; a <= 90f; a += 0.5f)
+            {
+                float rad = a * Mathf.Deg2Rad;
+                Assert.That(river.TryGetLevel(new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad)) * 33.5f, out _), Is.True, $"outer edge at {a}°");
+            }
+        }
+
+        [Test]
+        public void SpawnZone_WithPoints_SamplesRoundThemOnly()
+        {
+            var zone = new GameObject("Zone").AddComponent<SpawnZone>();
+            var cave = new GameObject("Cave").transform;
+            var gap = new GameObject("Gap").transform;
+            try
+            {
+                cave.position = new Vector3(100f, 5f, 0f);
+                gap.position = new Vector3(0f, 5f, 100f);
+                var serialized = new UnityEditor.SerializedObject(zone);
+                SerializedPropertyList(serialized, "_points", cave, null, gap);
+                serialized.FindProperty("_pointRadius").floatValue = 3f;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                Assert.That(zone.UsesPoints, Is.True);
+                int nearCave = 0;
+                for (float a = 0f; a <= 1f; a += 0.05f)
+                for (float b = 0f; b <= 1f; b += 0.25f)
+                {
+                    Vector3 point = zone.Sample(a, b);
+                    float toCave = Vector3.Distance(Flat(point), Flat(cave.position));
+                    float toGap = Vector3.Distance(Flat(point), Flat(gap.position));
+                    Assert.That(Mathf.Min(toCave, toGap), Is.LessThanOrEqualTo(3f + 1e-3f), $"sample ({a}, {b})");
+                    if (toCave < toGap)
+                        nearCave++;
+                }
+                Assert.That(nearCave, Is.GreaterThan(0), "the spot after an empty slot is still picked");
+            }
+            finally
+            {
+                Object.DestroyImmediate(zone.gameObject);
+                Object.DestroyImmediate(cave.gameObject);
+                Object.DestroyImmediate(gap.gameObject);
+            }
+        }
+
+        static void SerializedPropertyList(UnityEditor.SerializedObject serialized, string name, params Transform[] items)
+        {
+            UnityEditor.SerializedProperty list = serialized.FindProperty(name);
+            list.arraySize = items.Length;
+            for (int i = 0; i < items.Length; i++)
+                list.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+        }
+
+        static Vector3 Flat(Vector3 point) => new(point.x, 0f, point.z);
     }
 }

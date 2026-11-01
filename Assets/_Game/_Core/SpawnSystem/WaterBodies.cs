@@ -11,12 +11,18 @@ namespace Aipocalypse.Core.SpawnSystem
     }
 
     // Flat water bodies (lake, ponds) by their renderers: a point over one's bounds has its level, the top of those bounds.
-    // Bounds also cover dry banks, so placement checks the depth to the bed. Rivers aren't flat: don't list their segments.
+    // Bounds also cover dry banks, so placement checks the depth to the bed. Rivers aren't flat: their surface comes from
+    // `rivers` (RiverCourse), never from their segments' renderers.
     public sealed class WaterBodies : IWaterLevel
     {
         readonly IReadOnlyList<Renderer> _bodies;
+        readonly IWaterLevel _rivers;
 
-        public WaterBodies(IReadOnlyList<Renderer> bodies) => _bodies = bodies;
+        public WaterBodies(IReadOnlyList<Renderer> bodies, IWaterLevel rivers = null)
+        {
+            _bodies = bodies;
+            _rivers = rivers;
+        }
 
         public bool TryGetLevel(Vector3 point, out float level)
         {
@@ -31,6 +37,8 @@ namespace Aipocalypse.Core.SpawnSystem
                     continue;
                 level = Mathf.Max(level, bounds.max.y);
             }
+            if (_rivers != null && _rivers.TryGetLevel(point, out float river))
+                level = Mathf.Max(level, river);
             return level > float.NegativeInfinity;
         }
     }

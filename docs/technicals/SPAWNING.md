@@ -8,7 +8,7 @@ WHEN   drivers ──────── RaidDirector (waves) · PopulationDirect
 WHAT   SpawnCard ─────── prefab variants by weight, group size, placement, category   (EnemySpawnCard adds the arrival cue)
        SpawnSquad ────── mixed group in slot order (leader first) + formation
        SpawnTable ────── cards by weight, day phase, day range, max alive, "nothing" weight
-WHERE  ISpawnArea ────── SpawnZone (arc / ring in the scene) · RingArea (code) · or a plain point
+WHERE  ISpawnArea ────── SpawnZone (arc / ring or hand-placed points in the scene) · RingArea (code) · or a plain point
        SpawnPointPicker  samples the area → SpawnPlacer (ground / navmesh / air / water) → SpawnVisibility (out of view)
        Formation ─────── slot offsets (scatter, line, column, wedge, ring, clusters, custom), each slot placed again
 HOW    SpawnService ──── queue woken within SpawnBudgetMs a frame → PrefabPool (prewarmed, injected) → ISpawnable.OnSpawned
@@ -31,7 +31,8 @@ TRACK  SpawnHandle ───── Count, Pending, Alive, Spent, Cancel(), Despa
 1. Prefab root: add `Spawnable`. Enemies get it through `EnemyBrain`'s `RequireComponent`, but an existing prefab only gets it on disk when it's added and saved (`AgentScripts/Spawning/SpawnSystemSetup.cs` does it for every enemy prefab).
 2. Parts with per-life state implement `ISpawnable` (`EnemyBrain`: teleports its agent and plays its appear; `Flock`: lays its members out).
 3. Create a card: *Create → Aipocalypse → Spawning → Spawn Card* (enemies: *Enemies → Spawn Card*) next to the prefab (`Content/<Kind>/<Name>/<Name>_Card.asset`). Set its variants, group size, category and placement.
-4. To spawn it by name from the console, list the card in `Data/Spawning/SpawnSystemSettings.asset` → `Cards` (enemies: also `EnemySystemSettings.Cards` for `enemy.spawn`).
+4. List the card in `Data/Spawning/SpawnSystemSettings.asset` → `Cards`, so the console can spawn it by name (enemies: also `EnemySystemSettings.Cards` for `enemy.spawn`). `SpawnCardTests` fails for a card that isn't listed.
+5. The card's inspector shows an error when something is wrong: a variant that doesn't resolve (its prefab or its `Spawnable` isn't saved on disk), no weight, or a flyer or swimmer without a height band. `SpawnCardTests` checks every card for it.
 
 ### Spawn from code
 
@@ -55,8 +56,11 @@ _spawns.Spawn(SpawnRequest.From(nightTable, SpawnConditions.Of(clock), new RingA
 int alive = raiders.Alive;            // in play + still to come
 raiders.Despawn(DespawnMode.WhenUnseen); // dawn: they leave once out of sight
 _spawns.Despawn(instance);            // one, now
-_spawns.Prewarm(goblinCard, 20);      // before it's needed (scene start, a raid getting ready)
+_spawns.Prewarm(goblinCard, 20, this); // before it's needed; kept pooled for `this` until Release
+_spawns.Release(this);                // let them go: copies nobody else keeps are destroyed over the next frames
 ```
+
+**Pooled copies are reserved by owners.** `Prewarm(card, count, owner)` keeps `count` copies pooled for that owner, replacing its earlier reservation of the card. Every owner's reservations add up (a raid and a camp can need theirs at once). `Release(owner)` drops them. Copies past the reservations are destroyed `TrimPerFrame` (2) a frame: soon after a release, or once the prefab went `IdleTrimDelay` (60 s) without being taken. That also covers copies made mid-fight when a pool ran dry, and a `Prewarm` without an owner. `RaidSpawner` reserves the plan's cards (its last plan's are released), each `SpawnArea` its capacity.
 
 `SpawnRequest.Count` 0 means the card's group size. A request that can't find a spot keeps trying every `RetryInterval` (and warns once if nothing in its area fits the kind); one at a point where the kind can't stand ends cancelled with a warning.
 
@@ -70,7 +74,14 @@ Set the card's `Placement`:
 | `Air` | metres above the surface (min, max) | Over the ground or a water body, whichever is higher; `Clearance` keeps it off trees and rocks |
 | `Water` | metres below the surface (min, max) | Only over a listed water body deep enough for the band plus 0.3 m margins and `Clearance` from the surface and the bed |
 
-Water bodies are the flat renderers listed on the scene's `SpawnInstaller` → `Water Bodies` (WorldMap: GreatLake, NorthPond, WestPond, WaterfallPond, Swamp, the waterfall source pool). The level is the top of a renderer's bounds. Sloped river segments don't fit that, so they aren't listed; fish in rivers need a river query later. Flying or swimming *agents* also need a mover that isn't A* (`EnemyMover` is ground-only); the spawn side is ready.
+Water comes from the scene's `SpawnInstaller`:
+
+- **`Water Bodies`**: flat renderers (WorldMap: GreatLake, NorthPond, WestPond, WaterfallPond, Swamp, the waterfall source pool). The level is the top of a renderer's bounds. Never list river segments here: they slope.
+- **`Rivers`**: River Modeler rivers (WorldMap: River, Outlet, Streams). `RiverCourse` samples their splines every 2 m when the scene starts. WorldMap: 1,078 samples, built in about 6 ms (about 200 ms the first time in an editor session, mostly JIT), about 2 µs a query. A point inside a sample's width has the level of the nearest sample, so fish follow a stream down its slope.
+
+A school spawned in water fits its roam to the water round it. It roams up to its definition's `RoamRadius`, but no farther than the largest ring round its home where the water is still 0.8 m deep and within 0.5 m of home's level. In a 12 m stream that's about 2 m.
+
+Flying or swimming *agents* also need a mover that isn't A* (`EnemyMover` is ground-only); the spawn side is ready.
 
 ### Props, items, rewards, coins, trees
 
@@ -79,6 +90,7 @@ Same path, different card settings:
 - **Category** `Item` (drops, rewards, coins) or `Prop` (trees, rocks, crates), for population caps.
 - **Placement** `Ground` + `Navmesh = Ignore`, `AlignToGround` for things lying on slopes, `MaxSlope` to keep trees off cliffs, `Clearance` to keep them apart from obstacles.
 - **A burst** (coins from a chest, loot from a kill): `SpawnRequest.At(coinCard, point, 8)` with a small scatter `Formation`. Members that can't be placed are dropped unless `FallBackToAnchor` is set; turn it off on items so they don't stack.
+- **A cap per card:** `MaxAlive` limits how many of the card are alive at once from every source (areas, drops, the console). `WhenFull` says what happens at the cap: `Refuse` (the new ones aren't spawned; a group's extra members are dropped) or `RecycleOldest` (the oldest one the player can't see goes back to the pool to make room; the oldest of all when every one is seen). Use `RecycleOldest` for coins and drops. Caps count only alive instances: retired ones (picked up, a body lying) don't count.
 - **Picked up, chopped, opened:** call `Retire()`, then disable it when its animation ends. A `SpawnArea` counts it as spent and replaces it after `RespawnDelay`, so a chopped tree regrows and a picked coin respawns.
 - **Dense static scenery** (forests, grass) stays with the map generator, MicroVerse and GPU Instancer. Use spawning for the few interactive ones.
 
@@ -86,9 +98,11 @@ Same path, different card settings:
 
 A place that keeps itself populated while the player is near: a goblin camp, a deer meadow, a nest, a fishing spot, a grove of choppable trees.
 
-1. A GameObject with a `SpawnZone` (the arc or ring things appear in; `HalfAngle` 180 = a full ring) and a `SpawnArea` (on the same object).
+1. A GameObject with a `SpawnZone` (the arc or ring things appear in; `HalfAngle` 180 = a full ring; or hand-placed points, below) and a `SpawnArea` (on the same object).
 2. Area fields: `Card` or `Table`, `Capacity` (most alive here), `GroupSize` (most per top-up), `RespawnDelay` (seconds before a killed or used-up one comes back; 0 = never), `ActivateRadius` / `DeactivateRadius` (wake inside, sleep past, with a gap so it doesn't flicker), `Formation`, `Rules` (min player distance, hidden wait), `Prewarm`.
 3. Save the scene: `SpawnInstaller` collects the areas on save and on entering Play.
+
+In the Scene view, an area always draws its wake and sleep rings and a label (what lives there, how many, the respawn delay). Select it to see one group laid out in its formation where the zone's middle sample falls, the leader larger, facing the zone's origin.
 
 `PopulationDirector` looks at every area each `PopulationInterval` (0.5 s):
 
@@ -97,7 +111,15 @@ A place that keeps itself populated while the player is near: a goblin camp, a d
 - Killed ones stay gone until their delay ends, also across visits.
 - The respawn timers live in the director (seconds of scaled play time). A save system can store them later. Nothing persists across scene loads yet.
 
-*Not placed in WorldMap yet*: the open world has no content using it. It's tested by `PopulationTests` and ready for the first camp, herd or grove.
+**In WorldMap:** `Spawn Areas/Goblin Camp (Lake)` on the Great Lake's west shore (490, 480), 285 m from the base gate. That's far enough that it sleeps during raids.
+
+- **What lives there:** 4 goblins in a 15 m disc, back 3 min after a kill.
+- **Wake and sleep:** it wakes within 120 m and sleeps past 160 m.
+- **Setup script:** `AgentScripts/Spawning/WorldMapPopulation.cs` builds it and lists the rivers. Running it again updates the same objects.
+
+### Hand-placed spawn points
+
+Cave mouths, gaps in a wall, a tree line: list them on a `SpawnZone` → `Points` (any transforms, usually children). When any is set, the zone samples round those spots instead of its arc: a random spot, then a point within `PointRadius` (4 m) of it. Everything else stays the same: out of view, navmesh and water checks, raid waves naming the zone by `Id`, a `SpawnArea` on it. The gizmo draws each spot's disc and a line from the zone's origin, where spawned walkers head from.
 
 ### Ambient flocks and schools (AmbientSystem)
 
@@ -107,6 +129,7 @@ Birds and fish that only decorate are one `Spawnable` per flock (`Flock` + a `Fl
 - The scene needs an `AmbientInstaller` next to the `SpawnInstaller` (WorldMap has both).
 - Content lives in `Content/Ambient/`. `FishSchool` uses the polyperfect chub mesh as a static mesh. `BirdFlock` uses blockout members until a bird pack is chosen: swap the definition's `Member`.
 - Spawn them like anything else: `spawn.near fishschool 3 150`, or through a `SpawnArea` with the flock's card.
+- `FishSchool_Card` has `FallBackToAnchor` off. In a narrow stream many slots don't land on water, and the fallback stacked those schools on the group's anchor.
 
 ### Raids
 
@@ -114,7 +137,7 @@ Birds and fish that only decorate are one `Spawnable` per flock (`Flock` + a `Fl
 
 ## Reference
 
-**Scene setup:** `SpawnInstaller` on the `GameLifetimeScope`. It holds `SpawnSystemSettings` (`Data/Spawning/SpawnSystemSettings.asset`), the water bodies and the collected areas. `EnemyInstaller`, `RaidInstaller` and `AmbientInstaller` require it. The navmesh comes from `EnemyInstaller` through `INavmeshQuery` (`EnemyNavigation`). Without it, `Require` points can't be placed and `Prefer` points stay on the ground.
+**Scene setup:** `SpawnInstaller` on the `GameLifetimeScope`. It holds `SpawnSystemSettings` (`Data/Spawning/SpawnSystemSettings.asset`), the water bodies, the rivers and the collected areas. `EnemyInstaller`, `RaidInstaller` and `AmbientInstaller` require it. The navmesh comes from `EnemyInstaller` through `INavmeshQuery` (`EnemyNavigation`). Without it, `Require` points can't be placed and `Prefer` points stay on the ground.
 
 **Lifecycle:** `Pooled` → (prewarm: `Warming` one frame) → `Active` (counted) → `Leaving` (withdrawn, not counted, despawns once unseen) or `Retired` (dead or used up, not counted, lies until it disables) → `Pooled`. `Spawnable.Life` counts lives, so a handle never mistakes a reused instance for its own.
 
@@ -125,11 +148,15 @@ Birds and fish that only decorate are one `Spawnable` per flock (`Flock` + a `Fl
 | `SpawnBudgetMs` | 2 | Milliseconds a frame spent waking queued members, at least one a frame. A pooled goblin wakes in about 1 ms (editor) |
 | `PrewarmPerFrame` | 2 | Instances created and woken once per frame while prewarming |
 | `StagingPoint` | (0, −1000, 0) | Where prewarmed instances wake for a frame before they're parked |
+| `IdleTrimDelay` | 60 s | Seconds a prefab goes untaken before its free copies past every owner's reservation are destroyed; 0 = never (released ones still are) |
+| `TrimPerFrame` | 2 | Pooled copies destroyed per frame when trimming; 0 = never trim |
 | `GroupRadius`, `GroupSpacing` | 3–5 m, 1.2 m | The scatter used when a request names no formation |
 | `RetryInterval` | 0.25 s | Between two tries of a request still looking for its spot |
 | `Cards` | goblin, fish school, bird flock | Spawnable by name from the console |
 | `DefaultRules` | | `SpawnRules` for requests without their own (console, `At`) |
 | `PopulationInterval`, `GlobalCap`, `CategoryCaps` | 0.5 s, 300, per category | The population director's pace and caps |
+
+**`SpawnCard`:** `Variants` (prefab → weight), `GroupSize`, `Category`, `Placement`, `MaxAlive` (0 = no limit) and `WhenFull` (`Refuse` or `RecycleOldest`).
 
 **`SpawnRules`:**
 
@@ -167,22 +194,31 @@ Raids keep theirs in `RaidSettings.Spawning`.
   - Arrival in 10 groups: 5.1 s, `SpawnService.Spawn` median 2.5 ms, p95 2.8 ms, worst 10 ms.
   - Steady PlayerLoop median: 13.7 ms with far enemies thinking slower, 15.1 ms without.
   - `EnemyManager.Think`: 0.18 ms against 0.26 ms. The trees aren't the crowd's main cost.
+- **The worst spawn frame is the session's first real wake** (`AgentScripts/Perf/SpawnSpikeProbe.cs`; `Breakdown` profiles it). One goblin, 11.4 ms:
+  - About 5 ms is the spawn path's own code running for the first time.
+  - 4.7 ms is A*'s `FollowerEntity.OnEnable`, the first time on the navmesh. Prewarming wakes enemies at the staging point, off the navmesh, so this branch never ran.
+  - 1.3 ms is `EnemyBrain.OnEnable`.
+  - Nothing is instantiated and nothing is collected. A second crowd in the same session peaks at 2.85 ms.
+  - So it's one-time JIT and first-use work in the editor (Mono, Burst compiling in the editor). Builds use IL2CPP with Burst compiled ahead, so this most likely isn't there. Not measured in a build.
+- **Trimming:** releasing 60 pooled goblins destroyed them over 30 frames, at most 0.1 ms a frame inside `PrefabPool.Trim`. The `Destroy` itself runs at the end of the frame; frames stayed under 10 ms. After the 300-goblin crowd, idle trimming took the pool back to the raid's 18 reserved copies.
+- **Caps:** a card under its `MaxAlive` costs nothing extra. A full `RecycleOldest` card checks up to 8 of its oldest for line of sight before recycling one.
 - **Flocks:** one central tick. Each member checks only its own flock's members (O(n²) per flock, n ≤ 12).
 - **Allocations:** none per frame in the service, pool, director or flock ticks. Requests and handles are allocated per group, not per frame.
 
 **Tests:**
 
-- `SpawnServiceTests`: handles, counts, retire, cancel, leave, squads, tables, prewarm.
-- `FormationTests`, `SpawnTableTests`, `SpawnPlacementTests` (air and water bands, water bodies, rings), `PopulationTests` (rules, caps, flocks, far think rate), `SpawnPointScorerTests`, `EnemySpawningTests` (cards).
+- `SpawnServiceTests`: handles, counts, retire, cancel, leave, squads, tables, prewarm, owner reservations, trimming rules, `MaxAlive` refuse and recycle.
+- `SpawnCardTests`: every card's setup and its listing in `SpawnSystemSettings.Cards`.
+- `FormationTests`, `SpawnTableTests`, `SpawnPlacementTests` (air and water bands, water bodies, rings, river course, zone points), `PopulationTests` (rules, caps, flocks, far think rate), `SpawnPointScorerTests`, `EnemySpawningTests` (cards).
 - Edit mode runs no `OnDisable`, so returning to the pool is checked in play:
-  - `AgentScripts/Spawning/SpawnPlayCheck.cs`: `Raid`, `Console`, `Flocks`.
+  - `AgentScripts/Spawning/SpawnPlayCheck.cs`: `Raid`, `Console`, `Flocks`, `Camp` (the lake camp wakes, spawns out of view on the navmesh and leaves), `Rivers` (water placement and schools in a river reach), `Crowd`.
   - `AgentScripts/Raids/RaidSoak.cs`.
 
 ## Not built yet
 
-- Water levels for sloped rivers.
 - Flying and swimming movers for agents.
 - Saving the population ledger.
+- Caps on lying bodies (a `MaxAlive` counts only the living).
 - `InstantiateAsync` for growing pools: prewarm happens while loading, and creation cost hasn't shown up as a problem.
 - Dormant (component-level) pooling.
 - Distance LOD for flocks.

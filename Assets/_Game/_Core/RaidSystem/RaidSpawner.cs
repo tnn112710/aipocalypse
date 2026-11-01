@@ -50,12 +50,14 @@ namespace Aipocalypse.Core.RaidSystem
             if (plan == null)
                 return;
             _planned.Clear();
+            // Cards of the last plan that this one doesn't bring are let go (their pooled copies trimmed).
+            _spawns.Release(this);
             foreach (RaidWave wave in plan.Waves)
                 foreach (RaidWaveEntry entry in wave.Entries)
                     if (entry.Card != null && entry.Count > 0)
                         _planned[entry.Card] = (_planned.TryGetValue(entry.Card, out int sum) ? sum : 0) + entry.Count;
             foreach ((EnemySpawnCard card, int count) in _planned)
-                _spawns.Prewarm(card, Mathf.Min(count, instances));
+                _spawns.Prewarm(card, Mathf.Min(count, instances), this);
         }
 
         public int SpawnGroup(EnemySpawnCard card, int count, string zone, bool announce)

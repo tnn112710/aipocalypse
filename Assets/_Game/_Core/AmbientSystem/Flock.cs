@@ -13,6 +13,12 @@ namespace Aipocalypse.Core.AmbientSystem
         // Metres kept from a water body's surface and bed.
         const float WaterMargin = 0.3f;
         const float Probe = 200f;
+        // Water roams are fitted by probing rings this many metres apart round home, 8 points each.
+        const float RoamProbeStep = 2f;
+        const float MinRoam = 2f;
+        // Water at least this deep (m), at most this far above or below home's level (another reach of a river), still counts.
+        const float RoamMinDepth = 0.8f;
+        const float RoamLevelTolerance = 0.5f;
 
         [SerializeField] FlockDefinition _definition;
 
@@ -29,6 +35,8 @@ namespace Aipocalypse.Core.AmbientSystem
         // The band its members stay in (world heights).
         public float Floor { get; private set; }
         public float Ceiling { get; private set; }
+        // Metres from home it roams: the definition's, or less under water when the water round home is narrower (a stream).
+        public float RoamRadius { get; private set; }
 
         [Inject]
         void Construct(SpawnSystemSettings settings, IObjectResolver resolver)
@@ -48,7 +56,9 @@ namespace Aipocalypse.Core.AmbientSystem
                 return;
             }
             Home = transform.position;
-            SetBand(info.Card != null ? info.Card.Placement : null);
+            SpawnPlacement placement = info.Card != null ? info.Card.Placement : null;
+            SetBand(placement);
+            RoamRadius = FitRoam(placement);
             EnsureMembers();
             Count = Random.Range(Mathf.Max(1, _definition.Count.x), Mathf.Max(_definition.Count.x, _definition.Count.y) + 1);
             Count = Mathf.Min(Count, _members.Length);
@@ -75,7 +85,8 @@ namespace Aipocalypse.Core.AmbientSystem
         {
             for (int i = 0; i < Count; i++)
             {
-                Vector3 desired = FlockMath.Steer(i, _positions, _velocities, Count, Home, Floor, Ceiling, _definition, threat, hasThreat, time);
+                Vector3 desired = FlockMath.Steer(i, _positions, _velocities, Count, Home, Floor, Ceiling, _definition, threat, hasThreat, time,
+                    RoamRadius);
                 Vector3 velocity = Vector3.MoveTowards(_velocities[i], desired, _definition.Acceleration * deltaTime);
                 Vector3 position = _positions[i] + velocity * deltaTime;
                 position.y = Mathf.Clamp(position.y, Floor, Ceiling);
@@ -102,6 +113,30 @@ namespace Aipocalypse.Core.AmbientSystem
                 member.name = _definition.Member.name;
                 _members[i] = member.transform;
             }
+        }
+
+        // The largest ring round home (up to the definition's roam) whose points all have water deep enough at about home's level.
+        float FitRoam(SpawnPlacement placement)
+        {
+            float roam = _definition.RoamRadius;
+            if (placement == null || placement.Medium != SpawnMedium.Water || _water == null || !_water.TryGetLevel(Home, out float level))
+                return roam;
+            LayerMask ground = _settings.DefaultRules.GroundMask;
+            for (float radius = RoamProbeStep; radius <= roam; radius += RoamProbeStep)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    float angle = i * Mathf.PI * 0.25f;
+                    Vector3 point = Home + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+                    bool wet = _water.TryGetLevel(point, out float there) && Mathf.Abs(there - level) <= RoamLevelTolerance;
+                    if (wet && Physics.Raycast(new Vector3(point.x, there, point.z), Vector3.down, out RaycastHit bed, Probe, ground,
+                            QueryTriggerInteraction.Ignore))
+                        wet = there - bed.point.y >= RoamMinDepth;
+                    if (!wet)
+                        return Mathf.Max(MinRoam, radius - RoamProbeStep);
+                }
+            }
+            return roam;
         }
 
         // Air: the card's height band over the ground or water below. Water: its depth band, kept off the surface and the bed.

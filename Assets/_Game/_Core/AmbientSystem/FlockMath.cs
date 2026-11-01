@@ -6,9 +6,10 @@ namespace Aipocalypse.Core.AmbientSystem
     // player. Pure maths for Flock and its tests.
     public static class FlockMath
     {
-        // The velocity member `self` steers towards. `wander` drifts slowly over time (seconds); `threat` is the player.
+        // The velocity member `self` steers towards. `wander` drifts slowly over time (seconds); `threat` is the player;
+        // `roamRadius` below 0 = the definition's.
         public static Vector3 Steer(int self, Vector3[] positions, Vector3[] velocities, int count, Vector3 home, float floor,
-            float ceiling, FlockDefinition flock, Vector3 threat, bool hasThreat, float wander)
+            float ceiling, FlockDefinition flock, Vector3 threat, bool hasThreat, float wander, float roamRadius = -1f)
         {
             Vector3 position = positions[self];
             Vector3 separation = Vector3.zero;
@@ -40,7 +41,7 @@ namespace Aipocalypse.Core.AmbientSystem
             }
             Vector3 toHome = home - position;
             toHome.y = 0f;
-            float overshoot = toHome.magnitude - flock.RoamRadius;
+            float overshoot = toHome.magnitude - (roamRadius >= 0f ? roamRadius : flock.RoamRadius);
             if (overshoot > 0f)
                 steer += Direction(toHome) * (flock.HomePull * (1f + overshoot));
             float angle = Mathf.PerlinNoise(wander * 0.3f, self * 1.7f) * 4f * Mathf.PI;

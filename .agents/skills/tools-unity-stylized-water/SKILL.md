@@ -103,7 +103,7 @@ area.FindShaders();                                  // editor-only lookup; seri
 ```
 One area = one flat level. River mode never renders underwater (shader `#undef`s it); under a flat-level river, add a flat sheet with a back-faces-only copy (`_Cull 1`, `Water_RiverUnderside`). Surfaces seen from below need `_Cull 0`. Sloped water gets no underwater (or a `Transform` level source moved per frame: not built). Author areas in the editor or in a prefab: at runtime `FindShaders()` returns null and `OnEnable` throws without resources.
 
-**4.5 Water height for gameplay** (only if the prompt asks):
+**4.5 Water height for gameplay** (only if the prompt asks). Built so far: spawning's `IWaterLevel` (`WaterBodies` for flat bodies, `RiverCourse` for rivers: splines sampled every 2 m with `SampleWidth`, no SW3 statics; SPAWNING.md). Reuse it before writing another query.
 
 | Need | Use | Caveat |
 | --- | --- | --- |

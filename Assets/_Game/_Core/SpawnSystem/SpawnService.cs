@@ -16,6 +16,8 @@ namespace Aipocalypse.Core.SpawnSystem
         static readonly ProfilerMarker PlaceMarker = new("Aipocalypse.SpawnService.Place");
         // Withdrawn instances checked for being out of sight per frame.
         const int LeavingChecksPerFrame = 8;
+        // Oldest instances of a full card checked for being out of sight before one is recycled.
+        const int RecycleChecks = 8;
 
         readonly PrefabPool _pool;
         readonly SpawnPointPicker _picker;
@@ -26,6 +28,8 @@ namespace Aipocalypse.Core.SpawnSystem
         readonly Queue<QueuedMember> _queue = new();
         readonly List<Spawnable> _leaving = new();
         readonly Dictionary<SpawnCard, int> _aliveByCard = new();
+        // Alive instances of cards with a MaxAlive, oldest first.
+        readonly Dictionary<SpawnCard, List<Spawnable>> _capped = new();
         readonly int[] _aliveByCategory = new int[System.Enum.GetValues(typeof(SpawnCategory)).Length];
         readonly List<Vector3> _slots = new();
         readonly Stopwatch _clock = new();
@@ -53,7 +57,8 @@ namespace Aipocalypse.Core.SpawnSystem
         public int CountAlive(SpawnCard card) => card != null && _aliveByCard.TryGetValue(card, out int alive) ? alive : 0;
         public int CountAlive(SpawnCategory category) => _aliveByCategory[(int)category];
 
-        // One of `card` exactly at `position` (already where it can stand), now; null if the card has no variant.
+        // One of `card` exactly at `position` (already where it can stand), now; null if the card has no variant or is full
+        // (SpawnCard.MaxAlive with WhenFull Refuse).
         public Spawnable Spawn(SpawnCard card, Vector3 position, Quaternion rotation)
         {
             Spawnable prefab = PickPooled(card, Random.value);
@@ -106,8 +111,9 @@ namespace Aipocalypse.Core.SpawnSystem
             instance.gameObject.SetActive(false);
         }
 
-        // Creates enough instances of the card's variants, by weight, for `count` in play at once.
-        public void Prewarm(SpawnCard card, int count)
+        // Creates enough instances of the card's variants, by weight, for `count` in play at once. An `owner` keeps them pooled
+        // until it calls Release; without one, copies unused for IdleTrimDelay are destroyed again.
+        public void Prewarm(SpawnCard card, int count, object owner = null)
         {
             if (card == null || count <= 0)
                 return;
@@ -119,10 +125,13 @@ namespace Aipocalypse.Core.SpawnSystem
                 return;
             foreach ((Spawnable prefab, float weight) in card.Variants)
                 if (prefab != null && weight > 0f)
-                    _pool.Prewarm(prefab, Mathf.CeilToInt(count * weight / total));
+                    _pool.Prewarm(prefab, Mathf.CeilToInt(count * weight / total), owner);
         }
 
-        public void Prewarm(Spawnable prefab, int count) => _pool.Prewarm(prefab, count);
+        public void Prewarm(Spawnable prefab, int count, object owner = null) => _pool.Prewarm(prefab, count, owner);
+
+        // Lets go of what `owner` prewarmed: copies nobody else keeps are destroyed over the next frames.
+        public void Release(object owner) => _pool.Release(owner);
 
         // Drops every request still looking for a spot and every queued member (their handles end cancelled).
         public void CancelQueued()
@@ -157,6 +166,8 @@ namespace Aipocalypse.Core.SpawnSystem
             _aliveByCategory[(int)card.Category] = Mathf.Max(0, _aliveByCategory[(int)card.Category] - 1);
             if (_aliveByCard.TryGetValue(card, out int alive))
                 _aliveByCard[card] = Mathf.Max(0, alive - 1);
+            if (_capped.TryGetValue(card, out List<Spawnable> capped))
+                capped.Remove(instance);
         }
 
         void PlacePending()
@@ -284,6 +295,11 @@ namespace Aipocalypse.Core.SpawnSystem
                 var info = new SpawnInfo(member.Card, member.Handle, member.Slot, member.Handle.Count,
                     member.Slot > 0 ? member.Handle.Leader : null);
                 Spawnable instance = Activate(prefab, member.Card, member.Position, member.Rotation, info);
+                if (instance == null)
+                {
+                    member.Handle.Dropped();
+                    continue;
+                }
                 if (member.Slot == 0)
                     member.Handle.Leader = instance;
                 member.Handle.Arrived(instance);
@@ -292,17 +308,51 @@ namespace Aipocalypse.Core.SpawnSystem
             _clock.Stop();
         }
 
+        // Null when the card is full and refuses more.
         Spawnable Activate(Spawnable prefab, SpawnCard card, Vector3 position, Quaternion rotation, in SpawnInfo info)
         {
+            if (card != null && card.MaxAlive > 0 && CountAlive(card) >= card.MaxAlive && !MakeRoom(card))
+                return null;
             Spawnable instance = _pool.Get(prefab, position, rotation);
             _alive++;
             if (card != null)
             {
                 _aliveByCategory[(int)card.Category]++;
                 _aliveByCard[card] = CountAlive(card) + 1;
+                if (card.MaxAlive > 0)
+                {
+                    if (!_capped.TryGetValue(card, out List<Spawnable> capped))
+                        _capped[card] = capped = new List<Spawnable>();
+                    capped.Add(instance);
+                }
             }
             instance.Spawned(this, info);
             return instance;
+        }
+
+        // A full card's oldest instance the player can't see (of the RecycleChecks oldest; else the oldest) goes back to the pool.
+        bool MakeRoom(SpawnCard card)
+        {
+            if (card.WhenFull != SpawnCapRule.RecycleOldest || !_capped.TryGetValue(card, out List<Spawnable> capped))
+                return false;
+            for (int i = capped.Count - 1; i >= 0; i--)
+                if (capped[i] == null)
+                    capped.RemoveAt(i);
+            if (capped.Count == 0)
+                return false;
+            SpawnRules rules = _settings.DefaultRules;
+            Spawnable recycled = capped[0];
+            for (int i = 0; i < capped.Count && i < RecycleChecks; i++)
+            {
+                if (_visibility.IsSeen(capped[i].transform, rules))
+                    continue;
+                recycled = capped[i];
+                break;
+            }
+            // Stops counting first, so the slot is free even before its OnDisable runs.
+            recycled.Leave();
+            recycled.gameObject.SetActive(false);
+            return true;
         }
 
         // The card's variant by weight, or another of its variants with a free instance when that one has none left: random picks

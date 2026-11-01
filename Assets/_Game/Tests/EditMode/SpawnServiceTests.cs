@@ -190,6 +190,59 @@ namespace Aipocalypse.Tests
             Assert.That(_pool.Made(prefab), Is.EqualTo(5));
         }
 
+        [Test]
+        public void Prewarm_WithOwners_KeepsTheirReservationsAddedUp_UntilReleased()
+        {
+            Spawnable prefab = _coin.PickVariant(0f);
+            var raid = new object();
+            var camp = new object();
+            _spawns.Prewarm(_coin, 6, raid);
+            _spawns.Prewarm(_coin, 4, camp);
+            Assert.That(_pool.Kept(prefab), Is.EqualTo(10));
+            _spawns.Prewarm(_coin, 3, raid);
+            Assert.That(_pool.Kept(prefab), Is.EqualTo(7), "an owner's new reservation replaces its old one");
+            _spawns.Release(raid);
+            Assert.That(_pool.Kept(prefab), Is.EqualTo(4));
+            _spawns.Prewarm(_coin, 2);
+            Assert.That(_pool.Kept(prefab), Is.EqualTo(4), "a prewarm without an owner reserves nothing");
+        }
+
+        [TestCase(10, 6, 4, 0f, 60f, false, 2, 0, TestName = "ToTrim_NothingWhileRecentlyUsed")]
+        [TestCase(10, 6, 4, 61f, 60f, false, 2, 2, TestName = "ToTrim_IdleSurplus_ByTheFrameBudget")]
+        [TestCase(10, 6, 4, 0f, 60f, true, 9, 6, TestName = "ToTrim_Released_AtOnce_OnlyFreeCopies")]
+        [TestCase(10, 6, 8, 0f, 60f, true, 9, 2, TestName = "ToTrim_NeverBelowTheReservations")]
+        [TestCase(10, 6, 0, 1000f, 0f, false, 9, 0, TestName = "ToTrim_NoDelay_NeverIdleTrims")]
+        public void ToTrim(int made, int free, int kept, float idleFor, float delay, bool released, int budget, int expected) =>
+            Assert.That(PrefabPool.ToTrim(made, free, kept, idleFor, delay, released, budget), Is.EqualTo(expected));
+
+        [Test]
+        public void MaxAlive_Refuse_DropsWhatDoesntFit()
+        {
+            _coin.MaxAlive = 3;
+            _coin.WhenFull = SpawnCapRule.Refuse;
+            SpawnHandle handle = _spawns.Spawn(SpawnRequest.At(_coin, Vector3.zero, 5));
+            _spawns.Advance(0.02f);
+            Assert.That(handle.Count, Is.EqualTo(3));
+            Assert.That(handle.IsDone, Is.True);
+            Assert.That(_spawns.CountAlive(_coin), Is.EqualTo(3));
+            Assert.That(_spawns.Spawn(_coin, Vector3.zero, Quaternion.identity), Is.Null);
+        }
+
+        [Test]
+        public void MaxAlive_RecycleOldest_TakesBackTheOldestToMakeRoom()
+        {
+            _coin.MaxAlive = 2;
+            _coin.WhenFull = SpawnCapRule.RecycleOldest;
+            Spawnable first = _spawns.Spawn(_coin, Vector3.zero, Quaternion.identity);
+            Spawnable second = _spawns.Spawn(_coin, Vector3.right, Quaternion.identity);
+            Spawnable third = _spawns.Spawn(_coin, Vector3.left, Quaternion.identity);
+            Assert.That(third, Is.Not.Null);
+            Assert.That(first.gameObject.activeSelf, Is.False, "the oldest went back");
+            Assert.That(first.IsAlive, Is.False);
+            Assert.That(second.IsAlive && third.IsAlive, Is.True);
+            Assert.That(_spawns.CountAlive(_coin), Is.EqualTo(2));
+        }
+
         SpawnCard Card(string name, SpawnCategory category)
         {
             var prefab = new GameObject(name, typeof(Spawnable));

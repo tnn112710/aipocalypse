@@ -57,11 +57,11 @@ namespace Aipocalypse.Core.SpawnSystem
                 if (!area.Prewarm)
                     continue;
                 if (area.Card != null)
-                    _spawns.Prewarm(area.Card, area.Capacity);
+                    _spawns.Prewarm(area.Card, area.Capacity, area);
                 if (area.Table == null)
                     continue;
                 foreach (SpawnTableEntry entry in area.Table.Entries)
-                    _spawns.Prewarm(entry.Card, area.Capacity);
+                    _spawns.Prewarm(entry.Card, area.Capacity, area);
             }
         }
 

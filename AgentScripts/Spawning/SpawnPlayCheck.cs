@@ -29,6 +29,97 @@ public static class SpawnPlayCheck
     // bird flocks near and reports whether their members stay in their bands and round their homes.
     public static Task<string> Flocks(float seconds = 6f) => Drive(sb => FlockSteps(sb, seconds));
 
+    // Camp: takes the player 90 m from the lake camp (SpawnArea) looking away, reports what woke and where its goblins stand,
+    // then 300 m away and reports them gone once unseen.
+    public static Task<string> Camp(float seconds = 4f) => Drive(sb => CampSteps(sb, seconds));
+
+    // Rivers: takes the player to the bank of a river reach, tests water placement there and spawns fish schools in the
+    // river, then reports their band, fitted roam and whether every member stays over water.
+    public static Task<string> Rivers(string river = "River", float t = 0.5f, float seconds = 8f) =>
+        Drive(sb => RiverSteps(sb, river, t, seconds));
+
+    static void Teleport(PlayerRegistry players, Vector3 xz, Vector3 lookAt)
+    {
+        var player = (Component)players.Current;
+        Physics.Raycast(new Vector3(xz.x, 500f, xz.z), Vector3.down, out RaycastHit ground, 1000f, 1);
+        Vector3 look = lookAt - ground.point;
+        look.y = 0f;
+        var cc = player.GetComponent<CharacterController>();
+        if (cc) cc.enabled = false;
+        player.transform.SetPositionAndRotation(ground.point + Vector3.up * 0.2f, Quaternion.LookRotation(look));
+        if (cc) cc.enabled = true;
+    }
+
+    static IEnumerable<float> CampSteps(StringBuilder sb, float seconds)
+    {
+        var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
+        var commands = resolver.Resolve<CommandRegistry>();
+        var players = resolver.Resolve<PlayerRegistry>();
+        var population = resolver.Resolve<PopulationDirector>();
+        var spawns = resolver.Resolve<SpawnService>();
+        var registry = resolver.Resolve<EnemyRegistry>();
+        var navigation = resolver.Resolve<EnemyNavigation>();
+        var camp = Object.FindObjectsByType<SpawnArea>(FindObjectsInactive.Exclude).First();
+        Vector3 center = camp.Zone.Origin;
+        commands.Execute("cheat.god on");
+        commands.Execute("cheat.notarget on");
+        sb.AppendLine($"camp {camp.name} at {center}, areas {population.ActiveAreas}/{population.Areas} awake, goblins alive {spawns.CountAlive(camp.Card)}");
+        Teleport(players, center + new Vector3(90f, 0f, 0f), center + new Vector3(200f, 0f, 0f));
+        yield return seconds;
+        sb.AppendLine($"90 m away, looking away: areas {population.ActiveAreas}/{population.Areas} awake, alive {spawns.CountAlive(camp.Card)}");
+        var visibility = resolver.Resolve<SpawnVisibility>();
+        var rules = resolver.Resolve<SpawnSystemSettings>().DefaultRules;
+        for (int i = 0; i < registry.Count; i++)
+        {
+            EnemyBrain e = registry[i];
+            Vector3 p = e.transform.position;
+            sb.AppendLine($"  {e.name}: {Vector3.Distance(p, center):F1} m from the camp, {Vector3.Distance(p, players.Current.Transform.position):F0} m from the player, " +
+                $"on the navmesh {navigation.TrySnap(p, 0.5f, out _)}, seen {visibility.IsSeen(e.transform, rules)}");
+        }
+        Teleport(players, center + new Vector3(300f, 0f, 0f), center + new Vector3(500f, 0f, 0f));
+        yield return seconds;
+        sb.AppendLine($"300 m away: areas {population.ActiveAreas}/{population.Areas} awake, alive {spawns.CountAlive(camp.Card)}, leaving {spawns.Leaving}, registry {registry.Count}");
+        commands.Execute("cheat.notarget off");
+        commands.Execute("cheat.god off");
+    }
+
+    static IEnumerable<float> RiverSteps(StringBuilder sb, string riverName, float t, float seconds)
+    {
+        var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
+        var commands = resolver.Resolve<CommandRegistry>();
+        var players = resolver.Resolve<PlayerRegistry>();
+        var water = resolver.Resolve<IWaterLevel>();
+        var river = Object.FindObjectsByType<StylizedWater3.RiverModeler.RiverModeler>(FindObjectsInactive.Exclude).First(r => r.name == riverName);
+        river.SplineContainer.Evaluate(0, t, out var center, out var tangent, out _);
+        Vector3 c = center;
+        Vector3 side = Vector3.Cross(Vector3.up, ((Vector3)tangent).normalized);
+        float half = river.SampleWidth(0, t * river.SplineContainer.Splines[0].GetLength()) * 0.5f;
+        bool hasLevel = water.TryGetLevel(c, out float level);
+        sb.AppendLine($"{riverName} at t {t}: centre {c}, half width {half:F1} m, water level there {(hasLevel ? level.ToString("F2") : "none")}");
+        Teleport(players, c + side * (half + 12f), c);
+        commands.Execute("cheat.god on");
+        yield return 1f;
+        foreach (string line in new[] { "spawn.test water 60 40", "spawn.near fishschool 3 40" })
+            sb.AppendLine($"{line}: {commands.Execute(line).Message}");
+        yield return seconds;
+        foreach (var flock in Object.FindObjectsByType<Aipocalypse.Core.AmbientSystem.Flock>(FindObjectsInactive.Exclude))
+        {
+            if (Vector3.Distance(flock.Home, c) > 60f) continue;
+            int dry = 0, above = 0;
+            for (int i = 0; i < flock.Count; i++)
+            {
+                Vector3 p = flock.MemberPosition(i);
+                if (!water.TryGetLevel(p, out float there)) dry++;
+                else if (p.y > there) above++;
+            }
+            water.TryGetLevel(flock.Home, out float homeLevel);
+            sb.AppendLine($"  {flock.name}: home {flock.Home} (level {homeLevel:F1}), band {flock.Floor:F1}–{flock.Ceiling:F1}, roam {flock.RoamRadius:F0} m " +
+                $"(definition {flock.Definition.RoamRadius}), {flock.Count} members: {dry} off the water, {above} above the surface");
+        }
+        sb.AppendLine("spawn.clear: " + commands.Execute("spawn.clear").Message);
+        commands.Execute("cheat.god off");
+    }
+
     static IEnumerable<float> FlockSteps(StringBuilder sb, float seconds)
     {
         var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
