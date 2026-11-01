@@ -215,7 +215,7 @@ Assets/_Game/
 │  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ FirstPersonView.cs                 on the world camera: the lens held models draw with (own FOV via SetFieldOfView so zoom doesn't swell the gun, near 0.01 / far 10 m)
-│  │  ├─ FirstPersonRenderFeature.cs        URP renderer feature on PC_Renderer: draws the HeldWeapon layer in the world camera after transparents, depth cleared, with FirstPersonView's lens (replaces the overlay camera)
+│  │  ├─ FirstPersonRenderFeature.cs        URP renderer feature on PC_Renderer: draws the HeldWeapon layer in the world camera after transparents, depth cleared, with FirstPersonView's lens and SSAO zeroed (replaces the overlay camera)
 │  │  ├─ Stamina.cs                         stamina meter: spend (pauses regen), regen only while resting after a delay, exhaustion, winded wait after running dry; SetMax keeps the current share
 │  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers, slower still while winded; StatId.FatiguePenaltyScale
 │  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings: Below, EaseTime): IsActive, eased Tiredness for the breath loop and the aim sway

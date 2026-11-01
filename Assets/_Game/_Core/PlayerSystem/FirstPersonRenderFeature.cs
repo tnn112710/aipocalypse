@@ -33,6 +33,7 @@ namespace Aipocalypse.Core.PlayerSystem
             {
                 new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly"), new ShaderTagId("SRPDefaultUnlit")
             };
+            static readonly int AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
 
             public LayerMask LayerMask;
 
@@ -91,6 +92,9 @@ namespace Aipocalypse.Core.PlayerSystem
                 builder.SetRenderFunc(static (PassData d, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
+                    // SSAO is computed from the world's depth, which doesn't hold this layer; sampling it here shades
+                    // the held model with whatever is behind it. Zero intensity makes the AO factor 1. Nothing lit draws after this pass.
+                    cmd.SetGlobalVector(AmbientOcclusionParam, Vector4.zero);
                     if (d.FirstPerson)
                     {
                         bool flip = context.GetTextureUVOrigin(d.Color) == TextureUVOrigin.BottomLeft;
