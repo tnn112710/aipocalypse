@@ -24,6 +24,8 @@ While it's open it holds `InputService`'s text input: the Player, UI and Debug m
 
 **Results:** what a command returns prints in green, failures in red; logs a command writes come before its result. Identical lines in a row collapse into one with a count.
 
+**From the command line:** a development build started with `-console "<commands>"` runs them once a few frames in (when every scene object has started), as if typed, `;` between them. For unattended runs, e.g. a night fight on autopilot for a profiler capture: `-console "app.background on; cheat.god on; cheat.infammo on; cheat.take ak47; clock.set 21; raid.start; cheat.autopilot on"` (`AgentScripts/Perf/PerfBuild.cs`).
+
 ## Commands
 
 With nothing typed, the line under the input lists this scene's command groups (`afps  cheat  clear  clock  enemy  gfx  help  log  pause  player  raid  time`). `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
@@ -38,6 +40,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `log.screen.clear` | Stop showing Unity logs (the default) and remove the messages on screen |
 | `log.screen` | Which level is on (Off, Error, Info, All) |
 | `log.trace` | Stack trace of the last error Unity logged |
+| `app.background [on/off]` | Keep running while the window isn't focused (`Application.runInBackground`, this session only): unattended runs, profiling a build |
 | `cheat.kill`, `cheat.revive` | Kill the player with a real hit (through `DamageService`, like K, even in god mode) / revive (like L) |
 | `cheat.hp [amount]` | Heal to full, or by an amount |
 | `cheat.stamina` | Refill stamina |
@@ -45,6 +48,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `cheat.infammo [on/off]` | Reloads never use up the reserve (`AmmoReserve.Infinite`) |
 | `cheat.god [on/off]` | Hits apply nothing to the player (`PlayerLife.Invulnerable`): no damage, no hurt feedback |
 | `cheat.notarget [on/off]` | Enemies don't choose the player as a target (`IPlayer.IgnoredByEnemies`); hunters wander instead |
+| `cheat.take <item>` | Pick up the first item lying in the scene whose name starts with it (`cheat.take ak47`), wherever it is |
 | `cheat.killall` | Kill every enemy in play with a real hit (scenes with an `EnemyInstaller` only) |
 | `cheat.autopilot [on/off]` | The player fights by itself: aims at the nearest enemy in sight, fires, reloads, swaps guns (`RaidAutopilot`; scenes with an `EnemyInstaller` only) |
 | `player.pos` | Where the player stands |

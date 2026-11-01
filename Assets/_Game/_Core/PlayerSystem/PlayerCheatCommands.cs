@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.Debugging;
+using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.WeaponSystem;
+using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
 {
@@ -130,6 +133,24 @@ namespace Aipocalypse.Core.PlayerSystem
                 return NoPlayer;
             player.IgnoredByEnemies = on;
             return NoTarget();
+        }
+
+        [Command("Pick up the first item lying in the scene whose name starts with this (cheat.take ak47), wherever it is")]
+        CommandResult Take(string item)
+        {
+            if (Current is not { } player)
+                return NoPlayer;
+            GameObject actor = player.Transform.gameObject;
+            foreach (WorldItem lying in UnityEngine.Object.FindObjectsByType<WorldItem>())
+            {
+                if (!lying.name.StartsWith(item, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (!lying.TryGetPrompt(actor, out _))
+                    return CommandResult.Fail($"Can't pick up {lying.name}");
+                lying.Interact(actor);
+                return CommandResult.Ok($"Took {lying.name}");
+            }
+            return CommandResult.Fail($"No {item} lying in this scene");
         }
     }
 }

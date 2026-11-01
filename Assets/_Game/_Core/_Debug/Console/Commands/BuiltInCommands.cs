@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace Aipocalypse.Core.Debugging
 {
@@ -76,5 +77,15 @@ namespace Aipocalypse.Core.Debugging
 
         [Command("Stack trace of the last error Unity logged", Name = "log.trace")]
         string Trace() => _logs.LastStackTrace ?? "No error logged yet";
+
+        [Command("Whether the game keeps running while its window isn't focused", Name = "app.background")]
+        string Background() => CommandParser.Format(Application.runInBackground);
+
+        [Command("Keep running while the window isn't focused (unattended runs, profiling a build)", Name = "app.background")]
+        string Background(bool on)
+        {
+            Application.runInBackground = on;
+            return Background();
+        }
     }
 }

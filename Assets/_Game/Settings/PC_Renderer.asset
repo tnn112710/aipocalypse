@@ -17,6 +17,60 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _passEvent: 500
+--- !u!114 &-5860006157637328322
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cbabd8e2cb2e4f8a930752453adf79a, type: 3}
+  m_Name: Beautify
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::Beautify.Universal.BeautifyRendererFeature
+  m_Active: 1
+  shader: {fileID: 4800000, guid: 55d70ca4ea7504a38b66170bbe587b2f, type: 3}
+  renderPassEvent: 500
+  ignorePostProcessingOption: 0
+  cameraLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  stripSettings: {fileID: 11400000, guid: beaf9c07747a2b641ad068fea79a5218, type: 2}
+  defaultLensDirtTexture: {fileID: 0}
+  defaultFlareTexture: {fileID: 0}
+  stripBeautifyTonemappingACES: 0
+  stripBeautifyTonemappingACESFitted: 0
+  stripBeautifyTonemappingAGX: 0
+  stripBeautifyTonemappingPBRNeutral: 1
+  stripBeautifySharpen: 0
+  stripBeautifySharpenExclusionMask: 1
+  stripBeautifyDithering: 0
+  stripBeautifyEdgeAA: 0
+  stripBeautifyLUT: 0
+  stripBeautifyLUT3D: 1
+  stripBeautifyColorTweaks: 0
+  stripBeautifyBloom: 0
+  stripBeautifyLensDirt: 0
+  stripBeautifyChromaticAberration: 0
+  stripBeautifyDoF: 0
+  stripBeautifyDoFTransparentSupport: 1
+  stripBeautifyEyeAdaptation: 1
+  stripBeautifyPurkinje: 1
+  stripBeautifyVignetting: 0
+  stripBeautifyVignettingMask: 1
+  stripBeautifyOutline: 1
+  stripBeautifyNightVision: 1
+  stripBeautifyThermalVision: 1
+  stripBeautifyFrame: 1
+  stripBeautifyFilmGrain: 1
+  stripUnityFilmGrain: 0
+  stripUnityDithering: 0
+  stripUnityTonemapping: 0
+  stripUnityBloom: 0
+  stripUnityChromaticAberration: 0
+  stripUnityDistortion: 0
+  stripUnityDebugVariants: 0
 --- !u!114 &-1996619760729079852
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -135,7 +189,8 @@ MonoBehaviour:
   - {fileID: -1996619760729079852}
   - {fileID: -1162199858321035771}
   - {fileID: -7062686586378992764}
-  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f284c3f62af84bfc9d2452e5e7b43747ael
+  - {fileID: -5860006157637328322}
+  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f284c3f62af84bfc9d2452e5e7b43747ae3ee26c807213adael
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:

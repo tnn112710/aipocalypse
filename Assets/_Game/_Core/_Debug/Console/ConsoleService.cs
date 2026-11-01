@@ -12,10 +12,12 @@ namespace Aipocalypse.Core.Debugging
     // The dev console (editor and development builds): ` opens and closes it, a typed line runs through the CommandRegistry
     // (';' chains statements). Unity logs show only at the ScreenLog level (log.screen.*, off by default), in the scrollback and
     // on screen. While open it holds InputService's text input, so the gameplay, UI and Debug maps are off and typing never
-    // fires a cheat. ConsoleView draws it.
+    // fires a cheat. ConsoleView draws it. `-console "<commands>"` on the command line runs them once at startup.
     public sealed class ConsoleService : IInitializable, ITickable, IDisposable
     {
         const string HistoryFile = "console_history.txt";
+        // Ticks before the command-line commands run: every scene object has started by then.
+        const int StartupDelay = 5;
 
         readonly InputService _input;
         readonly CommandRegistry _commands;
@@ -38,6 +40,8 @@ namespace Aipocalypse.Core.Debugging
         string _historyPath;
         string _completionBase;
         bool _completing;
+        string _startup;
+        int _startupWait = StartupDelay;
 
         public ConsoleService(InputService input, CommandRegistry commands, LogBuffer logs, ScreenLog screen, TimeService time, ConsoleSettings settings)
         {
@@ -72,6 +76,7 @@ namespace Aipocalypse.Core.Debugging
         {
             _screen.MirrorLevel = _settings.ScreenLogLevel;
             _historyPath = Path.Combine(Application.persistentDataPath, HistoryFile);
+            _startup = StartupCommands(Environment.GetCommandLineArgs());
             try
             {
                 if (File.Exists(_historyPath))
@@ -88,6 +93,12 @@ namespace Aipocalypse.Core.Debugging
         public void Tick()
         {
             _logs.Flush(_keep, _mirror);
+            if (_startup != null && --_startupWait <= 0)
+            {
+                string startup = _startup;
+                _startup = null;
+                Run(startup);
+            }
             if (_input.ConsoleTogglePressed)
             {
                 if (IsOpen)
@@ -128,6 +139,13 @@ namespace Aipocalypse.Core.Debugging
             _input.ReleaseTextInput(this);
             _time.ReleasePause(this);
             Changed();
+        }
+
+        // The text after -console, for unattended runs (profiling a build): the game's normal commands, ';' between them.
+        static string StartupCommands(string[] args)
+        {
+            int at = Array.IndexOf(args, "-console");
+            return at >= 0 && at + 1 < args.Length ? args[at + 1] : null;
         }
 
         // Runs a line as if typed (echo, results and errors go to the scrollback); ';' separates statements.

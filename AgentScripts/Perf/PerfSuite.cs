@@ -524,7 +524,7 @@ public static class PerfSuite
     // hit-stop frames, the worst frames' main-thread call trees, and with `gc` the fight's GC.Alloc stacks.
     // Run it right after entering play mode for the cold numbers (first blood, first deaths), then again for warm ones.
     public static async Task<string> Fight(int count = 25, float seconds = 10f, float hour = 22f, float distance = 24f, int dumps = 3,
-        float dumpMs = 0.3f, bool gc = false, float aimHeight = 1.2f, float standOut = 35f)
+        float dumpMs = 0.3f, bool gc = false, float aimHeight = 1.2f, float standOut = 35f, int breakdownDepth = 0)
     {
         if (!EditorApplication.isPlaying) return "enter play mode first";
         var sb = Header($"fight {count} at {hour}h");
@@ -604,7 +604,13 @@ public static class PerfSuite
                     float d = (e.transform.position - stand).sqrMagnitude;
                     if (d < best) { best = d; target = e; }
                 }
-                if (target == null) return;
+                if (target == null)
+                {
+                    // nothing to shoot (count 0, the night baseline): hold the same view as a fight
+                    player.transform.rotation = Quaternion.Euler(0f, facing, 0f);
+                    pitch(3f);
+                    return;
+                }
                 Vector3 eye = Camera.main.transform.position;
                 Vector3 to = target.transform.position + Vector3.up * aimHeight - eye;
                 float flat = new Vector2(to.x, to.z).magnitude;
@@ -642,6 +648,7 @@ public static class PerfSuite
             })));
             foreach (var m in markers) m.rec.Dispose();
             sb.Append(Analyze(fight, 20, 5));
+            sb.Append(Breakdown(fight.ProfFirst, fight.ProfLast, breakdownDepth, 0.05f));
             foreach (int f in WorstFrames(fight.ProfFirst, fight.ProfLast, dumps))
                 sb.Append(DumpFrame(f, dumpMs));
 
@@ -1097,6 +1104,9 @@ public static class PerfSuite
         return frames.OrderByDescending(x => x.ms).Take(n).Select(x => x.f).ToList();
     }
 
+    // Markers where the main thread only waits: the editor's present throttling, a player's frame cap and vsync.
+    static readonly HashSet<string> IdleWaits = new() { "WaitForLastPresentation", "WaitForTargetFPS", "Gfx.WaitForPresentOnGfxThread" };
+
     static double GameMs(HierarchyFrameDataView v, int id, bool inLoop)
     {
         double ms = 0;
@@ -1107,10 +1117,55 @@ public static class PerfSuite
             string name = v.GetItemName(c);
             double total = v.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnTotalTime);
             if (!inLoop && name == "PlayerLoop") ms += total + GameMs(v, c, true);
-            else if (inLoop && name == "WaitForLastPresentation") ms -= total;
+            else if (inLoop && IdleWaits.Contains(name)) ms -= total;
             else if (inLoop || name != "EditorLoop") ms += GameMs(v, c, inLoop);
         }
         return ms;
+    }
+
+    // Average main-thread time per frame of each call-tree item inside PlayerLoop (by path, `depth` levels below it, items of at
+    // least `minMs`; the present wait left out), children under their parent, largest first. 0 = none.
+    static string Breakdown(int first, int last, int depth, float minMs)
+    {
+        if (depth <= 0 || first < 0) return "";
+        var totals = new Dictionary<string, double>();
+        var selfs = new Dictionary<string, double>();
+        int n = 0;
+        for (int f = Math.Max(first, ProfilerDriver.firstFrameIndex); f <= last; f++)
+        {
+            using var view = ProfilerDriver.GetHierarchyFrameDataView(f, 0, HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName, HierarchyFrameDataView.columnTotalTime, false);
+            if (view == null || !view.valid) continue;
+            n++;
+            void Walk(int id, string path, int level)
+            {
+                var kids = new List<int>();
+                view.GetItemChildren(id, kids);
+                foreach (int c in kids)
+                {
+                    string name = view.GetItemName(c);
+                    if (name == "EditorLoop" || name == "WaitForLastPresentation") continue;
+                    if (level < 0 && name != "PlayerLoop") continue;
+                    string key = path + "/" + name;
+                    totals[key] = totals.GetValueOrDefault(key) + view.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnTotalTime);
+                    selfs[key] = selfs.GetValueOrDefault(key) + view.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnSelfTime);
+                    if (level < depth) Walk(c, key, level + 1);
+                }
+            }
+            Walk(view.GetRootItemID(), "", -1);
+        }
+        if (n == 0) return "";
+        var sb = new StringBuilder($"   breakdown (ms/frame, {n} frames; total / self):\n");
+        void Print(string parent, int indent)
+        {
+            foreach (var kv in totals.Where(k => k.Key.Substring(0, k.Key.LastIndexOf('/')) == parent && k.Value / n >= minMs).OrderByDescending(k => k.Value))
+            {
+                string name = kv.Key.Substring(kv.Key.LastIndexOf('/') + 1).Replace("UnityEngine.CoreModule.dll!", "").Replace("Aipocalypse.Core.dll!", "");
+                sb.AppendLine($"     {new string(' ', indent * 2)}{name} {kv.Value / n:F2} / {selfs[kv.Key] / n:F2}");
+                Print(kv.Key, indent + 1);
+            }
+        }
+        Print("", 0);
+        return sb.ToString();
     }
 
     // Main-thread call tree of one captured frame: items of at least `minMs` inside PlayerLoop, the present wait left out.
@@ -1134,6 +1189,34 @@ public static class PerfSuite
         }
         Dump(view.GetRootItemID(), 0);
         return sb.ToString();
+    }
+
+    // A capture a player streamed (-profiler-log-file, see PerfBuild): loads it into the Profiler, skips the first `skip` frames
+    // (loading, the fight setting up), then frame time, main-thread game time (PlayerLoop minus the idle waits), the busiest
+    // items `depth` levels deep, top self markers, render thread, and the `dumps` worst frames' call trees.
+    public static string Capture(string rawPath, int skip = 600, int depth = 6, int dumps = 3, float dumpMs = 0.3f)
+    {
+        if (EditorApplication.isPlaying) return "leave play mode first";
+        if (!ProfilerDriver.LoadProfile(rawPath, false)) return "couldn't load " + rawPath;
+        int first = ProfilerDriver.firstFrameIndex + skip, last = ProfilerDriver.lastFrameIndex;
+        var frame = new List<float>();
+        var game = new List<float>();
+        for (int f = first; f <= last; f++)
+        {
+            using var view = ProfilerDriver.GetHierarchyFrameDataView(f, 0, HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName, HierarchyFrameDataView.columnTotalTime, false);
+            if (view == null || !view.valid) continue;
+            frame.Add(view.frameTimeMs);
+            game.Add((float)GameMs(view, view.GetRootItemID(), false));
+        }
+        var sb = new StringBuilder($"== capture {System.IO.Path.GetFileName(rawPath)}: frames {ProfilerDriver.firstFrameIndex}..{last}, analysed {frame.Count} from {first}\n");
+        sb.AppendLine($"frame ms med/p95/p99/max {Median(frame):F2}/{Pct(frame, .95f):F2}/{Pct(frame, .99f):F2}/{Max(frame):F1} | " +
+                      $"game (PlayerLoop minus waits) {Median(game):F2}/{Pct(game, .95f):F2}/{Pct(game, .99f):F2}/{Max(game):F1}");
+        var seg = new Seg { Name = "capture", ProfFirst = first, ProfLast = last };
+        sb.Append(Analyze(seg, 25, 5));
+        sb.Append(Breakdown(first, last, depth, 0.05f));
+        foreach (int f in WorstFrames(first, last, dumps))
+            sb.Append(DumpFrame(f, dumpMs));
+        return Finish("capture", sb);
     }
 
     public static string GpuArea(bool on)

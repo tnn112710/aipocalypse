@@ -315,7 +315,9 @@ namespace SunfishCreations
                 Gizmos.DrawSphere(_retrievalPoint, _retrievalGizmoSize);
 
                 // Optional: label
+#if UNITY_EDITOR
                 Handles.Label(_retrievalPoint + Vector3.up * 0.3f, "Retrieval Point", EditorStyles.boldLabel);
+#endif
             }
         }
         public virtual void InformWaterHit(Vector3 point)
