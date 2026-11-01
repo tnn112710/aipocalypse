@@ -29,7 +29,7 @@ Worked example, built with this skill: **`Content/Enemies/Goblin/`**, ten wander
 **Not built** (don't assume): animated NPCs, companions, animals or bosses; animation LOD (fewer layers or a lower rate far away); ragdolls; attack animations; pooling.
 - Unique characters (companions, NPCs) will be `EntityScope` entities (ARCHITECTURE.md → Entities). Reuse `LocomotionAnimation` and the parameter contract, ticked by their own system.
 - Propose the design before building any of these.
-- Animals from Malbers bring the heavy per-instance Animal Controller and its own NavMeshAgent AI: ASSETS.md allows it only for a few unique animals, never crowds, and asks first.
+- Animal models: **farm animals** from polyperfect Low Poly Animated Animals, **wild animals** from it or the Malbers Forest Pack, picked per species (ASSETS.md, both Should). Take only their models and clips into our own prefab and controller: polyperfect's `Common_WanderScript` and Malbers' Animal Controller (heavy, per instance, its own NavMeshAgent AI) never go on our prefabs; the Animal Controller is allowed only for a few unique animals, never crowds, and asks first.
 
 ## 2. Pipeline
 
