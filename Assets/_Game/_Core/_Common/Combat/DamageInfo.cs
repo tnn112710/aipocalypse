@@ -52,9 +52,4 @@ namespace Aipocalypse.Core.Combat
             Staggered = staggered;
         }
     }
-
-    // A damageable that shows its own hit effects (enemies bleed): guns skip their generic impact on it.
-    public interface IShowsOwnHits
-    {
-    }
 }

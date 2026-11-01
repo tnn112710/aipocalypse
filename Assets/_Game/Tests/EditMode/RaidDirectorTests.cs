@@ -133,6 +133,7 @@ namespace Aipocalypse.Tests
             Assert.AreEqual(0, _waves[0].Wave);
             Assert.AreEqual(5, _waves[0].Count);
             Assert.AreEqual(2, _spawner.Prepared, "the raid prewarms again when it starts");
+            Assert.AreEqual(_settings.AliveCap + _settings.CorpseHeadroom, _spawner.PreparedInstances, "room for the bodies still lying");
             Assert.AreEqual(1, _spawner.Groups.Count, "the first group spawns at once");
             Assert.AreEqual("Front", _spawner.Groups[0].Zone);
         }
@@ -426,6 +427,7 @@ namespace Aipocalypse.Tests
             public readonly List<(int Count, string Zone, bool Announce)> Groups = new();
             public readonly List<bool> Withdrawals = new();
             public int Prepared;
+            public int PreparedInstances;
             public bool Blocked;
             public int MostAlive;
             int _alive;
@@ -440,7 +442,11 @@ namespace Aipocalypse.Tests
                 }
             }
 
-            public void Prepare(RaidPlan plan, int aliveCap) => Prepared++;
+            public void Prepare(RaidPlan plan, int instances)
+            {
+                Prepared++;
+                PreparedInstances = instances;
+            }
 
             public int SpawnGroup(EnemySpawnCard card, int count, string zone, bool announce)
             {

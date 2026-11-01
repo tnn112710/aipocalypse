@@ -25,6 +25,8 @@ public static class BuildGoblin
     const int Deaths = 2;
     const int Attacks = 3;
     const int Celebrations = 4;
+    // Directional deaths per side the killing hit comes from (front, back, left, right): Goblin.animspec.txt's death.<side> lines.
+    static readonly int[] SideDeaths = { 3, 3, 1, 1 };
     // The sword: scaled to goblin size, held at this height up its handle (model units; the handle spans -0.2..0.14, the
     // blade's edges face its local +-Z), a little into the palm from the knuckles.
     const float SwordScale = 0.75f;
@@ -118,6 +120,7 @@ public static class BuildGoblin
         serialized.FindProperty("_animator").objectReferenceValue = animator;
         serialized.FindProperty("_fidgets").intValue = Fidgets;
         serialized.FindProperty("_deaths").intValue = Deaths;
+        SetSideDeaths(serialized);
         serialized.ApplyModifiedPropertiesWithoutUndo();
         SetVisual(root.AddComponent<EnemyBody>(), animator.transform);
         var brain = new SerializedObject(root.GetComponent<EnemyBrain>());
@@ -182,6 +185,7 @@ public static class BuildGoblin
                 serialized.FindProperty("_deaths").intValue = Deaths;
                 serialized.FindProperty("_attacks").intValue = Attacks;
                 serialized.FindProperty("_celebrations").intValue = Celebrations;
+                SetSideDeaths(serialized);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
                 var tree = new SerializedObject(root.GetComponent<Opsive.BehaviorDesigner.Runtime.BehaviorTree>());
                 tree.FindProperty("m_Subtree").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ScriptableObject>(MeleeTree);
@@ -195,6 +199,14 @@ public static class BuildGoblin
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+    }
+
+    static void SetSideDeaths(SerializedObject enemyAnimator)
+    {
+        SerializedProperty sides = enemyAnimator.FindProperty("_sideDeaths");
+        sides.arraySize = SideDeaths.Length;
+        for (int i = 0; i < SideDeaths.Length; i++)
+            sides.GetArrayElementAtIndex(i).intValue = SideDeaths[i];
     }
 
     // Hit colliders that follow the pose (goblins hunch, so the head sits low and forward): the root capsule covers legs and

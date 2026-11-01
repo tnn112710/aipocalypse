@@ -70,7 +70,7 @@ namespace Aipocalypse.Core.RaidSystem
         {
             RaidPlan plan = _schedule.PlanFor(NightOrToday(_clock.Now));
             if (plan != null)
-                _spawner.Prepare(plan, _settings.AliveCap);
+                _spawner.Prepare(plan, _settings.AliveCap + _settings.CorpseHeadroom);
         }
 
         public void Tick() => Advance(Time.deltaTime);
@@ -147,7 +147,7 @@ namespace Aipocalypse.Core.RaidSystem
             Spawned = 0;
             LastEnd = null;
             _time = 0f;
-            _spawner.Prepare(plan, _settings.AliveCap);
+            _spawner.Prepare(plan, _settings.AliveCap + _settings.CorpseHeadroom);
             _started.Publish(new RaidStarted(night));
             StartWave(0);
         }

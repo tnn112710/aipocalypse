@@ -9,8 +9,8 @@ namespace Aipocalypse.Core.RaidSystem
         // Raiders this raid spawned that are still alive.
         int Alive { get; }
 
-        // Gets the pool ready for `plan` with at most `aliveCap` raiders alive at once.
-        void Prepare(RaidPlan plan, int aliveCap);
+        // Gets the pool ready for `plan` with at most `instances` of a card in play at once (alive raiders and lying bodies).
+        void Prepare(RaidPlan plan, int instances);
 
         // One group of `count` enemies of `card` from the zone with id `zone`; `announce` plays the card's arrival cue at the
         // group's spawn point. Returns how many spawned: 0 when no spawn point is ready yet (try again later).

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -11,6 +12,8 @@ namespace Aipocalypse.Core.EnemySystem
     // Prewarmed ones wait under an inactive parking root, never woken until taken (PrewarmPerFrame a frame).
     public sealed class EnemyPool : ITickable, IDisposable
     {
+        static readonly ProfilerMarker PrewarmMarker = new("Aipocalypse.EnemyPool.Prewarm");
+
         readonly IObjectResolver _resolver;
         readonly EnemySystemSettings _settings;
         readonly Dictionary<EnemyBrain, Stack<EnemyBrain>> _free = new();
@@ -59,6 +62,7 @@ namespace Aipocalypse.Core.EnemySystem
         {
             if (_warming.Count == 0)
                 return;
+            using var _ = PrewarmMarker.Auto();
             int budget = _settings.PrewarmPerFrame;
             for (int i = _warming.Count - 1; i >= 0 && budget > 0; i--)
             {

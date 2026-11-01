@@ -8,7 +8,6 @@ namespace Aipocalypse.Core.WeaponSystem
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.RegisterEntryPoint<EffectPool>().AsSelf();
             builder.RegisterEntryPoint<BulletSystem>().AsSelf();
             builder.Register<GunJamFactory>(Lifetime.Singleton);
         }

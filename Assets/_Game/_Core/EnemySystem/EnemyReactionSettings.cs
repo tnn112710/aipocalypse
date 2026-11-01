@@ -1,11 +1,11 @@
-using Aipocalypse.Core.WeaponSystem;
+using Aipocalypse.Core.Effects;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // How an enemy kind takes hits and dies: its weight class (Stagger), knockback from DamageInfo.Force, hit animations, and
-    // how long the body stays.
+    // How an enemy kind takes hits and dies: its weight class (Stagger), knockback from DamageInfo.Force, hit animations, how
+    // long the body stays, and its blood (pooled hit effects).
     [CreateAssetMenu(fileName = "EnemyReactionSettings", menuName = "Aipocalypse/Enemies/Enemy Reaction Settings")]
     public sealed class EnemyReactionSettings : ScriptableObject
     {
@@ -20,10 +20,6 @@ namespace Aipocalypse.Core.EnemySystem
         [Min(0f), Tooltip("The killing hit pushes this many times harder, so a body is thrown back by a heavy shot")]
         public float KillPushScale = 2f;
 
-        [Header("Hit effects (pooled; empty = none)")]
-        [Tooltip("At the hit point, facing back along the shot")] public PooledEffect HitEffect;
-        [Tooltip("A hit on a critical hitbox (headshot); empty = HitEffect")] public PooledEffect CriticalEffect;
-        [Tooltip("Added on the killing hit")] public PooledEffect KillEffect;
         [Min(0f), Tooltip("Push speed (m/s) at which a hit plays the heavy reaction instead of the light one")]
         public float HeavyHitSpeed = 4f;
         [Min(0f), Tooltip("Seconds a body lies after dying before it sinks")]
@@ -32,5 +28,13 @@ namespace Aipocalypse.Core.EnemySystem
         public float SinkTime = 2f;
         [Min(0f), Tooltip("Metres it sinks")]
         public float SinkDepth = 1.2f;
+
+        [Header("Hit effects (pooled; empty = none)")]
+        [Tooltip("At the hit point, facing back along the shot")] public PooledEffect HitEffect;
+        [Tooltip("A hit on a critical hitbox (headshot); empty = HitEffect")] public PooledEffect CriticalEffect;
+        [Tooltip("Added on the killing hit")] public PooledEffect KillEffect;
+        [Min(0), Tooltip("Copies of each effect made when the scene starts or a raid gets ready (EnemySpawner), so a fight's " +
+            "first hits don't instantiate them")]
+        public int EffectPrewarm = 12;
     }
 }

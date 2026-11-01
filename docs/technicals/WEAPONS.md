@@ -85,7 +85,7 @@ Views and services
   GunJam                        one gun's jam: GunRepairFlow + GunRepairFeedback (built by the root GunJamFactory)
   HeldMelee : HeldItem          on the melee prefab: feeds MeleeAttack, swing motion, hit check → damage, knockback, impact, sounds
   BulletSystem  (root, tick)    bullets in flight → hits → damage, impact, hole
-  EffectPool    (root, tick)    one pool per effect prefab, timed returns, MaxActive
+  EffectPool    (root, tick)    one pool per effect prefab, timed returns, MaxActive (_Common/Effects: enemies' blood uses it too)
 ```
 
 Who calls what each frame: [CODE_STRUCTURE.md → Frame order](CODE_STRUCTURE.md#frame-order). In short, the player's `HeldItemDriver` builds a `HeldItemInput` from its intent and motor state, `EquipmentRig.TickHeld` passes it to the held item (with `IsReady` from the switcher), and the driver then applies the item's `LookTurn` and `ViewKick` to the look, its `Zoom` to the lens and its `IsAiming` to the motor speed.

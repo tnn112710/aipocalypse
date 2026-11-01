@@ -1,5 +1,6 @@
 // Play-mode perf suite for the world map (run with `unity command script run` while in play mode):
-// Views (fixed spots), Actions (move, look, fire, aim, switch, melee), DayNight (hour transitions, night lights), Audio (audio counters), Crowd (enemy count), Ab (settings A/B).
+// Views (fixed spots), Actions (move, look, fire, aim, switch, melee), DayNight (hour transitions, night lights), Audio (audio counters), Crowd (enemy count),
+// Fight (a night raid fight: firing at spawned goblins), Ab (settings A/B).
 // Frame time, PlayerLoop (game cost without the editor loop), FrameTiming CPU/GPU, render counters, GC, cameras per frame,
 // and the top profiler markers outside the editor loop. Results also go to %TEMP%/claude_perf_<name>.txt.
 using System;
@@ -9,12 +10,15 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.EnvironmentSystem;
 using Aipocalypse.Core.EquipmentSystem;
+using Aipocalypse.Core.Events;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Core.WorldTimeSystem;
+using MessagePipe;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel.Unsafe;
 using UnityEditor;
@@ -507,6 +511,170 @@ public static class PerfSuite
         return Finish("crowd", sb);
     }
 
+    static readonly string[] FightMarkers =
+    {
+        "Aipocalypse.BulletSystem.Advance", "Aipocalypse.DamageService.Deal", "Aipocalypse.DamageService.Publish", "Aipocalypse.EnemySpawner.Spawn",
+        "Aipocalypse.EnemyPool.Prewarm", "Aipocalypse.EnemyManager.Think", "Aipocalypse.EnemyBodyManager.React", "Aipocalypse.EnemyAnimationManager.Animate",
+    };
+
+    // A night raid fight on the raid approach: the player stands `standOut` m out from the home base along the raid SpawnZone's
+    // forward, and `count` goblins of the scene's first spawn card come through the EnemySpawner (prewarmed pool, appear)
+    // `distance` m further out, topped up as they die, while the player (god mode, AK with infinite ammo, no jams) holds fire
+    // at the nearest one. Measures the approach without firing, then the fight (profiled) with its hits, kills, staggers and
+    // hit-stop frames, the worst frames' main-thread call trees, and with `gc` the fight's GC.Alloc stacks.
+    // Run it right after entering play mode for the cold numbers (first blood, first deaths), then again for warm ones.
+    public static async Task<string> Fight(int count = 25, float seconds = 10f, float hour = 22f, float distance = 24f, int dumps = 3,
+        float dumpMs = 0.3f, bool gc = false, float aimHeight = 1.2f, float standOut = 35f)
+    {
+        if (!EditorApplication.isPlaying) return "enter play mode first";
+        var sb = Header($"fight {count} at {hour}h");
+        var player = Player;
+        var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
+        var commands = resolver.Resolve<CommandRegistry>();
+        var spawner = resolver.Resolve<EnemySpawner>();
+        var card = resolver.Resolve<EnemySystemSettings>().Cards[0];
+        var zone = Object.FindAnyObjectByType<Aipocalypse.Core.RaidSystem.SpawnZone>();
+        Vector3 home = zone != null ? zone.Origin : player.SpawnPosition;
+        Vector3 away = Vector3.ProjectOnPlane(zone != null ? zone.transform.forward : player.transform.forward, Vector3.up).normalized;
+        Vector3 stand = Ground(home.x + away.x * standOut, home.z + away.z * standOut);
+        Vector3 center = Ground(stand.x + away.x * distance, stand.z + away.z * distance);
+        float facing = Quaternion.LookRotation(away).eulerAngles.y;
+
+        int hits = 0, kills = 0, staggers = 0, crits = 0, stops = 0, stopFrames = 0;
+        bool inStop = false;
+        using var dealt = resolver.Resolve<ISubscriber<DamageDealt>>().Subscribe(e =>
+        {
+            if (e.Info.Source != player.gameObject) return;
+            hits++;
+            if (e.Result.Killed) kills++;
+            if (e.Result.Staggered) staggers++;
+            if (e.Info.Critical) crits++;
+        });
+        var group = new List<EnemyBrain>();
+        int Alive()
+        {
+            for (int k = group.Count - 1; k >= 0; k--)
+                if (group[k] == null || !group[k].isActiveAndEnabled || group[k].IsDead) group.RemoveAt(k);
+            return group.Count;
+        }
+        void TopUp()
+        {
+            int missing = count - Alive() - spawner.Queued;
+            if (missing > 0) spawner.SpawnGroup(card, center, missing, stand - center, group);
+        }
+
+        var jams = new List<(JamSettings jam, float chance)>();
+        var pitch = PitchSetter(player);
+        using var frozen = new FrozenClock(hour);
+        using var s = new Session(input: true, profile: true);
+        var none = Array.Empty<Key>();
+        try
+        {
+            // a raid the hour change started would add its own waves; a death left waiting for its confirm keeps gameplay input off
+            await Frames(2);
+            foreach (string line in new[] { "cheat.god on", "raid.stop", "enemy.clear" }) commands.Execute(line);
+            spawner.CancelQueued();
+            var respawn = resolver.Resolve<PlayerRespawnFlow>();
+            for (int k = 0; k < 600 && respawn.Stage != RespawnStage.None; k++)
+            {
+                s.Send(none, Vector2.zero, k % 2 == 0, false);
+                await NextFrame();
+            }
+            player.Ammo.Infinite = true;
+            foreach (var g in Resources.FindObjectsOfTypeAll<GunDefinition>()) { jams.Add((g.Jam, g.Jam.Chance)); g.Jam.Chance = 0f; }
+            if (!(player.Equipment.Selected is GunInstance))
+            {
+                Give(player, "AK47");
+                await Frames(2);
+                for (int slot = 0; slot < 9 && !(player.Equipment.Selected is GunInstance); slot++) player.Equipment.Select(slot);
+            }
+            Teleport(player, stand, facing, 0f);
+            // as a raid does: room for the bodies still lying
+            int headroom = resolver.TryResolve(out Aipocalypse.Core.RaidSystem.RaidSettings raid) ? raid.CorpseHeadroom : 0;
+            spawner.Prewarm(card, count + headroom);
+            await Seconds(3f);
+
+            void Aim(int i)
+            {
+                EnemyBrain target = null;
+                float best = float.MaxValue;
+                foreach (var e in group)
+                {
+                    if (e == null || !e.isActiveAndEnabled || e.IsDead) continue;
+                    float d = (e.transform.position - stand).sqrMagnitude;
+                    if (d < best) { best = d; target = e; }
+                }
+                if (target == null) return;
+                Vector3 eye = Camera.main.transform.position;
+                Vector3 to = target.transform.position + Vector3.up * aimHeight - eye;
+                float flat = new Vector2(to.x, to.z).magnitude;
+                player.transform.rotation = Quaternion.Euler(0f, Mathf.Atan2(to.x, to.z) * Mathf.Rad2Deg + Mathf.Sin(i * 0.15f) * 2f, 0f);
+                pitch(-Mathf.Atan2(to.y, flat) * Mathf.Rad2Deg);
+            }
+
+            TopUp();
+            await Seconds(4.5f); // spawned over a few frames, then each stands through its appear
+            var approach = await Measure("approach", s, 3f, i => { s.Send(none, Vector2.zero, false, false); Aim(i); }, true);
+            approach.Note = $"alive {Alive()} stand {stand:F0} yaw {facing:F0}";
+            sb.AppendLine(Row(approach));
+            sb.Append(Analyze(approach, 12, 2));
+
+            var available = new List<ProfilerRecorderHandle>();
+            ProfilerRecorderHandle.GetAvailable(available);
+            var categories = available.Select(ProfilerRecorderHandle.GetDescription).GroupBy(d => d.Name).ToDictionary(g => g.Key, g => g.First().Category);
+            var markers = FightMarkers.Select(m => (name: m, rec: ProfilerRecorder.StartNew(categories.TryGetValue(m, out var c) ? c : ProfilerCategory.Scripts, m, 6000))).ToList();
+            var fight = await Measure("fight", s, seconds, i =>
+            {
+                s.Send(none, Vector2.zero, true, false);
+                Aim(i);
+                AutoReload(player, s, none, i);
+                if (Time.timeScale < 0.99f) { stopFrames++; if (!inStop) stops++; inStop = true; }
+                else inStop = false;
+                if (i % 30 == 0) TopUp();
+            }, true);
+            s.Send(none, Vector2.zero, false, false);
+            fight.Note = $"hits {hits} crit {crits} kills {kills} staggered {staggers} | hit stops {stops} ({stopFrames} frames) | alive {Alive()}";
+            sb.AppendLine(Row(fight));
+            sb.AppendLine("   markers ms/frame med/p99/max: " + string.Join("; ", markers.Select(m =>
+            {
+                var v = Samples(m.rec, 1e-6f);
+                return $"{m.name.Replace("Aipocalypse.", "")} {Median(v):F2}/{Pct(v, .99f):F2}/{Max(v):F2}";
+            })));
+            foreach (var m in markers) m.rec.Dispose();
+            sb.Append(Analyze(fight, 20, 5));
+            foreach (int f in WorstFrames(fight.ProfFirst, fight.ProfLast, dumps))
+                sb.Append(DumpFrame(f, dumpMs));
+
+            if (gc)
+            {
+                var prevMode = ProfilerDriver.memoryRecordMode;
+                ProfilerDriver.memoryRecordMode = ProfilerMemoryRecordMode.GCAlloc;
+                int first = ProfilerDriver.lastFrameIndex + 2;
+                await Measure("fight gc", s, 4f, i =>
+                {
+                    s.Send(none, Vector2.zero, true, false);
+                    Aim(i);
+                    AutoReload(player, s, none, i);
+                    if (i % 30 == 0) TopUp();
+                }, false);
+                s.Send(none, Vector2.zero, false, false);
+                ProfilerDriver.memoryRecordMode = prevMode;
+                sb.Append(GcReport("fight", first, ProfilerDriver.lastFrameIndex, 8, 15));
+            }
+        }
+        finally
+        {
+            s.Send(none, Vector2.zero, false, false);
+            foreach (var (jam, chance) in jams) jam.Chance = chance;
+            player.Ammo.Infinite = false;
+            spawner.CancelQueued();
+            commands.Execute("raid.stop");
+            commands.Execute("enemy.clear");
+            commands.Execute("cheat.god off");
+        }
+        return Finish("fight", sb);
+    }
+
     // A/B of runtime toggles at the spawn, averaged over four headings. "baseline" runs first and last to catch drift.
     // `only`: comma-separated config names; empty = all. Every change is restored.
     public static async Task<string> Ab(string only = "", int frames = 50, float hour = -1f, string at = "spawn")
@@ -881,7 +1049,12 @@ public static class PerfSuite
         ProfilerDriver.enabled = false;
         ProfilerDriver.memoryRecordMode = prevMode;
         player.Ammo.Infinite = false;
+        return GcReport($"mode {mode}", first, last, depth, 15);
+    }
 
+    // GC.Alloc samples on the main thread between two captured frames (memoryRecordMode GCAlloc), grouped by call stack.
+    static string GcReport(string what, int first, int last, int depth, int top)
+    {
         var bytes = new Dictionary<string, long>();
         var counts = new Dictionary<string, int>();
         var stack = new List<ulong>();
@@ -905,9 +1078,61 @@ public static class PerfSuite
             }
         }
         frames = Math.Max(1, frames);
-        var sb = new StringBuilder($"GC.Alloc stacks, mode {mode}, {frames} frames, total {bytes.Values.Sum() / (float)frames:F0} B/frame\n");
-        foreach (var kv in bytes.OrderByDescending(k => k.Value).Take(15))
+        var sb = new StringBuilder($"GC.Alloc stacks, {what}, {frames} frames, total {bytes.Values.Sum() / (float)frames:F0} B/frame\n");
+        foreach (var kv in bytes.OrderByDescending(k => k.Value).Take(top))
             sb.AppendLine($"  {kv.Value / (float)frames,7:F0} B/f  x{counts[kv.Key] / (float)frames:F2}  {kv.Key}");
+        return sb.ToString();
+    }
+
+    // The `n` captured frames with the most game time (PlayerLoop minus the present wait), worst first.
+    static List<int> WorstFrames(int first, int last, int n)
+    {
+        var frames = new List<(int f, double ms)>();
+        for (int f = Math.Max(first, ProfilerDriver.firstFrameIndex); f <= last; f++)
+        {
+            using var view = ProfilerDriver.GetHierarchyFrameDataView(f, 0, HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName, HierarchyFrameDataView.columnTotalTime, false);
+            if (view == null || !view.valid) continue;
+            frames.Add((f, GameMs(view, view.GetRootItemID(), false)));
+        }
+        return frames.OrderByDescending(x => x.ms).Take(n).Select(x => x.f).ToList();
+    }
+
+    static double GameMs(HierarchyFrameDataView v, int id, bool inLoop)
+    {
+        double ms = 0;
+        var kids = new List<int>();
+        v.GetItemChildren(id, kids);
+        foreach (int c in kids)
+        {
+            string name = v.GetItemName(c);
+            double total = v.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnTotalTime);
+            if (!inLoop && name == "PlayerLoop") ms += total + GameMs(v, c, true);
+            else if (inLoop && name == "WaitForLastPresentation") ms -= total;
+            else if (inLoop || name != "EditorLoop") ms += GameMs(v, c, inLoop);
+        }
+        return ms;
+    }
+
+    // Main-thread call tree of one captured frame: items of at least `minMs` inside PlayerLoop, the present wait left out.
+    static string DumpFrame(int frame, float minMs)
+    {
+        using var view = ProfilerDriver.GetHierarchyFrameDataView(frame, 0, HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName, HierarchyFrameDataView.columnTotalTime, false);
+        if (view == null || !view.valid) return "";
+        var sb = new StringBuilder($"   frame {frame}: game {GameMs(view, view.GetRootItemID(), false):F1} ms\n");
+        void Dump(int id, int depth)
+        {
+            var kids = new List<int>();
+            view.GetItemChildren(id, kids);
+            foreach (int c in kids)
+            {
+                string name = view.GetItemName(c);
+                double total = view.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnTotalTime);
+                if (total < minMs || name == "EditorLoop" || name == "WaitForLastPresentation") continue;
+                sb.AppendLine($"     {new string(' ', depth * 2)}{name} {total:F2} (self {view.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnSelfTime):F2})");
+                if (depth < 24) Dump(c, depth + 1);
+            }
+        }
+        Dump(view.GetRootItemID(), 0);
         return sb.ToString();
     }
 

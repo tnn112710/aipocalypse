@@ -1,3 +1,4 @@
+using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;

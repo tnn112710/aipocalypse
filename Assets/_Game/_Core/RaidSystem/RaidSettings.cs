@@ -11,6 +11,9 @@ namespace Aipocalypse.Core.RaidSystem
         [Header("Night"), Range(0f, 24f), Tooltip("Hour a raid night starts")] public float StartHour = 20f;
         [Range(0f, 24f), Tooltip("Hour the night ends: raiders still alive despawn out of sight")] public float DawnHour = 6f;
         [Min(1), Tooltip("Most raiders alive at once; groups wait while it's reached")] public int AliveCap = 12;
+        [Min(0), Tooltip("Enemies prewarmed beyond AliveCap: the dead keep theirs while their bodies lie (CorpseTime + SinkTime), " +
+            "and raiders spawned meanwhile would otherwise be instantiated mid-fight")]
+        public int CorpseHeadroom = 8;
         [Required, InlineEditor, Tooltip("The raid every night runs (EveryNightSchedule) until quiet nights and a ladder exist")]
         public RaidPlan Plan;
 

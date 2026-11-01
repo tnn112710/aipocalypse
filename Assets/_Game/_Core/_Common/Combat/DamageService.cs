@@ -1,5 +1,6 @@
 using Aipocalypse.Core.Events;
 using MessagePipe;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace Aipocalypse.Core.Combat
@@ -8,6 +9,9 @@ namespace Aipocalypse.Core.Combat
     // kill credit and (later) damage rules hook in at one place.
     public sealed class DamageService
     {
+        static readonly ProfilerMarker DealMarker = new("Aipocalypse.DamageService.Deal");
+        static readonly ProfilerMarker PublishMarker = new("Aipocalypse.DamageService.Publish");
+
         readonly IPublisher<DamageDealt> _dealt;
 
         public DamageService(IPublisher<DamageDealt> dealt) => _dealt = dealt;
@@ -16,10 +20,16 @@ namespace Aipocalypse.Core.Combat
         {
             if (target == null || target.IsDead || info.Amount <= 0f)
                 return default;
-            DamageResult result = target.TakeDamage(info);
-            if (result.Applied > 0f)
-                _dealt.Publish(new DamageDealt(target, info, result));
-            return result;
+            using (DealMarker.Auto())
+            {
+                DamageResult result = target.TakeDamage(info);
+                if (result.Applied > 0f)
+                {
+                    using (PublishMarker.Auto())
+                        _dealt.Publish(new DamageDealt(target, info, result));
+                }
+                return result;
+            }
         }
 
         // A physics hit (bullet, swing): damages the IDamageable the collider belongs to (scaled by its Hitbox, if any: a head

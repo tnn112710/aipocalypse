@@ -1,4 +1,5 @@
 using Aipocalypse.Core.AudioSystem;
+using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.EquipmentSystem;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;

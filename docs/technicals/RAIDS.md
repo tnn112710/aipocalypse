@@ -18,7 +18,7 @@ Raid nights: when they run, what spawns and from where, how they end, and what a
 | `Stopped` | `raid.stop` | despawn at once |
 
 - A night that ended, for any reason, never restarts. Jumping the clock into a night that hasn't run starts it.
-- **Banners** (`RaidBannerHud` in HUD.prefab, `Data/UI/RaidBannerStyle.asset`): "RAID INCOMING — Night N" with a gong (`Raid_Start`) when a raid starts, "RAID REPELLED" with a victory jingle (`Raid_Victory`) when every wave is killed, "DAWN — The raiders retreat" (no sound) when dawn ends it. Nothing on a defeat (the death screen) or a console stop.
+- **Banners** (`RaidBannerHud` in HUD.prefab, `Data/UI/RaidBannerStyle.asset`): "RAID INCOMING / Night N: hold the farm" with a gong (`Raid_Start`, Combat library) when a raid starts, "RAID REPELLED" with a victory jingle (`Raid_Victory`) when every wave is killed, "DAWN — The raiders retreat" (no sound) when dawn ends it. Nothing on a defeat (the death screen) or a console stop.
 - **When the player dies** the raiders stop where they are and dance (the Melee subtree's celebrate branch) until the death screen turns black.
 - **Death costs time** (`DeathTimeRule`, during the black part of the death screen): dying during a raid ends it (`Defeat`) and the player wakes at the next `DefeatWakeHour` (07:00); any other death moves the clock forward `HoursLostOnDeath` (1 h) and despawns raiders left over from a dawn withdrawal. Nothing is lost yet (losses come with the inventory).
 - **Arrival cue:** the first group of each card in a wave plays the card's `ArrivalCue` (goblins: `Raid_Horn_Goblin`, a war horn heard to 220 m) at its spawn point, so the player hears where a wave comes from. Each kind sounds once per wave.

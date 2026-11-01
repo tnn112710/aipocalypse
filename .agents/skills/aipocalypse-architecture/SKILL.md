@@ -48,7 +48,7 @@ Who publishes → who subscribes today:
 
 | Event | Publisher | Subscribers |
 | --- | --- | --- |
-| `DamageDealt` | `DamageService` | `HitFeedbackHud`, `HurtFeedbackHud` |
+| `DamageDealt` | `DamageService` | `HitFeedbackHud`, `HurtFeedbackHud`, `LandedHitFeedback` (its player's hits that stagger or headshot-kill) |
 | `PlayerDied` | `PlayerLife` (publishers injected into `Player`) | `QuickTimeService` (cancels the QTE), `HudVisibilityHud` |
 | `PlayerDeathSequenceEnded` | `PlayerLife` | `PlayerRespawnFlow` |
 | `PlayerRevived` | `PlayerLife` | `PlayerRespawnFlow`, `HudVisibilityHud` |
@@ -58,7 +58,7 @@ Who publishes → who subscribes today:
 | `QteStarted`, `QteAttempted`, `QteEnded` | `QuickTimeService` | `QteHud`; `GunJam` (`QteAttempted`) |
 | `GunJamBeat`, `GunRepairCompleted` | `GunRepairFeedback` (per gun) | `GunJamFeedback` |
 | `HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded` | `WorldClock` | none yet (HUD, director, ambience and `RaidDirector` read `WorldClock` directly) |
-| `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | none yet (raid HUD, music and morning report later) |
+| `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | `RaidBannerHud` (`RaidStarted`, `RaidEnded` Cleared / Dawn); music and morning report later |
 
 Update this table when you add an event or a subscriber.
 

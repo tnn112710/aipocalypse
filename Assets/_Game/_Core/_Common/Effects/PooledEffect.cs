@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace Aipocalypse.Core.Effects
 {
-    // Root of a reusable visual (muzzle flash, tracer, impact, bullet hole). EffectPool spawns and returns it.
+    // Root of a reusable visual (muzzle flash, tracer, impact, bullet hole, blood). EffectPool spawns and returns it.
     [DisallowMultipleComponent]
     public sealed class PooledEffect : MonoBehaviour
     {

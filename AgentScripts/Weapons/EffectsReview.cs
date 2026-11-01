@@ -1,4 +1,5 @@
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Core.WorldTimeSystem;
 using UnityEditor;

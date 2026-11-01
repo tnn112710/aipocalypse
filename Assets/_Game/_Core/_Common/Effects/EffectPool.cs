@@ -3,9 +3,10 @@ using UnityEngine;
 using UnityEngine.Pool;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace Aipocalypse.Core.Effects
 {
-    // One pool per effect prefab, and timed returns for effects with a lifetime. Central tick, no Update per effect.
+    // One pool per effect prefab (guns, melee, enemy blood), and timed returns for effects with a lifetime. Central tick, no
+    // Update per effect.
     // Pooled objects live under a root in the active scene; when that scene unloads, the pools start over.
     public sealed class EffectPool : ITickable
     {

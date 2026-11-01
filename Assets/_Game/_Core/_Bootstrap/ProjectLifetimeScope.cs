@@ -1,6 +1,7 @@
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.Debugging;
+using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.GraphicsSystem;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.WeaponSystem;
@@ -37,6 +38,7 @@ namespace Aipocalypse.Core.Bootstrap
             new ConsoleInstaller(_consoleSettings, _consoleOverlay).Install(builder);
             new AudioInstaller().Install(builder);
             new CombatInstaller().Install(builder);
+            new EffectsInstaller().Install(builder);
             new TimeInstaller().Install(builder);
             new GraphicsInstaller().Install(builder);
             new QuickTimeInstaller().Install(builder);

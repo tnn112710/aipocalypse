@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Aipocalypse.Core.Effects;
+using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -6,22 +8,31 @@ namespace Aipocalypse.Core.EnemySystem
 {
     // The one way code spawns enemies (raids, the console, later Blood Moons and wanderers): picks a card's variant, takes it
     // from the EnemyPool and keeps it on walkable ground. Groups arrive a few per frame (SpawnsPerFrame), since waking a pooled
-    // enemy costs several milliseconds. Despawning hands it back to the pool.
-    public sealed class EnemySpawner : ITickable
+    // enemy costs several milliseconds. Despawning hands it back to the pool. The kinds' hit effects are made at scene start.
+    public sealed class EnemySpawner : IStartable, ITickable
     {
         // Metres a spawn point may move to reach the navmesh.
         const float SnapDistance = 2f;
+        static readonly ProfilerMarker SpawnMarker = new("Aipocalypse.EnemySpawner.Spawn");
 
         readonly EnemyPool _pool;
         readonly EnemyNavigation _navigation;
+        readonly EffectPool _effects;
         readonly EnemySystemSettings _settings;
         readonly Queue<Member> _queue = new();
 
-        public EnemySpawner(EnemyPool pool, EnemyNavigation navigation, EnemySystemSettings settings)
+        public EnemySpawner(EnemyPool pool, EnemyNavigation navigation, EffectPool effects, EnemySystemSettings settings)
         {
             _pool = pool;
             _navigation = navigation;
+            _effects = effects;
             _settings = settings;
+        }
+
+        public void Start()
+        {
+            foreach (EnemySpawnCard card in _settings.Cards)
+                PrewarmEffects(card);
         }
 
         // Members queued by every group, cancelled ones included until their turn.
@@ -67,6 +78,9 @@ namespace Aipocalypse.Core.EnemySystem
         {
             if (Time.deltaTime <= 0f)
                 return;
+            if (_queue.Count == 0)
+                return;
+            using var _ = SpawnMarker.Auto();
             int budget = Mathf.Max(1, _settings.SpawnsPerFrame);
             while (budget > 0 && _queue.Count > 0)
             {
@@ -93,11 +107,12 @@ namespace Aipocalypse.Core.EnemySystem
                 enemy.gameObject.SetActive(false);
         }
 
-        // Creates enough instances of the card's variants, by weight, for `count` enemies alive at once.
+        // Creates enough instances of the card's variants, by weight, for `count` enemies alive at once, and their hit effects.
         public void Prewarm(EnemySpawnCard card, int count)
         {
             if (card == null)
                 return;
+            PrewarmEffects(card);
             float total = 0f;
             foreach ((EnemyBrain prefab, float weight) in card.Variants)
                 if (prefab != null && weight > 0f)
@@ -107,6 +122,21 @@ namespace Aipocalypse.Core.EnemySystem
             foreach ((EnemyBrain prefab, float weight) in card.Variants)
                 if (prefab != null && weight > 0f)
                     _pool.Prewarm(prefab, Mathf.CeilToInt(count * weight / total));
+        }
+
+        void PrewarmEffects(EnemySpawnCard card)
+        {
+            if (card == null)
+                return;
+            foreach (EnemyBrain prefab in card.Variants.Keys)
+            {
+                EnemyReactionSettings reaction = prefab != null && prefab.Definition != null ? prefab.Definition.Reaction : null;
+                if (reaction == null)
+                    continue;
+                _effects.Prewarm(reaction.HitEffect, reaction.EffectPrewarm);
+                _effects.Prewarm(reaction.CriticalEffect, reaction.EffectPrewarm);
+                _effects.Prewarm(reaction.KillEffect, reaction.EffectPrewarm);
+            }
         }
 
         readonly struct Member

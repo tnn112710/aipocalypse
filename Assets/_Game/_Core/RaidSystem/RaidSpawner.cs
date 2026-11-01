@@ -46,7 +46,7 @@ namespace Aipocalypse.Core.RaidSystem
             }
         }
 
-        public void Prepare(RaidPlan plan, int aliveCap)
+        public void Prepare(RaidPlan plan, int instances)
         {
             _picker.ResetWaits();
             if (plan == null)
@@ -57,7 +57,7 @@ namespace Aipocalypse.Core.RaidSystem
                     if (entry.Card != null && entry.Count > 0)
                         _planned[entry.Card] = (_planned.TryGetValue(entry.Card, out int sum) ? sum : 0) + entry.Count;
             foreach ((EnemySpawnCard card, int count) in _planned)
-                _spawner.Prewarm(card, Mathf.Min(count, aliveCap));
+                _spawner.Prewarm(card, Mathf.Min(count, instances));
         }
 
         public int SpawnGroup(EnemySpawnCard card, int count, string zone, bool announce)

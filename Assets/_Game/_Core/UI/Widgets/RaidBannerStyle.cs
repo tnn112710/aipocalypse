@@ -8,11 +8,13 @@ namespace Aipocalypse.Core.UI
     [CreateAssetMenu(fileName = "RaidBannerStyle", menuName = "Aipocalypse/UI/Raid Banner Style")]
     public sealed class RaidBannerStyle : ScriptableObject
     {
+        [Tooltip("The words below may only use characters already in its atlas: a missing one is added at runtime (a hitch " +
+            "when the banner shows, and a write to the font asset)")]
         public TMP_FontAsset Font;
 
         [Header("Raid starts")]
         public string StartTitle = "RAID INCOMING";
-        public string StartSubtitle = "Night {0} — hold the farm";
+        public string StartSubtitle = "Night {0}: hold the farm";
         public Color StartColor = new(1f, 0.38f, 0.22f, 1f);
         public SoundID StartSound;
 

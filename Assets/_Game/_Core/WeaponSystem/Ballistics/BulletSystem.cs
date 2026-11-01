@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.Effects;
+using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -53,6 +55,8 @@ namespace Aipocalypse.Core.WeaponSystem
             public int TracerSpawnId;
         }
 
+        static readonly ProfilerMarker AdvanceMarker = new("Aipocalypse.BulletSystem.Advance");
+
         readonly EffectPool _effects;
         readonly DamageService _damage;
         readonly List<Bullet> _bullets = new(64);
@@ -101,6 +105,7 @@ namespace Aipocalypse.Core.WeaponSystem
             if (deltaTime <= 0f)
                 return;
 
+            using var _ = AdvanceMarker.Auto();
             for (int i = _bullets.Count - 1; i >= 0; i--)
             {
                 Bullet bullet = _bullets[i];

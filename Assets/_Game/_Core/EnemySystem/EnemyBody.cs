@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.WeaponSystem;
+using Aipocalypse.Core.Effects;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;

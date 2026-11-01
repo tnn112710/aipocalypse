@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.WeaponSystem;
 using MessagePipe;
 using NUnit.Framework;
