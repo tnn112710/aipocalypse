@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a38b8955a931124c8bda6d9a6b75d84, type: 3}
+  m_Name: BirdFlock
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.AmbientSystem.FlockDefinition
+  Member: {fileID: 1662016357029752008, guid: 90d962894751eaa4b91faaee2d84f267, type: 3}
+  Count: {x: 5, y: 10}
+  Speed: 7
+  Acceleration: 6
+  RoamRadius: 40
+  NeighbourRadius: 8
+  Separation: 2
+  SeparationWeight: 1.5
+  Alignment: 1
+  Cohesion: 0.6
+  Wander: 0.6
+  HomePull: 1
+  BandPull: 2
+  VerticalFreedom: 0.5
+  FleeRadius: 15
+  FleeWeight: 3
+  FleeSpeedMultiplier: 1.6

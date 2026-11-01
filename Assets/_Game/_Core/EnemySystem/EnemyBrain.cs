@@ -1,7 +1,9 @@
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.Combat;
+using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.Entities;
 using Aipocalypse.Core.EnvironmentSystem;
+using Aipocalypse.Core.SpawnSystem;
 using Opsive.BehaviorDesigner.Runtime;
 using UnityEngine;
 using VContainer;
@@ -9,9 +11,10 @@ using VContainer;
 namespace Aipocalypse.Core.EnemySystem
 {
     // An enemy's bridge to the enemy system: while enabled, its Manual tree runs and it's in the EnemyRegistry (ticked by
-    // EnemyManager); each activation gets fresh EnemyStats from its EnemyDefinition. Spawned ones return to the EnemyPool.
-    [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
-    public sealed class EnemyBrain : MonoBehaviour
+    // EnemyManager); each activation gets fresh EnemyStats from its EnemyDefinition. Spawned through SpawnService, which wakes
+    // it from its pool (Spawnable) and returns it there when it disables.
+    [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover), typeof(Spawnable))]
+    public sealed class EnemyBrain : MonoBehaviour, ISpawnable
     {
         [SerializeField, Tooltip("This enemy's kind: Content/Enemies/<Name>/<Name>.asset")] EnemyDefinition _definition;
 
@@ -87,16 +90,16 @@ namespace Aipocalypse.Core.EnemySystem
         }
         // Earliest Time.time the next swing may start.
         public float NextAttackTime { get; set; }
+        // EnemyManager's clock time of its next think while it's far from the player.
+        internal float NextThinkAt { get; set; }
         // Slot in the registry's list; -1 while not registered.
         internal int RegistryIndex { get; set; } = -1;
-        // The pool it came from (null for enemies placed in the scene) and the prefab it was made from.
-        internal EnemyPool Pool { get; set; }
-        internal EnemyBrain Prefab { get; set; }
-        internal bool InPool { get; set; }
+        // Its spawn root: pool, life and whether it counts as alive.
+        public Spawnable Spawnable { get; private set; }
 
         [Inject]
         void Construct(EnemyRegistry registry, AstarPath navigation, TargetSelector targets, AttackSlots slots, DamageService damage,
-            AudioService audio, IObjectResolver resolver)
+            AudioService audio, EffectPool effects, IObjectResolver resolver)
         {
             _registry = registry;
             _navigation = navigation;
@@ -105,6 +108,7 @@ namespace Aipocalypse.Core.EnemySystem
             _damage = damage;
             Voice = new EnemyVoice(audio, transform);
             resolver.TryResolve(out _grassBending);
+            PrewarmEffects(effects);
             if (_started && isActiveAndEnabled)
                 Activate();
         }
@@ -119,7 +123,7 @@ namespace Aipocalypse.Core.EnemySystem
             else if (_registry != null)
                 Activate();
             else
-                Debug.LogError($"{name}: not injected; save the scene so its EnemyInstaller lists it, or spawn it through the EnemySpawner.", this);
+                Debug.LogError($"{name}: not injected; save the scene so its EnemyInstaller lists it, or spawn it through the SpawnService.", this);
         }
 
         void OnEnable()
@@ -128,22 +132,29 @@ namespace Aipocalypse.Core.EnemySystem
                 Activate();
         }
 
-        void OnDisable()
-        {
-            StopActing();
-            if (Pool != null)
-                Pool.Return(this);
-        }
+        void OnDisable() => StopActing();
 
         // Killed (EnemyBody): stops thinking and walking; the body stays until it disables itself, and enabling revives it.
         public void Die()
         {
             StopActing();
             Mover.StopAvoiding();
+            if (Spawnable != null)
+                Spawnable.Retire();
         }
 
-        // Just spawned: plays its appear clip and stands still for AppearTime (+ jitter) before its tree first thinks. Called by
-        // EnemySpawner; a fresh instance begins it on its first activation.
+        // Spawned: the agent drops any old path at its new spot (a fresh instance starts there anyway), then it appears.
+        void ISpawnable.OnSpawned(in SpawnInfo info)
+        {
+            if (RegistryIndex >= 0)
+                Mover.Teleport(transform.position);
+            Appear();
+        }
+
+        void ISpawnable.OnDespawned() { }
+
+        // Just spawned: plays its appear clip and stands still for AppearTime (+ jitter) before its tree first thinks. Called on
+        // each spawn; a fresh instance begins it on its first activation.
         public void Appear()
         {
             _appearRequested = true;
@@ -236,6 +247,18 @@ namespace Aipocalypse.Core.EnemySystem
             Tree = GetComponent<BehaviorTree>();
             Animation = GetComponent<EnemyAnimator>();
             Body = GetComponent<EnemyBody>();
+            Spawnable = GetComponent<Spawnable>();
+        }
+
+        // Its kind's hit, critical and kill effects, made when the enemy is (prewarming makes them before a fight).
+        void PrewarmEffects(EffectPool effects)
+        {
+            EnemyReactionSettings reaction = _definition != null ? _definition.Reaction : null;
+            if (reaction == null)
+                return;
+            effects.Prewarm(reaction.HitEffect, reaction.EffectPrewarm);
+            effects.Prewarm(reaction.CriticalEffect, reaction.EffectPrewarm);
+            effects.Prewarm(reaction.KillEffect, reaction.EffectPrewarm);
         }
 
         void StopActing()
@@ -275,6 +298,9 @@ namespace Aipocalypse.Core.EnemySystem
                 Animation.Initialize(_definition.Animation);
             Voice.Reset(_definition.Sounds);
             Tree.StartBehavior();
+            // Woken off-stage while its pool prewarms: set up (the cost paid now) but not in play, so nothing ticks it.
+            if (Spawnable != null && Spawnable.State == SpawnState.Warming)
+                return;
             _registry.Add(this);
             if (_grassBending != null)
                 _grassBending.Add(transform, _definition.GrassBendRadius);

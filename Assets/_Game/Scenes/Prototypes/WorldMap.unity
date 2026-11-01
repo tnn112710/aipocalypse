@@ -285706,6 +285706,8 @@ GameObject:
   - component: {fileID: 1051055995}
   - component: {fileID: 1051055997}
   - component: {fileID: 1051055998}
+  - component: {fileID: 1051055999}
+  - component: {fileID: 1051056000}
   m_Layer: 0
   m_Name: GameLifetimeScope
   m_TagString: Untagged
@@ -285805,6 +285807,39 @@ MonoBehaviour:
   _settings: {fileID: 11400000, guid: 6a2f0cf721eca5e46a3c1af7f13be7d7, type: 2}
   _zones:
   - {fileID: 520858189}
+--- !u!114 &1051055999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d51cb627ec0e2742a963bf8bc308df4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.SpawnSystem.SpawnInstaller
+  _settings: {fileID: 11400000, guid: c892cc3fefd67314bb8593e6bd9c8880, type: 2}
+  _waterBodies:
+  - {fileID: 1591979560}
+  - {fileID: 196013875}
+  - {fileID: 671281136}
+  - {fileID: 741095158}
+  - {fileID: 125745270}
+  - {fileID: 511756819}
+  _areas: []
+--- !u!114 &1051056000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06fbe439eac18ca428bab4e456d087fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.AmbientSystem.AmbientInstaller
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -573578,6 +573613,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 986723831054502069, guid: 417efe7a6ad3c654488e48524d7ec6a6, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 1304499462942259046, guid: 417efe7a6ad3c654488e48524d7ec6a6, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
@@ -573593,6 +573632,14 @@ PrefabInstance:
     - target: {fileID: 2739563281262887642, guid: 417efe7a6ad3c654488e48524d7ec6a6, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3050412809611221612, guid: 417efe7a6ad3c654488e48524d7ec6a6, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 3657433087
+      objectReference: {fileID: 0}
+    - target: {fileID: 3050412809611221612, guid: 417efe7a6ad3c654488e48524d7ec6a6, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
       objectReference: {fileID: 0}
     - target: {fileID: 3789832331154898956, guid: 417efe7a6ad3c654488e48524d7ec6a6, type: 3}
       propertyPath: m_Pivot.x

@@ -27,14 +27,14 @@ The rest is what those docs don't spell out.
 
 ## 2. Entry points and ticks
 
-- `RegisterEntryPoint<T>().AsSelf()` whenever anything injects the concrete type (`TimeService`, `InputService`, `QuickTimeService`, `EffectPool`, `BulletSystem`, `WorldClock`, `AmbienceService`, `PlayerRespawnFlow`, `EnemySpawner`, `EnemyPool`, `RaidDirector`). Without `.AsSelf()` only its interfaces resolve (nothing injects `EnemyManager` or the cheats, so they're registered bare).
+- `RegisterEntryPoint<T>().AsSelf()` whenever anything injects the concrete type (`TimeService`, `InputService`, `QuickTimeService`, `EffectPool`, `BulletSystem`, `WorldClock`, `AmbienceService`, `PlayerRespawnFlow`, `SpawnService`, `PrefabPool`, `PopulationDirector`, `FlockSystem`, `RaidDirector`). Without `.AsSelf()` only its interfaces resolve (nothing injects `EnemyManager` or the cheats, so they're registered bare).
 - Put the tick's logic in a public `Advance(deltaTime)` (or `AdvanceHitStop`) that `Tick()` calls with `Time.deltaTime`, so EditMode tests step it without a PlayerLoop (`EnemyManager`, `WorldClock`, `TimeService`, `RaidDirector`).
 - A reader that must see input before `Player.Update` is an `ITickable` (VContainer ticks first). `QuickTimeService` uses that to `Consume` its button press.
 - Bindings to registry state happen in `Start`, not `Construct`: scopes build in `Awake` order, so the player may not be registered when the HUD is injected (`PlayerHudView.Start → Rebind`).
 - A base class names its `[Inject]` method uniquely (`PlayerHudView.ConstructPlayerHud`) so subclasses can still have their own `Construct`.
 - Per-instance plain C# parts that need root services get them from a root factory service (`GunJamFactory` builds each gun's `GunJam`), not from the resolver.
 - Third-party objects reach services through an injected bridge: `FeedbackContext` for Feel feedbacks (`MMF_HitStop`), `EnemyBrain` for Behavior Designer tasks.
-- Crowd entities: injected once by their system's installer (scene-placed list collected on save / entering Play) or, when spawned, by the pool that creates them with the scene resolver (`EnemySpawner` → `EnemyPool`, `resolver.Instantiate`); no scope each, no per-instance subscriptions. Details in aipocalypse-enemy-ai.
+- Crowd entities: injected once by their system's installer (scene-placed list collected on save / entering Play) or, when spawned, by the pool that creates them with the scene resolver (`SpawnService` → `PrefabPool`, `resolver.Instantiate`); no scope each, no per-instance subscriptions. Details in aipocalypse-enemy-ai.
 
 ## 3. Events (MessagePipe)
 

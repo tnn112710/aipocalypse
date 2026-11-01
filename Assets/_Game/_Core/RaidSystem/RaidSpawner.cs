@@ -1,31 +1,31 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.EnemySystem;
+using Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
 using VContainer.Unity;
 
 namespace Aipocalypse.Core.RaidSystem
 {
-    // The world side of raids: groups from the scene's SpawnZones with each card's arrival cue, and the raiders still alive
-    // (a group's members still to spawn count as alive). Withdrawn raiders despawn at once, or each as soon as the player
-    // can't see it; members still to spawn are dropped.
+    // The world side of raids: groups from the scene's SpawnZones through the SpawnService (out of the player's view by the
+    // raid's SpawnRules), each card's arrival cue where its group appears, and the raiders still alive (members still to come
+    // count). Withdrawn raiders despawn at once, or each as soon as the player can't see it; members still to come are dropped.
     public sealed class RaidSpawner : IRaidSpawner, ITickable
     {
-        readonly EnemySpawner _spawner;
-        readonly SpawnPointPicker _picker;
+        readonly SpawnService _spawns;
         readonly AudioService _audio;
+        readonly RaidSettings _settings;
         readonly IReadOnlyList<SpawnZone> _zones;
-        readonly List<EnemyBrain> _raiders = new();
-        readonly List<EnemyBrain> _leaving = new();
-        readonly List<SpawnBatch> _batches = new();
+        readonly List<SpawnHandle> _groups = new();
+        readonly List<(SpawnHandle Group, EnemySpawnCard Card)> _announcing = new();
         readonly Dictionary<EnemySpawnCard, int> _planned = new();
         readonly HashSet<string> _unknownZones = new();
 
-        public RaidSpawner(EnemySpawner spawner, SpawnPointPicker picker, AudioService audio, IReadOnlyList<SpawnZone> zones)
+        public RaidSpawner(SpawnService spawns, AudioService audio, RaidSettings settings, IReadOnlyList<SpawnZone> zones)
         {
-            _spawner = spawner;
-            _picker = picker;
+            _spawns = spawns;
             _audio = audio;
+            _settings = settings;
             _zones = zones;
         }
 
@@ -33,22 +33,20 @@ namespace Aipocalypse.Core.RaidSystem
         {
             get
             {
-                Prune(_raiders);
-                int pending = 0;
-                for (int i = _batches.Count - 1; i >= 0; i--)
+                int alive = 0;
+                for (int i = _groups.Count - 1; i >= 0; i--)
                 {
-                    if (_batches[i].Pending > 0)
-                        pending += _batches[i].Pending;
-                    else
-                        _batches.RemoveAt(i);
+                    int left = _groups[i].Alive;
+                    if (left == 0 && _groups[i].IsDone)
+                        _groups.RemoveAt(i);
+                    alive += left;
                 }
-                return _raiders.Count + pending;
+                return alive;
             }
         }
 
         public void Prepare(RaidPlan plan, int instances)
         {
-            _picker.ResetWaits();
             if (plan == null)
                 return;
             _planned.Clear();
@@ -57,51 +55,42 @@ namespace Aipocalypse.Core.RaidSystem
                     if (entry.Card != null && entry.Count > 0)
                         _planned[entry.Card] = (_planned.TryGetValue(entry.Card, out int sum) ? sum : 0) + entry.Count;
             foreach ((EnemySpawnCard card, int count) in _planned)
-                _spawner.Prewarm(card, Mathf.Min(count, instances));
+                _spawns.Prewarm(card, Mathf.Min(count, instances));
         }
 
         public int SpawnGroup(EnemySpawnCard card, int count, string zone, bool announce)
         {
             SpawnZone from = FindZone(zone);
-            if (card == null || count <= 0 || from == null || !_picker.TryPick(from, out Vector3 point))
+            if (card == null || count <= 0 || from == null)
                 return 0;
-            SpawnBatch batch = _spawner.SpawnGroup(card, point, count, from.Origin - point, _raiders);
-            if (batch.Count == 0)
+            SpawnHandle group = _spawns.Spawn(SpawnRequest.Group(card, from, count).WithRules(_settings.Spawning));
+            if (group.Count == 0)
                 return 0;
-            _batches.Add(batch);
+            _groups.Add(group);
             if (announce)
-                _audio.PlayAt(card.ArrivalCue, point);
-            return batch.Count;
+                _announcing.Add((group, card));
+            return group.Count;
         }
 
         public void Withdraw(bool now)
         {
-            foreach (SpawnBatch batch in _batches)
-                batch.Cancel();
-            _batches.Clear();
-            Prune(_raiders);
-            _leaving.AddRange(_raiders);
-            _raiders.Clear();
-            if (!now)
-                return;
-            foreach (EnemyBrain enemy in _leaving)
-                _spawner.Despawn(enemy);
-            _leaving.Clear();
+            foreach (SpawnHandle group in _groups)
+                group.Despawn(now ? DespawnMode.Now : DespawnMode.WhenUnseen);
+            _groups.Clear();
+            _announcing.Clear();
         }
 
-        // Withdrawn raiders keep hunting while the player sees them and vanish once out of sight.
+        // Each announced group's cue plays where it appears, once its spot is found.
         public void Tick()
         {
-            if (_leaving.Count == 0)
-                return;
-            Prune(_leaving);
-            for (int i = _leaving.Count - 1; i >= 0; i--)
+            for (int i = _announcing.Count - 1; i >= 0; i--)
             {
-                EnemyBrain enemy = _leaving[i];
-                if (_picker.IsSeen(enemy.transform))
+                (SpawnHandle group, EnemySpawnCard card) = _announcing[i];
+                if (!group.IsPlaced && !group.Cancelled)
                     continue;
-                _spawner.Despawn(enemy);
-                _leaving.RemoveAt(i);
+                if (group.IsPlaced)
+                    _audio.PlayAt(card.ArrivalCue, group.Anchor);
+                _announcing.RemoveAt(i);
             }
         }
 
@@ -122,20 +111,6 @@ namespace Aipocalypse.Core.RaidSystem
             if (first != null && _unknownZones.Add(id ?? string.Empty))
                 Debug.LogWarning($"RaidSpawner: no SpawnZone '{id}'; using {first.name}.", first);
             return first;
-        }
-
-        // Drops dead, despawned and destroyed enemies.
-        static void Prune(List<EnemyBrain> enemies)
-        {
-            for (int i = enemies.Count - 1; i >= 0; i--)
-            {
-                EnemyBrain enemy = enemies[i];
-                if (enemy != null && enemy.gameObject.activeInHierarchy && !enemy.IsDead)
-                    continue;
-                int last = enemies.Count - 1;
-                enemies[i] = enemies[last];
-                enemies.RemoveAt(last);
-            }
         }
     }
 }

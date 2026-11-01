@@ -4,6 +4,7 @@ using Aipocalypse.Core.Bootstrap;
 using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.RaidSystem;
+using Aipocalypse.Core.SpawnSystem;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
 using UnityEditor;
@@ -116,9 +117,9 @@ public static class RaidNightSetup
         foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { GoblinDir }))
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
-            if (prefab.TryGetComponent(out EnemyBrain brain))
+            if (prefab.TryGetComponent(out EnemyBrain _) && prefab.TryGetComponent(out Spawnable spawnable))
             {
-                card.SetVariant(brain, 1f);
+                card.SetVariant(spawnable, 1f);
                 log.Add("variant " + prefab.name);
             }
         }

@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 6022047992071216074}
   - component: {fileID: 986745409898665001}
   - component: {fileID: 3350410816815518058}
+  - component: {fileID: 2723206014591988501}
   m_Layer: 23
   m_Name: WanderCapsule
   m_TagString: Untagged
@@ -313,3 +314,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBody
   _visual: {fileID: 2858052826774323111}
+--- !u!114 &2723206014591988501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5657556925493235871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7cb4f394e93ca9468af7ef50526fa39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.SpawnSystem.Spawnable

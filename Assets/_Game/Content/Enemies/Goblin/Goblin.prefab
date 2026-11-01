@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 2244294816847891178}
   - component: {fileID: 362247493749007618}
   - component: {fileID: 150208522003893482}
+  - component: {fileID: 5605399319471856605}
   m_Layer: 23
   m_Name: Goblin
   m_TagString: Untagged
@@ -242,6 +243,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnemySystem.EnemyBody
   _visual: {fileID: 5857946922758741817}
+--- !u!114 &5605399319471856605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832095286261106595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7cb4f394e93ca9468af7ef50526fa39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.SpawnSystem.Spawnable
 --- !u!1001 &5060447056025388148
 PrefabInstance:
   m_ObjectHideFlags: 0

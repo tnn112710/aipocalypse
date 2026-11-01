@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.PlayerSystem;
+using Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
@@ -16,19 +17,19 @@ namespace Aipocalypse.Core.EnemySystem
         const float SpawnSideOffset = 4f;
 
         readonly EnemyRegistry _enemies;
-        readonly EnemySpawner _spawner;
+        readonly SpawnService _spawns;
         readonly EnemySystemSettings _settings;
         readonly PlayerRegistry _players;
         readonly DamageService _damage;
         readonly List<EnemyBrain> _gone = new();
-        readonly List<SpawnBatch> _batches = new();
+        readonly List<SpawnHandle> _handles = new();
 
-        public EnemyCommands(CommandRegistry registry, EnemyRegistry enemies, EnemySpawner spawner, EnemySystemSettings settings,
+        public EnemyCommands(CommandRegistry registry, EnemyRegistry enemies, SpawnService spawns, EnemySystemSettings settings,
             PlayerRegistry players, DamageService damage) : base(registry)
         {
             _damage = damage;
             _enemies = enemies;
-            _spawner = spawner;
+            _spawns = spawns;
             _settings = settings;
             _players = players;
         }
@@ -46,10 +47,9 @@ namespace Aipocalypse.Core.EnemySystem
                 return CommandResult.Fail("No player in this scene");
             Transform body = player.Transform;
             Vector3 center = body.position + body.forward * SpawnDistance + body.right * SpawnSideOffset;
-            SpawnBatch batch = _spawner.SpawnGroup(found, center, Mathf.Max(1, count), body.position - center);
-            _batches.Add(batch);
-            int made = batch.Count;
-            return made > 0 ? CommandResult.Ok($"{made} {found.name}") : CommandResult.Fail("No walkable ground there");
+            SpawnHandle handle = _spawns.Spawn(SpawnRequest.At(found, center, Mathf.Max(1, count)).Facing(body.position - center));
+            _handles.Add(handle);
+            return handle.Cancelled ? CommandResult.Fail("No walkable ground there") : CommandResult.Ok($"{handle.Count} {found.name}");
         }
 
         [Command("Hit every enemy within `radius` m of the player with `power` N·s of push away from the player and almost no damage (a rocket-sized hit before rockets exist): tries knockback and stagger")]
@@ -80,14 +80,19 @@ namespace Aipocalypse.Core.EnemySystem
         CommandResult Clear()
         {
             // Only the console's own queued spawns: a raid's are its own business.
-            foreach (SpawnBatch batch in _batches)
-                batch.Cancel();
-            _batches.Clear();
+            foreach (SpawnHandle handle in _handles)
+                handle.Cancel();
+            _handles.Clear();
             _gone.Clear();
             for (int i = 0; i < _enemies.Count; i++)
                 _gone.Add(_enemies[i]);
             foreach (EnemyBrain enemy in _gone)
-                _spawner.Despawn(enemy);
+            {
+                if (enemy.Spawnable != null)
+                    _spawns.Despawn(enemy.Spawnable);
+                else
+                    enemy.gameObject.SetActive(false);
+            }
             return CommandResult.Ok($"{_gone.Count} despawned");
         }
 

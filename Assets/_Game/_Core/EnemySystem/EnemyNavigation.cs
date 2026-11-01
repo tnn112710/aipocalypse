@@ -1,11 +1,12 @@
+using Aipocalypse.Core.SpawnSystem;
 using Pathfinding;
 using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Navmesh questions on the scene's graph (the injected AstarPath, never AstarPath.active): spawners use it to keep
-    // enemies on walkable, connected ground.
-    public sealed class EnemyNavigation
+    // Navmesh questions on the scene's graph (the injected AstarPath, never AstarPath.active); SpawnService asks them through
+    // INavmeshQuery to keep walkers on walkable, connected ground.
+    public sealed class EnemyNavigation : INavmeshQuery
     {
         readonly AstarPath _astar;
 

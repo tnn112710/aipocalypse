@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.SpawnSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -7,8 +8,9 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Scene system: enemy services (ticking, spawning and pooling, targeting, sounds), and injection of the enemies placed in
-    // the scene. Those are listed automatically when the scene is saved or Play starts, so nobody keeps the list by hand.
+    // Scene system: enemy services (ticking, targeting, sounds, the navmesh SpawnService places walkers on), and injection of the
+    // enemies placed in the scene. Those are listed automatically when the scene is saved or Play starts, so nobody keeps the
+    // list by hand. Spawning and pooling are SpawnInstaller's.
     public sealed class EnemyInstaller : SceneInstaller
     {
         [SerializeField, Tooltip("AstarPath of the scene's Navigation prefab")] AstarPath _navigation;
@@ -17,19 +19,19 @@ namespace Aipocalypse.Core.EnemySystem
 
         public override string Problem =>
             _navigation == null ? "no AstarPath (Navigation prefab) assigned" :
-            _settings == null ? "no Enemy System Settings assigned" : null;
+            _settings == null ? "no Enemy System Settings assigned" :
+            !TryGetComponent(out SpawnInstaller spawning) || spawning.Problem != null ? "needs a ready SpawnInstaller on this scope (spawning)" :
+            null;
 
         public override void Install(IContainerBuilder builder)
         {
             builder.RegisterInstance(_navigation);
             builder.RegisterInstance(_settings);
             builder.Register<EnemyRegistry>(Lifetime.Singleton);
-            builder.Register<EnemyNavigation>(Lifetime.Singleton);
+            builder.Register<EnemyNavigation>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
             builder.Register<TargetRegistry>(Lifetime.Singleton);
             builder.Register<TargetSelector>(Lifetime.Singleton);
             builder.Register<AttackSlots>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<EnemySpawner>().AsSelf();
-            builder.RegisterEntryPoint<EnemyPool>().AsSelf();
             builder.RegisterEntryPoint<EnemyManager>();
             builder.RegisterEntryPoint<EnemyAnimationManager>();
             builder.RegisterEntryPoint<EnemyBodyManager>().AsSelf();

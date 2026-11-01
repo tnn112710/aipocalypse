@@ -2,24 +2,10 @@ using UnityEngine;
 
 namespace Aipocalypse.Core.EnemySystem
 {
-    // Rules that keep a crowd from moving in lockstep: where a group spreads when it spawns, how each enemy's pace differs, and
-    // the side each one approaches its target from.
+    // Rules that keep a crowd from moving in lockstep: how each enemy's pace differs and the side each one approaches its target
+    // from. Where a group spreads when it spawns is FormationMath.Scatter (SpawnSystem).
     public static class CrowdSpread
     {
-        const float GoldenAngle = 2.39996f;
-
-        // Offset of member `index` of `count` on a disc of `radius` (a sunflower spiral turned by `turn` radians), widened so
-        // neighbours stay about `minSpacing` apart.
-        public static Vector3 GroupOffset(int index, int count, float radius, float minSpacing, float turn)
-        {
-            if (count <= 1)
-                return Vector3.zero;
-            radius = Mathf.Max(radius, minSpacing * Mathf.Sqrt(count / Mathf.PI));
-            float r = radius * Mathf.Sqrt((index + 0.5f) / count);
-            float angle = turn + index * GoldenAngle;
-            return new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * r;
-        }
-
         // Multiplier on one life's MoveSpeed: 1 ± `variance`, `roll` in [0, 1].
         public static float SpeedFactor(float variance, float roll) => 1f + Mathf.Lerp(-variance, variance, Mathf.Clamp01(roll));
 

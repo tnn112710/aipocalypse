@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7aebf6a642d5b04c9049430794ff76a, type: 3}
+  m_Name: FishSchool_Card
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.SpawnSystem.SpawnCard
+  _variants:
+  - key: {fileID: 2297329164227197988, guid: bebb09f72ee9a7749b774f2a63ed42b5, type: 3}
+    value: 1
+  GroupSize: {x: 1, y: 1}
+  Category: 3
+  Placement:
+    Medium: 2
+    Navmesh: 0
+    Height: {x: 0.8, y: 3}
+    Clearance: 0.3
+    MaxSlope: 90
+    AlignToGround: 0
+    FallBackToAnchor: 1

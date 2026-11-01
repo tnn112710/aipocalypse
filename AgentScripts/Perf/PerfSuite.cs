@@ -513,12 +513,12 @@ public static class PerfSuite
 
     static readonly string[] FightMarkers =
     {
-        "Aipocalypse.BulletSystem.Advance", "Aipocalypse.DamageService.Deal", "Aipocalypse.DamageService.Publish", "Aipocalypse.EnemySpawner.Spawn",
-        "Aipocalypse.EnemyPool.Prewarm", "Aipocalypse.EnemyManager.Think", "Aipocalypse.EnemyBodyManager.React", "Aipocalypse.EnemyAnimationManager.Animate",
+        "Aipocalypse.BulletSystem.Advance", "Aipocalypse.DamageService.Deal", "Aipocalypse.DamageService.Publish", "Aipocalypse.SpawnService.Spawn",
+        "Aipocalypse.PrefabPool.Prewarm", "Aipocalypse.EnemyManager.Think", "Aipocalypse.EnemyBodyManager.React", "Aipocalypse.EnemyAnimationManager.Animate",
     };
 
     // A night raid fight on the raid approach: the player stands `standOut` m out from the home base along the raid SpawnZone's
-    // forward, and `count` goblins of the scene's first spawn card come through the EnemySpawner (prewarmed pool, appear)
+    // forward, and `count` goblins of the scene's first spawn card come through the SpawnService (prewarmed pool, appear)
     // `distance` m further out, topped up as they die, while the player (god mode, AK with infinite ammo, no jams) holds fire
     // at the nearest one. Measures the approach without firing, then the fight (profiled) with its hits, kills, staggers and
     // hit-stop frames, the worst frames' main-thread call trees, and with `gc` the fight's GC.Alloc stacks.
@@ -531,9 +531,9 @@ public static class PerfSuite
         var player = Player;
         var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
         var commands = resolver.Resolve<CommandRegistry>();
-        var spawner = resolver.Resolve<EnemySpawner>();
+        var spawner = resolver.Resolve<Aipocalypse.Core.SpawnSystem.SpawnService>();
         var card = resolver.Resolve<EnemySystemSettings>().Cards[0];
-        var zone = Object.FindAnyObjectByType<Aipocalypse.Core.RaidSystem.SpawnZone>();
+        var zone = Object.FindAnyObjectByType<Aipocalypse.Core.SpawnSystem.SpawnZone>();
         Vector3 home = zone != null ? zone.Origin : player.SpawnPosition;
         Vector3 away = Vector3.ProjectOnPlane(zone != null ? zone.transform.forward : player.transform.forward, Vector3.up).normalized;
         Vector3 stand = Ground(home.x + away.x * standOut, home.z + away.z * standOut);
@@ -551,16 +551,21 @@ public static class PerfSuite
             if (e.Info.Critical) crits++;
         });
         var group = new List<EnemyBrain>();
+        var handles = new List<Aipocalypse.Core.SpawnSystem.SpawnHandle>();
+        var alive = new List<Aipocalypse.Core.SpawnSystem.Spawnable>();
         int Alive()
         {
-            for (int k = group.Count - 1; k >= 0; k--)
-                if (group[k] == null || !group[k].isActiveAndEnabled || group[k].IsDead) group.RemoveAt(k);
-            return group.Count;
+            alive.Clear();
+            group.Clear();
+            int pending = 0;
+            foreach (var h in handles) { h.GetAlive(alive); pending += h.Pending; }
+            foreach (var a in alive) if (a.TryGetComponent(out EnemyBrain e) && !e.IsDead) group.Add(e);
+            return group.Count + pending;
         }
         void TopUp()
         {
-            int missing = count - Alive() - spawner.Queued;
-            if (missing > 0) spawner.SpawnGroup(card, center, missing, stand - center, group);
+            int missing = count - Alive();
+            if (missing > 0) handles.Add(spawner.Spawn(Aipocalypse.Core.SpawnSystem.SpawnRequest.At(card, center, missing).Facing(stand - center)));
         }
 
         var jams = new List<(JamSettings jam, float chance)>();

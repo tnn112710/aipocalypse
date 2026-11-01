@@ -1,5 +1,6 @@
 using Aipocalypse.Core.AudioSystem;
 using Aipocalypse.Core.EnemySystem;
+using Aipocalypse.Core.SpawnSystem;
 using Ami.BroAudio;
 using NUnit.Framework;
 using UnityEditor;
@@ -12,17 +13,17 @@ namespace Aipocalypse.Tests
     {
         const string Enemies = "Assets/_Game/Content/Enemies";
 
-        static EnemyBrain[] GoblinBrains()
+        static Spawnable[] GoblinRoots()
         {
-            var a = AssetDatabase.LoadAssetAtPath<GameObject>(Enemies + "/Goblin/Goblin.prefab").GetComponent<EnemyBrain>();
-            var b = AssetDatabase.LoadAssetAtPath<GameObject>(Enemies + "/Goblin/Goblin_02.prefab").GetComponent<EnemyBrain>();
+            var a = AssetDatabase.LoadAssetAtPath<GameObject>(Enemies + "/Goblin/Goblin.prefab").GetComponent<Spawnable>();
+            var b = AssetDatabase.LoadAssetAtPath<GameObject>(Enemies + "/Goblin/Goblin_02.prefab").GetComponent<Spawnable>();
             return new[] { a, b };
         }
 
         [Test]
         public void Card_PicksVariantsByWeight()
         {
-            EnemyBrain[] brains = GoblinBrains();
+            Spawnable[] brains = GoblinRoots();
             var card = ScriptableObject.CreateInstance<EnemySpawnCard>();
             try
             {
@@ -106,10 +107,11 @@ namespace Aipocalypse.Tests
                 cards++;
                 Assert.That(card.Variants.Count, Is.GreaterThan(0), $"{path}: no variant");
                 Assert.That(card.PickVariant(0.5f), Is.Not.Null, $"{path}: no variant with a weight");
-                foreach ((EnemyBrain prefab, float weight) in card.Variants)
+                foreach ((Spawnable prefab, float weight) in card.Variants)
                 {
                     Assert.That(prefab, Is.Not.Null, $"{path}: empty variant");
-                    Assert.That(prefab.Definition, Is.Not.Null, $"{path}: {prefab.name} has no definition");
+                    Assert.That(prefab.TryGetComponent(out EnemyBrain brain), Is.True, $"{path}: {prefab.name} is no enemy");
+                    Assert.That(brain.Definition, Is.Not.Null, $"{path}: {prefab.name} has no definition");
                     Assert.That(weight, Is.GreaterThanOrEqualTo(0f), $"{path}: negative weight");
                 }
                 Assert.That(card.GroupSize.x, Is.GreaterThanOrEqualTo(1), $"{path}: groups of nothing");
