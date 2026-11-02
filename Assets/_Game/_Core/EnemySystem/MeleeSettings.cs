@@ -15,6 +15,16 @@ namespace Aipocalypse.Core.EnemySystem
         [Range(0, 10), Tooltip("Once a way in is open (a gap, an open gate) it stops hitting a barrier and goes through, unless this " +
             "many of its own blows or fewer would break it: then it finishes the job first")]
         public int FinishBreachBlows = 2;
+        [Min(0f), Tooltip("With a way in open, metres the walk through it may add to going straight at the target before it breaks " +
+            "its own way in instead (the gap is on the far side)")]
+        public float GapDetour = 15f;
+        [Range(0f, 1f), Tooltip("With a way in open, this share of the enemies hunting keep breaking a second one: those at the fence " +
+            "for whom the open way is furthest")]
+        public float BreakerShare = 0.34f;
+        [Min(0), Tooltip("At least this many keep breaking while a way in is open (never all of them: a lone one takes the gap)")]
+        public int MinBreakers = 1;
+        [Min(0f), Tooltip("Metres a new breach keeps from an open way in, so breakers make another gap instead of widening the first")]
+        public float GapSpacing = 6f;
         [Min(0f), Tooltip("Metres from the target where it takes its fighting stance and sprints")]
         public float EngageRadius = 5f;
         [Min(0.1f), Tooltip("Move speed multiplier while hunting from afar (an EnemyStats modifier on MoveSpeed)")]

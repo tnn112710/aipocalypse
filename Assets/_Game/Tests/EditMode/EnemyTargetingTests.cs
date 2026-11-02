@@ -41,6 +41,7 @@ namespace Aipocalypse.Tests
             public bool IsTargetable { get; set; } = true;
             public bool IsDead => false;
             public float RemainingHealth { get; set; }
+            public Vector3 Span => new(1f, 0f, 0f);
             public DamageResult TakeDamage(in DamageInfo info) => default;
         }
 
@@ -57,6 +58,9 @@ namespace Aipocalypse.Tests
         }
 
         static readonly Dictionary<TargetKind, float> BreakerWeights = new() { { TargetKind.Player, 1f }, { TargetKind.Fence, 1f } };
+        // 5 candidates, finish at 30 HP, a 15 m detour breaks a new gap, a third keep breaking (at least 1), new gaps 6 m apart.
+        static readonly BreachRules Rules = new(5, 30f, 15f, 0.34f, 1, 6f);
+        static readonly BreachRules NoBreakers = new(5, 30f, 1000f, 0f, 0, 6f);
 
         readonly List<FakeTarget> _targets = new();
         readonly List<FakeBarrier> _barriers = new();
@@ -91,20 +95,31 @@ namespace Aipocalypse.Tests
             return barrier;
         }
 
-        [Test]
-        public void Selector_WithAPath_HuntsTheTargetAndIgnoresBarriers()
+        // A straight fence along X at z = 10, 2 m segments from x = -20 to 20; the player behind it at z = 20.
+        TargetRegistry Fence(out FakeTarget player)
         {
             var registry = new TargetRegistry(null);
-            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
-            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
+            player = Target(new Vector3(0f, 0f, 20f));
             registry.Add(player);
-            registry.Add(Barrier(0f, 10f));
+            for (int x = -20; x <= 20; x += 2)
+                registry.Add(Barrier(x, 300f));
+            return registry;
+        }
 
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.SameAs(player));
+        FakeBarrier At(float x) => _barriers.Find(b => Mathf.Approximately(b.Transform.position.x, x));
+
+        [Test]
+        public void Selector_WithAPath_AndNoWallBetween_HuntsTheTarget()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            At(0f).IsTargetable = false;
+
+            Assert.That(selector.Choose(new object(), new Vector3(5f, 0f, 15f), BreakerWeights, null, Rules), Is.SameAs(player), "already inside");
         }
 
         [Test]
-        public void Selector_WithoutAPath_AttacksTheWeakestOfTheNearestBarriers()
+        public void Selector_FenceShut_AttacksTheWeakestOfTheNearestBarriers()
         {
             var registry = new TargetRegistry(null);
             var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
@@ -120,26 +135,86 @@ namespace Aipocalypse.Tests
             }
             registry.Add(Barrier(9f, 1f));
 
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.SameAs(weakestNear));
+            Assert.That(selector.Choose(new object(), Vector3.zero, BreakerWeights, null, Rules), Is.SameAs(weakestNear));
             weakestNear.IsTargetable = false;
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.Not.SameAs(weakestNear), "a broken or open one is skipped");
+            Assert.That(selector.ChooseBreach(Vector3.zero, 5), Is.Not.SameAs(weakestNear), "a broken or open one is skipped");
+        }
+
+        [Test]
+        public void Selector_NearGap_GoesThroughIt()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            At(2f).IsTargetable = false;
+
+            Assert.That(selector.Choose(new object(), new Vector3(0f, 0f, 5f), BreakerWeights, null, Rules), Is.SameAs(player));
+        }
+
+        [Test]
+        public void Selector_FarGap_BreaksANewOne_AwayFromTheGap()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            At(20f).IsTargetable = false;
+
+            ITargetable choice = selector.Choose(new object(), new Vector3(-10f, 0f, 5f), BreakerWeights, null, Rules);
+            Assert.That(choice, Is.InstanceOf<IBreachable>(), "the gap is 30 m along the fence");
+            Assert.That(Mathf.Abs(choice.Transform.position.x - 20f), Is.GreaterThanOrEqualTo(6f), "not next to the open gap");
+            Assert.That(selector.Detour(new Vector3(-10f, 0f, 5f), player.Transform.position), Is.GreaterThan(15f));
         }
 
         [Test]
         public void Selector_WithAWayIn_LeavesAStrongBarrier_ButFinishesOneAboutToBreak()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Fence(out FakeTarget player);
             var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
-            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
-            registry.Add(player);
-            FakeBarrier hitting = Barrier(0f, 200f);
-            registry.Add(hitting);
+            At(2f).IsTargetable = false;
+            FakeBarrier hitting = At(0f);
+            object goblin = new();
 
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5, hitting, 30f), Is.SameAs(player), "still strong: go through the gap");
+            Assert.That(selector.Choose(goblin, new Vector3(0f, 0f, 9f), BreakerWeights, hitting, NoBreakers), Is.SameAs(player), "still strong");
             hitting.RemainingHealth = 25f;
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5, hitting, 30f), Is.SameAs(hitting), "two blows left: finish it");
-            hitting.IsTargetable = false;
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5, hitting, 30f), Is.SameAs(player), "it fell");
+            Assert.That(selector.Choose(goblin, new Vector3(0f, 0f, 9f), BreakerWeights, hitting, NoBreakers), Is.SameAs(hitting), "two blows left");
+        }
+
+        [Test]
+        public void Selector_KeepsAShareOfFenceAttackers_TheOnesFurthestFromTheGap()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var navmesh = new FakeNavmesh { Reachable = false };
+            var selector = new TargetSelector(registry, navmesh);
+            // Six goblins along the shut fence, each hitting the segment in front of it.
+            float[] xs = { -10f, -8f, -6f, -4f, -2f, 0f };
+            var goblins = new object[xs.Length];
+            for (int i = 0; i < xs.Length; i++)
+            {
+                goblins[i] = new object();
+                selector.Choose(goblins[i], new Vector3(xs[i], 0f, 9f), BreakerWeights, At(xs[i]), Rules);
+            }
+
+            // A gap opens at x = 4: each chooses again, in an order that isn't the ranking.
+            At(4f).IsTargetable = false;
+            navmesh.Reachable = true;
+            var breakers = new List<float>();
+            foreach (int i in new[] { 3, 0, 5, 1, 4, 2 })
+                if (selector.Choose(goblins[i], new Vector3(xs[i], 0f, 9f), BreakerWeights, At(xs[i]), Rules) is IBreachable)
+                    breakers.Add(xs[i]);
+
+            breakers.Sort();
+            Assert.That(breakers, Is.EqualTo(new[] { -10f, -8f }), "a third of six keep breaking: the two furthest from the gap");
+        }
+
+        [Test]
+        public void Selector_LoneHunter_TakesTheGap_AndForgetDropsIt()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            At(4f).IsTargetable = false;
+            object goblin = new();
+
+            Assert.That(selector.Choose(goblin, new Vector3(-6f, 0f, 9f), BreakerWeights, At(-6f), Rules), Is.SameAs(player), "never all of them");
+            selector.Forget(goblin);
+            selector.Forget(null);
         }
 
         [Test]
@@ -154,15 +229,12 @@ namespace Aipocalypse.Tests
         [Test]
         public void Selector_WithoutAPath_KeepsTheTarget_WhenItDoesNotBreakFences()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Fence(out FakeTarget player);
             var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
-            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
-            registry.Add(player);
-            registry.Add(Barrier(0f, 10f));
 
             var weights = new Dictionary<TargetKind, float> { { TargetKind.Player, 1f } };
-            Assert.That(selector.Choose(Vector3.zero, weights, 5), Is.SameAs(player), "no Fence weight");
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 0), Is.SameAs(player), "no breach candidates");
+            Assert.That(selector.Choose(new object(), new Vector3(0f, 0f, 5f), weights, null, Rules), Is.SameAs(player), "no Fence weight");
+            Assert.That(selector.Choose(new object(), new Vector3(0f, 0f, 5f), BreakerWeights, null, default), Is.SameAs(player), "no breach rules");
         }
 
         [Test]
@@ -176,7 +248,7 @@ namespace Aipocalypse.Tests
             open.IsTargetable = false;
             registry.Add(open);
 
-            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.SameAs(player));
+            Assert.That(selector.Choose(new object(), Vector3.zero, BreakerWeights, null, Rules), Is.SameAs(player));
         }
 
         [Test]

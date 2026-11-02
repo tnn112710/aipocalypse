@@ -214,7 +214,7 @@ namespace Aipocalypse.Core.EnemySystem
         }
 
         // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more
-        // or a barrier started or stopped blocking (a gap opened: go through it unless the one it hits is about to fall).
+        // or a barrier started or stopped blocking (a gap opened: TargetSelector decides who goes through and who keeps breaking).
         public ITargetable ChooseTarget()
         {
             MeleeSettings melee = _definition.Melee;
@@ -224,8 +224,9 @@ namespace Aipocalypse.Core.EnemySystem
                 return _target;
             _nextRetarget = Time.time + melee.RetargetInterval;
             _barrierVersion = _targets.BarrierVersion;
-            float finishHealth = melee.FinishBreachBlows * Stats.Get(EnemyStat.AttackDamage);
-            return Target = _targets.Choose(transform.position, _definition.Targets, melee.BreachCandidates, _target, finishHealth);
+            var rules = new BreachRules(melee.BreachCandidates, melee.FinishBreachBlows * Stats.Get(EnemyStat.AttackDamage), melee.GapDetour,
+                melee.BreakerShare, melee.MinBreakers, melee.GapSpacing);
+            return Target = _targets.Choose(this, transform.position, _definition.Targets, _target, rules);
         }
 
         // Holds one of the target's attack slots while true (AttackSlots).
@@ -270,6 +271,7 @@ namespace Aipocalypse.Core.EnemySystem
             _appearRequested = false;
             Target = null;
             _slots?.Release(this);
+            _targets?.Forget(this);
             _registry?.Remove(this);
             if (_grassBending != null)
                 _grassBending.Remove(transform);

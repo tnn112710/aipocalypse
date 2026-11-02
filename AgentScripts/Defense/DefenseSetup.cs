@@ -95,9 +95,149 @@ public static class DefenseSetup
         Material chip = ParticleMaterial(MatDir + "/WoodChip.mat", null, transparent: false);
         Material dust = ParticleMaterial(MatDir + "/WoodDust.mat",
             AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_StoreAssets/VFX/GabrielAguiarProductions/Textures/Circle001.png"), transparent: true);
+        Material plank = LitParticleMaterial(MatDir + "/WoodPlank.mat", new Color(0.66f, 0.43f, 0.26f));
         WoodEffect(FxDir + "/WoodHit.prefab", chip, dust, 9, 0.9f, 1.4f);
-        WoodEffect(FxDir + "/WoodBreak.prefab", chip, dust, 28, 2.2f, 2.5f);
+        WoodBreakEffect(FxDir + "/WoodBreak.prefab", plank, chip, dust);
         return $"effects: {FxDir}/WoodHit, WoodBreak";
+    }
+
+    // A panel bursting: planks that tumble and bounce on the ground, a spray of splinters and a dust cloud, all emitted
+    // from a 1 m wide box that BarrierSegment stretches to the barrier's width (Shape scaling), centred 0.8 m up.
+    static void WoodBreakEffect(string path, Material plank, Material chip, Material dust)
+    {
+        var root = new GameObject(System.IO.Path.GetFileNameWithoutExtension(path));
+        try
+        {
+            var pooled = root.AddComponent<PooledEffect>();
+            var so = new SerializedObject(pooled);
+            so.FindProperty("_lifetime").floatValue = 4f;
+            so.FindProperty("_maxActive").intValue = 6;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            var box = new Vector3(1f, 1.4f, 0.15f);
+
+            ParticleSystem planks = Particles("Planks", root.transform, plank);
+            var main = planks.main;
+            main.scalingMode = ParticleSystemScalingMode.Shape;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(2.6f, 3.4f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 4.5f);
+            main.startSize3D = true;
+            main.startSizeX = new ParticleSystem.MinMaxCurve(0.08f, 0.15f);
+            main.startSizeY = new ParticleSystem.MinMaxCurve(0.4f, 1f);
+            main.startSizeZ = new ParticleSystem.MinMaxCurve(0.03f, 0.05f);
+            main.startRotation3D = true;
+            main.startRotationX = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startRotationY = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startRotationZ = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.75f, 0.75f, 0.75f), Color.white);
+            main.gravityModifier = 1.3f;
+            var emission = planks.emission;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 14) });
+            Box(planks, box, 0.6f);
+            // Spins in the air and settles once down (world collision has no rolling friction).
+            var spin = planks.rotationOverLifetime;
+            spin.enabled = true;
+            spin.separateAxes = true;
+            var settle = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.12f, 1f), new Keyframe(0.2f, 0f), new Keyframe(1f, 0f));
+            spin.x = new ParticleSystem.MinMaxCurve(10f, settle);
+            spin.y = new ParticleSystem.MinMaxCurve(4f, settle);
+            spin.z = new ParticleSystem.MinMaxCurve(8f, settle);
+            Shrink(planks, 0.85f);
+            var collision = planks.collision;
+            collision.enabled = true;
+            collision.type = ParticleSystemCollisionType.World;
+            collision.mode = ParticleSystemCollisionMode.Collision3D;
+            // High raycasts; Medium's voxel cache let them fall through the terrain.
+            collision.quality = ParticleSystemCollisionQuality.High;
+            collision.collidesWith = LayerMask.GetMask("Default");
+            collision.dampen = 0.55f;
+            collision.bounce = 0.3f;
+            collision.radiusScale = 0.3f;
+            var renderer = planks.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Mesh;
+            renderer.mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            renderer.alignment = ParticleSystemRenderSpace.World;
+            renderer.shadowCastingMode = ShadowCastingMode.On;
+
+            ParticleSystem splinters = Particles("Splinters", root.transform, chip);
+            main = splinters.main;
+            main.scalingMode = ParticleSystemScalingMode.Shape;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.7f, 1.4f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(2.5f, 6f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.09f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.45f, 0.3f, 0.17f), new Color(0.72f, 0.55f, 0.34f));
+            main.gravityModifier = 1.6f;
+            emission = splinters.emission;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 45) });
+            Box(splinters, box, 0.7f);
+            var rotation = splinters.rotationOverLifetime;
+            rotation.enabled = true;
+            rotation.z = new ParticleSystem.MinMaxCurve(-10f, 10f);
+
+            ParticleSystem cloud = Particles("Dust", root.transform, dust);
+            main = cloud.main;
+            main.scalingMode = ParticleSystemScalingMode.Shape;
+            main.duration = 0.3f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.6f, 2.6f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.3f, 1.1f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.7f, 1.4f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new Color(0.62f, 0.56f, 0.48f, 0.38f);
+            main.gravityModifier = -0.02f;
+            emission = cloud.emission;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 10), new ParticleSystem.Burst(0.08f, 6) });
+            Box(cloud, new Vector3(1f, 1.4f, 0.4f), 0.3f);
+            var drag = cloud.limitVelocityOverLifetime;
+            drag.enabled = true;
+            drag.drag = 1.5f;
+            var size = cloud.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 0.7f, 1f, 1.8f));
+            var color = cloud.colorOverLifetime;
+            color.enabled = true;
+            var fade = new Gradient();
+            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.1f), new GradientAlphaKey(0.6f, 0.5f), new GradientAlphaKey(0f, 1f) });
+            color.color = fade;
+
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+        }
+        finally
+        {
+            Object.DestroyImmediate(root);
+        }
+    }
+
+    // Emits from the box's volume, flung out both ways across the barrier (local Z) with some spread.
+    static void Box(ParticleSystem particles, Vector3 scale, float spread)
+    {
+        var shape = particles.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        shape.scale = scale;
+        shape.randomDirectionAmount = spread;
+    }
+
+    // Full size, then shrinking away over the last part of its life.
+    static void Shrink(ParticleSystem particles, float from)
+    {
+        var size = particles.sizeOverLifetime;
+        size.enabled = true;
+        size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(from, 1f), new Keyframe(1f, 0f)));
+    }
+
+    static Material LitParticleMaterial(string path, Color color)
+    {
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Universal Render Pipeline/Particles/Simple Lit"));
+            AssetDatabase.CreateAsset(material, path);
+        }
+        material.SetColor("_BaseColor", color);
+        material.SetFloat("_Surface", 0f);
+        material.SetFloat("_Smoothness", 0.1f);
+        Save(material);
+        return material;
     }
 
     // Brown chips thrown out with gravity, and a soft grey puff.

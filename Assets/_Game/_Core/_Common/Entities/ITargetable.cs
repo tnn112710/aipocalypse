@@ -22,10 +22,12 @@ namespace Aipocalypse.Core.Entities
         Vector3 PointFor(Vector3 from) => Transform.position;
     }
 
-    // Something that stands in the way (a closed fence segment or gate). Enemies attack one only when they have no path to
-    // what they hunt, picking the weakest of the nearest few (TargetSelector).
+    // Something that stands in the way (a closed fence segment or gate); not targetable = a way through (broken, gate open).
+    // Enemies attack one when they have no path to what they hunt, or when the open way in is too far (TargetSelector).
     public interface IBreachable : ITargetable
     {
         float RemainingHealth { get; }
+        // From the centre to one end along the barrier (world, on the ground): it blocks the line between the two ends.
+        Vector3 Span { get; }
     }
 }

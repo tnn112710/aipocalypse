@@ -95,54 +95,74 @@ public static class DefensePlayCheck
             }
         log.AppendLine($"shots through the shut gate: {through} of {rays} rays pass (want some: the gaps)");
 
-        // Goblins against the closed fence; the player stays inside with god mode.
+        // Goblins against the closed fence; the player stays inside with god mode. Each broken segment's position is recorded.
         commands.Execute("cheat.god on");
+        var breaks = new List<Vector3>();
+        using var breakLog = c.Resolve<ISubscriber<BarrierBroken>>().Subscribe(e => breaks.Add(e.Position));
+
+        // 1. Shut fence: they open a gap; then most go through it while a share (a third of six: two) breaks a second one away from it.
         commands.Execute("enemy.clear");
-        int brokenBefore = broken;
-        CommandResult spawn = commands.Execute("enemy.spawn goblin 6");
-        log.AppendLine("spawn: " + spawn.Message);
-        float end = Time.time + breachSeconds;
-        float firstBreach = -1f, start = Time.time;
-        int maxOnFence = 0, inYard = 0, brokenAtFirst = 0, keptHitting = 0, finishing = 0;
+        breaks.Clear();
+        log.AppendLine("spawn: " + commands.Execute("enemy.spawn goblin 6").Message);
+        float end = Time.time + breachSeconds, start = Time.time, firstBreach = -1f;
+        int keptHitting = 0, inYard = 0;
+        float nearestToGap = float.PositiveInfinity;
         while (Time.time < end)
         {
             await Seconds(0.5f);
-            int onFence = 0;
-            inYard = 0;
-            for (int i = 0; i < enemies.Count; i++)
-            {
-                EnemyBrain e = enemies[i];
-                if (e.Target is IBreachable)
-                    onFence++;
-                if (InYard(e.transform.position))
-                    inYard++;
-            }
-            maxOnFence = Mathf.Max(maxOnFence, onFence);
-            if (firstBreach < 0f && broken > brokenBefore)
+            if (firstBreach < 0f && breaks.Count > 0)
             {
                 firstBreach = Time.time - start;
-                brokenAtFirst = broken;
-                // Two seconds after the first gap: who still hits a segment, and is that one about to fall (2 blows = 30 HP)?
                 await Seconds(2f);
                 for (int i = 0; i < enemies.Count; i++)
                     if (enemies[i].Target is IBreachable hit)
                     {
                         keptHitting++;
-                        if (hit.RemainingHealth <= 30f)
-                            finishing++;
+                        nearestToGap = Mathf.Min(nearestToGap, Flat(hit.Transform.position - breaks[0]).magnitude);
                     }
             }
-            if (inYard >= 3 && firstBreach >= 0f)
+            inYard = Count(enemies, InYard);
+            if (firstBreach >= 0f && (breaks.Count >= 2 || Time.time - start > firstBreach + 25f))
                 break;
         }
-        float lowest = barriers.Segments.Min(s => s.HealthShare);
-        log.AppendLine($"breach: most attacking the fence at once {maxOnFence}, first break after {firstBreach:F1} s; 2 s later still hitting a segment " +
-            $"{keptHitting} (of them about to break {finishing}); more segments broken after the first {broken - brokenAtFirst}, goblins inside {inYard}, lowest segment {lowest:P0}");
+        log.AppendLine($"shut fence: first gap after {firstBreach:F1} s; 2 s later {keptHitting} still breaking (nearest of their segments {nearestToGap:F1} m from the gap, want >= 6), " +
+            $"second gap {(breaks.Count >= 2 ? $"after {Time.time - start:F1} s, {Flat(breaks[1] - breaks[0]).magnitude:F1} m from the first" : "not yet")}, goblins inside {inYard}");
+
+        // 2. A gap on the far side of the yard (the back fence): goblins arriving at the front make their own instead of going round.
+        commands.Execute("enemy.clear");
+        commands.Execute("fence.repair");
+        await Seconds(0.5f);
+        BarrierSegment far = barriers.Segments.First(x => x.name == "Fence 0-07");
+        far.DealDamage(10000f);
+        await Seconds(0.3f);
+        breaks.Clear();
+        log.AppendLine("spawn: " + commands.Execute("enemy.spawn goblin 6").Message);
+        end = Time.time + breachSeconds;
+        start = Time.time;
+        int roundTheBack = 0;
+        while (Time.time < end && breaks.Count == 0)
+        {
+            await Seconds(0.5f);
+            for (int i = 0; i < enemies.Count; i++)
+                if (Flat(enemies[i].transform.position - far.transform.position).magnitude < 6f)
+                    roundTheBack++;
+        }
+        string where = breaks.Count > 0 ? $"{Flat(breaks[0] - gate.transform.position).magnitude:F1} m from the gate, {Flat(breaks[0] - far.transform.position).magnitude:F1} m from the back gap" : "none";
+        log.AppendLine($"far gap: new gap after {Time.time - start:F1} s at {where}; goblin samples near the back gap {roundTheBack} (want 0)");
 
         commands.Execute("enemy.clear");
         commands.Execute("fence.repair");
         commands.Execute("cheat.god off");
         return log.ToString();
+    }
+
+    static int Count(EnemyRegistry enemies, Func<Vector3, bool> where)
+    {
+        int count = 0;
+        for (int i = 0; i < enemies.Count; i++)
+            if (where(enemies[i].transform.position))
+                count++;
+        return count;
     }
 
     // Yard rectangle (34 × 27 m turned 50°, WorldMapLayout.FenceHalf / HomeYaw).

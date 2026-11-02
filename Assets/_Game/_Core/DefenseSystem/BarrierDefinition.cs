@@ -25,7 +25,7 @@ namespace Aipocalypse.Core.DefenseSystem
         [Tooltip("Model spawned under the segment: lean per damage stage, fallen when broken (and the leaf's hinge on a gate)")]
         public BarrierLook Look;
         [Tooltip("Optional: splinters where a blow lands")] public PooledEffect HitEffect;
-        [Tooltip("Optional: debris when it breaks")] public PooledEffect BreakEffect;
+        [Tooltip("Optional: debris when it breaks, emitted from a 1 m wide box (scaled to the barrier's width, Shape scaling)")] public PooledEffect BreakEffect;
         [Tooltip("Optional: dust at each repair knock")] public PooledEffect RepairEffect;
 
         [Header("Sounds")]

@@ -66,6 +66,7 @@ namespace Aipocalypse.Core.DefenseSystem
         public bool IsTargetable => IsBlocking;
         public bool IsDead => IsBroken;
         public float RemainingHealth => _health != null ? _health.Current : 0f;
+        public Vector3 Span => _blocker != null ? _blocker.transform.TransformVector(_blocker.size.x * 0.5f, 0f, 0f) : transform.right;
         public bool NeedsRepair => _health != null && !_health.IsWhole;
 
         [Inject]
@@ -131,7 +132,7 @@ namespace Aipocalypse.Core.DefenseSystem
             _audio?.PlayAt(_definition.HitSound, info.Point);
             Spawn(_definition.HitEffect, info.Point);
             if (killed)
-                Break();
+                Break(info.Source);
             else
             {
                 _look?.Punch();
@@ -283,11 +284,19 @@ namespace Aipocalypse.Core.DefenseSystem
             _targets?.BarriersChanged();
         }
 
-        void Break()
+        void Break(GameObject source)
         {
             Vector3 center = transform.position + Vector3.up * RepairHeight;
             _audio?.PlayAt(_definition.BreakSound, center);
-            Spawn(_definition.BreakEffect, center);
+            // Debris flies away from the attacker, from a 1 m wide box stretched to the barrier's width (a double gate is two panels).
+            Vector3 away = transform.forward;
+            if (source != null && Vector3.Dot(transform.position - source.transform.position, away) < 0f)
+                away = -away;
+            PooledEffect debris = _definition.BreakEffect != null && _effects != null
+                ? _effects.Spawn(_definition.BreakEffect, center, Quaternion.LookRotation(away))
+                : null;
+            if (debris != null)
+                debris.transform.localScale = new Vector3(Span.magnitude * 2f, 1f, 1f);
             Refresh();
             _broken?.Publish(new BarrierBroken(transform.position, _gate != null));
         }

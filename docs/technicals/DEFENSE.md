@@ -34,7 +34,13 @@ Fences are made of segments, one per panel slot. Each segment has its own health
 `TargetSelector.Choose` picks the best target as before (the player). Then, for a kind with a **Fence** weight:
 
 - **Fence shut** (no path to the player: `INavmeshQuery.IsReachable`, a cheap connected-area check on the A\* graph): it attacks a barrier: of the **`MeleeSettings.BreachCandidates` (5) nearest standing barriers, the one with the least health left** (`ChooseBreach`).
-- **A way in exists** (a broken segment anywhere, or an open gate): it goes for the player through it, walking round to the gap if needed. The only exception: if the segment it is hitting would fall to **`FinishBreachBlows` (2) of its own blows** or fewer (`AttackDamage` × 2 = 30 HP for goblins), it finishes it first.
+- **A way in exists** (a broken segment anywhere, or an open gate): most go for the player through it, walking round to it if needed. Some keep breaking instead, so the player has more than one gap to hold:
+  - **Gap on the far side:** when a standing segment is between the goblin and the player and the walk through the nearest open way in is at least **`GapDetour` (15 m)** longer than going straight, it breaks its own way in (a 34 × 27 m yard: a gap on the opposite side).
+  - **A breaker share:** of the goblins at the fence, the ones for whom the open way in is furthest keep breaking: **`BreakerShare` (a third)** of all the goblins hunting, at least **`MinBreakers` (1)**, never every one (a lone goblin takes the gap). Six goblins: two keep breaking, four go in.
+  - **New gaps keep apart:** a breaker skips segments within **`GapSpacing` (6 m)** of an open way in, so it makes a second gap instead of widening the first.
+  - **Almost broken:** a goblin whose segment would fall to **`FinishBreachBlows` (2) of its own blows** or fewer (30 HP for goblins) finishes it first.
+
+  Detours are straight-line estimates (`TargetSelector.Detour`: to the way in, then to the player), and "a standing segment is between" is a line test against each standing barrier's `Span`, so this costs no path queries. The breaker ranking uses where each goblin stood at its last choice (`TargetSelector` keeps one record per hunter; `Forget` on death and disable).
 
 It re-asks every `RetargetInterval` (1 s) and **at once whenever a barrier starts or stops blocking**: the segment applies its navmesh cut immediately (`ForceUpdate` + `FlushWorkItems`, a few ms, only on a break, a stand-up or a gate swing) and bumps `TargetRegistry.BarrierVersion`, which makes every hunter choose again. Without that, the goblins at the fence would see the old navmesh for a frame and pick the next segment instead of the new gap.
 
@@ -44,7 +50,7 @@ It re-asks every `RetargetInterval` (1 s) and **at once whenever a barrier start
 - Goblins: `Goblin.asset` Targets Player 1, Fence 1. A kind without a Fence weight keeps chasing the closest reachable point instead.
 - Raid spawn points must have a path to the zone's `Origin`: `Raid/Spawn Zone (Front)` sets `OriginOffset` 3 m so that point lies outside the closed gate ([RAIDS.md](RAIDS.md)).
 
-Measured in WorldMap (`DefensePlayCheck`, 6 goblins against the shut fence, player inside): all six went for the fence; the first segment fell after about 18 s; 2 s later none was still hitting a segment, no other segment broke, and 5 were in the yard.
+Measured in WorldMap (`DefensePlayCheck`, 6 goblins, player inside): against the shut fence all six went for it and the first segment fell after about 19 s; 2 s later two were still breaking a segment 6.8 m from the gap and four went in; that second gap fell about 5 s later. With the back fence already broken, goblins arriving at the front broke a new gap there (27 m from the back gap) after 18 s and none walked round.
 
 ## Repair
 
@@ -60,6 +66,16 @@ Everything a kind is lives in its `BarrierDefinition`: health, damage scale per 
 - **New behaviour on a blow:** a new `BarrierEffect` asset type (slow, knockback, fire) added to the definition's `OnStruck`.
 - **New material** (better wood, rock wall): a new look prefab with a `BarrierLook` (pivots, shakes, optional variants and hinges) and a definition pointing at it. EmaceArt Fences 2026 has rock walls and a rock gate (tagged Maybe in ASSETS.md: ask first).
 - **A gate anywhere:** replace one or two segments with `WoodGate.prefab` / `WoodGate_Double.prefab` (or a builder's `Put`), then re-bake the navmesh (Navigation below) and save the scene so `DefenseInstaller` lists it.
+
+## Effects
+
+`Content/Structures/_Shared/Effects`, pooled through `EffectPool`:
+
+- **`WoodHit`:** a few chips and a puff where a blow lands.
+- **`WoodBreak`:** 14 tumbling planks (lit cube mesh particles, `WoodPlank.mat`) that bounce on the ground and lie in the gap for about 3 s, 45 splinters and a dust cloud.
+  - It flies away from the attacker, into the yard when goblins break in.
+  - It emits from a 1 m wide box that `BarrierSegment.Break` stretches to the barrier's width (Shape scaling), so the double gate bursts across both leaves.
+  - Planks use High collision quality: they raycast the `Default` layer (the terrain). Medium's voxel cache let them fall through.
 
 ## Sounds
 
@@ -87,6 +103,7 @@ Everything a kind is lives in its `BarrierDefinition`: health, damage scale per 
 | Gate swing angle, time, starting open | `FenceGate` on the gate prefab |
 | How many segments an enemy compares | the kind's `MeleeSettings.BreachCandidates` |
 | When an enemy finishes a segment instead of taking the gap | the kind's `MeleeSettings.FinishBreachBlows` |
+| How far out of the way a gap may be before an enemy breaks its own; the share that keeps breaking; spacing between gaps | the kind's `MeleeSettings.GapDetour`, `BreakerShare`, `MinBreakers`, `GapSpacing` |
 | Attackers per segment | `Data/Enemies/EnemySystemSettings.asset` → Attackers Per Target → Fence |
 | Repair rhythm, when it stops | `Data/Player/PlayerInteractionTuning.asset` → Repair |
 | Hammer poses | `Player.prefab` → `HeldItems/RepairHammer/Poses` (Preview buttons on `RepairTool`) |
