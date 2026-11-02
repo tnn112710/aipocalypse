@@ -42,6 +42,12 @@ namespace Aipocalypse.Core.EnemySystem
             _stats ??= new Dictionary<EnemyStat, float>();
             _stats[stat] = value;
         }
+
+        public void SetTargetWeight(TargetKind kind, float weight)
+        {
+            _targets ??= new Dictionary<TargetKind, float>();
+            _targets[kind] = weight;
+        }
 #endif
     }
 }

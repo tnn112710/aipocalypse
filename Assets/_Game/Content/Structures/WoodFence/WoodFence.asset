@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ad521ca88125b34e80f320587226716, type: 3}
+  m_Name: WoodFence
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.DefenseSystem.BarrierDefinition
+  DisplayName: Fence
+  MaxHealth: 300
+  RepairPerKnock: 30
+  StandAt: 0.3
+  Look: {fileID: 8096055463250759568, guid: 3fc44418a7e2cba4199cd3278177abe7, type: 3}
+  HitEffect: {fileID: 5148190836180000868, guid: 5a1bccbf1f1950d4088ca9e8cb5f0066, type: 3}
+  BreakEffect: {fileID: 8236875086330789933, guid: a8b362dacef64a34e8ca42da64b2b253, type: 3}
+  RepairEffect: {fileID: 5148190836180000868, guid: 5a1bccbf1f1950d4088ca9e8cb5f0066, type: 3}
+  HitSound:
+    _entity: {fileID: 11400000, guid: de27f5515bc82ff4196183ebe2151ab2, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  BreakSound:
+    _entity: {fileID: 11400000, guid: dd6cb933e3edae248a8a08205d12cd46, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  RepairSound:
+    _entity: {fileID: 11400000, guid: 8178de1d9409c8f42b8c28bd1e5a1062, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  OpenSound:
+    _entity: {fileID: 0}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  CloseSound:
+    _entity: {fileID: 0}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  OnStruck: []
+  UpgradesTo: {fileID: 11400000, guid: 87535ce8158dc79488e794c8c86142e5, type: 2}

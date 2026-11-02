@@ -4,7 +4,8 @@ using UnityEngine;
 namespace Aipocalypse.Core.PlayerSystem
 {
     // What the player is looking at that can be used, and using it. A short sphere cast from the eye each frame;
-    // walls block it, trigger colliders (pickups) are hit.
+    // walls block it, trigger colliders (pickups) are hit. The key uses it on press; when the focus also offers a hold use
+    // (IHoldInteractable: a gate's repair), a tap uses it on release and a hold does the hold use.
     public sealed class PlayerInteractor
     {
         readonly Transform _eye;
@@ -14,6 +15,8 @@ namespace Aipocalypse.Core.PlayerSystem
 
         Collider _focusCollider;
         IInteractable _focus;
+        // The focus the key went down on while it offered a hold use; null once used or let go.
+        IInteractable _pressedOn;
 
         public PlayerInteractor(Transform eye, GameObject actor, PlayerInteractionTuning tuning)
         {
@@ -24,29 +27,60 @@ namespace Aipocalypse.Core.PlayerSystem
 
         public bool HasPrompt { get; private set; }
         public InteractionPrompt Prompt { get; private set; }
+        public bool HasHoldPrompt { get; private set; }
+        public InteractionPrompt HoldPrompt { get; private set; }
+        // What the prompt is for (outlined while shown), or null.
+        public Transform FocusTransform => HasPrompt || HasHoldPrompt ? (_focus as Component)?.transform : null;
 
-        public void Tick(bool interactPressed)
+        public void Tick(bool pressed, bool holdDone = false, bool released = false)
         {
             Refocus();
 
             InteractionPrompt prompt = default;
+            InteractionPrompt holdPrompt = default;
             HasPrompt = _focus != null && _focus.TryGetPrompt(_actor, out prompt);
+            HasHoldPrompt = _focus is IHoldInteractable holdable && holdable.TryGetHoldPrompt(_actor, out holdPrompt);
             Prompt = prompt;
-            if (!HasPrompt || !interactPressed)
-                return;
+            HoldPrompt = holdPrompt;
 
-            _focus.Interact(_actor);
-            // The target may have been consumed; look again next frame.
-            _focusCollider = null;
-            _focus = null;
-            HasPrompt = false;
+            if (!HasHoldPrompt)
+            {
+                _pressedOn = null;
+                if (HasPrompt && pressed)
+                    Use(hold: false);
+                return;
+            }
+
+            if (pressed)
+                _pressedOn = _focus;
+            if (_pressedOn == null || !ReferenceEquals(_pressedOn, _focus))
+            {
+                _pressedOn = null;
+                return;
+            }
+            if (holdDone)
+                Use(hold: true);
+            else if (released && HasPrompt)
+                Use(hold: false);
         }
 
         public void Clear()
         {
             _focusCollider = null;
             _focus = null;
+            _pressedOn = null;
             HasPrompt = false;
+            HasHoldPrompt = false;
+        }
+
+        void Use(bool hold)
+        {
+            if (hold)
+                ((IHoldInteractable)_focus).InteractHold(_actor);
+            else
+                _focus.Interact(_actor);
+            // The target may have been consumed; look again next frame.
+            Clear();
         }
 
         void Refocus()

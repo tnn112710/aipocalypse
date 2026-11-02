@@ -221,7 +221,7 @@ namespace Aipocalypse.Core.EnemySystem
             if (_target != null && _target.IsTargetable && Time.time < _nextRetarget)
                 return _target;
             _nextRetarget = Time.time + melee.RetargetInterval;
-            return Target = _targets.Choose(transform.position, _definition.Targets);
+            return Target = _targets.Choose(transform.position, _definition.Targets, melee.BreachCandidates);
         }
 
         // Holds one of the target's attack slots while true (AttackSlots).
@@ -229,13 +229,13 @@ namespace Aipocalypse.Core.EnemySystem
         public bool HoldsSlot => _slots.Holds(this, _target);
         public void ReleaseSlot() => _slots.Release(this);
 
-        // A melee blow landing on `target`: AttackDamage through DamageService, and the impact sound.
+        // A melee blow landing on `target`: AttackDamage through DamageService, and the impact sound (a barrier plays its own).
         public void Strike(ITargetable target)
         {
-            Vector3 point = target.Transform.position;
+            Vector3 point = target.PointFor(transform.position);
             var blow = new DamageInfo(Stats.Get(EnemyStat.AttackDamage), DamageType.Melee, point, default, gameObject);
             DamageResult result = _damage.Deal(target, blow);
-            if (result.Applied > 0f)
+            if (result.Applied > 0f && target is not IBreachable)
                 Voice.Impact(point);
         }
 

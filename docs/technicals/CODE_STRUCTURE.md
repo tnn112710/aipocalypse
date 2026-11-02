@@ -25,7 +25,7 @@ Assets/_Game/
 │  │  └─ SceneInstaller.cs                  abstract MonoBehaviour + IInstaller next to the GameLifetimeScope: one scene system's settings and registrations; Problem (null = ready)
 │  ├─ _Common/
 │  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
-│  │  ├─ Entities/ITargetable.cs            ITargetable : IDamageable (Transform, Kind, IsTargetable: false while dead or hidden by a cheat) + TargetKind enum (Player; append only, definitions store weights by number): what enemies may hunt (EnemySystem's TargetSelector)
+│  │  ├─ Entities/ITargetable.cs            ITargetable : IDamageable (Transform, Kind, IsTargetable: false while dead or hidden by a cheat; PointFor(from): where an attacker stands and swings, the root by default) + TargetKind enum (Player, Fence; append only, definitions store weights by number): what enemies may hunt (EnemySystem's TargetSelector); IBreachable : ITargetable (RemainingHealth): a barrier in the way, attacked only when the hunt has no path
 │  │  ├─ Entities/IPlayerTarget.cs          ITargetable of the player: what enemies, companions and outside systems need from it
 │  │  ├─ Combat/                            Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage: TakeDamage → DamageResult (hurt it through DamageService)
@@ -46,9 +46,12 @@ Assets/_Game/
 │  │  ├─ Events/QteEvents.cs                QteStarted (session, presentation, Button), QteAttempted (accepted presses only: Miss / Success), QteEnded (result); no per-frame messages
 │  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
 │  │  ├─ Events/RaidEvents.cs               RaidStarted (night), RaidWaveStarted (night, wave from 0, count), RaidEnded (night, RaidEndReason: Cleared, Dawn, Defeat, Stopped) (published by RaidDirector)
+│  │  ├─ Events/DefenseEvents.cs            BarrierBroken, BarrierRestored (position, IsGate): a fence segment or gate fell / stands again (published by BarrierSegment)
 │  │  ├─ Feedback/FeedbackContext.cs        Aipocalypse.Core.Feedback — injected bridge on hosts of MMF_Players so custom Feel feedbacks reach our services
 │  │  ├─ Feedback/MMF_HitStop.cs            Feel feedback "Aipocalypse/Hit Stop" → TimeService.RequestHitStop; never touches Time.timeScale
 │  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
+│  │  ├─ Interaction/IHoldInteractable.cs   optional second use on holding the key (TryGetHoldPrompt / InteractHold): a gate's repair; while offered, the tap fires on release
+│  │  ├─ Interaction/IRepairable.cs         IRepairable (NeedsRepair, RepairPoint, Knock: one hammer knock) and IRepairer (IsRepairing, TryStartRepair: the player)
 │  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum (values; …Scale multipliers with base 1) + stat seam with a Changed event; GetScale(stat) extension
 │  │  └─ Utils/                             Aipocalypse.Core
 │  │     ├─ Damping.cs                      ByRate / ByTime: frame-rate independent smoothing share for Lerp (0 = instant)
@@ -91,11 +94,22 @@ Assets/_Game/
 │  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
+│  ├─ DefenseSystem/                         Aipocalypse.Core.DefenseSystem — fences and gates, DEFENSE.md
+│  │  ├─ DefenseInstaller.cs                SceneInstaller: BarrierRegistry (+ DefenseCommands in dev builds); injects the scene's BarrierSegments (collected on save / Play)
+│  │  ├─ BarrierSegment.cs                  one fence piece or gate: IBreachable (TargetKind.Fence; registers in TargetRegistry), IInteractable (tap: a gate opens / closes, a segment repairs), IHoldInteractable (gate: hold to repair), IRepairable; BarrierHealth; while blocking a NavmeshCut and a climb blocker (Ignore Raycast) are on; look, sounds, effects, OnStruck effects; Apply / Upgrade (keeps the health share); player damage never counts
+│  │  ├─ BarrierHealth.cs                   rules: damage, breaks at 0, repairs while broken, CanStand(StandAt) / Stand, SetMax keeps the share (DefenseTests)
+│  │  ├─ BarrierDefinition.cs               SO per barrier kind: DisplayName, MaxHealth, DamageScale per DamageType, RepairPerKnock, StandAt, Look, hit / break / repair effects, sounds (hit, break, repair; gate open / close), OnStruck (BarrierEffects), UpgradesTo
+│  │  ├─ BarrierLook.cs                     the model: pivots lean per damage stage away from the blows, shake on a hit, fall when broken (colliders off); one of several variants picked by position; a gate's hinges
+│  │  ├─ FenceGate.cs                       beside a BarrierSegment (one slot or two): every hinge swings its leaf away from the opener (DOTween), closed by default (StartsOpen), won't close on someone in the doorway, blocks only once shut
+│  │  ├─ BarrierEffect.cs                   SO base: what a blow on a barrier does to the attacker (BarrierStrike: barrier, hit, applied, DamageService)
+│  │  ├─ ThornsEffect.cs                    BarrierEffect: every melee blow hurts the attacker back by Damage
+│  │  ├─ BarrierRegistry.cs                 the scene's barriers while enabled (console, later the morning report)
+│  │  ├─ DefenseCommands.cs                 console: fence.status, fence.damage <amount> [count], fence.breach [count], fence.repair, fence.upgrade, fence.gate <open>
 │  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
 │  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyNavigation, TargetRegistry, TargetSelector, AttackSlots, EnemyNavigation also as INavmeshQuery, EnemyManager + EnemyAnimationManager + EnemyBodyManager + EnemySoundManager (entry points) (+ EnemyCommands, EnemyCheatCommands and RaidAutopilot in dev builds); injects the scene's placed enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
 │  │  ├─ EnemyCommands.cs                   console: enemy.spawn <card> [count] (15 m ahead of the player, off the crosshair), enemy.clear (despawn all, drop the console's own queued spawns), enemy.count, enemy.hit <power> [radius] (a push of `power` N·s with almost no damage on every enemy near the player: knockback and stagger before rockets exist)
 │  │  ├─ EnemyCheatCommands.cs              console: cheat.killall (a real hit through DamageService on every enemy in play)
-│  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200), AttackersPerTarget (Dictionary<TargetKind, int>: Player 3; no entry = unlimited), Cards (spawnable by name: enemy.spawn), FarThinkDistance (60 m) / FarThinkInterval (0.25 s), RenderingLayer (Enemy: added to every enemy renderer for the night highlight), MaxFootstepsPerSecond (12); asset in Data/Enemies/
+│  │  ├─ EnemySystemSettings.cs             SO: ThinkInterval (1/15 s), MaxThinksPerFrame (200), AttackersPerTarget (Dictionary<TargetKind, int>: Player 3, Fence 3 per segment; no entry = unlimited), Cards (spawnable by name: enemy.spawn), FarThinkDistance (60 m) / FarThinkInterval (0.25 s), RenderingLayer (Enemy: added to every enemy renderer for the night highlight), MaxFootstepsPerSecond (12); asset in Data/Enemies/
 │  │  ├─ EnemyRegistry.cs                   the enemies in play as a dense swap-remove list; brains add themselves while enabled
 │  │  ├─ EnemyManager.cs                    ITickable: thinks (EnemyBrain.Think) count × deltaTime / ThinkInterval Manual trees per frame round-robin (fractions carry, capped at MaxThinksPerFrame, never more than one round owed), scaled time; enemies past FarThinkDistance from the player think only every FarThinkInterval (ThinksNow, PopulationTests); Advance(deltaTime)
 │  │  ├─ EnemyDefinition.cs                 SO per enemy kind: base stats (Dictionary<EnemyStat, float>: MaxHealth, MoveSpeed, AttackDamage), Targets (Dictionary<TargetKind, float>: weight per kind, none = hunts nothing), SpeedVariance (each life's MoveSpeed × 1 ± it), StopDistance, AppearTime + AppearJitter (spawned enemies stand still while appearing), GrassBendRadius, Reaction (EnemyReactionSettings), Wander (WanderSettings), Melee (MeleeSettings, empty = hunts nothing), Animation (EnemyAnimationSettings, empty if unanimated), Sounds (EnemySoundSet, empty = silent); lives in Content/Enemies/<Name>/
@@ -115,10 +129,10 @@ Assets/_Game/
 │  │  ├─ WanderTasks.cs                     ChooseWanderDestination / WalkToWanderDestination / PauseWander ActionNodes of the shared subtree (read EnemyBrain.Definition.Wander, move through EnemyMover)
 │  │  ├─ WanderSettings.cs                  SO: wander radius, pause, travel timeout, destination attempts, minimum travel; asset in Data/Enemies/, the shared subtree in Content/Enemies/_Shared/
 │  │  ├─ MeleeTasks.cs                      tasks of the shared Melee subtree: ChooseTarget (ConditionalNode: EnemyBrain.ChooseTarget, the hunt's abort check), TargetDefeated (ConditionalNode: EnemyBrain.TargetDefeated), Celebrate (halts and dances via EnemyAnimator.Celebrate until aborted), ChaseTarget (runs at the target with a MoveSpeed modifier: approach pace far, sprint + Engaged inside EngageRadius; from afar heads for CrowdSpread.FlankPoint with a random side per chase, re-aiming as it closes; inside HoldDistance takes an attack slot or waits there facing the target; repaths past max(RepathDistance, 10% of the distance)), MeleeAttack (faces it, swings once after the cooldown with the swing / attack sounds, at HitTime EnemyBrain.Strike if MeleeHit.Lands; succeeds when the target steps out of range or the slot is gone)
-│  │  ├─ MeleeSettings.cs                   SO: RetargetInterval, EngageRadius (stance + sprint), approach / chase speed multipliers, repath distance, HoldDistance (waiting without a slot); swing: attack range, duration, cooldown, HitTime, HitReach, HitArc; damage is the AttackDamage stat (EnemyMeleeTests)
+│  │  ├─ MeleeSettings.cs                   SO: RetargetInterval, BreachCandidates (5: nearest standing barriers compared when the hunt has no path), EngageRadius (stance + sprint), approach / chase speed multipliers, repath distance, HoldDistance (waiting without a slot); swing: attack range, duration, cooldown, HitTime, HitReach, HitArc; damage is the AttackDamage stat (EnemyMeleeTests)
 │  │  ├─ MeleeHit.cs                        pure: Lands(attacker, forward, target, reach, arc) on the ground plane, SqrFlatDistance (EnemyMeleeTests)
-│  │  ├─ TargetRegistry.cs                  what enemies may target: the active player (PlayerRegistry.Current; nothing registers it) + Add / Remove(ITargetable) for other kinds later (EnemyTargetingTests)
-│  │  ├─ TargetSelector.cs                  Choose(from, weights): the best kind weight per metre (EnemyDefinition.Targets), skipping untargetable targets and kinds without a weight (EnemyTargetingTests)
+│  │  ├─ TargetRegistry.cs                  what enemies may target: the active player (PlayerRegistry.Current; nothing registers it) + Add / Remove(ITargetable) for other kinds; IBreachables (fence segments, gates) are kept apart in Barriers (EnemyTargetingTests)
+│  │  ├─ TargetSelector.cs                  Choose(from, weights, breachCandidates): the best kind weight per metre (EnemyDefinition.Targets), skipping untargetable targets and kinds without a weight; with no path to it (INavmeshQuery) and a Fence weight, ChooseBreach: the weakest (least health left) of the breachCandidates nearest standing barriers (EnemyTargetingTests)
 │  │  ├─ AttackSlots.cs                     how many enemies may close in on one target at once (AttackersPerTarget by TargetKind; no entry = unlimited): TryTake / Holds / Taken / Release, taking a slot on another target frees the previous one (EnemyTargetingTests)
 │  │  ├─ EnemySpawnCard.cs                  SpawnCard (SpawnSystem) plus ArrivalCue (SoundID): variants by weight (Dictionary<Spawnable, float>), GroupSize, Placement (Ground / navmesh Require), Category Enemy; lives in Content/Enemies/<Name>/<Name>_Card.asset
 │  │  ├─ CrowdSpread.cs                     static rules that break lockstep: SpeedFactor (1 ± variance), FlankPoint / FlankWeight (aim beside the target that turns the heading by side × FlankAngle, straightening from FlankFadeDistance to EngageRadius)
@@ -215,7 +229,10 @@ Assets/_Game/
 │  │  ├─ PlayerZoom.cs                      sole writer of the lens field of view: ControlSettings.FieldOfView (read live) × the held item's Zoom or a pose sequence's FovScale (MinScale 0.1 … MaxScale 1.5); keeps FirstPersonView on the unzoomed base; LookScale, TanHalfFov
 │  │  ├─ PlayerAim.cs                       aim sway → CrosshairPosition and CrosshairSpread on screen (world FOV) + the rig's zoom-corrected turn (EquipmentRig.SetAimRotation); static ScreenPosition / ScreenRadius / ModelRotation
 │  │  ├─ PlayerBreathSound.cs               loops PlayerSoundTuning.BreathSound while out of breath (+ BreathSoundSettings: MinVolume, FadeIn, FadeOut; VolumeFor(tiredness, minVolume)), pauses it while TimeService is paused
-│  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, Interact; drop point
+│  │  ├─ PlayerInteractor.cs                look sphere cast → focused IInteractable + prompt, and a hold prompt when it's an IHoldInteractable (then the tap fires on release, the hold use when the Hold interaction completes); FocusTransform (outlined); drop point
+│  │  ├─ InteractHighlighter.cs             one Highlight Plus effect (on the Player prefab) moved to the interact focus, or to what is being repaired
+│  │  ├─ Repair/PlayerRepair.cs             IRepairer work: lower the held item, raise the hammer, knock every RepairKnockInterval (IRepairable.Knock) until whole; stops (finishing the swing) on looking away, walking off, or a key
+│  │  ├─ Repair/RepairTool.cs               the first-person hammer (HeldItems/RepairHammer, saved hidden): pose markers Hidden / Idle / WindUp / Strike, ItemHands (right grip), Pose(raise, cycle)
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ FirstPersonView.cs                 on the world camera: the lens held models draw with (own FOV via SetFieldOfView so zoom doesn't swell the gun, near 0.01 / far 10 m)
 │  │  ├─ FirstPersonRenderFeature.cs        URP renderer feature on PC_Renderer: draws the HeldWeapon layer in the world camera after transparents, depth cleared, with FirstPersonView's lens and SSAO zeroed (replaces the overlay camera)
@@ -228,7 +245,7 @@ Assets/_Game/
 │  │  ├─ Tuning/PlayerMovementTuning.cs     speeds, acceleration, jump, gravity, slopes, heavy landing, walk / sprint / jump stamina costs, idle speed for regen → PlayerMotor
 │  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, out of breath (BreathingSettings), fatigue tiers, fall damage heights → Player, PlayerLife
 │  │  ├─ Tuning/PlayerCameraTuning.cs       eye height, pitch limits, head bob, landing dip, hurt flinch → PlayerCameraRig, PlayerLook, PlayerHeadBob
-│  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor
+│  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop distance → PlayerInteractor; repair knock interval, hammer raise time, reach slack, look-away angle and grace → PlayerRepair
 │  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, AimSwaySettings, HeldSwaySettings → HeldItemDriver, HeldItemClearance, HeldItemSway
 │  │  ├─ Tuning/PlayerSoundTuning.cs        footstep (walk / sprint volume) / jump / land / hurt (+ cooldown) / breath SoundIDs and volumes, breath sound volume and fades (BreathSoundSettings) → PlayerFeedback, PlayerBreathSound
 │  │  ├─ Tuning/PlayerVisionTuning.cs       vision radius, colour, edge brightness, light / lantern positions, range scale, max intensity, blend → PlayerVision
@@ -293,7 +310,7 @@ Assets/_Game/
 │  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / SetBadge(count, reserve, showReserve, warning) / HideBadge / ApplyStyle
 │  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font, ammo badge font + colors
 │  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
-│  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors
+│  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors, hold line prefix and size
 │  │  ├─ Widgets/CrosshairStyle.cs          ScriptableObject: MinSpread, SpreadFade, SpreadSpeed, FadeSpeed
 │  │  ├─ Widgets/HitFeedbackStyle.cs        ScriptableObject: hit / kill marker colors, durations, pops, PopShare
 │  │  ├─ Widgets/HurtFeedbackStyle.cs       ScriptableObject: hurt flash color, max alpha, thickness (share of screen height), min strength, full-strength damage (share of max health), fade-out (real time)
@@ -305,15 +322,17 @@ Assets/_Game/
 │  │  ├─ Widgets/TimingQteView.cs           draws a timing session as a circle or a bar, with no weapon or input knowledge
 │  │  ├─ Widgets/QteStyle.cs                ScriptableObject: QTE sprites, colors, key cap; Success (color, duration, hold, pop / burst scales and shares) and Miss (color, duration, shake, squash) result looks; EndFadeDuration
 │  │  ├─ Widgets/RaidBannerStyle.cs         ScriptableObject: font, the three banners' words / colours / SoundIDs ({0} = night; only characters already in the font's atlas), fade / hold / punch timing
+│  │  ├─ Widgets/BreachAlertStyle.cs        ScriptableObject: the breach line's words (fence / gate, ahead / behind / left / right), colour, timing
 │  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
 │  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind(IPlayer) per active player
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment; each item's Changed → its Badge, AmmoReserve.Changed → reserve counts (events, no polling)
-│  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt from Player.Interactor (LateUpdate)
+│  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt and hold prompt from Player.Interactor (LateUpdate)
 │  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread (CrosshairStyle)
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker (HitFeedbackStyle), hit / kill sound, pooled damage numbers (critical hits: the critical prefab)
 │  │  ├─ Hud/HurtFeedbackHud.cs             PlayerHudView → DamageDealt to the active player: screen-edge flash toward the source against the View yaw (top front, bottom back, left, right; no direction = every edge), strength by damage / max health (HurtFeedbackStyle); gradient textures made in code; unscaled, frozen while paused
 │  │  ├─ Hud/RaidBannerHud.cs               RaidStarted / RaidEnded (Cleared, Dawn) → a banner (title + subtitle, DOTween punch and fade) and its sound through AudioService; nothing on Defeat / Stopped; built with its sounds (Raid_Start / Raid_Victory, Combat library) by AgentScripts/Hud/RaidBannerSetup
+│  │  ├─ Hud/BreachAlertHud.cs              PlayerHudView: BarrierBroken → "The fence is down behind you" (direction from the player's view), DOTween punch and fade; silent (the break sounds at the barrier)
 │  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
@@ -381,6 +400,7 @@ Assets/_Game/
 │  │                                        Raid_Horn_Goblin), Goblin_Sounds.asset (EnemySoundSet, Enemies library), Goblin_Wander.asset (4.5 s pauses), Goblin.controller + Animations/ (built from
 │  │                                        AgentScripts/Characters/Goblin/Goblin.animspec.txt), Goblin_Melee.asset (MeleeSettings: engage 5 m, hold 3.5 m, blow at 0.5 s within 2 m and 90°), Goblin_Sword.prefab
 │  │                                        (Animpic sword model, no collider; nested on each model's right hand by BuildGoblin), Model/ (<Look>.sk sources + SidekickKit output: _Model.prefab, _Mesh, _Avatar, .mat, color map)
+│  ├─ Structures/                           fences and gates (DEFENSE.md), built by AgentScripts/Defense/DefenseSetup: WoodFence/ (WoodFence.asset 300 HP → WoodFence_Spiked.asset 450 HP + WoodFence_Thorns.asset, WoodFence_Look.prefab: the three Lakefell panels at 1.35× height as variants, WoodFence.prefab: one 2.25 m slot), WoodGate/ (WoodGate 500 HP one slot, WoodGate_Double 700 HP two slots; *_Look.prefab: 2.7 m posts and a beam round two-rail leaves), _Shared/Effects/WoodHit, WoodBreak (PooledEffect: chips + dust) and Materials/WoodChip, WoodDust
 │  └─ Enemies/_Shared/                      Wander.asset (shared Behavior Designer subtree), Melee.asset (hunt the chosen target: chase, wait for a slot, swing; else wander: the goblins'; generated from AgentScripts/Enemies/Melee.tree.txt by TreeKit), Materials/WanderCapsule1-2.mat; Effects/: Blood.mat (a copy of URP ParticlesUnlit), Blood_Hit / Blood_Headshot / Blood_Kill (PooledEffect: droplets + mist), set on EnemyReactionSettings, built by AgentScripts/Enemies/HitJuiceSetup.cs (which also adds the Player's LandedHitFeedback)
 ├─ Environment/                             shared environment kit for every map: Water/ (water materials), TerrainLayers/, Vegetation/ (detail prefabs in `DetailS/`, committed with a capital S; the generator writes `Details/`, see ENVIRONMENT.md), Rocks/, Mountains/ (ENVIRONMENT.md)
 ├─ Maps/WorldMap/                           what only this map uses: Terrain/ (TerrainData, Heightmaps/), Water/ (meshes), Backdrop/, Navigation/ (NavmeshWater mesh, WorldMapNavmesh.bytes cache)
@@ -388,7 +408,7 @@ Assets/_Game/
 ├─ (Assets/_Placeholder/Audio/)            Weapons/: gun sound samples from the old project (rifle, pistol, sniper bolt); Voice/: CC0 death groans;
 │                                          Music/: PLACEHOLDER death music cut from a YouTube Short, not licensed (sources in SOURCES.txt)
 ├─ Data/                                    settings shared by a whole system (one copy each); per-thing data lives in Content/
-│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience, Music, Enemies .asset) + one folder of entities each; Enemies/ also holds
+│  ├─ Audio/                                BroAudio libraries (Guns, Melee, RepairFeedback, Player, Combat, Ambience, Music, Enemies, Defense .asset) + one folder of entities each; Enemies/ also holds
 │  │                                        Enemy_Spatial / Horn_Spatial (SpatialSetting) and the per-entity voice-limit PlaybackGroups (*_Group.asset)
 │  ├─ Camera/ImpulseReaction.asset          rotation-only noise played by the player camera's impulse listener
 │  ├─ WorldTime/ClockSettings.asset         45 s per game hour (18-minute day), start day 1 07:00, phases Dawn 06 / Morning 08 / Afternoon 12 / Dusk 16 / Evening 18 / Midnight 00, speed 1
@@ -406,7 +426,7 @@ Assets/_Game/
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
 │  ├─ Weapons/RepairFeedback.asset          the repair feedback preset every gun's repair profile uses
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset,
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, BreachAlertStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
@@ -416,7 +436,8 @@ Assets/_Game/
    ├─ EnemyAnimationTests.cs                LocomotionAnimation (look / lean into turns, glances, one fidget per stop) + every animated enemy prefab wired to the parameter contract
    ├─ EnemyMeleeTests.cs                    MeleeHit.Lands (reach, arc, height ignored), melee definitions hold outside swing range and hit within it (HoldDistance, EngageRadius, HitTime, HitReach), prefabs on the Melee subtree have settings and a colliderless sword in hand
    ├─ EnemyCombatTests.cs                   EnemyStats (base, modifiers, Changed), Knockback (slide length at any frame rate, cap), every definition has every stat + Reaction, every enemy prefab can be hurt
-   ├─ EnemyTargetingTests.cs                TargetSelector (nearest wanted target, skips untargetable ones and kinds without weight), TargetRegistry add / remove, AttackSlots (cap per target, release, switching target, zero capacity, no target)
+   ├─ EnemyTargetingTests.cs                TargetSelector (nearest wanted target, skips untargetable ones and kinds without weight; with a path it ignores barriers, without one the weakest of the nearest barriers, none standing or no Fence weight keeps the target), TargetRegistry add / remove (barriers kept apart), AttackSlots (cap per target, release, switching target, zero capacity, no target)
+   ├─ DefenseTests.cs                       BarrierHealth (breaks at 0, stands at StandAt, new maximum keeps the share), fence / gate / double gate prefab wiring (definition, sounds, cut, Ignore Raycast blocker over 2 m, colliders out of the bake, hinges), Player prefab's hammer and outline
    ├─ EnemySpawningTests.cs                 EnemySpawnCard (variants by weight, group size range), EnemyVoice (a step per stride, only while audible); data: cards have variants with definitions and a cue, fighting definitions have sounds, damage and targets, EnemySystemSettings lists every card
    ├─ CrowdSpreadTests.cs                   SpeedFactor within the variance, FlankPoint (turned by the angle far away, straight close in)
    ├─ StaggerMeterTests.cs                  light hits twitch, stronger flinch, sustained fire builds a stagger then empties the meter, drain at Recovery, no stagger during the cooldown (still flinches), critical multiplier, immune tiers, every weight class staggers no earlier than it flinches
@@ -468,6 +489,7 @@ GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    WorldTimeInstaller   → ClockSettings, WorldClock (+ WorldClockCheats, WorldClockCommands)
    EnvironmentInstaller → EnvironmentDirector (RegisterComponent → TryResolve WorldClock, GraphicsService), GrassBendField, NightHighlight (+ NightHighlightCommands), AmbienceService (needs WorldTimeInstaller)
    EnemyInstaller       → AstarPath, EnemySystemSettings, EnemyRegistry, EnemyNavigation, TargetRegistry (PlayerRegistry), TargetSelector, AttackSlots, EnemyNavigation (+ INavmeshQuery),
+   DefenseInstaller     → BarrierRegistry (+ DefenseCommands); injects scene BarrierSegments → Construct(AudioService, DamageService, EffectPool, BarrierBroken / BarrierRestored publishers; TryResolve TargetRegistry, BarrierRegistry); FenceGate(AudioService)
                           EnemyManager, EnemyAnimationManager, EnemyBodyManager, EnemySoundManager (+ EnemyCommands, EnemyCheatCommands, RaidAutopilot); injects the listed scene enemies;
                           PrefabPool makes spawned ones with the scene resolver → EnemyBrain.Construct(EnemyRegistry, AstarPath, TargetSelector, AttackSlots, DamageService, AudioService, EffectPool); needs SpawnInstaller
    RaidInstaller        → RaidSettings, EveryNightSchedule (IRaidSchedule), RaidSpawner (IRaidSpawner), RaidDirector, DeathTimeRule (+ RaidCommands);
@@ -513,7 +535,7 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
 - Enemies and weapons share the root `EffectPool` (`_Common/Effects`): `EnemyBody` spawns its kind's blood (`PooledEffect`s in `EnemyReactionSettings`, made with each enemy, `EnemyBrain.Construct`). Guns and melee know nothing of enemies: they skip their generic impact on any `IShowsOwnHits` (`_Common/Combat`).
 - `PlayerSystem` → `EnvironmentSystem`: the player's `VisionLight` carries a `TimeOfDayWeight` (Darkness) that the scene's director ticks; `Player` only reads its `Weight`. No director (prototype scenes) = never dark, light off.
 - Bullets, swings and falls hurt anything with an `IDamageable` (`_Common/Combat`) through `DamageService.Deal`, which applies `TakeDamage` and publishes `DamageDealt` (source, result). Targets only apply their own rules.
-- Interaction: `_Common/Interaction.IInteractable` is the only contract. `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`).
+- Interaction: `_Common/Interaction.IInteractable` is the only contract (plus the optional `IHoldInteractable` second use). `PlayerInteractor` finds one with a look cast; the interactable decides what happens (`WorldItem` → `Equipment.TryPickUp`, `BarrierSegment` → open / close a gate or start a repair through the actor's `IRepairer`). `InteractHighlighter` outlines the focus.
 - QTEs: `QuickTimeSystem` knows no weapons. A gun's `GunRepairFlow` starts a session; the HUD's `QteHud` shows any session from the QTE events, and `_Common` events carry no weapon types.
 - Inside the player system, plain C# events are used (`PlayerMotor.Landed`, `PlayerLife.Died`). Anything crossing systems goes through MessagePipe (`DamageDealt`, `PlayerDied`).
 

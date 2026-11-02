@@ -19,6 +19,16 @@ namespace Aipocalypse.Core.PlayerSystem
         float _dropGroundProbe = 10f;
         [SerializeField, Range(-180f, 180f), Tooltip("Dropped item's yaw relative to the player's facing (degrees)")]
         float _dropYaw = 90f;
+        [Header("Repair"), SerializeField, Min(0.1f), Tooltip("Seconds per hammer knock (one repair each)")]
+        float _repairKnockInterval = 0.7f;
+        [SerializeField, Min(0.01f), Tooltip("Seconds to raise or put away the hammer")]
+        float _repairRaiseTime = 0.25f;
+        [SerializeField, Min(0f), Tooltip("Metres past the interact range before walking off stops the repair")]
+        float _repairReachSlack = 0.75f;
+        [SerializeField, Range(5f, 90f), Tooltip("Degrees off the repair point the view may turn before it counts as looking away")]
+        float _repairLookAngle = 45f;
+        [SerializeField, Min(0f), Tooltip("Seconds of looking away before the repair stops")]
+        float _repairLookAwayGrace = 0.4f;
 
         public float InteractRange => _interactRange;
         public float InteractRadius => _interactRadius;
@@ -27,5 +37,10 @@ namespace Aipocalypse.Core.PlayerSystem
         public float DropWallGap => _dropWallGap;
         public float DropGroundProbe => _dropGroundProbe;
         public float DropYaw => _dropYaw;
+        public float RepairKnockInterval => _repairKnockInterval;
+        public float RepairRaiseTime => _repairRaiseTime;
+        public float RepairReachSlack => _repairReachSlack;
+        public float RepairLookAngle => _repairLookAngle;
+        public float RepairLookAwayGrace => _repairLookAwayGrace;
     }
 }

@@ -55,6 +55,7 @@ Item prefab                            Player
 | Pump shotgun | Left on the clip-animated pump | Clips: one shell from belt to loading port per reload loop; Cycling pumps back/home with continuous hand contact. Repairing/RepairingStubborn provide 3/4 alternating receiver slaps / punches with synchronized SFX and optional QTE |
 | Double barrel | Left on the forend (rides the clip-animated hinge) | Clips: open hinge, palm-up hand feeds two shells, close hinge. Repairing/RepairingStubborn provide 3/4 alternating receiver slaps / punches with synchronized SFX and optional QTE |
 | Fire axe | Both hands on the handle | (swing stays procedural) |
+| Repair hammer | Right hand on the handle (`Player.prefab` → `HeldItems/RepairHammer`, not an item) | Procedural knocks between pose markers (`RepairTool`; [DEFENSE.md](DEFENSE.md#repair)) |
 
 Each gun's `Motion` curves present the magazine well, loading port or chambers while the hands work.
 

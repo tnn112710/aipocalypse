@@ -6,7 +6,8 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // Shows what the active player can use right now ("[E] Pick up Rifle"). Polled: the focus changes as the player looks around.
+    // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it). Polled: the focus changes
+    // as the player looks around.
     public sealed class InteractPromptHud : PlayerHudView
     {
         [SerializeField] InteractPromptView _view;
@@ -28,14 +29,15 @@ namespace Aipocalypse.Core.UI
         void LateUpdate()
         {
             PlayerInteractor interactor = Player != null ? Player.Interactor : null;
-            if (interactor == null || !interactor.HasPrompt)
+            if (interactor == null || (!interactor.HasPrompt && !interactor.HasHoldPrompt))
             {
                 _view.Hide();
                 return;
             }
 
-            InteractionPrompt prompt = interactor.Prompt;
-            _view.Show(prompt.Verb, prompt.Target);
+            InteractionPrompt prompt = interactor.HasPrompt ? interactor.Prompt : default;
+            InteractionPrompt hold = interactor.HasHoldPrompt ? interactor.HoldPrompt : default;
+            _view.Show(prompt.Verb, prompt.Target, hold.Verb, hold.Target);
         }
     }
 }

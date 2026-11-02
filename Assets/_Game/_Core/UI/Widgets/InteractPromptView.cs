@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 namespace Aipocalypse.Core.UI
 {
-    // "[E] Pick up Rifle": a key cap and a line of text. Knows nothing about interaction or input.
+    // "[E] Pick up Rifle": a key cap and a line of text, plus a smaller second line for a hold use ("Hold: Repair Gate 63%").
+    // Knows nothing about interaction or input.
     public sealed class InteractPromptView : MonoBehaviour
     {
         [SerializeField, InlineEditor] InteractPromptStyle _style;
@@ -16,6 +17,8 @@ namespace Aipocalypse.Core.UI
 
         string _verb;
         string _target;
+        string _holdVerb;
+        string _holdTarget;
 
         public InteractPromptStyle Style => _style;
 
@@ -24,14 +27,17 @@ namespace Aipocalypse.Core.UI
         public void SetKey(string key) => _keyLabel.SetText(key);
 
         // Rebuilds the text only when the prompt changes, so it can be called every frame.
-        public void Show(string verb, string target)
+        public void Show(string verb, string target, string holdVerb = null, string holdTarget = null)
         {
             _content.SetActive(true);
-            if (ReferenceEquals(verb, _verb) && ReferenceEquals(target, _target))
+            if (ReferenceEquals(verb, _verb) && ReferenceEquals(target, _target) && ReferenceEquals(holdVerb, _holdVerb)
+                && ReferenceEquals(holdTarget, _holdTarget))
                 return;
 
             _verb = verb;
             _target = target;
+            _holdVerb = holdVerb;
+            _holdTarget = holdTarget;
             RefreshText();
         }
 
@@ -61,9 +67,17 @@ namespace Aipocalypse.Core.UI
 
         void RefreshText()
         {
-            if (_style == null || _verb == null)
+            if (_style == null || (_verb == null && _holdVerb == null))
                 return;
-            _text.text = $"{_verb} <color=#{ColorUtility.ToHtmlStringRGBA(_style.TargetColor)}>{_target}</color>";
+            string target = ColorUtility.ToHtmlStringRGBA(_style.TargetColor);
+            string line = _verb != null ? $"{_verb} <color=#{target}>{_target}</color>" : string.Empty;
+            if (_holdVerb != null)
+            {
+                string separator = line.Length > 0 ? "\n" : string.Empty;
+                int size = Mathf.RoundToInt(_style.HoldLineScale * 100f);
+                line += $"{separator}<size={size}%>{_style.HoldPrefix}{_holdVerb} <color=#{target}>{_holdTarget}</color></size>";
+            }
+            _text.text = line;
         }
 
 #if UNITY_EDITOR

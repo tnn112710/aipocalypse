@@ -102,7 +102,7 @@ namespace Aipocalypse.Core.EnemySystem
             if (target == null)
                 return TaskStatus.Failure;
             MeleeSettings melee = _brain.Definition.Melee;
-            Vector3 position = target.Transform.position;
+            Vector3 position = target.PointFor(_brain.transform.position);
             float sqrDistance = MeleeHit.SqrFlatDistance(_brain.transform.position, position);
 
             float engage = _brain.Engaged ? melee.EngageRadius * Slack : melee.EngageRadius;
@@ -203,7 +203,7 @@ namespace Aipocalypse.Core.EnemySystem
             // Staggered (mid-swing or not): the swing is cancelled, back to the chase.
             if (_brain.Interruptions != _interruptions)
                 return TaskStatus.Success;
-            Vector3 position = target.Transform.position;
+            Vector3 position = target.PointFor(_brain.transform.position);
             _mover.Face(position);
             if (_swingEnd > 0f)
             {

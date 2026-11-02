@@ -50,6 +50,9 @@ namespace Aipocalypse.Core.PlayerSystem
             _hands = hands;
         }
 
+        // Grips the hands follow instead of the held item's (the repair hammer); null = the held item's.
+        public ItemHands HandsOverride { get; set; }
+
         // `ownsZoom` false while a pose sequence sets the field of view.
         public void Tick(in PlayerIntent intent, bool ownsZoom, float deltaTime)
         {
@@ -88,7 +91,7 @@ namespace Aipocalypse.Core.PlayerSystem
             if (held != null)
                 held.LateTick();
             if (_hands != null)
-                _hands.Tick(held != null ? held.Hands : null);
+                _hands.Tick(HandsOverride != null ? HandsOverride : held != null ? held.Hands : null);
         }
 
         void TickSway(in PlayerIntent intent, HeldItem held, HoldFeel feel, float deltaTime)

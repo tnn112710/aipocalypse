@@ -25,6 +25,7 @@ How the in-game UI is built and how to extend or restyle it. Script locations an
 HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibilityHud (fades the HUD out while the player is dead)
 ├─ HurtFeedback              first child (draws under the widgets), stretched full screen past the SafeFrame inset · nested Canvas · HurtFeedbackHud (HurtFeedbackStyle), see Hurt feedback below
 │  └─ Top / Bottom / Left / Right   RawImage edges, off until a hit; gradient made in code
+├─ BreachAlert               band under the raid banner (anchors 0.56–0.62), CanvasGroup (alpha 0 at rest) · BreachAlertHud (Data/UI/BreachAlertStyle.asset): one TMP line when a fence segment or gate breaks, "The fence is down behind you" (side from the player's view); built by AgentScripts/Defense/DefenseSetup.Hud
 ├─ RaidBanner                upper middle band (anchors 0.62–0.82 of the height), CanvasGroup (alpha 0 at rest) · RaidBannerHud (Data/UI/RaidBannerStyle.asset): Title + Subtitle TMP texts, shown when a raid starts, is repelled or ends at dawn; built by AgentScripts/Hud/RaidBannerSetup.Build
 └─ SafeFrame                 stretch, inset 48/40
    ├─ TopLeft                corner anchors (zero size): widgets anchor to these
@@ -122,7 +123,8 @@ InteractPrompt               InteractPromptView component
    └─ Text                   TMP: verb in VerbColor, target name in TargetColor
 ```
 
-- `InteractPromptView` API: `SetKey(string)`, `Show(verb, target)` (rebuilds the text only when it changes), `Hide()`, `ApplyStyle()`.
+- `InteractPromptView` API: `SetKey(string)`, `Show(verb, target, holdVerb, holdTarget)` (rebuilds the text only when it changes; a hold use adds a smaller second line, `HoldPrefix` + verb + target: "Hold: Repair Gate 63%"), `Hide()`, `ApplyStyle()`.
+- What the prompt is for is outlined (Highlight Plus, `InteractHighlighter`; [DEFENSE.md](DEFENSE.md#outline)).
 - `InteractPromptHud` polls `Player.Interactor` in `LateUpdate`, because the focus changes as you look around.
 - The text comes from the focused `IInteractable` ([EQUIPMENT.md → Pickup, swap and drop](EQUIPMENT.md#pickup-swap-and-drop)).
 

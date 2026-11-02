@@ -5,10 +5,12 @@ using Aipocalypse.Core.EnvironmentSystem;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
 using Aipocalypse.Core.HandSystem;
+using Aipocalypse.Core.Interaction;
 using Aipocalypse.Core.Stats;
 using Aipocalypse.Core.TimeSystem;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
+using HighlightPlus;
 using MessagePipe;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
@@ -21,7 +23,7 @@ namespace Aipocalypse.Core.PlayerSystem
     // The player's view: builds its parts, turns input into an intent and ticks them in order (look → move → vitals → head
     // motion → interaction → held item → pose sequence → light). Life and death: PlayerLife; move sounds: PlayerFeedback.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser
+    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser, IRepairer
     {
         [SerializeField] PlayerTuning _tuning;
         [SerializeField] CharacterController _controller;
@@ -32,6 +34,8 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField] EquipmentConfig _equipmentConfig;
         [SerializeField] EquipmentRig _equipmentRig;
         [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
+        [SerializeField, Tooltip("Optional: the first-person hammer repairs are done with (under the equipment rig)")] RepairTool _repairTool;
+        [SerializeField, Tooltip("Optional: outlines what the player can use; moved to each target")] HighlightEffect _interactHighlight;
         [SerializeField, Tooltip("Starting reserve ammo, or infinite")] AmmoConfig _ammoConfig;
         [SerializeField, Tooltip("Optional: lights the dark around the player; a worn lantern takes it over. A child of the root")] Light _visionLight;
         [SerializeField, Tooltip("How dark it is for the vision light (Darkness source); the scene's director ticks it. None or no director = always day")]
@@ -57,6 +61,8 @@ namespace Aipocalypse.Core.PlayerSystem
         PoseSequencePlayer _sequence;
         PlayerFeedback _feedback;
         HeldItemDriver _held;
+        PlayerRepair _repair;
+        InteractHighlighter _highlighter;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -98,6 +104,9 @@ namespace Aipocalypse.Core.PlayerSystem
         float IGunUser.FatigueRecoilScale => Fatigue.RecoilMultiplier;
         Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
         float IWeaponUser.MeleePower => Fatigue.MeleePower;
+
+        bool IRepairer.IsRepairing => _repair != null && _repair.IsBusy;
+        bool IRepairer.TryStartRepair(IRepairable target) => _repair != null && _repair.TryStart(target);
 
         void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.GetScale(StatId.AttackStaminaCostScale));
 
@@ -151,6 +160,10 @@ namespace Aipocalypse.Core.PlayerSystem
                 Debug.LogError($"{name}: Equipment Config or Equipment Rig not assigned; equipment is off.", this);
             }
 
+            _repair = new PlayerRepair(gameObject, _cameraPitch, Equipment, _repairTool, _tuning.Interaction);
+            if (_interactHighlight != null)
+                _highlighter = new InteractHighlighter(_interactHighlight);
+
             // Last, so views outside the prefab (HUD) see a fully built player.
             _registry.Register(this);
         }
@@ -193,10 +206,20 @@ namespace Aipocalypse.Core.PlayerSystem
             _breathSound.Tick(_breathing, IsDead);
             if (!inSequence)
                 _headBob.Tick(_motor, deltaTime);
+            // Repair work first: the press that starts it (through the interactor below) mustn't also stop it.
             if (canAct)
-                _interactor.Tick(intent.Interact);
+                _repair.Tick(intent, deltaTime);
+            else
+                _repair.Cancel(raiseHands: !IsDead && !inSequence);
+            if (_repair.IsBusy)
+                intent = WithoutItemUse(intent);
+            if (canAct && !_repair.IsBusy)
+                _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased);
             else
                 _interactor.Clear();
+            _highlighter?.Tick(_repair.IsBusy ? (_repair.Target as Component)?.transform : _interactor.FocusTransform);
+            if (_held != null)
+                _held.HandsOverride = _repair.Hands;
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
             // After the held item, so the sequence's camera and field of view win over its kick and zoom.
             if (inSequence)
@@ -299,12 +322,27 @@ namespace Aipocalypse.Core.PlayerSystem
             SelectSlot = _input.SlotPressed is var slot and >= 0 ? slot : null,
             CycleSlot = _input.CycleDirection,
             Interact = _input.InteractPressed,
+            InteractHold = _input.InteractHoldPerformed,
+            InteractReleased = _input.InteractReleased,
             Drop = _input.DropPressed,
             Fire = _input.AttackHeld,
             FirePressed = _input.AttackPressed,
             Aim = _input.AimHeld,
             Reload = _input.ReloadPressed,
         };
+
+        // The hands hold the hammer while repairing: no shooting, aiming, reloading or switching.
+        static PlayerIntent WithoutItemUse(PlayerIntent intent)
+        {
+            intent.Fire = false;
+            intent.FirePressed = false;
+            intent.Aim = false;
+            intent.Reload = false;
+            intent.SelectSlot = null;
+            intent.CycleSlot = 0;
+            intent.Drop = false;
+            return intent;
+        }
 
         void TickVision(float deltaTime)
         {

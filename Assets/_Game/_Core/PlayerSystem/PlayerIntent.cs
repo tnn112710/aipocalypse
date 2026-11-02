@@ -12,6 +12,9 @@ namespace Aipocalypse.Core.PlayerSystem
         public int? SelectSlot;
         public int CycleSlot;
         public bool Interact;
+        // Interact held long enough (its Hold interaction completed) this frame, and let go this frame.
+        public bool InteractHold;
+        public bool InteractReleased;
         public bool Drop;
         public bool Fire;
         public bool FirePressed;

@@ -9,6 +9,9 @@ namespace Aipocalypse.Core.EnemySystem
     {
         [Min(0.1f), Tooltip("Seconds between two target choices while hunting (sooner when the target can't be targeted any more)")]
         public float RetargetInterval = 1f;
+        [Range(0, TargetSelector.MaxBreachCandidates), Tooltip("With no path to its target, it attacks the weakest of this many " +
+            "nearest standing barriers (fence segments, gates). 0 = never; it also needs a Fence weight in the definition's Targets")]
+        public int BreachCandidates = 5;
         [Min(0f), Tooltip("Metres from the target where it takes its fighting stance and sprints")]
         public float EngageRadius = 5f;
         [Min(0.1f), Tooltip("Move speed multiplier while hunting from afar (an EnemyStats modifier on MoveSpeed)")]

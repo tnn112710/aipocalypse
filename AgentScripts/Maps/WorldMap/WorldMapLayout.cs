@@ -3095,7 +3095,10 @@ public static class Landmarks
     static readonly Vector2 HouseAt = WorldMapLayout.Yard(1.5f, -4f);
     const float HouseYaw = WorldMapLayout.HomeYaw;                  // door (local +Z) faces the gate and the bridge
     static readonly Vector2 Campfire = WorldMapLayout.Yard(3.5f, 6.5f);
-    const float GateOpen = 105f;                                      // leaf swung out from its closed line (0 = closed, 90 = straight out)
+    const string FencePrefab = "Assets/_Game/Content/Structures/WoodFence/WoodFence.prefab";
+    const string GatePrefab = "Assets/_Game/Content/Structures/WoodGate/WoodGate_Double.prefab";
+    const float SegmentWidth = 2.25f;                                 // the segment prefabs' width (DefenseSetup.PanelWidth)
+    const float PostScale = 1.5f;                                     // FenceEnd_1 (1.35 m) beside the 2 m panels
 
     static Terrain terrain;
     static System.Random rng;
@@ -3339,9 +3342,12 @@ public static class Landmarks
         return go;
     }
 
+    // One WoodFence segment per panel slot (BarrierSegment: health, navmesh cut, climb blocker; DEFENSE.md), the double
+    // WoodGate over the gate slot and the one before it (wide enough for animals; its centre is seg/2 towards +X of HomeGate,
+    // clear of the street lamp), and a Lakefell post between slots (not at the gate: its frame has its own). Segments are
+    // 2.25 m per slot, stretched along X to the slots; their colliders stay out of the navmesh bake (re-run Navigation.Bake).
     static void BuildFence(Transform parent, List<string> log)
     {
-        string[] panels = { LV + "Environment/Fence_1.prefab", LV + "Environment/Fence_2.prefab", LV + "Environment/Fence_3.prefab" };
         var half = WorldMapLayout.FenceHalf;
         var corners = new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1), new Vector2(-1, 1) }.Select(c => WorldMapLayout.Yard(c.x * half.x, c.y * half.y)).ToArray();
         int count = 0, gate = WorldMapLayout.GateSlot;
@@ -3352,38 +3358,45 @@ public static class Landmarks
             var dir = (b - a) / len;
             int n = Mathf.RoundToInt(len / WorldMapLayout.FencePanel);
             float seg = len / n;
-            float yaw = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg - 90;   // panel length runs along local X
+            float yaw = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg - 90;   // segment width runs along local X
             bool front = side == 2;                                        // local +Z side, from the +X corner to the -X corner
             for (int i = 0; i < n; i++)
             {
-                if (front && i == gate) continue;
-                var p = Put(parent, panels[rng.Next(panels.Length)], a + dir * (seg * (i + 0.5f)), yaw + (rng.Next(2) == 0 ? 0 : 180), 1f, -0.05f);
-                p.transform.localScale = new Vector3(seg / WorldMapLayout.FencePanel, 1f, 1f);
-                count++;
+                if (front && i == gate) continue;                           // the double gate's second slot
+                bool isGate = front && i == gate - 1;
+                var s = Put(parent, isGate ? GatePrefab : FencePrefab, a + dir * (seg * (isGate ? i + 1f : i + 0.5f)), yaw, 1f, -0.05f);
+                s.name = isGate ? "Gate" : $"Fence {side}-{i:00}";
+                s.transform.localScale = new Vector3(seg / SegmentWidth, 1f, 1f);
+                foreach (var look in s.GetComponentsInChildren<Aipocalypse.Core.DefenseSystem.BarrierLook>(true))
+                    look.PickVariant();
+                if (!isGate) count++;
             }
             for (int i = 0; i < n; i++)                                      // the next side's first post closes each corner
             {
-                bool jamb = front && (i == gate || i == gate + 1);
-                Put(parent, LV + "Environment/FenceEnd_1.prefab", a + dir * (seg * i), jamb ? yaw : R(0, 360), jamb ? 1.35f : 1.15f, -0.05f);
+                if (front && i >= gate - 1 && i <= gate + 1) continue;
+                Put(parent, LV + "Environment/FenceEnd_1.prefab", a + dir * (seg * i), R(0, 360), PostScale, -0.05f);
             }
-            if (front) BuildGate(parent, a, dir, seg);
         }
-        log.Add($"fence: {count} panels, {half.x * 2} x {half.y * 2} m yard turned {WorldMapLayout.HomeYaw}, gate in slot {gate} (local x {WorldMapLayout.GateLocalX:0.00})");
+        log.Add($"fence: {count} segments + gate, {half.x * 2} x {half.y * 2} m yard turned {WorldMapLayout.HomeYaw}, gate in slot {gate} (local x {WorldMapLayout.GateLocalX:0.00})");
     }
 
-    // Open board gate: a Lakefell railing leaf on a hinge just outside the +X jamb, swung out GateOpen degrees.
-    static void BuildGate(Transform parent, Vector2 a, Vector2 dir, float seg)
+    // Rebuilds only Home Base/Fence (segments, gate, posts), keeping the rest of the home base; then re-bake the navmesh.
+    public static object Fence(int seed)
     {
-        var gate = Child(parent, "Gate");
-        var hingeAt = a + dir * (seg * WorldMapLayout.GateSlot + 0.03f) + WorldMapLayout.Rot(Vector2.up, WorldMapLayout.HomeYaw) * 0.2f;
-        float sx = (seg - 0.2f) / 1.606f, yaw = WorldMapLayout.HomeYaw + 180 + GateOpen;   // 1.606 m = Extension_1_Fence mesh length
-        var tip = hingeAt + WorldMapLayout.Rot(Vector2.right, yaw) * (0.02f + 1.606f * sx);
-        var hinge = Child(gate, "Hinge");
-        hinge.SetPositionAndRotation(new Vector3(hingeAt.x, Mathf.Max(Ground(hingeAt), Ground(tip)) + 0.08f, hingeAt.y), Quaternion.Euler(0, yaw, 0));
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(LV + "Modules/Extension_1_Fence.prefab") ?? throw new ArgumentException("Missing gate leaf");
-        var leaf = (GameObject)PrefabUtility.InstantiatePrefab(prefab, hinge);
-        leaf.transform.SetLocalPositionAndRotation(new Vector3(0.02f + 0.803f * sx, 0, 0), Quaternion.identity);
-        leaf.transform.localScale = new Vector3(sx, 1.25f, 1.3f);
+        terrain = Terrain.activeTerrain ?? throw new InvalidOperationException("No terrain.");
+        rng = new System.Random(seed);
+        var home = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(g => g.name == "Environment")?.transform.Find("Landmarks/Home Base")
+            ?? throw new InvalidOperationException("No Environment/Landmarks/Home Base.");
+        var old = home.Find("Fence");
+        int index = old != null ? old.GetSiblingIndex() : home.childCount;
+        if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+        var fence = Child(home, "Fence");
+        fence.SetSiblingIndex(index);
+        Undo.RegisterCreatedObjectUndo(fence.gameObject, "Fence");
+        var log = new List<string>();
+        BuildFence(fence, log);
+        EditorSceneManager.MarkSceneDirty(home.gameObject.scene);
+        return string.Join("\n", log);
     }
 
     static void Seat(Transform parent, string path, float angleDeg, float radius)

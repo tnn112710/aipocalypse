@@ -18,10 +18,13 @@ namespace Aipocalypse.Core.SpawnSystem
             "picked round them instead of over the arc")]
         List<Transform> _points = new();
         [SerializeField, Min(0f), Tooltip("Metres round a hand-placed spot a point may land")] float _pointRadius = 4f;
+        [SerializeField, Tooltip("Metres along the forward (outward) from this point to the Origin ground walkers need a path to. " +
+            "Keep it past a gate that can be closed, or a closed gate leaves no spawn point with a path")]
+        float _originOffset;
 
         public string Id => _id;
         // Where things spawned here head from: ground walkers need a path here.
-        public Vector3 Origin => transform.position;
+        public Vector3 Origin => transform.position + transform.forward * _originOffset;
 
         // Whether points are picked round hand-placed spots.
         public bool UsesPoints

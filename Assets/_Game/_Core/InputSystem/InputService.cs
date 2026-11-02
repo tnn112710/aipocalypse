@@ -67,6 +67,9 @@ namespace Aipocalypse.Input
         public bool JumpPressed => WasPressed(GameButton.Jump);
         // On press, not when the action's Hold interaction completes.
         public bool InteractPressed => WasPressed(GameButton.Interact);
+        // The action's Hold interaction completed this frame (held past InputSettings' hold time).
+        public bool InteractHoldPerformed => _consumedFrame[(int)GameButton.Interact] != Time.frameCount && _actions.Player.Interact.WasPerformedThisFrame();
+        public bool InteractReleased => _actions.Player.Interact.WasReleasedThisFrame();
         public bool DropPressed => _actions.Player.Drop.WasPressedThisFrame();
         public bool AttackHeld => _actions.Player.Attack.IsPressed();
         public bool AttackPressed => WasPressed(GameButton.Attack);

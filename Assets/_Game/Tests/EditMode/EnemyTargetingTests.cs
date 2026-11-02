@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Aipocalypse.Core.Combat;
 using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.Entities;
+using Aipocalypse.Core.SpawnSystem;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -26,7 +27,39 @@ namespace Aipocalypse.Tests
             public DamageResult TakeDamage(in DamageInfo info) => default;
         }
 
+        sealed class FakeBarrier : IBreachable
+        {
+            public FakeBarrier(Vector3 position, float health)
+            {
+                Transform = new GameObject("Barrier").transform;
+                Transform.position = position;
+                RemainingHealth = health;
+            }
+
+            public Transform Transform { get; }
+            public TargetKind Kind => TargetKind.Fence;
+            public bool IsTargetable { get; set; } = true;
+            public bool IsDead => false;
+            public float RemainingHealth { get; set; }
+            public DamageResult TakeDamage(in DamageInfo info) => default;
+        }
+
+        sealed class FakeNavmesh : INavmeshQuery
+        {
+            public bool Reachable;
+            public bool TrySnap(Vector3 point, float maxDistance, out Vector3 snapped)
+            {
+                snapped = point;
+                return true;
+            }
+
+            public bool IsReachable(Vector3 from, Vector3 to) => Reachable;
+        }
+
+        static readonly Dictionary<TargetKind, float> BreakerWeights = new() { { TargetKind.Player, 1f }, { TargetKind.Fence, 1f } };
+
         readonly List<FakeTarget> _targets = new();
+        readonly List<FakeBarrier> _barriers = new();
         EnemySystemSettings _settings;
 
         [SetUp]
@@ -38,6 +71,9 @@ namespace Aipocalypse.Tests
             foreach (FakeTarget target in _targets)
                 Object.DestroyImmediate(target.Transform.gameObject);
             _targets.Clear();
+            foreach (FakeBarrier barrier in _barriers)
+                Object.DestroyImmediate(barrier.Transform.gameObject);
+            _barriers.Clear();
             Object.DestroyImmediate(_settings);
         }
 
@@ -48,11 +84,95 @@ namespace Aipocalypse.Tests
             return target;
         }
 
+        FakeBarrier Barrier(float x, float health)
+        {
+            var barrier = new FakeBarrier(new Vector3(x, 0f, 10f), health);
+            _barriers.Add(barrier);
+            return barrier;
+        }
+
+        [Test]
+        public void Selector_WithAPath_HuntsTheTargetAndIgnoresBarriers()
+        {
+            var registry = new TargetRegistry(null);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
+            registry.Add(player);
+            registry.Add(Barrier(0f, 10f));
+
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.SameAs(player));
+        }
+
+        [Test]
+        public void Selector_WithoutAPath_AttacksTheWeakestOfTheNearestBarriers()
+        {
+            var registry = new TargetRegistry(null);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
+            registry.Add(Target(new Vector3(0f, 0f, 30f)));
+            // Nearest five at x 0..4 (the one at 3 is the weakest of them); the weakest of all at x 9 is too far to be compared.
+            FakeBarrier weakestNear = null;
+            for (int i = 0; i < 5; i++)
+            {
+                FakeBarrier barrier = Barrier(i, i == 3 ? 50f : 200f);
+                registry.Add(barrier);
+                if (i == 3)
+                    weakestNear = barrier;
+            }
+            registry.Add(Barrier(9f, 1f));
+
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.SameAs(weakestNear));
+            weakestNear.IsTargetable = false;
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.Not.SameAs(weakestNear), "a broken or open one is skipped");
+        }
+
+        [Test]
+        public void Selector_WithoutAPath_KeepsTheTarget_WhenItDoesNotBreakFences()
+        {
+            var registry = new TargetRegistry(null);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
+            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
+            registry.Add(player);
+            registry.Add(Barrier(0f, 10f));
+
+            var weights = new Dictionary<TargetKind, float> { { TargetKind.Player, 1f } };
+            Assert.That(selector.Choose(Vector3.zero, weights, 5), Is.SameAs(player), "no Fence weight");
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 0), Is.SameAs(player), "no breach candidates");
+        }
+
+        [Test]
+        public void Selector_WithoutAPath_AndNoBarrierStanding_KeepsTheTarget()
+        {
+            var registry = new TargetRegistry(null);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
+            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
+            registry.Add(player);
+            FakeBarrier open = Barrier(0f, 10f);
+            open.IsTargetable = false;
+            registry.Add(open);
+
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5), Is.SameAs(player));
+        }
+
+        [Test]
+        public void Registry_KeepsBarriersApartFromHuntedTargets()
+        {
+            var registry = new TargetRegistry(null);
+            registry.Add(Target(Vector3.zero));
+            FakeBarrier barrier = Barrier(0f, 10f);
+            registry.Add(barrier);
+            registry.Add(barrier);
+
+            Assert.That(registry.Count, Is.EqualTo(1));
+            Assert.That(registry.Barriers.Count, Is.EqualTo(1));
+            registry.Remove(barrier);
+            Assert.That(registry.Barriers.Count, Is.EqualTo(0));
+        }
+
         [Test]
         public void Selector_PicksTheNearestWantedTarget_AndSkipsUntargetableOnes()
         {
             var registry = new TargetRegistry(null);
-            var selector = new TargetSelector(registry);
+            var selector = new TargetSelector(registry, null);
             var weights = new Dictionary<TargetKind, float> { { TargetKind.Player, 1f } };
             FakeTarget far = Target(new Vector3(30f, 0f, 0f));
             FakeTarget near = Target(new Vector3(10f, 0f, 0f));
@@ -70,7 +190,7 @@ namespace Aipocalypse.Tests
         public void Selector_IgnoresKindsWithoutWeight()
         {
             var registry = new TargetRegistry(null);
-            var selector = new TargetSelector(registry);
+            var selector = new TargetSelector(registry, null);
             registry.Add(Target(new Vector3(5f, 0f, 0f)));
 
             Assert.That(selector.Choose(Vector3.zero, new Dictionary<TargetKind, float>()), Is.Null, "no weight, no hunt");
