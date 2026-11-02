@@ -1,3 +1,4 @@
+using Aipocalypse.Core.Debugging;
 using VContainer;
 using VContainer.Unity;
 
@@ -10,8 +11,8 @@ namespace Aipocalypse.Core.PlayerSystem
         {
             builder.Register<PlayerRegistry>(Lifetime.Singleton);
             builder.RegisterEntryPoint<PlayerRespawnFlow>().AsSelf();
-            // Editor and development builds only.
-            if (UnityEngine.Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
             {
                 builder.RegisterEntryPoint<PlayerCheats>();
                 builder.RegisterEntryPoint<PlayerCommands>();

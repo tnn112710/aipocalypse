@@ -22,7 +22,7 @@ Unreal-style messages on screen, top-left, newest on top, also while the console
 
 Unity logs show there too (and in the console's scrollback) only once you pick a level in the console: `log.screen.error` (errors), `log.screen.info` (`Debug.Log` only), `log.screen.all` (everything), `log.screen.clear` (off again, the default; also clears the screen). Each stays `ConsoleSettings.ScreenLogSeconds`; an error logged every frame stays one line. It runs on real time, so a pause doesn't freeze it. At most 24 lines. The console's overlay draws it ([CONSOLE.md → How it's built](CONSOLE.md#how-its-built)).
 
-In release builds `ScreenLog` does nothing and nothing draws it, but the string you build for it is still built: wrap per-frame `Show` calls in `if (Debug.isDebugBuild)`.
+In builds without cheats `ScreenLog` does nothing and nothing draws it, but the string you build for it is still built: wrap per-frame `Show` calls in `if (Cheats.Enabled)`.
 
 ## Debug hotkeys
 

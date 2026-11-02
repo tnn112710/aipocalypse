@@ -4,7 +4,7 @@ using VContainer.Unity;
 namespace Aipocalypse.Core.Debugging
 {
     // Base of a system's console commands: its [Command] members exist while its scope does. Register a subclass as an entry
-    // point in the system's installer, inside the Debug.isDebugBuild check. A subclass that holds owner-keyed requests
+    // point in the system's installer, inside the Cheats.Enabled check. A subclass that holds owner-keyed requests
     // releases them in an override of Dispose.
     public abstract class ConsoleCommands : IInitializable, IDisposable
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Aipocalypse.Core.Debugging;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
@@ -254,8 +255,8 @@ namespace Aipocalypse.Input
             if (!text && !ui)
                 _actions.Player.Enable();
 
-            // Editor and development builds only.
-            if (Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
             {
                 if (text)
                 {

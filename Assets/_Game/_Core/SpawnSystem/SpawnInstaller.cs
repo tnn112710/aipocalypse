@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -32,8 +33,8 @@ namespace Aipocalypse.Core.SpawnSystem
             builder.RegisterEntryPoint<PrefabPool>().AsSelf();
             builder.RegisterEntryPoint<SpawnService>().AsSelf();
             builder.RegisterEntryPoint<PopulationDirector>().WithParameter<IReadOnlyList<SpawnArea>>(_areas).AsSelf();
-            // Editor and development builds only.
-            if (Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
                 builder.RegisterEntryPoint<SpawnCommands>();
         }
 

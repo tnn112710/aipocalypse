@@ -113,9 +113,9 @@ Any scene (World, Proto_*, test arenas)
 
 ## Debug tools
 
-Editor and development builds only, details in [DEBUG.md](DEBUG.md) and, for the console, [CONSOLE.md](CONSOLE.md):
+Editor and cheat builds only (`Cheats.Enabled`: every development build, and distribution builds made with Cheat, [BUILD.md](BUILD.md)), details in [DEBUG.md](DEBUG.md) and, for the console, [CONSOLE.md](CONSOLE.md):
 
-- **Dev console** (backquote key, `ConsoleService`, root): Unreal-style drop-down for commands and cheats; Unity logs show in it (and on screen) only after `log.screen.*`. Each system owns its commands in a `<System>Commands : ConsoleCommands` class with `[Command]` members, registered as an entry point by its installer when `Debug.isDebugBuild`; it adds itself to the root `CommandRegistry` while its scope lives, so scene systems' commands exist only in their scenes. Commands go through the system's services and owner-keyed requests, never around them.
+- **Dev console** (backquote key, `ConsoleService`, root): Unreal-style drop-down for commands and cheats; Unity logs show in it (and on screen) only after `log.screen.*`. Each system owns its commands in a `<System>Commands : ConsoleCommands` class with `[Command]` members, registered as an entry point by its installer when `Cheats.Enabled`; it adds itself to the root `CommandRegistry` while its scope lives, so scene systems' commands exist only in their scenes. Commands go through the system's services and owner-keyed requests, never around them.
 - **`ScreenLog`** (root, always registered, no-op in release builds): on-screen messages, keyed lines, mirrored Unity errors.
 - **Hotkeys:** the `Debug` input map (N / M: next hour / phase, `WorldClockCheats`; K / L: kill / revive the player, `PlayerCheats`), off while the console has text input. Odin buttons on views (e.g. `Player.Revive`).
 
@@ -236,6 +236,7 @@ Assets/_Game/
                           Environment/TimeOfDay)
   Scenes/Prototypes/      WorldMap.unity (data in Maps/WorldMap/), Proto_* scenes (scene-only assets in a folder named after the scene)
   Settings/               URP assets, Input System actions
+  _Editor/                editor-only tools that aren't game code (player builds, BUILD.md). asmdef Aipocalypse.Editor
   Tests/EditMode/  Tests/PlayMode/
 ```
 
@@ -246,6 +247,6 @@ Assets/_Game/
 
 ## Assemblies
 
-- `Aipocalypse.Core`, `Aipocalypse.Tests.EditMode` and `Aipocalypse.Tests.PlayMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
+- `Aipocalypse.Core`, `Aipocalypse.Editor` (editor only), `Aipocalypse.Tests.EditMode` and `Aipocalypse.Tests.PlayMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
 - **Don't enable VContainer's source generator** for now: it has an open issue with injectors across multiple assemblies (hadashiA/VContainer#822), and reflection-based injection is fine on PC. Revisit only if profiling shows injection cost.
 - Rules are plain C# and get EditMode tests (player rules, combat, equipment, guns and their clips, melee, hands, the repair QTE and time requests, pose sequences, the world clock, time of day and phase data, enemy targeting, attack slots, melee hits and spawning data, the raid director, spawn-point scoring and death time; suites in [CODE_STRUCTURE.md](CODE_STRUCTURE.md)).

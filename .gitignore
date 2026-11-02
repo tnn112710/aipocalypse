@@ -33,6 +33,10 @@
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
 
+# Unity Pipeline: generated for a player build that carries the runtime server, deleted after it (an interrupted build can leave them)
+/Assets/Settings/Pipeline/Resources/RuntimePipelineConfig.asset*
+/Assets/Settings/Pipeline/Resources/RuntimePipelineBuildInfo.asset*
+
 # Recordings can get excessive in size
 /[Rr]ecordings/
 

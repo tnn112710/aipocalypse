@@ -68,7 +68,7 @@ Speed, pause and freeze are the console's own owner-keyed requests (`TimeService
 
 ## Adding a command
 
-Each system owns its commands in `<System>/<System>Commands.cs`, a `ConsoleCommands` subclass registered as an entry point in the system's installer, inside its `Debug.isDebugBuild` check. Add the new command to the table above in the same change.
+Each system owns its commands in `<System>/<System>Commands.cs`, a `ConsoleCommands` subclass registered as an entry point in the system's installer, inside its `Cheats.Enabled` check (editor and `ENABLE_CHEAT` builds, [BUILD.md](BUILD.md)). Add the new command to the table above in the same change.
 
 ```csharp
 // WorldTimeSystem/WorldClockCommands.cs
@@ -88,7 +88,7 @@ public sealed class WorldClockCommands : ConsoleCommands
 }
 
 // WorldTimeInstaller.Install
-if (Debug.isDebugBuild)
+if (Cheats.Enabled)
     builder.RegisterEntryPoint<WorldClockCommands>();
 ```
 

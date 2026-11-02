@@ -40,7 +40,7 @@ namespace Aipocalypse.Core.Debugging
 
     // Unreal-style on-screen debug messages, drawn by the dev console's overlay, newest on top. A keyed message (Show) replaces
     // its own line, so a value shown every frame stays one line; seconds 0 lasts one frame. Runs on real time.
-    // Inject it anywhere: in release builds it does nothing and nothing draws it.
+    // Inject it anywhere: in builds without cheats it does nothing and nothing draws it.
     public sealed class ScreenLog : ITickable
     {
         public const float DefaultSeconds = 3f;
@@ -50,7 +50,7 @@ namespace Aipocalypse.Core.Debugging
         readonly bool _enabled;
 
         [Inject]
-        public ScreenLog() : this(Debug.isDebugBuild)
+        public ScreenLog() : this(Cheats.Enabled)
         {
         }
 
