@@ -19,7 +19,8 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 Assets/_Game/
 ├─ _Core/                                   asmdef Aipocalypse.Core
 │  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
-│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
+│  │  ├─ BuildStamp.cs                      which build this is (name, config, commit, date): Load reads build_info.txt next to the player (written by AutoBuild), Parse / ToFileText; registered and logged once by the root scope
+│  │  ├─ ProjectLifetimeScope.cs            root scope: BuildStamp, MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y, field of view…), the console's ConsoleSettings and DebugConsole overlay prefab
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  ├─ GameLifetimeScope.cs               per-scene scope: installs every SceneInstaller on its GameObject, reports one with a Problem (warning, error when Strict); a Strict scene also reports each SceneInstaller type it lacks; execution order -5000
@@ -82,8 +83,8 @@ Assets/_Game/
 │  │     ├─ Commands/CommandRegistry.cs     the commands that exist now: Add / Remove(provider) by reflection, Execute(statement) → CommandResult (forms by argument count, throwing commands logged), Suggest, Describe, "did you mean"
 │  │     ├─ Commands/CommandParser.cs       statements (';'), tokens (quotes, escapes), argument parsing (numbers, on / off, enum prefixes, vectors, colours), Format, choices for completion
 │  │     ├─ Commands/ConsoleCommands.cs     base of a system's commands: adds itself to the registry on Initialize, removes itself on Dispose
-│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen.all / .error / .info / .clear, log.screen (level), log.trace, app.background [on/off] (Application.runInBackground)
-│  │     ├─ View/ConsoleView.cs             root of DebugConsole.prefab, injected: draws ConsoleService (scrollback in text lines, input + caret image from TMP character positions, suggestions + hint) when versions change; binds ScreenLogView, hidden while open
+│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen.all / .error / .info / .clear, log.screen (level), log.trace, app.background [on/off] (Application.runInBackground), build (BuildStamp)
+│  │     ├─ View/ConsoleView.cs             root of DebugConsole.prefab, injected: draws ConsoleService (scrollback in text lines, input + caret image from TMP character positions, suggestions + hint) when versions change; binds ScreenLogView, hidden while open; BuildLabel: the BuildStamp in the bottom-right corner (builds only, not the editor)
 │  │     ├─ View/ScreenLogView.cs           draws ScreenLog top-left, newest on top, each line on a band
 │  │     ├─ View/RichText.cs                allocation-free TMP tags into a StringBuilder: colour, mark, <noparse> literals
 │  │     └─ Prefabs/DebugConsole.prefab     overlay canvas (sort 1000, 1920×1080): ScreenLog, Panel (Background, LogArea mask > Log, InputBar > Input > Caret, Suggestions); built by AgentScripts/DebugConsole/DebugConsoleSetup
@@ -433,9 +434,10 @@ Assets/_Game/
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ _Editor/                                asmdef Aipocalypse.Editor (editor only), namespace Aipocalypse.Editor.<Folder>
 │  └─ Build/                                player builds, see BUILD.md
-│     ├─ BuildConfig.cs                     SO, one kind of build: Target, Development, Profiler, Cheat, Pipeline, Zip; IsDevelopment / HasCheat; Odin build name preview + Build button
-│     ├─ AutoBuild.cs                       GetBuildName (<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]), Build (into _builds/, ENABLE_CHEAT as an extra define, Pipeline toggle set in Player Settings for the build, zip), BuildFromCommandLine (-buildConfig), Autobuild/Open Builds Folder
-│     └─ AutoBuildWindow.cs                 Autobuild/Build Window: every BuildConfig with its build name, Edit and Build; New Config
+│     ├─ BuildConfig.cs                     SO, one kind of build: Target, Development, Profiler, Cheat, Pipeline, DeleteDoNotShipFolders (on), Zip; IsDevelopment / HasCheat; Odin build name preview + Build button
+│     ├─ AutoBuild.cs                       GetBuildName (<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]), PlayerDefinesFor / ExtraDefinesFor, BuildLater (Play mode / unsaved scenes / distribution + Pipeline checks, then BuildAll and open the folder), Build (into _builds/, ENABLE_CHEAT as an extra define, Pipeline toggle set in Player Settings for the build, do-not-ship folders deleted, build_info.txt, zip) → BuildOutcome, BuildFromCommandLine (-buildConfig a,b), Autobuild/Open Builds Folder
+│     ├─ AutoBuildHistory.cs                last build of each config on this machine (Library/AutoBuild/History.json)
+│     └─ AutoBuildWindow.cs                 Autobuild/Build Window: every BuildConfig with its build name and last build (time, duration, size); tick several + Build Selected, or Edit / Open / Run / Build one; New Config
 ├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
 ├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and the enemy system, picks up a gun, fires and reloads; jumps the clock to the raid's start hour and checks raiders spawned; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
@@ -473,6 +475,7 @@ Assets/_Game/
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
    ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
    ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
+   ├─ AutoBuildTests.cs                     build names, Player Settings / extra defines per config (no stray cheats or Pipeline), do-not-ship folders, shipped configs, BuildStamp file round trip
    ├─ ConsoleTests.cs                       dev console: tokens, statements, argument parsing, registry (optional args, properties, names, errors, throwing commands, remove), suggestions, help, line editing, history, scrollback, screen log, key repeat, Run, InputService text input mode, TimeCommands / WorldClockCommands
    ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose; Stylized Grass feature shown to game cameras, flags restored)
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks

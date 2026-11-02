@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Aipocalypse.Core.Bootstrap;
 using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.TimeSystem;
 using Aipocalypse.Core.WorldTimeSystem;
@@ -182,7 +183,7 @@ namespace Aipocalypse.Tests
         public void Help_ListsEveryCommand_AGroup_OrOneCommandsUsage()
         {
             using var logs = new LogBuffer(4);
-            var builtIns = new BuiltInCommands(_registry, logs, new ScreenLog(true));
+            var builtIns = new BuiltInCommands(_registry, logs, new ScreenLog(true), new BuildStamp("test", null, null, null));
             builtIns.Initialize();
 
             StringAssert.Contains("shout", _registry.Execute("help").Message);
@@ -278,7 +279,7 @@ namespace Aipocalypse.Tests
         {
             using var logs = new LogBuffer(16);
             var screen = new ScreenLog(true);
-            var builtIns = new BuiltInCommands(_registry, logs, screen);
+            var builtIns = new BuiltInCommands(_registry, logs, screen, new BuildStamp("test", null, null, null));
             builtIns.Initialize();
             void Log()
             {

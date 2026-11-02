@@ -23,6 +23,10 @@ namespace Aipocalypse.Editor.Build
             "server that runs code: QA builds only, never one you hand out")]
         public bool Pipeline;
 
+        [Tooltip("Deletes the folders Unity marks as not to ship (*_BackUpThisFolder_ButDontShipItWithYourGame, " +
+            "*_BurstDebugInformation_DoNotShip) after the build. Smaller, but this build's crash call stacks can't be symbolicated")]
+        public bool DeleteDoNotShipFolders = true;
+
         [Tooltip("Also zips the build folder next to it, without the folders Unity marks as not to ship")]
         public bool Zip;
 

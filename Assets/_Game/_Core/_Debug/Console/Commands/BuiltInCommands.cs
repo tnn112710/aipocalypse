@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Aipocalypse.Core.Bootstrap;
 using UnityEngine;
 
 namespace Aipocalypse.Core.Debugging
@@ -11,13 +12,18 @@ namespace Aipocalypse.Core.Debugging
         readonly CommandRegistry _registry;
         readonly LogBuffer _logs;
         readonly ScreenLog _screen;
+        readonly BuildStamp _stamp;
 
-        public BuiltInCommands(CommandRegistry registry, LogBuffer logs, ScreenLog screen) : base(registry)
+        public BuiltInCommands(CommandRegistry registry, LogBuffer logs, ScreenLog screen, BuildStamp stamp) : base(registry)
         {
             _registry = registry;
             _logs = logs;
             _screen = screen;
+            _stamp = stamp;
         }
+
+        [Command("Which build this is: name, config, commit, build date", Name = "build")]
+        string Build() => _stamp.Config == null ? _stamp.ToString() : $"{_stamp}\nconfig: {_stamp.Config}";
 
         [Command("Every command, how to use one, or a group's commands (help clock)", Name = "help")]
         CommandResult Help(string command = null)
