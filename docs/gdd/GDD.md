@@ -16,6 +16,7 @@ Raid and quiet nights are known each morning; ordinary raids end at midnight. Bl
 
 | File | Covers | Status |
 | --- | --- | --- |
+| [ONE_PAGE.md](ONE_PAGE.md) | The whole game on one page: concept, loop, win/lose, controls, scope, look, audience, done criteria, milestones | Summary of CORE; scope, done and milestones are proposals |
 | [CORE.md](CORE.md) | Pitch, pillars, places, loop, bridge and river, day/night, raid schedule, Blood Moons, eclipses, sleep and sanity, player, companions, failure and endings | Current direction; detailed rules open |
 | [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) | Roaming animals, physical product drops, crops, food, fishing, robot trading, deposits, daily stock, the daily box and upgrade/storage services | Direction agreed; rates, prices and service rules open |
 
