@@ -1,4 +1,5 @@
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -17,8 +18,8 @@ namespace Aipocalypse.Core.WorldTimeSystem
         {
             builder.RegisterInstance(_settings);
             builder.RegisterEntryPoint<WorldClock>().AsSelf();
-            // Editor and development builds only.
-            if (Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
             {
                 builder.RegisterEntryPoint<WorldClockCheats>();
                 builder.RegisterEntryPoint<WorldClockCommands>();

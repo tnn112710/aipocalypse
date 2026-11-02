@@ -1,4 +1,4 @@
-using UnityEngine;
+using Aipocalypse.Core.Debugging;
 using VContainer;
 using VContainer.Unity;
 
@@ -9,8 +9,8 @@ namespace Aipocalypse.Core.TimeSystem
         public void Install(IContainerBuilder builder)
         {
             builder.RegisterEntryPoint<TimeService>().AsSelf();
-            // Editor and development builds only.
-            if (Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
                 builder.RegisterEntryPoint<TimeCommands>();
         }
     }

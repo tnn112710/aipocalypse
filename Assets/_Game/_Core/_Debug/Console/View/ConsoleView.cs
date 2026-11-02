@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Aipocalypse.Core.Bootstrap;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -28,6 +29,7 @@ namespace Aipocalypse.Core.Debugging
         [SerializeField, Tooltip("Sized to its text; hidden when there's nothing to suggest")] Image _suggestionsBackground;
         [SerializeField] TMP_Text _suggestions;
         [SerializeField] ScreenLogView _screenLog;
+        [SerializeField, Tooltip("Bottom-right corner, always shown in builds: which build this is (BuildStamp)")] TMP_Text _buildLabel;
 
         readonly StringBuilder _text = new(2048);
         ConsoleService _console;
@@ -40,10 +42,15 @@ namespace Aipocalypse.Core.Debugging
         public ConsoleStyle Style => _style;
 
         [Inject]
-        public void Construct(ConsoleService console, ScreenLog screenLog)
+        public void Construct(ConsoleService console, ScreenLog screenLog, BuildStamp stamp)
         {
             _console = console;
             _screenLog.Bind(screenLog, _style);
+            if (_buildLabel == null)
+                return;
+            // Not in the editor: it would sit in every screenshot.
+            _buildLabel.enabled = !Application.isEditor;
+            _buildLabel.SetText(stamp.ToString());
         }
 
         void Awake()
@@ -224,6 +231,12 @@ namespace Aipocalypse.Core.Debugging
             _inputBackground.color = _style.InputBackground;
             _caret.color = _style.Caret;
             _suggestionsBackground.color = _style.SuggestionBackground;
+            if (_buildLabel != null)
+            {
+                if (_style.Font != null)
+                    _buildLabel.font = _style.Font;
+                _buildLabel.color = _style.Dim;
+            }
             _shownVersion = -1;
         }
 

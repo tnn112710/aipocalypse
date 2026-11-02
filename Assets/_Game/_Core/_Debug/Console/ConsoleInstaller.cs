@@ -4,7 +4,7 @@ using VContainer.Unity;
 
 namespace Aipocalypse.Core.Debugging
 {
-    // Root installer of the dev console. ScreenLog always (it does nothing in release builds); in the editor and development
+    // Root installer of the dev console. ScreenLog always (it does nothing without cheats); in the editor and cheat
     // builds also the command registry (systems register their ConsoleCommands there), the console and its overlay.
     public sealed class ConsoleInstaller : IInstaller
     {
@@ -20,7 +20,7 @@ namespace Aipocalypse.Core.Debugging
         public void Install(IContainerBuilder builder)
         {
             builder.RegisterEntryPoint<ScreenLog>().AsSelf();
-            if (!Debug.isDebugBuild)
+            if (!Cheats.Enabled)
                 return;
             builder.Register<CommandRegistry>(Lifetime.Singleton);
             builder.RegisterEntryPoint<FpsCounterCommands>();

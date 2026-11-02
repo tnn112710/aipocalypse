@@ -9,6 +9,7 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 | `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime, sc.stylizedgrass.runtime, CodeStage.AFPSCounter.Runtime; precompiled plugin DLLs auto-referenced |
 | `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
 | `Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit |
+| `Aipocalypse.Editor` | `Assets/_Game/_Editor/` | none (Odin attributes auto-referenced). Editor only: tools that aren't game code (player builds) |
 
 Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Core.PlayerSystem`, `Aipocalypse.Core.Combat`). One exception: input uses **`Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
 
@@ -18,7 +19,8 @@ Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Cor
 Assets/_Game/
 ├─ _Core/                                   asmdef Aipocalypse.Core
 │  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
-│  │  ├─ ProjectLifetimeScope.cs            root scope: MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
+│  │  ├─ BuildStamp.cs                      which build this is (name, config, commit, date): Load reads build_info.txt next to the player (written by AutoBuild), Parse / ToFileText; registered and logged once by the root scope
+│  │  ├─ ProjectLifetimeScope.cs            root scope: BuildStamp, MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y, field of view…), the console's ConsoleSettings and DebugConsole overlay prefab
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  ├─ GameLifetimeScope.cs               per-scene scope: installs every SceneInstaller on its GameObject, reports one with a Problem (warning, error when Strict); a Strict scene also reports each SceneInstaller type it lacks; execution order -5000
@@ -62,6 +64,7 @@ Assets/_Game/
 │  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
 │  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
 │  ├─ _Debug/                               Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
+│  │  ├─ Cheats.cs                          Cheats.Enabled: true in the editor and ENABLE_CHEAT builds (BUILD.md); gates the console, commands and cheat hotkeys
 │  │  ├─ FpsCounterCommands.cs              console afps.show / afps.hide (Advanced FPS Counter: off on every scene load, hotkey cleared, sort order 999 under the console); registered by ConsoleInstaller in dev builds
 │  │  ├─ TargetDummy.cs                     shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
 │  │  ├─ Autopilot/RaidAutopilot.cs         console cheat.autopilot [on/off] (dev builds, registered by EnemyInstaller) + ITickable + IPlayerIntentSource: the player stands still, turns (≤ 540°/s) to the nearest living enemy within 70 m in sight, fires when its real shot direction (view × IGunUser.AimOffset) is within 2° (tighter far away), reloads when empty or jammed, takes up another hotbar gun when the held one is spent; used by AgentScripts/Raids/RaidSoak
@@ -80,8 +83,8 @@ Assets/_Game/
 │  │     ├─ Commands/CommandRegistry.cs     the commands that exist now: Add / Remove(provider) by reflection, Execute(statement) → CommandResult (forms by argument count, throwing commands logged), Suggest, Describe, "did you mean"
 │  │     ├─ Commands/CommandParser.cs       statements (';'), tokens (quotes, escapes), argument parsing (numbers, on / off, enum prefixes, vectors, colours), Format, choices for completion
 │  │     ├─ Commands/ConsoleCommands.cs     base of a system's commands: adds itself to the registry on Initialize, removes itself on Dispose
-│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen.all / .error / .info / .clear, log.screen (level), log.trace, app.background [on/off] (Application.runInBackground)
-│  │     ├─ View/ConsoleView.cs             root of DebugConsole.prefab, injected: draws ConsoleService (scrollback in text lines, input + caret image from TMP character positions, suggestions + hint) when versions change; binds ScreenLogView, hidden while open
+│  │     ├─ Commands/BuiltInCommands.cs     help (all / one / a group), clear, log.screen.all / .error / .info / .clear, log.screen (level), log.trace, app.background [on/off] (Application.runInBackground), build (BuildStamp)
+│  │     ├─ View/ConsoleView.cs             root of DebugConsole.prefab, injected: draws ConsoleService (scrollback in text lines, input + caret image from TMP character positions, suggestions + hint) when versions change; binds ScreenLogView, hidden while open; BuildLabel: the BuildStamp in the bottom-right corner (builds only, not the editor)
 │  │     ├─ View/ScreenLogView.cs           draws ScreenLog top-left, newest on top, each line on a band
 │  │     ├─ View/RichText.cs                allocation-free TMP tags into a StringBuilder: colour, mark, <noparse> literals
 │  │     └─ Prefabs/DebugConsole.prefab     overlay canvas (sort 1000, 1920×1080): ScreenLog, Panel (Background, LogArea mask > Log, InputBar > Input > Caret, Suggestions); built by AgentScripts/DebugConsole/DebugConsoleSetup
@@ -422,12 +425,19 @@ Assets/_Game/
 │  ├─ Enemies/EnemyReactionSettings.asset   knockback, heavy hits, corpse time (EnemyDefinition.Reaction of every kind)
 │  ├─ Raids/                                RaidSettings.asset (20:00–06:00, alive cap 12, wake 07:00 after a raid death, +1 h after any other, spawn-point rules), Night_Default.asset (RaidPlan: goblin waves of 5, 6, 7)
 │  ├─ Debug/ConsoleSettings.asset, ConsoleStyle.asset   the dev console's behaviour and look (font: TMP's LiberationSans SDF)
+│  ├─ Build/                                BuildConfig assets (editor only): WindowsDistribution, WindowsDistributionCheat, WindowsDevelopment, WindowsDevelopmentProfiler (BUILD.md)
 │  ├─ Weapons/AmmoConfig.asset              the player's starting reserve (90 rifle, 48 pistol, 24 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
 │  ├─ Weapons/RepairFeedback.asset          the repair feedback preset every gun's repair profile uses
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, BreachAlertStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
+├─ _Editor/                                asmdef Aipocalypse.Editor (editor only), namespace Aipocalypse.Editor.<Folder>
+│  └─ Build/                                player builds, see BUILD.md
+│     ├─ BuildConfig.cs                     SO, one kind of build: Target, Development, Profiler, Cheat, Pipeline, DeleteDoNotShipFolders (on), Zip; IsDevelopment / HasCheat; Odin build name preview + Build button
+│     ├─ AutoBuild.cs                       GetBuildName (<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]), PlayerDefinesFor / ExtraDefinesFor, BuildLater (Play mode / unsaved scenes / distribution + Pipeline checks, then BuildAll and open the folder), Build (into _builds/, ENABLE_CHEAT as an extra define, Pipeline toggle set in Player Settings for the build, do-not-ship folders deleted, build_info.txt, zip) → BuildOutcome, BuildFromCommandLine (-buildConfig a,b), Autobuild/Open Builds Folder
+│     ├─ AutoBuildHistory.cs                last build of each config on this machine (Library/AutoBuild/History.json)
+│     └─ AutoBuildWindow.cs                 Autobuild/Build Window: every BuildConfig with its build name and last build (time, duration, size); tick several + Build Selected, or Edit / Open / Run / Build one; New Config
 ├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
 ├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and the enemy system, picks up a gun, fires and reloads; jumps the clock to the raid's start hour and checks raiders spawned; any logged error fails it
 └─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
@@ -465,6 +475,7 @@ Assets/_Game/
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
    ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
    ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
+   ├─ AutoBuildTests.cs                     build names, Player Settings / extra defines per config (no stray cheats or Pipeline), do-not-ship folders, shipped configs, BuildStamp file round trip
    ├─ ConsoleTests.cs                       dev console: tokens, statements, argument parsing, registry (optional args, properties, names, errors, throwing commands, remove), suggestions, help, line editing, history, scrollback, screen log, key repeat, Run, InputService text input mode, TimeCommands / WorldClockCommands
    ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose; Stylized Grass feature shown to game cameras, flags restored)
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
@@ -623,6 +634,6 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 - **New system:** folder under `_Core/` (or `Features/` / `_Experimental/`), namespace `Aipocalypse.Core.<System>`, one installer. A root service installs from `ProjectLifetimeScope` (`<System>Installer : IInstaller`); a scene system is a `SceneInstaller` component added to the scene's `GameLifetimeScope` GameObject. Add it to the map above.
 - **Rules go in plain C#** (testable, EditMode tests in `Tests/EditMode/`). MonoBehaviours are views: they wire components and forward to the rules.
 - **Numbers go in a ScriptableObject** type next to the system, with the asset in `Data/<System>/`.
-- **Console commands and cheats:** `<System>Commands.cs` next to the system's installer, registered there when `Debug.isDebugBuild` ([CONSOLE.md → Adding a command](CONSOLE.md#adding-a-command)).
+- **Console commands and cheats:** `<System>Commands.cs` next to the system's installer, registered there when `Cheats.Enabled` ([CONSOLE.md → Adding a command](CONSOLE.md#adding-a-command)).
 - **New `*LifetimeScope.cs`:** `DisableScriptModifier` is on, but check that VContainer didn't replace the file with its template.
 - **Generated code** (`GameInputActions.cs`): change the `.inputactions` asset, never the file.

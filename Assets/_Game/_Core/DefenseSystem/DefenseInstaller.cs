@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -18,7 +19,7 @@ namespace Aipocalypse.Core.DefenseSystem
         public override void Install(IContainerBuilder builder)
         {
             builder.Register<BarrierRegistry>(Lifetime.Singleton);
-            if (Debug.isDebugBuild)
+            if (Cheats.Enabled)
                 builder.RegisterEntryPoint<DefenseCommands>();
             builder.RegisterBuildCallback(resolver =>
             {

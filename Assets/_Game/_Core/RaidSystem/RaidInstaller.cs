@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.SpawnSystem;
 using Aipocalypse.Core.WorldTimeSystem;
@@ -34,8 +35,8 @@ namespace Aipocalypse.Core.RaidSystem
             builder.RegisterEntryPoint<RaidSpawner>().WithParameter<IReadOnlyList<SpawnZone>>(_zones);
             builder.RegisterEntryPoint<RaidDirector>().AsSelf();
             builder.RegisterEntryPoint<DeathTimeRule>();
-            // Editor and development builds only.
-            if (Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
                 builder.RegisterEntryPoint<RaidCommands>();
         }
 

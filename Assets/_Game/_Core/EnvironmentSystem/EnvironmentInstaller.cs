@@ -1,4 +1,5 @@
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using VContainer;
@@ -25,8 +26,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
             if (_nightHighlight != null)
             {
                 builder.RegisterComponent(_nightHighlight);
-                // Editor and development builds only.
-                if (Debug.isDebugBuild)
+                // Editor and cheat builds only.
+                if (Cheats.Enabled)
                     builder.RegisterEntryPoint<NightHighlightCommands>();
             }
             if (_ambience == null)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Aipocalypse.Core.Bootstrap;
+using Aipocalypse.Core.Debugging;
 using Aipocalypse.Core.SpawnSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -36,8 +37,8 @@ namespace Aipocalypse.Core.EnemySystem
             builder.RegisterEntryPoint<EnemyAnimationManager>();
             builder.RegisterEntryPoint<EnemyBodyManager>().AsSelf();
             builder.RegisterEntryPoint<EnemySoundManager>();
-            // Editor and development builds only.
-            if (Debug.isDebugBuild)
+            // Editor and cheat builds only.
+            if (Cheats.Enabled)
             {
                 builder.RegisterEntryPoint<EnemyCommands>();
                 builder.RegisterEntryPoint<EnemyCheatCommands>();

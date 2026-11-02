@@ -146,6 +146,8 @@ public static class DebugConsoleSetup
             suggestionsText.text = string.Empty;
             suggestions.gameObject.SetActive(false);
 
+            TextMeshProUGUI buildLabel = BuildLabel(root.transform, style);
+
             var view = root.AddComponent<ConsoleView>();
             var so = new SerializedObject(view);
             so.FindProperty("_style").objectReferenceValue = style;
@@ -158,6 +160,7 @@ public static class DebugConsoleSetup
             so.FindProperty("_suggestionsBackground").objectReferenceValue = suggestions;
             so.FindProperty("_suggestions").objectReferenceValue = suggestionsText;
             so.FindProperty("_screenLog").objectReferenceValue = screenView;
+            so.FindProperty("_buildLabel").objectReferenceValue = buildLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
             view.ApplyStyle();
             // Hidden in the prefab; the view also hides it on Awake.
@@ -170,6 +173,42 @@ public static class DebugConsoleSetup
         {
             Object.DestroyImmediate(root);
         }
+    }
+
+    // Adds the build label to the existing prefab without rebuilding the rest. Safe to re-run.
+    public static string AddBuildLabel()
+    {
+        GameObject root = PrefabUtility.LoadPrefabContents(PrefabPath);
+        try
+        {
+            var view = root.GetComponent<ConsoleView>();
+            if (root.transform.Find("BuildLabel") != null)
+                return "BuildLabel already there";
+            TextMeshProUGUI label = BuildLabel(root.transform, view.Style);
+            Set(view, "_buildLabel", label);
+            view.ApplyStyle();
+            PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
+            return "added BuildLabel to " + PrefabPath;
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    // Bottom-right corner, small and dim: which build this is (ConsoleView sets the text).
+    static TextMeshProUGUI BuildLabel(Transform root, ConsoleStyle style)
+    {
+        TextMeshProUGUI label = Text("BuildLabel", root, style);
+        RectTransform rect = label.rectTransform;
+        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 0f);
+        rect.anchoredPosition = new Vector2(-12f, 8f);
+        rect.sizeDelta = new Vector2(1200f, 30f);
+        label.alignment = TextAlignmentOptions.BottomRight;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.fontSize = Mathf.Max(12f, style.ScreenFontSize * 0.75f);
+        label.text = string.Empty;
+        return label;
     }
 
     static string AssignToRootScope(ConsoleSettings settings, ConsoleView overlay)

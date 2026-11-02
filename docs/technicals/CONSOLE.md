@@ -40,6 +40,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `log.screen.clear` | Stop showing Unity logs (the default) and remove the messages on screen |
 | `log.screen` | Which level is on (Off, Error, Info, All) |
 | `log.trace` | Stack trace of the last error Unity logged |
+| `build` | Which build this is: name, commit, build date, config ([BUILD.md](BUILD.md#build-stamp)) |
 | `app.background [on/off]` | Keep running while the window isn't focused (`Application.runInBackground`, this session only): unattended runs, profiling a build |
 | `cheat.kill`, `cheat.revive` | Kill the player with a real hit (through `DamageService`, like K, even in god mode) / revive (like L) |
 | `cheat.hp [amount]` | Heal to full, or by an amount |
@@ -68,7 +69,7 @@ Speed, pause and freeze are the console's own owner-keyed requests (`TimeService
 
 ## Adding a command
 
-Each system owns its commands in `<System>/<System>Commands.cs`, a `ConsoleCommands` subclass registered as an entry point in the system's installer, inside its `Debug.isDebugBuild` check. Add the new command to the table above in the same change.
+Each system owns its commands in `<System>/<System>Commands.cs`, a `ConsoleCommands` subclass registered as an entry point in the system's installer, inside its `Cheats.Enabled` check (editor and `ENABLE_CHEAT` builds, [BUILD.md](BUILD.md)). Add the new command to the table above in the same change.
 
 ```csharp
 // WorldTimeSystem/WorldClockCommands.cs
@@ -88,7 +89,7 @@ public sealed class WorldClockCommands : ConsoleCommands
 }
 
 // WorldTimeInstaller.Install
-if (Debug.isDebugBuild)
+if (Cheats.Enabled)
     builder.RegisterEntryPoint<WorldClockCommands>();
 ```
 

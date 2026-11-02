@@ -34,6 +34,11 @@ namespace Aipocalypse.Core.Bootstrap
             if (Debug.isDebugBuild)
                 builder.RegisterBuildCallback(resolver => GlobalMessagePipe.SetProvider(resolver.AsServiceProvider()));
 
+            var stamp = BuildStamp.Load();
+            if (!Application.isEditor)
+                Debug.Log($"Build: {stamp}");
+            builder.RegisterInstance(stamp);
+
             new InputInstaller(_controls).Install(builder);
             new ConsoleInstaller(_consoleSettings, _consoleOverlay).Install(builder);
             new AudioInstaller().Install(builder);
