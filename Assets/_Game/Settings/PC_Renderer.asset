@@ -159,24 +159,6 @@ MonoBehaviour:
       surfaceData: 2
     screenSpaceSettings:
       normalBlend: 0
---- !u!114 &-221893850197566801
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 473a86c9e274347dfbdde619584cebe9, type: 3}
-  m_Name: HighlightPlus
-  m_EditorClassIdentifier: HighlightPlus.Runtime::HighlightPlus.HighlightPlusRenderPassFeature
-  m_Active: 1
-  renderPassEvent: 500
-  clearStencil: 0
-  previewInEditMode: 1
-  showInSceneView: 1
-  showInPreviewCamera: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,8 +189,7 @@ MonoBehaviour:
   - {fileID: -1996619760729079852}
   - {fileID: -1162199858321035771}
   - {fileID: -7062686586378992764}
-  - {fileID: -221893850197566801}
-  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2d4bf37fae7944ae405eec3ee6209dfef84c3f62af84bfc9daf5a2109b8acebfcl
+  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2d4bf37fae7944ae405eec3ee6209dfef84c3f62af84bfc9dl
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:

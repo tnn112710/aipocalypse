@@ -12,6 +12,9 @@ namespace Aipocalypse.Core.EnemySystem
         [Range(0, TargetSelector.MaxBreachCandidates), Tooltip("With no path to its target, it attacks the weakest of this many " +
             "nearest standing barriers (fence segments, gates). 0 = never; it also needs a Fence weight in the definition's Targets")]
         public int BreachCandidates = 5;
+        [Range(0, 10), Tooltip("Once a way in is open (a gap, an open gate) it stops hitting a barrier and goes through, unless this " +
+            "many of its own blows or fewer would break it: then it finishes the job first")]
+        public int FinishBreachBlows = 2;
         [Min(0f), Tooltip("Metres from the target where it takes its fighting stance and sprints")]
         public float EngageRadius = 5f;
         [Min(0.1f), Tooltip("Move speed multiplier while hunting from afar (an EnemyStats modifier on MoveSpeed)")]

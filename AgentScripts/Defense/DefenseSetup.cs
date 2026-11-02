@@ -11,7 +11,6 @@ using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.UI;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
-using HighlightPlus;
 using Pathfinding;
 using TMPro;
 using UnityEditor;
@@ -21,9 +20,8 @@ using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
 // Builds the fence and gate content (DEFENSE.md): the Defense sounds, the wood chip / dust effects, the barrier definitions
-// (wood fence, its spiked tier with thorns, wood gate), the look and segment prefabs, the repair hammer and the interact
-// outline on the Player prefab (+ Highlight Plus' renderer feature), the breach alert in HUD.prefab, and the goblins'
-// fence-breaking data. Every entry is safe to re-run. Placing them in WorldMap is the generator's (Landmarks.Fence).
+// (wood fence, its spiked tier with thorns, wood gates), the look and segment prefabs, the repair hammer on the Player
+// prefab, the breach alert in HUD.prefab, and the goblins' fence-breaking data. Every entry is safe to re-run. Placing them in WorldMap is the generator's (Landmarks.Fence).
 // Run: unity command script run --file AgentScripts/Defense/DefenseSetup.cs --entry DefenseSetup.All
 public static class DefenseSetup
 {
@@ -351,6 +349,7 @@ public static class DefenseSetup
                     rail.name = row == 0 ? "Rails_Low" : "Rails_High";
                     rail.transform.localPosition = new Vector3(along * leafLength * 0.5f, row * LeafRowHeight, 0f);
                     rail.transform.localScale = new Vector3(leafLength / LeafMeshLength, 1.1f, 1.6f);
+                    PlankColliders(rail);
                     ExcludeFromNavmesh(rail, solid);
                 }
                 hinges.Add(hinge);
@@ -423,6 +422,18 @@ public static class DefenseSetup
         }
     }
 
+    // Lakefell's leaf has one solid box over its planks, which would stop bullets in the gaps: off, and a mesh collider on the
+    // LOD0 planks instead, so shots and the interact cast go between them (the closed gate is still blocked by its Blocker).
+    static void PlankColliders(GameObject rail)
+    {
+        foreach (BoxCollider box in rail.GetComponents<BoxCollider>())
+            box.enabled = false;
+        MeshFilter planks = rail.GetComponentsInChildren<MeshFilter>(true).First(f => f.name.EndsWith("_LOD0"));
+        if (!planks.TryGetComponent(out MeshCollider mesh))
+            mesh = planks.gameObject.AddComponent<MeshCollider>();
+        mesh.sharedMesh = planks.sharedMesh;
+    }
+
     // The fence's own colliders stay out of the baked navmesh (the segment's cut stands for it, and goes when it breaks).
     static void ExcludeFromNavmesh(GameObject model, List<Collider> solid)
     {
@@ -432,7 +443,8 @@ public static class DefenseSetup
                 modifier = collider.gameObject.AddComponent<RecastNavmeshModifier>();
             modifier.includeInScan = RecastNavmeshModifier.ScanInclusion.AlwaysExclude;
             modifier.dynamic = true;
-            solid?.Add(collider);
+            if (collider.enabled)
+                solid?.Add(collider);
         }
         foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>(true))
             if (!renderer.GetComponent<Collider>() && !renderer.TryGetComponent(out RecastNavmeshModifier _))
@@ -453,13 +465,11 @@ public static class DefenseSetup
             if (stale != null)
                 Object.DestroyImmediate(stale.gameObject);
             RepairTool tool = Hammer(hand);
-            HighlightEffect highlight = Highlight(root.transform);
             var so = new SerializedObject(player);
             so.FindProperty("_repairTool").objectReferenceValue = tool;
-            so.FindProperty("_interactHighlight").objectReferenceValue = highlight;
             so.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(root, PlayerPath, out bool saved);
-            log.Add(saved ? "Player.prefab: RepairHammer under HeldItems, Interact Highlight" : "failed to save " + PlayerPath);
+            log.Add(saved ? "Player.prefab: RepairHammer under HeldItems" : "failed to save " + PlayerPath);
         }
         finally
         {
@@ -490,7 +500,6 @@ public static class DefenseSetup
         {
             PrefabUtility.UnloadPrefabContents(again);
         }
-        log.Add(Renderer());
         return string.Join("\n", log);
     }
 
@@ -549,51 +558,6 @@ public static class DefenseSetup
             t.gameObject.layer = layer;
         root.SetActive(false);
         return tool;
-    }
-
-    // One outline effect on the player, moved to whatever is in focus: warm white, thin, no glow, fades quickly.
-    static HighlightEffect Highlight(Transform player)
-    {
-        Transform old = player.Find("Interact Highlight");
-        if (old != null)
-            Object.DestroyImmediate(old.gameObject);
-        var go = new GameObject("Interact Highlight");
-        go.transform.SetParent(player, false);
-        var effect = go.AddComponent<HighlightEffect>();
-        effect.effectGroup = TargetOptions.Children;
-        effect.outline = 1f;
-        effect.outlineColor = new Color(1f, 0.86f, 0.62f, 1f);
-        effect.outlineWidth = 0.6f;
-        effect.outlineQuality = HighlightPlus.QualityLevel.High;
-        effect.constantWidth = true;
-        effect.glow = 0f;
-        effect.overlay = 0f;
-        effect.innerGlow = 0f;
-        effect.seeThrough = SeeThroughMode.Never;
-        effect.fadeInDuration = 0.1f;
-        effect.fadeOutDuration = 0.15f;
-        return effect;
-    }
-
-    static string Renderer()
-    {
-        var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RendererPath) ?? throw new Exception("missing " + RendererPath);
-        if (data.rendererFeatures.Any(f => f is HighlightPlusRenderPassFeature))
-            return "PC_Renderer: Highlight Plus feature already there";
-        var feature = ScriptableObject.CreateInstance<HighlightPlusRenderPassFeature>();
-        feature.name = "HighlightPlus";
-        AssetDatabase.AddObjectToAsset(feature, data);
-        var so = new SerializedObject(data);
-        SerializedProperty features = so.FindProperty("m_RendererFeatures");
-        SerializedProperty map = so.FindProperty("m_RendererFeatureMap");
-        features.arraySize++;
-        features.GetArrayElementAtIndex(features.arraySize - 1).objectReferenceValue = feature;
-        map.arraySize++;
-        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(feature, out _, out long id);
-        map.GetArrayElementAtIndex(map.arraySize - 1).longValue = id;
-        so.ApplyModifiedPropertiesWithoutUndo();
-        Save(data);
-        return "PC_Renderer: Highlight Plus feature added";
     }
 
     // ---------------- HUD ----------------

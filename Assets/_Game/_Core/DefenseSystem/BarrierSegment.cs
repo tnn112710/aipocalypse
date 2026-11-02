@@ -40,12 +40,15 @@ namespace Aipocalypse.Core.DefenseSystem
         DamageService _damage;
         EffectPool _effects;
         TargetRegistry _targets;
+        AstarPath _astar;
         BarrierRegistry _registry;
         IPublisher<BarrierBroken> _broken;
         IPublisher<BarrierRestored> _restored;
 
         BarrierHealth _health;
         FenceGate _gate;
+        bool _blocking;
+        bool _blockingKnown;
         string _promptTarget;
         int _promptPercent = -1;
         bool _promptBlocked;
@@ -75,6 +78,7 @@ namespace Aipocalypse.Core.DefenseSystem
             _broken = broken;
             _restored = restored;
             resolver.TryResolve(out _targets);
+            resolver.TryResolve(out _astar);
             resolver.TryResolve(out _registry);
             // Injected after OnEnable when the scope builds late: register now (both lists ignore repeats).
             if (isActiveAndEnabled)
@@ -254,12 +258,29 @@ namespace Aipocalypse.Core.DefenseSystem
         internal void Refresh(bool instant = false)
         {
             bool blocking = IsBlocking;
+            bool changed = _blockingKnown && blocking != _blocking;
+            _blocking = blocking;
+            _blockingKnown = true;
             if (_cut != null)
                 _cut.enabled = blocking;
             if (_blocker != null)
                 _blocker.enabled = blocking;
             if (_look != null)
                 _look.Show(HealthShare, IsBroken, instant);
+            if (changed)
+                WayChanged();
+        }
+
+        // Applies the cut now (A* would on its next update) and makes every hunter choose again, so the ones at the fence see
+        // a new gap, or a shut gate, at once instead of picking the next segment first.
+        void WayChanged()
+        {
+            if (_astar != null)
+            {
+                _astar.navmeshUpdates.ForceUpdate();
+                _astar.FlushWorkItems();
+            }
+            _targets?.BarriersChanged();
         }
 
         void Break()

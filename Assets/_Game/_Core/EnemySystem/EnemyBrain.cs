@@ -26,6 +26,7 @@ namespace Aipocalypse.Core.EnemySystem
         GrassBendField _grassBending;
         ITargetable _target;
         float _nextRetarget;
+        int _barrierVersion;
         // Source of the flinch's MoveSpeed modifier.
         static readonly object FlinchSource = new();
 
@@ -212,16 +213,19 @@ namespace Aipocalypse.Core.EnemySystem
             Tree.Tick();
         }
 
-        // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more.
+        // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more
+        // or a barrier started or stopped blocking (a gap opened: go through it unless the one it hits is about to fall).
         public ITargetable ChooseTarget()
         {
             MeleeSettings melee = _definition.Melee;
             if (melee == null)
                 return Target = null;
-            if (_target != null && _target.IsTargetable && Time.time < _nextRetarget)
+            if (_target != null && _target.IsTargetable && Time.time < _nextRetarget && _barrierVersion == _targets.BarrierVersion)
                 return _target;
             _nextRetarget = Time.time + melee.RetargetInterval;
-            return Target = _targets.Choose(transform.position, _definition.Targets, melee.BreachCandidates);
+            _barrierVersion = _targets.BarrierVersion;
+            float finishHealth = melee.FinishBreachBlows * Stats.Get(EnemyStat.AttackDamage);
+            return Target = _targets.Choose(transform.position, _definition.Targets, melee.BreachCandidates, _target, finishHealth);
         }
 
         // Holds one of the target's attack slots while true (AttackSlots).

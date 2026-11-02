@@ -7,13 +7,11 @@ using Aipocalypse.Core.Bootstrap;
 using Aipocalypse.Core.DefenseSystem;
 using Aipocalypse.Core.Interaction;
 using Aipocalypse.Core.PlayerSystem;
-using HighlightPlus;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-// Play-mode check of the player side in WorldMap (enter Play first): stands the player in front of the gate, reads the prompts
-// and the outline, opens and shuts the gate, then dents it and repairs it with the hammer (hold use). Each `shot` step pauses
+// Play-mode check of the player side in WorldMap (enter Play first): stands the player in front of the gate, reads the prompts, opens and shuts the gate, then dents it and repairs it with the hammer (hold use). Each `shot` step pauses
 // so a Game view capture can be taken from outside (step names in the log).
 // Run: unity command script run --file AgentScripts/Defense/DefenseInteractCheck.cs --entry DefenseInteractCheck.Run --timeout 120
 public static class DefenseInteractCheck
@@ -39,8 +37,7 @@ public static class DefenseInteractCheck
         await Seconds(0.5f);
 
         PlayerInteractor interactor = player.Interactor;
-        var highlight = player.GetComponentInChildren<HighlightEffect>(true);
-        log.AppendLine($"gate: prompt {Prompt(interactor)}, outline {(highlight != null && highlight.highlighted ? highlight.target?.name : "off")}");
+        log.AppendLine($"gate: prompt {Prompt(interactor)}");
         await Pause("shot1-gate-prompt", pauseForShots, log);
 
         gate.Interact(player.gameObject);

@@ -29,8 +29,6 @@ namespace Aipocalypse.Core.PlayerSystem
         public InteractionPrompt Prompt { get; private set; }
         public bool HasHoldPrompt { get; private set; }
         public InteractionPrompt HoldPrompt { get; private set; }
-        // What the prompt is for (outlined while shown), or null.
-        public Transform FocusTransform => HasPrompt || HasHoldPrompt ? (_focus as Component)?.transform : null;
 
         public void Tick(bool pressed, bool holdDone = false, bool released = false)
         {

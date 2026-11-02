@@ -126,6 +126,32 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void Selector_WithAWayIn_LeavesAStrongBarrier_ButFinishesOneAboutToBreak()
+        {
+            var registry = new TargetRegistry(null);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            FakeTarget player = Target(new Vector3(0f, 0f, 30f));
+            registry.Add(player);
+            FakeBarrier hitting = Barrier(0f, 200f);
+            registry.Add(hitting);
+
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5, hitting, 30f), Is.SameAs(player), "still strong: go through the gap");
+            hitting.RemainingHealth = 25f;
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5, hitting, 30f), Is.SameAs(hitting), "two blows left: finish it");
+            hitting.IsTargetable = false;
+            Assert.That(selector.Choose(Vector3.zero, BreakerWeights, 5, hitting, 30f), Is.SameAs(player), "it fell");
+        }
+
+        [Test]
+        public void Registry_CountsBarrierChanges()
+        {
+            var registry = new TargetRegistry(null);
+            int before = registry.BarrierVersion;
+            registry.BarriersChanged();
+            Assert.That(registry.BarrierVersion, Is.EqualTo(before + 1));
+        }
+
+        [Test]
         public void Selector_WithoutAPath_KeepsTheTarget_WhenItDoesNotBreakFences()
         {
             var registry = new TargetRegistry(null);

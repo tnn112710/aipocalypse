@@ -89,14 +89,13 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void PlayerPrefab_HasTheRepairHammerAndTheOutline()
+        public void PlayerPrefab_HasTheRepairHammer()
         {
             var player = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPath);
             var tool = player.GetComponentInChildren<RepairTool>(true);
             Assert.That(tool, Is.Not.Null, "repair hammer");
             Assert.That(tool.Hands, Is.Not.Null);
             Assert.That(tool.Hands.GetGrip(HandSide.Right), Is.Not.Null, "right-hand grip");
-            Assert.That(player.GetComponentInChildren<HighlightPlus.HighlightEffect>(true), Is.Not.Null, "interact outline");
         }
     }
 }

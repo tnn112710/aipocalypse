@@ -124,7 +124,6 @@ InteractPrompt               InteractPromptView component
 ```
 
 - `InteractPromptView` API: `SetKey(string)`, `Show(verb, target, holdVerb, holdTarget)` (rebuilds the text only when it changes; a hold use adds a smaller second line, `HoldPrefix` + verb + target: "Hold: Repair Gate 63%"), `Hide()`, `ApplyStyle()`.
-- What the prompt is for is outlined (Highlight Plus, `InteractHighlighter`; [DEFENSE.md](DEFENSE.md#outline)).
 - `InteractPromptHud` polls `Player.Interactor` in `LateUpdate`, because the focus changes as you look around.
 - The text comes from the focused `IInteractable` ([EQUIPMENT.md → Pickup, swap and drop](EQUIPMENT.md#pickup-swap-and-drop)).
 

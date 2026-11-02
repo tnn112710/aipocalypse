@@ -19,6 +19,8 @@ namespace Aipocalypse.Core.EnemySystem
         public int Count => _others.Count + (Player != null ? 1 : 0);
         public ITargetable this[int index] => Player != null ? index == 0 ? Player : _others[index - 1] : _others[index];
         public IReadOnlyList<IBreachable> Barriers => _barriers;
+        // Goes up whenever a barrier starts or stops blocking (broke, stood again, a gate opened or shut): hunters choose again.
+        public int BarrierVersion { get; private set; }
 
         ITargetable Player => _players?.Current;
 
@@ -33,6 +35,8 @@ namespace Aipocalypse.Core.EnemySystem
             if (target != null && !_others.Contains(target))
                 _others.Add(target);
         }
+
+        public void BarriersChanged() => BarrierVersion++;
 
         public void Remove(ITargetable target)
         {

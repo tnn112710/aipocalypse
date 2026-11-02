@@ -10,7 +10,6 @@ using Aipocalypse.Core.Stats;
 using Aipocalypse.Core.TimeSystem;
 using Aipocalypse.Core.WeaponSystem;
 using Aipocalypse.Input;
-using HighlightPlus;
 using MessagePipe;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
@@ -35,7 +34,6 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField] EquipmentRig _equipmentRig;
         [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
         [SerializeField, Tooltip("Optional: the first-person hammer repairs are done with (under the equipment rig)")] RepairTool _repairTool;
-        [SerializeField, Tooltip("Optional: outlines what the player can use; moved to each target")] HighlightEffect _interactHighlight;
         [SerializeField, Tooltip("Starting reserve ammo, or infinite")] AmmoConfig _ammoConfig;
         [SerializeField, Tooltip("Optional: lights the dark around the player; a worn lantern takes it over. A child of the root")] Light _visionLight;
         [SerializeField, Tooltip("How dark it is for the vision light (Darkness source); the scene's director ticks it. None or no director = always day")]
@@ -62,7 +60,6 @@ namespace Aipocalypse.Core.PlayerSystem
         PlayerFeedback _feedback;
         HeldItemDriver _held;
         PlayerRepair _repair;
-        InteractHighlighter _highlighter;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -161,8 +158,6 @@ namespace Aipocalypse.Core.PlayerSystem
             }
 
             _repair = new PlayerRepair(gameObject, _cameraPitch, Equipment, _repairTool, _tuning.Interaction);
-            if (_interactHighlight != null)
-                _highlighter = new InteractHighlighter(_interactHighlight);
 
             // Last, so views outside the prefab (HUD) see a fully built player.
             _registry.Register(this);
@@ -217,7 +212,6 @@ namespace Aipocalypse.Core.PlayerSystem
                 _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased);
             else
                 _interactor.Clear();
-            _highlighter?.Tick(_repair.IsBusy ? (_repair.Target as Component)?.transform : _interactor.FocusTransform);
             if (_held != null)
                 _held.HandsOverride = _repair.Hands;
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);

@@ -7,7 +7,8 @@ namespace Aipocalypse.Core.EnemySystem
 {
     // Picks an enemy's target: the best kind weight per metre (EnemyDefinition.Targets), skipping what can't be targeted and
     // kinds the enemy doesn't want. When it has no path to that target and breaks fences (a Fence weight), it attacks what's
-    // in the way instead: of the `breachCandidates` nearest standing barriers, the one with the least health left.
+    // in the way instead: of the `breachCandidates` nearest standing barriers, the one with the least health left. Once a way
+    // in exists (a gap, an open gate) it takes it, unless the barrier it is hitting has `finishHealth` or less left.
     public sealed class TargetSelector
     {
         public const int MaxBreachCandidates = 16;
@@ -24,7 +25,12 @@ namespace Aipocalypse.Core.EnemySystem
             _navmesh = navmesh;
         }
 
-        public ITargetable Choose(Vector3 from, IReadOnlyDictionary<TargetKind, float> weights, int breachCandidates = 0)
+        public int BarrierVersion => _targets.BarrierVersion;
+
+        // `current`: what the enemy hunts now; `finishHealth`: a barrier it is hitting with this much health left or less is
+        // finished off even when a way in exists.
+        public ITargetable Choose(Vector3 from, IReadOnlyDictionary<TargetKind, float> weights, int breachCandidates = 0,
+            ITargetable current = null, float finishHealth = 0f)
         {
             ITargetable best = null;
             float bestScore = 0f;
@@ -41,9 +47,10 @@ namespace Aipocalypse.Core.EnemySystem
                 bestScore = score;
             }
 
-            if (best == null || _navmesh == null || breachCandidates <= 0 || !weights.TryGetValue(TargetKind.Fence, out float breaks) || breaks <= 0f
-                || _navmesh.IsReachable(from, best.Transform.position))
+            if (best == null || _navmesh == null || breachCandidates <= 0 || !weights.TryGetValue(TargetKind.Fence, out float breaks) || breaks <= 0f)
                 return best;
+            if (_navmesh.IsReachable(from, best.Transform.position))
+                return current is IBreachable hitting && hitting.IsTargetable && hitting.RemainingHealth <= finishHealth ? hitting : best;
             return ChooseBreach(from, breachCandidates) ?? best;
         }
 

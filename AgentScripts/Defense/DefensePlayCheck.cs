@@ -81,6 +81,20 @@ public static class DefensePlayCheck
         await Seconds(0.3f);
         await Flush();
 
+        // Bullets through the shut gate's gaps (the AK's hit layers): rays across it from outside, inward.
+        int through = 0, rays = 0;
+        Vector3 gateOut = Flat(gate.transform.position - YardCentre).normalized;
+        for (float x = -2f; x <= 2f; x += 0.1f)
+            for (float y = 0.3f; y <= 1.7f; y += 0.35f)
+            {
+                Vector3 origin = gate.transform.position + gate.transform.right * x + Vector3.up * y + gateOut * 1.5f;
+                rays++;
+                if (!Physics.Raycast(origin, -gateOut, out RaycastHit hit, 3f, 1083211827, QueryTriggerInteraction.Ignore)
+                    || !hit.collider.transform.IsChildOf(gate.transform))
+                    through++;
+            }
+        log.AppendLine($"shots through the shut gate: {through} of {rays} rays pass (want some: the gaps)");
+
         // Goblins against the closed fence; the player stays inside with god mode.
         commands.Execute("cheat.god on");
         commands.Execute("enemy.clear");
@@ -89,7 +103,7 @@ public static class DefensePlayCheck
         log.AppendLine("spawn: " + spawn.Message);
         float end = Time.time + breachSeconds;
         float firstBreach = -1f, start = Time.time;
-        int maxOnFence = 0, inYard = 0;
+        int maxOnFence = 0, inYard = 0, brokenAtFirst = 0, keptHitting = 0, finishing = 0;
         while (Time.time < end)
         {
             await Seconds(0.5f);
@@ -105,13 +119,25 @@ public static class DefensePlayCheck
             }
             maxOnFence = Mathf.Max(maxOnFence, onFence);
             if (firstBreach < 0f && broken > brokenBefore)
+            {
                 firstBreach = Time.time - start;
-            if (inYard > 0 && firstBreach >= 0f)
+                brokenAtFirst = broken;
+                // Two seconds after the first gap: who still hits a segment, and is that one about to fall (2 blows = 30 HP)?
+                await Seconds(2f);
+                for (int i = 0; i < enemies.Count; i++)
+                    if (enemies[i].Target is IBreachable hit)
+                    {
+                        keptHitting++;
+                        if (hit.RemainingHealth <= 30f)
+                            finishing++;
+                    }
+            }
+            if (inYard >= 3 && firstBreach >= 0f)
                 break;
         }
         float lowest = barriers.Segments.Min(s => s.HealthShare);
-        log.AppendLine($"breach: most attacking the fence at once {maxOnFence}, first break after {firstBreach:F1} s, segments broken {broken - brokenBefore}, " +
-            $"goblins inside the yard {inYard}, lowest segment {lowest:P0}");
+        log.AppendLine($"breach: most attacking the fence at once {maxOnFence}, first break after {firstBreach:F1} s; 2 s later still hitting a segment " +
+            $"{keptHitting} (of them about to break {finishing}); more segments broken after the first {broken - brokenAtFirst}, goblins inside {inYard}, lowest segment {lowest:P0}");
 
         commands.Execute("enemy.clear");
         commands.Execute("fence.repair");
