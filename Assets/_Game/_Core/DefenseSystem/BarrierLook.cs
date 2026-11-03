@@ -1,4 +1,5 @@
 using System;
+using Aipocalypse.Core.Ghosts;
 using DG.Tweening;
 using UnityEngine;
 
@@ -125,6 +126,19 @@ namespace Aipocalypse.Core.DefenseSystem
                 if (i == pick && _flipVariants)
                     _variants[i].transform.localRotation = Quaternion.Euler(0f, (hash / _variants.Length) % 2 == 0 ? 0f : 180f, 0f);
             }
+        }
+
+        // Its model standing whole (pivots at rest, the shown variant only), for the ghost of a broken barrier.
+        public GhostShape CaptureStanding()
+        {
+            Cache();
+            return GhostShape.Capture(transform, RestLocal);
+        }
+
+        Matrix4x4? RestLocal(Transform t)
+        {
+            int i = Array.IndexOf(_pivots, t);
+            return i >= 0 ? Matrix4x4.TRS(_basePositions[i], _baseRotations[i], t.localScale) : null;
         }
 
         float LeanFor(float share)

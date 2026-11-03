@@ -25,6 +25,7 @@ namespace Aipocalypse.Core.PlayerSystem
             _tuning = tuning;
         }
 
+        public IInteractable Focus => _focus;
         public bool HasPrompt { get; private set; }
         public InteractionPrompt Prompt { get; private set; }
         public bool HasHoldPrompt { get; private set; }

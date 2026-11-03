@@ -1,3 +1,4 @@
+using Aipocalypse.Core.Ghosts;
 using UnityEngine;
 
 namespace Aipocalypse.Core.PlayerSystem
@@ -29,6 +30,8 @@ namespace Aipocalypse.Core.PlayerSystem
         float _repairLookAngle = 45f;
         [SerializeField, Min(0f), Tooltip("Seconds of looking away before the repair stops")]
         float _repairLookAwayGrace = 0.4f;
+        [Header("Ghost"), SerializeField, Tooltip("How something looked at or being rebuilt shows as it will be (a broken fence standing)")]
+        GhostStyle _ghost;
 
         public float InteractRange => _interactRange;
         public float InteractRadius => _interactRadius;
@@ -42,5 +45,6 @@ namespace Aipocalypse.Core.PlayerSystem
         public float RepairReachSlack => _repairReachSlack;
         public float RepairLookAngle => _repairLookAngle;
         public float RepairLookAwayGrace => _repairLookAwayGrace;
+        public GhostStyle Ghost => _ghost;
     }
 }

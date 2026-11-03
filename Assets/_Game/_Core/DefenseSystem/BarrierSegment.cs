@@ -4,6 +4,7 @@ using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.Entities;
 using Aipocalypse.Core.Events;
+using Aipocalypse.Core.Ghosts;
 using Aipocalypse.Core.Interaction;
 using MessagePipe;
 using Pathfinding;
@@ -16,9 +17,9 @@ namespace Aipocalypse.Core.DefenseSystem
     // One piece of a fence (or a gate, with a FenceGate beside it): its own health and look. While it stands it blocks the way:
     // a navmesh cut keeps enemies' paths out and a tall box keeps the player from climbing over. Enemies that can't reach what
     // they hunt attack it (IBreachable); at 0 it falls and the gap opens. The player repairs it a hammer knock at a time,
-    // a broken one too until it has its StandAt share back. Player damage never counts.
+    // a broken one too until it has its StandAt share back, showing a ghost of it standing meanwhile. Player damage never counts.
     [DisallowMultipleComponent]
-    public sealed class BarrierSegment : MonoBehaviour, IBreachable, IInteractable, IHoldInteractable, IRepairable
+    public sealed class BarrierSegment : MonoBehaviour, IBreachable, IInteractable, IHoldInteractable, IRepairable, IGhostSource
     {
         const string RepairVerb = "Repair";
         const string RebuildVerb = "Rebuild";
@@ -52,6 +53,7 @@ namespace Aipocalypse.Core.DefenseSystem
         string _promptTarget;
         int _promptPercent = -1;
         bool _promptBlocked;
+        GhostShape _ghost;
 
         public BarrierDefinition Definition => _definition;
         public BarrierLook Look => _look;
@@ -170,6 +172,17 @@ namespace Aipocalypse.Core.DefenseSystem
         }
 
         public void InteractHold(GameObject actor) => StartRepair(actor);
+
+        // While broken: the barrier standing again where it fell, Invalid while something stands in the way of the next knock.
+        public bool TryGetGhost(GameObject viewer, out GhostView ghost)
+        {
+            ghost = default;
+            if (!IsBroken || _look == null)
+                return false;
+            _ghost ??= _look.CaptureStanding();
+            ghost = new GhostView(_ghost, _look.transform.localToWorldMatrix, StandBlocked() ? GhostState.Invalid : GhostState.Valid);
+            return true;
+        }
 
         public Vector3 RepairPoint(Vector3 from) => PointFor(from) * 0.5f + transform.position * 0.5f + Vector3.up * RepairHeight;
 
@@ -312,12 +325,12 @@ namespace Aipocalypse.Core.DefenseSystem
             prompt = default;
             if (!NeedsRepair || !actor.TryGetComponent(out IRepairer repairer) || repairer.IsRepairing)
                 return false;
-            bool broken = IsBroken;
-            // Only checked once it's ready to stand: the next knock would stand it up if nothing were in the way.
-            bool blocked = broken && _health.CanStand(_definition.StandAt) && IsOccupied();
-            prompt = new InteractionPrompt(broken ? RebuildVerb : RepairVerb, PromptTarget(blocked));
+            prompt = new InteractionPrompt(IsBroken ? RebuildVerb : RepairVerb, PromptTarget(StandBlocked()));
             return true;
         }
+
+        // Only checked once it's ready to stand: the next knock would stand it up if nothing were in the way.
+        bool StandBlocked() => IsBroken && _health.CanStand(_definition.StandAt) && IsOccupied();
 
         // "Fence 63%": rebuilt only when the number changes, so a steady look allocates nothing.
         string PromptTarget(bool blocked)
@@ -339,6 +352,7 @@ namespace Aipocalypse.Core.DefenseSystem
             if (_look != null)
                 Destroy(_look.gameObject);
             _look = null;
+            _ghost = null;
             if (definition.Look == null)
                 return;
             Transform parent = _lookParent != null ? _lookParent : transform;

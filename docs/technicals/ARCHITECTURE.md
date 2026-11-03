@@ -216,7 +216,7 @@ What exists, plus where new things go. Script by script: [CODE_STRUCTURE.md](COD
 Assets/_Game/
   _Core/                  CODE. asmdef Aipocalypse.Core
     _Bootstrap/           ProjectLifetimeScope (+ prefab), VContainerSettings asset (preloaded), GameLifetimeScope, SceneInstaller
-    _Common/              Entities, Combat, Effects, Events, Feedback, Stats, Interaction, Utils
+    _Common/              Entities, Combat, Effects, Events, Feedback, Ghosts, Stats, Interaction, Utils
     PlayerSystem/  InputSystem/  EquipmentSystem/  WeaponSystem/  HandSystem/  EnemySystem/  RaidSystem/  TimeSystem/  QuickTimeSystem/  GraphicsSystem/  UI/ …
     <NewSystem>/          one folder per Core system, with its installer (+ Prefabs/ for its base prefabs)
   Features/               (when the first feature lands) asmdef Aipocalypse.Features → references Core

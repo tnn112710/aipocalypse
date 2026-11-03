@@ -4,6 +4,7 @@ using Aipocalypse.Core.Entities;
 using Aipocalypse.Core.EnvironmentSystem;
 using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.Events;
+using Aipocalypse.Core.Ghosts;
 using Aipocalypse.Core.HandSystem;
 using Aipocalypse.Core.Interaction;
 using Aipocalypse.Core.Stats;
@@ -212,6 +213,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased);
             else
                 _interactor.Clear();
+            DrawGhost();
             if (_held != null)
                 _held.HandsOverride = _repair.Hands;
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
@@ -222,6 +224,14 @@ namespace Aipocalypse.Core.PlayerSystem
                 _zoom.Tick(_sequence.FovScale);
             }
             TickVision(deltaTime);
+        }
+
+        // What's being rebuilt, else what the player looks at, as it will be (a broken fence standing).
+        void DrawGhost()
+        {
+            IGhostSource source = _repair.Target as IGhostSource ?? _interactor.Focus as IGhostSource;
+            if (source != null && source.TryGetGhost(gameObject, out GhostView ghost))
+                GhostDrawer.Draw(ghost, _tuning.Interaction.Ghost);
         }
 
         void OnControllerColliderHit(ControllerColliderHit hit) => _motor?.OnControllerHit(hit);

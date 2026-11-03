@@ -13,6 +13,7 @@ Fences are made of segments, one per panel slot. Each segment has its own health
 | Climb blocker | A 2.4 m tall box on **Ignore Raycast**, on while it blocks. The player (jump 1.1 m) can't get over; bullets and the interact cast pass through it and hit the planks, so the player can shoot through the gaps. The gate leaves use a mesh collider on their planks (the vendor leaf's solid box is off), so their gaps let shots through too (`DefensePlayCheck`: about 30% of rays across the shut double gate pass) |
 | Look (`BarrierLook`) | The model, spawned from the definition (or already nested in the prefab). It leans further below 67% and 34% health, away from the side the blows come from, shakes on each hit and falls flat when broken (its colliders off). A fence look has three Lakefell panels as variants, one shown per segment (picked by position, maybe turned round) |
 | Target (`IBreachable`, `TargetKind.Fence`) | Registers in the scene's `TargetRegistry` while enabled; targetable only while it blocks |
+| Ghost | While broken, looking at it (or rebuilding it) shows a see-through green ghost of it standing where it fell (`IGhostSource`, `BarrierLook.CaptureStanding`, drawn by `Player` with `PlayerInteractionTuning.Ghost`); red while the next knock would be blocked by someone in its line |
 | Interaction | Tap E on a damaged segment: **Repair Fence 63%** (or **Rebuild** when broken). A `Gap` trigger over the slot lets the interact cast find a broken segment once its panel's colliders are off (bullets and bodies ignore triggers). See Gates for gates |
 
 **No friendly fire:** damage whose `Source` is the player (`IPlayerTarget`) is ignored, so the player's bullets and swings never dent the fence.
@@ -108,3 +109,4 @@ Everything a kind is lives in its `BarrierDefinition`: health, damage scale per 
 | Repair rhythm, when it stops | `Data/Player/PlayerInteractionTuning.asset` → Repair |
 | Hammer poses | `Player.prefab` → `HeldItems/RepairHammer/Poses` (Preview buttons on `RepairTool`) |
 | Breach line words and timing | `Data/UI/BreachAlertStyle.asset` |
+| The broken-segment ghost's colours | `Data/Ghosts/Ghost_Valid.mat`, `Ghost_Invalid.mat` (or `AgentScripts/Ghosts/GhostSetup.cs`, which rewrites them) |
