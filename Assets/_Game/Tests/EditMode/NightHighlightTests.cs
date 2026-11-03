@@ -39,5 +39,29 @@ namespace Aipocalypse.Tests
             Assert.AreNotEqual(0u, highlight.Layer.value, "the highlight picks no rendering layer");
             Assert.AreEqual(highlight.Layer.value, enemies.RenderingLayer.value, "enemies join a different rendering layer than the highlight lights");
         }
+
+        [Test]
+        public void GlowingEyes_ArePlacedOnTheModelWithTheEyeGlowShader()
+        {
+            int withEyes = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/_Game/Content/Enemies" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var eyes = AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponent<EnemyEyes>();
+                if (eyes == null || !eyes.Glow)
+                    continue;
+                withEyes++;
+                Assert.NotNull(eyes.Style, $"{path}: glowing eyes without a style");
+                Assert.IsNotEmpty(eyes.Eyes, $"{path}: no eyes placed (EnemyEyes → Place Eyes)");
+                foreach (MeshRenderer eye in eyes.Eyes)
+                {
+                    Assert.NotNull(eye, $"{path}: an eye is missing (a variant's Model changed? Place Eyes again)");
+                    Assert.IsTrue(eye.transform.IsChildOf(eyes.transform), $"{path}: {eye.name} is outside the prefab");
+                    Assert.AreEqual("Aipocalypse/Enemies/EnemyEyeGlow", eye.sharedMaterial != null ? eye.sharedMaterial.shader.name : null, $"{path}: {eye.name}");
+                    Assert.AreEqual(UnityEngine.Rendering.ShadowCastingMode.Off, eye.shadowCastingMode, $"{path}: {eye.name} casts shadows");
+                }
+            }
+            Assert.Greater(withEyes, 0, "no enemy has glowing eyes");
+        }
     }
 }

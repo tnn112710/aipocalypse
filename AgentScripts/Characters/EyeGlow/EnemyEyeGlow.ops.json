@@ -1,0 +1,23 @@
+{"ops":[
+ {"op":"target","name":"surfaceType","value":"Transparent"},
+ {"op":"target","name":"alphaMode","value":"Additive"},
+ {"op":"target","name":"renderFace","value":"Both"},
+ {"op":"target","name":"castShadows","value":"false"},
+ {"op":"target","name":"receiveShadows","value":"false"},
+ {"op":"property","id":"color","kind":"HDRColor","name":"Color","reference":"_Color","value":"3,1.6,0.25,1","x":-900,"y":200},
+ {"op":"property","id":"size","kind":"Float","name":"Size (m)","reference":"_Size","value":"0.035","x":-900,"y":-200},
+ {"op":"property","id":"minAngle","kind":"Float","name":"Min Size Per Metre","reference":"_MinAngle","value":"0.0035","x":-900,"y":-140},
+ {"op":"add","id":"pos","node":"Position","x":-900,"y":-300},
+ {"op":"set","port":"pos.@space","value":"Object"},
+ {"op":"custom","id":"bb","name":"EyeBillboard","file":"Assets/_Game/_Core/EnemySystem/Shaders/EnemyEyeGlow.hlsl","inputs":"PositionOS:Vector3,Size:Float,MinAngle:Float","outputs":"Out:Vector3","x":-500,"y":-250},
+ {"op":"connect","from":"pos.Out","to":"bb.PositionOS"},
+ {"op":"connect","from":"size","to":"bb.Size"},
+ {"op":"connect","from":"minAngle","to":"bb.MinAngle"},
+ {"op":"connect","from":"bb.Out","to":"block:Position"},
+ {"op":"add","id":"uv","node":"UV","x":-900,"y":100},
+ {"op":"custom","id":"glow","name":"EyeGlow","file":"Assets/_Game/_Core/EnemySystem/Shaders/EnemyEyeGlow.hlsl","inputs":"UV:Vector2,Color:Vector4","outputs":"Out:Vector3","x":-500,"y":150},
+ {"op":"connect","from":"uv.Out","to":"glow.UV"},
+ {"op":"connect","from":"color","to":"glow.Color"},
+ {"op":"connect","from":"glow.Out","to":"block:BaseColor"},
+ {"op":"set","port":"block:Alpha.Alpha","value":"1"}
+]}

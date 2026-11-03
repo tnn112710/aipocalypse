@@ -21,11 +21,22 @@ namespace Aipocalypse.Core.EnvironmentSystem
             return Light();
         }
 
-        [Command("The light follows the settings asset again")]
+        [Command("Whether enemies' eyes glow at night")]
+        CommandResult Eyes() => CommandResult.Ok(CommandParser.Format(_highlight.EyesOn) + (_highlight.EyesOverride.HasValue ? " (console)" : " (settings)"));
+
+        [Command("Turn the enemies' glowing eyes on or off")]
+        CommandResult Eyes(bool on)
+        {
+            _highlight.EyesOverride = on;
+            return Eyes();
+        }
+
+        [Command("The light and eyes follow the settings asset again")]
         CommandResult Reset()
         {
             _highlight.LightOverride = null;
-            return Light();
+            _highlight.EyesOverride = null;
+            return CommandResult.Ok($"light {Light().Message}, eyes {Eyes().Message}");
         }
     }
 }

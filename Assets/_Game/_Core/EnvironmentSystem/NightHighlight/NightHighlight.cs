@@ -5,18 +5,24 @@ using UnityEngine.Rendering.Universal;
 namespace Aipocalypse.Core.EnvironmentSystem
 {
     // Keeps enemies readable at night (NightHighlightSettings): drives a directional light that only the highlight layer
-    // receives, turned with the view. Use the Darkness source so it fades in at dusk.
+    // receives, turned with the view, and sets the enemies' eye glow global (EnemyEyeGlow shader). Use the Darkness source
+    // so both fade in at dusk.
     public sealed class NightHighlight : TimeOfDayReactor
     {
+        static readonly int EyeGlowId = Shader.PropertyToID("_EnemyEyeGlow");
+
         [SerializeField, InlineEditor] NightHighlightSettings _settings;
         [SerializeField, Tooltip("A directional light under this object; its rendering layers are set from the settings")] Light _light;
 
         UniversalAdditionalLightData _lightData;
+        float _eyeGlow = -1f;
 
         public NightHighlightSettings Settings => _settings;
-        // Console switch (dev builds): null follows the settings.
+        // Console switches (dev builds): null follows the settings.
         public bool? LightOverride { get; set; }
+        public bool? EyesOverride { get; set; }
         public bool LightOn => _settings != null && (LightOverride ?? _settings.LightEnabled);
+        public bool EyesOn => _settings != null && (EyesOverride ?? _settings.EyesEnabled);
 
         void Awake()
         {
@@ -28,13 +34,24 @@ namespace Aipocalypse.Core.EnvironmentSystem
         {
             if (_light != null)
                 _light.enabled = false;
+            SetEyeGlow(0f);
         }
 
         public override void React(EnvironmentDirector director, float deltaTime)
         {
             base.React(director, deltaTime);
+            float darkness = Mathf.Max(0f, Weight);
             if (_settings != null && _light != null)
-                ApplyLight(Mathf.Max(0f, Weight));
+                ApplyLight(darkness);
+            SetEyeGlow(EyesOn ? _settings.EyeBrightness * darkness : 0f);
+        }
+
+        void SetEyeGlow(float value)
+        {
+            if (Mathf.Abs(value - _eyeGlow) < 0.001f)
+                return;
+            _eyeGlow = value;
+            Shader.SetGlobalFloat(EyeGlowId, value);
         }
 
         protected override void Apply(float weight) { }

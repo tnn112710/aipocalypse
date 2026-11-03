@@ -24,6 +24,7 @@ namespace Aipocalypse.Core.EnemySystem
         EnemyReactionSettings _settings;
         Knockback _knockback;
         StaggerMeter _stagger;
+        EnemyEyes _eyes;
         Vector3 _visualRest;
         float _deadFor;
 
@@ -52,6 +53,7 @@ namespace Aipocalypse.Core.EnemySystem
             {
                 _brain = GetComponent<EnemyBrain>();
                 _mover = GetComponent<EnemyMover>();
+                _eyes = GetComponent<EnemyEyes>();
                 foreach (Collider c in GetComponentsInChildren<Collider>(true))
                     if (!c.isTrigger)
                         _colliders.Add(c);
@@ -68,6 +70,8 @@ namespace Aipocalypse.Core.EnemySystem
                 c.enabled = true;
             if (_visual != null)
                 _visual.localPosition = _visualRest;
+            if (_eyes != null)
+                _eyes.SetLit(true);
         }
 
         public void SetMaxHealth(float max) => _health?.SetMax(max);
@@ -124,6 +128,8 @@ namespace Aipocalypse.Core.EnemySystem
             _deadFor = 0f;
             foreach (Collider c in _colliders)
                 c.enabled = false;
+            if (_eyes != null)
+                _eyes.SetLit(false);
             _brain.Die();
             if (_brain.Animation != null)
                 _brain.Animation.Die(push);

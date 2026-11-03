@@ -1,5 +1,185 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1748550174087501918
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2265568236661317881}
+  - component: {fileID: 8083781139947046510}
+  - component: {fileID: 6967457489633413548}
+  m_Layer: 23
+  m_Name: EyeGlow_L
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2265568236661317881
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748550174087501918}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5000054, y: 0.5000049, z: -0.4999946, w: -0.4999951}
+  m_LocalPosition: {x: -0.06599282, y: -0.1266606, z: -0.041006953}
+  m_LocalScale: {x: 0.10000002, y: 0.10000002, z: 0.10000002}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 6803345771143806226}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &8083781139947046510
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748550174087501918}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &6967457489633413548
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748550174087501918}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 2
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7cefdde07b6c624469014881cbc2793c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8897261435846356373
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3940917592529632696}
+  - component: {fileID: 1691256815529312675}
+  - component: {fileID: 4650487310798078213}
+  m_Layer: 23
+  m_Name: EyeGlow_R
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3940917592529632696
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8897261435846356373}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5000054, y: 0.5000049, z: -0.4999946, w: -0.4999951}
+  m_LocalPosition: {x: -0.0659927, y: -0.12666227, z: 0.041004278}
+  m_LocalScale: {x: 0.10000002, y: 0.10000002, z: 0.10000002}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 6803345771143806226}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &1691256815529312675
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8897261435846356373}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &4650487310798078213
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8897261435846356373}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 2
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7cefdde07b6c624469014881cbc2793c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1001 &144077860625587560
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20,6 +200,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Goblin_04
       objectReference: {fileID: 0}
+    - target: {fileID: 8146822747265026605, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: _eyes.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8146822747265026605, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: '_eyes.Array.data[0]'
+      value: 
+      objectReference: {fileID: 6967457489633413548}
+    - target: {fileID: 8146822747265026605, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: '_eyes.Array.data[1]'
+      value: 
+      objectReference: {fileID: 4650487310798078213}
     - target: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -568,6 +760,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1803297574194872161, guid: 696753dfdc81db744a77f4c030bbeefb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7956179342731405860}
+    - targetCorrespondingSourceObject: {fileID: 6372529185177908523, guid: 696753dfdc81db744a77f4c030bbeefb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2265568236661317881}
+    - targetCorrespondingSourceObject: {fileID: 6372529185177908523, guid: 696753dfdc81db744a77f4c030bbeefb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3940917592529632696}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5578882337380753189, guid: 696753dfdc81db744a77f4c030bbeefb, type: 3}
       insertIndex: -1
@@ -660,6 +858,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.Combat.Hitbox
   _damageMultiplier: 2
   _critical: 1
+--- !u!4 &6803345771143806226 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6372529185177908523, guid: 696753dfdc81db744a77f4c030bbeefb, type: 3}
+  m_PrefabInstance: {fileID: 433915018400499769}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2087200432511841159
 PrefabInstance:
   m_ObjectHideFlags: 0

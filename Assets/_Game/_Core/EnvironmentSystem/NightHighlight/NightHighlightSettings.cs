@@ -17,5 +17,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [Range(0f, 89f), Tooltip("Degrees the light points down from the view")] public float LightPitch = 35f;
         [Range(-90f, 90f), Tooltip("Degrees the light turns to the side of the view, so faces get some shape")]
         public float LightYaw = 35f;
+
+        [Tooltip("Enemies' glowing eyes (EnemyEyes) at night")] public bool EyesEnabled = true;
+        [Min(0f), Tooltip("Eye brightness at full darkness, times each eye material's colour")] public float EyeBrightness = 1f;
     }
 }
