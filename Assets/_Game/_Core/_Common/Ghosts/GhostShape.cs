@@ -13,12 +13,17 @@ namespace Aipocalypse.Core.Ghosts
         {
             public readonly Mesh Mesh;
             public readonly Matrix4x4 Local;
+            // Set on a live capture: drawn wherever this renderer is now, ignoring the ghost's pose.
+            public readonly Transform Follow;
 
-            public Part(Mesh mesh, Matrix4x4 local)
+            public Part(Mesh mesh, Matrix4x4 local, Transform follow = null)
             {
                 Mesh = mesh;
                 Local = local;
+                Follow = follow;
             }
+
+            public Matrix4x4 WorldMatrix(in Matrix4x4 pose) => Follow != null ? Follow.localToWorldMatrix : pose * Local;
         }
 
         static readonly List<Renderer> Renderers = new();
@@ -35,7 +40,12 @@ namespace Aipocalypse.Core.Ghosts
 
         // `restLocal` gives a transform's local matrix at rest when it's moved now (a fallen panel's pivot); null keeps its own.
         // Works on scene objects and prefab assets alike.
-        public static GhostShape Capture(Transform root, Func<Transform, Matrix4x4?> restLocal = null)
+        public static GhostShape Capture(Transform root, Func<Transform, Matrix4x4?> restLocal = null) => Capture(root, restLocal, live: false);
+
+        // An overlay on the model itself that follows its renderers as they move (a highlight over a leaning fence panel).
+        public static GhostShape CaptureLive(Transform root) => Capture(root, null, live: true);
+
+        static GhostShape Capture(Transform root, Func<Transform, Matrix4x4?> restLocal, bool live)
         {
             CollectLowerLods(root);
             root.GetComponentsInChildren(true, Renderers);
@@ -53,7 +63,7 @@ namespace Aipocalypse.Core.Ghosts
                     _ => null,
                 };
                 if (mesh != null)
-                    parts.Add(new Part(mesh, ToRoot(renderer.transform, root, restLocal)));
+                    parts.Add(new Part(mesh, ToRoot(renderer.transform, root, restLocal), live ? renderer.transform : null));
             }
             Renderers.Clear();
             LowerLods.Clear();

@@ -54,7 +54,7 @@ Deep map detail (wind drivers, shader globals, material copies, prefab names) is
 
 | Pack | Tag | Folder | Notes |
 | --- | --- | --- | --- |
-| Animpic Polygon-Mega Survival, Survival Kit, Survival Tools, Medical Kit, POLY-SurvivalWorkshop, Poly-Survival Food | Should | `Env/Animpic` | Item and prop models. In use: the repair hammer (Survival Tools `SM_Hammer`, mesh copied into `Player.prefab` → `HeldItems/RepairHammer`), the kerosene lamp (belt lantern) and a few workshop/kit models. Avoid its `Standard Assets/Environment/Water*` (built-in). |
+| Animpic Polygon-Mega Survival, Survival Kit, Survival Tools, Medical Kit, POLY-SurvivalWorkshop, Poly-Survival Food | Should | `Env/Animpic` | Item and prop models. In use: the repair hammer (Survival Tools `SM_Hammer`, mesh copied into `Content/Tools/Hammer/Hammer.prefab`, held and lying on the table), the kerosene lamp (belt lantern) and a few workshop/kit models. Avoid its `Standard Assets/Environment/Water*` (built-in). |
 | NewLua Stylized Farm Crops | Could | `Env/NewLua Studios` | Crops. Not used; the home base has no crops (user). |
 | Synty Polygon Generic | Avoid | `Assets/Synty/PolygonGeneric` | Still in use: one FX texture (`Textures/FX/Generic_Circle_Soft_01`). **Don't remove it:** its `Shaders/` (`Generic_Basic`, `_Bloody`, `_Specular`, `PolygonShader`, `Generic_Particles*`) render every other POLYGON pack's materials (Farm, Nature Biomes, Dog, zombies, Kaiju, Mech, Werewolf, Fantasy Rivals, Bow and Crossbow). Using those packs' materials is fine; don't reference its own content. |
 | Synty Polygon Prototype | Avoid | `Assets/Synty/PolygonPrototype` | Not used. |

@@ -49,6 +49,21 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void CaptureLive_FollowsTheModelAsItMoves()
+        {
+            _root = new GameObject("Root");
+            Renderer part = Part("Part", _root.transform, Resources.GetBuiltinResource<Mesh>("Cube.fbx"), Vector3.zero);
+            GhostShape shape = GhostShape.CaptureLive(_root.transform);
+
+            part.transform.position = new Vector3(3f, 2f, 1f);
+            Matrix4x4 drawn = shape[0].WorldMatrix(Matrix4x4.Translate(new Vector3(100f, 0f, 0f)));
+
+            Assert.That(shape.Count, Is.EqualTo(1));
+            Assert.That(Vector3.Distance(drawn.GetPosition(), part.transform.position), Is.LessThan(0.001f),
+                "where the renderer is now, whatever the ghost's pose");
+        }
+
+        [Test]
         public void FenceLook_CaptureStanding_IgnoresTheFall()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<BarrierLook>(FenceLookPath);

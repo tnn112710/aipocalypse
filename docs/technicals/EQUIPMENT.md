@@ -2,7 +2,7 @@
 
 The hotbar, items and switching between what's in the player's hands, plus the belt (one worn lantern). Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). The hotbar HUD: [UI.md](UI.md#hotbar).
 
-Modelled on Escape from Duckov's quick bar: a row of numbered slots along the bottom, guns and a melee weapon first, then room for consumables and tools. Today there are 3 weapon slots that take any weapon (gun or melee) in any order, filled by picking weapons up. Guns shoot and the fire axe swings ([WEAPONS.md](WEAPONS.md)).
+Modelled on Escape from Duckov's quick bar: a row of numbered slots along the bottom, guns and a melee weapon first, then room for consumables and tools. Today there are 4 slots that take any weapon (gun or melee) or tool in any order, filled by picking them up. Guns shoot and the fire axe swings ([WEAPONS.md](WEAPONS.md)); the hammer repairs fences ([DEFENSE.md → Repair](DEFENSE.md#repair)).
 
 ## Controls
 
@@ -24,6 +24,7 @@ Data (ScriptableObjects: items in Content/<Kind>/<Item>/, Data/Equipment/)
   └─ EquippableDefinition        Selecting = Hold; EquipTime, HolsterTime; HoldFeel; HeldPrefab = the HeldItem on Prefab's root
      ├─ GunDefinition            Category Gun; all gun numbers (WeaponSystem, see WEAPONS.md)
      └─ MeleeDefinition          Category Melee        (WeaponSystem)
+     └─ RepairToolDefinition     Category Tool: the hammer (PlayerSystem/Repair; held: RepairTool, used by PlayerRepair)
   └─ LanternDefinition           Category Lantern; worn on the belt: radius, colour, brightness, flicker (PlayerVision)
   EquipmentConfig                SwitchSpeed, BeltAccepts, slots (name, accepted categories, starting item) → CreateEquipment
 
@@ -69,7 +70,7 @@ select another slot ─> Holstering: Raise 1 → 0 over the old item's HolsterTi
 
 ## Pickup, swap and drop
 
-Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and the default config lets all three take `Gun | Melee`, so the order is the order you pick things up: an axe picked up first sits in slot 1.
+Slots don't have fixed roles. Each slot's `Accepts` decides what it takes, and the default config lets all four take `Gun | Melee | Tool`, so the order is the order you pick things up: an axe picked up first sits in slot 1.
 
 | You press | When | Result |
 | --- | --- | --- |

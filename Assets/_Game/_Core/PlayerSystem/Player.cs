@@ -34,7 +34,6 @@ namespace Aipocalypse.Core.PlayerSystem
         [SerializeField] EquipmentConfig _equipmentConfig;
         [SerializeField] EquipmentRig _equipmentRig;
         [SerializeField, Tooltip("Optional: floating hands on the held item's grips")] FirstPersonHands _hands;
-        [SerializeField, Tooltip("Optional: the first-person hammer repairs are done with (under the equipment rig)")] RepairTool _repairTool;
         [SerializeField, Tooltip("Starting reserve ammo, or infinite")] AmmoConfig _ammoConfig;
         [SerializeField, Tooltip("Optional: lights the dark around the player; a worn lantern takes it over. A child of the root")] Light _visionLight;
         [SerializeField, Tooltip("How dark it is for the vision light (Darkness source); the scene's director ticks it. None or no director = always day")]
@@ -69,6 +68,7 @@ namespace Aipocalypse.Core.PlayerSystem
         public Equipment Equipment { get; private set; }
         public AmmoReserve Ammo { get; private set; }
         public PlayerInteractor Interactor => _interactor;
+        public PlayerRepair Repair => _repair;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => _life != null && _life.IsDead;
         // A pose sequence (dying, sitting…) has the camera and the body until it's stopped.
@@ -103,8 +103,8 @@ namespace Aipocalypse.Core.PlayerSystem
         Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
         float IWeaponUser.MeleePower => Fatigue.MeleePower;
 
+        bool IRepairer.HasTool => _repair != null && _repair.HasTool;
         bool IRepairer.IsRepairing => _repair != null && _repair.IsBusy;
-        bool IRepairer.TryStartRepair(IRepairable target) => _repair != null && _repair.TryStart(target);
 
         void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.GetScale(StatId.AttackStaminaCostScale));
 
@@ -158,7 +158,7 @@ namespace Aipocalypse.Core.PlayerSystem
                 Debug.LogError($"{name}: Equipment Config or Equipment Rig not assigned; equipment is off.", this);
             }
 
-            _repair = new PlayerRepair(gameObject, _cameraPitch, Equipment, _repairTool, _tuning.Interaction);
+            _repair = new PlayerRepair(gameObject, _cameraPitch, Equipment, _equipmentRig, _interactor, _tuning.Interaction);
 
             // Last, so views outside the prefab (HUD) see a fully built player.
             _registry.Register(this);
@@ -202,20 +202,19 @@ namespace Aipocalypse.Core.PlayerSystem
             _breathSound.Tick(_breathing, IsDead);
             if (!inSequence)
                 _headBob.Tick(_motor, deltaTime);
-            // Repair work first: the press that starts it (through the interactor below) mustn't also stop it.
+            // Repair work first, on last frame's focus: an interact press that stops it mustn't also use the focus.
+            bool wasRepairing = _repair.IsBusy;
             if (canAct)
                 _repair.Tick(intent, deltaTime);
             else
-                _repair.Cancel(raiseHands: !IsDead && !inSequence);
-            if (_repair.IsBusy)
+                _repair.Cancel();
+            if (_repair.IsBusy || wasRepairing)
                 intent = WithoutItemUse(intent);
-            if (canAct && !_repair.IsBusy)
+            if (canAct && !_repair.IsBusy && !wasRepairing)
                 _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased);
             else
                 _interactor.Clear();
             DrawGhost();
-            if (_held != null)
-                _held.HandsOverride = _repair.Hands;
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
             // After the held item, so the sequence's camera and field of view win over its kick and zoom.
             if (inSequence)
@@ -335,16 +334,17 @@ namespace Aipocalypse.Core.PlayerSystem
             Reload = _input.ReloadPressed,
         };
 
-        // The hands hold the hammer while repairing: no shooting, aiming, reloading or switching.
+        // While the hammer knocks (and on the frame a key stopped it) its keys do nothing else. Switching and dropping still
+        // work: they stop the repair.
         static PlayerIntent WithoutItemUse(PlayerIntent intent)
         {
             intent.Fire = false;
             intent.FirePressed = false;
             intent.Aim = false;
             intent.Reload = false;
-            intent.SelectSlot = null;
-            intent.CycleSlot = 0;
-            intent.Drop = false;
+            intent.Interact = false;
+            intent.InteractHold = false;
+            intent.InteractReleased = false;
             return intent;
         }
 

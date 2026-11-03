@@ -135,6 +135,9 @@ namespace Aipocalypse.Core.DefenseSystem
             return GhostShape.Capture(transform, RestLocal);
         }
 
+        // Its shown model as it is now, following its lean and fall (the repair highlight).
+        public GhostShape CaptureLive() => GhostShape.CaptureLive(transform);
+
         Matrix4x4? RestLocal(Transform t)
         {
             int i = Array.IndexOf(_pivots, t);

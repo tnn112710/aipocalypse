@@ -27,6 +27,7 @@ namespace Aipocalypse.Tests
             public AmmoReserve Ammo => null;
             public HeldItem HeldItem => null;
             public PlayerInteractor Interactor => null;
+            public PlayerRepair Repair => null;
             public bool IsSprinting => false;
             public Vector2 CrosshairPosition => default;
             public float CrosshairSpread => 0f;

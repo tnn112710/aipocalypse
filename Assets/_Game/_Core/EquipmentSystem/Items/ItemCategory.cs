@@ -11,5 +11,7 @@ namespace Aipocalypse.Core.EquipmentSystem
         Melee = 1 << 1,
         // Goes on the belt, not the hotbar (Equipment.Belt).
         Lantern = 1 << 2,
+        // Held tools that aren't weapons (the repair hammer).
+        Tool = 1 << 3,
     }
 }

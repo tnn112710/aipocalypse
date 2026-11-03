@@ -1,4 +1,5 @@
 using Aipocalypse.Core.DefenseSystem;
+using Aipocalypse.Core.EquipmentSystem;
 using Aipocalypse.Core.HandSystem;
 using Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
@@ -15,6 +16,9 @@ namespace Aipocalypse.Tests
         const string GatePath = "Assets/_Game/Content/Structures/WoodGate/WoodGate.prefab";
         const string DoubleGatePath = "Assets/_Game/Content/Structures/WoodGate/WoodGate_Double.prefab";
         const string PlayerPath = "Assets/_Game/_Core/PlayerSystem/Prefabs/Player.prefab";
+        const string HammerPath = "Assets/_Game/Content/Tools/Hammer/Hammer.asset";
+        const string ConfigPath = "Assets/_Game/Data/Equipment/EquipmentConfig.asset";
+        const string HighlightStylePath = "Assets/_Game/Data/Defense/RepairHighlightStyle.asset";
 
         [Test]
         public void Health_BreaksAtZero_AndTakesNoMoreDamage()
@@ -94,13 +98,59 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
-        public void PlayerPrefab_HasTheRepairHammer()
+        public void Hammer_IsAToolItem_HeldWithTheRightHand()
         {
+            var item = AssetDatabase.LoadAssetAtPath<RepairToolDefinition>(HammerPath);
+            Assert.That(item, Is.Not.Null, HammerPath);
+            Assert.That(item.Category, Is.EqualTo(ItemCategory.Tool));
+            Assert.That(item.Icon, Is.Not.Null, "hotbar icon");
+            Assert.That(item.HeldPrefab, Is.InstanceOf<RepairTool>(), "the held item repairs");
+            var hands = item.HeldPrefab.GetComponent<ItemHands>();
+            Assert.That(hands != null && hands.GetGrip(HandSide.Right) != null, Is.True, "right-hand grip");
+
             var player = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPath);
-            var tool = player.GetComponentInChildren<RepairTool>(true);
-            Assert.That(tool, Is.Not.Null, "repair hammer");
-            Assert.That(tool.Hands, Is.Not.Null);
-            Assert.That(tool.Hands.GetGrip(HandSide.Right), Is.Not.Null, "right-hand grip");
+            Assert.That(player.GetComponentInChildren<RepairTool>(true), Is.Null, "the player holds the hammer item, no built-in one");
+        }
+
+        [Test]
+        public void EquipmentConfig_HasASlotForTheHammer()
+        {
+            Hotbar hotbar = AssetDatabase.LoadAssetAtPath<EquipmentConfig>(ConfigPath).CreateHotbar();
+            Assert.That(hotbar.Count, Is.GreaterThanOrEqualTo(4));
+            var hammer = AssetDatabase.LoadAssetAtPath<RepairToolDefinition>(HammerPath);
+            Assert.That(hotbar.FindFreeSlot(hammer.CreateInstance()), Is.GreaterThanOrEqualTo(0), "a slot takes tools");
+        }
+
+        [Test]
+        public void RepairHighlight_FadesUpClose()
+        {
+            var style = ScriptableObject.CreateInstance<RepairHighlightStyle>();
+            try
+            {
+                Assert.That(style.OpacityAt(style.FadeFrom + 5f), Is.EqualTo(1f));
+                Assert.That(style.OpacityAt(0f), Is.EqualTo(style.NearOpacity));
+                float mid = style.OpacityAt((style.FadeFrom + style.FadeTo) * 0.5f);
+                Assert.That(mid, Is.GreaterThan(style.NearOpacity).And.LessThan(1f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(style);
+            }
+        }
+
+        [Test]
+        public void RepairAllTarget_NamesTheCount_WithoutNewStringsEachTime()
+        {
+            Assert.That(BarrierRegistry.RepairAllTarget(5), Is.EqualTo("Fences (5)"));
+            Assert.That(BarrierRegistry.RepairAllTarget(5), Is.SameAs(BarrierRegistry.RepairAllTarget(5)));
+        }
+
+        [Test]
+        public void RepairHighlightStyle_DrawsThroughWalls()
+        {
+            var style = AssetDatabase.LoadAssetAtPath<RepairHighlightStyle>(HighlightStylePath);
+            Assert.That(style != null && style.Look != null, Is.True, HighlightStylePath);
+            Assert.That(style.Look.shader.name, Is.EqualTo("Aipocalypse/Ghosts/GhostXray"), "seen through walls");
         }
     }
 }

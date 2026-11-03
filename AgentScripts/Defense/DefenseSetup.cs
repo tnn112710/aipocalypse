@@ -6,8 +6,6 @@ using Aipocalypse.Core.DefenseSystem;
 using Aipocalypse.Core.Effects;
 using Aipocalypse.Core.EnemySystem;
 using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.HandSystem;
-using Aipocalypse.Core.PlayerSystem;
 using Aipocalypse.Core.UI;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
@@ -20,8 +18,9 @@ using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
 // Builds the fence and gate content (DEFENSE.md): the Defense sounds, the wood chip / dust effects, the barrier definitions
-// (wood fence, its spiked tier with thorns, wood gates), the look and segment prefabs, the repair hammer on the Player
-// prefab, the breach alert in HUD.prefab, and the goblins' fence-breaking data. Every entry is safe to re-run. Placing them in WorldMap is the generator's (Landmarks.Fence).
+// (wood fence, its spiked tier with thorns, wood gates), the look and segment prefabs, the breach alert in HUD.prefab, and the goblins'
+// fence-breaking data. Every entry is safe to re-run. Placing them in WorldMap is the generator's (Landmarks.Fence); the
+// repair hammer is HammerSetup's.
 // Run: unity command script run --file AgentScripts/Defense/DefenseSetup.cs --entry DefenseSetup.All
 public static class DefenseSetup
 {
@@ -36,11 +35,8 @@ public static class DefenseSetup
     const string AudioDir = "Assets/_Game/Data/Audio";
     const string DefenseLib = AudioDir + "/Defense.asset";
     const string DefenseAudio = AudioDir + "/Defense";
-    const string PlayerPath = "Assets/_Game/_Core/PlayerSystem/Prefabs/Player.prefab";
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
     const string RendererPath = "Assets/_Game/Settings/PC_Renderer.asset";
-    const string HammerPath = "Assets/_StoreAssets/Env/Animpic/Polygon-Mega Survival Tools/Prefabs/SM_Hammer.prefab";
-    const string GripPosePath = "Assets/_Game/Data/Hands/Poses/Grip.asset";
     const string PromptStylePath = "Assets/_Game/Data/UI/InteractPromptStyle.asset";
     const string BreachStylePath = "Assets/_Game/Data/UI/BreachAlertStyle.asset";
     const string SystemSettings = "Assets/_Game/Data/Enemies/EnemySystemSettings.asset";
@@ -62,7 +58,7 @@ public static class DefenseSetup
     const string DoorwayName = "Doorway";
     const string GapName = "Gap";
 
-    public static object All() => string.Join("\n", Audio(), Effects(), Content(), Player(), Hud(), EnemyData());
+    public static object All() => string.Join("\n", Audio(), Effects(), Content(), Hud(), EnemyData());
 
     // ---------------- sounds ----------------
 
@@ -613,115 +609,6 @@ public static class DefenseSetup
         foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>(true))
             if (!renderer.GetComponent<Collider>() && !renderer.TryGetComponent(out RecastNavmeshModifier _))
                 renderer.gameObject.AddComponent<RecastNavmeshModifier>().includeInScan = RecastNavmeshModifier.ScanInclusion.AlwaysExclude;
-    }
-
-    // ---------------- player: repair hammer and interact outline ----------------
-
-    public static string Player()
-    {
-        var log = new List<string>();
-        GameObject root = PrefabUtility.LoadPrefabContents(PlayerPath);
-        try
-        {
-            var player = root.GetComponent<Player>();
-            Transform hand = root.transform.Find("CameraRoot/CameraPitch/HeldItems/Hand") ?? throw new Exception("no HeldItems/Hand on the Player");
-            Transform stale = hand.Find("RepairHammer");
-            if (stale != null)
-                Object.DestroyImmediate(stale.gameObject);
-            RepairTool tool = Hammer(hand);
-            var so = new SerializedObject(player);
-            so.FindProperty("_repairTool").objectReferenceValue = tool;
-            so.ApplyModifiedPropertiesWithoutUndo();
-            PrefabUtility.SaveAsPrefabAsset(root, PlayerPath, out bool saved);
-            log.Add(saved ? "Player.prefab: RepairHammer under HeldItems" : "failed to save " + PlayerPath);
-        }
-        finally
-        {
-            PrefabUtility.UnloadPrefabContents(root);
-        }
-
-        // Bake the grip in the saved prefab, so the fit lands on the asset.
-        GameObject again = PrefabUtility.LoadPrefabContents(PlayerPath);
-        try
-        {
-            HandGrip grip = again.GetComponentsInChildren<HandGrip>(true).FirstOrDefault(g => g.name == "Grip_R" && g.GetComponentInParent<RepairTool>(true) != null);
-            if (grip != null)
-            {
-                Type fit = Type.GetType("Aipocalypse.Core.HandSystem.HandFit, Aipocalypse.Core");
-                try
-                {
-                    fit?.GetMethod("Bake")?.Invoke(null, new object[] { grip });
-                    log.Add("hammer grip baked");
-                }
-                catch (Exception e)
-                {
-                    log.Add("hammer grip NOT baked: " + (e.InnerException ?? e).Message);
-                }
-                PrefabUtility.SaveAsPrefabAsset(again, PlayerPath);
-            }
-        }
-        finally
-        {
-            PrefabUtility.UnloadPrefabContents(again);
-        }
-        return string.Join("\n", log);
-    }
-
-    // RepairHammer: pose markers + PosePivot → Model (the hammer mesh, no collider) → Grip_R. Held right-handed, head up.
-    // Beside the hand node at its rest pose, not under it: the hand is lowered out of view while the held item is put away.
-    static RepairTool Hammer(Transform hand)
-    {
-        Transform old = hand.parent.Find("RepairHammer");
-        if (old != null)
-            Object.DestroyImmediate(old.gameObject);
-        int layer = hand.gameObject.layer;
-        var root = new GameObject("RepairHammer") { layer = layer };
-        root.transform.SetParent(hand.parent, false);
-        root.transform.SetLocalPositionAndRotation(hand.localPosition, hand.localRotation);
-
-        Transform poses = Child(root.transform, "Poses");
-        Transform hidden = Marker(poses, "Hidden", new Vector3(0.05f, -0.45f, -0.1f), new Vector3(40f, 0f, 0f));
-        Transform idle = Marker(poses, "Idle", new Vector3(0f, -0.02f, 0f), new Vector3(-15f, -10f, 8f));
-        Transform windUp = Marker(poses, "WindUp", new Vector3(0.02f, 0.1f, -0.06f), new Vector3(-55f, -12f, 12f));
-        Transform strike = Marker(poses, "Strike", new Vector3(-0.04f, -0.12f, 0.16f), new Vector3(55f, -8f, 4f));
-
-        Transform pivot = Child(root.transform, "PosePivot");
-        var source = AssetDatabase.LoadAssetAtPath<GameObject>(HammerPath) ?? throw new Exception("missing " + HammerPath);
-        var model = new GameObject("Model") { layer = layer };
-        model.transform.SetParent(pivot, false);
-        model.transform.localPosition = new Vector3(0f, 0.04f, 0f);
-        model.transform.localScale = Vector3.one * 1.3f;
-        model.AddComponent<MeshFilter>().sharedMesh = source.GetComponent<MeshFilter>().sharedMesh;
-        var renderer = model.AddComponent<MeshRenderer>();
-        renderer.sharedMaterials = source.GetComponent<MeshRenderer>().sharedMaterials;
-        renderer.shadowCastingMode = ShadowCastingMode.Off;
-
-        var gripGo = new GameObject("Grip_R") { layer = layer };
-        gripGo.transform.SetParent(model.transform, false);
-        // Lower handle, Z up the handle (little finger → index).
-        float handleY = source.GetComponent<MeshFilter>().sharedMesh.bounds.min.y + 0.07f;
-        gripGo.transform.localPosition = new Vector3(0f, handleY, 0f);
-        gripGo.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-        var grip = gripGo.AddComponent<HandGrip>();
-        var gso = new SerializedObject(grip);
-        gso.FindProperty("_side").intValue = (int)HandSide.Right;
-        gso.FindProperty("_pose").objectReferenceValue = AssetDatabase.LoadAssetAtPath<HandPose>(GripPosePath);
-        gso.ApplyModifiedPropertiesWithoutUndo();
-
-        var hands = root.AddComponent<ItemHands>();
-        var hso = new SerializedObject(hands);
-        hso.FindProperty("_right").objectReferenceValue = grip;
-        hso.FindProperty("_left").objectReferenceValue = null;
-        hso.FindProperty("_handScale").floatValue = 1.12f;
-        hso.ApplyModifiedPropertiesWithoutUndo();
-
-        var tool = root.AddComponent<RepairTool>();
-        tool.Setup(pivot, hidden, idle, windUp, strike, hands);
-        pivot.SetLocalPositionAndRotation(idle.localPosition, idle.localRotation);
-        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
-            t.gameObject.layer = layer;
-        root.SetActive(false);
-        return tool;
     }
 
     // ---------------- HUD ----------------

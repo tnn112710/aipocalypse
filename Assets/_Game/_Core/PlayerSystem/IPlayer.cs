@@ -16,6 +16,8 @@ namespace Aipocalypse.Core.PlayerSystem
         AmmoReserve Ammo { get; }
         HeldItem HeldItem { get; }
         PlayerInteractor Interactor { get; }
+        // Hammer work: what its key would repair now, and whether it's knocking.
+        PlayerRepair Repair { get; }
         bool IsSprinting { get; }
         // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
         Vector2 CrosshairPosition { get; }

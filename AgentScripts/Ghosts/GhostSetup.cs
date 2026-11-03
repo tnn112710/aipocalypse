@@ -60,6 +60,8 @@ public static class GhostSetup
         material.shader = shader;
         material.SetColor("_Color", fill);
         material.SetColor("_RimColor", rim);
+        // User Override: on Auto, URP's material validation puts the queue back to the shader's 3000 on every reimport.
+        material.SetFloat("_QueueControl", 1f);
         material.renderQueue = queue;
         EditorUtility.SetDirty(material);
         AssetDatabase.SaveAssetIfDirty(material);

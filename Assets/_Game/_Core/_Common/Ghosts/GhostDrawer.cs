@@ -9,21 +9,27 @@ namespace Aipocalypse.Core.Ghosts
     {
         public static void Draw(in GhostView ghost, GhostStyle style)
         {
-            if (ghost.Shape == null || style == null)
+            if (style != null)
+                Draw(ghost, style.LookFor(ghost.State), style.DepthOnly);
+        }
+
+        // Any ghost material; `depth` (optional) lays the nearest surfaces first, `props` tints this one (its values are
+        // copied at the call, so one block can be refilled for the next ghost).
+        public static void Draw(in GhostView ghost, Material look, Material depth = null, MaterialPropertyBlock props = null)
+        {
+            if (ghost.Shape == null || look == null)
                 return;
-            Material look = style.LookFor(ghost.State);
-            if (look == null)
-                return;
-            RenderParams lookParams = Params(look);
-            bool depth = style.DepthOnly != null;
-            RenderParams depthParams = depth ? Params(style.DepthOnly) : default;
+            RenderParams lookParams = Params(look, props);
+            RenderParams depthParams = depth != null ? Params(depth, null) : default;
             for (int i = 0; i < ghost.Shape.Count; i++)
             {
                 GhostShape.Part part = ghost.Shape[i];
-                Matrix4x4 matrix = ghost.Pose * part.Local;
+                if (part.Mesh == null)
+                    continue;
+                Matrix4x4 matrix = part.WorldMatrix(ghost.Pose);
                 for (int sub = 0; sub < part.Mesh.subMeshCount; sub++)
                 {
-                    if (depth)
+                    if (depth != null)
                         Graphics.RenderMesh(depthParams, part.Mesh, sub, matrix);
                     Graphics.RenderMesh(lookParams, part.Mesh, sub, matrix);
                 }
@@ -31,7 +37,7 @@ namespace Aipocalypse.Core.Ghosts
         }
 
         // Default layer: the world camera draws it, the first-person pass doesn't.
-        static RenderParams Params(Material material) => new(material)
+        static RenderParams Params(Material material, MaterialPropertyBlock props) => new(material)
         {
             layer = 0,
             shadowCastingMode = ShadowCastingMode.Off,
@@ -39,6 +45,7 @@ namespace Aipocalypse.Core.Ghosts
             lightProbeUsage = LightProbeUsage.Off,
             reflectionProbeUsage = ReflectionProbeUsage.Off,
             motionVectorMode = MotionVectorGenerationMode.ForceNoMotion,
+            matProps = props,
         };
     }
 }
