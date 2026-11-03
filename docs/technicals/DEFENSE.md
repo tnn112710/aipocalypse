@@ -13,7 +13,7 @@ Fences are made of segments, one per panel slot. Each segment has its own health
 | Climb blocker | A 2.4 m tall box on **Ignore Raycast**, on while it blocks. The player (jump 1.1 m) can't get over; bullets and the interact cast pass through it and hit the planks, so the player can shoot through the gaps. The gate leaves use a mesh collider on their planks (the vendor leaf's solid box is off), so their gaps let shots through too (`DefensePlayCheck`: about 30% of rays across the shut double gate pass) |
 | Look (`BarrierLook`) | The model, spawned from the definition (or already nested in the prefab). It leans further below 67% and 34% health, away from the side the blows come from, shakes on each hit and falls flat when broken (its colliders off). A fence look has three Lakefell panels as variants, one shown per segment (picked by position, maybe turned round) |
 | Target (`IBreachable`, `TargetKind.Fence`) | Registers in the scene's `TargetRegistry` while enabled; targetable only while it blocks |
-| Interaction | Tap E on a damaged segment: **Repair Fence 63%** (or **Rebuild** when broken). See Gates for gates |
+| Interaction | Tap E on a damaged segment: **Repair Fence 63%** (or **Rebuild** when broken). A `Gap` trigger over the slot lets the interact cast find a broken segment once its panel's colliders are off (bullets and bodies ignore triggers). See Gates for gates |
 
 **No friendly fire:** damage whose `Source` is the player (`IPlayerTarget`) is ignored, so the player's bullets and swings never dent the fence.
 
@@ -86,8 +86,8 @@ Everything a kind is lives in its `BarrierDefinition`: health, damage scale per 
 `Environment/Landmarks/Home Base/Fence`: 52 `WoodFence` segments, the double gate over slots 8–9 of the front side (centred seg/2 to +X of `HomeGate`), Lakefell posts ×1.5 between slots. `DefenseInstaller` on the `GameLifetimeScope`.
 
 - **Rebuild the fence only:** `Landmarks.Fence(7)` in `AgentScripts/Maps/WorldMap/WorldMapLayout.cs`, then `Navigation.Bake(0.3)`, then `DefenseSetup.Scene` (lists the barriers, sets the raid zone's origin offset, saves). With the gate shut the yard is its own navmesh island (`homeAreaShare` ≈ 0.006 in the bake report); a value near 0.9 means a cut leaks.
-- **Content:** `DefenseSetup.All` (or `Audio`, `Effects`, `Content`, `Player`, `Hud`, `EnemyData`). `Content` rewrites the look and segment prefabs, so run `Landmarks.Fence` again after it.
-- **Checks in play:** `DefensePlayCheck.Run` (cut-off yard, gate and broken-segment paths, no friendly fire, shots through the shut gate, a goblin breach and what they do once a gap opens) and `DefenseInteractCheck.Run` (prompts, toggle, hold repair, look-away stop).
+- **Content:** `DefenseSetup.All` (or `Audio`, `Effects`, `Content`, `Player`, `Hud`, `EnemyData`). `Content` rewrites the look and segment prefabs, so run `Landmarks.Fence` again after it. `FenceGap` only adds the `Gap` trigger to an existing `WoodFence.prefab`.
+- **Checks in play:** `DefensePlayCheck.Run` (cut-off yard, gate and broken-segment paths, no friendly fire, shots through the shut gate, a goblin breach and what they do once a gap opens) and `DefenseInteractCheck.Run` (prompts, toggle, hold repair, look-away stop, rebuilding a broken segment).
 - **Known:** the back corner slot `Fence 0-14` opens no path when broken: the flowering bush outside it (`Dressing/Home Trees/Bush_3_Flowers`) closes the gap. Enemies that break it just pick another segment. A yard table stands about 2 m inside the gate.
 
 ## Console

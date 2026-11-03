@@ -11,7 +11,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-// Play-mode check of the player side in WorldMap (enter Play first): stands the player in front of the gate, reads the prompts, opens and shuts the gate, then dents it and repairs it with the hammer (hold use). Each `shot` step pauses
+// Play-mode check of the player side in WorldMap (enter Play first): stands the player in front of the gate, reads the prompts, opens and shuts the gate, then dents it and repairs it with the hammer (hold use), then dents, and later breaks and rebuilds, a fence segment. Each `shot` step pauses
 // so a Game view capture can be taken from outside (step names in the log).
 // Run: unity command script run --file AgentScripts/Defense/DefenseInteractCheck.cs --entry DefenseInteractCheck.Run --timeout 120
 public static class DefenseInteractCheck
@@ -76,6 +76,20 @@ public static class DefenseInteractCheck
         Teleport(player, player.transform.position, Quaternion.LookRotation(fenceIn));
         await Seconds(1.5f);
         log.AppendLine($"looked away: repaired to {mid:P0} then stopped {!((IRepairer)player).IsRepairing} at {fence.HealthShare:P0}");
+
+        // A broken segment: its colliders are off, so only its Gap trigger lets the cast find it.
+        fence.DealDamage(10000f);
+        Teleport(player, fence.transform.position + fenceIn * 1.6f, Quaternion.LookRotation(-fenceIn));
+        await Seconds(0.8f);
+        log.AppendLine($"broken {fence.IsBroken}: prompt {Prompt(interactor)}");
+        await Pause("shot5-fence-broken", pauseForShots, log);
+        bool focused = interactor.HasPrompt;
+        if (focused)
+            fence.Interact(player.gameObject);
+        until = Time.time + 15f;
+        while (((IRepairer)player).IsRepairing && Time.time < until)
+            await Seconds(0.2f);
+        log.AppendLine($"rebuilt: broken {fence.IsBroken}, health {fence.HealthShare:P0}, busy {((IRepairer)player).IsRepairing}");
         fence.Restore();
         return log.ToString();
     }

@@ -59,6 +59,8 @@ public static class DefenseSetup
     const float LeafMeshLength = 1.606f;       // Extension_1_Fence
     const float LeafRowHeight = 0.93f;         // two rails stacked: 0.85 m mesh × 1.1
     const string IgnoreRaycast = "Ignore Raycast";
+    const string DoorwayName = "Doorway";
+    const string GapName = "Gap";
 
     public static object All() => string.Join("\n", Audio(), Effects(), Content(), Player(), Hud(), EnemyData());
 
@@ -538,17 +540,7 @@ public static class DefenseSetup
             cut.useRotationAndScale = true;
             cut.radiusExpansionMode = NavmeshCut.RadiusExpansionMode.ExpandByAgentRadius;
 
-            if (isGate)
-            {
-                // Looking into the open doorway still finds the gate ("Close Gate"); bullets and bodies ignore triggers.
-                var doorway = new GameObject("Doorway");
-                doorway.transform.SetParent(root.transform, false);
-                var trigger = doorway.AddComponent<BoxCollider>();
-                trigger.isTrigger = true;
-                trigger.center = new Vector3(0f, 1f, 0f);
-                trigger.size = new Vector3(width - 0.4f, 2f, 0.6f);
-                doorway.AddComponent<RecastNavmeshModifier>().includeInScan = RecastNavmeshModifier.ScanInclusion.AlwaysExclude;
-            }
+            ReachTrigger(root.transform, isGate ? DoorwayName : GapName, width);
 
             var segment = root.AddComponent<BarrierSegment>();
             segment.Setup(definition, root.transform, lookInstance.GetComponent<BarrierLook>(), cut, blocker);
@@ -559,6 +551,38 @@ public static class DefenseSetup
         finally
         {
             Object.DestroyImmediate(root);
+        }
+    }
+
+    // Looking into an open doorway or a broken segment's gap (its colliders are off) still finds the segment ("Close Gate",
+    // "Rebuild Fence"); bullets and bodies ignore triggers.
+    static void ReachTrigger(Transform root, string name, float width)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(root, false);
+        var trigger = go.AddComponent<BoxCollider>();
+        trigger.isTrigger = true;
+        trigger.center = new Vector3(0f, 1f, 0f);
+        trigger.size = new Vector3(width - 0.4f, 2f, 0.6f);
+        go.AddComponent<RecastNavmeshModifier>().includeInScan = RecastNavmeshModifier.ScanInclusion.AlwaysExclude;
+    }
+
+    // Adds the Gap trigger to an existing WoodFence.prefab without rebuilding it (Content would, and the scene's fence after it).
+    public static string FenceGap()
+    {
+        string path = FenceDir + "/WoodFence.prefab";
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            if (root.transform.Find(GapName) != null)
+                return "WoodFence: Gap already there";
+            ReachTrigger(root.transform, GapName, PanelWidth);
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+            return "WoodFence: Gap trigger added";
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
         }
     }
 

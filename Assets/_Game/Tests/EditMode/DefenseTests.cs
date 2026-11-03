@@ -80,6 +80,11 @@ namespace Aipocalypse.Tests
                     && modifier.includeInScan == RecastNavmeshModifier.ScanInclusion.AlwaysExclude, Is.True,
                     $"{collider.name} must stay out of the navmesh bake (the cut stands for it)");
 
+            // The look's colliders go off when it breaks: without this trigger the interact cast can't find it to rebuild.
+            Transform reach = prefab.transform.Find(isGate ? "Doorway" : "Gap");
+            Assert.That(reach != null && reach.TryGetComponent(out BoxCollider trigger) && trigger.isTrigger && trigger.enabled, Is.True,
+                "a trigger over the opening, for the interact cast");
+
             Assert.That(prefab.GetComponent<FenceGate>() != null, Is.EqualTo(isGate));
             if (isGate)
             {
