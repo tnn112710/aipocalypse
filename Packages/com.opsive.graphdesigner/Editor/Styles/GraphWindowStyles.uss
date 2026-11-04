@@ -653,3 +653,8 @@
     color: rgba(190, 226, 244, 1);
     font-size: 11px;
 }
+
+.data-edge { position: absolute; color: rgb(215, 150, 40); border-top-color: rgb(80, 170, 240); }
+.data-edge-handle { position: absolute; width: 10px; height: 10px; background-color: rgb(215, 150, 40); display: none; }
+.data-edge-selected .data-edge-handle { display: flex; }
+.data-edge-preview { position: absolute; }

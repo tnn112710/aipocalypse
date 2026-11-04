@@ -34,6 +34,19 @@ NodeGroup
     border-top-right-radius: 2px;
 }
 
+#membership-feedback
+{
+    display: none;
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background-color: rgba(20, 115, 160, 0.95);
+    color: rgba(255, 255, 255, 1);
+    -unity-font-style: bold;
+}
+
 #title
 {
     -unity-font-style: bold;
@@ -68,6 +81,17 @@ NodeGroup
 .selected
 {
     border-color: rgba(68, 192, 255, 0.9);
+}
+
+.membership-preview
+{
+    border-width: 2px;
+    border-color: rgba(68, 192, 255, 1);
+}
+
+.membership-preview > #group-container > #header-container > #membership-feedback
+{
+    display: flex;
 }
 
 #selection-border

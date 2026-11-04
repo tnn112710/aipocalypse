@@ -23,6 +23,10 @@ namespace Opsive.BehaviorDesigner.Runtime
     /// <summary>
     /// Converts the behavior tree to a DOTS entity.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Editor authoring services and their registrations retain their Editor-session lifetime.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [BakeDerivedTypes]
     public class BehaviorTreeBaker : Baker<BehaviorTree>
     {
@@ -436,6 +440,10 @@ namespace Opsive.BehaviorDesigner.Runtime
     /// <summary>
     /// Captures and restores scratch-world component values without changing the Baker-owned archetype.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Shared lookup and resource metadata retain their declared lifetime across Play Mode.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     internal static class BehaviorTreeBakingSnapshotUtility
     {
         private static readonly MethodInfo s_CaptureBufferMethod = typeof(BehaviorTreeBakingSnapshotUtility).GetMethod(nameof(CaptureBuffer), BindingFlags.NonPublic | BindingFlags.Static);
@@ -579,6 +587,10 @@ namespace Opsive.BehaviorDesigner.Runtime
     /// <summary>
     /// Keeps managed scratch snapshots outside ECS while the baking system transfers them to unmanaged components.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Editor authoring services and their registrations retain their Editor-session lifetime.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     internal static class BehaviorTreeBakingSnapshotRegistry
     {
         private static readonly object s_Lock = new object();

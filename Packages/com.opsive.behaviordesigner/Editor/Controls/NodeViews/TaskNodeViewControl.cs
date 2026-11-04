@@ -105,22 +105,22 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
             }
             m_ExecutionStatusIcon = new Image();
             m_ExecutionStatusIcon.name = "execution-status";
-            m_LogicNode.NodeContainer.Add(m_ExecutionStatusIcon); // The execution status icon should be placed behind every node element.
-            m_ExecutionStatusIcon.SendToBack();
 
             m_SuccessIcon = Shared.Editor.Utility.EditorUtility.LoadAsset<Texture>(EditorGUIUtility.isProSkin ? c_DarkSuccessIconGUID : c_LightSuccessIconGUID);
             m_SuccessReevaluateIcon = Shared.Editor.Utility.EditorUtility.LoadAsset<Texture>(EditorGUIUtility.isProSkin ? c_DarkSuccessReevaluateIconGUID : c_LightSuccessReevaluateIconGUID);
             m_FailureIcon = Shared.Editor.Utility.EditorUtility.LoadAsset<Texture>(EditorGUIUtility.isProSkin ? c_DarkFailureIconGUID : c_LightFailureIconGUID);
             m_FailureReevaluateIcon = Shared.Editor.Utility.EditorUtility.LoadAsset<Texture>(EditorGUIUtility.isProSkin ? c_DarkFailureReevaluateIconGUID : c_LightFailureReevaluateIconGUID);
 
-            // Register UpdateNodeInternal to be called in OnPreUpdate when the traversal group becomes available.
-            GraphEventHandler.RegisterEvent(GraphEventType.WindowUpdate, UpdateNode);
-            if (!TryRegisterUpdateNode() && m_BehaviorTree != null && Application.isPlaying) {
-                m_BehaviorTree.OnBehaviorTreeStarted += OnBehaviorTreeStarted;
-            }
-            if (m_BehaviorTree != null && Application.isPlaying) {
-                m_BehaviorTree.OnBehaviorTreeStopped += OnBehaviorTreeStopped;
-            }
+            // A docked tab can detach and reattach the same visual tree without rebuilding its node views.
+            m_ExecutionStatusIcon.RegisterCallback<AttachToPanelEvent>(c => {
+                GraphEventHandler.RegisterEvent(GraphEventType.WindowUpdate, UpdateNode);
+                if (!TryRegisterUpdateNode() && m_BehaviorTree != null && Application.isPlaying) {
+                    m_BehaviorTree.OnBehaviorTreeStarted += OnBehaviorTreeStarted;
+                }
+                if (m_BehaviorTree != null && Application.isPlaying) {
+                    m_BehaviorTree.OnBehaviorTreeStopped += OnBehaviorTreeStopped;
+                }
+            });
             m_ExecutionStatusIcon.RegisterCallback<DetachFromPanelEvent>(c => {
                 GraphEventHandler.UnregisterEvent(GraphEventType.WindowUpdate, UpdateNode);
                 if (m_BehaviorTree != null) {
@@ -132,6 +132,9 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
                     m_TraversalTaskSystemGroup = null;
                 }
             });
+
+            m_LogicNode.NodeContainer.Add(m_ExecutionStatusIcon); // Register callbacks before adding to an already attached node.
+            m_ExecutionStatusIcon.SendToBack();
         }
 
         /// <summary>
@@ -166,8 +169,17 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
                 return false;
             }
 
-            m_TraversalTaskSystemGroup = world.GetExistingSystemManaged<TraversalTaskSystemGroup>();
-            m_TraversalTaskSystemGroup.OnPreUpdate += UpdateNode;
+            var traversalTaskSystemGroup = world.GetExistingSystemManaged<TraversalTaskSystemGroup>();
+            if (traversalTaskSystemGroup == null) {
+                return false;
+            }
+            if (m_TraversalTaskSystemGroup != traversalTaskSystemGroup) {
+                if (m_TraversalTaskSystemGroup != null) {
+                    m_TraversalTaskSystemGroup.OnPreUpdate -= UpdateNode;
+                }
+                m_TraversalTaskSystemGroup = traversalTaskSystemGroup;
+                m_TraversalTaskSystemGroup.OnPreUpdate += UpdateNode;
+            }
             return true;
         }
 

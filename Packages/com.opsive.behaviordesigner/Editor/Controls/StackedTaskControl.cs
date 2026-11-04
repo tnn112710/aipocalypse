@@ -34,6 +34,10 @@ namespace Opsive.BehaviorDesigner.Editor.Controls
         /// <summary>
         /// The StackedTaskView displays the contents of the StackedTask.
         /// </summary>
+#if UNITY_6000_7_OR_NEWER
+        // Editor-session caches and callbacks retain their lifetime across Play Mode transitions.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         private class StackedTaskView : VisualElement
         {
             private UnityEngine.Object m_UnityObject;

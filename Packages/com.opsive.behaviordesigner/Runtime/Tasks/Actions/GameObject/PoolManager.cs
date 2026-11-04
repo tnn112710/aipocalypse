@@ -13,6 +13,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Actions.GameObjectTasks
     /// <summary>
     /// Singleton manager that tracks which pool each GameObject belongs to.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Registration and scope owners manage this state; active registrations survive Play Mode transitions.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class PoolManager
     {
         private static PoolManager s_Instance;

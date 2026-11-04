@@ -186,3 +186,10 @@ CommentElement
 {
     min-height: 26px;
 }
+.typed-data-ports { min-width: 125px; }
+.data-port-row { flex-direction: row; min-height: 20px; align-items: center; }
+.data-port-output { flex-direction: row-reverse; }
+.data-port-handle { width: 12px; height: 12px; flex-shrink: 0; border-radius: 6px; background-color: rgb(215, 150, 40); }
+.data-port-handle:hover { border-width: 1px; border-color: rgb(110, 190, 240); }
+
+.fixed-flow-ports { flex-direction: row; align-items: flex-start; }

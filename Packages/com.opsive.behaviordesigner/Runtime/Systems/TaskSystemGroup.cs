@@ -13,6 +13,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Groups
     /// <summary>
     /// Group that executes all of the tasks.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Editor authoring services and their registrations retain their Editor-session lifetime.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [UpdateInGroup(typeof(TraversalSystemGroup))]
     public partial class TraversalTaskSystemGroup : ComponentSystemGroup
     {

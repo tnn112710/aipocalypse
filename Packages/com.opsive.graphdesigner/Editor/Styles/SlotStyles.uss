@@ -117,3 +117,15 @@ DoubleVerticalSlot
     position: absolute;
     top: 6px;
 }
+.fixed-flow-slot { flex-grow: 1; flex-basis: 0; min-width: 16px; }
+.fixed-flow-slot.flow-shared { position: absolute; top: 50%; margin-top: -6px; width: 12px; height: 12px; }
+.fixed-flow-slot.flow-input.flow-shared { left: -6px; }
+.fixed-flow-slot.flow-output.flow-shared { right: -6px; }
+.flow-handle { width: 10px; height: 10px; flex-shrink: 0; margin-top: 5px; margin-bottom: 5px; border-width: 1px; }
+.flow-handle:hover { border-color: rgb(110, 190, 240); }
+.flow-output > .flow-handle { align-self: flex-end; }
+.flow-row { flex-direction: row; align-items: center; min-height: 20px; flex-shrink: 0; }
+.flow-output .flow-row { flex-direction: row-reverse; }
+.port-grip { width: 16px; -unity-text-align: middle-center; }
+.port-insertion { display: none; position: absolute; height: 2px; left: 0; right: 0; background-color: rgb(76, 204, 255); }
+.port-insertion-visible { display: flex; }
