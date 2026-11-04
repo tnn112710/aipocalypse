@@ -6,11 +6,12 @@ using VContainer;
 
 namespace Aipocalypse.Core.UI
 {
-    // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it). Polled: the focus changes
-    // as the player looks around.
+    // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it), plus, above it, what the
+    // hammer in hand would repair ("[R] Repair Fence 63%"). Polled: the focus changes as the player looks around.
     public sealed class InteractPromptHud : PlayerHudView
     {
         [SerializeField] InteractPromptView _view;
+        [SerializeField, Tooltip("Optional: the repair tool's prompt, on its own key")] InteractPromptView _toolView;
 
         InputService _input;
 
@@ -21,14 +22,29 @@ namespace Aipocalypse.Core.UI
         {
             _view.Hide();
             _view.SetKey(_input?.GetInteractKeyLabel() ?? "E");
+            if (_toolView != null)
+            {
+                _toolView.Hide();
+                _toolView.SetKey(_input?.GetKeyLabel(GameButton.Reload) ?? "R");
+            }
             base.Start();
         }
 
-        protected override void Unbind(IPlayer player) => _view.Hide();
+        protected override void Unbind(IPlayer player)
+        {
+            _view.Hide();
+            if (_toolView != null)
+                _toolView.Hide();
+        }
 
         void LateUpdate()
         {
-            PlayerInteractor interactor = Player != null ? Player.Interactor : null;
+            ShowInteract(Player != null ? Player.Interactor : null);
+            ShowTool(Player != null ? Player.Repair : null);
+        }
+
+        void ShowInteract(PlayerInteractor interactor)
+        {
             if (interactor == null || (!interactor.HasPrompt && !interactor.HasHoldPrompt))
             {
                 _view.Hide();
@@ -38,6 +54,16 @@ namespace Aipocalypse.Core.UI
             InteractionPrompt prompt = interactor.HasPrompt ? interactor.Prompt : default;
             InteractionPrompt hold = interactor.HasHoldPrompt ? interactor.HoldPrompt : default;
             _view.Show(prompt.Verb, prompt.Target, hold.Verb, hold.Target);
+        }
+
+        void ShowTool(PlayerRepair repair)
+        {
+            if (_toolView == null)
+                return;
+            if (repair == null || !repair.HasPrompt)
+                _toolView.Hide();
+            else
+                _toolView.Show(repair.Prompt.Verb, repair.Prompt.Target);
         }
     }
 }

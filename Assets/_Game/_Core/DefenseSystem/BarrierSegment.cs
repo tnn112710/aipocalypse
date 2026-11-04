@@ -16,13 +16,15 @@ namespace Aipocalypse.Core.DefenseSystem
 {
     // One piece of a fence (or a gate, with a FenceGate beside it): its own health and look. While it stands it blocks the way:
     // a navmesh cut keeps enemies' paths out and a tall box keeps the player from climbing over. Enemies that can't reach what
-    // they hunt attack it (IBreachable); at 0 it falls and the gap opens. The player repairs it a hammer knock at a time,
-    // a broken one too until it has its StandAt share back, showing a ghost of it standing meanwhile. Player damage never counts.
+    // they hunt attack it (IBreachable); at 0 it falls and the gap opens. With the hammer in hand the player repairs it a knock
+    // at a time (a broken one too until it has its StandAt share back, showing a ghost of it standing meanwhile), or mends
+    // every barrier at once from any of them (Repair All). Player damage never counts.
     [DisallowMultipleComponent]
     public sealed class BarrierSegment : MonoBehaviour, IBreachable, IInteractable, IHoldInteractable, IRepairable, IGhostSource
     {
         const string RepairVerb = "Repair";
         const string RebuildVerb = "Rebuild";
+        const string RepairAllVerb = "Repair All";
         const string BlockedSuffix = " (blocked)";
         // Metres above the base where knocks, breaks and debug hits land.
         const float RepairHeight = 0.8f;
@@ -54,6 +56,7 @@ namespace Aipocalypse.Core.DefenseSystem
         int _promptPercent = -1;
         bool _promptBlocked;
         GhostShape _ghost;
+        GhostShape _overlay;
 
         public BarrierDefinition Definition => _definition;
         public BarrierLook Look => _look;
@@ -70,6 +73,8 @@ namespace Aipocalypse.Core.DefenseSystem
         public float RemainingHealth => _health != null ? _health.Current : 0f;
         public Vector3 Span => _blocker != null ? _blocker.transform.TransformVector(_blocker.size.x * 0.5f, 0f, 0f) : transform.right;
         public bool NeedsRepair => _health != null && !_health.IsWhole;
+        // Its model as it stands or lies now, for highlights over it (RepairHighlight).
+        public GhostShape Overlay => _look != null ? _overlay ??= _look.CaptureLive() : null;
 
         [Inject]
         void Construct(AudioService audio, DamageService damage, EffectPool effects, IPublisher<BarrierBroken> broken,
@@ -148,13 +153,14 @@ namespace Aipocalypse.Core.DefenseSystem
             return new DamageResult(applied, killed);
         }
 
-        // ---- interaction: a gate opens and closes on a tap and repairs on a hold; a plain segment repairs on a tap ----
+        // ---- interaction: a standing gate opens and closes on a tap; with the hammer in hand, the interact key mends every
+        // barrier (a hold on a standing gate) and the hammer's own key repairs this one (IRepairable, through PlayerRepair) ----
 
         public bool TryGetPrompt(GameObject actor, out InteractionPrompt prompt)
         {
             if (_gate != null && !IsBroken)
                 return _gate.TryGetPrompt(out prompt);
-            return TryGetRepairPrompt(actor, out prompt);
+            return TryGetRepairAllPrompt(actor, out prompt);
         }
 
         public void Interact(GameObject actor)
@@ -162,16 +168,25 @@ namespace Aipocalypse.Core.DefenseSystem
             if (_gate != null && !IsBroken)
                 _gate.Toggle(actor.transform.position);
             else
-                StartRepair(actor);
+                RepairAll(actor);
         }
 
         public bool TryGetHoldPrompt(GameObject actor, out InteractionPrompt prompt)
         {
             prompt = default;
-            return _gate != null && !IsBroken && TryGetRepairPrompt(actor, out prompt);
+            return _gate != null && !IsBroken && TryGetRepairAllPrompt(actor, out prompt);
         }
 
-        public void InteractHold(GameObject actor) => StartRepair(actor);
+        public void InteractHold(GameObject actor) => RepairAll(actor);
+
+        public bool TryGetRepairPrompt(GameObject actor, out InteractionPrompt prompt)
+        {
+            prompt = default;
+            if (!NeedsRepair)
+                return false;
+            prompt = new InteractionPrompt(IsBroken ? RebuildVerb : RepairVerb, PromptTarget(StandBlocked()));
+            return true;
+        }
 
         // While broken: the barrier standing again where it fell, Invalid while something stands in the way of the next knock.
         public bool TryGetGhost(GameObject viewer, out GhostView ghost)
@@ -225,6 +240,17 @@ namespace Aipocalypse.Core.DefenseSystem
             if (definition.Look != previous.Look)
                 SpawnLook(definition, replace: true);
             Refresh(instant: true);
+            return true;
+        }
+
+        // Whole again at once, with a puff of chips (Repair All). False when it was whole, or it's broken and something stands
+        // in its line.
+        public bool RepairFully()
+        {
+            if (!NeedsRepair || (IsBroken && IsOccupied()))
+                return false;
+            Restore();
+            Spawn(_definition.RepairEffect, transform.position + Vector3.up * RepairHeight);
             return true;
         }
 
@@ -314,20 +340,30 @@ namespace Aipocalypse.Core.DefenseSystem
             _broken?.Publish(new BarrierBroken(transform.position, _gate != null));
         }
 
-        void StartRepair(GameObject actor)
+        // Every barrier in the scene (just this one without a registry), with one repair sound here.
+        void RepairAll(GameObject actor)
         {
-            if (NeedsRepair && actor.TryGetComponent(out IRepairer repairer))
-                repairer.TryStartRepair(this);
+            if (!HoldsTool(actor))
+                return;
+            int mended = _registry != null ? _registry.RepairAll() : RepairFully() ? 1 : 0;
+            if (mended > 0)
+                _audio?.PlayAt(_definition.RepairSound, RepairPoint(actor.transform.position));
         }
 
-        bool TryGetRepairPrompt(GameObject actor, out InteractionPrompt prompt)
+        // "Repair All Fences (5)", offered with the hammer in hand while anything needs repair.
+        bool TryGetRepairAllPrompt(GameObject actor, out InteractionPrompt prompt)
         {
             prompt = default;
-            if (!NeedsRepair || !actor.TryGetComponent(out IRepairer repairer) || repairer.IsRepairing)
+            if (!HoldsTool(actor))
                 return false;
-            prompt = new InteractionPrompt(IsBroken ? RebuildVerb : RepairVerb, PromptTarget(StandBlocked()));
+            int damaged = _registry != null ? _registry.CountDamaged() : NeedsRepair ? 1 : 0;
+            if (damaged == 0)
+                return false;
+            prompt = new InteractionPrompt(RepairAllVerb, BarrierRegistry.RepairAllTarget(damaged));
             return true;
         }
+
+        static bool HoldsTool(GameObject actor) => actor.TryGetComponent(out IRepairer repairer) && repairer.HasTool && !repairer.IsRepairing;
 
         // Only checked once it's ready to stand: the next knock would stand it up if nothing were in the way.
         bool StandBlocked() => IsBroken && _health.CanStand(_definition.StandAt) && IsOccupied();
@@ -353,6 +389,7 @@ namespace Aipocalypse.Core.DefenseSystem
                 Destroy(_look.gameObject);
             _look = null;
             _ghost = null;
+            _overlay = null;
             if (definition.Look == null)
                 return;
             Transform parent = _lookParent != null ? _lookParent : transform;

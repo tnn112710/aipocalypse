@@ -13,12 +13,19 @@ namespace Aipocalypse.Core.DefenseSystem
     public sealed partial class DefenseInstaller : SceneInstaller
     {
         [SerializeField, ReadOnly, Tooltip("Collected on save / Play")] List<BarrierSegment> _sceneBarriers = new();
+        [SerializeField, Tooltip("How damaged barriers show while the player holds the hammer; none = no highlight")]
+        RepairHighlightStyle _repairHighlight;
 
         public override string Problem => null;
 
         public override void Install(IContainerBuilder builder)
         {
             builder.Register<BarrierRegistry>(Lifetime.Singleton);
+            if (_repairHighlight != null)
+            {
+                builder.RegisterInstance(_repairHighlight);
+                builder.RegisterEntryPoint<RepairHighlight>();
+            }
             if (Cheats.Enabled)
                 builder.RegisterEntryPoint<DefenseCommands>();
             builder.RegisterBuildCallback(resolver =>

@@ -45,7 +45,8 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
       └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
-         └─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
+         ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
+         └─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[R] Repair Fence 63%")
 ```
 
 - **Region per corner.** New HUD info goes under the matching region: the clock (and later weather) in TopRight, quest tracker in TopRight below it, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
@@ -123,8 +124,8 @@ InteractPrompt               InteractPromptView component
    └─ Text                   TMP: verb in VerbColor, target name in TargetColor
 ```
 
-- `InteractPromptView` API: `SetKey(string)`, `Show(verb, target, holdVerb, holdTarget)` (rebuilds the text only when it changes; a hold use adds a smaller second line, `HoldPrefix` + verb + target: "Hold: Repair Gate 63%"), `Hide()`, `ApplyStyle()`.
-- `InteractPromptHud` polls `Player.Interactor` in `LateUpdate`, because the focus changes as you look around.
+- `InteractPromptView` API: `SetKey(string)`, `Show(verb, target, holdVerb, holdTarget)` (rebuilds the text only when it changes; a hold use adds a smaller second line, `HoldPrefix` + verb + target: "Hold: Repair All Fences (3)"), `Hide()`, `ApplyStyle()`.
+- `InteractPromptHud` polls `Player.Interactor` in `LateUpdate`, because the focus changes as you look around. Its optional `_toolView` (ToolPrompt) shows `Player.Repair`'s prompt on the Reload key, above the E line, while the hammer is in hand.
 - The text comes from the focused `IInteractable` ([EQUIPMENT.md → Pickup, swap and drop](EQUIPMENT.md#pickup-swap-and-drop)).
 
 ## Changing the look
