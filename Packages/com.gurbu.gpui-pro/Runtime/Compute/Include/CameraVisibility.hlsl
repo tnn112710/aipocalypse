@@ -203,17 +203,7 @@ inline void CameraVisibility(uint3 id)
         }
 #endif // GPUI_LOD_CROSSFADE
         
-#if defined(GPUI_LOD) || defined(GPUI_LOD_CROSSFADE) || defined(GPUI_LOD_CROSSFADE_ANIMATE)
-        if (!isLODCulled)
-        {
-#endif // GPUI_LOD
-            InterlockedAdd(visibilityBuffer[visibilityBufferIndex + lodNo].visibleCount, 1, index);
-            gpuiInstanceDataBuffer[index + lodNo * bufferSize] = appendInstance;
-#if defined(GPUI_LOD) || defined(GPUI_LOD_CROSSFADE) || defined(GPUI_LOD_CROSSFADE_ANIMATE)
-        }
-#endif // GPUI_LOD
-        
-#if defined(GPUI_LOD_CROSSFADE) || defined(GPUI_LOD_CROSSFADE_ANIMATE)
+#if defined(GPUI_LOD_CROSSFADE) || defined(GPUI_LOD_CROSSFADE_ANIMATE) // Adreno/Vulkan cross-fade workaround (Unity 6.3 issue), cross-fading LOD needs to be added first
         if (appendInstance.y > 0.0 && appendInstance.y < 1.0 && crossFadingLOD >= 0 && crossFadingLOD < p_lodCount && crossFadingLOD != lodNo)
         {
             crossFadeInstance.x = asfloat(bufferIndex);
@@ -228,7 +218,17 @@ inline void CameraVisibility(uint3 id)
                 crossFadingLODShadow = -1;
 #endif
         }
-#endif // GPUI_LOD_CROSSFADE  || GPUI_LOD_CROSSFADE_ANIMATE
+#endif // GPUI_LOD_CROSSFADE  || GPUI_LOD_CROSSFADE_ANIMATE 
+        
+#if defined(GPUI_LOD) || defined(GPUI_LOD_CROSSFADE) || defined(GPUI_LOD_CROSSFADE_ANIMATE)
+        if (!isLODCulled)
+        {
+#endif // GPUI_LOD
+            InterlockedAdd(visibilityBuffer[visibilityBufferIndex + lodNo].visibleCount, 1, index);
+            gpuiInstanceDataBuffer[index + lodNo * bufferSize] = appendInstance;
+#if defined(GPUI_LOD) || defined(GPUI_LOD_CROSSFADE) || defined(GPUI_LOD_CROSSFADE_ANIMATE)
+        }
+#endif // GPUI_LOD
     }
     
 #if defined(GPUI_SHADOWCASTING) || defined(GPUI_SHADOWCULLED)

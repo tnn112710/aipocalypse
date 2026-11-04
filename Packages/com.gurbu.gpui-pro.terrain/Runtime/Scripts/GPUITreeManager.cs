@@ -14,6 +14,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro.TerrainModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [ExecuteInEditMode]
     [DefaultExecutionOrder(200)]
 #if !UNITY_6000_3_0 && !GPUIPRO_NO_HELPURL
@@ -361,11 +364,21 @@ namespace GPUInstancerPro.TerrainModule
 
                     if (requireSetTreeData)
                     {
+                        //for (int i = 0; i < _batchedTerrains.Count; i++)
+                        //{
+                        //    var ttd = _batchedTreeTerrainData[i];
+                        //    _treeDataBuffer.SetData(_batchedTerrains[i].GetTreeInstances(), 0, ttd.treeDataStartIndex, ttd.treeCount);
+                        //}
+
+                        // Reduce SetData calls
+                        NativeArray<TreeInstance> treeData = new NativeArray<TreeInstance>(batchTreeInstanceCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                         for (int i = 0; i < _batchedTerrains.Count; i++)
                         {
                             var ttd = _batchedTreeTerrainData[i];
-                            _treeDataBuffer.SetData(_batchedTerrains[i].GetTreeInstances(), 0, ttd.treeDataStartIndex, ttd.treeCount);
+                            NativeArray<TreeInstance>.Copy(_batchedTerrains[i].GetTreeInstances(), 0, treeData, ttd.treeDataStartIndex, ttd.treeCount);
                         }
+                        _treeDataBuffer.SetData(treeData, 0, 0, batchTreeInstanceCount);
+                        treeData.Dispose();
                     }
 
                     int terrainDataCount = _batchedTreeTerrainData.Count;

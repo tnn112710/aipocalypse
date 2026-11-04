@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace GPUInstancerPro.PrefabModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [DefaultExecutionOrder(-200)]
     public class GPUIRigidbodySimulator : GPUIColliderHelper<GPUIRigidbodyReplacer>
     {

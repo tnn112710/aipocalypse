@@ -7,6 +7,9 @@ using UnityEngine.EventSystems;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUIEditorConstants
     {
         public static readonly string TITLE = "GPU Instancer Pro";
@@ -43,6 +46,9 @@ namespace GPUInstancerPro
         public static readonly string ERRORTEXT_surfshader = "Better Shaders surface shader does not contain GPU Instancer setup: {0}. Please create a stacked shader and add Stackable_GPUInstancer to the Shader List.";
         public static readonly string ERRORTEXT_stackedshader = "Better Shaders stacked shader does not contain GPU Instancer setup: {0}. Please add Stackable_GPUInstancer to the Shader List.";
 
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         public static class Styles
         {
             public static GUIStyle label = new GUIStyle("Label");
@@ -61,6 +67,9 @@ namespace GPUInstancerPro
                 normal = helpButton.active
             };
         }
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         public static class Colors
         {
             public static Color lightBlue = new Color(0.5f, 0.6f, 0.8f, 1);

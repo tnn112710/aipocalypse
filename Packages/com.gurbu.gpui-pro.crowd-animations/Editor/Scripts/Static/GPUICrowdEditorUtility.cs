@@ -10,6 +10,9 @@ using UnityEngine.UIElements;
 
 namespace GPUInstancerPro.CrowdAnimations
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUICrowdEditorUtility
     {
         #region Draw Bone Settings

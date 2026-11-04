@@ -13,6 +13,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro.TerrainModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [DisallowMultipleComponent]
     public abstract class GPUITerrain : MonoBehaviour, IEquatable<GPUITerrain>
     {

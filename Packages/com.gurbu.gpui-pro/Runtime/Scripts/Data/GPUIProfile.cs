@@ -9,6 +9,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [CreateAssetMenu(menuName = "Rendering/GPU Instancer Pro/Profile", order = 511)]
 #if !UNITY_6000_3_0 && !GPUIPRO_NO_HELPURL
     [HelpURL("https://wiki.gurbu.com/index.php?title=GPU_Instancer_Pro:GettingStarted#Profile_Settings")]

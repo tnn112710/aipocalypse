@@ -17,6 +17,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro.PrefabModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [ExecuteInEditMode]
     [DefaultExecutionOrder(100)]
 #if !UNITY_6000_3_0 && !GPUIPRO_NO_HELPURL
@@ -37,7 +40,6 @@ namespace GPUInstancerPro.PrefabModule
         private NativeArray<JobHandle> _jobHandles;
         private List<int> _prefabIDCheckList;
         private static readonly List<string> MATERIAL_VARIATION_SHADER_KEYWORDS = new List<string>() { GPUIPrefabConstants.Kw_GPUI_MATERIAL_VARIATION };
-        private static readonly Matrix4x4 ZERO_MATRIX = Matrix4x4.zero;
         [NonSerialized]
         private bool _requireTransformUpdate;
 
@@ -424,7 +426,7 @@ namespace GPUInstancerPro.PrefabModule
                 prototypeData.UpdateTransformAccessArray();
 
                 prototypeData.autoUpdateTransformsJob.instanceCount = prototypeData.instanceCount;
-                prototypeData.autoUpdateTransformsJob.zeroMatrix = ZERO_MATRIX;
+                prototypeData.autoUpdateTransformsJob.zeroMatrix = GPUIConstants.Matrix4x4_ZERO;
                 prototypeData.autoUpdateTransformsJob.p_matrixArray = prototypeData.GetMatrixArrayUnsafePtr();
                 prototypeData.autoUpdateTransformsJob.p_isModifiedArray = NativeArrayUnsafeUtility.GetUnsafePtr(prototypeData.isModifiedArray);
                 _jobHandles[i] = prototypeData.autoUpdateTransformsJob.ScheduleReadOnly(prototypeData.transformAccessArray, TRANSFORM_UPDATE_JOB_BATCH_SIZE);
@@ -636,7 +638,7 @@ namespace GPUInstancerPro.PrefabModule
                                     }
                                 }
                             }
-                            prototypeData.SetMatrix(lastIndex, ZERO_MATRIX);
+                            prototypeData.SetMatrix(lastIndex, GPUIConstants.Matrix4x4_ZERO);
 
                             lastIndex--;
                         }

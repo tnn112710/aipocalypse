@@ -9,6 +9,9 @@ using UnityEngine.UIElements;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(GPUIRuntimeSettings))]
     public class GPUIRuntimeSettingsEditor : GPUIEditor
     {

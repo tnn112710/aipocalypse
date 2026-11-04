@@ -13,6 +13,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro.CrowdAnimations
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [ExecuteInEditMode]
     [DefaultExecutionOrder(-110)]
     public class GPUICrowdSkinningSystem : GPUISystemExtension

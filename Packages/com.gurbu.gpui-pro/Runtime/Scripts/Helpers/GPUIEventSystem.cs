@@ -10,6 +10,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
 #if !UNITY_6000_3_0 && !GPUIPRO_NO_HELPURL
     [HelpURL("https://wiki.gurbu.com/index.php?title=GPU_Instancer_Pro:GettingStarted#GPUI_Event_System")]
 #endif

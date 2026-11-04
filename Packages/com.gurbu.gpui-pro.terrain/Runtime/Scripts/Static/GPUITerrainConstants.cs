@@ -8,6 +8,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro.TerrainModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUITerrainConstants
     {
         #region Paths & File Names

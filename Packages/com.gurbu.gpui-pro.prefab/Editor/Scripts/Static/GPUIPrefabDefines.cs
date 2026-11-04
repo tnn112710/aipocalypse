@@ -3,16 +3,22 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace GPUInstancerPro.PrefabModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [InitializeOnLoad]
     public static class GPUIPrefabDefines
     {
         private static readonly string PACKAGE_NAME = "com.gurbu.gpui-pro.prefab";
         private static readonly string[] AUTO_PACKAGE_IMPORTER_GUIDS = { };
+        private static int _demoShaderRetryCount;
+        private static double _demoShaderRetryTime;
 
         static GPUIPrefabDefines()
         {
@@ -54,28 +60,59 @@ namespace GPUInstancerPro.PrefabModule
 
         private static void OnDemosImported()
         {
+            EditorApplication.update -= RetryDemoShaderGeneration;
             if (GPUIRuntimeSettings.Instance.IsBuiltInRP)
+            {
+                _demoShaderRetryCount = 0;
                 return;
-            AssetDatabase.Refresh();
-            string assetPath = GPUIConstants.GetDefaultPath() + GPUIProDemoImporter.DEMOS_PATH + "/Prefab/_SharedResources/SRPDependent/MaterialVariations/TreePineLP_GPUIVariationDefinition.asset";
-            GPUIMaterialVariationDefinition mvDef = AssetDatabase.LoadAssetAtPath<GPUIMaterialVariationDefinition>(assetPath);
-            if (mvDef != null)
-                GPUIMaterialVariationEditorUtility.GenerateShader(mvDef);
+            }
+
+            try
+            {
+                string assetPath = GPUIConstants.GetDefaultPath() + GPUIProDemoImporter.DEMOS_PATH + "/Prefab/_SharedResources/SRPDependent/MaterialVariations/TreePineLP_GPUIVariationDefinition.asset";
+                GPUIMaterialVariationDefinition mvDef = AssetDatabase.LoadAssetAtPath<GPUIMaterialVariationDefinition>(assetPath);
+                if (mvDef != null)
+                    GPUIMaterialVariationEditorUtility.GenerateShader(mvDef);
 #if GPUIPRO_DEVMODE
-            else
-                Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "Cant find asset at path: " + assetPath);
+                else
+                    Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "Cant find asset at path: " + assetPath);
 #endif
 
 #if GPUI_CROWD
-            assetPath = GPUIConstants.GetDefaultPath() + GPUIProDemoImporter.DEMOS_PATH + "/CrowdAnimations/_SharedResources/SRPDependent/MaterialVariations/Chomper_GPUIVariationDefinition.asset";
-            mvDef = AssetDatabase.LoadAssetAtPath<GPUIMaterialVariationDefinition>(assetPath);
-            if (mvDef != null)
-                GPUIMaterialVariationEditorUtility.GenerateShader(mvDef);
+                assetPath = GPUIConstants.GetDefaultPath() + GPUIProDemoImporter.DEMOS_PATH + "/CrowdAnimations/_SharedResources/SRPDependent/MaterialVariations/Chomper_GPUIVariationDefinition.asset";
+                mvDef = AssetDatabase.LoadAssetAtPath<GPUIMaterialVariationDefinition>(assetPath);
+                if (mvDef != null)
+                    GPUIMaterialVariationEditorUtility.GenerateShader(mvDef);
 #if GPUIPRO_DEVMODE
-            else
-                Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "Cant find asset at path: " + assetPath);
+                else
+                    Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "Cant find asset at path: " + assetPath);
 #endif
 #endif
+                _demoShaderRetryCount = 0;
+            }
+            catch (IOException exception) when (GPUIEditorUtility.IsFileMappedException(exception))
+            {
+                if (_demoShaderRetryCount >= 5)
+                {
+                    _demoShaderRetryCount = 0;
+                    Debug.LogError(GPUIConstants.LOG_PREFIX + "Could not generate demo variation shaders because a file is still memory-mapped: " + exception.Message);
+                    return;
+                }
+
+                _demoShaderRetryCount++;
+                _demoShaderRetryTime = EditorApplication.timeSinceStartup + 1;
+                EditorApplication.update += RetryDemoShaderGeneration;
+#if GPUIPRO_DEVMODE
+                Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "File is memory-mapped, retry scheduled: " + exception.Message);
+#endif
+            }
+        }
+
+        private static void RetryDemoShaderGeneration()
+        {
+            if (EditorApplication.timeSinceStartup < _demoShaderRetryTime)
+                return;
+            OnDemosImported();
         }
     }
 }

@@ -11,6 +11,9 @@ using System.Text;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUIShaderUtility
     {
         private static string INCLUDE_BUILTIN_FILE = "\"UnityCG.cginc\"";
@@ -38,6 +41,7 @@ namespace GPUInstancerPro
         private static string SEARCH_END_ENDHLSL = "ENDHLSL";
         private static string PRAGMA_GPUI_SETUP = "#pragma instancing_options procedural:setupGPUI\n#pragma multi_compile_instancing\n";
         private static string PRAGMA_URP_OBJECTMOTIONVECTORS = "#include_with_pragmas \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl\"";
+        private static string PRAGMA_URP_OBJECTMOTIONVECTORS2 = "#include_with_pragmas \"Packages/com.unity.render-pipelines.universal/Shaders/Utils/ObjectMotionVectors.hlsl\"";
         private static string FILE_NAME_SUFFIX = "_GPUIPro";
 
         private static List<string> CROWD_WHITE_LIST = new List<string>
@@ -449,6 +453,23 @@ namespace GPUInstancerPro
                         newShaderText = newShaderText.Remove(indexOfURPMotionVectorsHLSL, PRAGMA_URP_OBJECTMOTIONVECTORS.Length);
                         newShaderText = newShaderText.Insert(indexOfURPMotionVectorsHLSL, includeContent);
                         indexOfURPMotionVectorsHLSL = newShaderText.IndexOf(PRAGMA_URP_OBJECTMOTIONVECTORS, indexOfURPMotionVectorsHLSL + includeContent.Length);
+                    }
+                }
+            }
+
+            if (GPUIRuntimeSettings.Instance.IsURP && newShaderText.Contains(PRAGMA_URP_OBJECTMOTIONVECTORS2))
+            {
+                string path = "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ObjectMotionVectors.hlsl";
+                if (File.Exists(path))
+                {
+                    string includeContent = File.ReadAllText(path);
+                    includeContent = includeContent.Replace("#pragma multi_compile_instancing", "");
+                    int indexOfURPMotionVectorsHLSL = newShaderText.IndexOf(PRAGMA_URP_OBJECTMOTIONVECTORS2);
+                    while (indexOfURPMotionVectorsHLSL > 0)
+                    {
+                        newShaderText = newShaderText.Remove(indexOfURPMotionVectorsHLSL, PRAGMA_URP_OBJECTMOTIONVECTORS2.Length);
+                        newShaderText = newShaderText.Insert(indexOfURPMotionVectorsHLSL, includeContent);
+                        indexOfURPMotionVectorsHLSL = newShaderText.IndexOf(PRAGMA_URP_OBJECTMOTIONVECTORS2, indexOfURPMotionVectorsHLSL + includeContent.Length);
                     }
                 }
             }
@@ -1049,14 +1070,9 @@ namespace GPUInstancerPro
 
         private static Shader SaveInstancedShader(string newShaderText, string newAssetPath, string newShaderName)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(newShaderText);
-            GPUIEditorUtility.VersionControlCheckout(newAssetPath);
-            FileStream fs = File.Create(newAssetPath);
-            fs.Write(bytes, 0, bytes.Length);
-            fs.Close();
+            GPUIEditorUtility.WriteTextFileIfChanged(newShaderText, newAssetPath);
             EditorUtility.DisplayProgressBar("GPU Instancer Shader Conversion", "Importing instanced shader...", 0.8f);
             AssetDatabase.ImportAsset(newAssetPath, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.Refresh();
 
             Shader instancedShader = AssetDatabase.LoadAssetAtPath<Shader>(newAssetPath);
             if (instancedShader == null)
@@ -1250,6 +1266,11 @@ namespace GPUInstancerPro
                 EditorUtility.ClearProgressBar();
 
                 return instancedShader;
+            }
+            catch (IOException exception) when (GPUIEditorUtility.IsFileMappedException(exception))
+            {
+                EditorUtility.ClearProgressBar();
+                throw;
             }
             catch (Exception e)
             {

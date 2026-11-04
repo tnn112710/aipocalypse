@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class GPUIMultiAddWindow : EditorWindow
     {
         private static GPUIManagerEditor _managerEditor;

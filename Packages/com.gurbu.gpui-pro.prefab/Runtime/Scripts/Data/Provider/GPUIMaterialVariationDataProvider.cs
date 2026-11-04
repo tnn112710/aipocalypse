@@ -12,6 +12,9 @@ namespace GPUInstancerPro.PrefabModule
     /// Key => Variation Definition Instance ID & RenderKey Hash
     /// Value => Variation Data
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class GPUIMaterialVariationDataProvider : GPUIDataProvider<int, GPUIMaterialVariationData>
     {
         public static GPUIMaterialVariationDataProvider _instance;

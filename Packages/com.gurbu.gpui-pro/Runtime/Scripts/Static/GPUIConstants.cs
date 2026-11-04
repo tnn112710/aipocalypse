@@ -9,6 +9,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUIConstants
     {
         #region Paths & File Names
@@ -297,7 +300,7 @@ namespace GPUInstancerPro
 
         public const string Kw_GPUI_TRANSFORM_DATA = "GPUI_TRANSFORM_DATA";
         public const string Kw_GPUI_UINT_BUFFER = "GPUI_UINT_BUFFER";
-        
+
         private static ComputeShader _CS_TextureUtility;
         public static ComputeShader CS_TextureUtility
         {
@@ -308,7 +311,6 @@ namespace GPUInstancerPro
                 return _CS_TextureUtility;
             }
         }
-
 
         private static ComputeShader _CS_HiZTextureCopy;
         public static ComputeShader CS_HiZTextureCopy
@@ -354,7 +356,7 @@ namespace GPUInstancerPro
             }
         }
         public const string Kw_GPUI_FLOAT4_BUFFER = "GPUI_FLOAT4_BUFFER";
-        
+
         private static ComputeShader _CS_TransformModifications;
         public static ComputeShader CS_TransformModifications
         {
@@ -564,6 +566,7 @@ namespace GPUInstancerPro
         public static readonly int[] INSTANCING_BOUNDS_DEFAULT_BUFFER_VALUES = new int[] { int.MaxValue, int.MaxValue, int.MaxValue, int.MinValue, int.MinValue, int.MinValue };
 
         public static readonly Matrix4x4 IDENTITY_Matrix4x4 = Matrix4x4.identity;
+        public static readonly Matrix4x4 Matrix4x4_ZERO = Matrix4x4.zero;
         public static readonly Quaternion IDENTITY_Quaternion = Quaternion.identity;
         public static readonly Bounds Bounds_ZERO = new Bounds();
         public static readonly Vector4 Vector4_ZERO = Vector4.zero;

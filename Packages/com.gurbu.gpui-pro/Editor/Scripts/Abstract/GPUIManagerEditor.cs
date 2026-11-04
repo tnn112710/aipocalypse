@@ -12,6 +12,9 @@ using Button = UnityEngine.UIElements.Button;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public abstract class GPUIManagerEditor : GPUIEditor
     {
         protected GPUIManager _gpuiManager;
@@ -210,7 +213,7 @@ namespace GPUInstancerPro
             _managerHelpBoxesVE.Clear();
             _managerHelpBoxesVE.Add(new IMGUIContainer(ShowManagerHelpBoxes));
             if (GPUIRuntimeSettings.Instance.Unsupported_Unity_Version)
-                _managerHelpBoxesVE.Add(new GPUIHelpBox($"<b><size=12>Unsupported Unity Version</size></b>\nThe Unity version <b>{Application.unityVersion}</b> is not officially supported. Please use one of the following supported versions:\n • <b>2022.3 LTS</b> (2022.3.32 or later)\n • <b>6000 LTS</b> (6000.0.23 or later)", HelpBoxMessageType.Error));
+                _managerHelpBoxesVE.Add(new GPUIHelpBox($"<b><size=12>Unsupported Unity Version</size></b>\nThe Unity version <b>{Application.unityVersion}</b> is not officially supported. Please use one of the following supported versions:\n â€¢ <b>2022.3 LTS</b> (2022.3.32 or later)\n â€¢ <b>6000 LTS</b> (6000.0.23 or later)", HelpBoxMessageType.Error));
 
             _managerSettingsContentVE = rootElement.Q("ManagerSettingsContent");
             _managerAdvancedSettingsFoldout = rootElement.Q<Foldout>("ManagerAdvancedSettingsFoldout");

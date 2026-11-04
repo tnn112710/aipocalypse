@@ -118,12 +118,14 @@ namespace GPUInstancerPro
                         probeVolume.lowestSubdivLevelOverride = 1;
 
                         LightingSettings lightingSettings = Lightmapping.lightingSettings;
+#if !UNITY_6000_7_OR_NEWER
                         if (lightingSettings != null)
                             lightingSettings.realtimeGI = false;
+#endif
                     }
                 }
             }
 #endif
-        }
-    }
+                    }
+                }
 }

@@ -13,6 +13,9 @@ using UnityEngine.UIElements;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUIEditorUtility
     {
         #region Custom Editor
@@ -1297,13 +1300,25 @@ namespace GPUInstancerPro
 
         public static void SaveToTextFile(this string text, string filePath)
         {
+            WriteTextFileIfChanged(text, filePath);
+            AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
+        }
+
+        public static bool WriteTextFileIfChanged(string text, string filePath)
+        {
+            if (System.IO.File.Exists(filePath) && System.IO.File.ReadAllText(filePath) == text)
+                return false;
+
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(text);
             VersionControlCheckout(filePath);
-            System.IO.FileStream fs = System.IO.File.Create(filePath);
-            fs.Write(bytes, 0, bytes.Length);
-            fs.Close();
-            AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.Refresh();
+            using (System.IO.FileStream stream = System.IO.File.Create(filePath))
+                stream.Write(bytes, 0, bytes.Length);
+            return true;
+        }
+
+        public static bool IsFileMappedException(System.IO.IOException exception)
+        {
+            return (exception.HResult & 0xFFFF) == 1224 || exception.Message.Contains("Win32 IO returned 1224");
         }
 
         public static void SetToolbarButtonActive(this ToolbarButton toolbarButton, bool active)

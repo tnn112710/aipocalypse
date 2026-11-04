@@ -23,6 +23,9 @@ namespace GPUInstancerPro
     /// It is a singleton that persists between scenes. 
     /// It should not be added or removed manually.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [ExecuteInEditMode]
     [DefaultExecutionOrder(1000)]
 #if !UNITY_6000_3_0 && !GPUIPRO_NO_HELPURL
@@ -425,6 +428,12 @@ namespace GPUInstancerPro
                 transformBufferData.SetMPBBuffers(mpb, cameraData);
                 mpb.SetInt(GPUIConstants.PROP_rsgCommandStartIndex, (int)cameraData._visibilityBuffer[visibilityBufferIndex].commandStartIndex);
                 _renderParams.matProps = mpb;
+
+                // Skip shadow draws when the entire group's bounds are beyond the shadow distance.
+                if (isProfileShadowCasting && profile.isShadowDistanceCulling && profile.customShadowDistance > 0f && transformBufferData.HasInstancingBounds && transformBufferData._instancingBounds.SqrDistance(_worldBounds.center) > profile.customShadowDistance * profile.customShadowDistance)
+                {
+                    isProfileShadowCasting = false;
+                }
 
                 bool isProfileAllowLightProbes = profile.lightProbeSetting != GPUILightProbeSetting.Off;
 

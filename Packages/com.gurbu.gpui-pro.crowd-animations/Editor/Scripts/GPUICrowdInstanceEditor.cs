@@ -11,6 +11,9 @@ using UnityEngine.UIElements;
 
 namespace GPUInstancerPro.CrowdAnimations
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(GPUICrowdInstance)), CanEditMultipleObjects]
     public class GPUICrowdInstanceEditor : GPUIEditor
     {

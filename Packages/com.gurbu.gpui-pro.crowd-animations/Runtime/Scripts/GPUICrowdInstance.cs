@@ -15,6 +15,9 @@ namespace GPUInstancerPro.CrowdAnimations
     /// <summary>
     /// This component is automatically attached to prefabs that are used as crowd prototypes to identify them
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
 #if !UNITY_6000_3_0 && !GPUIPRO_NO_HELPURL
     [HelpURL("https://wiki.gurbu.com/index.php?title=GPU_Instancer_Pro-Crowd_Animations#GPUI_Crowd_Instance")]
 #endif

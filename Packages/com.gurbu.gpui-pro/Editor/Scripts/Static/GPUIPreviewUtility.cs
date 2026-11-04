@@ -10,6 +10,9 @@ using Object = UnityEngine.Object;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [InitializeOnLoad]
     public static class GPUIPreviewCache
     {
@@ -110,7 +113,9 @@ namespace GPUInstancerPro
             _camera.farClipPlane = 100;
             _camera.nearClipPlane = -100;
             _camera.renderingPath = RenderingPath.Forward;
+#if !UNITY_6000_7_OR_NEWER
             _camera.useOcclusionCulling = false;
+#endif
             _camera.orthographic = true;
             _camera.backgroundColor = Color.clear;
             _camera.cullingMask = 1 << _sampleLayer;

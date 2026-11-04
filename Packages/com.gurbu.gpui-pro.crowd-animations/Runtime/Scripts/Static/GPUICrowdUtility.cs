@@ -18,6 +18,9 @@ using UnityEditor;
 
 namespace GPUInstancerPro.CrowdAnimations
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class GPUICrowdUtility
     {
         #region Crowd Rig Methods

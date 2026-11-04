@@ -9,10 +9,13 @@ using UnityEngine;
 
 namespace GPUInstancerPro.CrowdAnimations
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [InitializeOnLoad]
     public static class GPUICrowdDefines
     {
-        public static string VERSION_TEXT = "0.10.6"; // Current Crowd Animations version
+        public static string VERSION_TEXT = "0.10.7"; // Current Crowd Animations version
         public static Version DEMO_UPDATE_VERSION = Version.Parse("0.9.0"); // The package version where the demo scenes were last updated and needs to be reimported.
         public static readonly string PACKAGE_NAME = "com.gurbu.gpui-pro.crowd-animations";
         private static readonly string[] AUTO_PACKAGE_IMPORTER_GUIDS = { };

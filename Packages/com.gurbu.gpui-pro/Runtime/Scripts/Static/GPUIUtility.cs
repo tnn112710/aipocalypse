@@ -1846,11 +1846,39 @@ namespace GPUInstancerPro
             return (T)methodInfo.CreateDelegate(typeof(T));
         }
 
-        private static readonly FieldInfo _listItemsField = typeof(List<>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance);
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+        private static class ListItemsCache<T>
+        {
+            internal static readonly FieldInfo ItemsField = typeof(List<T>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance);
+        }
 
+        /// <summary>
+        /// Returns the list's backing array without copying when its private storage is accessible.
+        /// Falls back to an allocated copy if the runtime does not expose compatible storage.
+        /// Only the first list.Count elements are valid. Do not retain the array across list resizing,
+        /// modify the list while using it, or rely on writes to the array updating the list.
+        /// </summary>
         public static T[] GetListInternalArray<T>(List<T> list)
         {
-            return (T[])_listItemsField.GetValue(list);
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            FieldInfo itemsField = ListItemsCache<T>.ItemsField;
+            if (itemsField != null && itemsField.FieldType == typeof(T[]))
+            {
+                try
+                {
+                    if (itemsField.GetValue(list) is T[] items)
+                        return items;
+                }
+                catch (MemberAccessException)
+                {
+                    // Some player runtimes restrict access to private framework fields.
+                }
+            }
+            return list.ToArray();
         }
         #endregion Reflection
 

@@ -12,6 +12,9 @@ using UnityEngine.UIElements;
 
 namespace GPUInstancerPro.PrefabModule
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(GPUIMaterialVariationDefinition))]
     public class GPUIMaterialVariationDefinitionEditor : GPUIEditor
     {

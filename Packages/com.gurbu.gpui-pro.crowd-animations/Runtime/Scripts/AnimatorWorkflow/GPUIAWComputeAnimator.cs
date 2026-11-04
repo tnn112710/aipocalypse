@@ -9,6 +9,9 @@ namespace GPUInstancerPro.CrowdAnimations
     /// <summary>
     /// Performant, GPU based animator that can be used with API calls.
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class GPUIAWComputeAnimator : GPUIAnimatorWorkflowBase
     {
         #region Animator Workflow Definition

@@ -1,8 +1,6 @@
 // GPU Instancer Pro
 // Copyright (c) GurBu Technologies
 
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -36,8 +34,6 @@ namespace GPUInstancerPro.PrefabModule
             if (!IsValidVariationDefinition(variationDefinition))
                 return;
 
-            GenerateHLSLIncludeFile(variationDefinition);
-
             string extensionCode = null;
 #if GPUI_CROWD
             if (variationDefinition.isCrowdAnimations)
@@ -50,6 +46,7 @@ namespace GPUInstancerPro.PrefabModule
             string originalShaderPath = AssetDatabase.GetAssetPath(shader);
             if (originalShaderPath.EndsWith(".shadergraph"))
             {
+                GenerateHLSLIncludeFile(variationDefinition);
                 variationDefinition.replacementShader = shader;
                 GenerateSubGraph(variationDefinition);
                 return;
@@ -60,7 +57,8 @@ namespace GPUInstancerPro.PrefabModule
             if (originalShaderPath.StartsWith("Packages/") && string.IsNullOrEmpty(createAtPath))
                 createAtPath = variationDefinition.GetAssetFolderPath() + variationDefinition.name.Replace("_GPUIVariationDefinition", "_Variation") + Path.GetExtension(originalShaderPath);
 
-            string includeRelativePath = GPUIUtility.GetRelativePathForShader(createAtPath != null ? createAtPath : originalShaderPath, AssetDatabase.GetAssetPath(variationDefinition.shaderIncludeFile));
+            string includeFileText = BuildHLSLIncludeFile(variationDefinition, out string includeFilePath);
+            string includeRelativePath = GPUIUtility.GetRelativePathForShader(createAtPath != null ? createAtPath : originalShaderPath, includeFilePath);
 
             string setupText = "#pragma multi_compile_instancing\n";
             setupText += "#pragma shader_feature_local _ " + GPUIPrefabConstants.Kw_GPUI_MATERIAL_VARIATION + "\n";
@@ -73,10 +71,18 @@ namespace GPUInstancerPro.PrefabModule
                 setupText = "#include_with_pragmas \"Packages/com.gurbu.gpui-pro.crowd-animations/Runtime/Shaders/Include/GPUICrowdSetup.hlsl\"\n" + setupText;
 #endif
 
-            variationDefinition.replacementShader = GPUIShaderUtility.CreateInstancedShader(shader, null, setupText, false, "GPUInstancerPro/Variation/" + variationDefinition.name.Replace("_GPUIVariationDefinition", "_"), variationDefinition.name.Replace("_GPUIVariationDefinition", "_Variation"), createAtPath, true, setupEndText);
-            if (variationDefinition.replacementShader == null)
+            // Write the include without importing it before the dependent shader is written.
+            GPUIEditorUtility.WriteTextFileIfChanged(includeFileText, includeFilePath);
+            Shader replacementShader = GPUIShaderUtility.CreateInstancedShader(shader, null, setupText, false, "GPUInstancerPro/Variation/" + variationDefinition.name.Replace("_GPUIVariationDefinition", "_"), variationDefinition.name.Replace("_GPUIVariationDefinition", "_Variation"), createAtPath, true, setupEndText);
+            if (replacementShader == null)
+            {
                 Debug.LogError(GPUIConstants.LOG_PREFIX + string.Format(GPUIEditorConstants.ERRORTEXT_shaderConversion, shader.name), shader);
+                return;
+            }
 
+            AssetDatabase.ImportAsset(includeFilePath, ImportAssetOptions.ForceUpdate);
+            variationDefinition.replacementShader = replacementShader;
+            variationDefinition.shaderIncludeFile = AssetDatabase.LoadAssetAtPath<ShaderInclude>(includeFilePath);
             EditorUtility.SetDirty(variationDefinition);
         }
 
@@ -102,6 +108,15 @@ namespace GPUInstancerPro.PrefabModule
             if (!IsValidVariationDefinition(variationDefinition))
                 return;
 
+            string includeFileText = BuildHLSLIncludeFile(variationDefinition, out string filePath);
+            includeFileText.SaveToTextFile(filePath);
+            variationDefinition.shaderIncludeFile = AssetDatabase.LoadAssetAtPath<ShaderInclude>(filePath);
+            EditorUtility.SetDirty(variationDefinition);
+            Debug.Log(GPUIConstants.LOG_PREFIX + "Shader include file has been successfully generated at path: " + filePath, variationDefinition.shaderIncludeFile);
+        }
+
+        private static string BuildHLSLIncludeFile(GPUIMaterialVariationDefinition variationDefinition, out string filePath)
+        {
             string includeFileText = GPUIPrefabEditorConstants.MaterialVariationsHLSLTemplate;
             includeFileText = includeFileText.Replace(GPUIPrefabEditorConstants.PLACEHOLDER_VariationBufferName, variationDefinition.bufferName);
             includeFileText = includeFileText.Replace(GPUIPrefabEditorConstants.PLACEHOLDER_MaterialVariationKeyword, GPUIPrefabConstants.Kw_GPUI_MATERIAL_VARIATION);
@@ -118,7 +133,6 @@ namespace GPUInstancerPro.PrefabModule
             }
             includeFileText = includeFileText.Replace(GPUIPrefabEditorConstants.PLACEHOLDER_VariationSetupCode, variationSetupCode);
 
-            string filePath;
             if (variationDefinition.shaderIncludeFile != null)
                 filePath = AssetDatabase.GetAssetPath(variationDefinition.shaderIncludeFile);
             else
@@ -127,12 +141,7 @@ namespace GPUInstancerPro.PrefabModule
                 filePath = folderPath + variationDefinition.name.Replace("Definition", "Include") + ".hlsl";
             }
 
-            includeFileText.SaveToTextFile(filePath);
-
-            variationDefinition.shaderIncludeFile = AssetDatabase.LoadAssetAtPath<ShaderInclude>(filePath);
-            EditorUtility.SetDirty(variationDefinition);
-
-            Debug.Log(GPUIConstants.LOG_PREFIX + "Shader include file has been successfully generated at path: " + filePath, variationDefinition.shaderIncludeFile);
+            return includeFileText;
         }
     }
 }

@@ -10,10 +10,13 @@ using UnityEngine;
 
 namespace GPUInstancerPro
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [InitializeOnLoad]
     public static class GPUIDefines
     {
-        public static readonly uint GPUI_PRO_BUILD_NO = 59;
+        public static readonly uint GPUI_PRO_BUILD_NO = 60;
         public static Version DEMO_UPDATE_VERSION = Version.Parse("0.12.7"); // The package version where the demo scenes were last updated and needs to be reimported.
         public static Version REGENERATE_SHADERS_VERSION = Version.Parse("0.12.12"); // The package version where the automatic shader converter has been modified and the shaders will be regenerated.
         public static readonly string PACKAGE_NAME = "com.gurbu.gpui-pro";
@@ -48,11 +51,17 @@ namespace GPUInstancerPro
         public static event Action OnImportDemos;
 
         private static bool _executeOnImportDemosAfterPackageImport = false;
+        private static string _activePackageImport;
+        private const string ACTIVE_PACKAGE_IMPORT_KEY = "GPUInstancerPro.ActivePackageImport";
 
         private static UnityEditor.PackageManager.Requests.ListRequest _packageListRequest;
 
         static GPUIDefines()
         {
+            _activePackageImport = SessionState.GetString(ACTIVE_PACKAGE_IMPORT_KEY, string.Empty);
+            AssetDatabase.importPackageCompleted += OnPackageImportCompleted;
+            AssetDatabase.importPackageFailed += OnPackageImportFailed;
+            AssetDatabase.importPackageCancelled += OnPackageImportCancelled;
             GPUIRenderingSystem.editor_UpdateMethod = OnEditorUpdate;
             // Delayed to wait for asset loading
             EditorApplication.delayCall -= DelayedInitialization;
@@ -335,23 +344,73 @@ namespace GPUInstancerPro
 
         #region Editor Update
 
+        private static bool IsActivePackageImport(string packageName)
+        {
+            return !string.IsNullOrEmpty(_activePackageImport) && (packageName == _activePackageImport || packageName == Path.GetFileName(_activePackageImport) || packageName == Path.GetFileNameWithoutExtension(_activePackageImport));
+        }
+
+        private static void OnPackageImportCompleted(string packageName)
+        {
+            if (!IsActivePackageImport(packageName))
+                return;
+
+            GPUIEditorSettings editorSettings = GPUIEditorSettings.Instance;
+            editorSettings.packageImportList?.Remove(_activePackageImport);
+            EditorUtility.SetDirty(editorSettings);
+            _activePackageImport = null;
+            SessionState.EraseString(ACTIVE_PACKAGE_IMPORT_KEY);
+        }
+
+        private static void OnPackageImportFailed(string packageName, string errorMessage)
+        {
+            if (IsActivePackageImport(packageName))
+                StopPackageImports("Failed to import " + _activePackageImport + ": " + errorMessage);
+        }
+
+        private static void OnPackageImportCancelled(string packageName)
+        {
+            if (IsActivePackageImport(packageName))
+                StopPackageImports("Package import cancelled: " + _activePackageImport);
+        }
+
+        private static void StopPackageImports(string message)
+        {
+            GPUIEditorSettings editorSettings = GPUIEditorSettings.Instance;
+            editorSettings.packageImportList?.Clear();
+            EditorUtility.SetDirty(editorSettings);
+            _activePackageImport = null;
+            SessionState.EraseString(ACTIVE_PACKAGE_IMPORT_KEY);
+            _executeOnImportDemosAfterPackageImport = false;
+            Debug.LogError(GPUIConstants.LOG_PREFIX + message + " Remaining queued imports were cancelled. Retry the import after resolving the issue.");
+        }
+
         private static void OnEditorUpdate()
         {
             GPUIEditorSettings editorSettings = GPUIEditorSettings.Instance;
             if (GPUIRenderingSystem.IsActive)
             {
-                if (editorSettings.isAutoShaderConversion)
+                if (editorSettings.isAutoShaderConversion && string.IsNullOrEmpty(_activePackageImport) && (editorSettings.packageImportList == null || editorSettings.packageImportList.Count == 0) && !EditorApplication.isUpdating && !EditorApplication.isCompiling)
                     GPUIShaderUtility.AutoShaderConverterUpdate();
             }
 
-            if (!Application.isPlaying)
+            if (!Application.isPlaying && string.IsNullOrEmpty(_activePackageImport) && !EditorApplication.isUpdating && !EditorApplication.isCompiling)
             {
                 if (editorSettings.packageImportList != null && editorSettings.packageImportList.Count > 0)
                 {
                     string packagePath = editorSettings.packageImportList[0];
-                    editorSettings.packageImportList.RemoveAt(0);
-                    EditorUtility.SetDirty(editorSettings);
-                    if (System.IO.File.Exists(packagePath))
+                    if (!File.Exists(packagePath))
+                    {
+                        editorSettings.packageImportList.RemoveAt(0);
+                        EditorUtility.SetDirty(editorSettings);
+#if GPUIPRO_DEVMODE
+                        Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "Can not find package at path: " + packagePath);
+#endif
+                        return;
+                    }
+
+                    _activePackageImport = packagePath;
+                    SessionState.SetString(ACTIVE_PACKAGE_IMPORT_KEY, packagePath);
+                    try
                     {
 #if UNITY_6000_6_OR_NEWER
                         UnityEditor.AssetPackage.Package.Import(packagePath, false);
@@ -359,10 +418,11 @@ namespace GPUInstancerPro
                         AssetDatabase.ImportPackage(packagePath, false);
 #endif
                     }
-#if GPUIPRO_DEVMODE
-                    else
-                        Debug.LogWarning(GPUIConstants.LOG_PREFIX + GPUIConstants.LOG_PREFIX_DEV + "Can not find package at path: " + packagePath);
-#endif
+                    catch (Exception exception)
+                    {
+                        StopPackageImports("Failed to import " + packagePath + ": " + exception.Message);
+                    }
+                    return;
                 }
                 else if (_executeOnImportDemosAfterPackageImport)
                 {
