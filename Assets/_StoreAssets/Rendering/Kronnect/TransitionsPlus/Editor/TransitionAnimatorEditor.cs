@@ -6,6 +6,9 @@ using System.Reflection;
 using System;
 using Object = UnityEngine.Object;
 
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Unity", "UAL0010", Scope = "namespaceanddescendants", Target = "~N:TransitionsPlus")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Unity", "UAL0013", Scope = "namespaceanddescendants", Target = "~N:TransitionsPlus")]
+
 namespace TransitionsPlus {
 
     [CustomEditor(typeof(TransitionAnimator))]

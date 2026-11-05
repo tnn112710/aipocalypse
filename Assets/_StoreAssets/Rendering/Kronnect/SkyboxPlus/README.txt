@@ -1,6 +1,6 @@
 **************************************
 *            SKYBOX  PLUS            *
-* Created by Ramiro Oliva (Kronnect) * 
+*         Created by Kronnect        * 
 *            README FILE             *
 **************************************
 
@@ -55,6 +55,9 @@ https://assetstore.unity.com/publishers/15018
 
 Version history
 ---------------
+
+Version 2.1.1
+- Improved compatibility with Unity 6.7
 
 Version 2.1
 - Materials, textures and shaders moved out of the Resources folder so they no longer increase build size when unused

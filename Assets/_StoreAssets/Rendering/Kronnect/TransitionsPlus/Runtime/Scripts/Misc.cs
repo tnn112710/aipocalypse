@@ -1,6 +1,9 @@
 using UnityEngine;
 using System;
 
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Unity", "UAL0010", Scope = "namespaceanddescendants", Target = "~N:TransitionsPlus")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Unity", "UAL0013", Scope = "namespaceanddescendants", Target = "~N:TransitionsPlus")]
+
 namespace TransitionsPlus {
     public class Misc {
         public static T FindObjectOfType<T>(bool includeInactive = false) where T : UnityEngine.Object {

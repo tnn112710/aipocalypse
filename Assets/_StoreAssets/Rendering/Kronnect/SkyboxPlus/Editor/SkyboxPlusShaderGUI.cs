@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Unity", "UAL0010", Scope = "namespaceanddescendants", Target = "~N:SkyboxPlus")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Unity", "UAL0013", Scope = "namespaceanddescendants", Target = "~N:SkyboxPlus")]
+
 namespace SkyboxPlus {
 
     public class SkyboxPlusShaderGUI : ShaderGUI {
@@ -135,9 +138,15 @@ namespace SkyboxPlus {
             foreach (MaterialProperty prop in buffer) {
                 if (prop.name == "_FogColor" && useUnityFog != null && useUnityFog.floatValue > 0) continue;
                 string label = Trim(prop.displayName);
+#if UNITY_6000_3_OR_NEWER
                 if (prop.propertyType == UnityEngine.Rendering.ShaderPropertyType.Texture) {
                     materialEditor.TexturePropertySingleLine(new GUIContent(label), prop);
                     if ((prop.propertyFlags & UnityEngine.Rendering.ShaderPropertyFlags.NoScaleOffset) == 0) {
+#else
+                if (prop.type == MaterialProperty.PropType.Texture) {
+                    materialEditor.TexturePropertySingleLine(new GUIContent(label), prop);
+                    if ((prop.flags & MaterialProperty.PropFlags.NoScaleOffset) == 0) {
+#endif
                         EditorGUI.indentLevel++;
                         materialEditor.TextureScaleOffsetProperty(prop);
                         EditorGUI.indentLevel--;
