@@ -1,0 +1,322 @@
+[
+  {
+    "source": "DOOM (2016) - GDC 2018 'Embracing Push Forward Combat in DOOM' (Kurt Loudy, Jake Campbell, id Software)",
+    "kind": "talk",
+    "url": "https://gdcvault.com/play/1024940/Embracing-Push-Forward-Combat-in",
+    "topic": "ammo economy",
+    "what_they_do": "id dropped regenerating health, reloading and cover; per the session description the enemies are 'locked in a room with you' rather than an overwhelming horde, and the onus is on the player 'to take what they need from adversaries'.",
+    "takeaway": "With scarce ammo, make some enemies part of the resupply (e.g. a melee kill on fodder drops a few rounds or scrap) so scarcity pulls the player into fights instead of into hoarding."
+  },
+  {
+    "source": "DOOM (2016) - Tommy Thompson, 'Cyber Demons: The AI of DOOM (2016)', Game Developer, 2018",
+    "kind": "article",
+    "url": "https://www.gamedeveloper.com/design/cyber-demons-the-ai-of-doom-2016-",
+    "topic": "ranged fairness",
+    "what_they_do": "Each attack type (melee, ranged, charged) draws from a limited token pool per difficulty, so only a few demons attack at once; demon accuracy drops as the player moves faster, AI holds off while a glory kill plays, and demons take 'exposed' spots near cover that keep them visible.",
+    "takeaway": "Gate attacks with per-type tokens and drop ranged accuracy with player speed, so a 40-enemy raid never means 40 simultaneous shots."
+  },
+  {
+    "source": "DOOM Eternal - Kris Graft, 'The aggressive resource management of Doom Eternal', Game Developer, 2019",
+    "kind": "article",
+    "url": "https://www.gamedeveloper.com/design/the-aggressive-resource-management-of-i-doom-eternal-i-",
+    "topic": "ammo economy",
+    "what_they_do": "Chainsaw a demon for ammo, glory-kill it for health, flame-belch it for armor; bigger demons have weak spots players 'pick apart... by the chunk', and the Carcass's shields cut players off from the demons that supply resources. Hugo Martin: 'every gun, upgrade, and demon is meant to have a purpose.'",
+    "takeaway": "Give each resource its own enemy-facing verb so the melee fallback feeds the economy (melee finisher on fodder = scrap or rounds) instead of being the punishment for running dry."
+  },
+  {
+    "source": "DOOM Eternal - Shacknews, 'Hell Razer: The Making of Doom Eternal' (part 4, 'The Racecar and the Chess Pieces')",
+    "kind": "article",
+    "url": "https://www.shacknews.com/article/116635/hell-razer-the-making-of-doom-eternal?page=4",
+    "topic": "roster roles",
+    "what_they_do": "Heavies (Baron, Mancubus, Arachnotron) must be prioritised while zombies and Imps are left alive as resources; weak points reshape fights (shooting the Arachnotron's turret disables its ranged attack, a Cacodemon that swallows a grenade opens to a glory kill); some heavies dodge slow rockets and the Arch-vile now spawns demons, pushing weapon switches.",
+    "takeaway": "Split each region's roster into 'kill first' threats and 'kill when you need it' fodder, and give each heavy one weak point that a specific gun answers best instead of more HP."
+  },
+  {
+    "source": "DOOM Eternal - Game Developer, 'Q&A: Evolving the combat design of id Software's Doom Eternal' (Hugo Martin), 2020",
+    "kind": "interview",
+    "url": "https://www.gamedeveloper.com/design/q-a-evolving-the-combat-design-of-id-software-s-i-doom-eternal-i-",
+    "topic": "readability",
+    "what_they_do": "When the player got faster, id made 'the chess pieces--the AI--much more responsive at the expense of maybe even some visual flair', e.g. a fireball windup about twice as fast, but kept 'a strong tell, because we need that.'",
+    "takeaway": "Treat attack speed and tell clarity as separate knobs: harder raids may shorten wind-ups, but the cue (pose + sound) never goes away."
+  },
+  {
+    "source": "DOOM Eternal Marauder - GamingBolt, 'DOOM: The Dark Ages Will Have Agadon Hunter as its Marauder Equivalent', 2025",
+    "kind": "interview",
+    "url": "https://gamingbolt.com/doom-the-dark-ages-will-have-agadon-hunter-as-its-marauder-equivalent",
+    "topic": "bosses",
+    "what_they_do": "Hugo Martin says players frustrated by the Marauder 'didn't understand what to do': shooting it during its open windows was something they 'hadn't really done much of' earlier. The Dark Ages' Agadon Hunter instead draws on skills built through the game, regular fights as quizzes and it as the 'final exam'.",
+    "takeaway": "Blood Moon minibosses and the eclipse boss should examine skills the common roster already taught (headshots, weak points, weapon choice), never introduce a new rule on the hardest enemy."
+  },
+  {
+    "source": "Halo: Combat Evolved - Chris Butcher & Jaime Griesemer, 'The Illusion of Intelligence' (GDC 2002), notes p.6",
+    "kind": "talk",
+    "url": "https://www.halo.bungie.org/misc/gdc.2002.haloai/talk.html?page=6",
+    "topic": "readability",
+    "what_they_do": "'It should be obvious why the AI is doing what it is doing': simple cause-and-effect decisions, each with custom animation and dialog; racial personalities (Grunts cowardly fodder, Elites aggressive leaders); AI may have abilities the player lacks only if 'the limits of that ability can be easily predicted', and no psychic AI or perfect aim.",
+    "takeaway": "Give each enemy type one readable personality (e.g. skittish goblins, relentless zombies, methodical robots) and announce every decision (flee, charge, call for help) with an animation or bark."
+  },
+  {
+    "source": "Halo: Combat Evolved - 'The Illusion of Intelligence' (GDC 2002), notes p.16, playtest 'Tougher AI = Smarter AI'",
+    "kind": "talk",
+    "url": "https://halo.bungie.org/misc/gdc.2002.haloai/talk.html?page=16",
+    "topic": "elites",
+    "what_they_do": "With weak enemies 36% of playtesters found the game too easy and 8% rated the AI 'Very Intelligent'; after raising enemy hit points and damage, 0% found it too easy and 43% rated it very intelligent: 'the tougher you make the enemies the smarter they seem to the player.'",
+    "takeaway": "Visible elites with more HP and damage read as smarter for free, but price each one in ammo (a known number of headshots) because toughness costs bullets in a scarce-ammo game."
+  },
+  {
+    "source": "Halo: Combat Evolved - 'The Illusion of Intelligence' (GDC 2002), notes p.17",
+    "kind": "talk",
+    "url": "https://halo.bungie.org/misc/gdc.2002.haloai/talk.html?page=17",
+    "topic": "ranged fairness",
+    "what_they_do": "AI gets more accurate the longer the player stays out of cover and struggles to hit fast-moving targets up close; Grunts flee when their Elite is killed; most encounters have an 'easy way' and a 'hard way'; swings in difficulty make players blame 'poor AI' or 'evil level designers'.",
+    "takeaway": "Ramp ranged accuracy with exposure time rather than hitting instantly, and let killing a leader rout its followers, an ammo-saving win the player can plan for."
+  },
+  {
+    "source": "Halo - Engadget/Joystiq, 'Half-Minute Halo: An Interview with Jaime Griesemer', 2011",
+    "kind": "interview",
+    "url": "https://www.engadget.com/2011-07-14-half-minute-halo-an-interview-with-jaime-griesemer.html",
+    "topic": "roster roles",
+    "what_they_do": "Griesemer: in Halo 1 'there was maybe 30 seconds of fun that happened over and over', and 'if you can get 30 seconds of fun, you can pretty much stretch that out to be an entire game'; he calls it probably the most famous thing he ever said (the exact first use is not pinned down).",
+    "takeaway": "Prototype the 30-second loop of one enemy role against each gun before building mixes; if one enemy plus one gun isn't fun, combinations won't fix it."
+  },
+  {
+    "source": "Halo 4 - Scott Warner, 'The Design of New Enemies for Halo 4' (GDC 2013), Post Game Lobby write-up",
+    "kind": "article",
+    "url": "https://postgamelobby.blogspot.com/2013/04/343-talks-about-in-game-limitations-of.html",
+    "topic": "roster roles",
+    "what_they_do": "Warner said the Prometheans fail to show state ('Our Prometheans don't do that very well', unlike Covenant surprise, fear, pride), damage tuning went 'a little bit too aggressive' so Knights and Watchers took many shots, and the support Watcher 'often encourages a one dimensional approach'.",
+    "takeaway": "Avoid bullet sponges and 'always kill the support first' enemies, and give emotionless robots readable states (alerted, damaged, retreating) through pose and sound."
+  },
+  {
+    "source": "F.E.A.R. - Jeff Orkin, 'Three States and a Plan: The A.I. of F.E.A.R.' (GDC 2006 paper)",
+    "kind": "talk",
+    "url": "https://pages.cs.wisc.edu/~dyer/cs540/handouts/gdc2006_orkin_jeff_fear.pdf",
+    "topic": "roster roles",
+    "what_they_do": "Squads lay suppression fire while others advance, and apparent flanking often emerges from moving to the only valid cover; 'There is no point in spending time and effort implementing squad behaviors if in the end the coordination of the A.I. is not apparent to the player', so AI voice their intent (the last survivor's 'I need reinforcements' had no mechanism behind it).",
+    "takeaway": "Pair a pinning role (ranged suppressor) with a moving role (rusher/flanker) and spend effort on barks and cues that make the pairing visible rather than on deeper tactics."
+  },
+  {
+    "source": "Left 4 Dead - Michael Booth, 'The AI Systems of Left 4 Dead' (Valve, AIIDE 2009 slides, hosted copy)",
+    "kind": "talk",
+    "url": "https://www.readkong.com/page/the-ai-systems-of-left-4-dead-michael-booth-valve-9664541",
+    "topic": "director/waves",
+    "what_they_do": "The AI Director estimates each survivor's 'emotional intensity' and cycles Build Up, Sustain Peak (3-5 s), Peak Fade, Relax (30-45 s): 'Algorithm adjusts pacing, not difficulty'. Mobs come every 90-180 s (about 75% from behind), Specials 'harass', and bosses (Tank, Witch, 'Nothing') are shuffled with no back-to-back repeat.",
+    "takeaway": "Let the raid director shape tempo inside a raid night (build, peak, relax) from player stress, and keep the point budget as the separate difficulty dial."
+  },
+  {
+    "source": "Left 4 Dead - Gregory Weir, 'Analysis: Interplay in Left 4 Dead', Game Developer, 2009",
+    "kind": "article",
+    "url": "https://www.gamedeveloper.com/game-platforms/analysis-interplay-in-i-left-4-dead-i-",
+    "topic": "roster roles",
+    "what_they_do": "The Smoker pulls a survivor out of the group, the Hunter pins the isolated one, the Boomer's bile calls the horde and works best on a clumped team, and the Tank's presence lets Specials land; Weir prefers 'two weak enemies working together' to 'two strong enemies working independently' (six types, 36 pairings).",
+    "takeaway": "Design specials as complementary pairs that punish opposite habits (one punishes clumping at the barn, one punishes straying to the fields), each weak alone."
+  },
+  {
+    "source": "Deep Rock Galactic - Mactera Spawn (DRG wiki)",
+    "kind": "game",
+    "url": "https://deeprockgalactic.wiki.gg/wiki/Mactera_Spawn",
+    "topic": "flyer",
+    "what_they_do": "The Spawn locks one target, hovers and puffs up its abdomen for about a second before firing, must stay still while charging (a stun restarts the charge), has a x3 abdomen weak point, and accompanies Glyphids to force fire 'on both the ground and the air'.",
+    "takeaway": "Make flyers stop to attack (a hover-and-charge window is the shot) and carry a large weak point, so a bullet spent on a flyer is a precise, rewarded shot."
+  },
+  {
+    "source": "Deep Rock Galactic - Mactera Grabber (DRG wiki)",
+    "kind": "game",
+    "url": "https://deeprockgalactic.wiki.gg/wiki/Mactera_Grabber",
+    "topic": "flyer",
+    "what_they_do": "The Grabber screeches before a grab (it 'can clearly be heard even above other creature sounds'), can't grab for 3 s after spawning or 5 s after a revive, carries the victim to a high drop, and lets go after 25 scaled damage within 4 s; its Elite variant moves far faster and is harder to react to.",
+    "takeaway": "Model animal thieves on it: a loud unique cue before the grab, grace periods, and a low damage threshold that makes it drop the animal, so two or three good shots win the stock back."
+  },
+  {
+    "source": "Deep Rock Galactic - Swarm (DRG wiki)",
+    "kind": "game",
+    "url": "https://deeprockgalactic.wiki.gg/wiki/Swarm",
+    "topic": "swarm",
+    "what_they_do": "Mission Control announces a swarm and its music starts about 3.7 s later; the first wave spends 270 base 'Difficulty Points' (Grunt 10, Swarmer 6, Web Spitter 25), then small pressure waves follow; themed swarms skew the mix (Mactera, Praetorian, Swarmer), and higher Hazard shortens the gaps and raises the chance of Veterans.",
+    "takeaway": "Spend each raid budget as one opening wave plus small pressure waves behind a fixed warning cue, and vary nights by themed mixes (thief night, breaker night) rather than only by size."
+  },
+  {
+    "source": "Destiny 2 - Elite rank (Destinypedia)",
+    "kind": "game",
+    "url": "https://www.destinypedia.com/Elite",
+    "topic": "elites",
+    "what_they_do": "Elites have an orange health bar 'larger than that of an equivalent Minor and segmented in three parts', often carry stronger weapons, move faster and dodge more; each faction labels its Elites with one shared adjective (Fallen 'Resilient', Cabal 'Honored', Hive 'Revenant'), and Majors act as mini-bosses.",
+    "takeaway": "Use one rank language across all 10-15 enemy types (bar color, name prefix, a shared visual mark) so any type's elite reads instantly."
+  },
+  {
+    "source": "Warhammer 40,000: Darktide - Fatshark, 'Darktide 101: Enemy Design and Prototyping' dev blog, 2024",
+    "kind": "article",
+    "url": "https://forums.fatsharkgames.com/t/darktide-101-enemy-design-and-prototyping-dev-blog/98452",
+    "topic": "roster roles",
+    "what_they_do": "Roster: hordes; roamers split into melee fighters, 8-12 m assaulters and far riflemen; specialists split into disablers (Pox Hound, Trapper) and scramblers (Bomber, Flamer, Sniper, Mutant). 'It's crucial that specialist enemies have clear audio and visual cues', and the Poxburster got a fuse and stagger window so a push or dodge counters it.",
+    "takeaway": "Borrow the taxonomy (horde / roamers by range band / disabler / scrambler / monster) and require every special to have a counter window one player can execute alone."
+  },
+  {
+    "source": "Warhammer: Vermintide 2 - Fatshark sound designer Jonas Hellberg on enemy audio cues (dev forum post)",
+    "kind": "article",
+    "url": "https://devtrackers.gg/vermintide2/p/70cbb6f7-sound-cannot-hear-behind-you",
+    "topic": "readability",
+    "what_they_do": "Specials shipped with 'no cues (except Gutterrunner), just revealing foley', ambush hordes had none and boss cues were inconsistent because the team avoided '2D stinger cues'; once Winds of Magic raised the intensity this no longer fit, so short cues were added for all bosses and the ambush horde.",
+    "takeaway": "Give every special, raid start and boss a distinct audio cue from the first build; positional foley alone gets lost once a raid gets busy."
+  },
+  {
+    "source": "Serious Sam - Dread Central, 'Monster Mania: Serious Sam's Beheaded Kamikaze Is No Laughing Matter', 2023",
+    "kind": "article",
+    "url": "https://www.dreadcentral.com/editorials/492389/monster-mania-serious-sams-beheaded-kamikaze-is-no-laughing-matter/",
+    "topic": "swarm",
+    "what_they_do": "The kamikaze runs at the player and explodes; its yell gives 'an auditory queue that they are near' and their direction, a shot or two kills it, and players wait until kamikazes bunch up near other enemies so the chain of explosions conserves ammo.",
+    "takeaway": "Give swarm types a loud cue and a death that hurts their own crowd (an exploder), so one well-timed bullet can thin a whole pack."
+  },
+  {
+    "source": "Half-Life 2: Episode Two - developer commentary (Combine OverWiki transcript): antlion workers, Strider battle",
+    "kind": "game",
+    "url": "https://combineoverwiki.net/wiki/Developer_commentary/Half-Life_2:_Episode_Two",
+    "topic": "ranged fairness",
+    "what_they_do": "Antlion workers 'avoid direct confrontation, skulking in the background and lobbing acidic globs' that are 'physically simulated objects'; elite soldiers were cut from the Strider invasion because 'this additional level of enemy fire proved frustrating for players'.",
+    "takeaway": "Prefer lobbed, visible projectiles for casters and spitters, and cap how many ranged sources a raid fires at once."
+  },
+  {
+    "source": "Half-Life 2: Episode Two - developer commentary (Combine OverWiki transcript): Antlion Guard",
+    "kind": "game",
+    "url": "https://combineoverwiki.net/wiki/Developer_commentary/Half-Life_2:_Episode_Two",
+    "topic": "bosses",
+    "what_they_do": "An early guard area was 'brutally punishing and unfun' because players treated it as a killable boss without the tools; vortigaunt warnings now set it up ('The player needs to know what he's getting into'), guards throw objects on arcing, dodgeable trajectories, and a bleeding effect grows as hit points fall.",
+    "takeaway": "Tell players up front whether and how a boss can be killed, telegraph with big arcing attacks, and show its damage state on the model (bleeding, broken armor) instead of only a bar."
+  },
+  {
+    "source": "ULTRAKILL - Hard Damage and healing (ULTRAKILL wiki)",
+    "kind": "game",
+    "url": "https://ultrakill.wiki.gg/wiki/Hard_Damage",
+    "topic": "ammo economy",
+    "what_they_do": "Health comes back mainly by attacking enemies at close range (a punch heals 10-30, a parry refills health up to the Hard Damage cap), while 35% of damage taken becomes Hard Damage that can't be healed until a short timer runs out.",
+    "takeaway": "If melee is the fallback, pay out a resource for risky close kills (health or scrap) so running dry becomes a play style rather than a fail state."
+  },
+  {
+    "source": "Risk of Rain 2 - Directors (RoR2 wiki)",
+    "kind": "game",
+    "url": "https://riskofrain2.wiki.gg/wiki/Directors",
+    "topic": "director/waves",
+    "what_they_do": "Combat Directors earn credits per second (creditMultiplier x (1 + 0.4 x difficulty coeff) x (players + 1) / 2) and buy spawn cards they can afford; they skip monsters that are 'too cheap' for their wallet, upgrade a pick to the highest Elite tier they can afford (x6 / x36 cost), and stop at 40 live monsters; the teleporter's boss director picks from Champions.",
+    "takeaway": "Price every enemy and elite in points, refuse 'too cheap' picks as the budget grows, and hard-cap live enemies, so later raids buy stronger mixes instead of ever-bigger fodder piles."
+  },
+  {
+    "source": "Risk of Rain 2 - Elites (RoR2 wiki)",
+    "kind": "game",
+    "url": "https://riskofrain2.wiki.gg/wiki/Elites",
+    "topic": "elites",
+    "what_they_do": "Tier 1 elites get 4x health and 2x damage and a color plus head mark: Blazing (red, ibex horns) leaves a fire trail, Overloading (blue) has shields and sticks timed bombs, Glacial (crystal crown) slows and leaves a freezing bomb on death, Mending heals nearby allies.",
+    "takeaway": "Make each elite modifier add one visible verb (trail, shield, death burst, healing aura) and a color or silhouette mark, never an invisible stat boost."
+  },
+  {
+    "source": "Team Fortress 2 - Mitchell, Francke & Eng, 'Illustrative Rendering in Team Fortress 2' (Valve, 2007)",
+    "kind": "article",
+    "url": "https://www.cs.princeton.edu/courses/archive/fall07/cos597B/papers/mitchell-team-fortress.pdf",
+    "topic": "readability",
+    "what_they_do": "The nine classes' silhouettes 'were carefully designed to be very distinct' through body proportions, weapons, hats and footwear, validated by viewing them 'only in silhouette with no internal shading', with rim highlights instead of outlines and high-frequency detail omitted.",
+    "takeaway": "Silhouette-test every enemy type at night-raid distance; stylized low-poly models need distinct proportions, held weapons and headgear rather than texture detail."
+  },
+  {
+    "source": "Mike Stout, 'Enemy Attacks and Telegraphing', Game Developer, 2015",
+    "kind": "article",
+    "url": "https://www.gamedeveloper.com/design/enemy-attacks-and-telegraphing",
+    "topic": "readability",
+    "what_they_do": "Enemies ask 'Can you avoid my damage?' and 'Can you hit me?'; attacks need a short delay with theatrics, ranged telegraphs layer sound, voice and VFX (charge-up particles, a reverse-vacuum sound, a flash), and 'If players don't understand the questions they are being asked, they actually can not play your game.'",
+    "takeaway": "Write each enemy's two questions (how to dodge it, how to hit it) before building it, and layer at least sound plus visual on every ranged telegraph."
+  },
+  {
+    "source": "Celia Wagar, 'Hitscan Solutions and Drawbacks', CritPoints, 2016",
+    "kind": "article",
+    "url": "https://critpoints.net/2016/08/08/hitscan-solutions-and-drawbacks/",
+    "topic": "ranged fairness",
+    "what_they_do": "Without regenerating health, 'the sources of damage must move predictably, detectably, and within reaction time'; fixes include Vanquish-style marked aim points or laser sights, and Half-Life Vortigaunts with distinct audio/visual charge-ups that gunfire can interrupt.",
+    "takeaway": "No instant-hit enemy guns: any rifle-type enemy (robots) shows a laser or charge-up the player can break line of sight from or interrupt."
+  },
+  {
+    "source": "Game Maker's Toolkit (Mark Brown), 'What Makes Good AI?', 2017",
+    "kind": "video",
+    "url": "https://www.youtube.com/watch?v=9bbhJi0NBkk",
+    "topic": "readability",
+    "what_they_do": "The video is chaptered as six traits: good AI lets the player cheat, tells you what it's thinking, is predictable, interacts with the game's systems, reacts to the player, and has its own goals.",
+    "takeaway": "Use the six traits as a per-enemy checklist, especially 'has its own goals' (thieves want animals, breakers want fences), which makes raids read as intentional."
+  },
+  {
+    "source": "Valheim - raid events (GINX TV raids guide, updated 2024)",
+    "kind": "game",
+    "url": "https://www.ginx.tv/en/?p=13234",
+    "topic": "raids",
+    "what_they_do": "Raids only start near a base with basic structures (campfire, workbench); story raids follow boss progress (e.g. Greydwarfs until The Elder dies), others follow kills (Trolls after the first Troll kill); raids last 90-150 s and attackers leave when time runs out, wrecking structures meanwhile.",
+    "takeaway": "Tie raid types to region-boss progress and require the player near the farm, with a time limit so a raid ends even if the player can't kill everything."
+  },
+  {
+    "source": "Valheim - creature star levels (gamever.io, from the community wiki)",
+    "kind": "game",
+    "url": "https://gamever.io/knowledge-base/stars-and-the-hidden-group-penalty-how-valheim-scales-enemies",
+    "topic": "elites",
+    "what_they_do": "Starred creatures show stars beside their name; each star adds +100% health and +50% damage and multiplies drops (2x / 4x); stars are rolled once at spawn (10-15% per level) independent of days, and raid and boss creatures are never starred.",
+    "takeaway": "Show elite tier beside the health bar and pay it back in drops, so killing an elite refunds the ammo it cost."
+  },
+  {
+    "source": "Valheim - Eikthyr, summoned boss (Shacknews guide, 2021)",
+    "kind": "game",
+    "url": "https://www.shacknews.com/article/122637/how-to-beat-eikthyr-valheim",
+    "topic": "bosses",
+    "what_they_do": "A Vegvisir runestone adds the boss to the map; the player summons Eikthyr by offering two deer trophies at its altar; its attacks have large telegraphs; it drops a trophy (a Forsaken Power buff at the spawn stones) and Hard antler for the next tool tier.",
+    "takeaway": "Summonable region bosses: a discovered map marker, an offering farmed from that region's enemies, big telegraphs, and a reward that unlocks the next step of progress."
+  },
+  {
+    "source": "7 Days to Die - Blood Moon Horde (7DTD wiki)",
+    "kind": "game",
+    "url": "https://7daystodie.wiki.gg/wiki/Blood_Moon_Horde",
+    "topic": "night threats",
+    "what_they_do": "Every 7th day by default the HUD day number turns red at 08:00, thunder and a reddening sky start at 18:00, and a directionless scream opens the horde at 22:00; waves scale with gamestage ('Each subsequent wave is more numerous and more difficult'), live zombies are capped (default 64, 8 per player), and horde zombies always know where players are.",
+    "takeaway": "Telegraph Blood Moon nights across the whole day (HUD color, sky, sound) and cap live enemies, so preparation is the gameplay and the fight stays readable."
+  },
+  {
+    "source": "7 Days to Die - Screamer (7DTD wiki)",
+    "kind": "game",
+    "url": "https://7daystodie.wiki.gg/wiki/Screamer",
+    "topic": "director/waves",
+    "what_they_do": "Noise from gunfire, explosions, mining and work stations builds 'heat'; past a threshold a Screamer spawns and seeks the source, and her second, louder scream summons a small horde (about 15% chance of another Screamer), so players kill her before she screams.",
+    "takeaway": "A caller enemy that answers player noise makes every shot on the farm a choice and gives the player a clear priority target."
+  },
+  {
+    "source": "Minecraft - Phantom (Minecraft wiki)",
+    "kind": "game",
+    "url": "https://minecraft.wiki/w/Phantom",
+    "topic": "night threats",
+    "what_they_do": "Phantoms spawn at night only for players who haven't slept for 3+ in-game days (a chance that rises each sleepless night), 1-4 per group by difficulty; they circle, swoop every 8-12 s, retreat to altitude when hurt mid-swoop, and burn in sunlight.",
+    "takeaway": "Tie a night threat to a player choice so it explains itself, and give flyers a swoop cycle with a retreat window to shoot into."
+  },
+  {
+    "source": "Minecraft - Creeper (Minecraft wiki)",
+    "kind": "game",
+    "url": "https://minecraft.wiki/w/Creeper",
+    "topic": "readability",
+    "what_they_do": "Creepers approach quietly, then within 3 blocks stop, hiss and flash through a 1.5 s fuse; the explosion is cancelled if the player leaves the radius or breaks line of sight, and it destroys blocks.",
+    "takeaway": "Give fence-breakers and exploders a short, loud, cancellable wind-up so stepping in, staggering or one shot can stop the damage without spending much ammo."
+  },
+  {
+    "source": "They Are Billions (Wikipedia)",
+    "kind": "game",
+    "url": "https://en.wikipedia.org/wiki/They_Are_Billions",
+    "topic": "raids",
+    "what_they_do": "Small groups attack at random intervals while 'larger hordes will appear at set times over the course of gameplay, culminating in a very large \"final horde\"'; mixes add fast Harpies, tough Chubbies and an Infected Giant shown on the minimap, and breached buildings get infected and cascade.",
+    "takeaway": "Keep the big nights (Blood Moon, eclipse) as announced set pieces with small random probes between them, and mark a giant on the HUD or minimap."
+  },
+  {
+    "source": "RimWorld - raid points (RimWorld community wiki; site blocks fetching, verified via search excerpts)",
+    "kind": "game",
+    "url": "https://rimworldwiki.com/wiki/Raid_points",
+    "topic": "director/waves",
+    "what_they_do": "Raid budget = (wealth points + pawn points) x difficulty x starting factor x adaptation factor; wealth points flatten at high wealth, buildings count at 50%, and storytellers also weigh recent deaths or serious wounds and time since the last major event.",
+    "takeaway": "Feed the raid budget from what the farm holds (animals, fences, stored goods) as well as the day count, and ease off after heavy losses."
+  },
+  {
+    "source": "Dying Light: The Beast - GamingBolt, Techland on reworked nights and Volatiles, 2025",
+    "kind": "article",
+    "url": "https://gamingbolt.com/dying-light-the-beast-develops-outlines-improvements-to-volatiles-for-more-terrifying-nights",
+    "topic": "night threats",
+    "what_they_do": "Techland reworked nights to feel 'unpredictable and frightening': darker nights, Volatiles that hunt solo or in packs, spawning reworked so players feel their presence 'no matter where they are', and chases where Volatiles fight longer before retreating.",
+    "takeaway": "Give nights at least one apex type that never appears by day, so a night raid differs in kind and not only in head count."
+  }
+]

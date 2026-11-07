@@ -1,0 +1,570 @@
+<title>Aipocalypse Bestiary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a ranger's field guide. Sticky index bar, a dense roster table whose rows fold out into specimen cards, then reference sections. */
+:root {
+  --bg: #edf0ea; --surface: #fbfcf9; --sunk: #e2e7df; --ink: #18201b; --muted: #59665e; --line: #cdd6cb;
+  --accent: #2c6a4d; --accent-ink: #ffffff; --threat: #a8392a;
+  --keep: #2f7d4f; --maybe: #b07a12; --cut: #b23b2e;
+  --gob: #6f7f22; --zom: #7a4f9a; --bot: #1b7f95; --bst: #a8641c; --bug: #4f8a1c; --myt: #b2407c; --dino: #2f8a6a; --ali: #2f6fd6; --drk: #4a55a0; --gnt: #a8392a;
+  --chip-a: 14%;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1411; --surface: #161d19; --sunk: #0b0f0d; --ink: #e3eae4; --muted: #95a39a; --line: #29342d;
+  --accent: #74c99c; --accent-ink: #0c1410; --threat: #f07a62;
+  --keep: #5cc488; --maybe: #e2b04a; --cut: #f07a62;
+  --gob: #b4c55a; --zom: #b48ad6; --bot: #4fc3db; --bst: #e39a4f; --bug: #8fd04f; --myt: #ea7db6; --dino: #5fd1a8; --ali: #79a6ff; --drk: #9aa6ef; --gnt: #f07a62;
+  --chip-a: 22%; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1411; --surface: #161d19; --sunk: #0b0f0d; --ink: #e3eae4; --muted: #95a39a; --line: #29342d;
+  --accent: #74c99c; --accent-ink: #0c1410; --threat: #f07a62;
+  --keep: #5cc488; --maybe: #e2b04a; --cut: #f07a62;
+  --gob: #b4c55a; --zom: #b48ad6; --bot: #4fc3db; --bst: #e39a4f; --bug: #8fd04f; --myt: #ea7db6; --dino: #5fd1a8; --ali: #79a6ff; --drk: #9aa6ef; --gnt: #f07a62;
+  --chip-a: 22%; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 1480px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: var(--accent); }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.05; }
+h2 { font-size: 2rem; text-transform: uppercase; }
+h3 { font-size: 1.25rem; text-transform: uppercase; letter-spacing: .03em; }
+.eyebrow { font: 500 .78rem/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button, select, textarea, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 28px 22px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: end; }
+header h1 { font-size: clamp(3rem, 7vw, 5.4rem); text-transform: uppercase; }
+header h1 span { color: var(--threat); }
+.lede { max-width: 64ch; margin: 10px 0 0; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.fact { background: var(--surface); padding: 10px 12px; }
+.fact b { display: block; font: 600 1.7rem/1 var(--display); }
+.fact span { font-size: .78rem; color: var(--muted); }
+@media (max-width: 860px) { header.top .wrap { grid-template-columns: 1fr; } }
+
+/* sticky index */
+nav.index { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+nav.index .wrap { display: flex; gap: 6px 14px; align-items: center; padding-block: 8px; flex-wrap: wrap; }
+nav.index a { font: 600 .95rem/1 var(--display); text-transform: uppercase; letter-spacing: .04em; text-decoration: none; color: var(--ink); padding: 6px 2px; }
+nav.index a:hover { color: var(--accent); }
+.tally { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .85rem; }
+.tally .k { color: var(--keep); } .tally .m { color: var(--maybe); } .tally .c { color: var(--cut); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: .85rem; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.save-state { font: .75rem var(--mono); color: var(--muted); }
+
+section { padding-block: 34px 8px; }
+section > .wrap > header { display: flex; gap: 6px 18px; align-items: baseline; flex-wrap: wrap; margin-bottom: 14px; }
+section > .wrap > header p { margin: 0; max-width: 80ch; color: var(--muted); }
+
+/* filters */
+.filters { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
+.fgroup { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.fgroup > span { font: 500 .72rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-right: 2px; }
+.fchip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 2px 9px; font-size: .8rem; cursor: pointer; }
+.fchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.filters select { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 3px 6px; font-size: .82rem; }
+.count { font: .8rem var(--mono); color: var(--muted); margin-left: auto; }
+
+/* roster table */
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table.roster { width: 100%; border-collapse: collapse; min-width: 1180px; }
+.roster th { position: sticky; top: 0; background: var(--sunk); font: 600 .74rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); text-align: left; padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.roster th button { all: unset; cursor: pointer; }
+.roster th button:hover { color: var(--ink); }
+.roster td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: .86rem; }
+.roster tr.row { cursor: pointer; }
+.roster tr.row:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.roster tr.row.open td { background: color-mix(in srgb, var(--accent) 9%, transparent); border-bottom-color: transparent; }
+.roster tr.row.bench td:not(:last-child) { opacity: .72; }
+.roster th:first-child, .roster td:first-child { width: 92px; min-width: 92px; }
+.thumb { width: 76px; height: 76px; min-width: 76px; border-radius: 6px; object-fit: cover; background: var(--sunk); display: block; }
+.thumb.none { display: grid; place-items: center; font: .7rem var(--mono); color: var(--muted); text-align: center; padding: 4px; }
+.uname { font: 700 1.18rem/1.05 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.line2 { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 1px 6px; font-size: .72rem; line-height: 1.5; background: var(--sunk); white-space: nowrap; }
+.chip.g { background: color-mix(in srgb, var(--gc) var(--chip-a), transparent); color: var(--ink); }
+.chip.g::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gc); }
+.chip.role { border: 1px solid var(--line); background: transparent; }
+.pill { font: 600 .68rem/1.4 var(--mono); padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.pill.EA1 { background: var(--accent); color: var(--accent-ink); }
+.pill.Built { background: var(--ink); color: var(--bg); }
+.pill.Update { border: 1px solid var(--accent); color: var(--accent); }
+.pill.Later { border: 1px dashed var(--muted); color: var(--muted); }
+.pill.tier { background: var(--sunk); color: var(--ink); }
+.pill.boss { background: var(--threat); color: var(--bg); }
+.dom { font: 500 .78rem var(--mono); }
+.stk { font: .78rem/1.45 var(--mono); white-space: nowrap; }
+.stk b { font-size: .95rem; }
+.small { font-size: .78rem; color: var(--muted); }
+.src { font: 600 .72rem var(--mono); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.src.Owned { background: color-mix(in srgb, var(--keep) 16%, transparent); color: var(--keep); }
+.src.SyntyPass { background: color-mix(in srgb, var(--bot) 16%, transparent); color: var(--bot); }
+.src.Buy { background: color-mix(in srgb, var(--maybe) 18%, transparent); color: var(--maybe); }
+.src.Missing { background: var(--sunk); color: var(--muted); }
+.scores { display: grid; grid-template-columns: auto auto; gap: 1px 8px; font: .74rem/1.35 var(--mono); }
+.scores span { white-space: nowrap; }
+.scores span:nth-child(odd) { color: var(--muted); }
+.dots { letter-spacing: 1px; }
+.rating { font: 700 1.6rem/1 var(--display); }
+.rating small { font: .7rem var(--mono); color: var(--muted); }
+
+/* review buttons */
+.rv { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.rv button { border: 0; background: transparent; padding: 4px 8px; font-size: .76rem; cursor: pointer; border-right: 1px solid var(--line); }
+.rv button:last-child { border-right: 0; }
+.rv button[aria-pressed="true"][data-v="keep"], .rv button[aria-pressed="true"][data-v="buy"] { background: var(--keep); color: var(--bg); }
+.rv button[aria-pressed="true"][data-v="maybe"] { background: var(--maybe); color: var(--bg); }
+.rv button[aria-pressed="true"][data-v="cut"], .rv button[aria-pressed="true"][data-v="skip"] { background: var(--cut); color: var(--bg); }
+.noted { display: block; margin-top: 4px; font-size: .72rem; color: var(--muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* specimen card */
+tr.detail td { padding: 0 8px 18px; background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.spec { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.gallery img.big { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: var(--sunk); max-width: 100%; }
+.gallery .strip { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.gallery .strip img { width: 58px; height: 58px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; background: var(--sunk); }
+.gallery .strip img.on { border-color: var(--accent); }
+.cap { font: .72rem var(--mono); color: var(--muted); margin-top: 4px; }
+.facts2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; }
+.facts2 div h4 { margin: 0 0 2px; font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.facts2 div p { margin: 0; }
+.statline { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 8px 10px; background: var(--sunk); border-radius: 6px; font: .8rem var(--mono); margin-bottom: 12px; }
+.statline b { font-weight: 500; color: var(--ink); }
+.opts { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: .8rem; }
+.opts th { text-align: left; font: 600 .68rem var(--mono); text-transform: uppercase; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.opts td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.opts img { width: 52px; height: 52px; object-fit: cover; border-radius: 4px; background: var(--sunk); }
+.opts tr.primary td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.notebox { margin-top: 12px; }
+.notebox label { font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.notebox textarea { width: 100%; min-height: 54px; margin-top: 4px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--bg); resize: vertical; }
+.refs { margin: 6px 0 0; padding-left: 18px; font-size: .8rem; color: var(--muted); }
+@media (max-width: 760px) { .spec { grid-template-columns: 1fr; } .facts2 { grid-template-columns: 1fr; } }
+
+/* matrix */
+.matrix { border-collapse: collapse; min-width: 1240px; width: 100%; background: var(--surface); }
+.matrix th, .matrix td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; font-size: .8rem; }
+.matrix thead th { font: 700 1rem var(--display); text-transform: uppercase; text-align: left; background: var(--sunk); }
+.matrix thead th i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--gc); margin-right: 6px; }
+.matrix tbody th { text-align: left; width: 200px; background: var(--sunk); }
+.matrix tbody th b { font: 700 1rem var(--display); text-transform: uppercase; display: block; }
+.matrix tbody th span { font-weight: 400; color: var(--muted); font-size: .74rem; }
+.mcell { display: block; margin: 1px 0; }
+.mcell.Later, .mcell.bench { color: var(--muted); }
+.mcell .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; background: var(--accent); }
+.mcell.Update .dot { background: transparent; border: 1px solid var(--accent); }
+.mcell.Later .dot, .mcell.bench .dot { background: transparent; border: 1px dashed var(--muted); }
+
+/* groups strip */
+.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-top: 14px; }
+.grp { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--gc); border-radius: 6px; padding: 10px 12px; font-size: .84rem; }
+.grp h3 { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.grp h3 small { font: .7rem var(--mono); color: var(--muted); text-transform: none; letter-spacing: 0; }
+.grp p { margin: 4px 0 0; }
+
+/* lineups */
+.lineups { display: grid; gap: 14px; }
+.lineups figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+.lineups .scroll { overflow-x: auto; }
+.lineups img { display: block; max-width: none; height: auto; width: 1500px; }
+.lineups figcaption { font-size: .8rem; color: var(--muted); padding: 6px 4px 0; }
+
+/* packs */
+.packs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.pack { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+.pack img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: var(--sunk); display: block; }
+.pack .pb { padding: 10px 12px; display: grid; gap: 6px; font-size: .82rem; flex: 1; }
+.pack h4 { margin: 0; font: 700 1.08rem/1.1 var(--display); text-transform: uppercase; }
+.pack .meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.pack .uses { color: var(--muted); }
+.pack footer { padding: 8px 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.costbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.costbar div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: .84rem; }
+.costbar b { font: 700 1.4rem/1 var(--display); display: block; }
+
+/* design notes */
+.principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px; counter-reset: p; }
+.principle { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-size: .86rem; }
+.principle h4 { margin: 0 0 4px; font: 700 1.05rem var(--display); text-transform: uppercase; }
+.principle p { margin: 0; }
+.principle .src2 { margin-top: 6px; font-size: .74rem; color: var(--muted); }
+.reftable { width: 100%; border-collapse: collapse; background: var(--surface); min-width: 860px; }
+.reftable th, .reftable td { border-bottom: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; font-size: .82rem; }
+.reftable th { font: 600 .7rem var(--mono); text-transform: uppercase; color: var(--muted); background: var(--sunk); }
+.reftable td:first-child { font-weight: 600; white-space: nowrap; }
+
+/* questions */
+.qs { display: grid; gap: 10px; counter-reset: q; }
+.q { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 14px; font-size: .88rem; }
+.q h4 { margin: 0 0 4px; font: 700 1.08rem var(--display); text-transform: uppercase; }
+.q p { margin: 0; }
+footer.end { padding-block: 30px 40px; color: var(--muted); font-size: .8rem; }
+.toast { position: fixed; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); background: var(--ink); color: var(--bg); padding: 8px 12px; border-radius: 6px; font-size: .85rem; z-index: 20; }
+@media (prefers-reduced-motion: no-preference) { .toast { transition: opacity .2s; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1>The <span>Bestiary</span></h1>
+      <p class="lede" id="lede"></p>
+    </div>
+    <div class="facts" id="facts"></div>
+  </div>
+</header>
+
+<nav class="index" aria-label="Sections">
+  <div class="wrap">
+    <a href="#roster">Roster</a><a href="#groups">Groups</a><a href="#matrix">Role matrix</a><a href="#sizes">Sizes</a>
+    <a href="#packs">Packs &amp; cost</a><a href="#design">Design notes</a><a href="#questions">Your calls</a>
+    <div class="tally" aria-live="polite">
+      <span id="tally"></span>
+      <button class="btn" id="copyPicks" type="button">Copy my picks</button>
+      <button class="btn" id="csvBtn" type="button" hidden>Download CSV</button>
+      <span class="save-state" id="saveState"></span>
+    </div>
+  </div>
+</nav>
+
+<section id="roster">
+  <div class="wrap">
+    <header><h2>Roster</h2><p id="rosterNote"></p></header>
+    <div class="filters" id="filters"></div>
+    <div class="tablebox"><table class="roster" id="rosterTable"></table></div>
+  </div>
+</section>
+
+<section id="groups">
+  <div class="wrap">
+    <header><h2>Raid groups</h2><p>Each group is a raid type in the RAIDS.md sense: its own grudge, its own arrival line, its own job at the farm. The Dark and the Giants are not raid groups.</p></header>
+    <div class="groups" id="groupCards"></div>
+  </div>
+</section>
+
+<section id="matrix">
+  <div class="wrap">
+    <header><h2>Role matrix</h2><p>Who covers which job. A filled dot is the first Early Access set, a hollow dot a later update, a dashed dot the bench. An empty row is a gap.</p></header>
+    <div class="tablebox"><table class="matrix" id="matrixTable"></table></div>
+  </div>
+</section>
+
+<section id="sizes">
+  <div class="wrap">
+    <header><h2>Sizes at true scale</h2><p id="sizeNote"></p></header>
+    <div class="lineups" id="lineups"></div>
+  </div>
+</section>
+
+<section id="packs">
+  <div class="wrap">
+    <header><h2>Packs &amp; cost</h2><p id="packNote"></p></header>
+    <div class="costbar" id="costbar"></div>
+    <div class="filters" id="packFilters"></div>
+    <div class="packs" id="packGrid"></div>
+  </div>
+</section>
+
+<section id="design">
+  <div class="wrap">
+    <header><h2>Design notes</h2><p>What the roster is built on, from shipped shooters, survival games and design talks. Every source is linked.</p></header>
+    <div class="principles" id="principles"></div>
+    <h3 style="margin:22px 0 8px">References</h3>
+    <div class="tablebox"><table class="reftable" id="refTable"></table></div>
+  </div>
+</section>
+
+<section id="questions">
+  <div class="wrap">
+    <header><h2>Your calls</h2><p>Decisions this proposal needs from you before anything goes into the GDD or the project.</p></header>
+    <div class="qs" id="qs"></div>
+  </div>
+</section>
+
+<footer class="end"><div class="wrap" id="foot"></div></footer>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const IMG = /*__IMG__*/null;
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const G = Object.fromEntries(DATA.groups.map(g => [g.id, g]));
+const AS = DATA.assets;
+const gc = id => `var(--${G[id].color})`;
+const img = (key, cls, alt) => IMG[key] ? `<img class="${cls}" src="${IMG[key]}" alt="${esc(alt || "")}" loading="lazy">` : `<div class="${cls} none">no image</div>`;
+
+/* ---------- review storage: db when the viewer grants it, else this browser ---------- */
+const LS = "aipo-bestiary-v1";
+let reviews = {}, db = null, dbReady = false;
+try { reviews = JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) { reviews = {}; }
+function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(reviews)); } catch (e) {} }
+function setState(t) { $("#saveState").textContent = t; }
+async function persist(id) {
+  saveLocal();
+  if (!db) { setState("saved in this browser"); return; }
+  const r = reviews[id] || {};
+  try {
+    setState("saving…");
+    await db.collection("reviews").doc(id).set({ v: r.v || "", note: r.note || "", kind: r.kind || "unit", t: new Date().toISOString() });
+    setState("saved");
+  } catch (e) { setState("not saved to the shared copy: kept in this browser"); }
+}
+(async () => {
+  try {
+    if (!window.claude || !claude.use) { setState("picks are kept in this browser"); return; }
+    db = await claude.use("db");
+    if (!db) { setState("picks are kept in this browser"); return; }
+    const timer = setTimeout(() => setState("shared picks not reachable yet"), 10000);
+    db.collection("reviews").onSnapshot(snap => {
+      clearTimeout(timer);
+      snap.docs.forEach(d => { const x = d.data(); if (x) reviews[d.id] = { v: x.v || "", note: x.note || "", kind: x.kind || "unit" }; });
+      dbReady = true; saveLocal(); setState(snap.metadata.fromCache ? "" : "picks saved with the page"); renderAll(false);
+    }, () => { clearTimeout(timer); db = null; setState("picks are kept in this browser"); });
+  } catch (e) { setState("picks are kept in this browser"); }
+  try {
+    const dl = window.claude && claude.use ? await claude.use("downloads") : null;
+    if (dl) { $("#csvBtn").hidden = false; $("#csvBtn").onclick = () => downloadCsv(dl); }
+  } catch (e) {}
+})();
+
+/* ---------- header ---------- */
+function renderHeader() {
+  const m = DATA.meta;
+  $("#eyebrow").textContent = m.eyebrow;
+  $("#lede").innerHTML = m.lede;
+  $("#facts").innerHTML = m.facts.map(f => `<div class="fact"><b class="num">${esc(f[0])}</b><span>${esc(f[1])}</span></div>`).join("");
+  $("#rosterNote").innerHTML = m.rosterNote;
+  $("#sizeNote").innerHTML = m.sizeNote;
+  $("#packNote").innerHTML = m.packNote;
+  $("#foot").innerHTML = m.foot;
+}
+
+/* ---------- filters ---------- */
+const F = { group: new Set(), phase: new Set(), domain: new Set(), source: new Set(), role: "", verdict: "", sort: "order", dir: 1 };
+function chipGroup(label, key, values, labeler) {
+  return `<div class="fgroup"><span>${label}</span>${values.map(v => `<button class="fchip" type="button" data-f="${key}" data-v="${esc(v)}" aria-pressed="${F[key].has(v)}">${esc(labeler ? labeler(v) : v)}</button>`).join("")}</div>`;
+}
+function renderFilters() {
+  const roles = DATA.roles.map(r => r[0]);
+  $("#filters").innerHTML =
+    chipGroup("Group", "group", DATA.groups.map(g => g.id), v => G[v].name) +
+    chipGroup("Phase", "phase", ["Built", "EA1", "Update", "Later"], v => ({ Built: "In game", EA1: "First EA", Update: "Update", Later: "Bench" })[v]) +
+    chipGroup("Where", "domain", ["Ground", "Air", "Water"]) +
+    chipGroup("Asset", "source", ["Owned", "SyntyPass", "Buy"], v => ({ Owned: "Owned", SyntyPass: "Synty pass", Buy: "Buy" })[v]) +
+    `<div class="fgroup"><span>Role</span><select id="fRole"><option value="">Any</option>${roles.map(r => `<option ${F.role === r ? "selected" : ""}>${r}</option>`).join("")}</select></div>` +
+    `<div class="fgroup"><span>My pick</span><select id="fVerdict"><option value="">Any</option><option value="keep">Keep</option><option value="maybe">Maybe</option><option value="cut">Cut</option><option value="none">Not reviewed</option></select></div>` +
+    `<span class="count" id="count"></span>`;
+  $("#fVerdict").value = F.verdict;
+  $("#filters").onclick = e => {
+    const b = e.target.closest(".fchip"); if (!b) return;
+    const s = F[b.dataset.f]; s.has(b.dataset.v) ? s.delete(b.dataset.v) : s.add(b.dataset.v);
+    b.setAttribute("aria-pressed", s.has(b.dataset.v)); renderRoster();
+  };
+  $("#fRole").onchange = e => { F.role = e.target.value; renderRoster(); };
+  $("#fVerdict").onchange = e => { F.verdict = e.target.value; renderRoster(); };
+}
+
+/* ---------- roster ---------- */
+const open = new Set();
+const verdictOf = id => (reviews[id] && reviews[id].v) || "";
+function rvButtons(id, kind) {
+  const opts = kind === "pack" ? [["buy", "Buy"], ["maybe", "Maybe"], ["skip", "Skip"]] : [["keep", "Keep"], ["maybe", "Maybe"], ["cut", "Cut"]];
+  const v = verdictOf(id);
+  return `<div class="rv" role="group" aria-label="Your pick">${opts.map(o => `<button type="button" data-rv="${id}" data-kind="${kind}" data-v="${o[0]}" aria-pressed="${v === o[0]}">${o[1]}</button>`).join("")}</div>`;
+}
+function filtered() {
+  return DATA.units.filter(u =>
+    (!F.group.size || F.group.has(u.group)) &&
+    (!F.phase.size || F.phase.has(u.phase)) &&
+    (!F.domain.size || F.domain.has(u.domain)) &&
+    (!F.source.size || F.source.has(u.src)) &&
+    (!F.role || u.roles.includes(F.role)) &&
+    (!F.verdict || (F.verdict === "none" ? !verdictOf(u.id) : verdictOf(u.id) === F.verdict)));
+}
+const SORTS = { order: u => u.order, name: u => u.name, size: u => u.size, hp: u => u.hp, power: u => u.power, rating: u => -u.rating, group: u => u.order };
+function sorted(list) {
+  const k = SORTS[F.sort] || SORTS.order;
+  return [...list].sort((a, b) => { const x = k(a), y = k(b); return (x < y ? -1 : x > y ? 1 : 0) * F.dir; });
+}
+function th(label, key) { return key ? `<th><button type="button" data-sort="${key}">${label}${F.sort === key ? (F.dir > 0 ? " ↑" : " ↓") : ""}</button></th>` : `<th>${label}</th>`; }
+function rowHtml(u) {
+  const a = AS[u.primary] || null;
+  const rv = reviews[u.id] || {};
+  const tierPill = /boss|Miniboss|Giant/i.test(u.tier) ? `<span class="pill boss">${esc(u.tier)}</span>` : `<span class="pill tier">${esc(u.tier)}</span>`;
+  return `<tr class="row ${open.has(u.id) ? "open" : ""} ${u.pick === "bench" ? "bench" : ""}" data-id="${u.id}" tabindex="0" aria-expanded="${open.has(u.id)}">
+    <td>${img(u.thumb, "thumb", u.name)}</td>
+    <td><div class="uname">${esc(u.name)}</div>
+      <div class="line2"><span class="chip g" style="--gc:${gc(u.group)}">${esc(G[u.group].name)}</span><span class="pill ${u.phase}">${esc(u.phaseLabel)}</span>${tierPill}</div>
+      <div class="line2">${u.roles.map(r => `<span class="chip role">${esc(r)}</span>`).join("")}</div></td>
+    <td><span class="dom">${esc(u.domain)}</span><div class="small" style="max-width:190px">${esc(u.jobShort)}</div></td>
+    <td class="num">${u.size.toFixed(1)} m<div class="small">${esc(u.scale)}</div></td>
+    <td class="stk">${u.stkHtml}</td>
+    <td class="small" style="max-width:170px"><span style="color:var(--ink)">${esc(u.dmg)}</span><br>Speed ${esc(u.speed)}<br>Spot ${esc(u.spot)}</td>
+    <td class="num">${u.power ? u.power : "—"}</td>
+    <td style="max-width:200px">${a ? `<span class="src ${a.source}">${esc(a.sourceLabel)}</span><div class="small" style="margin-top:3px;color:var(--ink)">${esc(a.name)}</div><div class="small">${esc(a.rigShort)}</div>` : `<span class="src Missing">From the store</span><div class="small">${esc(u.missingNote || "")}</div>`}</td>
+    <td><div class="scores"><span>Fit</span><span class="dots">${u.dotsFit}</span><span>Style</span><span class="dots">${u.dotsStyle}</span><span>Anim</span><span class="dots">${u.dotsAnim}</span><span>Build</span><span>${u.costLabel}</span><span>Perf</span><span>${u.perfLabel}</span></div></td>
+    <td class="rating">${u.rating.toFixed(1)}<small>/5</small></td>
+    <td onclick="event.stopPropagation()">${rvButtons(u.id, "unit")}${rv.note ? `<span class="noted" title="${esc(rv.note)}">“${esc(rv.note)}”</span>` : ""}</td>
+  </tr>${open.has(u.id) ? `<tr class="detail"><td colspan="11">${specHtml(u)}</td></tr>` : ""}`;
+}
+function specHtml(u) {
+  const keys = u.gallery.filter(k => IMG[k]);
+  const first = keys[0];
+  const opts = u.assets.map(k => AS[k]).filter(Boolean);
+  const rv = reviews[u.id] || {};
+  return `<div class="spec">
+    <div class="gallery">${first ? `<img class="big" id="big-${u.id}" src="${IMG[first]}" alt="${esc(u.name)}">` : `<div class="thumb none" style="width:100%;height:220px">No image: candidates are in the store sweep below</div>`}
+      <div class="strip">${keys.map((k, i) => `<img src="${IMG[k]}" data-big="${u.id}" data-key="${k}" class="${i === 0 ? "on" : ""}" alt="">`).join("")}</div>
+      <div class="cap" id="cap-${u.id}">${esc(DATA.caps[first] || "")}</div></div>
+    <div>
+      <div class="statline"><span>HP <b>${u.hp}</b></span><span>Armour <b>${esc(u.armor || "none")}</b></span><span>Weak point <b>${esc(u.weak)}</b></span><span>Damage <b>${esc(u.dmg)}</b></span><span>Speed <b>${esc(u.speed)}</b> m/s</span><span>Spotting <b>${esc(u.spot)}</b></span><span>Power cost <b>${u.power || "—"}</b></span><span>Size <b>${u.size} m</b> (${esc(u.scale)})</span></div>
+      <div class="facts2">
+        <div><h4>At the farm</h4><p>${esc(u.raid)}</p></div>
+        <div><h4>In the regions</h4><p>${esc(u.outer)}</p></div>
+        <div><h4>Tell</h4><p>${esc(u.tell)}</p></div>
+        <div><h4>Counter</h4><p>${esc(u.counter)}</p></div>
+        <div><h4>Pros</h4><p>${esc(u.pros)}</p></div>
+        <div><h4>Cons</h4><p>${esc(u.cons)}</p></div>
+        <div><h4>Suggestion</h4><p>${esc(u.suggest)}</p></div>
+        <div><h4>Design references</h4>${u.refs.length ? `<ul class="refs">${u.refs.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : `<p class="muted">—</p>`}</div>
+      </div>
+      <h4 class="eyebrow" style="margin:14px 0 2px">Asset options (first = suggested)</h4>
+      <div class="tablebox" style="border:0"><table class="opts"><thead><tr><th></th><th>Asset</th><th>Source</th><th>Rig and animation</th><th>Tris</th><th>Style</th><th>Anim</th><th>Build</th><th>Notes</th></tr></thead><tbody>
+      ${opts.map((a, i) => `<tr class="${i === 0 ? "primary" : ""}"><td>${img(a.img, "", a.name)}</td><td><b>${esc(a.name)}</b><div class="small">${esc(a.pack)}${a.tag ? " · tag: " + esc(a.tag) : ""}</div>${a.url ? `<a class="small" href="${esc(a.url)}" target="_blank" rel="noopener">Store page</a>` : ""}</td><td><span class="src ${a.source}">${esc(a.sourceLabel)}</span></td><td>${esc(a.anim)}<div class="small">${esc(a.rig)}${a.clips ? " · " + a.clips + " clips" : ""}</div></td><td class="num">${a.tris ? a.tris.toLocaleString() : "?"}</td><td class="dots">${a.dotsStyle}</td><td class="dots">${a.dotsAnim}</td><td>${a.cost}</td><td class="small">${esc(a.note)}</td></tr>`).join("") || `<tr><td colspan="9" class="muted">No owned asset fits yet: see the Packs section for store candidates.</td></tr>`}
+      </tbody></table></div>
+      <div class="notebox"><label for="note-${u.id}">Your note on ${esc(u.name)}</label><textarea id="note-${u.id}" data-note="${u.id}" placeholder="What to change, swap or drop">${esc(rv.note || "")}</textarea></div>
+    </div></div>`;
+}
+function renderRoster() {
+  const list = sorted(filtered());
+  $("#count").textContent = `${list.length} of ${DATA.units.length}`;
+  $("#rosterTable").innerHTML = `<thead><tr><th></th>${th("Enemy", "group")}${th("Where & job")}${th("Size", "size")}${th("HP & shots to kill", "hp")}${th("Threat")}${th("Power", "power")}${th("Asset")}${th("Scores")}${th("Rating", "rating")}${th("Your pick")}</tr></thead><tbody>${list.map(rowHtml).join("")}</tbody>`;
+}
+$("#rosterTable").addEventListener("click", e => {
+  const s = e.target.closest("[data-sort]");
+  if (s) { const k = s.dataset.sort; F.dir = F.sort === k ? -F.dir : 1; F.sort = k; renderRoster(); return; }
+  const t = e.target.closest("[data-big]");
+  if (t) { const id = t.dataset.big; $("#big-" + id).src = IMG[t.dataset.key]; $("#cap-" + id).textContent = DATA.caps[t.dataset.key] || ""; t.parentNode.querySelectorAll("img").forEach(i => i.classList.toggle("on", i === t)); return; }
+  if (e.target.closest(".spec")) return;
+  const r = e.target.closest("tr.row"); if (!r) return;
+  const id = r.dataset.id; open.has(id) ? open.delete(id) : open.add(id); renderRoster();
+});
+$("#rosterTable").addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr.row")) { e.preventDefault(); const id = e.target.dataset.id; open.has(id) ? open.delete(id) : open.add(id); renderRoster(); }
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-rv]"); if (!b) return;
+  const id = b.dataset.rv, v = b.dataset.v;
+  const r = reviews[id] || (reviews[id] = { v: "", note: "", kind: b.dataset.kind });
+  r.v = r.v === v ? "" : v; r.kind = b.dataset.kind;
+  persist(id); renderAll(false);
+});
+let noteTimer = {};
+document.addEventListener("input", e => {
+  const t = e.target.closest("[data-note]"); if (!t) return;
+  const id = t.dataset.note, kind = t.dataset.kind || "unit";
+  const r = reviews[id] || (reviews[id] = { v: "", note: "", kind });
+  r.note = t.value; clearTimeout(noteTimer[id]); setState("typing…");
+  noteTimer[id] = setTimeout(() => { persist(id); renderTally(); }, 900);
+});
+
+/* ---------- groups, matrix ---------- */
+function renderGroups() {
+  $("#groupCards").innerHTML = DATA.groups.map(g => {
+    const us = DATA.units.filter(u => u.group === g.id);
+    return `<div class="grp" style="--gc:${gc(g.id)}"><h3>${esc(g.name)} <small>${esc(g.status)} · ${us.filter(u => u.pick === "core").length} picks + ${us.filter(u => u.pick === "bench").length} bench</small></h3>
+      <p><b>${esc(g.line)}</b></p><p>${esc(g.job)}</p><p class="muted">${esc(g.personality)}</p><p class="muted">Where: ${esc(g.where)}</p><p class="muted">Arrives: ${esc(g.arrival)} · Boss: ${esc(g.boss)}</p></div>`;
+  }).join("");
+}
+function renderMatrix() {
+  const head = `<thead><tr><th>Role</th>${DATA.groups.map(g => `<th style="--gc:${gc(g.id)}"><i></i>${esc(g.name)}</th>`).join("")}</tr></thead>`;
+  const body = DATA.roles.map(([r, d]) => `<tr><th><b>${esc(r)}</b><span>${esc(d)}</span></th>${DATA.groups.map(g => {
+    const us = DATA.units.filter(u => u.group === g.id && u.roles.includes(r));
+    return `<td>${us.map(u => `<span class="mcell ${u.phase} ${u.pick}"><span class="dot"></span>${esc(u.name)}</span>`).join("")}</td>`;
+  }).join("")}</tr>`).join("");
+  $("#matrixTable").innerHTML = head + `<tbody>${body}</tbody>`;
+}
+
+/* ---------- sizes ---------- */
+function renderLineups() {
+  $("#lineups").innerHTML = DATA.lineups.map(l => IMG[l.img] ? `<figure><div class="scroll"><img src="${IMG[l.img]}" alt="${esc(l.caption)}"></div><figcaption>${esc(l.caption)}</figcaption></figure>` : "").join("") || `<p class="muted">Lineups not rendered.</p>`;
+}
+
+/* ---------- packs ---------- */
+const PF = { source: new Set() };
+function renderPacks() {
+  const c = DATA.cost;
+  $("#costbar").innerHTML = c.map(x => `<div><b class="num">${esc(x[0])}</b>${esc(x[1])}</div>`).join("");
+  $("#packFilters").innerHTML = `<div class="fgroup"><span>Source</span>${["Owned", "SyntyPass", "Buy"].map(v => `<button class="fchip" type="button" data-pf="${v}" aria-pressed="${PF.source.has(v)}">${({ Owned: "Owned", SyntyPass: "Synty pass", Buy: "Buy" })[v]}</button>`).join("")}</div><span class="count">${DATA.packs.length} packs</span>`;
+  $("#packFilters").onclick = e => { const b = e.target.closest("[data-pf]"); if (!b) return; PF.source.has(b.dataset.pf) ? PF.source.delete(b.dataset.pf) : PF.source.add(b.dataset.pf); renderPacks(); };
+  $("#packGrid").innerHTML = DATA.packs.filter(p => !PF.source.size || PF.source.has(p.source)).map(p => `<article class="pack">
+    ${img(p.img, "", p.name)}
+    <div class="pb"><h4>${esc(p.name)}</h4>
+      <div class="meta"><span class="src ${p.source}">${esc(p.sourceLabel)}</span>${p.tag ? `<span class="chip">${esc(p.tag)}</span>` : ""}${p.style ? `<span class="chip">Synty match ${p.style}/5</span>` : ""}${p.verdict ? `<span class="chip">${esc(p.verdict)}</span>` : ""}</div>
+      <div>${esc(p.what)}</div>
+      ${p.uses ? `<div class="uses">Used for: ${esc(p.uses)}</div>` : ""}
+      ${p.notes ? `<div class="small">${esc(p.notes)}</div>` : ""}
+    </div>
+    <footer>${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="small">Store page</a>` : `<span class="small">${esc(p.folder || "")}</span>`}${p.source === "Owned" ? "" : rvButtons("pack:" + p.id, "pack")}</footer>
+  </article>`).join("");
+}
+
+/* ---------- design notes, questions ---------- */
+function renderDesign() {
+  $("#principles").innerHTML = DATA.principles.map(p => `<div class="principle"><h4>${esc(p.title)}</h4><p>${esc(p.text)}</p><div class="src2">${esc(p.src)}</div></div>`).join("");
+  $("#refTable").innerHTML = `<thead><tr><th>Source</th><th>Topic</th><th>What they do</th><th>For aipocalypse</th></tr></thead><tbody>${DATA.refs.map(r => `<tr><td>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)}</td><td class="small">${esc(r.topic)}</td><td>${esc(r.what)}</td><td>${esc(r.takeaway)}</td></tr>`).join("")}</tbody>`;
+  $("#qs").innerHTML = DATA.questions.map(q => `<div class="q"><h4>${esc(q.title)}</h4><p>${q.html}</p>
+    <div class="notebox"><label for="note-q-${q.id}">Your answer</label><textarea id="note-q-${q.id}" data-note="q:${q.id}" data-kind="question" placeholder="Your call">${esc((reviews["q:" + q.id] || {}).note || "")}</textarea></div></div>`).join("");
+}
+
+/* ---------- tally, copy, csv ---------- */
+function renderTally() {
+  const vs = DATA.units.map(u => verdictOf(u.id));
+  const k = vs.filter(v => v === "keep").length, m = vs.filter(v => v === "maybe").length, c = vs.filter(v => v === "cut").length;
+  $("#tally").innerHTML = `<span class="k">${k} keep</span> · <span class="m">${m} maybe</span> · <span class="c">${c} cut</span> · <span class="muted">${DATA.units.length - k - m - c} to review</span>`;
+}
+function picksText() {
+  const lines = ["aipocalypse bestiary picks"];
+  DATA.units.forEach(u => { const r = reviews[u.id]; if (r && (r.v || r.note)) lines.push(`${u.name} [${u.id}]: ${r.v || "-"}${r.note ? " — " + r.note : ""}`); });
+  DATA.packs.forEach(p => { const r = reviews["pack:" + p.id]; if (r && (r.v || r.note)) lines.push(`Pack ${p.name}: ${r.v || "-"}${r.note ? " — " + r.note : ""}`); });
+  DATA.questions.forEach(q => { const r = reviews["q:" + q.id]; if (r && r.note) lines.push(`Q ${q.title}: ${r.note}`); });
+  return lines.join("\n");
+}
+function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2200); }
+$("#copyPicks").onclick = async () => {
+  const t = picksText();
+  try { await navigator.clipboard.writeText(t); toast("Picks copied: paste them to Claude"); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = t; ta.style.cssText = "width:100%;height:160px"; $("#foot").prepend(ta); ta.select(); toast("Select and copy the text at the bottom"); }
+};
+function csvCell(v) { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+async function downloadCsv(dl) {
+  const head = ["id", "name", "group", "phase", "pick", "roles", "tier", "domain", "size_m", "hp", "weak_point", "armour", "damage", "speed", "spotting", "power", "shots_pistol", "shots_ak", "shots_shotgun", "shots_axe", "asset", "source", "price_usd", "rig", "animation", "tris", "fit", "style", "anim", "build_cost", "perf", "rating", "tell", "counter", "at_the_farm", "in_the_regions", "pros", "cons", "suggestion", "my_pick", "my_note"];
+  const rows = DATA.units.map(u => { const a = AS[u.primary] || {}; const r = reviews[u.id] || {};
+    return [u.id, u.name, G[u.group].name, u.phaseLabel, u.pick, u.roles.join("/"), u.tier, u.domain, u.size, u.hp, u.weak, u.armor, u.dmg, u.speed, u.spot, u.power, u.stk.pistol, u.stk.ak, u.stk.sg, u.stk.axe, a.name || "", a.sourceLabel || "", a.price || 0, a.rig || "", a.anim || "", a.tris || "", u.fit, a.style || "", a.animq || "", a.cost || "", a.perf || "", u.rating, u.tell, u.counter, u.raid, u.outer, u.pros, u.cons, u.suggest, r.v || "", r.note || ""]; });
+  const csv = "﻿" + [head, ...rows].map(r => r.map(csvCell).join(",")).join("\r\n");
+  try { await dl.save({ filename: "aipocalypse-bestiary.csv", data: csv }); toast("CSV saved"); }
+  catch (e) { if (e && e.code !== "declined") toast("CSV download isn't available here"); }
+}
+
+function renderAll(full = true) {
+  if (full) { renderHeader(); renderFilters(); renderGroups(); renderMatrix(); renderLineups(); renderDesign(); }
+  renderRoster(); renderPacks(); renderTally();
+}
+renderAll();
+</script>

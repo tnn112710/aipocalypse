@@ -1,0 +1,3569 @@
+[
+ {
+  "pack": "POLYGON - Fantasy Rivals Pack",
+  "handle": "polygon-fantasy-rivals-pack",
+  "url": "https://syntystore.com/products/polygon-fantasy-rivals-pack",
+  "series": "POLYGON",
+  "date": "store page rate-limited; Unity Asset Store lists v1.4.2 released 2026-08-17",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonFantasyRivals",
+  "verified_from": "local prefabs + .fbx.meta (Characters.fbx and big-rig Characters_BR.fbx, both Humanoid, 40 human bones, no clips); store key art",
+  "enemies": [
+   {
+    "name": "Big Ork",
+    "kind": "orc brute",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_BR_BigOrk_01"
+   },
+   {
+    "name": "Troll",
+    "kind": "troll",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_BR_Troll_01"
+   },
+   {
+    "name": "Fort Golem",
+    "kind": "stone golem (fortress body)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "boss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_BR_FortGolem_01"
+   },
+   {
+    "name": "Elemental Golem",
+    "kind": "elemental/crystal golem",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank",
+     "miniboss",
+     "caster/support"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_BR_ElementalGolem_01"
+   },
+   {
+    "name": "Mechanical Golem",
+    "kind": "mechanical construct (robot-like golem)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank",
+     "ranged shooter",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_BR_MechanicalGolem_01; arm weapons SM_Wep_MechanicalGolem_01/02 and a base SM_Base_Mechanical_01 are separate meshes. Reads as a machine: counts toward the robot roster."
+   },
+   {
+    "name": "Red Demon",
+    "kind": "demon",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "rusher",
+     "tank/brute",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_BR_RedDemon_01"
+   },
+   {
+    "name": "Pig Butcher",
+    "kind": "pig-headed butcher brute",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "miniboss"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_BR_PigButcher_01"
+   },
+   {
+    "name": "Mutant Guy",
+    "kind": "mutant brute",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "rusher"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_BR_MutantGuy_01; look not verified (could read as a big human)"
+   },
+   {
+    "name": "Spirit Demon",
+    "kind": "spectral demon (blue glow on key art)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "caster/support",
+     "ambusher"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_SpiritDemon_01; would need code-driven hover to float"
+   },
+   {
+    "name": "Forest Guardian",
+    "kind": "treant / forest spirit",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ambusher",
+     "caster/support"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_ForestGuardian_01"
+   },
+   {
+    "name": "Evil God",
+    "kind": "demonic deity",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "boss",
+     "caster/support"
+    ],
+    "priority": "low",
+    "notes": "SM_Chr_EvilGod_01; look not verified"
+   },
+   {
+    "name": "Medusa",
+    "kind": "gorgon (snake hair)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ranged shooter",
+     "caster/support"
+    ],
+    "priority": "low",
+    "notes": "SM_Chr_Medusa_01; borderline: human face with snake hair"
+   }
+  ],
+  "excluded_human": [
+   "Ancient Queen",
+   "Ancient Warrior (look not verified)",
+   "Barbarian Giant",
+   "Dwarf (big rig)",
+   "Slayer",
+   "Dark Elf",
+   "Forest Witch",
+   "Mystic"
+  ],
+  "not_animatable": [],
+  "extras": "21 weapons incl. the Mechanical Golem arm weapons; props; rune FX (Runes_Inner/Outer .anim)",
+  "warnings": [
+   "no clips",
+   "big-rig creatures need creature-specific attacks",
+   "built-in particle materials (ASSETS.md)"
+  ],
+  "images": [
+   "img/polygon-fantasy-rivals-pack_1.png",
+   "img/polygon-fantasy-rivals-pack_2.jpg"
+  ],
+  "fit_summary": "Best installed source of fantasy brutes and bosses (golems incl. a mechanical one, ork, troll, demons). All Humanoid, so existing clips drive them; heavy attacks still need creature clips."
+ },
+ {
+  "pack": "POLYGON - Kaiju Pack",
+  "handle": "polygon-kaiju-pack",
+  "url": "https://syntystore.com/products/polygon-kaiju-pack",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonKaiju",
+  "verified_from": "local prefabs + .fbx.meta (Kaiju_01_02_04.fbx Humanoid 41 bones, Kaiju_03.fbx Humanoid 37 bones, Tail_01-04.fbx Generic, no clips); store key art; store search snippet: 'fully rigged, animation-ready giant monsters'",
+  "enemies": [
+   {
+    "name": "Kaiju 01 / 02 / 04",
+    "kind": "kaiju (tailed reptile/beast giants, e.g. the spiky blue lizard on the key art)",
+    "domain": "amphibious",
+    "size_class": "huge",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid) (shared skeleton) + separate Generic tail mesh",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "boss",
+     "fence-breaker"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_Kaiju_01/02/04. Individual designs not verified (generic prefab names). Native mesh bounds are about troll height (~2-2.5 m): scale the transform up for a giant."
+   },
+   {
+    "name": "Kaiju 03",
+    "kind": "kaiju (likely the giant ape on the key art)",
+    "domain": "ground",
+    "size_class": "huge",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid) (own skeleton, no belly bone)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "boss",
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_Kaiju_03; identity inferred from the key art and its separate skeleton, not confirmed"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [
+   "Tail_01-04: Generic, no clips (attachments; stay rigid unless driven by code or a jiggle chain)"
+  ],
+  "extras": "FX (stomp rings, fire, bullets, water drip), city and ocean diorama, helicopter/jet/biplane props",
+  "warnings": [
+   "no clips",
+   "tails don't animate",
+   "some FX and skybox materials are built-in (ASSETS.md)"
+  ],
+  "images": [
+   "img/polygon-kaiju-pack_1.png"
+  ],
+  "fit_summary": "Giant-boss candidates on Humanoid rigs; need boss attack clips and tail motion. The only dinosaur-like Synty creatures."
+ },
+ {
+  "pack": "POLYGON - Mech Pack",
+  "handle": "polygon-mech-pack",
+  "url": "https://syntystore.com/products/polygon-mech-pack",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonMech",
+  "verified_from": "local prefabs + .fbx.meta (SM_Veh_Mech_01.fbx Humanoid, 35 human bones, no clips); ASSETS.md row",
+  "enemies": [
+   {
+    "name": "Mechs 01-06",
+    "kind": "mech (piloted walker robot)",
+    "domain": "ground",
+    "size_class": "huge",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "boss",
+     "miniboss",
+     "artillery/lobber",
+     "ranged shooter",
+     "tank/brute"
+    ],
+    "priority": "high",
+    "notes": "SM_Veh_Mech_01..06 with 104 modular attachments. Exact height not verified (has a pilot cockpit). Weapons: gatling, rockets, hand cannon, arc/power/assault rifle, shotgun, katana, sword, hammers."
+   }
+  ],
+  "excluded_human": [
+   "Mech Pilot Female",
+   "Mech Pilot Male"
+  ],
+  "not_animatable": [],
+  "extras": "12 mech-scale weapons; FX: flamethrower, missile barrage, machine gun, sniper, shield, jump impact, footstep, exhaust",
+  "warnings": [
+   "no clips",
+   "humanoid clips on mech proportions need a heavy-gait check",
+   "10 built-in particle materials (ASSETS.md)"
+  ],
+  "images": [
+   "img/polygon-mech-pack_1.png"
+  ],
+  "fit_summary": "Robot bosses with weapons and FX in the box; Humanoid rig means existing clips move them."
+ },
+ {
+  "pack": "POLYGON - Werewolf",
+  "handle": "polygon-werewolf",
+  "url": "https://syntystore.com/products/polygon-werewolf",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonWerewolf",
+  "verified_from": "local prefabs + .fbx.meta (SM_Werewolf_01.fbx Humanoid, no clips; tail Generic)",
+  "enemies": [
+   {
+    "name": "Werewolf",
+    "kind": "werewolf",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid) + Generic tail attachment",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "tank/brute",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_Werewolf_01; mesh bounds ~2 m"
+   },
+   {
+    "name": "Undead Werewolf",
+    "kind": "undead werewolf",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid) + Generic tail attachment",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "tank/brute",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_Werewolf_Undead_01"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [
+   "tail attachment (Generic, no clips)"
+  ],
+  "extras": "2 axes; ~20 hair/beard/hat attachments",
+  "warnings": [
+   "no clips",
+   "tail stays rigid"
+  ],
+  "images": [
+   "img/polygon-werewolf_1.png"
+  ],
+  "fit_summary": "Ready night monster on a Humanoid rig."
+ },
+ {
+  "pack": "POLYGON - Dog Pack",
+  "handle": "polygon-dog",
+  "url": "https://syntystore.com/products/polygon-dog",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonDog",
+  "verified_from": "local prefabs, clip folders and .fbx.meta (Unity_SK_Animals_Dog_01.fbx Generic; clips are Generic FBX)",
+  "enemies": [
+   {
+    "name": "Wolf",
+    "kind": "wolf",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "rusher",
+     "swarm fodder",
+     "flanker"
+    ],
+    "priority": "high",
+    "notes": "SK_Dog_Wolf_01; wolf-sized armour pieces exist"
+   },
+   {
+    "name": "Hellhound",
+    "kind": "demon dog",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "rusher",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SK_Dog_Hellhound_01"
+   },
+   {
+    "name": "Robot Dog",
+    "kind": "robot dog",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "rusher",
+     "exploder"
+    ],
+    "priority": "high",
+    "notes": "SK_Dog_Robot_01"
+   },
+   {
+    "name": "Sci-fi Dog",
+    "kind": "cyber dog",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "rusher",
+     "flanker"
+    ],
+    "priority": "med",
+    "notes": "SK_Dog_Scifi_01"
+   },
+   {
+    "name": "Zombie Dogs (Doberman, German Shepherd)",
+    "kind": "zombie dog",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "swarm fodder",
+     "rusher"
+    ],
+    "priority": "high",
+    "notes": "SK_Dog_Zombie_Doberman_01, SK_Dog_Zombie_GermanShepherd_01"
+   },
+   {
+    "name": "Coyote",
+    "kind": "coyote",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "swarm fodder",
+     "thief"
+    ],
+    "priority": "med",
+    "notes": "SK_Dog_Coyote_01"
+   },
+   {
+    "name": "Fox",
+    "kind": "fox",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "thief",
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": "SK_Dog_Fox_01"
+   },
+   {
+    "name": "Guard-dog breeds",
+    "kind": "attack dog",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "Generic (shared dog rig)",
+    "anims": {
+     "idle": true,
+     "move": true,
+     "melee": true,
+     "ranged": false,
+     "fly": false,
+     "hit": true,
+     "death": true
+    },
+    "anim_source": "own clips",
+    "anim_notes": "Own Generic clips shared by every dog prefab: idle (Standing, Sitting, Sleep), move (Walking, Running, turns, jumps, landings), melee (Attack_Bite, Attack_Claw, Attack_Ready), hit (Attack_Hit and Attack_Stun: names suggest reactions, verify), death (Death_Standing, Death_Sitting), plus barks/howls and additive head/tail/ear/mouth layers; Animation_Dog.controller included.",
+    "roles": [
+     "rusher",
+     "flanker"
+    ],
+    "priority": "low",
+    "notes": "Doberman, German Shepherd, Ridgeback etc. with military/police/war vests or dark armour"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "vests and armour attachments (military, police, war, rescue, dark armour incl. wolf size), dog props",
+  "warnings": [
+   "Attack_Hit naming is ambiguous (hit reaction vs attack variant): check in the editor"
+  ],
+  "images": [
+   "img/polygon-dog_1.png"
+  ],
+  "fit_summary": "The only Synty creatures with a complete own clip set (idle, move, bite/claw, hit, death). Wolves, hellhounds, robot and zombie dogs cover the beast pack role."
+ },
+ {
+  "pack": "POLYGON - Boss Zombies",
+  "handle": "polygon-boss-zombies",
+  "url": "https://syntystore.com/products/polygon-boss-zombies",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonBossZombies",
+  "verified_from": "local prefabs + .fbx.meta (ZombieBoss_Blobbers.fbx, ZombieBoss_Wretch.fbx Humanoid, 41 bones, no clips); key art",
+  "enemies": [
+   {
+    "name": "Brute",
+    "kind": "zombie boss (muscled)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_ZombieBoss_Brute_01; size from key art, not measured"
+   },
+   {
+    "name": "Blobber",
+    "kind": "zombie boss (obese)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "exploder"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_ZombieBoss_Blobber_01"
+   },
+   {
+    "name": "Slobber",
+    "kind": "zombie boss (bloated, drooling)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "artillery/lobber"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_ZombieBoss_Slobber_01"
+   },
+   {
+    "name": "Wretch",
+    "kind": "zombie boss (gaunt)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "ambusher",
+     "miniboss"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_ZombieBoss_Wretch_01"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "improvised boss weapons/props: rebar club, car door, stop sign, traffic lights, tank barrel, ham legs, rolling pin, scepter, trophy, handbag, scooter",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-boss-zombies_1.png"
+  ],
+  "fit_summary": "Ready raid bosses for the zombie roster."
+ },
+ {
+  "pack": "POLYGON - City Zombies Pack",
+  "handle": "polygon-city-zombies-pack",
+  "url": "https://syntystore.com/products/polygon-city-zombies-pack",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonCityZombies",
+  "verified_from": "local prefabs + .fbx.meta (Zombies.fbx Humanoid, 42 bones, no clips)",
+  "enemies": [
+   {
+    "name": "City Zombies (51 variants)",
+    "kind": "zombie",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "rusher",
+     "tank/brute (riot cop, military, firefighter)",
+     "exploder (biohazard suit)"
+    ],
+    "priority": "high",
+    "notes": "Civilian zombies (bellboy, biker, bride, business, clown, diver, firefighter, footballer, hot-dog suit, police, prisoner, riot cop, roadworker, tourist...). Includes child zombies (schoolboy/girl, son, daughter): consider leaving those out."
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "gib meshes (head, upper/lower arm and leg) for dismemberment; held weapons (axe, bar, cleaver, knife, scissors)",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-city-zombies-pack_1.png"
+  ],
+  "fit_summary": "Zombie horde base, already installed."
+ },
+ {
+  "pack": "POLYGON - Goblin War Camp",
+  "handle": "polygon-goblin-war-camp",
+  "url": "https://syntystore.com/products/polygon-goblin-war-camp",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonGoblinWarCamp",
+  "verified_from": "local prefabs + .fbx.meta (Characters.fbx and CharactersBR.fbx Humanoid, 40 bones, no clips)",
+  "enemies": [
+   {
+    "name": "Goblin melee (Warrior, Knight, King x2)",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "swarm fodder",
+     "miniboss (King)"
+    ],
+    "priority": "high",
+    "notes": "Goblin Locomotion clips are authored for these"
+   },
+   {
+    "name": "Goblin archers (Archer F/M, Ranger)",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ranged shooter"
+    ],
+    "priority": "high",
+    "notes": "pair with Bow Combat clips"
+   },
+   {
+    "name": "Goblin casters (Shaman, Wizard)",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "caster/support"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Goblin Beast Tamer",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "caster/support"
+    ],
+    "priority": "med",
+    "notes": "pairs with Dog Pack wolves/hellhounds"
+   },
+   {
+    "name": "Goblin Cook",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "artillery/lobber"
+    ],
+    "priority": "low",
+    "notes": ""
+   },
+   {
+    "name": "Troll",
+    "kind": "troll",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid), big rig",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker"
+    ],
+    "priority": "high",
+    "notes": "SM_Chr_Troll_01"
+   }
+  ],
+  "excluded_human": [
+   "Prisoner 01-03 (captives; look not verified)"
+  ],
+  "not_animatable": [],
+  "extras": "Glider attachment (SM_Chr_Attach_Glider_01: gliding goblins with code-driven motion), bows, arrows, quivers, weapons, camp props, vehicles",
+  "warnings": [
+   "no clips",
+   "its demo scripts stay out of _Game (ASSETS.md)"
+  ],
+  "images": [
+   "img/polygon-goblin-war-camp_1.png"
+  ],
+  "fit_summary": "Current goblin faction; troll and glider attachment add a brute and a diver idea."
+ },
+ {
+  "pack": "POLYGON - Farm Pack",
+  "handle": "polygon-farm-pack",
+  "url": "https://syntystore.com/products/polygon-farm-pack",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/PolygonFarm",
+  "verified_from": "local prefabs + .fbx.meta (Characters.fbx Humanoid)",
+  "enemies": [
+   {
+    "name": "Scarecrow",
+    "kind": "cursed scarecrow",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (verified locally: .fbx.meta animationType Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ambusher",
+     "rusher"
+    ],
+    "priority": "med",
+    "notes": "SM_Chr_Scarecrow_01; can stand still in the fields until triggered"
+   }
+  ],
+  "excluded_human": [
+   "Farm Boy",
+   "Farm Girl",
+   "Farmer Female",
+   "Farmer Male",
+   "Old Farmer"
+  ],
+  "not_animatable": [],
+  "extras": "farm buildings and props (home base)",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-farm-pack_1.png"
+  ],
+  "fit_summary": "One on-theme farm enemy (scarecrow)."
+ },
+ {
+  "pack": "Goblin Fighters - Sidekick Modular Characters",
+  "handle": "goblin-fighters-sidekick-modular-characters",
+  "url": "https://syntystore.com/products/goblin-fighters-sidekick-modular-characters",
+  "series": "Sidekick",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/GoblinFighters",
+  "verified_from": "local Sidekick presets; tools-unity-synty-characters skill (one Humanoid rig, SK_BaseModelAvatar)",
+  "enemies": [
+   {
+    "name": "Goblin Fighters (modular, 5 presets)",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (Sidekick rig, verified locally)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the character pack. Sidekick-format clips (A_MOD_*) in the installed Synty ANIMATION packs plus Kevin Iglesias cover idle, move, melee, bow, hit, death. No fly or creature clips.",
+    "roles": [
+     "rusher",
+     "swarm fodder",
+     "ranged shooter (with bows)"
+    ],
+    "priority": "high",
+    "notes": "current enemies; parts mix with the other Sidekick packs"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/goblin-fighters-sidekick-modular-characters_1.png"
+  ],
+  "fit_summary": "Current goblin enemies."
+ },
+ {
+  "pack": "Apocalypse Zombies - Sidekick Modular Characters",
+  "handle": "apocalypse-zombies-sidekick-modular-characters",
+  "url": "https://syntystore.com/products/apocalypse-zombies-sidekick-modular-characters",
+  "series": "Sidekick",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/ApocalypseZombies",
+  "verified_from": "local Sidekick presets; tools-unity-synty-characters skill (one Humanoid rig, SK_BaseModelAvatar)",
+  "enemies": [
+   {
+    "name": "Apocalypse Zombies (modular, 5 presets)",
+    "kind": "zombie",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (Sidekick rig, verified locally)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the character pack. Sidekick-format clips (A_MOD_*) in the installed Synty ANIMATION packs plus Kevin Iglesias cover idle, move, melee, bow, hit, death. No fly or creature clips.",
+    "roles": [
+     "swarm fodder",
+     "rusher"
+    ],
+    "priority": "high",
+    "notes": "Zombie species base + outfits"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/apocalypse-zombies-sidekick-modular-characters_1.png"
+  ],
+  "fit_summary": "Modular zombies on the same rig as the goblins."
+ },
+ {
+  "pack": "Fantasy Skeletons - Sidekick Modular Characters",
+  "handle": "fantasy-skeletons-sidekick-modular-characters",
+  "url": "https://syntystore.com/products/fantasy-skeletons-sidekick-modular-characters",
+  "series": "Sidekick",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/FantasySkeletons",
+  "verified_from": "local Sidekick presets; tools-unity-synty-characters skill (one Humanoid rig, SK_BaseModelAvatar)",
+  "enemies": [
+   {
+    "name": "Fantasy Skeletons (modular, 5 presets)",
+    "kind": "skeleton",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (Sidekick rig, verified locally)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the character pack. Sidekick-format clips (A_MOD_*) in the installed Synty ANIMATION packs plus Kevin Iglesias cover idle, move, melee, bow, hit, death. No fly or creature clips.",
+    "roles": [
+     "swarm fodder",
+     "rusher",
+     "ranged shooter (with bows)"
+    ],
+    "priority": "high",
+    "notes": ""
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/fantasy-skeletons-sidekick-modular-characters_1.png"
+  ],
+  "fit_summary": "Modular undead warriors."
+ },
+ {
+  "pack": "Sci-Fi Robots - Sidekick Modular Characters",
+  "handle": "sci-fi-robots-sidekick-modular-characters",
+  "url": "https://syntystore.com/products/sci-fi-robots-sidekick-modular-characters",
+  "series": "Sidekick",
+  "date": "unknown (store page rate-limited)",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/ScifiRobots",
+  "verified_from": "local Sidekick presets; tools-unity-synty-characters skill (one Humanoid rig, SK_BaseModelAvatar)",
+  "enemies": [
+   {
+    "name": "Sci-Fi Robots (modular, 12 presets)",
+    "kind": "humanoid robot",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (Sidekick rig, verified locally)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the character pack. Sidekick-format clips (A_MOD_*) in the installed Synty ANIMATION packs plus Kevin Iglesias cover idle, move, melee, bow, hit, death. No fly or creature clips.",
+    "roles": [
+     "rusher",
+     "ranged shooter",
+     "tank/brute",
+     "exploder"
+    ],
+    "priority": "high",
+    "notes": "Robots species base + outfits (key art: crash-dummy robot, armoured combat robot, endoskeleton robot)"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/sci-fi-robots-sidekick-modular-characters_1.png"
+  ],
+  "fit_summary": "Main robot source on the shared Sidekick rig (robots are a must-have)."
+ },
+ {
+  "pack": "Goblin Species (Sidekick, no store page)",
+  "handle": null,
+  "url": null,
+  "series": "Sidekick",
+  "date": "n/a",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/GoblinSpecies",
+  "verified_from": "local Sidekick presets (not in the store sitemap)",
+  "enemies": [
+   {
+    "name": "Goblin Species (5 presets)",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (Sidekick rig, verified locally)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the character pack. Sidekick-format clips (A_MOD_*) in the installed Synty ANIMATION packs plus Kevin Iglesias cover idle, move, melee, bow, hit, death. No fly or creature clips.",
+    "roles": [
+     "swarm fodder",
+     "rusher"
+    ],
+    "priority": "high",
+    "notes": "species base bodies"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [],
+  "fit_summary": "Goblin bodies for SidekickKit builds."
+ },
+ {
+  "pack": "Skeleton Species (Sidekick, no store page)",
+  "handle": null,
+  "url": null,
+  "series": "Sidekick",
+  "date": "n/a",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/SkeletonSpecies",
+  "verified_from": "local Sidekick presets (not in the store sitemap)",
+  "enemies": [
+   {
+    "name": "Skeleton Species (5 presets)",
+    "kind": "skeleton",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (Sidekick rig, verified locally)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the character pack. Sidekick-format clips (A_MOD_*) in the installed Synty ANIMATION packs plus Kevin Iglesias cover idle, move, melee, bow, hit, death. No fly or creature clips.",
+    "roles": [
+     "swarm fodder"
+    ],
+    "priority": "high",
+    "notes": "species base bodies"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [],
+  "fit_summary": "Skeleton bodies for SidekickKit builds."
+ },
+ {
+  "pack": "Fantasy Sorcerers - Sidekick Modular Characters",
+  "handle": "fantasy-sorcerers-sidekick-modular-characters",
+  "url": "https://syntystore.com/products/fantasy-sorcerers-sidekick-modular-characters",
+  "series": "Sidekick",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/SidekickCharacters/Characters/FantasySorcerers",
+  "verified_from": "local presets",
+  "enemies": [],
+  "excluded_human": [
+   "all 6 presets (human mages)"
+  ],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [],
+  "images": [],
+  "fit_summary": "Human casters: excluded by the no-human rule."
+ },
+ {
+  "pack": "ANIMATION - Base Locomotion",
+  "handle": "animation-base-locomotion",
+  "url": "https://syntystore.com/products/animation-base-locomotion",
+  "series": "ANIMATION",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/AnimationBaseLocomotion",
+  "verified_from": "SYNTY_CATALOG.md + tools-unity-synty-characters skill",
+  "enemies": [],
+  "anim_coverage": "Humanoid idle, walk, run, sprint, crouch, jump, strafe (Sidekick A_MOD_BL_* and Polygon A_* formats): enemy idle/move.",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "Humanoid only: nothing for quadrupeds, flyers, crawlers or spellcasting"
+  ],
+  "images": [],
+  "fit_summary": "Retarget source for every Humanoid enemy above. Synty sells no other ANIMATION packs (no creature, zombie, flying, spellcasting or gun packs as of 2026-11-08)."
+ },
+ {
+  "pack": "ANIMATION - Goblin Locomotion",
+  "handle": "animation-goblin-locomotion",
+  "url": "https://syntystore.com/products/animation-goblin-locomotion",
+  "series": "ANIMATION",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/AnimationGoblinLocomotion",
+  "verified_from": "SYNTY_CATALOG.md + tools-unity-synty-characters skill",
+  "enemies": [],
+  "anim_coverage": "Goblin-styled humanoid locomotion (A_MOD_GBL_* / A_POLY_GBL_*), in use: goblin and small-creature idle/move.",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "Humanoid only: nothing for quadrupeds, flyers, crawlers or spellcasting"
+  ],
+  "images": [],
+  "fit_summary": "Retarget source for every Humanoid enemy above. Synty sells no other ANIMATION packs (no creature, zombie, flying, spellcasting or gun packs as of 2026-11-08)."
+ },
+ {
+  "pack": "ANIMATION - Sword Combat",
+  "handle": "animation-sword-combat",
+  "url": "https://syntystore.com/products/animation-sword-combat",
+  "series": "ANIMATION",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/AnimationSwordCombat",
+  "verified_from": "SYNTY_CATALOG.md + tools-unity-synty-characters skill",
+  "enemies": [],
+  "anim_coverage": "Humanoid sword combos, blocks, parries, dodges, hits, deaths: melee attack, hit and death for any humanoid enemy.",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "Humanoid only: nothing for quadrupeds, flyers, crawlers or spellcasting"
+  ],
+  "images": [],
+  "fit_summary": "Retarget source for every Humanoid enemy above. Synty sells no other ANIMATION packs (no creature, zombie, flying, spellcasting or gun packs as of 2026-11-08)."
+ },
+ {
+  "pack": "ANIMATION - Bow Combat",
+  "handle": "animation-bow-combat",
+  "url": "https://syntystore.com/products/animation-bow-combat",
+  "series": "ANIMATION",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/AnimationBowCombat",
+  "verified_from": "SYNTY_CATALOG.md + tools-unity-synty-characters skill",
+  "enemies": [],
+  "anim_coverage": "Humanoid bow stance, aim, shoot, reload, rolls, hits, deaths (store: 190 clips): ranged archers, hit and death.",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "Humanoid only: nothing for quadrupeds, flyers, crawlers or spellcasting"
+  ],
+  "images": [],
+  "fit_summary": "Retarget source for every Humanoid enemy above. Synty sells no other ANIMATION packs (no creature, zombie, flying, spellcasting or gun packs as of 2026-11-08)."
+ },
+ {
+  "pack": "ANIMATION - Idles",
+  "handle": "animation-idles",
+  "url": "https://syntystore.com/products/animation-idles",
+  "series": "ANIMATION",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/AnimationIdles",
+  "verified_from": "SYNTY_CATALOG.md + tools-unity-synty-characters skill",
+  "enemies": [],
+  "anim_coverage": "330 humanoid idle actions and stances: enemy fidgets.",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "Humanoid only: nothing for quadrupeds, flyers, crawlers or spellcasting"
+  ],
+  "images": [],
+  "fit_summary": "Retarget source for every Humanoid enemy above. Synty sells no other ANIMATION packs (no creature, zombie, flying, spellcasting or gun packs as of 2026-11-08)."
+ },
+ {
+  "pack": "ANIMATION - Emotes and Taunts",
+  "handle": "animation-emotes-and-taunts",
+  "url": "https://syntystore.com/products/animation-emotes-and-taunts",
+  "series": "ANIMATION",
+  "date": "unknown",
+  "installed": true,
+  "local_path": "Assets/Synty/AnimationEmotesAndTaunts",
+  "verified_from": "SYNTY_CATALOG.md + tools-unity-synty-characters skill",
+  "enemies": [],
+  "anim_coverage": "Humanoid taunts, celebrations, reactions: enemy taunts and victory poses.",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "Humanoid only: nothing for quadrupeds, flyers, crawlers or spellcasting"
+  ],
+  "images": [],
+  "fit_summary": "Retarget source for every Humanoid enemy above. Synty sells no other ANIMATION packs (no creature, zombie, flying, spellcasting or gun packs as of 2026-11-08)."
+ },
+ {
+  "pack": "POLYGON - Dark Fortress",
+  "handle": "polygon-dark-fortress",
+  "url": "https://syntystore.com/products/polygon-dark-fortress",
+  "series": "POLYGON",
+  "date": "2025-09-25 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: '13 characters, rigged and ready for animation', 'Characters set up with Mecanim (no animations included)'",
+  "enemies": [
+   {
+    "name": "Behemoth",
+    "kind": "bloated undead brute",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "size estimated from screenshots"
+   },
+   {
+    "name": "Colossus",
+    "kind": "armoured undead giant",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "boss"
+    ],
+    "priority": "high",
+    "notes": "size estimated"
+   },
+   {
+    "name": "Plague Lord",
+    "kind": "plague undead leader",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "caster/support",
+     "miniboss"
+    ],
+    "priority": "med",
+    "notes": "look and size not verified"
+   },
+   {
+    "name": "Plague",
+    "kind": "plague undead",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "exploder"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Undeads",
+    "kind": "undead soldiers",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "rusher"
+    ],
+    "priority": "med",
+    "notes": "count not given ('undeads')"
+   },
+   {
+    "name": "Corpse",
+    "kind": "corpse / risen dead",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ambusher",
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": ""
+   },
+   {
+    "name": "Wraith",
+    "kind": "wraith (glowing spectre)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "caster/support",
+     "ambusher"
+    ],
+    "priority": "high",
+    "notes": "a ghost; floating needs code-driven hover (no float clips)"
+   }
+  ],
+  "excluded_human": [
+   "Apothecary",
+   "Barbarian",
+   "Inquisitor",
+   "Knights",
+   "Necromancer"
+  ],
+  "not_animatable": [
+   "corpse piles, heads on spikes, skeleton props (static)"
+  ],
+  "extras": "siege engines (ballista + harpoons, cannons), boiling-oil wall defence, goop/spirit pools, fantasy weapons and armour",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-dark-fortress_1.png",
+   "img/polygon-dark-fortress_2.png",
+   "img/polygon-dark-fortress_3.png"
+  ],
+  "fit_summary": "Strongest non-installed undead pack (2025): brutes, plague undead and a wraith; siege props suit raids."
+ },
+ {
+  "pack": "POLYGON - Apocalypse Wasteland",
+  "handle": "polygon-apocalypse-wasteland",
+  "url": "https://syntystore.com/products/polygon-apocalypse-wasteland",
+  "series": "POLYGON",
+  "date": "2024-05-08 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: '23 characters, rigged and ready for animation', Mecanim",
+  "enemies": [
+   {
+    "name": "Giant Mutants",
+    "kind": "giant goop mutant",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "artillery/lobber (carries barrels)",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "screenshots show them hauling industrial barrels"
+   },
+   {
+    "name": "Mutants",
+    "kind": "glowing goop mutant (zombie-like)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "swarm fodder",
+     "exploder"
+    ],
+    "priority": "high",
+    "notes": "glowing pustules; the masked Goop tribals are human and excluded"
+   }
+  ],
+  "excluded_human": [
+   "Berserkers",
+   "Cultist",
+   "Villagers",
+   "Techs",
+   "Scout",
+   "Punks",
+   "Leaders (Desert Anarchists and masked Goop tribals)"
+  ],
+  "not_animatable": [
+   "mutant frogs (FX)",
+   "octopus throne, giant skeletons (static props)"
+  ],
+  "extras": "goop FX, scrap weapons (syringe rifles, grenade launchers, melee), 20 apocalyptic vehicles (monster truck, spiked roller...)",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-apocalypse-wasteland_1.png",
+   "img/polygon-apocalypse-wasteland_2.png",
+   "img/polygon-apocalypse-wasteland_3.png",
+   "img/polygon-apocalypse-wasteland_4.png"
+  ],
+  "fit_summary": "Best setting fit: mutant brutes and glowing mutants for the apocalypse raids."
+ },
+ {
+  "pack": "POLYGON - Sci-Fi Horror",
+  "handle": "polygon-sci-fi-horror",
+  "url": "https://syntystore.com/products/polygon-sci-fi-horror",
+  "series": "POLYGON",
+  "date": "2025-10-29 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: '18 characters, rigged and ready for animation', Mecanim",
+  "enemies": [
+   {
+    "name": "Alien",
+    "kind": "xenomorph-like alien (gaunt, toothed maw, long claws)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "rusher",
+     "ambusher",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": "~2.5 m, estimated from screenshot"
+   },
+   {
+    "name": "Corpses",
+    "kind": "skull-faced spacesuit dead (space zombies)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "ambusher"
+    ],
+    "priority": "med",
+    "notes": "skull heads on crew suits"
+   },
+   {
+    "name": "Zub",
+    "kind": "small alien critter",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "unknown (listed among the rigged Mecanim characters, but small and non-humanoid in screenshots)",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Rig and clips unknown.",
+    "roles": [
+     "swarm fodder",
+     "exploder"
+    ],
+    "priority": "low",
+    "notes": "identified from a screenshot, not confirmed"
+   }
+  ],
+  "excluded_human": [
+   "crew members",
+   "space suits",
+   "space mining suits"
+  ],
+  "not_animatable": [
+   "alien growths and egg sacks (environment)",
+   "alien specimens (props)"
+  ],
+  "extras": "android-head and skull-head attachments, flamethrower and sci-fi weapons",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-sci-fi-horror_1.png",
+   "img/polygon-sci-fi-horror_2.png",
+   "img/polygon-sci-fi-horror_3.png"
+  ],
+  "fit_summary": "Newest sci-fi creature (2025): one strong alien hunter plus space zombies."
+ },
+ {
+  "pack": "POLYGON - Dungeon Pack",
+  "handle": "polygon-dungeon-pack",
+  "url": "https://syntystore.com/products/polygon-dungeon-pack",
+  "series": "POLYGON",
+  "date": "2017-12-23 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Ghost 01 / Ghost 02",
+    "kind": "ghost (translucent green spirit, F/M)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ambusher",
+     "caster/support"
+    ],
+    "priority": "high",
+    "notes": "human silhouette that reads as spectral via its material; hover needs code"
+   },
+   {
+    "name": "Rock Golem",
+    "kind": "rock golem",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "fence-breaker",
+     "miniboss"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Skeletons (Knight, Slave, Soldier 01/02)",
+    "kind": "skeleton",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "tank/brute (Knight)"
+    ],
+    "priority": "low",
+    "notes": "duplicates installed skeletons"
+   },
+   {
+    "name": "Goblins (Female, Male, Shaman, Warchief, Warrior F/M)",
+    "kind": "goblin",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "caster/support",
+     "miniboss"
+    ],
+    "priority": "low",
+    "notes": "older goblin style; duplicates installed goblins"
+   }
+  ],
+  "excluded_human": [
+   "knight, mage and other hero characters"
+  ],
+  "not_animatable": [
+   "posed dead skeletons x8 (static)",
+   "large skeletons and bone pile (props)"
+  ],
+  "extras": "goblin camp set, goblin weapons x14, giant hammers x4, banners",
+  "warnings": [
+   "no clips",
+   "2017 pack"
+  ],
+  "images": [
+   "img/polygon-dungeon-pack_1.png",
+   "img/polygon-dungeon-pack_2.png",
+   "img/polygon-dungeon-pack_3.png",
+   "img/polygon-dungeon-pack_4.png"
+  ],
+  "fit_summary": "Two Synty ghosts and a rock golem; the rest duplicates installed content."
+ },
+ {
+  "pack": "POLYGON - Dungeon Realms",
+  "handle": "polygon-dungeon-realms",
+  "url": "https://syntystore.com/products/polygon-dungeon-realms",
+  "series": "POLYGON",
+  "date": "2021-02-16 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Big Demon",
+    "kind": "winged horned demon brute",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "miniboss",
+     "boss"
+    ],
+    "priority": "high",
+    "notes": "two colour variants in screenshots; wings are part of the mesh (no fly clips)"
+   },
+   {
+    "name": "Demon Skeleton 01-03",
+    "kind": "horned demon skeleton",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "rusher"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Undead Knight",
+    "kind": "armoured undead",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": ""
+   }
+  ],
+  "excluded_human": [
+   "Dwarves x7",
+   "Hero Female/Male",
+   "Nomads x5"
+  ],
+  "not_animatable": [
+   "Giant Golem (environment piece)"
+  ],
+  "extras": "81 weapons, hell chains, lava and fire FX",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-dungeon-realms_1.png",
+   "img/polygon-dungeon-realms_2.png",
+   "img/polygon-dungeon-realms_3.png"
+  ],
+  "fit_summary": "A winged demon boss plus demonic skeletons."
+ },
+ {
+  "pack": "POLYGON - Dark Fantasy",
+  "handle": "polygon-dark-fantasy",
+  "url": "https://syntystore.com/products/polygon-dark-fantasy",
+  "series": "POLYGON",
+  "date": "2023-09-11 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Gargoyle",
+    "kind": "winged gargoyle",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "ambusher (perched statue)",
+     "tank/brute",
+     "flyer/diver (only with new clips)"
+    ],
+    "priority": "high",
+    "notes": "wings part of the mesh; size estimated"
+   },
+   {
+    "name": "Demon (x2)",
+    "kind": "horned red demon",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Skeletons (Skeleton, Flesh, Heavy Armor, Light Armor, Ranger)",
+    "kind": "skeleton",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "tank/brute (Heavy Armor)",
+     "ranged shooter (Ranger)"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Dark Lord",
+    "kind": "hooded armoured lord, face hidden",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "boss",
+     "caster/support"
+    ],
+    "priority": "low",
+    "notes": "borderline: reads as a death knight only because the face is hidden"
+   }
+  ],
+  "excluded_human": [
+   "Grave Digger",
+   "Hunter Female/Male",
+   "Plague Doctor",
+   "Priest",
+   "Witch"
+  ],
+  "not_animatable": [
+   "gargoyle statues and dead animals (props)"
+  ],
+  "extras": "cathedral and graveyard set, crypts, cages",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-dark-fantasy_1.png",
+   "img/polygon-dark-fantasy_2.png",
+   "img/polygon-dark-fantasy_3.png",
+   "img/polygon-dark-fantasy_4.png"
+  ],
+  "fit_summary": "Gargoyle, demons and armoured skeleton variants."
+ },
+ {
+  "pack": "POLYGON - Horror Mansion",
+  "handle": "polygon-horror-mansion",
+  "url": "https://syntystore.com/products/polygon-horror-mansion",
+  "series": "POLYGON",
+  "date": "2022-02-14 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Ghoul",
+    "kind": "ghoul (pale, gaunt)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "ambusher"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Demon",
+    "kind": "goat-horned demon",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "caster/support"
+    ],
+    "priority": "med",
+    "notes": "has a tail attachment"
+   },
+   {
+    "name": "Werewolf",
+    "kind": "werewolf",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "tank/brute"
+    ],
+    "priority": "low",
+    "notes": "duplicates the installed werewolf"
+   }
+  ],
+  "excluded_human": [
+   "Butcher",
+   "Count (human-looking vampire)",
+   "Gimp",
+   "Jock",
+   "Girl",
+   "Witch",
+   "Yokai (human-looking ghost girl unless given a ghost shader)"
+  ],
+  "not_animatable": [],
+  "extras": "ghost-hunting gear props",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-horror-mansion_1.png",
+   "img/polygon-horror-mansion_2.png",
+   "img/polygon-horror-mansion_3.png",
+   "img/polygon-horror-mansion_4.png"
+  ],
+  "fit_summary": "A ghoul and a demon; most of the cast is human."
+ },
+ {
+  "pack": "POLYGON - Horror Carnival",
+  "handle": "polygon-horror-carnival",
+  "url": "https://syntystore.com/products/polygon-horror-carnival",
+  "series": "POLYGON",
+  "date": "2023-10-31 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Animatronic",
+    "kind": "animatronic robot rabbit",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "ambusher"
+    ],
+    "priority": "med",
+    "notes": "reads as a machine"
+   },
+   {
+    "name": "Slim",
+    "kind": "gaunt figure with a stitched sack head",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ambusher"
+    ],
+    "priority": "low",
+    "notes": "borderline human-looking"
+   }
+  ],
+  "excluded_human": [
+   "Carny",
+   "Clown Female/Male",
+   "Fortune Teller",
+   "Ring Leader",
+   "Strongman",
+   "Visitor Female/Male"
+  ],
+  "not_animatable": [],
+  "extras": "Mutant Head attachment, horror weapons (chainsaw, cleaver, mallet, nail gun...)",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-horror-carnival_1.png",
+   "img/polygon-horror-carnival_2.png"
+  ],
+  "fit_summary": "One machine enemy (robot rabbit)."
+ },
+ {
+  "pack": "POLYGON - Sci-Fi Space Pack",
+  "handle": "polygon-sci-fi-space-pack",
+  "url": "https://syntystore.com/products/polygon-sci-fi-space-pack",
+  "series": "POLYGON",
+  "date": "2019-03-01 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "War Robot",
+    "kind": "large combat robot",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "ranged shooter",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": ""
+   },
+   {
+    "name": "Big Alien 01 / 02",
+    "kind": "big reptilian/brute alien",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "miniboss"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Alien 01",
+    "kind": "humanoid alien",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher"
+    ],
+    "priority": "low",
+    "notes": ""
+   },
+   {
+    "name": "Robot Female",
+    "kind": "humanoid robot",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ranged shooter"
+    ],
+    "priority": "low",
+    "notes": "machine look not verified"
+   }
+  ],
+  "excluded_human": [
+   "soldiers",
+   "Big Space Soldier",
+   "crew and captains",
+   "cryo",
+   "Hunter",
+   "Junkers",
+   "Medic",
+   "EVA Suit",
+   "Psionic (look not verified)"
+  ],
+  "not_animatable": [
+   "drones (spaceship props)"
+  ],
+  "extras": "spaceships, sci-fi props",
+  "warnings": [
+   "no clips",
+   "2019 pack"
+  ],
+  "images": [
+   "img/polygon-sci-fi-space-pack_1.png",
+   "img/polygon-sci-fi-space-pack_2.png",
+   "img/polygon-sci-fi-space-pack_3.png"
+  ],
+  "fit_summary": "A war robot and big aliens."
+ },
+ {
+  "pack": "POLYGON - Sci-Fi Worlds",
+  "handle": "polygon-sci-fi-worlds",
+  "url": "https://syntystore.com/products/polygon-sci-fi-worlds",
+  "series": "POLYGON",
+  "date": "2021-11-01 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Alien Rock",
+    "kind": "crystal/rock alien (golem-like)",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute",
+     "miniboss"
+    ],
+    "priority": "high",
+    "notes": ""
+   },
+   {
+    "name": "Alien Armor",
+    "kind": "armoured alien brute",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Alien Combat",
+    "kind": "armoured alien soldier",
+    "domain": "ground",
+    "size_class": "large",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries. Massive proportions: check arm/leg clipping and stride on these clips.",
+    "roles": [
+     "ranged shooter",
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Alien Spikes",
+    "kind": "spiked alien",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Alien Chef / Alien Female / Alien Male",
+    "kind": "humanoid alien",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "ranged shooter"
+    ],
+    "priority": "low",
+    "notes": ""
+   },
+   {
+    "name": "Strider Male",
+    "kind": "unknown",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "unknown (name only; not identified in screenshots)",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Look and rig unknown.",
+    "roles": [
+     "unknown"
+    ],
+    "priority": "low",
+    "notes": ""
+   }
+  ],
+  "excluded_human": [
+   "VR Female/Male",
+   "Scavengers x3",
+   "Soldiers",
+   "Space Suits x4"
+  ],
+  "not_animatable": [
+   "Alien Insects (FX)",
+   "Giant Skeleton (prop)"
+  ],
+  "extras": "alien guns, turrets, alien artifacts",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-sci-fi-worlds_1.png",
+   "img/polygon-sci-fi-worlds_2.png",
+   "img/polygon-sci-fi-worlds_3.png"
+  ],
+  "fit_summary": "Alien brutes incl. a rock golem alien."
+ },
+ {
+  "pack": "POLYGON - Sci-Fi City",
+  "handle": "polygon-sci-fi-city",
+  "url": "https://syntystore.com/products/polygon-sci-fi-city",
+  "series": "POLYGON",
+  "date": "2018-08-08 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Robot 01",
+    "kind": "humanoid robot",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "ranged shooter"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Alien 01 / Alien 02",
+    "kind": "humanoid alien",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher"
+    ],
+    "priority": "low",
+    "notes": "coloured skin, human proportions"
+   }
+  ],
+  "excluded_human": [
+   "Android Female 01 (human-looking)",
+   "Cyborg Ninja 01",
+   "city humans"
+  ],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips",
+   "2018 pack"
+  ],
+  "images": [
+   "img/polygon-sci-fi-city_1.png",
+   "img/polygon-sci-fi-city_2.png"
+  ],
+  "fit_summary": "One robot and two aliens."
+ },
+ {
+  "pack": "POLYGON - Sci-Fi Cyber City",
+  "handle": "polygon-sci-fi-cyber-city",
+  "url": "https://syntystore.com/products/polygon-sci-fi-cyber-city",
+  "series": "POLYGON",
+  "date": "2023-07-10 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Robot Mercenary",
+    "kind": "armoured combat robot",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "ranged shooter",
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Robot / Robot Damaged / Robot Female",
+    "kind": "humanoid robot (crash-dummy style)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "swarm fodder"
+    ],
+    "priority": "med",
+    "notes": ""
+   },
+   {
+    "name": "Fancy Bot",
+    "kind": "screen-faced service robot",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "thief",
+     "caster/support"
+    ],
+    "priority": "low",
+    "notes": "identification from screenshot uncertain"
+   },
+   {
+    "name": "MurderKitten",
+    "kind": "clawed robotic cat creature",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "unknown (store says Mecanim for all characters; digitigrade, non-human proportions)",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Rig fit unknown.",
+    "roles": [
+     "rusher",
+     "ambusher"
+    ],
+    "priority": "low",
+    "notes": "identified from screenshot"
+   },
+   {
+    "name": "Helper Bot",
+    "kind": "small walker robot",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "unknown",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Rig and clips unknown.",
+    "roles": [
+     "thief",
+     "exploder"
+    ],
+    "priority": "low",
+    "notes": ""
+   },
+   {
+    "name": "Cat",
+    "kind": "small pet cat",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "unknown",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Rig and clips unknown.",
+    "roles": [
+     "thief"
+    ],
+    "priority": "low",
+    "notes": ""
+   }
+  ],
+  "excluded_human": [
+   "Cyborg Female/Male",
+   "PleasureBot Male (human-looking android)",
+   "Soldiers",
+   "Mercenaries",
+   "Racer",
+   "Rich Female/Male",
+   "Street Male"
+  ],
+  "not_animatable": [
+   "drones (FX and props)",
+   "robot parts (props)"
+  ],
+  "extras": "laser weapons, holograms",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-sci-fi-cyber-city_1.png",
+   "img/polygon-sci-fi-cyber-city_2.png",
+   "img/polygon-sci-fi-cyber-city_3.png"
+  ],
+  "fit_summary": "Several humanoid robots; odd-shaped bots have unknown rigs."
+ },
+ {
+  "pack": "POLYGON - Ancient Egypt",
+  "handle": "polygon-ancient-egypt",
+  "url": "https://syntystore.com/products/polygon-ancient-egypt",
+  "series": "POLYGON",
+  "date": "2024-08-22 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: '18 characters, rigged and ready for animation', Mecanim",
+  "enemies": [
+   {
+    "name": "Mummies",
+    "kind": "mummy",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "rusher",
+     "caster/support (staff mummy)"
+    ],
+    "priority": "med",
+    "notes": "several variants in screenshots"
+   },
+   {
+    "name": "Gods (animal-headed: jackal, falcon, cat, crocodile...)",
+    "kind": "animal-headed god / guardian",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "miniboss",
+     "caster/support",
+     "tank/brute"
+    ],
+    "priority": "med",
+    "notes": "humanoid bodies with 'God Heads' attachments"
+   }
+  ],
+  "excluded_human": [
+   "Pharaoh",
+   "Queen",
+   "Priest",
+   "Guards",
+   "Villagers",
+   "Assassin"
+  ],
+  "not_animatable": [
+   "mummies and sarcophagi as props (static)",
+   "scarab, locust, fly, frog FX"
+  ],
+  "extras": "sarcophagi (spawn points), curse FX",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-ancient-egypt_1.png",
+   "img/polygon-ancient-egypt_2.png",
+   "img/polygon-ancient-egypt_3.png"
+  ],
+  "fit_summary": "Mummies and Anubis-style guardians."
+ },
+ {
+  "pack": "POLYGON - Pirate Realm",
+  "handle": "polygon-pirate-realm",
+  "url": "https://syntystore.com/products/polygon-pirate-realm",
+  "series": "POLYGON",
+  "date": "2026-08-12 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: 'Pirate and navy characters, rigged and ready for animation', Mecanim; creatures not named",
+  "enemies": [
+   {
+    "name": "Fish-folk pirates",
+    "kind": "fish-headed humanoid",
+    "domain": "amphibious",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder",
+     "rusher",
+     "ranged shooter (muskets)"
+    ],
+    "priority": "med",
+    "notes": "identified from the character screenshot (several heads); count and names not listed on the store"
+   }
+  ],
+  "excluded_human": [
+   "pirates and navy",
+   "Mermaid (human-looking torso; tail instead of legs, so leg clips don't apply)"
+  ],
+  "not_animatable": [
+   "kraken tentacles (environment pieces)",
+   "fish and bird FX"
+  ],
+  "extras": "barnacle, fish and tail attachments, cannons, ships",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-pirate-realm_1.png",
+   "img/polygon-pirate-realm_2.png",
+   "img/polygon-pirate-realm_3.png"
+  ],
+  "fit_summary": "Fish-men for a swamp or sea region; the kraken is static set dressing."
+ },
+ {
+  "pack": "POLYGON - Pirate Pack",
+  "handle": "polygon-pirate-pack",
+  "url": "https://syntystore.com/products/polygon-pirate-pack",
+  "series": "POLYGON",
+  "date": "2017-07-31 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations); creatures 'include swim animations'",
+  "enemies": [
+   {
+    "name": "Skeleton Pirates (x2) + bare Skeleton",
+    "kind": "skeleton",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": "duplicates installed skeletons"
+   }
+  ],
+  "excluded_human": [
+   "pirates and Victorian-era characters"
+  ],
+  "not_animatable": [
+   "Shark and Fish: Generic with a swim clip only (no attack, hit or death)",
+   "posed skeletons x8 (static)"
+  ],
+  "extras": "ships, weapons",
+  "warnings": [
+   "no clips for humanoids",
+   "2017 pack"
+  ],
+  "images": [
+   "img/polygon-pirate-pack_1.png",
+   "img/polygon-pirate-pack_2.png"
+  ],
+  "fit_summary": "Only the shark is unique, and it fails the clip rule."
+ },
+ {
+  "pack": "POLYGON - Apocalypse Pack",
+  "handle": "polygon-apocalypse-pack",
+  "url": "https://syntystore.com/products/polygon-apocalypse-pack",
+  "series": "POLYGON",
+  "date": "2019-10-02 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: Mecanim (no animations)",
+  "enemies": [
+   {
+    "name": "Zombies (Female x2, Male x2)",
+    "kind": "zombie",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": "duplicates installed zombies"
+   }
+  ],
+  "excluded_human": [
+   "26 human survivors and raiders"
+  ],
+  "not_animatable": [],
+  "extras": "weapons, vehicles, barricades",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-apocalypse-pack_1.png",
+   "img/polygon-apocalypse-pack_2.png"
+  ],
+  "fit_summary": "Few zombies; wanted for props, not enemies."
+ },
+ {
+  "pack": "POLYGON - Samurai Empire",
+  "handle": "polygon-samurai-empire",
+  "url": "https://syntystore.com/products/polygon-samurai-empire",
+  "series": "POLYGON",
+  "date": "2025-08-07 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: '13 characters, rigged and ready for animation', Mecanim",
+  "enemies": [
+   {
+    "name": "Tengu Male",
+    "kind": "tengu (long-nosed red yokai head)",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "rusher",
+     "caster/support"
+    ],
+    "priority": "low",
+    "notes": "borderline: yokai head on a samurai body"
+   }
+  ],
+  "excluded_human": [
+   "Geisha",
+   "Generic F/M",
+   "Kunoichi",
+   "Nobility",
+   "Samurai F/M",
+   "Shinobi",
+   "Soldier"
+  ],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-samurai-empire_1.png",
+   "img/polygon-samurai-empire_2.png"
+  ],
+  "fit_summary": "One borderline yokai."
+ },
+ {
+  "pack": "POLYGON - Fantasy Village",
+  "handle": "polygon-fantasy-village",
+  "url": "https://syntystore.com/products/polygon-fantasy-village",
+  "series": "POLYGON",
+  "date": "2026-05-26 (store published_at)",
+  "installed": false,
+  "verified_from": "store description (cached 2026-11-07) + store screenshots viewed; store: 'A collection of animal characters, rigged and ready for animation', Mecanim",
+  "enemies": [
+   {
+    "name": "Animal folk (bird, cat, bunny, fox, frog, mouse, pig, raccoon)",
+    "kind": "anthropomorphic animal",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "Humanoid (store: 'Characters set up with Mecanim'; every installed POLYGON pack with that line imports as Humanoid)",
+    "anims": {
+     "idle": false,
+     "move": false,
+     "melee": false,
+     "ranged": false,
+     "fly": false,
+     "hit": false,
+     "death": false
+    },
+    "anim_source": "humanoid retarget",
+    "anim_notes": "No clips in the pack. Humanoid, so the installed humanoid libraries drive it: Synty Base/Goblin Locomotion (idle, move), Sword Combat (melee, hit, death), Bow Combat (bow shoot, hit, death), Idles, Emotes and Taunts, plus the Kevin Iglesias packs. No fly, crawl, spit or creature-specific clips exist in those libraries.",
+    "roles": [
+     "thief",
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": "cute villager tone; at most a joke or thief faction"
+   }
+  ],
+  "excluded_human": [
+   "butcher, barmaid and human villagers"
+  ],
+  "not_animatable": [
+   "bees, birds, fish, frogs, ladybugs (FX)"
+  ],
+  "extras": "goblin-ear attachment",
+  "warnings": [
+   "no clips"
+  ],
+  "images": [
+   "img/polygon-fantasy-village_1.png",
+   "img/polygon-fantasy-village_2.png"
+  ],
+  "fit_summary": "Tone mismatch; low."
+ },
+ {
+  "pack": "POLYGON - Gingerbread",
+  "handle": "polygon-gingerbread-house",
+  "url": "https://syntystore.com/products/polygon-gingerbread-house",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": false,
+  "verified_from": "third-party mirror via web search: 'Characters (x4): Gingerbread man (x2), gingerbread woman (x2)', described as rigged",
+  "enemies": [
+   {
+    "name": "Gingerbread men/women (x4)",
+    "kind": "gingerbread figure",
+    "domain": "ground",
+    "size_class": "human",
+    "rig": "unknown (mirror says rigged; type not stated)",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Rig type and clips unknown.",
+    "roles": [
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": "seasonal joke enemy"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "gingerbread house",
+  "warnings": [
+   "store text not read"
+  ],
+  "images": [
+   "img/polygon-gingerbread-house_1.png"
+  ],
+  "fit_summary": "Seasonal joke only."
+ },
+ {
+  "pack": "POLYGON - Holiday Gnomes | FREE",
+  "handle": "polygon-holiday-gnomes",
+  "url": "https://syntystore.com/products/polygon-holiday-gnomes",
+  "series": "POLYGON",
+  "date": "unknown (store page rate-limited)",
+  "installed": false,
+  "verified_from": "web search snippet: 'eight gnomes and a mini demo scene'; rigging not stated",
+  "enemies": [
+   {
+    "name": "Gnomes (x8)",
+    "kind": "garden gnome",
+    "domain": "ground",
+    "size_class": "small",
+    "rig": "unknown",
+    "anims": {
+     "idle": "unknown",
+     "move": "unknown",
+     "melee": "unknown",
+     "ranged": "unknown",
+     "fly": "unknown",
+     "hit": "unknown",
+     "death": "unknown"
+    },
+    "anim_source": "unknown",
+    "anim_notes": "Rig and clips unknown.",
+    "roles": [
+     "thief",
+     "swarm fodder"
+    ],
+    "priority": "low",
+    "notes": "borderline human-looking (bearded little men)"
+   }
+  ],
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [
+   "store text not read"
+  ],
+  "images": [
+   "img/polygon-holiday-gnomes_1.png"
+  ],
+  "fit_summary": "Joke thieves at most."
+ },
+ {
+  "pack": "_coverage",
+  "handle": null,
+  "url": null,
+  "series": "n/a",
+  "date": "2026-11-08",
+  "installed": null,
+  "verified_from": "store sitemap (211 products, 2026-11-07) + cached descriptions for 56 products; store pages were rate-limited (HTTP 429) for this whole session, so uncached packs were judged from key art, the project catalogue and web search",
+  "enemies": [],
+  "human_only_polygon": [
+   "polygon-adventure-pack",
+   "polygon-ancient-empire",
+   "polygon-battle-royale-pack",
+   "polygon-city-characters-pack",
+   "polygon-elven-realm",
+   "polygon-explorer-kit",
+   "polygon-fantasy-characters-pack",
+   "polygon-fantasy-kingdom (Fairy is a tiny winged human)",
+   "polygon-gang-warfare-pack",
+   "polygon-heist-pack",
+   "polygon-horror-asylum",
+   "polygon-knights-pack",
+   "polygon-military-pack",
+   "polygon-modular-fantasy-hero-characters",
+   "polygon-police-station (drone and bomb robot are static props)",
+   "polygon-samurai-pack",
+   "polygon-snow-kit",
+   "polygon-spy-kit (drone prop)",
+   "polygon-viking-realm (bear/wolf heads are attachments)",
+   "polygon-vikings-pack",
+   "polygon-war-pack",
+   "polygon-western-pack",
+   "polygon-western-frontier-pack",
+   "polygon-santa",
+   "polygon-kids-pack (children in costumes: alien, demon, ghost, goblin, mummy, troll, werewolf, zombie, dino onesie; excluded)"
+  ],
+  "human_only_sidekick": [
+   "apocalypse-outlaws",
+   "apocalypse-survivors",
+   "elven-warriors",
+   "fantasy-knights",
+   "fantasy-villagers",
+   "modern-civilians",
+   "modern-police",
+   "pirate-captains",
+   "samurai-warriors",
+   "sci-fi-civilians",
+   "sci-fi-soldiers",
+   "viking-warriors",
+   "sidekick starter pack"
+  ],
+  "no_creatures": [
+   "nature biomes (alpine, arid desert: vulture FX, enchanted forest: bird/eel/weta FX, meadow, swamp, tropical jungle: installed, FX birds/fish/frogs only)",
+   "polygon-nature-pack",
+   "polygon-frog-shrine (static frog statue)",
+   "polygon-legendary-chest",
+   "polygon-pumpkins-pack",
+   "polygon-halloween-masks-free",
+   "polygon-easter-pack",
+   "polygon-xmas-pack (snowman prop)",
+   "polygon-holiday-2025",
+   "polygon-valentines-kit (cupid, human-looking)",
+   "polygon-pride-plushies (static plush animals)",
+   "polygon-pride-flags",
+   "polygon-pride-crystal-weapons",
+   "polygon-bubblegum-killstick",
+   "polygon-bow-and-crossbow",
+   "polygon-particle-fx-pack",
+   "polygon-icons-pack",
+   "polygon-adult-face-plates",
+   "polygon-prototype-pack",
+   "polygon-starter-pack",
+   "polygon-hearse-kit",
+   "polygon-quad-bike",
+   "polygon-stunt-plane",
+   "polygon-water-guns",
+   "polygon-coffee-shop",
+   "polygon-wheelchair-pack",
+   "polygon-casino",
+   "polygon-nightclubs",
+   "polygon-palm-city",
+   "polygon-street-racer",
+   "polygon-pro-racer",
+   "polygon-town-pack",
+   "polygon-city-pack",
+   "polygon-office-pack",
+   "polygon-shops-pack",
+   "polygon-construction-pack"
+  ],
+  "map_addons_and_bundles": [
+   "fantasy/dwarven dungeon, pirate isles, sci-fi outpost, woodland apocalypse, prison, military warehouse, shopping plaza, WWI maps and their bundles",
+   "animation-complete-collection",
+   "nature biomes seasons one/two",
+   "humble bundles",
+   "syntypass",
+   "gift card",
+   "synty importer"
+  ],
+  "skipped_by_rule": [
+   "31 SIMPLE products",
+   "4 POLYGON MINI products",
+   "11 INTERFACE packs (UI)"
+  ],
+  "dinosaurs": "none in the catalogue (no raptor, T-rex, pteranodon, triceratops or other prehistoric creature; only a child's dino onesie in the Kids Pack)",
+  "excluded_human": [],
+  "not_animatable": [],
+  "extras": "",
+  "warnings": [],
+  "images": [],
+  "fit_summary": "Everything else in the store, and why it has no usable enemy."
+ }
+]
