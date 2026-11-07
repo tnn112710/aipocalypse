@@ -114,6 +114,13 @@ When writing code, the user's prompt is the spec.
 - If the prompt and the GDD disagree, follow the prompt and mention the difference; don't "fix" the code toward the GDD.
 - Technical docs (`docs/technicals/`, this file) still decide *how* to build.
 
+## Scope of a change
+
+- **Unclear → ask, don't pick.** If a request has more than one reasonable reading or a real tradeoff, state your assumptions or the options before building. Say so when a simpler approach exists.
+- **Smallest thing that works.** No interfaces or base classes for a single use (unless the architecture docs call for one), no modes, toggles or options nobody asked for (tuning values still go in the system's settings asset), no handling for cases that can't happen. If it could be half the length, rewrite it.
+- **Touch only what the task needs.** Don't refactor, reformat or restyle nearby code, even where it breaks the Code style section; mention it instead. Delete only what your change made unused; point out older dead code, don't remove it. Doc updates required by "Keeping docs current" are part of the task.
+- **Know what "done" is before starting.** For a bug, reproduce it first: a failing test, or a play-mode probe when it can't be unit tested. For multi-step work, list the steps and how each one gets checked.
+
 ## Keeping docs current
 
 - When you add or change a core system (data structures, gameplay flow, system boundaries), update the relevant section of this file or `docs/` in the same change. Keep this file high-level; put detail in `docs/`.
