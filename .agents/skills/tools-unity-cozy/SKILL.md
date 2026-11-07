@@ -31,12 +31,21 @@ Gameplay `DayPhase`s don't change for the look; the look may change hourly or co
 - **COZY settings are project-global** in the package (`Content/Resources/COZY Settings.asset`: styles, `HandleSceneLighting`, downsampling, FX blocking, sky rotation/pitch). Changing them is allowed (they're configuration), but record each change in PLUGINS.md and re-check them after a COZY update (an update may overwrite them).
 - **Renderer feature:** `PC_Renderer` is shared by every scene, so the feature is on once WorldMap uses COZY (`CozyKit.Feature`). A scene without a `CozyWeather` then pays a `FindAnyObjectByType` per camera per frame (small); if that ever matters, the bridge's absence is the signal to switch it off at runtime, not a second renderer.
 - **FX blocking off** (or a depth-only renderer): it renders a second camera through `PC_Renderer` with all its features every frame.
-- **Integrations:** `COZY_SW3` does nothing (the integration is commented out). `COZY_BK` writes the same globals as our `BKFoliageGlobals` every frame while COZY is in the scene: keep the Pure Nature integration off unless COZY wind is meant to drive BK plants.
+- **Integrations:** `COZY_SW3` does nothing (the integration is commented out). `COZY_BK` writes the same globals as our `BKFoliageGlobals` every frame once COZY has a Wind module (none yet), with a 30 m `renderDistance` default: match its fields to `BKFoliageGlobals` or turn it off before adding wind.
 - **Water and transparents get no COZY fog.** SW3's own COZY fog hook targets COZY 3 and doesn't work with 4. Don't edit SW3; compare fog modes instead.
 - **Prompt first.** Eclipse days, Blood Moons, region biomes, weather rules and their effects come from the GDD: propose, get confirmation, then build.
 - **Measure.** Perf is judged on the editor benchmark (user, 2026-11-08: editor only, no builds) with the same views and hours before and after; numbers live in DAYNIGHT.md.
 
-## 3. Driving the editor
+## 3. What's built (WorldMap)
+
+- `_Core/EnvironmentSystem/Cozy/CozyBridge.cs` on `Environment/Time Of Day/COZY Weather` (COZY with Atmosphere, Time, Weather modules). The director's **Cozy** field turns COZY mode on: it pushes `CozyBridge.CozyHour(lookHour, sunrise, sunset)` (our sunrise–sunset onto COZY's 06–18), the day and the moon phase, reads COZY's sun back for Daylight and reactors, turns its own light off and hides the skybox in Play. The bridge also matches COZY's moon phase to ours, scales the moon light by phase, mutes COZY fog unless the fog mode is Cozy, and points `RenderSettings.sun` at the moon at night (COZY leaves it on its switched-off sun, and URP would pick the enemy highlight light as the main light).
+- Look: `Data/Environment/Cozy/Aipocalypse_Atmosphere.asset`, **baked from the `TOD_*` looks** by `CozySetup.Atmosphere()` (light, ambient, sky horizon, fog colour, stars, night sky). Change a look, then re-bake; don't hand-edit the baked overrides.
+- Style: `Data/Environment/Cozy/Aipocalypse_Style.asset` (Desktop minus sunshafts), first in COZY's style list because COZY always starts on the first. Measure before turning features on (DAYNIGHT.md → COZY → Cost).
+- Fog: director **Fog** = Unity (default) / Cozy / VolumetricFog2 / DynamicFog (the Kronnect two are comparison set-ups with fixed colours).
+- Setup and switches: `AgentScripts/DayNight/CozySetup.cs` (`Scene`, `Atmosphere`, `Style`, `FogModes`, `Use(bool)`, `Fog(mode)`, `Status`). Tests: `Tests/EditMode/CozyBridgeTests.cs`.
+- Vendor churn: COZY rewrites keywords on its own `Resources` materials at runtime (e.g. `COZY Sunshafts.mat`). Revert, don't commit.
+
+## 4. Driving the editor
 
 The user-scope kit does generic work (`Status`, `Profiles`, `Create`, `SetTime`, `SetWeather`, `Feature`, `Style`, `Lighting`):
 
