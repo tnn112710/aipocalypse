@@ -91,7 +91,7 @@ Still suggested:
 ##### Who raids: contact and chance (user, 2026-11-07)
 
 - Idea (user): attacking or triggering an enemy kind in its biome (no kill needed) registers it as a possible raider. Even at grudge 0 it keeps a small chance to raid (e.g. 5–10%); kills raise the grudge, which raises both the chance and the amount. Balance it so too many kinds never raid at once
-- Decided (user, 2026-11-07): register and hold a grudge per faction (~4 meters); once registered, any of the faction's types can raid. Fallback if the user changes their mind: register per type, so a faction raid brings only the types already met. Registration happens when the player hits one of the faction's enemies or one starts chasing them (not when merely seen), and the drone says so ("New contact: Swamp Folk. They know your scent now")
+- Decided (user, 2026-11-07), later replaced the same day by per enemy type (see Enemy cast from installed packs): register and hold a grudge per faction (~4 meters); once registered, any of the faction's types can raid. Fallback if the user changes their mind: register per type, so a faction raid brings only the types already met. Registration happens when the player hits one of the faction's enemies or one starts chasing them (not when merely seen), and the drone says so ("New contact: Swamp Folk. They know your scent now")
 - Suggested: building one raid night
   1. The schedule picks raid nights, as now; everything below is rolled at dawn and shown in the morning forecast (new faction = "?" silhouette)
   2. Goblins always come; their size grows slowly with the days
@@ -170,6 +170,28 @@ Still suggested:
   - Night danger on a budget: outer-zone enemies use the existing elite markers at night; dedicated night predators later
   - Tech: while the player is far away, the raid can run as a cheap tally of losses and become live enemies as the player gets close
 - Decided (user, 2026-11-07): the first four additions, now in RAIDS.md (At the farm, Losing a raid)
+
+##### Enemy cast from installed packs (user, 2026-11-07)
+
+- User: wants Synty robots and zombies in raids; enemies that match each biome would cost too many assets
+- Suggested: cast each region's faction from packs already installed instead of matching the biome. The AI-made sandbox doesn't need ecologically sensible enemies (the early direction already said the mix itself hints at an AI-generated world); camp dressing tells each region's story
+  - Goblins (home raiders from day 1): Sidekick Goblin Fighters, in use
+  - Pine Forest → zombies: Sidekick Apocalypse Zombies (+ POLYGON City Zombies); boss from POLYGON Boss Zombies. An outbreak at an abandoned campsite, the AI's idea of a forest
+  - Swamps → robots: Sidekick Sci-fi Robots (12 looks); boss = a mech from POLYGON Mech Pack (humanoid rig). The AI's dump of discarded robots rusting in the bog, also where broken service robots wait to be rescued
+  - Highlands (later update) → open, e.g. Sidekick Fantasy Skeletons with a Fantasy Rivals boss (troll, golem)
+  - Alternative: robots in the Highlands, next to the electronic final zone; the Swamps get skeletons, and robots arrive with the Highlands
+- Why it's cheap: goblins, zombies, robots and skeletons are all Sidekick characters, built by SidekickKit like the goblins on the same humanoid clips; factions share behaviours (thief, breaker, fighter, ranged) and differ by look plus one signature unit; elites are tint/scale variants; weaker bosses are the same model scaled down
+- Each faction a raid job, so the forecast changes preparation: goblins steal; zombies come in numbers and break fences; robots are few, armoured and ranged, with the longest spotting range, so they hunt the player
+- Fallback: factions not tied to regions (zombies and robots roam everywhere in different mixes). Cheapest, but it blurs "a region = a faction + its boss" and the boss-calms-its-faction rule
+- User (2026-11-07): enemies don't need to fit the biomes like Valheim's; regions can be just terrain zones, and one enemy type can be found in several regions
+- Suggested: agree, with the cast above kept and only the exclusivity dropped. Regions introduce factions instead of owning them:
+  - A region introduces a faction, and the region's boss belongs to it (Pine Forest: zombies; Swamps: robots). After that, the faction also turns up in other regions. Goblins are everywhere
+  - Each region still differs by its mix (mostly robots in the Swamps, some zombies), terrain and hazards, materials, camps, the robot to rescue, and a danger tier: deeper regions field more and stronger elites
+  - Later regions can add no new faction, only a harder mix and a boss, so content grows without new characters
+  - Ref: 7 Days to Die — each biome has a gamestage and loot-stage bonus (Pine Forest +0/+0 up to Wasteland +50/+20) that raises enemy strength and loot beyond the player's own progression ([PinDrop, from biomes.xml](https://pindrop.gg/7-days-to-die/biomes))
+- Rules this would change in RAIDS.md: a faction becomes a group of enemy types, not a biome's set; grudge rises from that faction's kills anywhere outside the home, not only in its region; a boss still calms its own faction and registers the faction the next region introduces
+- Risk: if every faction shows up in the first region, later regions have nothing new to find. Introducing them region by region keeps the discovery
+- Decided (user, 2026-11-07): raids are triggered per enemy type (goblins, zombies, robots…), not per region faction, because of limited assets. Types aren't tied to regions. Now in RAIDS.md → Enemy types. Carried over to fit: grudge rises from a type's kills anywhere in the outer zone; each region boss belongs to one type, and its kill calms that type and registers the type of the next region's boss. Still suggested, not written: which region introduces which type
 
 ### Debt to the AI Lord and endings (user, 2026-11-07)
 
@@ -272,7 +294,8 @@ Superseded (user, 2026-11-07): all regions are open and ranked by difficulty, wi
 | Fire out / small fire / bonfire chooses whether and how much to fight | Night raids are part of the loop; Blood Moons and eclipses provide major-event directions |
 | Night enemies never arrive through portals | Night threats can come from the outer zone and appear through portals |
 | A completely peaceful progression path with no required defense; fights only when the player lights the fire | Fights are required on raid nights; no full-cozy mode. Ordinary days and quiet nights stay safe (user, 2026-10-31) |
-| Daily player biome portals provide the main expeditions | Player biome portals are removed; repairing the bridge unlocks the outer zone: open regions ranked by difficulty, each with a faction and a boss, and a locked final zone (user, 2026-11-07). A fast-travel portal to the regions comes later |
+| Daily player biome portals provide the main expeditions | Player biome portals are removed; repairing the bridge unlocks the outer zone: open regions ranked by difficulty, each with its own enemy mix and a boss, and a locked final zone (user, 2026-11-07). A fast-travel portal to the regions comes later |
+| Raids triggered per region faction (goblins + one faction per region) | Per enemy type (goblins, zombies, robots…), with types shared between regions, because of limited assets (user, 2026-11-07) |
 | Possible fixed morning product collection and next-day grazing bonuses | Animals physically drop products near themselves, with faster production while roaming in the meadow |
 | Selling and buying have no chosen home service | A cute robot trading station is chosen; more robots, one in the meadow and the rest rescued in the outer zone, open further stations (user, 2026-11-07) |
 | Ordinary-night ending remains unresolved | At midnight, new attacks stop and surviving raiders retreat |

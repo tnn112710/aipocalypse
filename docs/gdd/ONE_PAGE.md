@@ -24,14 +24,14 @@ The whole game on one page, after Unity's [one-page game design document](https:
 - First-person shooting with limited ammo (a few guns) and melee as fallback.
 - Day/night clock; raid and quiet nights known each morning; Blood Moon and eclipse.
 - Goblin raids that both steal and attack; breakable fences and gate with repair.
-- Provoked factions join raids through grudge; a Threat level sets raid difficulty ([RAIDS.md](RAIDS.md)).
+- Provoked enemy types join raids through grudge; a Threat level sets raid difficulty ([RAIDS.md](RAIDS.md)).
 - Animals that roam, drop produce, come home at the bell and can be stolen; crops; fishing.
 - Trading robot with daily stock, safe deposits, the daily box, upgrades.
-- Bridge repair and open regions with loot containers, factions and summonable bosses; rescued robots and simple crafting.
+- Bridge repair and open regions with loot containers, enemies and summonable bosses; rescued robots and simple crafting.
 - HP, hunger, stamina, sanity; sleep restores sanity.
 - Save/load, knockout and death losses, a wake-up intro and first-raid tutorial.
 
-**If time allows, else in an update** *(proposal)*: the dog, collector robot, the fast-travel portal, cooking beyond basics, weather, gun fishing, storage station, river-swim upgrades, more enemy kinds (robots, zombies), outer zone after dark (the Dark, mystical entities).
+**If time allows, else in an update** *(proposal)*: the dog, collector robot, the fast-travel portal, cooking beyond basics, weather, gun fishing, storage station, river-swim upgrades, more enemy types, outer zone after dark (the Dark, mystical entities).
 
 **Not this version** *(proposal)*: XP skills, perk cards, Luck, the cat, the lottery ending, a cozy mode without fights, the old daily biome portals, multiplayer, languages other than English. Which regions, the final zone and its boss run, and which endings go into the first Early Access version still needs planning.
 

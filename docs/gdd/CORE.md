@@ -61,7 +61,7 @@ MORNING: open the daily box, trade and deposit, release the animals (later: assi
 8. **Some nights bring raids; others are quiet** — tonight's type is known for sure in the morning. Ordinary raids stop at midnight: new attacks cease and surviving raiders retreat.
 9. **A major event every 10 days** — Blood Moons are full-night miniboss events on days 10 and 20 of each 30-day cycle. An eclipse replaces the Blood Moon on every 30th day and is a full-day event with more enemies and one giant boss.
 10. **Fights are required on raid nights** — there is no opt-in fire and no full-cozy mode. Ordinary days and quiet nights stay safe.
-11. **Raiders are the factions you provoke** — goblins raid from the start; a region's faction joins raids once the player has fought it, more often and in larger numbers as its grudge grows. Difficulty follows the player's results through a Threat level, not the day. See [RAIDS.md](RAIDS.md).
+11. **Raiders are the enemies you provoke** — goblins raid from the start; another enemy type (zombies, robots…) joins raids once the player has fought it, more often and in larger numbers as its grudge grows. Difficulty follows the player's results through a Threat level, not the day. See [RAIDS.md](RAIDS.md).
 12. **Death does not end the run** — deposits with the service robots are safe; what you carry is at risk (see [Resources & failure](#resources--failure)).
 
 ## Day, dusk and exploration
@@ -69,7 +69,7 @@ MORNING: open the daily box, trade and deposit, release the animals (later: assi
 - **At home:** collect products where animals drop them, tend crops and plants inside the fence, fish, chop, cook, trade, deposit, build and repair.
 - **Animals:** keep them in the paddock for slower production or let them roam the meadow for faster production. Later, the dog can help bring them home and a collector robot can gather their drops.
 - **Outer zone:** after repairing the bridge, cross the river to explore for resources and loot while watching for wandering enemies and dangers. There is no extraction point: tension comes from the daylight timer, the risk to what you carry and the outer zone after dark.
-- **Regions:** all regions are open once across the river and differ in difficulty by distance: Pine Forest (nearest), then Swamps, then Highlands. Each has its own enemy faction, region materials and a boss. Next-tier materials, rescued robots, trophies and keys come only from exploring and bosses.
+- **Regions:** all regions are open once across the river and differ in difficulty by distance: Pine Forest (nearest), then Swamps, then Highlands. Each has its own terrain, mix of enemy types, region materials and a boss. Enemy types aren't tied to a region: one type turns up in several ([RAIDS.md](RAIDS.md#enemy-types)). Next-tier materials, rescued robots, trophies and keys come only from exploring and bosses.
 - **Region bosses:** summoned by the player. The first kill gives a key or trophy toward the final boss plus Tokens and materials; later kills give Tokens and materials only and get harder each time. Details in [RAIDS.md](RAIDS.md#region-bosses).
 - **Final zone:** locked until every region boss is beaten. Its one boss is the ultimate AI boss, fought as a Megabonk-style run rather than like the region bosses; beating it wins the game (see [Endings](#endings)). What the zone is and how the run plays are decided later (idea: an electronic scrap zone where a portal leads to the run).
 - **Looting:** containers take a short search and show rarity colors. Cleared camps stay cleared for some days.
@@ -85,9 +85,9 @@ MORNING: open the daily box, trade and deposit, release the animals (later: assi
 | Situation | Current direction | Still open |
 | --- | --- | --- |
 | Quiet night | No raid; rest, sleep or night fishing. Animals left outside sleep where they are | Night activities beyond fishing, lighting needs |
-| Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat. Goblins plus at most 1–2 provoked factions ([RAIDS.md](RAIDS.md)) | Balance values |
-| Blood Moon | Full-night miniboss event on every 10th day except eclipse days. Every registered faction comes, plus weaker versions of beaten region bosses; difficulty rises gradually from one Blood Moon to the next | Who the miniboss is, warnings, phases, rewards and how the night resolves |
-| Eclipse | Full-day event on every 30th day, replacing that day's Blood Moon: more enemies and one giant boss; weaker versions of beaten region bosses also come | Which factions and how much power; details with the enemy-system revision |
+| Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat. Goblins plus at most 1–2 provoked enemy types ([RAIDS.md](RAIDS.md)) | Balance values |
+| Blood Moon | Full-night miniboss event on every 10th day except eclipse days. Every registered enemy type comes, plus weaker versions of beaten region bosses; difficulty rises gradually from one Blood Moon to the next | Who the miniboss is, warnings, phases, rewards and how the night resolves |
+| Eclipse | Full-day event on every 30th day, replacing that day's Blood Moon: more enemies and one giant boss; weaker versions of beaten region bosses also come | Which enemy types and how much power; details with the enemy-system revision |
 | Outer zone after dark | Extremely dangerous enemies (buffed enemies, night enemies, predators), darkness draining sanity and attacks by mystical entities | Light protection, entity behavior, dog benefits and escape options |
 
 ### Major-event calendar
@@ -110,11 +110,11 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - Between major events (9 nights): about 4 raid nights, never 3 in a row. The first block has fewer.
 - The nights just before and after a major event are quiet, including the night after an eclipse.
 - Raid and quiet nights are dealt from a shuffle bag per block, so the mix is fair without being fixed.
-- Raid size and difficulty follow the player's Threat level and the factions' grudges, not the day; two tribute bowls let the player pay for an easier night or offer bait for a harder one with more rewards. See [RAIDS.md](RAIDS.md).
+- Raid size and difficulty follow the player's Threat level and the enemy types' grudges, not the day; two tribute bowls let the player pay for an easier night or offer bait for a harder one with more rewards. See [RAIDS.md](RAIDS.md).
 
 ### Raid and safety rules
 
-- Goblins raid from the start; each region's faction joins raids once provoked ([RAIDS.md](RAIDS.md)). Enemy types are revised later with the enemy system. Raiders go for the farm, not the player: some steal, others break fences to get into the yard. Each turns on the player who comes within its spotting range.
+- Goblins raid from the start; each other enemy type joins raids once provoked ([RAIDS.md](RAIDS.md)). Enemy types are revised later with the enemy system. Raiders go for the farm, not the player: some steal, others break fences to get into the yard. Each turns on the player who comes within its spotting range.
 - **Routes:** at night, goblins cross the river freely and some use the bridge; some enemies fly; some appear directly in the meadow (summoned or through portals). The bridge is not a chokepoint, so defense centres on the yard and paddock fences.
 - The midnight retreat ends an ordinary raid. Outer-zone night dangers remain; Blood Moons last the full night.
 - Fences and barricades are defenses. A lost fight can leave the home damaged and require repairs.
@@ -157,7 +157,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 
 - **Home:** a house on a ridge above the sea, the yard and paddock, the meadow and the river (see [Places](#places)). Farming, fishing, chopping, services and defense share the meadow side.
 - **Bridge:** initially broken; repairing it opens the safe way into the outer zone. Repair costs and the introductory sequence are open.
-- **Outer zone:** open regions with their own factions and bosses, ranked by difficulty, and a locked final zone (see [Day, dusk and exploration](#day-dusk-and-exploration)); substantially more dangerous at night.
+- **Outer zone:** open regions with their own enemy mixes and bosses, ranked by difficulty, and a locked final zone (see [Day, dusk and exploration](#day-dusk-and-exploration)); substantially more dangerous at night.
 - **Weather:** intended to affect activities and visibility; refined later.
 - **Guide drone:** guide, tips and in-world information; comic tech-support personality; secretly connected to the AI Lord.
 - **Dog:** can accompany exploration or stay home; later helps bring animals home. The previous draft also included modest combat help and a safe backpack; their interaction with these duties needs review.
@@ -168,7 +168,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 - **Resources:** Tokens, wood, food, farm products, materials, ammunition and equipment. Trees regrow; their timing is not fixed.
 - **Deposits** with the service robots are safe from death and lost raids, except Tokens: losing a raid costs a share of all Tokens. Tokens repaid on the debt are never lost.
 - **What you carry is at risk**, Tokens included.
-- **Losing a raid** (knocked out at home, or not home when it ends): X% of all your Tokens, deposited ones included (upgrades lower X), and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. A knock-out also means waking the next morning having lost part of the items you carry, and lowers the Threat level and the grudge of the factions in that raid ([RAIDS.md](RAIDS.md#losing-a-raid)).
+- **Losing a raid** (knocked out at home, or not home when it ends): X% of all your Tokens, deposited ones included (upgrades lower X), and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. A knock-out also means waking the next morning having lost part of the items you carry, and lowers the Threat level and the grudge of the enemy types in that raid ([RAIDS.md](RAIDS.md#losing-a-raid)).
 - **Death in the outer zone:** respawn at home. The previous draft's loss rule is retained for review: 50–70% of carried loot drops into a recoverable grave, a second death loses the grave, and equipped melee and the dog's backpack are protected. Carried-item selection, percentage and grave lifetime need review.
 - **Structures:** buildings and upgrades are kept, but damage can require repair.
 
