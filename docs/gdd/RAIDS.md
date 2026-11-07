@@ -50,6 +50,13 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 - **Rhythm:** a sawtooth on top of Threat. Raids build up through each 10-day block, peak at the Blood Moon, then drop; the next block starts a little higher than the last.
 - A raid night is split into 2–4 waves, small to big, with short pauses to reload and repair.
 
+### Enemy toughness
+
+- **HP is fixed per enemy type** and never grows with time, so "every bullet counts" stays readable and gun tiers feel like real upgrades.
+- Raids get harder through more enemies, harder mixes and **elite variants**: visibly marked (aura, armor or color), with more HP and damage and a higher power cost. Higher Threat and Blood Moons make elites more common.
+- **Special occasions** use the same visible markers, e.g. enraged enemies on Blood Moons or armored types on eclipses.
+- **Bosses are the exception:** repeat summons scale their HP.
+
 ## Tribute
 
 - Before a raid, the player can sacrifice Tokens and resources at the service robots to lower that night's wave power: level 1 −10%, level 2 −20%, level 3 −30%.
@@ -94,7 +101,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 
 | Area | Needed decision |
 | --- | --- |
-| Balance | Target win rates for ordinary raids and Blood Moons; each type's power cost; Threat steps; grudge gain, cap and cool-down rates |
+| Balance | Target win rates for ordinary raids and Blood Moons; each type's power cost; Threat steps; grudge gain, cap and cool-down rates; a shots-to-kill table (each type and elite × each gun tier) |
 | Eclipse | Which factions and how much power, alongside its giant boss |
 | Bosses | Each boss's identity, summoning, rewards and difficulty steps |
 | Final zone | What it is. Idea: an electronic scrap zone; with every region key, a portal opens to the final boss. Revisit after the rest |
@@ -103,7 +110,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 
 | Game | Reference purpose |
 | --- | --- |
-| Valheim | Raid types unlocked by progression; boss trophies as keys |
+| Valheim | Raid types unlocked by progression; boss trophies as keys; visible star levels for tougher creatures |
 | Don't Starve | A kill-driven meter (naughtiness) that summons a thief and cools down over days |
 | The Forest / Sons of the Forest | Enemy aggression rising with kills and bringing raids to the base; ours can cool down |
 | Risk of Rain 2 | A director that spends a growing budget on monsters |
