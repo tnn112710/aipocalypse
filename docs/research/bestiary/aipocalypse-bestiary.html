@@ -319,7 +319,7 @@ function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(reviews)); 
 function setState(t) { $("#saveState").textContent = t; }
 async function persist(id) {
   saveLocal();
-  if (!db) { setState("saved in this browser"); return; }
+  if (!db) { if (!(await writeFile())) setState(fileHandle ? "saved in this browser: click Save picks" : "saved in this browser"); return; }
   const r = reviews[id] || {};
   try {
     setState("saving…");
@@ -564,22 +564,71 @@ async function downloadCsv(dl) {
   catch (e) { if (e && e.code !== "declined") toast("CSV download isn't available here"); }
 }
 
-/* ---------- offline: save / load picks as a JSON file (local copy only) ---------- */
+/* ---------- offline: picks in a fixed JSON file (local copy only) ----------
+   Chrome / Edge: the first Save asks where the file lives, then every save (and every pick) writes to it,
+   and the page reads it back on open. Other browsers fall back to a download. */
 const isLocal = location.protocol === "file:";
-if (isLocal) { $("#saveFile").hidden = false; $("#loadLbl").hidden = false; }
-$("#saveFile").onclick = () => {
-  const out = { page: "aipocalypse-bestiary", saved: new Date().toISOString(), reviews };
-  const url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: "application/json" }));
+const canFS = isLocal && "showSaveFilePicker" in window;
+let fileHandle = null;
+function idb(op, val) {
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open("aipo-bestiary", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => { const tx = r.result.transaction("kv", op ? "readwrite" : "readonly"); const st = tx.objectStore("kv");
+        const q = op ? st.put(val, "picksFile") : st.get("picksFile"); q.onsuccess = () => res(q.result); q.onerror = () => res(null); };
+      r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+}
+async function readFileInto(h) {
+  try { const t = await (await h.getFile()).text(); if (t.trim()) { const d = JSON.parse(t); Object.assign(reviews, d.reviews || {}); saveLocal(); } return true; }
+  catch (e) { return false; }
+}
+async function writeFile() {
+  if (!fileHandle) return false;
+  try {
+    if ((await fileHandle.queryPermission({ mode: "readwrite" })) !== "granted") return false;
+    const w = await fileHandle.createWritable();
+    await w.write(JSON.stringify({ page: "aipocalypse-bestiary", saved: new Date().toISOString(), reviews }, null, 1)); await w.close();
+    setState("saved to " + fileHandle.name); return true;
+  } catch (e) { setState("couldn't write " + (fileHandle ? fileHandle.name : "the file")); return false; }
+}
+if (isLocal) {
+  $("#saveFile").hidden = false;
+  $("#saveFile").textContent = "Save picks";
+  if (!canFS) { $("#loadLbl").hidden = false; }
+  (async () => {
+    if (!canFS) return;
+    fileHandle = await idb(false);
+    if (!fileHandle) { setState("first Save picks asks where to keep the file"); return; }
+    if ((await fileHandle.queryPermission({ mode: "readwrite" })) === "granted") { await readFileInto(fileHandle); renderAll(); setState("picks loaded from " + fileHandle.name); }
+    else { $("#saveFile").textContent = "Reconnect " + fileHandle.name; setState("click Reconnect to load and save your picks file"); }
+  })();
+}
+$("#saveFile").onclick = async () => {
+  if (canFS) {
+    try {
+      if (!fileHandle) {
+        fileHandle = await window.showSaveFilePicker({ suggestedName: "bestiary-picks.json", types: [{ description: "Bestiary picks", accept: { "application/json": [".json"] } }] });
+        await readFileInto(fileHandle); await idb(true, fileHandle);
+      } else if ((await fileHandle.queryPermission({ mode: "readwrite" })) !== "granted") {
+        if ((await fileHandle.requestPermission({ mode: "readwrite" })) !== "granted") return;
+        await readFileInto(fileHandle);
+      }
+      $("#saveFile").textContent = "Save picks";
+      renderAll(); if (await writeFile()) toast("Saved to " + fileHandle.name);
+    } catch (e) { if (e && e.name !== "AbortError") toast("Couldn't save the file"); }
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([JSON.stringify({ page: "aipocalypse-bestiary", saved: new Date().toISOString(), reviews }, null, 1)], { type: "application/json" }));
   const a = document.createElement("a"); a.href = url; a.download = "bestiary-picks.json"; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-  toast("Saved bestiary-picks.json: keep it in docs/research/bestiary/");
+  setTimeout(() => URL.revokeObjectURL(url), 2000); toast("Downloaded bestiary-picks.json");
 };
 $("#loadFile").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
-  try {
-    const d = JSON.parse(await f.text());
-    Object.assign(reviews, d.reviews || {}); saveLocal(); renderAll(); toast(`Loaded ${Object.keys(d.reviews || {}).length} picks`);
-  } catch (err) { toast("That file isn't a picks file"); }
+  try { const d = JSON.parse(await f.text()); Object.assign(reviews, d.reviews || {}); saveLocal(); renderAll(); toast(`Loaded ${Object.keys(d.reviews || {}).length} picks`); }
+  catch (err) { toast("That file isn't a picks file"); }
   e.target.value = "";
 };
 
