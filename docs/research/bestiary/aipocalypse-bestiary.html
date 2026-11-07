@@ -236,6 +236,8 @@ footer.end { padding-block: 30px 40px; color: var(--muted); font-size: .8rem; }
       <span id="tally"></span>
       <button class="btn" id="copyPicks" type="button">Copy my picks</button>
       <button class="btn" id="csvBtn" type="button" hidden>Download CSV</button>
+      <button class="btn" id="saveFile" type="button" hidden>Save picks to file</button>
+      <label class="btn" id="loadLbl" hidden for="loadFile">Load picks</label><input type="file" id="loadFile" accept=".json,application/json" hidden>
       <span class="save-state" id="saveState"></span>
     </div>
   </div>
@@ -561,6 +563,25 @@ async function downloadCsv(dl) {
   try { await dl.save({ filename: "aipocalypse-bestiary.csv", data: csv }); toast("CSV saved"); }
   catch (e) { if (e && e.code !== "declined") toast("CSV download isn't available here"); }
 }
+
+/* ---------- offline: save / load picks as a JSON file (local copy only) ---------- */
+const isLocal = location.protocol === "file:";
+if (isLocal) { $("#saveFile").hidden = false; $("#loadLbl").hidden = false; }
+$("#saveFile").onclick = () => {
+  const out = { page: "aipocalypse-bestiary", saved: new Date().toISOString(), reviews };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: "application/json" }));
+  const a = document.createElement("a"); a.href = url; a.download = "bestiary-picks.json"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast("Saved bestiary-picks.json: keep it in docs/research/bestiary/");
+};
+$("#loadFile").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    Object.assign(reviews, d.reviews || {}); saveLocal(); renderAll(); toast(`Loaded ${Object.keys(d.reviews || {}).length} picks`);
+  } catch (err) { toast("That file isn't a picks file"); }
+  e.target.value = "";
+};
 
 function renderAll(full = true) {
   if (full) { renderHeader(); renderFilters(); renderGroups(); renderMatrix(); renderLineups(); renderDesign(); }
