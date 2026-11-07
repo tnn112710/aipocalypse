@@ -80,7 +80,7 @@ Time of day, sky, lighting, fog and grade are first-party (`EnvironmentDirector`
 
 | Plugin | Version | Location | Tag | Notes |
 | --- | --- | --- | --- | --- |
-| COZY 3: Stylized Weather (+ Blocks 1.7.2, Habits 1.4.0, Horizon 1.0.0, Plume 1.4.3) | 3.6.23 | `Packages/com.distantlands.cozy.*` | Avoid | Kept installed, not used (user, 2026-10-21). Don't reference COZY scripts, shaders or assets. |
+| COZY 4: Stylized Weather (+ Blocks 1.0.0, Eclipse 1.0.0, Horizon 1.0.0, Resound 1.0.0) | 4.0.1 | `Packages/space.distantlands.cozyweather.*` | Could | Upgraded from COZY 3.6.23 on 2026-11-08; Avoid → Could (user, 2026-11-08). Fallback for sky, weather or ambience the first-party `EnvironmentDirector` lacks; time of day, lighting, fog and grade stay ours (DAYNIGHT.md). Not used yet. The upgrade added a `Cozy Renderer Feature` (fog, clouds, sun shafts passes) to `PC_Renderer`, three layers (`Before Clouds`, `After Clouds`, `FX Block`, excluded from the renderer's layer masks) and the defines `COZY_WEATHER;COZY_4_AND_UP;COZY_SW3;COZY_BK` (`COZY_SW3` = its Stylized Water 3 integration). The old COZY 3 folders `Packages/com.distantlands.cozy.*` remain as empty folders with tracked `.meta` files only. |
 
 ## Game feel, tweening, UI
 

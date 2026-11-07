@@ -2,7 +2,7 @@
 
 A world clock, a time-of-day look driven by it, and a digital clock on the HUD. Built in Core: the clock in `_Core/WorldTimeSystem/`, the look in `_Core/EnvironmentSystem/TimeOfDay/`, the HUD widget in `_Core/UI/`. Gameplay rules on top (dusk warning, sleeping, night enemies) are Features and not built yet.
 
-COZY is installed but **not used**: the sky (our Time Of Day shader or Kronnect Skybox Plus, both driven by the director), lighting, fog and grade are ours (PLUGINS.md).
+COZY 4 is installed (Could) but **not used yet**: the sky (our Time Of Day shader or Kronnect Skybox Plus, both driven by the director), lighting, fog and grade are ours (PLUGINS.md).
 
 ```text
 RULES  WorldClock (scene scope, ticked)  ── HourChanged · DayPhaseChanged · DayStarted · TimeJumped · TimeSkipEnded
