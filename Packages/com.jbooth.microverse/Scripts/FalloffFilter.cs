@@ -4,9 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Burst.Intrinsics;
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [System.Serializable]
     public class FalloffFilter
     {
@@ -18,6 +24,7 @@ namespace JBooth.MicroVerseCore
             Texture = 3,
             SplineArea = 4,
             PaintMask = 5,
+            MeshStamp = 6
         }
 
         public enum FilterTypeNoGlobal
@@ -27,6 +34,7 @@ namespace JBooth.MicroVerseCore
             Texture = 3,
             SplineArea = 4,
             PaintMask = 5,
+            MeshStamp = 6,
         }
 
         public enum FilterTypeNoPaintMask
@@ -36,6 +44,7 @@ namespace JBooth.MicroVerseCore
             Range = 2,
             Texture = 3,
             SplineArea = 4,
+            MeshStamp = 5,
         }
 
         public enum FilterTypeNoGlobalNoPaintMask
@@ -44,6 +53,7 @@ namespace JBooth.MicroVerseCore
             Range = 2,
             Texture = 3,
             SplineArea = 4,
+            MeshStamp = 5,
         }
 
         public enum TextureChannel
@@ -77,7 +87,7 @@ namespace JBooth.MicroVerseCore
         public FilterType filterType;
         public Texture2D texture;
         public TextureChannel textureChannel = TextureChannel.R;
-        public Vector2 textureParams = new Vector2(1, 0); // amplitude, balance
+        public Vector3 textureParams = new Vector3(1, 0, 0); // amplitude, balance, invert
         public Vector4 textureRotationScale = new Vector4(0, 1, 0, 0);
         public bool clampTexture;
 
@@ -289,6 +299,8 @@ namespace JBooth.MicroVerseCore
         public float splineAreaFalloffBoost;
 #endif
 
+        public MeshStamp meshStamp;
+
         public PaintFalloffArea paintArea;
 
 
@@ -303,6 +315,7 @@ namespace JBooth.MicroVerseCore
         static int _FalloffTextureChannel = Shader.PropertyToID("_FalloffTextureChannel");
         static int _FalloffTextureParams = Shader.PropertyToID("_FalloffTextureParams");
         static int _FalloffTextureRotScale = Shader.PropertyToID("_FalloffTextureRotScale");
+        static int _FalloffMeshStampParams = Shader.PropertyToID("_FalloffMeshStampParams");
         static int _FalloffAreaRange = Shader.PropertyToID("_FalloffAreaRange");
         static int _FalloffAreaBoost = Shader.PropertyToID("_FalloffAreaBoost");
         static int _PaintAreaMatrix = Shader.PropertyToID("_PaintAreaMatrix");
@@ -387,6 +400,14 @@ namespace JBooth.MicroVerseCore
                 mat.SetVector(_Falloff, useFilter.falloffRange);
                 if (clampTexture)
                     keywords.Add("_CLAMPFALLOFFTEXTURE");
+            }
+            else if (useFilter.filterType == FilterType.MeshStamp && useFilter.meshStamp != null)
+            {
+                keywords.Add("_USEFALLOFFMESHSTAMP");
+                mat.SetTexture(_FalloffTexture, useFilter.meshStamp.targetDepthTexture);
+                mat.SetVector(_FalloffMeshStampParams, new Vector4(0, 0, useFilter.meshStamp.blur, 0));
+                mat.SetVector(_FalloffTextureParams, useFilter.textureParams);
+                mat.SetVector(_Falloff, useFilter.falloffRange);
             }
             else if (useFilter.filterType == FilterType.PaintMask)
             {

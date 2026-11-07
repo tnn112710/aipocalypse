@@ -5,10 +5,16 @@ using UnityEngine;
 #if UNITY_2021_3_OR_NEWER
 
 using UnityEngine.Splines;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 // SDF spline renderer - convert spline into SDF for fast sampling
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class SplineRenderer
     {
         private ComputeBuffer curveBuffer;
@@ -21,7 +27,6 @@ namespace JBooth.MicroVerseCore
 
         static Shader slineRenderShader = null;
         static Shader splineClearShader = null;
-
 
         public struct RenderDesc
         {

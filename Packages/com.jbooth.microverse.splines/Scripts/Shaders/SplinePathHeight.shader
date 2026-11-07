@@ -99,6 +99,7 @@
                 //float4 os = _SplineSDF_TexelSize;
                 float2 noiseUV = (i.uv * _NoiseUV.z) + _NoiseUV.xy * _NoiseUV.z;
                 float2 sdfUV = i.uv;// - (1.0 / _HeightMapSize * 0.5);
+                sdfUV *= (_HeightMapSize - 1)/_HeightMapSize;
                 float3 data = tex2D(_SplineSDF, sdfUV).xyz;
                 
                 

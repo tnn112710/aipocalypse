@@ -9,6 +9,11 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEditor;
 
+#if UNITY_6000_7_OR_NEWER
+using UnityEngine.Assemblies;
+using Unity.Scripting.LifecycleManagement;
+#endif
+
 #if UNITY_2019_3_OR_NEWER
 
 // installs defines for render pipelines, so we can #if USING_HDRP and do stuff. Can't believe Unity doesn't provide this crap, they
@@ -16,6 +21,9 @@ using UnityEditor;
 
 namespace JBooth.MicroVerseCore.ShaderPackager
 {
+#if UNITY_6000_7_OR_NEWER
+   [NoAutoStaticsCleanup]
+#endif
    public static class RenderPipelineDefine
    {
       private const string HDRP_PACKAGE = "HDRenderPipelineAsset";
@@ -40,7 +48,11 @@ namespace JBooth.MicroVerseCore.ShaderPackager
 
       public static bool DoesTypeExist(string className)
       {
-         var foundType = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+#if UNITY_6000_7_OR_NEWER
+            var foundType = (from assembly in CurrentAssemblies.GetLoadedAssemblies()
+#else
+            var foundType = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+#endif
                           from type in GetTypesSafe(assembly)
                           where type.Name == className
                           select type).FirstOrDefault();

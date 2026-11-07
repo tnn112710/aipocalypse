@@ -7,8 +7,15 @@ using UnityEditor;
 using UnityEngine.Splines;
 using UnityEditor.Splines;
 
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
+
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(SplinePath), true)]
     [CanEditMultipleObjects]
     class SplinePathEditor : Editor

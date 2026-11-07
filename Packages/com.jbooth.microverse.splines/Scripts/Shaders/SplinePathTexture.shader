@@ -57,6 +57,7 @@
             float _SplatNoiseChannel;
             float4 _SplineSDF_TexelSize;
             float _AlphaMapSize;
+            float _HeightMapSize;
 
             float _Width;
             float _Smoothness;
@@ -116,9 +117,13 @@
 
                 half4 indexMap = tex2D(_IndexMap, i.uv) * TEXCOUNT;
                 // center the pixel lookup
-                float2 halfPixel = _SplineSDF_TexelSize.xy * 0.5; 
-                float2 sdfUV = lerp(halfPixel, 1-halfPixel, i.uv);
-                //float2 sdfUV = i.uv;// - 1.0 / _AlphaMapSize;
+                float2 halfPixel = _SplineSDF_TexelSize.xy * 0.25; 
+                float2 uvOffset = halfPixel /* * _SplineSDF_TexelSize.zw * 0.1 */ * i.uv;
+
+                //float2 sdfUV = lerp(halfPixel, 1-halfPixel, i.uv);
+                float2 sdfUV = i.uv;// - 1.0 / _AlphaMapSize;
+                //sdfUV += uvOffset;
+                sdfUV *= (_HeightMapSize - 1)/_HeightMapSize;
                 float2 data = tex2D(_SplineSDF, sdfUV).xy;
 
                 float2 noiseUV = (i.uv * _NoiseUV.z) + _NoiseUV.xy * _NoiseUV.z;

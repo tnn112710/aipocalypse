@@ -5,9 +5,15 @@ using System.Linq;
 using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Mathematics;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public partial class SpawnProcessor
     {
         List<ISpawner> spawners = null;
@@ -127,12 +133,14 @@ namespace JBooth.MicroVerseCore
             Dictionary<Terrain, Dictionary<int, List<RenderTexture>>> resultBuffers = new Dictionary<Terrain, Dictionary<int, List<RenderTexture>>>();
             bool enableTreeSDF = false;
             bool enableObjectSDF = false;
+#if __MICROVERSE_VEGETATION__
             foreach (var s in spawners)
             {
                 enableTreeSDF |= s.UsesOtherTreeSDF();
                 enableObjectSDF |= s.UsesOtherObjectSDF();
             }
 
+#endif
             foreach (var s in spawners)
             {
 #if __MICROVERSE_VEGETATION__

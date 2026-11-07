@@ -15,12 +15,14 @@ namespace JBooth.MicroVerseCore
 
     public interface ISpawner : IModifier
     {
+#if __MICROVERSE_VEGETATION__
         bool UsesOtherTreeSDF();
         bool UsesOtherObjectSDF();
         bool NeedParentSDF();
         bool NeedToGenerateSDFForChilden();
         void SetSDF(Terrain t, RenderTexture rt);
         RenderTexture GetSDF(Terrain t);
+#endif
     }
 
 

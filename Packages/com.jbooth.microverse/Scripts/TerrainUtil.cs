@@ -157,6 +157,31 @@ namespace JBooth.MicroVerseCore
             return m;
         }
 
+        // This is used for mesh stamp filter use cases
+        // Moved this from the Mesh Stamp
+        public static Matrix4x4 ComputeStampMatrix(Terrain terrain, Bounds bounds)
+        {
+            // rotation is baked into the stamp render, so we just use the bounds to compute everything
+            // instead of the stamp transform
+            var ts = terrain.terrainData.size;
+            var hms = terrain.terrainData.heightmapScale;
+            var hmr = terrain.terrainData.heightmapResolution;
+            var realSize = new Vector2(hms.x * hmr, hms.z * hmr);
+
+            var localPosition = terrain.transform.worldToLocalMatrix.MultiplyPoint3x4(bounds.center);
+
+            var size = bounds.size;
+            float size2D = Mathf.Max(size.x, size.z);
+
+            var pos = new Vector2(localPosition.x, localPosition.z);
+            var pos01 = pos / realSize;
+            var m = Matrix4x4.Translate(-pos01);
+            // Use the actual size to compute the matrix scale
+            m = Matrix4x4.Scale(new Vector3(ts.x / size2D, ts.z / size2D, 0)) * m;
+            m = Matrix4x4.Translate(new Vector3(0.5f, 0.5f, 0.0f)) * m;
+            return m;
+        }
+
         public static int FindTextureChannelIndex(Terrain terrain, TerrainLayer layer)
         {
             var layers = terrain.terrainData.terrainLayers;

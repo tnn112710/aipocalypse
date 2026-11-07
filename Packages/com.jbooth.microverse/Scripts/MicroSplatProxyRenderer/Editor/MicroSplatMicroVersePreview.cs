@@ -11,10 +11,16 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using System.Collections.Generic;
 using System.Linq;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroSplat
 {
 #if __MICROSPLAT__ && __MICROSPLAT_TESSELLATION__
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [InitializeOnLoad]
     public class MicroSplatMicroVersePreview : FeatureDescriptor
     {

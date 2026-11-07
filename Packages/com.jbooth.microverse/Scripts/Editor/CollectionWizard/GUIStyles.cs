@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore.Browser.CollectionWizard
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class GUIStyles
     {
         private static GUIStyle _appTitleBoxStyle;

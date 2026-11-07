@@ -1,10 +1,16 @@
 using UnityEngine;
 using UnityEngine.TerrainTools;
 using System.Collections.Generic;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class PreviewRenderer
     {
         static Material brushPreviewMat;
@@ -229,6 +235,10 @@ namespace JBooth.MicroVerseCore
                     {
                         Draw(terrain, transform, filter.texture, color, colorTex, (int)filter.textureChannel);
                     }
+                    else if(filter.filterType == FalloffFilter.FilterType.MeshStamp && filter.meshStamp != null)
+                    {
+                        Draw(terrain, filter.meshStamp.transform, filter.meshStamp.targetDepthTexture, color, colorTex, 0, blur: filter.meshStamp.blur > 0, blurSize: filter.meshStamp.blur);
+                    }
                 }
             }
             DrawNoisePreview();
@@ -264,6 +274,31 @@ namespace JBooth.MicroVerseCore
             brushPreviewMat.SetTexture("_MainTex", tex);
             brushPreviewMat.SetFloat("_FalloffChannel", channel);
            
+            Graphics.DrawProceduralNow(MeshTopology.Triangles, vertexCount);
+        }
+
+        public static void Draw(Terrain terrain, Transform transform, RenderTexture tex,
+            Color color, Texture2D colorTex = null, int channel = 0, bool blur = false, float blurSize = 0f)
+        {
+            if (!terrain) return;
+            if (!brushPreviewMat) brushPreviewMat = new Material(Shader.Find("Hidden/MicroVerse/PreviewStamp"));
+            if (color.a < 0.05) return;
+
+            int vertexCount = SetupDrawing(terrain, transform, brushPreviewMat);
+            brushPreviewMat.DisableKeyword("_USEFALLOFFTEXTURE");
+            brushPreviewMat.SetTexture("_ColorTex", colorTex);
+            brushPreviewMat.SetColor("_Color", color);
+            brushPreviewMat.EnableKeyword("_USEFALLOFFTEXTURE");
+            brushPreviewMat.SetTexture("_MainTex", tex);
+            brushPreviewMat.SetFloat("_FalloffChannel", channel);
+            brushPreviewMat.DisableKeyword("_BLUR");
+            if (blur)
+            {
+                brushPreviewMat.EnableKeyword("_BLUR");
+                brushPreviewMat.SetFloat("_BlurSize", blurSize);
+            }
+
+
             Graphics.DrawProceduralNow(MeshTopology.Triangles, vertexCount);
         }
 

@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using System;
 using UnityEditor;
 using UnityEngine.Rendering;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class MeshStamp : Stamp, IHeightModifier
     {
@@ -279,6 +285,13 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            // Putting this here just in case, but I don't really want to allow users to use a mesh stamp to filter a mesh stamp....
+            /*
+            if (foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
+            */
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {
                 return foFilter.paintArea.GetBounds();
@@ -346,7 +359,7 @@ namespace JBooth.MicroVerseCore
 
                 material.SetVector(_NoiseUV, new Vector3(noisePos.x, noisePos.z, GetTerrainScalingFactor(heightmapData.terrain)));
                 Bounds b = GetPrefabBounds(targetObject);
-                material.SetMatrix(_Transform, ComputeStampMatrix(heightmapData.terrain, b));
+                material.SetMatrix(_Transform, TerrainUtil.ComputeStampMatrix(heightmapData.terrain, b));
                 material.SetVector(_YBounds, new Vector4(b.min.y - 0.5f, b.max.y + 0.5f, b.size.y + 1, offset));
                 material.SetVector(_StampBounds, new Vector4(b.size.x, b.size.y, b.size.z, 0));
                 material.SetVector(_HeightScaleClamp, new Vector3(heightScale, heightClamp.x, heightClamp.y));
@@ -374,29 +387,6 @@ namespace JBooth.MicroVerseCore
         static int _Transform = Shader.PropertyToID("_Transform");
         static int _RealSize = Shader.PropertyToID("_RealSize");
         static int _StampTex = Shader.PropertyToID("_StampTex");
-
-        Matrix4x4 ComputeStampMatrix(Terrain terrain, Bounds bounds)
-        {
-            // rotation is baked into the stamp render, so we just use the bounds to compute everything
-            // instead of the stamp transform
-            var ts = terrain.terrainData.size;
-            var hms = terrain.terrainData.heightmapScale;
-            var hmr = terrain.terrainData.heightmapResolution;
-            var realSize = new Vector2(hms.x * hmr, hms.z * hmr);
-
-            var localPosition = terrain.transform.worldToLocalMatrix.MultiplyPoint3x4(bounds.center);
-
-            var size = bounds.size;
-            float size2D = Mathf.Max(size.x, size.z);
-
-            var pos = new Vector2(localPosition.x, localPosition.z);
-            var pos01 = pos / realSize;
-            var m = Matrix4x4.Translate(-pos01);
-            // Use the actual size to compute the matrix scale
-            m = Matrix4x4.Scale(new Vector3(ts.x / size2D, ts.z / size2D, 0)) * m;
-            m = Matrix4x4.Translate(new Vector3(0.5f, 0.5f, 0.0f)) * m;
-            return m;
-        }
 
         void PrepareMaterial(Material material, HeightmapData heightmapData, List<string> keywords)
         {

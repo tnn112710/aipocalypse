@@ -34,6 +34,7 @@
 
             sampler2D _MainTex;
             sampler2D _SplineSDF;
+            float4 _SplineSDF_TexelSize;
             sampler2D _SplineTreeWeight;
             sampler2D _SplineDetailWeight;
 
@@ -45,6 +46,7 @@
             float _HeightSmoothness;
             float _SplatWidth;
             float _SplatSmoothness;
+            float _HeightMapSize;
             
 
             v2f vert(vertexInput v)
@@ -59,7 +61,9 @@
             {
 
                 float4 curMask = tex2D(_MainTex, i.uv);
-                float2 data = tex2D(_SplineSDF, i.uv).xy;
+                float2 sdfUV = i.uv;
+                sdfUV *= (_HeightMapSize - 1)/_HeightMapSize;
+                float2 data = tex2D(_SplineSDF, sdfUV).xy;
                 
 
                 float height = 1.0 - smoothstep(_HeightWidth, _HeightWidth + _HeightSmoothness, data.g);

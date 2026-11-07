@@ -8,9 +8,15 @@ using Unity.Mathematics;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Profiling;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class TreeUtil
     {
         static ComputeShader occlusionShader = null;
@@ -245,6 +251,9 @@ namespace JBooth.MicroVerseCore
     }
 
     [ExecuteAlways]
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class TreeStamp : Stamp, ITreeModifier, ITextureModifier
     {
         public override FilterSet GetFilterSet()
@@ -372,6 +381,10 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            if(foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
 
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {

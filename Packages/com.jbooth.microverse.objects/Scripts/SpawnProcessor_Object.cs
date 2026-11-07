@@ -94,6 +94,7 @@ namespace JBooth.MicroVerseCore
                     objectModifier.ApplyObjectStamp(td, objectJobHolders, occlusionData);
                 }
             }
+#if __MICROVERSE_VEGETATION__
             bool needToGenerateForChildren = objectModifier.NeedToGenerateSDFForChilden();
           
             if (allSDF || objectModifier.NeedSDF() || needToGenerateForChildren || (objectModifier.OccludesOthers() && enableSDF))
@@ -115,7 +116,7 @@ namespace JBooth.MicroVerseCore
                     }
                 }
             }
-
+#endif
             foreach (var terrain in terrains)
             {
                 var terrainBounds = TerrainUtil.ComputeTerrainBounds(terrain);

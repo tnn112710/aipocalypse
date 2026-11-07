@@ -152,7 +152,7 @@ Shader "Hidden/MicroVerse/NormalMapGen"
 
                 dxy = dxy * 1.0f / offset.xy;
                 dxy *= 0.5;
-                return normalize(float4(dxy.x, dxy.y, 1.0, height)).xzy * 0.5 + 0.5;
+                return float3(normalize(float3(dxy.x, 1.0, dxy.y)) * 0.5 + 0.5);
             }
 
 

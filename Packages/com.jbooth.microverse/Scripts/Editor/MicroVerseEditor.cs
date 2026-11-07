@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
@@ -37,11 +40,14 @@ namespace JBooth.MicroVerseCore
         }
     }
 
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class TerrainAssetProcessor : AssetModificationProcessor
     {
         public static string[] OnWillSaveAssets(string[] paths)
         {
-            MicroVerse instance = GameObject.FindFirstObjectByType<MicroVerse>();
+            MicroVerse instance = GameObject.FindAnyObjectByType<MicroVerse>();
             if (instance != null)
             {
                 if (instance.options.settings.useSceneCulling)
@@ -55,10 +61,7 @@ namespace JBooth.MicroVerseCore
                     }
                 }
                 //instance.Modify(true, true, false);
-                // aipocalypse patch: a disabled MicroVerse (baked mode) leaves the TerrainData alone. The GPU readback isn't
-                // bit-exact, so syncing on every save rewrote the 59 MB terrain asset with noise.
-                if (instance.isActiveAndEnabled)
-                    instance.SaveBackToTerrain(saveHoles: false); // your save terrain function
+                instance.SaveBackToTerrain(saveHoles: false); // your save terrain function
             }
 #if __MICROSPLAT__ && __MICROSPLAT_TESSELLATION__
             if (instance != null && instance.terrains != null && instance.proxyRenderMode != MicroVerse.ProxyRenderMode.AlwaysUnity)
@@ -120,7 +123,9 @@ namespace JBooth.MicroVerseCore
         k4096 = 4096
     }
 
-    
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(MicroVerse))]
     public class MicroVerseEditor : Editor
     {
@@ -218,11 +223,15 @@ namespace JBooth.MicroVerseCore
             {
                 EditorGUILayout.HelpBox("Unity Terrains are incredibly slow at 4k resolution, multiple lower res terrains are recommended", MessageType.Warning);
             }
+#if __MICROSPLAT__ && __MICROSPLAT_MEGA__
+            EditorGUILayout.HelpBox("Alpha Map Resolution is handled by the MicroSplat 256 modules.", MessageType.Info);
+#else
             alphaMapResolution = (SplatResolution) EditorGUILayout.EnumPopup(new GUIContent("AlphaMap Resolution"), alphaMapResolution);
             if (alphaMapResolution == SplatResolution.k4096)
             {
                 EditorGUILayout.HelpBox("Unity Terrains are incredibly slow at 4k resolution, multiple lower res terrains are recommended", MessageType.Warning);
             }
+#endif
             EditorGUI.EndChangeCheck();
 
             baseMapResolution = (SplatResolution)EditorGUILayout.EnumPopup(new GUIContent("BaseMap Resolution"), baseMapResolution);
@@ -267,8 +276,11 @@ namespace JBooth.MicroVerseCore
 #else
                     t.drawHeightmap = draw;
 #endif
+
+#if !(__MICROSPLAT__ && __MICROSPLAT_MEGA__)
                     if (t.terrainData.alphamapResolution != (int)alphaMapResolution)
                         t.terrainData.alphamapResolution = (int)alphaMapResolution;
+#endif
                     if (t.terrainData.heightmapResolution != (int)heightmapResolution)
                         t.terrainData.heightmapResolution = (int)heightmapResolution;
                     if (t.terrainData.baseMapResolution != (int)baseMapResolution)

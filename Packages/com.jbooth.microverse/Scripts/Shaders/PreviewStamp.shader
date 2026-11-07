@@ -24,6 +24,7 @@ Shader "Hidden/MicroVerse/PreviewStamp"
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ _USEFALLOFFTEXTURE _NOFALLOFF
+            #pragma shader_feature_local_fragment _ _BLUR
 
             struct Varyings {
                 float4 positionCS : SV_POSITION;
@@ -36,6 +37,7 @@ Shader "Hidden/MicroVerse/PreviewStamp"
             float2 _Falloff;
             float _FalloffChannel;
             sampler2D _MainTex;
+            float4 _MainTex_TexelSize;
             sampler2D _ColorTex;
             float3 _Color;
 
@@ -65,7 +67,6 @@ Shader "Hidden/MicroVerse/PreviewStamp"
                 return o;
             }
 
-
             float4 frag(Varyings i) : SV_Target
             {
                 float2 stampUV = mul(_Transform, float4(i.uv, 0, 1)).xy;
@@ -74,7 +75,16 @@ Shader "Hidden/MicroVerse/PreviewStamp"
                     bool cp = stampUV.x <= 0 || stampUV.x >= 1 || stampUV.y <= 0 || stampUV.y >= 1;
                     if (cp)
                         return 0;
-                    float mask = tex2D(_MainTex, stampUV)[(int)_FalloffChannel];
+                    #if _BLUR
+                        /*
+                        stampUV -= 0.5;
+                        stampUV *= 1 / clamp(_BlurSize, 1, 24) * 2;
+                        stampUV += 0.5;
+                        */
+                        float mask = BlurSample(stampUV, 0);
+                    #else
+                        float mask = tex2D(_MainTex, stampUV)[(int)_FalloffChannel];
+                    #endif
                     return float4(lerp(_Color, colorTex.rgb, colorTex.a), mask);
                 #elif _NOFALLOFF
                     return colorTex;

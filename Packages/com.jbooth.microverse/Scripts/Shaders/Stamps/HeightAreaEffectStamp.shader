@@ -19,8 +19,9 @@ Shader "Hidden/MicroVerse/HeightAreaEffectStamp"
             #pragma shader_feature_local_fragment _ _FALLOFFSMOOTHSTEP _FALLOFFEASEIN _FALLOFFEASEOUT _FALLOFFEASEINOUT
             #pragma shader_feature_local_fragment _ _FALLOFFNOISE _FALLOFFFBM _FALLOFFWORLEY _FALLOFFWORM _FALLOFFWORMFBM _FALLOFFNOISETEXTURE
 
-            #pragma shader_feature_local_fragment _ _TERRACE _REMAP _BEACH
+            #pragma shader_feature_local_fragment _ _TERRACE _REMAP _BEACH _GAUSSIANBLUR _HIGHPASS _SIMPLEWIND _SIMPLEEROSION
             #pragma shader_feature_local_fragment _ _NOISENOISE _NOISEFBM _NOISEWORLEY _NOISENOISETEXTURE _NOISEWORM _NOISEWORMFBM
+            #pragma shader_feature_local_fragment _ _GAUSSIANHORIZONTAL _GAUSSIANVERTICAL
             
 
             // because unity's height format is stupid and only uses half the possible
@@ -48,6 +49,11 @@ Shader "Hidden/MicroVerse/HeightAreaEffectStamp"
             float4 _MainTex_TexelSize;
             sampler2D _RemapCurve;
 
+            #if _HIGHPASS
+            sampler2D _BlurredTex;
+            float4 _BlurredTex_TexelSize;
+            #endif
+
             sampler2D _NoiseNoiseTexture;
             float4 _NoiseNoiseTexture_ST;
             float4 _NoiseNoise;
@@ -61,6 +67,15 @@ Shader "Hidden/MicroVerse/HeightAreaEffectStamp"
             float _SmoothSize;
             float _BeachDistance;
             float _BeachPower;
+            float _GaussianStrength;
+            float _GaussianXDistance;
+            float _GaussianYDistance;
+            float _HighPassStrength;
+            float _ThermalErosionStrength;
+            float _ThermalErosionThreshold;
+            float _WindSlopeThreshold;
+            float _WindStrength;
+            float _WindAngle;
             float _WorldPosY;
  
             float4x4 _Transform;
@@ -90,6 +105,48 @@ Shader "Hidden/MicroVerse/HeightAreaEffectStamp"
                 return result;
             }
 
+            static const float gaussweights[] = {
+                0.2734375000,
+	            0.2187500000,
+	            0.1093750000,
+	            0.03125000000,
+	            0.003906250000
+            };
+
+            float Gaussian(float2 uv, float center)
+            {
+                float orig = center;
+                center *= gaussweights[0];
+                float2 offset = float2(0, 0);
+                #if _GAUSSIANHORIZONTAL
+                offset.x = 1 * _GaussianXDistance;
+                #elif _GAUSSIANVERTICAL
+                offset.y = 1 * _GaussianYDistance;
+                #endif
+                for(int i = 1; i < 5; i++)
+                {
+                    center += tex2D(_MainTex, uv + _MainTex_TexelSize * offset * i) * gaussweights[i];
+                    center += tex2D(_MainTex, uv - _MainTex_TexelSize * offset * i) * gaussweights[i];
+                }
+                return lerp(orig, center, _GaussianStrength);
+            }
+
+            float2 Slope(float2 uv, float center)
+            {
+                float step = 2;
+                float left = tex2D(_MainTex, uv - _MainTex_TexelSize * float2(step, 0));
+                float right = tex2D(_MainTex, uv + _MainTex_TexelSize * float2(step, 0));
+                float up = tex2D(_MainTex, uv + _MainTex_TexelSize * float2(0, step));
+                float down = tex2D(_MainTex, uv - _MainTex_TexelSize * float2(0, step));
+
+                float horizontal = left - right;
+                horizontal = clamp(horizontal, -_WindSlopeThreshold, _WindSlopeThreshold);
+                float vertical = down - up;
+                vertical = clamp(vertical, -_WindSlopeThreshold, _WindSlopeThreshold);
+                return float2(horizontal, vertical);
+            }
+
+            
 
             v2f vert(vertexInput v)
             {
@@ -100,8 +157,6 @@ Shader "Hidden/MicroVerse/HeightAreaEffectStamp"
                 o.stampUV = mul(_Transform, float4(v.uv, 0, 1)).xy;
                 return o;
             }
-
-            
 
             float4 frag(v2f i) : SV_Target
             {
@@ -156,6 +211,20 @@ Shader "Hidden/MicroVerse/HeightAreaEffectStamp"
                     newHeight /= _RealSize.y;
                 #elif _REMAP
                     newHeight = tex2D(_RemapCurve, float2(height, 0));
+                #elif _GAUSSIANBLUR
+                    newHeight = Gaussian(i.uv, newHeight);
+                #elif _HIGHPASS
+                    float blurred = tex2D(_BlurredTex, i.uv);
+                    float diff = (newHeight - blurred);
+                    newHeight = newHeight + diff * _HighPassStrength * (diff < 0.002 ? 1 : 0);
+                #elif _SIMPLEWIND
+                    float windX = cos(_WindAngle);
+                    float windY = sin(_WindAngle);
+                    float2 slope = Slope(i.uv, newHeight);
+                    float rotatedSlope = (slope.x * windX) + (slope.y * windY);
+                    newHeight = newHeight + (rotatedSlope * _WindStrength * (rotatedSlope < 0 ? 1 : 0));
+                #elif _SIMPLEEROSION
+                    newHeight = newHeight;
                 #endif
 
 

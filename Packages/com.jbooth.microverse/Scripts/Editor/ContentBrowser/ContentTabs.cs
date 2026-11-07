@@ -238,7 +238,11 @@ namespace JBooth.MicroVerseCore.Browser
             RoadSystem[] roadSystems = null;
             if (MicroVerse.instance == null)
             {
+#if UNITY_6000_7_OR_NEWER
+                roadSystems = GameObject.FindObjectsByType<RoadSystem>();
+#else
                 roadSystems = GameObject.FindObjectsOfType<RoadSystem>();
+#endif
             }
             else
             {

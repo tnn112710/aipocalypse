@@ -8,10 +8,15 @@ using Unity.Collections;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using System.Runtime.InteropServices;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
-
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class NativeArrayExtensions
     {
         public static unsafe void CopyToFast<T>(
@@ -47,6 +52,9 @@ namespace JBooth.MicroVerseCore
         }
     }
 
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class DetailJobHolder
     {
         private AsyncGPUReadbackRequest gpuRequest;
@@ -182,6 +190,9 @@ namespace JBooth.MicroVerseCore
     }
 
     [ExecuteAlways]
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class DetailStamp : Stamp, IDetailModifier
     {
         public override FilterSet GetFilterSet()
@@ -241,6 +252,11 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            if (foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
+
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {
                 return foFilter.paintArea.GetBounds();

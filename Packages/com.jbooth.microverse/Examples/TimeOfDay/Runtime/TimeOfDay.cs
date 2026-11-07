@@ -41,7 +41,11 @@ namespace JBooth.MicroVerseCore.Demo.TimeOfDay
             destroyAfterExecute = false;
 
             // find all of type (including self)
+#if UNITY_6000_7_OR_NEWER
+            TimeOfDay[] timeOfDays = GameObject.FindObjectsByType<TimeOfDay>();
+#else
             TimeOfDay[] timeOfDays = GameObject.FindObjectsByType<TimeOfDay>(FindObjectsSortMode.None);
+#endif
 
             foreach (TimeOfDay timeOfDay in timeOfDays)
             {
@@ -58,7 +62,7 @@ namespace JBooth.MicroVerseCore.Demo.TimeOfDay
                 destroyAfterExecute = true;
             }
         }
-        #endregion ContentBrowser
+#endregion ContentBrowser
     }
 }
 #endif

@@ -1,10 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static JBooth.MicroVerseCore.Stamp;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [System.Serializable]
     public class FilterSet : ISerializationCallbackReceiver
     {
@@ -72,6 +77,12 @@ namespace JBooth.MicroVerseCore
                 Curve
             }
 
+            public enum FilterIteration
+            {
+                Legacy,
+                Improved
+            }
+
             public Filter(Vector2 range, Vector2 smoothness)
             {
                 this.range = range;
@@ -79,6 +90,7 @@ namespace JBooth.MicroVerseCore
             }
             public bool enabled;
             public FilterType filterType = FilterType.Simple;
+            public FilterIteration iteration = FilterIteration.Legacy;
             [Range(0, 1)]
             public float weight = 1;
             public Vector2 range = new Vector2(0, 1);
@@ -234,7 +246,12 @@ namespace JBooth.MicroVerseCore
         {
             var terrainData = terrain.terrainData;
             var realHeight = terrainData.heightmapScale.y * 2;
-            material.SetMatrix(_Transform, TerrainUtil.ComputeStampMatrix(terrain, transform)); ;
+
+            if (falloffFilter.filterType == FalloffFilter.FilterType.MeshStamp && falloffFilter.meshStamp != null)
+                material.SetMatrix(_Transform, TerrainUtil.ComputeStampMatrix(terrain, falloffFilter.meshStamp.GetBounds()));
+            else
+                material.SetMatrix(_Transform, TerrainUtil.ComputeStampMatrix(terrain, transform)); ;
+            
             material.SetVector(_RealSize, TerrainUtil.ComputeTerrainSize(terrain));
             if (MicroVerse.GetMegasplatTexture(terrain) != null)
             {
@@ -404,7 +421,10 @@ namespace JBooth.MicroVerseCore
                 if (flowFilter.filterType == Filter.FilterType.Curve)
                 {
                     keywords.Add("_FLOWCURVE");
-                    material.SetTexture(_FlowCurve, curvatureFilter.curveTexture);
+                    if (flowFilter.iteration == Filter.FilterIteration.Improved)
+                        material.SetTexture(_FlowCurve, flowFilter.curveTexture);
+                    else
+                        material.SetTexture(_FlowCurve, curvatureFilter.curveTexture);
                 }
                 flowFilter.noise.EnableKeyword(material, "_FLOW", keywords);
             }
@@ -467,6 +487,7 @@ namespace JBooth.MicroVerseCore
                 var parent = transform.parent.GetComponentInParent<ISpawner>(false);
                 if (parent != null)
                 {
+#if __MICROVERSE_VEGETATION__
                     var sdf3 = parent.GetSDF(od.terrain);
                     if (sdf3 != null)
                     {
@@ -474,6 +495,7 @@ namespace JBooth.MicroVerseCore
                         material.SetVector(_DistancesFromParent, new Vector2(minParent * ratio, maxParent * ratio));
                         material.SetTexture(_PlacementSDF3, sdf3);
                     }
+#endif
                 }
             }
             material.SetFloat(_SDFClamp, sdfClamp ? 1.0f : 0);

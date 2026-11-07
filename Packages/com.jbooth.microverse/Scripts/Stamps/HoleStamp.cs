@@ -1,9 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class HoleStamp : Stamp, IHoleModifier
     {
         public override FilterSet GetFilterSet()
@@ -76,7 +82,10 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
-
+            if (foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
             if (foType == FalloffFilter.FilterType.Global)
                 return new Bounds(Vector3.zero, new Vector3(99999, 999999, 99999));
             else

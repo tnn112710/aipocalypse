@@ -110,7 +110,11 @@ namespace JBooth.MicroVerseCore.ShaderPackager
             Unity2022_2 = 20222,
             Unity2022_3 = 20223,
             Unity2023_3 = 20233,
+            Unity6000_2 = 60002,
             Unity6000_3 = 60003,
+            Unity6000_6 = 60006,
+            Unity6000_7 = 60007,
+            Unity7000_0 = 70000,
             Max = 100000
         }
 
@@ -192,28 +196,42 @@ namespace JBooth.MicroVerseCore.ShaderPackager
                     e.shaderSrc = JBooth.BetterShaders.BetterShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.HDRP2023, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.HDRP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity2023_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_3;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_2;
 
                     e = new ShaderPackage.Entry();
                     entries.Add(e);
                     e.shaderSrc = JBooth.BetterShaders.BetterShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.URP2023, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.URP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity2023_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_3;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_2;
 
                     e = new ShaderPackage.Entry();
                     entries.Add(e);
                     e.shaderSrc = JBooth.BetterShaders.BetterShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.HDRP6P3, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.HDRP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Max;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_6;
 
                     e = new ShaderPackage.Entry();
                     entries.Add(e);
                     e.shaderSrc = JBooth.BetterShaders.BetterShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.URP6P3, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.URP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Max;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_6;
+
+                    e = new ShaderPackage.Entry();
+                    entries.Add(e);
+                    e.shaderSrc = JBooth.BetterShaders.BetterShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.HDRP6P7, optionOverrides, assetPath);
+                    e.srpTarget = ShaderPackage.SRPTarget.HDRP;
+                    e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_7;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity7000_0;
+
+                    e = new ShaderPackage.Entry();
+                    entries.Add(e);
+                    e.shaderSrc = JBooth.BetterShaders.BetterShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.URP6P7, optionOverrides, assetPath);
+                    e.srpTarget = ShaderPackage.SRPTarget.URP;
+                    e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_7;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity7000_0;
                 }
                 else if (assetPath.EndsWith(".stackedshader"))
                 {
@@ -258,28 +276,42 @@ namespace JBooth.MicroVerseCore.ShaderPackager
                     e.shaderSrc = JBooth.BetterShaders.StackedShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.URP2023, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.URP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity2023_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_3;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_2;
 
                     e = new ShaderPackage.Entry();
                     entries.Add(e);
                     e.shaderSrc = JBooth.BetterShaders.StackedShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.HDRP2023, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.HDRP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity2023_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_3;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_2;
 
                     e = new ShaderPackage.Entry();
                     entries.Add(e);
                     e.shaderSrc = JBooth.BetterShaders.StackedShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.URP6P3, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.URP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Max;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_6;
 
                     e = new ShaderPackage.Entry();
                     entries.Add(e);
                     e.shaderSrc = JBooth.BetterShaders.StackedShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.HDRP6P3, optionOverrides, assetPath);
                     e.srpTarget = ShaderPackage.SRPTarget.HDRP;
                     e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_3;
-                    e.UnityVersionMax = ShaderPackage.UnityVersion.Max;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity6000_6;
+
+                    e = new ShaderPackage.Entry();
+                    entries.Add(e);
+                    e.shaderSrc = JBooth.BetterShaders.StackedShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.URP6P7, optionOverrides, assetPath);
+                    e.srpTarget = ShaderPackage.SRPTarget.URP;
+                    e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_7;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity7000_0;
+
+                    e = new ShaderPackage.Entry();
+                    entries.Add(e);
+                    e.shaderSrc = JBooth.BetterShaders.StackedShaderImporterEditor.BuildExportShader(JBooth.BetterShaders.ShaderBuilder.RenderPipeline.HDRP6P7, optionOverrides, assetPath);
+                    e.srpTarget = ShaderPackage.SRPTarget.HDRP;
+                    e.UnityVersionMin = ShaderPackage.UnityVersion.Unity6000_7;
+                    e.UnityVersionMax = ShaderPackage.UnityVersion.Unity7000_0;
                 }
             }
 #endif
@@ -334,6 +366,12 @@ namespace JBooth.MicroVerseCore.ShaderPackager
 #endif
 #if UNITY_6000_3_OR_NEWER
             curVersion = UnityVersion.Unity6000_3;
+#endif
+#if UNITY_6000_7_OR_NEWER
+            curVersion = UnityVersion.Unity6000_7;
+#endif
+#if UNITY_6000_8_OR_NEWER
+            curVersion = UnityVersion.Unity7000_0;
 #endif
             SRPTarget target = SRPTarget.Standard;
             if (RenderPipelineDefine.IsHDRP)

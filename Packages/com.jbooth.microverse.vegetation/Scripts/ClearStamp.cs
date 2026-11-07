@@ -1,10 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
-    
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class ClearStamp : Stamp, ITreeModifier, IDetailModifier
 #if __MICROVERSE_OBJECTS__
@@ -51,6 +56,10 @@ namespace JBooth.MicroVerseCore
                 return filterSet.falloffFilter.splineArea.GetBounds();
             }
 #endif
+            if (foType == FalloffFilter.FilterType.MeshStamp && filter.meshStamp != null)
+            {
+                return filter.meshStamp.GetBounds();
+            }
 
             if (foType == FalloffFilter.FilterType.Global && filter != null && filter.paintArea != null && filter.paintArea.clampOutsideOfBounds)
             {

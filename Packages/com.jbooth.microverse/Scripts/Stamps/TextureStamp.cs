@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
-    
-
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class TextureStamp : Stamp, ITextureModifier
     {
@@ -56,6 +60,10 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            if (foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {
                 return foFilter.paintArea.GetBounds();

@@ -3,10 +3,15 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using static JBooth.MicroVerseCore.FilterSet;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
-
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class GUIUtil
     {
         static string GetPackageVersion()
@@ -618,8 +623,12 @@ namespace JBooth.MicroVerseCore
 
 
             EditorGUILayout.EndHorizontal();
+            
             if (filter.enabled)
             {
+                if (type == PreviewRenderer.FilterSetType.Flow)
+                    filter.iteration = (Filter.FilterIteration)EditorGUILayout.EnumPopup("Version:", filter.iteration);
+
                 filter.filterType = (FilterSet.Filter.FilterType)EditorGUILayout.EnumPopup("Filter Type", filter.filterType);
                 if (filter.filterType == FilterSet.Filter.FilterType.Simple)
                 {
@@ -1066,6 +1075,7 @@ namespace JBooth.MicroVerseCore
         static GUIContent CFilterType = new GUIContent("Falloff Type", "Allows you to choose a shape for the falloff of the stamp");
         static GUIContent CFilterMinMax = new GUIContent("Range", "Start and end of the falloff area, used to smoothly transition weights");
         static GUIContent CFilterTexture = new GUIContent("Texture", "The green channel will control the weight of the effect");
+        static GUIContent CFilterMeshStamp = new GUIContent("Mesh Stamp", "Select the Mesh Stamp you want to use as falloff");
         static GUIContent CFilterSplineArea = new GUIContent("Spline Area", "The spline area to use");
         static GUIContent CFilterPaintArea = new GUIContent("Paint Area", "The falloff paint area to use");
         static GUIContent CTextureSize = new GUIContent("Texture Size", "Size of the backing texture");
@@ -1196,6 +1206,38 @@ namespace JBooth.MicroVerseCore
                     f.paintMask.Resize(size);
                 }
                 DoPaintGUI(owner, f.paintMask);
+            }
+            else if(f.filterType == FalloffFilter.FilterType.MeshStamp)
+            {
+                EditorGUI.BeginChangeCheck();
+                var meshstamp = (MeshStamp)EditorGUILayout.ObjectField(CFilterMeshStamp, f.meshStamp, typeof(MeshStamp), true);
+
+                if(f.meshStamp == null)
+                {
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(owner, "Set Mesh Stamp as Filter");
+                        f.meshStamp = meshstamp;
+                    }
+                    
+                }
+                else
+                {
+                    var amplitude = EditorGUILayout.FloatField("Amplitude", f.textureParams.x);
+                    var balance = EditorGUILayout.Slider("Balance", f.textureParams.y, -1, 1);
+                    bool invert = EditorGUILayout.ToggleLeft("Invert", f.textureParams.z > 0.9f);
+                    float x = f.falloffRange.x;
+                    float y = f.falloffRange.y;
+                    y = EditorGUILayout.Slider(CFilterMinMax, y, 0, 1);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(owner, "Set Mesh Stamp as Filter");
+                        f.meshStamp = meshstamp;
+                        f.textureParams = new Vector3(amplitude, balance, invert? 1f : 0f);
+                        f.falloffRange = new Vector2(x, y);
+                    }
+                }
             }
             else if (f.filterType == FalloffFilter.FilterType.SplineArea)
             {
@@ -1337,6 +1379,9 @@ namespace JBooth.MicroVerseCore
             return rolloutStates[text];
         }
 
+#if UNITY_6000_7_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         public class PopupTextureLayerSelector : PopupWindowContent
         {
             public override Vector2 GetWindowSize()

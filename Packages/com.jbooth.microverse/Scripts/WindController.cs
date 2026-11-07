@@ -1,6 +1,13 @@
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
+
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteInEditMode]
     public class WindController : MonoBehaviour
     {

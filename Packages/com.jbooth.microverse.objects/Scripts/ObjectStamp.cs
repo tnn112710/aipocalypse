@@ -5,9 +5,15 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class ObjectUtil
     {
         static ComputeShader occlusionShader = null;
@@ -151,6 +157,9 @@ namespace JBooth.MicroVerseCore
         }
     }
 
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class ObjectStamp : Stamp, IObjectModifier, ITextureModifier
     {
@@ -297,6 +306,10 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            if (foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
 
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {
@@ -324,6 +337,7 @@ namespace JBooth.MicroVerseCore
             return (minDistanceFromTree > 0 || maxDistanceFromTree > 0)  || minDistanceFromObject > 0 || maxDistanceFromObject > 0|| heightModAmount > 0 || (layer != null && layerWeight > 0);
         }
 
+#if __MICROVERSE_VEGETATION__
         // do I need my parent to generate an SDF is parented
         public bool NeedParentSDF()
         {
@@ -356,7 +370,7 @@ namespace JBooth.MicroVerseCore
                 return sdfs[t];
             return null;
         }
-
+#endif
         public bool destroyOnNextClear { get; set; }
         public void ClearSpawnedInstances()
         {
@@ -770,6 +784,7 @@ namespace JBooth.MicroVerseCore
             }
             
             RenderTexture.active = null;
+#if __MICROVERSE_VEGETATION__
             foreach (var k in sdfs.Values)
             {
                 if (k != null)
@@ -778,6 +793,7 @@ namespace JBooth.MicroVerseCore
                 }
             }
             sdfs.Clear();
+#endif
         }
 
         public void RevealHiddenObjects()

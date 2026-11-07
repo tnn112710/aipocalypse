@@ -2,9 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class CopyPasteStamp : Stamp, IHeightModifier, ITextureModifier, IHoleModifier
 #if __MICROVERSE_VEGETATION__
             , ITreeModifier, IDetailModifier

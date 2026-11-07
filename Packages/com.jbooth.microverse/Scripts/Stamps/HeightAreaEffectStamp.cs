@@ -1,8 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class HeightAreaEffectStamp : Stamp, IHeightModifier, IModifier
     {
@@ -12,6 +18,10 @@ namespace JBooth.MicroVerseCore
             Beach,
             RemapCurve,
             Noise,
+            GaussianBlur,
+            HighPassFilter,
+            SimpleWind,
+            SimpleErosion
         }
 
         [Tooltip("Effect to apply")]
@@ -23,15 +33,29 @@ namespace JBooth.MicroVerseCore
         [Range(0,1)] public float combineBlend = 0;
 
         [Tooltip("How high each terrace should be")]
-        [Range(0.05f, 20)] public float terraceSize = 1;
+        [Range(0.05f, 20.0f)] public float terraceSize = 1;
         [Tooltip("How sharp the terrace should be")]
-        [Range(0.0f, 1.0f)]public float terraceStrength = 1;
+        [Range(0.0f, 1.0f)] public float terraceStrength = 1;
         [Tooltip("The effect will only be present around the stamps world Y value by this many meters")]
-        [Range(0.05f, 100)] public float beachDistance = 5;
+        [Range(0.05f, 100.0f)] public float beachDistance = 5;
         [Tooltip("Allows you to control the curve of adjustment")]
-        [Range(0.25f, 4)] public float beachPower = 1;
+        [Range(0.25f, 4.0f)] public float beachPower = 1;
         public AnimationCurve remapCurve = AnimationCurve.Linear(0, 0, 1, 1);
-
+        [Tooltip("How strong the blur should be")]
+        [Range(0.0f, 1.0f)] public float gaussianStrength = 0.5f;
+        [Tooltip("Should the horizontal and vertical direction of the blur be the same")]
+        public bool gaussianDistancesMatch = true;
+        [Tooltip("The horizontal distance of the gaussian blur")]
+        [Range(0.01f, 4f)] public float gaussianXDistance = 1f;
+        [Tooltip("The vertical distance of the gaussian blur")]
+        [Range(0.01f, 4f)] public float gaussianYDistance = 1f;
+        [Tooltip("The Strength of the filter")]
+        [Range(0.01f, 1f)] public float highPassStrength = 1f;
+        [Tooltip("Strength of the wind")]
+        [Range(0.01f, 1f)] public float windStrength = 0.5f;
+        [Tooltip("Slope Threshold of the terrain above which the wind should erode the terrain")]
+        [Range(0.00001f, 0.1f)] public float windSlope = 0.1f;
+        [Range(0, 1)] public float windAngle = 0;
 
         Material material;
 
@@ -95,6 +119,10 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            if(foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {
                 return foFilter.paintArea.GetBounds();
@@ -128,6 +156,30 @@ namespace JBooth.MicroVerseCore
                     material.SetFloat(_CombineMode, (int)combineMode);
                     material.SetFloat(_CombineBlend, combineBlend);
                     break;
+                case EffectType.GaussianBlur:
+                    keywordBuilder.Add("_GAUSSIANBLUR");
+                    keywordBuilder.Add("_GAUSSIANHORIZONTAL");
+                    material.SetFloat(_GaussianStrength, gaussianStrength);
+                    material.SetFloat(_GaussianXDistance, gaussianXDistance);
+                    material.SetFloat(_GaussianYDistance, gaussianDistancesMatch ? gaussianXDistance : gaussianYDistance);
+                    break;
+                case EffectType.HighPassFilter:
+                    // High Pass starts with a gaussian blur
+                    keywordBuilder.Add("_GAUSSIANBLUR");
+                    keywordBuilder.Add("_GAUSSIANHORIZONTAL");
+                    material.SetFloat(_GaussianStrength, 1f);
+                    material.SetFloat(_GaussianXDistance, 2f);
+                    material.SetFloat(_GaussianYDistance, 2f);
+                    break;
+                case EffectType.SimpleWind:
+                    keywordBuilder.Add("_SIMPLEWIND");
+                    material.SetFloat(_WindSlopeThreshold, windSlope);
+                    material.SetFloat(_WindStrength, windStrength);
+                    material.SetFloat(_WindAngle, windAngle * 2);
+                    break;
+                case EffectType.SimpleErosion:
+                    keywordBuilder.Add("_SIMPLEEROSION");
+                    break;
             }
 
             material.SetFloat(_WorldPosY, transform.position.y);
@@ -142,6 +194,40 @@ namespace JBooth.MicroVerseCore
             
             keywordBuilder.Assign(material);
             Graphics.Blit(source, dest, material);
+
+            // Multi Step features are below
+
+            RenderTexture tmp = null;
+            // Save the original for High Pass filtering
+            if(effectType == EffectType.HighPassFilter)
+            {
+                tmp = RenderTexture.GetTemporary(source.descriptor);
+                Graphics.Blit(source, tmp);
+            }
+
+            // need to do the vertical pass of the gaussian
+            if(effectType == EffectType.GaussianBlur)
+            {
+                material.DisableKeyword("_GAUSSIANHORIZONTAL");
+                material.EnableKeyword("_GAUSSIANVERTICAL");
+                Graphics.Blit(dest, source, material);
+                Graphics.Blit(source, dest);
+            }
+            // High Pass second and third pass
+            else if(effectType == EffectType.HighPassFilter)
+            {
+                material.DisableKeyword("_GAUSSIANHORIZONTAL");
+                material.EnableKeyword("_GAUSSIANVERTICAL");
+                Graphics.Blit(dest, source, material);
+
+                material.DisableKeyword("_GAUSSIANBLUR");
+                material.EnableKeyword("_HIGHPASS");
+                material.SetTexture("_BlurredTex", source);
+                material.SetFloat(_HighPassStrength, highPassStrength);
+                Graphics.Blit(tmp, dest, material);
+                RenderTexture.ReleaseTemporary(tmp);
+            }
+
             return true;
         }
 
@@ -156,6 +242,15 @@ namespace JBooth.MicroVerseCore
         static int _CombineMode = Shader.PropertyToID("_CombineMode");
         static int _CombineBlend = Shader.PropertyToID("_CombineBlend");
         static int _TerraceStrength = Shader.PropertyToID("_TerraceStrength");
+        static int _GaussianStrength = Shader.PropertyToID("_GaussianStrength");
+        static int _GaussianXDistance = Shader.PropertyToID("_GaussianXDistance");
+        static int _GaussianYDistance = Shader.PropertyToID("_GaussianYDistance");
+        static int _HighPassStrength = Shader.PropertyToID("_HighPassStrength");
+        static int _ThermalErosionStrength = Shader.PropertyToID("_ThermalErosionStrength");
+        static int _ThermalErosionThreshold = Shader.PropertyToID("_ThermalErosionThreshold");
+        static int _WindSlopeThreshold = Shader.PropertyToID("_WindSlopeThreshold");
+        static int _WindStrength = Shader.PropertyToID("_WindStrength");
+        static int _WindAngle = Shader.PropertyToID("_WindAngle");
 
         void OnDrawGizmosSelected()
         {

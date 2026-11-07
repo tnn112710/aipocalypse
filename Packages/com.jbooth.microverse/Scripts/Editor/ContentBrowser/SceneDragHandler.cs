@@ -4,13 +4,18 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static JBooth.MicroVerseCore.Browser.ContentBrowser;
-
 #if __MICROVERSE_ROADS__ || __MICROVERSE_SPLINES__
 using UnityEngine.Splines;
+#endif
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
 #endif
 
 namespace JBooth.MicroVerseCore.Browser
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class SceneDragHandler
     {
         /// <summary>
@@ -34,6 +39,11 @@ namespace JBooth.MicroVerseCore.Browser
         /// Whether control was pressed during the start of the drag operation or not
         /// </summary>
         public static string WasControlPressed = "Control Pressed";
+
+        /// <summary>
+        /// Draggable id for presets
+        /// </summary>
+        public static string PresetId = "preset";
 
         private ContentBrowser browser;
 
@@ -68,7 +78,7 @@ namespace JBooth.MicroVerseCore.Browser
 
             DragAndDrop.PrepareStartDrag();
             DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-            DragAndDrop.SetGenericData("preset", preset);
+            DragAndDrop.SetGenericData(PresetId, preset);
             DragAndDrop.SetGenericData(IsMicroverseDraggableId, true);
 
             // record if shift was pressed at the start of the drag operation
@@ -109,10 +119,10 @@ namespace JBooth.MicroVerseCore.Browser
             bool wasShiftPressed = wasShiftPressedObject != null && wasShiftPressedObject is bool && (bool)wasShiftPressedObject == true;
             bool wasControlPressed = wasControlPressedObject != null && wasControlPressedObject is bool && (bool)wasControlPressedObject == true;
 
-            PresetItem preset = (PresetItem)DragAndDrop.GetGenericData("preset");
+            PresetItem preset = (PresetItem)DragAndDrop.GetGenericData(PresetId);
             if (preset != null)
             {
-                DragAndDrop.SetGenericData("preset", null);
+                DragAndDrop.SetGenericData(PresetId, null);
 
                 GameObject draggable = contentTabs[(int)browser.GetSelectedTab()].Spawn(browser, preset, wasShiftPressed);
 
@@ -320,7 +330,11 @@ namespace JBooth.MicroVerseCore.Browser
                 SplineRelativeTransform srt = go.GetComponent<SplineRelativeTransform>();
                 if (srt != null)
                 {
+#if UNITY_6000_7_OR_NEWER
+                    RoadSystem[] rss = GameObject.FindObjectsByType<RoadSystem>();
+#else
                     RoadSystem[] rss = GameObject.FindObjectsOfType<RoadSystem>();
+#endif
                     if (rss != null)
                     {
                         RoadSystem roadSystem = null;
@@ -356,8 +370,8 @@ namespace JBooth.MicroVerseCore.Browser
                 }
             }
 #endif
-            // height stamp dragging finished => allow syncing again
-            MicroVerse.instance.IsAddingHeightStamp = false;
+                    // height stamp dragging finished => allow syncing again
+                    MicroVerse.instance.IsAddingHeightStamp = false;
 
             // perform action after drop for gameobjects that implement the interface
             #region IContentBrowserDropAction

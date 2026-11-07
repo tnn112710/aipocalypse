@@ -4,6 +4,9 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
@@ -270,6 +273,9 @@ namespace JBooth.MicroVerseCore
         }
     }
 
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class GUIStylesSelectionGrid
     {
 

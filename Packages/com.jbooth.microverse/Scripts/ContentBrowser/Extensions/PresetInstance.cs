@@ -39,7 +39,11 @@ namespace JBooth.MicroVerseCore.Browser
             destroyAfterExecute = false;
 
             // find all of type (including self)
+#if UNITY_6000_7_OR_NEWER
+            PresetInstance[] instances = GameObject.FindObjectsByType<PresetInstance>();
+#else
             PresetInstance[] instances = GameObject.FindObjectsByType<PresetInstance>(FindObjectsSortMode.None);
+#endif
 
             foreach (PresetInstance instance in instances)
             {
@@ -82,6 +86,6 @@ namespace JBooth.MicroVerseCore.Browser
                 destroyAfterExecute = false;
             }
         }
-        #endregion ContentBrowser
+#endregion ContentBrowser
     }
 }

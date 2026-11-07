@@ -1,8 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+#if __MICROVERSE_SPLINES__
+using UnityEngine.Splines;
+#endif
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class HeightStamp : Stamp, IHeightModifier, IModifier
     {
@@ -55,6 +64,8 @@ namespace JBooth.MicroVerseCore
 
         Material material;
 
+        SplineAreaHandler splineAreaHandler = null;
+
         public void Dispose()
         {
             
@@ -89,7 +100,28 @@ namespace JBooth.MicroVerseCore
             }
             base.OnEnable();
             version = 2;
+
+            // bind transform to spline transform in case of a spline area
+            splineAreaHandler = new SplineAreaHandler(this);
+            splineAreaHandler.OnEnable();
         }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+
+            splineAreaHandler.OnDisable();
+            splineAreaHandler = null;
+        }
+
+#if UNTIY_EDITOR
+        public override void OnMoved()
+        {
+            splineAreaHandler.OnMoved();
+
+            base.OnMoved();
+        }
+#endif
 
         static Shader heightmapShader = null;
 
@@ -137,6 +169,10 @@ namespace JBooth.MicroVerseCore
                 return foFilter.splineArea.GetBounds();
             }
 #endif
+            if (foType == FalloffFilter.FilterType.MeshStamp && foFilter.meshStamp != null)
+            {
+                return foFilter.meshStamp.GetBounds();
+            }
             if (foType == FalloffFilter.FilterType.Global && foFilter.paintArea != null && foFilter.paintArea.clampOutsideOfBounds)
             {
                 return foFilter.paintArea.GetBounds();
@@ -280,5 +316,90 @@ namespace JBooth.MicroVerseCore
                 Gizmos.DrawWireCube(new Vector3(0, 0.5f, 0), Vector3.one);
             }
         }
+    }
+
+    /// <summary>
+    /// Automatically adjust the transform scale of the height stamp to the size of the spline area. Adjusts dynamically on spline change.
+    /// </summary>
+    public class SplineAreaHandler
+    {
+        private HeightStamp stamp;
+
+        public SplineAreaHandler(HeightStamp stamp)
+        {
+            this.stamp = stamp;
+        }
+
+#if __MICROVERSE_SPLINES__
+
+        public void OnEnable()
+        {
+            Spline.Changed += HandleSplineChanged;
+        }
+
+        public void OnDisable()
+        {
+            Spline.Changed -= HandleSplineChanged;
+        }
+
+        public void OnMoved()
+        {
+            AlignToBounds(GetSplineContainer()?.Spline, stamp.transform);
+        }
+
+        private void HandleSplineChanged(Spline spline, int knotIndex, SplineModification modification)
+        {
+            AlignToBounds(spline, stamp.transform);
+        }
+
+        private void AlignToBounds(Spline spline, Transform targetTransform)
+        {
+            if (spline == null)
+                return;
+
+            SplineContainer container = GetSplineContainer();
+
+            if (container == null)
+                return;
+
+            Bounds splineBounds = spline.GetBounds(container.transform.localToWorldMatrix);
+
+            targetTransform.transform.position = new Vector3(splineBounds.center.x, targetTransform.transform.position.y, splineBounds.center.z);
+            targetTransform.transform.localScale = splineBounds.size;
+
+        }
+
+        private SplineContainer GetSplineContainer()
+        {
+            FalloffOverride fo = stamp.transform.GetComponentInParent<FalloffOverride>();
+            var foType = stamp.falloff.filterType;
+            var foFilter = stamp.falloff;
+            if (fo != null && fo.enabled)
+            {
+                foType = fo.filter.filterType;
+                foFilter = fo.filter;
+            }
+
+            if (foType == FalloffFilter.FilterType.SplineArea)
+                return foFilter?.splineArea?.spline;
+
+            return null;
+        }
+
+#else
+
+        public void OnEnable()
+        {
+        }
+
+        public void OnDisable()
+        {
+        }
+
+        public void OnMoved()
+        {
+        }
+
+#endif
     }
 }

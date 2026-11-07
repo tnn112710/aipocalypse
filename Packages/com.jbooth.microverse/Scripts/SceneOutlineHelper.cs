@@ -1,9 +1,15 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class SceneOutlineHelper
     {
         private static Assembly _unityEditorAssembly;

@@ -2,9 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using JBooth.MicroVerseCore;
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class OcclusionData : StampData
     {
         public RenderTexture terrainMask; // collective mask for all of terrain
@@ -82,6 +88,7 @@ namespace JBooth.MicroVerseCore
                 mat.SetTexture("_SourceA", currentTreeSDF);
                 mat.SetTexture("_SourceB", treeSDF);
                 Graphics.Blit(null, rt, mat);
+                Object.DestroyImmediate(mat);
                 if (treeSDF != null)
                 {
                     RenderTexture.active = null;
@@ -110,6 +117,14 @@ namespace JBooth.MicroVerseCore
 
             var expandedRT = MapGen.NineCombineCurrentObjectMask(t, ods, expand);
 
+            // release the previous stamp's SDF before overwriting, like RenderTreeSDF does;
+            // this leaked one temporary per object stamp per terrain per regen
+            if (currentObjectSDF != null)
+            {
+                RenderTexture.active = null;
+                RenderTexture.ReleaseTemporary(currentObjectSDF);
+            }
+
             currentObjectSDF = JumpFloodSDF.CreateTemporaryRT(expandedRT, 0, 1.25f, 2);
             RenderTexture.active = null;
             RenderTexture.ReleaseTemporary(expandedRT);
@@ -126,6 +141,7 @@ namespace JBooth.MicroVerseCore
                 mat.SetTexture("_SourceA", currentObjectSDF);
                 mat.SetTexture("_SourceB", objectSDF);
                 Graphics.Blit(null, rt, mat);
+                Object.DestroyImmediate(mat);
                 if (objectSDF != null)
                 {
                     RenderTexture.active = null;

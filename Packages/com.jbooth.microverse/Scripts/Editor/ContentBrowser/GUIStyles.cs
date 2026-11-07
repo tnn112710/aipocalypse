@@ -1,8 +1,14 @@
 using UnityEditor;
 using UnityEngine;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore.Browser
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class GUIStyles
     {
         private static GUIStyle _separatorStyle;

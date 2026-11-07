@@ -4,11 +4,15 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine.Splines;
-//using Unity.Burst;
-//using Unity.Jobs;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public partial class AmbientArea : MonoBehaviour
     {
@@ -118,7 +122,11 @@ namespace JBooth.MicroVerseCore
 #if __MICROVERSE_MASKS__
                 else if (falloff == AmbianceFalloff.SDFMask && maskTarget != null)
                 {
+#if UNITY_6000_7_OR_NEWER
+                    terrains = FindObjectsByType<Terrain>();
+#else
                     terrains = FindObjectsOfType<Terrain>();
+#endif
                 }
 #endif
             }

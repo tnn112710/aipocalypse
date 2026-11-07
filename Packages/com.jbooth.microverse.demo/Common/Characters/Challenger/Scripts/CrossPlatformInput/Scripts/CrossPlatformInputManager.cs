@@ -1,10 +1,16 @@
 using System;
 using UnityEngine;
 using Demo.UnityStandardAssets.CrossPlatformInput.PlatformSpecific;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace Demo.UnityStandardAssets.CrossPlatformInput
 {
-	public static class CrossPlatformInputManager
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
+    public static class CrossPlatformInputManager
 	{
 		public enum ActiveInputMethod
 		{

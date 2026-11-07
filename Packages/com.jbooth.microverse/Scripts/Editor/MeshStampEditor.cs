@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
@@ -21,6 +24,9 @@ namespace JBooth.MicroVerseCore
         }
     }
 
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(MeshStamp), true)]
     [CanEditMultipleObjects]
     class MeshStampEditor : Editor

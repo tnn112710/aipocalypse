@@ -3,6 +3,9 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static JBooth.MicroVerseCore.Browser.ContentBrowser;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore.Browser
 {
@@ -10,6 +13,9 @@ namespace JBooth.MicroVerseCore.Browser
     /// <summary>
     /// Draw the contents of selected collection. Support dragging into the scene view
     /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class ContentSelectionGrid
     {
         private ContentBrowser contentBrowser;
@@ -22,6 +28,14 @@ namespace JBooth.MicroVerseCore.Browser
         private Vector2 contentScrollPosition = Vector2.zero;
 
         public PresetItem selectedPresetItem = null;
+
+        /// <summary>
+        /// Preset that was hit on mouse down. The drag operation uses this instead of resolving the item
+        /// under the cursor again on mouse drag: the rects come from the layout cache of the previous Layout
+        /// event, while the preset list is rebuilt on every event, so the two can disagree and the drag would
+        /// pick up a neighbouring preset.
+        /// </summary>
+        private PresetItem dragCandidate = null;
 
         public ContentSelectionGrid(ContentBrowser contentBrowser)
         {
@@ -134,14 +148,17 @@ namespace JBooth.MicroVerseCore.Browser
 
                                             }
 
-                                            // check for context click
-                                            if (Event.current.type == EventType.ContextClick)
+                                            // check for context click on this cell
+                                            if (Event.current.type == EventType.ContextClick && rect.Contains(Event.current.mousePosition))
                                             {
                                                 Vector2 position = Event.current.mousePosition;
 
                                                 Rect popupRect = new Rect(position, Vector2.zero); // 2nd parameter is the offset from mouse position
 
-                                                PopupWindow.Show(popupRect, new ContentItemPopup(contentBrowser, selectedPresetItem));
+                                                // the popup operates on the preset that was right-clicked, keep the selection in sync with it
+                                                selectedPresetItem = presetItem;
+
+                                                PopupWindow.Show(popupRect, new ContentItemPopup(contentBrowser, presetItem));
 
                                                 Event.current.Use();
                                             }
@@ -154,25 +171,19 @@ namespace JBooth.MicroVerseCore.Browser
                                                 // label
                                                 GUIStyle style = GUIUtil.SelectionElementLabelStyle;
                                                 style.fontSize = (int)(EditorStyles.wordWrappedMiniLabel.fontSize * (Mathf.InverseLerp(32, 128, cellSize) + 0.5f));
-                                                rect.height = style.CalcHeight(new GUIContent(label), rect.width);
-                                                GUI.DrawTexture(rect, GUIUtil.LabelBackgroundTexture, ScaleMode.StretchToFill);
-                                                GUI.Box(rect, label, style);
+                                                Rect labelRect = rect;
+                                                labelRect.height = style.CalcHeight(new GUIContent(label), labelRect.width);
+                                                GUI.DrawTexture(labelRect, GUIUtil.LabelBackgroundTexture, ScaleMode.StretchToFill);
+                                                GUI.Box(labelRect, label, style);
                                             }
-                                            if (Event.current.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
+
+                                            // remember what was hit; the drag operation below uses this
+                                            if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                                             {
                                                 selectedPresetItem = presetItem;
+                                                dragCandidate = presetItem;
 
                                                 contentBrowser.Repaint();
-                                            }
-
-                                            if (Event.current.type == EventType.MouseDrag && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
-                                            {
-                                                if (ContentBrowser.placementMode == PlacementMode.Place)
-                                                {
-                                                    sceneDragHandler.OnDragStart(presetItem);
-
-                                                    Event.current.Use();
-                                                }
                                             }
                                         }
                                     }
@@ -185,6 +196,20 @@ namespace JBooth.MicroVerseCore.Browser
                         }
                     }
                     EditorGUILayout.EndScrollView();
+
+                    // start the drag with the preset that was hit on mouse down, not with whatever the
+                    // cursor resolves to now. see dragCandidate
+                    if (Event.current.type == EventType.MouseDrag && dragCandidate != null)
+                    {
+                        if (ContentBrowser.placementMode == PlacementMode.Place)
+                        {
+                            sceneDragHandler.OnDragStart(dragCandidate);
+
+                            Event.current.Use();
+                        }
+
+                        dragCandidate = null;
+                    }
                 }
                 GUILayout.EndVertical();
 

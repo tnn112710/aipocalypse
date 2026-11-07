@@ -1,12 +1,19 @@
 ﻿
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 using UnityEngine.Splines;
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class SplinePath : Stamp, IHeightModifier, ITextureModifier
     {
         public enum CombineMode
@@ -35,7 +42,7 @@ namespace JBooth.MicroVerseCore
             ExtremelyHigh = 2048
         }
 
-        [HideInInspector] public SplineRenderer.RenderDesc[] multiSpline;
+        [HideInInspector] [NonSerialized] public SplineRenderer.RenderDesc[] multiSpline;
 
         public SplineContainer spline;
         [Tooltip("When true, a closed spline is treated as an area for the effect instead of following the path")]
@@ -356,6 +363,7 @@ namespace JBooth.MicroVerseCore
                     sdfToMaskMat.SetFloat(_TreeSmoothness, treeSmoothness);
                     sdfToMaskMat.SetFloat(_DetailWidth, clearDetails ? detailWidth : -1);
                     sdfToMaskMat.SetFloat(_DetailSmoothness, detailSmoothness);
+                    sdfToMaskMat.SetFloat(_HeightMapSize, source.width);
 
                     sdfToMaskMat.SetTexture(_SplineSDF, sr.splineSDF);
 
@@ -549,7 +557,13 @@ namespace JBooth.MicroVerseCore
                 splatMat.SetTexture(_WeightMap, weightSrc);
                 splatMat.SetTexture(_IndexMap, indexSrc);
                 splatMat.SetFloat(_AlphaMapSize, indexSrc.width);
+                splatMat.SetFloat(_HeightMapSize, od.terrain.terrainData.heightmapResolution);
                 splatMat.SetFloat(_SplatWeight, splatWeight);
+                if (MicroVerse.GetMegasplatTexture(od.terrain) != null)
+                {
+                    keywordBuilder.Add("_MEGASPLAT");
+                }
+
                 if (useTextureCurve)
                 {
                     keywordBuilder.Add("_SPLINECURVETEXTUREWEIGHT");

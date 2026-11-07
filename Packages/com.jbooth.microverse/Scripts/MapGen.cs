@@ -2,9 +2,15 @@
 using UnityEngine;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class MapGen
     {
         static Shader curvatureShader = null;
@@ -23,7 +29,7 @@ namespace JBooth.MicroVerseCore
             rt.wrapMode = TextureWrapMode.Clamp;
             RenderTexture.active = rt;
             material.SetTexture("_Normalmap", normals[t]);
-            
+
             if (t.leftNeighbor && normals.ContainsKey(t.leftNeighbor))
             {
                 material.SetTexture("_Normalmap_NX", normals[t.leftNeighbor]);
@@ -65,8 +71,13 @@ namespace JBooth.MicroVerseCore
 
             var myMask = tempRenderData[t];
             var expandedRT = RenderTexture.GetTemporary(myMask.width + borderPixels * 2, myMask.height + borderPixels * 2, 0, myMask.graphicsFormat);
+            // prefill: GetTemporary contents are undefined, and border bands are only
+            // overwritten where a neighbor exists in the dictionary. The stretch blit
+            // approximates edge-clamped data for missing neighbors and the diagonal
+            // corners (which QuadCombine never fills), before the exact copies below.
+            Graphics.Blit(myMask, expandedRT);
             Graphics.CopyTexture(myMask, 0, 0, 0, 0, myMask.width, myMask.height, expandedRT, 0, 0, borderPixels, borderPixels);
-            expandedRT.name = "MicroVerse::NineCombine";
+            expandedRT.name = "MicroVerse::QuadCombine";
             if (t.topNeighbor != null)
             {
                 if (tempRenderData.ContainsKey(t.topNeighbor))
@@ -80,7 +91,7 @@ namespace JBooth.MicroVerseCore
             }
             if (t.rightNeighbor && tempRenderData.ContainsKey(t.rightNeighbor))
             {
-                Graphics.CopyTexture(tempRenderData[t.rightNeighbor], 0, 0, 0, 0, borderPixels, myMask.height, expandedRT, 0, 0, expandedRT.width-borderPixels, borderPixels);
+                Graphics.CopyTexture(tempRenderData[t.rightNeighbor], 0, 0, 0, 0, borderPixels, myMask.height, expandedRT, 0, 0, expandedRT.width - borderPixels, borderPixels);
             }
             if (t.bottomNeighbor != null)
             {
@@ -115,7 +126,7 @@ namespace JBooth.MicroVerseCore
                 }
                 if (t.topNeighbor.rightNeighbor != null && tempRenderData.ContainsKey(t.topNeighbor.rightNeighbor))
                 {
-                    Graphics.CopyTexture(tempRenderData[t.topNeighbor.rightNeighbor], 0, 0, 0, 0, borderPixels, borderPixels, expandedRT, 0, 0, expandedRT.width-borderPixels, expandedRT.height - borderPixels);
+                    Graphics.CopyTexture(tempRenderData[t.topNeighbor.rightNeighbor], 0, 0, 0, 0, borderPixels, borderPixels, expandedRT, 0, 0, expandedRT.width - borderPixels, expandedRT.height - borderPixels);
                 }
             }
             if (t.leftNeighbor && tempRenderData.ContainsKey(t.leftNeighbor))
@@ -151,8 +162,8 @@ namespace JBooth.MicroVerseCore
 
             var myMask = tempRenderData[t].currentTreeMask;
             var expandedRT = RenderTexture.GetTemporary(myMask.width + borderPixels * 2, myMask.height + borderPixels * 2, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
-            //RenderTexture.active = expandedRT;
-            //GL.Clear(true, true, Color.black);
+            RenderTexture.active = expandedRT;
+            GL.Clear(true, true, Color.black);
             Graphics.CopyTexture(myMask, 0, 0, 0, 0, myMask.width, myMask.height, expandedRT, 0, 0, borderPixels, borderPixels);
             expandedRT.name = "MicroVerse::NineCombine";
             if (t.topNeighbor != null)
@@ -258,7 +269,7 @@ namespace JBooth.MicroVerseCore
             int padding = 16;
             int outputSize = 512;
             // 512 + (32/4) = 520
-            int scaledPadding = Mathf.RoundToInt(padding / (heights[t].width / outputSize));
+            int scaledPadding = Mathf.RoundToInt(padding / (heights[t].width / (float)outputSize));
 
             int tempSize = outputSize + scaledPadding * 2;
 
@@ -267,12 +278,14 @@ namespace JBooth.MicroVerseCore
             {
                 flowShader = Resources.Load<ComputeShader>("MicroVerseComputeFlowMap");
             }
-            // 2049 + 64 = 2113
+            // 2049 + 32 = 2081
             var heightMapQ = QuadCombine(t, heights, padding);
-            // saves about 0.5ms to downsample
-            var heightMap = RenderTexture.GetTemporary(outputSize, outputSize, 0, heightMapQ.graphicsFormat);
+            // saves about 0.5ms to downsample. Sized to tempSize so it aligns 1:1 with the
+            // water/outflow sim domain (content maps to [scaledPadding, scaledPadding + outputSize])
+            var heightMap = RenderTexture.GetTemporary(tempSize, tempSize, 0, heightMapQ.graphicsFormat);
             Graphics.Blit(heightMapQ, heightMap);
-            RenderTexture.ReleaseTemporary(heightMapQ);
+            heightMapQ.name = "QHeight";
+            //RenderTexture.ReleaseTemporary(heightMapQ);
 
             var waterMap = new RenderTexture(tempSize, tempSize, 0, RenderTextureFormat.RHalf, 0);
             var outFlow = new RenderTexture(tempSize, tempSize, 0, RenderTextureFormat.ARGBHalf, 0);
@@ -284,16 +297,19 @@ namespace JBooth.MicroVerseCore
             var velocityMap = RenderTexture.GetTemporary(desc);
             velocityMap.enableRandomWrite = true;
 
+            RenderTexture.active = outFlow;
+            GL.Clear(false, true, Color.clear);
             RenderTexture.active = waterMap;
-            GL.Clear(false, true, new Color(initialWaterLevel, 0, 0 , 0));
+            GL.Clear(false, true, new Color(initialWaterLevel, 0, 0, 0));
             
             int kernal0 = flowShader.FindKernel("CSComputeOutflow");
             int kernal1 = flowShader.FindKernel("CSUpdateWater");
             int kernal2 = flowShader.FindKernel("CSVelocityField");
 
             int threadSize = 16;
-            int dispatchSizeX = Mathf.CeilToInt(tempSize / threadSize);
-            int dispatchSizeY = Mathf.CeilToInt(tempSize / threadSize);
+            // must divide as float
+            int dispatchSizeX = Mathf.CeilToInt(tempSize / (float)threadSize);
+            int dispatchSizeY = Mathf.CeilToInt(tempSize / (float)threadSize);
 
             flowShader.SetInt(_Width, tempSize);
             flowShader.SetInt(_Height, tempSize);

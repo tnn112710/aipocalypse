@@ -5,6 +5,9 @@ using UnityEngine.Profiling;
 using System.Linq;
 using Unity.Jobs;
 using Unity.Collections;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 /// Main MicroVerse Class
 /// 
@@ -38,7 +41,9 @@ using Unity.Collections;
 
 namespace JBooth.MicroVerseCore
 {
-
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public partial class MicroVerse : MonoBehaviour
     {
@@ -95,7 +100,7 @@ namespace JBooth.MicroVerseCore
                 {
                     return _instance;
                 }
-                _instance = FindFirstObjectByType<MicroVerse>();
+                _instance = FindAnyObjectByType<MicroVerse>();
                 return _instance;
             }
         }
@@ -148,7 +153,11 @@ namespace JBooth.MicroVerseCore
             }
             else
             {
+#if UNITY_6000_7_OR_NEWER
+                terrains = FindObjectsByType<Terrain>();
+#else
                 terrains = FindObjectsByType<Terrain>(FindObjectsSortMode.None);
+#endif
             }
             if (terrains.Length > 0)
             {

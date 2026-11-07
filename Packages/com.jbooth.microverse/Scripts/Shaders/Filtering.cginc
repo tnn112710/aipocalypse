@@ -31,7 +31,7 @@
             #pragma shader_feature_local_fragment _ _WEIGHT2NOISE _WEIGHT2FBM _WEIGHT2WORLEY _WEIGHT2NOISETEXTURE _WEIGHT2WORM _WEIGHT2WORMFBM
             #pragma shader_feature_local_fragment _ _WEIGHT3NOISE _WEIGHT3FBM _WEIGHT3WORLEY _WEIGHT3NOISETEXTURE _WEIGHT3WORM _WEIGHT3WORMFBM
 
-            #pragma shader_feature_local_fragment _ _USEFALLOFF _USEFALLOFFRANGE _USEFALLOFFTEXTURE _USEFALLOFFSPLINEAREA
+            #pragma shader_feature_local_fragment _ _USEFALLOFF _USEFALLOFFRANGE _USEFALLOFFTEXTURE _USEFALLOFFSPLINEAREA _USEFALLOFFMESHSTAMP
             #pragma shader_feature_local_fragment _ _FALLOFFSMOOTHSTEP _FALLOFFEASEIN _FALLOFFEASEOUT _FALLOFFEASEINOUT
             #pragma shader_feature_local_fragment _ _FALLOFFNOISE _FALLOFFFBM _FALLOFFWORLEY _FALLOFFWORM _FALLOFFWORMFBM _FALLOFFNOISETEXTURE
 
@@ -86,7 +86,8 @@
 
             Texture2D _FalloffTexture;
             float4 _FalloffTexture_TexelSize;
-            float2 _FalloffTextureParams;
+            // Amplitude, Balance, Invert
+            float3 _FalloffTextureParams;
             float4 _FalloffTextureRotScale;
             int _FalloffTextureChannel;
 
@@ -154,6 +155,29 @@
             float4x4 _PaintAreaMatrix;
             Texture2D _PaintAreaFalloffTexture;
             float _PaintAreaClamp;
+
+            // xy - MeshStampUv, z - Blur
+            float3 _FalloffMeshStampParams;
+            float BlurFalloffTexture(float2 stampUV)
+            {
+                float col = 0;
+                int blurSize = int(_FalloffMeshStampParams.z);
+                float blurSkip = 1 + _FalloffMeshStampParams.z / 4;
+                [loop]
+                for (int x = -blurSize; x <= blurSize; x += 1)
+                {
+                    [loop]
+                    for (int y = -blurSize; y <= blurSize; y += 1)
+                    {
+                        col += SAMPLE(_FalloffTexture, shared_linear_clamp, stampUV + float2(x, y) * _FalloffTexture_TexelSize.xy * blurSkip).r;
+                    }
+                }
+                // Average the colors
+                int totalPixels = (2 * blurSize + 1) * (2 * blurSize + 1);
+                col /= totalPixels;
+                
+                return col;
+            }
 
             float2 RotateScaleUV(float2 uv, float2 amt)
             {
@@ -423,15 +447,47 @@
                     d /= max(0.0001, _FalloffAreaRange - noise);
                     falloff *= saturate(d);
                 }
+                #elif _USEFALLOFFMESHSTAMP
+                {
+                    float falloffSample = BlurFalloffTexture(stampUV);
+                    falloff *= falloffSample;
+                    falloff *= _FalloffTextureParams.x;
+                    falloff += _FalloffTextureParams.y * falloffSample;
+                    falloff = abs(falloff - _FalloffTextureParams.z);
+                    falloff *= RectFalloff(stampUV, saturate(_Falloff.y - noise));
+                }
+    
                 #endif
 
                 // not else, goes on top..
                 #if _USEFALLOFFPAINTAREA
                 {
-                    float2 worldPosition = noiseUV * _TerrainSize.xz;
-                    #if !_SPLATSTAMP
-                        worldPosition *= (1000 / _TerrainSize.xz);
-                    #endif// * (1000 / _TerrainSize.xz);
+                    // FOLLOWING CODE EDITED BY THOMAS "NOIO" VAN DEN BERG
+                    /*
+                     * BUG FIX: Paint Falloff Area now works across multiple terrain tiles of any size.
+                     * 
+                     * Previously: noiseUV was pre-multiplied by densityScale (250m / 1000m = 0.25 for 250m terrains).
+                     * This scaled positions down, then the code tried to compensate with "* (1000 / _TerrainSize.xz)",
+                     * which rescaled everything back up (by 4x for 250m terrains. But this broke multi-tile setups
+                     * because each terrain calculated its position as if it started at (0,0), causing the paint
+                     * area to only work on one tile, with other tiles getting increasingly wrong offsets.
+                     * 
+                     * Now: We calculate true world position directly:
+                     * - _NoiseUV.xy = terrain world position in "tile units" (e.g., terrain at x=500 with size 250 = 2.0)
+                     * - uv = pixel position within terrain (0-1)
+                     * - (_NoiseUV.xy + uv) = pixel position in tile coordinates
+                     * - * _TerrainSize.xz = converts to actual world meters (e.g., 2.5 * 250 = 625m world position)
+                     */
+
+                    float2 worldPosition = (_NoiseUV.xy + uv) * _TerrainSize.xz;
+
+                    // OLD CODE
+                    // float2 worldPosition = noiseUV * _TerrainSize.xz;
+                    // #if !_SPLATSTAMP
+                    // worldPosition *= (1000 / _TerrainSize.xz);
+                    // #endif// * (1000 / _TerrainSize.xz);
+                    // END OF EDITS
+
                     float3 localPos = mul(_PaintAreaMatrix, float4(worldPosition.x, 0, worldPosition.y, 1)).xyz;
                     float2 uv = float2(localPos.x + 0.5, localPos.z + 0.5);
                     float falloffSample = SAMPLE(_PaintAreaFalloffTexture, shared_linear_clamp, uv).r;
@@ -474,7 +530,7 @@
                         float2 dxy = height0 - float2(height1, height2);
 
                         dxy = dxy * _Heightmap_TexelSize.zw;
-                        float3 normal = normalize(float4( dxy.x, dxy.y, 1.0, height0)).xzy * 0.5 + 0.5;
+                        float3 normal = float3(normalize(float3(dxy.x, 1.0, dxy.y)) * 0.5 + 0.5);
                     #else
                         float3 normal = SAMPLE(_Normalmap, shared_linear_clamp, uv).xyz;
                         normal.xz *= 2;

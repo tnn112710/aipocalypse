@@ -2,12 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [ExecuteAlways]
     public class Stamp : MonoBehaviour
     {
+#if UNITY_6000_7_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         public class KeywordBuilder
         {
             public List<string> keywords = new List<string>(32);

@@ -1,10 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
+
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class JumpFloodSDF
     {
         public static RenderTexture CreateTemporaryRT(Texture source, int channel = 0, float zoom = 1, int downscale = 1, bool r8 = false)
@@ -25,7 +33,7 @@ namespace JBooth.MicroVerseCore
             {
                 output = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.RHalf);
             }
-            
+
             return Generate(source, output, channel, zoom, downscale);
         }
         static Shader jumpFloodShader = null;
@@ -40,6 +48,9 @@ namespace JBooth.MicroVerseCore
 
             RenderTexture rtA = RenderTexture.GetTemporary(source.height, source.width, 0, RenderTextureFormat.RGHalf);
             RenderTexture rtB = RenderTexture.GetTemporary(source.height, source.width, 0, RenderTextureFormat.RGHalf);
+            rtA.wrapMode = TextureWrapMode.Clamp;
+            rtB.wrapMode = TextureWrapMode.Clamp;
+            source.wrapMode = TextureWrapMode.Clamp;
             Graphics.Blit(source, rtA, mat, 0);
             int numMips = 8;
             int jfaIter = numMips - 1;

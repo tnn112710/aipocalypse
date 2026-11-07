@@ -5,12 +5,18 @@ using UnityEditor;
 using System.Linq;
 using Unity.Mathematics;
 using Unity.Collections;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(CopyPasteStamp), true)]
     [CanEditMultipleObjects]
-    class CopyPasteStampEditor : Editor
+    public class CopyPasteStampEditor : Editor
     {
         static Vector3 WorldToTerrain(Terrain terrain, Vector3 worldPos)
         {
@@ -452,7 +458,16 @@ namespace JBooth.MicroVerseCore
             Texture2D heightTex = null;
             if (cpStamp.copyHeights)
             {
-                heightTex = new Texture2D(heightBuffer.width, heightBuffer.height, TextureFormat.R16, false, true);
+                // Determine the correct texture format based on the RenderTexture format
+                // On Vulkan, heightmaps use R8G8, on DX they use R16
+                TextureFormat heightFormat;
+                if (heightBuffer.format == RenderTextureFormat.RG16 ||
+                    heightBuffer.graphicsFormat == UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8_UNorm)
+                    heightFormat = TextureFormat.RG16;
+                else
+                    heightFormat = TextureFormat.R16;
+                heightTex = new Texture2D(heightBuffer.width, heightBuffer.height, heightFormat, false, true);
+                //heightTex = new Texture2D(heightBuffer.width, heightBuffer.height, TextureFormat.R16, false, true);
                 heightTex.wrapMode = TextureWrapMode.Clamp;
                 RenderTexture.active = heightBuffer;
                 heightTex.ReadPixels(new Rect(0, 0, heightTex.width, heightTex.height), 0, 0);
@@ -513,14 +528,15 @@ namespace JBooth.MicroVerseCore
             {
                 var cp = CopyStamp.Create(heightTex, indexTex, weightTex, holeTex, terrainLayers, renorm, tcd,
                     dcd);
+                
+                if (!path.EndsWith(".asset"))
+                    path += ".asset";
+                path = path.Replace("..", ".");
+
                 if (System.IO.File.Exists(path))
                 {
                     System.IO.File.Delete(path);
                 }
-
-                if (!path.EndsWith(".asset"))
-                    path += ".asset";
-                path = path.Replace("..", ".");
 
                 AssetDatabase.CreateAsset(cp, AssetDatabase.GenerateUniqueAssetPath(path));
                 cpStamp.stamp = AssetDatabase.LoadAssetAtPath<CopyStamp>(path);

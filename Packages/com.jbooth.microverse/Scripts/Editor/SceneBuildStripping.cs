@@ -10,8 +10,12 @@ namespace JBooth.MicroVerseCore
         public int callbackOrder { get { return 0; } }
         public void OnProcessScene(UnityEngine.SceneManagement.Scene scene, BuildReport report)
         {
+#if UNITY_6000_7_OR_NEWER
+            var mvs = GameObject.FindObjectsByType<MicroVerse>(FindObjectsInactive.Include);
+#else
             var mvs = GameObject.FindObjectsByType<MicroVerse>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            
+#endif
+
             foreach (var mv in mvs)
             {
                 mv.CancelInvoke();

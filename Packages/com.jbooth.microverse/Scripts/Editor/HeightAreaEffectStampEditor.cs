@@ -57,7 +57,28 @@ namespace JBooth.MicroVerseCore
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("combineBlend"));
                     }
                     break;
-
+                case HeightAreaEffectStamp.EffectType.GaussianBlur:
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("gaussianStrength"));
+                    SerializedProperty prop = serializedObject.FindProperty("gaussianDistancesMatch");
+                    EditorGUILayout.PropertyField(prop);
+                    if(prop.boolValue)
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("gaussianXDistance"), new GUIContent("Gaussian Distance"));
+                    else
+                    {
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("gaussianXDistance"));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("gaussianYDistance"));
+                    }
+                    if (EditorGUI.EndChangeCheck()) { }
+                    break;
+                case HeightAreaEffectStamp.EffectType.HighPassFilter:
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("highPassStrength"));
+                    break;
+                case HeightAreaEffectStamp.EffectType.SimpleWind:
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("windStrength"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("windAngle"));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("windSlope"));
+                    break;
             }
 
 

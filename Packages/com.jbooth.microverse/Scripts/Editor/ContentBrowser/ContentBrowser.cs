@@ -5,13 +5,18 @@ using System.Linq;
 using static JBooth.MicroVerseCore.Browser.Package;
 using Unity.Mathematics;
 using JBooth.MicroVerseCore.Browser.CollectionWizard;
-
 #if __MICROVERSE_SPLINES__
 using UnityEngine.Splines;
+#endif
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
 #endif
 
 namespace JBooth.MicroVerseCore.Browser
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class ContentBrowser : EditorWindow
     {
         static GUIContent COptionalVisibility = new GUIContent("O", "Optional content visibility");

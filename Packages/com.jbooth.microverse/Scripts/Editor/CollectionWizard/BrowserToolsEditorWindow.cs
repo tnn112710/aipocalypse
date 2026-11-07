@@ -1,8 +1,15 @@
 ﻿using UnityEngine;
 using UnityEditor;
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
+
 
 namespace JBooth.MicroVerseCore.Browser.CollectionWizard
 {
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class BrowserToolsEditorWindow : EditorWindow
     {
         private BrowserToolsEditorWindow editorWindow;

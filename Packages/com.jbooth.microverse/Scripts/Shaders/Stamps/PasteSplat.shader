@@ -13,7 +13,6 @@ Shader "Hidden/MicroVerse/PasteSplat"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma shader_feature_local_fragment _ _USEFALLOFF _USEFALLOFFRANGE _USEFALLOFFTEXTURE _USEFALLOFFSPLINEAREA
             #pragma shader_feature_local_fragment _ _MEGASPLAT
 
             #if _MEGASPLAT

@@ -123,7 +123,11 @@ namespace JBooth.MicroVerseCore
             }
             else
             {
+#if UNITY_6000_7_OR_NEWER
+                Terrain[] terrains = GameObject.FindObjectsByType<Terrain>();
+#else
                 Terrain[] terrains = GameObject.FindObjectsByType<Terrain>(FindObjectsSortMode.None);
+#endif
                 if (terrains.Length == 0)
                 {
                     Debug.LogError("No terrains found in scene");

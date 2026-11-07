@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Rendering;
-
+#if UNITY_6000_7_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace JBooth.MicroVerseCore
 {
-
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     internal class DetailWizardSharedStyles
     {
         public readonly GUIStyle helpBoxBig;
@@ -47,10 +51,12 @@ namespace JBooth.MicroVerseCore
         BillboardTexture
     }
 
+#if UNITY_6000_7_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class TerrainDetailMeshWizard : ScriptableWizard
     {
         DetailPrototypeSerializable prototype;
-
 
         public static TerrainDetailMeshRenderMode GetRenderMode(DetailPrototypeSerializable prototype)
         {
