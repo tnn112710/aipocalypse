@@ -110,7 +110,7 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - Between major events (9 nights): about 4 raid nights, never 3 in a row. The first block has fewer.
 - The nights just before and after a major event are quiet, including the night after an eclipse.
 - Raid and quiet nights are dealt from a shuffle bag per block, so the mix is fair without being fixed.
-- Raid size and difficulty follow the player's Threat level and the factions' grudges, not the day; the player can pay a tribute for an easier night. See [RAIDS.md](RAIDS.md).
+- Raid size and difficulty follow the player's Threat level and the factions' grudges, not the day; two tribute bowls let the player pay for an easier night or offer bait for a harder one with more rewards. See [RAIDS.md](RAIDS.md).
 
 ### Raid and safety rules
 

@@ -8,7 +8,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 - Region factions raid only after the player provokes them: **grudge** decides *who* comes.
 - A **Threat level** that follows the player's results decides *how hard* raids are, not the day.
 - Region bosses, once killed, return as weaker versions on Blood Moons and eclipses.
-- The player can pay a **tribute** for an easier night.
+- Two **tribute bowls**: pay for an easier night, or offer bait for a harder night with more rewards.
 
 ## First raid
 
@@ -57,11 +57,19 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 - **Special occasions** use the same visible markers, e.g. enraged enemies on Blood Moons or armored types on eclipses.
 - **Bosses are the exception:** repeat summons scale their HP.
 
-## Tribute
+## Tribute bowls
 
-- Before a raid, the player can sacrifice Tokens and resources at the service robots to lower that night's wave power: level 1 −10%, level 2 −20%, level 3 −30%.
-- Blood Moons and eclipse days need a larger tribute.
-- Upgrades can raise the reductions later.
+Two bowls side by side on one altar in the yard: calm the night or provoke it.
+
+- **One bowl per night:** filling one shuts the other; taking the offering back reopens both. The bowls lock at dusk, setting the night.
+- **The level shows on the bowl:** 1–3 glowing marks, readable from across the yard.
+- **Calm bowl:** sacrifice Tokens and resources to lower that night's wave power: level 1 −10%, level 2 −20%, level 3 −30%. Blood Moons and eclipse days need a larger tribute. Upgrades can raise the reductions later.
+- **Provoke bowl:** offer bait (common enemy parts or trophies, not Tokens) to raise that night's wave power, e.g. +10% / +20% / +30%, for more rewards.
+  - Pays consumables only: more ammunition, scrap and Tokens, and a better daily box; never progression materials (see [Anti-grinding](#anti-grinding)).
+  - A provoked raid doesn't move Threat, so provoking can't make the following nights harder.
+  - Closed on Blood Moons and eclipse days, which are already the peak nights.
+  - Built after the calm bowl.
+- Flavor: the drone has no idea why the AI added a ritual altar either.
 
 ## Dying in a raid
 
@@ -116,4 +124,5 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 | Risk of Rain 2 | A director that spends a growing budget on monsters |
 | Left 4 Dead | Tension that builds, peaks and relaxes |
 | Resident Evil 4 | Difficulty that follows player performance |
-| Hades | Opt-in difficulty paid back with rewards |
+| Hades | Opt-in difficulty paid back with rewards (Heat costs nothing) |
+| Deep Rock Galactic | Picking a harder hazard level before a mission for more pay |

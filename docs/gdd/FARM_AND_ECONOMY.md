@@ -51,7 +51,7 @@ The animals discussed include chickens, cows, sheep and pigs. Their availability
 - **Deposits:** Tokens and items deposited with the service robots are safe from death and lost raids. Tokens and items the player carries are at risk. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
 - **Purchase delivery timing: TBD.** Immediate sale payment does not establish instant delivery of purchases or a courier schedule.
 - **Upgrades** are the main way the player and home improve now that XP skills are extras (swimming survival, sanity per hour of sleep, better daily boxes, grudge reduction on death, faster grudge cool-down…). Upgrade and storage services come from rescued robots (below).
-- **Tribute:** before a raid, Tokens and resources can be sacrificed at the robots for an easier night. A Token sink; rules in [RAIDS.md](RAIDS.md#tribute).
+- **Tribute bowls:** before a raid, Tokens and resources offered in the calm bowl buy an easier night (a Token sink); bait in the provoke bowl buys a harder night with more consumable rewards. Rules in [RAIDS.md](RAIDS.md#tribute-bowls).
 
 ## Rescued robots and crafting
 
