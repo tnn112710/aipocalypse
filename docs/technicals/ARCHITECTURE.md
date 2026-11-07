@@ -202,7 +202,8 @@ Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Protot
 3. **Real systems via installers.** When a prototype needs a real system, add a `GameLifetimeScope` with just those `SceneInstaller` components. World uses the same class with all of them, strict.
 4. **Defaults belong to the entity's system** (e.g. `PlayerSystem/Defaults/BaseStats`) — they are part of the entity's contract.
 5. **Tuning lives in ScriptableObjects** under `Assets/_Game/Data/`, shared by every scene.
-6. **Smoke test** (PlayMode): `Tests/PlayMode/WorldMapSmokeTests.cs` loads `WorldMap.unity`, checks injection and the enemy system, picks up a gun, fires and reloads, and jumps the clock to the raid's start hour to check raiders spawn; any logged error fails it.
+6. **Each mechanic can be turned off on its own.** Its own installer or component, an `Enabled` flag (or similar) in its settings asset when that's cheap, and links to other systems only through MessagePipe events or optional services (`TryResolve`), so switching it off, swapping or removing it touches nothing else (AGENTS.md → Scope of a change).
+7. **Smoke test** (PlayMode): `Tests/PlayMode/WorldMapSmokeTests.cs` loads `WorldMap.unity`, checks injection and the enemy system, picks up a gun, fires and reloads, and jumps the clock to the raid's start hour to check raiders spawn; any logged error fails it.
 
 A prototype is done when it works in its scene **and** in World with no code changes.
 
