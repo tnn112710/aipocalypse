@@ -1,10 +1,10 @@
 # Core Gameplay
 
-Current design direction, revised 2026-11-07: a first-person shooter with farming, exploration and home defense. Farm, trading, debt repayment and the daily box live in [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Open rules are marked explicitly; proposals, extras and superseded designs are in [IDEAS.md](IDEAS.md).
+Current design direction, revised 2026-11-07: a first-person shooter with farming, exploration and home defense. Farm, trading, crafting, debt repayment and the daily box live in [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); who raids and how hard in [RAIDS.md](RAIDS.md). Open rules are marked explicitly; proposals, extras and superseded designs are in [IDEAS.md](IDEAS.md).
 
 ## Pitch
 
-A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. The AI claims he owes for tokens he "wasted" in real life; he must earn Tokens and repay the debt to leave. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore beyond the river, and bring resources home to prepare for threats. Animals produce faster when roaming the meadow, but must be brought home before raids, when goblins steal what is left outside. On raid nights, defend the farm against thieves and attackers who cross the river, fly in or appear inside the meadow; on quiet nights, fish, rest or enjoy other activities. Cute service robots handle trading, deposits and a daily reward box.
+A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. The AI claims he owes for tokens he "wasted" in real life; he must earn Tokens and repay the debt to leave. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore the regions beyond the river and fight their bosses, and bring resources home to prepare for threats. The creatures you fight out there hold a grudge and come for your farm. Animals produce faster when roaming the meadow, but must be brought home before raids, when goblins steal what is left outside. On raid nights, defend the farm against thieves and attackers who cross the river, fly in or appear inside the meadow; on quiet nights, fish, rest or enjoy other activities. Cute service robots handle trading, deposits and a daily reward box.
 
 ## Pillars
 
@@ -30,7 +30,7 @@ A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — wh
 | --- | --- |
 | **Yard** | The fenced home area (about 34 × 27 m as built): house, crops and plants, service robots. The animals need more room than the yard has, so a fenced **paddock** beside it holds them (a map change, not built yet). |
 | **Meadow** | The safe south bank around the yard and the home pond. Animals roam here by day. |
-| **Outer zone** | Everything across the river: Pine Forest, Highlands and Swamps on the current map. |
+| **Outer zone** | Everything across the river: the regions Pine Forest, Swamps and Highlands on the current map, all open and ranked by difficulty and distance in that order, plus a locked **final zone**. |
 
 ## Core loop
 
@@ -47,7 +47,7 @@ MORNING: open the daily box, trade and deposit, release the animals, assign the 
 | --- | --- |
 | Seconds | Shoot, swing, collect produce, harvest, fish, react to theft and threats |
 | One day | Choose local work or exploration, manage roaming animals, and prepare for a raid or use a quiet night for activities such as fishing |
-| Long term | Improve the home and equipment, train the dog, explore farther and survive the major event every 10 days while repaying the debt to the AI Lords |
+| Long term | Improve the home and equipment, rescue service robots, beat region bosses, train the dog, explore farther and survive the major event every 10 days while repaying the debt to the AI Lords |
 
 ### Loop rules
 
@@ -61,28 +61,33 @@ MORNING: open the daily box, trade and deposit, release the animals, assign the 
 8. **Some nights bring raids; others are quiet** — tonight's type is known for sure in the morning. Ordinary raids stop at midnight: new attacks cease and surviving raiders retreat.
 9. **A major event every 10 days** — Blood Moons are full-night miniboss events on days 10 and 20 of each 30-day cycle. An eclipse replaces the Blood Moon on every 30th day and is a full-day event with more enemies and one giant boss.
 10. **Fights are required on raid nights** — there is no opt-in fire and no full-cozy mode. Ordinary days and quiet nights stay safe.
-11. **Death does not end the run** — deposits with the service robots are safe; what you carry is at risk (see [Resources & failure](#resources--failure)).
+11. **Raiders are the factions you provoke** — goblins raid from the start; a region's faction joins raids once the player has fought it, more often and in larger numbers as its grudge grows. Difficulty follows the player's results through a Threat level, not the day. See [RAIDS.md](RAIDS.md).
+12. **Death does not end the run** — deposits with the service robots are safe; what you carry is at risk (see [Resources & failure](#resources--failure)).
 
 ## Day, dusk and exploration
 
 - **At home:** collect products where animals drop them, tend crops and plants inside the fence, fish, chop, cook, trade, deposit, build and repair.
 - **Animals:** keep them in the paddock for slower production or let them roam the meadow for faster production. Later, the dog can help bring them home and a collector robot can gather their drops.
 - **Outer zone:** after repairing the bridge, cross the river to explore for resources and loot while watching for wandering enemies and dangers. There is no extraction point: tension comes from the daylight timer, the risk to what you carry and the outer zone after dark.
+- **Regions:** all regions are open once across the river and differ in difficulty by distance: Pine Forest (nearest), then Swamps, then Highlands. Each has its own enemy faction, region materials and a boss. Next-tier materials, rescued robots, trophies and keys come only from exploring and bosses.
+- **Region bosses:** summoned by the player. The first kill gives a key or trophy toward the final boss plus Tokens and materials; later kills give Tokens and materials only and get harder each time. Details in [RAIDS.md](RAIDS.md#region-bosses).
+- **Final zone:** locked until every region boss is beaten. Its nature is undecided (idea: an electronic scrap zone where a portal leads to the final boss).
+- **Looting:** containers take a short search and show rarity colors. Cleared camps stay cleared for some days.
 - **Daytime aggression:** enemies stay in the outer zone unless they are chasing the player, and a chaser can follow across the bridge. Pursuit limits and what a chaser does in the meadow are open.
 - **River:** swimming across is dangerous (strong current, drowning) until upgrades improve survival underwater. Crossing anyway is allowed.
 - **Dusk on raid nights:** return with supplies, ring the bell, hurry the slow animals home and ready the defenses. Quiet nights allow other activities, including night fishing.
 - **Dog assignment:** take the dog exploring for help, or leave it at home. Later training helps bring animals home; exact abilities and commands are open.
 - **Minigames:** they stay inside activities, such as shooting jumping fish at bait. Further minigame systems remain optional ideas.
-- **Outer-zone structure:** deferred. Player biome portals are removed. Enemies that appear through portals are a separate feature.
+- Player biome portals are removed. Enemies that appear through portals are a separate feature.
 
 ## Night & special events
 
 | Situation | Current direction | Still open |
 | --- | --- | --- |
 | Quiet night | No raid; rest, sleep or night fishing. Animals left outside sleep where they are | Night activities beyond fishing, lighting needs |
-| Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat | Raid size and mix |
-| Blood Moon | Full-night miniboss event on every 10th day except eclipse days | Warnings, phases, rewards and how the night resolves |
-| Eclipse | Full-day event on every 30th day, replacing that day's Blood Moon: more enemies and one giant boss | Details with the enemy-system revision |
+| Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat. Goblins plus at most 1–2 provoked factions ([RAIDS.md](RAIDS.md)) | Balance values |
+| Blood Moon | Full-night miniboss event on every 10th day except eclipse days. Every registered faction comes, plus weaker versions of beaten region bosses; difficulty rises gradually from one Blood Moon to the next | Warnings, phases, rewards and how the night resolves |
+| Eclipse | Full-day event on every 30th day, replacing that day's Blood Moon: more enemies and one giant boss; weaker versions of beaten region bosses also come | Which factions and how much power; details with the enemy-system revision |
 | Outer zone after dark | Extremely dangerous enemies, darkness draining sanity and attacks by mystical entities | Light protection, entity behavior, dog benefits and escape options |
 
 ### Major-event calendar
@@ -101,15 +106,15 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 ### Raid schedule
 
 - Tonight's type (raid or quiet) is known for sure in the morning. How it is shown is part of the progress-bar design.
-- Days 1–4 are quiet. The first raid is small and mostly thieves, so theft is learned before a big fight.
+- Night 1 is quiet. The first raid, a few easy goblin thieves, comes on night 2, so theft is learned before a big fight. The prototype keeps the first raid on night 1 for testing.
 - Between major events (9 nights): about 4 raid nights, never 3 in a row. The first block has fewer.
 - The nights just before and after a major event are quiet, including the night after an eclipse.
 - Raid and quiet nights are dealt from a shuffle bag per block, so the mix is fair without being fixed.
-- Raid size and difficulty increase gradually. Whether they scale with days, progression or major victories is undecided.
+- Raid size and difficulty follow the player's Threat level and the factions' grudges, not the day; the player can pay a tribute for an easier night. See [RAIDS.md](RAIDS.md).
 
 ### Raid and safety rules
 
-- Enemies include goblins, robots and zombies; types are revised later with the enemy system. Some steal; others attack the player, with broken fences allowing threats into the yard.
+- Goblins raid from the start; each region's faction joins raids once provoked ([RAIDS.md](RAIDS.md)). Enemy types are revised later with the enemy system. Some steal; others attack the player, with broken fences allowing threats into the yard.
 - **Routes:** at night, goblins cross the river freely and some use the bridge; some enemies fly; some appear directly in the meadow (summoned or through portals). The bridge is not a chokepoint, so defense centres on the yard and paddock fences.
 - The midnight retreat ends an ordinary raid. Outer-zone night dangers remain; Blood Moons last the full night.
 - Fences and barricades are defenses. A lost fight can leave the home damaged and require repairs.
@@ -131,7 +136,10 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - A **trading station with a cute robot** sells and buys. Sales pay immediately. Every item, ammunition included, has a daily stock limit.
 - **Deposits:** Tokens and items deposited with the service robots are safe; this is the home stash.
 - **Daily box:** each morning, pick one free box out of three. See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md#daily-box).
-- **Upgrades** are the player's main way to improve (see below). The upgrade service and a separate storage station, inspired by Escape from Duckov's home facilities, are open in form and unlocks.
+- **Upgrades** are the player's main way to improve (see below).
+- **Rescued robots:** broken service robots are found in the outer zone; each one brought home opens a station (gunsmith, mechanic, cook, collector…), inspired by Escape from Duckov's home facilities and Enshrouded's rescued craftspeople.
+- **Crafting** stays as simple as Escape from Duckov: a workbench with tiers, guns and defenses per tier, ammunition from gunpowder. Few materials and recipes.
+- **Defenses** are built on fixed spots around the yard and paddock; no freeform building.
 
 See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presentation proposals and remaining economy questions.
 
@@ -140,7 +148,8 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 - **Survival meters:** HP, Hunger, Stamina and Sanity. Stamina supports sprinting and fighting. Sanity drains in darkness and is restored by sleep (see above).
 - **Growth:** upgrades and gear make the player and home more capable, for example surviving the river, more sanity per hour of sleep and a better daily box. XP skills (Fitness, Gunsmanship, Luck), perk cards and the cat are later extras in [IDEAS.md](IDEAS.md#extras--nice-to-have).
 - **Starts weak:** more recoil, jams and slower work; upgrades and gear improve them. A timed input helps clear jams. Exact starting severity needs balancing.
-- **Limited ammunition:** buy it from the trading robot within its daily stock, or loot it from enemies; crafting remains open. Melee and tools such as an axe are fallbacks.
+- **Limited ammunition:** buy it from the trading robot within its daily stock, loot it from enemies or craft it from gunpowder. Melee and tools such as an axe are what the player falls back on when the guns run dry; melee can get more weight than a bare fallback.
+- **Guns** will get rarity and attachments later.
 - **Fight rewards:** enemy loot, plus a better daily box after a defended raid or a won major event.
 - **Enemies:** behavior archetypes with different appearances; their objectives include stealing and attacking. Refined with the enemy-system revision.
 
@@ -148,7 +157,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 
 - **Home:** a house on a ridge above the sea, the yard and paddock, the meadow and the river (see [Places](#places)). Farming, fishing, chopping, services and defense share the meadow side.
 - **Bridge:** initially broken; repairing it opens the safe way into the outer zone. Repair costs and the introductory sequence are open.
-- **Outer zone:** exploration, resources and wandering threats; substantially more dangerous at night. Its structure and progression are deferred.
+- **Outer zone:** open regions with their own factions and bosses, ranked by difficulty, and a locked final zone (see [Day, dusk and exploration](#day-dusk-and-exploration)); substantially more dangerous at night.
 - **Weather:** intended to affect activities and visibility; refined later.
 - **Guide drone:** guide, tips and in-world information; comic tech-support personality; secretly connected to the AI Lord.
 - **Dog:** can accompany exploration or stay home; later helps bring animals home. The previous draft also included modest combat help and a safe backpack; their interaction with these duties needs review.
@@ -159,7 +168,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 - **Resources:** Tokens, wood, food, farm products, materials, ammunition and equipment. Trees regrow; their timing is not fixed.
 - **Deposits** with the service robots are safe from death and lost raids. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
 - **What you carry is at risk**, Tokens included.
-- **Knocked out at home during a raid:** wake the next morning and lose part of what you carry (Tokens and items) and some animals. Losing a Blood Moon or an eclipse costs more. Exact shares are open.
+- **Knocked out at home during a raid:** wake the next morning and lose part of what you carry (Tokens and items) and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. It also lowers the Threat level and the grudge of the factions in that raid ([RAIDS.md](RAIDS.md#dying-in-a-raid)).
 - **Death in the outer zone:** respawn at home. The previous draft's loss rule is retained for review: 50–70% of carried loot drops into a recoverable grave, a second death loses the grave, and equipped melee and the dog's backpack are protected. Carried-item selection, percentage and grave lifetime need review.
 - **Structures:** buildings and upgrades are kept, but damage can require repair.
 
@@ -176,13 +185,14 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 
 | Area | Needed decision |
 | --- | --- |
-| World | Outer-zone structure and progression, daytime pursuit limits, river-swim upgrades |
-| Raids | Raid size and mix, difficulty scaling, the forecast and progress-bar presentation |
+| World | The final zone, region materials, daytime pursuit limits, river-swim upgrades |
+| Raids | Balance values in [RAIDS.md](RAIDS.md#open), the forecast and progress-bar presentation |
 | Major events | Warnings, stages and rewards; eclipse enemies and boss with the enemy-system revision |
+| Bosses | Each region boss's identity, summoning, rewards and difficulty steps |
 | Animal safety | Paddock protection after a breach, rescuing stolen animals in the outer zone |
 | Farm and trade | Production rates, drop cap, recipes, prices, daily stock sizes and purchase delivery timing |
-| Services | Upgrade service and storage functions, unlocks, robot presentation and station layout |
-| Progression | The upgrade list and gear balance |
+| Services | Rescued-robot roster, station functions, robot presentation and station layout |
+| Progression | The upgrade list, crafting tiers and recipes, gear balance |
 | Debt and ending | Total debt, repayment service and payment conditions; ultimate boss identity/access, time travel, final presentation and post-victory/replay rules (STORY) |
 | Failure | Shares lost when knocked out, the outer-zone grave, structure damage and economic recovery |
 | Sanity and weather | Effects and rates, refined later |
@@ -193,7 +203,9 @@ References inform specific aspects of the design; they do not commit the game to
 
 | Game | Reference purpose |
 | --- | --- |
-| Escape from Duckov | First-person adaptation of preparing at home, risking carried loot and returning; death without losing the whole game; home upgrade and storage facilities |
+| Escape from Duckov | First-person adaptation of preparing at home, risking carried loot and returning; death without losing the whole game; home facilities and simple crafting; searchable loot containers |
+| Valheim | Regions with their own bosses; boss trophies as keys; raids that change with progression |
+| Enshrouded | Rescued craftspeople who open crafting stations at home |
 | Thronefall / Kingdom Two Crowns | Daytime investment, protecting income and a readable defense rhythm |
 | 7 Days to Die | A fixed Blood Moon cadence that players prepare for |
 | Terraria | Blood Moon and eclipse as changes to the normal day/night rhythm |

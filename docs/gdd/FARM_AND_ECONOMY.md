@@ -47,10 +47,19 @@ The animals discussed include chickens, cows, sheep and pigs. Their availability
 - A trading station at home handles selling products and buying supplies, including replacement animals.
 - Present the service through a cute robot, using the expressive service-robot direction discussed with the visual reference. The exact model, asset pack, name and station layout are not selected.
 - **Sales pay immediately.** The player can use money from today's produce to buy supplies for the same night's defense.
-- **Daily stock limit:** every item the robot sells, ammunition included, has a limited stock per day. Ammunition also drops from enemies; crafting remains open.
+- **Daily stock limit:** every item the robot sells, ammunition included, has a limited stock per day. Ammunition also drops from enemies and is crafted from gunpowder (see [Rescued robots and crafting](#rescued-robots-and-crafting)).
 - **Deposits:** Tokens and items deposited with the service robots are safe from death and lost raids. Tokens and items the player carries are at risk. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
 - **Purchase delivery timing: TBD.** Immediate sale payment does not establish instant delivery of purchases or a courier schedule.
-- **Upgrades** are the main way the player and home improve now that XP skills are extras (swimming survival, sanity per hour of sleep, better daily boxes…). The upgrade service and a storage station, inspired by Escape from Duckov's home facilities, are open in form, unlocks and whether they share a structure.
+- **Upgrades** are the main way the player and home improve now that XP skills are extras (swimming survival, sanity per hour of sleep, better daily boxes, grudge reduction on death, faster grudge cool-down…). Upgrade and storage services come from rescued robots (below).
+- **Tribute:** before a raid, Tokens and resources can be sacrificed at the robots for an easier night. A Token sink; rules in [RAIDS.md](RAIDS.md#tribute).
+
+## Rescued robots and crafting
+
+- **Rescued robots:** broken service robots are found in the outer zone. Each one brought home opens a station: gunsmith, mechanic, cook, collector… The roster and what each station does are open.
+  - Ref: Enshrouded — craftspeople rescued from the world unlock crafting at the base; Escape from Duckov — bunker stations built and upgraded
+- **Crafting** stays as simple as Escape from Duckov: a workbench with tiers, guns and defenses per tier, ammunition from gunpowder. Few materials and recipes.
+- **Region materials:** next-tier materials come only from exploring the regions and beating their bosses, never from raids or the trading robot, so exploring stays the way forward.
+- **Guns** will get rarity and attachments later.
 
 ## Daily box
 
@@ -80,8 +89,9 @@ The confirmed connection is simple: collect produce, harvests, fish and explorat
 Animals / crops / fishing -> ingredients -> food
                          -> sales -> Tokens -> purchases (daily stock) and upgrades
                                            -> cumulative debt repayments -> win
-Exploration -> resources and loot -> home supplies and progression
-Night defense -> protect animals, player and farm -> enemy loot, better daily box
+Exploration -> resources, loot, region materials, rescued robots -> crafting tiers and stations
+Region bosses -> trophy/key toward the final boss, Tokens and materials
+Night defense -> protect animals, player and farm -> enemy loot (ammunition, scrap, Tokens), better daily box
 Deposits -> keep Tokens and items safe from death and raids
 ```
 
@@ -112,6 +122,7 @@ Deposits -> keep Tokens and items safe from death and raids
 | Animal progression | Starting species, pig products, animal acquisition and whether breeding exists |
 | Crops | Starter plants, growth, replanting and maintenance |
 | Food | Recipes, meal effects and whether cooked products can be sold |
-| Upgrades and storage | Which services exist, what they do and when they unlock |
+| Robots and crafting | Rescued-robot roster and where each is found, station functions, crafting tiers and recipes |
+| Tribute | Costs per level and per major event |
 | Economy balance | Income, daily costs, recovery and the relationship between Tokens and exploration materials |
 | Currency and debt | Total debt, repayment service and conditions, milestones and ending/post-win rules |

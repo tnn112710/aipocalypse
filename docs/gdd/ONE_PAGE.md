@@ -22,9 +22,10 @@ The whole game on one page, after Unity's [one-page game design document](https:
 - First-person shooting with limited ammo (a few guns) and melee as fallback.
 - Day/night clock; raid and quiet nights known each morning; Blood Moon and eclipse.
 - Goblin raids that both steal and attack; breakable fences and gate with repair.
+- Provoked factions join raids through grudge; a Threat level sets raid difficulty ([RAIDS.md](RAIDS.md)).
 - Animals that roam, drop produce, come home at the bell and can be stolen; crops; fishing.
 - Trading robot with daily stock, safe deposits, the daily box, upgrades.
-- Bridge repair and an outer zone with loot and wandering threats.
+- Bridge repair and open regions with loot containers, factions and summonable bosses; rescued robots and simple crafting.
 - HP, hunger, stamina, sanity; sleep restores sanity.
 - Save/load, knockout and death losses, a wake-up intro and first-raid tutorial.
 
@@ -35,7 +36,8 @@ The whole game on one page, after Unity's [one-page game design document](https:
 **Look and sound:** stylized nature (Raygeas main look) — warm, cozy meadow by day, frightening moonlit nights where enemies stay readable. Cute service robots, a comic guide drone. Guns get the most audio work (punchy, polished); ambience follows the clock (dawn chorus, wind, owls); music TBD.
 
 **Inspiration**
-- Escape from Duckov — prepare at home, risk what you carry, home facilities.
+- Escape from Duckov — prepare at home, risk what you carry, home facilities, simple crafting.
+- Valheim / Enshrouded — regions with bosses whose trophies are keys; rescued helpers open stations.
 - Thronefall / Kingdom Two Crowns — invest by day, defend a readable night.
 - 7 Days to Die / Terraria — Blood Moons and eclipses players prepare for.
 - Slime Rancher — physical produce and home trading.

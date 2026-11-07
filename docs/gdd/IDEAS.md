@@ -6,6 +6,119 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
 
 ## Current review proposals — not confirmed
 
+### Valheim / Enshrouded + Escape from Duckov mix (user, 2026-11-07)
+
+**Status (2026-11-07):** the confirmed decisions below, plus tribute levels, boss drops, weaker bosses only on Blood Moons and eclipses, the night-2 first raid and later gun rarity/attachments, now live in [CORE.md](CORE.md), [RAIDS.md](RAIDS.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). This section is the discussion history; unconfirmed suggestions are listed in RAIDS.md → Proposals.
+
+- Idea (user): lean more on Valheim and Enshrouded, mixed (not copied) with Escape from Duckov's looting and the base-defense shooter
+- Decided (user, 2026-11-07):
+  - Regions across the river are all open; they differ in difficulty by distance: Pine Forest (nearest) → Swamps → Highlands. Each has a boss. Only a final zone stays locked until every region boss is beaten. Replaces the region-per-30-day-cycle proposal in Outer zone and progression
+  - Rescue broken service robots in the outer zone; each one brought home opens a station (gunsmith, mechanic, cook, collector…). Answers the open upgrade/storage services question
+    - Ref: Enshrouded — five craftspeople are rescued from the world and unlock crafting at the base
+  - Crafting stays as simple as Escape from Duckov: a workbench with tiers, guns and defenses per tier, ammunition from gunpowder
+    - Ref: Escape from Duckov — the workbench upgrade unlocks weapon mods and dismantling ammo into gunpowder
+  - Lootable containers with a search time and rarity colors
+  - More weight on melee is fine; it's the answer when the guns run dry
+  - Defenses go on fixed spots, as now. No freeform building; few materials and recipes
+  - Rejected: food buffs replacing the Hunger meter; Glitch zones (see Rejected)
+- Still suggested: one signature material per region; looted guns with rarity and mods; limited backpack slots; comfort near the bed raises sanity restored per hour of sleep (Ref: Valheim — comfort sets how long the Rested buff lasts)
+- Risk: Outpost: Infinity Siege (see Historical notebook) mixed the same genres and felt diluted. Borrow Valheim's and Enshrouded's structure, not their size
+- [TBD] what the final zone is (???: the ultimate AI boss from STORY), what each region boss drops
+
+#### New enemy kinds in raids (user, 2026-11-07)
+
+- User: likes more enemy kinds raiding, introduced gradually; unsure which rules make players love it
+- Option A, boss-triggered: beating a region boss makes that region's creatures raid the farm. The drone warns right after the kill; the player already knows them from their region; when a new group joins, the oldest retires, so 2–3 kinds raid at a time. Risk: a player who avoids bosses gets the same raids forever
+  - Ref: Valheim — "The forest is moving…" raids start after Eikthyr and stop after The Elder, when the swamp raid takes over
+- Option B, calendar ("patch notes"): each 10-day block adds one kind. Teased on the progress bar ("v0.3 — coming soon: flying units"), debuts small in the block's first raid, mixes in, then stars in the Blood Moon that ends the block. No player agency
+- Option C (suggested), hybrid: bosses decide which kinds can raid; the calendar decides how big raids get, so escalation never stalls. New kinds follow B's tease → debut → mix → Blood Moon arc
+- Chosen (user, 2026-11-07), then replaced the same day by Grudge below: C + A — bosses add kinds with A's drone warning and retiring of the oldest group; the calendar grows raid size; new kinds follow the tease → debut → mix → Blood Moon arc
+  - Suggested: goblin thieves stay in every raid and only region groups retire, since thieves are what make the animals worth protecting
+- Rules for any option (suggested):
+  - One debut per raid at most; about 3 kinds per raid
+  - A debut is a few of the new kind plus familiar thieves; mixes come later (the first raid already works this way)
+  - The morning forecast shows tonight's kinds; a new kind shows as a "?" silhouette
+    - Ref: Plants vs. Zombies — the seed-selection screen shows the zombies coming in that level, so you pick plants for them
+  - Each kind needs a different answer (thieves → guard animals, breakers → repair and turrets at fences, flyers → aim up, hunters → the player); a kind that changes no decision is just a reskin
+  - The counter is reachable by the time a kind raids (e.g. the boss drop that sets off the swamp also unlocks its counter at the gunsmith robot)
+  - The first kill of each kind pays: a bounty, a drone scan that shows its weakness, a unique crafting drop
+
+#### When raids start (user question, 2026-11-07)
+
+- User: should the early game have raids, or should they start once the player reaches the outer zone? Is that too late?
+- Time check: a game day is ~20 min (12 day + 8 night), so the current first raid (after 4 quiet days) comes ~1.5 h into play. Steam refunds run to 2 h of play
+- Suggested: the first river crossing starts the raids, A's cause and effect from day one ("they followed you home"). The first raid, a few goblin thieves, comes the night after the first crossing, night 2 at the earliest, so night 1 is always quiet. Fallback: no crossing by day 3 → the goblins come anyway on night 3. Needs a bridge repair cheap enough for day 1 (meadow wood)
+  - Ref: Valheim — a weak boar-and-neck raid ("Eikthyr rallies the creatures of the forest") runs from world start until the first boss dies
+  - Ref: 7 Days to Die — the first horde night is day 7, but zombies roam from the start, so fighting begins right away
+- Would replace "Days 1–4 are quiet" in CORE.md
+
+#### Grudge — raids as revenge (user, 2026-11-07)
+
+- Idea (user): the game starts with a few minor goblin raids the player usually beats easily (goblins can be swapped later). Each outer-zone biome has its own enemies; only kinds the player kills hold a grudge and raid in revenge. A grudge meter per kind: more kills → more or stronger raiders; it fills fast with continuous killing, has a max, and falls over time when left alone. Replaces C + A's "bosses add kinds" (user, 2026-11-07)
+  - Ref: Don't Starve — killing innocent creatures raises a hidden naughtiness count; past a threshold Krampus comes to steal; it falls with each day without such kills
+  - Ref: The Forest / Sons of the Forest — cannibal aggression rises with kills and days and brings war parties to the base; in Sons, anger never decreases, so our decay gives the player a way back
+- Suggested fixes:
+  - Only kills in their territory count; a raid the player beats spends most of that grudge (they lost), a lost raid keeps it. Prevents a loop where defending raises the next raid
+  - Grudge raids pay more as the grudge rises (more raiders, more ammunition, scrap and Tokens, but no progression materials; see Anti-grinding), so killing has a price, not only a penalty
+    - Ref: Hades — the Pact of Punishment lets players raise Heat for extra rewards
+  - Make it visible: 4 steps per meter (calm / annoyed / angry / furious), a small pop when a kill raises it, and the morning forecast names who is coming. Flavor (???): shown as the AI's 1–5 star "customer reviews" of the player
+  - One meter per faction (goblins + one per region), not per kind: ~4 meters
+  - The raid/quiet schedule still decides when; the grudge decides who and how many. The max caps raid size (also the crowd perf budget)
+- Region bosses (user, 2026-11-07; replaces the earlier "Blood Moon or eclipse only" idea): each biome has its own enemies and a boss. Summon and defeat it for rewards and a trophy. It can be summoned again many times, harder each time. Killing it adds a weaker version of the boss to raid waves
+  - Suggested: the first kill gives the trophy (and the final-zone key); repeat kills pay more materials and Tokens as difficulty rises
+  - Suggested: the weaker boss leads its faction's raid when that grudge is at max, and joins Blood Moons. Cheap: same model and moves, scaled down
+- Goblin raids also grow slowly with the days, so a player who rarely fights in the outer zone still sees harder nights over time (user, 2026-11-07)
+
+##### Who raids: contact and chance (user, 2026-11-07)
+
+- Idea (user): attacking or triggering an enemy kind in its biome (no kill needed) registers it as a possible raider. Even at grudge 0 it keeps a small chance to raid (e.g. 5–10%); kills raise the grudge, which raises both the chance and the amount. Balance it so too many kinds never raid at once
+- Decided (user, 2026-11-07): register and hold a grudge per faction (~4 meters); once registered, any of the faction's types can raid. Fallback if the user changes their mind: register per type, so a faction raid brings only the types already met. Registration happens when the player hits one of the faction's enemies or one starts chasing them (not when merely seen), and the drone says so ("New contact: Swamp Folk. They know your scent now")
+- Suggested: building one raid night
+  1. The schedule picks raid nights, as now; everything below is rolled at dawn and shown in the morning forecast (new faction = "?" silhouette)
+  2. Goblins always come; their size grows slowly with the days
+  3. Extra faction slots cap the mix: 1 early, 2 later (by day count). Blood Moons lift the cap: every registered faction comes, sized by its grudge, with difficulty rising gradually from one Blood Moon to the next, never all at once (user, 2026-11-07). [TBD] an enemy power score per wave to tune this later (user)
+  4. Each registered faction rolls its chance (min 5–10% + grudge), angriest first, until the slots are full; at most one debut per raid
+  5. A raid budget, growing with the days, is shared between the factions that come, weighted by grudge; it never stacks past the max. A second faction splits the budget, it doesn't double the raid
+  6. Anti-streak: a faction that came in the last raid rolls at half chance, unless its grudge is at max
+  - Ref: Risk of Rain 2 — the combat director earns credits over time and spends them on monsters, so a mix shares one budget
+  - Ref: Escape from Duckov — storms with no warning drew "please add storm warning" threads; roll at dawn, not at the fence
+
+##### Wave power score (user, 2026-11-07)
+
+- Idea (user): each raid gets a wave power score; enemies are filled in until it's spent; grudge raises the score. Goal: progression and difficulty that can be balanced and monitored, between boring and too hard
+- Suggested additions:
+  - Each type has a power cost (elites and the weaker boss cost more); the budget buys from the factions coming tonight
+  - Budget = base curve by day + grudge bonus per faction, capped. Shape it as a sawtooth, not a straight line: rise through each 10-day block, peak at the Blood Moon, drop after it, and start the next block a bit above the last one
+    - Ref: Left 4 Dead — the AI Director builds tension, peaks, then relaxes before building again
+  - Split a night's budget into 2–4 waves (small → big) with short pauses to reload and repair
+  - (???) A small, bounded nudge from the last raid: easy win → +10%, lost raid → −10%. Scale with days and bosses beaten, never with the player's gear, or upgrades feel pointless
+    - Ref: The Elder Scrolls IV: Oblivion — enemies leveled with the player, widely criticised for making leveling feel pointless
+  - Monitor: a dev overlay and one log line per raid (budget, spent, types, waves, damage taken, animals lost, ammo used, result), plus a sheet of the budget curve for days 1–60 to check the whole run before playtests
+- Accepted (user, 2026-11-07): type costs, sawtooth, waves, bounded nudge, monitoring
+- Idea (user, 2026-11-07): difficulty follows the player, not the day. Dying in a raid resets the grudge and lowers the next raids, so a skilled player reaches a high difficulty by day 30 and a weaker one by day 60–80
+- Suggested: a Threat level drives the budget instead of the day
+  - Each won raid raises it (more for a clean win), a lost raid lowers it (e.g. −20%)
+  - Floor: rises slowly with the days, so a struggling player still moves forward. Ceiling: set by bosses beaten, so a skilled player can't outrun the content
+  - The sawtooth stays: the block shape (ramp → Blood Moon peak → quiet) sits on top of the Threat level
+  - Two separate knobs: Threat = how hard (performance); grudge = who comes (player choices)
+- Decided (user, 2026-11-07): dying in a raid costs carried Tokens, home damage and some animals, and lowers the grudge of the factions in that raid by a fixed 25% of the meter's max (not halving), down to 0. The 25% is upgradable
+  - Decided (user, 2026-11-07): two upgrades: more grudge reduction on death, and faster daily cool-down
+  - Later (user, 2026-11-07): a tribute at the robots buys a grudge cut with Tokens
+- Suggested: show the Threat level openly, as the AI Lord's "difficulty patches" ("You were having too much fun. Difficulty +1"). Loot and the daily box get better as Threat rises, so players want to climb and losing on purpose doesn't pay
+  - Ref: Resident Evil 4 — a hidden difficulty rank rises and falls with player performance
+- (???) A starting difficulty choice that sets how fast Threat climbs
+- [TBD] target win rates for ordinary raids vs Blood Moons; the cost of each type; how much a win or loss moves Threat
+
+##### Anti-grinding (user concern, 2026-11-07; accepted by user)
+
+- Concern (user): players farm weak enemies over and over instead of exploring
+  - Ref: Soren Johnson — "Given the opportunity, players will optimize the fun out of a game" (Water Finds a Crack). Make exploring the fastest path, not forbid grinding
+- Suggested: progress only comes from out there. Kills and raids pay ammunition, scrap and Tokens; next-tier materials, rescued robots, trophies and keys come only from exploring and bosses. Grinding forest enemies keeps the player at forest tier
+- Suggested: cleared camps stay cleared for some days; wandering enemies per area are capped. Grinding one spot runs dry, so more kills mean walking deeper
+  - Ref: Valheim — destroyed greydwarf nests don't come back
+- Suggested: the grudge sets raid size, never raid frequency; the schedule still decides raid nights and a won raid spends the grudge, so raid loot has a weekly ceiling
+- Grinding stays allowed as the safe, slow choice; exploring is the risky, fast one (pillar 2)
+
 ### Debt to the AI Lord and endings (user, 2026-11-07)
 
 **Status update (2026-11-07):** Tokens, the debt for alleged real-world token waste, and winning through cumulative repayments are now agreed in [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). The earlier world-generation invoice framing below is superseded. Remaining activity paths, invoice structures, prices, bosses and ending variants below are proposals, not approved rules.
@@ -581,3 +694,5 @@ Many short "one more go" minigames, each a simpler take on a famous game. Extend
 - A full-cozy mode or a raids-off setting — fights are required on raid nights (user, 2026-10-31)
 - A barricade at the bridge as the night's front line — goblins cross the river anyway, so the bridge is not a chokepoint (user, 2026-10-31)
 - A daytime leash at the bridge (chasers give up there) — an enemy chasing the player can follow across (user, 2026-10-31)
+- Food buffs replacing the Hunger meter (Valheim's food slots) — Hunger stays (user, 2026-11-07)
+- Glitch zones, a Shroud-like timed danger zone (Enshrouded) — not wanted (user, 2026-11-07)

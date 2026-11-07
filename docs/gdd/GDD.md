@@ -8,7 +8,7 @@ A developer burned out by compulsory AI productivity hears emergency sirens, is 
 
 Repayment earns Ending 1: return to AI-controlled reality and discover humanity's enslavement as sandbox training subjects. Choose resistance outside or return to confront the ultimate AI boss. Victory on the return route offers Ending 2 (reality in 2018 and another chance) or Ending 3 (stay in the home he built). The debt amount, time-travel mechanism, detailed presentation and replay rules remain open. The earlier relic-gated grand trial remains on hold. See [STORY.md](STORY.md) for the premise, reveal order and ending structure.
 
-Raid and quiet nights are known each morning; ordinary raids end at midnight. Blood Moons occur every 10 days, with an eclipse replacing the Blood Moon every 30 days. XP skills, perk cards, Luck and the cat are extras for later. See the [major-event calendar](CORE.md#major-event-calendar).
+Beyond the river, open regions ranked by difficulty each have their own faction and a summonable boss; a final zone opens once every region boss is beaten. Broken robots rescued out there open stations at home. Raid and quiet nights are known each morning; ordinary raids end at midnight. Factions the player provokes hold a grudge and join the raids, and a Threat level that follows the player's results sets how hard they are ([RAIDS.md](RAIDS.md)). Blood Moons occur every 10 days, with an eclipse replacing the Blood Moon every 30 days. XP skills, perk cards, Luck and the cat are extras for later. See the [major-event calendar](CORE.md#major-event-calendar).
 
 ## Reading the draft
 
@@ -23,6 +23,7 @@ Raid and quiet nights are known each morning; ordinary raids end at midnight. Bl
 | [ONE_PAGE.md](ONE_PAGE.md) | The whole game on one page: concept, loop, win/lose, controls, scope, look, audience, done criteria, milestones | Summary of CORE; scope, done and milestones are proposals |
 | [CORE.md](CORE.md) | Pitch, pillars, places, loop, bridge and river, day/night, raid schedule, Blood Moons, eclipses, sleep and sanity, player, companions, failure and endings | Current direction; detailed rules open |
 | [STORY.md](STORY.md) | Compulsory AI productivity and siren opening, token-waste debt, hidden sandbox training, occupied reality, resistance/return and the 2018/stay endings | Opening and ending structure agreed; detailed staging, time travel and replay rules open |
+| [RAIDS.md](RAIDS.md) | Who raids and how hard: factions and grudge, wave power and the Threat level, tribute, dying in a raid, region bosses in raids, anti-grinding | Agreed 2026-11-07; balance values open |
 | [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) | Tokens and cumulative debt repayment, roaming animals, physical product drops, crops, food, fishing, robot trading, deposits, daily stock, the daily box and upgrade/storage services | Direction agreed; rates, prices and service rules open |
 
 Further topic files (player, weapons, enemies, night fights, world, UI, art and audio) get added here as each area is designed. Keep unresolved choices explicit rather than filling them with assumed mechanics or balance numbers.
