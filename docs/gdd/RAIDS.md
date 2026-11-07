@@ -48,7 +48,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
   - Never scaled by the player's gear, so upgrades always feel like upgrades.
 - Threat is shown openly, framed as the AI Lord's "difficulty patches" ("You were having too much fun. Threat +1"). Higher Threat gives better loot and a better daily box.
 - **Rhythm:** a sawtooth on top of Threat. Raids build up through each 10-day block, peak at the Blood Moon, then drop; the next block starts a little higher than the last.
-- A raid night is split into 2–4 waves, small to big, with short pauses to reload and repair.
+- A raid night is split into 2–5 waves, small to big, with short pauses to reload and repair.
 
 ### Enemy toughness
 
