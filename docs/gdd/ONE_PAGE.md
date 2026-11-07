@@ -12,7 +12,7 @@ The whole game on one page, after Unity's [one-page game design document](https:
 - Goal: build a livelihood, improve the farm and home, survive raids and major events, and repay the debt to the AI Lords.
 - Win, route 1: clear the debt through cumulative repayments using **Tokens**, the same currency as purchases and upgrades, with no deadline. Paid progress is permanent. Ending 1 reveals AI-controlled reality and enslaved human training subjects; choose resistance or return to the sandbox.
 - Win, route 2: collect every region boss's key and defeat the ultimate AI boss in the final zone, a Megabonk-style run, without saving up the debt. Then leave for reality in 2018 (Ending 2) or stay at the farm (Ending 3); also open after Ending 1 and the return. The debt amount, time-travel mechanism and replay/post-victory details remain open.
-- Lose: never final. Dying in a raid costs a share of all Tokens (repaid ones are safe), some carried items and maybe animals; deposited items are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
+- Lose: never final. Raids hit the farm whether or not the player is home. Losing one (knocked out, or not home when it ends) costs a share of all Tokens (repaid ones are safe) and maybe animals; deposited items are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
 
 **Controls (PC):** WASD move · mouse look · LMB fire / swing · RMB aim · R reload · E interact (hold: repair) · Space jump · Shift sprint · C crouch · 1–9 / wheel switch item · G drop.
 

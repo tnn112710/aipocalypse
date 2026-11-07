@@ -88,7 +88,7 @@ MORNING: open the daily box, trade and deposit, release the animals (later: assi
 | Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat. Goblins plus at most 1–2 provoked factions ([RAIDS.md](RAIDS.md)) | Balance values |
 | Blood Moon | Full-night miniboss event on every 10th day except eclipse days. Every registered faction comes, plus weaker versions of beaten region bosses; difficulty rises gradually from one Blood Moon to the next | Who the miniboss is, warnings, phases, rewards and how the night resolves |
 | Eclipse | Full-day event on every 30th day, replacing that day's Blood Moon: more enemies and one giant boss; weaker versions of beaten region bosses also come | Which factions and how much power; details with the enemy-system revision |
-| Outer zone after dark | Extremely dangerous enemies, darkness draining sanity and attacks by mystical entities | Light protection, entity behavior, dog benefits and escape options |
+| Outer zone after dark | Extremely dangerous enemies (buffed enemies, night enemies, predators), darkness draining sanity and attacks by mystical entities | Light protection, entity behavior, dog benefits and escape options |
 
 ### Major-event calendar
 
@@ -114,11 +114,11 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 
 ### Raid and safety rules
 
-- Goblins raid from the start; each region's faction joins raids once provoked ([RAIDS.md](RAIDS.md)). Enemy types are revised later with the enemy system. Some steal; others attack the player, with broken fences allowing threats into the yard.
+- Goblins raid from the start; each region's faction joins raids once provoked ([RAIDS.md](RAIDS.md)). Enemy types are revised later with the enemy system. Raiders go for the farm, not the player: some steal, others break fences to get into the yard. Each turns on the player who comes within its spotting range.
 - **Routes:** at night, goblins cross the river freely and some use the bridge; some enemies fly; some appear directly in the meadow (summoned or through portals). The bridge is not a chokepoint, so defense centres on the yard and paddock fences.
 - The midnight retreat ends an ordinary raid. Outer-zone night dangers remain; Blood Moons last the full night.
 - Fences and barricades are defenses. A lost fight can leave the home damaged and require repairs.
-- **Away on a raid night:** the raid resolves without the player. Animals outside are stolen and fences take damage scaled to the raid. The morning shows the result: broken fences, missing animals and the drone's report. Threat and grudge don't change ([RAIDS.md](RAIDS.md#how-hard-wave-power-and-threat)).
+- **Away on a raid night:** the raid happens anyway. Raiders go for the farm, not the player, and the longer it is unguarded, the more they sabotage and sack it: animals outside and some penned ones are stolen, and fences take damage scaled to the raid. Coming home late, the player can still fight the rest ([RAIDS.md](RAIDS.md#at-the-farm)). The drone reports the raid while the player is away. Not being home when the raid ends loses it, with the same Token loss as a knock-out, but Threat and grudge don't change ([RAIDS.md](RAIDS.md#losing-a-raid)). The morning shows the result: broken fences, missing animals and the drone's report.
 - **Stolen animals** are taken deep into the outer zone. The player has 3 days to bring one back before it is lost forever, or can buy a new one. Where they are kept (camps) is designed later.
 - Light protects against the Dark, not ordinary enemies. Campfires and torches provide light; fuel and any other effects are not settled.
 
@@ -134,7 +134,7 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - Crops and plants grow inside the fence. Animal products, harvests and fish support cooking, eating where applicable, or selling.
 - Animals drop produce where they are; freely roaming animals produce faster. Drops never despawn, and each animal stops producing at a cap of uncollected drops. Feeding, rates, the cap size and species-specific outputs need detail.
 - A **trading station with a cute robot** sells and buys. Sales pay immediately. Every item, ammunition included, has a daily stock limit.
-- **Deposits:** items deposited with the service robots are safe; this is the home stash. Deposited Tokens are safe too, except from the Token loss when dying in a raid (see [Resources & failure](#resources--failure)).
+- **Deposits:** items deposited with the service robots are safe; this is the home stash. Deposited Tokens are safe too, except from the Token loss when a raid is lost (see [Resources & failure](#resources--failure)).
 - **Daily box:** each morning, pick one free box out of three. See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md#daily-box).
 - **Upgrades** are the player's main way to improve (see below).
 - **Robots:** the trading robot is home from the start, one more robot is found in the meadow, and the rest are broken robots rescued in the outer zone. Each one brought home opens a station (gunsmith, mechanic, cook, collector…), inspired by Escape from Duckov's home facilities and Enshrouded's rescued craftspeople. Details later.
@@ -166,9 +166,9 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 ## Resources & failure
 
 - **Resources:** Tokens, wood, food, farm products, materials, ammunition and equipment. Trees regrow; their timing is not fixed.
-- **Deposits** with the service robots are safe from death and lost raids, except Tokens: dying in a raid costs a share of all Tokens. Tokens repaid on the debt are never lost.
+- **Deposits** with the service robots are safe from death and lost raids, except Tokens: losing a raid costs a share of all Tokens. Tokens repaid on the debt are never lost.
 - **What you carry is at risk**, Tokens included.
-- **Knocked out at home during a raid:** wake the next morning having lost X% of all your Tokens, deposited ones included (upgrades lower X), part of the items you carry and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. It also lowers the Threat level and the grudge of the factions in that raid ([RAIDS.md](RAIDS.md#dying-in-a-raid)).
+- **Losing a raid** (knocked out at home, or not home when it ends): X% of all your Tokens, deposited ones included (upgrades lower X), and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. A knock-out also means waking the next morning having lost part of the items you carry, and lowers the Threat level and the grudge of the factions in that raid ([RAIDS.md](RAIDS.md#losing-a-raid)).
 - **Death in the outer zone:** respawn at home. The previous draft's loss rule is retained for review: 50–70% of carried loot drops into a recoverable grave, a second death loses the grave, and equipped melee and the dog's backpack are protected. Carried-item selection, percentage and grave lifetime need review.
 - **Structures:** buildings and upgrades are kept, but damage can require repair.
 

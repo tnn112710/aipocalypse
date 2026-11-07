@@ -4,10 +4,11 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 
 ## Summary
 
+- Raids hit the farm wherever the player is. Raiders go for the farm and its resources, not the player, unless the player comes close.
 - Goblins raid from the start, easy at first, and grow slowly with the days.
 - Region factions raid only after the player provokes them: **grudge** decides *who* comes.
 - A **Threat level** that follows the player's results decides *how hard* raids are, not the day.
-- Region bosses, once killed, return as weaker versions on Blood Moons and eclipses.
+- Beating a region boss calms its faction and wakes the next region's; once killed, bosses return as weaker versions on Blood Moons and eclipses.
 - Two **tribute bowls**: pay for an easier night, or offer bait for a harder night with more rewards.
 
 ## First raid
@@ -21,6 +22,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 - Goblins are in every raid; their share grows slowly with the days, so nights get harder even for a player who rarely fights in the outer zone.
 - **Registering:** hitting one of a faction's enemies, or being chased by one, registers that faction as a possible raider (no kill needed). From then on any of its types can raid.
 - Fallback if this proves too broad: register per type, so a faction's raid brings only the types the player has met.
+- **Arrival:** each faction announces itself with its own line and sound when it reaches the farm, like Valheim's "The forest is moving…"; the drone adds a joke ("Swamp Folk have joined the meeting").
 
 ## Grudge
 
@@ -33,10 +35,23 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 ## Who comes on a raid night
 
 - Goblins always come.
-- Each registered faction has a chance to join: a minimum of about 5–10% even at grudge 0, rising with its grudge.
+- Each registered faction has a chance to join: a minimum of about 5–10% even at grudge 0, rising with its grudge. A faction calmed by its boss's defeat has no minimum (see [Region bosses](#region-bosses)).
 - **Ordinary raids:** at most 1 extra faction early in the game and 2 later, so too many kinds never raid at once.
 - **Blood Moons:** the limit is lifted and every registered faction comes. Difficulty rises gradually from one Blood Moon to the next, never all at once.
 - **Weaker bosses:** once a region boss has been killed, a weaker version of it appears on Blood Moons and eclipse days, never on ordinary nights.
+
+## At the farm
+
+- Every raid, Blood Moon and eclipse happens at the farm, wherever the player is.
+- **Raiders target the farm, not the player:** animals, produce, crops, fences and defenses. Deposited items stay safe.
+- **Noticing the player:** an enemy turns on the player only within its spotting range, which differs per enemy type.
+  - A hit always makes an enemy notice the player, and a spotted enemy alerts the ones near it.
+  - A clear cue, sound and visual, shows when an enemy turns on the player.
+  - Enemies go back to the farm when the player gets away.
+  - Each type reacts its own way: thieves flee with their loot, breakers keep breaking, fighters turn on the player.
+- **Away or late:** the longer the farm is unguarded, the more the raiders sabotage and sack it. A player who gets home late can still fight the rest of the raid.
+- **Alerts:** while the player is away, the drone reports the raid as it goes ("Raid started", "Fence down", "They're in the paddock"), so racing home is a choice, not a surprise in the morning.
+- **Out at night:** the regions are more dangerous after dark, which also pushes the player home before a raid. At night, outer-zone enemies use the elite markers (see [Enemy toughness](#enemy-toughness)); dedicated night enemies and predators come later.
 
 ## How hard: wave power and Threat
 
@@ -46,7 +61,8 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
   - **Floor:** rises slowly with the days, so a struggling player still moves forward.
   - **Ceiling:** set by the region bosses beaten, so a skilled player can't outrun the content.
   - Never scaled by the player's gear, so upgrades always feel like upgrades.
-  - **Won or lost:** a raid is lost when the player is knocked out at home and won when they're still standing at its end. Being away on a raid night changes neither Threat nor grudge, so staying out can't be used to lower difficulty.
+  - **Won or lost:** a raid is won when the player is home and still standing at its end, and lost when they're knocked out or not home. Only a knock-out lowers Threat and grudge; being away changes neither, so staying out can't be used to lower difficulty.
+  - **Running away doesn't work:** every lost raid carries the Token loss (see [Losing a raid](#losing-a-raid)), so leaving or staying away never costs less than fighting. Chasing a thief across the river is fine as long as the player is home when the raid ends.
 - Threat is shown openly, framed as the AI Lord's "difficulty patches" ("You were having too much fun. Threat +1"). Higher Threat gives better loot and a better daily box.
 - **Rhythm:** a sawtooth on top of Threat. Raids build up through each 10-day block, peak at the Blood Moon, then drop; the next block starts a little higher than the last.
 - A raid night is split into waves, small to big, with short pauses to reload and repair: 2–3 on ordinary raids, which end at midnight, and 4–5 on Blood Moons and eclipses.
@@ -72,10 +88,12 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 - **Bowl nights never raise Threat**, whichever bowl is used; losing one still lowers it. Paying for an easier night never makes the next one harder, and provoking can't push Threat up.
 - Flavor: the drone has no idea why the AI added a ritual altar either.
 
-## Dying in a raid
+## Losing a raid
 
-- Costs X% of all the player's Tokens, deposited ones included; Tokens already repaid on the debt are never lost. Also part of the carried items, damage to the home and some animals ([CORE.md](CORE.md#resources--failure)).
-- Lowers Threat, and the grudge of every faction in that raid by a fixed 25% of the meter's max, down to 0.
+- **Lost when** the player is knocked out, or not home when the raid ends.
+- **Token loss:** the raiders crack the robots' Token vault and take X% of all the player's Tokens, deposited ones included. Tokens already repaid on the debt are never lost.
+- Also damage to the home and some animals, penned ones included ([CORE.md](CORE.md#resources--failure)). A knocked-out player also loses part of the carried items.
+- **Knocked out:** also lowers Threat, and the grudge of every faction in that raid by a fixed 25% of the meter's max, down to 0. Being away lowers neither.
 - **Upgrades:** a smaller Token loss; more grudge reduction on death; faster grudge cool-down.
 
 ## Region bosses
@@ -83,6 +101,7 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 - Each region has its own faction and a boss. The player summons the boss to fight it.
 - **First kill:** a key or trophy (like Valheim's boss trophies) toward the final boss, plus Tokens and materials.
 - **Later kills:** Tokens and materials only; the boss gets harder each time.
+- **Every kill calms its faction:** its grudge drops to 0 and it loses its minimum chance, so it joins ordinary raids again only if the player angers it in its region. The next region's faction takes notice and is registered. Ordinary raids follow the region the player is pushing into; Blood Moons still bring every registered faction. Like Valheim, where each boss's own raid ends when the boss dies.
 - After the first kill, its weaker version raids on Blood Moons and eclipse days (see above).
 
 ## Anti-grinding
@@ -109,7 +128,7 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 
 | Area | Needed decision |
 | --- | --- |
-| Balance | Target win rates for ordinary raids and Blood Moons; each type's power cost; Threat steps; grudge gain, cap and cool-down rates; the Token loss on death (X%); a shots-to-kill table (each type and elite × each gun tier) |
+| Balance | Target win rates for ordinary raids and Blood Moons; each type's power cost; Threat steps; grudge gain, cap and cool-down rates; the Token loss (X%); a shots-to-kill table (each type and elite × each gun tier) |
 | Blood Moon miniboss | Who leads Blood Moons before any region boss is beaten; decided later |
 | Eclipse | Which factions and how much power, alongside its giant boss |
 | Bosses | Each boss's identity, summoning, rewards and difficulty steps |
@@ -119,7 +138,7 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 
 | Game | Reference purpose |
 | --- | --- |
-| Valheim | Raid types unlocked by progression; boss trophies as keys; visible star levels for tougher creatures |
+| Valheim | Raid types unlocked by progression, each boss kill ending its own raid; raids announced by a line; running away doesn't end a raid; boss trophies as keys; visible star levels for tougher creatures |
 | Don't Starve | A kill-driven meter (naughtiness) that summons a thief and cools down over days |
 | The Forest / Sons of the Forest | Enemy aggression rising with kills and bringing raids to the base; ours can cool down |
 | Risk of Rain 2 | A director that spends a growing budget on monsters |
@@ -127,3 +146,4 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 | Resident Evil 4 | Difficulty that follows player performance |
 | Hades | Opt-in difficulty paid back with rewards (Heat costs nothing) |
 | Deep Rock Galactic | Picking a harder hazard level before a mission for more pay |
+| Dome Keeper | Digging a little deeper or getting back before the attack on the base |

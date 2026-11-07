@@ -138,6 +138,39 @@ Still suggested:
 - Suggested: the grudge sets raid size, never raid frequency; the schedule still decides raid nights and a won raid spends the grudge, so raid loot has a weekly ceiling
 - Grinding stays allowed as the safe, slow choice; exploring is the risky, fast one (pillar 2)
 
+##### Valheim's raids compared (user, 2026-11-07)
+
+- User: should raids follow Valheim's rules instead of ours?
+  - Ref: Valheim — every 46 min a 20% roll starts a raid on a player within 40 m of 3+ base structures. Each boss kill enables the next biome's raid and retires its own (Eikthyr's raid ends when Eikthyr dies); some events (wolves, skeletons…) never retire. Raids last 80–150 s and the timer pauses while no player is near, so running away doesn't end them ([gamever.io](https://gamever.io/knowledge-base/valheim-raids-every-event-what-triggers-it-and-why-running-away-does-not-work))
+- Suggested: keep ours (scheduled nights, grudge, Threat). Valheim's raids are an occasional side event; ours are the core of the night, so they need a warning (pillar 3) and the player's choice (grudge)
+- Suggested borrowings:
+  - A boss kill calms its faction: its grudge drops to 0 and it loses its minimum chance, so it comes back only if the player angers it again; the next region's faction takes notice (registered). Ordinary raids follow the player's frontier; Blood Moons still bring every faction and the weaker bosses
+  - Leaving the farm during a raid counts as being knocked out (same costs); away all night, raiders also take some penned animals. Fleeing or skipping never beats defending
+  - Each faction announces its arrival with its own line and sound, like "The forest is moving…"
+- Decided (user, 2026-11-07): all three borrowings, now in RAIDS.md
+
+###### Away on raid nights, Blood Moons and eclipses (user question, 2026-11-07)
+
+- Suggested rule of thumb: ordinary raids come for the farm; major events come for the player. Away = across the river; the meadow counts as home. Quiet nights stay free
+- Ordinary raid nights, away is a choice with a price:
+  - Back before the raid ends: join the remaining waves; the raid counts as usual (won or lost by the result)
+  - Not back by midnight: lost without a fight. Animals outside and some penned ones are taken, fences take more damage; Threat and grudge don't change
+  - Suggested: the AI's "no-show fee", the same Token loss as being knocked out, so a rich player can't skip a hard raid to dodge it. Gentler fallback: property losses only
+- Blood Moons and eclipses, attendance is mandatory. Options:
+  - A (suggested): the AI pulls the player home. A warning before the event ("Sprint review in 1 hour. Attendance is mandatory."), then the drone teleports the player home with what they carry when it starts. The climax is always fought at the prepared farm; reuses the fast-travel portal's effect
+  - B: the event comes to the player wherever they are; away means fighting without fences, in the dark. The eclipse giant would need arenas in every region
+    - Ref: 7 Days to Die — guides say the Blood Moon horde spawns near the player and heads straight for them, hence dedicated horde bases
+  - C: same as ordinary nights, scaled up. Lets the player skip the climax of each 10-day block
+- Decided (user, 2026-11-07), instead of the above: every raid, Blood Moon and eclipse happens at the farm wherever the player is. Raiders target the farm and its resources, not the player, unless the player comes within their spotting range (different per enemy type). Away or late, the farm gets sabotaged and sacked; a late player can still fight the rest. The regions at night hold buffed enemies, night enemies and predators. Now in RAIDS.md → At the farm
+- Suggested additions:
+  - The Token loss comes with a lost raid, not only with dying: knocked out, or not home when the raid ends (framed as raiders cracking the robots' Token vault). Otherwise a rich player loses less by staying out than by fighting and losing. Replaces "leaving the farm counts as knocked out", which would punish chasing a thief across the river
+  - Drone alerts while away (raid started, fence down, animals taken), so racing home is a decision, not a surprise in the morning
+    - Ref: Dome Keeper — the store page pitches this choice: "Is there enough time to mine a little deeper and get back to defend before the monsters attack your dome?"
+  - Notice rules: a hit always makes an enemy notice the player; a spotted enemy alerts nearby allies; a visible and audible cue when one turns; enemies go back to the farm when the player gets away. Per type: thieves flee with their loot, breakers keep breaking, fighters turn on the player
+  - Night danger on a budget: outer-zone enemies use the existing elite markers at night; dedicated night predators later
+  - Tech: while the player is far away, the raid can run as a cheap tally of losses and become live enemies as the player gets close
+- Decided (user, 2026-11-07): the first four additions, now in RAIDS.md (At the farm, Losing a raid)
+
 ### Debt to the AI Lord and endings (user, 2026-11-07)
 
 **Status update (2026-11-07):** Tokens, the debt for alleged real-world token waste, and winning through cumulative repayments are now agreed in [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). The earlier world-generation invoice framing below is superseded. Remaining activity paths, invoice structures, prices, bosses and ending variants below are proposals, not approved rules.
@@ -255,7 +288,7 @@ Superseded (user, 2026-11-07): all regions are open and ranked by difficulty, wi
 | Stolen animals' fate undecided | They are held deep in the outer zone for 3 days, then lost forever; replacements can be bought |
 | Pickup persistence undecided | Drops never despawn; each animal stops producing at a cap; a collector robot later |
 | Animals managed only by the player at dusk | A bell calls them home; they walk slowly and hurry when the player interacts with them. At night they sleep and produce nothing |
-| Death loses 50–70% of loot anywhere; the stash is safe | Deposited items are safe; dying in a raid costs X% of all Tokens, deposited ones included but never repaid ones (user, 2026-11-07), plus part of what you carry and some animals (more on major events) |
+| Death loses 50–70% of loot anywhere; the stash is safe | Deposited items are safe; a lost raid (knocked out, or not home when it ends) costs X% of all Tokens, deposited ones included but never repaid ones, and some animals (more on major events); a knock-out also costs part of what you carry (user, 2026-11-07) |
 | Ammunition bought or crafted | Bought from the trading robot (every item has a daily stock limit), looted from enemies, or crafted from gunpowder (user, 2026-11-07) |
 | XP skills, Luck, perk cards and the cat as core growth and companions | Upgrades and gear are the growth; skills, Luck, perk cards and the cat are extras for later (user, 2026-10-31) |
 | Perk cards as the reward for night fights | Enemy loot and a better free daily box (pick one of three) |
