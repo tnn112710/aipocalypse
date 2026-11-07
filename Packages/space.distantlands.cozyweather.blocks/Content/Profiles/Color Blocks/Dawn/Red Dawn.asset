@@ -1,0 +1,151 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1063370a31f61ba4fb71cf10c7b724a5, type: 3}
+  m_Name: Red Dawn
+  m_EditorClassIdentifier: DistantLands.Cozy.Blocks.Runtime::DistantLands.Cozy.Blocks.BlocksProfile
+  overrides:
+  - rid: 2417973004082086480
+  - rid: 2417973004082086481
+  - rid: 2417973004082086482
+  - rid: 2417973004082086483
+  - rid: 2417973004082086484
+  references:
+    version: 2
+    RefIds:
+    - rid: 2417973004082086480
+      type: {class: FogGradientOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color1:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        color2:
+          disabled: 0
+          value: {r: 0.019607844, g: 0.0039215684, b: 0.009232946, a: 0}
+        color3:
+          disabled: 0
+          value: {r: 0.1049471, g: 0.058823522, b: 0.20784314, a: 0}
+        color4:
+          disabled: 0
+          value: {r: 0.08669317, g: 0.023529407, b: 0.25882354, a: 0}
+        color5:
+          disabled: 0
+          value: {r: 0.1428872, g: 0.074509785, b: 0.44705883, a: 0}
+        density1:
+          disabled: 1
+          value: 0
+        density2:
+          disabled: 1
+          value: 0.585
+        density3:
+          disabled: 1
+          value: 0.845
+        density4:
+          disabled: 1
+          value: 0.865
+        density5:
+          disabled: 1
+          value: 1
+        start1:
+          disabled: 1
+          value: 0
+        start2:
+          disabled: 1
+          value: 0
+        start3:
+          disabled: 1
+          value: 0
+        start4:
+          disabled: 1
+          value: 0
+        start5:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086481
+      type: {class: FogSunLightFlareOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 0.7607843, g: 0.10422742, b: 0.11978641, a: 0.7607843}
+        squish:
+          disabled: 1
+          value: 0
+        intensity:
+          disabled: 1
+          value: 0
+        falloff:
+          disabled: 1
+          value: 0
+        minDistance:
+          disabled: 1
+          value: 0
+        maxDistance:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086482
+      type: {class: SkyGalaxyOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        primaryColor:
+          disabled: 0
+          value: {r: 1, g: 0, b: 0, a: 0}
+        secondaryColor:
+          disabled: 0
+          value: {r: 1.913959, g: 1.2893081, b: 2, a: 0}
+        tertiaryColor:
+          disabled: 0
+          value: {r: 0, g: 1.2586725, b: 2.7924528, a: 0}
+        intensity:
+          disabled: 0
+          value: 1
+    - rid: 2417973004082086483
+      type: {class: SkyStarsOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        intensity:
+          disabled: 0
+          value: 0.552
+        rotationOffset:
+          disabled: 1
+          value: 0
+        twinkleAmount:
+          disabled: 1
+          value: 0
+        twinkleSpeed:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086484
+      type: {class: SkyGradientOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        zenithColor:
+          disabled: 0
+          value: {r: 0.004582354, g: 0.007849602, b: 0.037254903, a: 0}
+        horizonColor:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        groundColor:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        zenithExponent:
+          disabled: 1
+          value: 0
+        groundExponent:
+          disabled: 1
+          value: 0
+        offset:
+          disabled: 1
+          value: 0

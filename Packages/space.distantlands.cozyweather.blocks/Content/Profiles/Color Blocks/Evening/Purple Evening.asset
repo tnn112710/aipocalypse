@@ -1,0 +1,134 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1063370a31f61ba4fb71cf10c7b724a5, type: 3}
+  m_Name: Purple Evening
+  m_EditorClassIdentifier: DistantLands.Cozy.Blocks.Runtime::DistantLands.Cozy.Blocks.BlocksProfile
+  overrides:
+  - rid: 2417973004082086521
+  - rid: 2417973004082086522
+  - rid: 2417973004082086523
+  - rid: 2417973005050445824
+  references:
+    version: 2
+    RefIds:
+    - rid: 2417973004082086521
+      type: {class: FogGradientOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color1:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        color2:
+          disabled: 0
+          value: {r: 0.0039215665, g: 0.019390577, b: 0.07254902, a: 0}
+        color3:
+          disabled: 0
+          value: {r: 0.005882353, g: 0.026634233, b: 0.068627454, a: 0}
+        color4:
+          disabled: 0
+          value: {r: 0.0538402, g: 0.04062335, b: 0.16352195, a: 0}
+        color5:
+          disabled: 0
+          value: {r: 0.077669695, g: 0.050175942, b: 0.37106913, a: 0}
+        density1:
+          disabled: 1
+          value: 0
+        density2:
+          disabled: 1
+          value: 0
+        density3:
+          disabled: 1
+          value: 0
+        density4:
+          disabled: 1
+          value: 0
+        density5:
+          disabled: 1
+          value: 0
+        start1:
+          disabled: 1
+          value: 0
+        start2:
+          disabled: 1
+          value: 0
+        start3:
+          disabled: 1
+          value: 0
+        start4:
+          disabled: 1
+          value: 0
+        start5:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086522
+      type: {class: FogSunLightFlareOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 1.9312453, g: 0.11122354, b: 0.7841981, a: 0}
+        squish:
+          disabled: 1
+          value: 0
+        intensity:
+          disabled: 1
+          value: 0
+        falloff:
+          disabled: 1
+          value: 0
+        minDistance:
+          disabled: 0
+          value: 120
+        maxDistance:
+          disabled: 0
+          value: 220
+    - rid: 2417973004082086523
+      type: {class: SkyGradientOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        zenithColor:
+          disabled: 0
+          value: {r: 0.003253427, g: 0.008259034, b: 0.022012562, a: 0}
+        horizonColor:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        groundColor:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        zenithExponent:
+          disabled: 1
+          value: 0
+        groundExponent:
+          disabled: 1
+          value: 0
+        offset:
+          disabled: 1
+          value: 0
+    - rid: 2417973005050445824
+      type: {class: SunshaftsScreenspaceOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 0.6341512, g: 0, b: 1, a: 0}
+        intensity:
+          disabled: 1
+          value: 0
+        length:
+          disabled: 1
+          value: 0
+        steps:
+          disabled: 1
+          value: 0
+        cloudMaskAmount:
+          disabled: 1
+          value: 0

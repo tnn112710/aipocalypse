@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dccf7172616748499437c285a6d18fe, type: 3}
+  m_Name: Heatwave
+  m_EditorClassIdentifier: 
+  minTime:
+    hours: 0
+    minutes: 30
+    seconds: 0
+    milliseconds: 0
+  maxTime:
+    hours: 2
+    minutes: 30
+    seconds: 0
+    milliseconds: 0
+  dontPlayDuring:
+  - {fileID: 11400000, guid: f161b3af7360fc043927736dde8f5c42, type: 2}
+  - {fileID: 11400000, guid: 971a290a51fcdf54f93efbe42a8e86a7, type: 2}
+  - {fileID: 11400000, guid: 56652bb77d1606b4396767fbb07e50ab, type: 2}
+  - {fileID: 11400000, guid: 3500d156aa5168944b5dd4b8e84ff00c, type: 2}
+  - {fileID: 11400000, guid: fea1195d94f23fb49aec172623060b27, type: 2}
+  - {fileID: 11400000, guid: de62367a00d8753469a83e1f6f8079d3, type: 2}
+  - {fileID: 11400000, guid: cc15965868141a44cb0997b3674e317a, type: 2}
+  - {fileID: 11400000, guid: 93d26988b3de2134b9a80fb22acd8dac, type: 2}
+  - {fileID: 11400000, guid: 94bbf17d66f5c6b4ebcd9189ba34367d, type: 2}
+  - {fileID: 11400000, guid: e2fbee6f21ca32740a76a387cf2a0abc, type: 2}
+  - {fileID: 11400000, guid: f2d3f1cb4e3d78a4fb7f9853c2ec899a, type: 2}
+  - {fileID: 11400000, guid: 4d539afa69e41c24592baf151ffc2e69, type: 2}
+  - {fileID: 11400000, guid: ba87e1c6e54545c4e9e45759c30731f2, type: 2}
+  - {fileID: 11400000, guid: 69c9549d57701234e8b6a0047971e744, type: 2}
+  chance:
+    baseChance: 0.434
+    chanceEffectors:
+    - curveType: 0
+      keys:
+      - time: 0.8090693
+        value: 0
+      - time: 1
+        value: 1
+    - curveType: 11
+      keys:
+      - time: 0.3054893
+        value: 0
+      - time: 0.4176612
+        value: 1
+      - time: 0.6014321
+        value: 1
+      - time: 0.75895
+        value: 0
+  FX:
+  - {fileID: 11400000, guid: 2855219525982ca42b2398c93f93ae32, type: 2}

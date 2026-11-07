@@ -1,0 +1,74 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3#Globals"/>
+    <ui:VisualElement class="banner">
+        <ui:VisualElement name="background-container">
+            <ui:VisualElement name="background-image" class="main" style="flex-grow: 1;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="banner-content">
+            <ui:VisualElement name="banner-icon" style="flex-grow: 1;"/>
+            <ui:VisualElement style="flex-grow: 1;">
+                <ui:Label text="COZY" name="banner-title"/>
+                <ui:Label text="Stylized Weather" name="banner-subtitle"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:TwoPaneSplitView fixed-pane-initial-dimension="150" style="background-color: rgba(0, 0, 0, 0.18);">
+        <ui:VisualElement name="tabContainer" class="startScreenButtonContainer" style="flex-grow: 1; margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; background-color: rgba(79, 79, 79, 0.263); padding-top: 14px; padding-right: 5px; padding-bottom: 14px; padding-left: 5px; border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-right-radius: 16px; border-bottom-left-radius: 16px;">
+            <ui:Button text="Welcome!" name="welcome" class="active"/>
+            <ui:Button text="Getting Started" name="gettingStarted"/>
+            <ui:Button text="Support" name="support"/>
+            <ui:VisualElement style="flex-grow: 1;"/>
+            <ui:Button text="Samples" icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/External%20Link.png?fileID=2800000&amp;guid=cdd93f4fdf8406e448fed67b978138a4&amp;type=3#External Link" display-tooltip-when-elided="true" name="samples" style="margin-top: 10px;"/>
+            <ui:Button text="Documentation" icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/External%20Link.png?fileID=2800000&amp;guid=cdd93f4fdf8406e448fed67b978138a4&amp;type=3#External Link" display-tooltip-when-elided="true" name="documentation"/>
+            <ui:Button text="Tutorials" icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/External%20Link.png?fileID=2800000&amp;guid=cdd93f4fdf8406e448fed67b978138a4&amp;type=3#External Link" display-tooltip-when-elided="true" name="tutorials"/>
+            <ui:Button text="Leave a Review" icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/External%20Link.png?fileID=2800000&amp;guid=cdd93f4fdf8406e448fed67b978138a4&amp;type=3#External Link" display-tooltip-when-elided="true" name="review"/>
+        </ui:VisualElement>
+        <ui:ScrollView name="contentContainer" style="flex-grow: 1; padding-left: 6px; padding-top: 1px;">
+            <ui:VisualElement name="welcome" style="flex-grow: 1; flex-shrink: 0; display: flex;">
+                <ui:Label text="Welcome to COZY 4" class="h1"/>
+                <ui:Label text="Choosing the right assets and architecture for your game is a significant decision. I want to extend a sincere thank you for considering COZY for your project; I am genuinely grateful that you would trust this system to help bring your vision to life." style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:VisualElement name="releaseNotes" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.192); padding-top: 4px; padding-right: 8px; padding-bottom: 16px; padding-left: 8px; margin-top: 8px; border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-right-radius: 14px; border-bottom-left-radius: 14px; margin-right: 8px;"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="gettingStarted" style="flex-grow: 1; flex-shrink: 0; display: none;">
+                <ui:Label text="Getting Started" class="h1"/>
+                <ui:Label text="Project Setup" class="h2"/>
+                <ui:Label text="Choosing the right assets and architecture for your game is a significant decision. I want to extend a sincere thank you for considering COZY for your project; I am genuinely grateful that you would trust this system to help bring your vision to life." style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:VisualElement style="flex-direction: row;">
+                    <ui:Button text="Open Project Setup Wizard" name="projectSetup" style="flex-grow: 1; padding-top: 5px; padding-bottom: 5px;"/>
+                </ui:VisualElement>
+                <ui:Label text="Setup Scene" class="h2"/>
+                <ui:Label text="Choosing the right assets and architecture for your game is a significant decision. I want to extend a sincere thank you for considering COZY for your project; I am genuinely grateful that you would trust this system to help bring your vision to life." style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:VisualElement style="flex-direction: row;">
+                    <ui:Button text="Setup Scene" name="sceneSetup" style="flex-grow: 1; padding-top: 5px; padding-bottom: 5px;"/>
+                </ui:VisualElement>
+                <ui:Label text="Configure Preferences" class="h2"/>
+                <ui:Label text="COZY comes with lots of available options for localization and toggleable features that allow you to get the most out of your installation. For the best results, take a look over the Preferences window." style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:VisualElement style="flex-direction: row;">
+                    <ui:Button text="Open Preferences" name="preferences" style="flex-grow: 1; padding-top: 5px; padding-bottom: 5px;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="support" style="flex-grow: 1; flex-shrink: 0; display: none;">
+                <ui:Label text="Support" class="h1"/>
+                <ui:Label text="Documentation" class="h2"/>
+                <ui:Label text="The documentation is your first line of defense when developing with COZY" style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:VisualElement style="flex-direction: row; margin-bottom: 8px;">
+                    <ui:Button text="Documentation" name="documentation" style="flex-grow: 0; width: 48%; margin-top: 6px; padding-top: 12px; padding-bottom: 12px;"/>
+                    <ui:Button text="FAQs" name="faqs" style="flex-grow: 0; width: 48%; margin-top: 6px; padding-top: 12px; padding-bottom: 12px;"/>
+                </ui:VisualElement>
+                <ui:Label text="Tutorials" class="h2"/>
+                <ui:Label text="For walkthroughs, tutorials, and more, check out the COZY 4 series on YouTube. " style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:Button text="YouTube" name="tutorials" style="margin-top: 6px; padding-top: 12px; padding-bottom: 12px;"/>
+                <ui:Label text="Community" class="h2"/>
+                <ui:Label text="Have a bug report, suggestion, or issue that you need more help with? We&apos;d love to hear from you! Please feel free to reach out to us." style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:Label text="Join our discord for faster suppor and early access to update news or reach out via email to contact@distantlands.space for private inquiries." style="white-space: pre-wrap; margin-bottom: 5px;"/>
+                <ui:VisualElement style="flex-direction: row; margin-bottom: 8px;">
+                    <ui:Button text="Discord" name="discord" style="flex-grow: 1; margin-top: 6px; padding-top: 12px; padding-bottom: 12px;"/>
+                    <ui:Button text="Email" name="email" style="flex-grow: 1; margin-top: 6px; padding-top: 12px; padding-bottom: 12px;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:TwoPaneSplitView>
+    <uie:Toolbar style="justify-content: flex-end; height: 25px;">
+        <ui:DropdownField label="" choices="Show Window on Startup,Show Window on New Version,Never Show Window" index="0" name="showOptions"/>
+    </uie:Toolbar>
+</ui:UXML>

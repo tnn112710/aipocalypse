@@ -1,0 +1,223 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1063370a31f61ba4fb71cf10c7b724a5, type: 3}
+  m_Name: Spooky Night
+  m_EditorClassIdentifier: DistantLands.Cozy.Blocks.Runtime::DistantLands.Cozy.Blocks.BlocksProfile
+  overrides:
+  - rid: 2417973004082086485
+  - rid: 2417973004082086486
+  - rid: 2417973004082086487
+  - rid: 2417973004082086488
+  - rid: 2417973004082086489
+  - rid: 2417973004082086490
+  - rid: 2417973004082086491
+  - rid: 2417973005050445831
+  references:
+    version: 2
+    RefIds:
+    - rid: 2417973004082086485
+      type: {class: FogGradientOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color1:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        color2:
+          disabled: 0
+          value: {r: 0.001960784, g: 0.0022109505, b: 0.011764706, a: 0}
+        color3:
+          disabled: 0
+          value: {r: 0.0028296716, g: 0.0019607844, b: 0.007843138, a: 0}
+        color4:
+          disabled: 0
+          value: {r: 0.0029647078, g: 0.0029647062, b: 0.015686275, a: 0}
+        color5:
+          disabled: 0
+          value: {r: 0.0060156886, g: 0.0060156863, b: 0.025490196, a: 0}
+        density1:
+          disabled: 1
+          value: 0
+        density2:
+          disabled: 1
+          value: 0
+        density3:
+          disabled: 1
+          value: 0
+        density4:
+          disabled: 1
+          value: 0
+        density5:
+          disabled: 1
+          value: 0
+        start1:
+          disabled: 1
+          value: 0
+        start2:
+          disabled: 1
+          value: 0
+        start3:
+          disabled: 1
+          value: 0
+        start4:
+          disabled: 1
+          value: 0
+        start5:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086486
+      type: {class: SkyGradientOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        zenithColor:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        horizonColor:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        groundColor:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        zenithExponent:
+          disabled: 1
+          value: 0
+        groundExponent:
+          disabled: 1
+          value: 0
+        offset:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086487
+      type: {class: SkyLightColumnsOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 0.24705881, g: 0.2696787, b: 1, a: 0}
+        intensity:
+          disabled: 0
+          value: 0.248
+        height:
+          disabled: 1
+          value: 0
+        position:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086488
+      type: {class: SkyGalaxyOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        primaryColor:
+          disabled: 0
+          value: {r: 0.4789318, g: 0.07861614, b: 1, a: 0}
+        secondaryColor:
+          disabled: 0
+          value: {r: 0.21568626, g: 0.42087564, b: 1, a: 0}
+        tertiaryColor:
+          disabled: 0
+          value: {r: 0.317647, g: 0.7779132, b: 0.89411765, a: 0}
+        intensity:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086489
+      type: {class: SkyMoonDiskOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 1, g: 0.60551375, b: 0.4433961, a: 0}
+        size:
+          disabled: 0
+          value: 3
+        rotation:
+          disabled: 1
+          value: 0
+        normalStrength:
+          disabled: 1
+          value: 0
+        declination:
+          disabled: 1
+          value: 0
+        declinationPeriod:
+          disabled: 1
+          value: 0
+        declinationOffset:
+          disabled: 1
+          value: 0
+        orbitPeriod:
+          disabled: 1
+          value: 0
+        orbitOffset:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086490
+      type: {class: FogMoonLightFlareOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 0.079411775, g: 0.08225042, b: 0.25, a: 0}
+        squish:
+          disabled: 1
+          value: 0
+        intensity:
+          disabled: 1
+          value: 0
+        falloff:
+          disabled: 1
+          value: 0
+        minDistance:
+          disabled: 1
+          value: 0
+        maxDistance:
+          disabled: 1
+          value: 0
+    - rid: 2417973004082086491
+      type: {class: SkyStarsOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 0
+          value: {r: 0.37843138, g: 0.39493567, b: 0.5, a: 1}
+        intensity:
+          disabled: 1
+          value: 0
+        rotationOffset:
+          disabled: 1
+          value: 0
+        twinkleAmount:
+          disabled: 1
+          value: 0
+        twinkleSpeed:
+          disabled: 1
+          value: 0
+    - rid: 2417973005050445831
+      type: {class: FogSunLightFlareOverride, ns: DistantLands.Cozy.Blocks, asm: DistantLands.Cozy.Blocks.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        squish:
+          disabled: 1
+          value: 0
+        intensity:
+          disabled: 0
+          value: 0
+        falloff:
+          disabled: 1
+          value: 0
+        minDistance:
+          disabled: 1
+          value: 0
+        maxDistance:
+          disabled: 1
+          value: 0

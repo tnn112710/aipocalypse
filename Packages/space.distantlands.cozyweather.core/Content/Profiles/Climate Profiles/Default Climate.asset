@@ -1,0 +1,1259 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a57fa09c0955c24f8927dc03941c8e6, type: 3}
+  m_Name: Default Climate
+  m_EditorClassIdentifier: 
+  temperatureSmoothness: 0
+  spring:
+    startDay:
+      year: 0
+      month: 3
+      day: 19
+    climateInformation:
+      temperature:
+        high:
+          value: 60
+        low:
+          value: 42
+        variationAmplitude:
+          value: 32
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.2708333
+            inSlope: -3.4687493
+            outSlope: -3.4687493
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.88888896
+          - serializedVersion: 3
+            time: 0.1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.57777405
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.2708333
+            inSlope: -2.3684216
+            outSlope: -2.3684216
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.35185176
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 6.37
+        variationType: 1
+      humidity:
+        high:
+          value: 60
+        low:
+          value: 40
+        variationAmplitude:
+          value: 30
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.9694195
+            outSlope: 3.9694195
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.251926
+            value: 1
+            inSlope: -0.024578094
+            outSlope: -0.024578094
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5007704
+            value: 0
+            inSlope: -0.00018572807
+            outSlope: -0.00018572807
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7496378
+            value: 1
+            inSlope: 0.011995673
+            outSlope: 0.011995673
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.9942129
+            outSlope: -3.9942129
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 20
+        variationType: 0
+      pressure:
+        high:
+          value: 29.7
+        low:
+          value: 29.4
+        variationAmplitude:
+          value: 0.8
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.84950984
+            inSlope: -4.704977
+            outSlope: -4.704977
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.18055557
+            value: 0
+            inSlope: -0.41700506
+            outSlope: -0.41700506
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.43888894
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.6777778
+            value: 0
+            inSlope: -0.1150012
+            outSlope: -0.1150012
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.9305556
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.84950984
+            inSlope: -2.1670592
+            outSlope: -2.1670592
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      uvIndex:
+        high:
+          value: 7
+        low:
+          value: 0
+        variationAmplitude:
+          value: 1
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.24166669
+            value: 0
+            inSlope: 0.035293575
+            outSlope: 0.035293575
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.46448278
+          - serializedVersion: 3
+            time: 0.5083313
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.7611084
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      airQuality:
+        high:
+          value: 60
+        low:
+          value: 20
+        variationAmplitude:
+          value: 20
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.6734693
+            outSlope: 3.6734693
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.27222222
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5
+            value: 0.20593417
+            inSlope: 0.24209332
+            outSlope: 0.24209332
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.3333333
+            outSlope: -3.3333333
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      stratiformRainChance:
+        value: 0
+      convectiveRainChance:
+        value: 0
+      season: 0
+  summer:
+    startDay:
+      year: 0
+      month: 6
+      day: 18
+    climateInformation:
+      temperature:
+        high:
+          value: 95
+        low:
+          value: 75
+        variationAmplitude:
+          value: 15
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.2708333
+            inSlope: -3.4687493
+            outSlope: -3.4687493
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.88888896
+          - serializedVersion: 3
+            time: 0.1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.57777405
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.2708333
+            inSlope: -2.3684216
+            outSlope: -2.3684216
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.35185176
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 13.1
+        variationType: 1
+      humidity:
+        high:
+          value: 50
+        low:
+          value: 30
+        variationAmplitude:
+          value: 10
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.9694195
+            outSlope: 3.9694195
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.251926
+            value: 1
+            inSlope: -0.024578094
+            outSlope: -0.024578094
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5007704
+            value: 0
+            inSlope: -0.00018572807
+            outSlope: -0.00018572807
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7496378
+            value: 1
+            inSlope: 0.011995673
+            outSlope: 0.011995673
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.9942129
+            outSlope: -3.9942129
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 20
+        variationType: 0
+      pressure:
+        high:
+          value: 30.2
+        low:
+          value: 30
+        variationAmplitude:
+          value: 0.25
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.84950984
+            inSlope: -4.704977
+            outSlope: -4.704977
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.18055557
+            value: 0
+            inSlope: -0.41700506
+            outSlope: -0.41700506
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.43888894
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.6777778
+            value: 0
+            inSlope: -0.1150012
+            outSlope: -0.1150012
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.9305556
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.84950984
+            inSlope: -2.1670592
+            outSlope: -2.1670592
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      uvIndex:
+        high:
+          value: 11
+        low:
+          value: 0
+        variationAmplitude:
+          value: 2
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.24166669
+            value: 0
+            inSlope: 0.035293575
+            outSlope: 0.035293575
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.46448278
+          - serializedVersion: 3
+            time: 0.5083313
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.7611084
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      airQuality:
+        high:
+          value: 130
+        low:
+          value: 80
+        variationAmplitude:
+          value: 80
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.6734693
+            outSlope: 3.6734693
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.27222222
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5
+            value: 0.20593417
+            inSlope: 0.24209332
+            outSlope: 0.24209332
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.3333333
+            outSlope: -3.3333333
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      stratiformRainChance:
+        value: 0
+      convectiveRainChance:
+        value: 0
+      season: 0
+  fall:
+    startDay:
+      year: 0
+      month: 9
+      day: 21
+    climateInformation:
+      temperature:
+        high:
+          value: 60
+        low:
+          value: 35
+        variationAmplitude:
+          value: 15
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.2708333
+            inSlope: -3.4687493
+            outSlope: -3.4687493
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.88888896
+          - serializedVersion: 3
+            time: 0.1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.57777405
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.2708333
+            inSlope: -2.3684216
+            outSlope: -2.3684216
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.35185176
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 15
+        variationType: 1
+      humidity:
+        high:
+          value: 70
+        low:
+          value: 40
+        variationAmplitude:
+          value: 20
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.9694195
+            outSlope: 3.9694195
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.251926
+            value: 1
+            inSlope: -0.024578094
+            outSlope: -0.024578094
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5007704
+            value: 0
+            inSlope: -0.00018572807
+            outSlope: -0.00018572807
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7496378
+            value: 1
+            inSlope: 0.011995673
+            outSlope: 0.011995673
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.9942129
+            outSlope: -3.9942129
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 20
+        variationType: 0
+      pressure:
+        high:
+          value: 29.7
+        low:
+          value: 29.4
+        variationAmplitude:
+          value: 1
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.84950984
+            inSlope: -4.704977
+            outSlope: -4.704977
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.18055557
+            value: 0
+            inSlope: -0.41700506
+            outSlope: -0.41700506
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.43888894
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.6777778
+            value: 0
+            inSlope: -0.1150012
+            outSlope: -0.1150012
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.9305556
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.84950984
+            inSlope: -2.1670592
+            outSlope: -2.1670592
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 6
+        variationType: 1
+      uvIndex:
+        high:
+          value: 7
+        low:
+          value: 0
+        variationAmplitude:
+          value: 2
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.24166669
+            value: 0
+            inSlope: 0.035293575
+            outSlope: 0.035293575
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.46448278
+          - serializedVersion: 3
+            time: 0.5083313
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.7611084
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      airQuality:
+        high:
+          value: 70
+        low:
+          value: 30
+        variationAmplitude:
+          value: 30
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.6734693
+            outSlope: 3.6734693
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.27222222
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5
+            value: 0.20593417
+            inSlope: 0.24209332
+            outSlope: 0.24209332
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.3333333
+            outSlope: -3.3333333
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      stratiformRainChance:
+        value: 0
+      convectiveRainChance:
+        value: 0
+      season: 0
+  winter:
+    startDay:
+      year: 0
+      month: 12
+      day: 20
+    climateInformation:
+      temperature:
+        high:
+          value: 28
+        low:
+          value: 0
+        variationAmplitude:
+          value: 15
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.2708333
+            inSlope: -3.4687493
+            outSlope: -3.4687493
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.88888896
+          - serializedVersion: 3
+            time: 0.1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.57777405
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.2708333
+            inSlope: -2.3684216
+            outSlope: -2.3684216
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.35185176
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 17
+        variationType: 1
+      humidity:
+        high:
+          value: 60
+        low:
+          value: 35
+        variationAmplitude:
+          value: 20
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.9694195
+            outSlope: 3.9694195
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.251926
+            value: 1
+            inSlope: -0.024578094
+            outSlope: -0.024578094
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5007704
+            value: 0
+            inSlope: -0.00018572807
+            outSlope: -0.00018572807
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7496378
+            value: 1
+            inSlope: 0.011995673
+            outSlope: 0.011995673
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.9942129
+            outSlope: -3.9942129
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 20
+        variationType: 0
+      pressure:
+        high:
+          value: 30.2
+        low:
+          value: 30
+        variationAmplitude:
+          value: 0.4
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.84950984
+            inSlope: -4.704977
+            outSlope: -4.704977
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.18055557
+            value: 0
+            inSlope: -0.41700506
+            outSlope: -0.41700506
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.43888894
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.6777778
+            value: 0
+            inSlope: -0.1150012
+            outSlope: -0.1150012
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.9305556
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.84950984
+            inSlope: -2.1670592
+            outSlope: -2.1670592
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      uvIndex:
+        high:
+          value: 2
+        low:
+          value: 0
+        variationAmplitude:
+          value: 3
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.24166669
+            value: 0
+            inSlope: 0.035293575
+            outSlope: 0.035293575
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.46448278
+          - serializedVersion: 3
+            time: 0.5083313
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.7611084
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      airQuality:
+        high:
+          value: 120
+        low:
+          value: 50
+        variationAmplitude:
+          value: 50
+        diurnalCurve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 3.6734693
+            outSlope: 3.6734693
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.27222222
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.5
+            value: 0.20593417
+            inSlope: 0.24209332
+            outSlope: 0.24209332
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.7
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -3.3333333
+            outSlope: -3.3333333
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        variationPeriod: 5
+        variationType: 1
+      stratiformRainChance:
+        value: 0
+      convectiveRainChance:
+        value: 0
+      season: 0

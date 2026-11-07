@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5690365cd281242b33e8a4272ff544, type: 3}
+  m_Name: Audio Ambience
+  m_EditorClassIdentifier: 
+  multiFX:
+  - FX: {fileID: 11400000, guid: d1f77010922631040adf14564bcd92cb, type: 2}
+    intensityCurve:
+      curveType: 11
+      keys:
+      - time: 0.19093083
+        value: 0
+      - time: 0.22911698
+        value: 1
+      - time: 0.32219574
+        value: 1
+      - time: 0.4176611
+        value: 0
+  - FX: {fileID: 11400000, guid: 7def3e3be949d714b9103b2351b3d736, type: 2}
+    intensityCurve:
+      curveType: 11
+      keys:
+      - time: 0.70883065
+        value: 3.7252904e-10
+      - time: 0.7828163
+        value: 1
+      - time: 0.90930796
+        value: 1
+      - time: 1
+        value: 0
+  - FX: {fileID: 11400000, guid: bf7f46c5732d34d4e96d29c5cee44a76, type: 2}
+    intensityCurve:
+      curveType: 11
+      keys:
+      - time: 0.7971361
+        value: 0
+      - time: 0.8687352
+        value: 1
+      - time: 0.95704067
+        value: 1
+      - time: 1
+        value: 0
+  - FX: {fileID: 11400000, guid: d6b2ddc7b7a0dab49923ec3febc7c90e, type: 2}
+    intensityCurve:
+      curveType: 11
+      keys:
+      - time: 0.4343677
+        value: 0
+      - time: 0.5035801
+        value: 1
+      - time: 0.6634846
+        value: 1
+      - time: 0.8019094
+        value: 0
+  transitionTimeModifier: 0

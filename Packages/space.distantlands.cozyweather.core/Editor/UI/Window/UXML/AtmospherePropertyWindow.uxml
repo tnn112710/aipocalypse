@@ -1,0 +1,51 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3#Globals"/>
+    <ui:VisualElement class="atmosphere-property-window">
+        <ui:VisualElement name="atmosphere-property-top-section" style="flex-grow: 1;"/>
+        <uie:Toolbar class="context-bar" style="justify-content: flex-end;">
+            <uie:ToolbarButton name="add" class="context-button add"/>
+            <uie:ToolbarButton name="help" class="context-button help"/>
+        </uie:Toolbar>
+        <ui:ScrollView horizontal-scroller-visibility="Hidden">
+            <ui:Toggle label="Interpolate Value" name="interpolate-value"/>
+            <ui:VisualElement name="interpolated-container" style="flex-grow: 1;">
+                <ui:TabView name="TabView">
+                    <ui:Tab label="Timeline" closeable="false">
+                        <ui:VisualElement name="timeline-sections">
+                            <ui:VisualElement name="night" tooltip="12:00 AM" class="timeline-section" style="background-image: resource(&quot;COZY Icons/Night&quot;);"/>
+                            <ui:VisualElement name="morning" tooltip="6:00 AM" class="timeline-section" style="background-image: resource(&quot;COZY Icons/Sunrise&quot;);"/>
+                            <ui:VisualElement name="day" tooltip="12:00 PM" class="timeline-section" style="background-image: resource(&quot;COZY Icons/Day&quot;);"/>
+                            <ui:VisualElement name="evening" tooltip="6:00 PM" class="timeline-section" style="background-image: resource(&quot;COZY Icons/Sunset&quot;);"/>
+                            <ui:VisualElement name="midnight" tooltip="12:00 AM" class="timeline-section" style="background-image: resource(&quot;COZY Icons/Night&quot;);"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="timeline-click-area" style="flex-grow: 1; margin-right: 15px; margin-left: 15px;">
+                            <ui:VisualElement name="timeline">
+                                <ui:VisualElement name="gradient" class="background rounded-field" style="flex-grow: 1; overflow: hidden; border-top-left-radius: 17px; border-top-right-radius: 17px; border-bottom-right-radius: 17px; border-bottom-left-radius: 17px;"/>
+                                <ui:VisualElement name="dots" class="background" style="flex-grow: 1; justify-content: center;"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:Tab>
+                    <ui:Tab label="Clock" enabled="true" closeable="false">
+                        <ui:VisualElement name="clock-container" style="flex-grow: 1; width: 300px; height: 300px; align-self: center; margin-top: 5px; flex-shrink: 0; margin-right: 5px; margin-left: 5px;">
+                            <ui:VisualElement name="clock-sections" style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;">
+                                <ui:VisualElement name="night" tooltip="12:00 AM" class="timeline-section" style="left: 50%; bottom: -5px; background-image: resource(&quot;COZY Icons/Night&quot;);"/>
+                                <ui:VisualElement name="morning" tooltip="6:00 AM" class="timeline-section" style="left: -5%; top: 50%; background-image: resource(&quot;COZY Icons/Sunrise&quot;);"/>
+                                <ui:VisualElement name="day" tooltip="12:00 PM" class="timeline-section" style="left: 50%; top: -5px; background-image: resource(&quot;COZY Icons/Day&quot;);"/>
+                                <ui:VisualElement name="evening" tooltip="6:00 PM" class="timeline-section" style="left: auto; right: -5px; top: 50%; background-image: resource(&quot;COZY Icons/Sunset&quot;);"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement name="clock" style="position: absolute; top: 35px; right: 35px; bottom: 35px; left: 35px;"/>
+                            <ui:VisualElement name="clock-dots" style="position: absolute; top: 45px; right: 35px; bottom: 25px; left: 35px;"/>
+                            <ui:VisualElement style="position: absolute; top: 35%; left: 35%; right: 35%; bottom: 35%; background-image: resource(&quot;Promo/Distant Lands Watermark&quot;); -unity-background-image-tint-color: rgba(255, 255, 255, 0.07);"/>
+                        </ui:VisualElement>
+                    </ui:Tab>
+                </ui:TabView>
+                <ui:VisualElement name="timeline-properties" style="flex-grow: 1;"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="constant-container" style="flex-grow: 1;"/>
+            <ui:VisualElement name="presets" style="flex-grow: 1;"/>
+            <ui:VisualElement name="tooltip" style="flex-grow: 1;">
+                <DistantLands.Cozy.EditorScripts.Tooltip message="Times may appear different in-game based on the Transit module. The times for these keys are based on an unmodified day."/>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

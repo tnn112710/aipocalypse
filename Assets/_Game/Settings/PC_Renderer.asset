@@ -189,18 +189,19 @@ MonoBehaviour:
   - {fileID: -1996619760729079852}
   - {fileID: -1162199858321035771}
   - {fileID: -7062686586378992764}
-  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2d4bf37fae7944ae405eec3ee6209dfef84c3f62af84bfc9dl
+  - {fileID: 4709161636466693003}
+  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2d4bf37fae7944ae405eec3ee6209dfef84c3f62af84bfc9d8b937ee38e4d5a41l
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967039
+    m_Bits: 4294963455
   m_OpaqueLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967039
+    m_Bits: 4294963455
   m_TransparentLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967039
+    m_Bits: 4294963455
   m_DefaultStencilState:
     overrideStencilState: 0
     stencilReference: 1
@@ -217,6 +218,28 @@ MonoBehaviour:
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
   m_TileOnlyMode: 0
+--- !u!114 &4709161636466693003
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ae9ee7cf2f91d747b4638a622da6a71, type: 3}
+  m_Name: Cozy Renderer Feature
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.CozyRendererFeature
+  m_Active: 1
+  fogAccumulate: {fileID: 7200000, guid: 1cb5c7213de727648b6f7648be82291a, type: 3}
+  fogIntegrate: {fileID: 7200000, guid: 4de2b9dc5a69b134cb053045e8c564af, type: 3}
+  skyMat: {fileID: 2100000, guid: f7e1e9fd0eaf5b14a9d74c391abcb672, type: 2}
+  fogMat: {fileID: 2100000, guid: 07aa764ae439c9f4ba1a727599eeb5e3, type: 2}
+  cloudsMat: {fileID: 2100000, guid: a024e7a2162c19d4184204fc3bd52f28, type: 2}
+  volumetricCloudsMat: {fileID: 2100000, guid: fd8e72e1210bd5c4c975d545660732e0, type: 2}
+  sunshaftsMat: {fileID: 2100000, guid: d8df103156530d94e9989f5ea935e66b, type: 2}
+  sunshaftsMaskMat: {fileID: 2100000, guid: 221e0f6d8e7ec6d49a877dd15992c5b2, type: 2}
+  compositeMat: {fileID: -876546973899608171, guid: e9f51280c482703438696e94ba2903ac, type: 3}
 --- !u!114 &7833122117494664109
 MonoBehaviour:
   m_ObjectHideFlags: 1

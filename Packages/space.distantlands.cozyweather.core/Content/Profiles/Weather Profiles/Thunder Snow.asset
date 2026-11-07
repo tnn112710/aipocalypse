@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edc9e8ccf7e1f314da24a604c1a11094, type: 3}
+  m_Name: Thunder Snow
+  m_EditorClassIdentifier: 
+  minTime:
+    hours: 3
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  maxTime:
+    hours: 8
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  forecastNext:
+  - {fileID: 11400000, guid: 134d60bbf3db4074599790ce6df65c88, type: 2}
+  - {fileID: 11400000, guid: 4d539afa69e41c24592baf151ffc2e69, type: 2}
+  forecastModifierMethod: 0
+  FX:
+  - {fileID: 11400000, guid: 99fe5cfe3b56e6844ac65728822791d7, type: 2}
+  - {fileID: 11400000, guid: 5818af68d3b1bdd47ad057e03bb5f10e, type: 2}
+  - {fileID: 11400000, guid: d2270d056588a394f999d82274e5c507, type: 2}
+  - {fileID: 11400000, guid: 13e4ffdca985652489d4908ca0d98fc9, type: 2}
+  - {fileID: 11400000, guid: 70c364f549f109c49a6bff1fecc75a30, type: 2}
+  - {fileID: 11400000, guid: 7d6decbb40b057b4db4d61d800c37b31, type: 2}
+  - {fileID: 11400000, guid: 52be23775b73c0b49bb6ccad99a5fe42, type: 2}
+  - {fileID: 11400000, guid: 3ca682fa89b9e784087c74f4b948d1d7, type: 2}
+  - {fileID: 11400000, guid: ca58f4622d4c4954dac92a21699c672d, type: 2}
+  - {fileID: 11400000, guid: f0aae4db13c067e42a90f893d620039e, type: 2}
+  chance:
+    baseChance: 1
+    chanceEffectors:
+    - curveType: 2
+      keys:
+      - time: 0
+        value: 1
+      - time: 1
+        value: 0.5714286
+    - curveType: 0
+      keys:
+      - time: 0
+        value: 0.26666662
+      - time: 0.29594275
+        value: 1
+      - time: 0.34367535
+        value: 0
+    - curveType: 7
+      keys:
+      - time: 0
+        value: 0
+      - time: 0.3126491
+        value: 0.1857143
+      - time: 0.620525
+        value: 1
+  description: 
+  icon: {fileID: 2800000, guid: 707744f99c7d6a04489eb053126f9781, type: 3}
+  tag: 20
+  lateralShifts:
+  - lateralProfile: {fileID: 11400000, guid: f161b3af7360fc043927736dde8f5c42, type: 2}
+    changeCondition:
+      compare: 2
+      conditionType: 0
+      temperature:
+        value: 36
+      humidity:
+        value: 0
+      pressure:
+        value: 0
+      uvIndex:
+        value: 0
+      airQuality:
+        value: 0
+      accumulatedSnow: 0
+      accumulatedRain: 0
+      convectiveRainChance: 0
+      stratiformRainChance: 0
+      season: 0
+      time:
+        hours: 12
+        minutes: 0
+        seconds: 0
+        milliseconds: 0
+        meridiem: 0
+      day:
+        year: 0
+        month: 0
+        day: 0
+      windSpeed: 0
+      weightedRandomChance:
+        baseChance: 0
+        chanceEffectors: []

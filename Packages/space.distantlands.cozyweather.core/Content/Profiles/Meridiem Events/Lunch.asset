@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e09ab48c02960144a39a14faa381b75, type: 3}
+  m_Name: Lunch
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.StaticEvent
+  startDate:
+    year: 0
+    month: 0
+    day: 0
+  endDate:
+    year: 0
+    month: 0
+    day: 0
+  startTime:
+    hours: 12
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+    meridiem: 1
+  endTime:
+    hours: 1
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+    meridiem: 1
+  allDay: 0
+  dateRange: 0
+  eventDescription: 
+  eventType: 6
+  repeatStyle:
+    rid: 8025767777807106330
+  references:
+    version: 2
+    RefIds:
+    - rid: 8025767777807106330
+      type: {class: RepeatDaily, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data: 

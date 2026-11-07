@@ -1,0 +1,106 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3"/>
+    <DistantLands.Cozy.EditorScripts.Graph>
+        <ui:VisualElement name="seasonal-graph" class="section-bg" style="height: 120px;"/>
+    </DistantLands.Cozy.EditorScripts.Graph>
+    <ui:DropdownField label="" choices="Temperature,Humidity,Pressure,UV Index,Air Quality" index="0" name="graphType"/>
+    <ui:Label text="Seasons" class="h1"/>
+    <ui:TabView class="climate-tabs">
+        <ui:Tab icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/Winter.png?fileID=2800000&amp;guid=26a51d65787fad44b94d367181461c6a&amp;type=3#Winter" label="Winter">
+            <ui:Label text="Winter" class="h2"/>
+            <ui:VisualElement class="section-bg" style="flex-grow: 1;">
+                <uie:PropertyField binding-path="winter.startDay"/>
+                <uie:PropertyField binding-path="winter.climateInformation.temperature.high" label="High Temperature"/>
+                <uie:PropertyField binding-path="winter.climateInformation.temperature.low" label="High Temperature"/>
+                <uie:PropertyField binding-path="winter.climateInformation.humidity.high" label="Max Humidity"/>
+                <uie:PropertyField binding-path="winter.climateInformation.humidity.low" label="Min Humidity"/>
+                <uie:PropertyField binding-path="winter.climateInformation.pressure.high" label="Max Pressure"/>
+                <uie:PropertyField binding-path="winter.climateInformation.pressure.low" label="Min Pressure"/>
+                <uie:PropertyField binding-path="winter.climateInformation.uvIndex.high" label="Max UV Index"/>
+                <uie:PropertyField binding-path="winter.climateInformation.airQuality.high" label="Max Air Quality"/>
+                <uie:PropertyField binding-path="winter.climateInformation.airQuality.low" label="Min Air Quality"/>
+            </ui:VisualElement>
+        </ui:Tab>
+        <ui:Tab icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/Spring.png?fileID=2800000&amp;guid=be5e8d0d69f33bf4dae147981b835b20&amp;type=3#Spring" label="Spring">
+            <ui:Label text="Spring" class="h2"/>
+            <ui:VisualElement class="section-bg" style="flex-grow: 1;">
+                <uie:PropertyField binding-path="spring.startDay"/>
+                <uie:PropertyField binding-path="spring.climateInformation.temperature.high" label="High Temperature"/>
+                <uie:PropertyField binding-path="spring.climateInformation.temperature.low" label="High Temperature"/>
+                <uie:PropertyField binding-path="spring.climateInformation.humidity.high" label="Max Humidity"/>
+                <uie:PropertyField binding-path="spring.climateInformation.humidity.low" label="Min Humidity"/>
+                <uie:PropertyField binding-path="spring.climateInformation.pressure.high" label="Max Pressure"/>
+                <uie:PropertyField binding-path="spring.climateInformation.pressure.low" label="Min Pressure"/>
+                <uie:PropertyField binding-path="spring.climateInformation.uvIndex.high" label="Max UV Index"/>
+                <uie:PropertyField binding-path="spring.climateInformation.airQuality.high" label="Max Air Quality"/>
+                <uie:PropertyField binding-path="spring.climateInformation.airQuality.low" label="Min Air Quality"/>
+            </ui:VisualElement>
+        </ui:Tab>
+        <ui:Tab icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/Summer.png?fileID=2800000&amp;guid=2edfa891fbb86fc4eb52d8f518255a42&amp;type=3#Summer" label="Summer">
+            <ui:Label text="Summer" class="h2"/>
+            <ui:VisualElement class="section-bg" style="flex-grow: 1;">
+                <uie:PropertyField binding-path="summer.startDay"/>
+                <uie:PropertyField binding-path="summer.climateInformation.temperature.high" label="High Temperature"/>
+                <uie:PropertyField binding-path="summer.climateInformation.temperature.low" label="High Temperature"/>
+                <uie:PropertyField binding-path="summer.climateInformation.humidity.high" label="Max Humidity"/>
+                <uie:PropertyField binding-path="summer.climateInformation.humidity.low" label="Min Humidity"/>
+                <uie:PropertyField binding-path="summer.climateInformation.pressure.high" label="Max Pressure"/>
+                <uie:PropertyField binding-path="summer.climateInformation.pressure.low" label="Min Pressure"/>
+                <uie:PropertyField binding-path="summer.climateInformation.uvIndex.high" label="Max UV Index"/>
+                <uie:PropertyField binding-path="summer.climateInformation.airQuality.high" label="Max Air Quality"/>
+                <uie:PropertyField binding-path="summer.climateInformation.airQuality.low" label="Min Air Quality"/>
+            </ui:VisualElement>
+        </ui:Tab>
+        <ui:Tab icon-image="project://database/Packages/space.distantlands.cozyweather.core/Editor/Resources/COZY%20Icons/Fall.png?fileID=2800000&amp;guid=4fce0eea07449604bbd04701b6b310b0&amp;type=3#Fall" label="Fall">
+            <ui:Label text="Fall" class="h2"/>
+            <ui:VisualElement class="section-bg" style="flex-grow: 1;">
+                <uie:PropertyField binding-path="fall.startDay"/>
+                <uie:PropertyField binding-path="fall.climateInformation.temperature.high" label="Max Temperature"/>
+                <uie:PropertyField binding-path="fall.climateInformation.temperature.low" label="Min Temperature"/>
+                <uie:PropertyField binding-path="fall.climateInformation.humidity.high" label="Max Humidity"/>
+                <uie:PropertyField binding-path="fall.climateInformation.humidity.low" label="Min Humidity"/>
+                <uie:PropertyField binding-path="fall.climateInformation.pressure.high" label="Max Pressure"/>
+                <uie:PropertyField binding-path="fall.climateInformation.pressure.low" label="Min Pressure"/>
+                <uie:PropertyField binding-path="fall.climateInformation.uvIndex.high" label="Max UV Index"/>
+                <uie:PropertyField binding-path="fall.climateInformation.airQuality.high" label="Max Air Quality"/>
+                <uie:PropertyField binding-path="fall.climateInformation.airQuality.low" label="Min Air Quality"/>
+            </ui:VisualElement>
+        </ui:Tab>
+    </ui:TabView>
+    <ui:VisualElement class="section-bg">
+        <uie:PropertyField binding-path="temperatureSmoothness" label="Season Smoothing"/>
+    </ui:VisualElement>
+    <ui:Label text="Variation" class="h1"/>
+    <ui:VisualElement class="section-bg">
+        <ui:Label text="Temperature" class="h2"/>
+        <uie:PropertyField binding-path="temperatureVariation.filter"/>
+        <uie:PropertyField binding-path="temperatureVariation.diurnalCurve"/>
+        <uie:PropertyField binding-path="temperatureVariation.variationPeriod"/>
+        <uie:PropertyField binding-path="temperatureVariation.variationAmplitude"/>
+        <uie:PropertyField binding-path="temperatureVariation.variationType"/>
+        <ui:Label text="Humidity" class="h2"/>
+        <uie:PropertyField binding-path="humidityVariation.filter"/>
+        <uie:PropertyField binding-path="humidityVariation.diurnalCurve"/>
+        <uie:PropertyField binding-path="humidityVariation.variationPeriod"/>
+        <uie:PropertyField binding-path="humidityVariation.variationAmplitude"/>
+        <uie:PropertyField binding-path="humidityVariation.variationType"/>
+        <ui:Label text="Pressure" class="h2"/>
+        <uie:PropertyField binding-path="pressureVariation.filter"/>
+        <uie:PropertyField binding-path="pressureVariation.diurnalCurve"/>
+        <uie:PropertyField binding-path="pressureVariation.variationPeriod"/>
+        <uie:PropertyField binding-path="pressureVariation.variationAmplitude"/>
+        <uie:PropertyField binding-path="pressureVariation.variationType"/>
+        <ui:Label text="UV Index" class="h2"/>
+        <uie:PropertyField binding-path="uvIndexVariation.filter"/>
+        <uie:PropertyField binding-path="uvIndexVariation.diurnalCurve"/>
+        <uie:PropertyField binding-path="uvIndexVariation.variationPeriod"/>
+        <uie:PropertyField binding-path="uvIndexVariation.variationAmplitude"/>
+        <uie:PropertyField binding-path="uvIndexVariation.variationType"/>
+        <ui:Label text="Air Quality" class="h2"/>
+        <uie:PropertyField binding-path="airQualityVariation.filter"/>
+        <uie:PropertyField binding-path="airQualityVariation.diurnalCurve"/>
+        <uie:PropertyField binding-path="airQualityVariation.variationPeriod"/>
+        <uie:PropertyField binding-path="airQualityVariation.variationAmplitude"/>
+        <uie:PropertyField binding-path="airQualityVariation.variationType"/>
+    </ui:VisualElement>
+</ui:UXML>

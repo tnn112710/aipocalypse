@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58971c84a8da56f46bc72a85a31d8a2d, type: 3}
+  m_Name: Bright
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.AtmosphereProfile
+  description: Balanced profile useful for all types of projects
+  category: Realistic
+  icon: {fileID: 2800000, guid: 469460ee42b00f54b999bb96108873dd, type: 3}
+  locked: 1
+  presetParameters:
+    dayColor: {r: 0.09000817, g: 0.34634936, b: 0.7735849, a: 1}
+    eveningColor: {r: 2, g: 0.31325302, b: 0, a: 1}
+    morningColor: {r: 0.63342315, g: 0.11866007, b: 0.19791126, a: 0}
+    nightColor: {r: 0.04746644, g: 0.101004764, b: 0.20125782, a: 0}
+    sunColor: {r: 1.4142135, g: 1.2975597, b: 1.071778, a: 1}
+    moonColor: {r: 1.01764, g: 1.1826204, b: 1.3770618, a: 1}
+    lightingIntensity: 1.15
+    starBrightness: 1
+    fogginess: 1
+    fogSaturation: 0
+  overrides:
+  - rid: 2823899967466504665
+  references:
+    version: 2
+    RefIds:
+    - rid: 2823899967466504665
+      type: {class: LightingAmbientOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        ambientMode:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        zenithColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.42437407, g: 0.48703334, b: 0.769, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.7058824, g: 0.8039216, b: 0.972549, a: 1}
+            time:
+              hours: 7
+              minutes: 34
+              seconds: 47
+              milliseconds: 247
+              meridiem: 0
+          - value:
+              value: {r: 0.7060706, g: 0.80579567, b: 0.972549, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.5979922, g: 0.62901676, b: 0.76862746, a: 1}
+            time:
+              hours: 7
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        horizonColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.038045928, g: 0.061746676, b: 0.1684, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.5594784, g: 0.6869613, b: 0.8980392, a: 1}
+            time:
+              hours: 7
+              minutes: 43
+              seconds: 48
+              milliseconds: 377
+              meridiem: 0
+          - value:
+              value: {r: 0.56078434, g: 0.6862745, b: 0.8980392, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.038045928, g: 0.061746676, b: 0.1684, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        groundColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.02719111, g: 0.03192, b: 0.0532, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.34317186, g: 0.44744903, b: 0.62075466, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: {r: 0.34317186, g: 0.44744903, b: 0.62075466, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.02719111, g: 0.03192, b: 0.0532, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        intensity:
+          constantValue:
+            value: 1.2
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1

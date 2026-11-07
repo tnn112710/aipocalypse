@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3#Globals"/>
+    <ui:VisualElement name="event-header" class="event" style="height: 70px; margin-top: 10px; margin-right: 10px; margin-bottom: 10px; margin-left: 10px; border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; flex-direction: column; align-items: center; position: relative;">
+        <ui:VisualElement style="flex-grow: 1; background-image: resource(&quot;Promo/Distant Lands Watermark&quot;); background-size: 50px 50px; height: 50px; width: 50px; -unity-background-image-tint-color: rgba(255, 255, 255, 0.23);"/>
+    </ui:VisualElement>
+    <ui:Label tabindex="-1" text="Event Information" parse-escape-sequences="true" display-tooltip-when-elided="true" class="h1"/>
+    <ui:VisualElement class="section-bg">
+        <ui:EnumField label="Event Type" value="Center" type="DistantLands.Cozy.MeridiemEventType, DistantLands.Cozy.Runtime" binding-path="eventType" tooltip="Specify the type of the event. Changes the calendar that will display this event."/>
+        <ui:VisualElement class="unity-base-field" style="flex-grow: 1;">
+            <ui:Label text="Description" class="unity-base-field__label"/>
+        </ui:VisualElement>
+        <ui:TextField multiline="true" password="false" auto-correction="true" binding-path="eventDescription" placeholder-text="Add description..." style="white-space: pre-wrap;"/>
+    </ui:VisualElement>
+    <ui:Label tabindex="-1" text="Time" parse-escape-sequences="true" display-tooltip-when-elided="true" class="h1"/>
+    <ui:VisualElement name="time-container" class="section-bg"/>
+</ui:UXML>

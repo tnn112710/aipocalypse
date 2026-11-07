@@ -60,44 +60,6 @@
       "dependencies": {},
       "hash": "ceac8d6946b1125fe782cd171fbcb245b567dbf9"
     },
-    "com.distantlands.cozy.blocks": {
-      "version": "file:com.distantlands.cozy.blocks",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.distantlands.cozy.core": "3.5.0"
-      }
-    },
-    "com.distantlands.cozy.core": {
-      "version": "file:com.distantlands.cozy.core",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
-    "com.distantlands.cozy.habits": {
-      "version": "file:com.distantlands.cozy.habits",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.distantlands.cozy.core": "3.5.0"
-      }
-    },
-    "com.distantlands.cozy.horizon": {
-      "version": "file:com.distantlands.cozy.horizon",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.distantlands.cozy.core": "3.6.0"
-      }
-    },
-    "com.distantlands.cozy.plume": {
-      "version": "file:com.distantlands.cozy.plume",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.distantlands.cozy.core": "3.6.7"
-      }
-    },
     "com.gurbu.gpui-pro": {
       "version": "file:com.gurbu.gpui-pro",
       "depth": 0,
@@ -619,6 +581,48 @@
       "source": "git",
       "dependencies": {},
       "hash": "5401e5a7ebc4980a2b82141ffc26391a6547edd7"
+    },
+    "space.distantlands.cozyweather.blocks": {
+      "version": "file:space.distantlands.cozyweather.blocks",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.test-framework": "1.6.0",
+        "space.distantlands.cozyweather.core": "4.0.0"
+      }
+    },
+    "space.distantlands.cozyweather.core": {
+      "version": "file:space.distantlands.cozyweather.core",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "space.distantlands.cozyweather.eclipse": {
+      "version": "file:space.distantlands.cozyweather.eclipse",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.test-framework": "1.6.0",
+        "space.distantlands.cozyweather.core": "4.0.0"
+      }
+    },
+    "space.distantlands.cozyweather.horizon": {
+      "version": "file:space.distantlands.cozyweather.horizon",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.test-framework": "1.6.0",
+        "space.distantlands.cozyweather.core": "4.0.0"
+      }
+    },
+    "space.distantlands.cozyweather.resound": {
+      "version": "file:space.distantlands.cozyweather.resound",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.test-framework": "1.6.0",
+        "space.distantlands.cozyweather.core": "4.0.0"
+      }
     },
     "xyz.staggart-creations.screen-effects": {
       "version": "file:xyz.staggart-creations.screen-effects",

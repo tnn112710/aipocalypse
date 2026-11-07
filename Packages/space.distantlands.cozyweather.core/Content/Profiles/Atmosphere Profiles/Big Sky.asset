@@ -1,0 +1,986 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58971c84a8da56f46bc72a85a31d8a2d, type: 3}
+  m_Name: Big Sky
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.AtmosphereProfile
+  description: 'Bold vIbrant sunsets '
+  category: Stylized
+  icon: {fileID: 2800000, guid: ae184c010f9fbd04c98c9b23076e27f6, type: 3}
+  locked: 1
+  presetParameters:
+    dayColor: {r: 0.07219134, g: 0.21456721, b: 0.4501347, a: 1}
+    eveningColor: {r: 2, g: 0.31325302, b: 0, a: 1}
+    morningColor: {r: 0.63342315, g: 0.11866007, b: 0.19791126, a: 0}
+    nightColor: {r: 0.018559135, g: 0.035871565, b: 0.105121255, a: 0}
+    sunColor: {r: 1, g: 0.9489185, b: 0.85040426, a: 1}
+    moonColor: {r: 0.327451, g: 0.40636438, b: 0.5, a: 1}
+    lightingIntensity: 1
+    starBrightness: 1
+    fogginess: 1
+    fogSaturation: 0
+  overrides:
+  - rid: 4284785117912367760
+  - rid: 4284785117912367758
+  - rid: 4284785117912367762
+  - rid: 4284785117912367764
+  - rid: 4284785117912367765
+  - rid: 4284785117912367767
+  - rid: 4284785117912367768
+  references:
+    version: 2
+    RefIds:
+    - rid: 4284785117912367758
+      type: {class: FogBaseOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        densityMultiplier:
+          constantValue:
+            value: 2
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        height:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        smoothness:
+          constantValue:
+            value: 7
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 7
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        baseHeight:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        baseSmoothness:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        transitionDistance:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 4284785117912367760
+      type: {class: SkyTwoToneOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        sunSideColor:
+          constantValue:
+            value: {r: 0.7735849, g: 0.7735849, b: 0.7735849, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 1, g: 1, b: 1, a: 1}
+            time:
+              hours: 4
+              minutes: 7
+              seconds: 3
+              milliseconds: 529
+              meridiem: 1
+          - value:
+              value: {r: 2.0296066, g: 0, b: 0.28250426, a: 1}
+            time:
+              hours: 5
+              minutes: 42
+              seconds: 9
+              milliseconds: 620
+              meridiem: 1
+          - value:
+              value: {r: 0.7789374, g: 0.11652558, b: 0.5718841, a: 1}
+            time:
+              hours: 7
+              minutes: 4
+              seconds: 48
+              milliseconds: 773
+              meridiem: 1
+          - value:
+              value: {r: 1, g: 1, b: 1, a: 1}
+            time:
+              hours: 8
+              minutes: 34
+              seconds: 16
+              milliseconds: 41
+              meridiem: 1
+        antiSunSideColor:
+          constantValue:
+            value: {r: 0.22954269, g: 0.25348583, b: 0.3207546, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 1, g: 1, b: 1, a: 1}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        offset:
+          constantValue:
+            value: -0.082
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        exponent:
+          constantValue:
+            value: 0.82
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 4284785117912367762
+      type: {class: FogSunLightFlareOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        color:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 2, g: 0.31325302, b: 0, a: 2}
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.6884097, g: 0.11348552, b: 0.20199892, a: 1}
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 1, g: 0.9140727, b: 0.74835575, a: 1}
+            time:
+              hours: 7
+              minutes: 12
+              seconds: 0
+              milliseconds: 1
+              meridiem: 0
+          - value:
+              value: {r: 1, g: 0.9140727, b: 0.74835575, a: 1}
+            time:
+              hours: 4
+              minutes: 47
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: {r: 3.9999993, g: 1.1317455, b: 0, a: 2}
+            time:
+              hours: 5
+              minutes: 36
+              seconds: 53
+              milliseconds: 904
+              meridiem: 1
+          - value:
+              value: {r: 2, g: 0.31325302, b: 0, a: 2}
+            time:
+              hours: 6
+              minutes: 43
+              seconds: 45
+              milliseconds: 883
+              meridiem: 1
+        squish:
+          constantValue:
+            value: 8
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 8
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        intensity:
+          constantValue:
+            value: 0
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 1
+            time:
+              hours: 5
+              minutes: 47
+              seconds: 58
+              milliseconds: 496
+              meridiem: 0
+          - value:
+              value: 1
+            time:
+              hours: 6
+              minutes: 52
+              seconds: 51
+              milliseconds: 1
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 7
+              minutes: 48
+              seconds: 58
+              milliseconds: 622
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 3
+              minutes: 45
+              seconds: 42
+              milliseconds: 614
+              meridiem: 1
+          - value:
+              value: 1
+            time:
+              hours: 4
+              minutes: 53
+              seconds: 51
+              milliseconds: 727
+              meridiem: 1
+          - value:
+              value: 1
+            time:
+              hours: 6
+              minutes: 16
+              seconds: 46
+              milliseconds: 495
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 7
+              minutes: 21
+              seconds: 1
+              milliseconds: 130
+              meridiem: 1
+        falloff:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        minDistance:
+          constantValue:
+            value: 50
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        maxDistance:
+          constantValue:
+            value: 100
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 150
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+    - rid: 4284785117912367764
+      type: {class: FogGradientOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        color1:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 1}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        color2:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.009279568, g: 0.017935783, b: 0.052560627, a: 1}
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.028154641, g: 0.10233406, b: 0.22506735, a: 1}
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.028154641, g: 0.10233406, b: 0.22506735, a: 1}
+            time:
+              hours: 4
+              minutes: 47
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: {r: 0.009279568, g: 0.017935783, b: 0.052560627, a: 1}
+            time:
+              hours: 6
+              minutes: 57
+              seconds: 36
+              milliseconds: 1
+              meridiem: 1
+        color3:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.014847308, g: 0.028697252, b: 0.084097005, a: 1}
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.050822727, g: 0.16733417, b: 0.36010775, a: 1}
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.050822727, g: 0.16733417, b: 0.36010775, a: 1}
+            time:
+              hours: 4
+              minutes: 32
+              seconds: 35
+              milliseconds: 932
+              meridiem: 1
+          - value:
+              value: {r: 0.04906337, g: 0.024320504, b: 0.17520213, a: 1}
+            time:
+              hours: 5
+              minutes: 55
+              seconds: 30
+              milliseconds: 483
+              meridiem: 1
+          - value:
+              value: {r: 0.014847308, g: 0.028697252, b: 0.084097005, a: 1}
+            time:
+              hours: 7
+              minutes: 13
+              seconds: 0
+              milliseconds: 63
+              meridiem: 1
+        color4:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.016703222, g: 0.032284405, b: 0.09460913, a: 1}
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.089492194, g: 0.24606472, b: 0.50512123, a: 1}
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.089492194, g: 0.24606472, b: 0.50512123, a: 1}
+            time:
+              hours: 4
+              minutes: 40
+              seconds: 17
+              milliseconds: 970
+              meridiem: 1
+          - value:
+              value: {r: 0.30458212, g: 0.037280485, b: 0, a: 1}
+            time:
+              hours: 5
+              minutes: 52
+              seconds: 56
+              milliseconds: 477
+              meridiem: 1
+          - value:
+              value: {r: 0.016703222, g: 0.032284405, b: 0.09460913, a: 1}
+            time:
+              hours: 6
+              minutes: 57
+              seconds: 36
+              milliseconds: 1
+              meridiem: 1
+        color5:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.018559135, g: 0.035871565, b: 0.105121255, a: 1}
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.13892363, g: 0.2746528, b: 0.5106797, a: 1}
+            time:
+              hours: 5
+              minutes: 51
+              seconds: 39
+              milliseconds: 465
+              meridiem: 0
+          - value:
+              value: {r: 0.18623182, g: 0.36850366, b: 0.67008084, a: 1}
+            time:
+              hours: 7
+              minutes: 6
+              seconds: 44
+              milliseconds: 277
+              meridiem: 0
+          - value:
+              value: {r: 0.18623182, g: 0.36850366, b: 0.67008084, a: 1}
+            time:
+              hours: 3
+              minutes: 43
+              seconds: 49
+              milliseconds: 735
+              meridiem: 1
+          - value:
+              value: {r: 0.41960785, g: 0.17651442, b: 0.11372549, a: 1}
+            time:
+              hours: 5
+              minutes: 29
+              seconds: 50
+              milliseconds: 376
+              meridiem: 1
+          - value:
+              value: {r: 0.018559135, g: 0.035871565, b: 0.105121255, a: 1}
+            time:
+              hours: 6
+              minutes: 57
+              seconds: 36
+              milliseconds: 1
+              meridiem: 1
+        density1:
+          constantValue:
+            value: 0
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        density2:
+          constantValue:
+            value: 0.2
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0.2
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        density3:
+          constantValue:
+            value: 0.5
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0.5
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        density4:
+          constantValue:
+            value: 0.9
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0.9
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        density5:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        start1:
+          constantValue:
+            value: 10
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 10
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        start2:
+          constantValue:
+            value: 50
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 50
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        start3:
+          constantValue:
+            value: 100
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 100
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        start4:
+          constantValue:
+            value: 160
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 160
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        start5:
+          constantValue:
+            value: 300
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 300
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+    - rid: 4284785117912367765
+      type: {class: LightingSunOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        lightColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 1}
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 1, g: 0.9489185, b: 0.85040426, a: 1}
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 1, g: 0.9489185, b: 0.85040426, a: 1}
+            time:
+              hours: 7
+              minutes: 12
+              seconds: 0
+              milliseconds: 1
+              meridiem: 0
+          - value:
+              value: {r: 1, g: 0.9489185, b: 0.85040426, a: 1}
+            time:
+              hours: 4
+              minutes: 47
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: {r: 1, g: 0.4579637, b: 0.36522907, a: 1}
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 1}
+            time:
+              hours: 7
+              minutes: 12
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+        lightIntensity:
+          constantValue:
+            value: 0
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 2
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 2
+            time:
+              hours: 4
+              minutes: 47
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 6
+              minutes: 57
+              seconds: 36
+              milliseconds: 1
+              meridiem: 1
+        shadowType:
+          constantValue:
+            value: 2
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 2
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        shadowIntensity:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+    - rid: 4284785117912367767
+      type: {class: SkySunDiskOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        haloColor:
+          constantValue:
+            value: {r: 0.57412386, g: 0.19261864, b: 0.12302652, a: 0.5}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0.5, g: 0.47445926, b: 0.42520213, a: 0.5}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        haloFalloff:
+          constantValue:
+            value: 7
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 7
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        color:
+          constantValue:
+            value: {r: 2.670157, g: 1.7796506, b: 1.4934164, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 1, g: 0.964243, b: 0.895283, a: 1}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        size:
+          constantValue:
+            value: 2.5
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 2
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        texture:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 4284785117912367768
+      type: {class: SkyGalaxyOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        primaryColor:
+          constantValue:
+            value: {r: 1.2528267, g: 0, b: 0.9762572, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0.19863947, g: 0.078917705, b: 0.6150943, a: 1}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        secondaryColor:
+          constantValue:
+            value: {r: 0.15783541, g: 1.205216, b: 1.2301886, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0.078917705, g: 0.602608, b: 0.6150943, a: 1}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        tertiaryColor:
+          constantValue:
+            value: {r: 1.1997033, g: 0, b: 0.15446262, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0.52034533, g: 0.078917705, b: 0.6150943, a: 1}
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        intensity:
+          constantValue:
+            value: 0
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 4
+              minutes: 48
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 47
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 1
+            time:
+              hours: 6
+              minutes: 57
+              seconds: 36
+              milliseconds: 1
+              meridiem: 1
+        cubemap:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []

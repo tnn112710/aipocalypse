@@ -1,0 +1,44 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3#Globals"/>
+    <ui:VisualElement name="" style="flex-grow: 1; margin-right: -6px; margin-left: -15px; background-color: rgb(31, 31, 31);">
+        <ui:VisualElement class="banner">
+            <ui:VisualElement name="background-container">
+                <ui:VisualElement name="background-image" class="main" style="flex-grow: 1;"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="banner-content">
+                <ui:VisualElement name="banner-icon" style="flex-grow: 1;"/>
+                <ui:VisualElement style="flex-grow: 1;">
+                    <ui:Label text="COZY" name="banner-title"/>
+                    <ui:Label text="Stylized Weather" name="banner-subtitle"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <DistantLands.Cozy.EditorScripts.StatusMessage style="position: absolute; right: 0; bottom: 0;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="module-icon-container" class="module-list" style="min-width: 150px;"/>
+        <ui:VisualElement name="preferences-container" class="module-list" style="min-width: 150px;"/>
+        <uie:Toolbar class="context-bar toolbar" style="margin-bottom: 0; border-bottom-width: 0;">
+            <ui:VisualElement name="module-inspector-toolbar" style="flex-direction: row;">
+                <uie:ToolbarButton name="back-button" class="context-button back" style="display: none;"/>
+                <ui:VisualElement name="module-icon" class="module" style="display: none;"/>
+            </ui:VisualElement>
+            <uie:ToolbarSearchField/>
+            <uie:ToolbarSpacer class="space-auto"/>
+            <uie:ToolbarButton name="add-module" class="add-module context-button" style="background-size: 70% 70%; -unity-background-scale-mode: scale-and-crop;"/>
+            <uie:ToolbarButton name="styles" class="context-button styles" style="-unity-background-scale-mode: scale-and-crop; background-size: 70% 70%;"/>
+            <uie:ToolbarButton name="documentation" class="context-button help" style="background-size: 70% 70%; -unity-background-scale-mode: scale-and-crop;"/>
+            <uie:ToolbarButton name="settings" class="context-button settings" style="-unity-background-scale-mode: scale-and-crop; background-size: 70% 70%;"/>
+        </uie:Toolbar>
+        <ui:VisualElement name="search-results" style="margin-right: 0; margin-left: 0; padding-right: 5px; padding-left: 5px; margin-bottom: 5px; background-color: rgb(31, 31, 31); border-left-color: rgba(150, 150, 150, 0.18); border-right-color: rgba(150, 150, 150, 0.18); border-top-color: rgba(150, 150, 150, 0.18); border-bottom-color: rgba(150, 150, 150, 0.18); border-top-width: 0; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; margin-top: 0; padding-bottom: 10px; padding-top: 10px;"/>
+        <ui:VisualElement name="module-ui" style="margin-right: 0; margin-left: 0;">
+            <ui:VisualElement class="moduleWidgetContainer">
+                <ui:VisualElement name="" class="moduleWidget large"/>
+                <ui:VisualElement class="moduleWidget small"/>
+                <ui:VisualElement class="moduleWidget small"/>
+                <ui:VisualElement class="moduleWidget small"/>
+                <ui:VisualElement class="moduleWidget small"/>
+                <ui:VisualElement class="moduleWidget medium"/>
+                <ui:VisualElement class="moduleWidget medium"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

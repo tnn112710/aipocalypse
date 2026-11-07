@@ -1,0 +1,196 @@
+#pragma kernel CSMain
+#pragma kernel CSBlur
+
+#pragma multi_compile_local _ CZY_USE_CLOUDSCUMULONIMBUS
+
+RWTexture2D<float> Result;
+RWTexture2D<float> _RawTex;     
+Texture2D<float>   _RawTexRead; 
+
+float3   _LightDirection;
+float3   _CameraPosition;
+float2   _CookieSize;
+float3 _LightPosition;
+float3 _LightRight;
+float3 _LightUp;
+float    _CloudTime;
+float    _ShadowStrength;
+int      _ShadowSteps;
+float    _BlurRadius;
+
+Texture2D<float4> CZY_Clouds_Volumetric_MainTexture;
+Texture2D<float4> CZY_Clouds_Volumetric_Ramp;
+Texture3D<float4> CZY_Clouds_Volumetric_NoiseTexture;
+#if defined(CZY_USE_CLOUDSCUMULONIMBUS)
+Texture2D<float4> CZY_Clouds_Cumulonimbus_Ramp;
+Texture2D<float4> CZY_Clouds_Cumulonimbus_MainTexture;
+#endif
+
+SamplerState sampler_linear_repeat;
+SamplerState sampler_linear_clamp;
+
+float  CZY_Clouds_Volumetric_Height;
+float  CZY_Clouds_Volumetric_PlacementHeight;
+float  CZY_Clouds_Volumetric_PlacementScale1;
+float  CZY_Clouds_Volumetric_PlacementScale2;
+float  CZY_Clouds_Volumetric_NoiseScale;
+float  CZY_Clouds_Volumetric_NoiseAmount;
+float  CZY_Clouds_Volumetric_Density;
+float  CZY_Clouds_Volumetric_WindStrength;
+float  CZY_Base_Weather_CumulusCoverage;
+float  CZY_Base_Weather_CumulonimbusCoverage;
+float4 CZY_Base_Weather_CloudWindOffset;
+
+float RemapValue(float v, float inMin, float inMax, float outMin, float outMax)
+{
+    return outMin + (v - inMin) * (outMax - outMin) / (inMax - inMin);
+}
+
+float InterleavedGradientNoise(float2 p)
+{
+    return frac(52.9829189 * frac(dot(p, float2(0.06711056, 0.00583715))));
+}
+
+float CloudDensity(float3 pos)
+{
+    float2 windOffset = CZY_Base_Weather_CloudWindOffset.xz * CZY_Clouds_Volumetric_WindStrength;
+
+    float halfHeight   = CZY_Clouds_Volumetric_Height;
+    float cloudTop     = CZY_Clouds_Volumetric_PlacementHeight + halfHeight;
+    float cloudBottom  = CZY_Clouds_Volumetric_PlacementHeight - halfHeight;
+
+    float heightRamp   = (pos.y - cloudBottom) / (cloudTop - cloudBottom);
+    float2 heightInCloud = float2(saturate(heightRamp), 0);
+
+    float2 baseUV = pos.xz * 0.000005
+                  + float2(0.64, 0.25) * 0.005 * (1 - sin(heightRamp * 3.1415)) * 0.1;
+    float3 remappedPosition = pos * 0.0002;
+
+    float2 uv2 = baseUV * 5  * CZY_Clouds_Volumetric_PlacementScale1 + windOffset * 0.0051;
+    float2 uv3 = baseUV * 10 * CZY_Clouds_Volumetric_PlacementScale2 + windOffset * 0.001;
+    float2 uv4 = baseUV * 1  * CZY_Clouds_Volumetric_PlacementScale2 + windOffset * 0.001;
+
+    float oneMinusCoverage = RemapValue(CZY_Base_Weather_CumulusCoverage, 0, 1, -0.1, 1) - 1;
+    float cloudCoverage = 1.2 - oneMinusCoverage * oneMinusCoverage;
+
+    float cloudSample1 = CZY_Clouds_Volumetric_MainTexture.SampleLevel(sampler_linear_repeat, uv2, 3.0).g;
+    float cloudSample2 = CZY_Clouds_Volumetric_MainTexture.SampleLevel(sampler_linear_repeat, uv3, 3.0).r;
+
+    float heightValue = CZY_Clouds_Volumetric_Ramp.SampleLevel(sampler_linear_clamp, heightInCloud, 0).r;
+
+    #if defined(CZY_USE_CLOUDSCUMULONIMBUS)
+    float nimbusRamp = CZY_Clouds_Cumulonimbus_Ramp.SampleLevel(sampler_linear_clamp, heightInCloud, 0).r;
+    float nimbusPlacement = CZY_Clouds_Cumulonimbus_MainTexture.SampleLevel(sampler_linear_repeat, uv4, 3.0).r;
+    heightValue = lerp(heightValue, nimbusRamp, saturate(-nimbusPlacement + 2 * CZY_Base_Weather_CumulonimbusCoverage));
+    #endif
+
+    float p1 = cloudSample1 - (1 - cloudCoverage * heightValue);
+    float p2 = cloudSample2 - (1 - cloudCoverage * heightValue);
+    float cloudPlacement = (p1 + p2) * 5;
+
+    if (cloudPlacement <= 0.001)
+        return 0;
+
+    float3 noiseUV = remappedPosition * CZY_Clouds_Volumetric_NoiseScale
+                   + float3(_CloudTime * 0.05, _CloudTime * 0.01, 0);
+    float noise3D = (1 - CZY_Clouds_Volumetric_NoiseTexture.SampleLevel(sampler_linear_repeat, noiseUV, 0).g)
+                  * CZY_Clouds_Volumetric_NoiseAmount;
+
+    return saturate(cloudPlacement - noise3D) * CZY_Clouds_Volumetric_Density * 0.01;
+}
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    uint w, h;
+    _RawTex.GetDimensions(w, h);
+    if (id.x >= w || id.y >= h)
+        return;
+
+    float2 uv = (float2(id.xy) + 0.5) / float2(w, h);
+
+    float3 right  = normalize(_LightRight);
+    float3 up     = normalize(_LightUp);
+    float3 origin = _LightPosition;
+
+    float2 local = (uv - 0.5) * _CookieSize;
+
+    float3 toCam = _CameraPosition - origin;
+    float2 camLocal = float2(dot(toCam, right), dot(toCam, up));
+
+    local += _CookieSize * round((camLocal - local) / _CookieSize);
+
+    float3 start = origin + right * local.x + up * local.y;
+    float3 L = normalize(_LightDirection);
+
+    if (L.y < 0.02)
+    {
+        _RawTex[id.xy] = 1;
+        return;
+    }
+
+    float cloudTop    = CZY_Clouds_Volumetric_PlacementHeight + CZY_Clouds_Volumetric_Height;
+    float cloudBottom = CZY_Clouds_Volumetric_PlacementHeight - CZY_Clouds_Volumetric_Height;
+
+    float tEnter = (cloudBottom - start.y) / L.y;
+    float tExit  = (cloudTop    - start.y) / L.y;
+
+    if (tExit <= 0)
+    {
+        _RawTex[id.xy] = 1;
+        return;
+    }
+    tEnter = max(tEnter, 0);
+
+    int   steps   = max(_ShadowSteps, 4);
+    float stepLen = (tExit - tEnter) / steps;
+    float jitter  = InterleavedGradientNoise(float2(id.xy));
+
+    float opticalDepth = 0;
+
+    [loop]
+    for (int i = 0; i < steps; i++)
+    {
+        float t = tEnter + (i + jitter) * stepLen;
+        opticalDepth += CloudDensity(start + L * t) * stepLen;
+
+        if (opticalDepth * _ShadowStrength >= 1.0)
+            break;
+    }
+
+    float shadow = saturate(opticalDepth);
+    
+    shadow = smoothstep(0, 1, shadow);
+    _RawTex[id.xy] = (1.0 - shadow * _ShadowStrength);
+}
+
+[numthreads(8, 8, 1)]
+void CSBlur(uint3 id : SV_DispatchThreadID)
+{
+    uint w, h;
+    Result.GetDimensions(w, h);
+    if (id.x >= w || id.y >= h)
+        return;
+
+    float2 texel = 1.0 / float2(w, h);
+    float2 uv = (float2(id.xy) + 0.5) * texel;
+
+    float sigma = max(_BlurRadius, 0.5);
+    float sum = 0;
+    float wsum = 0;
+
+    [unroll]
+    for (int y = -2; y <= 2; y++)
+    {
+        [unroll]
+        for (int x = -2; x <= 2; x++)
+        {
+            float2 o = float2(x, y);
+            float wgt = exp(-dot(o, o) / 2.0);
+            sum  += _RawTexRead.SampleLevel(sampler_linear_repeat, uv + o * sigma * texel, 0) * wgt;
+            wsum += wgt;
+        }
+    }
+
+    Result[id.xy] = sum / wsum;
+}

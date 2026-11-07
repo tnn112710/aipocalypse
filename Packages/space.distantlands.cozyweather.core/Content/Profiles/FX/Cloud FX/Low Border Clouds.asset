@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81f7af4072372144893b5e90876c5a13, type: 3}
+  m_Name: Low Border Clouds
+  m_EditorClassIdentifier: 
+  cumulusCoverage:
+    value: 0.197
+    overrideState: 1
+    min: 0
+    max: 1
+  altocumulusCoverage:
+    value: 0
+    overrideState: 0
+    min: 0
+    max: 1
+  contrailsCoverage:
+    value: 0
+    overrideState: 0
+    min: 0
+    max: 1
+  cirrostratusCoverage:
+    value: 1
+    overrideState: 0
+    min: 0
+    max: 1
+  cirrusCoverage:
+    value: 0
+    overrideState: 0
+    min: 0
+    max: 1
+  borderCloudsCoverage:
+    value: 0
+    overrideState: 0
+    min: 0
+    max: 1
+  cumulonimbusCoverage:
+    value: 0
+    overrideState: 0
+    min: 0
+    max: 1
+  transitionTimeModifier: 3

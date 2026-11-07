@@ -1,0 +1,235 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58971c84a8da56f46bc72a85a31d8a2d, type: 3}
+  m_Name: Heatwave
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.AtmosphereProfile
+  description: Orange hues with dark purple nights
+  category: Stylized
+  icon: {fileID: 2800000, guid: 497a727143898d2429171e1fed7be1c1, type: 3}
+  locked: 1
+  presetParameters:
+    dayColor: {r: 0.84313726, g: 0.41248783, b: 0.09803921, a: 1}
+    eveningColor: {r: 4.7021627, g: 1.0501628, b: 0.3696659, a: 1}
+    morningColor: {r: 1, g: 0.40444872, b: 0.31760997, a: 0}
+    nightColor: {r: 0.024880746, g: 0.015686274, b: 0.07450981, a: 0}
+    sunColor: {r: 1, g: 0.9489185, b: 0.85040426, a: 1}
+    moonColor: {r: 0.56263065, g: 0.50973046, b: 0.7610062, a: 1}
+    lightingIntensity: 1
+    starBrightness: 1
+    fogginess: 1
+    fogSaturation: 0
+  overrides:
+  - rid: 1000
+  - rid: 1001
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000
+      type: {class: SkyGradientOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        zenithColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.0018718521, g: 0.003949698, b: 0.013300001, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.0660295, g: 0.31072432, b: 0.7174, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: {r: 0.0660295, g: 0.31072432, b: 0.7174, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.0018718521, g: 0.003949698, b: 0.013300001, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        horizonColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 0
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.014074074, g: 0.025333337, b: 0.076, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.4902903, g: 0.670048, b: 0.9688, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: {r: 0.4902903, g: 0.670048, b: 0.9688, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.014074074, g: 0.025333337, b: 0.076, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        groundColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.023306666, g: 0.02736, b: 0.045599997, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.23841317, g: 0.33908552, b: 0.50640005, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: {r: 0.23841317, g: 0.33908552, b: 0.50640005, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.023306666, g: 0.02736, b: 0.045599997, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        zenithExponent:
+          constantValue:
+            value: 5
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 5
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        groundExponent:
+          constantValue:
+            value: 10
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 10
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        offset:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+    - rid: 1001
+      type: {class: FogTwoToneOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        sunSideColor:
+          constantValue:
+            value: {r: 1, g: 1, b: 1, a: 0}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        antiSunSideColor:
+          constantValue:
+            value: {r: 1, g: 0.086284414, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        sunSideDensity:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        antiSunSideDensity:
+          constantValue:
+            value: 1
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        smoothness:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        offset:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []

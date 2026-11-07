@@ -1,0 +1,56 @@
+#pragma kernel CSMain
+
+#include "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Helpers/Reprojection.hlsl"
+
+RWTexture3D<float4> CZY_FogIntegration;
+Texture3D<float4>   CZY_FogAccumulation;
+SamplerState        czy_fog_linear_clamp_sampler;
+
+float3 CZY_FogVolumeSize;
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(CZY_FogVolumeSize.x) || id.y >= uint(CZY_FogVolumeSize.y))
+        return;
+
+    // Accumulated in-scattered light (RGB) and transmittance (A)
+    float3 scatteredLight  = float3(0, 0, 0);
+    float  transmittance   = 1.0; // starts fully transparent
+    float  lastDepth       = 0.0;
+    float accumulatedFog = 0;
+
+    for (int z = 0; z < (int)CZY_FogVolumeSize.z; z++)
+    {
+        uint3  voxel = uint3(id.x, id.y, z);
+        float3 uvw   = VoxelToUVW(voxel, CZY_FogVolumeSize);
+
+        // Sample the accumulation buffer: RGB = in-scattered light, A = extinction coefficient
+        float4 accumulated  = CZY_FogAccumulation.SampleLevel(czy_fog_linear_clamp_sampler, uvw, 0);
+        float3 inScatter    = accumulated.rgb;
+        float  extinction   = max(accumulated.a, 0.0); // prevent negative extinction
+
+        // World-space step distance for this slice
+        float currentDepth  = ExponentialDepth(uvw.z) * CZY_Fog_Volumetric_MaxDistance;
+        float stepDistance  = currentDepth - lastDepth;
+        lastDepth           = currentDepth;
+
+        // Beer-Lambert: how much light survives this slab
+        float slabTransmittance = exp(-extinction * stepDistance);
+
+        // Energy-conserving in-scatter accumulation:
+        // Integral of (transmittance * inScatter) over slab, assuming constant values.
+        // This is the closed-form solution: (1 - exp(-ext * ds)) / ext * inScatter
+        float3 scatterContrib = (extinction > 1e-6)
+            ? inScatter * (1.0 - slabTransmittance) / extinction
+            : inScatter * stepDistance; // fallback for near-zero extinction
+
+        scatteredLight += transmittance * scatterContrib;
+        transmittance  *= slabTransmittance;
+
+        accumulatedFog += accumulated.a * 0.1 * stepDistance;
+
+        // Store integrated result: RGB = accumulated in-scatter, A = transmittance
+        CZY_FogIntegration[voxel] = float4(accumulated.xyz, accumulatedFog);
+    }
+}

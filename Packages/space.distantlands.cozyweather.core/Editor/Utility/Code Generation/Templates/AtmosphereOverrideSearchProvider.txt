@@ -1,0 +1,62 @@
+//  Distant Lands 2026
+//  COZY: Stylized Weather 4
+//  All code included in this file is protected under the Unity Asset Store Eula
+
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor;
+using System.Linq;
+
+namespace DistantLands.Cozy.EditorScripts
+{
+    /// <summary>
+    /// Search provider for atmosphere overrides on the atmosphere profile
+    /// </summary>
+    public class AtmosphereOverrideSearchProvider : ScriptableObject, ISearchWindowProvider
+    {
+        public AtmosphereProfile profile;
+        public List<AtmosphereOverride> overridesList;
+        [NonSerialized]
+        public SerializedProperty arrayProperty;
+        public Action action;
+        public AtmosphereModel model;
+
+
+        public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
+        {
+            List<SearchTreeEntry> entries = new List<SearchTreeEntry>()
+            {
+                new SearchTreeGroupEntry(new GUIContent("Add Override"), 0),
+            };
+
+            if (overridesList == null)
+                overridesList = new List<AtmosphereOverride>();
+
+            /*__OVERRIDES__*/
+
+            return entries;
+        }
+
+        public bool OnSelectEntry(SearchTreeEntry searchTreeEntry, SearchWindowContext context)
+        {
+            AtmosphereOverride atmosphereOverride = (AtmosphereOverride)searchTreeEntry.userData;
+            atmosphereOverride.ResetToDefaults();
+            if (model != null)
+            {
+                atmosphereOverride.CopyModel(model);
+            }
+            int index = arrayProperty.arraySize;
+            arrayProperty.InsertArrayElementAtIndex(index);
+            arrayProperty.GetArrayElementAtIndex(index);
+            overridesList.Add((AtmosphereOverride)searchTreeEntry.userData);
+            action.Invoke();
+            SerializedProperty newElement = arrayProperty.GetArrayElementAtIndex(index);
+            newElement.managedReferenceValue = atmosphereOverride;
+            arrayProperty.serializedObject.ApplyModifiedProperties();
+            arrayProperty.serializedObject.Update();
+            return true;
+        }
+    }
+}

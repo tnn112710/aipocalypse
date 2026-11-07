@@ -1,0 +1,276 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-5030903166338385743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cda598ecf83b444429d16bc940562e43, type: 3}
+  m_Name: Mobile
+  m_EditorClassIdentifier: 
+  useLighting: 1
+  useLightingSun: 1
+  useLightingSunCloudShadows: 0
+  useLightingSunLensFlare: 0
+  useLightingMoon: 1
+  useLightingMoonLensFlare: 0
+  useLightingLensFlareOcclusion: 0
+  useLightingAmbient: 1
+  useSky: 1
+  useSkyGradient: 1
+  useSkyTwoTone: 0
+  useSkyStars: 1
+  useSkyConstellations: 0
+  useSkyGalaxy: 0
+  useSkyRainbow: 0
+  useSkyLightColumns: 0
+  useSkyShootingStars: 0
+  useSkySunDisk: 1
+  useSkyMoonDisk: 1
+  useFog: 1
+  useFogGradient: 1
+  useFogSunLightFlare: 1
+  useFogMoonLightFlare: 1
+  useFogVolumetric: 0
+  useFogTwoTone: 0
+  useFogHeight: 0
+  useFogBase: 1
+  useClouds: 1
+  useCloudsVolumetric: 0
+  useCloudsVolumetricHighlights: 0
+  useCloudsVolumetricSelfShadowing: 0
+  useCloudsCumulonimbus: 0
+  useCloudsCumulus: 1
+  useCloudsAltocumulus: 0
+  useCloudsCirrus: 0
+  useCloudsContrails: 0
+  useSunshafts: 0
+  useSunshaftsScreenspace: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8f8ce754a57ede4899e9fd523db9063, type: 3}
+  m_Name: COZY Settings
+  m_EditorClassIdentifier: 
+  quantizeLighting: 0
+  quantizeLightingAngle: 15
+  minLightAngle: -90
+  skyFogAmount: 1
+  cloudsFogAmount: 1
+  staticLighting: 0
+  staticLightingRotation: {x: 35, y: 0, z: 0}
+  temperatureUnit: 0
+  pressureUnit: 0
+  timeUnit: 0
+  showSeconds: 0
+  showMilliseconds: 0
+  skyPitch: 32.9
+  skyRotation: 15.2
+  months:
+  - name: January
+    days: 31
+  - name: February
+    days: 28
+  - name: March
+    days: 31
+  - name: April
+    days: 30
+  - name: May
+    days: 31
+  - name: June
+    days: 30
+  - name: July
+    days: 31
+  - name: August
+    days: 31
+  - name: September
+    days: 30
+  - name: October
+    days: 31
+  - name: November
+    days: 30
+  - name: December
+    days: 31
+  dateFormat: 0
+  startingWeekday: 0
+  displayMiscEvents: 1
+  displayWeatherEvents: 1
+  displayHolidayEvents: 1
+  displayStatusEvents: 1
+  displayWorldEventEvents: 1
+  displayPlayerEvents: 1
+  displayNPCEvents: 1
+  displayEnemyEvents: 1
+  displayAmbientEvents: 1
+  handleSceneLighting: 1
+  updateInEditMode: 1
+  fog: 1
+  followCamera: 1
+  gizmos: 1
+  tooltips: 1
+  graphs: 1
+  dontDestroyWeatherOnLoad: 0
+  renderFXBlocking: 1
+  fxRenderDistance: 15
+  fxRenderHeight: 25
+  fxBlockingResolution: 256
+  fxBlockingLayerMask:
+    serializedVersion: 2
+    m_Bits: 257
+  fxBlockingRendererIndex: 0
+  styles:
+  - {fileID: 7830359998459710090}
+  - {fileID: -5030903166338385743}
+  dawnTimes:
+    startTime:
+      hours: 4
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 0
+    endTime:
+      hours: 5
+      minutes: 30
+      seconds: 0
+      milliseconds: 0
+      meridiem: 0
+  morningTimes:
+    startTime:
+      hours: 6
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 0
+    endTime:
+      hours: 7
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 0
+  dayTimes:
+    startTime:
+      hours: 8
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 0
+    endTime:
+      hours: 9
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 0
+  afternoonTimes:
+    startTime:
+      hours: 1
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+    endTime:
+      hours: 3
+      minutes: 30
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+  eveningTimes:
+    startTime:
+      hours: 5
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+    endTime:
+      hours: 6
+      minutes: 30
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+  twilightTimes:
+    startTime:
+      hours: 7
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+    endTime:
+      hours: 8
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+  nightTimes:
+    startTime:
+      hours: 9
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+    endTime:
+      hours: 10
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+      meridiem: 1
+  cloudDownsampling: 4
+  fogDownsampling: 1
+--- !u!114 &7830359998459710090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cda598ecf83b444429d16bc940562e43, type: 3}
+  m_Name: Desktop
+  m_EditorClassIdentifier: 
+  useLighting: 1
+  useLightingSun: 1
+  useLightingSunCloudShadows: 0
+  useLightingSunLensFlare: 1
+  useLightingMoon: 1
+  useLightingMoonLensFlare: 1
+  useLightingLensFlareOcclusion: 0
+  useLightingAmbient: 1
+  useSky: 1
+  useSkyGradient: 1
+  useSkyTwoTone: 0
+  useSkyStars: 1
+  useSkyConstellations: 1
+  useSkyGalaxy: 1
+  useSkyRainbow: 1
+  useSkyLightColumns: 0
+  useSkyShootingStars: 0
+  useSkySunDisk: 1
+  useSkyMoonDisk: 1
+  useFog: 1
+  useFogGradient: 1
+  useFogSunLightFlare: 1
+  useFogMoonLightFlare: 1
+  useFogVolumetric: 0
+  useFogTwoTone: 0
+  useFogHeight: 0
+  useFogBase: 1
+  useClouds: 1
+  useCloudsVolumetric: 1
+  useCloudsVolumetricHighlights: 1
+  useCloudsVolumetricSelfShadowing: 0
+  useCloudsCumulonimbus: 0
+  useCloudsCumulus: 0
+  useCloudsAltocumulus: 1
+  useCloudsCirrus: 1
+  useCloudsContrails: 1
+  useSunshafts: 1
+  useSunshaftsScreenspace: 1

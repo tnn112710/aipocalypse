@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edc9e8ccf7e1f314da24a604c1a11094, type: 3}
+  m_Name: Hail Storm
+  m_EditorClassIdentifier: 
+  minTime:
+    hours: 3
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  maxTime:
+    hours: 8
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  forecastNext:
+  - {fileID: 11400000, guid: 134d60bbf3db4074599790ce6df65c88, type: 2}
+  - {fileID: 11400000, guid: 455ce7df2555ead47afd8bdb324c85ab, type: 2}
+  - {fileID: 11400000, guid: de62367a00d8753469a83e1f6f8079d3, type: 2}
+  - {fileID: 11400000, guid: cc15965868141a44cb0997b3674e317a, type: 2}
+  - {fileID: 11400000, guid: 93d26988b3de2134b9a80fb22acd8dac, type: 2}
+  - {fileID: 11400000, guid: 360273c9c779d1f42a10eee5f070a83a, type: 2}
+  forecastModifierMethod: 0
+  FX:
+  - {fileID: 11400000, guid: 37958e75fc835c242a6ab218c3f7c868, type: 2}
+  - {fileID: 11400000, guid: 5818af68d3b1bdd47ad057e03bb5f10e, type: 2}
+  - {fileID: 11400000, guid: 15b37cbb30f878c489770528e2780033, type: 2}
+  - {fileID: 11400000, guid: 81d5405a7a2400b468f4feeace096c59, type: 2}
+  - {fileID: 11400000, guid: f0aae4db13c067e42a90f893d620039e, type: 2}
+  - {fileID: 11400000, guid: b86bbfc054993324eb4d8bcc03dd47fe, type: 2}
+  - {fileID: 11400000, guid: f69846c0573b8f34c83c68de190c7d8e, type: 2}
+  chance:
+    baseChance: 0.225
+    chanceEffectors:
+    - curveType: 7
+      keys:
+      - time: 0
+        value: 0
+      - time: 0.44391418
+        value: 1
+  description: 
+  icon: {fileID: 2800000, guid: 88b82001f5214374a9459dfec53004e1, type: 3}
+  tag: 4
+  lateralShifts: []

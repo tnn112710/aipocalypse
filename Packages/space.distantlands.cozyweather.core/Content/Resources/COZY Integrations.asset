@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e294237c544ea314f91cb0410f948f36, type: 3}
+  m_Name: COZY Integrations
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.CozyIntegrations
+  integrations:
+  - rid: 7945989208878874894
+  - rid: 7945989208878874895
+  - rid: 7945989208878874896
+  - rid: 7945989208878874897
+  - rid: 7945989208878874898
+  - rid: 7945989208878874899
+  - rid: 7945989208878874901
+  - rid: 7945989208878874902
+  references:
+    version: 2
+    RefIds:
+    - rid: 7945989208878874894
+      type: {class: CozyButoIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        fogBrightnessMultiplier: 1
+        fogDensityMultiplier: 1
+    - rid: 7945989208878874895
+      type: {class: CozyCrest5Integration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data: 
+    - rid: 7945989208878874896
+      type: {class: CozyKryptoWaterSystemIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data: 
+    - rid: 7945989208878874897
+      type: {class: CozyMicroSplatIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        updateWetness: 1
+        minWetness: 0
+        maxWetness: 1
+        updateRainRipples: 1
+        updatePuddles: 1
+        updateStreams: 1
+        updateSnow: 1
+        updateWindStrength: 1
+    - rid: 7945989208878874898
+      type: {class: CozyBKIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        baseWindPower: 3
+        baseWindSpeed: 1
+        burstsPower: 0.5
+        burstsSpeed: 5
+        burstsScale: 10
+        microPower: 0.1
+        microSpeed: 1
+        microFrequency: 3
+        renderDistance: 30
+    - rid: 7945989208878874899
+      type: {class: CozyStylizeGrass2Integration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        controlSnow: 1
+        controlWetness: 1
+        controlWind: 1
+        windStrengthMultiplier: 1
+    - rid: 7945989208878874901
+      type: {class: CozyTVEIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        assignMainLight: 1
+        enableMotionControl: 1
+        enableSeasonControl: 1
+        enableWetnessControl: 1
+        enableSnowControl: 1
+    - rid: 7945989208878874902
+      type: {class: CozyZephyrIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        windStrengthMultiplier: 1

@@ -1,0 +1,211 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3#Globals"/>
+    <ui:Label tabindex="-1" text="Time" parse-escape-sequences="true" display-tooltip-when-elided="true" class="h1"/>
+    <ui:VisualElement name="time-container" class="section-bg"/>
+    <ui:Label tabindex="-1" text="Date" parse-escape-sequences="true" display-tooltip-when-elided="true" class="h1"/>
+    <ui:VisualElement name="date-container" class="section-bg"/>
+    <ui:VisualElement name="home" style="flex-grow: 0; display: flex;">
+        <ui:VisualElement name="module-holder" style="flex-grow: 1;">
+            <ui:VisualElement name="calendar" class="calendar">
+                <ui:VisualElement name="date-picker">
+                    <ui:VisualElement name="month-info" style="flex-grow: 1;">
+                        <ui:VisualElement name="back" class="nav-button"/>
+                        <ui:Label text="June 2025" name="month-selector"/>
+                        <ui:VisualElement name="forward" class="nav-button"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="weekday-display">
+                        <ui:Label text="S"/>
+                        <ui:Label text="M"/>
+                        <ui:Label text="T"/>
+                        <ui:Label text="W"/>
+                        <ui:Label text="T"/>
+                        <ui:Label text="F"/>
+                        <ui:Label text="S"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="month-view-mask">
+                    <ui:VisualElement name="month-view" class="month-view" style="flex-shrink: 0; top: 0;">
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator">
+                                    <ui:VisualElement class="event-dot" style="flex-grow: 1;"/>
+                                    <ui:VisualElement class="event-dot" style="flex-grow: 1;"/>
+                                    <ui:VisualElement class="event-dot" style="flex-grow: 1;"/>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="date-holder" style="width: 14.28%;">
+                            <ui:VisualElement name="date" class="date" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                                <ui:Label text="1&#10;"/>
+                                <ui:VisualElement name="indicator"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="calendar-footer" style="flex-shrink: 0;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="day-view" class="day-view" style="flex-grow: 0;">
+                <ui:VisualElement name="day-info">
+                    <ui:VisualElement name="back" class="nav-button"/>
+                    <ui:VisualElement name="day-title">
+                        <ui:Label text="Monday" name="weekday"/>
+                        <ui:Label text="June 10" name="date"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="forward" class="nav-button"/>
+                </ui:VisualElement>
+                <ui:ScrollView name="all-day-events" mode="Horizontal" horizontal-scroller-visibility="Auto" vertical-scroller-visibility="Hidden" nested-interaction-kind="StopScrolling" style="flex-shrink: 1; min-height: 0;"/>
+                <ui:ScrollView name="hourly-events" vertical-scroller-visibility="Auto" horizontal-scroller-visibility="Hidden" style="min-height: 400px;">
+                    <ui:VisualElement style="flex-grow: 1; min-height: 800px;">
+                        <ui:VisualElement style="flex-grow: 1; position: absolute; top: 0; right: 0; bottom: 0; left: 0;">
+                            <ui:Label text="6:00 AM" name="6am" class="time"/>
+                            <ui:Label text="12:00 PM" name="noon" class="time"/>
+                            <ui:Label text="6:00 PM" name="6pm" class="time"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="daily-event-container" style="flex-grow: 1; position: absolute; top: 0; right: 0; bottom: 0; left: 0;"/>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:Label tabindex="-1" text="Events" parse-escape-sequences="true" display-tooltip-when-elided="true" class="h1"/>
+    <ui:VisualElement name="events-container" class="section-bg"/>
+</ui:UXML>

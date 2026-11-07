@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5300cab2fe7cda4e817d91882753b5c, type: 3}
+  m_Name: Seasons - Winter
+  m_EditorClassIdentifier: DistantLands.Cozy.Resound.Runtime::DistantLands.Cozy.ResoundTrack
+  minTime:
+    hours: 0
+    minutes: 30
+    seconds: 0
+    milliseconds: 0
+  maxTime:
+    hours: 2
+    minutes: 30
+    seconds: 0
+    milliseconds: 0
+  clip: {fileID: 8300000, guid: b239b818bc165f647be761fc2c559f2a, type: 3}
+  volume: 1
+  loopMode: 0
+  chance:
+    baseChance: 1
+    chanceEffectors:
+    - curveType: 9
+      keys:
+      - time: 0.75179
+        value: 0
+      - time: 0.78758967
+        value: 1

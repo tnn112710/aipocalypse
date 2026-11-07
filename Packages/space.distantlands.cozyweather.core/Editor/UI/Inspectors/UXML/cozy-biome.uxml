@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/space.distantlands.cozyweather.core/Editor/UI/Globals.uss?fileID=7433441132597879392&amp;guid=60b39676bc45100478c0c8a083850788&amp;type=3#Globals"/>
+    <ui:VisualElement name="" style="flex-grow: 1; margin-right: -6px; margin-left: -15px;">
+        <ui:VisualElement class="banner" style="display: none;">
+            <ui:VisualElement name="background-container">
+                <ui:VisualElement name="background-image" class="main" style="flex-grow: 1; background-image: resource(&quot;Banners/Cozy Weather&quot;);"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="banner-content">
+                <ui:VisualElement name="banner-icon" style="flex-grow: 1;"/>
+                <ui:VisualElement style="flex-grow: 1;">
+                    <ui:Label text="COZY" name="banner-title"/>
+                    <ui:Label text="Biome" name="banner-subtitle"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <DistantLands.Cozy.EditorScripts.StatusMessage style="position: absolute; right: 0; bottom: 0;"/>
+        </ui:VisualElement>
+        <ui:VisualElement>
+            <ui:VisualElement name="biome-settings" class="section-bg" style="flex-grow: 1; margin-top: 10px;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="module-icon-container" class="module-list" style="min-width: 150px;"/>
+        <ui:VisualElement name="module-ui" style="margin-right: 0; margin-left: 0;"/>
+    </ui:VisualElement>
+</ui:UXML>

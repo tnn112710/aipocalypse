@@ -1,0 +1,27 @@
+//  Distant Lands 2026
+//  COZY: Stylized Weather 4
+//  All code included in this file is protected under the Unity Asset Store Eula
+
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+namespace DistantLands.Cozy
+{
+        [System.Serializable]
+        public class DefaultAtmosphereReferences : ScriptableObject
+        {
+
+/*__VARIABLES__*/
+
+#if UNITY_EDITOR
+                public void AssignDefaults()
+                {
+/*__ASSIGNMENT__*/
+                }
+#endif
+        }
+}

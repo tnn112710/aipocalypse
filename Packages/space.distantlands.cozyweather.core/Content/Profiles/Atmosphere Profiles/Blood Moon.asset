@@ -1,0 +1,530 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58971c84a8da56f46bc72a85a31d8a2d, type: 3}
+  m_Name: Blood Moon
+  m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.AtmosphereProfile
+  description: Red moons at night spell doom for the players
+  category: Stylized
+  icon: {fileID: 2800000, guid: 716bf9e8604bf71409aac5cbed0f1421, type: 3}
+  locked: 1
+  presetParameters:
+    dayColor: {r: 0.22509636, g: 0.39922595, b: 0.68733144, a: 1}
+    eveningColor: {r: 2, g: 0.31325302, b: 0, a: 1}
+    morningColor: {r: 0.63342315, g: 0.11866007, b: 0.19791126, a: 0}
+    nightColor: {r: 0.052941177, g: 0.009803922, b: 0.044076394, a: 0}
+    sunColor: {r: 1, g: 0.9489185, b: 0.85040426, a: 1}
+    moonColor: {r: 0.654902, g: 0.81272876, b: 1, a: 1}
+    lightingIntensity: 1
+    starBrightness: 0.3
+    fogginess: 1
+    fogSaturation: 0
+  overrides:
+  - rid: 4284785032245542994
+  - rid: 4284785032245542995
+  - rid: 4284785032245542996
+  - rid: 4284785032245542997
+  - rid: 2823899967466504667
+  references:
+    version: 2
+    RefIds:
+    - rid: 2823899967466504667
+      type: {class: CloudsVolumetricOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        mainTexture:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        noiseTexture:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        height:
+          constantValue:
+            value: 1300
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1300
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        darkeningIntensity:
+          constantValue:
+            value: 2
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 2
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        litColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.14901961, g: 0.0561804, b: 0.08056005, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.662538, g: 0.70132446, b: 0.7654986, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: {r: 0.662538, g: 0.70132446, b: 0.7654986, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.14901961, g: 0.05490196, b: 0.08235294, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        shadeColor:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: {r: 0.05490196, g: 0.011764706, b: 0.019607844, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: {r: 0.4334032, g: 0.5161148, b: 0.6529649, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: {r: 0.4334032, g: 0.5161148, b: 0.6529649, a: 1}
+            time:
+              hours: 4
+              minutes: 19
+              seconds: 12
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: {r: 0.05490196, g: 0.013231372, b: 0.018092947, a: 1}
+            time:
+              hours: 7
+              minutes: 40
+              seconds: 47
+              milliseconds: 999
+              meridiem: 1
+        placementScale1:
+          constantValue:
+            value: 1.5
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1.5
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        placementScale2:
+          constantValue:
+            value: 0.82
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0.82
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        density:
+          constantValue:
+            value: 2
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 2
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        noiseScale:
+          constantValue:
+            value: 7
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 7
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        noiseAmount:
+          constantValue:
+            value: 0.8
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0.8
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        placementHeight:
+          constantValue:
+            value: 1500
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1500
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        ramp:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        stepSize:
+          constantValue:
+            value: 16
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 16
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        steps:
+          constantValue:
+            value: 64
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 64
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        lODCoefficient:
+          constantValue:
+            value: 4
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 4
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        lODSteps:
+          constantValue:
+            value: 3
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 3
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        blueNoise:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        windStrength:
+          constantValue:
+            value: 1
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 1
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        highlightBrightness:
+          constantValue:
+            value: 0.6
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0.6
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+        highlightStepSize:
+          constantValue:
+            value: 75
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 75
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+    - rid: 4284785032245542994
+      type: {class: SkyMoonDiskOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        displayStyle:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        placementMode:
+          constantValue:
+            value: 1
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        phaseMode:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        color:
+          constantValue:
+            value: {r: 0.45552552, g: 0.0681446, b: 0.0681446, a: 0}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        size:
+          constantValue:
+            value: 15
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        rotation:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        texture:
+          constantValue:
+            value: {fileID: 2800000, guid: 046bdd8afd0751547b754fc343533b8f, type: 3}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        normalMap:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        normalStrength:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        declination:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        declinationPeriod:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        declinationOffset:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        orbitPeriod:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        orbitOffset:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 4284785032245542995
+      type: {class: LightingMoonLensFlareOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        reference:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        intensity:
+          constantValue:
+            value: 0
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        scale:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 4284785032245542996
+      type: {class: FogMoonLightFlareOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        color:
+          constantValue:
+            value: {r: 4, g: 0, b: 0, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        squish:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        intensity:
+          constantValue:
+            value: 0.2
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        falloff:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        minDistance:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        maxDistance:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 4284785032245542997
+      type: {class: LightingMoonOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        lightColor:
+          constantValue:
+            value: {r: 1, g: 0, b: 0, a: 0}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue: []
+        lightIntensity:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        shadowType:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        shadowIntensity:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []

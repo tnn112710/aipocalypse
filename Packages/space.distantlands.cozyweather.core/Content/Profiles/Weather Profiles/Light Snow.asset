@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edc9e8ccf7e1f314da24a604c1a11094, type: 3}
+  m_Name: Light Snow
+  m_EditorClassIdentifier: 
+  minTime:
+    hours: 3
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  maxTime:
+    hours: 8
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  forecastNext:
+  - {fileID: 11400000, guid: 3500d156aa5168944b5dd4b8e84ff00c, type: 2}
+  forecastModifierMethod: 0
+  FX:
+  - {fileID: 11400000, guid: 37958e75fc835c242a6ab218c3f7c868, type: 2}
+  - {fileID: 11400000, guid: 13e4ffdca985652489d4908ca0d98fc9, type: 2}
+  - {fileID: 11400000, guid: 7e3b3db42d633ab47b6c68fdfbbfa1d1, type: 2}
+  - {fileID: 11400000, guid: 8db7c251c41aa86488164aa359d06980, type: 2}
+  - {fileID: 11400000, guid: b745ff07562ab7b4582ae6cdd9e545cd, type: 2}
+  - {fileID: 11400000, guid: 18e78840fe074a549ba214e1a2e242ea, type: 2}
+  chance:
+    baseChance: 1
+    chanceEffectors:
+    - curveType: 8
+      keys:
+      - time: 0
+        value: 0
+      - time: 1
+        value: 1
+    - curveType: 0
+      keys:
+      - time: 0.3054893
+        value: 1
+      - time: 0.34844857
+        value: 0
+  description: 
+  icon: {fileID: 2800000, guid: 32de4c8952cb91741b0983152f81c599, type: 3}
+  tag: 16
+  lateralShifts:
+  - lateralProfile: {fileID: 11400000, guid: f2d3f1cb4e3d78a4fb7f9853c2ec899a, type: 2}
+    changeCondition:
+      compare: 2
+      conditionType: 0
+      temperature:
+        value: 32
+      humidity:
+        value: 0
+      pressure:
+        value: 0
+      uvIndex:
+        value: 0
+      airQuality:
+        value: 0
+      accumulatedSnow: 0
+      accumulatedRain: 0
+      convectiveRainChance: 0
+      stratiformRainChance: 0
+      season: 0
+      time:
+        hours: 12
+        minutes: 0
+        seconds: 0
+        milliseconds: 0
+        meridiem: 0
+      day:
+        year: 0
+        month: 0
+        day: 0
+      windSpeed: 0
+      weightedRandomChance:
+        baseChance: 0
+        chanceEffectors: []

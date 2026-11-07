@@ -1,0 +1,14 @@
+.timeGraph {
+    overflow: hidden;
+    border-bottom-color: rgba(255, 255, 255, 0.518);
+}
+
+.timeGraph:hover {
+    border-bottom-color: rgba(255, 255, 255, 0.518);
+    border-bottom-width: 2px;
+}
+
+.timeGraph.active {
+    border-bottom-color: rgb(255, 255, 255);
+    border-bottom-width: 3px;
+}

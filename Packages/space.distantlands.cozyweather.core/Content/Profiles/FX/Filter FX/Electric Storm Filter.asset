@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3aec3b970597e2c4590919a95c2c199a, type: 3}
+  m_Name: Electric Storm Filter
+  m_EditorClassIdentifier: 
+  transitionTimeModifier: 0
+  filterSaturation:
+    value: 0
+    overrideState: 1
+    min: -1
+    max: 1
+  filterValue:
+    value: 0
+    overrideState: 1
+    min: -1
+    max: 1
+  filterColor:
+    value: {r: 0.32563975, g: 0.5597484, b: 0.43069747, a: 1}
+    overrideState: 1
+    useHDR: 1
+    useAlpha: 0
+  sunFilter:
+    value: {r: 0.22516909, g: 0.2830189, b: 0.2528718, a: 1}
+    overrideState: 1
+    useHDR: 1
+    useAlpha: 0
+  cloudFilter:
+    value: {r: 0.28240567, g: 0.6855345, b: 0.48915675, a: 1}
+    overrideState: 1
+    useHDR: 1
+    useAlpha: 0

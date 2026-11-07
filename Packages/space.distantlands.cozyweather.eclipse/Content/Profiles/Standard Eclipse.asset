@@ -1,0 +1,361 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6dc1acd37a84ad7b3995a2fe36e83da, type: 3}
+  m_Name: Standard Eclipse
+  m_EditorClassIdentifier: DistantLands.Cozy.Eclipse.Runtime::DistantLands.Cozy.Eclipse.EclipseProfile
+  overrides:
+  - rid: 7945989161215066637
+  - rid: 7945989161215066638
+  - rid: 7945989161215066640
+  - rid: 7945989161215066639
+  - rid: 7945989161215066641
+  - rid: 7945989161215066642
+  - rid: 7945989161215066635
+  - rid: 7945989161215066634
+  - rid: 7945989161215066636
+  - rid: 7945989161215066717
+  - rid: 7945989161215066718
+  - rid: 7945989161215066719
+  - rid: 7945989161215066720
+  - rid: 7945989161215066721
+  references:
+    version: 2
+    RefIds:
+    - rid: 7945989161215066634
+      type: {class: SkyStarsEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        intensity:
+          disabled: 0
+          value: 0.186
+        rotationOffset:
+          disabled: 1
+          value: 0
+        twinkleAmount:
+          disabled: 1
+          value: 0
+        twinkleSpeed:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066635
+      type: {class: SkyGradientEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        zenithColor:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        horizonColor:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        groundColor:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        zenithExponent:
+          disabled: 1
+          value: 0
+        groundExponent:
+          disabled: 1
+          value: 0
+        offset:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066636
+      type: {class: SunshaftsScreenspaceEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        intensity:
+          disabled: 0
+          value: 0
+        length:
+          disabled: 1
+          value: 0
+        steps:
+          disabled: 1
+          value: 0
+        cloudMaskAmount:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066637
+      type: {class: LightingSunEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        lightColor:
+          disabled: 1
+          value: {r: 0.42767292, g: 0.25540662, b: 0.19231829, a: 0}
+        lightIntensity:
+          disabled: 0
+          value: 0.04
+        shadowIntensity:
+          disabled: 0
+          value: 0.253
+    - rid: 7945989161215066638
+      type: {class: LightingSunLensFlareEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        intensity:
+          disabled: 0
+          value: 0.1
+        scale:
+          disabled: 1
+          value: -0.17
+    - rid: 7945989161215066639
+      type: {class: FogGradientEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        color1:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        color2:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        color3:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        color4:
+          disabled: 0
+          value: {r: 0, g: 0.0029144932, b: 0.011764706, a: 0}
+        color5:
+          disabled: 0
+          value: {r: 0, g: 0.008831539, b: 0.015686275, a: 1}
+        density1:
+          disabled: 1
+          value: 0
+        density2:
+          disabled: 1
+          value: 0
+        density3:
+          disabled: 1
+          value: 0
+        density4:
+          disabled: 1
+          value: 0
+        density5:
+          disabled: 1
+          value: 0
+        start1:
+          disabled: 1
+          value: 0
+        start2:
+          disabled: 1
+          value: 0
+        start3:
+          disabled: 1
+          value: 0
+        start4:
+          disabled: 1
+          value: 0
+        start5:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066640
+      type: {class: LightingAmbientEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        zenithColor:
+          disabled: 0
+          value: {r: 0.509434, g: 0.41112977, b: 0.3892844, a: 0}
+        horizonColor:
+          disabled: 0
+          value: {r: 0.51572317, g: 0.42134595, b: 0.4070645, a: 0}
+        groundColor:
+          disabled: 0
+          value: {r: 0, g: 0, b: 0, a: 0}
+        intensity:
+          disabled: 0
+          value: 0.4
+    - rid: 7945989161215066641
+      type: {class: FogSunLightFlareEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        color:
+          disabled: 1
+          value: {r: 0, g: 0, b: 0, a: 0}
+        squish:
+          disabled: 1
+          value: 0
+        intensity:
+          disabled: 0
+          value: 0
+        falloff:
+          disabled: 1
+          value: 0
+        minDistance:
+          disabled: 1
+          value: 0
+        maxDistance:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066642
+      type: {class: SkySunDiskEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        haloColor:
+          disabled: 0
+          value: {r: 0.38741067, g: 0.07902225, b: 0, a: 0}
+        haloFalloff:
+          disabled: 0
+          value: 15
+        color:
+          disabled: 0
+          value: {r: 32, g: 6.136836, b: 0, a: 1}
+        size:
+          disabled: 0
+          value: 3
+    - rid: 7945989161215066717
+      type: {class: CloudsVolumetricEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        height:
+          disabled: 1
+          value: 0
+        darkeningIntensity:
+          disabled: 1
+          value: 0
+        litColor:
+          disabled: 0
+          value: {r: 0.04788182, g: 0.050367985, b: 0.05660379, a: 0}
+        shadeColor:
+          disabled: 0
+          value: {r: 0.07920966, g: 0.08510074, b: 0.09433961, a: 0}
+        placementScale1:
+          disabled: 1
+          value: 0
+        placementScale2:
+          disabled: 1
+          value: 0
+        density:
+          disabled: 1
+          value: 0
+        noiseScale:
+          disabled: 1
+          value: 0
+        noiseAmount:
+          disabled: 1
+          value: 0
+        placementHeight:
+          disabled: 1
+          value: 0
+        stepSize:
+          disabled: 1
+          value: 0
+        steps:
+          disabled: 1
+          value: 0
+        lODCoefficient:
+          disabled: 1
+          value: 0
+        lODSteps:
+          disabled: 1
+          value: 0
+        windStrength:
+          disabled: 1
+          value: 0
+        highlightBrightness:
+          disabled: 1
+          value: 0
+        highlightStepSize:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066718
+      type: {class: CloudsCirrusEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        height:
+          disabled: 1
+          value: 0
+        textureScale:
+          disabled: 1
+          value: {x: 0, y: 0, z: 0}
+        color:
+          disabled: 0
+          value: {r: 0.031446517, g: 0.031446517, b: 0.031446517, a: 0}
+        density:
+          disabled: 1
+          value: 0
+        windStrength:
+          disabled: 1
+          value: 0
+        wispFactor:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066719
+      type: {class: CloudsAltocumulusEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        height:
+          disabled: 1
+          value: 0
+        textureScale:
+          disabled: 1
+          value: {x: 0, y: 0, z: 0}
+        color:
+          disabled: 0
+          value: {r: 0.025157154, g: 0.025157154, b: 0.025157154, a: 0}
+        density:
+          disabled: 1
+          value: 0
+        ramp:
+          disabled: 1
+          value: 0
+        windStrength:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066720
+      type: {class: CloudsContrailsEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        height:
+          disabled: 1
+          value: 0
+        textureScale:
+          disabled: 1
+          value: {x: 0, y: 0, z: 0}
+        color:
+          disabled: 0
+          value: {r: 0.023529412, g: 0.023529412, b: 0.023529412, a: 0}
+        density:
+          disabled: 1
+          value: 0
+        windStrength:
+          disabled: 1
+          value: 0
+    - rid: 7945989161215066721
+      type: {class: CloudsCumulusEclipseOverride, ns: DistantLands.Cozy.Eclipse, asm: DistantLands.Cozy.Eclipse.Runtime}
+      data:
+        active: 1
+        height:
+          disabled: 1
+          value: 0
+        litColor:
+          disabled: 0
+          value: {r: 0.005882353, g: 0.005882353, b: 0.005882353, a: 0}
+        shadeColor:
+          disabled: 0
+          value: {r: 0.0029411765, g: 0.0029411765, b: 0.0029411765, a: 0}
+        thickness:
+          disabled: 1
+          value: 0
+        density:
+          disabled: 1
+          value: 0
+        windStrength:
+          disabled: 1
+          value: 0
+        cohesion:
+          disabled: 1
+          value: 0

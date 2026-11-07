@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d37b21d35221739469f2a68be56cf306, type: 3}
+  m_Name: Default Blocks Collections
+  m_EditorClassIdentifier: DistantLands.Cozy.Blocks.Runtime::DistantLands.Cozy.Blocks.BlocksCollectionProfile
+  blockTimes:
+  - blockName: Morning
+    startTime:
+      hours: 4
+      minutes: 6
+      seconds: 14
+      milliseconds: 400
+      meridiem: 0
+    transitionPercentage: 0.369
+    transitionDuration:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+    blocks:
+    - blocksProfile: {fileID: 11400000, guid: 6957829f9f007884196ec4c8a3e84dbf, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: a164be1ce1f181a44a8396d89752ece7, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 581c922a2c171294e93bab2abb3e6ea3, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 371666120eb45104a8ccef8771c6b745, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+  - blockName: Day
+    startTime:
+      hours: 7
+      minutes: 30
+      seconds: 43
+      milliseconds: 200
+      meridiem: 0
+    transitionPercentage: 0.12
+    transitionDuration:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+    blocks:
+    - blocksProfile: {fileID: 11400000, guid: ca73f12ea1e0bdb42901affefd077852, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 18a13773112a32148bd372819eaddd25, type: 2}
+      chance:
+        baseChance: 0.491
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: db25e0ff5998b664789c16201f638875, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 3d5ab101263a460439ee6c80c93e2dd0, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+  - blockName: Evening
+    startTime:
+      hours: 5
+      minutes: 30
+      seconds: 19
+      milliseconds: 200
+      meridiem: 1
+    transitionPercentage: 0.425
+    transitionDuration:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+    blocks:
+    - blocksProfile: {fileID: 11400000, guid: b21d2fdbf9b97d1429041f80b37dc36a, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 383ed152c24909445b829ffc4d8d69cd, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: b26108815379e5f44a1fa80d43592d76, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: f534f3c9444115449a567ee9a0a49931, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+  - blockName: Night
+    startTime:
+      hours: 8
+      minutes: 0
+      seconds: 19
+      milliseconds: 200
+      meridiem: 1
+    transitionPercentage: 0.289
+    transitionDuration:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+    blocks:
+    - blocksProfile: {fileID: 11400000, guid: f0dc79b88b9f6dc4eaa22ff3315c4db5, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: f2d691e8a8155a24d8b9fd18a089366c, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: c28f8d523e470b44697f0dc65eb4591d, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 2e1993900489c3f4db92a03c9fdb284a, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors: []
+    - blocksProfile: {fileID: 11400000, guid: 53a1eaefbc7d0194eacb7da53fa16f35, type: 2}
+      chance:
+        baseChance: 1
+        chanceEffectors:
+        - curveType: 10
+          keys:
+          - time: 0
+            value: 0
+          - time: 0.6133652
+            value: 0
+          - time: 0.7016707
+            value: 1
+          - time: 0.8949882
+            value: 1
+          - time: 0.9451075
+            value: 0
+    - blocksProfile: {fileID: 11400000, guid: 59a71161d314d1e44aeea86f6abd89d6, type: 2}
+      chance:
+        baseChance: 0.25
+        chanceEffectors: []
