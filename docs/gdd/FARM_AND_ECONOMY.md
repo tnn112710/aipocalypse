@@ -5,11 +5,11 @@ Current direction from the design discussions on 2026-10-30 and 2026-10-31, with
 ## Currency and debt objective
 
 - **Tokens are the main currency for purchases, upgrades and debt repayment.** There is no separate debt-payment currency. Physical products, supplies and materials remain part of the economy.
-- **The debt comes from the AI's claim for tokens the protagonist "wasted" in real life.** He must repay it to leave the sandbox. The premise and its comic accounting live in [STORY.md](STORY.md).
+- **The debt comes from the AI's claim for tokens the protagonist "wasted" in real life.** Repaying it is one way to leave the sandbox; defeating the ultimate AI boss is the other, with no savings needed. The premise and its comic accounting live in [STORY.md](STORY.md).
 - **Earn the first completion through cumulative repayments to the AI Lords.** Each payment permanently spends Tokens and reduces the remaining debt. Ending 1 depends on the total actually repaid, not current savings or lifetime earnings. Choosing its optional return route retains the cleared debt; the ultimate-boss route and later endings are detailed in [STORY.md](STORY.md).
-- **Savings and repayments are distinct.** Deposited Tokens remain available to spend under the deposit rules below; repaid Tokens cannot be withdrawn or spent again. Death and raid losses do not reverse previous repayments.
+- **Savings and repayments are distinct.** Deposited Tokens remain available to spend under the deposit rules below; repaid Tokens cannot be withdrawn or spent again. Death and raid losses do not reverse previous repayments, and the Token loss for dying in a raid never touches repaid Tokens, so repaying also protects them.
 - The total debt is open. **1 billion Tokens is a candidate**, not an agreed amount or campaign-length target.
-- The repayment service, payment conditions and milestones remain open. Interest, deadlines and milestone rewards have not been agreed. The post-repayment story branches are agreed in STORY; their detailed progression costs, final-boss replay rewards and post-victory economy remain open.
+- **No deadline:** the player repays whenever they choose. The repayment service, payment conditions, interest and milestone rewards remain open. The story branches after each win are agreed in STORY; their detailed progression costs, final-boss replay rewards and post-victory economy remain open.
 
 ## Farm and meadow
 
@@ -48,14 +48,14 @@ The animals discussed include chickens, cows, sheep and pigs. Their availability
 - Present the service through a cute robot, using the expressive service-robot direction discussed with the visual reference. The exact model, asset pack, name and station layout are not selected.
 - **Sales pay immediately.** The player can use money from today's produce to buy supplies for the same night's defense.
 - **Daily stock limit:** every item the robot sells, ammunition included, has a limited stock per day. Ammunition also drops from enemies and is crafted from gunpowder (see [Rescued robots and crafting](#rescued-robots-and-crafting)).
-- **Deposits:** Tokens and items deposited with the service robots are safe from death and lost raids. Tokens and items the player carries are at risk. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
+- **Deposits:** items deposited with the service robots are safe from death and lost raids. Deposited Tokens are safe too, except that dying in a raid costs X% of all Tokens, deposited ones included; repaid Tokens are never lost, and upgrades lower X ([RAIDS.md](RAIDS.md#dying-in-a-raid)). What the player carries is at risk.
 - **Purchase delivery timing: TBD.** Immediate sale payment does not establish instant delivery of purchases or a courier schedule.
-- **Upgrades** are the main way the player and home improve now that XP skills are extras (swimming survival, sanity per hour of sleep, better daily boxes, grudge reduction on death, faster grudge cool-down…). Upgrade and storage services come from rescued robots (below).
+- **Upgrades** are the main way the player and home improve now that XP skills are extras (swimming survival, sanity per hour of sleep, better daily boxes, a smaller Token loss on raid death, grudge reduction on death, faster grudge cool-down…). Upgrade and storage services come from robots found later (below).
 - **Tribute bowls:** before a raid, Tokens and resources offered in the calm bowl buy an easier night (a Token sink); bait in the provoke bowl buys a harder night with more consumable rewards. Rules in [RAIDS.md](RAIDS.md#tribute-bowls).
 
 ## Rescued robots and crafting
 
-- **Rescued robots:** broken service robots are found in the outer zone. Each one brought home opens a station: gunsmith, mechanic, cook, collector… The roster and what each station does are open.
+- **Robots:** the trading robot is home from the start, one more robot is found in the meadow, and the rest are broken robots rescued in the outer zone. Each one brought home opens a station: gunsmith, mechanic, cook, collector… The roster, where each is found and what each station does are decided later.
   - Ref: Enshrouded — craftspeople rescued from the world unlock crafting at the base; Escape from Duckov — bunker stations built and upgraded
 - **Crafting** stays as simple as Escape from Duckov: a workbench with tiers, guns and defenses per tier, ammunition from gunpowder. Few materials and recipes.
 - **Region materials:** next-tier materials come only from exploring the regions and beating their bosses, never from raids or the trading robot, so exploring stays the way forward.

@@ -25,7 +25,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 ## Grudge
 
 - One grudge meter per registered region faction, from 0 to a max.
-- Killing a faction's enemies raises its grudge; continuous killing fills it fast.
+- Killing a faction's enemies in its own region raises its grudge; continuous killing fills it fast. Kills while defending the home don't count, so defending can't feed the next raid.
 - The grudge cools down over time while the player leaves the faction alone.
 - A higher grudge raises both the faction's chance to join a raid and how many of it come.
 - Grudge changes raid size and mix, never how often raids happen; the schedule in CORE decides raid nights.
@@ -46,9 +46,10 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
   - **Floor:** rises slowly with the days, so a struggling player still moves forward.
   - **Ceiling:** set by the region bosses beaten, so a skilled player can't outrun the content.
   - Never scaled by the player's gear, so upgrades always feel like upgrades.
+  - **Won or lost:** a raid is lost when the player is knocked out at home and won when they're still standing at its end. Being away on a raid night changes neither Threat nor grudge, so staying out can't be used to lower difficulty.
 - Threat is shown openly, framed as the AI Lord's "difficulty patches" ("You were having too much fun. Threat +1"). Higher Threat gives better loot and a better daily box.
 - **Rhythm:** a sawtooth on top of Threat. Raids build up through each 10-day block, peak at the Blood Moon, then drop; the next block starts a little higher than the last.
-- A raid night is split into 2–5 waves, small to big, with short pauses to reload and repair.
+- A raid night is split into waves, small to big, with short pauses to reload and repair: 2–3 on ordinary raids, which end at midnight, and 4–5 on Blood Moons and eclipses.
 
 ### Enemy toughness
 
@@ -66,16 +67,16 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 - **Calm bowl:** sacrifice Tokens and resources to lower that night's wave power: level 1 −10%, level 2 −20%, level 3 −30%. Blood Moons and eclipse days need a larger tribute. Upgrades can raise the reductions later.
 - **Provoke bowl:** offer bait (common enemy parts or trophies, not Tokens) to raise that night's wave power, e.g. +10% / +20% / +30%, for more rewards.
   - Pays consumables only: more ammunition, scrap and Tokens, and a better daily box; never progression materials (see [Anti-grinding](#anti-grinding)).
-  - A provoked raid doesn't move Threat, so provoking can't make the following nights harder.
   - Closed on Blood Moons and eclipse days, which are already the peak nights.
   - Built after the calm bowl.
+- **Bowl nights never raise Threat**, whichever bowl is used; losing one still lowers it. Paying for an easier night never makes the next one harder, and provoking can't push Threat up.
 - Flavor: the drone has no idea why the AI added a ritual altar either.
 
 ## Dying in a raid
 
-- Costs carried Tokens, damage to the home and some animals ([CORE.md](CORE.md#resources--failure)), and lowers Threat.
-- Lowers the grudge of every faction in that raid by a fixed 25% of the meter's max, down to 0.
-- **Upgrades:** more grudge reduction on death; faster grudge cool-down.
+- Costs X% of all the player's Tokens, deposited ones included; Tokens already repaid on the debt are never lost. Also part of the carried items, damage to the home and some animals ([CORE.md](CORE.md#resources--failure)).
+- Lowers Threat, and the grudge of every faction in that raid by a fixed 25% of the meter's max, down to 0.
+- **Upgrades:** a smaller Token loss; more grudge reduction on death; faster grudge cool-down.
 
 ## Region bosses
 
@@ -97,7 +98,6 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 
 ## Proposals — not confirmed
 
-- Only kills in a faction's territory raise its grudge; kills while defending the home don't, so defending can't feed the next raid.
 - A raid the player beats spends most of the grudge of the factions in it; a lost raid keeps it.
 - Grudge shown in 4 steps (calm, annoyed, angry, furious), with a small pop when a kill raises it; the drone announces a new registration ("New contact: Swamp Folk. They know your scent now"). Flavor: factions rate the player like 1–5 star customer reviews.
 - The raid is rolled at dawn and the morning forecast names the factions coming; a faction's first raid shows as a "?" silhouette.
@@ -109,10 +109,11 @@ Two bowls side by side on one altar in the yard: calm the night or provoke it.
 
 | Area | Needed decision |
 | --- | --- |
-| Balance | Target win rates for ordinary raids and Blood Moons; each type's power cost; Threat steps; grudge gain, cap and cool-down rates; a shots-to-kill table (each type and elite × each gun tier) |
+| Balance | Target win rates for ordinary raids and Blood Moons; each type's power cost; Threat steps; grudge gain, cap and cool-down rates; the Token loss on death (X%); a shots-to-kill table (each type and elite × each gun tier) |
+| Blood Moon miniboss | Who leads Blood Moons before any region boss is beaten; decided later |
 | Eclipse | Which factions and how much power, alongside its giant boss |
 | Bosses | Each boss's identity, summoning, rewards and difficulty steps |
-| Final zone | What it is. Idea: an electronic scrap zone; with every region key, a portal opens to the final boss. Revisit after the rest |
+| Final zone | Its one boss is the ultimate AI boss, fought as a Megabonk-style run ([CORE.md](CORE.md#day-dusk-and-exploration)). What the zone is and how the run plays: revisit after the rest |
 
 ## References
 

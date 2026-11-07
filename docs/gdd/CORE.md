@@ -4,7 +4,7 @@ Current design direction, revised 2026-11-07: a first-person shooter with farmin
 
 ## Pitch
 
-A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. The AI claims he owes for tokens he "wasted" in real life; he must earn Tokens and repay the debt to leave. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore the regions beyond the river and fight their bosses, and bring resources home to prepare for threats. The creatures you fight out there hold a grudge and come for your farm. Animals produce faster when roaming the meadow, but must be brought home before raids, when goblins steal what is left outside. On raid nights, defend the farm against thieves and attackers who cross the river, fly in or appear inside the meadow; on quiet nights, fish, rest or enjoy other activities. Cute service robots handle trading, deposits and a daily reward box.
+A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. The AI claims he owes for tokens he "wasted" in real life; to leave, he must repay the debt or defeat the AI boss behind the sandbox. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore the regions beyond the river and fight their bosses, and bring resources home to prepare for threats. The creatures you fight out there hold a grudge and come for your farm. Animals produce faster when roaming the meadow, but must be brought home before raids, when goblins steal what is left outside. On raid nights, defend the farm against thieves and attackers who cross the river, fly in or appear inside the meadow; on quiet nights, fish, rest or enjoy other activities. Cute service robots handle trading, deposits and a daily reward box.
 
 ## Pillars
 
@@ -35,7 +35,7 @@ A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — wh
 ## Core loop
 
 ~~~text
-MORNING: open the daily box, trade and deposit, release the animals, assign the dog
+MORNING: open the daily box, trade and deposit, release the animals (later: assign the dog)
    -> DAY: farm / fish / gather in the meadow, or explore the outer zone
    -> DUSK (raid nights): ring the bell, hurry the animals home, ready the defenses
    -> NIGHT: defend until midnight (Blood Moon: until dawn), or enjoy a quiet night
@@ -47,7 +47,7 @@ MORNING: open the daily box, trade and deposit, release the animals, assign the 
 | --- | --- |
 | Seconds | Shoot, swing, collect produce, harvest, fish, react to theft and threats |
 | One day | Choose local work or exploration, manage roaming animals, and prepare for a raid or use a quiet night for activities such as fishing |
-| Long term | Improve the home and equipment, rescue service robots, beat region bosses, train the dog, explore farther and survive the major event every 10 days while repaying the debt to the AI Lords |
+| Long term | Improve the home and equipment, rescue service robots, beat region bosses, explore farther (later: train the dog) and survive the major event every 10 days, working toward repaying the debt or defeating the ultimate AI boss |
 
 ### Loop rules
 
@@ -71,14 +71,14 @@ MORNING: open the daily box, trade and deposit, release the animals, assign the 
 - **Outer zone:** after repairing the bridge, cross the river to explore for resources and loot while watching for wandering enemies and dangers. There is no extraction point: tension comes from the daylight timer, the risk to what you carry and the outer zone after dark.
 - **Regions:** all regions are open once across the river and differ in difficulty by distance: Pine Forest (nearest), then Swamps, then Highlands. Each has its own enemy faction, region materials and a boss. Next-tier materials, rescued robots, trophies and keys come only from exploring and bosses.
 - **Region bosses:** summoned by the player. The first kill gives a key or trophy toward the final boss plus Tokens and materials; later kills give Tokens and materials only and get harder each time. Details in [RAIDS.md](RAIDS.md#region-bosses).
-- **Final zone:** locked until every region boss is beaten. Its nature is undecided (idea: an electronic scrap zone where a portal leads to the final boss).
+- **Final zone:** locked until every region boss is beaten. Its one boss is the ultimate AI boss, fought as a Megabonk-style run rather than like the region bosses; beating it wins the game (see [Endings](#endings)). What the zone is and how the run plays are decided later (idea: an electronic scrap zone where a portal leads to the run).
 - **Looting:** containers take a short search and show rarity colors. Cleared camps stay cleared for some days.
 - **Daytime aggression:** enemies stay in the outer zone unless they are chasing the player, and a chaser can follow across the bridge. Pursuit limits and what a chaser does in the meadow are open.
 - **River:** swimming across is dangerous (strong current, drowning) until upgrades improve survival underwater. Crossing anyway is allowed.
 - **Dusk on raid nights:** return with supplies, ring the bell, hurry the slow animals home and ready the defenses. Quiet nights allow other activities, including night fishing.
 - **Dog assignment:** take the dog exploring for help, or leave it at home. Later training helps bring animals home; exact abilities and commands are open.
 - **Minigames:** they stay inside activities, such as shooting jumping fish at bait. Further minigame systems remain optional ideas.
-- Player biome portals are removed. Enemies that appear through portals are a separate feature.
+- **Later: a portal at home** teleports the player to the regions quickly instead of walking. It is fast travel on the one map, not the removed daily biome portals.
 
 ## Night & special events
 
@@ -86,7 +86,7 @@ MORNING: open the daily box, trade and deposit, release the animals, assign the 
 | --- | --- | --- |
 | Quiet night | No raid; rest, sleep or night fishing. Animals left outside sleep where they are | Night activities beyond fishing, lighting needs |
 | Ordinary raid night | Defend until midnight (12 a.m.); new attacks stop and surviving raiders retreat. Goblins plus at most 1–2 provoked factions ([RAIDS.md](RAIDS.md)) | Balance values |
-| Blood Moon | Full-night miniboss event on every 10th day except eclipse days. Every registered faction comes, plus weaker versions of beaten region bosses; difficulty rises gradually from one Blood Moon to the next | Warnings, phases, rewards and how the night resolves |
+| Blood Moon | Full-night miniboss event on every 10th day except eclipse days. Every registered faction comes, plus weaker versions of beaten region bosses; difficulty rises gradually from one Blood Moon to the next | Who the miniboss is, warnings, phases, rewards and how the night resolves |
 | Eclipse | Full-day event on every 30th day, replacing that day's Blood Moon: more enemies and one giant boss; weaker versions of beaten region bosses also come | Which factions and how much power; details with the enemy-system revision |
 | Outer zone after dark | Extremely dangerous enemies, darkness draining sanity and attacks by mystical entities | Light protection, entity behavior, dog benefits and escape options |
 
@@ -118,7 +118,7 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - **Routes:** at night, goblins cross the river freely and some use the bridge; some enemies fly; some appear directly in the meadow (summoned or through portals). The bridge is not a chokepoint, so defense centres on the yard and paddock fences.
 - The midnight retreat ends an ordinary raid. Outer-zone night dangers remain; Blood Moons last the full night.
 - Fences and barricades are defenses. A lost fight can leave the home damaged and require repairs.
-- **Away on a raid night:** the raid resolves without the player. Animals outside are stolen and fences take damage scaled to the raid. The morning shows the result: broken fences, missing animals and the drone's report.
+- **Away on a raid night:** the raid resolves without the player. Animals outside are stolen and fences take damage scaled to the raid. The morning shows the result: broken fences, missing animals and the drone's report. Threat and grudge don't change ([RAIDS.md](RAIDS.md#how-hard-wave-power-and-threat)).
 - **Stolen animals** are taken deep into the outer zone. The player has 3 days to bring one back before it is lost forever, or can buy a new one. Where they are kept (camps) is designed later.
 - Light protects against the Dark, not ordinary enemies. Campfires and torches provide light; fuel and any other effects are not settled.
 
@@ -134,10 +134,10 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - Crops and plants grow inside the fence. Animal products, harvests and fish support cooking, eating where applicable, or selling.
 - Animals drop produce where they are; freely roaming animals produce faster. Drops never despawn, and each animal stops producing at a cap of uncollected drops. Feeding, rates, the cap size and species-specific outputs need detail.
 - A **trading station with a cute robot** sells and buys. Sales pay immediately. Every item, ammunition included, has a daily stock limit.
-- **Deposits:** Tokens and items deposited with the service robots are safe; this is the home stash.
+- **Deposits:** items deposited with the service robots are safe; this is the home stash. Deposited Tokens are safe too, except from the Token loss when dying in a raid (see [Resources & failure](#resources--failure)).
 - **Daily box:** each morning, pick one free box out of three. See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md#daily-box).
 - **Upgrades** are the player's main way to improve (see below).
-- **Rescued robots:** broken service robots are found in the outer zone; each one brought home opens a station (gunsmith, mechanic, cook, collector…), inspired by Escape from Duckov's home facilities and Enshrouded's rescued craftspeople.
+- **Robots:** the trading robot is home from the start, one more robot is found in the meadow, and the rest are broken robots rescued in the outer zone. Each one brought home opens a station (gunsmith, mechanic, cook, collector…), inspired by Escape from Duckov's home facilities and Enshrouded's rescued craftspeople. Details later.
 - **Crafting** stays as simple as Escape from Duckov: a workbench with tiers, guns and defenses per tier, ammunition from gunpowder. Few materials and recipes.
 - **Defenses** are built on fixed spots around the yard and paddock; no freeform building.
 
@@ -166,26 +166,26 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 ## Resources & failure
 
 - **Resources:** Tokens, wood, food, farm products, materials, ammunition and equipment. Trees regrow; their timing is not fixed.
-- **Deposits** with the service robots are safe from death and lost raids. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
+- **Deposits** with the service robots are safe from death and lost raids, except Tokens: dying in a raid costs a share of all Tokens. Tokens repaid on the debt are never lost.
 - **What you carry is at risk**, Tokens included.
-- **Knocked out at home during a raid:** wake the next morning and lose part of what you carry (Tokens and items) and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. It also lowers the Threat level and the grudge of the factions in that raid ([RAIDS.md](RAIDS.md#dying-in-a-raid)).
+- **Knocked out at home during a raid:** wake the next morning having lost X% of all your Tokens, deposited ones included (upgrades lower X), part of the items you carry and some animals; the home takes damage. Losing a Blood Moon or an eclipse costs more. Exact shares are open. It also lowers the Threat level and the grudge of the factions in that raid ([RAIDS.md](RAIDS.md#dying-in-a-raid)).
 - **Death in the outer zone:** respawn at home. The previous draft's loss rule is retained for review: 50–70% of carried loot drops into a recoverable grave, a second death loses the grave, and equipped melee and the dog's backpack are protected. Carried-item selection, percentage and grave lifetime need review.
 - **Structures:** buildings and upgrades are kept, but damage can require repair.
 
 ## Endings
 
-- **Win by repaying the debt to the AI Lords.** Purchases, upgrades and repayments use one main currency, **Tokens**. The debt is the AI's claim for tokens the protagonist wasted in real life (see [STORY.md](STORY.md)). The total is not decided; 1 billion Tokens is a candidate, not a confirmed balance target.
-- **Cumulative repayments determine completion.** Paid Tokens are spent permanently and reduce the remaining debt; spending other Tokens or suffering losses does not undo payments. Holding the target balance or reaching a lifetime earnings total does not count as repayment.
+- **Two ways to win:** repay the debt to the AI Lords, or defeat the ultimate AI boss in the final zone without saving up the debt. There is no deadline for repaying. Purchases, upgrades and repayments use one main currency, **Tokens**. The debt is the AI's claim for tokens the protagonist wasted in real life (see [STORY.md](STORY.md)). The total is not decided; 1 billion Tokens is a candidate, not a confirmed balance target.
+- **Cumulative repayments complete the debt route.** Paid Tokens are spent permanently and reduce the remaining debt; spending other Tokens or suffering losses does not undo payments. Holding the target balance or reaching a lifetime earnings total does not count as repayment.
 - **Ending 1:** repayment returns the protagonist to reality, now controlled by AI, revealing enslaved humans training AI in sandboxes. Choose an open-ending resistance cutscene or voluntarily return to the existing sandbox with the farm, equipment and cleared debt retained.
-- **Ending 2:** after Ending 1 and choosing to return, defeat the ultimate AI boss and leave for reality in 2018, the protagonist's personal happier year and a chance to change the future. Time-travel details remain open.
+- **Ending 2:** defeat the ultimate AI boss, directly or after Ending 1 and the return, and leave for reality in 2018, the protagonist's personal happier year and a chance to change the future. Time-travel details remain open.
 - **Ending 3:** after the same boss victory, choose to stay in the surviving sandbox and continue life at the farm. Memories remain; later access to the encounter/exit choice is intended, with replay and post-victory threat rules open. See [STORY.md](STORY.md) for the full structure.
-- **Earlier grand trial — on hold:** the relic-gated trial and reveal that this was the protagonist's own game are separate from the newly agreed post-repayment ultimate AI boss. The secret lottery-win ending remains on hold.
+- **Earlier grand trial:** its Megabonk-style run is now the final-boss fight. Its relic gating (replaced by the region keys) and the reveal that this was the protagonist's own game are dropped. The secret lottery-win ending remains on hold.
 
 ## Open decisions
 
 | Area | Needed decision |
 | --- | --- |
-| World | The final zone, region materials, daytime pursuit limits, river-swim upgrades |
+| World | What the final zone is and how its boss run plays, region materials, daytime pursuit limits, river-swim upgrades, the fast-travel portal (later) |
 | Raids | Balance values in [RAIDS.md](RAIDS.md#open), the forecast and progress-bar presentation |
 | Major events | Warnings, stages and rewards; eclipse enemies and boss with the enemy-system revision |
 | Bosses | Each region boss's identity, summoning, rewards and difficulty steps |
@@ -193,8 +193,8 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 | Farm and trade | Production rates, drop cap, recipes, prices, daily stock sizes and purchase delivery timing |
 | Services | Rescued-robot roster, station functions, robot presentation and station layout |
 | Progression | The upgrade list, crafting tiers and recipes, gear balance |
-| Debt and ending | Total debt, repayment service and payment conditions; ultimate boss identity/access, time travel, final presentation and post-victory/replay rules (STORY) |
-| Failure | Shares lost when knocked out, the outer-zone grave, structure damage and economic recovery |
+| Debt and ending | Total debt, repayment service and payment conditions; ultimate boss identity, where the truth is revealed when the player beats the boss without repaying, time travel, final presentation and post-victory/replay rules (STORY) |
+| Failure | The Token loss (X%) and shares lost when knocked out, the outer-zone grave, structure damage and economic recovery |
 | Sanity and weather | Effects and rates, refined later |
 
 ## References
@@ -213,4 +213,4 @@ References inform specific aspects of the design; they do not commit the game to
 | DREDGE | Tempting excursions, preparation and danger after dark |
 | Village 51 | Combining first-person shooting and base defense |
 | Chop Chop Inc. | Regrowing trees and office-worker-to-survivor humor |
-| Megabonk | The grand-trial concept (on hold) with manual aiming retained |
+| Megabonk | The final-boss run: run-and-gun with level-ups during the run, manual aiming retained |

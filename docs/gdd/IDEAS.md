@@ -1,10 +1,29 @@
 # Ideas — proposals and history
 
-Current design lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Suggestions here are not permission to implement them. Confirm an idea with the user before moving it into the current design.
+Current design lives in [CORE.md](CORE.md), [STORY.md](STORY.md), [RAIDS.md](RAIDS.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Suggestions here are not permission to implement them. Confirm an idea with the user before moving it into the current design.
 
 Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook preserves earlier discussions and approvals in their original context; it is not a second source of current rules.
 
 ## Current review proposals — not confirmed
+
+### GDD review (2026-11-07)
+
+Decided by the user and moved into the GDD: grudge only from kills in the faction's region; staying out can't lower difficulty; 2–3 waves on ordinary raids, 4–5 on major events; bowl nights never raise Threat; one final boss, the ultimate AI boss, fought as a Megabonk-style run; dying in a raid costs X% of all Tokens except repaid ones; crafting stays core, the dog comes later; robots (one at home, one in the meadow, the rest outside); release in Early Access; no debt deadline; two ways to win (repay the debt or defeat the ultimate boss); a fast-travel portal to the regions later.
+
+Still suggested:
+
+- Where the boss route reveals the truth: during the final-boss run, the AI shows what reality has become before the last fight, so Endings 2–3 keep their meaning without Ending 1
+- Tokens as one balance: a raid death already takes a share of all Tokens, so depositing Tokens only guards against outer-zone deaths. Suggested: no carrying or depositing Tokens, deposits are for items, and every death costs the same share. [TBD] what an outer-zone death costs in Tokens
+- Fast-travel portal: one-way out to discovered spots, then walk home with the loot, so bringing loot back stays the risky part
+  - Ref: Valheim — portals can't carry metal ore or bars, so hauling stays a trip by ship or cart
+- First Early Access version: Pine Forest + Swamps (goblins + 2 factions, 2 region bosses) and Ending 1; Highlands, the final zone and Endings 2–3 in updates; 2 enemy types per faction, elites as tint/scale variants
+  - Ref: Valheim — Early Access from February 2021; Mistlands added a biome and its boss in December 2022
+  - Ref: Enshrouded — Melodies of the Mire (June 2024) added the Blackmire area during Early Access
+- Sanity needs 1–2 effects before sleep is built (e.g. HUD glitches and fake enemy silhouettes, slower jam clearing), or it moves to later with the Dark
+- One place for the difficulty: the drone's morning report ("Tonight: raid · Goblins + Swamp Folk (angry) · Threat 7"), with the dawn forecast proposal in RAIDS.md
+- One raid job per faction, so grudge changes preparation: e.g. goblins steal, Pine Forest breaks fences, Swamps surface inside the meadow, Highlands fly
+- Faction slots per raid set by Threat or bosses beaten, not by day
+- Gunpowder as the scarce input, so crafted ammo doesn't erode "every bullet counts"
 
 ### Valheim / Enshrouded + Escape from Duckov mix (user, 2026-11-07)
 
@@ -23,7 +42,7 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
   - Rejected: food buffs replacing the Hunger meter; Glitch zones (see Rejected)
 - Still suggested: one signature material per region; looted guns with rarity and mods; limited backpack slots; comfort near the bed raises sanity restored per hour of sleep (Ref: Valheim — comfort sets how long the Rested buff lasts)
 - Risk: Outpost: Infinity Siege (see Historical notebook) mixed the same genres and felt diluted. Borrow Valheim's and Enshrouded's structure, not their size
-- [TBD] what the final zone is (???: the ultimate AI boss from STORY), what each region boss drops
+- [TBD] what the final zone is; its one boss is the ultimate AI boss, fought as a Megabonk-style run (user, 2026-11-07)
 
 #### New enemy kinds in raids (user, 2026-11-07)
 
@@ -101,9 +120,9 @@ Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook pres
   - Floor: rises slowly with the days, so a struggling player still moves forward. Ceiling: set by bosses beaten, so a skilled player can't outrun the content
   - The sawtooth stays: the block shape (ramp → Blood Moon peak → quiet) sits on top of the Threat level
   - Two separate knobs: Threat = how hard (performance); grudge = who comes (player choices)
-- Decided (user, 2026-11-07): dying in a raid costs carried Tokens, home damage and some animals, and lowers the grudge of the factions in that raid by a fixed 25% of the meter's max (not halving), down to 0. The 25% is upgradable
+- Decided (user, 2026-11-07): dying in a raid costs carried Tokens, home damage and some animals, and lowers the grudge of the factions in that raid by a fixed 25% of the meter's max (not halving), down to 0. The 25% is upgradable. Later the same day the Token cost became X% of all Tokens except repaid ones (RAIDS.md)
   - Decided (user, 2026-11-07): two upgrades: more grudge reduction on death, and faster daily cool-down
-  - Later (user, 2026-11-07): a tribute at the robots buys a grudge cut with Tokens
+  - Later (user, 2026-11-07): a tribute at the robots buys a grudge cut with Tokens — replaced the same day by the tribute bowls in RAIDS.md
 - Suggested: show the Threat level openly, as the AI Lord's "difficulty patches" ("You were having too much fun. Difficulty +1"). Loot and the daily box get better as Threat rises, so players want to climb and losing on purpose doesn't pay
   - Ref: Resident Evil 4 — a hidden difficulty rank rises and falls with player performance
 - (???) A starting difficulty choice that sets how fast Threat climbs
@@ -201,6 +220,8 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
 
 ### Outer zone and progression (later)
 
+Superseded (user, 2026-11-07): all regions are open and ranked by difficulty, with summoned bosses ([CORE.md](CORE.md)). Kept for reference.
+
 - One 30-day cycle per outer region of the current map: Pine Forest (days 1–30) → Highlands (31–60) → Swamps (61–90). Each eclipse boss drops the gear that opens the next region (climbing gear, waders…); Blood Moon minibosses drop the materials for it. Difficulty then scales by cycle. Could also give the grand trial its entry (relics as eclipse-boss drops).
   - Ref: Valheim — each boss drops the item that unlocks the next biome's tools (Eikthyr's antlers → antler pickaxe → Black Forest ores)
   - Ref: Atomicrops — farm by day, defend the crops at night, and a boss on the farm at the end of each season
@@ -218,9 +239,9 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
 | Fire out / small fire / bonfire chooses whether and how much to fight | Night raids are part of the loop; Blood Moons and eclipses provide major-event directions |
 | Night enemies never arrive through portals | Night threats can come from the outer zone and appear through portals |
 | A completely peaceful progression path with no required defense; fights only when the player lights the fire | Fights are required on raid nights; no full-cozy mode. Ordinary days and quiet nights stay safe (user, 2026-10-31) |
-| Daily player biome portals provide the main expeditions | Player biome portals are removed; repairing the bridge unlocks the outer-zone map, whose detailed design is deferred |
+| Daily player biome portals provide the main expeditions | Player biome portals are removed; repairing the bridge unlocks the outer zone: open regions ranked by difficulty, each with a faction and a boss, and a locked final zone (user, 2026-11-07). A fast-travel portal to the regions comes later |
 | Possible fixed morning product collection and next-day grazing bonuses | Animals physically drop products near themselves, with faster production while roaming in the meadow |
-| Selling and buying have no chosen home service | A cute robot trading station is chosen; upgrade/storage services are possible later |
+| Selling and buying have no chosen home service | A cute robot trading station is chosen; more robots, one in the meadow and the rest rescued in the outer zone, open further stations (user, 2026-11-07) |
 | Ordinary-night ending remains unresolved | At midnight, new attacks stop and surviving raiders retreat |
 | Immediate versus next-morning sale payment remains unresolved | Sales pay immediately; purchase delivery timing remains open |
 | Every ordinary night may require a defense | Quiet nights are part of the loop; the distribution of ordinary raids and quiet nights is undecided |
@@ -229,17 +250,17 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
 | Night enemies arrive from the outer zone and portals | Goblins cross the river at night, some over the bridge; some enemies fly; some appear inside the meadow. The bridge is not a chokepoint |
 | Enemies never cross into the meadow by day unless provoked | An enemy chasing the player can follow across the bridge |
 | The broken bridge is the only way across | The bridge is the safe way; the river can't be swum until an upgrade, but a player who makes it across is not stopped |
-| Ordinary raids versus quiet nights undistributed; forecasts undesigned | Tonight's type is known for sure in the morning; days 1–4 quiet, about 4 raids per 9-night block, never 3 in a row, quiet nights around major events, dealt from a shuffle bag |
+| Ordinary raids versus quiet nights undistributed; forecasts undesigned | Tonight's type is known for sure in the morning; night 1 quiet and the first raid on night 2 (user, 2026-11-07), about 4 raids per 9-night block, never 3 in a row, quiet nights around major events, dealt from a shuffle bag |
 | What happens at home while the player is away on a raid night | The raid resolves without the player: exposed animals are stolen and fences damaged; the morning shows the result |
 | Stolen animals' fate undecided | They are held deep in the outer zone for 3 days, then lost forever; replacements can be bought |
 | Pickup persistence undecided | Drops never despawn; each animal stops producing at a cap; a collector robot later |
 | Animals managed only by the player at dusk | A bell calls them home; they walk slowly and hurry when the player interacts with them. At night they sleep and produce nothing |
-| Death loses 50–70% of loot anywhere; the stash is safe | Deposits with the robots are safe; knocked out at home means waking the next morning, losing part of what you carry and some animals (more on major events) |
-| Ammunition bought or crafted | Bought from the trading robot (every item has a daily stock limit) or looted from enemies; crafting open |
+| Death loses 50–70% of loot anywhere; the stash is safe | Deposited items are safe; dying in a raid costs X% of all Tokens, deposited ones included but never repaid ones (user, 2026-11-07), plus part of what you carry and some animals (more on major events) |
+| Ammunition bought or crafted | Bought from the trading robot (every item has a daily stock limit), looted from enemies, or crafted from gunpowder (user, 2026-11-07) |
 | XP skills, Luck, perk cards and the cat as core growth and companions | Upgrades and gear are the growth; skills, Luck, perk cards and the cat are extras for later (user, 2026-10-31) |
 | Perk cards as the reward for night fights | Enemy loot and a better free daily box (pick one of three) |
 | Sleep skips the night | Sleep restores sanity per hour slept: any time on quiet nights, after midnight on raid nights, never on Blood Moons |
-| 30+ days to an ending through biome relics and the grand trial | Endless for now; the grand trial is on hold, not forgotten |
+| 30+ days to an ending through biome relics and the grand trial | Two ways to win: repay the debt (Ending 1) or defeat the ultimate AI boss in a Megabonk-style run, reached with every region key (Endings 2–3) (user, 2026-11-07). The trial's relics are replaced by the region keys; its "own game" reveal is dropped |
 
 ## Historical notebook — before 2026-10-30
 
@@ -551,7 +572,8 @@ Direction recorded before this revision, with suggestions mixed in. Some decisio
 #### Grand trial (escape) — on hold, not forgotten (user, 2026-10-31)
 
 - Megabonk-inspired run-and-gun, 2–3 levels, rogue-like card selection to level up during the run
-- Not designing further for now; the game is endless until it returns. Its entry needs a new design now that biome relics are gone (proposal: relics as eclipse-boss drops, see Outer zone and progression)
+- Update (user, 2026-11-07): the run-and-gun format is now the fight with the ultimate AI boss in the final zone (CORE.md)
+- Earlier: not designed further, and its entry needed a new design once biome relics were gone; the region keys now open the final zone
 
 #### Endings
 

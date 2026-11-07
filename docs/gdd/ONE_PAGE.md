@@ -4,21 +4,23 @@ The whole game on one page, after Unity's [one-page game design document](https:
 
 **Title:** aipocalypse (working title)
 
-**Concept:** A developer burned out by mandatory AI productivity hears emergency sirens and is swallowed by light from his PC. He wakes on a farm without knowing it is an AI sandbox and is billed for tokens the AI claims he wasted in real life. Farm, explore and defend home to earn Tokens and repay the debt for a first exit. Premise, reveals and endings: [STORY.md](STORY.md).
+**Concept:** A developer burned out by mandatory AI productivity hears emergency sirens and is swallowed by light from his PC. He wakes on a farm without knowing it is an AI sandbox and is billed for tokens the AI claims he wasted in real life. Farm, explore and defend home to earn Tokens and repay the debt, or fight through the regions to the AI boss behind the sandbox. Premise, reveals and endings: [STORY.md](STORY.md).
 
 **Core loop:** farm → explore → prepare → defend → sleep.
 
 **Goal, win, lose**
 - Goal: build a livelihood, improve the farm and home, survive raids and major events, and repay the debt to the AI Lords.
-- First completion: clear the debt through cumulative repayments using **Tokens**, the same currency as purchases and upgrades. Paid progress is permanent. Ending 1 reveals AI-controlled reality and enslaved human training subjects; choose resistance or return to the sandbox.
-- Further endings: after Ending 1 and returning, defeat the ultimate AI boss, then leave for reality in 2018 (Ending 2) or choose to stay at the farm (Ending 3). The debt amount, time-travel mechanism and replay/post-victory details remain open; the older relic-gated grand-trial concept is on hold.
-- Lose: never final. A knockout or death costs carried loot, Tokens and maybe animals; deposits are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
+- Win, route 1: clear the debt through cumulative repayments using **Tokens**, the same currency as purchases and upgrades, with no deadline. Paid progress is permanent. Ending 1 reveals AI-controlled reality and enslaved human training subjects; choose resistance or return to the sandbox.
+- Win, route 2: collect every region boss's key and defeat the ultimate AI boss in the final zone, a Megabonk-style run, without saving up the debt. Then leave for reality in 2018 (Ending 2) or stay at the farm (Ending 3); also open after Ending 1 and the return. The debt amount, time-travel mechanism and replay/post-victory details remain open.
+- Lose: never final. Dying in a raid costs a share of all Tokens (repaid ones are safe), some carried items and maybe animals; deposited items are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
 
 **Controls (PC):** WASD move · mouse look · LMB fire / swing · RMB aim · R reload · E interact (hold: repair) · Space jump · Shift sprint · C crouch · 1–9 / wheel switch item · G drop.
 
 **Pillars:** build something worth protecting · choose how to spend the day · prepare before dark · every bullet counts · from office worker to survivor.
 
-**Can't ship without** *(proposal)*
+**Release:** Early Access first, after 6–9 months solo; regions, bosses and endings then grow through updates shaped by player feedback. Valheim and Enshrouded both added biomes during Early Access.
+
+**First Early Access version can't ship without** *(proposal)*
 - First-person shooting with limited ammo (a few guns) and melee as fallback.
 - Day/night clock; raid and quiet nights known each morning; Blood Moon and eclipse.
 - Goblin raids that both steal and attack; breakable fences and gate with repair.
@@ -29,15 +31,16 @@ The whole game on one page, after Unity's [one-page game design document](https:
 - HP, hunger, stamina, sanity; sleep restores sanity.
 - Save/load, knockout and death losses, a wake-up intro and first-raid tutorial.
 
-**If time allows** *(proposal)*: the dog, collector robot, crafting, cooking beyond basics, weather, gun fishing, storage station, river-swim upgrades, more enemy kinds (robots, zombies), outer zone after dark (the Dark, mystical entities).
+**If time allows, else in an update** *(proposal)*: the dog, collector robot, the fast-travel portal, cooking beyond basics, weather, gun fishing, storage station, river-swim upgrades, more enemy kinds (robots, zombies), outer zone after dark (the Dark, mystical entities).
 
-**Not this version** *(proposal)*: XP skills, perk cards, Luck, the cat, the older relic-gated grand-trial concept and lottery ending, a cozy mode without fights, player biome portals, multiplayer, languages other than English. The new post-repayment ultimate-boss story is separate from that older grand trial; its production scope and milestone placement still need planning.
+**Not this version** *(proposal)*: XP skills, perk cards, Luck, the cat, the lottery ending, a cozy mode without fights, the old daily biome portals, multiplayer, languages other than English. Which regions, the final zone and its boss run, and which endings go into the first Early Access version still needs planning.
 
 **Look and sound:** stylized nature (Raygeas main look) — warm, cozy meadow by day, frightening moonlit nights where enemies stay readable. Cute service robots, a comic guide drone. Guns get the most audio work (punchy, polished); ambience follows the clock (dawn chorus, wind, owls); music TBD.
 
 **Inspiration**
 - Escape from Duckov — prepare at home, risk what you carry, home facilities, simple crafting.
 - Valheim / Enshrouded — regions with bosses whose trophies are keys; rescued helpers open stations.
+- Megabonk — the run-and-gun fight with the final boss.
 - Thronefall / Kingdom Two Crowns — invest by day, defend a readable night.
 - 7 Days to Die / Terraria — Blood Moons and eclipses players prepare for.
 - Slime Rancher — physical produce and home trading.
@@ -50,7 +53,7 @@ The whole game on one page, after Unity's [one-page game design document](https:
 - 60 fps at 1080p on an RTX 2060; saves are never lost.
 - Five outside players finish a 30-day run and we act on their feedback.
 
-**Milestones** *(proposal, dates to set; target 6–9 months solo)*
+**Milestones** *(proposal, dates to set; target 6–9 months solo to the first Early Access version)*
 1. **Core feel** — movement, shooting, enemies, one raid night in WorldMap (current).
 2. **One full day** — farm, animals, trading, daily box, sleep, raid and quiet nights; a day can be played start to finish.
 3. **Ten days** — bridge, outer zone, upgrades, losses, save/load, the first Blood Moon.
