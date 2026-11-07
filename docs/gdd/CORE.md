@@ -1,10 +1,10 @@
 # Core Gameplay
 
-Current design direction, revised 2026-10-31: a first-person shooter with farming, exploration and home defense. Farm, trading and the daily box live in [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Open rules are marked explicitly; proposals, extras and superseded designs are in [IDEAS.md](IDEAS.md).
+Current design direction, revised 2026-11-07: a first-person shooter with farming, exploration and home defense. Farm, trading, debt repayment and the daily box live in [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Open rules are marked explicitly; proposals, extras and superseded designs are in [IDEAS.md](IDEAS.md).
 
 ## Pitch
 
-A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore beyond the river, and bring resources home to prepare for threats. Animals produce faster when roaming the meadow, but must be brought home before raids, when goblins steal what is left outside. On raid nights, defend the farm against thieves and attackers who cross the river, fly in or appear inside the meadow; on quiet nights, fish, rest or enjoy other activities. Cute service robots handle trading, deposits and a daily reward box.
+A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — which turns out to be a broken sandbox made by an AI. The AI claims he owes for tokens he "wasted" in real life; he must earn Tokens and repay the debt to leave. Build a livelihood with animals, crops and fishing, repair the broken bridge to explore beyond the river, and bring resources home to prepare for threats. Animals produce faster when roaming the meadow, but must be brought home before raids, when goblins steal what is left outside. On raid nights, defend the farm against thieves and attackers who cross the river, fly in or appear inside the meadow; on quiet nights, fish, rest or enjoy other activities. Cute service robots handle trading, deposits and a daily reward box.
 
 ## Pillars
 
@@ -18,8 +18,9 @@ A game dev burned out by AI wakes up in the peaceful meadow he dreamed of — wh
 
 ## Premise & tone
 
-- The MC works in games, gets overwhelmed by AI, and quits to become a farmer. The night before leaving, he falls asleep at his desk, a flash from the computer takes him, and he wakes in a remote meadow.
+- The MC works in games and is burned out by being forced to use AI for productivity. Emergency sirens sound outside while he is at his PC; light from the computer swallows him, and he wakes on a farm in a remote meadow, unaware it is an AI sandbox.
 - A cute guide **drone** welcomes him and explains the world — it is secretly the eyes of the **AI Lord** who built this sandbox.
+- The drone presents an absurd invoice for the tokens the AI claims he wasted in real life while withholding the world's true nature. **Tokens** are also the world's currency; cumulative repayments buy his first exit. Ending 1 reveals AI-controlled reality and humanity being used to train AI through sandboxes. Story detail, reveal order and the optional return route live in [STORY.md](STORY.md).
 - Cozy and funny around home; risky beyond the river; frightening after dark. Eclipse events interrupt the ordinary safe-day rhythm.
 - Cute service robots provide the home services. Their exact models, names and presentation are not selected.
 
@@ -46,7 +47,7 @@ MORNING: open the daily box, trade and deposit, release the animals, assign the 
 | --- | --- |
 | Seconds | Shoot, swing, collect produce, harvest, fish, react to theft and threats |
 | One day | Choose local work or exploration, manage roaming animals, and prepare for a raid or use a quiet night for activities such as fishing |
-| Long term | Improve the home and equipment, train the dog, explore farther and survive the major event every 10 days. Play is endless for now |
+| Long term | Improve the home and equipment, train the dog, explore farther and survive the major event every 10 days while repaying the debt to the AI Lords |
 
 ### Loop rules
 
@@ -128,7 +129,7 @@ The pattern repeats every 30 days. An eclipse replaces the Blood Moon in that ma
 - Crops and plants grow inside the fence. Animal products, harvests and fish support cooking, eating where applicable, or selling.
 - Animals drop produce where they are; freely roaming animals produce faster. Drops never despawn, and each animal stops producing at a cap of uncollected drops. Feeding, rates, the cap size and species-specific outputs need detail.
 - A **trading station with a cute robot** sells and buys. Sales pay immediately. Every item, ammunition included, has a daily stock limit.
-- **Deposits:** coins and items deposited with the service robots are safe; this is the home stash.
+- **Deposits:** Tokens and items deposited with the service robots are safe; this is the home stash.
 - **Daily box:** each morning, pick one free box out of three. See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md#daily-box).
 - **Upgrades** are the player's main way to improve (see below). The upgrade service and a separate storage station, inspired by Escape from Duckov's home facilities, are open in form and unlocks.
 
@@ -155,17 +156,21 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 
 ## Resources & failure
 
-- **Resources:** coins, wood, food, farm products, materials, ammunition and equipment. Trees regrow; their timing is not fixed.
+- **Resources:** Tokens, wood, food, farm products, materials, ammunition and equipment. Trees regrow; their timing is not fixed.
 - **Deposits** with the service robots are safe from death and lost raids. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
-- **What you carry is at risk**, coins included.
-- **Knocked out at home during a raid:** wake the next morning and lose part of what you carry (coins and items) and some animals. Losing a Blood Moon or an eclipse costs more. Exact shares are open.
+- **What you carry is at risk**, Tokens included.
+- **Knocked out at home during a raid:** wake the next morning and lose part of what you carry (Tokens and items) and some animals. Losing a Blood Moon or an eclipse costs more. Exact shares are open.
 - **Death in the outer zone:** respawn at home. The previous draft's loss rule is retained for review: 50–70% of carried loot drops into a recoverable grave, a second death loses the grave, and equipped melee and the dog's backpack are protected. Carried-item selection, percentage and grave lifetime need review.
 - **Structures:** buildings and upgrades are kept, but damage can require repair.
 
 ## Endings
 
-- **The game is endless for now.**
-- **Grand trial — on hold, not forgotten:** the earlier concept used relics to unlock a grand trial, then revealed that the sandbox was the game the MC was making. Wake at the desk and choose to delete it, fix it, leave it or return. How the trial is reached needs a new design now that biome portals are gone. The secret lottery-win ending is on hold with it.
+- **Win by repaying the debt to the AI Lords.** Purchases, upgrades and repayments use one main currency, **Tokens**. The debt is the AI's claim for tokens the protagonist wasted in real life (see [STORY.md](STORY.md)). The total is not decided; 1 billion Tokens is a candidate, not a confirmed balance target.
+- **Cumulative repayments determine completion.** Paid Tokens are spent permanently and reduce the remaining debt; spending other Tokens or suffering losses does not undo payments. Holding the target balance or reaching a lifetime earnings total does not count as repayment.
+- **Ending 1:** repayment returns the protagonist to reality, now controlled by AI, revealing enslaved humans training AI in sandboxes. Choose an open-ending resistance cutscene or voluntarily return to the existing sandbox with the farm, equipment and cleared debt retained.
+- **Ending 2:** after Ending 1 and choosing to return, defeat the ultimate AI boss and leave for reality in 2018, the protagonist's personal happier year and a chance to change the future. Time-travel details remain open.
+- **Ending 3:** after the same boss victory, choose to stay in the surviving sandbox and continue life at the farm. Memories remain; later access to the encounter/exit choice is intended, with replay and post-victory threat rules open. See [STORY.md](STORY.md) for the full structure.
+- **Earlier grand trial — on hold:** the relic-gated trial and reveal that this was the protagonist's own game are separate from the newly agreed post-repayment ultimate AI boss. The secret lottery-win ending remains on hold.
 
 ## Open decisions
 
@@ -178,6 +183,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 | Farm and trade | Production rates, drop cap, recipes, prices, daily stock sizes and purchase delivery timing |
 | Services | Upgrade service and storage functions, unlocks, robot presentation and station layout |
 | Progression | The upgrade list and gear balance |
+| Debt and ending | Total debt, repayment service and payment conditions; ultimate boss identity/access, time travel, final presentation and post-victory/replay rules (STORY) |
 | Failure | Shares lost when knocked out, the outer-zone grave, structure damage and economic recovery |
 | Sanity and weather | Effects and rates, refined later |
 

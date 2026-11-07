@@ -1,10 +1,14 @@
 # Game Design Document — aipocalypse
 
-Design intent, split into topic files. Current direction revised 2026-10-31. Technical implementation is documented in [ARCHITECTURE.md](../technicals/ARCHITECTURE.md); the development schedule is in [ROADMAP.md](../ROADMAP.md).
+Design intent, split into topic files. Current direction revised 2026-11-07. Technical implementation is documented in [ARCHITECTURE.md](../technicals/ARCHITECTURE.md); the development schedule is in [ROADMAP.md](../ROADMAP.md).
 
 Start with [CORE.md](CORE.md). The current loop combines a farm and safe daytime meadow, exploration unlocked by repairing the bridge, and required defense on raid nights against thieves and attackers. Cute robot services provide trading, safe deposits and a free daily box; upgrade and storage services are open in form.
 
-Raid and quiet nights are known each morning; ordinary raids end at midnight. Blood Moons occur every 10 days, with an eclipse replacing the Blood Moon every 30 days. Play is endless for now and the grand trial is on hold. XP skills, perk cards, Luck and the cat are extras for later. See the [major-event calendar](CORE.md#major-event-calendar).
+A developer burned out by compulsory AI productivity hears emergency sirens, is swallowed by light from his PC and wakes on a farm, unaware it is an AI sandbox. The AI claims he owes for tokens he "wasted" in real life. **Tokens** are the universal currency for supplies, upgrades and cumulative debt repayments.
+
+Repayment earns Ending 1: return to AI-controlled reality and discover humanity's enslavement as sandbox training subjects. Choose resistance outside or return to confront the ultimate AI boss. Victory on the return route offers Ending 2 (reality in 2018 and another chance) or Ending 3 (stay in the home he built). The debt amount, time-travel mechanism, detailed presentation and replay rules remain open. The earlier relic-gated grand trial remains on hold. See [STORY.md](STORY.md) for the premise, reveal order and ending structure.
+
+Raid and quiet nights are known each morning; ordinary raids end at midnight. Blood Moons occur every 10 days, with an eclipse replacing the Blood Moon every 30 days. XP skills, perk cards, Luck and the cat are extras for later. See the [major-event calendar](CORE.md#major-event-calendar).
 
 ## Reading the draft
 
@@ -18,6 +22,7 @@ Raid and quiet nights are known each morning; ordinary raids end at midnight. Bl
 | --- | --- | --- |
 | [ONE_PAGE.md](ONE_PAGE.md) | The whole game on one page: concept, loop, win/lose, controls, scope, look, audience, done criteria, milestones | Summary of CORE; scope, done and milestones are proposals |
 | [CORE.md](CORE.md) | Pitch, pillars, places, loop, bridge and river, day/night, raid schedule, Blood Moons, eclipses, sleep and sanity, player, companions, failure and endings | Current direction; detailed rules open |
-| [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) | Roaming animals, physical product drops, crops, food, fishing, robot trading, deposits, daily stock, the daily box and upgrade/storage services | Direction agreed; rates, prices and service rules open |
+| [STORY.md](STORY.md) | Compulsory AI productivity and siren opening, token-waste debt, hidden sandbox training, occupied reality, resistance/return and the 2018/stay endings | Opening and ending structure agreed; detailed staging, time travel and replay rules open |
+| [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) | Tokens and cumulative debt repayment, roaming animals, physical product drops, crops, food, fishing, robot trading, deposits, daily stock, the daily box and upgrade/storage services | Direction agreed; rates, prices and service rules open |
 
-Further topic files (player, weapons, enemies, night fights, world, story, UI, art and audio) get added here as each area is designed. Keep unresolved choices explicit rather than filling them with assumed mechanics or balance numbers.
+Further topic files (player, weapons, enemies, night fights, world, UI, art and audio) get added here as each area is designed. Keep unresolved choices explicit rather than filling them with assumed mechanics or balance numbers.

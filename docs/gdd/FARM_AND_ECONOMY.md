@@ -1,6 +1,15 @@
 # Farm & Economy
 
-Current direction from the design discussions on 2026-10-30 and 2026-10-31. [CORE.md](CORE.md) describes the daily loop. Confirmed direction is distinguished below from proposals and open rules; this is a design draft, not implementation status.
+Current direction from the design discussions on 2026-10-30 and 2026-10-31, with the currency and debt objective agreed on 2026-11-07. [CORE.md](CORE.md) describes the daily loop. Confirmed direction is distinguished below from proposals and open rules; this is a design draft, not implementation status.
+
+## Currency and debt objective
+
+- **Tokens are the main currency for purchases, upgrades and debt repayment.** There is no separate debt-payment currency. Physical products, supplies and materials remain part of the economy.
+- **The debt comes from the AI's claim for tokens the protagonist "wasted" in real life.** He must repay it to leave the sandbox. The premise and its comic accounting live in [STORY.md](STORY.md).
+- **Earn the first completion through cumulative repayments to the AI Lords.** Each payment permanently spends Tokens and reduces the remaining debt. Ending 1 depends on the total actually repaid, not current savings or lifetime earnings. Choosing its optional return route retains the cleared debt; the ultimate-boss route and later endings are detailed in [STORY.md](STORY.md).
+- **Savings and repayments are distinct.** Deposited Tokens remain available to spend under the deposit rules below; repaid Tokens cannot be withdrawn or spent again. Death and raid losses do not reverse previous repayments.
+- The total debt is open. **1 billion Tokens is a candidate**, not an agreed amount or campaign-length target.
+- The repayment service, payment conditions and milestones remain open. Interest, deadlines and milestone rewards have not been agreed. The post-repayment story branches are agreed in STORY; their detailed progression costs, final-boss replay rewards and post-victory economy remain open.
 
 ## Farm and meadow
 
@@ -39,7 +48,7 @@ The animals discussed include chickens, cows, sheep and pigs. Their availability
 - Present the service through a cute robot, using the expressive service-robot direction discussed with the visual reference. The exact model, asset pack, name and station layout are not selected.
 - **Sales pay immediately.** The player can use money from today's produce to buy supplies for the same night's defense.
 - **Daily stock limit:** every item the robot sells, ammunition included, has a limited stock per day. Ammunition also drops from enemies; crafting remains open.
-- **Deposits:** coins and items deposited with the service robots are safe from death and lost raids. Coins and items the player carries are at risk. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
+- **Deposits:** Tokens and items deposited with the service robots are safe from death and lost raids. Tokens and items the player carries are at risk. Whether Blood Moons and eclipses can take part of the deposits is to be considered later.
 - **Purchase delivery timing: TBD.** Immediate sale payment does not establish instant delivery of purchases or a courier schedule.
 - **Upgrades** are the main way the player and home improve now that XP skills are extras (swimming survival, sanity per hour of sleep, better daily boxes…). The upgrade service and a storage station, inspired by Escape from Duckov's home facilities, are open in form, unlocks and whether they share a structure.
 
@@ -48,7 +57,7 @@ The animals discussed include chickens, cows, sheep and pigs. Their availability
 A small, free daily pick with a gacha feel.
 
 - **The offer:** every morning, three closed boxes wait at the trading robot. Open one and the other two vanish. Unopened boxes stay until the next morning, then get replaced.
-- **Picking wisely:** each box shows its category (ammunition, food/healing, materials, coins) and a rarity glow, but not what is inside. The player picks by what tonight needs; the roll inside is the gacha moment.
+- **Picking wisely:** each box shows its category (ammunition, food/healing, materials, Tokens) and a rarity glow, but not what is inside. The player picks by what tonight needs; the roll inside is the gacha moment.
 - **Reward for fighting:** a defended raid raises one box's rarity; a won Blood Moon or eclipse guarantees a rare box the next morning.
 - **Better through upgrades:** picking more than one box, better box quality, rerolls.
 - **Fairness:** a rare box at least every few days, so bad luck never lasts long. No streaks, no penalty for a missed day, no real money.
@@ -65,14 +74,15 @@ A small, free daily pick with a gacha feel.
 
 ## How the activities connect
 
-The confirmed connection is simple: collect produce, harvests, fish and exploration loot; keep useful goods for food or other uses, or sell them for money; deposit what must be safe; use purchases, upgrades and the daily box to support the next day and its defense.
+The confirmed connection is simple: collect produce, harvests, fish and exploration loot; keep useful goods for food or other uses, or sell them for Tokens; deposit what must be safe; use purchases, upgrades and the daily box to support the next day and its defense, and spend Tokens on permanent debt repayments toward winning.
 
 ```text
 Animals / crops / fishing -> ingredients -> food
-                         -> sales -> coins -> purchases (daily stock) and upgrades
+                         -> sales -> Tokens -> purchases (daily stock) and upgrades
+                                           -> cumulative debt repayments -> win
 Exploration -> resources and loot -> home supplies and progression
 Night defense -> protect animals, player and farm -> enemy loot, better daily box
-Deposits -> keep coins and items safe from death and raids
+Deposits -> keep Tokens and items safe from death and raids
 ```
 
 ### Balance proposals — to validate
@@ -103,4 +113,5 @@ Deposits -> keep coins and items safe from death and raids
 | Crops | Starter plants, growth, replanting and maintenance |
 | Food | Recipes, meal effects and whether cooked products can be sold |
 | Upgrades and storage | Which services exist, what they do and when they unlock |
-| Economy balance | Income, daily costs, recovery and the relationship between coins and exploration materials |
+| Economy balance | Income, daily costs, recovery and the relationship between Tokens and exploration materials |
+| Currency and debt | Total debt, repayment service and conditions, milestones and ending/post-win rules |

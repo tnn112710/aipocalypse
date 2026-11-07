@@ -1,17 +1,18 @@
 # One-Page Design — aipocalypse
 
-The whole game on one page, after Unity's [one-page game design document](https://unity.com/blog/one-page-game-design-document). Detail lives in [CORE.md](CORE.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); if they disagree, they win and this page gets fixed. The scope, "done" and milestone sections are **proposals to confirm**, not decisions yet.
+The whole game on one page, after Unity's [one-page game design document](https://unity.com/blog/one-page-game-design-document). Detail lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); if they disagree, they win and this page gets fixed. The scope, "done" and milestone sections are **proposals to confirm**, not decisions yet.
 
 **Title:** aipocalypse (working title)
 
-**Concept:** A burned-out game dev wakes up inside a broken AI-made sandbox, builds a small farm in a safe meadow, explores across the river for loot, and defends home with limited ammo on raid nights.
+**Concept:** A developer burned out by mandatory AI productivity hears emergency sirens and is swallowed by light from his PC. He wakes on a farm without knowing it is an AI sandbox and is billed for tokens the AI claims he wasted in real life. Farm, explore and defend home to earn Tokens and repay the debt for a first exit. Premise, reveals and endings: [STORY.md](STORY.md).
 
 **Core loop:** farm → explore → prepare → defend → sleep.
 
 **Goal, win, lose**
-- Goal: grow the farm and home, survive the raids, beat the Blood Moon minibosses (every 10 days) and the eclipse boss (every 30th day).
-- Win: endless for now; each won major event is the milestone. The grand-trial ending is on hold.
-- Lose: never final. A knockout or death costs carried loot, coins and maybe animals; deposits are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
+- Goal: build a livelihood, improve the farm and home, survive raids and major events, and repay the debt to the AI Lords.
+- First completion: clear the debt through cumulative repayments using **Tokens**, the same currency as purchases and upgrades. Paid progress is permanent. Ending 1 reveals AI-controlled reality and enslaved human training subjects; choose resistance or return to the sandbox.
+- Further endings: after Ending 1 and returning, defeat the ultimate AI boss, then leave for reality in 2018 (Ending 2) or choose to stay at the farm (Ending 3). The debt amount, time-travel mechanism and replay/post-victory details remain open; the older relic-gated grand-trial concept is on hold.
+- Lose: never final. A knockout or death costs carried loot, Tokens and maybe animals; deposits are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
 
 **Controls (PC):** WASD move · mouse look · LMB fire / swing · RMB aim · R reload · E interact (hold: repair) · Space jump · Shift sprint · C crouch · 1–9 / wheel switch item · G drop.
 
@@ -29,7 +30,7 @@ The whole game on one page, after Unity's [one-page game design document](https:
 
 **If time allows** *(proposal)*: the dog, collector robot, crafting, cooking beyond basics, weather, gun fishing, storage station, river-swim upgrades, more enemy kinds (robots, zombies), outer zone after dark (the Dark, mystical entities).
 
-**Not this version** *(proposal)*: XP skills, perk cards, Luck, the cat, the grand trial and lottery endings, a cozy mode without fights, player biome portals, multiplayer, languages other than English.
+**Not this version** *(proposal)*: XP skills, perk cards, Luck, the cat, the older relic-gated grand-trial concept and lottery ending, a cozy mode without fights, player biome portals, multiplayer, languages other than English. The new post-repayment ultimate-boss story is separate from that older grand trial; its production scope and milestone placement still need planning.
 
 **Look and sound:** stylized nature (Raygeas main look) — warm, cozy meadow by day, frightening moonlit nights where enemies stay readable. Cute service robots, a comic guide drone. Guns get the most audio work (punchy, polished); ambience follows the clock (dawn chorus, wind, owls); music TBD.
 

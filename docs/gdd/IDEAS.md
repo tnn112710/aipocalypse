@@ -1,10 +1,47 @@
 # Ideas — proposals and history
 
-Current design lives in [CORE.md](CORE.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Suggestions here are not permission to implement them. Confirm an idea with the user before moving it into the current design.
+Current design lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). Suggestions here are not permission to implement them. Confirm an idea with the user before moving it into the current design.
 
 Tags: `(???)` = unsure; `[TBD]` = needs a decision. The historical notebook preserves earlier discussions and approvals in their original context; it is not a second source of current rules.
 
 ## Current review proposals — not confirmed
+
+### Debt to the AI Lord and endings (user, 2026-11-07)
+
+**Status update (2026-11-07):** Tokens, the debt for alleged real-world token waste, and winning through cumulative repayments are now agreed in [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). The earlier world-generation invoice framing below is superseded. Remaining activity paths, invoice structures, prices, bosses and ending variants below are proposals, not approved rules.
+
+**Later story decision (2026-11-07):** [STORY.md](STORY.md) now records the siren/PC-flash opening, the AI-occupation reveal after repayment, resistance or return, and the post-return ultimate-boss choice between 2018 and staying at the farm. Those are the current ending routes. The income-percentage ending selector and generic post-invoice stay choice below remain earlier proposals, not the adopted structure.
+
+- Idea (user): the MC must stay in this world until he pays off his debt to the AI lords. Winning = reaching the target (e.g. 1B coins). Everything pays: animals, crops, fishing, herding, mining (???: not in CORE yet), looting, enemies, exploring, gambling, lottery, minigames
+- Idea (user): Valheim-style biome bosses; each defeated boss gives rewards that speed up repayment. Bosses are not required: patient farming and fishing, or fighting and looting without summoning bosses, also reach the target. Different paths lead to different endings
+- Suggested framing: the AI Lord bills the MC for generating his world: "1,000,000,000 tokens". Tokens are the currency, so huge prices read as AI satire (an egg sells for tens of thousands of tokens). The drone is the account manager
+- Suggested scale rule: run length ≈ target ÷ average daily payment. 1B and 1M differ only by three zeros on every price. What matters is the growth: late-game daily income ~10–30× day one keeps an egg meaningful on day 50; an idle-game curve (×10,000) makes the farm path's products worthless
+- Suggested invoices: the 1B comes as ~9 invoices of rising size (5M, 10M, 25M, 50M, 75M, 100M, 150M, 235M, 350M). Pay any amount at the trading robot, with no interest and no deadline. Each cleared invoice gives a reward (a service, an upgrade tier, access to the next region, a story beat), so paying early is progress, not lost money, and day one already moves a bar
+  - Ref: Animal Crossing: New Horizons — Nook's home loans have no interest or deadline; paying one off unlocks the next house expansion
+  - Ref: Recettear — rising installments over a month (820,000 pix in total); missing one is game over. Borrow the rising sizes, not the game over (death never ends a run here)
+  - Ref: Lethal Company — the quota rises every 3-day cycle and failing it ends the run; same lesson
+  - Open: if playtests show players ignore the debt, add a minimum payment at each eclipse (the "quarterly review") with a comic penalty, never a game over
+
+Suggested paths, tracked as lifetime earnings by source (shown as a ledger on the robot's screen):
+
+| Path | Earns from | Risk and pace |
+| --- | --- | --- |
+| Homestead | Animals, crops, fishing, cooking (mining ???) | Low risk, slowest; grows with farm upgrades |
+| Adventure | Enemy bounties, loot, camps, exploration finds | Medium risk; ammunition eats part of the profit |
+| Boss | Biome-boss rewards | High risk, big lumps, fastest |
+| Luck | Lottery, scratch tickets, gambling minigames | Loses on average; a jackpot is the secret ending |
+
+- Raids stay required on every path (no full-cozy mode), so Homestead still defends at night
+- The ending is picked by the largest share when the last invoice clears: ≥ 60% (???) from one path gives its own ending, otherwise a mixed one
+  - Ref: Dishonored — a hidden chaos tally from kills picks the light or dark ending. Keep ours visible so the path is a choice
+  - Ref: Stardew Valley — Community Center (bundles) and Joja (gold) reach the same unlocks by different routes
+- Suggested bosses: one per outer region, summoned at an altar with offerings found in that region, so the fight is opt-in and prepared. The boss drops a core: sell it to the Lord (a big payment) or install it at home for a lasting power. Its other drops open the next region (see Outer zone and progression)
+  - Ref: Valheim — summon items go on a Forsaken Altar; the boss trophy on the Sacrificial Stones grants a Forsaken Power, one active at a time
+  - Scope: with Blood Moon minibosses and the eclipse giant this makes 5+ bosses. Suggested: Blood Moon minibosses are elite regular enemies; on eclipse days the next unbeaten region boss comes to the farm. Surviving until the eclipse ends wins the day; killing it counts for the Boss path
+- Suggested gambling: loses on average, daily limits ("machine restocks tomorrow"), parody art. An extra, not a core path
+  - Ref: Balatro — rated PEGI 18 for depicting gambling, lowered to 12 on appeal
+- Suggested after the last invoice: the ending plays (drone epilogue and stills, no cutscenes), then choose Log out (credits) or Stay (keep playing, ending recorded)
+- [TBD] the number (1B tokens or 1M coins), one AI Lord or several (one per region, each holding a share?), deadlines, target run length per path, mining, number of endings
 
 ### Farm and economy
 
