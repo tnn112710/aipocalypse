@@ -420,7 +420,7 @@ function rowHtml(u) {
     <td style="max-width:200px">${a ? `<span class="src ${a.source}">${esc(a.sourceLabel)}</span><div class="small" style="margin-top:3px;color:var(--ink)">${esc(a.name)}</div><div class="small">${esc(a.rigShort)}</div>` : `<span class="src Missing">From the store</span><div class="small">${esc(u.missingNote || "")}</div>`}</td>
     <td><div class="scores"><span>Fit</span><span class="dots">${u.dotsFit}</span><span>Style</span><span class="dots">${u.dotsStyle}</span><span>Anim</span><span class="dots">${u.dotsAnim}</span><span>Build</span><span>${u.costLabel}</span><span>Perf</span><span>${u.perfLabel}</span></div></td>
     <td class="rating">${u.rating.toFixed(1)}<small>/5</small></td>
-    <td onclick="event.stopPropagation()">${rvButtons(u.id, "unit")}${rv.note ? `<span class="noted" title="${esc(rv.note)}">“${esc(rv.note)}”</span>` : ""}</td>
+    <td class="rvcell">${rvButtons(u.id, "unit")}${rv.note ? `<span class="noted" title="${esc(rv.note)}">“${esc(rv.note)}”</span>` : ""}</td>
   </tr>${open.has(u.id) ? `<tr class="detail"><td colspan="11">${specHtml(u)}</td></tr>` : ""}`;
 }
 function specHtml(u) {
@@ -461,7 +461,7 @@ $("#rosterTable").addEventListener("click", e => {
   if (s) { const k = s.dataset.sort; F.dir = F.sort === k ? -F.dir : 1; F.sort = k; renderRoster(); return; }
   const t = e.target.closest("[data-big]");
   if (t) { const id = t.dataset.big; $("#big-" + id).src = IMG[t.dataset.key]; $("#cap-" + id).textContent = DATA.caps[t.dataset.key] || ""; t.parentNode.querySelectorAll("img").forEach(i => i.classList.toggle("on", i === t)); return; }
-  if (e.target.closest(".spec")) return;
+  if (e.target.closest(".spec") || e.target.closest(".rvcell")) return;
   const r = e.target.closest("tr.row"); if (!r) return;
   const id = r.dataset.id; open.has(id) ? open.delete(id) : open.add(id); renderRoster();
 });
