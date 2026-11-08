@@ -255,7 +255,7 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
   - Each tier adds information, not just looks: spread reticle = when a shot lands; minimap tiers = discovered areas + your arrow → markers (home, animals, places of interest) → threats. "Better reticles" add a cue (in-range colour, range marker) or are cosmetic picks
   - Before an upgrade, give rough cues so it's tension, not guesswork: check-mag animation and a last-rounds sound (ammo), sun / light / sounds (time), a readable health signal from day one
   - Always on, never taken: interaction prompts, hit markers, damage direction
-  - The removal is shown: full HUD for the first minute of the intro, then the AI Lord deletes it with a joke
+  - The removal is shown: full HUD for the first minute of the intro, then the AI Lord deletes it with a joke. Decided (user, 2026-11-09): the digital space intro in [STORY.md](STORY.md#opening-sequence--staging-draft), faceless attacker
   - 2–3 HUD unlocks in the first session (~2 h, the Steam refund window), e.g. dot, clock, first minimap
   - An assist setting that turns everything on (accessibility)
   - Minimap late, so the drone's paper map and landmark navigation (World & environment) keep their value; the minimap is also the costliest item (top-down render of the map, markers)

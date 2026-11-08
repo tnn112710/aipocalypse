@@ -155,7 +155,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 
 ### HUD earned back
 
-At the start the AI Lord destroys the player's assists; the player is on their own and earns them back through upgrades (pillar 5).
+At the start the AI Lord destroys the player's assists; the player is on their own and earns them back through upgrades (pillar 5). The loss is staged in the digital space intro, where the HUD disappears element by element before the player is killed ([STORY.md](STORY.md#opening-sequence--staging-draft)).
 
 | Element | At start | Upgrades |
 | --- | --- | --- |
