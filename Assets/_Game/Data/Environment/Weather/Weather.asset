@@ -1,0 +1,163 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4547e2836bdc0bc42abf10333fdb97e7, type: 3}
+  m_Name: Weather
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.WeatherSettings
+  Enabled: 1
+  StartSky: 1
+  TransitionSeconds: 20
+  RainSlant: 0.5
+  StrikeInterval: {x: 8, y: 25}
+  ThunderDelay: {x: 0.3, y: 2.5}
+  Thunder:
+    _entity: {fileID: 11400000, guid: db19a0a6614faf64681c4dc302ea0021, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  ThunderVolume: 1
+  Skies:
+  - key: 0
+    value:
+      Cozy: {fileID: 11400000, guid: 3f88ec09ea72bbd43af5340cfc9ea269, type: 2}
+      DefaultWind: 0
+      FogDensityScale: 1
+      NatureVolume: 1
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+      Lightning: 0
+  - key: 1
+    value:
+      Cozy: {fileID: 11400000, guid: 4e94180dee9a65f40aed99c340a8c212, type: 2}
+      DefaultWind: 1
+      FogDensityScale: 1
+      NatureVolume: 1
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+      Lightning: 0
+  - key: 2
+    value:
+      Cozy: {fileID: 11400000, guid: 5fe7894ee7885a040bd00b3fd70de1cb, type: 2}
+      DefaultWind: 1
+      FogDensityScale: 1.1
+      NatureVolume: 1
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+      Lightning: 0
+  - key: 3
+    value:
+      Cozy: {fileID: 11400000, guid: 3ed05320439eaa9419bc2fa4771b5171, type: 2}
+      DefaultWind: 1
+      FogDensityScale: 1.3
+      NatureVolume: 0.8
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+      Lightning: 0
+  - key: 4
+    value:
+      Cozy: {fileID: 11400000, guid: d9d48894bf59ee444995ecdfb24bafed, type: 2}
+      DefaultWind: 1
+      FogDensityScale: 1.5
+      NatureVolume: 0.5
+      Bed:
+        _entity: {fileID: 11400000, guid: 97dbc537f4e2e2845a0fbb3250a4f7c3, type: 2}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 0.7
+      Lightning: 0
+  - key: 5
+    value:
+      Cozy: {fileID: 11400000, guid: 2c5c76e3718169347be0f197d9c5a0d9, type: 2}
+      DefaultWind: 2
+      FogDensityScale: 2
+      NatureVolume: 0.3
+      Bed:
+        _entity: {fileID: 11400000, guid: 021eae168542eb840ab17dc49c1c6b06, type: 2}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 0.8
+      Lightning: 0
+  - key: 6
+    value:
+      Cozy: {fileID: 11400000, guid: 8c281519b177f9a4688f65da917ddf62, type: 2}
+      DefaultWind: 3
+      FogDensityScale: 2.5
+      NatureVolume: 0.1
+      Bed:
+        _entity: {fileID: 11400000, guid: 4f13edaa59a5b7b4b8be02ad73711266, type: 2}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+      Lightning: 1
+  - key: 7
+    value:
+      Cozy: {fileID: 11400000, guid: df5e183d688aae34ea347c6fd819cc36, type: 2}
+      DefaultWind: 0
+      FogDensityScale: 4
+      NatureVolume: 0.7
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+      Lightning: 0
+  Winds:
+  - key: 0
+    value:
+      Strength: 0.4
+      Speed: 0.8
+      Gust: 0.3
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+  - key: 1
+    value:
+      Strength: 1
+      Speed: 1
+      Gust: 1
+      Bed:
+        _entity: {fileID: 0}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 1
+  - key: 2
+    value:
+      Strength: 1.8
+      Speed: 1.3
+      Gust: 1.8
+      Bed:
+        _entity: {fileID: 11400000, guid: 5c56942243360e641be54b23d9155833, type: 2}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 0.45
+  - key: 3
+    value:
+      Strength: 2.8
+      Speed: 1.6
+      Gust: 3
+      Bed:
+        _entity: {fileID: 11400000, guid: 5c56942243360e641be54b23d9155833, type: 2}
+        ID: 0
+        <DebugObject>k__BackingField: {fileID: 0}
+      BedVolume: 0.9

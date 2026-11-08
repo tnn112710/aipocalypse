@@ -4,10 +4,17 @@ using UnityEngine;
 namespace Aipocalypse.Core.EnvironmentSystem
 {
     // The only code that touches COZY. Shows the director's look hour, our day and moon in COZY's sky, clouds and sun / moon
-    // lights (COZY's own clock stays paused), reads its sun and moon back, and can mute COZY fog for the other fog modes.
+    // lights (COZY's own clock stays paused), reads its sun and moon back, can mute COZY fog for the other fog modes, and
+    // shows the weather WeatherService picks.
     [ExecuteAlways]
     public sealed class CozyBridge : MonoBehaviour
     {
+        static readonly int FXBlockDepthTexId = Shader.PropertyToID("CZY_FXBlockDepthTex");
+        static readonly int RenderDistanceId = Shader.PropertyToID("CZY_RenderDistance");
+        static readonly int DepthTextureHeightId = Shader.PropertyToID("CZY_DepthTextureHeight");
+        static readonly int DepthTextureScaleId = Shader.PropertyToID("CZY_DepthTextureScale");
+        static readonly int WindDirectionId = Shader.PropertyToID("CZY_WindDirection");
+
         [SerializeField, Tooltip("The scene's COZY Weather")] CozyWeather _cozy;
 
         CozyTimeModule _time;
@@ -122,6 +129,33 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 out Vector3 sunTravel, out Vector3 moonTravel);
             sun = -sunTravel;
             moon = -moonTravel;
+        }
+
+        // profile: a COZY WeatherProfile (WeatherSettings keeps it untyped so only this class references COZY). seconds 0 = cut.
+        public void SetWeather(ScriptableObject profile, float seconds)
+        {
+            if (!Resolve() || profile is not WeatherProfile weather || _cozy.Weather is not CozyWeatherModule module)
+                return;
+            module.WeatherChangeMode = WeatherChangeMode.ChangeViaScripting;
+            module.TransitionTime = seconds;
+            module.SetProfile(weather, true, seconds > 0f);
+            PrepareRain();
+        }
+
+        // COZY's rain leans with this (COZY's Wind module would set it; we drive the wind ourselves).
+        public void SetRainWind(Vector3 wind) => Shader.SetGlobalVector(WindDirectionId, wind);
+
+        // COZY's rain finds the ground in the depth its FX-blocking camera renders, and COZY sets the rain's range values only
+        // while that camera is on. It is off here (it renders the scene a second time each frame), so without these no rain
+        // shows. Black depth = nothing blocks: the rain also falls under roofs.
+        static void PrepareRain()
+        {
+            if (CozyPreferences.RenderFXBlocking)
+                return;
+            Shader.SetGlobalTexture(FXBlockDepthTexId, Texture2D.blackTexture);
+            Shader.SetGlobalFloat(RenderDistanceId, CozyPreferences.FXRenderDistance / 2f);
+            Shader.SetGlobalFloat(DepthTextureHeightId, CozyPreferences.FXRenderHeight / 2f);
+            Shader.SetGlobalFloat(DepthTextureScaleId, CozyPreferences.FXRenderDistance / 2f);
         }
 
         // Runs inside COZY's update, after its profile is evaluated and before anything is written.

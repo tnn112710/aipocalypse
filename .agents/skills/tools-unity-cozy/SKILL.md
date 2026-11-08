@@ -18,8 +18,8 @@ Installed: COZY 4 core (version in `Packages/space.distantlands.cozyweather.core
 | `WorldClock` (ours) | Time, day, phases, jumps, skips, freeze, speed, moon cycle, all gameplay events. Raids, spawns, HUD, cheats, console and tests read it. COZY never advances time here: its clock is paused |
 | Bridge (ours, the only code that touches COZY) | Pushes the director's look hour, our day and moon cycle into COZY each frame; exposes COZY's sun and colours to the director; switches fog modes |
 | COZY | Sky (stars, moon, sun disk), clouds, sun and moon lights + ambient (its `Sun Light` / `Moon Light`), its fog when the fog mode is COZY, weather visuals |
-| `EnvironmentDirector` (ours) | Grade volumes per hour, reactors (lamps, windows, particles, tints), Daylight / Darkness for the player light and enemy night highlight, night shadow distance, look transitions (By Hours / Continuous). Old looks, sky shaders and its own light stay switchable until the user signs off on COZY |
-| Ours, not COZY | Ambience and music (BroAudio via `AudioService`: never COZY `AudioFX`, thunder audio or Resound playback), saves (COZY's save is broken), weather *decisions* (when built) |
+| `EnvironmentDirector` (ours) | Grade volumes per hour, reactors (lamps, windows, particles, tints), Daylight / Darkness for the player light and enemy night highlight, night shadow distance, look transitions (By Hours / Continuous). Old looks, sky shaders and its own light stay switchable until the user signs off on COZY. Weather's Unity fog density (`WeatherFogScale`) |
+| Ours, not COZY | Ambience and music (BroAudio via `AudioService`: never COZY `AudioFX`, thunder audio or Resound playback), saves (COZY's save is broken), weather (`WeatherService`: decisions, blend, wind, rain / wind / thunder sound, lightning flash) |
 
 Gameplay `DayPhase`s don't change for the look; the look may change hourly or continuously.
 
@@ -43,7 +43,8 @@ Gameplay `DayPhase`s don't change for the look; the look may change hourly or co
 - Style: `Data/Environment/Cozy/Aipocalypse_Style.asset` (Desktop minus sunshafts), first in COZY's style list because COZY always starts on the first. Measure before turning features on (DAYNIGHT.md → COZY → Cost).
 - Fog: director **Fog** = Unity (default) / Cozy / VolumetricFog2 / DynamicFog (the Kronnect two are comparison set-ups with fixed colours).
 - Setup and switches: `AgentScripts/DayNight/CozySetup.cs` (`Scene`, `Atmosphere`, `Style`, `FogModes`, `Use(bool)`, `Fog(mode)`, `Status`). Tests: `Tests/EditMode/CozyBridgeTests.cs`.
-- Vendor churn: COZY rewrites keywords on its own `Resources` materials at runtime (e.g. `COZY Sunshafts.mat`). Revert, don't commit.
+- Weather (phase A, docs/technicals/WEATHER.md): `WeatherService` (ours) picks a sky weather + wind level and calls `CozyBridge.SetWeather(profile, seconds)` with our profile copies in `Data/Environment/Cozy/Weather/` (COZY Audio / Thunder / inert FX stripped; `WeatherSetup.Profiles()`). With FX blocking off, COZY never sets its VFX rain's range globals and **no rain shows**: the bridge sets them (black depth = nothing blocks, rain also falls under roofs). Rain lean: `SetRainWind` writes `CZY_WindDirection`. Wind is ours (`WeatherWind`), never COZY's Wind module.
+- Vendor churn: COZY rewrites keywords on its own `Resources` materials at runtime (e.g. `COZY Sunshafts.mat`). Revert, don't commit. A WorldMap save also writes COZY's edit-mode state: `Sun Light` cookie cleared and size 20000, the atmosphere module's parameter cache. Keep only your hunks.
 
 ## 4. Driving the editor
 

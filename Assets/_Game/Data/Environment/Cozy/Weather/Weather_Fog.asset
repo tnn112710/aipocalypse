@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edc9e8ccf7e1f314da24a604c1a11094, type: 3}
+  m_Name: Weather_Fog
+  m_EditorClassIdentifier: 
+  minTime:
+    hours: 3
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  maxTime:
+    hours: 8
+    minutes: 0
+    seconds: 0
+    milliseconds: 0
+  forecastNext: []
+  forecastModifierMethod: 0
+  FX:
+  - {fileID: 11400000, guid: 37958e75fc835c242a6ab218c3f7c868, type: 2}
+  - {fileID: 11400000, guid: 3539307017f50244e9815d6d39bd997b, type: 2}
+  - {fileID: 11400000, guid: 174c70dc6aa78064798a24e23831a36a, type: 2}
+  - {fileID: 11400000, guid: 5a49d5d18cff0b2428cecb3c2d80c9da, type: 2}
+  chance:
+    baseChance: 1
+    chanceEffectors:
+    - curveType: 1
+      keys:
+      - time: 0
+        value: 0
+      - time: 1
+        value: 1
+    - curveType: 2
+      keys:
+      - time: 0
+        value: 1
+      - time: 0.51312655
+        value: 0.69047624
+      - time: 1
+        value: 1
+  description: 'aipocalypse Fog: copy of COZY''s Dense Fog'
+  icon: {fileID: 2800000, guid: 2b9e26d8fc95a3b4baa4da881977d291, type: 3}
+  tag: 66
+  lateralShifts:
+  - lateralProfile: {fileID: 11400000, guid: ae94c1a397a01e442a11e8b23ebb1cef, type: 2}
+    changeCondition:
+      compare: 0
+      conditionType: 1
+      temperature:
+        value: 0
+      humidity:
+        value: 50
+      pressure:
+        value: 0
+      uvIndex:
+        value: 0
+      airQuality:
+        value: 0
+      accumulatedSnow: 0
+      accumulatedRain: 0
+      convectiveRainChance: 0
+      stratiformRainChance: 0
+      season: 0
+      time:
+        hours: 12
+        minutes: 0
+        seconds: 0
+        milliseconds: 0
+        meridiem: 0
+      day:
+        year: 0
+        month: 0
+        day: 0
+      windSpeed: 0
+      weightedRandomChance:
+        baseChance: 0
+        chanceEffectors: []

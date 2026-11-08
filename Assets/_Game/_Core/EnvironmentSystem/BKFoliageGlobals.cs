@@ -17,15 +17,28 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [SerializeField, Min(0f)] float _microSpeed = 0.5f;
         [SerializeField, Min(0f)] float _microFrequency = 5f;
 
+        // Set by the scene wind (WeatherWind); the tuned values are the Breezy wind.
+        float _powerScale = 1f;
+        float _speedScale = 1f;
+
         void OnEnable() => Apply();
 
         void OnValidate() => Apply();
 
+        public void SetWindScale(float power, float speed)
+        {
+            if (power == _powerScale && speed == _speedScale)
+                return;
+            _powerScale = power;
+            _speedScale = speed;
+            Apply();
+        }
+
         void Apply()
         {
             Shader.SetGlobalFloat(RenderDistanceId, _renderDistance);
-            Shader.SetGlobalFloat(MicroPowerId, _microPower);
-            Shader.SetGlobalFloat(MicroSpeedId, _microSpeed);
+            Shader.SetGlobalFloat(MicroPowerId, Mathf.Clamp01(_microPower * _powerScale));
+            Shader.SetGlobalFloat(MicroSpeedId, _microSpeed * _speedScale);
             Shader.SetGlobalFloat(MicroFrequencyId, _microFrequency);
         }
     }

@@ -138,6 +138,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         Material _hiddenSky;
         // While COZY draws: -1 unknown, 0 sun, 1 moon lights the scene (for the night shadow distance).
         int _cozyMoonLit = -1;
+        float _weatherFogScale = 1f;
         // What was last applied; Apply skips an unchanged look.
         float _appliedLookHour = -1f;
         float _appliedMoonPhase = -1f;
@@ -154,6 +155,21 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public float SunElevation { get; private set; }
         // 0 at night to 1 by day, over the profile's SunPath daylight elevations.
         public float Daylight { get; private set; }
+        // The COZY bridge when COZY draws the sky, else null.
+        public CozyBridge Cozy => _cozy;
+
+        // Set by the weather: multiplies the look's Unity fog density.
+        public float WeatherFogScale
+        {
+            get => _weatherFogScale;
+            set
+            {
+                if (value == _weatherFogScale)
+                    return;
+                _weatherFogScale = value;
+                ApplyFog(_state, _cozy != null && _cozy.IsReady);
+            }
+        }
 
         [Inject]
         void Construct(IObjectResolver resolver)
@@ -407,8 +423,9 @@ namespace Aipocalypse.Core.EnvironmentSystem
             {
                 if (RenderSettings.fogColor != state.FogColor)
                     RenderSettings.fogColor = state.FogColor;
-                if (RenderSettings.fogDensity != state.FogDensity)
-                    RenderSettings.fogDensity = state.FogDensity;
+                float density = state.FogDensity * _weatherFogScale;
+                if (RenderSettings.fogDensity != density)
+                    RenderSettings.fogDensity = density;
             }
             SetActive(_volumetricFog, mode == EnvironmentFog.VolumetricFog2);
             SetActive(_dynamicFog, mode == EnvironmentFog.DynamicFog);

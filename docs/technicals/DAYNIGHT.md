@@ -112,7 +112,7 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 - **Preview** (edit mode): tick Preview and drag Preview Hour, or set Preview Speed to watch the day play. It writes the scene's lighting, so turn it off before saving. With Preview off, edit mode still feeds the sky shader at Preview Hour (globals only, nothing saved).
 - **Jump To Hour** button: in Play mode it moves the clock, in edit mode the preview.
 
-**Weather:** no rules yet. COZY's Weather module is in the scene, scripted only (`ChangeViaScripting`), starting on its Partly Cloudy profile (clouds only, no audio). Weather decisions will be ours (a service deciding from `WorldClock`, saved by us) and reach COZY only through `CozyBridge`; rain and thunder sound through `AudioService`, never COZY's audio (skill `tools-unity-cozy`). Without COZY the old seam still applies: a layer modifying the evaluated `AtmosphereState` in `EnvironmentDirector.Apply` before anything is written.
+**Weather:** [WEATHER.md](WEATHER.md). `WeatherService` holds a sky weather + a wind level and shows them through COZY (`CozyBridge.SetWeather`), the scene wind, `EnvironmentDirector.WeatherFogScale` (Unity fog density) and `AmbienceService.NatureVolume`; no rules decide it yet (console only). Rain and thunder sound through `AudioService`, never COZY's audio.
 
 The two sky bullets above (Time Of Day sky, Skybox Plus) apply while COZY is off; their materials stay in the scene for switching back.
 
@@ -286,7 +286,7 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 - Reactors act in Play mode only; the edit preview shows the light, ambient, fog, sky and grades.
 - Underwater fog (Stylized Water 3 areas) and the water materials are not driven by the time of day yet.
 - Raygeas `Tree_Foliage` leaves (pines, bushes, sakura) add a fake subsurface glow (`_SSS_Color`) through Emission. It follows only the light's direction, not its intensity, so those trees stay bright green at night. Not driven by the time of day yet.
-- Not built (GDD rules, Features): dusk warning, sleeping (use `SkipTo`), weather, night enemies.
+- Not built (GDD rules, Features): dusk warning, sleeping (use `SkipTo`), weather rules (when it changes, what it does to play; the weather itself is in WEATHER.md), night enemies.
 - COZY: the stars are COZY's, not our stylized star map (see Night sky), and Star Latitude / Azimuth / Galactic Core Transit don't apply (COZY's star dome turns on its own axis; `StarDomeOffset` places the Milky Way). Around golden hour COZY's sky stays day-blue while the ground glows: its evening colours sit within about 1.7 h of its sunset. Night clouds are dark silhouettes, tinted pink near dusk and dawn. All tunable in `Aipocalypse_Atmosphere`; not tuned yet.
 - COZY rewrites shader keywords on its own `Resources` materials to match the style (e.g. `COZY Sunshafts.mat`): vendor churn, revert it (ENVIRONMENT.md → Vendor material churn).
 - Seen once while leaving Play mode with COZY: a `NullReferenceException` inside Unity's GPU Resident Drawer (`OnBeginCameraRendering`). Not reproduced.

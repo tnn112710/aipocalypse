@@ -24,6 +24,9 @@ namespace Aipocalypse.Core.EnvironmentSystem
         float[] _callTimers = Array.Empty<float>();
         float _sinceUpdate;
 
+        // Set by the weather (birds go quiet in rain): multiplies every bed and call. 1 without weather.
+        public float NatureVolume { get; set; } = 1f;
+
         public AmbienceService(TimeOfDayAmbience ambience, WorldClock clock, AudioService audio, TimeService time)
         {
             _ambience = ambience;
@@ -82,7 +85,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 if (_callTimers[i] > 0f)
                     continue;
                 _callTimers[i] = NextInterval(calls);
-                _audio.Play(calls.Sound, calls.Volume * weight);
+                _audio.Play(calls.Sound, calls.Volume * weight * NatureVolume);
             }
         }
 
@@ -92,8 +95,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 _audio.Stop(bed, _ambience.StopFade);
         }
 
-        static float BedVolume(in TimeOfDayAmbience.Bed bed, float hour) =>
-            bed.Volume != null && bed.Volume.length > 0 ? Mathf.Clamp01(bed.Volume.Evaluate(hour)) : 1f;
+        float BedVolume(in TimeOfDayAmbience.Bed bed, float hour) =>
+            (bed.Volume != null && bed.Volume.length > 0 ? Mathf.Clamp01(bed.Volume.Evaluate(hour)) : 1f) * NatureVolume;
 
         // At least the slider's 1 s: a new entry's (0, 0) would otherwise play the call every frame.
         static float NextInterval(in TimeOfDayAmbience.Calls calls)
