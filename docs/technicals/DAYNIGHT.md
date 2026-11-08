@@ -109,6 +109,8 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 
 **`EnvironmentDirector`** (`Environment/Time Of Day`) is the only writer of the sun light, RenderSettings ambient / fog / reflections, the sky globals and the two grade volumes. Atmosphere.cs still seeds those values when the generator runs, but the director overrides them in Play mode.
 
+**Unity fog is always Exponential Squared** (user, 2026-11-09). Every scene uses it (`RenderSettings.fogMode`, Lighting window > Environment > Fog). Looks, weather and fog scales change only the fog colour and density, never the mode. Builds strip the Linear and Exponential fog variants (BUILD.md → Graphics shader stripping), so a scene switched to another mode loses its fog in builds, while the editor still shows it.
+
 - **Preview** (edit mode): tick Preview and drag Preview Hour, or set Preview Speed to watch the day play. It writes the scene's lighting, so turn it off before saving. With Preview off, edit mode still feeds the sky shader at Preview Hour (globals only, nothing saved).
 - **Jump To Hour** button: in Play mode it moves the clock, in edit mode the preview.
 

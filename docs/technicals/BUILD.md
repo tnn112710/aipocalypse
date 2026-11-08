@@ -39,6 +39,13 @@ The Autobuild window shows each build's total size. To find what makes it big:
 - **Assets** (textures, meshes, audio): the build report Unity writes at the end of `Editor.log` (biggest assets and size by category), or the `BuildReport` from the build.
 - **Shaders:** use **Shader Control** (Kronnect, PLUGINS.md → Editor tools). It lists every shader in the last build with its keywords and **variant count**, and it covers `Resources` shaders, Always Included shaders and shaders that only materials pull in. Too many variants make builds bigger, slower to build and use more shader memory. It only covers shaders.
 
+### Graphics shader stripping
+
+Project Settings > Graphics > Shader Stripping decides which built-in keyword variants every shader keeps:
+
+- **Fog Modes: Custom, Exponential Squared only.** It's the project's only fog mode (DAYNIGHT.md). Linear and Exponential are stripped, so a scene that uses either one has no fog in builds, while the editor still shows it.
+- **Lightmap Modes: Custom, all six ticked.** Not trimmed yet.
+
 ### Shader Control
 
 Open it from **Window > Kronnect > Shader Control > Browse Shaders…**. Use the **Build View**:
