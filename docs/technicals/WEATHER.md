@@ -1,11 +1,9 @@
 # Weather
 
-Phase A (2026-11-08): the weather can be shown and heard, but nothing decides it yet. It changes only from the console.
+- **Phase A (2026-11-08):** the weather is shown and heard (sky, rain, wind, fog, sound, lightning).
+- **Phase B (2026-11-08):** it changes on its own by weighted rules on game time (`WeatherSchedule`, [Rules](#rules)), with separate tables for day, night, Blood Moon nights and eclipse days, and can be held or forced from the console or code.
 
-Still to come, from the GDD and only after the user confirms each one:
-
-- when the weather changes (a daily roll, a forecast);
-- what it does to play (vision, fishing, sound masking).
+Still to come, from the GDD and only after the user confirms each one: what the weather does to play (vision, fishing, sound masking), a forecast the player sees (the drone), real Blood Moons and eclipses (only marked by hand so far).
 
 Design: `docs/superpowers/specs/2026-11-08-weather-design.md`. How COZY is used here: skill `tools-unity-cozy` and [DAYNIGHT.md](DAYNIGHT.md) → COZY.
 
@@ -21,7 +19,9 @@ Each sky weather has a default wind. An override replaces it until it is cleared
 ## What each part does
 
 ```text
-weather.* console ──► WeatherService (scene, EnvironmentInstaller; Enabled in Weather.asset)
+WorldClock ──► WeatherSchedule (WeatherRules on Weather.asset; WeatherPlanner plans 24 h ahead)
+weather.* console ──┘  └─► WeatherService.Set(sky, wind)
+                     WeatherService (scene, EnvironmentInstaller; Enabled in Weather.asset)
                         WeatherBlend: shown values → target over TransitionSeconds (game time: pausing holds it)
                         ├─ CozyBridge.SetWeather(profile)    COZY: clouds, colour filter, its fog, ground mist
                         ├─ WeatherRain.Set(amount, drift)    the rain drops (Unluck's rain), leaning with the wind
@@ -102,7 +102,36 @@ All of these are starting values in `Data/Environment/Weather/Weather.asset` (`W
 - **Sounds** live in the Ambience library: `RainLight` (Drizzle_Loop_v1), `RainMedium` (Light_Rain_Loop_v1), `RainHeavy` (Heavy_Rain_Loop_v1), `WindStrong` (Strong_Wind_Loop_v1) and `Thunder` (Close_Thunder_v1/v2, random, ±10% pitch). All are ithappy Nature Sound FX ([ASSETS.md](ASSETS.md)).
   - Beds keep playing while paused, like the time-of-day ambience.
   - No volume tuning by ear yet.
-- **Saves.** `WeatherService.State` (`WeatherState`: sky + wind override) and `Restore(state)`. Nothing saves yet.
+- **Saves.** `WeatherService.State` (`WeatherState`: sky + wind override) and `Restore(state)`. Nothing saves yet; neither do the plan, the marked Blood Moon / eclipse days or forced weathers (reseeding `RandomService` replays the rolls).
+
+## Rules
+
+`WeatherSchedule` (scene, registered when `Weather.asset` → Rules is set and Enabled; needs the world clock) follows `WorldClock` and shows on `WeatherService` what its `WeatherPlanner` planned. The planner is plain C# (tests and the rules inspector run it directly) and rolls on `RandomService.Stream("weather")`.
+
+- **Periods.** Night runs from `NightStart` (18:00) to `NightEnd` (06:00); the rest is day. A night marked Blood Moon (by the day it starts on) uses the Blood Moon column; a day marked eclipse uses the Eclipse column for its daytime. Only the console marks them so far (`weather.bloodmoon`, `weather.eclipse`); the future Blood Moon / eclipse system calls `WeatherSchedule.MarkBloodMoon` / `MarkEclipse` a few hours ahead.
+- **How often.** When a weather ends, the next is picked by weight from the column of the period it starts in (never the same one again). Weight 0 = never in that period, not even on the way to another weather.
+- **Walking.** Sky weathers are steps of one ladder: Clear, Partly Cloudy, Cloudy, Overcast, Light, Medium, Heavy Rain. Fog sits beside Clear, Partly Cloudy and Cloudy and reaches the rest through Cloudy. A far weather is reached through every step in between, each lasting `StepHours` (0.5–1 h), so clear never jumps to a storm.
+- **How long.** Each weather picks a duration by weight from `DurationHours` (1, 2, 4, 6, 8 h), ± `DurationJitter` (0.5 h). The walk steps don't count.
+- **Never where it isn't allowed.** A weather that would run into a period (or a forced weather) that doesn't allow it ends early, so the walk away finishes in time; one that couldn't last `ShortestHours` before that isn't picked. Marked late (a Blood Moon marked mid-storm at 17:00), the walk goes at the shortest step and may finish a little late.
+- **Wind.** Each weather rolls its wind from its own wind weights when it starts; the wind then moves one level per step (0.5–1 h), also inside a weather, so calm to gale passes through breezy and windy.
+- **Holding and forcing.** `Hold(sky, wind)` keeps a weather until `Release()` (blends to it now). `Force(sky, wind, hours, hour)` puts a fixed weather in the plan: from now it blends in at once; from a later hour the plan walks there so it's in place on time, and the rules carry on from it afterwards. A forced weather ignores the tables (Blood Moon + fog, eclipse + rain). If the rules never pick it in that period, the walk waits one step short until it starts. With the schedule on, change the weather through these, not `WeatherService.Set` (the next frame puts the plan back).
+- **Clock jumps and sleep.** The plan is in game hours, so clock speed doesn't matter. A jump of more than half an hour, or the end of a time skip, cuts to the planned weather instead of blending; during a skip the shown weather waits.
+- **Starting values** (`Data/Environment/Weather/WeatherRules.asset`, made by `WeatherSetup.Rules()`):
+
+| Weather | Day | Night | Blood Moon | Eclipse | Durations 1 / 2 / 4 / 6 / 8 h | Wind Calm / Breezy / Windy / Gale |
+| --- | --- | --- | --- | --- | --- | --- |
+| Clear | 30 | 30 | 60 | 60 | 0 / 40 / 30 / 20 / 10 | 4 / 5 / 1 / 0 |
+| Partly Cloudy | 30 | 30 | 30 | 30 | 0 / 40 / 30 / 20 / 10 | 2 / 7 / 1 / 0 |
+| Cloudy | 15 | 15 | 10 | 10 | 0 / 50 / 30 / 15 / 5 | 1 / 6 / 3 / 0 |
+| Overcast | 8 | 8 | 0 | 0 | 0 / 50 / 30 / 15 / 5 | 1 / 6 / 3 / 0 |
+| Light Rain | 5 | 2.5 | 0 | 0 | 30 / 40 / 25 / 5 / 0 | 1 / 6 / 3 / 0 |
+| Medium Rain | 3 | 1.5 | 0 | 0 | 40 / 40 / 20 / 0 / 0 | 0 / 3 / 6 / 1 |
+| Heavy Rain | 1.5 | 0.75 | 0 | 0 | 60 / 40 / 0 / 0 / 0 | 0 / 0 / 4 / 6 |
+| Fog | 4 | 4 | 0 | 0 | 30 / 50 / 20 / 0 / 0 | 9 / 1 / 0 / 0 |
+
+Overcast and fog are 0 on Blood Moons and eclipses because they would hide the red moon and the eclipse.
+
+The rules inspector (`WeatherRulesEditor`) shows the three tables as grids: each weight with its share, a share stripe per period and the average duration per weather. Its **Test** runs the planner over many days (seeded, a Blood Moon every Nth night, an eclipse every Nth day) and shows the share of time each weather really gets, which differs from the weights because of the walk steps and durations. With the starting values over 1000 days: rain 6.9% of the day and 5.9% of the night, none on Blood Moons and eclipses; windy or gale about 18%; about 10 sky changes a day counting steps; a rain spell every 2.2 days; no time in a weather its period doesn't allow.
 
 ## Changing things
 
@@ -115,9 +144,11 @@ All of these are starting values in `Data/Environment/Weather/Weather.asset` (`W
 | Clouds, colour filter, COZY fog and ground mist of a weather | the copy in `Data/Environment/Cozy/Weather/` (never COZY's own profiles) |
 | Today's tuned sway (Breezy) | `WeatherWind` fields on `Environment/Wind/Weather Wind`, BK flutter on `BK Foliage Globals`, the grass materials' wind |
 | Flash look | `Data/Environment/Weather/PP_Lightning.asset`, the curve on `Lightning Flash` |
+| How often / how long / which wind each weather gets, per period; night hours, step length | `Data/Environment/Weather/WeatherRules.asset` (grids, with a Test) |
+| Turn the rules off (console and code only) | `WeatherRules.asset` → Enabled, or clear `Weather.asset` → Rules |
 | Turn weather off | `Weather.asset` → Enabled (the scene keeps COZY's current profile and the tuned wind) |
 
-Console: `weather.show`, `weather.set <sky> [wind] [seconds]`, `weather.wind <Calm/Breezy/Windy/Gale/auto>`, `weather.strike` ([CONSOLE.md](CONSOLE.md)). For an edit-mode look at COZY's sky alone: the user-scope `CozyKit.SetWeather`.
+Console ([CONSOLE.md](CONSOLE.md)): `weather.show`, `weather.set <sky> [wind] [seconds]` and `weather.wind <Calm/Breezy/Windy/Gale/auto>` (both hold until `weather.auto`), `weather.auto`, `weather.forecast`, `weather.force <sky> <hours>` / `weather.force <sky> <wind> <hour> <hours>`, `weather.bloodmoon [day on]`, `weather.eclipse [day on]`, `weather.strike`. For an edit-mode look at COZY's sky alone: the user-scope `CozyKit.SetWeather`.
 
 ## Setup script
 
@@ -126,6 +157,7 @@ Console: `weather.show`, `weather.set <sky> [wind] [seconds]`, `weather.wind <Ca
 - `Profiles()`: the COZY profile copies.
 - `Audio()`: the five sound entities.
 - `Settings(reset = false)`: the settings asset and the flash profile. It keeps tuned values unless `reset`.
+- `Rules(reset = false)`: `WeatherRules.asset` with the starting values above, set on `Weather.asset` → Rules. It keeps tuned rows unless `reset`.
 - `Rain()`: rebuilds `WeatherRain.prefab` from Unluck's `Rain Multi`, `Rain Warpy` and `Rain -C`'s splash sprite, overwriting hand tuning of the prefab (the scene instance stays linked).
 - `Scene()`: WorldMap wiring. `Weather Wind` with the Raygeas values copied in and the drivers off, `Rain` with the rain prefab, `Lightning Flash`, and the installer fields. Then it saves the scene.
 - `All()`: everything above.

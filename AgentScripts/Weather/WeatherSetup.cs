@@ -16,10 +16,12 @@ using Volume = UnityEngine.Rendering.Volume;
 
 // Weather phase A setup (docs/technicals/WEATHER.md). Run with `unity command script run --file AgentScripts/Weather/WeatherSetup.cs
 // --entry WeatherSetup.<Entry>`. Each step is safe to re-run and saves only what it wrote.
-//   All()      = Profiles + Audio + Settings + Rain + Scene
+//   All()      = Profiles + Audio + Settings + Rules + Rain + Scene
 //   Profiles() = our COZY weather profile copies (no COZY audio / thunder / rain / inert FX)
 //   Audio()    = the weather sounds in the Ambience library
 //   Settings() = Data/Environment/Weather/Weather.asset (+ the lightning volume profile); keeps tuned values unless reset
+//   Rules()    = Data/Environment/Weather/WeatherRules.asset (weather phase B: how often, how long, wind), set on Weather.asset;
+//                keeps tuned values unless reset
 //   Rain()     = Environment/Weather/WeatherRain.prefab: Unluck's Rain Multi + Rain Warpy + fake ground splashes, no collision
 //   Scene()    = WorldMap wiring: Weather Wind (replaces the Raygeas wind drivers), Rain, Lightning Flash, installer fields
 public static class WeatherSetup
@@ -28,6 +30,7 @@ public static class WeatherSetup
     const string ProfileDir = "Assets/_Game/Data/Environment/Cozy/Weather";
     const string WeatherDir = "Assets/_Game/Data/Environment/Weather";
     const string SettingsPath = WeatherDir + "/Weather.asset";
+    const string RulesPath = WeatherDir + "/WeatherRules.asset";
     const string LightningProfilePath = WeatherDir + "/PP_Lightning.asset";
     const string AudioLibPath = "Assets/_Game/Data/Audio/Ambience.asset";
     const string AudioDir = "Assets/_Game/Data/Audio/Ambience";
@@ -235,6 +238,57 @@ public static class WeatherSetup
         Bed = bed != null ? Sound(bed) : default,
         BedVolume = bedVolume,
     };
+
+    // Starting weights agreed with the user (2026-11-08): mostly clear / partly cloudy, sometimes cloudy and windy, rain now
+    // and then and less at night, none on Blood Moon nights or eclipse days (cloud cover would hide them too).
+    // Columns: Day, Night, Blood Moon, Eclipse | durations 1, 2, 4, 6, 8 h | Calm, Breezy, Windy, Gale.
+    static readonly (SkyWeather sky, float[] often, float[] lasts, float[] wind)[] Rules_ =
+    {
+        (SkyWeather.Clear,        new[] { 30f, 30f, 60f, 60f },     new[] { 0f, 40f, 30f, 20f, 10f },  new[] { 4f, 5f, 1f, 0f }),
+        (SkyWeather.PartlyCloudy, new[] { 30f, 30f, 30f, 30f },     new[] { 0f, 40f, 30f, 20f, 10f },  new[] { 2f, 7f, 1f, 0f }),
+        (SkyWeather.Cloudy,       new[] { 15f, 15f, 10f, 10f },     new[] { 0f, 50f, 30f, 15f, 5f },   new[] { 1f, 6f, 3f, 0f }),
+        (SkyWeather.Overcast,     new[] { 8f, 8f, 0f, 0f },         new[] { 0f, 50f, 30f, 15f, 5f },   new[] { 1f, 6f, 3f, 0f }),
+        (SkyWeather.LightRain,    new[] { 5f, 2.5f, 0f, 0f },       new[] { 30f, 40f, 25f, 5f, 0f },   new[] { 1f, 6f, 3f, 0f }),
+        (SkyWeather.MediumRain,   new[] { 3f, 1.5f, 0f, 0f },       new[] { 40f, 40f, 20f, 0f, 0f },   new[] { 0f, 3f, 6f, 1f }),
+        (SkyWeather.HeavyRain,    new[] { 1.5f, 0.75f, 0f, 0f },    new[] { 60f, 40f, 0f, 0f, 0f },    new[] { 0f, 0f, 4f, 6f }),
+        (SkyWeather.Fog,          new[] { 4f, 4f, 0f, 0f },         new[] { 30f, 50f, 20f, 0f, 0f },   new[] { 9f, 1f, 0f, 0f }),
+    };
+
+    // The weather rules (phase B) and the link from Weather.asset. Existing rows keep their tuned weights unless reset.
+    public static string Rules(bool reset = false)
+    {
+        var rules = AssetDatabase.LoadAssetAtPath<WeatherRules>(RulesPath);
+        bool created = rules == null;
+        if (created)
+        {
+            rules = ScriptableObject.CreateInstance<WeatherRules>();
+            AssetDatabase.CreateAsset(rules, RulesPath);
+        }
+        if (created || reset)
+            rules.DurationHours = new List<float> { 1f, 2f, 4f, 6f, 8f };
+        foreach ((SkyWeather sky, float[] often, float[] lasts, float[] wind) in Rules_)
+        {
+            if (!created && !reset && rules.Skies.ContainsKey(sky))
+                continue;
+            rules.Skies[sky] = new WeatherRules.SkyRule
+            {
+                Day = often[0], Night = often[1], BloodMoon = often[2], Eclipse = often[3],
+                Durations = lasts.ToList(),
+                Calm = wind[0], Breezy = wind[1], Windy = wind[2], Gale = wind[3],
+            };
+        }
+        EditorUtility.SetDirty(rules);
+        AssetDatabase.SaveAssetIfDirty(rules);
+
+        var settings = AssetDatabase.LoadAssetAtPath<WeatherSettings>(SettingsPath);
+        if (settings != null && settings.Rules != rules)
+        {
+            settings.Rules = rules;
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssetIfDirty(settings);
+        }
+        return $"rules: {RulesPath} ({(created ? "created" : reset ? "reset" : "kept")}, {rules.Skies.Count} sky weathers), on Weather.asset: {settings != null}";
+    }
 
     // The rain prefab, built from Unluck Stylized Weather particles (vendor prefabs untouched): Rain Multi (multi-streak
     // sheets, the main rain), Rain Warpy (heavier rain only) and a fake-splash emitter made from Rain -C's splash sprite.

@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4c45da663e1f9f469491349db95f588, type: 3}
+  m_Name: WeatherRules
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.WeatherRules
+  Enabled: 1
+  NightStart: 18
+  NightEnd: 6
+  StepHours: {x: 0.5, y: 1}
+  DurationJitter: 0.5
+  ShortestHours: 1
+  PlanHours: 24
+  DurationHours:
+  - 1
+  - 2
+  - 4
+  - 6
+  - 8
+  Skies:
+  - key: 0
+    value:
+      Day: 30
+      Night: 30
+      BloodMoon: 60
+      Eclipse: 60
+      Durations:
+      - 0
+      - 40
+      - 30
+      - 20
+      - 10
+      Calm: 4
+      Breezy: 5
+      Windy: 1
+      Gale: 0
+  - key: 1
+    value:
+      Day: 30
+      Night: 30
+      BloodMoon: 30
+      Eclipse: 30
+      Durations:
+      - 0
+      - 40
+      - 30
+      - 20
+      - 10
+      Calm: 2
+      Breezy: 7
+      Windy: 1
+      Gale: 0
+  - key: 2
+    value:
+      Day: 15
+      Night: 15
+      BloodMoon: 10
+      Eclipse: 10
+      Durations:
+      - 0
+      - 50
+      - 30
+      - 15
+      - 5
+      Calm: 1
+      Breezy: 6
+      Windy: 3
+      Gale: 0
+  - key: 3
+    value:
+      Day: 8
+      Night: 8
+      BloodMoon: 0
+      Eclipse: 0
+      Durations:
+      - 0
+      - 50
+      - 30
+      - 15
+      - 5
+      Calm: 1
+      Breezy: 6
+      Windy: 3
+      Gale: 0
+  - key: 4
+    value:
+      Day: 5
+      Night: 2.5
+      BloodMoon: 0
+      Eclipse: 0
+      Durations:
+      - 30
+      - 40
+      - 25
+      - 5
+      - 0
+      Calm: 1
+      Breezy: 6
+      Windy: 3
+      Gale: 0
+  - key: 5
+    value:
+      Day: 3
+      Night: 1.5
+      BloodMoon: 0
+      Eclipse: 0
+      Durations:
+      - 40
+      - 40
+      - 20
+      - 0
+      - 0
+      Calm: 0
+      Breezy: 3
+      Windy: 6
+      Gale: 1
+  - key: 6
+    value:
+      Day: 1.5
+      Night: 0.75
+      BloodMoon: 0
+      Eclipse: 0
+      Durations:
+      - 60
+      - 40
+      - 0
+      - 0
+      - 0
+      Calm: 0
+      Breezy: 0
+      Windy: 4
+      Gale: 6
+  - key: 7
+    value:
+      Day: 4
+      Night: 4
+      BloodMoon: 0
+      Eclipse: 0
+      Durations:
+      - 30
+      - 50
+      - 20
+      - 0
+      - 0
+      Calm: 9
+      Breezy: 1
+      Windy: 0
+      Gale: 0

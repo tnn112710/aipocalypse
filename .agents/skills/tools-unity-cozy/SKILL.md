@@ -19,7 +19,7 @@ Installed: COZY 4 core (version in `Packages/space.distantlands.cozyweather.core
 | Bridge (ours, the only code that touches COZY) | Pushes the director's look hour, our day and moon cycle into COZY each frame; exposes COZY's sun and colours to the director; switches fog modes |
 | COZY | Sky (stars, moon, sun disk), clouds, sun and moon lights + ambient (its `Sun Light` / `Moon Light`), its fog when the fog mode is COZY, weather visuals |
 | `EnvironmentDirector` (ours) | Grade volumes per hour, reactors (lamps, windows, particles, tints), Daylight / Darkness for the player light and enemy night highlight, night shadow distance, look transitions (By Hours / Continuous). Old looks, sky shaders and its own light stay switchable until the user signs off on COZY. Weather's Unity fog density (`WeatherFogScale`) |
-| Ours, not COZY | Ambience and music (BroAudio via `AudioService`: never COZY `AudioFX`, thunder audio or Resound playback), saves (COZY's save is broken), weather (`WeatherService`: decisions, blend, wind, rain / wind / thunder sound, lightning flash) |
+| Ours, not COZY | Ambience and music (BroAudio via `AudioService`: never COZY `AudioFX`, thunder audio or Resound playback), saves (COZY's save is broken), weather (`WeatherService` / `WeatherSchedule`: decisions by our own weighted rules on `WorldClock`, never COZY's forecast or weather timer, blend, wind, rain / wind / thunder sound, lightning flash) |
 
 Gameplay `DayPhase`s don't change for the look; the look may change hourly or continuously.
 

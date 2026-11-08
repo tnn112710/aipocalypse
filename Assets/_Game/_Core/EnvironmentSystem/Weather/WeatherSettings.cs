@@ -41,6 +41,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [Tooltip("Off: no weather service; the scene keeps its COZY profile and tuned wind")]
         public bool Enabled = true;
         public SkyWeather StartSky = SkyWeather.PartlyCloudy;
+        [Tooltip("Optional: how the weather changes on its own (WeatherSchedule; needs the world clock). Unset or off = only the console and code change it")]
+        public WeatherRules Rules;
         [Min(0f), Tooltip("Game seconds a change blends over (pausing holds it)")] public float TransitionSeconds = 20f;
         [Min(0f), Tooltip("Sideways drift of the rain drops (m/s) per unit of wind strength")] public float RainSlant = 0.6f;
         [MinMaxSlider(1f, 120f, true), Tooltip("Game seconds between lightning strikes")] public Vector2 StrikeInterval = new(8f, 25f);

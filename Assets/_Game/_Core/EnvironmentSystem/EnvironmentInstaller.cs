@@ -58,6 +58,11 @@ namespace Aipocalypse.Core.EnvironmentSystem
             if (_lightning != null)
                 builder.RegisterComponent(_lightning);
             builder.RegisterEntryPoint<WeatherService>().AsSelf();
+            if (_weather.Rules != null && _weather.Rules.Enabled)
+            {
+                builder.RegisterInstance(_weather.Rules);
+                builder.RegisterEntryPoint<WeatherSchedule>().AsSelf();
+            }
             if (Cheats.Enabled)
                 builder.RegisterEntryPoint<WeatherCommands>();
         }
