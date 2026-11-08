@@ -1,5 +1,7 @@
 # Game Design Document — aipocalypse
 
+Release title: **Overbilled** (backup *Overbilled: AIpocalypse*); "aipocalypse" is the development codename. See [ONE_PAGE.md](ONE_PAGE.md).
+
 Design intent, split into topic files. Current direction revised 2026-11-07. Technical implementation is documented in [ARCHITECTURE.md](../technicals/ARCHITECTURE.md); the development schedule is in [ROADMAP.md](../ROADMAP.md).
 
 Start with [CORE.md](CORE.md). The current loop combines a farm and safe daytime meadow, exploration unlocked by repairing the bridge, and required defense on raid nights against thieves and attackers. Cute robot services provide trading, deposits and a free daily box; more stations come from robots found in the meadow and rescued beyond the river.

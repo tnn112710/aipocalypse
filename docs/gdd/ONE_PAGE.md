@@ -2,7 +2,7 @@
 
 The whole game on one page, after Unity's [one-page game design document](https://unity.com/blog/one-page-game-design-document). Detail lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); if they disagree, they win and this page gets fixed. The scope, "done" and milestone sections are **proposals to confirm**, not decisions yet.
 
-**Title:** aipocalypse (working title)
+**Title:** **Overbilled**; backup *Overbilled: AIpocalypse*. Chosen 2026-11-08: the absurd invoice is the hook, and the title doesn't spoil the AI takeover or suggest a wasteland game. "AIpocalypse" alone is out because another Steam game uses it. **aipocalypse** stays the development codename (repo, folders, namespaces, Unity product name) for now. Before the Steam page, check Steam, itch.io, trademarks, domain and social handles for the title.
 
 **Concept:** A developer burned out by mandatory AI productivity hears emergency sirens and is swallowed by light from his PC. He wakes on a farm without knowing it is an AI sandbox and is billed for tokens the AI claims he wasted in real life. Farm, explore and defend home to earn Tokens and repay the debt, or fight through the regions to the AI boss behind the sandbox. Premise, reveals and endings: [STORY.md](STORY.md).
 
@@ -50,7 +50,7 @@ The whole game on one page, after Unity's [one-page game design document](https:
 **Done means** *(proposal)*
 - A new player goes from the wake-up intro through the first eclipse (day 30) without help or blocking bugs.
 - Every "can't ship without" item works at its polish level ([ROADMAP.md](../ROADMAP.md#polish-levels)).
-- 60 fps at 1080p on an RTX 2060; saves are never lost.
+- 60 fps at 1080p on an RTX 3060; saves are never lost.
 - Five outside players finish a 30-day run and we act on their feedback.
 
 **Milestones** *(proposal, dates to set; target 6–9 months solo to the first Early Access version)*

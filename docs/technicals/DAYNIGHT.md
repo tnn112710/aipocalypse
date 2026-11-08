@@ -147,7 +147,7 @@ Skills: `tools-unity-cozy` (how it's used here) and `unity-cozy-weather` (the li
 | 18:00 | 3.6–7.9 ms → 4.0–9.2 ms: **+0.64 ms** | +0.63 ms |
 | 22:00 | 3.8–8.3 ms → 3.7–9.0 ms: **+0.53 ms** | ±0 (noise) |
 
-A/B at 09:00 (5 views, median GPU over the old sky): Desktop style +1.69 ms; volumetric clouds off +1.52 (they cost 0.17); sunshafts off too +1.01 (0.5); lens flares off too +1.02 (~0); fog at half resolution +0.85; COZY fog shown +1.07 (≈ muted: the pass runs either way); Volumetric Fog 2 +1.18 (+0.17 over Unity fog); Dynamic Fog +0.98 (~0). What remains (~0.85 ms) is COZY's fixed base: full-resolution sky and cloud buffers and the composite copy, which can't be turned off. The CPU cost is spread over render-graph recording of its passes and its update; no single marker stands out. Not measured: a build, an RTX 2060 (expect the GPU deltas roughly 2–3× larger).
+A/B at 09:00 (5 views, median GPU over the old sky): Desktop style +1.69 ms; volumetric clouds off +1.52 (they cost 0.17); sunshafts off too +1.01 (0.5); lens flares off too +1.02 (~0); fog at half resolution +0.85; COZY fog shown +1.07 (≈ muted: the pass runs either way); Volumetric Fog 2 +1.18 (+0.17 over Unity fog); Dynamic Fog +0.98 (~0). What remains (~0.85 ms) is COZY's fixed base: full-resolution sky and cloud buffers and the composite copy, which can't be turned off. The CPU cost is spread over render-graph recording of its passes and its update; no single marker stands out. Not measured: a build, an RTX 3060 (expect the GPU deltas roughly 2–3× larger).
 
 ## Things that follow the time
 

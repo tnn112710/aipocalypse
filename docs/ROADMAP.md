@@ -53,7 +53,7 @@ How much effort and polish each area gets (user, 2026-10-31). Scale work to the 
 | Movement & camera | Walk, sprint, jump, look, head bob | High |
 | Level balancing | Raid difficulty and schedule tuning, economy numbers, progression pacing | High |
 | Tutorial | Wake-up intro, teaching the loop, the bridge repair, the first raid | High |
-| Performance | 60 fps at 1080p on an RTX 2060 (here the level means reliability) | High |
+| Performance | 60 fps at 1080p on an RTX 3060 (here the level means reliability) | High |
 | Save/load | Progress across days, never lost (here the level means reliability) | High |
 | Crafting | Recipes, workbench | Medium |
 | Trading | The trading robot, buy and sell, daily stock, the robots' look and personality | Medium |
