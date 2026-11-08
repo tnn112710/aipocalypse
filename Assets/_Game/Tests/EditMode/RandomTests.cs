@@ -123,6 +123,76 @@ namespace Aipocalypse.Tests
         }
 
         [Test]
+        public void Draw_NoRepeatNeverPicksTheSameEntryTwiceInARow()
+        {
+            var draw = new WeightedDraw();
+            var random = new RandomStream(2);
+            float[] weights = { 5f, 1f, 1f };
+            var units = new int[3];
+            int last = -1;
+            for (int i = 0; i < 2000; i++)
+            {
+                int index = draw.Next(weights, units, 0f, true, random.Value);
+                Assert.AreNotEqual(last, index);
+                last = index;
+            }
+        }
+
+        [Test]
+        public void Draw_NoRepeatStillPicksTheOnlyEntry()
+        {
+            var draw = new WeightedDraw();
+            float[] weights = { 0f, 1f };
+            var units = new int[2];
+            Assert.AreEqual(1, draw.Next(weights, units, 0f, true, 0.3f));
+            Assert.AreEqual(1, draw.Next(weights, units, 0f, true, 0.3f));
+        }
+
+        [Test]
+        public void Draw_UnitsMakeADeckThatRefills()
+        {
+            var draw = new WeightedDraw();
+            var random = new RandomStream(4);
+            float[] weights = { 1f, 1f };
+            int[] units = { 19, 1 };
+            for (int deck = 0; deck < 5; deck++)
+            {
+                int rares = 0;
+                for (int i = 0; i < 20; i++)
+                    if (draw.Next(weights, units, 0f, false, random.Value) == 1)
+                        rares++;
+                Assert.AreEqual(1, rares, $"deck {deck}");
+            }
+        }
+
+        [Test]
+        public void Draw_UnlimitedEntriesKeepTheLimitedOnesOutUntilRefill()
+        {
+            var draw = new WeightedDraw();
+            float[] weights = { 1f, 1f };
+            int[] units = { 1, 0 };
+            Assert.AreEqual(0, draw.Next(weights, units, 0f, false, 0f));
+            Assert.AreEqual(0, draw.LeftOf(0));
+            for (int i = 0; i < 20; i++)
+                Assert.AreEqual(1, draw.Next(weights, units, 0f, false, i / 20f));
+            draw.Refill(units);
+            Assert.AreEqual(0, draw.Next(weights, units, 0f, false, 0f));
+        }
+
+        [Test]
+        public void Picker_UsesTheTableRulesAndRollsCount()
+        {
+            var table = new WeightedTable<string> { Count = new Vector2Int(4, 4), NoRepeat = true };
+            table.Entries.Add(new WeightedEntry<string> { Value = "swing", Weight = 10f });
+            table.Entries.Add(new WeightedEntry<string> { Value = "lunge", Weight = 1f });
+            var picker = new WeightedPicker<string>(table, new RandomStream(8));
+            var results = new List<string>();
+            Assert.AreEqual(4, picker.Roll(results));
+            for (int i = 1; i < results.Count; i++)
+                Assert.AreNotEqual(results[i - 1], results[i]);
+        }
+
+        [Test]
         public void WeightedTable_ShareMatchesWeightsOverManyRolls()
         {
             var table = new WeightedTable<int>();

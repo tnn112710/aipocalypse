@@ -5,13 +5,16 @@ using UnityEngine;
 namespace Aipocalypse.Core.RandomSystem
 {
     // A serializable weighted table (loot, drops, choices): Count picks per roll, each one entry by weight or nothing
-    // (NothingWeight). Use as a field, e.g. [SerializeField] WeightedTable<ItemDefinition> _loot.
+    // (NothingWeight). Use as a field, e.g. [SerializeField] WeightedTable<ItemDefinition> _loot. TryPick / Roll here are
+    // stateless and ignore NoRepeat and Units; pick through a WeightedPicker for those.
     [Serializable]
     public sealed class WeightedTable<T>
     {
         public List<WeightedEntry<T>> Entries = new();
         [Min(0f), Tooltip("Relative weight of picking nothing")] public float NothingWeight;
         [Tooltip("How many picks per roll, min and max inclusive")] public Vector2Int Count = Vector2Int.one;
+        [Tooltip("WeightedPicker: the last entry picked sits out the next pick (unless it's the only one left)")]
+        public bool NoRepeat;
 
         // One pick from a roll in [0, 1); false for nothing.
         public bool TryPick(float roll, out T value)
@@ -38,6 +41,9 @@ namespace Aipocalypse.Core.RandomSystem
             return added;
         }
 
+        // Weight an entry can be picked with: 0 when its value is unset.
+        public float WeightOf(int index) => IsSet(Entries[index].Value) ? Mathf.Max(0f, Entries[index].Weight) : 0f;
+
         // Unity's null check for assets (missing references are fake-null objects).
         static bool IsSet(T value) => value is UnityEngine.Object asset ? asset != null : value != null;
     }
@@ -47,5 +53,7 @@ namespace Aipocalypse.Core.RandomSystem
     {
         public T Value;
         [Min(0f)] public float Weight = 1f;
+        [Min(0), Tooltip("WeightedPicker: picks before it runs out until every entry refills; 0 = never runs out")]
+        public int Units;
     }
 }
