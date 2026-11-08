@@ -97,7 +97,7 @@ Follow `_Core/EnemySystem/WanderTasks.cs`:
 
 ## 6. Performance
 
-- No per-system enemy budget is written in ARCHITECTURE.md yet. The ROADMAP gate stands: 300 tree-driven enemies within budget before adding more archetypes (`enemy.spawn goblin 300` sets it up; raids cap at `RaidSettings.AliveCap`, 12); record the measured budget in ARCHITECTURE.md → Performance when it exists. `AgentScripts/Raids/RaidSoak.cs` plays a whole raid night with `cheat.autopilot` and reports frame times.
+- No per-system enemy budget is written in ARCHITECTURE.md yet. Design cap (user, 2026-11-09): at most 50 enemies alive at once, usually 20–30. The ROADMAP gate: 50 tree-driven enemies within budget in a build before adding more archetypes (`enemy.spawn goblin 50` sets it up; raids cap at `RaidSettings.AliveCap`, 12); record the measured budget in ARCHITECTURE.md → Performance when it exists. `AgentScripts/Raids/RaidSoak.cs` plays a whole raid night with `cheat.autopilot` and reports frame times.
 - First levers are the settings asset (`ThinkInterval`, `MaxThinksPerFrame`); then the escalation order in unity-behavior-designer-pro §5. Entity (ECS) tasks or baking agents to subscenes break "no ECS in our code" and need the user's sign-off.
 - Profile with the Behavior Designer window closed and A\* gizmos off; watch `BehaviorTreeSystemGroup` (the trees and our task bodies), `Aipocalypse.EnemyManager.Think` (brain gates and tick scheduling only), `AIMovementSystemGroup`, `RVOSystem`. When quoting a think cost, add both.
 - Known deviation: `WanderCapsule.prefab`'s `FollowerEntity.debugFlags` is `Path` (64); set it to none on enemies built from it (the Goblin prefabs have it off).

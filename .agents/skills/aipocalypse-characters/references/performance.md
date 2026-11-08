@@ -33,6 +33,6 @@ Per character: one Animator (state machine + 4 layers), one SkinnedMeshRenderer 
 - Next levers, cheapest first:
   - Fewer layers for distant enemies. All three look / lean layers off saved ~25% of the Animator cost.
   - Shadows off for far enemies (−0.36 ms GPU at 80 with all of them off).
-  - **GPU Instancer Pro – Crowd Animations** for hundreds (PLUGINS.md, Undecided: ask).
+  - **GPU Instancer Pro – Crowd Animations** for hundreds (PLUGINS.md, Undecided: ask); not needed at the 50-enemy cap.
   - Optimize Transform Hierarchy is unverified here (tools-unity-synty-characters §2).
 - `EnemyAnimationManager` itself is a loop of `SetFloat`s with cached hashes: zero allocations. Its per-call costs (`SetFloat`, `FollowerEntity.velocity`) are under 1 µs, so it's not worth optimizing.

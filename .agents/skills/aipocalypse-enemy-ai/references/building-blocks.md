@@ -46,7 +46,7 @@ Blood-moon hordes in 7DTD always know where the player is: zero perception cost.
 
 Scale before adding archetypes. `EnemyManager` ticks in tiers: near or on-screen at 15 Hz, far or off-screen at 2–5 Hz, outside an active bubble frozen or despawned (L4D keeps far wanderers only as a count per area). Avoid identical paths: give each attacker its own slot point from block 1, stagger repaths across ticks, and use the Movement Pack's `Pursue` look-ahead only where it reads well. A\* congestion costs are a later lever.
 
-- Tree: none; it's `EnemyManager` and `EnemyMover`. Cost: low–medium. Gate: the 300-enemy `Proto_Stress` budget (SKILL.md §6).
+- Tree: none; it's `EnemyManager` and `EnemyMover`. Cost: low–medium. Gate: the 50-enemy budget (SKILL.md §6).
 
 ### 5. Companion follow (The Last of Us, Ellie)
 

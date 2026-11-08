@@ -8,7 +8,7 @@ Source tags: **Canon** = `CORE.md` / `FARM_AND_ECONOMY.md`; **Idea** = `IDEAS.md
 
 | Family | Who | Count at once (estimate) | Agent type (unity-behavior-designer-pro §1) |
 | --- | --- | --- | --- |
-| Raiders | goblins, robots, zombies, flyers; thieves vs attackers | tens, up to the 300 stress gate | Crowd: Manual trees ticked by `EnemyManager` |
+| Raiders | goblins, robots, zombies, flyers; thieves vs attackers | usually 20–30, at most 50 alive | Crowd: Manual trees ticked by `EnemyManager` |
 | Outer-zone threats | wandering enemies by day, "extremely dangerous" ones and mystical entities after dark | tens | Crowd, same system |
 | Minibosses / bosses | Blood Moon miniboss, eclipse giant boss | 1–3 | Unique: own `EntityScope`, ticked every frame or by their own system |
 | Farm animals | chicken, cow, sheep, pig (roster open) | ~5–30 | Crowd-like (own manager, low think rate) |
