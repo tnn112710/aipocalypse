@@ -22,7 +22,6 @@ public static class CozySetup
     const string BaseProfilePath = "Packages/space.distantlands.cozyweather.core/Content/Profiles/Atmosphere Profiles/Balanced.asset";
     const string StartingWeatherPath = "Packages/space.distantlands.cozyweather.core/Content/Profiles/Weather Profiles/Partly Cloudy.asset";
     const string TimeOfDayPath = "Assets/_Game/Data/Environment/TimeOfDay/TimeOfDay.asset";
-    const string SkyboxPlusPath = "Assets/_Game/Data/Environment/TimeOfDay/SkyboxPlus_Sky.mat";
     const string ClockSettingsPath = "Assets/_Game/Data/WorldTime/ClockSettings.asset";
     const string CozyName = "COZY Weather";
     const string FogDir = "Assets/_Game/Data/Environment/Fog";
@@ -34,10 +33,17 @@ public static class CozySetup
     const int Samples = 48;
     // A look's Stars value → COZY star intensity.
     const float StarScale = 0.6f;
+    // A look's Stars value → constellation line and galaxy glow intensity.
+    const float ConstellationScale = 0.12f;
+    const float GalaxyScale = 1f;
+    // Turns COZY's star dome (stars, constellations, galaxy) so the Milky Way arches overhead around midnight; it turns daily
+    // only, so every night looks the same (with yearly turning, our day count would drift it).
+    const float StarDomeOffset = 0.575f;
+    static readonly Color ConstellationColor = new(0.6f, 0.75f, 1f);
 
     // Bakes the looks into COZY overrides: sun and moon colour / intensity (with our horizon fade at COZY's sun height) /
-    // shadow strength, the trilight ambient, sky horizon and fog colours from the look's fog, our star map, and a moon that
-    // opposes the sun on our moon cycle. Everything else comes from the base profile (Balanced).
+    // shadow strength, the trilight ambient, sky horizon and fog colours from the look's fog, the night sky (NightSky), and a
+    // moon that opposes the sun on our moon cycle. Everything else comes from the base profile (Balanced).
     public static object Atmosphere()
     {
         var tod = AssetDatabase.LoadAssetAtPath<TimeOfDayProfile>(TimeOfDayPath);
@@ -70,7 +76,7 @@ public static class CozySetup
 
         var overrides = profile.overrides ??= new List<AtmosphereOverride>();
         overrides.RemoveAll(o => o is LightingSunOverride or LightingMoonOverride or LightingAmbientOverride or SkyGradientOverride
-            or FogGradientOverride or SkyStarsOverride or SkyMoonDiskOverride);
+            or FogGradientOverride or SkyMoonDiskOverride);
 
         overrides.Add(new LightingSunOverride
         {
@@ -113,16 +119,7 @@ public static class CozySetup
         var fog = Colors(s => s.FogColor);
         overrides.Add(new FogGradientOverride { color1 = fog, color2 = fog, color3 = fog, color4 = fog, color5 = fog });
 
-        // Our star map, as bright as the looks ask (their Stars were tuned for the old sky, ~2.5 at midnight).
-        var starMap = AssetDatabase.LoadAssetAtPath<Material>(SkyboxPlusPath)?.GetTexture("_StarMap") as Cubemap;
-        var stars = new SkyStarsOverride
-        {
-            intensity = Floats(i => states[i].Stars * StarScale),
-            twinkleAmount = Constant<FloatValue>(0.4f),
-        };
-        if (starMap != null)
-            stars.cubemap = Constant(new CubemapValue(starMap));
-        overrides.Add(stars);
+        AddNightSky(overrides, Floats, i => states[i].Stars);
 
         var clock = AssetDatabase.LoadAssetAtPath<ClockSettings>(ClockSettingsPath);
         overrides.Add(new SkyMoonDiskOverride
@@ -136,7 +133,56 @@ public static class CozySetup
         AssetDatabase.SaveAssetIfDirty(profile);
         foreach (var module in Object.FindObjectsByType<CozyAtmosphereModule>(FindObjectsInactive.Include))
             module.UpdateModel();
-        return $"baked {Samples} keys into {ProfilePath} (pitch {pitch}, rotation {rotation}, star map {(starMap != null ? starMap.name : "none")})";
+        return $"baked {Samples} keys into {ProfilePath} (pitch {pitch}, rotation {rotation})";
+    }
+
+    // Re-bakes only the night sky (stars, constellations, galaxy) into the profile; the other overrides stay as they are.
+    public static object NightSky()
+    {
+        var tod = AssetDatabase.LoadAssetAtPath<TimeOfDayProfile>(TimeOfDayPath);
+        var profile = AssetDatabase.LoadAssetAtPath<AtmosphereProfile>(ProfilePath);
+        if (tod == null || profile == null)
+            return "missing " + (tod == null ? TimeOfDayPath : ProfilePath);
+        SunPath path = tod.Path;
+        var hours = Enumerable.Range(0, Samples).Select(i => i * 24f / Samples).ToArray();
+        var stars = hours.Select(h => tod.Evaluate(CozyBridge.OurHour(h, path.Sunrise, path.Sunset), out AtmosphereState s, out _) ? s.Stars : 0f).ToArray();
+        AddNightSky(profile.overrides ??= new List<AtmosphereOverride>(),
+            pick => new(hours.Select((h, i) => Key<FloatValue>(pick(i), h)).ToArray()), i => stars[i]);
+        EditorUtility.SetDirty(profile);
+        AssetDatabase.SaveAssetIfDirty(profile);
+        foreach (var module in Object.FindObjectsByType<CozyAtmosphereModule>(FindObjectsInactive.Include))
+            module.UpdateModel();
+        return $"night sky baked into {ProfilePath} (midnight stars {stars[0]:0.##})";
+    }
+
+    // COZY's own stars (its constellation and galaxy cubemaps are aligned to them; our star map is mirrored against them) as
+    // bright as the looks' Stars ask (tuned for the old sky, ~2.5 at midnight), with constellation lines (shimmering one at a
+    // time) and the galaxy fading with them. Replaces those three overrides.
+    static void AddNightSky(List<AtmosphereOverride> overrides, Func<Func<int, float>, AtmosphereProperty<FloatValue>> floats,
+        Func<int, float> stars)
+    {
+        overrides.RemoveAll(o => o is SkyStarsOverride or SkyConstellationsOverride or SkyGalaxyOverride);
+        overrides.Add(new SkyStarsOverride
+        {
+            intensity = floats(i => stars(i) * StarScale),
+            twinkleAmount = Constant<FloatValue>(0.4f),
+            mode = Constant(new EnumValue<StarDomePlacementMode>(StarDomePlacementMode.RotateDaily)),
+            rotationOffset = Constant<FloatValue>(StarDomeOffset),
+        });
+        overrides.Add(new SkyConstellationsOverride
+        {
+            color = Constant(new ColorValue(ConstellationColor)),
+            intensity = floats(i => stars(i) * ConstellationScale),
+            shimmerAmount = Constant<FloatValue>(0.5f),
+            shimmerSpeed = Constant<FloatValue>(1f),
+        });
+        overrides.Add(new SkyGalaxyOverride
+        {
+            primaryColor = Constant(new ColorValue(new Color(0.6f, 0.45f, 1f))),
+            secondaryColor = Constant(new ColorValue(new Color(0.35f, 0.8f, 1f))),
+            tertiaryColor = Constant(new ColorValue(new Color(0.9f, 0.4f, 0.8f))),
+            intensity = floats(i => stars(i) * GalaxyScale),
+        });
     }
 
     // Builds COZY in the open scene (once) and wires it: Atmosphere + Time + Weather modules, sun and moon lights copied from

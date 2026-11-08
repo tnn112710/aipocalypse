@@ -33,8 +33,10 @@ MonoBehaviour:
   - rid: 1600032588137234957
   - rid: 1600032588137234958
   - rid: 1600032588137234959
-  - rid: 1600032588137234960
   - rid: 1600032588137234961
+  - rid: 1600032588137235011
+  - rid: 1600032588137235012
+  - rid: 1600032588137235013
   references:
     version: 2
     RefIds:
@@ -6438,7 +6440,119 @@ MonoBehaviour:
           overrideValue: 0
           interpolateValue: 0
           interpolatedValue: []
-    - rid: 1600032588137234960
+    - rid: 1600032588137234961
+      type: {class: SkyMoonDiskOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        displayStyle:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        placementMode:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        phaseMode:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        color:
+          constantValue:
+            value: {r: 0, g: 0, b: 0, a: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        size:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        rotation:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        texture:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        normalMap:
+          constantValue:
+            value: {fileID: 0}
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        normalStrength:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        declination:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        declinationPeriod:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        declinationOffset:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+        orbitPeriod:
+          constantValue:
+            value: 8
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        orbitOffset:
+          constantValue:
+            value: 0
+          overrideValue: 0
+          interpolateValue: 0
+          interpolatedValue: []
+    - rid: 1600032588137235011
       type: {class: SkyStarsOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
       data:
         active: 1
@@ -6450,18 +6564,10 @@ MonoBehaviour:
           interpolatedValue: []
         cubemap:
           constantValue:
-            value: {fileID: 8900000, guid: 481f4b48c40bbed438e5760b7a1b1fd6, type: 3}
-          overrideValue: 1
+            value: {fileID: 0}
+          overrideValue: 0
           interpolateValue: 0
-          interpolatedValue:
-          - value:
-              value: {fileID: 0}
-            time:
-              hours: 0
-              minutes: 0
-              seconds: 0
-              milliseconds: 0
-              meridiem: 0
+          interpolatedValue: []
         intensity:
           constantValue:
             value: 0
@@ -6854,16 +6960,32 @@ MonoBehaviour:
               meridiem: 1
         rotationOffset:
           constantValue:
-            value: 0
-          overrideValue: 0
+            value: 0.575
+          overrideValue: 1
           interpolateValue: 0
-          interpolatedValue: []
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
         mode:
           constantValue:
-            value: 0
-          overrideValue: 0
+            value: 1
+          overrideValue: 1
           interpolateValue: 0
-          interpolatedValue: []
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
         twinkleAmount:
           constantValue:
             value: 0.4
@@ -6890,101 +7012,423 @@ MonoBehaviour:
           overrideValue: 0
           interpolateValue: 0
           interpolatedValue: []
-    - rid: 1600032588137234961
-      type: {class: SkyMoonDiskOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+    - rid: 1600032588137235012
+      type: {class: SkyConstellationsOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
       data:
         active: 1
-        displayStyle:
-          constantValue:
-            value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        placementMode:
-          constantValue:
-            value: 1
-          overrideValue: 1
-          interpolateValue: 0
-          interpolatedValue:
-          - value:
-              value: 0
-            time:
-              hours: 0
-              minutes: 0
-              seconds: 0
-              milliseconds: 0
-              meridiem: 0
-        phaseMode:
-          constantValue:
-            value: 1
-          overrideValue: 1
-          interpolateValue: 0
-          interpolatedValue:
-          - value:
-              value: 0
-            time:
-              hours: 0
-              minutes: 0
-              seconds: 0
-              milliseconds: 0
-              meridiem: 0
         color:
           constantValue:
-            value: {r: 0, g: 0, b: 0, a: 0}
-          overrideValue: 0
+            value: {r: 0.6, g: 0.75, b: 1, a: 1}
+          overrideValue: 1
           interpolateValue: 0
-          interpolatedValue: []
-        size:
-          constantValue:
-            value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        rotation:
-          constantValue:
-            value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        texture:
+          interpolatedValue:
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 0}
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        cubemap:
           constantValue:
             value: {fileID: 0}
           overrideValue: 0
           interpolateValue: 0
           interpolatedValue: []
-        normalMap:
-          constantValue:
-            value: {fileID: 0}
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        normalStrength:
+        intensity:
           constantValue:
             value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        declination:
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: 0.29382718
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.2789863
+            time:
+              hours: 12
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.2577138
+            time:
+              hours: 1
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.23229165
+            time:
+              hours: 1
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.20500223
+            time:
+              hours: 2
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.1781279
+            time:
+              hours: 2
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0.15395062
+            time:
+              hours: 3
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.13475278
+            time:
+              hours: 3
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0.122816645
+            time:
+              hours: 4
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.11535937
+            time:
+              hours: 4
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.0526249
+            time:
+              hours: 4
+              minutes: 59
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0.011939238
+            time:
+              hours: 5
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.006
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 6
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 6
+              minutes: 59
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 7
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 8
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 8
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 9
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 9
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 9
+              minutes: 59
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 10
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 11
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 11
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 1
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 1
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 1
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 2
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 3
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 3
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0.06302097
+            time:
+              hours: 5
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0.14400001
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0.17076448
+            time:
+              hours: 6
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0.2236707
+            time:
+              hours: 7
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0.26163888
+            time:
+              hours: 7
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0.26491737
+            time:
+              hours: 7
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0.26869228
+            time:
+              hours: 8
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0.27449563
+            time:
+              hours: 9
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0.2813573
+            time:
+              hours: 9
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0.28830707
+            time:
+              hours: 10
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0.294375
+            time:
+              hours: 10
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0.29859084
+            time:
+              hours: 10
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0.299954
+            time:
+              hours: 11
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+        shimmerAmount:
           constantValue:
-            value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        declinationPeriod:
-          constantValue:
-            value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        declinationOffset:
-          constantValue:
-            value: 0
-          overrideValue: 0
-          interpolateValue: 0
-          interpolatedValue: []
-        orbitPeriod:
-          constantValue:
-            value: 8
+            value: 0.5
           overrideValue: 1
           interpolateValue: 0
           interpolatedValue:
@@ -6996,9 +7440,459 @@ MonoBehaviour:
               seconds: 0
               milliseconds: 0
               meridiem: 0
-        orbitOffset:
+        shimmerSpeed:
+          constantValue:
+            value: 1
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: 0
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+    - rid: 1600032588137235013
+      type: {class: SkyGalaxyOverride, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        active: 1
+        primaryColor:
+          constantValue:
+            value: {r: 0.6, g: 0.45, b: 1, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 0}
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        secondaryColor:
+          constantValue:
+            value: {r: 0.35, g: 0.8, b: 1, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 0}
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        tertiaryColor:
+          constantValue:
+            value: {r: 0.9, g: 0.4, b: 0.8, a: 1}
+          overrideValue: 1
+          interpolateValue: 0
+          interpolatedValue:
+          - value:
+              value: {r: 0, g: 0, b: 0, a: 0}
+            time:
+              hours: 0
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+        intensity:
           constantValue:
             value: 0
+          overrideValue: 1
+          interpolateValue: 1
+          interpolatedValue:
+          - value:
+              value: 2.4485598
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 2.3248858
+            time:
+              hours: 12
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 2.147615
+            time:
+              hours: 1
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 1.9357638
+            time:
+              hours: 1
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 1.708352
+            time:
+              hours: 2
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 1.4843992
+            time:
+              hours: 2
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 1.2829218
+            time:
+              hours: 3
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 1.1229398
+            time:
+              hours: 3
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 1.0234721
+            time:
+              hours: 4
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.96132815
+            time:
+              hours: 4
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.43854085
+            time:
+              hours: 4
+              minutes: 59
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0.09949365
+            time:
+              hours: 5
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0.05
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 6
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 6
+              minutes: 59
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 7
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 8
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 8
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 9
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 9
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 9
+              minutes: 59
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 10
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 11
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 11
+              minutes: 29
+              seconds: 59
+              milliseconds: 999
+              meridiem: 0
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 12
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 1
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 1
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 1
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 2
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 3
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 3
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 0
+            time:
+              hours: 4
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 0.52517474
+            time:
+              hours: 5
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 1.2
+            time:
+              hours: 6
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 1.4230373
+            time:
+              hours: 6
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 1.8639226
+            time:
+              hours: 7
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 2.180324
+            time:
+              hours: 7
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 2.207645
+            time:
+              hours: 7
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 2.2391024
+            time:
+              hours: 8
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 2.2874637
+            time:
+              hours: 9
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 2.344644
+            time:
+              hours: 9
+              minutes: 29
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 2.402559
+            time:
+              hours: 10
+              minutes: 0
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+          - value:
+              value: 2.453125
+            time:
+              hours: 10
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
+              meridiem: 1
+          - value:
+              value: 2.4882572
+            time:
+              hours: 10
+              minutes: 59
+              seconds: 59
+              milliseconds: 998
+              meridiem: 1
+          - value:
+              value: 2.4996166
+            time:
+              hours: 11
+              minutes: 30
+              seconds: 0
+              milliseconds: 1
+              meridiem: 1
+        cubemap:
+          constantValue:
+            value: {fileID: 0}
           overrideValue: 0
           interpolateValue: 0
           interpolatedValue: []
