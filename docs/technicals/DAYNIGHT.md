@@ -211,7 +211,7 @@ Enemies stay readable in the dark with a light only they receive. Code: `Environ
   - **Any rig:** add `EnemyEyes` to the entity prefab, pick a style, press **Place Eyes**. It uses humanoid eye bones when the avatar has them, else the humanoid Head, else the first bone named like "head" (set `Head` for odd rigs), then the style's offset; nudge the `EyeGlow_L` / `_R` children by hand if needed. A variant with its own Model needs its own Place Eyes (`AgentScripts/Characters/EyeGlow/EyeGlowSetup.Goblins()` does the goblins).
   - **Opt out:** untick `Glow` on a prefab, variant or scene instance, or leave `EnemyEyes` off the prefab.
 - **Tried and dropped:** a fresnel rim around enemies (a renderer feature): on these faceted low-poly models it sparkled per facet and wasn't liked.
-- **Cost** (editor, 69 goblins in view): no measurable GPU change. Not measured in a build or at the 50-enemy cap.
+- **Cost** (editor, 69 goblins in view): no measurable GPU change. Not measured in a build or at the raid cap (50 raiders).
 - **Setup:** `NightHighlightSetup.All()` (`AgentScripts/DayNight/`) adds the layer, the asset and the scene objects; safe to re-run.
 
 ## Ambience
