@@ -15,6 +15,8 @@ MonoBehaviour:
   SpawnBudgetMs: 2
   PrewarmPerFrame: 2
   StagingPoint: {x: 0, y: -1000, z: 0}
+  IdleTrimDelay: 60
+  TrimPerFrame: 2
   GroupRadius: {x: 3, y: 5}
   GroupSpacing: 1.2
   RetryInterval: 0.25
@@ -42,7 +44,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 1
   PopulationInterval: 0.5
-  GlobalCap: 300
+  GlobalCap: 100
   _categoryCaps:
   - key: 0
     value: 60

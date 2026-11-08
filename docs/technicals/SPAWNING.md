@@ -154,7 +154,7 @@ Birds and fish that only decorate are one `Spawnable` per flock (`Flock` + a `Fl
 | `RetryInterval` | 0.25 s | Between two tries of a request still looking for its spot |
 | `Cards` | goblin, fish school, bird flock | Spawnable by name from the console |
 | `DefaultRules` | | `SpawnRules` for requests without their own (console, `At`) |
-| `PopulationInterval`, `GlobalCap`, `CategoryCaps` | 0.5 s, 300, per category | The population director's pace and caps |
+| `PopulationInterval`, `GlobalCap`, `CategoryCaps` | 0.5 s, 100, per category | The population director's pace and caps |
 
 **`SpawnCard`:** `Variants` (prefab → weight), `GroupSize`, `Category`, `Placement`, `MaxAlive` (0 = no limit) and `WhenFull` (`Refuse` or `RecycleOldest`).
 

@@ -35,7 +35,7 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
 
         [Header("Population (SpawnArea)")]
         [Min(0.05f), Tooltip("Seconds between two looks of the PopulationDirector at its areas")] public float PopulationInterval = 0.5f;
-        [Min(0), Tooltip("Most instances alive at once from all sources, past which areas stop topping up")] public int GlobalCap = 300;
+        [Min(0), Tooltip("Most instances alive at once from all sources, past which areas stop topping up")] public int GlobalCap = 100;
         [SerializeField, Tooltip("Most alive at once per category, past which areas stop topping up that category; none = no cap")]
         Dictionary<SpawnCategory, int> _categoryCaps = new()
         {
