@@ -8,8 +8,8 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 
 - Hours include +15% for making the systems work together.
 - Weeks assume about 45 h of work a week: 4–6 h on weekdays, 8–12 h on weekend days.
-- Counting from 2026-11-09, the slice is about **535–805 h (about 670)**, or **12–18 weeks**. That is about late February 2027, or early March after the holidays.
-- Early Access follows in about mid-June 2027.
+- Counting from 2026-11-09, the slice is about **590–885 h (about 740)**, or **13–20 weeks**. That is about early March 2027, or mid-March after the holidays.
+- Early Access follows in about late June 2027.
 
 **Done means:**
 
@@ -25,6 +25,11 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 - **The farm animal:** chickens or goats.
 - **Crops:** in the slice, or stretch only.
 - **Blood Moon on night 3.** This would be a slice-only setting; the GDD has it every 10 days.
+- **Skill tree and upgrades design** (user, 2026-11-09: both in the slice). Before building, design them in `docs/gdd/IDEAS.md`. The current suggestion has two parts:
+  - **Skills** are earned by doing: XP from kills, farming and exploring gives 1 point per level. There are about 10 nodes in 3 branches (Combat, Farming, Survival) and no respec.
+  - **Upgrades** are bought with Tokens at a bench, for gear and home.
+  - To decide: the XP sources, the node list, the upgrade list, and keeping skills and upgrades from overlapping.
+  - This differs from the GDD: `ONE_PAGE.md` lists XP skills under "Not this version".
 - **Gun animation scope.** The estimate assumes the floating hands stay and the clips are re-keyed. Full arms or a store animation pack adds 30–50 h.
 
 **Building rules for this milestone:**
@@ -57,23 +62,29 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Main menu, pause menu, basic settings: sensitivity, FOV, volume (12–17 h)
 - [ ] Sleep in bed → skip to morning → morning report (10–15 h)
 
-### Phase 3: The day, farm and economy (73–106 h, to about Dec 26)
+### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 6)
 
 - [ ] Basic inventory or backpack for produce and loot (12–18 h)
 - [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h)
 - [ ] Tokens + trading robot: sell produce, buy ammo and fence repairs (23–32 h)
 - [ ] Debt bar + guide drone with a few billing jokes (18–28 h)
 - [ ] Fence repair costs Tokens (3–5 h)
+- [ ] Upgrades: an upgrade bench, upgrade data, a purchase screen, 4–6 upgrades paid in Tokens (14–21 h)
+- [ ] Simple skill tree (39–59 h):
+  - XP and levels
+  - about 10 nodes in 3 branches, with unlock rules
+  - a skill tree screen
+  - skill effects through a shared stat-modifier layer, which upgrades use too
 - [ ] *Stretch:* 1–2 crops (12–17 h), rod fishing (`Proto_Fishing`, 23–35 h)
 
-### Phase 4: Explore (46–67 h, to about Jan 4)
+### Phase 4: Explore (46–67 h, to about Jan 15)
 
 - [ ] Bridge repair (9–14 h)
 - [ ] Points of interest in one corner of the Pine Forest (17–26 h)
 - [ ] Loot containers and loot tables (14–18 h)
 - [ ] Wandering goblins with caps (6–9 h)
 
-### Phase 5: Defend (60–94 h, to about Jan 16)
+### Phase 5: Defend (60–94 h, to about Jan 27)
 
 - [ ] Thieves steal animals (14–21 h)
 - [ ] Raids get harder over the 3 nights; losing a raid has a cost (13–21 h)
@@ -81,14 +92,14 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Raid HUD (7–9 h)
 - [ ] Blood Moon on night 3, light version: red look, more goblins, one elite instead of a full miniboss (17–29 h)
 
-### Phase 6: Gun animation rework (58–86 h, to about Jan 27)
+### Phase 6: Gun animation rework (58–86 h, to about Feb 7)
 
 This comes before the sound and VFX pass, because impact sounds are timed by markers inside the clips.
 
 - [ ] Re-key every clip on the five guns: equip, idle, fire, reload, empty reload, jam clearing, cycle (46–69 h)
 - [ ] Replace the procedural holster, axe swing and hammer knocks with clips (12–17 h)
 
-### Phase 7: Quality pass (132–206 h, to about Feb 22)
+### Phase 7: Quality pass (132–206 h, to about Mar 5)
 
 - [ ] Shooting to Very High: real gun sounds instead of the `_Placeholder` clips, muzzle and impact VFX, feel passes (15–28 h)
 - [ ] Inner zone to Very High: yard, house and farm dressing, lighting, the cozy feel (35–52 h)
@@ -103,11 +114,12 @@ This comes before the sound and VFX pass, because impact sounds are timed by mar
 1. Crops and other stretch items
 2. A 1.5 × 1.5 km map (about 1 week)
 3. Rework only 3 guns in the slice (AK-47, pistol, pump), the rest after it (about 0.5 week)
-4. A shorter intro
+4. A smaller skill tree: 1 branch of 4 nodes, the rest after the slice (about 0.5 week)
+5. A shorter intro
 
 ## After the vertical slice
 
-Milestones to Early Access (about mid-June 2027): **Ten days** (save/load, upgrades, losses, the rest of the Pine Forest and its boss, the second enemy type, hunger and sanity) → **Thirty days** (eclipse, tutorial, balance, the Steam build) → **Early Access**.
+Milestones to Early Access (about late June 2027): **Ten days** (save/load, more upgrades and skills, losses, the rest of the Pine Forest and its boss, the second enemy type, hunger and sanity) → **Thirty days** (eclipse, tutorial, balance, the Steam build) → **Early Access**.
 
 Left out of the slice on purpose:
 
