@@ -5,6 +5,7 @@ The whole game on one page, after Unity's [one-page game design document](https:
 **Title:** **Hasta la Vista, M.A.Y.B.E** (chosen 2026-11-08). **aipocalypse** stays the development codename and namespace (repo, folders, namespaces, Unity product name). Logo: make "MAYBE" the biggest word so the short form isn't the crowded "Hasta la Vista". Other candidates kept as backups:
 
 - *Hasta la Vista, M.A.Y.B.E* (Model for Analyzing Your Behavior and Experience)
+- *Hasta la Vista, Maybe*
 - *Hasta la Data*
 - *Hasta la Vista*
 - *Hasta la Beta*
