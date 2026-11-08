@@ -24,6 +24,14 @@ Options (one bool each on the asset; a new option is a new field plus its postfi
 
 Name: `<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]`, product and version from Player Settings. Output: `_builds/<name>/` (gitignored), cleaned before each build. Scenes: the enabled Build Settings scenes. A config's own Pipeline / cheat choice wins over Player Settings: the build removes a stray `ENABLE_CHEAT` or Pipeline toggle from them for its duration.
 
+## Code stripping
+
+Managed stripping level is **Low** (Player Settings > Other Settings > Optimization; the Windows build profile doesn't override it). At Low the Unity linker keeps every assembly a scene references whole, and in the others keeps public types and members and drops unreachable non-public code; Minimal copied every non-engine assembly whole, used or not.
+
+`Assets/_Game/_Core/link.xml` keeps whole the assemblies that find or create types by reflection or by name: `MB13.Aipocalypse.Core`, VContainer, MessagePipe, the Behavior Designer Pro / Opsive runtime assemblies (trees store task types by full name) and COZY. When code in a player build reaches a type only by reflection or by a string (`Type.GetType`, `Activator.CreateInstance`, a new reflection-based plugin), add its assembly or type there; editor-only code (`#if UNITY_EDITOR`) doesn't count. A stripped type shows up only in the player: `MissingMethodException`, a null `Type.GetType` or a VContainer resolve error in `Player.log`, so check a distribution build's `Player.log` after changing this.
+
+Going further (Medium/High) roots only MonoBehaviours, ScriptableObjects, `[Preserve]` and `link.xml` in non-scene assemblies, and would need public-but-reflected vendor code listed too.
+
 ## Build stamp
 
 Each build gets `build_info.txt` next to the exe (and in the zip): `name`, `config`, `commit` (short hash, `-dirty` with uncommitted changes to tracked files) and `built` (date). `BuildStamp` (root scope) reads it at start and logs `Build: …` to `Player.log`; the console's `build` command prints it, and cheat builds show it small in the bottom-right corner (not in the editor). A player without the file says so instead.
