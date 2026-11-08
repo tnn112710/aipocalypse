@@ -44,7 +44,7 @@ The Autobuild window shows each build's total size. To find what makes it big:
 Project Settings > Graphics > Shader Stripping decides which built-in keyword variants every shader keeps:
 
 - **Fog Modes: Custom, Exponential Squared only.** It's the project's only fog mode (DAYNIGHT.md). Linear and Exponential are stripped, so a scene that uses either one has no fog in builds, while the editor still shows it.
-- **Lightmap Modes: Custom, all six ticked.** Not trimmed yet.
+- **Lightmap Modes:** not trimmed yet. No scene uses lightmaps: WorldMap's lights are all Realtime, Realtime GI is off and no lighting has been baked (the day/night cycle moves the sun). So all six modes can be stripped. If a scene ever bakes lighting, re-tick its modes, or its lightmaps are missing in builds.
 
 ### Shader Control
 
