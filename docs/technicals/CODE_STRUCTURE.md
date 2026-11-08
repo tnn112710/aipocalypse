@@ -283,6 +283,12 @@ Assets/_Game/
 │  │  ├─ TimingQteChallenge.cs              timing challenge + TimingQteSession: repeating fill, green zone, duration (or owner-controlled), attempts per cycle, miss hold and bounded zone relocation; optional random delegate for tests
 │  │  ├─ QuickTimeService.cs                root ITickable: one owner-bound session at a time, unscaled tick while gameplay input is on and TimeService isn't paused; reads WasPressed(Button) and Consume(Button) (ticks before Player.Update, so a press completing a repair doesn't also reload); a press is judged before the frame moves the session, which advances at most Time.maximumDeltaTime per frame; timed or owner-controlled lifetime, cancel, optional slow motion (standalone QTEs only), completion callback; QteStarted / QteAttempted / QteEnded
 │  │  └─ QuickTimeInstaller.cs              registers QuickTimeService as a root entry point
+│  ├─ RandomSystem/                         Aipocalypse.Core.RandomSystem — seeded randomness and weighted picks for gameplay rolls
+│  │  ├─ RandomService.cs                   root service: master Seed, Stream(name) → one cached RandomStream per system (seed mixed with an FNV-1a name hash), Reseed(seed) restarts every stream in place
+│  │  ├─ RandomStream.cs                    seeded SplitMix64 sequence, GC-free: Value, Range (float, int exclusive), RangeInclusive(Vector2Int), Chance, Sign, InsideUnitCircle, OnUnitSphere, InsideUnitSphere, Pick, Shuffle, Reset
+│  │  ├─ WeightedPick.cs                    static: Index(weights / items + weightOf / items + context + weightOf, roll, nothingWeight) → index by weight share, -1 for nothing; SpawnTable picks through it
+│  │  ├─ WeightedTable.cs                   serializable WeightedTable<T> (Entries of WeightedEntry<T> value + weight, NothingWeight, Count range): TryPick(roll or stream), Roll(stream, results); unset entries never picked
+│  │  └─ RandomInstaller.cs                 registers RandomService in the root scope (factory: unseeded, from the clock)
 │  ├─ RaidSystem/                           Aipocalypse.Core.RaidSystem — raid nights, see RAIDS.md
 │  │  ├─ RaidInstaller.cs                   SceneInstaller (_settings: RaidSettings; SpawnZones collected on scene save / entering Play, "Collect spawn zones" button): RaidSettings, EveryNightSchedule (IRaidSchedule), RaidSpawner (IRaidSpawner + tick), RaidDirector (entry point, AsSelf), DeathTimeRule (+ RaidCommands in dev builds); needs a ready WorldTimeInstaller and EnemyInstaller on the scope
 │  │  ├─ RaidDirector.cs                    ITickable + IStartable, pure timing over IRaidSpawner: night N = StartHour day N → DawnHour day N + 1, read from WorldClock.Now each tick (NightOf), a handled night never restarts; waves → groups of the card's group size GroupInterval apart under AliveCap (partial groups), none while the player is dead; next wave once fully spawned and NextWhenAliveAtMost alive after MinBreather, or MaxWait; ends Cleared / Dawn / Defeat / Stopped; StartNow (ignores the window), NextWave, Stop, EndRaid; Start prewarms the pool for tonight (AliveCap + CorpseHeadroom); publishes RaidStarted / RaidWaveStarted / RaidEnded; Advance(deltaTime) (RaidDirectorTests)
@@ -321,7 +327,7 @@ Assets/_Game/
 │  │  ├─ Formation.cs                           SO: Shape (FormationShape: Scatter, Line, Column, Wedge, Ring, Clusters, Custom), Spacing, Radius, Clusters / ClusterGap, Jitter, Slots; GetSlots(count, into)
 │  │  ├─ FormationMath.cs                       pure slot offsets (+Z forward, slot 0 = leader): Scatter (sunflower), Line, Column, Wedge, Ring, Cluster
 │  │  ├─ SpawnSquad.cs                          SO: Members (SquadMember: card + count, leader first), Formation; Count, Lead, CardAt(slot)
-│  │  ├─ SpawnTable.cs                          SO: Entries (card, weight, day phases, day range, max alive), NothingWeight; Pick(conditions, counts, roll); SpawnConditions (phase, day; Of(WorldClock)); ISpawnCounts
+│  │  ├─ SpawnTable.cs                          SO: Entries (card, weight, day phases, day range, max alive), NothingWeight; Pick(conditions, counts, roll) through WeightedPick; SpawnConditions (phase, day; Of(WorldClock)); ISpawnCounts
 │  │  ├─ SpawnArea.cs                           scene component next to a SpawnZone: Card or Table, Capacity, GroupSize, RespawnDelay, Activate / DeactivateRadius, Formation, Rules, Prewarm; gizmos: wake and sleep rings and a label always, one group laid out in its formation when selected
 │  │  ├─ PopulationDirector.cs                  IStartable + ITickable: prewarms the areas; every PopulationInterval wakes the near ones (hysteresis), tops them up within the category and global caps, lets the far ones go once unseen, holds killed members back for RespawnDelay; Advance(deltaTime)
 │  │  ├─ PopulationRules.cs                     pure: IsActive (hysteresis), ToSpawn (capacity, alive, respawning, group, caps), ReleaseDue
@@ -512,6 +518,7 @@ Assets/_Game/
    ├─ AutoBuildTests.cs                     build names, Player Settings / extra defines per config (no stray cheats or Pipeline), do-not-ship folders, shipped configs, BuildStamp file round trip
    ├─ ConsoleTests.cs                       dev console: tokens, statements, argument parsing, registry (optional args, properties, names, errors, throwing commands, remove), suggestions, help, line editing, history, scrollback, screen log, key repeat, Run, InputService text input mode, TimeCommands / WorldClockCommands
    ├─ ServiceRequestTests.cs                TimeService (pause beats slow motion, hit stops, unknown owners, Dispose restores), GraphicsService (shortest shadow distance wins, restored; star twinkle keyword on by default, toggles, off on Dispose; Stylized Grass feature shown to game cameras, flags restored)
+   ├─ RandomTests.cs                        same seed same rolls, ranges, shuffle, named streams independent and Reseed restarts them, weighted pick shares / nothing / zero weights, WeightedTable count and unset entries
    ├─ QuickTimeServiceTests.cs              press judged before a long frame moves the pointer, no timeout in one hitch, slow motion released / skipped for owner-controlled, death cancels, owner checks
    ├─ PlayerRespawnFlowTests.cs             the stages after the fade; a revive during the fade ends the flow even when the fade handler ignores cancellation
    ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)
@@ -524,7 +531,7 @@ Assets/_Game/
 
 ```text
 ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, AudioService, DamageService, TimeService,
-                                           GraphicsService, QuickTimeService, PlayerRegistry, PlayerRespawnFlow, EffectPool, BulletSystem,
+                                           GraphicsService, QuickTimeService, RandomService, PlayerRegistry, PlayerRespawnFlow, EffectPool, BulletSystem,
                                            GunJamFactory, ScreenLog (+ in dev builds: PlayerCheats, CommandRegistry, ConsoleSettings, LogBuffer,
                                            ConsoleService, the ConsoleView overlay, and BuiltIn / Player / PlayerCheat / Time / Graphics ConsoleCommands);
                                            entry points are ticked by VContainer

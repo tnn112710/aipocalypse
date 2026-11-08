@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Aipocalypse.Core.RandomSystem;
 using Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 
@@ -16,25 +17,9 @@ namespace Aipocalypse.Core.SpawnSystem
         // A card allowed by `conditions` and `counts` by weight, `roll` in [0, 1); null for nothing (or none allowed).
         public SpawnCard Pick(in SpawnConditions conditions, ISpawnCounts counts, float roll)
         {
-            float total = NothingWeight;
-            foreach (SpawnTableEntry entry in Entries)
-                if (entry.Allows(conditions, counts))
-                    total += entry.Weight;
-            if (total <= 0f)
-                return null;
-            float pick = Mathf.Clamp01(roll) * total;
-            SpawnCard last = null;
-            foreach (SpawnTableEntry entry in Entries)
-            {
-                if (!entry.Allows(conditions, counts))
-                    continue;
-                last = entry.Card;
-                pick -= entry.Weight;
-                if (pick < 0f)
-                    return entry.Card;
-            }
-            // Past every entry: the nothing share, or a roll of 1 with none.
-            return NothingWeight > 0f ? null : last;
+            int index = WeightedPick.Index(Entries, (conditions, counts),
+                static (entry, context) => entry.Allows(context.conditions, context.counts) ? entry.Weight : 0f, roll, NothingWeight);
+            return index >= 0 ? Entries[index].Card : null;
         }
     }
 
