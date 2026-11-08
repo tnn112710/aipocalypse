@@ -11,12 +11,23 @@ using VContainer;
 namespace Aipocalypse.Core.EnvironmentSystem
 {
     // Sole writer of sun, ambient, fog, reflections, sky globals and grade volumes: profile look at the clock's hour → apply
-    // → reactors. Without a clock it uses Preview Hour (in edit mode only while Preview is on).
+    // → reactors. With a COZY bridge, COZY draws the sky and the sun / moon lights at the look hour instead. Without a clock it
+    // uses Preview Hour (in edit mode only while Preview is on).
     public enum LookTransition
     {
         ByPhases,
         ByHours,
         Continuous,
+    }
+
+    // Unity: scene fog from the look. Cozy: COZY's screen-space fog (water and particles stay unfogged). The Kronnect modes
+    // switch on their scene object instead.
+    public enum EnvironmentFog
+    {
+        Unity,
+        Cozy,
+        VolumetricFog2,
+        DynamicFog,
     }
 
     [ExecuteAlways]
@@ -61,8 +72,15 @@ namespace Aipocalypse.Core.EnvironmentSystem
         LookTransition _transition = LookTransition.ByPhases;
         [SerializeField, Min(0f), Tooltip("Real seconds a look change takes. 0 = cut")]
         float _transitionDuration = 5f;
-        [SerializeField, Tooltip("The one shadowed directional light: the sun by day, the moon by night")]
+        [SerializeField, Tooltip("The one shadowed directional light: the sun by day, the moon by night. Off while COZY draws")]
         Light _light;
+        [SerializeField, Tooltip("Set: COZY draws the sky, clouds and the sun and moon lights at the look hour; the director keeps the grades, " +
+            "reactors and fog. Empty: the director's own light and sky")]
+        CozyBridge _cozy;
+        [SerializeField, Tooltip("Which fog the scene uses. Cozy needs the COZY bridge (falls back to Unity without it)")]
+        EnvironmentFog _fog = EnvironmentFog.Unity;
+        [SerializeField, Tooltip("Scene object switched on for the Volumetric Fog 2 mode")] GameObject _volumetricFog;
+        [SerializeField, Tooltip("Scene object switched on for the Dynamic Fog mode")] GameObject _dynamicFog;
         [SerializeField, Tooltip("Global volume: the grade of the key before the current hour. The scene's only grade outside a blend")]
         Volume _gradeFrom;
         [SerializeField, Tooltip("Global volume above Grade From: the next key's grade, weighted by the blend")]
@@ -116,6 +134,10 @@ namespace Aipocalypse.Core.EnvironmentSystem
         // Play mode: runtime copy of a Skybox Plus sky, whose moon phase is a material property.
         Material _skySource;
         Material _skyCopy;
+        // Play mode while COZY draws: the scene's skybox, hidden because COZY's sky covers it.
+        Material _hiddenSky;
+        // While COZY draws: -1 unknown, 0 sun, 1 moon lights the scene (for the night shadow distance).
+        int _cozyMoonLit = -1;
         // What was last applied; Apply skips an unchanged look.
         float _appliedLookHour = -1f;
         float _appliedMoonPhase = -1f;
@@ -161,6 +183,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         {
             // OnDisable released the night shadow distance: the next LateUpdate applies in full and asks again.
             _appliedRevision = -1;
+            _cozyMoonLit = -1;
             if (!Application.isPlaying && !_preview)
                 ApplySkyOnly();
         }
@@ -169,6 +192,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
         void OnDestroy()
         {
+            ShowSkybox();
             if (_skyCopy == null)
                 return;
             if (RenderSettings.skybox == _skyCopy)
@@ -225,9 +249,12 @@ namespace Aipocalypse.Core.EnvironmentSystem
             }
 
             Apply(hour, playing && _clock != null ? StepLook(hour) : hour, moonPhase);
+            if (_cozy != null && _cozy.IsReady)
+                _cozy.PointSunAtLitLight();
 
             if (playing)
             {
+                UpdateCozyShadowDistance();
                 float deltaTime = Time.unscaledDeltaTime;
                 for (int i = _reactors.Count - 1; i >= 0; i--)
                 {
@@ -300,17 +327,97 @@ namespace Aipocalypse.Core.EnvironmentSystem
 
             // The sun and moon belong to the look: By Phases / By Hours hold them still between transitions.
             SunPath path = _profile.Path;
-            Vector3 sun = path.Sun(lookHour, out float sunElevation);
-            Vector3 moon = path.Moon(lookHour, out float moonElevation);
+            bool cozy = _cozy != null && _cozy.IsReady;
+            Vector3 sun;
+            Vector3 moon;
+            float sunElevation;
+            float moonElevation;
+            if (cozy)
+            {
+                float cozyHour = CozyBridge.CozyHour(lookHour, path.Sunrise, path.Sunset);
+                _cozy.Show(cozyHour, _clock != null ? _clock.Now.Day : 1, moonPhase, path.NewMoonLight, _fog == EnvironmentFog.Cozy);
+                _cozy.Directions(cozyHour, out sun, out moon);
+                sunElevation = Mathf.Asin(Mathf.Clamp(sun.y, -1f, 1f)) * Mathf.Rad2Deg;
+                moonElevation = Mathf.Asin(Mathf.Clamp(moon.y, -1f, 1f)) * Mathf.Rad2Deg;
+            }
+            else
+            {
+                sun = path.Sun(lookHour, out sunElevation);
+                moon = path.Moon(lookHour, out moonElevation);
+            }
             SunDirection = sun;
             MoonDirection = moon;
             SunElevation = sunElevation;
             Daylight = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(path.DaylightStartElevation, path.DaylightFullElevation, sunElevation));
 
-            ApplyLight(path, state, sun, sunElevation, moon, moonElevation, moonPhase);
-            ApplyRenderSettings(state);
-            ApplySky(state, lookHour, sun, moon, moonPhase);
+            if (cozy)
+            {
+                // COZY's own sun and moon lights take over.
+                if (_light != null && _light.enabled)
+                    _light.enabled = false;
+                HideSkybox();
+            }
+            else
+            {
+                ShowSkybox();
+                ApplyLight(path, state, sun, sunElevation, moon, moonElevation, moonPhase);
+                ApplySky(state, lookHour, sun, moon, moonPhase);
+            }
+            ApplyRenderSettings(state, !cozy);
+            ApplyFog(state, cozy);
             ApplyGrades(segment);
+        }
+
+        // COZY's sky covers every far-plane pixel, so in Play the camera skybox under it is hidden (restored on exit).
+        void HideSkybox()
+        {
+            if (!Application.isPlaying || RenderSettings.skybox == null)
+                return;
+            _hiddenSky = RenderSettings.skybox;
+            RenderSettings.skybox = null;
+        }
+
+        void ShowSkybox()
+        {
+            if (_hiddenSky == null)
+                return;
+            RenderSettings.skybox = _hiddenSky;
+            _hiddenSky = null;
+        }
+
+        // While COZY draws, its lights decide when the moon lights the scene; ask for the night shadow distance then.
+        void UpdateCozyShadowDistance()
+        {
+            if (_cozy == null || !_cozy.IsReady)
+                return;
+            int moonLit = _cozy.MoonLights ? 1 : 0;
+            if (moonLit == _cozyMoonLit)
+                return;
+            _cozyMoonLit = moonLit;
+            SetShadowDistance(moonLit == 1);
+        }
+
+        void ApplyFog(in AtmosphereState state, bool cozy)
+        {
+            EnvironmentFog mode = _fog == EnvironmentFog.Cozy && !cozy ? EnvironmentFog.Unity : _fog;
+            bool unity = mode == EnvironmentFog.Unity;
+            if (RenderSettings.fog != unity)
+                RenderSettings.fog = unity;
+            if (unity)
+            {
+                if (RenderSettings.fogColor != state.FogColor)
+                    RenderSettings.fogColor = state.FogColor;
+                if (RenderSettings.fogDensity != state.FogDensity)
+                    RenderSettings.fogDensity = state.FogDensity;
+            }
+            SetActive(_volumetricFog, mode == EnvironmentFog.VolumetricFog2);
+            SetActive(_dynamicFog, mode == EnvironmentFog.DynamicFog);
+        }
+
+        static void SetActive(GameObject target, bool active)
+        {
+            if (target != null && target.activeSelf != active)
+                target.SetActive(active);
         }
 
         void ApplyLight(SunPath path, in AtmosphereState state, Vector3 sun, float sunElevation, Vector3 moon, float moonElevation, float moonPhase)
@@ -331,6 +438,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
             // Only changed values are written (here, RenderSettings and the volumes): every write dirties the object,
             // and a selected one repaints its Inspector each frame, which halves the editor's frame rate.
             Quaternion rotation = StepLight(Quaternion.LookRotation(-SunPath.Direction(bearing, elevation)), sunLights);
+            if (!_light.enabled)
+                _light.enabled = true;
             Transform lightTransform = _light.transform;
             // Exact compare: Quaternion's == ignores turns under ~0.16°, which would freeze a slow continuous sun.
             if (!lightTransform.rotation.Equals(rotation))
@@ -375,8 +484,13 @@ namespace Aipocalypse.Core.EnvironmentSystem
             return Quaternion.Slerp(_lightFrom, _lightTo, Mathf.SmoothStep(0f, 1f, _glide));
         }
 
-        static void ApplyRenderSettings(in AtmosphereState state)
+        // Ambient only when the director lights the scene (COZY writes its own); fog is ApplyFog's.
+        static void ApplyRenderSettings(in AtmosphereState state, bool ambient)
         {
+            if (RenderSettings.reflectionIntensity != state.ReflectionIntensity)
+                RenderSettings.reflectionIntensity = state.ReflectionIntensity;
+            if (!ambient)
+                return;
             if (RenderSettings.ambientMode != AmbientMode.Trilight)
                 RenderSettings.ambientMode = AmbientMode.Trilight;
             if (RenderSettings.ambientSkyColor != state.AmbientSky)
@@ -385,12 +499,6 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 RenderSettings.ambientEquatorColor = state.AmbientEquator;
             if (RenderSettings.ambientGroundColor != state.AmbientGround)
                 RenderSettings.ambientGroundColor = state.AmbientGround;
-            if (RenderSettings.reflectionIntensity != state.ReflectionIntensity)
-                RenderSettings.reflectionIntensity = state.ReflectionIntensity;
-            if (RenderSettings.fogColor != state.FogColor)
-                RenderSettings.fogColor = state.FogColor;
-            if (RenderSettings.fogDensity != state.FogDensity)
-                RenderSettings.fogDensity = state.FogDensity;
         }
 
         // Feeds both skies, so switching the scene's skybox material (Time Of Day or Skybox Plus) switches the sky.

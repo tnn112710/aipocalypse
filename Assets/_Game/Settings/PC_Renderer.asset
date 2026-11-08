@@ -190,7 +190,8 @@ MonoBehaviour:
   - {fileID: -1162199858321035771}
   - {fileID: -7062686586378992764}
   - {fileID: 4709161636466693003}
-  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2d4bf37fae7944ae405eec3ee6209dfef84c3f62af84bfc9d8b937ee38e4d5a41l
+  - {fileID: 8352460418464058780}
+  m_RendererFeatureMap: ad6b866f10d7b46c84f67ed895eab5f2d4bf37fae7944ae405eec3ee6209dfef84c3f62af84bfc9d8b937ee38e4d5a419c8d0f537fe6e973l
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:
@@ -266,3 +267,26 @@ MonoBehaviour:
     BlurQuality: 1
     Falloff: 100
     SampleCount: -1
+--- !u!114 &8352460418464058780
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 927576baecea04a5aa8be06dc57e6d9e, type: 3}
+  m_Name: Volumetric Fog 2
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::VolumetricFogAndMist2.VolumetricFogRenderFeature
+  m_Active: 1
+  blurShader: {fileID: 4800000, guid: c9391e295126842e589edc35e6cfa61a, type: 3}
+  renderPassEvent: 450
+  renderPassEventOrder: 0
+  fogLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  cameraLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  ignoreReflectionProbes: 1

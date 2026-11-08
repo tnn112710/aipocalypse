@@ -2,16 +2,18 @@
 
 A world clock, a time-of-day look driven by it, and a digital clock on the HUD. Built in Core: the clock in `_Core/WorldTimeSystem/`, the look in `_Core/EnvironmentSystem/TimeOfDay/`, the HUD widget in `_Core/UI/`. Gameplay rules on top (dusk warning, sleeping, night enemies) are Features and not built yet.
 
-COZY 4 is installed (Could) but **not used yet**: the sky (our Time Of Day shader or Kronnect Skybox Plus, both driven by the director), lighting, fog and grade are ours (PLUGINS.md).
+**COZY 4 draws, our clock decides** (user, 2026-11-08). On WorldMap COZY draws the sky, clouds and the sun and moon lights at the director's look hour; `WorldClock` keeps the time and every gameplay event, and the director keeps the grades, fog, reflections and reactors (section COZY below). With COZY switched off the director lights the scene and feeds our own skies, as before.
 
 ```text
 RULES  WorldClock (scene scope, ticked)  ── HourChanged · DayPhaseChanged · DayStarted · TimeJumped · TimeSkipEnded
           │ Now / Phase / MoonPhase (read every frame)
 VIEW   EnvironmentDirector (one per scene)            ClockHud → ClockView (HUD, top right)
           look = TimeOfDayProfile at the hour
-               → sun/moon light, ambient, fog, reflections, sky globals, grade volumes
+               → grade volumes, fog, reflections; with COZY: CozyBridge → COZY (sky, clouds, sun/moon lights, ambient)
+                                                   without: sun/moon light, ambient, sky globals
                → EnvironmentReactors (lamps, windows, particles, material tints)
 DATA   ClockSettings · TimeOfDayProfile → LightingPreset + VolumeProfile per key · TimeOfDayAmbience
+       COZY: Aipocalypse_Atmosphere (baked from the looks) · Aipocalypse_Style
 ```
 
 ## Clock
@@ -110,7 +112,41 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 - **Preview** (edit mode): tick Preview and drag Preview Hour, or set Preview Speed to watch the day play. It writes the scene's lighting, so turn it off before saving. With Preview off, edit mode still feeds the sky shader at Preview Hour (globals only, nothing saved).
 - **Jump To Hour** button: in Play mode it moves the clock, in edit mode the preview.
 
-**Weather:** not built. The planned seam is a layer that modifies the evaluated `AtmosphereState` in `EnvironmentDirector.Apply`, after the profile and before anything is written (an unused `IAtmosphereLayer` version was removed: see git history). The held-look early-out must then re-apply while a layer runs. Keep changes relative (sun ×0.35, fog ×4, lerp the fog toward grey) so one rain layer works at any hour; a layer that needs its own grade adds its own global volume.
+**Weather:** no rules yet. COZY's Weather module is in the scene, scripted only (`ChangeViaScripting`), starting on its Partly Cloudy profile (clouds only, no audio). Weather decisions will be ours (a service deciding from `WorldClock`, saved by us) and reach COZY only through `CozyBridge`; rain and thunder sound through `AudioService`, never COZY's audio (skill `tools-unity-cozy`). Without COZY the old seam still applies: a layer modifying the evaluated `AtmosphereState` in `EnvironmentDirector.Apply` before anything is written.
+
+The two sky bullets above (Time Of Day sky, Skybox Plus) apply while COZY is off; their materials stay in the scene for switching back.
+
+## COZY (sky, clouds, sun and moon)
+
+Skills: `tools-unity-cozy` (how it's used here) and `unity-cozy-weather` (the library, user scope). Code: `_Core/EnvironmentSystem/Cozy/CozyBridge.cs`; setup: `AgentScripts/DayNight/CozySetup.cs`.
+
+- **Wiring.** `Environment/Time Of Day/COZY Weather` is COZY's object: Atmosphere, Time and Weather modules, `Sun Light` (shadows, the Komorebi cloud cookie and the cloud mover copied from the old light), `Moon Light`, two flares and a wind zone. It carries `CozyBridge`, the only code that references COZY; the director's **Cozy** field points at it. Each applied look the director pushes the look hour, the day and the moon phase; COZY's own clock stays paused. The director reads COZY's sun and moon directions back (Daylight, reactors, god rays), keeps the grades, reflections and fog, and turns its own `Directional Light` off. In Play the scene's skybox material is hidden: COZY's sky covers every far-plane pixel.
+- **Clock mapping.** COZY's sun is up from 06:00 to 18:00 on its clock. `CozyBridge.CozyHour` maps our sunrise → sunset (06:00 → 19:00) onto COZY's 06–18 and the night onto 18–30, so every look keeps the sun height it was tuned at. By Hours (WorldMap) holds the sky and lights still between hours and glides them over the 5 s transition.
+- **Look.** `Data/Environment/Cozy/Aipocalypse_Atmosphere.asset`, baked by `CozySetup.Atmosphere()` from `TimeOfDay.asset`: 48 keys a day (every 30 min on COZY's clock) for sun and moon colour, intensity (with our horizon fade at COZY's sun height) and shadow strength; the trilight ambient; the sky zenith (COZY's own by day, darkening to our night sky by each look's Night Sky Blend); sky horizon and fog colours (the look's fog colour, so Unity fog meets the sky); stars (our star map cubemap, brightness = the looks' Stars × 0.6, twinkle 0.4); a moon opposite the sun on our moon cycle. Clouds, sun disc and the rest come from COZY's Balanced profile it was copied from. **The looks stay the source:** tune a `TOD_*` look, then re-run `CozySetup.Atmosphere()`; it overwrites the baked overrides (hand edits to other COZY overrides stay).
+- **Moon.** The bridge offsets COZY's moon phase to ours every frame and scales the moon light by phase (New Moon Light). COZY points `RenderSettings.sun` at its sun light every frame, also at night while it is off; URP would then take the enemy night-highlight light as the main light and the moon would cast no shadows, so the bridge points it at the light that is on (`PointSunAtLitLight`).
+- **Sun path.** COZY's sun runs a tilted circle (no latitude). `CozySetup.Scene()` fits COZY's sky pitch (40° → noon 50°) and rotation (271°) to the profile's Sun path at 09:00: bearing 120.7° vs 120.8°, height 30.5° vs 33.2°.
+- **Style.** `Data/Environment/Cozy/Aipocalypse_Style.asset`: COZY's Desktop style without screen-space sunshafts (0.5 ms; the scene has particle god rays). Volumetric clouds, lens flares, stars, constellations, galaxy and rainbow stay on. It is first in COZY's style list because COZY doesn't save the selected style and always starts on the first.
+- **COZY settings** are project-global, inside the package (`Content/Resources/COZY Settings.asset`): sky pitch and rotation, FX blocking off (it rendered a second camera through `PC_Renderer` every frame), fog at half resolution, the style list. Re-check them after a COZY update.
+- **Switching back:** `CozySetup.Use(false)` (COZY inactive, the director's light and sky, renderer feature off); `Use(true)` again. Both live in Play mode for comparisons.
+
+**Fog modes** (director → **Fog**, `CozySetup.Fog("mode")`, live in Play):
+
+| Mode | What | Notes |
+| --- | --- | --- |
+| Unity (default) | Scene fog from the look; COZY's fog muted by the bridge | Fogs everything, water and particles too. COZY's fog pass still runs (muted) |
+| Cozy | COZY's screen-space height fog, colours from the looks, density from Balanced | Hazier. Transparents (water, particles) get none: SW3's COZY fog hook targets COZY 3 |
+| VolumetricFog2 | Kronnect volume over the whole map (`Fog Modes/Volumetric Fog 2`, profile `Data/Environment/Fog/VF2_Fog.asset`, its renderer feature on `PC_Renderer`) | Comparison only: fixed colour (bright at night), the box covers the sky |
+| DynamicFog | Kronnect Dynamic Fog volume (`Fog Modes/Dynamic Fog`, `DynamicFog_Light.asset`) | Comparison only: fixed colour, heavy |
+
+**Cost** (editor, RTX 5070 Ti Laptop + Core Ultra 7 255HX, 1080p Game view, 2026-11-08, `PerfSuite.Views` over the 9 recorded views, medians; FrameTiming glitch rows left out). Before = the director's own light and Skybox Plus sky; after = COZY with Aipocalypse_Style, Unity fog, fog x2:
+
+| Hour | GPU before → after | Game (CPU) |
+| --- | --- | --- |
+| 09:00 | 3.7–7.8 ms → 3.7–8.8 ms: **+0.84 ms** | +0.77 ms |
+| 18:00 | 3.6–7.9 ms → 4.0–9.2 ms: **+0.64 ms** | +0.63 ms |
+| 22:00 | 3.8–8.3 ms → 3.7–9.0 ms: **+0.53 ms** | ±0 (noise) |
+
+A/B at 09:00 (5 views, median GPU over the old sky): Desktop style +1.69 ms; volumetric clouds off +1.52 (they cost 0.17); sunshafts off too +1.01 (0.5); lens flares off too +1.02 (~0); fog at half resolution +0.85; COZY fog shown +1.07 (≈ muted: the pass runs either way); Volumetric Fog 2 +1.18 (+0.17 over Unity fog); Dynamic Fog +0.98 (~0). What remains (~0.85 ms) is COZY's fixed base: full-resolution sky and cloud buffers and the composite copy, which can't be turned off. The CPU cost is spread over render-graph recording of its passes and its update; no single marker stands out. Not measured: a build, an RTX 2060 (expect the GPU deltas roughly 2–3× larger).
 
 ## Things that follow the time
 
@@ -211,6 +247,11 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 | The player's light at night | `Data/Player/PlayerVisionTuning.asset`; a lantern's share: `Content/Items/Lantern/Lantern.asset` |
 | How enemies read at night | `Data/Environment/NightHighlight.asset` (on switch, colour, intensity, direction) |
 | Ambience | `TimeOfDay_Ambience` curves and calls |
+| COZY's light, ambient, sky horizon, fog colour, stars | The `TOD_*` looks, then `CozySetup.Atmosphere()` (re-bakes `Aipocalypse_Atmosphere`) |
+| COZY's clouds, sun disc, day sky colours | `Aipocalypse_Atmosphere` → presets or non-baked overrides (COZY inspector) |
+| Which COZY features run | `Aipocalypse_Style` (then measure: see COZY → Cost) |
+| Fog | Director → Fog (Unity, Cozy, VolumetricFog2, DynamicFog) |
+| COZY on / off | `CozySetup.Use(true / false)` |
 
 ## Setup scripts
 
@@ -223,6 +264,12 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 - `DayNightSetup.RestoreHudOverrides(path)` sets the open scene's HUD instance overrides back to those of another copy of the scene (for example `git show HEAD:<scene>` saved to a temp file). Editor layout passes write layout-driven values onto the instance, which would otherwise show up as noise in the scene diff.
 - `SkyboxPlusSetup.Create(preset)` builds `SkyboxPlus_Sky.mat` from a Skybox Plus preset (e.g. `"Clouds-B1"`) with the project's star, moon and sky values; **it overwrites hand tuning**. `Use(bool)` switches the open scene between Skybox Plus and the Time Of Day sky and saves it. `StarMap(on, intensity)` imports `StarMap.png` as a cubemap and turns the star map on or off. Play mode: `Try(preset)` shows another vendor preset (runtime copy, nothing saved), `Set(property, value)` tweaks the running copy.
 - `Review.cs`: Play-mode helpers (`SetHour`, `Freeze`, `View`, `State`) for screenshots. Unity stops ticking Play mode while the editor is in the background: run `Application.runInBackground = true` (eval) first.
+
+`CozySetup` (COZY; saves only what it changes):
+
+- `Scene()` builds COZY in the open scene once (modules, lights copied from the director's light, profile, paused clock, scripted weather, bridge), re-fits the sun path, re-bakes the look, wires the director and saves the scene. Safe to re-run.
+- `Atmosphere()` re-bakes `Aipocalypse_Atmosphere` from the looks. `Style()` (re)creates `Aipocalypse_Style`, puts it first and sets fog to half resolution. `FogModes()` builds the two Kronnect fog volumes and VF2's renderer feature. `Use(bool)` switches COZY on / off; `Fog(mode)` picks the fog; `Status()` prints the state.
+- Generic COZY work (status, profiles, styles, renderer feature, time / weather in the editor) is the user-scope kit `CozyKit` (skill `unity-cozy-weather`).
 
 `AgentScripts/Vision/` (player light and lantern):
 
@@ -238,3 +285,6 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 - Underwater fog (Stylized Water 3 areas) and the water materials are not driven by the time of day yet.
 - Raygeas `Tree_Foliage` leaves (pines, bushes, sakura) add a fake subsurface glow (`_SSS_Color`) through Emission. It follows only the light's direction, not its intensity, so those trees stay bright green at night. Not driven by the time of day yet.
 - Not built (GDD rules, Features): dusk warning, sleeping (use `SkipTo`), weather, night enemies.
+- COZY: the Milky Way sits elsewhere and is fainter than on the old sky (COZY's star dome turns on its own axis; Star Latitude / Azimuth / Galactic Core Transit don't apply to it). Around golden hour COZY's sky stays day-blue while the ground glows: its evening colours sit within about 1.7 h of its sunset. Night clouds are dark silhouettes, tinted pink near dusk and dawn. All tunable in `Aipocalypse_Atmosphere`; not tuned yet.
+- COZY rewrites shader keywords on its own `Resources` materials to match the style (e.g. `COZY Sunshafts.mat`): vendor churn, revert it (ENVIRONMENT.md → Vendor material churn).
+- Seen once while leaving Play mode with COZY: a `NullReferenceException` inside Unity's GPU Resident Drawer (`OnBeginCameraRendering`). Not reproduced.

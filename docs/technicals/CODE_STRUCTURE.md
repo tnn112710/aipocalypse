@@ -160,7 +160,8 @@ Assets/_Game/
 │  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind); on Environment/Wind in the world map
 │  │  ├─ GrassBendField.cs                  one Stylized Grass bender for crowd movers: a sphere mesh particle per Add(transform, radius)'d mover, moved in LateUpdate (ParticleSystem + GrassBender on the same object); Environment/Grass Bending in the world map
 │  │  ├─ EnvironmentInstaller.cs            SceneInstaller: RegisterComponent(EnvironmentDirector); optional GrassBendField (RegisterComponent); optional NightHighlight (RegisterComponent, + NightHighlightCommands in dev builds); optional TimeOfDayAmbience → AmbienceService entry point, only with a ready WorldTimeInstaller on the scope (else a warning)
-│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ and Skybox Plus sky globals (Play mode: Skybox Plus moon phase on a runtime copy of the sky material), _StarMapRotation (latitude + sidereal time), Grade From / To volumes; profile → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
+│  │  ├─ Cozy/CozyBridge.cs                 [ExecuteAlways] the only code referencing COZY 4 (asmdef ref DistantLands.Cozy.Runtime): Show(cozyHour, day, moonPhase, newMoonLight, fog) pauses COZY's clock and writes its time / date; RunAfterBiomes hook matches COZY's moon phase to ours, scales the moon light, mutes COZY fog; Directions (COZY's sun / moon, toward them); PointSunAtLitLight (moon as main light at night); CozyHour / OurHour map our sunrise–sunset onto COZY's 06–18
+│  │  ├─ TimeOfDay/EnvironmentDirector.cs   [ExecuteAlways] with a CozyBridge: pushes the look hour / day / moon to COZY, reads its sun back, turns its own light off and hides the skybox in Play; fog mode (EnvironmentFog: Unity, Cozy, VolumetricFog2, DynamicFog objects). Without: sole writer of the sun / moon light, ambient, fog, reflections, _TOD_ and Skybox Plus sky globals (Play mode: Skybox Plus moon phase on a runtime copy of the sky material), _StarMapRotation (latitude + sidereal time), Grade From / To volumes; profile → apply → reactors (Play mode); night shadow distance requested from GraphicsService; edit-mode preview; collects scene reactors on save / Play
 │  │  ├─ TimeOfDay/TimeOfDayProfile.cs      SO: keys (hour, LightingPreset, grade VolumeProfile, blend) → Evaluate(hour); PhaseLooks (DayPhase → hour, PhaseLookHour); SunPath (sun / moon directions); grade-override warning
 │  │  ├─ TimeOfDay/LightingPreset.cs        SO: one look (sun, moon, ambient, reflections, fog, sky, haze, unlit tint) → AtmosphereState
 │  │  ├─ TimeOfDay/AtmosphereState.cs       every value the director applies in a frame; Lerp
@@ -491,6 +492,7 @@ Assets/_Game/
    ├─ NightHighlightTests.cs                LightRotation (level with the view, tilted, turned); enemies join the layer the highlight lights; glowing eyes are placed, use the eye shader, cast no shadows
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
    ├─ TimeOfDayTests.cs                     TimeWindow across midnight with fades, profile blending (linear, wrap past midnight, hold), sun path, reactor fade at high frame rates
+   ├─ CozyBridgeTests.cs                    CozyHour puts sunrise / sunset / solar noon on COZY's 06 / 18 / 12, OurHour undoes it all day, the day stays in order
    ├─ MeleeTests.cs                         swing timing, hold rate, buffered click, alternating sides, switching / sprinting
    ├─ AutoBuildTests.cs                     build names, Player Settings / extra defines per config (no stray cheats or Pipeline), do-not-ship folders, shipped configs, BuildStamp file round trip
    ├─ ConsoleTests.cs                       dev console: tokens, statements, argument parsing, registry (optional args, properties, names, errors, throwing commands, remove), suggestions, help, line editing, history, scrollback, screen log, key repeat, Run, InputService text input mode, TimeCommands / WorldClockCommands
@@ -624,7 +626,7 @@ LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      CrosshairHud reads Player.CrosshairPosition / AimWeight / IsSprinting → moves and fades the dot
                      InteractPromptHud reads Player.Interactor → InteractPromptView
                      QteHud reads the running session → its QteView (idle frames skip)
-                     EnvironmentDirector reads WorldClock.Now → light, RenderSettings, sky globals, grades → reactors
+                     EnvironmentDirector reads WorldClock.Now → CozyBridge → COZY (sky, clouds, sun / moon lights) or its own light and sky globals; RenderSettings, fog, grades → reactors
                      ClockHud reads WorldClock.Now / Phase → ClockView
                      ConsoleView / ScreenLogView redraw the console and the screen log when their versions changed (dev builds)
 StatBar.Update       only while a trail is catching up, otherwise disabled
