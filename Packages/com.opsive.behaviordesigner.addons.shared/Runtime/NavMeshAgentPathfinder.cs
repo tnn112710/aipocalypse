@@ -127,7 +127,9 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Runtime.Pathfinding
             return false;
         }
 
-        /// <summary>Projects a formation slot to the reachable end of its NavMesh route, avoiding disconnected obstacle tops.</summary>
+        /// <summary>
+        /// Projects a formation slot to the reachable end of its NavMesh route, avoiding disconnected obstacle tops.
+        /// </summary>
         /// <param name="position">The requested slot, updated to the reachable navigation position on success.</param>
         /// <returns>True when the route ends within the navigation sampling distance of the requested slot.</returns>
         public override bool SampleReachablePosition(ref Vector3 position)
@@ -154,7 +156,9 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Runtime.Pathfinding
             return true;
         }
 
-        /// <summary>Measures a complete NavMesh route without changing movement.</summary>
+        /// <summary>
+        /// Measures a complete NavMesh route without changing movement.
+        /// </summary>
         /// <param name="start">The actor position.</param>
         /// <param name="destination">The candidate destination.</param>
         /// <param name="distance">The route length.</param>

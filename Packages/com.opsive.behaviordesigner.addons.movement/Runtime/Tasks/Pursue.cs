@@ -10,8 +10,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    /// <summary>Pursues a moving target using bounded interception and target-based arrival.</summary>
-    [Opsive.Shared.Utility.Description("Pursues the specified target. Pursue will predict where the target is headed based on the Target Distance Prediction value.")]
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Pursues a moving target using bounded interception and target-based arrival.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Pursues the specified target. Pursue will predict where the target is headed based on the Target Distance Prediction value.")]
     [NodeIcon("079b135d5d495e14abd9ad2cb0dfaf9e", "c0515b66e6314734ba5a8f2ec7d6f451")]
     public class Pursue : MovementAgent
     {
@@ -84,7 +92,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             return m_TargetPosition + targetVelocity * InterceptTime(offset, targetVelocity, speed, maximumPrediction);
         }
 
-        /// <summary>Samples the predicted intercept, using the current target when prediction leaves navigation.</summary>
+        /// <summary>
+        /// Samples the predicted intercept, using the current target when prediction leaves navigation.
+        /// </summary>
         /// <param name="destination">The navigable pursuit destination.</param>
         /// <returns>True when either the intercept or current target can be sampled.</returns>
         private bool TryGetTargetDestination(out Vector3 destination)
@@ -95,7 +105,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             return SamplePosition(ref destination);
         }
 
-        /// <summary>Finds the earliest possible intercept within the configured prediction horizon.</summary>
+        /// <summary>
+        /// Finds the earliest possible intercept within the configured prediction horizon.
+        /// </summary>
         /// <param name="offset">The target position relative to the agent.</param>
         /// <param name="velocity">The target velocity.</param>
         /// <param name="speed">The agent travel speed.</param>

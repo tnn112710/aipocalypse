@@ -1,4 +1,4 @@
-﻿#if GRAPH_DESIGNER
+#if GRAPH_DESIGNER
 /// ---------------------------------------------
 /// Behavior Designer
 /// Copyright (c) Opsive. All Rights Reserved.
@@ -8,6 +8,7 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
 {
     using Opsive.BehaviorDesigner.Runtime;
     using Opsive.BehaviorDesigner.Runtime.Components;
+    using Opsive.BehaviorDesigner.Runtime.Tasks.Composites;
     using Opsive.BehaviorDesigner.Runtime.Tasks.Decorators;
     using Opsive.GraphDesigner.Editor;
     using Opsive.GraphDesigner.Editor.Elements;
@@ -27,7 +28,7 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
         private BehaviorTree m_BehaviorTree;
         private ILogicNode m_Node;
         private EditorNode m_EditorNode;
-        private ushort m_UtilityEvaluatorComponentIndex = ushort.MaxValue;
+        private ushort m_UtilityValueComponentIndex = ushort.MaxValue;
 
         private Label m_UtilityValueLabel;
 
@@ -64,7 +65,7 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
         }
 
         /// <summary>
-        /// Updates the utility value.
+        /// Displays the most recent runtime utility value without sampling the evaluator.
         /// </summary>
         private void UpdateUtilityValue()
         {
@@ -72,8 +73,8 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
                 return;
             }
 
-            var taskObjectComponents = m_BehaviorTree.World.EntityManager.GetBuffer<TaskObjectComponent>(m_BehaviorTree.Entity);
-            if (m_UtilityEvaluatorComponentIndex == ushort.MaxValue) {
+            var utilityValueComponents = m_BehaviorTree.World.EntityManager.GetBuffer<UtilityValueComponent>(m_BehaviorTree.Entity);
+            if (m_UtilityValueComponentIndex == ushort.MaxValue) {
                 var nodeIndex = m_EditorNode.GetAttachedToGraphNodeIndex();
                 if (nodeIndex == ushort.MaxValue) {
                     nodeIndex = m_Node.RuntimeIndex;
@@ -82,24 +83,20 @@ namespace Opsive.BehaviorDesigner.Editor.Controls.NodeViews
                         return;
                     }
                 }
-                // Find the corresponding index of the TaskObject.
-                for (int i = 0; i < taskObjectComponents.Length; ++i) {
-                    if (taskObjectComponents[i].Index == nodeIndex) {
-                        m_UtilityEvaluatorComponentIndex = (ushort)i;
+                // Find the runtime utility value corresponding to the displayed evaluator.
+                for (int i = 0; i < utilityValueComponents.Length; ++i) {
+                    if (utilityValueComponents[i].Index == nodeIndex) {
+                        m_UtilityValueComponentIndex = (ushort)i;
                         break;
                     }
                 }
 
-                if (m_UtilityEvaluatorComponentIndex == ushort.MaxValue) {
+                if (m_UtilityValueComponentIndex == ushort.MaxValue) {
                     return;
                 }
             }
 
-            var utilityEvaluator = m_BehaviorTree.GetTask(taskObjectComponents[m_UtilityEvaluatorComponentIndex].Index) as UtilityEvaluator;
-            if (utilityEvaluator == null) {
-                return;
-            }
-            m_UtilityValueLabel.text = "Value: " + System.Math.Round(utilityEvaluator.GetUtilityValue(), 3);
+            m_UtilityValueLabel.text = "Value: " + System.Math.Round(utilityValueComponents[m_UtilityValueComponentIndex].Value, 3);
         }
     }
 }

@@ -1,40 +1,67 @@
+/// ---------------------------------------------
+/// Movement Pack for Behavior Designer Pro
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
 #if GRAPH_DESIGNER
 namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
 {
     using System.Collections.Generic;
     using UnityEngine;
 
-    /// <summary>Specifies how the threat used for concealment is supplied.</summary>
+    /// <summary>
+    /// Specifies how the threat used for concealment is supplied.
+    /// </summary>
     public enum CoverThreatMode { Target, Position, Direction, AgentForward, Automatic }
 
-    /// <summary>Explains why a cover candidate or movement request was rejected.</summary>
+    /// <summary>
+    /// Explains why a cover candidate or movement request was rejected.
+    /// </summary>
     public enum CoverFailure { None, InvalidThreat, NoGeometry, Exposed, Obstructed, Occupied, Unreachable, DestinationRejected, MovementFailed, Reserved, TooClose, ExhaustedRetries }
 
-    /// <summary>The stance that a cover selection requires the character controller to apply.</summary>
+    /// <summary>
+    /// The stance that a cover selection requires the character controller to apply.
+    /// </summary>
     public enum CoverStance { Standing, Crouching }
-    /// <summary>The stances that a cover query may consider.</summary>
+    /// <summary>
+    /// The stances that a cover query may consider.
+    /// </summary>
     public enum CoverStanceMode { Standing, Crouching, Either }
-    /// <summary>The sources used to generate candidate positions.</summary>
+    /// <summary>
+    /// The sources used to generate candidate positions.
+    /// </summary>
     public enum CoverSource { Geometry, AuthoredPoints, Both }
-    /// <summary>The preference used after hard safety checks.</summary>
+    /// <summary>
+    /// The preference used after hard safety checks.
+    /// </summary>
     public enum CoverSelection { ShortestPath, ThreatDistance, AuthoredPriority }
-    /// <summary>Whether to finish on arrival or keep protecting the selected position.</summary>
+    /// <summary>
+    /// Whether to finish on arrival or keep protecting the selected position.
+    /// </summary>
     public enum CoverCompletion { Arrival, Maintain }
 
-    /// <summary>Performs bounded surface searches and retains optional candidate diagnostics.</summary>
+    /// <summary>
+    /// Performs bounded surface searches and retains optional candidate diagnostics.
+    /// </summary>
     public sealed class CoverSearch
     {
-        /// <summary>Samples navigation without changing the active destination.</summary>
+        /// <summary>
+        /// Samples navigation without changing the active destination.
+        /// </summary>
         /// <param name="position">The requested and sampled position.</param>
         /// <returns>True when navigation was sampled.</returns>
         public delegate bool SamplePosition(ref Vector3 position);
-        /// <summary>Measures a complete route without changing the active destination.</summary>
+        /// <summary>
+        /// Measures a complete route without changing the active destination.
+        /// </summary>
         /// <param name="position">The destination.</param>
         /// <param name="distance">The route length.</param>
         /// <returns>True when a complete route exists.</returns>
         public delegate bool PathDistance(Vector3 position, out float distance);
 
-        /// <summary>Contains the geometry settings for one search.</summary>
+        /// <summary>
+        /// Contains the geometry settings for one search.
+        /// </summary>
         public struct Settings
         {
             [Tooltip("The moving actor.")] public Transform Actor;
@@ -60,7 +87,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             [Tooltip("Reject other actors' reserved positions.")] public bool UseReservations;
         }
 
-        /// <summary>A candidate rejection retained for visualization.</summary>
+        /// <summary>
+        /// A candidate rejection retained for visualization.
+        /// </summary>
         private struct Candidate
         {
             [Tooltip("The sampled foot position.")] public Vector3 Position;
@@ -97,7 +126,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
         public CoverFailure Failure { get; private set; }
         public bool Truncated { get; private set; }
 
-        /// <summary>Resolves target, last-known position, and directional threat inputs.</summary>
+        /// <summary>
+        /// Resolves target, last-known position, and directional threat inputs.
+        /// </summary>
         /// <param name="mode">The input mode.</param>
         /// <param name="target">The optional threat object.</param>
         /// <param name="offset">The threat-local eye offset.</param>
@@ -125,7 +156,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return true;
         }
 
-        /// <summary>Infers dimensions when requested and clamps the upright capsule to valid dimensions.</summary>
+        /// <summary>
+        /// Infers dimensions when requested and clamps the upright capsule to valid dimensions.
+        /// </summary>
         /// <param name="settings">The settings to normalize.</param>
         /// <returns>The normalized settings.</returns>
         public static Settings Normalize(Settings settings)
@@ -146,7 +179,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return settings;
         }
 
-        /// <summary>Prepares reusable validation buffers without querying or changing navigation.</summary>
+        /// <summary>
+        /// Prepares reusable validation buffers without querying or changing navigation.
+        /// </summary>
         /// <param name="settings">The actor and threat settings.</param>
         /// <param name="maximumOverlaps">The bounded overlap capacity.</param>
         public void Configure(Settings settings, int maximumOverlaps)
@@ -155,7 +190,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             if (m_Overlaps == null || m_Overlaps.Length != Mathf.Max(1, maximumOverlaps)) { m_Overlaps = new Collider[Mathf.Max(1, maximumOverlaps)]; }
         }
 
-        /// <summary>Begins a bounded search; Step controls how much candidate work is done per update.</summary>
+        /// <summary>
+        /// Begins a bounded search; Step controls how much candidate work is done per update.
+        /// </summary>
         /// <param name="settings">The search settings.</param>
         /// <param name="maximumColliders">The geometry and authored-point budget.</param>
         /// <param name="maximumOverlaps">The overlap budget.</param>
@@ -177,7 +214,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             IsSearching = true;
         }
 
-        /// <summary>Processes at most the requested number of candidate/stance pairs.</summary>
+        /// <summary>
+        /// Processes at most the requested number of candidate/stance pairs.
+        /// </summary>
         /// <param name="budget">The maximum candidates to evaluate in this update.</param>
         /// <returns>True when the search has completed.</returns>
         public bool Step(int budget)
@@ -209,7 +248,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return !IsSearching;
         }
 
-        /// <summary>Runs a complete search synchronously for tools and deterministic unit tests.</summary>
+        /// <summary>
+        /// Runs a complete search synchronously for tools and deterministic unit tests.
+        /// </summary>
         /// <param name="settings">The search settings.</param>
         /// <param name="maximumColliders">The collider budget.</param>
         /// <param name="maximumOverlaps">The overlap budget.</param>
@@ -223,7 +264,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return HasSelection;
         }
 
-        /// <summary>Samples nearest surfaces, threat-facing surfaces, radial surfaces, and wall ends.</summary>
+        /// <summary>
+        /// Samples nearest surfaces, threat-facing surfaces, radial surfaces, and wall ends.
+        /// </summary>
         /// <param name="cover">The potential cover collider.</param>
         /// <param name="stance">The tested stance.</param>
         private void ProbeSurface(Collider cover, CoverStance stance)
@@ -252,7 +295,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             Consider(candidate, hit.normal, cover, null, 0, stance);
         }
 
-        /// <summary>Validates and scores one candidate without replacing movement.</summary>
+        /// <summary>
+        /// Validates and scores one candidate without replacing movement.
+        /// </summary>
         /// <param name="position">The foot position.</param>
         /// <param name="normal">The outward normal.</param>
         /// <param name="cover">The associated collider.</param>
@@ -281,7 +326,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             if (m_Settings.Debug) { m_Candidates.Add(new Candidate { Position = position, Failure = reason, Height = m_TestHeight }); }
         }
 
-        /// <summary>Computes comparable costs for the selected preference.</summary>
+        /// <summary>
+        /// Computes comparable costs for the selected preference.
+        /// </summary>
         /// <param name="settings">The selection settings.</param>
         /// <param name="position">The candidate.</param>
         /// <param name="distance">The complete path length.</param>
@@ -294,7 +341,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return distance;
         }
 
-        /// <summary>Checks actor and threat hierarchies which must never provide cover.</summary>
+        /// <summary>
+        /// Checks actor and threat hierarchies which must never provide cover.
+        /// </summary>
         /// <param name="collider">The candidate geometry.</param>
         /// <returns>True for excluded geometry.</returns>
         private bool Ignored(Collider collider)
@@ -303,7 +352,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
                 (m_Settings.ThreatObject != null && collider.transform.IsChildOf(m_Settings.ThreatObject));
         }
 
-        /// <summary>Revalidates concealment, physical clearance, and occupancy after navigation sampling.</summary>
+        /// <summary>
+        /// Revalidates concealment, physical clearance, and occupancy after navigation sampling.
+        /// </summary>
         /// <param name="position">The actor's foot position.</param>
         /// <param name="threat">The current threat point or direction.</param>
         /// <param name="directional">Whether the threat is directional.</param>
@@ -313,7 +364,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return ValidateHeight(position, threat, directional, SelectedHeight > 0 ? SelectedHeight : m_Settings.Height);
         }
 
-        /// <summary>Validates a foot position at an explicit body height without searching or navigating.</summary>
+        /// <summary>
+        /// Validates a foot position at an explicit body height without searching or navigating.
+        /// </summary>
         /// <param name="position">The foot position.</param>
         /// <param name="threat">The threat point or direction.</param>
         /// <param name="directional">Whether the threat is directional.</param>
@@ -354,7 +407,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return CoverFailure.None;
         }
 
-        /// <summary>Draws retained candidates, rejection labels, selected clearance, sight lines, and the active NavMesh path.</summary>
+        /// <summary>
+        /// Draws retained candidates, rejection labels, selected clearance, sight lines, and the active NavMesh path.
+        /// </summary>
         public void DrawGizmos()
         {
             if (!m_Settings.Debug || m_Settings.Actor == null) { return; }

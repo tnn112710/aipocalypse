@@ -10,7 +10,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Evade the specified target. Evade will predict where the target is headed based on the Look Ahead Distance. " +
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Evades the target by predicting its future position.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Evade the specified target. Evade will predict where the target is headed based on the Look Ahead Distance. " +
                      "Evade is similar to Flee except Evade uses the target's velocity to predict where to move towards whereas Flee only uses the target's position.")]
     [NodeIcon("8e0f6d1ef072a8d468943f37b3453bd9", "cfa59bcf26297d44e8b774d0568c996c")]
     public class Evade : MovementAgent

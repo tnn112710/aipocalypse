@@ -10,7 +10,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Moves towards the target destination. Uses the Target GameObject is set, otherwise the Target Position.")]
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Moves toward the target GameObject or the specified target position.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Moves towards the target destination. Uses the Target GameObject is set, otherwise the Target Position.")]
     [NodeIcon("9cafaa822d368954fb8a6c43fa7d8206", "b217f83765c09674790bf63866775d22")]
     public class Seek : MovementAgent
     {
@@ -46,14 +55,15 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         /// <returns>Success when the agent arrives.</returns>
         public override TaskStatus OnUpdate()
         {
-            if (!m_DestinationAccepted || HasMovementFailed()) {
+            if ((m_FailOnInvalidPath.Value && !m_DestinationAccepted) || HasMovementFailed()) {
                 return TaskStatus.Failure;
             }
             if (HasArrived()) {
                 return TaskStatus.Success;
             }
 
-            if (!SetDestination(GetTargetDestination())) {
+            m_DestinationAccepted = SetDestination(GetTargetDestination());
+            if (m_FailOnInvalidPath.Value && !m_DestinationAccepted) {
                 return TaskStatus.Failure;
             }
 

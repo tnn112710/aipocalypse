@@ -9,7 +9,14 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
     using Opsive.BehaviorDesigner.AddOns.Shared.Editor;
     using Opsive.Shared.Editor.UIElements;
     using Opsive.Shared.Editor.UIElements.Controls;
+#if OPSIVE_SHARED_V3
+    using Opsive.Shared.Runtime.Utility;
+    using Opsive.Shared.Runtime.Serialization;
+    using Serialization = Opsive.Shared.Runtime.Serialization.Serialization;
+    using MemberVisibility = Opsive.Shared.Runtime.Serialization.MemberVisibility;
+#else
     using Opsive.Shared.Utility;
+#endif
     using System;
     using UnityEngine.UIElements;
 
@@ -50,7 +57,15 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
             /// </summary>
             protected virtual void AddTaskFields()
             {
+#if OPSIVE_SHARED_V3
+                InspectorBuilder.AddFields(new Opsive.Shared.Editor.UIElements.Controls.ControlInput {
+                    UnityObject = m_UnityObject, Target = m_MovementAgent, Container = this,
+                    OnChangeEvent = (object obj) => { m_OnChangeEvent?.Invoke(obj); return true; }
+                }, MemberVisibility.Public);
+#else
                 FieldInspectorView.AddFields(m_UnityObject, m_MovementAgent, MemberVisibility.Public, this, (object obj) => { m_OnChangeEvent?.Invoke(obj); });
+#endif
+                // AddFields already includes the inherited serialized validation settings.
             }
 
             /// <summary>
@@ -61,9 +76,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
                 var fieldNames = new[] { "m_FailOnInvalidPath", "m_UseTimeout", "m_Timeout", "m_UseStuckDetection",
                     "m_StuckDuration", "m_MinimumProgressDistance", "m_PathValidationGrace" };
                 for (int i = 0; i < fieldNames.Length; ++i) {
+#if OPSIVE_SHARED_V3
+                    InspectorBuilder.AddField(new Opsive.Shared.Editor.UIElements.Controls.ControlInput {
+                        UnityObject = m_UnityObject, Target = m_MovementAgent, Container = this,
+                        OnChangeEvent = (object obj) => { m_OnChangeEvent?.Invoke(obj); return true; }
+                    }, fieldNames[i]);
+#else
                     FieldInspectorView.AddField(m_UnityObject, m_MovementAgent, fieldNames[i], this, (object obj) => {
                         m_OnChangeEvent?.Invoke(obj);
                     });
+#endif
                 }
             }
         }
@@ -73,7 +95,11 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
         /// </summary>
         /// <param name="input">The input to the control.</param>
         /// <returns>The created control.</returns>
+#if OPSIVE_SHARED_V3
+        protected override VisualElement GetControl(Opsive.Shared.Editor.UIElements.Controls.ControlInput input)
+#else
         protected override VisualElement GetControl(TypeControlInput input)
+#endif
         {
             return new MovementAgentView(input.UnityObject, input.Value as MovementAgent, input.OnChangeEvent);
         }

@@ -11,7 +11,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Move towards the target position using Vector3.MoveTowards. The agent can pass through walls with this task. " +
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Moves directly toward the target GameObject or the specified target position.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Move towards the target position using Vector3.MoveTowards. The agent can pass through walls with this task. " +
                      "The position can either be specified by a transform or position. If the transform is specified then the position will not be used.")]
     [NodeIcon("9bff476371f650649ab78c6a1242cfba", "938b825eb3c15594d985af1d0a93439e")]
     public class MoveTowards : Action

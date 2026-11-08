@@ -11,7 +11,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Rotates towards the target rotation using Quaternion.RotateTowards. The rotation can either be specified by a Transform or rotation. " +
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Rotates toward the target GameObject or the specified target rotation.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Rotates towards the target rotation using Quaternion.RotateTowards. The rotation can either be specified by a Transform or rotation. " +
                      "If the Transform is used then the rotation will not be used.")]
     [NodeIcon("b3a51997594f86c4e87b5b7f2044b96d", "8d266206744b431478023101189e616b")]
     public class RotateTowards : Action

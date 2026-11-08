@@ -1,14 +1,25 @@
+/// ---------------------------------------------
+/// Movement Pack for Behavior Designer Pro
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
 #if GRAPH_DESIGNER
 namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
 {
     using UnityEngine;
 
-    /// <summary>Coordinates incremental selection, bounded recovery, leases, and stable replacement without performing locomotion.</summary>
+    /// <summary>
+    /// Coordinates incremental selection, bounded recovery, leases, and stable replacement without performing locomotion.
+    /// </summary>
     public sealed class CoverController
     {
-        /// <summary>The state of a cover query or maintenance update.</summary>
+        /// <summary>
+        /// The state of a cover query or maintenance update.
+        /// </summary>
         public enum Status { Pending, Ready, Failed }
-        /// <summary>Controls search work, retries, and replacement stability.</summary>
+        /// <summary>
+        /// Controls search work, retries, and replacement stability.
+        /// </summary>
         public struct Options
         {
             [Tooltip("Candidate/stance pairs processed per update.")] public int Budget;
@@ -20,7 +31,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             [Tooltip("The duration of an optional cover lease.")] public float LeaseDuration;
             [Tooltip("Whether to maintain cover after arrival.")] public bool Maintain;
         }
-        /// <summary>A validated selection that remains independent of an in-progress replacement search.</summary>
+        /// <summary>
+        /// A validated selection that remains independent of an in-progress replacement search.
+        /// </summary>
         public struct Selection
         {
             [Tooltip("The selected foot position.")] public Vector3 Position;
@@ -48,7 +61,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
         public CoverFailure Failure { get; private set; }
         public int LastStepCandidates => m_Search.LastStepCandidates;
 
-        /// <summary>Begins a fresh cover request while reusing query buffers.</summary>
+        /// <summary>
+        /// Begins a fresh cover request while reusing query buffers.
+        /// </summary>
         /// <param name="settings">The actor and geometry settings.</param>
         /// <param name="options">The lifecycle settings.</param>
         /// <param name="maximumColliders">The geometry capacity.</param>
@@ -66,7 +81,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             Begin(false);
         }
 
-        /// <summary>Starts a search without discarding valid cover during optional reselection.</summary>
+        /// <summary>
+        /// Starts a search without discarding valid cover during optional reselection.
+        /// </summary>
         /// <param name="compareCurrent">Whether a new selection must improve upon existing cover.</param>
         private void Begin(bool compareCurrent)
         {
@@ -74,7 +91,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             m_Search.Begin(m_Settings, m_MaximumColliders, m_MaximumOverlaps, m_Sample, m_Path);
         }
 
-        /// <summary>Validates current cover and advances a bounded amount of search work.</summary>
+        /// <summary>
+        /// Validates current cover and advances a bounded amount of search work.
+        /// </summary>
         /// <param name="settings">The refreshed threat and query settings.</param>
         /// <param name="now">The active action clock.</param>
         /// <returns>The query or maintenance state.</returns>
@@ -131,7 +150,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return HasCover ? Status.Ready : Status.Pending;
         }
 
-        /// <summary>Checks the selected geometry and a supplied arrival position at the selected stance.</summary>
+        /// <summary>
+        /// Checks the selected geometry and a supplied arrival position at the selected stance.
+        /// </summary>
         /// <param name="position">The actual or planned foot position.</param>
         /// <returns>The failed validation or None.</returns>
         public CoverFailure ValidateCurrent(Vector3 position)
@@ -142,7 +163,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return m_Validator.ValidateHeight(position, m_Settings.Threat, m_Settings.Directional, Current.Height);
         }
 
-        /// <summary>Abandons invalid cover and schedules a bounded retry, releasing its lease immediately.</summary>
+        /// <summary>
+        /// Abandons invalid cover and schedules a bounded retry, releasing its lease immediately.
+        /// </summary>
         /// <param name="reason">The reason cover was lost.</param>
         /// <param name="now">The active action clock.</param>
         /// <returns>True while recovery remains possible.</returns>
@@ -156,10 +179,14 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return true;
         }
 
-        /// <summary>Resets consecutive recovery accounting only after sustained valid arrival.</summary>
+        /// <summary>
+        /// Resets consecutive recovery accounting only after sustained valid arrival.
+        /// </summary>
         public void MarkStable() { m_Retries = 0; }
 
-        /// <summary>Ends the request and optionally leaves a short lease for the next graph action.</summary>
+        /// <summary>
+        /// Ends the request and optionally leaves a short lease for the next graph action.
+        /// </summary>
         /// <param name="successful">Whether the request finished successfully.</param>
         public void End(bool successful)
         {
@@ -167,7 +194,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             if (!successful) { HasCover = false; Current = default; }
         }
 
-        /// <summary>Draws the active search diagnostics and highlights the retained selection during replacement searches.</summary>
+        /// <summary>
+        /// Draws the active search diagnostics and highlights the retained selection during replacement searches.
+        /// </summary>
         public void DrawGizmos()
         {
             m_Search.DrawGizmos();

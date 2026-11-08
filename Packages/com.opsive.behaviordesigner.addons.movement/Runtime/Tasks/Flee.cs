@@ -10,7 +10,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Flee from the target specified. Flee will predict where the target is headed based on the Look Ahead Distance.")]
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Moves away from the target using its predicted position.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Flee from the target specified. Flee will predict where the target is headed based on the Look Ahead Distance.")]
     [NodeIcon("1ec2f15c8d735df4db1b25bd175908d5", "c3bcfb3ed7a811f42bd18b1316442621")]
     public class Flee : MovementAgent
     {

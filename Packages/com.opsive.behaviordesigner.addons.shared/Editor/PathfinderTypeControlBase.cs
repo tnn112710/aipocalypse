@@ -8,7 +8,14 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Editor
     using Opsive.BehaviorDesigner.AddOns.Shared.Runtime.Pathfinding;
     using Opsive.Shared.Editor.UIElements;
     using Opsive.Shared.Editor.UIElements.Controls.Types;
+#if OPSIVE_SHARED_V3
+    using Opsive.Shared.Runtime.Utility;
+    using Opsive.Shared.Runtime.Serialization;
+    using Serialization = Opsive.Shared.Runtime.Serialization.Serialization;
+    using MemberVisibility = Opsive.Shared.Runtime.Serialization.MemberVisibility;
+#else
     using Opsive.Shared.Utility;
+#endif
     using System;
     using System.Collections.Generic;
     using UnityEditor;
@@ -89,7 +96,14 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Editor
                     setPathfinder(newPathfinder);
 
                     m_PathfinderContainer.Clear();
+#if OPSIVE_SHARED_V3
+                    InspectorBuilder.AddFields(new Opsive.Shared.Editor.UIElements.Controls.ControlInput {
+                        UnityObject = m_UnityObject, Target = newPathfinder, Container = m_PathfinderContainer,
+                        OnChangeEvent = (object obj) => { m_OnChangeEvent?.Invoke(obj); return true; }
+                    }, MemberVisibility.Public);
+#else
                     FieldInspectorView.AddFields(m_UnityObject, newPathfinder, MemberVisibility.Public, m_PathfinderContainer, (object obj) => { m_OnChangeEvent?.Invoke(obj); });
+#endif
 
                     m_OnChangeEvent?.Invoke(newPathfinder);
                 });
@@ -98,7 +112,14 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Editor
                 // Show any pathfinder fields.
                 m_PathfinderContainer = new VisualElement();
                 m_PathfinderContainer.style.marginBottom = 4;
+#if OPSIVE_SHARED_V3
+                InspectorBuilder.AddFields(new Opsive.Shared.Editor.UIElements.Controls.ControlInput {
+                    UnityObject = m_UnityObject, Target = pathfinder, Container = m_PathfinderContainer,
+                    OnChangeEvent = (object obj) => { m_OnChangeEvent?.Invoke(obj); return true; }
+                }, MemberVisibility.Public);
+#else
                 FieldInspectorView.AddFields(m_UnityObject, pathfinder, MemberVisibility.Public, m_PathfinderContainer, (object obj) => { m_OnChangeEvent?.Invoke(obj); });
+#endif
                 Add(m_PathfinderContainer);
             }
 

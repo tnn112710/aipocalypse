@@ -1,10 +1,21 @@
+/// ---------------------------------------------
+/// Movement Pack for Behavior Designer Pro
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
 #if GRAPH_DESIGNER
 namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
 {
     using System.Collections.Generic;
     using UnityEngine;
 
-    /// <summary>An optional authored foot position and outward cover normal, still subject to geometry and route validation.</summary>
+    /// <summary>
+    /// An optional authored foot position and outward cover normal, still subject to geometry and route validation.
+    /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Existing runtime initialization owns the static reset and its ordering.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("Opsive/Behavior Designer/Movement Pack/Cover Point")]
     public class CoverPoint : MonoBehaviour
     {
@@ -19,18 +30,26 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
         public float Priority { get => m_Priority; set => m_Priority = value; }
         public CoverStanceMode Stances { get => m_Stances; set => m_Stances = value; }
 
-        /// <summary>Registers this point while it is available.</summary>
+        /// <summary>
+        /// Registers this point while it is available.
+        /// </summary>
         private void OnEnable() { if (!s_Points.Contains(this)) { s_Points.Add(this); } }
-        /// <summary>Removes disabled points from subsequent searches.</summary>
+        /// <summary>
+        /// Removes disabled points from subsequent searches.
+        /// </summary>
         private void OnDisable() { s_Points.Remove(this); }
-        /// <summary>Prunes stale registrations while retaining enabled points when scene reload is disabled.</summary>
+        /// <summary>
+        /// Prunes stale registrations while retaining enabled points when scene reload is disabled.
+        /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRegistry()
         {
             for (int i = s_Points.Count - 1; i >= 0; --i) { if (s_Points[i] == null || !s_Points[i].isActiveAndEnabled) { s_Points.RemoveAt(i); } }
         }
 
-        /// <summary>Copies available nearby authored points into a reusable bounded buffer.</summary>
+        /// <summary>
+        /// Copies available nearby authored points into a reusable bounded buffer.
+        /// </summary>
         /// <param name="origin">The search origin.</param>
         /// <param name="radius">The search radius.</param>
         /// <param name="buffer">The destination buffer.</param>
@@ -46,7 +65,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return count;
         }
 
-        /// <summary>Displays the authored foot position and normal in the Scene view.</summary>
+        /// <summary>
+        /// Displays the authored foot position and normal in the Scene view.
+        /// </summary>
         private void OnDrawGizmosSelected()
         {
             var previous = Gizmos.color; Gizmos.color = Color.cyan;
@@ -55,10 +76,18 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
         }
     }
 
-    /// <summary>Coordinates optional time-limited cover claims between actors in this movement pack.</summary>
+    /// <summary>
+    /// Coordinates optional time-limited cover claims between actors in this movement pack.
+    /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Existing runtime initialization owns the static reset and its ordering.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static class CoverReservations
     {
-        /// <summary>A claim held by one active actor.</summary>
+        /// <summary>
+        /// A claim held by one active actor.
+        /// </summary>
         private struct Claim
         {
             [Tooltip("The actor that owns the claim.")] public GameObject Owner;
@@ -69,11 +98,15 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
         }
         private static readonly List<Claim> s_Claims = new List<Claim>();
 
-        /// <summary>Clears claims when a new runtime session starts.</summary>
+        /// <summary>
+        /// Clears claims when a new runtime session starts.
+        /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRegistry() { s_Claims.Clear(); }
 
-        /// <summary>Checks other actors' unexpired claims without changing this actor's claim.</summary>
+        /// <summary>
+        /// Checks other actors' unexpired claims without changing this actor's claim.
+        /// </summary>
         /// <param name="owner">The actor requesting cover.</param>
         /// <param name="position">The candidate position.</param>
         /// <param name="radius">The candidate radius.</param>
@@ -90,7 +123,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             return false;
         }
 
-        /// <summary>Atomically acquires or replaces this actor's lease after confirming no competing claim exists.</summary>
+        /// <summary>
+        /// Atomically acquires or replaces this actor's lease after confirming no competing claim exists.
+        /// </summary>
         /// <param name="owner">The claiming actor.</param>
         /// <param name="position">The chosen position.</param>
         /// <param name="radius">The required separation radius.</param>
@@ -108,7 +143,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime
             s_Claims.Add(claim); return true;
         }
 
-        /// <summary>Releases the actor's claim on cancellation or when cover is abandoned.</summary>
+        /// <summary>
+        /// Releases the actor's claim on cancellation or when cover is abandoned.
+        /// </summary>
         /// <param name="owner">The claiming actor.</param>
         public static void Release(GameObject owner)
         {

@@ -1,10 +1,24 @@
+/// ---------------------------------------------
+/// Movement Pack for Behavior Designer Pro
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
 {
     using UnityEngine;
     using Opsive.GraphDesigner.Runtime.Variables;
     using Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime;
-    /// <summary>Tests concealment and body clearance at the current position without querying or changing navigation.</summary>
-    [Opsive.Shared.Utility.Category("Movement Pack")]
+
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Tests concealment and body clearance at the current position without querying or changing navigation.
+    /// </summary>
+    [OpsiveSharedUtility.Category("Movement Pack")]
     public class IsInCover : Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals.Conditional
     {
 
@@ -42,7 +56,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         [SerializeField] protected SharedVariable<CoverFailure> m_CoverFailure = new SharedVariable<CoverFailure>();
         private readonly CoverSearch m_Validator = new CoverSearch();
 
-        /// <summary>Checks the actor's current position using the same visibility and clearance rules as cover selection.</summary>
+        /// <summary>
+        /// Checks the actor's current position using the same visibility and clearance rules as cover selection.
+        /// </summary>
         /// <returns>True when an allowed stance is concealed and clear.</returns>
         private bool CheckCover()
         {
@@ -66,7 +82,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_RequiredStance.Value = crouch ? CoverStance.Crouching : CoverStance.Standing; return true;
         }
 
-        /// <summary>Restores condition defaults.</summary>
+        /// <summary>
+        /// Restores condition defaults.
+        /// </summary>
         public override void Reset()
         {
             base.Reset(); m_ThreatMode = CoverThreatMode.Target; m_Threat = new SharedVariable<GameObject>();
@@ -77,7 +95,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_RequiredStance.Value = CoverStance.Standing; m_CoverFailure.Value = CoverFailure.None;
         }
 
-        /// <summary>Evaluates current concealment.</summary>
+        /// <summary>
+        /// Evaluates current concealment.
+        /// </summary>
         /// <returns>The condition result.</returns>
         public override Opsive.BehaviorDesigner.Runtime.Tasks.TaskStatus OnUpdate() => CheckCover() ? Opsive.BehaviorDesigner.Runtime.Tasks.TaskStatus.Success : Opsive.BehaviorDesigner.Runtime.Tasks.TaskStatus.Failure;
     }

@@ -12,7 +12,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Unity.Entities;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Wanders around the pathfinding area. The task can wander within a specified bounds or in random directions.")]
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Wanders around the pathfinding area.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Wanders around the pathfinding area. The task can wander within a specified bounds or in random directions.")]
     [NodeIcon("f900ccca7c66371459b52036efeb8778", "cfd0e78235c50db46bc12d1751492ecf")]
     public class Wander : MovementAgent
     {

@@ -1,3 +1,8 @@
+/// ---------------------------------------------
+/// Movement Pack for Behavior Designer Pro
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
 {
     using System;
@@ -8,21 +13,33 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
     using Opsive.Shared.Editor.UIElements.Controls;
     using UnityEngine.UIElements;
 
-    /// <summary>Displays cover inputs, advanced options, outputs, and diagnostics.</summary>
+    /// <summary>
+
+    /// Displays cover inputs, advanced options, outputs, and diagnostics.
+
+    /// </summary>
     [ControlType(typeof(MoveToCover))]
 
     public class CoverTypeControl : MovementAgentTypeControl
     {
-        /// <summary>Builds the cover-specific pathfinder inspector.</summary>
+        /// <summary>
+        /// Builds the cover-specific pathfinder inspector.
+        /// </summary>
         private class CoverView : MovementAgentView
         {
-            /// <summary>Creates the view.</summary>
+            /// <summary>
+            /// Creates the view.
+            /// </summary>
             /// <param name="owner">The owning Unity object.</param>
             /// <param name="cover">The cover task.</param>
             /// <param name="changed">The change callback.</param>
             public CoverView(UnityEngine.Object owner, MoveToCover cover, Func<object, bool> changed) : base(owner, cover, changed) { }
 
-            /// <summary>Adds relevance-aware cover fields.</summary>
+            /// <summary>
+
+            /// Adds relevance-aware cover fields.
+
+            /// </summary>
             protected override void AddTaskFields()
             {
                 var objects = new VisualElement(); var positions = new VisualElement(); var directions = new VisualElement();
@@ -33,7 +50,14 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
                     positions.style.display = mode == CoverThreatMode.Position ? DisplayStyle.Flex : DisplayStyle.None;
                     directions.style.display = mode == CoverThreatMode.Direction ? DisplayStyle.Flex : DisplayStyle.None;
                 }
-                FieldInspectorView.AddField(m_UnityObject, m_MovementAgent, "m_ThreatMode", this, obj => { m_OnChangeEvent?.Invoke(obj); UpdateVisibility(); });
+#if OPSIVE_SHARED_V3
+                InspectorBuilder.AddField(new Opsive.Shared.Editor.UIElements.Controls.ControlInput {
+                    UnityObject = m_UnityObject, Target = m_MovementAgent, Container = this,
+                    OnChangeEvent = (object obj) => { m_OnChangeEvent?.Invoke(obj); UpdateVisibility(); return true; }
+                }, "m_ThreatMode");
+#else
+                FieldInspectorView.AddField(m_UnityObject, m_MovementAgent, "m_ThreatMode", this, (object obj) => { m_OnChangeEvent?.Invoke(obj); UpdateVisibility(); });
+#endif
                 AddFields(objects, "m_Threat", "m_ThreatOffset"); Add(objects);
                 AddFields(positions, "m_ThreatPosition"); Add(positions);
                 AddFields(directions, "m_ThreatDirection"); Add(directions);
@@ -60,21 +84,47 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Editor
                 AddFields(this, "m_DebugCover"); UpdateVisibility();
             }
 
-            /// <summary>Adds named fields using the standard task serialization callback.</summary>
+            /// <summary>
+
+            /// Adds named fields using the standard task serialization callback.
+
+            /// </summary>
             /// <param name="container">The destination element.</param>
             /// <param name="names">The serialized fields.</param>
             private void AddFields(VisualElement container, params string[] names)
             {
-                foreach (var name in names) { FieldInspectorView.AddField(m_UnityObject, m_MovementAgent, name, container, obj => { m_OnChangeEvent?.Invoke(obj); }); }
+                foreach (var name in names) {
+#if OPSIVE_SHARED_V3
+                    InspectorBuilder.AddField(new Opsive.Shared.Editor.UIElements.Controls.ControlInput {
+                        UnityObject = m_UnityObject, Target = m_MovementAgent, Container = container,
+                        OnChangeEvent = (object obj) => { m_OnChangeEvent?.Invoke(obj); return true; }
+                    }, name);
+#else
+                    FieldInspectorView.AddField(m_UnityObject, m_MovementAgent, name, container, (object obj) => { m_OnChangeEvent?.Invoke(obj); });
+#endif
+                }
             }
         }
 
-        /// <summary>Creates a cover inspector.</summary>
+        /// <summary>
+
+        /// Creates a cover inspector.
+
+        /// </summary>
         /// <param name="input">The editor input.</param>
         /// <returns>The configured view.</returns>
-        protected override VisualElement GetControl(TypeControlInput input) { return new CoverView(input.UnityObject, input.Value as MoveToCover, input.OnChangeEvent); }
+#if OPSIVE_SHARED_V3
+        protected override VisualElement GetControl(Opsive.Shared.Editor.UIElements.Controls.ControlInput input)
+#else
+        protected override VisualElement GetControl(TypeControlInput input)
+#endif
+        {
+            return new CoverView(input.UnityObject, input.Value as MoveToCover, input.OnChangeEvent);
+        }
     }
-    /// <summary>Uses the cover inspector for query-only selection.</summary>
+    /// <summary>
+    /// Uses the cover inspector for query-only selection.
+    /// </summary>
     [ControlType(typeof(FindCover))]
     public class FindCoverTypeControl : CoverTypeControl { }
 }

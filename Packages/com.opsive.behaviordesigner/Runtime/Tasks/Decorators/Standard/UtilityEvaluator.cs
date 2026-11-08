@@ -9,6 +9,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     using Opsive.BehaviorDesigner.Runtime.Components;
     using Opsive.BehaviorDesigner.Runtime.Groups;
     using Opsive.BehaviorDesigner.Runtime.Tasks.Composites;
+    using Unity.Burst;
     using Unity.Entities;
     using UnityEngine;
 
@@ -24,6 +25,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
 
         /// <summary>
         /// Returns the utility of the decorator. The higher the utility the more likely the task will run next.
+        /// The runtime samples this value once per tree tick and reuses it throughout that tick's traversal.
+        /// Changes to score inputs during traversal are sampled on the next tick. Execution blocking is applied separately.
         /// </summary>
         /// <returns>The utility of the decorator.</returns>
         public abstract float GetUtilityValue();
@@ -52,6 +55,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
             });
             var traversalTaskSystems = world.GetOrCreateSystemManaged<TraversalTaskSystemGroup>();
             traversalTaskSystems.AddSystemToUpdateList(world.GetOrCreateSystem(typeof(UtilityEvaluatorSystem)));
+            var beforeTraversalSystems = world.GetOrCreateSystemManaged<BeforeTraversalSystemGroup>();
+            beforeTraversalSystems.AddSystemToUpdateList(world.GetOrCreateSystem(typeof(UtilityEvaluatorCacheResetSystem)));
         }
 
         /// <summary>
@@ -86,7 +91,32 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
     }
 
     /// <summary>
-    /// Sets the UtilityValueComponent value.
+    /// Invalidates utility snapshots once at the beginning of each requested tree update.
+    /// </summary>
+    [DisableAutoCreation]
+    [UpdateInGroup(typeof(BeforeTraversalSystemGroup), OrderFirst = true)]
+    public partial struct UtilityEvaluatorCacheResetSystem : ISystem
+    {
+        /// <summary>
+        /// Marks the scores of evaluating trees for sampling on their first traversal pass.
+        /// </summary>
+        /// <param name="state">The current state of the system.</param>
+        [BurstCompile]
+        private void OnUpdate(ref SystemState state)
+        {
+            foreach (var utilityValueComponents in SystemAPI.Query<DynamicBuffer<UtilityValueComponent>>().WithAll<EvaluateFlag>()) {
+                var buffer = utilityValueComponents;
+                for (int i = 0; i < buffer.Length; ++i) {
+                    var value = buffer[i];
+                    value.HasSampledValue = false;
+                    buffer[i] = value;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Samples utility scores once per tree tick and applies execution blocking on each traversal pass.
     /// </summary>
     [DisableAutoCreation]
     [UpdateBefore(typeof(UtilitySelectorTaskSystem))]
@@ -108,18 +138,15 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Decorators
                         continue;
                     }
 
-                    // If the branch is currently active then it should return an infinite utility value until the branch has completed. This will allow the entire
-                    // branch to execute.
-                    if (utilityEvaluator.BlockDuringExecution) {
-                        var taskComponent = taskComponents[utilityValueComponent.Index + 1];
-                        if (taskComponent.Status == TaskStatus.Running) {
-                            utilityValueComponent.Value = float.PositiveInfinity;
-                        } else {
-                            utilityValueComponent.Value = utilityEvaluator.GetUtilityValue();
-                        }
-                    } else {
-                        utilityValueComponent.Value = utilityEvaluator.GetUtilityValue();
+                    if (!utilityValueComponent.HasSampledValue) {
+                        utilityValueComponent.SampledValue = utilityEvaluator.GetUtilityValue();
+                        utilityValueComponent.HasSampledValue = true;
                     }
+
+                    // Child status can change during traversal. Apply blocking to the snapshot on every pass
+                    // so starting or completing a child does not require another score calculation.
+                    utilityValueComponent.Value = utilityEvaluator.BlockDuringExecution && taskComponents[utilityValueComponent.Index + 1].Status == TaskStatus.Running
+                        ? float.PositiveInfinity : utilityValueComponent.SampledValue;
                     var utilityValueComponentBuffer = utilityValueComponents;
                     utilityValueComponentBuffer[i] = utilityValueComponent;
                 }

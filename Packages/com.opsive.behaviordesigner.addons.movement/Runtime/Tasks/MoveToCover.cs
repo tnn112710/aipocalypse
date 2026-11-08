@@ -12,9 +12,17 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using UnityEngine.Scripting.APIUpdating;
     using Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime;
 
-    /// <summary>Finds reachable, clear cover that conceals the actor from the selected threat.</summary>
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Finds reachable, clear cover that conceals the actor from the selected threat.
+    /// </summary>
     [MovedFrom(false, "Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks", "Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime", "Cover")]
-    [Opsive.Shared.Utility.Description("Moves towards a 3D cover point. The agent can look at the cover point after the agent has arrived.")]
+    [OpsiveSharedUtility.Description("Moves towards a 3D cover point. The agent can look at the cover point after the agent has arrived.")]
     [NodeIcon("54759f53c1dc79a489ef7702de195ade", "1565ea2bb117e0643b8943c3dac0de81")]
     public class MoveToCover : MovementAgent
     {
@@ -122,7 +130,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         private bool m_DirectionalThreat, m_UseCapturedDirection;
         private float m_ArrivalStartTime;
 
-        /// <summary>Resolves the current threat while retaining a captured forward direction.</summary>
+        /// <summary>
+        /// Resolves the current threat while retaining a captured forward direction.
+        /// </summary>
         /// <returns>True when the configured source exists.</returns>
         private bool ResolveThreat()
         {
@@ -131,7 +141,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
                 m_ThreatDirection.Value, transform, out m_ResolvedThreat, out m_DirectionalThreat);
         }
 
-        /// <summary>Builds the current query settings without changing navigation.</summary>
+        /// <summary>
+        /// Builds the current query settings without changing navigation.
+        /// </summary>
         /// <returns>The geometry and threat settings.</returns>
         private CoverSearch.Settings Settings()
         {
@@ -145,7 +157,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
                 PriorityWeight = m_PriorityWeight.Value, MinimumThreatDistance = m_MinimumThreatDistance.Value, UseReservations = m_UseReservations };
         }
 
-        /// <summary>Starts an incremental cover query using the configured provider.</summary>
+        /// <summary>
+        /// Starts an incremental cover query using the configured provider.
+        /// </summary>
         private void BeginCover()
         {
             m_ArrivalStartTime = -1f;
@@ -156,7 +170,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
                 SamplePosition, TryCoverPath, ActiveElapsedTime());
         }
 
-        /// <summary>Clears stale outputs after loss, cancellation, or a new request.</summary>
+        /// <summary>
+        /// Clears stale outputs after loss, cancellation, or a new request.
+        /// </summary>
         /// <param name="failure">The last rejection to publish.</param>
         private void ClearCover(CoverFailure failure)
         {
@@ -165,7 +181,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_CoverFailure.Value = failure;
         }
 
-        /// <summary>Publishes the selected position, geometry, and required stance.</summary>
+        /// <summary>
+        /// Publishes the selected position, geometry, and required stance.
+        /// </summary>
         private void PublishCover()
         {
             var selected = m_Controller.Current;
@@ -174,10 +192,14 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_RequiredStance.Value = selected.Stance; m_SelectedCoverPoint.Value = selected.Point != null ? selected.Point.gameObject : null;
         }
 
-        /// <summary>Draws optional query and selection diagnostics.</summary>
+        /// <summary>
+        /// Draws optional query and selection diagnostics.
+        /// </summary>
         protected override void OnDrawGizmosSelected() { if (m_DebugCover) { m_Controller.DrawGizmos(); } }
 
-        /// <summary>Restores the additional selection and maintenance settings.</summary>
+        /// <summary>
+        /// Restores the additional selection and maintenance settings.
+        /// </summary>
         private void ResetCoverOptions()
         {
             m_StanceMode = CoverStanceMode.Standing; m_InferDimensions = false; m_CrouchHeight = 0.9f;
@@ -190,7 +212,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
 
         private bool m_Started, m_Succeeded;
 
-        /// <summary>Starts with a resolved threat and a bounded query.</summary>
+        /// <summary>
+        /// Starts with a resolved threat and a bounded query.
+        /// </summary>
         public override void OnStart()
         {
             base.OnStart(); ClearCover(CoverFailure.None); m_Succeeded = false; m_Started = false; m_UseCapturedDirection = false;
@@ -201,7 +225,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             BeginCover(); m_Started = true;
         }
 
-        /// <summary>Measures a complete route without changing the current destination.</summary>
+        /// <summary>
+        /// Measures a complete route without changing the current destination.
+        /// </summary>
         /// <param name="position">The candidate.</param>
         /// <param name="distance">The route length.</param>
         /// <returns>True when the provider confirms reachability.</returns>
@@ -210,7 +236,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             return m_Pathfinder.TryGetPathDistance(transform.position, position, out distance);
         }
 
-        /// <summary>Advances selection, movement, and optional continuous maintenance.</summary>
+        /// <summary>
+        /// Advances selection, movement, and optional continuous maintenance.
+        /// </summary>
         /// <returns>The current task status.</returns>
         public override TaskStatus OnUpdate()
         {
@@ -259,7 +287,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_Succeeded = true; return TaskStatus.Success;
         }
 
-        /// <summary>Stops invalid movement and schedules bounded recovery.</summary>
+        /// <summary>
+        /// Stops invalid movement and schedules bounded recovery.
+        /// </summary>
         /// <param name="failure">The failed safety or route check.</param>
         /// <returns>Running while recovery is possible.</returns>
         private TaskStatus RecoverCover(CoverFailure failure)
@@ -269,20 +299,26 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             return m_Controller.Recover(failure, ActiveElapsedTime()) ? TaskStatus.Running : TaskStatus.Failure;
         }
 
-        /// <summary>Releases canceled reservations and retains successful outputs.</summary>
+        /// <summary>
+        /// Releases canceled reservations and retains successful outputs.
+        /// </summary>
         public override void OnEnd()
         {
             base.OnEnd(); m_Controller.End(m_Succeeded);
             if (!m_Succeeded) { ClearCover(m_CoverFailure.Value == CoverFailure.None ? CoverFailure.MovementFailed : m_CoverFailure.Value); }
         }
 
-        /// <summary>Resumes the tree without restoring an abandoned path while a replacement search is pending.</summary>
+        /// <summary>
+        /// Resumes the tree without restoring an abandoned path while a replacement search is pending.
+        /// </summary>
         public override void OnBehaviorTreeStarted()
         {
             base.OnBehaviorTreeStarted();
             if (ControlsMovement && m_Started && !m_Controller.HasCover && m_Pathfinder != null && m_Pathfinder.IsValid) { m_Pathfinder.Stop(); }
         }
-        /// <summary>Rebuilds cover after load because geometry and reservations may have changed.</summary>
+        /// <summary>
+        /// Rebuilds cover after load because geometry and reservations may have changed.
+        /// </summary>
         /// <param name="saveData">The saved task state.</param>
         /// <param name="world">The DOTS world.</param>
         /// <param name="entity">The DOTS entity.</param>
@@ -292,7 +328,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             if (ControlsMovement && m_Pathfinder != null && m_Pathfinder.IsValid) { m_Pathfinder.Stop(); }
         }
 
-        /// <summary>Restores default cover settings and preserves legacy field compatibility.</summary>
+        /// <summary>
+        /// Restores default cover settings and preserves legacy field compatibility.
+        /// </summary>
         public override void Reset()
         {
             base.Reset(); ResetCoverOptions();

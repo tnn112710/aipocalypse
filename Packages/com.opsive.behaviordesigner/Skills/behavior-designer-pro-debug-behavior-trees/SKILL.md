@@ -5,14 +5,14 @@ metadata:
   asset: "Behavior Designer Pro"
   publisher: "Opsive"
   asset-version: "3.3.4"
-  skill-version: "1.0.1"
+  skill-version: "1.0.5"
   unity: "2022.3.11+"
   render-pipelines: "Built-in, URP, HDRP (core behavior logic)"
   category: "tools/visual-scripting"
   asset-store-url: "https://assetstore.unity.com/packages/tools/visual-scripting/behavior-designer-pro-3-dots-powered-behavior-trees-368344"
   documentation-url: "https://opsive.com/support/documentation/behavior-designer-pro/"
   support-url: "https://opsive.com/support/"
-  last-verified: "2026-10-14"
+  last-verified: "2026-11-04"
 ---
 
 # Diagnose Behavior Tree Problems
@@ -30,7 +30,7 @@ Not for: rewriting a working tree, speculative optimization, or repairing unrela
 
 ## Prerequisites
 
-Use Behavior Designer Pro 3.3.3 and Unity 2022.3.11 or newer. The package requires Graph Designer, Opsive Shared, Entities, Burst, and Mathematics; retain the versions supplied with the installed release (Entities 1.3.8 in the verified manifest). Core tree logic does not require a render-pipeline change; sample materials may require their own setup.
+Use Behavior Designer Pro 3.3.4 and Unity 2022.3.11 or newer. The package requires Graph Designer, Opsive Shared, Entities, Burst, and Mathematics; retain the versions supplied with the installed release (Entities 1.3.8 in the verified manifest). Core tree logic does not require a render-pipeline change; sample materials may require their own setup.
 
 Run this read-only C# in an available Unity Editor execution tool before making changes:
 
@@ -71,11 +71,21 @@ Record the selected object and tree, expected behavior, actual behavior, and a m
 
 **Expected result:** The same input sequence produces the expected branch transitions on repeated runs.
 
+### Workflow: Diagnose stale prefab variant snapshots
+
+**Goal:** Verify a prefab variant starts after its base tree changes, including variants spawned only at runtime.
+
+**Steps:** A "compiled from a stale parent" error means the variant's compiled snapshot predates its parent. Reproduce with a scene containing only a spawner that references the variant prefab; opening the variant tree first can refresh the snapshot and hide the failure. Save a base change and let the next editor update complete. Changed graph assets and prefab imports automatically refresh dependent compiled snapshots, including unopened variant chains, while retaining semantic overrides. Verify the saved variants are current while still in Edit Mode, then enter Play Mode without opening or repairing them. Pre-play preparation flushes pending dependency updates; it does not scan and repair every project prefab. Legacy prefab data still uses **Tools > Opsive > Behavior Designer > Upgrade Project Serialization...**; normal edits after migration must propagate automatically. Repeat with another base edit and with a chain of variants. Confirm inherited tasks update, local values remain overridden, and the spawned tree runs. The runtime stale-parent check must continue rejecting invalid snapshots.
+
+**Expected result:** The unopened variant starts after each base revision, retains its overrides, and executes the latest inherited tasks.
+
 ### Workflow: Investigate measured performance
 
 **Goal:** Reduce the cost actually observed in the user's scene.
 
 **Steps:** Capture a baseline with a fixed scene, agent count, update cadence, and build/editor context. Use Unity's CPU Profiler to identify managed task work, allocations, and traversal/system overhead. Compare one controlled change with the same workload. Cache repeated component lookups when a custom task causes measured cost; reduce unnecessarily frequent gameplay queries; consider an Entity implementation only for suitable unmanaged work. If changing tick cadence or Evaluation Type/Max Evaluation Count, test the resulting reaction latency and completion behavior as well as frame cost. Do not claim gains from editor visual smoothness alone.
+
+For Utility Selectors, distinguish an external `Tick()` request from the internal traversal passes it enables. The runtime samples each evaluator's `GetUtilityValue()` once per tree tick and reuses that score during traversal, including failure fallback and Repeater re-entry. Score inputs changed by tasks take effect on the next tick. The cache follows tree updates rather than Unity frames: separately processed ticks in one frame refresh scores, while repeated requests before one update coalesce. `BlockDuringExecution` is applied to the sampled score on every pass, so a running child remains protected and blocking clears when the child finishes. Editor utility labels display the runtime value without calling the getter. Keep scoring free of side effects; independently cache or schedule sensing when its cost remains high.
 
 **Expected result:** Recorded timings or allocations improve without violating the requested behavior or responsiveness.
 

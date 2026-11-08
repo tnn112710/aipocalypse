@@ -8,7 +8,7 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Runtime.Pathfinding
     using UnityEngine;
 
     /// <summary>
-    /// Abstract class for any Movement Pack pathfinding implementation.
+    /// Abstract class for pathfinding implementations shared by the Behavior Designer add-ons.
     /// </summary>
     public abstract class Pathfinder
     {
@@ -82,7 +82,9 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Runtime.Pathfinding
         /// <returns>True if the position is a valid pathfinding position.</returns>
         public abstract bool SamplePosition(ref Vector3 position);
 
-        /// <summary>Samples a formation slot on a surface the actor can reach. Providers can override the default nearest-surface sampling.</summary>
+        /// <summary>
+        /// Samples a formation slot on a surface the actor can reach. Providers can override the default nearest-surface sampling.
+        /// </summary>
         /// <param name="position">The requested slot, updated to the reachable navigation position on success.</param>
         /// <returns>True if a suitable navigation position was found.</returns>
         public virtual bool SampleReachablePosition(ref Vector3 position)
@@ -90,7 +92,9 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Runtime.Pathfinding
             return SamplePosition(ref position);
         }
 
-        /// <summary>Measures a complete route without replacing the active destination. Providers must override this to support cover search.</summary>
+        /// <summary>
+        /// Measures a complete route without replacing the active destination. Providers must override this to support cover search.
+        /// </summary>
         /// <param name="start">The current actor position.</param>
         /// <param name="destination">The desired destination.</param>
         /// <param name="distance">The complete route length.</param>

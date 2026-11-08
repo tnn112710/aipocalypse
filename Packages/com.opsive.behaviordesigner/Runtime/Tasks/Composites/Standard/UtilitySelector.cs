@@ -163,7 +163,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
     }
 
     /// <summary>
-    /// DOTS structure that contains the most recently utility of the task.
+    /// DOTS structure that stores the sampled utility and current selection value of the task.
     /// </summary>
     [InternalBufferCapacity(1)]
     public struct UtilityValueComponent : IBufferElementData
@@ -172,6 +172,10 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
         public ushort Index;
         [Tooltip("The current utility value. The higher the value the more likely it will be selected.")]
         public float Value;
+        [Tooltip("The utility score sampled for the current tree tick, before execution blocking is applied.")]
+        public float SampledValue;
+        [Tooltip("Has the utility score been sampled during the current tree tick?")]
+        public bool HasSampledValue;
     }
 
     /// <summary>
@@ -302,6 +306,14 @@ namespace Opsive.BehaviorDesigner.Runtime.Tasks.Composites
                         state.EntityManager.SetComponentEnabled<InterruptFlag>(entity, true);
                         branchComponentBuffer[taskComponent.BranchIndex] = branchComponent;
                         continue;
+                    }
+
+                    // A queued child has not started, so cancel it without an interrupt. Otherwise a managed
+                    // evaluator that is still the branch's active task can overwrite the new selection below.
+                    if (taskComponents[activeTaskIndex].Status == TaskStatus.Queued) {
+                        var previousTaskComponent = taskComponents[activeTaskIndex];
+                        previousTaskComponent.Status = TaskStatus.Inactive;
+                        taskComponentsBuffer[activeTaskIndex] = previousTaskComponent;
                     }
 
                     // No more tasks may need to run.

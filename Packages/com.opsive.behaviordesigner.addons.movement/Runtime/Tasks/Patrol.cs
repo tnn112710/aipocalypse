@@ -13,7 +13,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Unity.Entities;
     using UnityEngine;
 
-    [Opsive.Shared.Utility.Description("Patrols around the specified waypoints.")]
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Patrols around the specified waypoints.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Patrols around the specified waypoints.")]
     [NodeIcon("6f82a4685e473054986cedbfb24bf8bd", "ed44a06209d60e943819270678e69b89")]
     public class Patrol : MovementAgent
     {
@@ -105,6 +114,8 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         {
             var waypoints = m_Waypoints.Value;
             if (waypoints == null || waypoints.Length == 0) { return false; }
+            // Each new patrol leg needs a fresh validation window after a waypoint pause or recovery.
+            ResetMovementValidation();
             var attempts = 0;
             while (attempts <= Mathf.Max(0, m_MaximumRecoveryAttempts.Value)) {
                 if (m_Index >= 0 && m_Index < waypoints.Length && waypoints[m_Index] != null &&

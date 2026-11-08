@@ -1,16 +1,27 @@
+/// ---------------------------------------------
+/// Shared Add-On for Behavior Designer Pro
+/// Copyright (c) Opsive. All Rights Reserved.
+/// https://www.opsive.com
+/// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
 {
     using UnityEngine;
     using UnityEngine.InputSystem;
 
-    /// <summary>Supplies Input System keyboard navigation to the add-on demos.</summary>
+    /// <summary>
+    /// Supplies Input System keyboard navigation to the add-on demos.
+    /// </summary>
     internal static class ScenarioMenuInput
     {
-        /// <summary>Registers the reader before scenes initialize.</summary>
+        /// <summary>
+        /// Registers the reader before scenes initialize.
+        /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Register() { ScenarioMenu.RegisterNavigationInput(Read); }
 
-        /// <summary>Reads a single navigation step while preserving player movement keys.</summary>
+        /// <summary>
+        /// Reads a single navigation step while preserving player movement keys.
+        /// </summary>
         /// <param name="allowWASD">Whether WASD is available for menu navigation.</param><returns>The signed scenario step.</returns>
         private static int Read(bool allowWASD)
         {

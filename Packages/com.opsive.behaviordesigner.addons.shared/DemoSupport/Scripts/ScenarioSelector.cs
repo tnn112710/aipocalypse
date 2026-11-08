@@ -73,9 +73,14 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
         [SerializeField] protected Scenario[] m_Scenarios;
 
         public int ActiveIndex => m_ActiveIndex;
-        /// <summary>Gets whether the active scenario uses player movement input.</summary>
+        /// <summary>
+        /// Gets whether the active scenario uses player movement input.
+        /// </summary>
         public bool PlayerIsActive => m_Player != null && m_Scenarios[m_ActiveIndex].ShowPlayer;
-        /// <summary>Selects a scenario from the sidebar.</summary><param name="index">The scenario index.</param>
+        /// <summary>
+        /// Selects a scenario from the sidebar.
+        /// </summary>
+        /// <param name="index">The scenario index.</param>
         public void SelectScenario(int index) { if (index >= 0 && index < m_Scenarios.Length) EnableScenario(index); }
 
         private GameObject[] m_Agents;

@@ -10,7 +10,14 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
     using Opsive.BehaviorDesigner.Runtime.Utility;
     using Opsive.GraphDesigner.Runtime.Variables;
+#if OPSIVE_SHARED_V3
+    using Opsive.Shared.Runtime.Utility;
+    using Opsive.Shared.Runtime.Serialization;
+    using Serialization = Opsive.Shared.Runtime.Serialization.Serialization;
+    using MemberVisibility = Opsive.Shared.Runtime.Serialization.MemberVisibility;
+#else
     using Opsive.Shared.Utility;
+#endif
     using Unity.Entities;
     using UnityEngine;
 
@@ -30,7 +37,7 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         [SerializeField] [HideInInspector] protected Pathfinder m_Pathfinder;
         [Tooltip("Should the pathfinder be stopped when the task ends?")]
         public SharedVariable<bool> m_StopOnTaskEnd = true;
-        [Tooltip("Should an invalid provider path cause the task to fail?")]
+        [Tooltip("Should an invalid provider path or a rejected Seek destination cause the task to fail?")]
         [SerializeField] protected SharedVariable<bool> m_FailOnInvalidPath = true;
         [Tooltip("Should the task fail after a maximum duration?")]
         [SerializeField] protected SharedVariable<bool> m_UseTimeout = false;
@@ -50,10 +57,14 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         protected Vector3 Velocity { get => m_Pathfinder.Velocity; }
         protected float RemainingDistance { get => m_Pathfinder.RemainingDistance; }
 
-        /// <summary>Whether the task changes locomotion rather than only querying navigation.</summary>
+        /// <summary>
+        /// Whether the task changes locomotion rather than only querying navigation.
+        /// </summary>
         protected virtual bool ControlsMovement => true;
 
-        /// <summary>Returns active action time excluding pauses.</summary>
+        /// <summary>
+        /// Returns active action time excluding pauses.
+        /// </summary>
         /// <returns>The elapsed active time.</returns>
         protected float ActiveElapsedTime()
         {
@@ -101,7 +112,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             if (ControlsMovement && m_PathfinderValid) { m_Pathfinder.OnStart(); }
         }
 
-        /// <summary>Starts a fresh validation window when a recovery action abandons its previous route.</summary>
+        /// <summary>
+        /// Starts a fresh validation window when a recovery action abandons its previous route.
+        /// </summary>
         protected void ResetMovementValidation()
         {
             m_HasRequestedDestination = false;
@@ -109,7 +122,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_LastProgressPosition = transform.position;
         }
 
-        /// <summary>Sets a new pathfinding destination.</summary>
+        /// <summary>
+        /// Sets a new pathfinding destination.
+        /// </summary>
         /// <param name="destination">The destination to set.</param>
         /// <returns>True when the request was accepted.</returns>
         protected virtual bool SetDestination(Vector3 destination)

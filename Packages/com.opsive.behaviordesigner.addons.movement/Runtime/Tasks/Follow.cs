@@ -11,8 +11,16 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
     using Opsive.GraphDesigner.Runtime.Variables;
     using UnityEngine;
 
-    /// <summary>Maintains a follow distance while matching the moving target's speed.</summary>
-    [Opsive.Shared.Utility.Description("Follows the specified target from a distance.")]
+#if OPSIVE_SHARED_V3
+    using OpsiveSharedUtility = Opsive.Shared.Runtime.Utility;
+#else
+    using OpsiveSharedUtility = Opsive.Shared.Utility;
+#endif
+
+    /// <summary>
+    /// Maintains a follow distance while matching the moving target's speed.
+    /// </summary>
+    [OpsiveSharedUtility.Description("Follows the specified target from a distance.")]
     [NodeIcon("0221132e8633eb840a68588d030942d2", "12095e7f978bf294c915462d18637030")]
     public class Follow : MovementAgent
     {
@@ -35,11 +43,15 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
         private float m_LastTargetTime;
         private float m_TargetSpeed;
 
-        /// <summary>Returns the active time used to measure target motion.</summary>
+        /// <summary>
+        /// Returns the active time used to measure target motion.
+        /// </summary>
         /// <returns>The active task time.</returns>
         protected virtual float GetFollowTime() => ActiveElapsedTime();
 
-        /// <summary>Starts a fresh motion sample without including paused movement.</summary>
+        /// <summary>
+        /// Starts a fresh motion sample without including paused movement.
+        /// </summary>
         private void ResetTargetMotion()
         {
             m_SampledTarget = m_Target.Value != null ? m_Target.Value.transform : null;
@@ -48,7 +60,9 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             m_TargetSpeed = 0f;
         }
 
-        /// <summary>Measures target speed independently of its movement component.</summary>
+        /// <summary>
+        /// Measures target speed independently of its movement component.
+        /// </summary>
         private void UpdateTargetMotion()
         {
             if (m_SampledTarget != m_Target.Value.transform) { ResetTargetMotion(); return; }
@@ -120,14 +134,18 @@ namespace Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime.Tasks
             return TaskStatus.Running;
         }
 
-        /// <summary>Resumes target sampling without counting movement during the pause.</summary>
+        /// <summary>
+        /// Resumes target sampling without counting movement during the pause.
+        /// </summary>
         public override void OnBehaviorTreeStarted()
         {
             base.OnBehaviorTreeStarted();
             ResetTargetMotion();
         }
 
-        /// <summary>Restores the configured movement speed for subsequent tasks.</summary>
+        /// <summary>
+        /// Restores the configured movement speed for subsequent tasks.
+        /// </summary>
         public override void OnEnd()
         {
             if (m_SpeedCaptured) { m_Pathfinder.Speed = m_OriginalSpeed; m_SpeedCaptured = false; }

@@ -10,7 +10,13 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
     using UnityEngine;
     using UnityEngine.UI;
 
-    /// <summary>Displays the shared add-on sidebar and controls the demo session.</summary>
+    /// <summary>
+    /// Displays the shared add-on sidebar and controls the demo session.
+    /// </summary>
+#if UNITY_6000_7_OR_NEWER
+    // Registration and scope owners manage this state; active registrations survive Play Mode transitions.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public class ScenarioMenu : MonoBehaviour
     {
         [Tooltip("The scenario controller.")] [SerializeField] private ScenarioSelector m_Selector;
@@ -25,13 +31,20 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
         private float m_PreviousTimeScale;
         private static System.Func<bool, int> s_ReadNavigation;
 
-        /// <summary>Registers the Input System keyboard reader.</summary><param name="reader">Reads a direction, allowing WASD only when requested.</param>
+        /// <summary>
+        /// Registers the Input System keyboard reader.
+        /// </summary>
+        /// <param name="reader">Reads a direction, allowing WASD only when requested.</param>
         public static void RegisterNavigationInput(System.Func<bool, int> reader) { s_ReadNavigation = reader; }
 
-        /// <summary>Gets whether the demo is paused.</summary>
+        /// <summary>
+        /// Gets whether the demo is paused.
+        /// </summary>
         public bool IsPaused => m_Paused;
 
-        /// <summary>Updates selection feedback and immediate keyboard navigation.</summary>
+        /// <summary>
+        /// Updates selection feedback and immediate keyboard navigation.
+        /// </summary>
         private void Update()
         {
             if (s_ReadNavigation != null) {
@@ -43,7 +56,9 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
             m_Status.text = tree.Name + " / " + (m_Paused ? "Paused" : tree.Status.ToString());
         }
 
-        /// <summary>Changes scenarios on a single directional press.</summary>
+        /// <summary>
+        /// Changes scenarios on a single directional press.
+        /// </summary>
         /// <param name="previous">Whether a previous key was pressed.</param>
         /// <param name="next">Whether a next key was pressed.</param>
         public void Navigate(bool previous, bool next)
@@ -54,7 +69,10 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
             RefreshSelection();
         }
 
-        /// <summary>Selects the specified scenario immediately.</summary><param name="index">The scenario index.</param>
+        /// <summary>
+        /// Selects the specified scenario immediately.
+        /// </summary>
+        /// <param name="index">The scenario index.</param>
         public void SelectScenario(int index)
         {
             Resume();
@@ -62,16 +80,26 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
             RefreshSelection();
         }
 
-        /// <summary>Restarts the selected scenario.</summary>
+        /// <summary>
+        /// Restarts the selected scenario.
+        /// </summary>
         public void Restart() { Resume(); m_Selector.ResetScenario(); RefreshSelection(); }
 
-        /// <summary>Pauses behavior trees and scaled demo motion, or resumes the session.</summary>
+        /// <summary>
+        /// Pauses behavior trees and scaled demo motion, or resumes the session.
+        /// </summary>
         public void TogglePause()
         {
             if (m_Paused) { Resume(); return; }
             m_PreviousTimeScale = Time.timeScale;
             m_Paused = true;
-            foreach (var tree in FindObjectsOfType<BehaviorTree>()) {
+            foreach (var tree in
+#if UNITY_6000_7_OR_NEWER
+FindObjectsByType<BehaviorTree>()
+#else
+FindObjectsOfType<BehaviorTree>()
+#endif
+) {
                 if (tree.gameObject.scene != gameObject.scene || !tree.IsActive() || tree.IsPaused()) continue;
                 if (tree.StopBehavior(true)) m_PausedTrees.Add(tree);
             }
@@ -79,7 +107,9 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
             m_PauseLabel.text = "Resume";
         }
 
-        /// <summary>Restores only the behavior trees and clock paused by this menu.</summary>
+        /// <summary>
+        /// Restores only the behavior trees and clock paused by this menu.
+        /// </summary>
         private void Resume()
         {
             if (!m_Paused) return;
@@ -92,10 +122,14 @@ namespace Opsive.BehaviorDesigner.AddOns.Shared.Demo
             m_PauseLabel.text = "Pause";
         }
 
-        /// <summary>Restores the session clock when leaving the demo.</summary>
+        /// <summary>
+        /// Restores the session clock when leaving the demo.
+        /// </summary>
         private void OnDisable() { Resume(); }
 
-        /// <summary>Highlights the active row and scrolls it into view.</summary>
+        /// <summary>
+        /// Highlights the active row and scrolls it into view.
+        /// </summary>
         private void RefreshSelection()
         {
             m_DisplayedIndex = m_Selector.ActiveIndex;
