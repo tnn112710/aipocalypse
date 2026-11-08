@@ -2,7 +2,17 @@
 
 The whole game on one page, after Unity's [one-page game design document](https://unity.com/blog/one-page-game-design-document). Detail lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); if they disagree, they win and this page gets fixed. The scope, "done" and milestone sections are **proposals to confirm**, not decisions yet.
 
-**Title:** **Overbilled**; backup *Overbilled: AIpocalypse*. Chosen 2026-11-08: the absurd invoice is the hook, and the title doesn't spoil the AI takeover or suggest a wasteland game. "AIpocalypse" alone is out because another Steam game uses it. **aipocalypse** stays the development codename (repo, folders, namespaces, Unity product name) for now. Before the Steam page, check Steam, itch.io, trademarks, domain and social handles for the title.
+**Title:** **Hasta la Vista, Maybe** (chosen 2026-11-08). **aipocalypse** stays the development codename and namespace (repo, folders, namespaces, Unity product name). Logo: make "MAYBE" the biggest word so the short form isn't the crowded "Hasta la Vista". Other candidates kept as backups:
+
+- *Hasta la Data*
+- *Hasta la Vista*
+- *Hasta la Beta*
+- *Hasta la Vista, Bot*
+- *The AI Called This Paradise*
+- *The System Called This Paradise*
+- *Overbilled*
+
+Naming notes: "AIpocalypse" alone is taken by another Steam game. Players will shorten the Paradise titles to "Paradise", a crowded name on Steam (including an "AI-powered" crypto game), so the logo must read as one phrase. "Hasta la Vista" alone shares its name with many songs, films and a tabletop game, which crowds search. Before the Steam page: check Steam, itch.io, trademarks, domain and social handles.
 
 **Concept:** A developer burned out by mandatory AI productivity hears emergency sirens and is swallowed by light from his PC. He wakes on a farm without knowing it is an AI sandbox and is billed for tokens the AI claims he wasted in real life. Farm, explore and defend home to earn Tokens and repay the debt, or fight through the regions to the AI boss behind the sandbox. Premise, reveals and endings: [STORY.md](STORY.md).
 

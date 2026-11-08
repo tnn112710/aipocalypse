@@ -1,6 +1,6 @@
 # Game Design Document — aipocalypse
 
-Release title: **Overbilled** (backup *Overbilled: AIpocalypse*); "aipocalypse" is the development codename. See [ONE_PAGE.md](ONE_PAGE.md).
+Release title: **Hasta la Vista, Maybe**; "aipocalypse" is the development codename and namespace. Backup names and naming notes: [ONE_PAGE.md](ONE_PAGE.md).
 
 Design intent, split into topic files. Current direction revised 2026-11-07. Technical implementation is documented in [ARCHITECTURE.md](../technicals/ARCHITECTURE.md); the development schedule is in [ROADMAP.md](../ROADMAP.md).
 
