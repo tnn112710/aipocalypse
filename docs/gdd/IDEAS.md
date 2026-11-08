@@ -230,6 +230,37 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
 - Suggested after the last invoice: the ending plays (drone epilogue and stills, no cutscenes), then choose Log out (credits) or Stay (keep playing, ending recorded)
 - [TBD] the number (1B tokens or 1M coins), one AI Lord or several (one per region, each holding a share?), deadlines, target run length per path, mining, number of endings
 
+### HUD taken by the AI Lord, earned back (user, 2026-11-09)
+
+**Status (2026-11-09):** the idea and the upgrade tracks below now live in [CORE.md](CORE.md#hud-earned-back). This section keeps the discussion and the unconfirmed suggestions.
+
+- Idea (user): at the start the AI Lord destroys the player's assists (crosshair, minimap, HUD); the player is on their own and earns them back through upgrades. Fits pillar 5 (office worker → survivor) and the satire of being billed for basic features
+  - Ref: Evoland — game features (colour, 3D, music) are the unlocks; the joke carries the progression
+  - Ref: DLC Quest — basic features (moving left, animations, pause) are bought back; works as parody, keep it a joke, not a paywall feeling
+- Upgrade tracks (user, 2026-11-09):
+
+| Element | At start | Upgrades |
+| --- | --- | --- |
+| Crosshair | None for hip-fire | Tiny centre dot → reticle showing the gun's accuracy / spread → better reticles |
+| Ammo counter | None | Ammo counter on the HUD |
+| Minimap | None | Simple minimap → clearer → advanced; the compass comes with the minimap upgrades |
+| Player stats (health, stamina, sanity) | Simple stats HUD | Better stats HUD |
+| Time of day | No clock, only the time period | Clock |
+| Damage numbers | None | Visible through an unlock |
+
+- Later, nice to have: raid direction indicator, enemy health bars
+- [TBD] how upgrades are unlocked: decided with the skill tree / upgrade system
+- Suggested (not agreed yet):
+  - Aiming down sights works from the start, so there is always one accurate way to shoot; the centre dot comes early (day 1–2), since no hip-fire crosshair plus scarce ammo is the harshest start
+  - Each tier adds information, not just looks: spread reticle = when a shot lands; minimap tiers = discovered areas + your arrow → markers (home, animals, places of interest) → threats. "Better reticles" add a cue (in-range colour, range marker) or are cosmetic picks
+  - Before an upgrade, give rough cues so it's tension, not guesswork: check-mag animation and a last-rounds sound (ammo), sun / light / sounds (time), a readable health signal from day one
+  - Always on, never taken: interaction prompts, hit markers, damage direction
+  - The removal is shown: full HUD for the first minute of the intro, then the AI Lord deletes it with a joke
+  - 2–3 HUD unlocks in the first session (~2 h, the Steam refund window), e.g. dot, clock, first minimap
+  - An assist setting that turns everything on (accessibility)
+  - Minimap late, so the drone's paper map and landmark navigation (World & environment) keep their value; the minimap is also the costliest item (top-down render of the map, markers)
+  - Open: the forecast progress bar sits "under the HUD clock"; decide whether it's visible before the clock upgrade
+
 ### Farm and economy
 
 - Give animals, crops, fishing and exploration distinct economic roles: recurring production, planned harvests, active income and rare discoveries.
@@ -415,6 +446,7 @@ Raw and still-open ideas.
   - Landmarks seen from the porch: the waterfall (W), a lookout tower in the north, one giant tree in the east forest, and one AI-glitch landmark (e.g. a half-rendered mountain or an oversized floating object). Every far zone has a silhouette you can point at
     - Ref: Grounded — the big oak is visible from the starting base and works as a compass
   - No minimap: the drone draws a paper map as you discover places, with comic notes ("here be snakes", "map not to scale"); a compass on the HUD
+    - Update (user, 2026-11-09): a minimap returns as an upgrade, with the compass merged into it; see HUD taken by the AI Lord, earned back
     - Ref: Firewatch — a map and compass, no waypoints; discovered paths get added to the map; every find feels earned
   - Something every 150–250 m (30–50 s of walking): a lookout, an old camp, a ruined cabin, a dock, beehives, berry bushes, a glitch patch, the MC's own office desk standing in the woods (easter egg)
   - Weather changes the map: rain floods the fords on the branch (the long way around), a dry spell lowers the pond and uncovers a sunken chest, fog hides landmarks

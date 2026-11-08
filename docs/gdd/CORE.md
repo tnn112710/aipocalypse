@@ -153,6 +153,22 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 - **Fight rewards:** enemy loot, plus a better daily box after a defended raid or a won major event.
 - **Enemies:** behavior archetypes with different appearances; their objectives include stealing and attacking. Refined with the enemy-system revision.
 
+### HUD earned back
+
+At the start the AI Lord destroys the player's assists; the player is on their own and earns them back through upgrades (pillar 5).
+
+| Element | At start | Upgrades |
+| --- | --- | --- |
+| Crosshair | None for hip-fire | Tiny centre dot → reticle showing the gun's accuracy / spread → better reticles |
+| Ammo counter | None | Ammo counter on the HUD |
+| Minimap | None | Simple minimap → clearer → advanced; the compass comes with the minimap upgrades |
+| Player stats (health, stamina, sanity) | Simple stats HUD | Better stats HUD |
+| Time of day | No clock, only the time period | Clock |
+| Damage numbers | None | Visible through an unlock |
+
+- **Later, nice to have:** raid direction indicator, enemy health bars.
+- **How upgrades unlock** is decided with the skill tree / upgrade system. Unconfirmed suggestions (early dot, cues before each upgrade, always-on basics, intro, assist setting) are in [IDEAS.md](IDEAS.md#hud-taken-by-the-ai-lord-earned-back-user-2026-11-09).
+
 ## World & companions
 
 - **Home:** a house on a ridge above the sea, the yard and paddock, the meadow and the river (see [Places](#places)). Farming, fishing, chopping, services and defense share the meadow side.
@@ -192,7 +208,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 | Animal safety | Paddock protection after a breach, rescuing stolen animals in the outer zone |
 | Farm and trade | Production rates, drop cap, recipes, prices, daily stock sizes and purchase delivery timing |
 | Services | Rescued-robot roster, station functions, robot presentation and station layout |
-| Progression | The upgrade list, crafting tiers and recipes, gear balance |
+| Progression | The upgrade list, crafting tiers and recipes, gear balance; how HUD upgrades unlock and what each tier shows |
 | Debt and ending | Total debt, repayment service and payment conditions; ultimate boss identity, where the truth is revealed when the player beats the boss without repaying, time travel, final presentation and post-victory/replay rules (STORY) |
 | Failure | The Token loss (X%) and shares lost when knocked out, the outer-zone grave, structure damage and economic recovery |
 | Sanity and weather | Effects and rates, refined later |
