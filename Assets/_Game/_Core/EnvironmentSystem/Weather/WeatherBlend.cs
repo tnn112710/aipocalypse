@@ -15,6 +15,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             public float FogScale;
             public float Nature;
             public float Lightning;
+            public float Rain;
         }
 
         readonly float[] _fromBeds;
@@ -67,6 +68,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             _now.FogScale = Mathf.Lerp(_from.FogScale, _to.FogScale, t);
             _now.Nature = Mathf.Lerp(_from.Nature, _to.Nature, t);
             _now.Lightning = Mathf.Lerp(_from.Lightning, _to.Lightning, t);
+            _now.Rain = Mathf.Lerp(_from.Rain, _to.Rain, t);
             for (int i = 0; i < _beds.Length; i++)
                 _beds[i] = Mathf.Lerp(_fromBeds[i], _toBeds[i], t);
         }

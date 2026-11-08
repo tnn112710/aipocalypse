@@ -21,6 +21,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             public float FogDensityScale = 1f;
             [Range(0f, 1f), Tooltip("Multiplies the time-of-day ambience (birds, meadow wind, owls)")]
             public float NatureVolume = 1f;
+            [Range(0f, 1f), Tooltip("Rain drops, as a share of WeatherRain's full rate. 0 = no rain")] public float RainAmount;
             [Tooltip("Looping bed, e.g. rain. Unset = none")] public SoundID Bed;
             [Range(0f, 1f)] public float BedVolume = 1f;
             [Tooltip("Lightning flashes followed by thunder")] public bool Lightning;
@@ -41,7 +42,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         public bool Enabled = true;
         public SkyWeather StartSky = SkyWeather.PartlyCloudy;
         [Min(0f), Tooltip("Game seconds a change blends over (pausing holds it)")] public float TransitionSeconds = 20f;
-        [Min(0f), Tooltip("How far COZY's rain leans per unit of wind strength")] public float RainSlant = 0.5f;
+        [Min(0f), Tooltip("Sideways drift of the rain drops (m/s) per unit of wind strength")] public float RainSlant = 0.6f;
         [MinMaxSlider(1f, 120f, true), Tooltip("Game seconds between lightning strikes")] public Vector2 StrikeInterval = new(8f, 25f);
         [MinMaxSlider(0f, 5f, true), Tooltip("Seconds from the flash to its thunder")] public Vector2 ThunderDelay = new(0.3f, 2.5f);
         public SoundID Thunder;

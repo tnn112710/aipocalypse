@@ -10,8 +10,8 @@ using Random = UnityEngine.Random;
 
 namespace Aipocalypse.Core.EnvironmentSystem
 {
-    // Holds the weather (a sky weather + a wind level) and shows it: COZY's sky through the bridge, the scene wind, Unity fog,
-    // the ambience's nature volume, rain / wind beds and lightning. Changes blend over game seconds, so pausing holds them.
+    // Holds the weather (a sky weather + a wind level) and shows it: COZY's sky through the bridge, the rain particles, the
+    // scene wind, Unity fog, the ambience's nature volume, rain / wind beds and lightning. Changes blend over game seconds, so pausing holds them.
     // Nothing decides the weather on its own yet: the console and later rules call Set.
     public sealed class WeatherService : IStartable, ITickable, IDisposable
     {
@@ -25,6 +25,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         readonly float[] _bedTargets;
         EnvironmentDirector _director;
         WeatherWind _wind;
+        WeatherRain _rain;
         LightningFlash _flash;
         AmbienceService _ambience;
         WorldClock _clock;
@@ -43,6 +44,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
             _bedTargets = new float[_beds.Count];
             resolver.TryResolve(out _director);
             resolver.TryResolve(out _wind);
+            resolver.TryResolve(out _rain);
             resolver.TryResolve(out _flash);
             resolver.TryResolve(out _ambience);
             resolver.TryResolve(out _clock);
@@ -94,6 +96,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
                 FogScale = sky?.FogDensityScale ?? 1f,
                 Nature = sky?.NatureVolume ?? 1f,
                 Lightning = sky != null && sky.Lightning ? 1f : 0f,
+                Rain = sky?.RainAmount ?? 0f,
             };
             _beds.Targets(sky, wind, _bedTargets);
             _blend.Start(target, _bedTargets, seconds);
@@ -134,12 +137,10 @@ namespace Aipocalypse.Core.EnvironmentSystem
             ref readonly WeatherBlend.Mix mix = ref _blend.Now;
             if (_wind != null)
                 _wind.Set(mix.Strength, mix.Speed, mix.Gust);
+            if (_rain != null)
+                _rain.Set(mix.Rain, WindDirection * (mix.Strength * _settings.RainSlant));
             if (_director != null)
-            {
                 _director.WeatherFogScale = mix.FogScale;
-                if (_director.Cozy != null)
-                    _director.Cozy.SetRainWind(WindDirection * (mix.Strength * _settings.RainSlant));
-            }
             if (_ambience != null)
                 _ambience.NatureVolume = mix.Nature;
         }

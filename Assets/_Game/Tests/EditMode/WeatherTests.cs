@@ -33,7 +33,7 @@ namespace Aipocalypse.Tests
             _settings.Skies = new Dictionary<SkyWeather, WeatherSettings.Sky>
             {
                 [SkyWeather.Clear] = new() { DefaultWind = WindLevel.Calm, FogDensityScale = 1f, NatureVolume = 1f },
-                [SkyWeather.HeavyRain] = new() { DefaultWind = WindLevel.Gale, FogDensityScale = 3f, NatureVolume = 0f, Lightning = true },
+                [SkyWeather.HeavyRain] = new() { DefaultWind = WindLevel.Gale, FogDensityScale = 3f, NatureVolume = 0f, Lightning = true, RainAmount = 1f },
             };
             _settings.Winds = new Dictionary<WindLevel, WeatherSettings.Wind>
             {
@@ -104,6 +104,7 @@ namespace Aipocalypse.Tests
             Assert.That(_weather.Mix.FogScale, Is.EqualTo(3f));
             Assert.That(_weather.Mix.Nature, Is.EqualTo(0f));
             Assert.That(_weather.Mix.Lightning, Is.EqualTo(1f));
+            Assert.That(_weather.Mix.Rain, Is.EqualTo(1f));
         }
 
         [Test]
@@ -175,6 +176,9 @@ namespace Aipocalypse.Tests
                     .Where(o => o != null)
                     .Select(o => o.GetType().Name);
                 Assert.That(kinds, Has.None.EqualTo("AudioFX").And.None.EqualTo("ThunderFX"), pair.Key.ToString());
+                // WeatherRain draws the rain; COZY's VFX Graph rain costs ~2 ms and needs its FX-blocking camera.
+                var names = Enumerable.Range(0, fx.arraySize).Select(i => fx.GetArrayElementAtIndex(i).objectReferenceValue?.name);
+                Assert.That(names, Has.None.Contains("Rain").And.None.Contains("Drizzle"), pair.Key.ToString());
             }
         }
     }

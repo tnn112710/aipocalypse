@@ -42582,6 +42582,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 656059864}
+  - {fileID: 205848471}
   m_Father: {fileID: 810801751}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &141264322
@@ -57340,6 +57341,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8941331393000973695, guid: 1868d161743ed9c4abdea4d8e4bf2778, type: 3}
   m_PrefabInstance: {fileID: 204532835}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &205848470
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 140575767}
+    m_Modifications:
+    - target: {fileID: 6850095027846153406, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_Name
+      value: Rain
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+--- !u!4 &205848471 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8460764473046358214, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+  m_PrefabInstance: {fileID: 205848470}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &205848472 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1552628887904631027, guid: e53f608e2c267f3489cf59011e0243af, type: 3}
+  m_PrefabInstance: {fileID: 205848470}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6761fc6539b94174d9dc1ad8e4bbc9ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.WeatherRain
 --- !u!1001 &206527601
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -287580,6 +287654,7 @@ MonoBehaviour:
   _nightHighlight: {fileID: 1730420358}
   _weather: {fileID: 11400000, guid: 79953d74a90f26d4ca5ee8c789c3952b, type: 2}
   _wind: {fileID: 340159449}
+  _rain: {fileID: 205848472}
   _lightning: {fileID: 656059865}
 --- !u!114 &1051055996
 MonoBehaviour:

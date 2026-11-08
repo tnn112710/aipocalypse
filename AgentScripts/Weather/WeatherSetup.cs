@@ -16,11 +16,12 @@ using Volume = UnityEngine.Rendering.Volume;
 
 // Weather phase A setup (docs/technicals/WEATHER.md). Run with `unity command script run --file AgentScripts/Weather/WeatherSetup.cs
 // --entry WeatherSetup.<Entry>`. Each step is safe to re-run and saves only what it wrote.
-//   All()      = Profiles + Audio + Settings + Scene
-//   Profiles() = our COZY weather profile copies (no COZY audio / thunder / inert FX)
+//   All()      = Profiles + Audio + Settings + Rain + Scene
+//   Profiles() = our COZY weather profile copies (no COZY audio / thunder / rain / inert FX)
 //   Audio()    = the weather sounds in the Ambience library
 //   Settings() = Data/Environment/Weather/Weather.asset (+ the lightning volume profile); keeps tuned values unless reset
-//   Scene()    = WorldMap wiring: Weather Wind (replaces the Raygeas wind drivers), Lightning Flash, installer fields
+//   Rain()     = Environment/Weather/WeatherRain.prefab: Unluck's Rain Multi + Rain Warpy + fake ground splashes, no collision
+//   Scene()    = WorldMap wiring: Weather Wind (replaces the Raygeas wind drivers), Rain, Lightning Flash, installer fields
 public static class WeatherSetup
 {
     const string CozyProfiles = "Packages/space.distantlands.cozyweather.core/Content/Profiles/";
@@ -31,26 +32,31 @@ public static class WeatherSetup
     const string AudioLibPath = "Assets/_Game/Data/Audio/Ambience.asset";
     const string AudioDir = "Assets/_Game/Data/Audio/Ambience";
     const string Ithappy = "Assets/_StoreAssets/Audio/ithappy/Nature_Sound_FX/Weather/";
+    const string UnluckDir = "Assets/_StoreAssets/VFX/Unluck Software/Stylized Weather/Prefabs/Particles Only/";
+    const string RainPrefabDir = "Assets/_Game/Environment/Weather";
+    const string RainPrefabPath = RainPrefabDir + "/WeatherRain.prefab";
 
     // FX COZY plays itself that we replace (audio, thunder) or that do nothing without their modules (precipitation and
     // climate need the Climate module, wind the Wind module, events have no listener).
     static readonly string[] StrippedFX = { "AudioFX", "ThunderFX", "PrecipitationFX", "ClimateFX", "WindFX", "EventFX" };
+    // COZY's VFX Graph rain: ~18k drops (about 2 ms in the editor) that need its FX-blocking camera; WeatherRain draws the rain.
+    static readonly string[] StrippedRain = { "Stylized Drizzle", "Stylized Light Rain", "Stylized Heavy Rain" };
 
-    // Sky weather → (COZY profile to copy, VFX Graph FX swaps old → new).
-    static readonly (SkyWeather sky, string source, string swapFrom, string swapTo)[] Profiles_ =
+    // Sky weather → the COZY profile copied.
+    static readonly (SkyWeather sky, string source)[] Profiles_ =
     {
-        (SkyWeather.Clear, "Clear", null, null),
-        (SkyWeather.PartlyCloudy, "Partly Cloudy", null, null),
-        (SkyWeather.Cloudy, "Mostly Cloudy", null, null),
-        (SkyWeather.Overcast, "Overcast", null, null),
-        (SkyWeather.LightRain, "Light Rain", "Stylized Light Rain", "Stylized Drizzle"),
-        (SkyWeather.MediumRain, "Light Rain", null, null),
-        (SkyWeather.HeavyRain, "Thunder Storm", null, null),
-        (SkyWeather.Fog, "Dense Fog", null, null),
+        (SkyWeather.Clear, "Clear"),
+        (SkyWeather.PartlyCloudy, "Partly Cloudy"),
+        (SkyWeather.Cloudy, "Mostly Cloudy"),
+        (SkyWeather.Overcast, "Overcast"),
+        (SkyWeather.LightRain, "Light Rain"),
+        (SkyWeather.MediumRain, "Light Rain"),
+        (SkyWeather.HeavyRain, "Thunder Storm"),
+        (SkyWeather.Fog, "Dense Fog"),
     };
 
     public static string All(bool resetSettings = false) =>
-        string.Join("\n", Profiles(), Audio(), Settings(resetSettings), Scene());
+        string.Join("\n", Profiles(), Audio(), Settings(resetSettings), Rain(), Scene());
 
     static string ProfilePath(SkyWeather sky) => $"{ProfileDir}/Weather_{sky}.asset";
 
@@ -58,7 +64,7 @@ public static class WeatherSetup
     {
         EnsureFolder(ProfileDir);
         var log = new List<string>();
-        foreach (var (sky, source, swapFrom, swapTo) in Profiles_)
+        foreach (var (sky, source) in Profiles_)
         {
             string path = ProfilePath(sky);
             if (AssetDatabase.LoadAssetAtPath<WeatherProfile>(path) == null &&
@@ -74,15 +80,10 @@ public static class WeatherSetup
                 Object item = fx.GetArrayElementAtIndex(i).objectReferenceValue;
                 if (item == null)
                     continue;
-                if (StrippedFX.Contains(item.GetType().Name))
+                if (StrippedFX.Contains(item.GetType().Name) || StrippedRain.Contains(item.name))
                 {
                     removed.Add(item.name);
                     continue;
-                }
-                if (swapFrom != null && item.name == swapFrom)
-                {
-                    item = AssetDatabase.LoadAssetAtPath<Object>($"{CozyProfiles}FX/VFX Graph FX/{swapTo}.asset")
-                           ?? throw new Exception("missing FX " + swapTo);
                 }
                 kept.Add(item);
             }
@@ -91,7 +92,7 @@ public static class WeatherSetup
                 fx.GetArrayElementAtIndex(i).objectReferenceValue = kept[i];
             // Our weather never forecasts: drop the links to COZY's other profiles.
             so.FindProperty("forecastNext").arraySize = 0;
-            so.FindProperty("description").stringValue = $"aipocalypse {sky}: copy of COZY's {source}" + (swapTo != null ? $" with {swapTo}" : "");
+            so.FindProperty("description").stringValue = $"aipocalypse {sky}: copy of COZY's {source} without its rain, audio and thunder";
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssetIfDirty(profile);
@@ -159,7 +160,7 @@ public static class WeatherSetup
             settings.Enabled = true;
             settings.StartSky = SkyWeather.PartlyCloudy;
             settings.TransitionSeconds = 20f;
-            settings.RainSlant = 0.5f;
+            settings.RainSlant = 0.6f;
             settings.StrikeInterval = new Vector2(8f, 25f);
             settings.ThunderDelay = new Vector2(0.3f, 2.5f);
             settings.ThunderVolume = 1f;
@@ -170,9 +171,9 @@ public static class WeatherSetup
                 [SkyWeather.PartlyCloudy] = Sky(WindLevel.Breezy, 1f, 1f),
                 [SkyWeather.Cloudy] = Sky(WindLevel.Breezy, 1.1f, 1f),
                 [SkyWeather.Overcast] = Sky(WindLevel.Breezy, 1.3f, 0.8f),
-                [SkyWeather.LightRain] = Sky(WindLevel.Breezy, 1.5f, 0.5f, "RainLight", 0.7f),
-                [SkyWeather.MediumRain] = Sky(WindLevel.Windy, 2f, 0.3f, "RainMedium", 0.8f),
-                [SkyWeather.HeavyRain] = Sky(WindLevel.Gale, 2.5f, 0.1f, "RainHeavy", 1f, true),
+                [SkyWeather.LightRain] = Sky(WindLevel.Breezy, 1.5f, 0.5f, "RainLight", 0.7f, rain: 0.2f),
+                [SkyWeather.MediumRain] = Sky(WindLevel.Windy, 2f, 0.3f, "RainMedium", 0.8f, rain: 0.5f),
+                [SkyWeather.HeavyRain] = Sky(WindLevel.Gale, 2.5f, 0.1f, "RainHeavy", 1f, true, 1f),
                 [SkyWeather.Fog] = Sky(WindLevel.Calm, 4f, 0.7f),
             };
             settings.Winds = new Dictionary<WindLevel, WeatherSettings.Wind>
@@ -183,8 +184,16 @@ public static class WeatherSetup
                 [WindLevel.Gale] = Wind(2.8f, 1.6f, 3f, "WindStrong", 0.9f),
             };
         }
+        // Rain amounts came after the first settings: fill them once while none is set.
+        if (!settings.Skies.Values.Any(s => s.RainAmount > 0f))
+        {
+            settings.RainSlant = 0.6f;
+            foreach (var (sky, amount) in new[] { (SkyWeather.LightRain, 0.2f), (SkyWeather.MediumRain, 0.5f), (SkyWeather.HeavyRain, 1f) })
+                if (settings.Skies.TryGetValue(sky, out WeatherSettings.Sky rainy))
+                    rainy.RainAmount = amount;
+        }
         // The COZY profiles always point at the copies.
-        foreach (var (sky, _, _, _) in Profiles_)
+        foreach (var (sky, _) in Profiles_)
             if (settings.Skies.TryGetValue(sky, out WeatherSettings.Sky entry))
                 entry.Cozy = AssetDatabase.LoadAssetAtPath<WeatherProfile>(ProfilePath(sky)) ?? throw new Exception("missing profile copy for " + sky);
         EditorUtility.SetDirty(settings);
@@ -206,8 +215,10 @@ public static class WeatherSetup
         return $"settings {(created ? "created" : reset ? "reset" : "kept")} at {SettingsPath}; lightning profile {LightningProfilePath}";
     }
 
-    static WeatherSettings.Sky Sky(WindLevel wind, float fog, float nature, string bed = null, float bedVolume = 1f, bool lightning = false) => new()
+    static WeatherSettings.Sky Sky(WindLevel wind, float fog, float nature, string bed = null, float bedVolume = 1f, bool lightning = false,
+        float rain = 0f) => new()
     {
+        RainAmount = rain,
         DefaultWind = wind,
         FogDensityScale = fog,
         NatureVolume = nature,
@@ -224,6 +235,100 @@ public static class WeatherSetup
         Bed = bed != null ? Sound(bed) : default,
         BedVolume = bedVolume,
     };
+
+    // The rain prefab, built from Unluck Stylized Weather particles (vendor prefabs untouched): Rain Multi (multi-streak
+    // sheets, the main rain), Rain Warpy (heavier rain only) and a fake-splash emitter made from Rain -C's splash sprite.
+    // Nothing collides: the splashes are emitted on the ground around the camera. WeatherRain on the root drives them.
+    public static string Rain()
+    {
+        EnsureFolder(RainPrefabDir);
+        var root = new GameObject("WeatherRain");
+        ParticleSystem multi = Copy(UnluckDir + "Rain Multi.prefab", root.transform);
+        // Its sheets sink only ~11.4 m in their 2.5 s (the box sends them off at an angle, ~4.6 m/s down): spawned at the pack's
+        // 17.9 m they never came below ~6.5 m over the camera (rain seen only looking up). At 6 m they span eye level.
+        multi.transform.localPosition = new Vector3(0f, 6f, 0f);
+        // Its material blends additively: the pack's dark teal (0.27, 0.38, 0.37) adds next to nothing over trees and grass,
+        // so the rain showed only against the sky. A light grey like Rain Warpy's reads against both.
+        ParticleSystem.MainModule multiMain = multi.main;
+        multiMain.startColor = new ParticleSystem.MinMaxGradient(new Color(0.55f, 0.58f, 0.62f, 0.6f), new Color(0.72f, 0.75f, 0.8f, 0.6f));
+        ParticleSystem warpy = Copy(UnluckDir + "Rain Warpy.prefab", root.transform);
+
+        // Splashes: Rain -C's billboard splash (a sub-emitter there), turned into its own emitter on a flat disc.
+        ParticleSystem rainC = Copy(UnluckDir + "Rain -C.prefab", root.transform);
+        ParticleSystem splash = rainC.GetComponentsInChildren<ParticleSystem>(true)
+            .First(ps => ps != rainC && ps.GetComponent<ParticleSystemRenderer>().renderMode == ParticleSystemRenderMode.Billboard);
+        splash.transform.SetParent(root.transform, false);
+        splash.name = "Splashes";
+        Object.DestroyImmediate(rainC.gameObject);
+        splash.transform.localPosition = Vector3.zero;
+        splash.transform.localRotation = Quaternion.identity;
+        ParticleSystem.MainModule splashMain = splash.main;
+        splashMain.loop = true;
+        splashMain.playOnAwake = false;
+        splashMain.simulationSpace = ParticleSystemSimulationSpace.World;
+        splashMain.maxParticles = 300;
+        splashMain.gravityModifier = 0f;
+        splashMain.startSpeed = 0f;
+        ParticleSystem.EmissionModule splashEmission = splash.emission;
+        splashEmission.rateOverTime = 0f;
+        splashEmission.SetBursts(Array.Empty<ParticleSystem.Burst>());
+        ParticleSystem.ShapeModule disc = splash.shape;
+        disc.enabled = true;
+        disc.shapeType = ParticleSystemShapeType.Circle;
+        disc.radius = 10f;
+        disc.radiusThickness = 1f;
+        disc.rotation = new Vector3(90f, 0f, 0f);
+        disc.position = Vector3.zero;
+
+        foreach (ParticleSystem ps in root.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            ParticleSystem.MainModule main = ps.main;
+            main.playOnAwake = false;
+            ParticleSystem.CollisionModule collision = ps.collision;
+            collision.enabled = false;
+            ParticleSystem.SubEmittersModule sub = ps.subEmitters;
+            sub.enabled = false;
+        }
+
+        var rain = root.AddComponent<WeatherRain>();
+        var so = new SerializedObject(rain);
+        SerializedProperty layers = so.FindProperty("_layers");
+        var config = new (ParticleSystem system, float maxRate, float from, bool onGround)[]
+        {
+            (multi, 130f, 0f, false),
+            (warpy, 80f, 0.5f, false),
+            (splash, 120f, 0f, true),
+        };
+        layers.arraySize = config.Length;
+        for (int i = 0; i < config.Length; i++)
+        {
+            SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+            layer.FindPropertyRelative("System").objectReferenceValue = config[i].system;
+            layer.FindPropertyRelative("MaxRate").floatValue = config[i].maxRate;
+            layer.FindPropertyRelative("From").floatValue = config[i].from;
+            layer.FindPropertyRelative("OnGround").boolValue = config[i].onGround;
+        }
+        so.FindProperty("_ground").intValue = LayerMask.GetMask("Default", "Water");
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        PrefabUtility.SaveAsPrefabAsset(root, RainPrefabPath);
+        Object.DestroyImmediate(root);
+        return "rain prefab " + RainPrefabPath + ": Rain Multi 130/s, Rain Warpy 80/s from amount 0.5, Splashes 120/s within 10 m";
+    }
+
+    // An unpacked copy of a vendor particle prefab under parent, without its scripts (the pack's wrapper moves particles
+    // around a follow object; WeatherRain moves the rig instead). Keeps the prefab's own offset.
+    static ParticleSystem Copy(string path, Transform parent)
+    {
+        var source = AssetDatabase.LoadAssetAtPath<GameObject>(path) ?? throw new Exception("missing " + path);
+        var instance = (GameObject)PrefabUtility.InstantiatePrefab(source);
+        PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+        foreach (MonoBehaviour script in instance.GetComponentsInChildren<MonoBehaviour>(true))
+            Object.DestroyImmediate(script);
+        instance.transform.SetParent(parent, false);
+        instance.transform.localPosition = source.transform.localPosition;
+        return instance.GetComponent<ParticleSystem>();
+    }
 
     public static string Scene()
     {
@@ -302,6 +407,22 @@ public static class WeatherSetup
         volume.enabled = false;
         var flash = Get<LightningFlash>(flashObject);
 
+        // The rain: an instance of the rain prefab (WeatherRain on its root) as Environment/Weather/Rain.
+        Transform oldRain = weatherRoot.transform.Find("Rain");
+        WeatherRain rain = oldRain != null ? oldRain.GetComponent<WeatherRain>() : null;
+        if (oldRain != null && (rain == null || !PrefabUtility.IsAnyPrefabInstanceRoot(oldRain.gameObject)))
+        {
+            Object.DestroyImmediate(oldRain.gameObject);
+            rain = null;
+        }
+        if (rain == null)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RainPrefabPath) ?? throw new Exception("run Rain first");
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, weatherRoot.transform);
+            instance.name = "Rain";
+            rain = instance.GetComponent<WeatherRain>();
+        }
+
         // The installer on the scope.
         var installer = Object.FindObjectsByType<EnvironmentInstaller>(FindObjectsInactive.Include).FirstOrDefault()
                         ?? throw new Exception("no EnvironmentInstaller");
@@ -309,6 +430,7 @@ public static class WeatherSetup
         installerSo.FindProperty("_weather").objectReferenceValue = settings;
         installerSo.FindProperty("_wind").objectReferenceValue = wind;
         installerSo.FindProperty("_lightning").objectReferenceValue = flash;
+        installerSo.FindProperty("_rain").objectReferenceValue = rain;
         installerSo.ApplyModifiedPropertiesWithoutUndo();
 
         EditorUtility.SetDirty(windObject);

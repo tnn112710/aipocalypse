@@ -15,7 +15,7 @@ MonoBehaviour:
   Enabled: 1
   StartSky: 1
   TransitionSeconds: 20
-  RainSlant: 0.5
+  RainSlant: 0.6
   StrikeInterval: {x: 8, y: 25}
   ThunderDelay: {x: 0.3, y: 2.5}
   Thunder:
@@ -30,6 +30,7 @@ MonoBehaviour:
       DefaultWind: 0
       FogDensityScale: 1
       NatureVolume: 1
+      RainAmount: 0
       Bed:
         _entity: {fileID: 0}
         ID: 0
@@ -42,6 +43,7 @@ MonoBehaviour:
       DefaultWind: 1
       FogDensityScale: 1
       NatureVolume: 1
+      RainAmount: 0
       Bed:
         _entity: {fileID: 0}
         ID: 0
@@ -54,6 +56,7 @@ MonoBehaviour:
       DefaultWind: 1
       FogDensityScale: 1.1
       NatureVolume: 1
+      RainAmount: 0
       Bed:
         _entity: {fileID: 0}
         ID: 0
@@ -66,6 +69,7 @@ MonoBehaviour:
       DefaultWind: 1
       FogDensityScale: 1.3
       NatureVolume: 0.8
+      RainAmount: 0
       Bed:
         _entity: {fileID: 0}
         ID: 0
@@ -78,6 +82,7 @@ MonoBehaviour:
       DefaultWind: 1
       FogDensityScale: 1.5
       NatureVolume: 0.5
+      RainAmount: 0.2
       Bed:
         _entity: {fileID: 11400000, guid: 97dbc537f4e2e2845a0fbb3250a4f7c3, type: 2}
         ID: 0
@@ -90,6 +95,7 @@ MonoBehaviour:
       DefaultWind: 2
       FogDensityScale: 2
       NatureVolume: 0.3
+      RainAmount: 0.5
       Bed:
         _entity: {fileID: 11400000, guid: 021eae168542eb840ab17dc49c1c6b06, type: 2}
         ID: 0
@@ -102,6 +108,7 @@ MonoBehaviour:
       DefaultWind: 3
       FogDensityScale: 2.5
       NatureVolume: 0.1
+      RainAmount: 1
       Bed:
         _entity: {fileID: 11400000, guid: 4f13edaa59a5b7b4b8be02ad73711266, type: 2}
         ID: 0
@@ -114,6 +121,7 @@ MonoBehaviour:
       DefaultWind: 0
       FogDensityScale: 4
       NatureVolume: 0.7
+      RainAmount: 0
       Bed:
         _entity: {fileID: 0}
         ID: 0

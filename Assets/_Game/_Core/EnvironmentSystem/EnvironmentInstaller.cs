@@ -17,6 +17,7 @@ namespace Aipocalypse.Core.EnvironmentSystem
         [SerializeField, Tooltip("Optional: keeps enemies readable at night (a light only they receive)")] NightHighlight _nightHighlight;
         [SerializeField, Tooltip("Optional: sky weathers and wind levels (WeatherService). Off in the asset = no weather")] WeatherSettings _weather;
         [SerializeField, Tooltip("Optional: the scene wind the weather scales")] WeatherWind _wind;
+        [SerializeField, Tooltip("Optional: the rain particles above the camera")] WeatherRain _rain;
         [SerializeField, Tooltip("Optional: the lightning flash volume")] LightningFlash _lightning;
 
         public override string Problem => _director == null ? "no Environment Director assigned" : null;
@@ -52,6 +53,8 @@ namespace Aipocalypse.Core.EnvironmentSystem
             builder.RegisterInstance(_weather);
             if (_wind != null)
                 builder.RegisterComponent(_wind);
+            if (_rain != null)
+                builder.RegisterComponent(_rain);
             if (_lightning != null)
                 builder.RegisterComponent(_lightning);
             builder.RegisterEntryPoint<WeatherService>().AsSelf();

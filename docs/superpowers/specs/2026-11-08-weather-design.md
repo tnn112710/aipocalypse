@@ -171,3 +171,4 @@ The editor preview without Play is COZY-only, through the kit's `CozyKit.SetWeat
 - **Added `weather.strike`** (a flash and its thunder now) for testing.
 - **Every COZY weather profile copy also loses its Precipitation, Climate, Wind and Event FX** (inert without their modules) and its forecast links.
 - **The cost could not be measured reliably** in this editor session (WEATHER.md → Cost).
+- **Later the same day (user):** rain cost too much and looked fake. COZY's VFX Graph rain was 18.6k drops (+1.6–2.2 ms). It was replaced by `WeatherRain`, a copy of Unluck's `Rain -C` that the user picked (about +0.3 ms), and the bridge's rain workaround was removed. Then (user) `Rain -C` still looked bad: the rain became Unluck's Rain Multi + Rain Warpy with no collision and fake splashes on the ground under the camera (no measurable cost).
