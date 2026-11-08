@@ -2,8 +2,9 @@
 
 The whole game on one page, after Unity's [one-page game design document](https://unity.com/blog/one-page-game-design-document). Detail lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); if they disagree, they win and this page gets fixed. The scope, "done" and milestone sections are **proposals to confirm**, not decisions yet.
 
-**Title:** **Hasta la Vista, Maybe** (chosen 2026-11-08). **aipocalypse** stays the development codename and namespace (repo, folders, namespaces, Unity product name). Logo: make "MAYBE" the biggest word so the short form isn't the crowded "Hasta la Vista". Other candidates kept as backups:
+**Title:** **Hasta la Vista, M.A.Y.B.E** (chosen 2026-11-08). **aipocalypse** stays the development codename and namespace (repo, folders, namespaces, Unity product name). Logo: make "MAYBE" the biggest word so the short form isn't the crowded "Hasta la Vista". Other candidates kept as backups:
 
+- *Hasta la Vista, M.A.Y.B.E* (Model for Analyzing Your Behavior and Experience)
 - *Hasta la Data*
 - *Hasta la Vista*
 - *Hasta la Beta*
