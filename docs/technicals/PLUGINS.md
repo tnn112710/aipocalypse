@@ -131,6 +131,7 @@ Time and the look are first-party (`WorldClock`, `EnvironmentDirector`, [DAYNIGH
 | Audio Tools | 1.2.0 | `Assets/Plugins/AudioTools` | Should | Trim, normalize, fade, export clips (editor only). Skill: `tools-unity-broaudio` → Clip editing. |
 | Audio Preview Tool | — | `Assets/Plugins/WarpedImagination` | Could | Clip preview in the Project window. |
 | Easy Collider Editor | — | `Assets/Plugins/EasyColliderEditor` | Should | Collider authoring. |
+| Shader Control (Kronnect) | 8.2.4 | `Assets/Plugins/Kronnect/ShaderControl` | Should | Shader variant analysis for build size and build time: lists every shader and keyword that went into the last build, with variant counts (Window > Kronnect > Shader Control > Browse Shaders…). Editor only (asmdef `ShaderControl.Editor`). It hooks **every** player build: a shader or keyword unticked in its Build View is stripped from all builds, so fix the source first. Its Quick Build saves the active scene and calls `AssetDatabase.SaveAssets()`. Its Project View "Convert to local" and material keyword pruning rewrite files: only on `_Game` shaders and materials, never vendor ones. How to use it and its traps: BUILD.md → Build size. |
 | Rowlan Fullscreen Editor Play Mode | 1.9.0 | `Assets/Plugins/Rowlan/Fullscreen` | Could | |
 | Ultimate Preview / Ultimate Thumbnails (Voxel Labs) | — | `Assets/Plugins/Voxel Labs` | Could | |
 | Colorize Palette Modifier (Smitesoft) | — | `Assets/Plugins/Smitesoft` | Could | |

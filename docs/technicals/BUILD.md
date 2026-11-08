@@ -32,6 +32,29 @@ Managed stripping level is **Low** (Player Settings > Other Settings > Optimizat
 
 Going further (Medium/High) roots only MonoBehaviours, ScriptableObjects, `[Preserve]` and `link.xml` in non-scene assemblies, and would need public-but-reflected vendor code listed too.
 
+## Build size
+
+The Autobuild window shows each build's total size. To find what makes it big:
+
+- **Assets** (textures, meshes, audio): the build report Unity writes at the end of `Editor.log` (biggest assets and size by category), or the `BuildReport` from the build.
+- **Shaders:** use **Shader Control** (Kronnect, PLUGINS.md → Editor tools). It lists every shader in the last build with its keywords and **variant count**, and it covers `Resources` shaders, Always Included shaders and shaders that only materials pull in. Too many variants make builds bigger, slower to build and use more shader memory. It only covers shaders.
+
+### Shader Control
+
+Open it from **Window > Kronnect > Shader Control > Browse Shaders…**. Use the **Build View**:
+
+1. Click **Quick Build**, then build any config (Autobuild works too). The build skips shader compilation, so it renders pink: throw it away. Shader Control records each shader's keywords and variants.
+2. Sort by variant count. Look for shaders that shouldn't ship, for example a vendor uber shader in `Resources` (Beautify was ~830k variants), or a built-in shader pulled in by a stray material. Look for keywords that multiply the count.
+3. Fix it at the source first. Remove the reference, the material or the `Resources` copy. Turn the feature off in the URP asset so URP strips it. In our own shaders, use `shader_feature` instead of `multi_compile`.
+4. Make a normal build and compare its size in the Autobuild window. Shader Control's variant counts also refresh on every normal build.
+
+Traps:
+
+- **Quick Build edits files.** It adds a hidden `ShaderControlQuickBuild` GameObject to the active scene and saves the scene. Its save hook calls `AssetDatabase.SaveAssets()`, which can write any dirty asset (see AGENTS.md → "Save only what you wrote"). Before a Quick Build, start from a clean `git status`. Afterwards, revert the scene change and any unrelated assets.
+- **Unticking strips silently.** A shader or keyword you untick in the Build View is stripped from every later build, by any config, on any machine that has its data. A variant that's missing shows up only in the player, as pink or wrong materials. Untick only when the source can't be fixed, for example a keyword a vendor shader never uses here. When you do, write it here.
+- **Its data is an asset.** It lives in `Assets/Plugins/Kronnect/ShaderControl/Editor/Resources/` (`BuiltShaders.asset`, `BuildConfiguration.asset`). It's editor only, so it never ships. Commit those assets only once they hold strip choices; until then they only hold the last build's statistics.
+- **Its Project View edits files too.** "Convert to local" rewrites shader files and material keyword pruning rewrites materials. Use them only on `_Game` shaders and materials, never on vendor ones.
+
 ## Build stamp
 
 Each build gets `build_info.txt` next to the exe (and in the zip): `name`, `config`, `commit` (short hash, `-dirty` with uncommitted changes to tracked files) and `built` (date). `BuildStamp` (root scope) reads it at start and logs `Build: …` to `Player.log`; the console's `build` command prints it, and cheat builds show it small in the bottom-right corner (not in the editor). A player without the file says so instead.
