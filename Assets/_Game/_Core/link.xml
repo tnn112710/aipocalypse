@@ -1,0 +1,36 @@
+<!--
+  Managed code stripping is Low (Player Settings > Other > Optimization, BUILD.md → Code stripping).
+  Low already keeps every assembly a scene references whole; these are kept whole even if that changes,
+  because they find or create types through reflection the linker can't see.
+-->
+<linker>
+  <!-- VContainer builds our services through reflected constructors; BD trees store our task types by name;
+       Feel feedbacks are [SerializeReference] types. -->
+  <assembly fullname="MB13.Aipocalypse.Core" preserve="all"/>
+
+  <!-- DI: reflected constructors, open generic brokers resolved at runtime. -->
+  <assembly fullname="VContainer" preserve="all"/>
+  <assembly fullname="MessagePipe" preserve="all"/>
+  <assembly fullname="MessagePipe.VContainer" preserve="all"/>
+
+  <!-- Behavior Designer Pro: trees store task types by full name and fill their fields by reflection. -->
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Systems" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Wrappers" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Tasks.Actions" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Tasks.Composites" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Tasks.Decorators" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.Runtime.Tasks.Events" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.AddOns.MovementPack.Runtime" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.BehaviorDesigner.AddOns.Shared.Runtime" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.GraphDesigner.Runtime" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.GraphDesigner.Runtime.ECS" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.GraphDesigner.Runtime.ECS.Core" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.GraphDesigner.Runtime.Wrappers" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.Shared.Events" preserve="all" ignoreIfMissing="1"/>
+  <assembly fullname="Opsive.Shared.Utility" preserve="all" ignoreIfMissing="1"/>
+
+  <!-- COZY 4 creates its repeat styles and finds its modules by scanning types. -->
+  <assembly fullname="DistantLands.Cozy.Runtime" preserve="all" ignoreIfMissing="1"/>
+</linker>
