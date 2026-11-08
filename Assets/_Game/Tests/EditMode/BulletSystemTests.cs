@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEditor;
@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using VContainer;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Bullets as data under one tick, followed through their pooled tracers.
     public class BulletSystemTests

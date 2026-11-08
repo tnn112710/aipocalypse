@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     public sealed class RandomInstaller : IInstaller
     {

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // How an enemy that breaks fences (a Fence weight) deals with barriers; from its MeleeSettings.
     public readonly struct BreachRules

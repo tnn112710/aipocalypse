@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Sole writer of the player's camera transforms: composes look pitch and view kick (pitch pivot), head motion (camera root)
     // and a pose sequence that overrides both. Applied as each share changes, so mid-frame aiming sees the right eye.

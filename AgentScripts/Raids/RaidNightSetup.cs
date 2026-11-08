@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.RaidSystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.RaidSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
 using UnityEditor;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Keeps a place populated while the player is near (a camp, a nest, a herd's meadow, a fishing spot, a grove): up to
     // Capacity alive in its SpawnZone, topped up out of the player's view, and each one killed or used up comes back after

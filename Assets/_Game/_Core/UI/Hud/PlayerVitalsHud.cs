@@ -1,7 +1,7 @@
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Health and stamina bars for the active player.
     public sealed class PlayerVitalsHud : PlayerHudView

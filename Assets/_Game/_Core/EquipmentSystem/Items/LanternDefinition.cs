@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // A light worn on the belt: works without being held, widening the player's light in the dark (PlayerVision).
     [CreateAssetMenu(fileName = "Lantern", menuName = "Aipocalypse/Items/Lantern")]

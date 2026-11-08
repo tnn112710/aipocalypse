@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class TimeOfDayTests
     {

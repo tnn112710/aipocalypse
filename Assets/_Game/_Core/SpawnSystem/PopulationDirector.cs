@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Unity.Profiling;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Open-world population: every PopulationInterval it looks at the scene's SpawnAreas round the player, wakes the near ones,
     // tops them up (out of view, within the category and global caps) and lets the far ones go once unseen. Killed or used up

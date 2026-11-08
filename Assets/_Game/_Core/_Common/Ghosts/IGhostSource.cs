@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Ghosts
+namespace MB13.Aipocalypse.Core.Ghosts
 {
     // Something that shows a see-through ghost of how it would be once rebuilt, built or placed (a broken fence segment).
     // Whoever looks at it (the player) asks each frame and draws it with GhostDrawer.Draw.

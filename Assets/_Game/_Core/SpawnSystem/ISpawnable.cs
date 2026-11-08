@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // A part of a spawnable prefab that resets per-life state when its Spawnable is spawned from or returned to its pool: a
     // pooled object never sees Awake or OnDestroy again.

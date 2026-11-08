@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // How heavy an item feels in hand, on top of the player's held-item tuning (1 = as tuned).
     [Serializable]

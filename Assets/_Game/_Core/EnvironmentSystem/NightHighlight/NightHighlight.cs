@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Keeps enemies readable at night (NightHighlightSettings): drives a directional light that only the highlight layer
     // receives, turned with the view, and sets the enemies' eye glow global (EnemyEyeGlow shader). Use the Darkness source

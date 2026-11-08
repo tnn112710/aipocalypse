@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // "[E] Pick up Rifle": a key cap and a line of text, plus a smaller second line for a hold use ("Hold: Repair Gate 63%").
     // Knows nothing about interaction or input.

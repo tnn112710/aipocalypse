@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core
+namespace MB13.Aipocalypse.Core
 {
     public static class PhysicsQueries
     {

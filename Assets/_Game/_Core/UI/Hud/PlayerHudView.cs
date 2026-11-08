@@ -1,11 +1,11 @@
 using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Base for HUD presenters that show the active player. Bind runs when a player appears, Unbind when it leaves or is replaced,
     // so the HUD survives death, respawn and scenes without a player.

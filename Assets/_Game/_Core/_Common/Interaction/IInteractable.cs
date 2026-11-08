@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Interaction
+namespace MB13.Aipocalypse.Core.Interaction
 {
     // Something the player can look at and use (pickups; later doors, loot). Put it on the collider's object or a parent;
     // `actor` is the interactor's root: read what you need with TryGetComponent (IEquipmentOwner for pickups).

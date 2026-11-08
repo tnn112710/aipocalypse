@@ -3,7 +3,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Look and timing of the death screen: the eyes closing over the last view, then the full-screen "You're dead" menu.
     [CreateAssetMenu(fileName = "DeathScreenStyle", menuName = "Aipocalypse/UI/Death Screen Style")]

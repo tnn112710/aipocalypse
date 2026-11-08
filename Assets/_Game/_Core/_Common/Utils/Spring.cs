@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core
+namespace MB13.Aipocalypse.Core
 {
     // Damped spring towards a target, integrated in fixed substeps so stiff springs stay stable through long frames.
     public static class Spring

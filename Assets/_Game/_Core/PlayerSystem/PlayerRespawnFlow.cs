@@ -1,12 +1,12 @@
 using System;
 using System.Threading;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Input;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Root service bringing the active player back after its death sequence: Fading → Preparing (body to spawn, PlayerRespawning
     // subscribers reset) → Ready (waits for confirm on the UI map) → revive. Works without a HUD; any revive ends it early.

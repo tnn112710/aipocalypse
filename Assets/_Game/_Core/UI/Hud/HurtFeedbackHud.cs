@@ -1,14 +1,14 @@
 using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
 using MessagePipe;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Hits the active player takes (DamageDealt to the player): the screen edge toward the attacker flashes and fades, top for
     // in front, bottom for behind. Hits with no direction (a fall, the player's own position) light every edge.

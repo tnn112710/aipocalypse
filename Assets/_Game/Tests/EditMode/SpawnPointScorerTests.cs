@@ -1,8 +1,8 @@
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public sealed class SpawnPointScorerTests
     {

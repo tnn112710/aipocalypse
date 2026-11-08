@@ -1,15 +1,15 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.SpawnSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // Scene system: raid nights, their spawning from the scene's SpawnZones (collected on save / Play) and DeathTimeRule.
     // Needs WorldClock (WorldTimeInstaller), spawning (SpawnInstaller) and the enemy services (EnemyInstaller) on the same scope.

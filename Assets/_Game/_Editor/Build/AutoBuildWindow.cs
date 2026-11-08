@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.Build
+namespace MB13.Aipocalypse.Editor.Build
 {
     // Every BuildConfig asset: tick some and Build Selected, or Build one; each row shows its build name and last build,
     // with buttons to open its folder or run it.

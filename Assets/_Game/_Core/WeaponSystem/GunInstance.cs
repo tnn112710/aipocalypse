@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // One gun the player owns. Rounds and jams stay with it through drop, pick up and swap.
     public sealed class GunInstance : ItemInstance

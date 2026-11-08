@@ -1,9 +1,9 @@
-using Aipocalypse.Core.RaidSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.RaidSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public sealed class DeathTimeRuleTests
     {

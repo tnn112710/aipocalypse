@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
 using DG.Tweening;

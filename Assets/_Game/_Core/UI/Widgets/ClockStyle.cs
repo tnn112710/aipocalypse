@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     [Serializable]
     public struct PhaseLabel

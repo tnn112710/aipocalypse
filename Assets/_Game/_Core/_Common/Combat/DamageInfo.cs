@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Combat
+namespace MB13.Aipocalypse.Core.Combat
 {
     public enum DamageType
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.AmbientSystem
+namespace MB13.Aipocalypse.Core.AmbientSystem
 {
     // How one kind of flock or school moves: its members' look and count, speed, how they keep together, how far they roam
     // from where they spawned and when they scatter from the player. Where it lives (air or water, how high or deep) is its

@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.Interaction;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // An item lying in the world, root of its prefab (ItemDefinition.Prefab) with a trigger collider; interacting stores or
     // swaps it. Equippables share the prefab with their HeldItem; EquipmentRig strips the world parts off the held copy.

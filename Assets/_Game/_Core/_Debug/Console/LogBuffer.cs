@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     public enum ConsoleEntryKind
     {

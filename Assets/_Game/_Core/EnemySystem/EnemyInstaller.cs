@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Scene system: enemy services (ticking, targeting, sounds, the navmesh SpawnService places walkers on), and injection of the
     // enemies placed in the scene. Those are listed automatically when the scene is saved or Play starts, so nobody keeps the

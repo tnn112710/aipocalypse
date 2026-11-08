@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // The scene's barriers (fence segments and gates) while enabled: for Repair All, the repair highlight, console commands
     // and, later, the morning report.

@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // What the breach alert says and how it moves. Font and placement stay in the HUD prefab.
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Breach Alert Style", fileName = "BreachAlertStyle")]

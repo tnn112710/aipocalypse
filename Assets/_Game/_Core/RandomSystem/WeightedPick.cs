@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     // Picks an index by relative weight (chance = weight / total) from a roll in [0, 1). Returns -1 for "nothing":
     // the roll landed in the nothing share, or no entry has weight. Weights ≤ 0 are never picked.

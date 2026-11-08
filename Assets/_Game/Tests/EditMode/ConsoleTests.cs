@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Core.WorldTimeSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Input;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,7 +14,7 @@ using UnityEngine.TestTools;
 using VContainer;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Dev console: parsing, the command registry, the input line, history, scrollback, screen messages, the text input
     // mode and the commands systems register.

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Shows objects only during their hours (a night-only prop, a daytime market stall).
     public sealed class TimeOfDayActive : TimeOfDayReactor

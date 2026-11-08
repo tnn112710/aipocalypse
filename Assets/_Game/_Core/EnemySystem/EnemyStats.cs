@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Tunable numbers of an enemy kind (EnemyDefinition holds the base value of each). Adding one: an entry at the end (the
     // definitions store values by number), a base value in every definition (EnemyCombatTests checks), and whoever applies

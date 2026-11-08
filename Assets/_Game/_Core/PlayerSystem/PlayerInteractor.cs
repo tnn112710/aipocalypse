@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.Interaction;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // What the player is looking at that can be used, and using it. A short sphere cast from the eye each frame;
     // walls block it, trigger colliders (pickups) are hit. The key uses it on press; when the focus also offers a hold use

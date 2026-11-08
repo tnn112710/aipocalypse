@@ -1,8 +1,8 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Root-scope services of the player system. Per-player parts are registered by PlayerScope.
     public sealed class PlayerInstaller : IInstaller

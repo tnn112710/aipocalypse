@@ -1,14 +1,14 @@
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.QuickTimeSystem;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Input;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class QuickTimeServiceTests
     {

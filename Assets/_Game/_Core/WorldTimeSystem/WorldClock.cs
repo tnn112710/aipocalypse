@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.WorldTimeSystem
+namespace MB13.Aipocalypse.Core.WorldTimeSystem
 {
     // The in-game clock. Runs on scaled time, so TimeService pauses stop it; its own speed requests only slow or freeze the clock.
     // Per-frame values are read (Now, Phase); hour, phase and day changes are published.

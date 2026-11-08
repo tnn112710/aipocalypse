@@ -1,8 +1,8 @@
-using Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.Effects;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // How an enemy kind takes hits and dies: its weight class (Stagger), knockback from DamageInfo.Force, hit animations, how
     // long the body stays, and its blood (pooled hit effects).

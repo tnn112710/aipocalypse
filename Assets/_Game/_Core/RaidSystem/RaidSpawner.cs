@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // The world side of raids: groups from the scene's SpawnZones through the SpawnService (out of the player's view by the
     // raid's SpawnRules), each card's arrival cue where its group appears, and the raiders still alive (members still to come

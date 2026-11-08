@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     public enum HitReaction
     {

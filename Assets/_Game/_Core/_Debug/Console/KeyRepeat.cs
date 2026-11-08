@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Held-key repeat for the console's editing keys: fires on the press, then after delay every interval, at most once a frame.
     public sealed class KeyRepeat

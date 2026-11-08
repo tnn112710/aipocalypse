@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Spare rounds the holder carries, by ammo type. Guns reload from it.
     public sealed class AmmoReserve

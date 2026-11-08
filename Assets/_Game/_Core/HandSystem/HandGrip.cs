@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     public enum GripAim
     {

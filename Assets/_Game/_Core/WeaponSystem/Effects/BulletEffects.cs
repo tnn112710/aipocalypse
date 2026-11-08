@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.Effects;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // What shots look like. Lifetimes and caps are on each effect prefab's PooledEffect.
     [CreateAssetMenu(fileName = "BulletEffects", menuName = "Aipocalypse/Weapons/Bullet Effects")]

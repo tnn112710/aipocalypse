@@ -1,11 +1,11 @@
-using Aipocalypse.Core.HandSystem;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public sealed class GunAnimationTests
     {

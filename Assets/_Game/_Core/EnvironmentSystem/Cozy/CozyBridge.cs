@@ -1,7 +1,7 @@
 using DistantLands.Cozy;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The only code that touches COZY. Shows the director's look hour, our day and moon in COZY's sky, clouds and sun / moon
     // lights (COZY's own clock stays paused), reads its sun and moon back, can mute COZY fog for the other fog modes, and

@@ -1,12 +1,12 @@
 using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Input;
 using MessagePipe;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.QuickTimeSystem
+namespace MB13.Aipocalypse.Core.QuickTimeSystem
 {
     // Runs one QTE at a time for any owner (a gun's repair today): ticks it in real time while gameplay input is on and the
     // game isn't paused, feeds it the challenge's button and announces QteStarted / QteAttempted / QteEnded for the HUD.

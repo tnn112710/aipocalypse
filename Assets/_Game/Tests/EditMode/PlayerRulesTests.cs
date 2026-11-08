@@ -1,10 +1,10 @@
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class StaminaTests
     {

@@ -1,6 +1,6 @@
 # Spawning
 
-How anything comes into play at runtime and leaves again: enemies, raid waves, animals, flocks of birds, schools of fish, and later items, rewards, coins, props and trees. One scene service (`SpawnService`) does it all, with pooling and a per-frame budget built in. Code: `Assets/_Game/_Core/SpawnSystem/` (namespace `Aipocalypse.Core.SpawnSystem`), ambient flocks in `_Core/AmbientSystem/`.
+How anything comes into play at runtime and leaves again: enemies, raid waves, animals, flocks of birds, schools of fish, and later items, rewards, coins, props and trees. One scene service (`SpawnService`) does it all, with pooling and a per-frame budget built in. Code: `Assets/_Game/_Core/SpawnSystem/` (namespace `MB13.Aipocalypse.Core.SpawnSystem`), ambient flocks in `_Core/AmbientSystem/`.
 
 ```text
 WHEN   drivers ──────── RaidDirector (waves) · PopulationDirector (SpawnArea, open world) · console · your system

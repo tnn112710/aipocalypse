@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // Hotbar slots accept items by category. Flags so one slot can take several kinds.
     [Flags]

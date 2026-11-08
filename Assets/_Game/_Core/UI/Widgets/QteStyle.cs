@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     [CreateAssetMenu(menuName = "Aipocalypse/UI/QTE Style", fileName = "QteStyle")]
     public sealed class QteStyle : ScriptableObject

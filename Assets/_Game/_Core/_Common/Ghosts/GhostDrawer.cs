@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Aipocalypse.Core.Ghosts
+namespace MB13.Aipocalypse.Core.Ghosts
 {
     // Draws a ghost straight to the cameras for this frame (Graphics.RenderMesh: no GameObjects to pool or clean up).
     // Call it from Update on every frame the ghost should show.

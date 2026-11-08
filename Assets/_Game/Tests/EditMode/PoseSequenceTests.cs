@@ -1,10 +1,10 @@
 using System.Reflection;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using DG.Tweening;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class PoseSequenceTests
     {

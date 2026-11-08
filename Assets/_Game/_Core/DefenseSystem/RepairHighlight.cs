@@ -1,10 +1,10 @@
-using Aipocalypse.Core.Ghosts;
-using Aipocalypse.Core.Interaction;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // While the player holds a repair tool, every damaged barrier in range gets a see-through tint over its model, seen through
     // walls and coloured by its health (RepairHighlightStyle), so the ones to mend stand out along a long fence.

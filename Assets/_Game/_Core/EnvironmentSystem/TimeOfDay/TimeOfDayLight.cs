@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Lamps, lanterns, window lights: fades lights in over their hours. Author each light at its "on" intensity.
     public sealed class TimeOfDayLight : TimeOfDayReactor

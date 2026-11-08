@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // How the screen edge flashes when the active player is hurt. The edges themselves are on HurtFeedbackHud in the HUD prefab;
     // their gradient is made in code.

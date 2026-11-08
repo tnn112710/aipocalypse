@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // Which hotbar slot is selected, and keeping the switcher's target in sync with it. Plus the belt: one worn item.
     // What a slot key does comes from the item (ItemDefinition.Selecting): hold it, or ask for a quick use.

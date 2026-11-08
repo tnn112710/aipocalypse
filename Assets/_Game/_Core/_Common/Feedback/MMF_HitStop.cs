@@ -1,7 +1,7 @@
 using MoreMountains.Feedbacks;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Feedback
+namespace MB13.Aipocalypse.Core.Feedback
 {
     [AddComponentMenu("")]
     [System.Serializable]

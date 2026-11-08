@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     public enum FormationShape
     {

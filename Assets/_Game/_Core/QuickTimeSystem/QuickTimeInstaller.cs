@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.QuickTimeSystem
+namespace MB13.Aipocalypse.Core.QuickTimeSystem
 {
     public sealed class QuickTimeInstaller : IInstaller
     {

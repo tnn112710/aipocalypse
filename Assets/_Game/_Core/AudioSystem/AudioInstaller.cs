@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.AudioSystem
+namespace MB13.Aipocalypse.Core.AudioSystem
 {
     public sealed class AudioInstaller : IInstaller
     {

@@ -1,12 +1,12 @@
 using System;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using MoreMountains.Feedbacks;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // On the gun user's entity: plays camera / time feedback for its own guns' jams and repairs.
     public sealed class GunJamFeedback : MonoBehaviour

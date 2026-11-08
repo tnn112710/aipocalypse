@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     // The player's two floating hands, spawned from a HandSet on this object's layer. Each frame, after the item's final pose,
     // puts each hand on the grip the item names (ItemHands), wrist toward the implied elbow; hidden without a grip.

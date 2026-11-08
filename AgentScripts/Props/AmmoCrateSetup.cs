@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using Ami.BroAudio.Data;
 using UnityEditor;
 using UnityEditor.SceneManagement;

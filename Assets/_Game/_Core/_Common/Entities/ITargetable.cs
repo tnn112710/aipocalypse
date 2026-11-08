@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Combat;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Entities
+namespace MB13.Aipocalypse.Core.Entities
 {
     // What enemies can go after. Append new kinds at the end (definitions store weights by number).
     public enum TargetKind

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.Entities;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // One kind of enemy: its base stats, how it takes hits, and the behaviour tuning its tree's tasks read. Lives with the
     // enemy in Content/Enemies/<Name>/; behaviour and reaction tuning can be shared by several kinds.

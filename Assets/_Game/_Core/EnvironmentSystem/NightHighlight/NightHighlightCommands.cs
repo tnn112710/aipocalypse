@@ -1,6 +1,6 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Switches the enemies' night light for this session (editor and development builds); the settings asset keeps its own
     // switch.

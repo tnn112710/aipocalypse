@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Interaction;
 using Ami.BroAudio;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Test aid: a crate that never runs out. Taking from it refills each ammo type the actor's hotbar guns use up to the
     // starting reserve. Plays its sound only when injected (WorldMap: listed in the scene scope's Auto Inject Game Objects).

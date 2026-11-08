@@ -1,9 +1,9 @@
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Something in the scene that follows the environment, ticked by the EnvironmentDirector in Play mode (no Update of its own).
     // Placed in a scene: the director collects it on save / Play. Spawned at runtime: inject it (resolver.Instantiate).

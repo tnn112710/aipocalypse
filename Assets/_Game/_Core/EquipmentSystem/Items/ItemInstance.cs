@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // One concrete item the player owns: a single item or a stack of the same one. Per-copy state (ammo, durability) goes
     // in subclasses, which raise Changed when their badge may differ.

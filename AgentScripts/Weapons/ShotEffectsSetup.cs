@@ -52,10 +52,10 @@ public static class ShotEffectsSetup
         });
 
         log.Add(WrapFlash(GunFlashSource, GunFlashName, GunFlashScale).ToString());
-        var effects = AssetDatabase.LoadAssetAtPath<Aipocalypse.Core.WeaponSystem.BulletEffects>(BulletEffectsPath);
+        var effects = AssetDatabase.LoadAssetAtPath<MB13.Aipocalypse.Core.WeaponSystem.BulletEffects>(BulletEffectsPath);
         var so = new SerializedObject(effects);
         so.FindProperty("_muzzleFlash").objectReferenceValue =
-            AssetDatabase.LoadAssetAtPath<Aipocalypse.Core.Effects.PooledEffect>($"{Dir}/{GunFlashName}.prefab");
+            AssetDatabase.LoadAssetAtPath<MB13.Aipocalypse.Core.Effects.PooledEffect>($"{Dir}/{GunFlashName}.prefab");
         so.ApplyModifiedPropertiesWithoutUndo();
         AssetDatabase.SaveAssetIfDirty(effects);
         log.Add($"BulletEffects muzzle flash = {GunFlashName}");
@@ -76,7 +76,7 @@ public static class ShotEffectsSetup
 
         var root = new GameObject(name);
         root.layer = oldFlash.layer;
-        var pooled = root.AddComponent<Aipocalypse.Core.Effects.PooledEffect>();
+        var pooled = root.AddComponent<MB13.Aipocalypse.Core.Effects.PooledEffect>();
         var so = new SerializedObject(pooled);
         so.FindProperty("_lifetime").floatValue = 0.3f;
         so.FindProperty("_maxActive").intValue = 8;

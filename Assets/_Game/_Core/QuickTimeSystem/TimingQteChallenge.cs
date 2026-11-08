@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.QuickTimeSystem
+namespace MB13.Aipocalypse.Core.QuickTimeSystem
 {
     [CreateAssetMenu(menuName = "Aipocalypse/QTE/Repeating Timing", fileName = "TimingQte")]
     public sealed class TimingQteChallenge : QteChallenge

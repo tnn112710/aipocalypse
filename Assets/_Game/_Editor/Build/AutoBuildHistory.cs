@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.Build
+namespace MB13.Aipocalypse.Editor.Build
 {
     // The last build of each config on this machine (Library/AutoBuild/History.json), shown by the Autobuild window.
     public static class AutoBuildHistory

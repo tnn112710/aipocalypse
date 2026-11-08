@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // When shots happen: fire mode, fire rate and bursts. Frame-rate independent: a long frame can hold several shots.
     // Call Update once per frame, then TryShot until it returns false.

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.AmbientSystem
+namespace MB13.Aipocalypse.Core.AmbientSystem
 {
     // Moves every spawned flock and school in one central tick, on scaled time (paused = frozen); members scatter from the
     // player.

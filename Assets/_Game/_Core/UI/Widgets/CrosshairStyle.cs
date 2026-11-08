@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // How the crosshair's dot and spread ticks behave. Sprites, sizes and colors stay in the HUD prefab.
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Crosshair Style", fileName = "CrosshairStyle")]

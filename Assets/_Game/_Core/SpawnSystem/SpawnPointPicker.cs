@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Where a request's group appears in its area: points sampled in the area, placed by the kind's medium (SpawnPlacer), then
     // chosen as the player sees them (SpawnPointScorer): a hidden one, or once the caller allows it the visible one farthest

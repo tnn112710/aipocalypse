@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.RandomSystem;
-using Aipocalypse.Editor.RandomSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Editor.RandomSystem;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.EnvironmentSystem
+namespace MB13.Aipocalypse.Editor.EnvironmentSystem
 {
     // WeatherRules as three grids (how often per period, how long, wind), each weight with its share, plus a seeded test
     // that runs the real WeatherPlanner over many days and shows the share of time each weather gets.

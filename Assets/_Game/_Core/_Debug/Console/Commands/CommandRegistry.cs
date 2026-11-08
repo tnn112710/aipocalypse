@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     public readonly struct CommandResult
     {

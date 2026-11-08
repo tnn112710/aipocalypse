@@ -1,9 +1,9 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Combat;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // What the body's moves and hurts sound and feel like: a footstep at the bottom of each head-bob step, jump and landing
     // sounds, the head and the held item reacting to jumps and landings, and a grunt and a flinch on a hit that doesn't kill.

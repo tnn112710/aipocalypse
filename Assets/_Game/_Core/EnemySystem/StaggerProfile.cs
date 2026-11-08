@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // A weight class (Light, Medium, Heavy, Boss): how hard hits push an enemy and how its stagger meter reacts. Kinds share
     // one through EnemyReactionSettings.Stagger; a kind that needs its own numbers gets its own asset. Hit power is

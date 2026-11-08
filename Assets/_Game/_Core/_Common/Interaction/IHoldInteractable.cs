@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Interaction
+namespace MB13.Aipocalypse.Core.Interaction
 {
     // A second use of an IInteractable on holding the key (a gate: tap to open, hold to repair). While one is offered, the tap
     // fires on release instead of on press.

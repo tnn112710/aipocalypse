@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // What a hotbar slot shows under the item's icon: a count (rounds in the magazine, a stack's size), optionally what the
     // owner has left in reserve for Reserve (an ammo type), and whether it needs attention (empty, jammed).

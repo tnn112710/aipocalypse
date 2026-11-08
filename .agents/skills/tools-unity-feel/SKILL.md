@@ -111,7 +111,7 @@ The camera rig lives inside the Player prefab (ARCHITECTURE.md).
 Feedbacks are plain serialized objects inside `MMF_Player`, so **VContainer can't inject them** (same problem as BD tasks). Bridge through an injected component on the player's GameObject or a parent:
 
 ```csharp
-namespace Aipocalypse.Core.Feedback
+namespace MB13.Aipocalypse.Core.Feedback
 {
     // Gives Feel feedbacks (plain serialized objects VContainer can't inject) access to our services. Put it on or above the MMF_Players.
     public sealed class FeedbackContext : MonoBehaviour
@@ -128,7 +128,7 @@ namespace Aipocalypse.Core.Feedback
 using MoreMountains.Feedbacks;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Feedback
+namespace MB13.Aipocalypse.Core.Feedback
 {
     [AddComponentMenu("")]
     [System.Serializable]

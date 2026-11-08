@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // What the sky does: steps of cloud cover up to rain, plus fog. Exactly one at a time; wind is its own layer (WindLevel).
     // Append new values at the end: settings and saves key on these.

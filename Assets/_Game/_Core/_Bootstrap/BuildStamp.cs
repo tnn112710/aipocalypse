@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Bootstrap
+namespace MB13.Aipocalypse.Core.Bootstrap
 {
     // Which build this is: AutoBuild writes build_info.txt next to the player, the root scope reads it at start, logs it
     // once (Player.log) and the console shows it. The editor, or a player without the file, says so instead.

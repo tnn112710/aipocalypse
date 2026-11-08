@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WorldTimeSystem
+namespace MB13.Aipocalypse.Core.WorldTimeSystem
 {
     // Console commands on the scene's world clock (editor and development builds); they exist only in scenes with one.
     // Speed and freeze are the console's own speed request, released on Dispose.

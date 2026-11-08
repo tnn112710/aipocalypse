@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.RaidSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.RaidSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEngine;
 using VContainer;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public sealed class RaidDirectorTests
     {

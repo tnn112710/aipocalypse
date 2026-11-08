@@ -1,11 +1,11 @@
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Scene system: the scene's EnvironmentDirector (injected, so it finds the clock), the optional GrassBendField, the
     // optional weather and, with the world clock installed, the time-of-day ambience.

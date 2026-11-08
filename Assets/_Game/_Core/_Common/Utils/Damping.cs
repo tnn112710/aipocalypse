@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core
+namespace MB13.Aipocalypse.Core
 {
     // Frame-rate independent smoothing: the share of the way to move towards a target this frame (use with Lerp).
     public static class Damping

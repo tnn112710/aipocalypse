@@ -1,8 +1,8 @@
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // One spawnable kind of enemy for raids and the console: a SpawnCard (looks by weight, group size, placement) plus the cue
     // that announces it. Lives with the enemy in Content/Enemies/<Name>/<Name>_Card.asset.

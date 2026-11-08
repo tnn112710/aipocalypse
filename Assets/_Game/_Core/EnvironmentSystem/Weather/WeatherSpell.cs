@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // One stretch of the planned weather, in world-clock hours (WorldTime.TotalHours): a sky weather and its wind.
     // Forced = put there by WeatherSchedule.Force / Hold, not rolled.

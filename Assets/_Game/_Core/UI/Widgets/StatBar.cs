@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Reusable HUD meter: icon, filled bar, optional trail and a value label. A presenter feeds it values; its look comes from a StatBarStyle.
     public sealed class StatBar : MonoBehaviour

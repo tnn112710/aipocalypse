@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Emitters that only run part of the day (butterflies by day, fireflies at night) or run more at some hours (morning mist).
     // Scales the emission rate; at a rate of 0 the emitter stops (bursts too) and its live particles finish naturally.

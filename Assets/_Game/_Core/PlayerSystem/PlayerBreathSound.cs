@@ -1,8 +1,8 @@
-using Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [System.Serializable]
     public sealed class BreathSoundSettings

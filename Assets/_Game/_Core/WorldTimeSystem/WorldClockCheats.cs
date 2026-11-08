@@ -1,7 +1,7 @@
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Input;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.WorldTimeSystem
+namespace MB13.Aipocalypse.Core.WorldTimeSystem
 {
     // Dev builds only: N jumps to the next whole hour, M to the start of the next phase (Debug action map).
     public sealed class WorldClockCheats : ITickable

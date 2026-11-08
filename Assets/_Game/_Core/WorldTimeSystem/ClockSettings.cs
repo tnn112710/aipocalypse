@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WorldTimeSystem
+namespace MB13.Aipocalypse.Core.WorldTimeSystem
 {
     [Serializable]
     public struct PhaseTiming

@@ -205,7 +205,7 @@ public static class PerfCapture
         foreach (var c in kids)
         {
             double t = v.GetItemColumnDataAsDouble(c, HierarchyFrameDataView.columnTotalTime);
-            string name = v.GetItemName(c).Replace("UnityEngine.CoreModule.dll!", "").Replace("Aipocalypse.Core.dll!", "");
+            string name = v.GetItemName(c).Replace("UnityEngine.CoreModule.dll!", "").Replace("MB13.Aipocalypse.Core.dll!", "");
             string p = path.Length == 0 ? name : path + "" + name;
             if (!tree.ContainsKey(p)) { tree[p] = 0; int i = order.FindLastIndex(x => x == path || x.StartsWith(path + "")); order.Insert(path.Length == 0 ? order.Count : i + 1, p); }
             tree[p] += t;

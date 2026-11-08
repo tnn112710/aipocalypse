@@ -5,7 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Aipocalypse.Core
+namespace MB13.Aipocalypse.Core
 {
     // Keeps MicroVerse disabled (baked mode) unless a map rebuild is running. Enabled, it regenerates the terrain on every
     // scene open and domain reload and writes the GPU readback into the LFS TerrainData on each save; the readback isn't

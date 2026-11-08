@@ -1,9 +1,9 @@
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Footsteps of the registered enemies, once a frame on scaled time: each walking enemy within its kind's FootstepRange of
     // the player steps per stride, all together at most MaxFootstepsPerSecond (the walk starts at a rotating index, so the

@@ -5,8 +5,8 @@
 // and upgrades existing prefabs in place (LoadPrefabContents keeps file IDs): rebuilding Goblin.prefab would give its
 // children new file IDs and break the variants' removed-Model overrides.
 using System;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.EnemySystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     // A serializable weighted table (loot, drops, choices): Count picks per roll, each one entry by weight or nothing
     // (NothingWeight). Use as a field, e.g. [SerializeField] WeightedTable<ItemDefinition> _loot. TryPick / Roll here are

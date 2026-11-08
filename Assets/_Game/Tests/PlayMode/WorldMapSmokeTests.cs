@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Linq;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.RaidSystem;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.RaidSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,7 +14,7 @@ using UnityEngine.TestTools;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Loads the world map and plays the core loop through public APIs: everything injects, a gun is picked up, fires and
     // reloads; at the raid's start hour raiders spawn. Any error logged along the way fails the test.

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // An additive, self-returning offset of the gun model: one kick, or a damped wobble.
     [Serializable]

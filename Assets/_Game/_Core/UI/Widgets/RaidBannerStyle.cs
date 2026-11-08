@@ -2,7 +2,7 @@ using Ami.BroAudio;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Look, words, timing and sounds of the raid banner (RaidBannerHud). {0} in a subtitle is the night's day number.
     [CreateAssetMenu(fileName = "RaidBannerStyle", menuName = "Aipocalypse/UI/Raid Banner Style")]

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.AmbientSystem;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.AmbientSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Open-world population rules, flock steering and the far-enemy think rate.
     public sealed class PopulationTests

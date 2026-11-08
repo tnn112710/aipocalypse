@@ -1,6 +1,6 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 
-namespace Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.Events
 {
     public enum GunJamBeatKind { Jammed, DryFire, Slap, Punch, Miss }
 

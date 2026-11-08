@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // On the world camera: the lens FirstPersonRenderFeature draws the HeldWeapon layer with (its own field of view and
     // clip planes), so held models keep their size while the world zooms and never clip into walls.

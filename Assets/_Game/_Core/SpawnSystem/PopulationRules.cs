@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // When a SpawnArea is awake and how many it brings in: pure rules for PopulationDirector and its tests.
     public static class PopulationRules

@@ -1,9 +1,9 @@
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.AmbientSystem
+namespace MB13.Aipocalypse.Core.AmbientSystem
 {
     // Scene system: ambient life that only decorates (flocks of birds, schools of fish), moved by one central tick. They come
     // into play through the SpawnService (a SpawnArea or a request), so it needs a SpawnInstaller on the same scope.

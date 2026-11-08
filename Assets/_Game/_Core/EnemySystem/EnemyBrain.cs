@@ -1,14 +1,14 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using Opsive.BehaviorDesigner.Runtime;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // An enemy's bridge to the enemy system: while enabled, its Manual tree runs and it's in the EnemyRegistry (ticked by
     // EnemyManager); each activation gets fresh EnemyStats from its EnemyDefinition. Spawned through SpawnService, which wakes

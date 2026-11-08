@@ -1,8 +1,8 @@
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Input;
 using Unity.Cinemachine;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Sole writer of the world camera's FOV: the player's setting narrowed by the held item's zoom or scaled by a pose sequence.
     // The held model keeps the unzoomed FOV (FirstPersonView) so the gun doesn't swell on screen.

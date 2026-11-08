@@ -1,8 +1,8 @@
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.RandomSystem
+namespace MB13.Aipocalypse.Editor.RandomSystem
 {
     // SpawnTable with its weight stripe on top (shares before day phase, day range and alive caps rule entries out).
     [CustomEditor(typeof(SpawnTable))]

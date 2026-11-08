@@ -1,7 +1,7 @@
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.AudioSystem
+namespace MB13.Aipocalypse.Core.AudioSystem
 {
     // Game code plays sounds through this, never BroAudio's static facade: sounds are BroAudio entities picked as SoundIDs
     // (libraries in Data/Audio), and BroAudio pools the players. Unset ids are silent.

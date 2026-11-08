@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Where a melee blow lands: reach and arc on the horizontal plane, within MaxHeightDifference up or down.
     public static class MeleeHit

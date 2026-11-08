@@ -1,6 +1,6 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 
-namespace Aipocalypse.Core.TimeSystem
+namespace MB13.Aipocalypse.Core.TimeSystem
 {
     // Console commands on game time (editor and development builds), as owner-keyed TimeService requests released on Dispose.
     [CommandGroup("time")]

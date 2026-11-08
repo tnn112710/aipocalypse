@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace Aipocalypse.Core.GraphicsSystem
+namespace MB13.Aipocalypse.Core.GraphicsSystem
 {
     // Root service, sole runtime writer of the URP asset's shadow distance: the player's setting, shortened by owner-keyed
     // requests (shortest wins). The asset is saved with the project, so its own value is restored on Dispose.

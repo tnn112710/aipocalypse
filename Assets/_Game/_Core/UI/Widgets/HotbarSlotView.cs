@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // One hotbar slot: item icon on a tile, a selection frame, an ammo count in the corner, and the key cap below.
     // Knows nothing about items or input.

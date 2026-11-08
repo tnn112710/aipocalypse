@@ -1,8 +1,8 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Everything that makes one gun model shoot the way it does. Per-copy state (rounds, jam) lives in GunInstance.
     [CreateAssetMenu(fileName = "Gun", menuName = "Aipocalypse/Items/Gun")]

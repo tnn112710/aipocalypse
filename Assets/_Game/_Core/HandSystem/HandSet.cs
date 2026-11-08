@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     // The pair of hand prefabs the player shows, and where the (invisible) arms come from. Swap the asset (or its
     // prefabs) to change hand meshes everywhere; item grips and poses don't change.

@@ -45,7 +45,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ed81e9026332524c8decffe8f9a4045, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EquipmentSystem.EquipmentRig
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.EquipmentRig
   _hand: {fileID: 6282071912612408105}
   _loweredOffset: {x: 0.05, y: -0.4, z: -0.1}
   _loweredEuler: {x: 45, y: -15, z: 20}
@@ -287,7 +287,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23ec9d0301b12bc44be1e16f14520f9b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.WeaponOverlayCamera
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.WeaponOverlayCamera
   _nearClip: 0.01
   _farClip: 10
 --- !u!1 &1593965483363185522
@@ -333,7 +333,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 11a8221b891e90c4598bbf09b7d5ffc7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.HandSystem.FirstPersonHands
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.HandSystem.FirstPersonHands
   _set: {fileID: 11400000, guid: e4b68b2ed7d78ee4da4b05b5899962db, type: 2}
   _view: {fileID: 227850444036008738}
 --- !u!1 &1704219443863934205
@@ -614,7 +614,7 @@ MonoBehaviour:
         ClearImpulseOnStop: 0
         DrawGizmos: 0
     - rid: 36611907751248485
-      type: {class: MMF_HitStop, ns: Aipocalypse.Core.Feedback, asm: Aipocalypse.Core}
+      type: {class: MMF_HitStop, ns: MB13.Aipocalypse.Core.Feedback, asm: MB13.Aipocalypse.Core}
       data:
         Active: 1
         UniqueID: 768559431
@@ -1080,7 +1080,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f1cc8582a63bfbe4d9651e66db118405, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.LandedHitFeedback
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.LandedHitFeedback
   _stagger: {fileID: 8910720541190964074}
   _headshotKill: {fileID: 3147209079597067599}
   _minInterval: 3
@@ -1914,7 +1914,7 @@ MonoBehaviour:
         ClearImpulseOnStop: 0
         DrawGizmos: 0
     - rid: 36611907751248485
-      type: {class: MMF_HitStop, ns: Aipocalypse.Core.Feedback, asm: Aipocalypse.Core}
+      type: {class: MMF_HitStop, ns: MB13.Aipocalypse.Core.Feedback, asm: MB13.Aipocalypse.Core}
       data:
         Active: 1
         UniqueID: 768559431
@@ -2274,7 +2274,7 @@ MonoBehaviour:
         ClearImpulseOnStop: 0
         DrawGizmos: 0
     - rid: 36611907751248485
-      type: {class: MMF_HitStop, ns: Aipocalypse.Core.Feedback, asm: Aipocalypse.Core}
+      type: {class: MMF_HitStop, ns: MB13.Aipocalypse.Core.Feedback, asm: MB13.Aipocalypse.Core}
       data:
         Active: 1
         UniqueID: 768559431
@@ -2634,7 +2634,7 @@ MonoBehaviour:
         ClearImpulseOnStop: 0
         DrawGizmos: 0
     - rid: 36611907751248488
-      type: {class: MMF_HitStop, ns: Aipocalypse.Core.Feedback, asm: Aipocalypse.Core}
+      type: {class: MMF_HitStop, ns: MB13.Aipocalypse.Core.Feedback, asm: MB13.Aipocalypse.Core}
       data:
         Active: 1
         UniqueID: -1430070426
@@ -2792,7 +2792,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a28825502e372e645a5f9ebafdbb2a06, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.Player
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.Player
   _tuning: {fileID: 11400000, guid: b5b01d2f617e552468a01a98e3d1c14d, type: 2}
   _controller: {fileID: 1242186233104513826}
   _cameraRoot: {fileID: 1481148920989139355}
@@ -2816,7 +2816,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0040687eb3abf9841b138fdb3cec3dde, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.PlayerSystem.PlayerScope
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.PlayerScope
   parentReference:
     TypeName: 
   autoRun: 1
@@ -3539,7 +3539,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1d9ac880b8d8874e88789605cf424ef, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.Feedback.FeedbackContext
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.Feedback.FeedbackContext
 --- !u!114 &7933249729642011434
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3551,7 +3551,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 737c2b06b777b074fbecafbcf3b37938, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.WeaponSystem.GunJamFeedback
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.GunJamFeedback
   _jammed: {fileID: 3134612969236735142}
   _dryFire: {fileID: 9195540188772637993}
   _slap: {fileID: 5743739461117425403}
@@ -3826,7 +3826,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f7290775bb8b60b45afe50f239d6b4e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aipocalypse.Core::Aipocalypse.Core.EnvironmentSystem.TimeOfDayWeight
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnvironmentSystem.TimeOfDayWeight
   _source: 2
   _hours:
     On: 18.5

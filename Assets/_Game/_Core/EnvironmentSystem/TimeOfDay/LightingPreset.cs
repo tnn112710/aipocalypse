@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // One look of the day (sunrise, noon, midnight…). A TimeOfDayProfile places presets at hours and blends between them.
     // Sun direction is not here: the profile's sun path moves the sun; this only says how it looks.

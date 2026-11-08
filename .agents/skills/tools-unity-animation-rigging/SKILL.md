@@ -5,7 +5,7 @@ description: Unity Animation Rigging and Control Rig Pro in aipocalypse — rigs
 
 # Animation Rigging (aipocalypse)
 
-Installed: **Animation Rigging 6.6.0** (`UnityEngine.Animations.Rigging`, editor `UnityEditor.Animations.Rigging`; source and docs in `Library/PackageCache/com.unity.animation.rigging@*/`, `Documentation~/`, `Runtime/DocCodeExamples/`). `Aipocalypse.Core` already references it. **Control Rig Pro** (`Assets/Plugins/Ash Assets/Control Rig Pro`, PLUGINS.md: Could) is an editor builder on top of it, plus a few runtime components. Vendor code: never edit it.
+Installed: **Animation Rigging 6.6.0** (`UnityEngine.Animations.Rigging`, editor `UnityEditor.Animations.Rigging`; source and docs in `Library/PackageCache/com.unity.animation.rigging@*/`, `Documentation~/`, `Runtime/DocCodeExamples/`). `MB13.Aipocalypse.Core` already references it. **Control Rig Pro** (`Assets/Plugins/Ash Assets/Control Rig Pro`, PLUGINS.md: Could) is an editor builder on top of it, plus a few runtime components. Vendor code: never edit it.
 
 Read first, as needed:
 - [HANDS.md → Weapon animation authoring](../../../docs/technicals/HANDS.md#weapon-animation-authoring): the rigs already in the game (each gun's `AnimationRoot`: RigBuilder plus Multi-Parent hand targets keyed by clips).

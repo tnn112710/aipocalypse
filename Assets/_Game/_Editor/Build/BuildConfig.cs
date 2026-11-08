@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.Build
+namespace MB13.Aipocalypse.Editor.Build
 {
     // One kind of player build, listed and built from Autobuild > Build Window (BUILD.md).
     [CreateAssetMenu(menuName = "Aipocalypse/Build Config", fileName = "BuildConfig")]

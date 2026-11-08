@@ -1,6 +1,6 @@
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnemySystem;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // The world side of a raid (RaidSpawner): where its groups appear, how many of them are alive, and how they leave.
     // RaidDirector stays pure timing logic, so tests drive it with a fake.

@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.Stats
+namespace MB13.Aipocalypse.Core.Stats
 {
     // Two kinds of stat. Values (no suffix): the caller passes its tuning value as the base and gets the modified value.
     // Scales (…Scale suffix): multipliers with base 1, read with GetScale; a perk "+10%" returns 1.1.

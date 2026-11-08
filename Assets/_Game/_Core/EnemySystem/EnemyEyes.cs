@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Glowing eyes that keep an enemy readable at night: two dots under the head bone (EnemyEyeGlow shader), as bright as
     // NightHighlight's global, so they're off by day. Placed in the editor from the style (Place Eyes); dark while dead.

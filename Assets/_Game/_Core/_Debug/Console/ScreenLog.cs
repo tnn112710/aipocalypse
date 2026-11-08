@@ -3,7 +3,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Which Unity logs show, on screen and in the console's scrollback.
     public enum ScreenLogLevel

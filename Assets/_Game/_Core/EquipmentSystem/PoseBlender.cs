@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // Where a held model's pose pivot is, easing between pose markers (hip, aim, sprint, idle…): siblings of the pivot that
     // are moved in the prefab to pose it. Shared by every held item that poses its model.

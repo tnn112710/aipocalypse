@@ -6,7 +6,7 @@ using VContainer;
 using VContainer.Unity;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Reuses spawnables per prefab, made with the scene resolver (injected before Awake). Prewarmed ones wake once off-stage
     // (Awake and Start paid while loading: a pooled goblin then wakes in ~1 ms instead of ~3.5) and wait under an inactive

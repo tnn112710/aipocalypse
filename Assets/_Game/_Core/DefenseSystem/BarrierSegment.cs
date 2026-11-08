@@ -1,18 +1,18 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.Ghosts;
-using Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.Interaction;
 using MessagePipe;
 using Pathfinding;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // One piece of a fence (or a gate, with a FenceGate beside it): its own health and look. While it stands it blocks the way:
     // a navmesh cut keeps enemies' paths out and a tall box keeps the player from climbing over. Enemies that can't reach what

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // A push from hits: each hit adds force × KnockbackPerForce (capped at MaxKnockbackSpeed) to a horizontal velocity that
     // dies out exponentially, so the body slides about speed / drag metres.

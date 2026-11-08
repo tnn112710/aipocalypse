@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
 using DistantLands.Cozy;

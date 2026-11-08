@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // How the weather changes on its own (WeatherSchedule): per sky weather, how often it comes in each period, how long
     // it lasts and its wind, all as weights (chance = weight / total). One asset in Data/Environment/Weather, set on WeatherSettings.

@@ -1,8 +1,8 @@
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Shows the world clock. Polled: at 30 s per game hour the minute changes every half second, and the view skips repeats.
     // Hidden in scenes without a clock.

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // Console commands on the scene's fences and gates (editor and development builds); only in scenes with a DefenseInstaller.
     [CommandGroup("fence")]

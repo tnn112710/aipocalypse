@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.RandomSystem
+namespace MB13.Aipocalypse.Editor.RandomSystem
 {
     // A stacked bar of weight shares (one coloured segment per entry, nothing in grey), labelled where they fit.
     public static class WeightStripe

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Budgets and defaults of a scene's spawning: how fast instances come into play, where prewarmed ones wake, population caps.
     [CreateAssetMenu(fileName = "SpawnSystemSettings", menuName = "Aipocalypse/Spawning/Spawn System Settings")]

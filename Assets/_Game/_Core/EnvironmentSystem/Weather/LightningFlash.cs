@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // A lightning flash: a global volume of its own (post exposure, above the grades) pulsed along a curve by Strike.
     // The volume and this component are off between strikes.

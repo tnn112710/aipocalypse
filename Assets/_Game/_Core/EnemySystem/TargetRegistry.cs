@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.PlayerSystem;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Everything enemies may target: the active player (from PlayerRegistry) plus whatever registers itself (crops, animals
     // later). Barriers in the way (fence segments, gates) are kept apart: they're only searched when the hunt has no path.

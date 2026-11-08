@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.DefenseSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.HandSystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Core.DefenseSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

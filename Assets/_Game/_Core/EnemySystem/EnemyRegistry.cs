@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // The enemies in play as a dense list for EnemyManager to walk. Brains add themselves when they start or are re-enabled
     // and leave when disabled, so spawned and pooled enemies are ticked the same as scene-placed ones. Swap-remove: O(1).

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Console commands on the scene's enemies (editor and development builds); they exist only in scenes with an EnemyInstaller.
     [CommandGroup("enemy")]

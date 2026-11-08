@@ -1415,7 +1415,7 @@ public static class WorldMapLayout
         root.SetParent(env.transform, false);
         var rng = new System.Random(seed);
         float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
-        var topLayerGlobals = Type.GetType("Aipocalypse.Core.EnvironmentSystem.ASPTopLayerGlobals, Aipocalypse.Core") ?? throw new InvalidOperationException("ASPTopLayerGlobals not compiled");
+        var topLayerGlobals = Type.GetType("MB13.Aipocalypse.Core.EnvironmentSystem.ASPTopLayerGlobals, MB13.Aipocalypse.Core") ?? throw new InvalidOperationException("ASPTopLayerGlobals not compiled");
         MakeHighlandGrassRocks();
         float Ground(float x, float z) => terrain.SampleHeight(new Vector3(Mathf.Clamp(x, 0, Size), 0, Mathf.Clamp(z, 0, Size)));
         float GroundMin(float x, float z, float r)
@@ -3367,7 +3367,7 @@ public static class Landmarks
                 var s = Put(parent, isGate ? GatePrefab : FencePrefab, a + dir * (seg * (isGate ? i + 1f : i + 0.5f)), yaw, 1f, -0.05f);
                 s.name = isGate ? "Gate" : $"Fence {side}-{i:00}";
                 s.transform.localScale = new Vector3(seg / SegmentWidth, 1f, 1f);
-                foreach (var look in s.GetComponentsInChildren<Aipocalypse.Core.DefenseSystem.BarrierLook>(true))
+                foreach (var look in s.GetComponentsInChildren<MB13.Aipocalypse.Core.DefenseSystem.BarrierLook>(true))
                     look.PickVariant();
                 if (!isGate) count++;
             }
@@ -5468,7 +5468,7 @@ public static class Vegetation
         t.detailObjectDistance = detail;   // QualitySettings overrides are off, so the per-terrain value is used
         t.detailObjectDensity = 1f;
         EditorUtility.SetDirty(t);
-        var type = Type.GetType("Aipocalypse.Core.EnvironmentSystem.BKFoliageGlobals, Aipocalypse.Core") ?? throw new InvalidOperationException("BKFoliageGlobals not compiled");
+        var type = Type.GetType("MB13.Aipocalypse.Core.EnvironmentSystem.BKFoliageGlobals, MB13.Aipocalypse.Core") ?? throw new InvalidOperationException("BKFoliageGlobals not compiled");
         var g = UnityEngine.Object.FindAnyObjectByType(type) ?? throw new InvalidOperationException("Run FoliageGlobals first");
         var so = new SerializedObject(g);
         so.FindProperty("_renderDistance").floatValue = bk;
@@ -5731,7 +5731,7 @@ public static class Vegetation
         var go = new GameObject("BK Foliage Globals");
         Undo.RegisterCreatedObjectUndo(go, "BK Foliage Globals");
         go.transform.SetParent(wind, false);
-        var type = Type.GetType("Aipocalypse.Core.EnvironmentSystem.BKFoliageGlobals, Aipocalypse.Core") ?? throw new InvalidOperationException("BKFoliageGlobals not compiled");
+        var type = Type.GetType("MB13.Aipocalypse.Core.EnvironmentSystem.BKFoliageGlobals, MB13.Aipocalypse.Core") ?? throw new InvalidOperationException("BKFoliageGlobals not compiled");
         go.AddComponent(type);
         EditorSceneManager.MarkSceneDirty(env.scene);
         return go.name;

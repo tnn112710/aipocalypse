@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Debugging;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Enemy cheats (editor and development builds), next to the player's in the cheat group.
     [CommandGroup("cheat")]

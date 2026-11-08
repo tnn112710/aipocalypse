@@ -1,8 +1,8 @@
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Input;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Dev builds only: K kills the active player (through DamageService, like a real hit), L revives it (Debug action map).
     public sealed class PlayerCheats : ITickable

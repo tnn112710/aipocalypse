@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Procedural head motion (through the camera rig): footstep bob driven by distance travelled, a spring dip on landing and
     // a flinch when hurt. Stepped fires at the bottom of each bob, when a foot plants.

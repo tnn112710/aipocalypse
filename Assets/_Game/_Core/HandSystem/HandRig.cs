@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     // Root of a first-person hand prefab: its grip point and how its finger bones bend. Works with any skinned hand: fill the
     // joints (Auto-find), place GripPoint, then capture the Open, Closed, Spread and Fist shapes from bones bent by hand.

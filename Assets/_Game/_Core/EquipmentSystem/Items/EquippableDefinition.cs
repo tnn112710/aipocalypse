@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // An item you hold in your hands when its slot is selected (guns, melee, later tools).
     public abstract class EquippableDefinition : ItemDefinition

@@ -5,10 +5,10 @@
 // GameLifetimeScope. Saves only what it changed.
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.RaidSystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.RaidSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

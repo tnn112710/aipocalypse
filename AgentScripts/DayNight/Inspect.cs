@@ -82,7 +82,7 @@ public static class Inspect
         {
             var m = r.sharedMaterial;
             if (m == null || !m.shader.name.Contains("Unlit")) continue;
-            if (r.GetComponentInParent<Aipocalypse.Core.EnvironmentSystem.AtmosphereTint>() != null) continue;
+            if (r.GetComponentInParent<MB13.Aipocalypse.Core.EnvironmentSystem.AtmosphereTint>() != null) continue;
             sb.AppendLine($"{Path(r.transform)} | {m.name} | {m.shader.name} | pos {r.transform.position:F0}");
         }
         return sb.ToString();

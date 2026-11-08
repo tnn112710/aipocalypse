@@ -1,6 +1,6 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 
-namespace Aipocalypse.Core.GraphicsSystem
+namespace MB13.Aipocalypse.Core.GraphicsSystem
 {
     // Console commands on the player's graphics settings (editor and development builds).
     [CommandGroup("gfx")]

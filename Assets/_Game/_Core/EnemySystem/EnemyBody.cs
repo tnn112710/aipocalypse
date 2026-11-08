@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Effects;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // An enemy's physical side: takes hits, knockback and its stagger meter (flinch, stagger: EnemyBrain), reacts and cries, and when killed lies, sinks and disables itself
     // (enabling revives it). No Update: EnemyBodyManager advances it while it moves or dies.

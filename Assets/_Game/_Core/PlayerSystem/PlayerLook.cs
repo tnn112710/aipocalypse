@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Yaw turns the body, pitch tilts the camera (through the camera rig). A view kick (gun recoil) is added on top of the
     // pitch and springs back.

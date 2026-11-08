@@ -1,7 +1,7 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
 using DamageNumbersPro;
 using DG.Tweening;
@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Hits the active player lands (DamageDealt from the player): a hit marker round the crosshair, bigger and red on a
     // kill, a hit or kill sound, and a pooled damage number at the hit point (the critical prefab for headshots). Shotgun pellets in

@@ -9,15 +9,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MessagePipe;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel.Unsafe;
@@ -531,9 +531,9 @@ public static class PerfSuite
         var player = Player;
         var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
         var commands = resolver.Resolve<CommandRegistry>();
-        var spawner = resolver.Resolve<Aipocalypse.Core.SpawnSystem.SpawnService>();
+        var spawner = resolver.Resolve<MB13.Aipocalypse.Core.SpawnSystem.SpawnService>();
         var card = resolver.Resolve<EnemySystemSettings>().Cards[0];
-        var zone = Object.FindAnyObjectByType<Aipocalypse.Core.SpawnSystem.SpawnZone>();
+        var zone = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.SpawnSystem.SpawnZone>();
         Vector3 home = zone != null ? zone.Origin : player.SpawnPosition;
         Vector3 away = Vector3.ProjectOnPlane(zone != null ? zone.transform.forward : player.transform.forward, Vector3.up).normalized;
         Vector3 stand = Ground(home.x + away.x * standOut, home.z + away.z * standOut);
@@ -551,8 +551,8 @@ public static class PerfSuite
             if (e.Info.Critical) crits++;
         });
         var group = new List<EnemyBrain>();
-        var handles = new List<Aipocalypse.Core.SpawnSystem.SpawnHandle>();
-        var alive = new List<Aipocalypse.Core.SpawnSystem.Spawnable>();
+        var handles = new List<MB13.Aipocalypse.Core.SpawnSystem.SpawnHandle>();
+        var alive = new List<MB13.Aipocalypse.Core.SpawnSystem.Spawnable>();
         int Alive()
         {
             alive.Clear();
@@ -565,7 +565,7 @@ public static class PerfSuite
         void TopUp()
         {
             int missing = count - Alive();
-            if (missing > 0) handles.Add(spawner.Spawn(Aipocalypse.Core.SpawnSystem.SpawnRequest.At(card, center, missing).Facing(stand - center)));
+            if (missing > 0) handles.Add(spawner.Spawn(MB13.Aipocalypse.Core.SpawnSystem.SpawnRequest.At(card, center, missing).Facing(stand - center)));
         }
 
         var jams = new List<(JamSettings jam, float chance)>();
@@ -595,7 +595,7 @@ public static class PerfSuite
             }
             Teleport(player, stand, facing, 0f);
             // as a raid does: room for the bodies still lying
-            int headroom = resolver.TryResolve(out Aipocalypse.Core.RaidSystem.RaidSettings raid) ? raid.CorpseHeadroom : 0;
+            int headroom = resolver.TryResolve(out MB13.Aipocalypse.Core.RaidSystem.RaidSettings raid) ? raid.CorpseHeadroom : 0;
             spawner.Prewarm(card, count + headroom);
             await Seconds(3f);
 
@@ -1164,7 +1164,7 @@ public static class PerfSuite
         {
             foreach (var kv in totals.Where(k => k.Key.Substring(0, k.Key.LastIndexOf('/')) == parent && k.Value / n >= minMs).OrderByDescending(k => k.Value))
             {
-                string name = kv.Key.Substring(kv.Key.LastIndexOf('/') + 1).Replace("UnityEngine.CoreModule.dll!", "").Replace("Aipocalypse.Core.dll!", "");
+                string name = kv.Key.Substring(kv.Key.LastIndexOf('/') + 1).Replace("UnityEngine.CoreModule.dll!", "").Replace("MB13.Aipocalypse.Core.dll!", "");
                 sb.AppendLine($"     {new string(' ', indent * 2)}{name} {kv.Value / n:F2} / {selfs[kv.Key] / n:F2}");
                 Print(kv.Key, indent + 1);
             }
@@ -1413,7 +1413,7 @@ public static class PerfSuite
             }
         }
         if (n == 0) return "  (no profiler frames)\n";
-        string Clean(string k) => k.Replace("UnityEngine.CoreModule.dll!", "").Replace("Aipocalypse.Core.dll!", "").Replace("Assembly-CSharp.dll!", "");
+        string Clean(string k) => k.Replace("UnityEngine.CoreModule.dll!", "").Replace("MB13.Aipocalypse.Core.dll!", "").Replace("Assembly-CSharp.dll!", "");
         sb.AppendLine($"   main (self ms/frame, no EditorLoop, {n} frames): " + string.Join("; ", self.Where(k => k.Key != "PlayerLoop").OrderByDescending(k => k.Value).Take(topMain).Select(k => $"{Clean(k.Key)} {k.Value / n:F2} x{calls[k.Key] / n:F0}")));
         if (rtN > 0) sb.AppendLine($"   render thread: " + string.Join("; ", rtSelf.OrderByDescending(k => k.Value).Take(8).Select(k => $"{Clean(k.Key)} {k.Value / rtN:F2}")));
         var gcTop = gc.Where(k => k.Value / n > 64).OrderByDescending(k => k.Value).Take(6).ToList();

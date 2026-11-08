@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Combat
+namespace MB13.Aipocalypse.Core.Combat
 {
     [Serializable]
     public sealed class Health

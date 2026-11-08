@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.EnemySystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class EnemyCombatTests
     {

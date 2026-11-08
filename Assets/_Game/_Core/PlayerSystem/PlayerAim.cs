@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Turns the aim sway into what's drawn: crosshair position and spread cone on screen (world camera) and the held model's
     // turn toward it (weapon camera). Screen values are in half-screen-heights, x right, y up.

@@ -1,7 +1,7 @@
 using System.Linq;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using VContainer;
 
@@ -37,7 +37,7 @@ public static class Review
     // Puts the player at a spot looking a direction, so shots are comparable.
     public static object View(float x, float y, float z, float yaw, float pitch)
     {
-        var player = Object.FindObjectsByType<Aipocalypse.Core.PlayerSystem.Player>().First();
+        var player = Object.FindObjectsByType<MB13.Aipocalypse.Core.PlayerSystem.Player>().First();
         var cc = player.GetComponent<CharacterController>();
         if (cc) cc.enabled = false;
         player.transform.position = new Vector3(x, y, z);

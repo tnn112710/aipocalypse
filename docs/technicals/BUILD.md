@@ -1,6 +1,6 @@
 # Builds
 
-Player builds come from **build configs**: `BuildConfig` assets in `Assets/_Game/Data/Build/`, one per kind of build. Code: `Assets/_Game/_Editor/Build/` (asmdef `Aipocalypse.Editor`, editor only).
+Player builds come from **build configs**: `BuildConfig` assets in `Assets/_Game/Data/Build/`, one per kind of build. Code: `Assets/_Game/_Editor/Build/` (asmdef `MB13.Aipocalypse.Editor`, editor only).
 
 **Autobuild > Build Window** lists every config with its build name and last build on this machine (time, duration, size; `Library/AutoBuild/History.json`). Build one, or tick several and **Build Selected**: they build one after another (grouped by platform; a cancel stops the rest), then the build folder opens (`_builds/` for several). **Open** / **Run** open the last build's folder or start it. Before building it refuses Play mode, offers to save modified scenes (an unsaved change is not in the build: Unity builds the scenes on disk), and asks before a distribution build with the Pipeline server.
 
@@ -30,12 +30,12 @@ Each build gets `build_info.txt` next to the exe (and in the zip): `name`, `conf
 
 ## Cheats in code
 
-`Cheats.Enabled` (`Aipocalypse.Core.Debugging`) is true in the editor and in `ENABLE_CHEAT` builds. It gates the console, its commands, the cheat hotkeys (`Debug` input map) and `ScreenLog`; register dev-only entry points inside it ([CONSOLE.md → Adding a command](CONSOLE.md#adding-a-command)). `Debug.isDebugBuild` stays only for development tooling that isn't a cheat (the MessagePipe diagnostics provider). Never `DEVELOPMENT_BUILD` (deprecated in 6.6).
+`Cheats.Enabled` (`MB13.Aipocalypse.Core.Debugging`) is true in the editor and in `ENABLE_CHEAT` builds. It gates the console, its commands, the cheat hotkeys (`Debug` input map) and `ScreenLog`; register dev-only entry points inside it ([CONSOLE.md → Adding a command](CONSOLE.md#adding-a-command)). `Debug.isDebugBuild` stays only for development tooling that isn't a cheat (the MessagePipe diagnostics provider). Never `DEVELOPMENT_BUILD` (deprecated in 6.6).
 
 ## Command line
 
 ```bash
-Unity.exe -batchmode -quit -projectPath <project> -executeMethod Aipocalypse.Editor.Build.AutoBuild.BuildFromCommandLine \
+Unity.exe -batchmode -quit -projectPath <project> -executeMethod MB13.Aipocalypse.Editor.Build.AutoBuild.BuildFromCommandLine \
   -buildConfig Assets/_Game/Data/Build/WindowsDistribution.asset[,<another config>] [-buildOutput <folder>, one config only]
 ```
 

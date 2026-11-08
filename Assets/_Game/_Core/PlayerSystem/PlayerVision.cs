@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // The light around the player in the dark (vision light or a worn lantern's), off by day. Intensity is derived from Radius
     // (URP falls off with distance squared) so the edge brightness stays the same; the range reaches past it.

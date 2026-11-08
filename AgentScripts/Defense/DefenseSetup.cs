@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.DefenseSystem;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.DefenseSystem;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.UI;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
 using Pathfinding;
@@ -678,14 +678,14 @@ public static class DefenseSetup
     public static string Scene()
     {
         var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        var scope = Object.FindObjectsByType<Aipocalypse.Core.Bootstrap.GameLifetimeScope>(FindObjectsInactive.Include)
+        var scope = Object.FindObjectsByType<MB13.Aipocalypse.Core.Bootstrap.GameLifetimeScope>(FindObjectsInactive.Include)
             .FirstOrDefault(s => s.gameObject.scene == scene) ?? throw new Exception("no GameLifetimeScope in " + scene.path);
         if (!scope.TryGetComponent(out DefenseInstaller installer))
             installer = scope.gameObject.AddComponent<DefenseInstaller>();
         installer.CollectSceneBarriers();
 
         var log = new List<string>();
-        foreach (var zone in Object.FindObjectsByType<Aipocalypse.Core.SpawnSystem.SpawnZone>(FindObjectsInactive.Include))
+        foreach (var zone in Object.FindObjectsByType<MB13.Aipocalypse.Core.SpawnSystem.SpawnZone>(FindObjectsInactive.Include))
         {
             if (zone.gameObject.scene != scene || zone.Id != "Front")
                 continue;

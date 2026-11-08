@@ -1,6 +1,6 @@
 # Raids
 
-Raid nights: when they run, what spawns and from where, how they end, and what a death costs in time. Code in `_Core/RaidSystem/` (namespace `Aipocalypse.Core.RaidSystem`), data in `Data/Raids/`, script map in [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Design: [docs/superpowers/specs/2026-10-31-raid-night-design.md](../superpowers/specs/2026-10-31-raid-night-design.md). Enemy spawning, pooling and targeting belong to the enemy system ([ARCHITECTURE.md → AI](ARCHITECTURE.md), the `aipocalypse-enemy-ai` skill); the raid system only decides when, what and where.
+Raid nights: when they run, what spawns and from where, how they end, and what a death costs in time. Code in `_Core/RaidSystem/` (namespace `MB13.Aipocalypse.Core.RaidSystem`), data in `Data/Raids/`, script map in [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Design: [docs/superpowers/specs/2026-10-31-raid-night-design.md](../superpowers/specs/2026-10-31-raid-night-design.md). Enemy spawning, pooling and targeting belong to the enemy system ([ARCHITECTURE.md → AI](ARCHITECTURE.md), the `aipocalypse-enemy-ai` skill); the raid system only decides when, what and where.
 
 ## Rules today
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Combat
+namespace MB13.Aipocalypse.Core.Combat
 {
     // On a collider of something damageable (a head, later armor or weak spots): hits that land on this collider deal
     // DamageMultiplier × their damage, and count as critical if Critical is on. DamageService.DealHit applies it.

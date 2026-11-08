@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class EnemyTargetingTests
     {

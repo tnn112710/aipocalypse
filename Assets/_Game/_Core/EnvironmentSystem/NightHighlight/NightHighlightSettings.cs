@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // How renderers on the highlight layer (enemies) stay readable at night: a light only they receive, scaled with darkness,
     // so it is off by day.

@@ -1,10 +1,10 @@
 using System;
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Combat;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     public enum FireMode
     {

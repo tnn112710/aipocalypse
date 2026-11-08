@@ -1,10 +1,10 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
 using Ami.BroAudio;
 using DG.Tweening;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Plays a PoseSequence on the camera, overriding the rig: moves the eye through the beats (placed once, at Play), then holds
     // the last pose with drift until Stop; the handheld wander runs throughout.

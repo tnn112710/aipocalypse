@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MessagePipe;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // Runs raid nights as pure timing over IRaidSpawner. Night N lasts from StartHour on day N to DawnHour on day N + 1 and is
     // read from WorldClock.Now every tick, so clock cheats and jumps behave; a night that ended for any reason never restarts.

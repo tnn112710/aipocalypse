@@ -1,7 +1,7 @@
 using System.Text;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // TMP rich-text pieces written straight into a StringBuilder, without string allocations.
     public static class RichText

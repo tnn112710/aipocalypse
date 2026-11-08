@@ -1,11 +1,11 @@
 using System.Linq;
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnemySystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class EnemyAnimationTests
     {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.HandSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // Root of an item's first-person model. Subclasses add what the item does in hand (fire, swing, use).
     // Position the model as a child: the root sits on the rig's hand point.

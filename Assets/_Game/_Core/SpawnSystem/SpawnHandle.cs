@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // One request on its way and in play: how many it brings, how many are still to come, and its members while they live.
     // Members still to come count as alive, so caps can't be overshot while a group arrives.

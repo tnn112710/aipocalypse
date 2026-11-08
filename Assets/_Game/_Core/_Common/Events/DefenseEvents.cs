@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.Events
 {
     // A barrier (fence segment, gate) was knocked down: the way through it is open.
     public readonly struct BarrierBroken

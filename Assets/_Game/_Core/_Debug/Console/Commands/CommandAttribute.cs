@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // A console command on a ConsoleCommands class. Its name is the class's group + the member name in lower case ("clock.set");
     // Name replaces the whole name ("help"). A property reads with no argument and sets with one.

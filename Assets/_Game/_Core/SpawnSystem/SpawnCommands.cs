@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Console commands on spawning (editor and development builds); they exist only in scenes with a SpawnInstaller.
     [CommandGroup("spawn")]

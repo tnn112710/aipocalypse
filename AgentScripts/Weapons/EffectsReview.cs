@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEditor;
 using UnityEngine;
 using VContainer;
@@ -166,7 +166,7 @@ public static class EffectsReview
         var clock = container.Resolve<WorldClock>();
         clock.Freeze("EffectsReview");
         clock.SetTime(WorldTime.At(clock.Now.Day, hour));
-        foreach (var brain in Object.FindObjectsByType<Aipocalypse.Core.EnemySystem.EnemyBrain>(FindObjectsInactive.Exclude))
+        foreach (var brain in Object.FindObjectsByType<MB13.Aipocalypse.Core.EnemySystem.EnemyBrain>(FindObjectsInactive.Exclude))
             brain.transform.root.gameObject.SetActive(false);
         Application.runInBackground = true;
         return PickUp(gun);
@@ -175,8 +175,8 @@ public static class EffectsReview
     // Picks up the first world item whose name contains `name` (e.g. "AK47") as if the player pressed Interact on it.
     public static object PickUp(string name)
     {
-        GameObject player = Object.FindAnyObjectByType<Aipocalypse.Core.PlayerSystem.Player>().gameObject;
-        foreach (var item in Object.FindObjectsByType<Aipocalypse.Core.EquipmentSystem.WorldItem>(FindObjectsInactive.Exclude))
+        GameObject player = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.PlayerSystem.Player>().gameObject;
+        foreach (var item in Object.FindObjectsByType<MB13.Aipocalypse.Core.EquipmentSystem.WorldItem>(FindObjectsInactive.Exclude))
         {
             if (!item.name.Contains(name))
                 continue;

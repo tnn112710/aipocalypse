@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.AmbientSystem
+namespace MB13.Aipocalypse.Core.AmbientSystem
 {
     // Boids for flocks and schools: where one member wants to go given its neighbours, its home, its height band and the
     // player. Pure maths for Flock and its tests.

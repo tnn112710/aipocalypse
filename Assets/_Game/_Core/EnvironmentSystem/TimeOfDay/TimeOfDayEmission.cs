@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Makes chosen materials glow over their hours (house windows at night). Renderers under this object that use them
     // switch to one runtime copy per material with emission on; the material assets are never written.

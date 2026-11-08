@@ -1,13 +1,13 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using Ami.BroAudio;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class EnemySpawningTests
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // One Stylized Grass bender for every crowd mover (enemies, animals): a sphere mesh particle per registered transform,
     // moved each frame, so they all bend grass in one draw with no per-mover component. The GrassBender sits on this object.

@@ -1,9 +1,9 @@
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using Unity.Profiling;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Combat
+namespace MB13.Aipocalypse.Core.Combat
 {
     // The one way game code hurts something: applies the hit and publishes DamageDealt with what landed, so hit feedback,
     // kill credit and (later) damage rules hook in at one place.

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Procedural recoil: each shot kicks the view (crosshair and shots) and, less, the gun model along a random spray pattern.
     // KeptShare of the aim kick turns the look for good (LookTurn), the rest springs back; hip/aim values blend by aim weight.

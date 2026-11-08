@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Editor.Build;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Editor.Build;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Build names, which defines a build gets (a distribution build must never pick up cheats or the Pipeline server
     // by accident), what the zip leaves out, the shipped configs, and the build stamp file.

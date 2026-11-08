@@ -1,10 +1,10 @@
-using Aipocalypse.Core.Interaction;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Input;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it), plus, above it, what the
     // hammer in hand would repair ("[R] Repair Fence 63%"). Polled: the focus changes as the player looks around.

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Core.UI;
 using TMPro;
 using UnityEditor;
 using UnityEngine;

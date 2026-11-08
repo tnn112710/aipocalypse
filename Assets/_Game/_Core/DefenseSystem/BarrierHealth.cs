@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // A barrier's health. At 0 it breaks; repairs add health while broken too, and it stands again once it has StandAt of its
     // maximum back (the owner checks nothing is in the way, then calls Stand).

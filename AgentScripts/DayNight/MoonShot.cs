@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Reflection;
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using UnityEngine;
 
 // Aims the player camera at the moon and reports what the sky shader is given, so phase captures are comparable.
@@ -13,7 +13,7 @@ public static class MoonShot
         float yaw = Mathf.Atan2(moon.x, moon.z) * Mathf.Rad2Deg;
         float pitch = -Mathf.Asin(moon.y) * Mathf.Rad2Deg;
 
-        var player = Object.FindObjectsByType<Aipocalypse.Core.PlayerSystem.Player>().First();
+        var player = Object.FindObjectsByType<MB13.Aipocalypse.Core.PlayerSystem.Player>().First();
         player.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
         const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
         var look = player.GetType().GetField("_look", Private)?.GetValue(player);

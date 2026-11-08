@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Everything a StatBar looks like. Swap sprites, colors or font here; sizes and placement stay in the prefab.
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Stat Bar Style", fileName = "StatBarStyle")]

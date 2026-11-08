@@ -1,8 +1,8 @@
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Input;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Aipocalypse.Core.QuickTimeSystem
+namespace MB13.Aipocalypse.Core.QuickTimeSystem
 {
     public enum QteResult { Running, Success, TimedOut, Cancelled }
     public enum QteAttemptResult { Ignored, Miss, Success }

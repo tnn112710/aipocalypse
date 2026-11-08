@@ -1,8 +1,8 @@
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Root service: the player currently in play, for things that live outside the Player prefab (HUD, later enemies).
     // Players register themselves; listeners react to ActivePlayerChanged and read Current.

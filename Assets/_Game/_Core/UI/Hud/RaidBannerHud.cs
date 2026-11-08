@@ -1,6 +1,6 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Events;
 using Ami.BroAudio;
 using DG.Tweening;
 using MessagePipe;
@@ -8,7 +8,7 @@ using TMPro;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // A banner across the screen when a raid starts, when every wave is killed, and when dawn ends it first; each with its
     // sound. A defeat shows nothing (the death screen covers it), nor does a raid stopped from the console.

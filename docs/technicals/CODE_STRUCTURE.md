@@ -6,19 +6,19 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime, sc.stylizedgrass.runtime, CodeStage.AFPSCounter.Runtime; precompiled plugin DLLs auto-referenced |
-| `Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
-| `Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `Aipocalypse.Core`, VContainer, test runner, NUnit |
-| `Aipocalypse.Editor` | `Assets/_Game/_Editor/` | none (Odin attributes auto-referenced). Editor only: tools that aren't game code (player builds) |
+| `MB13.Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime, sc.stylizedgrass.runtime, CodeStage.AFPSCounter.Runtime; precompiled plugin DLLs auto-referenced |
+| `MB13.Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `MB13.Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
+| `MB13.Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `MB13.Aipocalypse.Core`, VContainer, test runner, NUnit |
+| `MB13.Aipocalypse.Editor` | `Assets/_Game/_Editor/` | none (Odin attributes auto-referenced). Editor only: tools that aren't game code (player builds) |
 
-Namespaces follow the folder: `Aipocalypse.Core.<Folder>` (e.g. `Aipocalypse.Core.PlayerSystem`, `Aipocalypse.Core.Combat`). One exception: input uses **`Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
+Namespaces follow the folder: `MB13.Aipocalypse.Core.<Folder>` (e.g. `MB13.Aipocalypse.Core.PlayerSystem`, `MB13.Aipocalypse.Core.Combat`). One exception: input uses **`MB13.Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
 
 ## Script map
 
 ```text
 Assets/_Game/
-├─ _Core/                                   asmdef Aipocalypse.Core
-│  ├─ _Bootstrap/                           Aipocalypse.Core.Bootstrap
+├─ _Core/                                   asmdef MB13.Aipocalypse.Core
+│  ├─ _Bootstrap/                           MB13.Aipocalypse.Core.Bootstrap
 │  │  ├─ BuildStamp.cs                      which build this is (name, config, commit, date): Load reads build_info.txt next to the player (written by AutoBuild), Parse / ToFileText; registered and logged once by the root scope
 │  │  ├─ ProjectLifetimeScope.cs            root scope: BuildStamp, MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y, field of view…), the console's ConsoleSettings and DebugConsole overlay prefab
@@ -26,10 +26,10 @@ Assets/_Game/
 │  │  ├─ GameLifetimeScope.cs               per-scene scope: installs every SceneInstaller on its GameObject, reports one with a Problem (warning, error when Strict); a Strict scene also reports each SceneInstaller type it lacks; execution order -5000
 │  │  └─ SceneInstaller.cs                  abstract MonoBehaviour + IInstaller next to the GameLifetimeScope: one scene system's settings and registrations; Problem (null = ready)
 │  ├─ _Common/
-│  │  ├─ Entities/EntityScope.cs            Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
+│  │  ├─ Entities/EntityScope.cs            MB13.Aipocalypse.Core.Entities — base child scope for unique entities, RegisterDefault
 │  │  ├─ Entities/ITargetable.cs            ITargetable : IDamageable (Transform, Kind, IsTargetable: false while dead or hidden by a cheat; PointFor(from): where an attacker stands and swings, the root by default) + TargetKind enum (Player, Fence; append only, definitions store weights by number): what enemies may hunt (EnemySystem's TargetSelector); IBreachable : ITargetable (RemainingHealth, Span: centre to one end): a barrier in the way; not targetable = a way through
 │  │  ├─ Entities/IPlayerTarget.cs          ITargetable of the player: what enemies, companions and outside systems need from it
-│  │  ├─ Combat/                            Aipocalypse.Core.Combat
+│  │  ├─ Combat/                            MB13.Aipocalypse.Core.Combat
 │  │  │  ├─ IDamageable.cs                  anything that can take damage: TakeDamage → DamageResult (hurt it through DamageService)
 │  │  │  ├─ IShowsOwnHits.cs                marker on a damageable that shows its own hit effects (enemies bleed): guns and melee skip their generic impact on it
 │  │  │  ├─ DamageInfo.cs                   DamageInfo struct (amount, type, point, knockback Force, Source, Critical; OnHitbox(multiplier, critical)) + DamageType enum (Generic, Fall, Gunshot, Melee) + DamageResult (Applied, Killed)
@@ -37,11 +37,11 @@ Assets/_Game/
 │  │  │  ├─ Hitbox.cs                       on a damageable's collider (a head): DamageMultiplier (2) and Critical for hits landing on it, applied by DealHit
 │  │  │  ├─ CombatInstaller.cs              registers DamageService in the root scope
 │  │  │  └─ Health.cs                       plain HP meter: Damage / Heal / Restore; SetMax keeps the current share
-│  │  ├─ Effects/                           Aipocalypse.Core.Effects
+│  │  ├─ Effects/                           MB13.Aipocalypse.Core.Effects
 │  │  │  ├─ EffectPool.cs                   root service (ITickable): one ObjectPool per effect prefab (guns, melee, enemy blood), Prewarm, timed returns (lifetime or ReturnAfter), caps
 │  │  │  ├─ PooledEffect.cs                 root of a pooled effect prefab: lifetime, max alive, Restart, ScaleDecal (scale-invariant decal size)
 │  │  │  └─ EffectsInstaller.cs             registers EffectPool (entry point) in the root scope
-│  │  ├─ Events/CombatEvents.cs             Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied, PlayerDeathSequenceEnded (the death sequence played out: the respawn starts)
+│  │  ├─ Events/CombatEvents.cs             MB13.Aipocalypse.Core.Events — DamageDealt (target, info, result), PlayerDied, PlayerDeathSequenceEnded (the death sequence played out: the respawn starts)
 │  │  ├─ Events/PlayerEvents.cs             ActivePlayerChanged (read PlayerRegistry.Current), PlayerRespawnFading (async: fade the view out), PlayerRespawning (async: reset for a respawn), RespawnStage + RespawnStageChanged, PlayerRevived
 │  │  ├─ Events/GunJamBeat.cs               owner, item and kind (Jammed, DryFire, Slap, Punch, Miss): presentation beats of a jam and its repair; published by GunRepairFeedback
 │  │  ├─ Events/GunRepairCompleted.cs       owner, item and QTE-success flag of a finished repair (interruptions don't publish it)
@@ -50,19 +50,19 @@ Assets/_Game/
 │  │  ├─ Events/RaidEvents.cs               RaidStarted (night), RaidWaveStarted (night, wave from 0, count), RaidEnded (night, RaidEndReason: Cleared, Dawn, Defeat, Stopped) (published by RaidDirector)
 │  │  ├─ Events/DefenseEvents.cs            BarrierBroken, BarrierRestored (position, IsGate): a fence segment or gate fell / stands again (published by BarrierSegment)
 │  │  ├─ Events/WeatherEvents.cs            WeatherChanged (empty: read WeatherService), published by WeatherService when the sky weather or wind level changes
-│  │  ├─ Feedback/FeedbackContext.cs        Aipocalypse.Core.Feedback — injected bridge on hosts of MMF_Players so custom Feel feedbacks reach our services
+│  │  ├─ Feedback/FeedbackContext.cs        MB13.Aipocalypse.Core.Feedback — injected bridge on hosts of MMF_Players so custom Feel feedbacks reach our services
 │  │  ├─ Feedback/MMF_HitStop.cs            Feel feedback "Aipocalypse/Hit Stop" → TimeService.RequestHitStop; never touches Time.timeScale
-│  │  ├─ Ghosts/GhostShape.cs               Aipocalypse.Core.Ghosts — a model's shown meshes (LOD 0 only) and their matrices under its root, captured once (scene objects or prefab assets; an optional rest-pose override per transform); CaptureLive: parts that follow their renderers as they move (a highlight over the model itself) (GhostTests)
+│  │  ├─ Ghosts/GhostShape.cs               MB13.Aipocalypse.Core.Ghosts — a model's shown meshes (LOD 0 only) and their matrices under its root, captured once (scene objects or prefab assets; an optional rest-pose override per transform); CaptureLive: parts that follow their renderers as they move (a highlight over the model itself) (GhostTests)
 │  │  ├─ Ghosts/IGhostSource.cs             IGhostSource (TryGetGhost(viewer) → GhostView: shape, world pose, GhostState): something that shows how it will be once rebuilt, built or placed (BarrierSegment while broken)
 │  │  ├─ Ghosts/GhostStyle.cs               GhostState (Valid, Invalid) + SO: Valid / Invalid look materials and a DepthOnly pass; asset in Data/Ghosts/
 │  │  ├─ Ghosts/GhostDrawer.cs              static Draw(GhostView, GhostStyle) or Draw(GhostView, look, depth, MaterialPropertyBlock tint): Graphics.RenderMesh for this frame (depth pass, then the look), no GameObjects; call it every frame it should show
 │  │  ├─ Ghosts/Shaders/Ghost.shadergraph   Unlit, transparent, depth write on (Aipocalypse/Ghosts/Ghost): fill _Color + fresnel rim and slow world-height bands in _RimColor; rebuilt from AgentScripts/Ghosts/GhostGraph.json
 │  │  ├─ Ghosts/Shaders/GhostXray.shadergraph  the same look drawn through walls (Aipocalypse/Ghosts/GhostXray: depth test Always, no depth write): GhostGraph.json + GhostXrayGraph.json
-│  │  ├─ Interaction/IInteractable.cs       Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
+│  │  ├─ Interaction/IInteractable.cs       MB13.Aipocalypse.Core.Interaction — TryGetPrompt / Interact(actor) + InteractionPrompt
 │  │  ├─ Interaction/IHoldInteractable.cs   optional second use on holding the key (TryGetHoldPrompt / InteractHold): a standing gate's Repair All; while offered, the tap fires on release
 │  │  ├─ Interaction/IRepairable.cs         IRepairable (NeedsRepair, TryGetRepairPrompt: what the repair tool's key would do, RepairPoint, Knock: one hammer knock) and IRepairer (HasTool: a repair tool in hand, IsRepairing: the player)
-│  │  ├─ Stats/IStatProvider.cs             Aipocalypse.Core.Stats — StatId enum (values; …Scale multipliers with base 1) + stat seam with a Changed event; GetScale(stat) extension
-│  │  └─ Utils/                             Aipocalypse.Core
+│  │  ├─ Stats/IStatProvider.cs             MB13.Aipocalypse.Core.Stats — StatId enum (values; …Scale multipliers with base 1) + stat seam with a Changed event; GetScale(stat) extension
+│  │  └─ Utils/                             MB13.Aipocalypse.Core
 │  │     ├─ Damping.cs                      ByRate / ByTime: frame-rate independent smoothing share for Lerp (0 = instant)
 │  │     ├─ Spring.cs                       Step(value, velocity, target, stiffness, dampingRatio, dt) for float / Vector2 / Vector3, in 1/120 s substeps (held-item sway, landing dip)
 │  │     ├─ SceneCollection.cs              editor only: Collect(owner, list) keeps a serialized list of scene objects current; Hook<TOwner>(collect) runs it on scene save and entering Play (EnemyInstaller, EnvironmentDirector)
@@ -70,7 +70,7 @@ Assets/_Game/
 │  │     ├─ MicroVerseBakedGuard.cs         editor only: disables MicroVerse on scene open and domain reload (baked mode) unless MicroVerseKit.Enable(true) set the session's rebuild flag; stops the terrain regenerating and the LFS TerrainData being rewritten on every save
 │  │     ├─ PhysicsQueries.cs               Nearest(hits, count, ignore): nearest NonAlloc hit not under a root (bullets, swings, look and clearance casts)
 │  │     └─ TransformExtensions.cs          SetLayerRecursively (held models, hands, muzzle flashes onto the first-person layer)
-│  ├─ _Debug/                               Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
+│  ├─ _Debug/                               MB13.Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
 │  │  ├─ Cheats.cs                          Cheats.Enabled: true in the editor and ENABLE_CHEAT builds (BUILD.md); gates the console, commands and cheat hotkeys
 │  │  ├─ FpsCounterCommands.cs              console afps.show / afps.hide (Advanced FPS Counter: off on every scene load, hotkey cleared, sort order 999 under the console); registered by ConsoleInstaller in dev builds
 │  │  ├─ TargetDummy.cs                     shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
@@ -95,16 +95,16 @@ Assets/_Game/
 │  │     ├─ View/ScreenLogView.cs           draws ScreenLog top-left, newest on top, each line on a band
 │  │     ├─ View/RichText.cs                allocation-free TMP tags into a StringBuilder: colour, mark, <noparse> literals
 │  │     └─ Prefabs/DebugConsole.prefab     overlay canvas (sort 1000, 1920×1080): ScreenLog, Panel (Background, LogArea mask > Log, InputBar > Input > Caret, Suggestions); built by AgentScripts/DebugConsole/DebugConsoleSetup
-│  ├─ AmbientSystem/                        Aipocalypse.Core.AmbientSystem — life that only decorates, see SPAWNING.md
+│  ├─ AmbientSystem/                        MB13.Aipocalypse.Core.AmbientSystem — life that only decorates, see SPAWNING.md
 │  │  ├─ AmbientInstaller.cs                    SceneInstaller: FlockSystem (entry point); needs a SpawnInstaller
 │  │  ├─ Flock.cs                               ISpawnable on a spawnable flock or school (requires Spawnable): members from its FlockDefinition (made once, reused), band from its card's placement (air over the ground or water, water between bed and surface), RoamRadius (water: fitted to the water round home, so a school in a stream stays in it), Simulate(deltaTime, threat, time)
 │  │  ├─ FlockDefinition.cs                     SO: Member (a light prefab), Count, Speed, Acceleration, RoamRadius, NeighbourRadius, Separation and weights, Wander, HomePull, BandPull, VerticalFreedom, FleeRadius / FleeWeight / FleeSpeedMultiplier
 │  │  ├─ FlockMath.cs                           pure boids: Steer(member, positions, velocities, home, band, definition, threat, wander, roam), BandPush
 │  │  └─ FlockSystem.cs                         ITickable, scaled time: moves every spawned flock's members in one tick; the player is the threat they scatter from
-│  ├─ AudioSystem/                          Aipocalypse.Core.AudioSystem
+│  ├─ AudioSystem/                          MB13.Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
-│  ├─ DefenseSystem/                         Aipocalypse.Core.DefenseSystem — fences and gates, DEFENSE.md
+│  ├─ DefenseSystem/                         MB13.Aipocalypse.Core.DefenseSystem — fences and gates, DEFENSE.md
 │  │  ├─ DefenseInstaller.cs                SceneInstaller: BarrierRegistry, RepairHighlight (when it has a RepairHighlightStyle) (+ DefenseCommands in dev builds); injects the scene's BarrierSegments (collected on save / Play)
 │  │  ├─ BarrierSegment.cs                  one fence piece or gate: IBreachable (TargetKind.Fence; registers in TargetRegistry), IInteractable (tap: a gate opens / closes; with the hammer in hand a segment repairs all), IHoldInteractable (standing gate, hammer in hand: hold to repair all), IRepairable (R prompt, knocks), RepairFully (Repair All: whole at once unless broken with someone in its line), IGhostSource (while broken: itself standing, Invalid while the next knock would be blocked), Overlay (its look's live GhostShape, for the highlight); BarrierHealth; while blocking a NavmeshCut and a climb blocker (Ignore Raycast) are on, and a change applies the cut at once and bumps TargetRegistry.BarrierVersion; look, sounds, effects, OnStruck effects; Apply / Upgrade (keeps the health share); player damage never counts
 │  │  ├─ BarrierHealth.cs                   rules: damage, breaks at 0, repairs while broken, CanStand(StandAt) / Stand, SetMax keeps the share (DefenseTests)
@@ -117,7 +117,7 @@ Assets/_Game/
 │  │  ├─ RepairHighlight.cs                 ITickable: while the player holds a repair tool, every damaged barrier in range drawn with a see-through tint by health (GhostDrawer, live overlay, through walls), fading up close
 │  │  ├─ RepairHighlightStyle.cs            SO: x-ray look material, range, fill gradient by health share, rim intensity / alpha, fade up close (OpacityAt); asset in Data/Defense/
 │  │  ├─ DefenseCommands.cs                 console: fence.status, fence.damage <amount> [count], fence.breach [count], fence.repair, fence.upgrade, fence.gate <open>
-│  ├─ EnemySystem/                          Aipocalypse.Core.EnemySystem
+│  ├─ EnemySystem/                          MB13.Aipocalypse.Core.EnemySystem
 │  │  ├─ EnemyInstaller.cs                  SceneInstaller: AstarPath (Navigation prefab), EnemySystemSettings, EnemyRegistry, EnemyNavigation, TargetRegistry, TargetSelector, AttackSlots, EnemyNavigation also as INavmeshQuery, EnemyManager + EnemyAnimationManager + EnemyBodyManager + EnemySoundManager (entry points) (+ EnemyCommands, EnemyCheatCommands and RaidAutopilot in dev builds); injects the scene's placed enemies (list collected on scene save / entering Play, "Collect scene enemies" button)
 │  │  ├─ EnemyCommands.cs                   console: enemy.spawn <card> [count] (15 m ahead of the player, off the crosshair), enemy.clear (despawn all, drop the console's own queued spawns), enemy.count, enemy.hit <power> [radius] (a push of `power` N·s with almost no damage on every enemy near the player: knockback and stagger before rockets exist)
 │  │  ├─ EnemyCheatCommands.cs              console: cheat.killall (a real hit through DamageService on every enemy in play)
@@ -156,7 +156,7 @@ Assets/_Game/
 │  │  ├─ EnemyVoice.cs                      one enemy's sounds (plain C#, made by EnemyBrain) through AudioService.PlayAt: Swing (+ attack voice by chance), Impact, Hurt and Shout rate-limited, Death; Walk counts strides for EnemySoundManager (EnemySpawningTests)
 │  │  ├─ EnemySoundManager.cs               ITickable, scaled time: a footstep per stride for every registered enemy within its kind's FootstepRange of the player, at most MaxFootstepsPerSecond all together
 │  │  └─ Prefabs/Navigation.prefab          AstarPath (default: small terrain-following grid, scanned on startup) + RVOSimulator: goes into every scene with agents; WorldMap's instance overrides the graph (recast + cache, ENVIRONMENT.md → Navigation)
-│  ├─ EnvironmentSystem/                    Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
+│  ├─ EnvironmentSystem/                    MB13.Aipocalypse.Core.EnvironmentSystem — scene environment, see ENVIRONMENT.md and DAYNIGHT.md
 │  │  ├─ ASPTopLayerGlobals.cs              [ExecuteAlways] sets the ANGRY MESH top-layer shader globals (grass caps on the boundary rocks); on Environment/Boundary in the world map
 │  │  ├─ BKFoliageGlobals.cs                [ExecuteAlways] sets the BK Pure Nature plant shader globals (fade distance, micro wind; SetWindScale from WeatherWind scales the micro wind); on Environment/Wind in the world map
 │  │  ├─ GrassBendField.cs                  one Stylized Grass bender for crowd movers: a sphere mesh particle per Add(transform, radius)'d mover, moved in LateUpdate (ParticleSystem + GrassBender on the same object); Environment/Grass Bending in the world map
@@ -197,7 +197,7 @@ Assets/_Game/
 │  │  ├─ NightHighlight/NightHighlightCommands.cs  console: highlight.light [on/off], highlight.eyes [on/off], highlight.reset
 │  │  ├─ Shaders/SkyStarMap.shader          "Aipocalypse/Skybox/Skybox Plus Star Map": fork of Kronnect Skybox Plus Clouds; STAR_MAP draws a star cubemap (StarMap.png) turned by _StarMapRotation instead of the procedural stars
 │  │  └─ Shaders/SkyTimeOfDay.shader        "Aipocalypse/Skybox/Time Of Day": painted panorama + night gradient, horizon glow, sun disc, stars, moon phases from _TOD_ globals
-│  ├─ EquipmentSystem/                      Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
+│  ├─ EquipmentSystem/                      MB13.Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] Gun, Melee: what a hotbar slot accepts; Lantern: goes on the belt
 │  │  ├─ Items/ItemDefinition.cs            abstract SO: name, icon, Category, Prefab (one per item: world + hand), MaxStack, Selecting (SelectBehaviour: None, Hold, QuickUse), CreateInstance
 │  │  ├─ Items/EquippableDefinition.cs      abstract SO: Selecting = Hold, equip / holster time, HoldFeel; HeldPrefab = the HeldItem on Prefab's root
@@ -216,11 +216,11 @@ Assets/_Game/
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  ├─ PoseBlender.cs                     a held model's pose pivot easing between pose markers: SnapTo, Set, MoveTowards, ApplyTo; static editor Preview (HeldGun / HeldMelee preview buttons)
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
-│  ├─ GraphicsSystem/                       Aipocalypse.Core.GraphicsSystem
+│  ├─ GraphicsSystem/                       MB13.Aipocalypse.Core.GraphicsSystem
 │  │  ├─ GraphicsService.cs                 root service, sole runtime writer of the URP asset's shadow distance: ShadowDistance (player setting; the asset's value until a graphics menu exists), RequestShadowDistance(owner, d) / ReleaseShadowDistance (shortest wins); restores the asset's value on Dispose; StarTwinkle (player setting, on by default) = the global STAR_TWINKLE shader keyword, off on Dispose; clears the Stylized Grass render feature's hide flags before each frame (else it skips game cameras), restored on Dispose
 │  │  ├─ GraphicsCommands.cs                console: gfx.shadows, gfx.startwinkle (the player's settings)
 │  │  └─ GraphicsInstaller.cs               registers GraphicsService in the root scope (+ GraphicsCommands in dev builds)
-│  ├─ HandSystem/                           Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
+│  ├─ HandSystem/                           MB13.Aipocalypse.Core.HandSystem — first-person floating hands, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place, Apply, forearm axis, contact samples, setup buttons
 │  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows (view space), preview item position
@@ -230,12 +230,12 @@ Assets/_Game/
 │  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
 │  │  ├─ HandPreview.cs                     editor only: DontSave ghost hands that follow grips in edit mode; edit-mode elbow
 │  │  └─ Prefabs/FPHand_Left, FPHand_Right.prefab   the hand prefabs (VR Low Poly Hand), listed in Data/Hands/HandSet.asset
-│  ├─ InputSystem/                          Aipocalypse.Input
+│  ├─ InputSystem/                          MB13.Aipocalypse.Input
 │  │  ├─ InputService.cs                    the only owner of actions, map switching, cursor lock: RequestUI / ReleaseUI(owner) (gameplay map only while nobody holds a UI request), GameplayEnabled; hotbar keys + cycling, interact, drop, attack, aim, reload; GameButton enum (Reload, Interact, Attack, Jump; sized from the enum, an unmapped button throws) with WasPressed / Consume (claims this frame's press) / GetKeyLabel; UiConfirmPressed (UI map click / submit); Debug map (N / M / K / L) enabled in dev builds; RequestTextInput / ReleaseTextInput(owner): Player, UI and Debug maps off, Console map on, TakeTypedText (Keyboard.onTextInput, control characters dropped); Console map in dev builds (Toggle always on; ConsoleButton editing keys, WordModifier, Scroll)
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control and view options: mouse sensitivity, gamepad look speed, invert Y, FieldOfView (read live by PlayerZoom)
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
-│  ├─ PlayerSystem/                         Aipocalypse.Core.PlayerSystem
+│  ├─ PlayerSystem/                         MB13.Aipocalypse.Core.PlayerSystem
 │  │  ├─ Player.cs                          view MonoBehaviour: builds its parts, input (or IntentSource while set) → intent (look scaled by zoom; aim / trigger end a sprint via HeldItem.StopsSprint) and ticks them in order; IPlayer, IEquipmentOwner, IGunUser (owns the AmmoReserve); IDamageable explicitly (only through DamageService); ITargetable of kind Player, targetable while alive and not IgnoredByEnemies; PlaySequence / StopSequence (dying plays PlayerTuning.DeathSequence); MoveToSpawn, Revive; re-reads max health / stamina on IStatProvider.Changed
 │  │  ├─ IPlayer.cs                         IPlayerTarget + Health, Stamina, Equipment, Ammo, HeldItem, Interactor, IsSprinting, CrosshairPosition, CrosshairSpread, SpawnPosition, View (the camera pivot), Invulnerable / IgnoredByEnemies (cheat.god / cheat.notarget), IntentSource (dev tools), MoveToSpawn, Revive: the player as PlayerRegistry hands it out
 │  │  ├─ IPlayerIntentSource.cs             Read(deltaTime) → PlayerIntent: plays the player instead of InputService while set on IPlayer.IntentSource (RaidAutopilot); read only while the player can act
@@ -283,12 +283,12 @@ Assets/_Game/
 │  │  ├─ Tuning/PlayerVisionTuning.cs       vision radius, colour, edge brightness, light / lantern positions, range scale, max intensity, blend → PlayerVision
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values; Changed never fires
 │  │  └─ Prefabs/Player.prefab              the player entity (see below)
-│  ├─ QuickTimeSystem/                      Aipocalypse.Core.QuickTimeSystem
+│  ├─ QuickTimeSystem/                      MB13.Aipocalypse.Core.QuickTimeSystem
 │  │  ├─ QteChallenge.cs                    abstract challenge SO (TimeScale, Presentations, Button: the GameButton that attempts it), IQteSession contract, QteResult / QteAttemptResult
 │  │  ├─ TimingQteChallenge.cs              timing challenge + TimingQteSession: repeating fill, green zone, duration (or owner-controlled), attempts per cycle, miss hold and bounded zone relocation; optional random delegate for tests
 │  │  ├─ QuickTimeService.cs                root ITickable: one owner-bound session at a time, unscaled tick while gameplay input is on and TimeService isn't paused; reads WasPressed(Button) and Consume(Button) (ticks before Player.Update, so a press completing a repair doesn't also reload); a press is judged before the frame moves the session, which advances at most Time.maximumDeltaTime per frame; timed or owner-controlled lifetime, cancel, optional slow motion (standalone QTEs only), completion callback; QteStarted / QteAttempted / QteEnded
 │  │  └─ QuickTimeInstaller.cs              registers QuickTimeService as a root entry point
-│  ├─ RandomSystem/                         Aipocalypse.Core.RandomSystem — seeded randomness and weighted picks for gameplay rolls
+│  ├─ RandomSystem/                         MB13.Aipocalypse.Core.RandomSystem — seeded randomness and weighted picks for gameplay rolls
 │  │  ├─ RandomService.cs                   root service: master Seed, Stream(name) → one cached RandomStream per system (seed mixed with an FNV-1a name hash), Reseed(seed) restarts every stream in place
 │  │  ├─ RandomStream.cs                    seeded SplitMix64 sequence, GC-free: Value, Range (float, int exclusive), RangeInclusive(Vector2Int), Chance, Sign, InsideUnitCircle, OnUnitSphere, InsideUnitSphere, Pick, Shuffle, Reset
 │  │  ├─ WeightedPick.cs                    static: Index(weights / items + weightOf / items + context + weightOf, roll, nothingWeight) → index by weight share, -1 for nothing; SpawnTable picks through it
@@ -296,7 +296,7 @@ Assets/_Game/
 │  │  ├─ WeightedDraw.cs                    per-user pick state over weights: NoRepeat (last pick sits out unless it's the only one), Units (limited entries run out; all refill when nothing is pickable, so 19 + 1 units = a deck of 20; unlimited entries keep limited ones out until Refill); Next, Refill, LeftOf, Last
 │  │  ├─ WeightedPicker.cs                  WeightedPicker<T>(table, stream): one per user (chest, enemy kind); TryPick, Roll, Refill with the table's NoRepeat and Units through WeightedDraw; rereads the table each pick
 │  │  └─ RandomInstaller.cs                 registers RandomService in the root scope (factory: unseeded, from the clock)
-│  ├─ RaidSystem/                           Aipocalypse.Core.RaidSystem — raid nights, see RAIDS.md
+│  ├─ RaidSystem/                           MB13.Aipocalypse.Core.RaidSystem — raid nights, see RAIDS.md
 │  │  ├─ RaidInstaller.cs                   SceneInstaller (_settings: RaidSettings; SpawnZones collected on scene save / entering Play, "Collect spawn zones" button): RaidSettings, EveryNightSchedule (IRaidSchedule), RaidSpawner (IRaidSpawner + tick), RaidDirector (entry point, AsSelf), DeathTimeRule (+ RaidCommands in dev builds); needs a ready WorldTimeInstaller and EnemyInstaller on the scope
 │  │  ├─ RaidDirector.cs                    ITickable + IStartable, pure timing over IRaidSpawner: night N = StartHour day N → DawnHour day N + 1, read from WorldClock.Now each tick (NightOf), a handled night never restarts; waves → groups of the card's group size GroupInterval apart under AliveCap (partial groups), none while the player is dead; next wave once fully spawned and NextWhenAliveAtMost alive after MinBreather, or MaxWait; ends Cleared / Dawn / Defeat / Stopped; StartNow (ignores the window), NextWave, Stop, EndRaid; Start prewarms the pool for tonight (AliveCap + CorpseHeadroom); publishes RaidStarted / RaidWaveStarted / RaidEnded; Advance(deltaTime) (RaidDirectorTests)
 │  │  ├─ IRaidSchedule.cs                   PlanFor(night) → RaidPlan, null = a quiet night: the seam for quiet nights, a ladder, Blood Moons
@@ -307,7 +307,7 @@ Assets/_Game/
 │  │  ├─ RaidPlan.cs                        SO: Waves (RaidWave: Entries of card + count, GroupInterval, Zone id, NextWhenAliveAtMost, MinBreather, MaxWait), TotalEnemies; assets in Data/Raids/
 │  │  ├─ DeathTimeRule.cs                   IStartable / IDisposable, async PlayerRespawning: a raid running → EndRaid(Defeat) + clock to the next DefeatWakeHour; else dawn's leftover raiders despawn + HoursLostOnDeath; pure WakeTime(now, raidRunning, settings) (DeathTimeRuleTests, RaidDirectorTests)
 │  │  └─ RaidCommands.cs                    console: raid.start, stop, next, status
-│  ├─ SpawnSystem/                          Aipocalypse.Core.SpawnSystem — spawning and pooling for anything, see SPAWNING.md
+│  ├─ SpawnSystem/                          MB13.Aipocalypse.Core.SpawnSystem — spawning and pooling for anything, see SPAWNING.md
 │  │  ├─ SpawnInstaller.cs                      SceneInstaller (partial; _settings: SpawnSystemSettings, _waterBodies: flat water renderers, _rivers: River Modeler rivers, SpawnAreas collected on scene save / entering Play): IWaterLevel (WaterBodies + RiverCourse), SpawnVisibility, SpawnPlacer, SpawnPointPicker, PrefabPool + SpawnService + PopulationDirector (entry points) (+ SpawnCommands in dev builds)
 │  │  ├─ SpawnSystemSettings.cs                 SO: SpawnBudgetMs (2), PrewarmPerFrame (2), StagingPoint, IdleTrimDelay (60 s), TrimPerFrame (2), GroupRadius / GroupSpacing (default scatter), RetryInterval, Cards (console), DefaultRules, PopulationInterval, GlobalCap, CategoryCaps (Dictionary<SpawnCategory, int>); asset in Data/Spawning/
 │  │  ├─ SpawnService.cs                        ITickable + ISpawnCounts, the one way code brings things into play: Spawn(card, position, rotation) now, Spawn(prefab, ...), Spawn(in SpawnRequest) → SpawnHandle (places the group: area pick or point, formation slots placed again; queues members), Despawn(instance, Now | WhenUnseen), Prewarm(card | prefab, count, owner), Release(owner), CancelQueued; a card at its MaxAlive refuses or recycles its oldest unseen instance (WhenFull); Advance wakes queued members within SpawnBudgetMs (at least one), sends withdrawn ones off once unseen (8 checks a frame); counts alive per card and category
@@ -339,11 +339,11 @@ Assets/_Game/
 │  │  ├─ PopulationDirector.cs                  IStartable + ITickable: prewarms the areas; every PopulationInterval wakes the near ones (hysteresis), tops them up within the category and global caps, lets the far ones go once unseen, holds killed members back for RespawnDelay; Advance(deltaTime)
 │  │  ├─ PopulationRules.cs                     pure: IsActive (hysteresis), ToSpawn (capacity, alive, respawning, group, caps), ReleaseDue
 │  │  └─ SpawnCommands.cs                       console: spawn.stats, spawn.card <card> [count] [formation], spawn.near <card> [count] [radius], spawn.test <medium> [count] [radius], spawn.clear
-│  ├─ TimeSystem/                           Aipocalypse.Core.TimeSystem
+│  ├─ TimeSystem/                           MB13.Aipocalypse.Core.TimeSystem
 │  │  ├─ TimeService.cs                     root ITickable, sole writer of Time.timeScale and the fixed step: owner-keyed Request / Release (slowest wins), RequestPause / ReleasePause (IsPaused = any owner holds one; beats every request), RequestHitStop (real-time, overlaps keep the longest / lowest, ignored while paused); restores Unity's values on Dispose
 │  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
 │  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point (+ TimeCommands in dev builds)
-│  ├─ UI/                                   Aipocalypse.Core.UI — rules and how-tos in UI.md
+│  ├─ UI/                                   MB13.Aipocalypse.Core.UI — rules and how-tos in UI.md
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
 │  │  ├─ Widgets/StyleUtils.cs              ImageTypeFor(sprite) (Sliced when the sprite has 9-slice borders); editor: RefreshViews re-applies a style asset to the open views using it (the *Style OnValidate)
@@ -382,7 +382,7 @@ Assets/_Game/
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
 │  │  └─ Prefabs/Widgets/DamageNumber.prefab    Damage Numbers Pro mesh number (3D, pooled, white), font Data/UI/DamageNumberFont.asset; DamageNumber_Critical.prefab: variant, red, spam group Critical
-│  ├─ WorldTimeSystem/                      Aipocalypse.Core.WorldTimeSystem — the in-game clock, see DAYNIGHT.md
+│  ├─ WorldTimeSystem/                      MB13.Aipocalypse.Core.WorldTimeSystem — the in-game clock, see DAYNIGHT.md
 │  │  ├─ WorldTime.cs                       WorldTime (hours since day 1: Day, Hour, WholeHour, Minute) + DayPhase enum
 │  │  ├─ ClockSettings.cs                   SO: seconds per game hour, master speed, start, Phases (DayPhase → PhaseTiming: start + speed; Timing, HasEveryPhase), moon cycle; PhaseAt, RealSecondsBetween, Real time inspector box
 │  │  ├─ WorldClock.cs                      scene service (ITickable, scaled time): Advance steps hour by hour and phase by phase (events in order); JumpTo / SetTime / SkipTo; speed requests (slowest wins); MoonPhase
@@ -390,7 +390,7 @@ Assets/_Game/
 │  │  ├─ WorldClockCheats.cs                editor and dev builds (registered when Debug.isDebugBuild): N → JumpToNextHour, M → JumpToNextPhase (InputService debug presses)
 │  │  ├─ WorldClockCommands.cs              console: clock.now, set, phase, nexthour, nextphase, skip, speed, freeze (speed / freeze are its own request, released on Dispose)
 │  │  └─ WorldTimeInstaller.cs              SceneInstaller (_settings: ClockSettings): ClockSettings + WorldClock (entry point) + cheats and console commands
-│  └─ WeaponSystem/                         Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
+│  └─ WeaponSystem/                         MB13.Aipocalypse.Core.WeaponSystem — rules and how-tos in WEAPONS.md
 │     ├─ GunDefinition.cs                   EquippableDefinition, Category Gun: fire, bullet, magazine, jam, recoil, accuracy, handling, sounds, effects
 │     ├─ GunSettings.cs                     the setting groups above (BulletSettings.DamageType, default Gunshot) + FireMode, ReloadType, AimOrigin (Muzzle, Camera, MuzzleToCrosshair)
 │     ├─ GunInstance.cs                     one owned gun: Rounds, IsJammed, Changed; Badge = rounds, warning when empty or jammed, Reserve = its AmmoType (survives drop / swap)
@@ -476,7 +476,7 @@ Assets/_Game/
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InteractPromptStyle.asset, BreachAlertStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
-├─ _Editor/                                asmdef Aipocalypse.Editor (editor only), namespace Aipocalypse.Editor.<Folder>
+├─ _Editor/                                asmdef MB13.Aipocalypse.Editor (editor only), namespace MB13.Aipocalypse.Editor.<Folder>
 │  ├─ EnvironmentSystem/
 │  │  └─ WeatherRulesEditor.cs              WeatherRules inspector: how often (per period, shares + stripes), how long (duration columns, average), wind grids; a seeded Test running WeatherPlanner over N days (time shares per period, rain, windy, not-allowed time)
 │  ├─ RandomSystem/                         inspectors for RandomSystem tables
@@ -489,8 +489,8 @@ Assets/_Game/
 │     ├─ AutoBuildHistory.cs                last build of each config on this machine (Library/AutoBuild/History.json)
 │     └─ AutoBuildWindow.cs                 Autobuild/Build Window: every BuildConfig with its build name and last build (time, duration, size); tick several + Build Selected, or Edit / Open / Run / Build one; New Config
 ├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
-├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and the enemy system, picks up a gun, fires and reloads; jumps the clock to the raid's start hour and checks raiders spawned; any logged error fails it
-└─ Tests/EditMode/                          asmdef Aipocalypse.Tests.EditMode
+├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef MB13.Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and the enemy system, picks up a gun, fires and reloads; jumps the clock to the raid's start hour and checks raiders spawned; any logged error fails it
+└─ Tests/EditMode/                          asmdef MB13.Aipocalypse.Tests.EditMode
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ EnemyAnimationTests.cs                LocomotionAnimation (look / lean into turns, glances, one fidget per stop) + every animated enemy prefab wired to the parameter contract
    ├─ EnemyMeleeTests.cs                    MeleeHit.Lands (reach, arc, height ignored), melee definitions hold outside swing range and hit within it (HoldDistance, EngageRadius, HitTime, HitReach), prefabs on the Melee subtree have settings and a colliderless sword in hand
@@ -687,7 +687,7 @@ The HUD is not in this prefab: `HUD.prefab` sits next to it in the scene ([UI.md
 
 ## Adding a script
 
-- **New system:** folder under `_Core/` (or `Features/` / `_Experimental/`), namespace `Aipocalypse.Core.<System>`, one installer. A root service installs from `ProjectLifetimeScope` (`<System>Installer : IInstaller`); a scene system is a `SceneInstaller` component added to the scene's `GameLifetimeScope` GameObject. Add it to the map above.
+- **New system:** folder under `_Core/` (or `Features/` / `_Experimental/`), namespace `MB13.Aipocalypse.Core.<System>`, one installer. A root service installs from `ProjectLifetimeScope` (`<System>Installer : IInstaller`); a scene system is a `SceneInstaller` component added to the scene's `GameLifetimeScope` GameObject. Add it to the map above.
 - **Rules go in plain C#** (testable, EditMode tests in `Tests/EditMode/`). MonoBehaviours are views: they wire components and forward to the rules.
 - **Numbers go in a ScriptableObject** type next to the system, with the asset in `Data/<System>/`.
 - **Console commands and cheats:** `<System>Commands.cs` next to the system's installer, registered there when `Cheats.Enabled` ([CONSOLE.md → Adding a command](CONSOLE.md#adding-a-command)).

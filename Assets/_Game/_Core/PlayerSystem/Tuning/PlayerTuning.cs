@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Groups the player's config assets; each rule gets only the group it needs.
     [CreateAssetMenu(fileName = "PlayerTuning", menuName = "Aipocalypse/Player/Player Tuning")]

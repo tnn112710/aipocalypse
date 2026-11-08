@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Root of anything SpawnService brings into play (enemies, animals, flocks, items, props): which prefab and pool it belongs
     // to, its state, and the ISpawnable parts told about each life. Disabling it hands it back to its pool.

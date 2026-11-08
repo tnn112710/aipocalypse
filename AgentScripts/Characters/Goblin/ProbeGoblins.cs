@@ -3,7 +3,7 @@
 // --entry ProbeGoblins.Sample --args '[20, 1]'.
 using System.Text;
 using System.Threading.Tasks;
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnemySystem;
 using UnityEngine;
 
 public static class ProbeGoblins

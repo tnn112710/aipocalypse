@@ -1,10 +1,10 @@
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Moves the crosshair to where the aim sway points and fades the dot while aiming or sprinting. Spread ticks open to the
     // held item's spread cone and hide when it's tight; the hit marker is a child, so it follows without fading.

@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Root-scope services: shared by every gun in every scene, ticked centrally.
     public sealed class WeaponInstaller : IInstaller

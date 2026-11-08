@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // How the hit marker and kill numbers look. The marker's sprites, the sounds and the damage number prefab stay on
     // HitFeedbackHud in the HUD prefab.

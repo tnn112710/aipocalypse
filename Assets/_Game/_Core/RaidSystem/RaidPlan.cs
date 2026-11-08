@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnemySystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // One night's raid: its waves in order. Read-only at runtime.
     [CreateAssetMenu(fileName = "Night", menuName = "Aipocalypse/Raids/Raid Plan")]

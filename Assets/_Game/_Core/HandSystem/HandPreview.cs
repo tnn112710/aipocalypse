@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     // Edit-mode ghost hands from the project's first HandSet, kept on their targets every editor frame so grips can be
     // moved with the hands visible. Never saved: the ghosts are DontSave and live outside the edited hierarchy.

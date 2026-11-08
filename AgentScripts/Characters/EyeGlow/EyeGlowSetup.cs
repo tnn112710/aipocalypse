@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnemySystem;
 using UnityEditor;
 using UnityEngine;
 

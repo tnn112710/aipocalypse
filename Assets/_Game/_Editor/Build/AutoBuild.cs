@@ -4,18 +4,18 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Bootstrap;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.Build
+namespace MB13.Aipocalypse.Editor.Build
 {
     // Builds BuildConfigs into _builds/<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline],
     // with a build_info.txt (BuildStamp) and, on request, a zip next to the folder. Command line:
-    // -executeMethod Aipocalypse.Editor.Build.AutoBuild.BuildFromCommandLine -buildConfig <asset path>[,<asset path>…]
+    // -executeMethod MB13.Aipocalypse.Editor.Build.AutoBuild.BuildFromCommandLine -buildConfig <asset path>[,<asset path>…]
     // [-buildOutput <folder>, one config only].
     public static class AutoBuild
     {

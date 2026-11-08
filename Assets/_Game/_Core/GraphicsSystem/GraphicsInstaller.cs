@@ -1,8 +1,8 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.GraphicsSystem
+namespace MB13.Aipocalypse.Core.GraphicsSystem
 {
     public sealed class GraphicsInstaller : IInstaller
     {

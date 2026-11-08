@@ -150,7 +150,7 @@ Base convention: the `oss-unity:csharp-unity` skill (Claude Code; other agents r
 
 ## Testing
 
-- Tests use `com.unity.test-framework` in `Assets/_Game/Tests/`: `EditMode/` (`Aipocalypse.Tests.EditMode`) for almost everything, `PlayMode/` (`WorldMapSmokeTests`) for scene smoke tests. Run with `unity command test run --mode editor`.
+- Tests use `com.unity.test-framework` in `Assets/_Game/Tests/`: `EditMode/` (`MB13.Aipocalypse.Tests.EditMode`) for almost everything, `PlayMode/` (`WorldMapSmokeTests`) for scene smoke tests. Run with `unity command test run --mode editor`.
 - Test what can break silently: rules in plain C# classes (stamina, recoil, jams, clock), enum-keyed data tables (every value has an entry, `PhaseDataTests`), and prefab/asset wiring (`ItemPrefabTests`). Name tests `Subject_ExpectedBehaviour` (`Deal_ReportsTheKillAndCapsDamageAtWhatWasLeft`).
 - PlayMode runs through the CLI have reported "0/0 passed" without running anything. If so, verify play behaviour by entering play mode and probing with `script run` (plus `runInBackground` and a virtual gamepad), then stop.
 

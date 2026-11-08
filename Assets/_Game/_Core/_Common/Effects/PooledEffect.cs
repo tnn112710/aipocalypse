@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-namespace Aipocalypse.Core.Effects
+namespace MB13.Aipocalypse.Core.Effects
 {
     // Root of a reusable visual (muzzle flash, tracer, impact, bullet hole, blood). EffectPool spawns and returns it.
     [DisallowMultipleComponent]

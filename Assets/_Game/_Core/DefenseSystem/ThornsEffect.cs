@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Combat;
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // Spikes: every melee blow on the barrier hurts the attacker back.
     [CreateAssetMenu(fileName = "Thorns", menuName = "Aipocalypse/Defense/Thorns Effect")]

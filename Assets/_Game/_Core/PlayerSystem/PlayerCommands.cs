@@ -1,6 +1,6 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Console commands that read the active player (editor and development builds); the ones that change it are cheats
     // (PlayerCheatCommands).

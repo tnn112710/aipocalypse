@@ -1,8 +1,8 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // The hammer in hand (a RepairToolDefinition's held item), posed between markers like the melee swing. It rests at idle;
     // while PlayerRepair works it sets Cycle, and each knock winds up, strikes and recovers.

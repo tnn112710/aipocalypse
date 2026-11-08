@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // The console's input line: text and caret. With word set (Ctrl held), moves and deletes jump whole words.
     public sealed class ConsoleLine

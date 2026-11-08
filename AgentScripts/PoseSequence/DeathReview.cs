@@ -1,6 +1,6 @@
 using System.Linq;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
 using UnityEngine;
 
@@ -20,21 +20,21 @@ public static class DeathReview
 
     static string ScreenState()
     {
-        var view = Object.FindAnyObjectByType<Aipocalypse.Core.UI.DeathScreenView>(FindObjectsInactive.Include);
+        var view = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.UI.DeathScreenView>(FindObjectsInactive.Include);
         if (view == null)
             return "no death screen";
         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-        var eyes = (RectTransform)typeof(Aipocalypse.Core.UI.DeathScreenView).GetField("_eyes", flags)!.GetValue(view);
-        var menu = (CanvasGroup)typeof(Aipocalypse.Core.UI.DeathScreenView).GetField("_menu", flags)!.GetValue(view);
-        var status = (TMPro.TMP_Text)typeof(Aipocalypse.Core.UI.DeathScreenView).GetField("_status", flags)!.GetValue(view);
-        float closed = (float)typeof(Aipocalypse.Core.UI.DeathScreenView).GetField("_closed", flags)!.GetValue(view);
+        var eyes = (RectTransform)typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetField("_eyes", flags)!.GetValue(view);
+        var menu = (CanvasGroup)typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetField("_menu", flags)!.GetValue(view);
+        var status = (TMPro.TMP_Text)typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetField("_status", flags)!.GetValue(view);
+        float closed = (float)typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetField("_closed", flags)!.GetValue(view);
         return $"eyes {(eyes.gameObject.activeSelf ? closed.ToString("F2") : "off")} menu {(menu.gameObject.activeSelf ? menu.alpha.ToString("F2") : "off")} " +
                $"status '{status.text}' cursor {Cursor.lockState} hud {HudAlpha()}";
     }
 
     static string HudAlpha()
     {
-        var visibility = Object.FindAnyObjectByType<Aipocalypse.Core.UI.HudVisibilityHud>();
+        var visibility = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.UI.HudVisibilityHud>();
         return visibility != null ? visibility.GetComponent<CanvasGroup>().alpha.ToString("F2") : "-";
     }
 
@@ -51,7 +51,7 @@ public static class DeathReview
 
     public static object Give(string assetPath)
     {
-        var item = UnityEditor.AssetDatabase.LoadAssetAtPath<Aipocalypse.Core.EquipmentSystem.ItemDefinition>(assetPath);
+        var item = UnityEditor.AssetDatabase.LoadAssetAtPath<MB13.Aipocalypse.Core.EquipmentSystem.ItemDefinition>(assetPath);
         Player.Equipment.TryPickUp(item.CreateInstance(), out _);
         return State();
     }
@@ -116,7 +116,7 @@ public static class DeathReview
     // Play mode: shows the death menu ("menu"), or the eyes at a fixed closing amount ("eyes", 0..1), for a capture.
     public static object Screen(string what, float closed)
     {
-        var view = Object.FindAnyObjectByType<Aipocalypse.Core.UI.DeathScreenView>(FindObjectsInactive.Include);
+        var view = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.UI.DeathScreenView>(FindObjectsInactive.Include);
         view.HideAll();
         if (what == "menu")
         {
@@ -125,10 +125,10 @@ public static class DeathReview
         }
         else if (what == "eyes")
         {
-            var eyes = (RectTransform)typeof(Aipocalypse.Core.UI.DeathScreenView)
+            var eyes = (RectTransform)typeof(MB13.Aipocalypse.Core.UI.DeathScreenView)
                 .GetField("_eyes", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(view);
             eyes.gameObject.SetActive(true);
-            typeof(Aipocalypse.Core.UI.DeathScreenView).GetMethod("SetEyes", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetMethod("SetEyes", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
                 .Invoke(view, new object[] { closed, closed * 0.4f });
         }
         return "screen " + what;
@@ -137,10 +137,10 @@ public static class DeathReview
     // Samples the eyelids (closed share, darkness) every `step` seconds while they play.
     public static async System.Threading.Tasks.Task<string> EyesTrace(float seconds, float step)
     {
-        var view = Object.FindAnyObjectByType<Aipocalypse.Core.UI.DeathScreenView>(FindObjectsInactive.Include);
+        var view = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.UI.DeathScreenView>(FindObjectsInactive.Include);
         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-        var closed = typeof(Aipocalypse.Core.UI.DeathScreenView).GetField("_closed", flags)!;
-        var dark = typeof(Aipocalypse.Core.UI.DeathScreenView).GetField("_dark", flags)!;
+        var closed = typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetField("_closed", flags)!;
+        var dark = typeof(MB13.Aipocalypse.Core.UI.DeathScreenView).GetField("_dark", flags)!;
         var sb = new System.Text.StringBuilder();
         float start = Time.time;
         while (Time.time - start < seconds)

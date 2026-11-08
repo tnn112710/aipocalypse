@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // How damaged barriers show while the player holds the hammer (RepairHighlight): a see-through tint over each, through
     // walls, coloured by how much health it has left.

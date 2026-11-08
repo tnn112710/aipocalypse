@@ -1,16 +1,16 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.Ghosts;
-using Aipocalypse.Core.HandSystem;
-using Aipocalypse.Core.Interaction;
-using Aipocalypse.Core.Stats;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.Stats;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Input;
 using MessagePipe;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
@@ -18,7 +18,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // The player's view: builds its parts, turns input into an intent and ticks them in order (look → move → vitals → head
     // motion → interaction → held item → pose sequence → light). Life and death: PlayerLife; move sounds: PlayerFeedback.

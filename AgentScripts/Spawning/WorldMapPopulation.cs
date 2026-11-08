@@ -4,7 +4,7 @@
 // under "Spawn Areas", lists the rivers on the SpawnInstaller (fish in rivers) and saves the scene. Running it again updates
 // the same objects.
 using System.Collections.Generic;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

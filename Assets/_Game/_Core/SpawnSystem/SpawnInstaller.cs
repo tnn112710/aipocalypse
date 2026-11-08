@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using RM = StylizedWater3.RiverModeler;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Scene system: spawning and pooling for anything (SpawnService, PrefabPool), spot picking and placement on the ground, in
     // the air or under water (lakes, ponds, rivers), and the open-world population of the scene's SpawnAreas (collected on

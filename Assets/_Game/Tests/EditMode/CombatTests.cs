@@ -1,11 +1,11 @@
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public sealed class CombatTests
     {

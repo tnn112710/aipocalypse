@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.GraphicsSystem;
-using Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.GraphicsSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Owner-keyed requests: several systems ask at once, the right one wins, and each release undoes only its own.
     public class ServiceRequestTests

@@ -1,6 +1,6 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // A quick-use, stackable item for EquipmentTests; the game has no consumable yet.
     public sealed class TestConsumableDefinition : ItemDefinition

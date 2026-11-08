@@ -1,9 +1,9 @@
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Ticks the registered enemies' Manual trees time-sliced on scaled time: each is visited about every ThinkInterval seconds,
     // round-robin, at most MaxThinksPerFrame visits a frame; enemies past FarThinkDistance from the player think only every

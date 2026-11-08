@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // What the holder wants from the item in hand this frame, plus the holder state items react to.
     public struct HeldItemInput

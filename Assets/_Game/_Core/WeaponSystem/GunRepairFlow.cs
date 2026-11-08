@@ -1,8 +1,8 @@
 using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // The jam repair's QTE rules for one gun: the QTE starts part-way through clearing, a hit finishes the repair early,
     // a miss adds repair time, a cancelled QTE interrupts the clear. Plain C#; HeldGun presents what happens.

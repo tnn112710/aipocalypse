@@ -1,11 +1,11 @@
 using System.Reflection;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class ItemPrefabTests
     {

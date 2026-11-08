@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Tuning of the Melee subtree (hunt a target, chase, swing; wander when there's none), read by its tasks. Damage per blow
     // is the AttackDamage stat.

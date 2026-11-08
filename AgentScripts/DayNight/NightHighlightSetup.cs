@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

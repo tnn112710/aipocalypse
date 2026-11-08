@@ -1,8 +1,8 @@
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [CreateAssetMenu(fileName = "PlayerHeldItemTuning", menuName = "Aipocalypse/Player/Held Item Tuning")]
     public sealed class PlayerHeldItemTuning : ScriptableObject

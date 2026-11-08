@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Combat
+namespace MB13.Aipocalypse.Core.Combat
 {
     public sealed class CombatInstaller : IInstaller
     {

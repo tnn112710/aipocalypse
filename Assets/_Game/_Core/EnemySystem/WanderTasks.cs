@@ -3,7 +3,7 @@ using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
 using Opsive.Shared.Utility;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Tasks of the shared Wander subtree. Tuning comes from the enemy's definition (EnemyDefinition.Wander).
     [Category("Aipocalypse/Wander")]

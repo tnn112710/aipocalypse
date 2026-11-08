@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // How a request picks its spot in an area: how many points it samples, how far from the player and out of whose view.
     [Serializable]

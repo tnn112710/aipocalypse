@@ -1,8 +1,8 @@
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.AmbientSystem
+namespace MB13.Aipocalypse.Core.AmbientSystem
 {
     // A flock of birds or a school of fish spawned as one Spawnable: its members are plain renderers moved by FlockSystem's
     // central tick (boids, FlockMath), kept round where it spawned and inside its card's height or depth band. No tree, agent,

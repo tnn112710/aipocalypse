@@ -2,7 +2,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Root installer of the dev console. ScreenLog always (it does nothing without cheats); in the editor and cheat
     // builds also the command registry (systems register their ConsoleCommands there), the console and its overlay.

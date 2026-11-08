@@ -2,7 +2,7 @@ using System;
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     [Serializable]
     public sealed class SwingSettings

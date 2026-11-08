@@ -1,7 +1,7 @@
-using Aipocalypse.Core.QuickTimeSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Input;
 
-namespace Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.Events
 {
     public readonly struct QteAttempted
     {

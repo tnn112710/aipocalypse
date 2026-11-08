@@ -1,6 +1,6 @@
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // Console commands on the scene's raids (editor and development builds); they exist only in scenes with a RaidInstaller.
     [CommandGroup("raid")]

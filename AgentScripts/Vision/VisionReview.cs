@@ -1,6 +1,6 @@
 using System.Linq;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEditor;
 using UnityEngine;
 

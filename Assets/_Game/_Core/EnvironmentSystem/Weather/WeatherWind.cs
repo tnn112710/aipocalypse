@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The scene's one wind writer: the vendor foliage wind values (Raygeas trees and grass, HIGHLANDS / shared Raygeas plants,
     // BK flutter through BKFoliageGlobals) and the wind zone Stylized Grass's WindController reads, all as the tuned values

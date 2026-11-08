@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,7 +11,7 @@ using UnityEngine;
 using VContainer;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class WeatherTests
     {

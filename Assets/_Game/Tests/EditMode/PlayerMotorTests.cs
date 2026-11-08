@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.PlayerSystem.Defaults;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem.Defaults;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // A real CharacterController moved through edit-mode physics: drops and landings as fall damage sees them.
     public class PlayerMotorTests

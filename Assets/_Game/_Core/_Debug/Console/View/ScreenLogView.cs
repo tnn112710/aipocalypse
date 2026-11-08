@@ -2,7 +2,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Draws the ScreenLog in the top-left corner, newest message on top, each on a dark band so it reads over a bright sky.
     // Bound by ConsoleView; redraws only when the log changed.

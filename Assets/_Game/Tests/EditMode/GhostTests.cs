@@ -1,11 +1,11 @@
-using Aipocalypse.Core.DefenseSystem;
-using Aipocalypse.Core.Ghosts;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.DefenseSystem;
+using MB13.Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class GhostTests
     {

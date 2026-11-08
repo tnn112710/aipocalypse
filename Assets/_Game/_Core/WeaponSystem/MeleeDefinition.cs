@@ -1,9 +1,9 @@
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Everything that makes one melee weapon swing the way it does. The pose markers it swings between are on its held prefab.
     [CreateAssetMenu(fileName = "Melee", menuName = "Aipocalypse/Items/Melee")]

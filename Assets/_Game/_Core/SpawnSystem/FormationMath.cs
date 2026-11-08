@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Slot offsets of a group in its own frame (+Z = the way it faces, slot 0 = the leader), `spacing` metres between
     // neighbours. Pure maths for Formation and its tests.

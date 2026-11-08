@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // A place a request samples spawn points in (SpawnZone in a scene, RingArea from code).
     public interface ISpawnArea

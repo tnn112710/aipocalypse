@@ -1,7 +1,7 @@
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // What the player can see, for spawning out of view and despawning once out of it: a view cone (no camera lookup) plus a
     // line of sight. Points it finds seen stay off-limits for SpawnRules.SeenLock seconds, so a spot the player just looked

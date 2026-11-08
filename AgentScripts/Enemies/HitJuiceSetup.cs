@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.Feedback;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Feedback;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using MoreMountains.Feedbacks;
 using MoreMountains.FeedbacksForThirdParty;
 using UnityEditor;

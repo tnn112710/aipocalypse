@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // A mixed group spawned together: members in slot order (the first entry leads), standing in a formation. The first
     // member's card decides where the group can stand.

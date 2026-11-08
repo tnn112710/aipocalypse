@@ -1,10 +1,10 @@
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class NightHighlightTests
     {

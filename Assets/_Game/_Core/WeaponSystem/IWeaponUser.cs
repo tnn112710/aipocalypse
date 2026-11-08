@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Whoever holds a weapon: where it aims from, what it must never hit, and how tired it gets.
     public interface IWeaponUser

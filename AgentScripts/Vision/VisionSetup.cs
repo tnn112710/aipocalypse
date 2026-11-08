@@ -1,6 +1,6 @@
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

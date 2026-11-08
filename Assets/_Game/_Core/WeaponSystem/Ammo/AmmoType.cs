@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // A kind of round. Guns that take the same type share one pool in the holder's AmmoReserve.
     [CreateAssetMenu(fileName = "Ammo", menuName = "Aipocalypse/Weapons/Ammo Type")]

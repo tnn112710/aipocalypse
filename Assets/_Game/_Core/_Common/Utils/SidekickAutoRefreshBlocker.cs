@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Core
+namespace MB13.Aipocalypse.Core
 {
     // Sidekick's RandomStateBehaviourAutoRefresh loads every AnimatorController and saves assets after each domain reload
     // and Play press (~12 s with 1000+ controllers). No controller here uses RandomStateBehaviour, so unhook it from outside

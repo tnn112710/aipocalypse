@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Reflection;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.DefenseSystem;
-using Aipocalypse.Core.Ghosts;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.DefenseSystem;
+using MB13.Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;

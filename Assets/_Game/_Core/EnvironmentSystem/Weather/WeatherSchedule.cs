@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.RandomSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Changes the weather on its own by WeatherRules: follows the world clock through a WeatherPlanner and shows the planned
     // weather on WeatherService. After a clock jump or a time skip it cuts to the weather of the new time instead of blending.

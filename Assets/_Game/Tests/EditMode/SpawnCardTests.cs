@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using NUnit.Framework;
 using UnityEditor;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Every spawn card in the game: its variants resolve on disk (a prefab whose Spawnable wasn't saved reads as missing), it
     // can spawn something, and the console can spawn it by name.

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Effects;
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // What a kind of barrier is (wood fence, wood gate, later reinforced wood or a rock wall): health, how it takes damage,
     // repairs, its look and sounds, what striking it does to the attacker, and what it upgrades to.

@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Input
+namespace MB13.Aipocalypse.Input
 {
     public sealed class InputInstaller : IInstaller
     {

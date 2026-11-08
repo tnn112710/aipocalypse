@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     // Root service: one master seed, one named RandomStream per system (Stream("loot"), Stream("raids")), so the number
     // of rolls in one system never changes another's. Same seed → same rolls. Visual noise can stay on UnityEngine.Random.

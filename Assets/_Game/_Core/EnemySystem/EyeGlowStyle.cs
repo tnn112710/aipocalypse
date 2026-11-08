@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // How one kind of enemy's glowing eyes look and where they sit on its head (EnemyEyes → Place Eyes). One per kind, since
     // heads differ between packs; the colour and dot size live in the material.

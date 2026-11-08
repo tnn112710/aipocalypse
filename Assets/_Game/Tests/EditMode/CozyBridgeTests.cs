@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using NUnit.Framework;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class CozyBridgeTests
     {

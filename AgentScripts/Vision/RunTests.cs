@@ -12,11 +12,11 @@ public static class RunTests
     {
         var sb = new StringBuilder();
         int passed = 0, failed = 0;
-        Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Aipocalypse.Tests.EditMode");
+        Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "MB13.Aipocalypse.Tests.EditMode");
         // "*" = every fixture in the assembly.
         Type[] fixtures = names == "*"
             ? assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.GetMethods().Any(m => m.GetCustomAttribute<TestAttribute>() != null)).ToArray()
-            : names.Split(',').Select(n => assembly.GetType("Aipocalypse.Tests." + n.Trim(), true)).ToArray();
+            : names.Split(',').Select(n => assembly.GetType("MB13.Aipocalypse.Tests." + n.Trim(), true)).ToArray();
         foreach (Type type in fixtures)
         {
             MethodInfo setUp = type.GetMethods().FirstOrDefault(m => m.GetCustomAttribute<SetUpAttribute>() != null);

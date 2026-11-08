@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Walkable-ground questions for spawning, answered on the scene's navmesh (EnemyNavigation over A*). Optional: without one,
     // NavmeshRule.Require points can't be placed and Prefer ones stay on the ground.

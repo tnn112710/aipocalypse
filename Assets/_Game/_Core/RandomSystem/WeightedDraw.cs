@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     // Per-user pick state over a table's weights: no repeats (the last entry sits out, unless it's the only one left)
     // and units (an entry with units > 0 runs out after that many picks; when nothing can be picked, every entry refills,

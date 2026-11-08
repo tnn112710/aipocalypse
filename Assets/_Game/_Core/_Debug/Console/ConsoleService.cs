@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Input;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // The dev console (editor and development builds): ` opens and closes it, a typed line runs through the CommandRegistry
     // (';' chains statements). Unity logs show only at the ScreenLog level (log.screen.*, off by default), in the scrollback and

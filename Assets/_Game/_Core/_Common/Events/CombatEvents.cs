@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Combat;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.Events
 {
     // A hit that landed (published by DamageService). Info.Source is who dealt it; Result says how much and whether it killed.
     public readonly struct DamageDealt

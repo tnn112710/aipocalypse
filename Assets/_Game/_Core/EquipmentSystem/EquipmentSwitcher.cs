@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     public enum SwitchPhase
     {

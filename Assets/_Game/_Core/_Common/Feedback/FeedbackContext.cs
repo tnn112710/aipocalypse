@@ -1,8 +1,8 @@
-using Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.Feedback
+namespace MB13.Aipocalypse.Core.Feedback
 {
     // Gives Feel feedbacks (plain serialized objects VContainer can't inject) access to our services. Put it on or above the MMF_Players.
     public sealed class FeedbackContext : MonoBehaviour

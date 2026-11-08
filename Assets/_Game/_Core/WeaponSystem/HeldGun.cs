@@ -1,12 +1,12 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // A gun in hand: runs its Gun rules from the holder's input and shows them — bullets, aim / sprint poses and zoom,
     // recoil, the gun's clips (GunAnimation) and sounds. Jams and their repair are one part (GunJam).

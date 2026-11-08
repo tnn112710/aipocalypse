@@ -1,11 +1,11 @@
 using System.Linq;
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Stylized Grass wiring that breaks silently: wind masks, the tiled lawn colour map, the player's bender, the crowd bender.
     public class StylizedGrassTests

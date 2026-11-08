@@ -1,7 +1,7 @@
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Test stand-in for Player.OnControllerColliderHit, used by PlayerMotorTests. Edit mode only sends the message to
     // [ExecuteAlways] components, and only a non-editor assembly's component can be added to a GameObject, hence this assembly.

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Extra spread while airborne (walking shows as aim sway instead): shrinks while aiming down sights and is scaled by
     // the holder's steadiness. It rises at once and settles back over time after landing.

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 
-namespace Aipocalypse.Input
+namespace MB13.Aipocalypse.Input
 {
     // Gameplay buttons something else may claim for a frame (a QTE's confirm press).
     public enum GameButton

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Tuning of the shared Wander subtree (choose a reachable point near home, walk there, pause). Speed lives in EnemyDefinition.
     [CreateAssetMenu(fileName = "WanderSettings", menuName = "Aipocalypse/Enemies/Wander Settings")]

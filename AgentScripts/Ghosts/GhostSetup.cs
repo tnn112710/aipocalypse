@@ -1,5 +1,5 @@
-using Aipocalypse.Core.Ghosts;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEditor;
 using UnityEngine;
 

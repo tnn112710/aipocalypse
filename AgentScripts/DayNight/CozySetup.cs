@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using DistantLands.Cozy;
 using UnityEditor;
 using UnityEditor.SceneManagement;

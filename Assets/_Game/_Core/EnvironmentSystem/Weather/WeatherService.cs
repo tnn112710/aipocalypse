@@ -1,14 +1,14 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using Random = UnityEngine.Random;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Holds the weather (a sky weather + a wind level) and shows it: COZY's sky through the bridge, the rain particles, the
     // scene wind, Unity fog, the ambience's nature volume, rain / wind beds and lightning. Changes blend over game seconds, so pausing holds them.

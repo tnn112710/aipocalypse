@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.UI;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // Per-phase data lives in dictionaries keyed by DayPhase; adding or renaming a phase must not leave an asset without it.
     public class PhaseDataTests

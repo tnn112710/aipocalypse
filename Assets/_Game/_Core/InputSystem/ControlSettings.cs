@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Input
+namespace MB13.Aipocalypse.Input
 {
     // Player-facing control and view options. The future SettingsService will load and save these; changes apply live.
     [Serializable]

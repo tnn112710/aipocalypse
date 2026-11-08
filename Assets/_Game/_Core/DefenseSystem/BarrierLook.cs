@@ -1,9 +1,9 @@
 using System;
-using Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.Ghosts;
 using DG.Tweening;
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // A barrier's model and how it shows damage: it leans further at each damage stage, away from the blows, shakes when hit,
     // and falls over when broken. Of several model variants one is shown, picked (and maybe turned round) from where it

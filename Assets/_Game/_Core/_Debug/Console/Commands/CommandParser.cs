@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Text;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Text rules of the console: statements, tokens, argument values and how results print.
     public static class CommandParser

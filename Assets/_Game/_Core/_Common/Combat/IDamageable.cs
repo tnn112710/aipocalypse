@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.Combat
+namespace MB13.Aipocalypse.Core.Combat
 {
     // Hurt it through DamageService.Deal, which also announces the hit; TakeDamage only applies the target's own rules.
     public interface IDamageable

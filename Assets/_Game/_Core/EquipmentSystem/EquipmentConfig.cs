@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     [CreateAssetMenu(fileName = "EquipmentConfig", menuName = "Aipocalypse/Equipment/Equipment Config")]
     public sealed class EquipmentConfig : ScriptableObject

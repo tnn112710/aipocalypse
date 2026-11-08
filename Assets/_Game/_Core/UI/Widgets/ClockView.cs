@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Digital clock as in Escape from Duckov: a big "HH:MM" with two small lines beside it (phase, day). Knows nothing about time.
     public sealed class ClockView : MonoBehaviour

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // How the dev console behaves. Its look is ConsoleStyle, on the overlay prefab.
     [CreateAssetMenu(menuName = "Aipocalypse/Debug/Console Settings", fileName = "ConsoleSettings")]

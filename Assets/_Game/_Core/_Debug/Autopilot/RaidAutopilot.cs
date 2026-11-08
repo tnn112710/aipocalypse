@@ -1,11 +1,11 @@
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // cheat.autopilot (dev builds): through IPlayerIntentSource the player stands still and shoots the nearest enemy in sight,
     // reloading and taking up another gun when the held one is spent.

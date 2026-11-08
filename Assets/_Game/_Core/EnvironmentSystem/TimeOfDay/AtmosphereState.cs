@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Every value the environment director applies in a frame: the time-of-day look, then each atmosphere layer's changes.
     public struct AtmosphereState

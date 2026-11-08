@@ -1,11 +1,11 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
 using MessagePipe;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // A gun's jam and repair as one part of HeldGun: the timed clear with its optional QTE, plus its feedback. Built by
     // GunJamFactory; HeldGun ticks it and forwards the gun's action events.

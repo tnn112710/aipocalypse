@@ -3,7 +3,7 @@ using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Advances the enemy bodies that are being knocked back or lying dead, on scaled time (pause freezes them). Bodies join
     // when hit and leave when they come to rest or disable themselves; idle enemies cost nothing here.

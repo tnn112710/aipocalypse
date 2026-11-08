@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Aipocalypse.Editor.RandomSystem
+namespace MB13.Aipocalypse.Editor.RandomSystem
 {
     // Inspector for every WeightedTable<T>: share stripe, entries with their chance, and a seeded test of N picks through
     // WeightedDraw, so NoRepeat and Units show in the results. IMGUI because Odin only hosts IMGUI property drawers.

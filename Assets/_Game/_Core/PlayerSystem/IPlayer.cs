@@ -1,10 +1,10 @@
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // The active player as PlayerRegistry hands it out: read-only state for the HUD and services, plus the respawn steps.
     // Enemies and companions only need the narrower IPlayerTarget.

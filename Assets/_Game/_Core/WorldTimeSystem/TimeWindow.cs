@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WorldTimeSystem
+namespace MB13.Aipocalypse.Core.WorldTimeSystem
 {
     // A span of hours that may wrap past midnight (On 18:30, Off 06:00), with fades inside both ends.
     [Serializable]

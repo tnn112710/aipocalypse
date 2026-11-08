@@ -1,8 +1,8 @@
 using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.QuickTimeSystem;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Input;
 using DG.Tweening;
 using MessagePipe;
 using TMPro;
@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Shows the running QTE (whoever started it) from its own events: view by presentation, key label, shake on a miss, success
     // burst or fade at the end. Hidden while paused or in a menu; look and animations in QteStyle.

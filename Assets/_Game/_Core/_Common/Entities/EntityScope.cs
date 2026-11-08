@@ -1,9 +1,9 @@
-using Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Bootstrap;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Entities
+namespace MB13.Aipocalypse.Core.Entities
 {
     // Child container on a self-contained prefab (player, dog, drone, HUD), parented to the scene's GameLifetimeScope or else
     // the root scope, so it works in any scene. Runs after GameLifetimeScope (-5000), before the entity's own components.

@@ -5,7 +5,7 @@ using UnityEngine;
 using VContainer.Unity;
 using Debug = UnityEngine.Debug;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // The one way code brings things into play: enemies, animals, flocks, items, props. A request finds its spot (in an area,
     // out of the player's view when it can, or at a point), lays its group out and queues the members; the tick wakes them from

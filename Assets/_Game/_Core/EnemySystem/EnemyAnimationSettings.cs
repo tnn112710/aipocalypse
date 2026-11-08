@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // How an animated enemy's body reacts to its movement: glances while standing, idle fidgets, leaning and looking into
     // turns. Shared by kinds through EnemyDefinition.Animation; the clips themselves live in each kind's controller.

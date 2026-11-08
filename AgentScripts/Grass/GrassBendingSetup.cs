@@ -1,8 +1,8 @@
 // Adds the scene's GrassBendField ("Environment/Grass Bending": one particle-system Stylized Grass bender that enemies and
 // animals join) to the open scene and wires it into the EnvironmentInstaller. Idempotent; saves the scene.
 // Run: unity command script run --file AgentScripts/Grass/GrassBendingSetup.cs --entry GrassBendingSetup.Run --args '[1, 2]'
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using sc.stylizedgrass.runtime;
 using UnityEditor;
 using UnityEditor.SceneManagement;

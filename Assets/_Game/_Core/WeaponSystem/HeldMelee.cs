@@ -1,13 +1,13 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // A melee weapon in hand: runs MeleeAttack from the holder's input and shows it (swing between pose markers, camera hit
     // check, damage, knockback, effects, sounds). Prefab: Poses (Idle, WindUp, FollowThrough, Sprint) and PosePivot > Model.

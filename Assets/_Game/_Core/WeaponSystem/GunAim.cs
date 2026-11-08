@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Where a shot starts and which way it goes, for anything that aims through a holder's eye and leaves a muzzle on a model
     // (guns now; bows, turrets or an enemy rifle can use the same rules).

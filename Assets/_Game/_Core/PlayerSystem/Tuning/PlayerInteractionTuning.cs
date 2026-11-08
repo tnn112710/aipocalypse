@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Ghosts;
+using MB13.Aipocalypse.Core.Ghosts;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [CreateAssetMenu(fileName = "PlayerInteractionTuning", menuName = "Aipocalypse/Player/Interaction Tuning")]
     public sealed class PlayerInteractionTuning : ScriptableObject

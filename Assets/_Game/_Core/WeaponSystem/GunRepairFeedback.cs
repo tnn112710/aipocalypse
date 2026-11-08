@@ -1,11 +1,11 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
 using Ami.BroAudio;
 using MessagePipe;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Presents one gun's jam and repair beats: sounds, gun-model jolts and the GunJamBeat / GunRepairCompleted events the
     // camera feedback listens to. Plain C#; HeldGun forwards the gun's, repair flow's and clip's events to it.

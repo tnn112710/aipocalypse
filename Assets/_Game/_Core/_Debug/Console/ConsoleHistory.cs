@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Lines run in the console, oldest first, browsed with Up / Down like a shell. The line being typed comes back after
     // the newest one; a repeat of the newest line isn't stored twice.

@@ -1,8 +1,8 @@
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Combat;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Shooting-range target: logs each hit and heals back to full when emptied (that hit counts as a kill), so it never
     // runs out. Knockback tips it away from the hit, every hit adds a small flinch, and it springs back upright.

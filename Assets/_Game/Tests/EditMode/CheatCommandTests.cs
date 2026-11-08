@@ -1,11 +1,11 @@
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using MessagePipe;
 using NUnit.Framework;
 using VContainer;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class CheatCommandTests
     {

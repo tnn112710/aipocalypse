@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Ghosts
+namespace MB13.Aipocalypse.Core.Ghosts
 {
     // Fits / can be done (Valid) or something is in the way (Invalid).
     public enum GhostState

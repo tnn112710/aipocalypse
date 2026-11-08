@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEngine;
@@ -9,7 +9,7 @@ using UnityEngine.TestTools;
 using VContainer;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     // SpawnService on a flat ground with plain prefabs (no navmesh, no player). Edit mode runs no OnDisable, so returning to the
     // pool is checked in play (AgentScripts/Spawning/SpawnPlayCheck.cs), not here.

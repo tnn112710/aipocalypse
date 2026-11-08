@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Why an instance came into play, handed to its ISpawnable parts.
     public readonly struct SpawnInfo

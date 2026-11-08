@@ -1,10 +1,10 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Interaction;
 using DG.Tweening;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // A gate: a fence segment (BarrierSegment beside it, as wide as one panel slot or two for a double gate, so it can replace
     // any segments) whose leaves swing open and shut on the interact key, away from whoever opens it. It blocks only while closed, and won't close

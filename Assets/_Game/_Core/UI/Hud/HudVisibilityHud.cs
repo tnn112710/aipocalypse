@@ -1,12 +1,12 @@
 using System;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using DG.Tweening;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // On the HUD root: fades the whole HUD out when the active player starts dying and back in when it revives. The death
     // screen ignores this group (its own CanvasGroup has ignoreParentGroups), so it stays visible.

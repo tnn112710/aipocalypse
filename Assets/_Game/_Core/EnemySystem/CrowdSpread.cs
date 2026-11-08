@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Rules that keep a crowd from moving in lockstep: how each enemy's pace differs and the side each one approaches its target
     // from. Where a group spreads when it spawns is FormationMath.Scatter (SpawnSystem).

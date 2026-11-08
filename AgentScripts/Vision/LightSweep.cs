@@ -1,10 +1,10 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;

@@ -1,6 +1,6 @@
 using System;
 
-namespace Aipocalypse.Core.WorldTimeSystem
+namespace MB13.Aipocalypse.Core.WorldTimeSystem
 {
     public enum DayPhase
     {

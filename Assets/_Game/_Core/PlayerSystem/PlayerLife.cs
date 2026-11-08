@@ -1,10 +1,10 @@
 using System;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Health, fall damage, dying and reviving. A hit that doesn't kill raises Hurt; a killing hit raises Died and publishes
     // PlayerDied, then PlayerDeathSequenceEnded once the death sequence has played; Revive restores health, raises Reviving

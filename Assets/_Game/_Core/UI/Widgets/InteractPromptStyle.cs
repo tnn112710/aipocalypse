@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Everything the interact prompt looks like. Sizes and placement stay in the InteractPrompt prefab.
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Interact Prompt Style", fileName = "InteractPromptStyle")]

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.RandomSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Plans the weather ahead in world-clock hours: picks the next sky weather by its period's weights (WeatherRules), walks
     // there one step of cloud cover at a time, rolls how long it lasts and its wind (which also moves one level per step).

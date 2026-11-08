@@ -2,7 +2,7 @@ using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // How a jam and its repair feel on the gun: jolts of the model and sounds. The QTE widget's look is QteStyle (UI).
     [CreateAssetMenu(menuName = "Aipocalypse/Weapons/Repair Feedback", fileName = "RepairFeedback")]

@@ -1,8 +1,8 @@
-using Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     [CreateAssetMenu(menuName = "Aipocalypse/Weapons/Repair Profile", fileName = "GunRepairProfile")]
     public sealed class GunRepairProfile : ScriptableObject

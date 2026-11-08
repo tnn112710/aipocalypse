@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.Entities;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // The enemy system's budgets and catalogue: shared by every enemy kind in a scene.
     [CreateAssetMenu(fileName = "EnemySystemSettings", menuName = "Aipocalypse/Enemies/Enemy System Settings")]

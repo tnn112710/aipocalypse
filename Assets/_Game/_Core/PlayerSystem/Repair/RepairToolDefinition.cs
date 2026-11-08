@@ -1,7 +1,7 @@
-using Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // A tool held to repair things (the hammer): with it in hand, the reload key repairs what the player looks at
     // (PlayerRepair) and the fences offer Repair All. Its held prefab is a RepairTool.

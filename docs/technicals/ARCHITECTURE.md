@@ -88,7 +88,7 @@ Any scene (World, Proto_*, test arenas)
 | RaidSystem | Scene system (`RaidInstaller`): raid nights. `RaidDirector` (night window from `WorldClock`, waves, alive cap, end reasons; publishes the raid events), `IRaidSchedule` (`EveryNightSchedule`), `RaidSpawner` (`IRaidSpawner`: groups from the scene's `SpawnZone`s through `SpawnService`, arrival cues, withdrawal), `DeathTimeRule` (a death costs time); data in `RaidSettings` and `RaidPlan`. Depends on SpawnSystem, EnemySystem, WorldTimeSystem and PlayerSystem. [RAIDS.md](RAIDS.md) |
 | SpawnSystem | Scene system (`SpawnInstaller`): the one way anything comes into play. `SpawnService` (requests, handles, a per-frame budget), `PrefabPool` (prewarmed, injected, per prefab), `Spawnable` + `ISpawnable` on every spawnable prefab, `SpawnCard` / `SpawnSquad` / `SpawnTable` (what), `SpawnZone` / `RingArea`, `SpawnPointPicker`, `SpawnPlacer` (ground, navmesh, air, water) and `SpawnVisibility` (where), `Formation`, `PopulationDirector` + `SpawnArea` (open-world population; WorldMap has a goblin camp by the lake). Pools are reserved per owner and trimmed past that; a card can cap how many are alive (refuse, or recycle the oldest unseen); water includes the rivers (`RiverCourse`). Knows nothing of enemies or raids. [SPAWNING.md](SPAWNING.md) |
 | AmbientSystem | Scene system (`AmbientInstaller`): life that only decorates. `Flock` (a spawnable flock of birds or school of fish, its `FlockDefinition`), `FlockSystem` (one central boids tick, `FlockMath`). Depends on SpawnSystem. [SPAWNING.md](SPAWNING.md#ambient-flocks-and-schools-ambientsystem) |
-| InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching and cursor lock; consumers only read. Menus take the UI map with owner-keyed `RequestUI` / `ReleaseUI`; gameplay input is on only while nobody holds a request. Text input (`RequestTextInput`, the dev console) beats both: only the `Console` map and typed characters are live. A reader that ticks first can `Consume` a `GameButton` press so later readers don't see it (the QTE's confirm). Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
+| InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching and cursor lock; consumers only read. Menus take the UI map with owner-keyed `RequestUI` / `ReleaseUI`; gameplay input is on only while nobody holds a request. Text input (`RequestTextInput`, the dev console) beats both: only the `Console` map and typed characters are live. A reader that ticks first can `Consume` a `GameButton` press so later readers don't see it (the QTE's confirm). Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `MB13.Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
 | _Common | Entities (`EntityScope`, `ITargetable` + `TargetKind`, `IPlayerTarget`), Combat (`IDamageable`, `IShowsOwnHits`, `DamageInfo` / `DamageResult`, `DamageService`, `Health`), Effects (`EffectPool`: the root pool every gun, swing and enemy spawns its pooled effects from, `PooledEffect`), Events, Feedback (`FeedbackContext`, `MMF_HitStop`: Feel feedbacks that reach our services), Stats (`IStatProvider`), Interaction (`IInteractable`), Utils (`Damping` frame-rate independent smoothing, `PhysicsQueries.Nearest` for NonAlloc hit buffers, `TransformExtensions`) |
 | _Debug | Dev console (`ConsoleInstaller`, root: `ConsoleService`, `CommandRegistry` + `ConsoleCommands` base, `LogBuffer`, `ScreenLog`, the `DebugConsole` overlay; editor and dev builds), `TargetDummy`: shooting-range target that logs hits, refills its health, tips over from knockback and springs back, and `RaidAutopilot` (`cheat.autopilot`: the player fights by itself through `IPlayer.IntentSource`, for raid soak tests). [DEBUG.md](DEBUG.md), console: [CONSOLE.md](CONSOLE.md) |
 | AudioSystem | `AudioService` (root): plays BroAudio `SoundID`s 2D or at a point. Libraries in `Data/Audio/` |
@@ -215,7 +215,7 @@ What exists, plus where new things go. Script by script: [CODE_STRUCTURE.md](COD
 
 ```text
 Assets/_Game/
-  _Core/                  CODE. asmdef Aipocalypse.Core
+  _Core/                  CODE. asmdef MB13.Aipocalypse.Core
     _Bootstrap/           ProjectLifetimeScope (+ prefab), VContainerSettings asset (preloaded), GameLifetimeScope, SceneInstaller
     _Common/              Entities, Combat, Effects, Events, Feedback, Ghosts, Stats, Interaction, Utils
     PlayerSystem/  InputSystem/  EquipmentSystem/  WeaponSystem/  HandSystem/  EnemySystem/  RaidSystem/  TimeSystem/  QuickTimeSystem/  GraphicsSystem/  UI/ …
@@ -237,7 +237,7 @@ Assets/_Game/
                           Environment/TimeOfDay)
   Scenes/Prototypes/      WorldMap.unity (data in Maps/WorldMap/), Proto_* scenes (scene-only assets in a folder named after the scene)
   Settings/               URP assets, Input System actions
-  _Editor/                editor-only tools that aren't game code (player builds, BUILD.md). asmdef Aipocalypse.Editor
+  _Editor/                editor-only tools that aren't game code (player builds, BUILD.md). asmdef MB13.Aipocalypse.Editor
   Tests/EditMode/  Tests/PlayMode/
 ```
 
@@ -248,6 +248,6 @@ Assets/_Game/
 
 ## Assemblies
 
-- `Aipocalypse.Core`, `Aipocalypse.Editor` (editor only), `Aipocalypse.Tests.EditMode` and `Aipocalypse.Tests.PlayMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
+- `MB13.Aipocalypse.Core`, `MB13.Aipocalypse.Editor` (editor only), `MB13.Aipocalypse.Tests.EditMode` and `MB13.Aipocalypse.Tests.PlayMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
 - **Don't enable VContainer's source generator** for now: it has an open issue with injectors across multiple assemblies (hadashiA/VContainer#822), and reflection-based injection is fine on PC. Revisit only if profiling shows injection cost.
 - Rules are plain C# and get EditMode tests (player rules, combat, equipment, guns and their clips, melee, hands, the repair QTE and time requests, pose sequences, the world clock, time of day and phase data, enemy targeting, attack slots, melee hits and spawning data, the raid director, spawn-point scoring and death time; suites in [CODE_STRUCTURE.md](CODE_STRUCTURE.md)).

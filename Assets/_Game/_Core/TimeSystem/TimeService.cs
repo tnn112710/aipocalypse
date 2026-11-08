@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.TimeSystem
+namespace MB13.Aipocalypse.Core.TimeSystem
 {
     public sealed class TimeService : ITickable, IDisposable
     {

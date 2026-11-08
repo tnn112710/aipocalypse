@@ -1,12 +1,12 @@
 using System;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.HandSystem;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.Playables;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // The states of Animations/Shared/Gun.controller. Each name is also the shared clip a gun's override controller replaces.
     public enum GunClip

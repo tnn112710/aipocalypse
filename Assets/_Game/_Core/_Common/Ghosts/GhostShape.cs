@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Aipocalypse.Core.Ghosts
+namespace MB13.Aipocalypse.Core.Ghosts
 {
     // A model's meshes and where each sits under its root, captured once, so a see-through ghost of it can be drawn anywhere
     // (a broken fence standing again, a building or item before it's placed). Only shown renderers count; of a LOD group, LOD 0.

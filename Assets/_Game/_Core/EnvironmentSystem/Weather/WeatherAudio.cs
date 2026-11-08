@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The weather's looping beds: one kept player per distinct sound across all skies and winds, started when audible and
     // stopped when silent, so Windy → Gale fades one wind loop instead of crossfading two copies.

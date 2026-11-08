@@ -4,7 +4,7 @@ using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Every sky weather and wind level: what COZY draws, how the scene's wind, fog and ambience change, and the sounds.
     // Read by WeatherService; one asset in Data/Environment/Weather.

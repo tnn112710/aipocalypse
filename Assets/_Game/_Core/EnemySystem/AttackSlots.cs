@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.Entities;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // How many enemies may close in on one target at once (EnemySystemSettings.AttackersPerTarget; a kind without an entry is
     // unlimited). A holder keeps its slot while near the target and frees it when it backs off, switches target or stops.

@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.Events
 {
     public enum RaidEndReason
     {

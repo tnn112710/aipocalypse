@@ -1,7 +1,7 @@
 using Pathfinding;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // An enemy's legs: walks its FollowerEntity to a destination at its MoveSpeed stat. Behaviour tasks decide where; hits
     // push it (EnemyBody).

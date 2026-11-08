@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [CreateAssetMenu(fileName = "PlayerVisionTuning", menuName = "Aipocalypse/Player/Vision Tuning")]
     public sealed class PlayerVisionTuning : ScriptableObject

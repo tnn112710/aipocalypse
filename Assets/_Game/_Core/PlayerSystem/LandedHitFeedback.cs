@@ -1,11 +1,11 @@
 using System;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Events;
 using MessagePipe;
 using MoreMountains.Feedbacks;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // On the Player prefab: a short hit stop and camera kick when this player's hit staggers an enemy or kills it with a
     // headshot. Only those moments, never every bullet, and at most one per MinInterval, so crowd fights don't stutter.

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Bootstrap;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Commands of the console itself.
     public sealed class BuiltInCommands : ConsoleCommands

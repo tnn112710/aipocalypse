@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Eyelids closing over the view, then the full-screen death menu (title, a slot for an illustration, a status line in the
     // footer). Knows nothing about death: the presenter says what to show.

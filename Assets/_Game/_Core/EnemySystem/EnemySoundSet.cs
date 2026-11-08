@@ -1,7 +1,7 @@
 using Ami.BroAudio;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // The sounds of one enemy kind (EnemyDefinition.Sounds), played by its EnemyVoice; unset ones stay silent.
     [CreateAssetMenu(fileName = "Sounds", menuName = "Aipocalypse/Enemies/Enemy Sounds")]

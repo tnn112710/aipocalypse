@@ -3,7 +3,7 @@ using Ami.BroAudio;
 using DG.Tweening;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // A scripted first-person moment: the eye moves through beats placed on the ground around where it started (kneel, fall,
     // lie back…), then settles on the last one while the view drifts. Played by PoseSequencePlayer.

@@ -1,11 +1,11 @@
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.PlayerSystem.Defaults;
-using Aipocalypse.Core.Stats;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem.Defaults;
+using MB13.Aipocalypse.Core.Stats;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class GunAccuracyTests
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Sets the scene-wide values BK Pure Nature plants read (BK/Grass shader). Unset, they are 0: no micro wind, and
     // plants fade out from about 50 m. BK_EnvironmentManager would set them too but also draws its own clouds.

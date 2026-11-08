@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     public enum KeyBlend
     {

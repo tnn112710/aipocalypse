@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // Fixed row of slots. Each slot accepts some item categories and holds at most one item.
     public sealed class Hotbar

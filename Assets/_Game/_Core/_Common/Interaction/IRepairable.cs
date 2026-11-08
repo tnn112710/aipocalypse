@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.Interaction
+namespace MB13.Aipocalypse.Core.Interaction
 {
     // Something mended a knock at a time (fence segments, gates). The repairer plays the work; each knock calls Knock.
     public interface IRepairable

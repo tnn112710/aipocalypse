@@ -4,7 +4,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Bootstrap
+namespace MB13.Aipocalypse.Core.Bootstrap
 {
     // Scene scope for World and prototypes: installs every SceneInstaller on its GameObject, reporting ones that can't install
     // (a strict scene also reports missing systems). Must build before any EntityScope's Awake.

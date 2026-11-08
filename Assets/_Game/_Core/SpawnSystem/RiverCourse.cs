@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Splines;
 using RM = StylizedWater3.RiverModeler;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // The surface of sloped rivers and streams (Stylized Water River Modeler ribbons) for spawning in them: each spline sampled
     // once every Step metres into a course of centres on the surface with their half width. A point within a sample's width

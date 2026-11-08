@@ -1,8 +1,8 @@
 using System;
-using Aipocalypse.Core.Stats;
+using MB13.Aipocalypse.Core.Stats;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Model-only motion that doesn't change where the item points: position drift and roll around the barrel.
     [Serializable]

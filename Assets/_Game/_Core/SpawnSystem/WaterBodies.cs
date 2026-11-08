@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // The water level over a point, for spawning under or above water. Optional: without one, Water placement fails and Air
     // flies over the ground only.

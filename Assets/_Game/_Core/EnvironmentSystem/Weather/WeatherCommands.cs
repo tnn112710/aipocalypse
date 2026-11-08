@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using VContainer;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The weather by hand (editor and cheat builds). With the WeatherSchedule on, set / wind hold the weather until
     // weather.auto; force, bloodmoon, eclipse and forecast need it.

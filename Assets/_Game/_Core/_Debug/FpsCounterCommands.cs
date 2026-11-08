@@ -2,7 +2,7 @@ using CodeStage.AdvancedFPSCounter;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Advanced FPS Counter through the console (editor and development builds): off whenever a scene loads, afps.show / afps.hide.
     // Its own hotkey is cleared (it defaults to `, the console's key) and it draws under the console. The plugin's Instance is

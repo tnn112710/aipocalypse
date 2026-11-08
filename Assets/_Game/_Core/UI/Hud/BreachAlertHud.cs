@@ -1,12 +1,12 @@
 using System;
-using Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Events;
 using DG.Tweening;
 using MessagePipe;
 using TMPro;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // A short line when a fence segment or gate breaks, saying where from the player's view ("The fence is down behind you").
     // The break's own sound plays at the barrier, so this is silent. A new break replaces the line.

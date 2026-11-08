@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Everything the dev console overlay looks like. Colours are read on every redraw; font and sizes when the overlay starts.
     // Sizes and placement stay on DebugConsole.prefab.

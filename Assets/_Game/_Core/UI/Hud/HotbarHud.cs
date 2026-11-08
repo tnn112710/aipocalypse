@@ -1,11 +1,11 @@
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Input;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // One slot view per slot of the active player's hotbar, refreshed on events (items, selection, badges and the ammo
     // reserve), never polled. Each item says what its badge shows (ItemInstance.Badge).

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     // A seeded random number sequence (SplitMix64): the same seed always gives the same rolls. GC-free.
     // Get one per system from RandomService.Stream so systems don't shift each other's rolls.

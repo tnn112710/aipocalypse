@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Debugging;
 using TMPro;
 using UnityEditor;
 using UnityEngine;

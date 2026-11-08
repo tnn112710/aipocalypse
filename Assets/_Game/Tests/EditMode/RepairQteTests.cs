@@ -1,10 +1,10 @@
-using Aipocalypse.Core.QuickTimeSystem;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class RepairQteTests
     {

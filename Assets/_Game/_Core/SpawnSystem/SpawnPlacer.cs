@@ -1,7 +1,7 @@
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // Puts a sampled point where a kind can stand (its SpawnPlacement): on the ground (and the navmesh when it walks), in a
     // height band above the ground or water, or in a depth band under a water body's surface.

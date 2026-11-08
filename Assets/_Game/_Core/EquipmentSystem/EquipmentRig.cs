@@ -3,7 +3,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EquipmentSystem
+namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
     // First-person hands: one HeldItem per hotbar item (spawned when it enters the hotbar), only the held one visible,
     // posed from the switcher's Raise. Ticked by Player after movement.

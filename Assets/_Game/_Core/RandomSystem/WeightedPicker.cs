@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.RandomSystem
+namespace MB13.Aipocalypse.Core.RandomSystem
 {
     // Picks from a WeightedTable with its NoRepeat and Units rules, keeping that state per user (one picker per chest,
     // per enemy kind...). Reads the table on every pick, so Inspector edits apply in Play. GC-free after the first pick.

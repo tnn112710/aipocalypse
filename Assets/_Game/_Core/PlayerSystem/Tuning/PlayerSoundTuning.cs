@@ -2,7 +2,7 @@ using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [CreateAssetMenu(fileName = "PlayerSoundTuning", menuName = "Aipocalypse/Player/Sound Tuning")]
     public sealed class PlayerSoundTuning : ScriptableObject

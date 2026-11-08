@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // Scene system: the fences and gates placed in the scene. Lists them automatically when the scene is saved or Play starts,
     // and injects them; they register as enemy targets themselves (TargetRegistry, when the scene has an EnemyInstaller).

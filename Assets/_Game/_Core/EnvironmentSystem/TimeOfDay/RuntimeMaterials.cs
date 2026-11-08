@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Swaps materials on the renderers under an object for runtime copies (one per source material), so shared and vendor
     // material assets are never written. The owner destroys the copies with Destroy in its OnDestroy.

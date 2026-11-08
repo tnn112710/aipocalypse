@@ -1,7 +1,7 @@
-using Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Combat;
 using UnityEngine;
 
-namespace Aipocalypse.Core.DefenseSystem
+namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // What a blow on a barrier does besides denting it (BarrierDefinition.OnStruck): a data asset per behaviour, shared by every
     // segment of a kind, so an upgrade tier is a new list, not new code.

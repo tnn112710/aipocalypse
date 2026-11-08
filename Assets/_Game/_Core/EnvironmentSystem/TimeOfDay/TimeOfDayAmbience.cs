@@ -1,10 +1,10 @@
 using System;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The day's soundscape: looping beds whose volume follows a curve over the hours (dawn chorus), and calls played
     // now and then inside their hours (owls at night). Sounds are BroAudio entities (Data/Audio/Ambience).

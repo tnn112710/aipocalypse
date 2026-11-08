@@ -1,14 +1,14 @@
-using Aipocalypse.Core.DefenseSystem;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.HandSystem;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.DefenseSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
 using NUnit.Framework;
 using Pathfinding;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class DefenseTests
     {

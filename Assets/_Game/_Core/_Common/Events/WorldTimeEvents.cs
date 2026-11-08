@@ -1,6 +1,6 @@
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 
-namespace Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.Events
 {
     // The clock passed a whole hour (once per hour crossed, also while skipping). Not sent for instant jumps: see TimeJumped.
     public readonly struct HourChanged

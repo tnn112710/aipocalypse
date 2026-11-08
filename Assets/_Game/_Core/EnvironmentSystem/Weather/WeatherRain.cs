@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The rain the player sees (on the root of Environment/Weather/WeatherRain.prefab, built from Unluck Stylized Weather): layers
     // kept above the camera and fake splashes on the ground around it. No particle collides with anything: a splash emitter

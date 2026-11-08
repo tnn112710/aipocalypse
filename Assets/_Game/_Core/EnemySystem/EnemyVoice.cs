@@ -1,7 +1,7 @@
-using Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // One enemy's sounds from its kind's EnemySoundSet (none = silent), rate-limited so a volley or a crowd doesn't stack
     // cries. Footsteps are counted here and played by EnemySoundManager.

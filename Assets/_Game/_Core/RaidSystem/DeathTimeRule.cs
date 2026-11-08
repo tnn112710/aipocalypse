@@ -1,12 +1,12 @@
 using System;
 using System.Threading;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // A death costs time, applied behind the death screen (PlayerRespawning): during a raid the raid is lost and the player
     // wakes at the next DefeatWakeHour; any other death moves the clock on HoursLostOnDeath and despawns dawn's leftovers.

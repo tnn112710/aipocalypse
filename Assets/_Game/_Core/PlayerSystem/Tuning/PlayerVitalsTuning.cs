@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [CreateAssetMenu(fileName = "PlayerVitalsTuning", menuName = "Aipocalypse/Player/Vitals Tuning")]
     public sealed class PlayerVitalsTuning : ScriptableObject

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Pool;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Effects
+namespace MB13.Aipocalypse.Core.Effects
 {
     // One pool per effect prefab (guns, melee, enemy blood), and timed returns for effects with a lifetime. Central tick, no
     // Update per effect.

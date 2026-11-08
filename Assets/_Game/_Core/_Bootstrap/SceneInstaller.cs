@@ -2,7 +2,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Bootstrap
+namespace MB13.Aipocalypse.Core.Bootstrap
 {
     // One scene system's settings and registrations, as a component next to the GameLifetimeScope. A scene gets a system by
     // adding its installer and drops it by removing the component; the scope installs every one it finds.

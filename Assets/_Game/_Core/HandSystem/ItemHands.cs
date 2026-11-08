@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     // Where the hands hold an item: one grip per hand. Grips sit under the part they hold (or on clip-animated hand
     // targets), so hands follow everything the item's view moves. FirstPersonHands places the hands.

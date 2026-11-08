@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // The rules behind an enemy's animator parameters, free of Unity objects: from its speed and turn rate, where it looks,
     // how it leans and when it fidgets. EnemyAnimator feeds it each frame and writes the results.

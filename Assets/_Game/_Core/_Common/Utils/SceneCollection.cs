@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Core
+namespace MB13.Aipocalypse.Core
 {
     // Editor: keeps a serialized list of scene objects current on save and when Play starts, so nobody keeps it by hand.
     public static class SceneCollection

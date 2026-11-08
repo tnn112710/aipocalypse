@@ -1,8 +1,8 @@
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // When raids run, what a death costs in time, and how spawn points are picked. Read-only at runtime.
     [CreateAssetMenu(fileName = "RaidSettings", menuName = "Aipocalypse/Raids/Raid Settings")]

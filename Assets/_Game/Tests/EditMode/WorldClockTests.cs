@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class WorldClockTests
     {

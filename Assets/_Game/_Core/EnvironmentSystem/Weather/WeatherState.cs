@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // What a save keeps of the weather. WindOverride null = the sky weather's default wind.
     public readonly struct WeatherState

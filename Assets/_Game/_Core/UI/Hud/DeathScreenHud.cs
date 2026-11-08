@@ -1,14 +1,14 @@
 using System;
 using System.Threading;
-using Aipocalypse.Core.Events;
-using Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Presents PlayerRespawnFlow: the eyes close, the death menu shows "Loading..." while the respawn is prepared (at least the
     // style's MinLoadingTime), "Click to continue" once it's ready, and fades away when the player is back.

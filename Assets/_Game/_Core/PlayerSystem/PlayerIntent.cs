@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // What the player wants this frame. Built from input by Player; tests or cutscenes can build it directly.
     public struct PlayerIntent

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.WeaponSystem
+namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // Whoever holds a gun: where its ammo comes from and how it aims.
     public interface IGunUser : IWeaponUser

@@ -1,4 +1,4 @@
-namespace Aipocalypse.Core.RaidSystem
+namespace MB13.Aipocalypse.Core.RaidSystem
 {
     // The same raid every night (RaidSettings.Plan), until quiet nights and a difficulty ladder replace it.
     public sealed class EveryNightSchedule : IRaidSchedule

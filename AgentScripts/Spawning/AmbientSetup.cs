@@ -5,9 +5,9 @@
 // Each kind: member prefab, FlockDefinition, flock prefab (Spawnable + Flock) and SpawnCard, listed in SpawnSystemSettings.
 // WorldMap: an AmbientInstaller and the flat water bodies on its SpawnInstaller. Saves only what it changed.
 using System.Collections.Generic;
-using Aipocalypse.Core.AmbientSystem;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.AmbientSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

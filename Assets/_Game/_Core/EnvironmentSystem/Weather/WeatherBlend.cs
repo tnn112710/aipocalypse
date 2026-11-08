@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // The values a weather sets, blended from what is shown now to a new target over a duration. A change mid-blend starts
     // from the blended values, so nothing jumps.

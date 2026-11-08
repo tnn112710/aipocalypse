@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Bootstrap;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -9,7 +9,7 @@ using UnityEngine.TextCore;
 using UnityEngine.UI;
 using VContainer;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // Root of DebugConsole.prefab, created by ConsoleInstaller and kept across scenes. Draws ConsoleService while it's open:
     // the scrollback (bottom-aligned, scrolled in text lines), the input line with a blinking caret, and the

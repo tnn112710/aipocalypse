@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Cheats on the active player (editor and development builds). A kill is a real hit through DamageService, as with the
     // K key, and gets through god mode. Enemy cheats (cheat.killall) live with the enemy system.

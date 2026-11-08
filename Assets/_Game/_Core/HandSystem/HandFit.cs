@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Core.HandSystem
+namespace MB13.Aipocalypse.Core.HandSystem
 {
     // Editor-only grip fit: slides the palm onto the item's surface, then curls each finger until it touches the item's meshes,
     // using the project's HandSet hand posed as in game. The result is stored on the grip; nothing runs in game.

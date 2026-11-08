@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Aipocalypse.Core.Bootstrap;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.EnemySystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.RaidSystem;
-using Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.RaidSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEditor;
 using UnityEngine;
 using VContainer;
@@ -102,7 +102,7 @@ public static class SpawnPlayCheck
         foreach (string line in new[] { "spawn.test water 60 40", "spawn.near fishschool 3 40" })
             sb.AppendLine($"{line}: {commands.Execute(line).Message}");
         yield return seconds;
-        foreach (var flock in Object.FindObjectsByType<Aipocalypse.Core.AmbientSystem.Flock>(FindObjectsInactive.Exclude))
+        foreach (var flock in Object.FindObjectsByType<MB13.Aipocalypse.Core.AmbientSystem.Flock>(FindObjectsInactive.Exclude))
         {
             if (Vector3.Distance(flock.Home, c) > 60f) continue;
             int dry = 0, above = 0;
@@ -125,7 +125,7 @@ public static class SpawnPlayCheck
         var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
         var commands = resolver.Resolve<CommandRegistry>();
         var players = resolver.Resolve<PlayerRegistry>();
-        var flocks = resolver.Resolve<Aipocalypse.Core.AmbientSystem.FlockSystem>();
+        var flocks = resolver.Resolve<MB13.Aipocalypse.Core.AmbientSystem.FlockSystem>();
         var player = (Component)players.Current;
         Physics.Raycast(new Vector3(526f, 500f, 196f), Vector3.down, out RaycastHit ground, 1000f, 1);
         var cc = player.GetComponent<CharacterController>();
@@ -138,7 +138,7 @@ public static class SpawnPlayCheck
             sb.AppendLine($"{line}: {commands.Execute(line).Message}");
         yield return seconds;
         sb.AppendLine($"flocks moving: {flocks.Count}");
-        foreach (var flock in Object.FindObjectsByType<Aipocalypse.Core.AmbientSystem.Flock>(FindObjectsInactive.Exclude))
+        foreach (var flock in Object.FindObjectsByType<MB13.Aipocalypse.Core.AmbientSystem.Flock>(FindObjectsInactive.Exclude))
         {
             float low = float.MaxValue, high = float.MinValue, far = 0f;
             for (int i = 0; i < flock.Count; i++)

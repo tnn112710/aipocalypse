@@ -1,8 +1,8 @@
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Interaction;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Repair work with the hammer in hand (RepairTool): the reload key on an IRepairable in view starts knocking in a steady
     // rhythm, one repair per knock, until it's whole. Stops early, finishing the swing, when the player looks away, walks off

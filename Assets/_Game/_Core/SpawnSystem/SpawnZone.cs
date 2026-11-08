@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // A spawn area in a scene: an arc MinRadius–MaxRadius metres round this point, HalfAngle degrees either side of its forward
     // (180 = a full ring), or round hand-placed spots (cave mouths, gaps in a wall, a tree line) when any is set. Raid waves

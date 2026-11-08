@@ -1,8 +1,8 @@
-using Aipocalypse.Core.EquipmentSystem;
-using Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.HandSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Runs the item in hand each frame in dependency order: input → switching/rig pose → item acts → recoil/view kick → zoom →
     // sway and aim → move speed → obstacle pose → LateTick (shots leave the drawn muzzle) → hands on grips.

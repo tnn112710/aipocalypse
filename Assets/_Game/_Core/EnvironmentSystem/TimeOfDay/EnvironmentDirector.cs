@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Aipocalypse.Core.GraphicsSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.GraphicsSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,7 +8,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Serialization;
 using VContainer;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Sole writer of sun, ambient, fog, reflections, sky globals and grade volumes: profile look at the clock's hour → apply
     // → reactors. With a COZY bridge, COZY draws the sky and the sun / moon lights at the look hour instead. Without a clock it

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.EnvironmentSystem;
-using Aipocalypse.Core.RandomSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MessagePipe;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,7 +11,7 @@ using UnityEngine;
 using VContainer;
 using Object = UnityEngine.Object;
 
-namespace Aipocalypse.Tests
+namespace MB13.Aipocalypse.Tests
 {
     public class WeatherScheduleTests
     {

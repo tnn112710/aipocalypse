@@ -2,7 +2,7 @@ using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Advances every registered enemy's EnemyAnimator once a frame on scaled time (paused = frozen, like the Animators).
     public sealed class EnemyAnimationManager : ITickable

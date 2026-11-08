@@ -1,11 +1,11 @@
-using Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.Entities;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals;
 using Opsive.Shared.Utility;
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnemySystem
+namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // Tasks of the shared Melee subtree. Tuning comes from the enemy's definition (EnemyDefinition.Melee); the hunted target
     // is EnemyBrain.Target.

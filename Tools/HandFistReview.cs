@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.HandSystem;
 
 public static class HandFistReview
 {
@@ -25,7 +25,7 @@ public static class HandFistReview
     }
     public static object Verify(string fixture="HandRigTests")
     {
-        var type=AppDomain.CurrentDomain.GetAssemblies().Single(a=>a.GetName().Name=="Aipocalypse.Tests.EditMode").GetType("Aipocalypse.Tests."+fixture,true);
+        var type=AppDomain.CurrentDomain.GetAssemblies().Single(a=>a.GetName().Name=="MB13.Aipocalypse.Tests.EditMode").GetType("MB13.Aipocalypse.Tests."+fixture,true);
         var failures=new System.Collections.Generic.List<string>();int passed=0;
         foreach(var method in type.GetMethods())
         foreach(var attribute in method.GetCustomAttributes(false))
@@ -43,18 +43,18 @@ public static class HandFistReview
     public static object Weapon(string weapon="AK47",float time=1.65f)
     {
         var scene=EditorSceneManager.NewPreviewScene();
-        Aipocalypse.Core.WeaponSystem.GunAnimation animation=null;
+        MB13.Aipocalypse.Core.WeaponSystem.GunAnimation animation=null;
         try
         {
             var set=AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
             var gun=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/" + weapon + "/" + weapon + ".prefab"));
             SceneManager.MoveGameObjectToScene(gun,scene);gun.transform.position=set.PreviewItemPosition;
-            var held=new SerializedObject(gun.GetComponent<Aipocalypse.Core.WeaponSystem.HeldGun>());
+            var held=new SerializedObject(gun.GetComponent<MB13.Aipocalypse.Core.WeaponSystem.HeldGun>());
             var pivot=(Transform)held.FindProperty("_posePivot").objectReferenceValue;
             var hip=(Transform)held.FindProperty("_hipPose").objectReferenceValue;
             pivot.localPosition=hip.localPosition;pivot.localRotation=hip.localRotation;
-            animation=gun.GetComponentInChildren<Aipocalypse.Core.WeaponSystem.GunAnimation>();
-            animation.StartAction(Aipocalypse.Core.WeaponSystem.GunAction.ClearingJam,false);
+            animation=gun.GetComponentInChildren<MB13.Aipocalypse.Core.WeaponSystem.GunAnimation>();
+            animation.StartAction(MB13.Aipocalypse.Core.WeaponSystem.GunAction.ClearingJam,false);
             animation.Tick(.016f,time/4f);
             var hands=gun.GetComponent<ItemHands>();
             foreach(HandSide side in new[]{HandSide.Left,HandSide.Right})
@@ -206,8 +206,8 @@ public static class HandFistReview
             SceneManager.MoveGameObjectToScene(rig.gameObject, scene);
             var gun = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/AK47/AK47.prefab"));
             SceneManager.MoveGameObjectToScene(gun,scene);
-            var animation = gun.GetComponentInChildren<Aipocalypse.Core.WeaponSystem.GunAnimation>();
-            animation.StartAction(Aipocalypse.Core.WeaponSystem.GunAction.ClearingJam,false);
+            var animation = gun.GetComponentInChildren<MB13.Aipocalypse.Core.WeaponSystem.GunAnimation>();
+            animation.StartAction(MB13.Aipocalypse.Core.WeaponSystem.GunAction.ClearingJam,false);
             animation.Tick(.016f,time / 4f);
             var shape = animation.transform.Find("Motion/HandTargets/Left").GetComponent<HandGrip>().Shape;
             rig.Apply(shape);

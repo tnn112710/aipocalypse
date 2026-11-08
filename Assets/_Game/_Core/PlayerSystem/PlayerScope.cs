@@ -1,9 +1,9 @@
-using Aipocalypse.Core.Entities;
-using Aipocalypse.Core.PlayerSystem.Defaults;
-using Aipocalypse.Core.Stats;
+using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.PlayerSystem.Defaults;
+using MB13.Aipocalypse.Core.Stats;
 using VContainer;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     public sealed class PlayerScope : EntityScope
     {

@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
-namespace Aipocalypse.Core.PlayerSystem
+namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Draws the HeldWeapon layer inside the world camera (no overlay camera pass), clearing depth and using the FirstPersonView
     // lens. Requires the layer removed from the renderer's opaque/transparent masks but kept in the camera's culling mask.

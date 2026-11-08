@@ -1,13 +1,13 @@
 using System;
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using Ami.BroAudio;
 using UnityEngine;
 using VContainer.Unity;
 using Random = UnityEngine.Random;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Plays TimeOfDayAmbience against the world clock. Beds start once and follow their curves; calls wait a random interval.
     public sealed class AmbienceService : IStartable, ITickable, IDisposable

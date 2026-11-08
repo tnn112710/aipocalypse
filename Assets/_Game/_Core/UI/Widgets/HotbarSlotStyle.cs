@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     // Everything a hotbar slot looks like. Sizes and placement stay in the HotbarSlot prefab.
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Hotbar Slot Style", fileName = "HotbarSlotStyle")]

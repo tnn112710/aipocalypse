@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Aipocalypse.Core.EnvironmentSystem
+namespace MB13.Aipocalypse.Core.EnvironmentSystem
 {
     // Sets the global multipliers the ANGRY MESH Stylized Pack shaders apply to every material's top layer (grass caps).
     // Unset they are 0 and no top layer shows; the pack's ASPGlobalTopLayer would set them from Update every frame.

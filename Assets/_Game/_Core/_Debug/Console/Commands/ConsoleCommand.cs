@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace Aipocalypse.Core.Debugging
+namespace MB13.Aipocalypse.Core.Debugging
 {
     // One callable form of a command: a method (its parameters are the arguments) or a property (read with none, set with one).
     public sealed class ConsoleCommand

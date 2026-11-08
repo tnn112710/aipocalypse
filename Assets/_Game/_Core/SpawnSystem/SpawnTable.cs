@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Aipocalypse.Core.RandomSystem;
-using Aipocalypse.Core.WorldTimeSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.SpawnSystem
+namespace MB13.Aipocalypse.Core.SpawnSystem
 {
     // What may spawn somewhere, by weight: each entry's card when its day phase, day range and alive cap allow it, or nothing
     // at all (NothingWeight). A request from a table picks one card for its whole group.

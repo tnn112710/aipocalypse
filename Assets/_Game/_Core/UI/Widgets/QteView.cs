@@ -1,7 +1,7 @@
-using Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
 using UnityEngine;
 
-namespace Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.UI
 {
     public abstract class QteView : MonoBehaviour
     {

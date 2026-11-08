@@ -1,20 +1,20 @@
-using Aipocalypse.Core.AudioSystem;
-using Aipocalypse.Core.Combat;
-using Aipocalypse.Core.Debugging;
-using Aipocalypse.Core.Effects;
-using Aipocalypse.Core.GraphicsSystem;
-using Aipocalypse.Core.PlayerSystem;
-using Aipocalypse.Core.WeaponSystem;
-using Aipocalypse.Core.TimeSystem;
-using Aipocalypse.Core.QuickTimeSystem;
-using Aipocalypse.Core.RandomSystem;
-using Aipocalypse.Input;
+using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.GraphicsSystem;
+using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Input;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Aipocalypse.Core.Bootstrap
+namespace MB13.Aipocalypse.Core.Bootstrap
 {
     // Root scope: VContainerSettings instantiates this prefab before any scene loads, so every scene has these services.
     public sealed class ProjectLifetimeScope : LifetimeScope
