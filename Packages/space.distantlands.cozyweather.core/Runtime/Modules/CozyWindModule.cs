@@ -32,7 +32,7 @@ namespace DistantLands.Cozy
         {
             get
             {
-                return new Vector3(-Mathf.Cos(Mathf.Deg2Rad * (Heading + CozyPreferences.SkyRotation)), 0, Mathf.Sin(Mathf.Deg2Rad * (Heading + CozyPreferences.SkyRotation)));
+                return new Vector3(Mathf.Cos(Mathf.Deg2Rad * (Heading + CozyPreferences.SkyRotation)), 0, -Mathf.Sin(Mathf.Deg2Rad * (Heading + CozyPreferences.SkyRotation)));
             }
             set
             {
@@ -94,8 +94,6 @@ namespace DistantLands.Cozy
         [SerializeField]
         private MinFloatOverridable gustingPower = new(1f, 0, true);
 
-        public float zephyrMultiplier = 1;
-
         #region Shader Settings
 
         [CozySearchable]
@@ -143,6 +141,9 @@ namespace DistantLands.Cozy
                 globalShaderProperties[i] = windProperty;
             }
 
+            if (transform.parent.GetComponentInChildren<WindZone>())
+                windZone = transform.parent.GetComponentInChildren<WindZone>();
+
         }
 
 
@@ -177,7 +178,7 @@ namespace DistantLands.Cozy
 
             if (windZone)
             {
-                windZone.transform.LookAt(windZone.transform.position + WindDirection, Vector3.up);
+                windZone.transform.forward = WindDirection;
                 windZone.windMain = WindParameters.windStrength * windZoneMultiplier;
                 windZone.windPulseMagnitude = WindParameters.gustingPower;
                 windZone.windPulseFrequency = WindParameters.gustingFrequency;

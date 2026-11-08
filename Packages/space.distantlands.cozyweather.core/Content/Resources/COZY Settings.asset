@@ -74,8 +74,8 @@ MonoBehaviour:
   timeUnit: 0
   showSeconds: 0
   showMilliseconds: 0
-  skyPitch: 40
-  skyRotation: 271
+  skyPitch: 32.9
+  skyRotation: 15.2
   months:
   - name: January
     days: 31
@@ -120,7 +120,7 @@ MonoBehaviour:
   tooltips: 1
   graphs: 1
   dontDestroyWeatherOnLoad: 0
-  renderFXBlocking: 0
+  renderFXBlocking: 1
   fxRenderDistance: 15
   fxRenderHeight: 25
   fxBlockingResolution: 256
@@ -129,7 +129,6 @@ MonoBehaviour:
     m_Bits: 257
   fxBlockingRendererIndex: 0
   styles:
-  - {fileID: 11400000, guid: 2df8ed5816e24ef48beba2a0bca34586, type: 2}
   - {fileID: 7830359998459710090}
   - {fileID: -5030903166338385743}
   dawnTimes:
@@ -224,7 +223,7 @@ MonoBehaviour:
       milliseconds: 0
       meridiem: 1
   cloudDownsampling: 4
-  fogDownsampling: 2
+  fogDownsampling: 1
 --- !u!114 &7830359998459710090
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,7 +238,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useLighting: 1
   useLightingSun: 1
-  useLightingSunCloudShadows: 1
+  useLightingSunCloudShadows: 0
   useLightingSunLensFlare: 1
   useLightingMoon: 1
   useLightingMoonLensFlare: 1
@@ -247,13 +246,13 @@ MonoBehaviour:
   useLightingAmbient: 1
   useSky: 1
   useSkyGradient: 1
-  useSkyTwoTone: 1
+  useSkyTwoTone: 0
   useSkyStars: 1
   useSkyConstellations: 1
   useSkyGalaxy: 1
   useSkyRainbow: 1
   useSkyLightColumns: 0
-  useSkyShootingStars: 1
+  useSkyShootingStars: 0
   useSkySunDisk: 1
   useSkyMoonDisk: 1
   useFog: 1
@@ -265,11 +264,11 @@ MonoBehaviour:
   useFogHeight: 0
   useFogBase: 1
   useClouds: 1
-  useCloudsVolumetric: 0
-  useCloudsVolumetricHighlights: 0
+  useCloudsVolumetric: 1
+  useCloudsVolumetricHighlights: 1
   useCloudsVolumetricSelfShadowing: 0
   useCloudsCumulonimbus: 0
-  useCloudsCumulus: 1
+  useCloudsCumulus: 0
   useCloudsAltocumulus: 1
   useCloudsCirrus: 1
   useCloudsContrails: 1

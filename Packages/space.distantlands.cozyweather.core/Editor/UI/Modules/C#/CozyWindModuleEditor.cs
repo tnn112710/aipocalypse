@@ -183,9 +183,8 @@ namespace DistantLands.Cozy.EditorScripts
 #if ZEPHYR
                 if (ZephyrWind.Instance)
                 {
-                    PropertyField zephyrMultiplier = new PropertyField();
-                    zephyrMultiplier.BindProperty(serializedObject.FindProperty("zephyrMultiplier"));
-                    zephyrContainer.Add(zephyrMultiplier);
+                    Tooltip tooltip = new Tooltip("Setup Zephyr integration settings in the Integrations window!");
+                    zephyrContainer.Add(tooltip);
                 }
                 else
                 {

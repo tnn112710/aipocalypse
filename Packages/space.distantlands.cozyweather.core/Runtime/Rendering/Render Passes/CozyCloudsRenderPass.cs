@@ -19,6 +19,8 @@ namespace DistantLands.Cozy
         private int m_ColorId;
         private int m_DepthId;
         private Hash128 m_DescKey;
+        private BufferedRTHandleSystem m_Storage = new();
+        private int m_LastFrameNumber = -1;
 
         public override void OnCreate(BufferedRTHandleSystem owner, uint typeId)
         {
@@ -29,14 +31,16 @@ namespace DistantLands.Cozy
 
         public override void Reset()
         {
-            ReleaseHistoryFrameRT(m_ColorId);
-            ReleaseHistoryFrameRT(m_DepthId);
+            m_Storage.Dispose();
+            m_Storage = new BufferedRTHandleSystem();
+            m_DescKey = default;
+            m_LastFrameNumber = -1;
         }
 
-        public RTHandle currentColor => GetCurrentFrameRT(m_ColorId);
-        public RTHandle previousColor => GetPreviousFrameRT(m_ColorId);
-        public RTHandle currentDepth => GetCurrentFrameRT(m_DepthId);
-        public RTHandle previousDepth => GetPreviousFrameRT(m_DepthId);
+        public RTHandle currentColor => m_Storage.GetFrameRT(m_ColorId, 0);
+        public RTHandle previousColor => m_Storage.GetFrameRT(m_ColorId, 1);
+        public RTHandle currentDepth => m_Storage.GetFrameRT(m_DepthId, 0);
+        public RTHandle previousDepth => m_Storage.GetFrameRT(m_DepthId, 1);
 
         public void Update(int width, int height)
         {
@@ -55,11 +59,19 @@ namespace DistantLands.Cozy
                 RenderTextureDescriptor depthDesc = colorDesc;
                 depthDesc.graphicsFormat = GraphicsFormat.D32_SFloat;
 
-                ReleaseHistoryFrameRT(m_ColorId);
-                ReleaseHistoryFrameRT(m_DepthId);
-                AllocHistoryFrameRT(m_ColorId, 2, ref colorDesc, "CozyCloudsColorHistory");
-                AllocHistoryFrameRT(m_DepthId, 2, ref depthDesc, "CozyCloudsDepthHistory");
+                m_Storage.ReleaseBuffer(m_ColorId);
+                m_Storage.ReleaseBuffer(m_DepthId);
+                m_Storage.AllocBuffer(m_ColorId, 2, ref colorDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, "CozyCloudsColorHistory");
+                m_Storage.AllocBuffer(m_DepthId, 2, ref depthDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, "CozyCloudsDepthHistory");
                 m_DescKey = key;
+                m_LastFrameNumber = -1;
+            }
+
+            // URP may advance a base camera's history again for each stacked overlay.
+            if (m_LastFrameNumber != Time.frameCount)
+            {
+                m_Storage.SwapAndSetReferenceSize(width, height);
+                m_LastFrameNumber = Time.frameCount;
             }
         }
     }
@@ -126,6 +138,7 @@ namespace DistantLands.Cozy
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var cozyData = frameData.GetOrCreate<CozyFrameData>();
             var cameraData = frameData.Get<UniversalCameraData>();
+            if (cameraData.renderType == CameraRenderType.Overlay) return;
 
 #if UNITY_EDITOR
             if (cameraData.isSceneViewCamera && !SceneView.lastActiveSceneView.sceneViewState.showSkybox)
@@ -226,7 +239,7 @@ namespace DistantLands.Cozy
 
                 float currentHistoryWeight = 0.8f;
                 if (!useTemporalHistory || !hasPrevCameraFrame ||
-                    posMovement > positionThreshold || rotMovement > rotationThreshold || timeMovement > timeThreshold)
+                    posMovement > positionThreshold || rotMovement > 0.005f || timeMovement > timeThreshold)
                 {
                     currentHistoryWeight = 0.0f;
                 }
