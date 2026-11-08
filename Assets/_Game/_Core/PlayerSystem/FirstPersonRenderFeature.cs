@@ -56,6 +56,9 @@ namespace Aipocalypse.Core.PlayerSystem
                 var renderingData = frameData.Get<UniversalRenderingData>();
                 var lightData = frameData.Get<UniversalLightData>();
                 var resources = frameData.Get<UniversalResourceData>();
+                // Depth-only cameras (COZY's FX Blocking Camera renders into a depth texture) have no colour to draw into.
+                if (!resources.activeColorTexture.IsValid())
+                    return;
 
                 using var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var data, profilingSampler);
 
