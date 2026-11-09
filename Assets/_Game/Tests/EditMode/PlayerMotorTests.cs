@@ -173,16 +173,20 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
-        public void Jump_WhileCrouched_StandsAndJumps()
+        public void Jump_WhileCrouched_OnlyStandsUp_AndTheNextPressJumps()
         {
             StandOnGround();
             Run(new PlayerIntent { Crouch = true }, 10);
             int jumps = 0;
             _motor.Jumped += () => jumps++;
 
-            Run(new PlayerIntent { Jump = true }, 1);
+            Run(new PlayerIntent { Jump = true }, 10);
 
             Assert.IsFalse(_motor.IsCrouching);
+            Assert.AreEqual(0, jumps, "the press isn't kept in the jump buffer either");
+
+            Run(new PlayerIntent { Jump = true }, 1);
+
             Assert.AreEqual(1, jumps);
         }
 

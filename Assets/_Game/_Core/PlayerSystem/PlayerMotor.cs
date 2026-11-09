@@ -168,7 +168,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _timeSinceStableGround += deltaTime;
         }
 
-        // Crouch toggles, on stable ground only. Jumping or a fresh sprint press stands up first, when there's room.
+        // Crouch toggles, on stable ground only. Jump or a fresh sprint press stands up, when there's room.
         void UpdateCrouch(bool crouchPressed, bool sprintHeld, bool sprintInput, bool stableGround, float deltaTime)
         {
             if (!sprintHeld)
@@ -184,9 +184,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                     _sprintLatched = sprintHeld;
                 }
             }
-            else if (IsCrouching && (_jumpBufferLeft > 0f || (sprintInput && !_sprintLatched)) && !TryStand())
+            else if (IsCrouching && _jumpBufferLeft > 0f)
             {
+                // Jump while crouched only stands up (when there's room); the next press jumps.
                 _jumpBufferLeft = 0f;
+                TryStand();
+            }
+            else if (IsCrouching && sprintInput && !_sprintLatched)
+            {
+                TryStand();
             }
 
             float rate = _tuning.CrouchTransitionTime > 0f ? deltaTime / _tuning.CrouchTransitionTime : 1f;
