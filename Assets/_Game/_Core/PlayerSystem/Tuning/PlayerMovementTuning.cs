@@ -16,6 +16,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Steering while airborne; momentum is kept")]
         float _airAcceleration = 1.5f;
 
+        [Header("Crouch"), SerializeField, Min(0.1f), Tooltip("Capsule height while crouched (m); the eye drops by the difference from standing")]
+        float _crouchHeight = 1.2f;
+        [SerializeField, Range(0f, 1f), Tooltip("Crouched speed as a share of walking speed")]
+        float _crouchSpeedMultiplier = 0.5f;
+        [SerializeField, Min(0f), Tooltip("Seconds for the eye to go down or up")]
+        float _crouchTransitionTime = 0.15f;
+        [SerializeField, Tooltip("What stops standing up under it (a low beam, a table)")]
+        LayerMask _standUpBlockers = Physics.DefaultRaycastLayers;
+
         [Header("Jump & gravity"), SerializeField, Min(0f)] float _jumpHeight = 1.1f;
         [SerializeField, Min(0.01f)] float _gravity = 22f;
         [SerializeField, Min(0f)] float _maxFallSpeed = 50f;
@@ -47,6 +56,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float GroundAcceleration => _groundAcceleration;
         public float GroundDeceleration => _groundDeceleration;
         public float AirAcceleration => _airAcceleration;
+        public float CrouchHeight => _crouchHeight;
+        public float CrouchSpeedMultiplier => _crouchSpeedMultiplier;
+        public float CrouchTransitionTime => _crouchTransitionTime;
+        public LayerMask StandUpBlockers => _standUpBlockers;
         public float JumpHeight => _jumpHeight;
         public float Gravity => _gravity;
         public float MaxFallSpeed => _maxFallSpeed;

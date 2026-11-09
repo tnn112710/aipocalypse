@@ -8,7 +8,7 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 
 - Hours include +15% for making the systems work together.
 - Weeks assume about 45 h of work a week: 4–6 h on weekdays, 8–12 h on weekend days.
-- Counting from 2026-11-09, the slice is about **590–885 h (about 740)**, or **13–20 weeks**. That is about early March 2027, or mid-March after the holidays.
+- Counting from 2026-11-09, the slice is about **585–875 h (about 730)**, or **13–19 weeks**. That is about early March 2027, or mid-March after the holidays.
 - Early Access follows in about late June 2027.
 
 **Done means:**
@@ -37,13 +37,11 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 - Items taken from the GDD (thieves, Tokens, debt bar, drone, Blood Moon…) are still confirmed with the user before each is built (AGENTS.md → "Prompt first, GDD second").
 - Core feel leftovers not listed in a phase get built when a phase needs them.
 
-### Phase 0: Close Core feel (19–29 h, to about Nov 14)
+### Phase 0: Close Core feel (2–3 h, to about Nov 10)
 
-- [ ] Crouch (2–3 h)
-- [ ] 50-raider gate: 50 raiders plus the open-world enemies near the player within budget, measured in a build (5–9 h)
-- [ ] Shooting leftovers: crosshair polish, damageable targets in the scene, ammo pickups (12–17 h)
+- [x] Crouch (2–3 h)
 
-### Phase 1: New world map (114–175 h, to about Dec 7)
+### Phase 1: New world map (114–175 h, to about Dec 4)
 
 A bigger map replaces the prototype WorldMap as the game scene. WorldMap stays as the test scene.
 
@@ -56,13 +54,13 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Move the gameplay setups over: spawn areas, goblin camp, fish, bridge, landmarks (9–14 h)
 - [ ] Performance on the bigger map: terrain tiles, draw distances, navmesh memory (17–29 h)
 
-### Phase 2: From prototype to game (28–41 h, to about Dec 12)
+### Phase 2: From prototype to game (28–41 h, to about Dec 9)
 
 - [ ] Start-up flow into the new map, `DevStartConfig` (6–9 h)
 - [ ] Main menu, pause menu, basic settings: sensitivity, FOV, volume (12–17 h)
 - [ ] Sleep in bed → skip to morning → morning report (10–15 h)
 
-### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 6)
+### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 3)
 
 - [ ] Basic inventory or backpack for produce and loot (12–18 h)
 - [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h)
@@ -77,14 +75,14 @@ The whole map gets generator quality. Only the home side and one corner of the P
   - skill effects through a shared stat-modifier layer, which upgrades use too
 - [ ] *Stretch:* 1–2 crops (12–17 h), rod fishing (`Proto_Fishing`, 23–35 h)
 
-### Phase 4: Explore (46–67 h, to about Jan 15)
+### Phase 4: Explore (46–67 h, to about Jan 12)
 
 - [ ] Bridge repair (9–14 h)
 - [ ] Points of interest in one corner of the Pine Forest (17–26 h)
 - [ ] Loot containers and loot tables (14–18 h)
 - [ ] Wandering goblins with caps (6–9 h)
 
-### Phase 5: Defend (60–94 h, to about Jan 27)
+### Phase 5: Defend (60–94 h, to about Jan 24)
 
 - [ ] Thieves steal animals (14–21 h)
 - [ ] Raids get harder over the 3 nights; losing a raid has a cost (13–21 h)
@@ -92,15 +90,16 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Raid HUD (7–9 h)
 - [ ] Blood Moon on night 3, light version: red look, more goblins, one elite instead of a full miniboss (17–29 h)
 
-### Phase 6: Gun animation rework (58–86 h, to about Feb 7)
+### Phase 6: Gun animation rework (58–86 h, to about Feb 4)
 
 This comes before the sound and VFX pass, because impact sounds are timed by markers inside the clips.
 
 - [ ] Re-key every clip on the five guns: equip, idle, fire, reload, empty reload, jam clearing, cycle (46–69 h)
 - [ ] Replace the procedural holster, axe swing and hammer knocks with clips (12–17 h)
 
-### Phase 7: Quality pass (132–206 h, to about Mar 5)
+### Phase 7: Quality pass (144–223 h, to about Mar 3)
 
+- [ ] Shooting leftovers: crosshair polish, damageable targets in the scene, ammo pickups (12–17 h)
 - [ ] Shooting to Very High: real gun sounds instead of the `_Placeholder` clips, muzzle and impact VFX, feel passes (15–28 h)
 - [ ] Inner zone to Very High: yard, house and farm dressing, lighting, the cozy feel (35–52 h)
 - [ ] Goblins easy to read at night; hit reactions (12–17 h)
@@ -139,10 +138,10 @@ The mechanics are tested together in `Scenes/Prototypes/WorldMap.unity`; each me
   - [ ] HUD — standalone `_Core/UI/Prefabs/HUD.prefab` with its own `HudScope` (canvas 1920×1080, corner regions; placed in the scene, not in the Player prefab), widgets + style assets ([UI.md](technicals/UI.md)); done: health and stamina bars, hotbar, crosshair (with spread ticks), interact prompt, hit feedback, hurt feedback (directional edge flash), QTE, clock, death screen
   - [x] Dev console (backquote key): commands and cheats registered per system (`ConsoleCommands`), Unity logs, on-screen log (`ScreenLog`); editor and dev builds ([CONSOLE.md](technicals/CONSOLE.md), [DEBUG.md](technicals/DEBUG.md)). Later: key binds, live watches
   - [x] PlayMode smoke test — `Tests/PlayMode/WorldMapSmokeTests` (WorldMap scene: injection, enemy system, pick up, fire, reload, raiders spawn at the raid's start hour, no errors)
-- [ ] `Proto_Movement` — walk, sprint, crouch, jump, look. Done in `Scenes/Prototypes/WorldMap.unity`: walk, sprint + stamina/exhaustion, jump (coyote, buffer), look, steep-slope slide, fall damage, head bob + landing dip, interact (look cast + HUD prompt, used by pickups), footstep / jump / landing sounds (BroAudio). Left: crouch
+- [x] `Proto_Movement` — walk, sprint, crouch, jump, look. Done in `Scenes/Prototypes/WorldMap.unity`: walk, sprint + stamina/exhaustion, jump (coyote, buffer), look, steep-slope slide, fall damage, head bob + landing dip, interact (look cast + HUD prompt, used by pickups), footstep / jump / landing sounds (BroAudio), crouch (toggle; works with sprint, jump, low ceilings, aiming and respawn)
 - [ ] `Proto_Shooting` — fire, recoil, hit feedback, reload, gun jammed, (entity defaults: limited/infinite ammo, base stats, gun feel). Done in `Scenes/Prototypes/WorldMap.unity` (shooting range ahead of the table): AK-47 + pistol + MP5 + double-barrel and pump shotguns, fire modes, pellets, pump action, travelling pooled bullets (muzzle or camera origin), damage, impacts + bullet holes, magazine + shared ammo by type (limited or infinite), magazine / per-round reload, jams with auto clear and a QTE repair (clear early), clip-driven reload and repair animations on all five guns (cycle clips on MP5, pistol and both shotguns; AK-47 doesn't cycle), recoil, hip / aim / sprint poses, ammo on the hotbar, gun sounds (BroAudio, placeholder clips), aim zoom, hit marker + hit / kill sounds + damage numbers (through `DamageService` / `DamageDealt`), crosshair dot with spread ticks ([WEAPONS.md](technicals/WEAPONS.md)). Left: crosshair polish, damageable targets in the scene, ammo pickups
 - [ ] `Proto_Equipment` — hotbar, switch among guns, melee, fishing rod, axe, farm tools (Previous / Next, number keys); equip / unequip animation, primary / secondary use per item. Done in `Scenes/Prototypes/WorldMap.unity`: 3-slot hotbar (any weapon in any slot; up to 9) with HUD, weapon pickup (E, first free slot) / swap with the held weapon when full / drop (G), keys 1–9 + mouse wheel, timed holster → equip with a temporary procedural animation, five guns (AK-47, pistol, MP5, double-barrel and pump shotguns) + fire axe (melee swings: hold to repeat, sphere-cast hit, knockback), gun animations partly done (clip-driven equip, reload, repair and cycle clips on the guns; holster and melee still procedural). Left: real animations (the rest), fishing rod, tools, use actions
-- [ ] `Proto_Enemies` — A* `FollowerEntity`, one archetype as a BD Subtree (Manual mode, ticked by `EnemyManager`), `EnemyBrain` (injected, self-registering in `EnemyRegistry`), attack, health, pooling. **Enemy count (user, 2026-11-09):** a raid has at most 50 raiders alive at once, usually 20–30. This is not a cap on the whole map. Enemies out of sight or far from the player can be hidden (parked or asleep), and non-raid enemies can be hidden during a raid. **Gate:** 50 raiders plus the open-world enemies near the player within budget, in a build, before more archetypes. Done in `Scenes/Prototypes/WorldMap.unity`: `FollowerEntity` movement (`EnemyMover`), the shared Wander BD subtree, Manual trees ticked by `EnemyManager`, `EnemyBrain`, `EnemyRegistry`. Health, knockback, hit reactions and death done (`EnemyStats`, `EnemyBody`; goblins have 100 HP). Goblins hunt their target (`TargetRegistry` / `TargetSelector`: the player for now), close in at most three at a time (`AttackSlots`), swing a sword and hurt (`AttackDamage` 15 through `DamageService`); code spawning and pooling through the generic SpawnSystem (`EnemySpawnCard`, `SpawnService`, `PrefabPool` with warm prewarm, formations, air / water placement, open-world `SpawnArea`s with a first goblin camp by the lake, fish in rivers, pool trimming, per-card caps; [SPAWNING.md](technicals/SPAWNING.md)), enemy sounds (`EnemySoundSet`, central footsteps), raid nights ([RAIDS.md](technicals/RAIDS.md)). Left: the 50-raider gate in a build. 300 already ran in the editor, at a 13.7 ms PlayerLoop median ([SPAWNING.md](technicals/SPAWNING.md))
+- [ ] `Proto_Enemies` — A* `FollowerEntity`, one archetype as a BD Subtree (Manual mode, ticked by `EnemyManager`), `EnemyBrain` (injected, self-registering in `EnemyRegistry`), attack, health, pooling. **Enemy count (user, 2026-11-09):** a raid has at most 50 raiders alive at once, usually 20–30. This is not a cap on the whole map. Enemies out of sight or far from the player can be hidden (parked or asleep), and non-raid enemies can be hidden during a raid. Done in `Scenes/Prototypes/WorldMap.unity`: `FollowerEntity` movement (`EnemyMover`), the shared Wander BD subtree, Manual trees ticked by `EnemyManager`, `EnemyBrain`, `EnemyRegistry`. Health, knockback, hit reactions and death done (`EnemyStats`, `EnemyBody`; goblins have 100 HP). Goblins hunt their target (`TargetRegistry` / `TargetSelector`: the player for now), close in at most three at a time (`AttackSlots`), swing a sword and hurt (`AttackDamage` 15 through `DamageService`); code spawning and pooling through the generic SpawnSystem (`EnemySpawnCard`, `SpawnService`, `PrefabPool` with warm prewarm, formations, air / water placement, open-world `SpawnArea`s with a first goblin camp by the lake, fish in rivers, pool trimming, per-card caps; [SPAWNING.md](technicals/SPAWNING.md)), enemy sounds (`EnemySoundSet`, central footsteps), raid nights ([RAIDS.md](technicals/RAIDS.md)). 300 already ran in the editor, at a 13.7 ms PlayerLoop median ([SPAWNING.md](technicals/SPAWNING.md))
 - [ ] `Proto_Fishing` — rod: cast, bite, reel, catch into Inventory; gun fishing: shoot jumping fish (weapon on-hit "catch fish"); fish as crowd entities
 - [ ] `Proto_Crafting` — workbench, recipe data, materials → ammo (crafting rules are still [TBD] in the GDD; this tests only the interaction)
 

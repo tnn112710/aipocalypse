@@ -13,6 +13,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _walkStepVolume = 0.7f;
         [SerializeField, Range(0f, 1f), Tooltip("Footstep volume while sprinting")]
         float _sprintStepVolume = 1f;
+        [SerializeField, Range(0f, 1f), Tooltip("Footstep volume while crouched")]
+        float _crouchStepVolume = 0.35f;
         [SerializeField] SoundID _jumpSound;
         [SerializeField] SoundID _landSound;
         [SerializeField, Min(0f), Tooltip("Landings slower than this (m/s) are silent")]
@@ -32,6 +34,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public SoundID FootstepSound => _footstepSound;
         public float WalkStepVolume => _walkStepVolume;
         public float SprintStepVolume => _sprintStepVolume;
+        public float CrouchStepVolume => _crouchStepVolume;
         public SoundID JumpSound => _jumpSound;
         public SoundID LandSound => _landSound;
         public float LandingSoundMinSpeed => _landingSoundMinSpeed;

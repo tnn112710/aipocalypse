@@ -75,6 +75,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public bool InSequence => _sequence != null && _sequence.IsPlaying;
         public PoseSequence CurrentSequence => _sequence?.Current;
         public bool IsSprinting => _motor != null && _motor.IsSprinting;
+        public bool IsCrouching => _motor != null && _motor.IsCrouching;
         public Vector2 CrosshairPosition => _aim != null ? _aim.CrosshairPosition : default;
         public float CrosshairSpread => _aim != null ? _aim.CrosshairSpread : 0f;
         // Where the player entered the scene; respawns go back there.
@@ -189,6 +190,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (!inSequence)
                 _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
+            _cameraRig.SetCrouchDrop(_motor.CrouchEyeDrop);
             // A lethal landing kills inside the motor tick: the rest of this frame already belongs to the dead.
             if (canAct && (IsDead || InSequence))
             {
@@ -296,6 +298,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         void OnReviving()
         {
+            _motor.TryStand();
             Stamina.Restore();
             Fatigue.Reset();
             _breathing.Reset();
@@ -322,6 +325,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             LookDegrees = _input.ReadLookDegrees(Time.unscaledDeltaTime) * _zoom.LookScale,
             Sprint = _input.SprintHeld,
             Jump = _input.JumpPressed,
+            Crouch = _input.CrouchPressed,
             SelectSlot = _input.SlotPressed is var slot and >= 0 ? slot : null,
             CycleSlot = _input.CycleDirection,
             Interact = _input.InteractPressed,

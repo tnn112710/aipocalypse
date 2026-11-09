@@ -18,15 +18,20 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         }
     }
 
-    // CharacterController locomotion: walk/sprint with stamina, jump with coyote time and buffering,
+    // CharacterController locomotion: walk/sprint with stamina, crouch, jump with coyote time and buffering,
     // sliding on slopes past the slope limit, and landing tracking for fall damage and camera dip.
     public sealed class PlayerMotor
     {
+        static readonly Collider[] StandUpHits = new Collider[8];
+
         readonly CharacterController _controller;
         readonly Transform _body;
         readonly PlayerMovementTuning _tuning;
         readonly IStatProvider _stats;
         readonly Stamina _stamina;
+        readonly float _standHeight;
+        readonly Vector3 _standCenter;
+        readonly float _crouchHeight;
 
         Vector3 _horizontalVelocity;
         float _verticalVelocity;
@@ -37,10 +42,16 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         bool _isJumping;
         bool _hasGroundHit;
         Vector3 _bestGroundNormal;
+        float _crouchBlend;
+        // Sprint was held when crouching: it stands up only after a fresh press.
+        bool _sprintLatched;
 
         public bool IsGrounded { get; private set; }
         public bool IsOnSteepSlope { get; private set; }
         public bool IsSprinting { get; private set; }
+        public bool IsCrouching { get; private set; }
+        // How far the eye sits below standing height (m), eased over CrouchTransitionTime.
+        public float CrouchEyeDrop => (_standHeight - _crouchHeight) * Mathf.SmoothStep(0f, 1f, _crouchBlend);
         // Standing still on stable ground with no move input: the only state stamina regenerates in.
         public bool IsIdle { get; private set; }
         public Vector3 HorizontalVelocity => _horizontalVelocity;
@@ -48,6 +59,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float VerticalVelocity => _verticalVelocity;
         public float WalkSpeed => _stats.Get(StatId.WalkSpeed, _tuning.WalkSpeed);
         public float SprintSpeed => _stats.Get(StatId.SprintSpeed, _tuning.SprintSpeed);
+        public float CrouchSpeed => WalkSpeed * _tuning.CrouchSpeedMultiplier;
         // Ground speed scale set by the player each frame (slower while aiming down sights).
         public float SpeedMultiplier { get; set; } = 1f;
 
@@ -62,6 +74,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _stats = stats;
             _stamina = stamina;
             _apexY = _body.position.y;
+            _standHeight = controller.height;
+            _standCenter = controller.center;
+            _crouchHeight = Mathf.Clamp(tuning.CrouchHeight, controller.radius * 2f + 0.01f, _standHeight);
         }
 
         public void Tick(in PlayerIntent intent, float deltaTime)
@@ -70,7 +85,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
             bool stableGround = IsGrounded && !IsOnSteepSlope;
             Vector2 move = Vector2.ClampMagnitude(intent.Move, 1f);
-            bool wantsSprint = intent.Sprint && move.y >= _tuning.SprintMinForwardInput && _stamina.CanExert;
+            bool sprintInput = intent.Sprint && move.y >= _tuning.SprintMinForwardInput && _stamina.CanExert;
+            UpdateCrouch(intent.Crouch, intent.Sprint, sprintInput, stableGround, deltaTime);
+            bool wantsSprint = sprintInput && !_sprintLatched && !IsCrouching;
             IsSprinting = wantsSprint && stableGround;
 
             UpdateHorizontal(move, wantsSprint, stableGround, deltaTime);
@@ -101,6 +118,22 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _landingSlowLeft = 0f;
             _isJumping = false;
             _apexY = position.y;
+            // Spawn points are open: stand up without checking.
+            SetCrouched(false);
+            _crouchBlend = 0f;
+            _sprintLatched = false;
+        }
+
+        // Stands up if the standing capsule fits; false (still crouched) under something low.
+        public bool TryStand()
+        {
+            if (!IsCrouching)
+                return true;
+            if (StandUpBlocked())
+                return false;
+            SetCrouched(false);
+            _sprintLatched = false;
+            return true;
         }
 
         // Called from Player.OnControllerColliderHit during Move.
@@ -135,6 +168,57 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _timeSinceStableGround += deltaTime;
         }
 
+        // Crouch toggles, on stable ground only. Jumping or a fresh sprint press stands up first, when there's room.
+        void UpdateCrouch(bool crouchPressed, bool sprintHeld, bool sprintInput, bool stableGround, float deltaTime)
+        {
+            if (!sprintHeld)
+                _sprintLatched = false;
+
+            if (crouchPressed)
+            {
+                if (IsCrouching)
+                    TryStand();
+                else if (stableGround)
+                {
+                    SetCrouched(true);
+                    _sprintLatched = sprintHeld;
+                }
+            }
+            else if (IsCrouching && (_jumpBufferLeft > 0f || (sprintInput && !_sprintLatched)) && !TryStand())
+            {
+                _jumpBufferLeft = 0f;
+            }
+
+            float rate = _tuning.CrouchTransitionTime > 0f ? deltaTime / _tuning.CrouchTransitionTime : 1f;
+            _crouchBlend = Mathf.MoveTowards(_crouchBlend, IsCrouching ? 1f : 0f, rate);
+        }
+
+        // Keeps the feet where they are: the capsule shrinks from the top.
+        void SetCrouched(bool crouched)
+        {
+            IsCrouching = crouched;
+            float height = crouched ? _crouchHeight : _standHeight;
+            float feet = _standCenter.y - _standHeight * 0.5f;
+            _controller.height = height;
+            _controller.center = new Vector3(_standCenter.x, feet + height * 0.5f, _standCenter.z);
+        }
+
+        // The space the standing capsule adds above the crouched one, slightly thinner so touching a wall doesn't count.
+        bool StandUpBlocked()
+        {
+            float radius = _controller.radius;
+            float feet = _standCenter.y - _standHeight * 0.5f;
+            Vector3 bottom = _body.TransformPoint(new Vector3(_standCenter.x, feet + _crouchHeight - radius, _standCenter.z));
+            Vector3 top = _body.TransformPoint(new Vector3(_standCenter.x, feet + _standHeight - radius, _standCenter.z));
+            int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius * 0.95f, StandUpHits, _tuning.StandUpBlockers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                if (StandUpHits[i] != _controller && !StandUpHits[i].transform.IsChildOf(_body))
+                    return true;
+            }
+            return false;
+        }
+
         void UpdateHorizontal(Vector2 move, bool wantsSprint, bool stableGround, float deltaTime)
         {
             bool hasMove = move.sqrMagnitude > 0.0001f;
@@ -150,14 +234,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
             if (stableGround)
             {
-                Vector3 target = wishDirection * ((wantsSprint ? SprintSpeed : WalkSpeed) * scale * SpeedMultiplier);
+                float gaitSpeed = wantsSprint ? SprintSpeed : IsCrouching ? CrouchSpeed : WalkSpeed;
+                Vector3 target = wishDirection * (gaitSpeed * scale * SpeedMultiplier);
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate, deltaTime));
             }
             else if (hasMove)
             {
                 // Airborne: steer, keep momentum, never gain sprint speed mid-air.
-                float speed = Mathf.Max(_horizontalVelocity.magnitude, WalkSpeed * scale);
+                float speed = Mathf.Max(_horizontalVelocity.magnitude, (IsCrouching ? CrouchSpeed : WalkSpeed) * scale);
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, Damping.ByRate(_tuning.AirAcceleration, deltaTime));
             }
 

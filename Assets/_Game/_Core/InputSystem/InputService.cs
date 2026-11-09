@@ -66,6 +66,7 @@ namespace MB13.Aipocalypse.Input
         public Vector2 Move => _actions.Player.Move.ReadValue<Vector2>();
         public bool SprintHeld => _actions.Player.Sprint.IsPressed();
         public bool JumpPressed => WasPressed(GameButton.Jump);
+        public bool CrouchPressed => _actions.Player.Crouch.WasPressedThisFrame();
         // On press, not when the action's Hold interaction completes.
         public bool InteractPressed => WasPressed(GameButton.Interact);
         // The action's Hold interaction completed this frame (held past InputSettings' hold time).

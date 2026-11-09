@@ -49,7 +49,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _audio.Play(_sounds.HurtSound);
         }
 
-        void OnStepped() => _audio.Play(_sounds.FootstepSound, _motor.IsSprinting ? _sounds.SprintStepVolume : _sounds.WalkStepVolume);
+        void OnStepped() => _audio.Play(_sounds.FootstepSound,
+            _motor.IsSprinting ? _sounds.SprintStepVolume : _motor.IsCrouching ? _sounds.CrouchStepVolume : _sounds.WalkStepVolume);
 
         void OnJumped()
         {

@@ -16,6 +16,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         ViewKick _kick;
         Vector3 _headOffset;
         float _headPitch;
+        float _crouchDrop;
         bool _overridden;
         Vector3 _overridePosition;
         Quaternion _overrideRotation = Quaternion.identity;
@@ -54,6 +55,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Apply();
         }
 
+        // Eye lowered by crouching (m).
+        public void SetCrouchDrop(float drop)
+        {
+            if (Mathf.Approximately(drop, _crouchDrop))
+                return;
+            _crouchDrop = drop;
+            Apply();
+        }
+
         // A pose sequence has the camera: the root goes exactly here (body space), look and head motion wait until Release.
         public void Override(Vector3 position, Quaternion rotation)
         {
@@ -81,7 +91,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _pitchPivot.localPosition = _pivotRest;
                 return;
             }
-            _root.localPosition = _rootRest + _headOffset;
+            _root.localPosition = _rootRest + _headOffset + Vector3.down * _crouchDrop;
             _root.localRotation = _rootRestRotation * Quaternion.Euler(_headPitch, 0f, 0f);
             _pitchPivot.localRotation = Quaternion.Euler(_pitch, 0f, 0f) * Quaternion.Euler(_kick.Euler);
             _pitchPivot.localPosition = _pivotRest + _kick.Offset;

@@ -95,5 +95,139 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(1, _landings.Count, "touching the slope isn't a landing; reaching flat ground is");
             Assert.Greater(_landings[0].DropHeight, surface.y - 1f, "the whole slide counts for fall damage");
         }
+
+        // Ground under the origin and a player standing on it, settled.
+        void StandOnGround()
+        {
+            Box(new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 40f), Quaternion.identity);
+            CreatePlayer(new Vector3(0f, 0.1f, 0f));
+            RunUntilStableGround(120);
+            Assert.IsTrue(_motor.IsGrounded, "settled on the ground");
+        }
+
+        void Run(PlayerIntent intent, int frames)
+        {
+            for (int i = 0; i < frames; i++)
+            {
+                _motor.Tick(intent, Frame);
+                intent.Crouch = false;
+                intent.Jump = false;
+            }
+        }
+
+        static PlayerIntent Forward(bool sprint = false) => new() { Move = Vector2.up, Sprint = sprint };
+
+        [Test]
+        public void Crouch_ShrinksTheCapsuleFromTheTop_AndKeepsTheFeet()
+        {
+            StandOnGround();
+            float feet = _controller.transform.position.y;
+
+            Run(new PlayerIntent { Crouch = true }, 30);
+
+            Assert.IsTrue(_motor.IsCrouching);
+            Assert.Less(_controller.height, 1.8f);
+            Assert.AreEqual(_controller.height * 0.5f, _controller.center.y, 0.001f, "capsule bottom stays at the feet");
+            Assert.AreEqual(feet, _controller.transform.position.y, 0.05f);
+            Assert.AreEqual(1.8f - _controller.height, _motor.CrouchEyeDrop, 0.001f, "eye fully down after the transition");
+
+            Run(new PlayerIntent { Crouch = true }, 30);
+
+            Assert.IsFalse(_motor.IsCrouching);
+            Assert.AreEqual(1.8f, _controller.height, 0.001f);
+            Assert.AreEqual(0f, _motor.CrouchEyeDrop, 0.001f);
+        }
+
+        [Test]
+        public void Crouched_MovesAtCrouchSpeed_AndDoesNotSprint()
+        {
+            StandOnGround();
+            Run(new PlayerIntent { Crouch = true }, 1);
+
+            Run(Forward(), 120);
+
+            Assert.IsTrue(_motor.IsCrouching);
+            Assert.IsFalse(_motor.IsSprinting);
+            Assert.AreEqual(_motor.CrouchSpeed, _motor.HorizontalVelocity.magnitude, 0.1f);
+            Assert.Less(_motor.CrouchSpeed, _motor.WalkSpeed);
+        }
+
+        [Test]
+        public void CrouchingWhileSprinting_StaysDown_UntilSprintIsPressedAgain()
+        {
+            StandOnGround();
+            Run(Forward(sprint: true), 30);
+            Assert.IsTrue(_motor.IsSprinting);
+
+            PlayerIntent crouch = Forward(sprint: true);
+            crouch.Crouch = true;
+            Run(crouch, 30);
+            Assert.IsTrue(_motor.IsCrouching, "the held sprint key doesn't stand it back up");
+            Assert.IsFalse(_motor.IsSprinting);
+
+            Run(Forward(), 2);
+            Run(Forward(sprint: true), 30);
+
+            Assert.IsFalse(_motor.IsCrouching, "a fresh sprint press stands up");
+            Assert.IsTrue(_motor.IsSprinting);
+        }
+
+        [Test]
+        public void Jump_WhileCrouched_StandsAndJumps()
+        {
+            StandOnGround();
+            Run(new PlayerIntent { Crouch = true }, 10);
+            int jumps = 0;
+            _motor.Jumped += () => jumps++;
+
+            Run(new PlayerIntent { Jump = true }, 1);
+
+            Assert.IsFalse(_motor.IsCrouching);
+            Assert.AreEqual(1, jumps);
+        }
+
+        [Test]
+        public void UnderALowCeiling_CrouchStaysDown_AndJumpAndSprintDoNothing()
+        {
+            StandOnGround();
+            Run(new PlayerIntent { Crouch = true }, 10);
+            // A slab whose underside is 1.4 m up: room for the crouched capsule, not the standing one.
+            Box(new Vector3(0f, 1.65f, 0f), new Vector3(6f, 0.5f, 6f), Quaternion.identity);
+            Physics.SyncTransforms();
+            int jumps = 0;
+            _motor.Jumped += () => jumps++;
+
+            Run(new PlayerIntent { Crouch = true }, 5);
+            Run(new PlayerIntent { Jump = true }, 5);
+            Run(Forward(sprint: true), 5);
+
+            Assert.IsTrue(_motor.IsCrouching);
+            Assert.AreEqual(0, jumps, "a blocked jump isn't kept for later either");
+            Assert.IsFalse(_motor.IsSprinting);
+            Assert.IsFalse(_motor.TryStand());
+        }
+
+        [Test]
+        public void Crouch_InTheAir_IsIgnored()
+        {
+            CreatePlayer(new Vector3(0f, 20f, 0f));
+
+            Run(new PlayerIntent { Crouch = true }, 1);
+
+            Assert.IsFalse(_motor.IsCrouching);
+        }
+
+        [Test]
+        public void Teleport_StandsUp()
+        {
+            StandOnGround();
+            Run(new PlayerIntent { Crouch = true }, 30);
+
+            _motor.Teleport(Far + new Vector3(5f, 0.1f, 5f), Quaternion.identity);
+
+            Assert.IsFalse(_motor.IsCrouching);
+            Assert.AreEqual(1.8f, _controller.height, 0.001f);
+            Assert.AreEqual(0f, _motor.CrouchEyeDrop, 0.001f);
+        }
     }
 }

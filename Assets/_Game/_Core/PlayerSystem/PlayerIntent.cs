@@ -9,6 +9,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public Vector2 LookDegrees;
         public bool Sprint;
         public bool Jump;
+        // Crouch pressed this frame (toggles).
+        public bool Crouch;
         public int? SelectSlot;
         public int CycleSlot;
         public bool Interact;
