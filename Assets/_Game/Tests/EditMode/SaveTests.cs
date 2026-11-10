@@ -104,10 +104,14 @@ namespace MB13.Aipocalypse.Tests
             return data;
         }
 
+        // The write runs on the thread pool; tests wait for it.
+        string Write(int slot, SaveData data) => _saves.WriteAsync(slot, data).Result;
+
         [Test]
         public void Write_ThenTryRead_GivesBackEveryEntryAndTheHeader()
         {
-            Assert.IsTrue(_saves.Write(2, Saved(42), out string problem), problem);
+            string problem = Write(2, Saved(42));
+            Assert.IsNull(problem, problem);
 
             Assert.IsTrue(_saves.TryRead(2, out SaveData read, out problem), problem);
             Assert.IsTrue(read.TryGet("test", out TestEntry entry));
@@ -122,7 +126,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void TryRead_MissingKey_LeavesTheSystemOnItsNewGameState()
         {
-            _saves.Write(1, Saved(1), out _);
+            Write(1, Saved(1));
             _saves.TryRead(1, out SaveData read, out _);
 
             Assert.IsFalse(read.TryGet("missing", out TestEntry entry));
@@ -132,8 +136,8 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void TryRead_DamagedFile_FallsBackToThePreviousSave()
         {
-            _saves.Write(1, Saved(1), out _);
-            _saves.Write(1, Saved(2), out _);
+            Write(1, Saved(1));
+            Write(1, Saved(2));
             File.WriteAllText(_saves.PathOf(1), "{ not json at all");
 
             Assert.IsTrue(_saves.TryRead(1, out SaveData read, out string problem, out bool fromBackup), problem);
@@ -145,10 +149,10 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Write_OverADamagedFile_KeepsTheLastGoodBackup()
         {
-            _saves.Write(1, Saved(1), out _);
-            _saves.Write(1, Saved(2), out _);
+            Write(1, Saved(1));
+            Write(1, Saved(2));
             File.WriteAllText(_saves.PathOf(1), "garbage");
-            _saves.Write(1, Saved(3), out _);
+            Write(1, Saved(3));
             File.WriteAllText(_saves.PathOf(1), "garbage again");
 
             _saves.TryRead(1, out SaveData read, out _);
@@ -159,9 +163,9 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void TryRead_SaveFromAnotherVersion_IsRefused_NotSwappedForItsBackup()
         {
-            _saves.Write(1, Saved(1), out _);
+            Write(1, Saved(1));
             SaveData data = Saved(2);
-            _saves.Write(1, data, out _);
+            Write(1, data);
             string text = System.Text.RegularExpressions.Regex.Replace(File.ReadAllText(_saves.PathOf(1)),
                 $@"""Version""\s*:\s*{SaveService.Version}\b", "\"Version\" : 999");
             Assert.AreNotEqual(File.ReadAllText(_saves.PathOf(1)), text, "the version was found in the file");
@@ -175,7 +179,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Create_CarriesEntriesNoSectionWroteThisTime()
         {
-            _saves.Write(1, Saved(7), out _);
+            Write(1, Saved(7));
             _saves.TryRead(1, out SaveData loaded, out _);
 
             SaveData next = _saves.Create(loaded);
@@ -189,8 +193,8 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void InfoAndLatestSlot_DescribeTheSlots()
         {
-            _saves.Write(1, Saved(1, savedAt: 100), out _);
-            _saves.Write(3, Saved(3, savedAt: 300), out _);
+            Write(1, Saved(1, savedAt: 100));
+            Write(3, Saved(3, savedAt: 300));
 
             Assert.IsTrue(_saves.Info(2).IsEmpty);
             Assert.AreEqual(4, _saves.Info(1).Header.Day);
@@ -202,8 +206,8 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Delete_RemovesTheSaveAndItsBackup()
         {
-            _saves.Write(2, Saved(1), out _);
-            _saves.Write(2, Saved(2), out _);
+            Write(2, Saved(1));
+            Write(2, Saved(2));
 
             Assert.IsTrue(_saves.Delete(2));
             Assert.IsFalse(_saves.Exists(2));
@@ -214,8 +218,41 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Write_SlotOutOfRange_IsRefused()
         {
-            Assert.IsFalse(_saves.Write(0, Saved(1), out _));
-            Assert.IsFalse(_saves.Write(_settings.SlotCount + 1, Saved(1), out _));
+            Assert.IsNotNull(Write(0, Saved(1)));
+            Assert.IsNotNull(Write(_settings.SlotCount + 1, Saved(1)));
+        }
+
+        [Test]
+        public void WriteAsync_TakesTheBytesAtOnce_AndWritesOneAtATime()
+        {
+            SaveData data = Saved(1);
+            var first = _saves.WriteAsync(1, data);
+            data.Set("test", new TestEntry { Number = 5 });
+            var second = _saves.WriteAsync(1, Saved(2));
+            Assert.IsNull(first.Result);
+            Assert.IsNull(second.Result);
+
+            _saves.TryRead(1, out SaveData read, out _);
+            read.TryGet("test", out TestEntry entry);
+            Assert.AreEqual(2, entry.Number, "the last write wins");
+            File.WriteAllText(_saves.PathOf(1), "garbage");
+            _saves.TryRead(1, out read, out _);
+            read.TryGet("test", out entry);
+            Assert.AreEqual(1, entry.Number, "the backup holds the first write as it was when it started");
+        }
+
+        [Test]
+        public void EditorSlot_IsListedAfterThePlayersSlots_InTheEditor()
+        {
+            CollectionAssert.AreEqual(new[] { 1, 2, 3, SaveService.EditorSlot }, new List<int>(_saves.Slots));
+            StringAssert.EndsWith("slot_editor.es3", _saves.PathOf(SaveService.EditorSlot));
+            Assert.AreEqual("Editor Save", SaveFormat.SlotName(SaveService.EditorSlot));
+
+            Write(1, Saved(1, savedAt: 100));
+            Write(SaveService.EditorSlot, Saved(9, savedAt: 200));
+            Assert.AreEqual(SaveService.EditorSlot, _saves.LatestSlot());
+            Assert.IsTrue(_saves.Delete(SaveService.EditorSlot));
+            Assert.AreEqual(1, _saves.LatestSlot());
         }
 
         [Test]
@@ -239,7 +276,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Registry_Capture_SkipsASectionThatFails_AndKeepsItsCarriedEntry()
         {
-            _saves.Write(1, Saved(7), out _);
+            Write(1, Saved(7));
             _saves.TryRead(1, out SaveData loaded, out _);
             var registry = new SaveRegistry();
             new WritingSection(registry, "test", fails: true);

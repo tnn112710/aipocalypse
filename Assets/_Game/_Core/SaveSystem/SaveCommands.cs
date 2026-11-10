@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.SaveSystem
 {
-    // Console commands on the save slots (editor and cheat builds). Slots are 1-based; 0 = the current game's slot.
+    // Console commands on the save slots (editor and cheat builds). Slots are 1-based; 0 = the current game's slot, 99 = the
+    // editor's slot (editor only).
     [CommandGroup("save")]
     public sealed class SaveCommands : ConsoleCommands
     {
@@ -21,13 +22,14 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         string List()
         {
             var text = new StringBuilder();
-            text.Append($"Current: Save {_session.Slot}, played {SaveFormat.PlayTime(_session.PlayTime)}");
-            for (int slot = 1; slot <= _saves.SlotCount; slot++)
-                text.Append('\n').Append($"Save {slot}: ").Append(SaveFormat.Summary(_saves.Info(slot)));
+            string current = _session.Slot > 0 ? SaveFormat.SlotName(_session.Slot) : "no slot";
+            text.Append($"Current: {current}, played {SaveFormat.PlayTime(_session.PlayTime)}");
+            foreach (int slot in _saves.Slots)
+                text.Append('\n').Append($"{SaveFormat.SlotName(slot)}: ").Append(SaveFormat.Summary(_saves.Info(slot)));
             return text.ToString();
         }
 
-        [Command("Save the game now to `slot` (0 = the current slot)")]
+        [Command("Start saving the game to `slot` now (0 = the current slot); the file is written in the background")]
         CommandResult Write(int slot = 0) =>
             _session.Save(slot > 0 ? slot : _session.Slot, out string message) ? CommandResult.Ok(message) : CommandResult.Fail(message);
 
@@ -41,13 +43,13 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         [Command("Delete the save in `slot`")]
         CommandResult Delete(int slot) =>
-            _session.Delete(slot) ? CommandResult.Ok($"Save {slot} deleted") : CommandResult.Fail($"Save {slot} is empty");
+            _session.Delete(slot) ? CommandResult.Ok($"{SaveFormat.SlotName(slot)} deleted") : CommandResult.Fail($"{SaveFormat.SlotName(slot)} is empty");
 
         [Command("Delete every slot's save")]
         CommandResult DeleteAll()
         {
             int deleted = 0;
-            for (int slot = 1; slot <= _saves.SlotCount; slot++)
+            foreach (int slot in _saves.Slots)
                 if (_session.Delete(slot))
                     deleted++;
             return CommandResult.Ok($"{deleted} save(s) deleted");
@@ -58,8 +60,10 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             if (!_session.InWorld)
                 return CommandResult.Fail("Not in a game");
+            if (_session.Slot <= 0)
+                return CommandResult.Fail("No save slot yet: save.write <slot> picks one");
             _session.RequestAutosave();
-            return CommandResult.Ok($"Autosave to Save {_session.Slot} requested");
+            return CommandResult.Ok($"Autosave to {SaveFormat.SlotName(_session.Slot)} requested");
         }
 
         [Command("The save folder (also copied to the clipboard)")]

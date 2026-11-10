@@ -1,7 +1,9 @@
+using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Input;
+using MessagePipe;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -33,19 +35,22 @@ namespace MB13.Aipocalypse.Core.UI
         GameSession _session;
         PlayerRegistry _players;
         Canvas _canvas;
+        System.IDisposable _savedSubscription;
         bool _open;
         int _openedFrame;
 
         public bool IsOpen => _open;
 
         [Inject]
-        void Construct(InputService input, TimeService time, GameSession session, SaveService saves, PlayerRegistry players)
+        void Construct(InputService input, TimeService time, GameSession session, SaveService saves, PlayerRegistry players,
+            ISubscriber<GameSaved> saved)
         {
             _players = players;
             _input = input;
             _time = time;
             _session = session;
             _slots.Bind(session, saves);
+            _savedSubscription = saved.Subscribe(_slots.ShowSaved);
             if (_eventSystem != null && _eventSystem.TryGetComponent(out InputSystemUIInputModule module))
                 _input.ConfigureUiModule(module);
         }
@@ -68,6 +73,7 @@ namespace MB13.Aipocalypse.Core.UI
         // Only the requests here: on a scene unload the menu's children may already be gone.
         void OnDestroy()
         {
+            _savedSubscription?.Dispose();
             if (_open)
                 Release();
             _open = false;
@@ -137,7 +143,9 @@ namespace MB13.Aipocalypse.Core.UI
             bool canSave = _session.CanSave(out string reason);
             _save.interactable = canSave;
             if (_hint != null)
-                _hint.text = canSave ? $"Playing in Save {_session.Slot}  ·  {SaveFormat.PlayTime(_session.PlayTime)}" : reason;
+                _hint.text = !canSave ? reason
+                    : _session.Slot > 0 ? $"Playing in {SaveFormat.SlotName(_session.Slot)}  ·  {SaveFormat.PlayTime(_session.PlayTime)}"
+                    : $"Not saved to a slot yet  ·  {SaveFormat.PlayTime(_session.PlayTime)}";
             EventSystem.current?.SetSelectedGameObject(_resume.gameObject);
         }
 

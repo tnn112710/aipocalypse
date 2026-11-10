@@ -46,8 +46,8 @@ public static class SavePlayTest
         WorldItem[] worldItems = Object.FindObjectsByType<WorldItem>(FindObjectsInactive.Exclude);
         text.AppendLine($"world items {worldItems.Length}: {string.Join(", ", worldItems.Take(12).Select(w => $"{w.Item?.Definition.name}x{w.Item?.Count}@{w.transform.position.x:0},{w.transform.position.z:0}"))}");
         SaveService saves = Root.Resolve<SaveService>();
-        for (int slot = 1; slot <= saves.SlotCount; slot++)
-            text.AppendLine($"Save {slot}: {SaveFormat.Summary(saves.Info(slot))}");
+        foreach (int slot in saves.Slots)
+            text.AppendLine($"{SaveFormat.SlotName(slot)}: {SaveFormat.Summary(saves.Info(slot))}");
         return text.ToString();
     }
 
@@ -107,6 +107,33 @@ public static class SavePlayTest
 
     public static string Load(int slot) => Session.Load(slot, out string message) + " " + message;
 
+    // Main-thread cost of a save, by stage, `count` times into `slot` (the slot is overwritten). The disk write runs
+    // on the thread pool, so "save" is only what the frame pays.
+    public static string Timing(int slot, int count)
+    {
+        SaveService saves = Root.Resolve<SaveService>();
+        SaveRegistry sections = Root.Resolve<SaveRegistry>();
+        saves.TryRead(Session.Slot, out SaveData carry, out _);
+        var text = new StringBuilder();
+        var watch = new System.Diagnostics.Stopwatch();
+        for (int i = 0; i < count; i++)
+        {
+            watch.Restart();
+            SaveData data = saves.Create(carry);
+            double create = watch.Elapsed.TotalMilliseconds;
+            sections.Capture(data);
+            double capture = watch.Elapsed.TotalMilliseconds - create;
+            watch.Restart();
+            Session.Save(slot, out _);
+            double save = watch.Elapsed.TotalMilliseconds;
+            watch.Restart();
+            saves.Info(slot);
+            double info = watch.Elapsed.TotalMilliseconds;
+            text.AppendLine($"create {create:0.0} capture {capture:0.0} | Session.Save {save:0.0} | Info {info:0.0} ms");
+        }
+        return text.ToString();
+    }
+
     public static string Pause()
     {
         var menu = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
@@ -143,7 +170,7 @@ public static class SavePlayTest
     {
         SaveService saves = Root.Resolve<SaveService>();
         int deleted = 0;
-        for (int slot = 1; slot <= saves.SlotCount; slot++)
+        foreach (int slot in saves.Slots)
             if (saves.Delete(slot))
                 deleted++;
         return $"{deleted} deleted ({saves.FolderPath})";

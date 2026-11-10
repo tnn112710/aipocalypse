@@ -1,14 +1,15 @@
 # Save and load
 
-Five save slots, an autosave every morning, a pause menu and a main menu. Saves are Easy Save 3 JSON files; each system saves its own part. Code in `Assets/_Game/_Core/SaveSystem/` (script map: [CODE_STRUCTURE.md](CODE_STRUCTURE.md)).
+Five save slots (plus an editor-only one), an autosave every morning, a pause menu and a main menu. Saves are Easy Save 3 JSON files; each system saves its own part. Code in `Assets/_Game/_Core/SaveSystem/` (script map: [CODE_STRUCTURE.md](CODE_STRUCTURE.md)).
 
 ## How it plays
 
-- **A slot is one game.** Starting a New Game picks a slot (an occupied one asks first; its old save stays on disk until the new game's first save overwrites it, then remains as the `.bak`). From then on the game saves to that slot: the morning autosave, Save Game in the pause menu, or `save.write`.
+- **A slot is one game.** Loading a slot, or saving to one from the pause menu, makes it the game's slot. From then on the game saves there: the morning autosave, Save Game in the pause menu, or `save.write`. (`save.new <slot>` still starts a fresh game in a slot; the slot's old save stays on disk until the new game's first save overwrites it, then remains as the `.bak`. The main menu has no New Game for now: Prototype replaces it.)
+- **Quick game:** Prototype in the main menu, or Play pressed in WorldMap (any world scene) in the editor, starts a fresh game on day 1 with no slot to pick. In the editor it saves to the **editor slot** ("Editor Save", `slot_editor.es3`, `SaveService.EditorSlot` = 99): Save 1-5 are only ever written by hand or by a game loaded from them. In a build it has no slot until Save Game picks one; the morning before that only says "Not autosaved: no save slot yet".
 - **Autosave:** when the **Morning** phase starts, from **day 2** on (`SaveSettings.AutosavePhase`, `FirstAutosaveDay`). It waits while a raid runs or the player is down, then saves; a write that fails is retried every 30 s, never dropped. "Autosaved · Save N" shows bottom right for 2 s.
 - **Saving needs** a living player, no raid running and no load in progress (`GameSession.CanSave`). The pause menu's Save Game is greyed out with the reason under the buttons.
 - **Loading** reloads the world scene behind a black loading screen and puts the save back on the scene's first frame.
-- **Editor:** pressing Play in WorldMap (or any world scene) starts a new game on day 1 in `SaveSettings.EditorSlot` (Save 1). Nothing is written until the day 2 morning or a manual save. Pressing Play in `MainMenu.unity` runs the real flow.
+- **Editor:** the editor slot is listed after Save 1-5 in every slot list (editor only) and counts for Continue. Nothing is written until the day 2 morning or a manual save. Pressing Play in `MainMenu.unity` runs the real flow.
 - **Builds** start in `MainMenu.unity` (first in Build Settings), then WorldMap.
 
 ## Menus
@@ -16,10 +17,10 @@ Five save slots, an autosave every morning, a pause menu and a main menu. Saves 
 | Where | What |
 | --- | --- |
 | Esc in play (gamepad Start) | **Pause menu** (`PauseMenu`, in `HUD.prefab`): pauses the game (also during a raid; not while the player is down, where the death screen owns the click). Resume, Save Game, Load Game, Settings (disabled until a settings menu exists), Main Menu, Quit Game; the last two ask first ("Progress since your last save will be lost"). Esc goes back one step: dialog → slot list → menu → game |
-| `MainMenu.unity` | **Main menu** (`MainMenuScreen`): Continue (the most recent save; its slot and summary under it), New Game, Load Game, Settings (disabled), Quit |
-| Save / Load / New Game | **Select Save Slot** (`SaveSlotsPanel`, after Escape from Duckov): one row per slot, "Save N" with the day, hour, play time and the date it was saved, or Empty / New Game. The current game's slot is orange. Delete on each saved slot (asks first), Copy Save File Path (to the clipboard). Overwriting another game's slot and loading while playing ask first |
+| `MainMenu.unity` | **Main menu** (`MainMenuScreen`): a survival-game title screen. A shot of WorldMap at sunset, dark on the left under the title ("HASTA LA VISTA, *MAYBE*" with a "PROTOTYPE" tape tag) and a column of text buttons lit by a strip of tape when hovered or selected: Continue (the most recent save; its slot and summary under it), Prototype (quick game, above), Load Game, Settings (disabled), Quit; the build bottom left |
+| Save / Load | **Select Save Slot** (`SaveSlotsPanel`, after Escape from Duckov): one row per slot, "Save N" (or "Editor Save") with the day, hour, play time and the date it was saved, or Empty. The current game's slot is orange. Delete on each saved slot (asks first), Copy Save File Path (to the clipboard). Overwriting another game's slot and loading while playing ask first. The status line says "Saving to ..." and then how the write went |
 
-Look: `Data/UI/MenuStyle.asset` (font, rounded sprite, colours). Layout: rebuilt by `AgentScripts/Save/SaveSetup` (`Hud()` for the pause menu, `MainMenu()` for the scene); edit there, not in the prefab.
+Look: `Data/UI/MenuStyle.asset` (font, rounded sprite, colours) for the pause menu, slot list and dialogs. The title screen uses Synty Interface Apocalypse sprites (`Box_Small_02` tape, `Gradient_Horizontal_01` shade) and its Saira fonts, over `Data/UI/MainMenu/Background.png` (a 1920×1080 game-view capture of WorldMap at 18.6 h, clear sky, from the home yard looking past the gate). Layout: rebuilt by `AgentScripts/Save/SaveSetup` (`Hud()` for the pause menu, `MainMenu()` for the scene, which must not be open then); edit there, not in the prefab.
 
 ## What a save holds
 
@@ -45,12 +46,12 @@ Scene scope: WorldSaveInstaller → WorldSaver: first frame → GameSession.Ente
 Each system: <System>SaveSection registered by its own installer, joins SaveRegistry while its scope lives
 ```
 
-- **Save:** `GameSession.Save(slot)` → `SaveService.Create(carry)` (a copy of the loaded save, so keys no section wrote this time survive) → every section's `Capture` → header → `SaveService.Write`: the previous readable file becomes `slot_N.es3.bak`, then Easy Save writes `.tmp` and swaps it in.
+- **Save:** `GameSession.Save(slot)` → `SaveService.Create(carry)` (a copy of the loaded save, so keys no section wrote this time survive) → every section's `Capture` → header → `SaveService.WriteAsync`, which takes the bytes on the main thread and returns. On the thread pool: the new file goes to `.tmp`, the previous file is copied to `slot_N.es3.bak` if it reads (known from this session's reads and writes, checked by its time and size; otherwise read once first), and `.tmp` replaces the file. Back on the main thread `GameSession` publishes `GameSaved` (slot, autosave, ok, message): the toast and the slot list show it, and a failed autosave is retried. One write at a time: every other file access (`TryRead`, `Info`, `Exists`, `Delete`, the next write, quitting) waits for the one in progress (`SaveService.Flush`).
 - **Load:** `GameSession.Load(slot)` reads the file (or its `.bak` when the file is damaged; a file from another save version is refused, never swapped for its older backup), loads the scene named in the header through `SceneLoader`, and `WorldSaver.PostStart` (after every Start, before the first Update) calls each section's `Restore` in `SaveOrder`: random, clock, weather, raids, world (defense, loot), world items, player. A section that throws is logged and skipped; the rest still load.
 - **New game:** `GameSession.NewGame(slot)` reseeds `RandomService` and loads the world scene; nothing is restored. The slot's old file is only replaced by the first save.
 - **Failures:** a section that throws while saving is logged and skipped (its entry from the last save is kept, the toast message says so); one that throws while loading keeps its new-game state. A scene load that fails leaves the current world running and playable. The pause menu releases its pause and UI requests before anything else, also when a load destroys it.
 - **Missing key = new-game state.** A system added after a save, or switched off, finds nothing and keeps its defaults; a switched-off system's key is carried over unchanged.
-- **Files:** `Application.persistentDataPath/Saves/slot_1.es3` … `slot_5.es3` (+ `.bak`), plain JSON (`save.path` prints and copies the folder). Main thread only; a save is ~17 KB and takes a few ms.
+- **Files:** `Application.persistentDataPath/Saves/slot_1.es3` … `slot_5.es3`, `slot_editor.es3` (+ `.bak`), plain JSON (`save.path` prints and copies the folder). A save is ~17 KB. In the editor the frame pays ~4-5 ms (capture ~2.3, the carried save's copy ~1.5, the bytes 0.2); the ~8 ms of file work (backup check, copy, write) runs in the background. `SavePlayTest.Timing <slot> <count>` measures it.
 
 ## Ids
 
@@ -71,16 +72,16 @@ A save never stores a Unity object reference.
 
 ## Console
 
-Editor and cheat builds (`save` group, root: also in the main menu). Slots are 1-based; 0 = the current game's slot.
+Editor and cheat builds (`save` group, root: also in the main menu). Slots are 1-based; 0 = the current game's slot, 99 = the editor slot (editor only).
 
 | Command | Does |
 | --- | --- |
 | `save.list` | Current slot and play time, then every slot's summary |
-| `save.write [slot]` | Save now |
+| `save.write [slot]` | Save now (the file is written in the background; the toast says when it's done) |
 | `save.load [slot]` | Load (the world reloads) |
 | `save.new [slot]` | New game in the slot (its old save is overwritten by the first save) |
 | `save.delete slot` / `save.deleteall` | Delete saves |
-| `save.auto` | Autosave now, as the morning does (waits out a raid or death) |
+| `save.auto` | Autosave now, as the morning does (waits out a raid or death; fails for a game with no slot yet) |
 | `save.path` | The save folder, also copied to the clipboard |
 | `save.menu` | Back to the main menu |
 
@@ -88,20 +89,21 @@ Editor and cheat builds (`save` group, root: also in the main menu). Slots are 1
 
 | What | Where |
 | --- | --- |
-| Slot count, folder, autosave on / phase / first day, scene names, editor slot, loading screen font and text | `Data/Save/SaveSettings.asset` |
-| Menu look | `Data/UI/MenuStyle.asset` |
+| Slot count, folder, autosave on / phase / first day, scene names (Prototype and New Game use `WorldScene`), loading screen font and text | `Data/Save/SaveSettings.asset` |
+| Menu look | `Data/UI/MenuStyle.asset`; the title screen's in `SaveSetup.MainMenu()` |
 | Toast time | `HUD` → `SaveToast` → `SaveToastHud` |
 
 ## Setup and checks
 
 - `AgentScripts/Save/SaveSetup.cs` (`unity command script run --file AgentScripts/Save/SaveSetup.cs --entry SaveSetup.All`): assets, the root scope's references, the HUD's PauseMenu and SaveToast, `WorldSaveInstaller` and the `SaveId`s in WorldMap, `MainMenu.unity`, Build Settings. Safe to re-run; `World()` reopens WorldMap from disk and saves it.
-- `AgentScripts/Save/SavePlayTest.cs`: play-mode probes (`Status`, `Jump <phase>`, `Mutate`, `Save n`, `Load n`, `Pause`, `Slots Save|Load`, `MainMenu`, `DeleteAll`).
-- `SaveTests` (EditMode): file round trip, backup fallback, a damaged file never replacing the last good backup, version refusal, carried keys, slot info, the item catalog, item and container round trips, random streams, section order and failure isolation.
+- `AgentScripts/Save/SavePlayTest.cs`: play-mode probes (`Status`, `Jump <phase>`, `Mutate`, `Save n`, `Load n`, `Timing n count`, `Pause`, `Slots Save|Load`, `MainMenu`, `DeleteAll`).
+- `SaveTests` (EditMode): file round trip, backup fallback, a damaged file never replacing the last good backup, version refusal, carried keys, slot info, the editor slot, background writes (bytes taken at once, one at a time), the item catalog, item and container round trips, random streams, section order and failure isolation.
 
 ## Known gaps
 
 - No settings file yet (Settings is disabled in both menus); settings will live in their own file, not in a slot.
 - Raid state, enemies, bodies, timed effects and stamina aren't saved; save points avoid raids, and the morning autosave comes after the night.
 - No migrations: a version bump makes older saves unloadable (fine during development).
-- Quitting doesn't save: progress since the last save (morning or manual) is lost, as the menus warn.
+- Quitting doesn't save: progress since the last save (morning or manual) is lost, as the menus warn. It does wait for a write in progress.
+- A build's Prototype game has no slot until Save Game picks one, so its first mornings aren't autosaved.
 - The pause and main menus have no controller navigation polish and no sounds.

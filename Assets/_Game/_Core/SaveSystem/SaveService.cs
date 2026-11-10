@@ -1,29 +1,57 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.SaveSystem
 {
     // Root service: the save slot files, through Easy Save 3 (JSON, one file per slot under persistentDataPath/Saves). Knows no
     // gameplay: GameSession fills a SaveData from the sections and hands it here. Main thread only (Easy Save reads its
-    // settings through Unity). Easy Save writes to a .tmp file and swaps it in; before that, the previous save is copied to
-    // .bak, and a slot whose file can't be read falls back to it.
+    // settings through Unity), except a write's file work: backup, .tmp file, swap, on the thread pool, one write at a time.
+    // Every other file access waits for it first (Flush). A slot whose file can't be read falls back to its .bak.
     public sealed class SaveService
     {
         // Bump when a saved data shape changes; older saves are refused (no compatibility promise during development).
         public const int Version = 1;
+        // The editor's own slot, after the player's: Play pressed in a world scene (or Prototype in the main menu) saves
+        // here, never into Save 1-5. Exists only in the editor.
+        public const int EditorSlot = 99;
         const string BackupSuffix = ".bak";
+        const string TempSuffix = ".tmp";
 
         readonly SaveSettings _settings;
+        // Slots whose file is known to read (read or written this session, and unchanged since: its time and size), so the
+        // next write can keep it as the backup without reading it first.
+        readonly Dictionary<int, (DateTime time, long size)> _readable = new();
+        readonly object _lock = new();
+        Task _writing = Task.CompletedTask;
 
         public SaveService(SaveSettings settings) => _settings = settings;
 
         public int SlotCount => _settings.SlotCount;
+        public static bool HasEditorSlot => Application.isEditor;
         public string FolderPath => Path.GetFullPath(Path.Combine(Application.persistentDataPath, _settings.Folder));
-        public bool IsValidSlot(int slot) => slot >= 1 && slot <= SlotCount;
-        public string PathOf(int slot) => Path.Combine(FolderPath, $"slot_{slot}.es3");
+        public bool IsValidSlot(int slot) => slot >= 1 && slot <= SlotCount || slot == EditorSlot && HasEditorSlot;
+        public string PathOf(int slot) => Path.Combine(FolderPath, slot == EditorSlot ? "slot_editor.es3" : $"slot_{slot}.es3");
 
-        public bool Exists(int slot) => IsValidSlot(slot) && (File.Exists(PathOf(slot)) || File.Exists(PathOf(slot) + BackupSuffix));
+        // Every slot the menus list: Save 1..SlotCount, then the editor slot in the editor.
+        public IEnumerable<int> Slots
+        {
+            get
+            {
+                for (int slot = 1; slot <= SlotCount; slot++)
+                    yield return slot;
+                if (HasEditorSlot)
+                    yield return EditorSlot;
+            }
+        }
+
+        public bool Exists(int slot)
+        {
+            Flush();
+            return IsValidSlot(slot) && (File.Exists(PathOf(slot)) || File.Exists(PathOf(slot) + BackupSuffix));
+        }
 
         // An empty save to fill, holding a copy of `carry` (keys no section claims today stay in the file).
         public SaveData Create(SaveData carry = null)
@@ -50,7 +78,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             int latest = 0;
             long newest = long.MinValue;
-            for (int slot = 1; slot <= SlotCount; slot++)
+            foreach (int slot in Slots)
             {
                 SaveSlotInfo info = Info(slot);
                 if (info.Header != null && info.Header.SavedAtUtcTicks > newest)
@@ -71,12 +99,16 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             fromBackup = false;
             if (!IsValidSlot(slot))
             {
-                problem = $"No slot {slot} (1-{SlotCount})";
+                problem = NoSlot(slot);
                 return false;
             }
+            Flush();
             string path = PathOf(slot);
             if (TryReadFile(path, out data, out problem, out bool otherVersion))
+            {
+                MarkReadable(slot, path);
                 return true;
+            }
             // A save from another version isn't damaged: its older backup must not stand in for it.
             if (otherVersion)
                 return false;
@@ -94,38 +126,40 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             return false;
         }
 
-        // Writes the slot (the previous save becomes its backup). False with a reason when the disk refused.
-        public bool Write(int slot, SaveData data, out string problem)
+        // Starts writing the slot and returns at once: the task ends with null, or why the disk refused. The bytes are taken
+        // now (so `data` can change afterwards); the previous save becomes the .bak if it reads.
+        public Task<string> WriteAsync(int slot, SaveData data)
         {
-            problem = null;
             if (!IsValidSlot(slot))
-            {
-                problem = $"No slot {slot} (1-{SlotCount})";
-                return false;
-            }
+                return Task.FromResult(NoSlot(slot));
+            Flush();
+            byte[] bytes;
+            data.Header.Version = Version;
+            data.Set(SaveData.HeaderKey, data.Header);
             try
             {
-                Directory.CreateDirectory(FolderPath);
-                string path = PathOf(slot);
-                data.Header.Version = Version;
-                data.Set(SaveData.HeaderKey, data.Header);
-                // Only a readable save is worth keeping as the backup: never let a damaged file push out the last good one.
-                if (File.Exists(path) && TryReadFile(path, out _, out _, out _))
-                    File.Copy(path, path + BackupSuffix, true);
-                ES3.SaveRaw(data.File.LoadRawBytes(), FileSettings(path));
-                return true;
+                bytes = data.File.LoadRawBytes();
             }
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                problem = exception.Message;
-                return false;
+                return Task.FromResult(exception.Message);
             }
             finally
             {
                 data.Remove(SaveData.HeaderKey);
             }
+            string folder = FolderPath;
+            string path = PathOf(slot);
+            // Only a readable save is worth keeping as the backup: never let a damaged file push out the last good one.
+            bool backup = File.Exists(path) && (IsKnownReadable(slot, path) || TryReadFile(path, out _, out _, out _));
+            Task<string> write = Task.Run(() => WriteFile(slot, folder, path, bytes, backup));
+            _writing = write;
+            return write;
         }
+
+        // Waits for the write in progress, if any.
+        public void Flush() => _writing.Wait();
 
         // Deletes the slot and its backup. False when there was nothing to delete.
         public bool Delete(int slot)
@@ -137,6 +171,51 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             File.Delete(path + BackupSuffix);
             return true;
         }
+
+        // Thread pool: the new file goes to .tmp first, so a failed write leaves the slot as it was.
+        string WriteFile(int slot, string folder, string path, byte[] bytes, bool backup)
+        {
+            try
+            {
+                Directory.CreateDirectory(folder);
+                string temp = path + TempSuffix;
+                File.WriteAllBytes(temp, bytes);
+                if (File.Exists(path))
+                {
+                    if (backup)
+                        File.Copy(path, path + BackupSuffix, true);
+                    File.Replace(temp, path, null);
+                }
+                else
+                    File.Move(temp, path);
+                MarkReadable(slot, path);
+                return null;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                return exception.Message;
+            }
+        }
+
+        void MarkReadable(int slot, string path)
+        {
+            var file = new FileInfo(path);
+            lock (_lock)
+                _readable[slot] = (file.LastWriteTimeUtc, file.Length);
+        }
+
+        bool IsKnownReadable(int slot, string path)
+        {
+            (DateTime time, long size) known;
+            lock (_lock)
+                if (!_readable.TryGetValue(slot, out known))
+                    return false;
+            var file = new FileInfo(path);
+            return file.Exists && file.LastWriteTimeUtc == known.time && file.Length == known.size;
+        }
+
+        string NoSlot(int slot) => slot == 0 ? "No save slot picked" : $"No slot {slot} (1-{SlotCount})";
 
         bool TryReadFile(string path, out SaveData data, out string problem, out bool otherVersion)
         {

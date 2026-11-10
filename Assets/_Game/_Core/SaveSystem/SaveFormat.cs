@@ -5,6 +5,9 @@ namespace MB13.Aipocalypse.Core.SaveSystem
     // How saves read in the menus and the console.
     public static class SaveFormat
     {
+        // "Save 2", or "Editor Save" for the editor's slot.
+        public static string SlotName(int slot) => slot == SaveService.EditorSlot ? "Editor Save" : $"Save {slot}";
+
         // "2h 05m", or "12m" under an hour.
         public static string PlayTime(double seconds)
         {

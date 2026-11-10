@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
@@ -12,7 +14,8 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 {
     // Root: the game being played. Which slot it saves to, its play time, saving and loading, a new game, back to the menu.
     // A load reloads the world scene and hands the save to it: the scene's WorldSaver restores every section on its first
-    // frame. Pressing Play in a world scene in the editor (no menu) starts a new game on SaveSettings.EditorSlot.
+    // frame. Pressing Play in a world scene in the editor, or Prototype in the main menu, starts a quick game: it saves to
+    // the editor slot in the editor, and to no slot in a build until the player picks one (Save Game).
     public sealed class GameSession : ITickable, IDisposable
     {
         const float AutosaveRetrySeconds = 30f;
@@ -33,11 +36,13 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         SaveData _pending;
         // The world scene's saver while one is running.
         object _world;
-        // A menu started this session (New Game / Load); false when Play was pressed in a world scene.
+        // A slot was picked for this game (New Game / Load); false for a quick game (Play in a world scene, Prototype).
         bool _started;
         bool _raid;
         bool _autosaveDue;
         float _autosaveRetryAt;
+        // Counts games started; a write finishing after another game started doesn't touch the new one.
+        int _game;
 
         public GameSession(SaveService saves, SaveRegistry sections, SaveSettings settings, SceneLoader scenes, TimeService time,
             PlayerRegistry players, RandomService random, IPublisher<GameSaved> saved, ISubscriber<RaidStarted> raidStarted,
@@ -56,14 +61,18 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 raidEnded.Subscribe(_ => _raid = false));
         }
 
-        // 1-based slot this game saves to; 0 before any game.
+        // 1-based slot this game saves to (SaveService.EditorSlot in the editor's quick game); 0 for none yet.
         public int Slot { get; private set; }
         // Real seconds played in this game (not paused, not loading), across saves.
         public double PlayTime { get; private set; }
         public bool InWorld => _world != null;
         public bool IsLoading => _scenes.IsLoading;
 
-        public void Dispose() => _subscriptions.Dispose();
+        public void Dispose()
+        {
+            _subscriptions.Dispose();
+            _saves.Flush();
+        }
 
         public void Tick()
         {
@@ -71,19 +80,12 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 return;
             if (!_time.IsPaused)
                 PlayTime += Time.unscaledDeltaTime;
-            // Waits out a raid or a death, then saves; a failed write is tried again a little later, never dropped.
+            // Waits out a raid or a death, then saves; a failed write is tried again a little later (FinishSave), never dropped.
             if (_autosaveDue && Time.unscaledTime >= _autosaveRetryAt && CanSave(out _))
             {
-                if (Save(Slot, autosave: true, out string message))
-                {
-                    _autosaveDue = false;
-                    Debug.Log(message);
-                }
-                else
-                {
-                    _autosaveRetryAt = Time.unscaledTime + AutosaveRetrySeconds;
-                    Debug.LogWarning($"{message}; trying again in {AutosaveRetrySeconds:0} s");
-                }
+                _autosaveDue = false;
+                if (!Save(Slot, autosave: true, out string message))
+                    RetryAutosave(message);
             }
         }
 
@@ -99,6 +101,8 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             return reason == null;
         }
 
+        // Starts saving to the slot: the game is captured now, the file is written in the background and GameSaved tells
+        // how it went. False (with the reason) when saving isn't allowed now.
         public bool Save(int slot, out string message) => Save(slot, false, out message);
 
         // Loads the slot: the world scene reloads and the save is restored on its first frame.
@@ -126,7 +130,9 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _carry = null;
             _started = true;
             _autosaveDue = false;
-            message = fromBackup ? $"Save {slot} was damaged: loading its backup" : $"Loading Save {slot}";
+            _game++;
+            string name = SaveFormat.SlotName(slot);
+            message = fromBackup ? $"{name} was damaged: loading its backup" : $"Loading {name}";
             return true;
         }
 
@@ -152,7 +158,28 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _carry = null;
             _started = true;
             _autosaveDue = false;
-            message = $"New game in Save {slot}";
+            _game++;
+            message = $"New game in {SaveFormat.SlotName(slot)}";
+            return true;
+        }
+
+        // A quick fresh game in the world scene, as pressing Play there in the editor: no slot to pick (see the class).
+        public bool StartPrototype(out string message)
+        {
+            if (!_scenes.Load(_settings.WorldScene))
+            {
+                message = $"Can't open scene {_settings.WorldScene}";
+                return false;
+            }
+            _random.Reseed(NewSeed());
+            Slot = 0;
+            PlayTime = 0d;
+            _pending = null;
+            _carry = null;
+            _started = false;
+            _autosaveDue = false;
+            _game++;
+            message = "Loading the prototype";
             return true;
         }
 
@@ -167,11 +194,13 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _pending = null;
             _carry = null;
             _autosaveDue = false;
+            _game++;
             return true;
         }
 
         public void Quit()
         {
+            _saves.Flush();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -192,12 +221,12 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 int failed = _sections.Restore(data);
                 _carry = data;
                 if (failed > 0)
-                    Debug.LogWarning($"Save {Slot} loaded; {failed} system(s) couldn't read their part and start fresh.");
+                    Debug.LogWarning($"{SaveFormat.SlotName(Slot)} loaded; {failed} system(s) couldn't read their part and start fresh.");
                 return;
             }
             if (!_started)
             {
-                Slot = Mathf.Clamp(_settings.EditorSlot, 1, _saves.SlotCount);
+                Slot = SaveService.HasEditorSlot ? SaveService.EditorSlot : 0;
                 PlayTime = 0d;
                 _carry = null;
                 _started = true;
@@ -215,14 +244,24 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         // Saves to the current slot as soon as saving is allowed (WorldSaver, each morning).
         public void RequestAutosave()
         {
-            if (!_settings.Autosave || Slot <= 0 || !InWorld)
+            if (!_settings.Autosave || !InWorld)
                 return;
+            if (Slot <= 0)
+            {
+                _saved.Publish(new GameSaved(0, true, false, "Not autosaved: no save slot yet (pause menu, Save Game)"));
+                return;
+            }
             _autosaveDue = true;
             _autosaveRetryAt = 0f;
         }
 
         bool Save(int slot, bool autosave, out string message)
         {
+            if (!_saves.IsValidSlot(slot))
+            {
+                message = slot == 0 ? "No save slot picked" : $"No slot {slot}";
+                return false;
+            }
             if (!CanSave(out message))
                 return false;
             SaveData data = _saves.Create(_carry);
@@ -232,18 +271,41 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             header.PlayTimeSeconds = PlayTime;
             header.Scene = SceneManager.GetActiveScene().name;
             header.Build = Application.version;
-            if (!_saves.Write(slot, data, out string problem))
-            {
-                message = $"Save failed: {problem}";
-                return false;
-            }
+            Task<string> write = _saves.WriteAsync(slot, data);
             Slot = slot;
             _carry = data;
-            _saved.Publish(new GameSaved(slot, autosave));
-            message = autosave ? $"Autosaved to Save {slot}" : $"Saved to Save {slot}";
-            if (failed > 0)
-                message += $" ({failed} system(s) kept their last saved state: see the console)";
+            FinishSave(write, slot, autosave, failed, _game).Forget();
+            message = $"Saving to {SaveFormat.SlotName(slot)}...";
             return true;
+        }
+
+        // Back on the main thread once the file is written: tells everyone (toast, slot list), retries a failed autosave.
+        async UniTaskVoid FinishSave(Task<string> write, int slot, bool autosave, int failedSections, int game)
+        {
+            string problem = await write;
+            string name = SaveFormat.SlotName(slot);
+            string message;
+            if (problem != null)
+            {
+                message = $"Save failed: {problem}";
+                if (autosave && game == _game)
+                    RetryAutosave(message);
+            }
+            else
+            {
+                message = autosave ? $"Autosaved to {name}" : $"Saved to {name}";
+                if (failedSections > 0)
+                    message += $" ({failedSections} system(s) kept their last saved state: see the console)";
+                Debug.Log(message);
+            }
+            _saved.Publish(new GameSaved(slot, autosave, problem == null, message));
+        }
+
+        void RetryAutosave(string message)
+        {
+            _autosaveDue = true;
+            _autosaveRetryAt = Time.unscaledTime + AutosaveRetrySeconds;
+            Debug.LogWarning($"{message}; trying again in {AutosaveRetrySeconds:0} s");
         }
 
         static ulong NewSeed() => (ulong)DateTime.UtcNow.Ticks ^ ((ulong)Environment.TickCount << 32);

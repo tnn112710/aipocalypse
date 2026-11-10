@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.SaveSystem;
 using TMPro;
 using UnityEngine;
@@ -11,12 +12,11 @@ namespace MB13.Aipocalypse.Core.UI
     {
         Save,
         Load,
-        NewGame,
     }
 
-    // "Select Save Slot": one row per slot, after Escape from Duckov. Saves to, loads or starts a new game in the slot
-    // clicked (asking before anything is overwritten or lost), deletes a save, copies the save folder's path. Used by the
-    // pause menu and the main menu, which hand it the session (Bind) and close it on Esc (Cancel).
+    // "Select Save Slot": one row per slot (Save 1-5, and the editor's slot in the editor), after Escape from Duckov. Saves
+    // to or loads the slot clicked (asking before anything is overwritten or lost), deletes a save, copies the save folder's
+    // path. Used by the pause menu and the main menu, which hand it the session (Bind) and close it on Esc (Cancel).
     public sealed class SaveSlotsPanel : MonoBehaviour
     {
         [SerializeField] MenuStyle _style;
@@ -47,12 +47,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             Hook();
             _mode = mode;
-            _title.text = mode switch
-            {
-                SlotsMode.Save => "Save Game",
-                SlotsMode.Load => "Load Game",
-                _ => "New Game",
-            };
+            _title.text = mode == SlotsMode.Save ? "Save Game" : "Load Game";
             gameObject.SetActive(true);
             _confirm.Close();
             SetStatus(null);
@@ -90,30 +85,37 @@ namespace MB13.Aipocalypse.Core.UI
 
         void Refresh()
         {
-            while (_rows.Count < _saves.SlotCount)
-            {
-                int slot = _rows.Count + 1;
-                SaveSlotRow row = Instantiate(_rowTemplate, _rowTemplate.transform.parent);
-                row.name = $"Slot{slot}";
-                row.gameObject.SetActive(true);
-                row.Button.onClick.AddListener(() => OnSlot(slot));
-                row.Delete.onClick.AddListener(() => OnDelete(slot));
-                _rows.Add(row);
-            }
             bool canSave = _mode != SlotsMode.Save || _session.CanSave(out _);
-            string emptyText = _mode == SlotsMode.NewGame ? "New Game" : "Empty";
-            for (int i = 0; i < _rows.Count; i++)
+            int index = 0;
+            foreach (int slot in _saves.Slots)
             {
-                SaveSlotInfo info = _saves.Info(i + 1);
-                bool clickable = _mode switch
-                {
-                    SlotsMode.Save => canSave,
-                    SlotsMode.Load => info.Header != null,
-                    _ => true,
-                };
-                bool current = _session.InWorld && _session.Slot == i + 1;
-                _rows[i].Show(info, emptyText, current, clickable, _style);
+                if (index == _rows.Count)
+                    _rows.Add(NewRow(slot));
+                SaveSlotInfo info = _saves.Info(slot);
+                bool clickable = _mode == SlotsMode.Save ? canSave : info.Header != null;
+                bool current = _session.InWorld && _session.Slot == slot;
+                _rows[index++].Show(info, "Empty", current, clickable, _style);
             }
+        }
+
+        SaveSlotRow NewRow(int slot)
+        {
+            SaveSlotRow row = Instantiate(_rowTemplate, _rowTemplate.transform.parent);
+            row.name = $"Slot{slot}";
+            row.gameObject.SetActive(true);
+            row.Button.onClick.AddListener(() => OnSlot(slot));
+            row.Delete.onClick.AddListener(() => OnDelete(slot));
+            return row;
+        }
+
+        // A save finished (here, from the console or the autosave): the rows and the outcome. The owner forwards GameSaved:
+        // this panel may never be activated, and then Unity never calls its OnDestroy to drop a subscription.
+        public void ShowSaved(GameSaved saved)
+        {
+            if (!IsOpen)
+                return;
+            Refresh();
+            SetStatus(saved.Message);
         }
 
         void OnSlot(int slot)
@@ -121,27 +123,18 @@ namespace MB13.Aipocalypse.Core.UI
             if (_session.IsLoading)
                 return;
             SaveSlotInfo info = _saves.Info(slot);
-            switch (_mode)
+            string name = SaveFormat.SlotName(slot);
+            if (_mode == SlotsMode.Save)
             {
-                case SlotsMode.Save:
-                    if (info.IsEmpty || slot == _session.Slot)
-                        Save(slot);
-                    else
-                        _confirm.Ask($"Overwrite Save {slot}?\n{SaveFormat.Summary(info)}", "Overwrite", () => Save(slot));
-                    break;
-                case SlotsMode.Load:
-                    if (_session.InWorld)
-                        _confirm.Ask($"Load Save {slot}?\nProgress since your last save will be lost.", "Load", () => Load(slot));
-                    else
-                        Load(slot);
-                    break;
-                case SlotsMode.NewGame:
-                    if (info.IsEmpty)
-                        NewGame(slot);
-                    else
-                        _confirm.Ask($"Start a new game in Save {slot}?\nIts save is overwritten when the new game first saves.", "New Game", () => NewGame(slot));
-                    break;
+                if (info.IsEmpty || slot == _session.Slot)
+                    Save(slot);
+                else
+                    _confirm.Ask($"Overwrite {name}?\n{SaveFormat.Summary(info)}", "Overwrite", () => Save(slot));
             }
+            else if (_session.InWorld)
+                _confirm.Ask($"Load {name}?\nProgress since your last save will be lost.", "Load", () => Load(slot));
+            else
+                Load(slot);
         }
 
         void Save(int slot)
@@ -157,18 +150,12 @@ namespace MB13.Aipocalypse.Core.UI
                 SetStatus(message);
         }
 
-        void NewGame(int slot)
-        {
-            if (!_session.NewGame(slot, out string message))
-                SetStatus(message);
-        }
-
         void OnDelete(int slot) =>
-            _confirm.Ask($"Delete Save {slot}?\nThis can't be undone.", "Delete", () =>
+            _confirm.Ask($"Delete {SaveFormat.SlotName(slot)}?\nThis can't be undone.", "Delete", () =>
             {
                 _session.Delete(slot);
                 Refresh();
-                SetStatus($"Save {slot} deleted");
+                SetStatus($"{SaveFormat.SlotName(slot)} deleted");
             });
 
         void CopyPath()

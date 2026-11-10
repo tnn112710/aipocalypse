@@ -18,9 +18,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         [Header("Scenes")]
         [Tooltip("Build Settings name of the main menu scene")] public string MainMenuScene = "MainMenu";
-        [Tooltip("Build Settings name of the world scene a new game starts in")] public string WorldScene = "WorldMap";
-        [Min(1), Tooltip("Pressing Play in a world scene in the editor (no menu) starts a new game that saves to this slot")]
-        public int EditorSlot = 1;
+        [Tooltip("Build Settings name of the world scene a new game (and the main menu's Prototype) starts in")] public string WorldScene = "WorldMap";
 
         [Header("Loading screen")]
         public TMP_FontAsset LoadingFont;

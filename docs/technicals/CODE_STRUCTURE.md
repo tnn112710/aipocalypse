@@ -49,7 +49,7 @@ Assets/_Game/
 │  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
 │  │  ├─ Events/RaidEvents.cs               RaidStarted (night), RaidWaveStarted (night, wave from 0, count), RaidEnded (night, RaidEndReason: Cleared, Dawn, Defeat, Stopped) (published by RaidDirector)
 │  │  ├─ Events/DefenseEvents.cs            BarrierBroken, BarrierRestored (position, IsGate): a fence segment or gate fell / stands again (published by BarrierSegment)
-│  │  ├─ Events/SaveEvents.cs             GameSaved (slot, Autosave) (published by GameSession) → SaveToastHud
+│  │  ├─ Events/SaveEvents.cs             GameSaved (Slot, Autosave, Ok, Message) when a save's write finishes (published by GameSession) → SaveToastHud, PauseMenu (→ SaveSlotsPanel)
 │  │  ├─ Events/WeatherEvents.cs            WeatherChanged (empty: read WeatherService), published by WeatherService when the sky weather or wind level changes
 │  │  ├─ Feedback/FeedbackContext.cs        MB13.Aipocalypse.Core.Feedback — injected bridge on hosts of MMF_Players so custom Feel feedbacks reach our services
 │  │  ├─ Feedback/MMF_HitStop.cs            Feel feedback "Aipocalypse/Hit Stop" → TimeService.RequestHitStop; never touches Time.timeScale
@@ -335,11 +335,11 @@ Assets/_Game/
 │  │  ├─ DeathTimeRule.cs                   IStartable / IDisposable, async PlayerRespawning: a raid running → EndRaid(Defeat) + clock to the next DefeatWakeHour; else dawn's leftover raiders despawn + HoursLostOnDeath; pure WakeTime(now, raidRunning, settings) (DeathTimeRuleTests, RaidDirectorTests)
 │  │  └─ RaidCommands.cs                    console: raid.start, stop, next, status
 │  ├─ SaveSystem/                           MB13.Aipocalypse.Core.SaveSystem — save slots, sessions, scene loading, see SAVE.md
-│  │  ├─ SaveSettings.cs                  SO: SlotCount (5), Folder, Autosave + AutosavePhase (Morning) + FirstAutosaveDay (2), MainMenuScene / WorldScene names, EditorSlot (1), loading screen font / text; asset Data/Save/
+│  │  ├─ SaveSettings.cs                  SO: SlotCount (5), Folder, Autosave + AutosavePhase (Morning) + FirstAutosaveDay (2), MainMenuScene / WorldScene names, loading screen font / text; asset Data/Save/
 │  │  ├─ SaveService.cs                   root: one Easy Save 3 JSON file per slot (persistentDataPath/Saves/slot_N.es3): Create(carry), Info(slot) → SaveSlotInfo, LatestSlot, TryRead (falls back to .bak when damaged; refuses another Version without falling back), Write (previous good save → .bak, ES3 .tmp swap), Delete; Version
 │  │  ├─ SaveData.cs                      one save in memory: SaveHeader (version, saved at, play time, scene, build, day, hour) + each system's entry by key (Set / TryGet / Has / Remove); only SaveService touches ES3
 │  │  ├─ SaveSection.cs                   abstract SaveSection (IInitializable / IDisposable: joins SaveRegistry while its scope lives; Order, Capture, Restore); SaveOrder constants; SaveRegistry (root: ordered sections, Capture, Capture and Restore skip and report a section that throws)
-│  │  ├─ GameSession.cs                   root entry point, the game being played: Slot, PlayTime (unscaled, not paused), CanSave (in a world, alive, no raid), Save, Load (reloads the scene, restores on its first frame), NewGame (reseeds RandomService; the slot is replaced by its first save), Delete, ReturnToMainMenu, Quit, RequestAutosave (waits until saving is allowed, retries a failed write every 30 s); editor Play in a world scene = new game on EditorSlot; publishes GameSaved
+│  │  ├─ GameSession.cs                   root entry point, the game being played: Slot, PlayTime (unscaled, not paused), CanSave (in a world, alive, no raid), Save (captures now, the write finishes in the background → GameSaved), Load (reloads the scene, restores on its first frame), NewGame (reseeds RandomService; the slot is replaced by its first save), StartPrototype (quick game, no slot), Delete, ReturnToMainMenu, Quit (waits for a write), RequestAutosave (waits until saving is allowed, retries a failed write every 30 s); a quick game (Prototype, editor Play in a world scene) saves to the editor slot in the editor, to none in a build
 │  │  ├─ SceneLoader.cs                   root: the only scene loader: Load(scene) under a black loading screen built in code, kept up two frames after the load (the restore)
 │  │  ├─ WorldSaver.cs                    scene entry point (IPostStartable): GameSession.EnterWorld on the first frame, then DayPhaseChanged → RequestAutosave at the autosave phase from FirstAutosaveDay
 │  │  ├─ WorldSaveInstaller.cs            SceneInstaller: WorldSaver (a scene without it plays but is never restored or autosaved)
@@ -408,10 +408,10 @@ Assets/_Game/
 │  │  ├─ Widgets/BreachAlertStyle.cs        ScriptableObject: the breach line's words (fence / gate, ahead / behind / left / right), colour, timing
 │  │  ├─ Widgets/MenuStyle.cs             SO: menu font, rounded button sprite + corner scale, colours (backdrop, button states, accent for the current slot, danger), Colors(normal) → ColorBlock; asset Data/UI/MenuStyle
 │  │  ├─ Menus/ConfirmDialog.cs           yes / no question over a dimmed screen (Ask(message, yes, onYes), Close); No is selected first
-│  │  ├─ Menus/SaveSlotRow.cs             one slot: "Save N", day / hour / play time and date (or Empty / New Game / the problem), Delete; the current game's slot in the accent colour
-│  │  ├─ Menus/SaveSlotsPanel.cs          "Select Save Slot" (Duckov style): Save / Load / NewGame mode, overwrite / load / delete confirmations, Copy Save File Path, status line; Bind(GameSession, SaveService)
+│  │  ├─ Menus/SaveSlotRow.cs             one slot: "Save N" / "Editor Save", day / hour / play time and date (or Empty / the problem), Delete; the current game's slot in the accent colour
+│  │  ├─ Menus/SaveSlotsPanel.cs          "Select Save Slot" (Duckov style): Save / Load mode, a row per SaveService.Slots (the editor slot in the editor), overwrite / load / delete confirmations, Copy Save File Path, status line (ShowSaved: a write's outcome); Bind(GameSession, SaveService)
 │  │  ├─ Menus/PauseMenu.cs               Esc (Player map Pause): own canvas (sorting 200) + EventSystem while open, TimeService pause + UI request; Resume, Save, Load, Settings (disabled), Main Menu, Quit (confirmed); Esc steps back
-│  │  ├─ Menus/MainMenuScreen.cs          MainMenu scene: Continue (latest save), New Game, Load Game, Settings (disabled), Quit; holds the UI input while open
+│  │  ├─ Menus/MainMenuScreen.cs          MainMenu scene (title screen): Continue (latest save), Prototype (GameSession.StartPrototype), Load Game, Settings (disabled), Quit, build line; holds the UI input while open
 │  │  ├─ HudScope.cs                        EntityScope on the HUD root: injects the HUD's views in any scene
 │  │  ├─ Hud/PlayerHudView.cs               base presenter: follows PlayerRegistry, Bind / Unbind(IPlayer) per active player
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
@@ -427,7 +427,7 @@ Assets/_Game/
 │  │  ├─ Hud/HurtFeedbackHud.cs             PlayerHudView → DamageDealt to the active player: screen-edge flash toward the source against the View yaw (top front, bottom back, left, right; no direction = every edge), strength by damage / max health (HurtFeedbackStyle); gradient textures made in code; unscaled, frozen while paused
 │  │  ├─ Hud/RaidBannerHud.cs               RaidStarted / RaidEnded (Cleared, Dawn) → a banner (title + subtitle, DOTween punch and fade) and its sound through AudioService; nothing on Defeat / Stopped; built with its sounds (Raid_Start / Raid_Victory, Combat library) by AgentScripts/Hud/RaidBannerSetup
 │  │  ├─ Hud/BreachAlertHud.cs              PlayerHudView: BarrierBroken → "The fence is down behind you" (direction from the player's view), DOTween punch and fade; silent (the break sounds at the barrier)
-│  │  ├─ Hud/SaveToastHud.cs              "Game saved · Save N" / "Autosaved · Save N" for 2 s after GameSaved, fading in real time
+│  │  ├─ Hud/SaveToastHud.cs              "Game saved · Save N" / "Autosaved · Save N" (or why the save failed) for 2 s after GameSaved, fading in real time
 │  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)

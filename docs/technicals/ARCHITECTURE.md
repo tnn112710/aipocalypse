@@ -57,7 +57,7 @@ Root (VContainerSettings → ProjectLifetimeScope prefab, auto-created before an
   InputService · MessagePipe brokers · SaveService · SaveRegistry · GameSession · SceneLoader (+ loading screen) · … (SettingsService later)
 
 MainMenu scene (first in Build Settings, no Boot scene)
-  HudScope on the menu canvas (root services): MainMenuScreen: Continue | New Game | Load Game | Settings (later) | Quit
+  HudScope on the menu canvas (root services): MainMenuScreen: Continue | Prototype | Load Game | Settings (later) | Quit
 
 World scene (one persistent map, no mission/night scopes)
   GameLifetimeScope: installers for Core + enabled Features; WorldSaveInstaller → WorldSaver: on the first frame GameSession
@@ -68,7 +68,7 @@ Any scene (World, Proto_*, test arenas)
   Entity prefabs carry their own EntityScope — see Entities
 ```
 
-- **Play from any scene:** the root scope always exists. Play pressed in a world scene (no menu) starts a new game on day 1 that saves to `SaveSettings.EditorSlot` (Save 1). A `DevStartConfig` (start day/time, inventory, which features are on) is still a later idea.
+- **Play from any scene:** the root scope always exists. Play pressed in a world scene (no menu), like Prototype in the main menu, starts a fresh game on day 1 that saves to the editor-only "Editor Save" slot. A `DevStartConfig` (start day/time, inventory, which features are on) is still a later idea.
 - Scenes load only through the root `SceneLoader` (`SceneManager.LoadSceneAsync` + UniTask, under a loading screen); no Addressables for now.
 - **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe, `InputService`, `AudioService`, `DamageService`, `TimeService`, `GraphicsService`, `QuickTimeService`, `PlayerRegistry`, `PlayerRespawnFlow`, `EffectPool` (`EffectsInstaller`), `BulletSystem` and `GunJamFactory` (registered by `WeaponInstaller`), `ScreenLog`, the save system (`SaveInstaller`: `SaveService`, `SaveRegistry`, `GameSession`, `SceneLoader`) and, in dev builds, the dev console (`ConsoleInstaller`); `GameLifetimeScope` with the strict flag, installing the `SceneInstaller` components on its GameObject: `WorldTimeInstaller` (world clock), `EnvironmentInstaller` (`EnvironmentDirector` + ambience), `EnemyInstaller`, `RaidInstaller` (raid nights), `DefenseInstaller` (fences and gates) and `WorldSaveInstaller` (restore and autosave). A scene gets a system by adding its installer component. A new game's clock starts at `ClockSettings.StartHour`; a loaded one at the saved time. The MainMenu scene, the pause menu and save slots are built ([SAVE.md](SAVE.md)); a settings menu and `SettingsService` are not.
 
