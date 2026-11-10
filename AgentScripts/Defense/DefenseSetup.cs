@@ -542,6 +542,8 @@ public static class DefenseSetup
             segment.Setup(definition, root.transform, lookInstance.GetComponent<BarrierLook>(), cut, blocker);
             if (isGate)
                 root.AddComponent<FenceGate>();
+            // Saves find each placed segment by it (its id is generated per scene instance).
+            root.AddComponent<MB13.Aipocalypse.Core.SaveSystem.SaveId>();
             PrefabUtility.SaveAsPrefabAsset(root, path);
         }
         finally

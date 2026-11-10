@@ -92,7 +92,9 @@ namespace MB13.Aipocalypse.Input
         // UI map: Cancel (Esc, gamepad east) closes a menu.
         public bool UiCancelPressed => _actions.UI.Cancel.WasPressedThisFrame();
         // The inventory key (Tab), in gameplay to open the inventory and in the UI to close it.
-        public bool InventoryPressed => _actions.Player.Inventory.WasPressedThisFrame() || _actions.UI.Inventory.WasPressedThisFrame();
+        // Gameplay map only: in a menu the UI map's Cancel (the same Esc) closes it instead.
+        public bool PausePressed => _actions.Player.Pause.WasPressedThisFrame();
+        public bool InventoryPressed =>_actions.Player.Inventory.WasPressedThisFrame() || _actions.UI.Inventory.WasPressedThisFrame();
         // Held modifiers while a menu is open: Shift moves half a stack.
         public bool UiShiftHeld => Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 

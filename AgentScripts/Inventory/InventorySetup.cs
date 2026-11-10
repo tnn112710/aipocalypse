@@ -437,6 +437,8 @@ public static class InventorySetup
                 AssetDatabase.LoadAssetAtPath<GameObject>(Animpic + "POLY-SurvivalWorkshop/Prefabs/Interiors/SM_Wooden_Box_A.prefab"));
             model.transform.SetParent(root.transform, false);
             model.transform.localScale = new Vector3(0.9f, 0.7f, 0.7f);
+            // Saves find each placed crate by it (its id is generated per scene instance).
+            root.AddComponent<MB13.Aipocalypse.Core.SaveSystem.SaveId>();
             var loot = root.AddComponent<LootContainer>();
             var so = new SerializedObject(loot);
             so.FindProperty("_label").stringValue = "Crate";

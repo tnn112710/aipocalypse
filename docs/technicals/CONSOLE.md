@@ -28,7 +28,7 @@ While it's open it holds `InputService`'s text input: the Player, UI and Debug m
 
 ## Commands
 
-With nothing typed, the line under the input lists this scene's command groups (`afps  cheat  clear  clock  enemy  gfx  help  log  pause  player  raid  time`). `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
+With nothing typed, the line under the input lists this scene's command groups (`afps  cheat  clear  clock  enemy  gfx  help  log  pause  player  raid  save  time`). `help` lists exactly what works in the current scene, `help clock` one group, `help clock.set` one command's usage. Arguments in `[ ]` are optional.
 
 | Command | Does |
 | --- | --- |
@@ -54,6 +54,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `cheat.killall` | Kill every enemy in play with a real hit (scenes with an `EnemyInstaller` only) |
 | `cheat.autopilot [on/off]` | The player fights by itself: aims at the nearest enemy in sight, fires, reloads, swaps guns (`RaidAutopilot`; scenes with an `EnemyInstaller` only) |
 | `player.pos` | Where the player stands |
+| `save.list`, `save.write [slot]`, `save.load [slot]`, `save.new [slot]`, `save.delete <slot>`, `save.deleteall`, `save.auto`, `save.path`, `save.menu` | Save slots ([SAVE.md](SAVE.md#console); 0 / no slot = the current game's): every slot's summary; save now; load (the world reloads); new game in a slot (the first save overwrites its old one); delete one / all; autosave now (waits out a raid or death); the save folder (copied to the clipboard); back to the main menu |
 | `time.scale [0–1]` | Game speed (slow motion); 1 drops the console's request |
 | `pause` | Pause the game, or resume it |
 | `gfx.shadows [metres]`, `gfx.startwinkle [on/off]` | The player's graphics settings (`GraphicsService`) |

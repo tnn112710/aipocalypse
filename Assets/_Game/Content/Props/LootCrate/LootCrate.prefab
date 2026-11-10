@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5588763548849330276}
   - component: {fileID: 4585971316796944012}
+  - component: {fileID: 1258633867810963315}
   m_Layer: 0
   m_Name: LootCrate
   m_TagString: Untagged
@@ -60,6 +61,20 @@ MonoBehaviour:
     Count: 1
   _hideWhenEmpty: 0
   _searchCollider: {fileID: 0}
+  _markerHeight: 1
+--- !u!114 &1258633867810963315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7693107845294925339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b35c2fd250b3f846a9327bbfcf15096, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.SaveSystem.SaveId
+  _id: 
 --- !u!1001 &7874000372118680928
 PrefabInstance:
   m_ObjectHideFlags: 0

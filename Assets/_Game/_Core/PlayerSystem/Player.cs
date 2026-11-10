@@ -300,6 +300,19 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Button, HideInEditorMode]
         public void Revive() => _life?.Revive();
 
+        // Camera pitch in degrees, positive = down.
+        public float Pitch => _look != null ? _look.Pitch : 0f;
+
+        // Loading a save: stands the body there, facing `yaw` and looking at `pitch`, with the saved health.
+        public void RestoreSaved(Vector3 position, float yaw, float pitch, float health)
+        {
+            if (_motor == null)
+                return;
+            _motor.Teleport(position, Quaternion.Euler(0f, yaw, 0f));
+            _look.ResetPitch(pitch);
+            Health.Set(health);
+        }
+
         public void MoveToSpawn()
         {
             if (_life != null)

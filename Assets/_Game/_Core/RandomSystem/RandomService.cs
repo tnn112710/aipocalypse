@@ -33,6 +33,25 @@ namespace MB13.Aipocalypse.Core.RandomSystem
                 pair.Value.Reset(StreamSeed(seed, pair.Key));
         }
 
+        // Every stream's position, by name (saving).
+        public Dictionary<string, ulong> CaptureStreams()
+        {
+            var states = new Dictionary<string, ulong>(_streams.Count);
+            foreach (KeyValuePair<string, RandomStream> pair in _streams)
+                states[pair.Key] = pair.Value.State;
+            return states;
+        }
+
+        // Back to a saved seed and stream positions (loading); a stream the save doesn't list restarts from the seed.
+        public void Restore(ulong seed, IReadOnlyDictionary<string, ulong> states)
+        {
+            Reseed(seed);
+            if (states == null)
+                return;
+            foreach (KeyValuePair<string, ulong> pair in states)
+                Stream(pair.Key).Reset(pair.Value);
+        }
+
         // FNV-1a of the name mixed with the seed: string.GetHashCode isn't stable across runtimes.
         static ulong StreamSeed(ulong seed, string name)
         {

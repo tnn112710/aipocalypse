@@ -122,7 +122,7 @@ Milestones to Early Access (about late June 2027): **Ten days** (save/load, more
 
 Left out of the slice on purpose:
 
-- Systems: save/load, hunger and sanity, crafting (`Proto_Crafting`), the daily box, deposit, rescued robots.
+- Systems: save/load (first version built early, 2026-11-10: five slots, morning autosave, pause and main menus, [SAVE.md](technicals/SAVE.md); a settings menu still to come), hunger and sanity, crafting (`Proto_Crafting`), the daily box, deposit, rescued robots.
 - Enemies: grudge and Threat level.
 - World: region bosses, other regions, eclipse.
 - Story: endings, the dog.

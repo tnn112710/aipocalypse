@@ -41,6 +41,9 @@ namespace MB13.Aipocalypse.Core.Combat
 
         public void Restore() => _current = _max;
 
+        // Loading a save: the saved health, kept within 0..Max.
+        public void Set(float current) => _current = Mathf.Clamp(current, 0f, _max);
+
         // A new maximum keeps the current share (a +20% max heals 20% too); the dead stay dead.
         public void SetMax(float max)
         {

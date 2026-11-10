@@ -18,6 +18,7 @@ namespace MB13.Aipocalypse.Core.WorldTimeSystem
         {
             builder.RegisterInstance(_settings);
             builder.RegisterEntryPoint<WorldClock>().AsSelf();
+            builder.RegisterEntryPoint<ClockSaveSection>();
             // Editor and cheat builds only.
             if (Cheats.Enabled)
             {

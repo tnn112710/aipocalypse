@@ -87,6 +87,9 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
                     _hinges[i].localRotation = _closedRotations[i];
         }
 
+        // Open at once, without a sound (loading a save).
+        public void OpenInstantly() => SetOpen(true, 1f, instant: true);
+
         void SetOpen(bool open, float side, bool instant = false)
         {
             CacheHinge();

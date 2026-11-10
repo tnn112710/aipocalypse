@@ -96,6 +96,35 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
 
         public void SetLabel(string label) => _label = label;
 
+        // The slots still hidden (saving).
+        public List<int> HiddenSlots()
+        {
+            var slots = new List<int>();
+            _ = Items;
+            for (int i = 0; i < _hidden.Length; i++)
+                if (_hidden[i])
+                    slots.Add(i);
+            return slots;
+        }
+
+        // Loading a save, after its items are back: hides exactly these slots (an empty slot is never hidden).
+        public void RestoreHidden(IReadOnlyList<int> slots)
+        {
+            _ = Items;
+            _hiddenCount = 0;
+            for (int i = 0; i < _hidden.Length; i++)
+                _hidden[i] = false;
+            if (slots != null)
+                foreach (int slot in slots)
+                    if (slot >= 0 && slot < _hidden.Length && _items[slot] != null && !_hidden[slot])
+                    {
+                        _hidden[slot] = true;
+                        _hiddenCount++;
+                    }
+            _wasEmpty = _items.IsEmpty;
+            RevealChanged?.Invoke(this);
+        }
+
         // Replaces what's inside (a body's loot roll); all of it hidden until searched again.
         public void Fill(IReadOnlyList<ItemInstance> items)
         {

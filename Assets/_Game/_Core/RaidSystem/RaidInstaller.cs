@@ -34,6 +34,7 @@ namespace MB13.Aipocalypse.Core.RaidSystem
             // IRaidSpawner + ITickable (the arrival cues).
             builder.RegisterEntryPoint<RaidSpawner>().WithParameter<IReadOnlyList<SpawnZone>>(_zones);
             builder.RegisterEntryPoint<RaidDirector>().AsSelf();
+            builder.RegisterEntryPoint<RaidSaveSection>();
             builder.RegisterEntryPoint<DeathTimeRule>();
             // Editor and cheat builds only.
             if (Cheats.Enabled)

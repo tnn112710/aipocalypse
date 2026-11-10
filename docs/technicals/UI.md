@@ -52,8 +52,12 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       └─ ItemUse           nested Canvas · ItemUseHud: Root (Ring, radial Fill, Label) around the crosshair while a consumable is used
 LootMarkers                  full screen, nested Canvas · LootMarkerHud: Marker (inactive 56 px bag icon + Shadow, cloned 8 times), placed
                              over crates and bodies holding loot (see Loot markers and pickup feed below)
-Inventory                    last child: the inventory screen, its own Canvas (sorting 50, off while closed) · GraphicRaycaster · CanvasGroup ·
+Inventory                    the inventory screen, its own Canvas (sorting 50, off while closed) · GraphicRaycaster · CanvasGroup ·
                              InventoryScreen; built by AgentScripts/Inventory/InventorySetup (see Inventory screen below)
+SaveToast                    full screen, nested Canvas · SaveToastHud: one TMP line bottom right, 230 px up ("Game saved · Save 2")
+PauseMenu                    last child: Esc menu, its own Canvas (sorting 200, off while closed) · GraphicRaycaster · CanvasGroup
+                             (ignores the HUD's death fade) · PauseMenu: Backdrop, Page (Title, Buttons, Hint), Slots (SaveSlotsPanel),
+                             Confirm (ConfirmDialog), EventSystem (off while closed); built by AgentScripts/Save/SaveSetup.Hud (see Menus below)
 ```
 
 - **Region per corner.** New HUD info goes under the matching region: the clock (and later weather) in TopRight, quest tracker in TopRight below it, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
@@ -146,6 +150,15 @@ Inventory                    Canvas (override sorting 50) · GraphicRaycaster ·
 - Built by `AgentScripts/Inventory/InventorySetup.Interface`; after changing layout, run `InventorySetup.Bake` (or `BakeCurrent` right after leaving Play) so the values layout groups and TMP compute in the scene are stored in HUD.prefab, and WorldMap doesn't get dirty with HUD overrides.
 
 - **Sounds** (`InventoryStyle` → Sounds, 2D entities in the Player library): open, close, place (a successful move, right-click send or Take all), refused (with every message), reveal (each revealed stack).
+
+## Menus
+
+The pause menu, the main menu and the save slot list. What they do: [SAVE.md → Menus](SAVE.md#menus).
+
+- **Pause menu** (`PauseMenu`, in `HUD.prefab`): Esc / gamepad Start (the Player map's `Pause`, read through `InputService.PausePressed`) opens it only while gameplay input is on and no other menu holds the UI. Open: `TimeService.RequestPause(this)`, `InputService.RequestUI(this)`, its EventSystem on (input module pointed at InputService's UI map). UI `Cancel` (Esc) steps back: dialog → slot list → menu → closed. Closing (or the HUD being destroyed by a scene load) releases both.
+- **Main menu** (`MainMenuScreen`, `Assets/_Game/Scenes/MainMenu.unity`): a Screen Space Overlay canvas with a `HudScope` (root services, no `GameLifetimeScope` there), its EventSystem always on, `RequestUI` while the scene is open.
+- **Shared widgets** (`UI/Menus/`): `SaveSlotsPanel` (one `SaveSlotRow` cloned per slot from an inactive template), `ConfirmDialog` (No selected first). Both menus hand the panel the session with `Bind`.
+- **Look:** `Data/UI/MenuStyle.asset`: font (Varela Round, the death screen's), Unity's rounded `UISprite` with `CornerScale`, button colours (the current game's slot in `Accent`, delete / overwrite in `Danger`). Layout lives in `AgentScripts/Save/SaveSetup` (`Hud`, `MainMenu`, `SlotsPanel`, `Row`, `Confirm`): change it there and re-run.
 
 ## Item use and effects
 

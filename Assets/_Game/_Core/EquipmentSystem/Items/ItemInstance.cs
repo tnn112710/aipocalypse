@@ -76,6 +76,10 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             return true;
         }
 
+        // Per-copy state to and from a save (a gun's rounds, a kit's uses); the count is saved for every item.
+        public virtual void WriteSave(ItemSave save) { }
+        public virtual void ReadSave(ItemSave save) { }
+
         internal void SetCount(int count)
         {
             Count = count;

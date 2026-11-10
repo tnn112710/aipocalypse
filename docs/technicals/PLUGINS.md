@@ -37,7 +37,7 @@ MessagePipe, UniTask, UIEffect and the yasirkula tools track their repo HEAD (no
 | MessagePipe (+ `.vcontainer`) | 1.8.2 | UPM git | Must | Cross-system events. Registered once in the root scope (open generics on, no per-type registration). Awaitable events use `IAsyncPublisher` / `IAsyncSubscriber` (`PlayerRespawnFading` and `PlayerRespawning`, awaited by `PlayerRespawnFlow`; the death screen and `DeathTimeRule` subscribe). |
 | UniTask | 2.5.11 | UPM git | Must | Async. Use instead of coroutines. `UNITASK_DOTWEEN_SUPPORT` is off. |
 | Odin Inspector | — | `Assets/Plugins/Sirenix` | Could | Inspector attributes in game code, mostly editor-side. **Never use Odin serialization** (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`, Odin serialized collections): use Unity serialization, including the built-in `[SerializeField] Dictionary<,>` (Unity 6.6) for key→value data. |
-| Easy Save 3 | — | `Assets/Plugins/Easy Save 3` | Should | Persistence. Not used yet (save system postponed, see ARCHITECTURE.md). |
+| Easy Save 3 | — | `Assets/Plugins/Easy Save 3` | Should | Persistence: the save slots ([SAVE.md](SAVE.md)). Its assembly definitions are enabled (`EasySave3` / `EasySave3Editor`, the vendor's own "Enable Assembly Definition Files" step) so `MB13.Aipocalypse.Core` can reference it. Used only as a file format inside `SaveService` (`ES3File`, `ES3.SaveRaw`, JSON, no encryption): plain `[Serializable]` data classes, never ES3's auto-save components, `ES3ReferenceMgr` or Unity object references. |
 
 ## AI & navigation
 

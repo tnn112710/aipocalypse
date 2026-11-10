@@ -19,6 +19,18 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // Rounds in the magazine over the owner's reserve of its ammo; flagged when empty or jammed.
         public override ItemBadge Badge => new(Rounds, Rounds == 0 || IsJammed, Gun.Magazine.AmmoType);
 
+        public override void WriteSave(ItemSave save)
+        {
+            save.Rounds = Rounds;
+            save.Jammed = IsJammed;
+        }
+
+        public override void ReadSave(ItemSave save)
+        {
+            SetRounds(save.Rounds);
+            SetJammed(save.Jammed);
+        }
+
         public void SetRounds(int rounds)
         {
             rounds = Mathf.Clamp(rounds, 0, Gun.Magazine.Size);

@@ -21,6 +21,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         public override void Install(IContainerBuilder builder)
         {
             builder.Register<BarrierRegistry>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<DefenseSaveSection>();
             if (_repairHighlight != null)
             {
                 builder.RegisterInstance(_repairHighlight);

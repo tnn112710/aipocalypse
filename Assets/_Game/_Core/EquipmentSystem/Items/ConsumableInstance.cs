@@ -11,6 +11,14 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public override ItemBadge Badge => new(UsesLeft);
         public override long Value => (long)Definition.Value * UsesLeft / Consumable.Uses;
 
+        public override void WriteSave(ItemSave save) => save.Uses = UsesLeft;
+
+        public override void ReadSave(ItemSave save)
+        {
+            UsesLeft = System.Math.Clamp(save.Uses, 1, Consumable.Uses);
+            RaiseChanged();
+        }
+
         // One use spent; true when that was the last (the caller removes the item).
         public bool UseOnce()
         {

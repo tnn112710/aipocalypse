@@ -105,6 +105,18 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             Switcher.EquipImmediately(Hotbar[first]);
         }
 
+        // Loading a save: holds the slot at once, without the switch; the first holdable slot when that one can't be held.
+        public void SelectImmediately(int index)
+        {
+            if (index < 0 || index >= Hotbar.Count || Hotbar[index] == null || !CanHold(Hotbar[index]))
+            {
+                EquipFirstImmediately();
+                return;
+            }
+            SetSelection(index);
+            Switcher.EquipImmediately(Hotbar[index]);
+        }
+
         public void Tick(float deltaTime, float switchSpeed) => Switcher.Tick(deltaTime, switchSpeed);
 
         // Puts the held item away but keeps the slot selected (the player went down); RaiseHands brings it back.

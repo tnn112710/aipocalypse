@@ -55,6 +55,16 @@ namespace MB13.Aipocalypse.Core.RaidSystem
         public int Alive => _spawner.Alive;
         // How the last raid ended; null while one runs or before any.
         public RaidEndReason? LastEnd { get; private set; }
+        // Nights whose raid has run (or that were quiet): never raided again, also after a load.
+        public IReadOnlyCollection<int> HandledNights => _handledNights;
+
+        // Loading a save: these nights are already done.
+        public void RestoreHandledNights(IEnumerable<int> nights)
+        {
+            _handledNights.Clear();
+            foreach (int night in nights)
+                _handledNights.Add(night);
+        }
 
         // The raid night `time` falls in; 0 by day.
         public static int NightOf(WorldTime time, RaidSettings settings)

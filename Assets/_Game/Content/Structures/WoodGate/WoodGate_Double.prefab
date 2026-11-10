@@ -138,6 +138,7 @@ GameObject:
   - component: {fileID: 8239275878988588475}
   - component: {fileID: 9157661930997949360}
   - component: {fileID: 1051023041819813239}
+  - component: {fileID: 7758762473273653365}
   m_Layer: 0
   m_Name: WoodGate_Double
   m_TagString: Untagged
@@ -225,6 +226,19 @@ MonoBehaviour:
   _openAngle: 100
   _swingTime: 0.6
   _startsOpen: 0
+--- !u!114 &7758762473273653365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7123067524339834206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b35c2fd250b3f846a9327bbfcf15096, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.SaveSystem.SaveId
+  _id: 
 --- !u!1001 &298315908540914273
 PrefabInstance:
   m_ObjectHideFlags: 0

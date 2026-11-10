@@ -58,6 +58,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
             if (_lightning != null)
                 builder.RegisterComponent(_lightning);
             builder.RegisterEntryPoint<WeatherService>().AsSelf();
+            builder.RegisterEntryPoint<WeatherSaveSection>();
             if (_weather.Rules != null && _weather.Rules.Enabled)
             {
                 builder.RegisterInstance(_weather.Rules);

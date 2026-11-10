@@ -61,6 +61,7 @@ Who publishes → who subscribes today:
 | `BarrierBroken`, `BarrierRestored` | `BarrierSegment` | `BreachAlertHud` (`BarrierBroken`); the morning report later |
 | `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | `RaidBannerHud` (`RaidStarted`, `RaidEnded` Cleared / Dawn); music and morning report later |
 | `WeatherChanged` (empty: read `WeatherService`) | `WeatherService` | none yet (weather rules, HUD later) |
+| `GameSaved` | `GameSession` | `SaveToastHud` |
 
 Update this table when you add an event or a subscriber.
 
@@ -68,7 +69,7 @@ Update this table when you add an event or a subscriber.
 
 - Async exists in two places: `PlayerRespawnFlow` (one CTS per run, cancelled and disposed in `End` and `Dispose`; `async UniTaskVoid` + `.Forget()`) and `DeathScreenHud` (async handlers). Follow that shape for new flows. Everything per-entity or repeating is a central tick (`EnemyManager`, `EffectPool`'s timed returns on `Time.time`), never an awaited timer.
 - **`UNITASK_DOTWEEN_SUPPORT` is off** (DOTween is the Asset Store copy in `Assets/Plugins/Demigiant`). Await a tween with `UniTask.WaitWhile(() => t.IsActive() && t.IsPlaying(), cancellationToken: ct)`. Turning the define on means adding it to the Standalone defines and updating PLUGINS.md in the same change.
-- No `SceneLoader` exists yet: when it lands, it's the only place that loads scenes.
+- The root `SceneLoader` is the only place that loads scenes (through `GameSession` for loads, new games and the main menu). A system that holds state across days saves it in its own `SaveSection` registered by its installer ([SAVE.md](../../../docs/technicals/SAVE.md#adding-a-system-to-the-save)); restore silently, and keep Unity object references out of saved data.
 - **Owner-keyed requests:** `TimeService.Request` / `Release` (slow motion, slowest wins), `RequestPause` / `ReleasePause`, `RequestHitStop` (real time, ignored while paused); `InputService.RequestUI` / `ReleaseUI`, `RequestTextInput` / `ReleaseTextInput` (the dev console); `GraphicsService.RequestShadowDistance` / `ReleaseShadowDistance`; `WorldClock.RequestSpeed` / `Freeze` / `Release`. Pass `this` as owner and release on **every** exit path (end, cancel, `Dispose`, `OnDisable`). A missed release leaves the game slowed, paused or without gameplay input.
 - **`TimeService` is the only writer of `Time.timeScale` and the fixed step.** Feel's time-scale feedbacks are banned; use `MMF_HitStop` (tools-unity-feel).
 - **Pause = `timeScale` 0.** Scaled ticks freeze by themselves (`EnemyManager`, `WorldClock`, `BulletSystem`, effect lifetimes, scaled `UniTask.Delay`). Anything on unscaled time, frame waits or `WaitUntil` must check `TimeService.IsPaused` itself, as `QuickTimeService`, `QteHud`, `AmbienceService` and `Player` (breath sound, pose sequence) do. Nothing calls `RequestPause` outside tests yet (no pause menu).

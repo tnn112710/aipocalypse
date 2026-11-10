@@ -53,6 +53,13 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
 
         public void Stand() => _broken = false;
 
+        // Loading a save: exactly this health and state.
+        public void Set(float current, bool broken)
+        {
+            _current = Mathf.Clamp(current, 0f, _max);
+            _broken = broken || _current <= 0f;
+        }
+
         public void Restore()
         {
             _current = _max;

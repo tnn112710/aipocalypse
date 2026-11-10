@@ -267,6 +267,22 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
                 _restored?.Publish(new BarrierRestored(transform.position, _gate != null));
         }
 
+        // Loading a save: the saved health, broken or standing, and the gate open or shut, at once and without a sound,
+        // effect or event.
+        public void RestoreSaved(float health, bool broken, bool gateOpen)
+        {
+            if (_health == null)
+                return;
+            _health.Set(health, broken);
+            if (_gate != null)
+            {
+                _gate.ResetClosed();
+                if (gateOpen && !_health.IsBroken)
+                    _gate.OpenInstantly();
+            }
+            Refresh(instant: true);
+        }
+
         [Button, HideInEditorMode]
         public void DealDamage(float amount = 100f) =>
             TakeDamage(new DamageInfo(amount, DamageType.Generic, transform.position + Vector3.up * RepairHeight));

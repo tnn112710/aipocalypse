@@ -9,6 +9,7 @@ using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.QuickTimeSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Input;
 using MessagePipe;
 using UnityEngine;
@@ -23,6 +24,8 @@ namespace MB13.Aipocalypse.Core.Bootstrap
         [SerializeField] ControlSettings _controls = new();
         [SerializeField, Tooltip("Dev console (editor and development builds): Data/Debug/ConsoleSettings")] ConsoleSettings _consoleSettings;
         [SerializeField, Tooltip("_Debug/Console/Prefabs/DebugConsole")] ConsoleView _consoleOverlay;
+        [SerializeField, Tooltip("Data/Save/SaveSettings: slots, autosave, the menu and world scenes")] SaveSettings _saveSettings;
+        [SerializeField, Tooltip("Data/Equipment/ItemCatalog: every item by id, for saves")] ItemCatalog _itemCatalog;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -52,7 +55,8 @@ namespace MB13.Aipocalypse.Core.Bootstrap
             new QuickTimeInstaller().Install(builder);
             new PlayerInstaller().Install(builder);
             new WeaponInstaller().Install(builder);
-            new EquipmentInstaller().Install(builder);
+            new EquipmentInstaller(_itemCatalog).Install(builder);
+            new SaveInstaller(_saveSettings != null ? _saveSettings : ScriptableObject.CreateInstance<SaveSettings>()).Install(builder);
         }
     }
 }

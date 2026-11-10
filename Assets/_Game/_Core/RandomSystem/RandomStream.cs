@@ -15,6 +15,9 @@ namespace MB13.Aipocalypse.Core.RandomSystem
 
         public void Reset(ulong seed) => _state = seed;
 
+        // Where the sequence is now: Reset(State) later continues with the same rolls (saving).
+        public ulong State => _state;
+
         public ulong NextULong()
         {
             ulong z = _state += 0x9E3779B97F4A7C15UL;

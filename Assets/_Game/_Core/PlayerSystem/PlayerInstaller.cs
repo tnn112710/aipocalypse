@@ -11,6 +11,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             builder.Register<PlayerRegistry>(Lifetime.Singleton);
             builder.RegisterEntryPoint<PlayerRespawnFlow>().AsSelf();
+            builder.RegisterEntryPoint<PlayerSaveSection>();
             // Editor and cheat builds only.
             if (Cheats.Enabled)
             {

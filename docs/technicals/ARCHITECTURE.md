@@ -54,23 +54,23 @@ Core **announces** what happens; features **react**. New rules are new subscribe
 
 ```text
 Root (VContainerSettings → ProjectLifetimeScope prefab, auto-created before any scene)
-  SettingsService · InputService · SceneLoader · SessionRequest · EntityRegistry · MessagePipe brokers · LoadingScreen
-  (SaveService later — see Features)
+  InputService · MessagePipe brokers · SaveService · SaveRegistry · GameSession · SceneLoader (+ loading screen) · … (SettingsService later)
 
 MainMenu scene (first in Build Settings, no Boot scene)
-  MainMenuLifetimeScope: New Game | Continue | Settings | Exit
+  HudScope on the menu canvas (root services): MainMenuScreen: Continue | New Game | Load Game | Settings (later) | Quit
 
 World scene (one persistent map, no mission/night scopes)
-  GameLifetimeScope: installers for Core + enabled Features; GameStarter (entry point) reads SessionRequest → builds State → starts the clock
-  Quit to menu → load MainMenu (scene unload disposes all game services)
+  GameLifetimeScope: installers for Core + enabled Features; WorldSaveInstaller → WorldSaver: on the first frame GameSession
+  restores the pending save (or starts a new game), then autosaves each morning. Details: SAVE.md
+  Pause menu → Main Menu → load MainMenu (scene unload disposes all game services)
 
 Any scene (World, Proto_*, test arenas)
   Entity prefabs carry their own EntityScope — see Entities
 ```
 
-- **Play from any scene:** the root scope always exists. With no `SessionRequest` (Play pressed in World), `GameStarter` uses a `DevStartConfig` asset (editor only): start day/time, inventory, stats, **which features and experiments are on**. In builds an empty request returns to the menu.
-- Scenes load with `SceneManager.LoadSceneAsync` + UniTask; no Addressables for now.
-- **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe, `InputService`, `AudioService`, `DamageService`, `TimeService`, `GraphicsService`, `QuickTimeService`, `PlayerRegistry`, `PlayerRespawnFlow`, `EffectPool` (`EffectsInstaller`), `BulletSystem` and `GunJamFactory` (registered by `WeaponInstaller`), `ScreenLog` and, in dev builds, the dev console (`ConsoleInstaller`); `GameLifetimeScope` with the strict flag, installing the `SceneInstaller` components on its GameObject: `WorldTimeInstaller` (world clock), `EnvironmentInstaller` (`EnvironmentDirector` + ambience), `EnemyInstaller`, `RaidInstaller` (raid nights) and `DefenseInstaller` (fences and gates). A scene gets a system by adding its installer component. The clock starts at `ClockSettings.StartHour` until `GameStarter` exists. Menu, World, `GameStarter` and the other root services are not built yet.
+- **Play from any scene:** the root scope always exists. Play pressed in a world scene (no menu) starts a new game on day 1 that saves to `SaveSettings.EditorSlot` (Save 1). A `DevStartConfig` (start day/time, inventory, which features are on) is still a later idea.
+- Scenes load only through the root `SceneLoader` (`SceneManager.LoadSceneAsync` + UniTask, under a loading screen); no Addressables for now.
+- **Built so far:** the root (`VContainerSettings` + `ProjectLifetimeScope` prefab) with MessagePipe, `InputService`, `AudioService`, `DamageService`, `TimeService`, `GraphicsService`, `QuickTimeService`, `PlayerRegistry`, `PlayerRespawnFlow`, `EffectPool` (`EffectsInstaller`), `BulletSystem` and `GunJamFactory` (registered by `WeaponInstaller`), `ScreenLog`, the save system (`SaveInstaller`: `SaveService`, `SaveRegistry`, `GameSession`, `SceneLoader`) and, in dev builds, the dev console (`ConsoleInstaller`); `GameLifetimeScope` with the strict flag, installing the `SceneInstaller` components on its GameObject: `WorldTimeInstaller` (world clock), `EnvironmentInstaller` (`EnvironmentDirector` + ambience), `EnemyInstaller`, `RaidInstaller` (raid nights), `DefenseInstaller` (fences and gates) and `WorldSaveInstaller` (restore and autosave). A scene gets a system by adding its installer component. A new game's clock starts at `ClockSettings.StartHour`; a loaded one at the saved time. The MainMenu scene, the pause menu and save slots are built ([SAVE.md](SAVE.md)); a settings menu and `SettingsService` are not.
 
 ## Systems
 
@@ -86,6 +86,7 @@ Any scene (World, Proto_*, test arenas)
 | EnemySystem | Scene system (`EnemyInstaller`): `EnemyRegistry`, `EnemyManager` (time-sliced Behavior Designer ticks), `EnemyBrain` + `EnemyMover` per enemy, `EnemyDefinition` per enemy kind; `EnemySpawnCard` per spawnable kind (a `SpawnCard` plus its arrival cue), `EnemyNavigation` (the navmesh, also SpawnSystem's `INavmeshQuery`), targeting (`TargetRegistry`, `TargetSelector`, `AttackSlots`), sounds (`EnemySoundSet`, `EnemyVoice`, `EnemySoundManager`). Knows nothing of raids. See AI |
 | DefenseSystem | Scene system (`DefenseInstaller`): fences and gates. `BarrierSegment` per fence piece or gate (`BarrierHealth`, a navmesh cut and climb blocker while it blocks, `BarrierLook`, repaired with the hammer item through the player's `IRepairer` (R one segment, E all of them), `RepairHighlight` tints damaged ones while the hammer is held; an `IBreachable` enemy target), `FenceGate` (leaves open / close on E, closed by default), `BarrierDefinition` per kind (health, repair, look, sounds, `BarrierEffect`s on a blow, `UpgradesTo`), `BarrierRegistry`; publishes `BarrierBroken` / `BarrierRestored`. Depends on EnemySystem (registers in `TargetRegistry` when present). [DEFENSE.md](DEFENSE.md) |
 | RaidSystem | Scene system (`RaidInstaller`): raid nights. `RaidDirector` (night window from `WorldClock`, waves, alive cap, end reasons; publishes the raid events), `IRaidSchedule` (`EveryNightSchedule`), `RaidSpawner` (`IRaidSpawner`: groups from the scene's `SpawnZone`s through `SpawnService`, arrival cues, withdrawal), `DeathTimeRule` (a death costs time); data in `RaidSettings` and `RaidPlan`. Depends on SpawnSystem, EnemySystem, WorldTimeSystem and PlayerSystem. [RAIDS.md](RAIDS.md) |
+| SaveSystem | Root: `SaveService` (five Easy Save 3 JSON slot files, backups), `SaveRegistry` (every system's `SaveSection` while its scope lives), `GameSession` (current slot, play time, save / load / new game / main menu, the morning autosave), `SceneLoader` (the only scene loader, loading screen); scene: `WorldSaveInstaller` → `WorldSaver` (restore on the first frame, autosave trigger); `SaveId` on scene-placed objects, items by `ItemCatalog` GUID. Each system saves its own state in its own section. [SAVE.md](SAVE.md) |
 | SpawnSystem | Scene system (`SpawnInstaller`): the one way anything comes into play. `SpawnService` (requests, handles, a per-frame budget), `PrefabPool` (prewarmed, injected, per prefab), `Spawnable` + `ISpawnable` on every spawnable prefab, `SpawnCard` / `SpawnSquad` / `SpawnTable` (what), `SpawnZone` / `RingArea`, `SpawnPointPicker`, `SpawnPlacer` (ground, navmesh, air, water) and `SpawnVisibility` (where), `Formation`, `PopulationDirector` + `SpawnArea` (open-world population; WorldMap has a goblin camp by the lake). Pools are reserved per owner and trimmed past that; a card can cap how many are alive (refuse, or recycle the oldest unseen); water includes the rivers (`RiverCourse`). Knows nothing of enemies or raids. [SPAWNING.md](SPAWNING.md) |
 | AmbientSystem | Scene system (`AmbientInstaller`): life that only decorates. `Flock` (a spawnable flock of birds or school of fish, its `FlockDefinition`), `FlockSystem` (one central boids tick, `FlockMath`). Depends on SpawnSystem. [SPAWNING.md](SPAWNING.md#ambient-flocks-and-schools-ambientsystem) |
 | InputSystem | `InputService` (root scope) over `InputSystem_Actions` through its generated wrapper `GameInputActions`: owns enabling, map switching and cursor lock; consumers only read. Menus take the UI map with owner-keyed `RequestUI` / `ReleaseUI`; gameplay input is on only while nobody holds a request. Text input (`RequestTextInput`, the dev console) beats both: only the `Console` map and typed characters are live. A reader that ticks first can `Consume` a `GameButton` press so later readers don't see it (the QTE's confirm). Mouse look is per-frame delta, stick look is scaled by deltaTime. Namespace `MB13.Aipocalypse.Input` — a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem` |
@@ -103,7 +104,7 @@ Any scene (World, Proto_*, test arenas)
 
 ## Holding off on expensive commitments
 
-- **Save:** not until the core loop is fun — save formats lock in data shapes. When added: versioned JSON, no old-save compatibility promise during development.
+- **Save:** built (user, 2026-11-10; [SAVE.md](SAVE.md)): versioned JSON per slot, each system its own section, no old-save compatibility promise during development (a shape change bumps `SaveService.Version`; no migrations yet).
 - **Stats/modifiers:** minimal version first (today: `IStatProvider` with a pass-through default); extend only when a designed feature needs it.
 - **Interfaces:** only at real seams (Core ↔ Feature, entity ↔ outside world).
 
