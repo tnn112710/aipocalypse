@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
 {
-    // One inventory slot: an item's icon, name and count on a tile, an optional key and caption, a silhouette when
+    // One inventory slot: an item's icon, name and count on a tile with a border in its rarity's colour, an optional key and caption, a silhouette when
     // empty, and a "?" with a filling circle while a search hasn't revealed its item yet. Reports pointer and drag events to its presenter; knows nothing about items or containers.
     public sealed class ItemSlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
         IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
@@ -17,6 +17,7 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] Image _emptyIcon;
         [SerializeField] Image _icon;
         [SerializeField] Image _highlight;
+        [SerializeField, Tooltip("Border in the item's rarity colour (InventoryStyle)")] Image _rarityBorder;
         [SerializeField] TMP_Text _name;
         [SerializeField] TMP_Text _count;
         [SerializeField, Tooltip("Hotbar key, top-left")] TMP_Text _key;
@@ -49,11 +50,16 @@ namespace MB13.Aipocalypse.Core.UI
 
         void Awake() => ApplyStyle();
 
-        // An item: `count` < 0 hides the count.
-        public void Show(Sprite icon, string itemName, int count, bool warning = false)
+        // An item: `count` < 0 hides the count; `rarity` colours the border (alpha 0: none).
+        public void Show(Sprite icon, string itemName, int count, bool warning = false, Color rarity = default)
         {
             _hasItem = true;
             SetHidden(false);
+            if (_rarityBorder != null)
+            {
+                rarity.a *= _style != null ? _style.RarityBorderAlpha : 1f;
+                _rarityBorder.color = rarity;
+            }
             _icon.sprite = icon;
             if (_name != null && !ReferenceEquals(itemName, _shownName))
             {
@@ -150,6 +156,11 @@ namespace MB13.Aipocalypse.Core.UI
             _highlight.sprite = _style.HighlightSprite;
             _highlight.type = StyleUtils.ImageTypeFor(_style.HighlightSprite);
             _highlight.color = _style.HighlightColor;
+            if (_rarityBorder != null)
+            {
+                _rarityBorder.sprite = _style.HighlightSprite;
+                _rarityBorder.type = StyleUtils.ImageTypeFor(_style.HighlightSprite);
+            }
             _icon.preserveAspect = true;
             _emptyIcon.preserveAspect = true;
             _emptyIcon.color = _style.EmptyIconColor;
@@ -181,6 +192,8 @@ namespace MB13.Aipocalypse.Core.UI
             if (_count != null && !_hasItem)
                 _count.enabled = false;
             _highlight.enabled = _hovered;
+            if (_rarityBorder != null)
+                _rarityBorder.enabled = _hasItem && _rarityBorder.color.a > 0f;
             if (_style == null)
                 return;
             _background.color = _hasItem || _isHidden ? _style.SlotColor : _style.EmptySlotColor;

@@ -285,6 +285,9 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
   - Active slots: 2 guns (keys 1, 2), melee (V), consumables and tools (3–9); more guns ride in the backpack; a third gun slot (1, 2, 3) maybe as an upgrade later
   - Equipment UI: Head, Body, Face slots shown, no items yet; no headphones or totems; a backpack item (+slots, +weight)
   - Weight: values now, slowdown later. A medic box collectible, held in hand (no use yet)
+  - Item use (2026-11-10): select from slots 3–9 and hold the attack button (kit 3 s, bandage 1.5 s, shots 1 s, a progress ring); walk slowly, no sprint; let go, switch or a hit cancels. The medic box is a First Aid Kit with 5 uses of 20 HP; Bandage heals 15 HP over 10 s (a hit pauses it; bleeding later); Adrenaline (+25 % speed, 60 s) and Stamina Shot (regen ×2, sprint cost ½, 60 s)
+  - Value and rarity (2026-11-10): every item has a value in Tokens and a rarity (grey, green, blue, purple, gold) shown as a slot border and in the tooltip; selling waits for the trading robot. Placeholder numbers
+  - Icons (user, 2026-11-10): item icons from the UI icon packs in `Assets/_StoreAssets/UI`, one set and style preferred
   - Later: the dog carrying items
 - Suggested (not agreed yet):
   - Bank the carried Tokens at the trading robot (Duckov's ATM without the chore): carried Tokens are at risk, banked ones only lose the lost raid's X%. The walk home is the risk

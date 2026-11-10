@@ -21,7 +21,7 @@ using Object = UnityEngine.Object;
 
 // Play-mode probe of the inventory in WorldMap, step by step (enter Play first; each entry reports what it saw):
 // Start → Pickups → Magnet → Throw → Weapons → Markers → OpenCrate → DragDrop → CloseAndHold → Goblins → LootGoblin →
-// EmptyGoblin → RaidLoot → Finish.
+// EmptyGoblin → RaidLoot → Consumables → Finish.
 // Drives the real player through IPlayer.IntentSource (look, E) and the real UI through pointer events.
 // Run: unity command script run --file AgentScripts/Inventory/InventoryPlayTest.cs --entry InventoryPlayTest.Start
 public static class InventoryPlayTest
@@ -35,12 +35,16 @@ public static class InventoryPlayTest
         public Vector3? LookAt;
         public bool Interact;
         public Vector2 Move;
+        // Held attack button (FirePressed on the frame it goes down).
+        public bool Fire;
+        bool _wasFire;
 
         public ScriptedIntent(Player player) => _player = player;
 
         public PlayerIntent Read(float deltaTime)
         {
-            var intent = new PlayerIntent { Move = Move };
+            var intent = new PlayerIntent { Move = Move, Fire = Fire, FirePressed = Fire && !_wasFire };
+            _wasFire = Fire;
             if (LookAt is Vector3 target)
             {
                 Transform view = _player.View;
@@ -565,6 +569,129 @@ public static class InventoryPlayTest
         log.Append($"raid over: open={screen.IsOpen}, timeScale={Time.timeScale}");
         screen.Close();
         return log.ToString();
+    }
+
+    // Uses each consumable from a quick slot by holding the attack button: the first aid kit (after a hit; refused at full
+    // health; a hit mid-use cancels it), the bandage (healing over time, paused by a hit), adrenaline and the stamina shot
+    // (buffed stats). Also the slower walk while using and the rarity / value shown in the inventory.
+    public static async Task<string> Consumables()
+    {
+        var log = new StringBuilder();
+        Inventory inv = Inv;
+        Equipment equipment = Player.Equipment;
+        int slot3 = equipment.SlotOf(HotbarKey.Key3);
+        string[] names = { "MedicBox", "Bandage", "Adrenaline", "StaminaShot" };
+        for (int i = 0; i < names.Length; i++)
+        {
+            ItemContainer from = inv.Backpack;
+            int at = Find(from, d => d.name == names[i]);
+            if (at < 0)
+            {
+                from = inv.Hotbar;
+                at = Find(from, d => d.name == names[i]);
+            }
+            if (at < 0)
+            {
+                log.AppendLine($"{names[i]}: not carried");
+                continue;
+            }
+            if (from != inv.Hotbar || at != slot3 + i)
+                ItemContainer.Move(from, at, inv.Hotbar, slot3 + i);
+        }
+        log.AppendLine($"hotbar {Contents(inv.Hotbar)}");
+
+        Health health = Player.Health;
+        var damage = Object.FindAnyObjectByType<GameLifetimeScope>().Container.Resolve<DamageService>();
+        void Hurt(float amount)
+        {
+            Player.Invulnerable = false;
+            damage.Deal(Player, new DamageInfo(amount, DamageType.Melee, Player.transform.position + Vector3.up));
+            Player.Invulnerable = true;
+        }
+
+        // Full health: refused.
+        health.Restore();
+        await Select(slot3);
+        Intent("Fire", true);
+        await Frames(3);
+        var held = Player.HeldItem as HeldConsumable;
+        log.AppendLine($"kit at full health: using={held?.IsUsing}, refusal='{held?.Refusal}'");
+        Intent("Fire", false);
+        await Frames(2);
+
+        // Kit after a hit: 3 s, +20 HP, 4 uses left; walking at half speed meanwhile.
+        Hurt(50f);
+        float before = health.Current;
+        Intent("Fire", true);
+        await Seconds(1f);
+        object motor = typeof(Player).GetField("_motor", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(Player);
+        float speed = (float)motor.GetType().GetProperty("SpeedMultiplier").GetValue(motor);
+        log.AppendLine($"kit 1 s in: progress {held?.UseProgress:P0}, move speed multiplier {speed:0.00}");
+        await Seconds(2.4f);
+        Intent("Fire", false);
+        await Frames(2);
+        var kit = inv.Hotbar[slot3] as ConsumableInstance;
+        log.AppendLine($"kit used: HP {before:0} -> {health.Current:0}, uses left {kit?.UsesLeft}/{kit?.Consumable.Uses}");
+
+        // A hit mid-use cancels.
+        before = health.Current;
+        Intent("Fire", true);
+        await Seconds(1f);
+        Hurt(5f);
+        await Seconds(2.5f);
+        Intent("Fire", false);
+        await Frames(2);
+        log.AppendLine($"kit hit mid-use: using={held?.IsUsing}, uses left {kit?.UsesLeft}, HP {before:0} -> {health.Current:0} (5 lost, nothing healed)");
+
+        // Bandage: 15 HP over 10 s; a hit pauses it for 3 s.
+        await Select(slot3 + 1);
+        int bandages = inv.CountOf(inv.Hotbar[slot3 + 1]?.Definition);
+        before = health.Current;
+        Intent("Fire", true);
+        await Seconds(1.7f);
+        Intent("Fire", false);
+        await Seconds(4f);
+        float afterFour = health.Current;
+        Hurt(1f);
+        float hit = health.Current;
+        await Seconds(2f);
+        float paused = health.Current;
+        log.AppendLine($"bandage: {bandages} -> {inv.CountOf(inv.Hotbar[slot3 + 1]?.Definition)}, HP {before:0.0} -> {afterFour:0.0} after 4 s; " +
+                       $"hit {hit:0.0} -> {paused:0.0} 2 s later (paused={Player.Effects.HealingPaused})");
+
+        // Shots: stats while the buffs last.
+        await Select(slot3 + 2);
+        Intent("Fire", true);
+        await Seconds(1.3f);
+        Intent("Fire", false);
+        await Select(slot3 + 3);
+        Intent("Fire", true);
+        await Seconds(1.3f);
+        Intent("Fire", false);
+        await Frames(2);
+        var stats = (MB13.Aipocalypse.Core.Stats.IStatProvider)Player.Effects;
+        var effects = new List<string>();
+        foreach (PlayerEffects.Active effect in Player.Effects.Effects)
+            effects.Add($"{effect.Source.DisplayName} {(effect.Heals ? "heal" : "buff")} {effect.Remaining:0}s");
+        log.AppendLine($"effects: {string.Join(", ", effects)}");
+        log.AppendLine($"walk speed 4 -> {stats.Get(MB13.Aipocalypse.Core.Stats.StatId.WalkSpeed, 4f):0.00}, stamina regen 18 -> " +
+                       $"{stats.Get(MB13.Aipocalypse.Core.Stats.StatId.StaminaRegen, 18f):0.0}, sprint cost 10 -> {stats.Get(MB13.Aipocalypse.Core.Stats.StatId.SprintStaminaCost, 10f):0.0}");
+        log.AppendLine($"hotbar after: {Contents(inv.Hotbar)}");
+
+        // Value and rarity in the inventory screen.
+        InventoryScreen screen = Screen();
+        screen.Open(null);
+        await Frames(2);
+        ItemSlotView kitView = View(screen, inv.Hotbar, slot3);
+        Image border = kitView.transform.Find("RarityBorder").GetComponent<Image>();
+        log.AppendLine($"kit slot border: shown={border.enabled}, colour {border.color}; value {inv.Hotbar[slot3]?.Value} (120 x {kit?.UsesLeft}/5)");
+        return log.ToString();
+    }
+
+    static async Task Select(int slot)
+    {
+        Player.Equipment.Select(slot);
+        await Seconds(0.8f);
     }
 
     public static string Finish()

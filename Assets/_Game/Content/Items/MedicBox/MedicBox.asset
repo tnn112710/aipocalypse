@@ -12,15 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e1b769d7143c24448cc047dd7ef306f, type: 3}
   m_Name: MedicBox
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.ConsumableDefinition
-  _displayName: Medic Box
-  _icon: {fileID: 21300000, guid: 529998e2511674642b86382d34daf8fc, type: 3}
+  _displayName: First Aid Kit
+  _icon: {fileID: 21300000, guid: d2c85206e194a924da24cbcea4d5e618, type: 3}
   _prefab: {fileID: 3301942530675143218, guid: bf41e54f5570cb94aa77ca5fd6193438, type: 3}
-  _maxStack: 5
+  _maxStack: 1
   _unlimitedStack: 0
   _weight: 0.5
   _autoCollect: 0
+  _value: 120
+  _rarity: 1
   _equipTime: 0.35
   _holsterTime: 0.25
   _holdFeel:
     AimMoveSpeedScale: 1
     SwayScale: 1
+  _useSeconds: 3
+  _uses: 5
+  _useMoveSpeedScale: 0.5
+  _heal: 20
+  _healOverTime: 0
+  _healSeconds: 10
+  _buffSeconds: 0
+  _buffScales: []

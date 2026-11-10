@@ -20,6 +20,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         // How many more fit on this stack.
         public int SpaceLeft => Math.Max(0, Definition.MaxStack - Count);
         public float Weight => Definition.Weight * Count;
+        // What it's worth in Tokens, as it is now.
+        public virtual long Value => (long)Definition.Value * Count;
 
         public virtual ItemBadge Badge => Definition.Stacks ? new ItemBadge(Count) : ItemBadge.None;
 

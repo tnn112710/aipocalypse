@@ -32,6 +32,10 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Slot"), Tooltip("Silhouette per kind of slot (gun, melee, head, body, face, backpack, lantern)")]
         [SerializeField] Dictionary<ItemCategory, Sprite> _emptyIcons = new();
 
+        [BoxGroup("Rarity"), Tooltip("Slot border and tooltip title per rarity")]
+        [SerializeField] Dictionary<ItemRarity, Color> _rarityColors = new();
+        [BoxGroup("Rarity"), Range(0f, 1f), Tooltip("Alpha of the rarity border on a slot")] public float RarityBorderAlpha = 0.7f;
+
         [BoxGroup("Panel")] public Sprite PanelSprite;
         [BoxGroup("Panel")] public Color PanelColor = new(0.06f, 0.07f, 0.08f, 0.82f);
         [BoxGroup("Panel"), Tooltip("Full-screen tint behind the panels; dropping an item on it throws the item away")]
@@ -47,6 +51,9 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Sounds"), Tooltip("Something picked up from the ground")] public SoundID PickupSound;
         [BoxGroup("Sounds"), Tooltip("Tokens picked up (instead of the pickup sound)")] public SoundID TokensSound;
 
+        public Color RarityColor(ItemRarity rarity) =>
+            _rarityColors != null && _rarityColors.TryGetValue(rarity, out Color color) ? color : TextColor;
+
         // The silhouette for an empty slot that takes `accepts`: the first category with one.
         public Sprite EmptyIcon(ItemCategory accepts)
         {
@@ -60,6 +67,12 @@ namespace MB13.Aipocalypse.Core.UI
 
 #if UNITY_EDITOR
         // Setup scripts only.
+        public void SetRarityColor(ItemRarity rarity, Color color)
+        {
+            _rarityColors ??= new Dictionary<ItemRarity, Color>();
+            _rarityColors[rarity] = color;
+        }
+
         public void SetEmptyIcon(ItemCategory category, Sprite sprite)
         {
             _emptyIcons ??= new Dictionary<ItemCategory, Sprite>();

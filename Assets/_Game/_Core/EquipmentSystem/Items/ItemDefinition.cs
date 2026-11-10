@@ -36,6 +36,12 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         [SerializeField, Tooltip("Flies to the player within their pickup radius instead of waiting for the Interact key (Tokens)")]
         bool _autoCollect;
 
+        [SerializeField, Min(0), Tooltip("Tokens one unit is worth (one round, one gun); a used-up item is worth less (ItemInstance.Value)")]
+        int _value;
+
+        [SerializeField, Tooltip("Its slot border and tooltip colour")]
+        ItemRarity _rarity;
+
         public string DisplayName => _displayName;
         public Sprite Icon => _icon;
         public WorldItem Prefab => _prefab;
@@ -43,6 +49,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public bool Stacks => MaxStack > 1;
         public float Weight => _weight;
         public bool AutoCollect => _autoCollect;
+        public int Value => _value;
+        public ItemRarity Rarity => _rarity;
 
         public virtual SelectBehaviour Selecting => SelectBehaviour.None;
 

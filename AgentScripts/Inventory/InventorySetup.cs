@@ -7,6 +7,7 @@ using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
+using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Input;
@@ -21,6 +22,8 @@ using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 // Builds the inventory content: Tokens, ammo boxes, the medic box and the backpack (assets + world prefabs), item weights,
+// the consumables (first aid kit, bandage, adrenaline and stamina shots; icons from the Kat Grabowska flat set), item
+// values and rarities,
 // the goblin loot table and lootable goblin bodies, the loot crate, the EquipmentConfig slots and keys, the inventory UI
 // (style, ItemSlot prefab, InventoryScreen / LootMarkers / PickupFeed nodes in HUD.prefab), its sounds (Player library) and
 // a test setup in the WorldMap yard. Safe to re-run: assets are updated in place, prefabs and HUD nodes rebuilt.
@@ -52,7 +55,7 @@ public static class InventorySetup
 
     public static string Build()
     {
-        var log = new List<string> { Items(), Weights(), Loot(), Config(), Sounds(), Interface(), Yard(), Bake() };
+        var log = new List<string> { Items(), Weights(), Consumables(), Values(), Loot(), Config(), Sounds(), Interface(), Yard(), Bake() };
         return string.Join("\n", log);
     }
 
@@ -69,12 +72,6 @@ public static class InventorySetup
         Ammo("RifleAmmo", Icons + "Icons_Ammo/ICON_SM_Prop_AmmoBox_04.png", 120, 0.016f, "Polygon-Mega Weapons Kit/Prefabs/SM_Ammo_Box_Large_Closed.prefab", 0.3f);
         Ammo("ShotgunShells", Icons + "Icons_Ammo/ICON_SM_Wep_Shotgun_Ammo_Box_01.png", 40, 0.04f, "Polygon-Mega Weapons Kit/Prefabs/SM_Ammo_Box_Wood_Closed.prefab", 0.3f);
 
-        var medic = Asset<ConsumableDefinition>($"{ItemsDir}/MedicBox/MedicBox.asset");
-        Define(medic, "Medic Box", Icons + "Icons_Resources/ICON_SM_Item_HealthKit_01.png", maxStack: 5, weight: 0.5f);
-        SetPrefab(medic, HeldPrefab($"{ItemsDir}/MedicBox/MedicBox.prefab", medic, Animpic + "Polygon-Mega Medical Kit/Prefab/SM_Med_Kit.prefab",
-            heldPosition: new Vector3(0.1f, -0.02f, 0.28f), heldEuler: new Vector3(20f, 160f, 0f), heldScale: 0.45f,
-            worldEuler: new Vector3(-90f, 0f, 0f)));
-
         var backpack = Asset<BackpackDefinition>($"{ItemsDir}/Backpack/Backpack.asset");
         Define(backpack, "Backpack", Icons + "Icons_Resources/ICON_SM_Chr_Attach_Backpack_01.png", maxStack: 1, weight: 1f);
         var so = new SerializedObject(backpack);
@@ -83,8 +80,8 @@ public static class InventorySetup
         so.ApplyModifiedPropertiesWithoutUndo();
         SetPrefab(backpack, WorldPrefab($"{ItemsDir}/Backpack/Backpack.prefab", backpack, Animpic + "Polygon-Mega Survival/Prefabs/Backpack.prefab",
             1f, Vector3.zero, Vector3.zero));
-        Save(tokens, medic, backpack);
-        return "items: Tokens, PistolAmmo/RifleAmmo/ShotgunShells boxes, Medic Box, Backpack";
+        Save(tokens, backpack);
+        return "items: Tokens, PistolAmmo/RifleAmmo/ShotgunShells boxes, Backpack (consumables: Consumables)";
     }
 
     static void Ammo(string name, string icon, int maxStack, float weight, string model, float scale)
@@ -156,18 +153,22 @@ public static class InventorySetup
 
     // A pickup that's also held in hand: HeldItem on the root with the first-person Model, the world model under World
     // (inactive in the asset, like the guns).
-    static WorldItem HeldPrefab(string path, ItemDefinition item, string modelPath, Vector3 heldPosition, Vector3 heldEuler, float heldScale, Vector3 worldEuler)
+    static WorldItem HeldPrefab(string path, ItemDefinition item, string modelPath, Vector3 heldPosition, Vector3 heldEuler, float heldScale,
+        Vector3 worldEuler, float worldScale = 1f)
     {
         var root = new GameObject(System.IO.Path.GetFileNameWithoutExtension(path));
         try
         {
-            root.AddComponent<HeldItem>();
+            if (item is ConsumableDefinition)
+                root.AddComponent<HeldConsumable>();
+            else
+                root.AddComponent<HeldItem>();
             Transform held = CopyModel(modelPath, root.transform, "Model", heldPosition, heldEuler, heldScale);
             foreach (Renderer r in held.GetComponentsInChildren<Renderer>(true))
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             var world = new GameObject("World");
             world.transform.SetParent(root.transform, false);
-            CopyModel(modelPath, world.transform, "Model", new Vector3(0f, 0.05f, 0f), worldEuler, 1f);
+            CopyModel(modelPath, world.transform, "Model", new Vector3(0f, 0.05f, 0f), worldEuler, worldScale);
             FitPickupBox(root, world.transform);
             world.SetActive(false);
             var worldItem = root.AddComponent<WorldItem>();
@@ -240,6 +241,83 @@ public static class InventorySetup
         box.isTrigger = true;
         box.center = bounds.center;
         box.size = Vector3.Max(bounds.size + Vector3.one * 0.05f, Vector3.one * 0.3f);
+    }
+
+    // ---- Consumables: used by holding the attack button (HeldConsumable); effects through PlayerEffects ----
+
+    const string Medical = Animpic + "Polygon-Mega Medical Kit/Prefab/";
+    // Consumable icons: one set for all of them, from the UI icon packs (ASSETS.md → UI).
+    const string FlatIcons = "Assets/_StoreAssets/UI/Survival Flat Icons by Kat Grabowska/250plus survival flat icons/";
+
+    public static string Consumables()
+    {
+        var kit = Asset<ConsumableDefinition>($"{ItemsDir}/MedicBox/MedicBox.asset");
+        Define(kit, "First Aid Kit", FlatIcons + "aidkit.png", maxStack: 1, weight: 0.5f);
+        kit.SetUse(3f, uses: 5, moveSpeedScale: 0.5f);
+        kit.SetEffects(heal: 20f, healOverTime: 0f, healSeconds: 10f, buffSeconds: 0f, null);
+        SetPrefab(kit, HeldPrefab($"{ItemsDir}/MedicBox/MedicBox.prefab", kit, Medical + "SM_Med_Kit.prefab",
+            heldPosition: new Vector3(0.1f, -0.02f, 0.28f), heldEuler: new Vector3(20f, 160f, 0f), heldScale: 0.45f,
+            worldEuler: new Vector3(-90f, 0f, 0f)));
+
+        var bandage = Asset<ConsumableDefinition>($"{ItemsDir}/Bandage/Bandage.asset");
+        Define(bandage, "Bandage", FlatIcons + "bandage.png",
+            maxStack: 5, weight: 0.05f);
+        bandage.SetUse(1.5f, uses: 1, moveSpeedScale: 0.6f);
+        bandage.SetEffects(heal: 0f, healOverTime: 15f, healSeconds: 10f, buffSeconds: 0f, null);
+        SetPrefab(bandage, HeldPrefab($"{ItemsDir}/Bandage/Bandage.prefab", bandage, Medical + "SM_Bandage.prefab",
+            heldPosition: new Vector3(0.09f, -0.05f, 0.27f), heldEuler: new Vector3(-60f, 160f, 0f), heldScale: 1f,
+            worldEuler: new Vector3(-90f, 0f, 0f), worldScale: 1.4f));
+
+        var adrenaline = Asset<ConsumableDefinition>($"{ItemsDir}/Adrenaline/Adrenaline.asset");
+        Define(adrenaline, "Adrenaline", FlatIcons + "syringe1.png", maxStack: 3, weight: 0.2f);
+        adrenaline.SetUse(1f, uses: 1, moveSpeedScale: 0.7f);
+        adrenaline.SetEffects(0f, 0f, 10f, buffSeconds: 60f, new Dictionary<StatId, float> { { StatId.WalkSpeed, 1.25f }, { StatId.SprintSpeed, 1.25f } });
+        SetPrefab(adrenaline, HeldPrefab($"{ItemsDir}/Adrenaline/Adrenaline.prefab", adrenaline, Medical + "SM_Injector_With_Adrenalin.prefab",
+            heldPosition: new Vector3(0.1f, -0.06f, 0.26f), heldEuler: new Vector3(60f, 0f, -25f), heldScale: 1f,
+            worldEuler: new Vector3(0f, 0f, 90f), worldScale: 1.4f));
+
+        var stamina = Asset<ConsumableDefinition>($"{ItemsDir}/StaminaShot/StaminaShot.asset");
+        Define(stamina, "Stamina Shot", FlatIcons + "syringe2.png", maxStack: 3, weight: 0.2f);
+        stamina.SetUse(1f, uses: 1, moveSpeedScale: 0.7f);
+        stamina.SetEffects(0f, 0f, 10f, buffSeconds: 60f,
+            new Dictionary<StatId, float> { { StatId.StaminaRegen, 2f }, { StatId.SprintStaminaCost, 0.5f } });
+        SetPrefab(stamina, HeldPrefab($"{ItemsDir}/StaminaShot/StaminaShot.prefab", stamina, Medical + "SM_Injector_With_Stimulant.prefab",
+            heldPosition: new Vector3(0.1f, -0.06f, 0.26f), heldEuler: new Vector3(60f, 0f, -25f), heldScale: 1f,
+            worldEuler: new Vector3(0f, 0f, 90f), worldScale: 1.4f));
+
+        Save(kit, bandage, adrenaline, stamina);
+        return "consumables: First Aid Kit (5 × 20 HP, 3 s), Bandage (15 HP over 10 s), Adrenaline (+25 % speed 60 s), Stamina Shot (regen ×2, sprint cost ½, 60 s)";
+    }
+
+    // ---- Values (Tokens per unit) and rarities ----
+
+    public static string Values()
+    {
+        var values = new Dictionary<string, (int value, ItemRarity rarity)>
+        {
+            { "Tokens", (1, ItemRarity.Common) },
+            { "PistolAmmo", (2, ItemRarity.Common) }, { "RifleAmmo", (3, ItemRarity.Common) }, { "ShotgunShells", (5, ItemRarity.Common) },
+            { "MedicBox", (120, ItemRarity.Uncommon) }, { "Bandage", (15, ItemRarity.Common) },
+            { "Adrenaline", (80, ItemRarity.Rare) }, { "StaminaShot", (60, ItemRarity.Uncommon) },
+            { "Backpack", (150, ItemRarity.Uncommon) },
+            { "Pistol", (300, ItemRarity.Uncommon) }, { "DoubleBarrel", (400, ItemRarity.Uncommon) }, { "PumpShotgun", (500, ItemRarity.Uncommon) },
+            { "MP5", (600, ItemRarity.Rare) }, { "AK47", (900, ItemRarity.Rare) },
+            { "FireAxe", (150, ItemRarity.Common) }, { "Hammer", (80, ItemRarity.Common) }, { "Lantern", (100, ItemRarity.Common) },
+        };
+        var done = new List<string>();
+        foreach (string guid in AssetDatabase.FindAssets("t:ItemDefinition", new[] { "Assets/_Game/Content" }))
+        {
+            var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+            if (item == null || !values.TryGetValue(item.name, out var entry))
+                continue;
+            var so = new SerializedObject(item);
+            so.FindProperty("_value").intValue = entry.value;
+            so.FindProperty("_rarity").enumValueIndex = (int)entry.rarity;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Save(item);
+            done.Add($"{item.name} {entry.value} {entry.rarity}");
+        }
+        return "values: " + string.Join(", ", done);
     }
 
     // ---- Weights of the items that already existed ----
@@ -505,6 +583,13 @@ public static class InventorySetup
         style.SetEmptyIcon(ItemCategory.Body, Sprite(Icons + "Icons_Inventory/ICON_Apocalpyse_Inventory_Armor_01.png"));
         style.SetEmptyIcon(ItemCategory.Face, Sprite(Icons + "Icons_Armor/ICON_SM_Chr_Attach_GasMask_01.png"));
         style.SetEmptyIcon(ItemCategory.Backpack, Sprite(Icons + "Icons_Inventory/ICON_Apocalpyse_Inventory_Backpack_01.png"));
+        // Common items get no border: only what's worth noticing stands out.
+        style.SetRarityColor(ItemRarity.Common, new Color(0.62f, 0.62f, 0.62f, 0f));
+        style.RarityBorderAlpha = 0.7f;
+        style.SetRarityColor(ItemRarity.Uncommon, new Color(0.42f, 0.82f, 0.38f, 1f));
+        style.SetRarityColor(ItemRarity.Rare, new Color(0.32f, 0.62f, 1f, 1f));
+        style.SetRarityColor(ItemRarity.Epic, new Color(0.72f, 0.42f, 1f, 1f));
+        style.SetRarityColor(ItemRarity.Legendary, new Color(1f, 0.76f, 0.26f, 1f));
         Save(style);
 
         ItemSlotView slot = SlotPrefab(style, font);
@@ -520,6 +605,8 @@ public static class InventorySetup
                 Object.DestroyImmediate(search.gameObject);
             Feed(safe.Find("BottomRight") ?? throw new Exception("no SafeFrame/BottomRight"), font, style);
             Markers(hud.transform);
+            ItemUse(safe.Find("Center") ?? throw new Exception("no SafeFrame/Center"), font);
+            Effects(safe.Find("BottomLeft") ?? throw new Exception("no SafeFrame/BottomLeft"), font);
             PrefabUtility.SaveAsPrefabAsset(hud, HudPath, out bool saved);
             return saved ? $"ui: {StylePath}, {SlotPrefabPath}, HUD.prefab Inventory / LootMarkers / PickupFeed" : "failed to save " + HudPath;
         }
@@ -545,6 +632,12 @@ public static class InventorySetup
         GameObject root = PrefabUtility.GetOutermostPrefabInstanceRoot(screen.gameObject);
         var nodes = new List<Transform> { screen.transform };
         var markers = Object.FindAnyObjectByType<LootMarkerHud>(FindObjectsInactive.Include);
+        var use = Object.FindAnyObjectByType<ItemUseHud>(FindObjectsInactive.Include);
+        var effects = Object.FindAnyObjectByType<EffectsHud>(FindObjectsInactive.Include);
+        if (use != null)
+            nodes.Add(use.transform);
+        if (effects != null)
+            nodes.Add(effects.transform);
         var feed = Object.FindAnyObjectByType<PickupFeedHud>(FindObjectsInactive.Include);
         if (markers != null)
             nodes.Add(markers.transform);
@@ -614,6 +707,8 @@ public static class InventorySetup
             ring.fillClockwise = true;
             ring.enabled = false;
             hidden.gameObject.SetActive(false);
+            // Under the hover highlight: the item's rarity colour (hidden when empty).
+            Image rarity = Img("RarityBorder", rect, Stretch(-1f));
             Image highlight = Img("Highlight", rect, Stretch(-2f));
             TMP_Text caption = Label("Caption", rect, font, 15f, TextAlignmentOptions.Top);
             Place(caption.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, -2f), new Vector2(20f, 22f));
@@ -625,6 +720,7 @@ public static class InventorySetup
             so.FindProperty("_emptyIcon").objectReferenceValue = empty;
             so.FindProperty("_icon").objectReferenceValue = icon;
             so.FindProperty("_highlight").objectReferenceValue = highlight;
+            so.FindProperty("_rarityBorder").objectReferenceValue = rarity;
             so.FindProperty("_name").objectReferenceValue = itemName;
             so.FindProperty("_count").objectReferenceValue = count;
             so.FindProperty("_key").objectReferenceValue = key;
@@ -841,6 +937,64 @@ public static class InventorySetup
     }
 
     // Pickup lines bottom-right, newest at the bottom, the "Backpack full" warning above them.
+    // The ring around the crosshair while a consumable is being used, its name (or "Health full") above it.
+    static void ItemUse(Transform center, TMP_FontAsset font)
+    {
+        Transform old = center.Find("ItemUse");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        RectTransform node = Ui("ItemUse", center);
+        Place(node, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        node.gameObject.AddComponent<Canvas>();
+        RectTransform root = Ui("Root", node);
+        Place(root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(84f, 84f));
+        Image ring = Img("Ring", root, Stretch(0f));
+        ring.sprite = Sprite(Icons + "HUD/SPR_HUD_Apocalypse_Ring_Medium_01_Underlay.png");
+        ring.color = new Color(0f, 0f, 0f, 0.45f);
+        Image fill = Img("Fill", root, Stretch(0f));
+        fill.sprite = Sprite(Icons + "HUD/SPR_HUD_Apocalypse_Ring_Medium_01_Clean.png");
+        fill.type = Image.Type.Filled;
+        fill.fillMethod = Image.FillMethod.Radial360;
+        fill.fillOrigin = (int)Image.Origin360.Top;
+        fill.fillClockwise = true;
+        fill.color = new Color(0.55f, 0.95f, 0.6f, 1f);
+        TMP_Text label = Label("Label", root, font, 22f, TextAlignmentOptions.Center);
+        Place(label.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(500f, 30f));
+        root.gameObject.SetActive(false);
+        var hud = node.gameObject.AddComponent<ItemUseHud>();
+        var so = new SerializedObject(hud);
+        Set(so, "_root", root.gameObject);
+        Set(so, "_fill", fill);
+        Set(so, "_label", label);
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // A row of running effects (icon + seconds left) above the health and stamina bars.
+    static void Effects(Transform corner, TMP_FontAsset font)
+    {
+        Transform old = corner.Find("Effects");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        RectTransform node = Ui("Effects", corner);
+        Place(node, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 130f), new Vector2(420f, 64f));
+        node.gameObject.AddComponent<Canvas>();
+        var row = node.gameObject.AddComponent<HorizontalLayoutGroup>();
+        row.spacing = 8f;
+        row.childAlignment = TextAnchor.LowerLeft;
+        row.childControlWidth = row.childControlHeight = false;
+        row.childForceExpandWidth = row.childForceExpandHeight = false;
+        Image template = Img("Effect", node, Stretch(0f));
+        Place(template.rectTransform, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(44f, 44f));
+        template.preserveAspect = true;
+        TMP_Text seconds = Label("Seconds", template.rectTransform, font, 16f, TextAlignmentOptions.Bottom);
+        Place(seconds.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, 2f), new Vector2(20f, 20f));
+        template.gameObject.SetActive(false);
+        var hud = node.gameObject.AddComponent<EffectsHud>();
+        var so = new SerializedObject(hud);
+        Set(so, "_template", template);
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
     static void Feed(Transform corner, TMP_FontAsset font, InventoryStyle style)
     {
         Transform old = corner.Find("PickupFeed");
@@ -1007,7 +1161,10 @@ public static class InventorySetup
             ($"{ItemsDir}/Tokens/Tokens.prefab", 40, 1.6f, 0.6f),
             ($"{ItemsDir}/Tokens/Tokens.prefab", 120, 2.2f, -0.4f),
             ($"{ItemsDir}/MedicBox/MedicBox.prefab", 1, 3f, 0f),
-            ($"{ItemsDir}/MedicBox/MedicBox.prefab", 2, 3.6f, 0f),
+            ($"{ItemsDir}/MedicBox/MedicBox.prefab", 1, 3.6f, 0f),
+            ($"{ItemsDir}/Bandage/Bandage.prefab", 3, 3f, 0.8f),
+            ($"{ItemsDir}/Adrenaline/Adrenaline.prefab", 1, 3.6f, 0.8f),
+            ($"{ItemsDir}/StaminaShot/StaminaShot.prefab", 1, 4.2f, 0.8f),
             ($"{AmmoDir}/PistolAmmoBox.prefab", 24, 4.4f, 0f),
             ($"{AmmoDir}/RifleAmmoBox.prefab", 30, 5.2f, 0f),
             ($"{AmmoDir}/ShotgunShellsBox.prefab", 8, 6f, 0f),

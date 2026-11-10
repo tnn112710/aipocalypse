@@ -83,7 +83,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _zoom.Tick(held != null ? held.Zoom : 1f);
             TickSway(intent, held, feel, deltaTime);
             float aimSpeed = held != null && held.IsAiming ? tuning.AimMoveSpeedMultiplier * (feel?.AimMoveSpeedScale ?? 1f) : 1f;
-            _motor.SpeedMultiplier = aimSpeed * _fatigue.MoveSpeed;
+            _motor.SpeedMultiplier = aimSpeed * (held != null ? held.MoveSpeedScale : 1f) * _fatigue.MoveSpeed;
             _clearance.Tick(held, deltaTime);
             if (held != null)
                 held.LateTick();

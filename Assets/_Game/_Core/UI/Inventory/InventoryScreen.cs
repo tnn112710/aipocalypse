@@ -381,7 +381,8 @@ namespace MB13.Aipocalypse.Core.UI
                     continue;
                 }
                 ItemBadge badge = item.Badge;
-                slot.View.Show(item.Definition.Icon, item.Definition.DisplayName, badge.Visible ? badge.Count : -1, badge.Warning);
+                slot.View.Show(item.Definition.Icon, item.Definition.DisplayName, badge.Visible ? badge.Count : -1, badge.Warning,
+                    _style != null ? _style.RarityColor(item.Definition.Rarity) : default);
             }
 
             ItemContainer backpack = _inventory.Backpack;
@@ -587,10 +588,13 @@ namespace MB13.Aipocalypse.Core.UI
                 if (item == null || IsHidden(slot))
                     break;
                 ItemDefinition definition = item.Definition;
-                string details = definition.Stacks
+                string weight = definition.Stacks
                     ? $"{item.Count:N0} x {definition.Weight:0.###} kg = {item.Weight:0.##} kg"
                     : $"{definition.Weight:0.##} kg";
-                _tooltip.Show((RectTransform)slot.View.transform, definition.DisplayName, details);
+                string uses = item is ConsumableInstance multiUse ? $"\nUses {multiUse.UsesLeft}/{multiUse.Consumable.Uses}" : null;
+                string details = $"{definition.Rarity}\n{weight}{uses}\nValue {item.Value:N0}";
+                Color title = _style != null ? _style.RarityColor(definition.Rarity) : Color.white;
+                _tooltip.Show((RectTransform)slot.View.transform, definition.DisplayName, details, title);
                 return;
             }
             _tooltip.Hide();

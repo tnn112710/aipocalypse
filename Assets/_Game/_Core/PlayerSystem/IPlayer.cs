@@ -20,6 +20,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerRepair Repair { get; }
         // Searching a crate or body; Opened fires when its loot is shown.
         PlayerLooting Looting { get; }
+        // Consumables at work: buffs and healing over time.
+        PlayerEffects Effects { get; }
         bool IsSprinting { get; }
         // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
         Vector2 CrosshairPosition { get; }

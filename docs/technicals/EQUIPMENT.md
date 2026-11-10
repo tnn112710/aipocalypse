@@ -23,13 +23,15 @@ Which slot a key selects is data: each hotbar slot in `EquipmentConfig` has a `H
 
 ```text
 Data (ScriptableObjects: items in Content/<Kind>/<Item>/, Data/Equipment/, Data/Loot/)
-  ItemDefinition                 name, icon, Category, Prefab, MaxStack (or unlimited), Weight (kg / unit), AutoCollect
+  ItemDefinition                 name, icon, Category, Prefab, MaxStack (or unlimited), Weight (kg / unit), AutoCollect,
+                                 Value (Tokens / unit), Rarity (Common … Legendary)
                                  Selecting: what its slot key does (None, Hold, QuickUse); abstract; one prefab per item
   ├─ EquippableDefinition        Selecting = Hold; EquipTime, HolsterTime; HoldFeel; HeldPrefab = the HeldItem on Prefab's root
   │  ├─ GunDefinition            Category Gun (WeaponSystem, WEAPONS.md)
   │  ├─ MeleeDefinition          Category Melee (WeaponSystem)
   │  ├─ RepairToolDefinition     Category Tool: the hammer (PlayerSystem/Repair)
-  │  └─ ConsumableDefinition     Category Consumable: the medic box (held when selected; using it comes later)
+  │  └─ ConsumableDefinition     Category Consumable: first aid kit, bandage, shots; UseSeconds, Uses (above 1: one item
+  │                              with uses left, a ConsumableInstance), use move speed; Heal, HealOverTime, buff scales
   ├─ AmmoType                    Category Ammo (WeaponSystem): rounds, carried as stacks; Prefab = the ammo box
   ├─ CurrencyDefinition          Category Currency: Tokens (unlimited stack, weight 0, auto-collected)
   ├─ BackpackDefinition          Category Backpack: ExtraSlots, ExtraWeight while worn
@@ -54,7 +56,7 @@ Rules (plain C#, EditMode-tested)
 
 Views
   HeldItem                       on the item prefab's root, for its first-person use; subclass for fire / swing / use (HeldGun);
-                                 a plain HeldItem just shows the model (the medic box)
+                                 a plain HeldItem just shows the model; HeldConsumable uses a consumable (hold attack)
   PoseBlender                    a held model's pose pivot easing between pose markers (HeldGun, HeldMelee), editor preview
   EquipmentRig                   spawns one HeldItem per hotbar item (world parts stripped, injected), shows the held one,
                                  poses the hand from Raise, TickHeld passes the input on with IsReady
@@ -78,9 +80,30 @@ Views
 - **Where a new item goes** (`Inventory.TryAdd`, used by pickups, loot and `AddNew`): onto its own stacks (hotbar, then backpack); a gear item into its free gear slot (a backpack is worn at once, a lantern goes on the Light slot); a gun or melee weapon into a free active slot; everything else into the backpack, then any free hotbar slot that takes it. Tools and consumables (the hammer, medic boxes) go to the backpack: drag them to a quick slot. What doesn't fit stays on the item (a partial pickup leaves the rest on the ground).
 - **Moving** (the inventory screen): `Inventory.TryMove` = `ItemContainer.Move` (into an empty slot, onto the same stackable item as far as it fits, or a whole-stack swap when both slots take the other item), plus one rule: the worn backpack can't come off, or be swapped for a smaller one, while a slot it adds holds an item, and it can't go into one of its own slots. The refusal is shown on the screen (`Inventory.BackpackNotEmpty`).
 - **The hands follow the item**: moving the held gun to the other gun slot keeps it in hand (the selection follows); moving it to the backpack empties the hands at once.
-- **Weight**: every item has `Weight` per unit (rounds 0.012–0.04 kg, Tokens 0, medic box 0.5, guns 0.9–3.6, axe 1.8, hammer 0.6, lantern 0.8, backpack 1). `Inventory.Weight` / `MaxWeight` (25 kg + the worn bag's `ExtraWeight`) are shown on the inventory screen. Nothing slows the player yet.
+- **Weight**: every item has `Weight` per unit (rounds 0.012–0.04 kg, Tokens 0, first aid kit 0.5, bandage 0.05, shots 0.2, guns 0.9–3.6, axe 1.8, hammer 0.6, lantern 0.8, backpack 1). `Inventory.Weight` / `MaxWeight` (25 kg + the worn bag's `ExtraWeight`) are shown on the inventory screen. Nothing slows the player yet.
 - **Tokens** are an item (`CurrencyDefinition`): one unlimited stack in the backpack, weight 0, picked up by the magnet. No bank balance yet; the screen shows the Tokens carried.
 - **Starting items**: `EquipmentConfig` slot / gear `StartingItem`s and its starting items, plus `AmmoConfig`'s starting rounds (put in the backpack). Death keeps the inventory for now.
+
+## Using consumables
+
+Consumables sit in quick slots (keys 3–9). Selecting one holds it; a fresh press of the attack button starts using it and holding it for `UseSeconds` finishes (`HeldConsumable`). Meanwhile the walk is scaled by `UseMoveSpeedScale` (`HeldItem.MoveSpeedScale`, applied in `HeldItemDriver`) and sprint is off. Letting go, switching away or a hit that hurts (`IConsumer.LastHurtTime`) cancels: nothing is spent. A ring under the crosshair shows the progress (`ItemUseHud`, UI.md).
+
+- **Effects** go to the holder through `IConsumer` (the player): `PlayerEffects` heals at once, heals over time and holds stat buffs. It's the player's `IStatProvider` over the base one, so the motor, stamina and every other reader get buffed values; a buff that starts or ends raises `Changed`. The same item again restarts its buff, or adds its healing to what's left over a fresh duration. A hit pauses healing over time for `PlayerVitalsTuning.HealPauseOnHit` (3 s); death clears everything. `EffectsHud` shows what's running.
+- **Refusals**: an item whose only effect is health can't be used at full health ("Health full"), nor while dead or in a pose sequence.
+- **Multi-use items** (`Uses` > 1, Max Stack 1) are a `ConsumableInstance`: the slot badge shows the uses left, each use spends one, the last removes the item, and its value falls with the uses.
+
+| Item | Use | Effect | Stack, weight | Value, rarity |
+| --- | --- | --- | --- | --- |
+| First Aid Kit (`MedicBox`) | 3 s, walk ×0.5 | +20 HP, 5 uses | 1, 0.5 kg | 120, Uncommon |
+| Bandage | 1.5 s, ×0.6 | +15 HP over 10 s | 5, 0.05 kg | 15, Common |
+| Adrenaline | 1 s, ×0.7 | Walk and sprint speed ×1.25 for 60 s | 3, 0.2 kg | 80, Rare |
+| Stamina Shot | 1 s, ×0.7 | Stamina regen ×2, sprint stamina cost ×0.5 for 60 s | 3, 0.2 kg | 60, Uncommon |
+
+All four are placeholders built by `InventorySetup.Consumables`: models from the Animpic Medical Kit, icons from the Kat Grabowska flat set (ASSETS.md), held poses not tuned.
+
+## Value and rarity
+
+Every item has a `Value` in Tokens per unit and a `Rarity` (`InventorySetup.Values`; placeholder numbers): Tokens 1, rounds 2 / 3 / 5, bandage 15, stamina shot 60, adrenaline 80, hammer 80, lantern 100, first aid kit 120, fire axe 150, backpack 150, pistol 300, double barrel 400, pump shotgun 500, MP5 600, AK47 900. `ItemInstance.Value` is value × count (a multi-use item: × uses left / uses). The inventory screen draws a border in the rarity's colour (none for Common) and the tooltip shows rarity, weight, uses and value (UI.md). Nothing buys or sells yet: selling waits for the trading robot.
 
 ## Pickup and drop
 
@@ -170,6 +193,9 @@ AK47                 HeldGun, ItemHands                first-person side
 | What a backpack adds | its asset (`Content/Items/Backpack/Backpack.asset`) → `ExtraSlots`, `ExtraWeight` |
 | Reach and thickness of the look ray; throw speed and lift; magnet radius, speed and layer; search seconds per stack | `Data/Player/PlayerInteractionTuning.asset` |
 | Inventory sounds: open, close, place, refused, reveal, pickup, Tokens (2D, Player library) | `Data/UI/InventoryStyle.asset` → Sounds |
+| Consumables: use time, uses, walk speed while using, heal, heal over time, buff seconds and scales | each `ConsumableDefinition` (`Content/Items/<Item>/`) |
+| Seconds a hit pauses healing over time | `Data/Player/PlayerVitalsTuning.asset` → Health |
+| Item value and rarity; rarity colours and border alpha | each item's definition; `Data/UI/InventoryStyle.asset` → Rarity |
 | Loot markers: range, count, colours, size far away | HUD.prefab → LootMarkers (`LootMarkerHud`) |
 | What goblins drop, how many picks, the chance of nothing | `Data/Loot/GoblinLoot.asset` (any kind: its `EnemyDefinition.Loot`) |
 | How many bodies lie with loot, how long an emptied one lies | `Data/Enemies/EnemySystemSettings.asset` → Max Loot Bodies, Looted Body Sink Delay |
@@ -209,7 +235,8 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
 - **A new item of an existing kind** (another gun or melee weapon): follow [WEAPONS.md → Adding a gun](WEAPONS.md#adding-a-gun) or [Melee](WEAPONS.md#melee). In short: an item prefab copied from an existing one with both models swapped (first-person model: shadows off, no colliders; `World/Model`: lying flat), the root `WorldItem._definition` set to a new item asset, both in a new `Content/<Kind>/<Item>/` folder, and the prefab assigned to the asset's `Prefab`. Drop copies into scenes to place pickups.
 - **More slots**: add entries to the Slots (hotbar) or Gear list of `EquipmentConfig`, each hotbar slot with its own `HotbarKey` (keys 1–9 and V are bound). The HUD and the inventory screen spawn one view per slot.
 - **A third active gun** (an upgrade later): a Gun slot on Key3 after the first two, the quick slots moved to 4–9. A runtime upgrade would rebuild the hotbar from a second config or add the slot; nothing else assumes two.
-- **A new item** of an existing kind (Tokens, ammo, a medic box, a backpack): an asset of that definition type (Create → Aipocalypse → Items / Weapons) with name, icon, stack, weight, and a pickup prefab (root `WorldItem` + trigger box, `World/Model`), as `AgentScripts/Inventory/InventorySetup.Items` builds them. Held ones also need a `HeldItem` and a first-person model on the root (the medic box).
+- **A new item** of an existing kind (Tokens, ammo, a consumable, a backpack): an asset of that definition type (Create → Aipocalypse → Items / Weapons) with name, icon, stack, weight, value, rarity, and a pickup prefab (root `WorldItem` + trigger box, `World/Model`), as `AgentScripts/Inventory/InventorySetup.Items` / `Consumables` build them. Held ones also need a `HeldItem` (a consumable: `HeldConsumable`) and a first-person model on the root.
+- **Item icons** come from the UI icon packs in `Assets/_StoreAssets/UI`, one set and style for items of a kind (user's preference, 2026-11-10; ASSETS.md → UI). The consumables use the Kat Grabowska flat set.
 - **A new item kind** (bandage, drink, tool, armour):
   1. Add a flag to `ItemCategory`.
   2. Derive a definition: from `EquippableDefinition` if it's held in hand (tools, a fishing rod), or from `ItemDefinition` if not.
@@ -224,8 +251,10 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
 ## Known gaps
 
 - Picking up, throwing and searching have no animation. Sounds are placeholders from PlaceHolder Inc (ASSETS.md); throwing has none.
-- No weight slowdown yet, no item use (the medic box is only held), no head / body / face items, no bank for Tokens, no death loss or grave: the inventory survives death. No save / load.
-- The hammer and medic boxes go to the backpack when picked up: they need dragging to a quick slot once.
+- No weight slowdown yet, no head / body / face items, no buying or selling, no bank for Tokens, no death loss or grave: the inventory survives death. No save / load.
+- The hammer and consumables go to the backpack when picked up: they need dragging to a quick slot once.
+- Using a consumable has no animation or sound; the held poses of the bandage and shots are rough.
+- Item icons mix two styles: Synty's colour renders (guns, ammo, Tokens, backpack, tools) and the Kat Grabowska white flat set (consumables).
 
 - The overlay can make held models appear over nearby surfaces; the obstacle pose softens this, but does not simulate physical weapon collision.
 

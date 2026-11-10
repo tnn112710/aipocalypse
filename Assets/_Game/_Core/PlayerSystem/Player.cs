@@ -23,7 +23,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     // The player's view: builds its parts, turns input into an intent and ticks them in order (look → move → vitals → head
     // motion → interaction → held item → pose sequence → light). Life and death: PlayerLife; move sounds: PlayerFeedback.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser, IRepairer, ILooter
+    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser, IRepairer, ILooter, IConsumer
     {
         // Metres below the eye that auto-collected items fly to (about the chest).
         const float MagnetPullDrop = 0.5f;
@@ -65,6 +65,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerRepair _repair;
         PlayerLooting _looting;
         ItemMagnet _magnet;
+        PlayerEffects _effects;
+        float _lastHurtTime = float.NegativeInfinity;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -75,6 +77,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public PlayerInteractor Interactor => _interactor;
         public PlayerRepair Repair => _repair;
         public PlayerLooting Looting => _looting;
+        public PlayerEffects Effects => _effects;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => _life != null && _life.IsDead;
         // A pose sequence (dying, sitting…) has the camera and the body until it's stopped.
@@ -135,10 +138,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             _input = input;
             _time = time;
-            _stats = stats;
             _registry = registry;
 
             PlayerVitalsTuning vitals = _tuning.Vitals;
+            // Consumable buffs sit over the base stats: everything below reads the buffed values.
+            _effects = new PlayerEffects(stats, vitals.HealPauseOnHit);
+            stats = _effects;
+            _stats = stats;
             _life = new PlayerLife(this, transform, stats.Get(StatId.MaxHealth, vitals.MaxHealth), vitals, damage, died, deathEnded, revived);
             Stamina = new Stamina(stats.Get(StatId.MaxStamina, vitals.MaxStamina), vitals.StaminaRegenDelay, vitals.ExhaustionRecoverFraction, vitals.WindedTime);
             Fatigue = new Fatigue(vitals.Fatigue);
@@ -159,6 +165,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds, _life);
 
             _life.Died += OnDied;
+            _life.Hurt += OnHurt;
             _life.Reviving += OnReviving;
             _sequence.Ended += OnSequenceEnded;
             _motor.Landed += _life.OnLanded;
@@ -224,6 +231,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 inSequence = InSequence;
                 intent = default;
             }
+            if (!IsDead)
+                _effects.Tick(deltaTime, Health);
             Stamina.Tick(deltaTime, _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond), _motor.IsIdle);
             Fatigue.Tick(Stamina.Normalized, _stats.GetScale(StatId.FatiguePenaltyScale), deltaTime, Stamina.IsWinded);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
@@ -269,10 +278,12 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (_life != null)
             {
                 _life.Died -= OnDied;
+                _life.Hurt -= OnHurt;
                 _life.Reviving -= OnReviving;
                 _motor.Landed -= _life.OnLanded;
                 _stats.Changed -= OnStatsChanged;
                 _feedback.Dispose();
+                _effects.Dispose();
             }
             _breathSound?.Stop();
             if (_sequence != null)
@@ -320,7 +331,24 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 Equipment.RaiseHands();
         }
 
-        void OnDied(DamageType cause) => PlaySequence(_tuning.DeathSequence);
+        void OnDied(DamageType cause)
+        {
+            _effects.Clear();
+            PlaySequence(_tuning.DeathSequence);
+        }
+
+        void OnHurt(DamageInfo info, float applied)
+        {
+            _lastHurtTime = Time.time;
+            _effects.OnHurt();
+        }
+
+        float IConsumer.LastHurtTime => _lastHurtTime;
+
+        string IConsumer.CannotUse(ConsumableDefinition item) =>
+            IsDead || InSequence ? "Can't use that now" : item.OnlyHeals && Health.Current >= Health.Max ? "Health full" : null;
+
+        void IConsumer.Use(ConsumableDefinition item) => _effects.Use(item, Health);
 
         void OnReviving()
         {

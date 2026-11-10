@@ -7,6 +7,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     public sealed class PlayerVitalsTuning : ScriptableObject
     {
         [Header("Health"), SerializeField, Min(1f)] float _maxHealth = 100f;
+        [SerializeField, Min(0f), Tooltip("Seconds a hit pauses healing over time (bandage)")] float _healPauseOnHit = 3f;
 
         [Header("Stamina"), SerializeField, Min(1f)] float _maxStamina = 100f;
         [SerializeField, Min(0f)] float _staminaRegenPerSecond = 18f;
@@ -28,6 +29,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _lethalFallHeight = 14f;
 
         public float MaxHealth => _maxHealth;
+        public float HealPauseOnHit => _healPauseOnHit;
         public float MaxStamina => _maxStamina;
         public float StaminaRegenPerSecond => _staminaRegenPerSecond;
         public float StaminaRegenDelay => _staminaRegenDelay;

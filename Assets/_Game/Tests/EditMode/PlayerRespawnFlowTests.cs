@@ -29,6 +29,7 @@ namespace MB13.Aipocalypse.Tests
             public PlayerInteractor Interactor => null;
             public PlayerRepair Repair => null;
             public PlayerLooting Looting => null;
+            public PlayerEffects Effects => null;
             public bool IsSprinting => false;
             public Vector2 CrosshairPosition => default;
             public float CrosshairSpread => 0f;

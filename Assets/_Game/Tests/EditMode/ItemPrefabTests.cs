@@ -65,6 +65,8 @@ namespace MB13.Aipocalypse.Tests
                 if (item is not EquippableDefinition equippable)
                     continue;
                 Assert.IsNotNull(equippable.HeldPrefab, $"{item.name}: no HeldItem on the prefab root");
+                if (item is ConsumableDefinition)
+                    Assert.IsInstanceOf<HeldConsumable>(equippable.HeldPrefab, $"{item.name}: a consumable is used through a HeldConsumable");
                 var worldModel = (GameObject)new SerializedObject(prefab).FindProperty("_worldModel").objectReferenceValue;
                 Assert.IsNotNull(worldModel, $"{item.name}: no world model");
                 Assert.AreSame(prefab.transform, worldModel.transform.parent, $"{item.name}: world model must be a root child");

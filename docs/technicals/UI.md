@@ -32,6 +32,7 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    ├─ TopRight
    │  └─ Clock               nested Canvas · ClockView · ClockHud (world clock, see Clock below)
    ├─ BottomLeft
+   │  ├─ Effects             nested Canvas · HorizontalLayoutGroup · EffectsHud: Effect template (icon + seconds), 130 px up
    │  └─ Vitals              nested Canvas · VerticalLayoutGroup · ContentSizeFitter · PlayerVitalsHud
    │     ├─ HealthBar        StatBar (HealthBarStyle)
    │     └─ StaminaBar       StatBar (StaminaBarStyle)
@@ -48,6 +49,7 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
       │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
       │  └─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[R] Repair Fence 63%")
+      └─ ItemUse           nested Canvas · ItemUseHud: Root (Ring, radial Fill, Label) around the crosshair while a consumable is used
 LootMarkers                  full screen, nested Canvas · LootMarkerHud: Marker (inactive 56 px bag icon + Shadow, cloned 8 times), placed
                              over crates and bodies holding loot (see Loot markers and pickup feed below)
 Inventory                    last child: the inventory screen, its own Canvas (sorting 50, off while closed) · GraphicRaycaster · CanvasGroup ·
@@ -131,12 +133,12 @@ Inventory                    Canvas (override sorting 50) · GraphicRaycaster ·
 ├─ Loot                      panel: LootRow (LootTitle, Take all), LootGrid; shown only with a container
 ├─ Quick                     panel: Hint, QuickRow (HorizontalLayoutGroup)
 ├─ Message                   refusals ("Empty the backpack's extra slots first", "Backpack full"), 2.5 s
-├─ Tooltip                   ItemTooltipView: name + "30 x 0.016 kg = 0.48 kg" beside the hovered slot
+├─ Tooltip                   ItemTooltipView: name (rarity colour) + rarity, "30 x 0.016 kg = 0.48 kg", uses, value, beside the hovered slot
 ├─ DragIcon                  follows the pointer while dragging
 └─ EventSystem               EventSystem + InputSystemUIInputModule, active only while open
 ```
 
-- `ItemSlot.prefab` (`Prefabs/Widgets/`, 88×88): Background (raycast target), EmptyIcon (silhouette), Icon, Name (bottom; 22 px tall: the 13 pt font's line is ~20.5 px and a shorter box truncates the whole name), Count (top right), Key (top left), Hidden (an unrevealed item: Mark, the Synty map "unknown" icon, since the font has no `?`, and Ring, a radial fill shown on the slot being revealed), Highlight (hover), Caption (under the tile). `ItemSlotView` API: `Show(icon, name, count, warning)`, `ShowEmpty(silhouette)`, `ShowHidden(progress)`, `SetSearchProgress`, `SetKey`, `SetCaption`, `SetDragged`; it raises Clicked / DragStarted / Dragging / DragEnded / DroppedOn / HoverChanged and knows no items. Labels are rebuilt only when their value changes.
+- `ItemSlot.prefab` (`Prefabs/Widgets/`, 88×88): Background (raycast target), EmptyIcon (silhouette), Icon, Name (bottom; 22 px tall: the 13 pt font's line is ~20.5 px and a shorter box truncates the whole name), Count (top right), Key (top left), RarityBorder (the item's rarity colour, `InventoryStyle` → Rarity; none for Common), Hidden (an unrevealed item: Mark, the Synty map "unknown" icon, since the font has no `?`, and Ring, a radial fill shown on the slot being revealed), Highlight (hover), Caption (under the tile). `ItemSlotView` API: `Show(icon, name, count, warning, rarity)`, `ShowEmpty(silhouette)`, `ShowHidden(progress)`, `SetSearchProgress`, `SetKey`, `SetCaption`, `SetDragged`; it raises Clicked / DragStarted / Dragging / DragEnded / DroppedOn / HoverChanged and knows no items. Labels are rebuilt only when their value changes.
 - `InventoryScreen` (a `PlayerHudView`) maps each slot view to a slot of a container (hotbar, gear, backpack, loot). Each grid keeps its own views, hooked once, and a rebuild only adds or hides the difference (0.4 ms; re-parenting pooled views on every open cost 5 ms). It refreshes them all when anything changes (`Inventory.Changed`, the loot container's `Changed` / `RevealChanged`; a flag read in `Update`, ~50 µs), and rebuilds when it opens or the backpack's size changes. **Drag** moves / merges / swaps (`Inventory.TryMove`), **Shift-drag** moves half a stack, **right-click** sends an item across (loot → inventory, backpack → loot, backpack → a free active or gear slot, active / gear → backpack), dropping on the backdrop throws it (`IPlayer.ThrowAway`). Sort: `Backpack.Sort()`; Take all: `Inventory.TakeFrom` per revealed loot slot. A loot slot still hidden by the search refuses every action. While a container is open, the screen ticks `PlayerLooting` on unscaled time and fills the ring of the slot being revealed each frame (one view).
 - **Pause and input:** opening takes `TimeService.RequestPause(this)` (not during a raid: `RaidStarted` → `RaidEnded`; then a `DamageDealt` on the player closes the screen) and `InputService.RequestUI(this)` (UI map on, gameplay map off, cursor free) and activates its EventSystem; closing releases both. The input module is pointed at InputService's own UI map (`InputService.ConfigureUiModule`), so nothing but InputService enables actions. Shift comes from `InputService.UiShiftHeld`.
 - **Closed, it costs nothing:** its Canvas is disabled (a canvas hidden only by alpha still batches every element each frame), its EventSystem is off, and `Update` only checks the Tab key.
@@ -144,6 +146,12 @@ Inventory                    Canvas (override sorting 50) · GraphicRaycaster ·
 - Built by `AgentScripts/Inventory/InventorySetup.Interface`; after changing layout, run `InventorySetup.Bake` (or `BakeCurrent` right after leaving Play) so the values layout groups and TMP compute in the scene are stored in HUD.prefab, and WorldMap doesn't get dirty with HUD overrides.
 
 - **Sounds** (`InventoryStyle` → Sounds, 2D entities in the Player library): open, close, place (a successful move, right-click send or Take all), refused (with every message), reveal (each revealed stack).
+
+## Item use and effects
+
+- `ItemUseHud` (Center): while the held item is a `HeldConsumable` being used, the green ring fills with `UseProgress` and the item's name sits above; a refusal ("Health full") shows in red for 1.5 s instead (LateUpdate poll; the label is rebuilt only when its text changes).
+- `EffectsHud` (BottomLeft, above the bars): one entry per `PlayerEffects.Active` (up to 6): the item's icon and the seconds left, rebuilt only when the whole seconds change; healing entries dim while a hit pauses healing.
+- **Icons**: items use icons from the UI icon packs in `Assets/_StoreAssets/UI`, one set and style for a kind of item (ASSETS.md → UI).
 
 ## Loot markers and pickup feed
 

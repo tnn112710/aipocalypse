@@ -28,6 +28,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public virtual bool KeepsClear => true;
         // Degrees shots may go off the aim (airborne spread plus pellet spread); the crosshair shows it.
         public virtual float Spread => 0f;
+        // Multiplies the holder's move speed (using a consumable slows the walk): 1 = none.
+        public virtual float MoveSpeedScale => 1f;
 
         // Whether the holder's attack / aim input ends a sprint.
         public virtual bool StopsSprint(bool useHeld, bool aimHeld) => false;
