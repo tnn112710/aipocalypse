@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -8,37 +10,49 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.EnemySystem
 {
     // An enemy's physical side: takes hits, knockback and its stagger meter (flinch, stagger: EnemyBrain), reacts and cries, and when killed lies, sinks and disables itself
-    // (enabling revives it). No Update: EnemyBodyManager advances it while it moves or dies.
+    // (enabling revives it). No Update: EnemyBodyManager advances it while it moves or dies. A body that rolled loot (its
+    // kind's LootTable, into its LootContainer) lies until it's emptied, then sinks a little later.
     [RequireComponent(typeof(EnemyBrain), typeof(EnemyMover))]
     public sealed class EnemyBody : MonoBehaviour, IDamageable, IShowsOwnHits
     {
+        const string LootStream = "loot";
+
         [SerializeField, Tooltip("Sinks into the ground after death: the Model (or mesh) child")] Transform _visual;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] Health _health;
 
         readonly List<Collider> _colliders = new();
+        readonly List<ItemInstance> _lootRoll = new();
         EnemyBodyManager _manager;
         EffectPool _effects;
+        EnemySystemSettings _system;
+        RandomStream _lootRandom;
         EnemyBrain _brain;
         EnemyMover _mover;
         EnemyReactionSettings _settings;
         Knockback _knockback;
         StaggerMeter _stagger;
         EnemyEyes _eyes;
+        LootContainer _loot;
         Vector3 _visualRest;
         float _deadFor;
 
         public bool IsDead { get; private set; }
         public Health Health => _health;
         public Transform Visual => _visual;
+        // Dead and lying with loot to search.
+        public bool HoldsLoot { get; private set; }
+        public LootContainer Loot => _loot;
         // In EnemyBodyManager's active list.
         internal bool Tracked { get; set; }
 
         [Inject]
-        void Construct(EnemyBodyManager manager, EnemySystemSettings settings, EffectPool effects)
+        void Construct(EnemyBodyManager manager, EnemySystemSettings settings, EffectPool effects, RandomService random)
         {
             _manager = manager;
             _effects = effects;
+            _system = settings;
+            _lootRandom = random.Stream(LootStream);
             uint layer = settings.RenderingLayer.value;
             if (layer == 0)
                 return;
@@ -59,6 +73,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                         _colliders.Add(c);
                 if (_visual != null)
                     _visualRest = _visual.localPosition;
+                if (TryGetComponent(out _loot))
+                    _loot.Emptied += OnLootEmptied;
             }
             _settings = settings;
             _knockback = settings != null ? new Knockback(settings) : null;
@@ -66,6 +82,14 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _health = new Health(stats.Get(EnemyStat.MaxHealth));
             IsDead = false;
             _deadFor = 0f;
+            if (HoldsLoot)
+                _manager?.RemoveLootBody(this);
+            HoldsLoot = false;
+            if (_loot != null)
+            {
+                _loot.Clear();
+                _loot.SetSearchable(false);
+            }
             foreach (Collider c in _colliders)
                 c.enabled = true;
             if (_visual != null)
@@ -134,6 +158,46 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             if (_brain.Animation != null)
                 _brain.Animation.Die(push);
             _brain.Voice?.Death();
+            RollLoot();
+        }
+
+        void RollLoot()
+        {
+            LootTable table = _brain.Definition != null ? _brain.Definition.Loot : null;
+            if (_loot == null || table == null || _lootRandom == null)
+                return;
+            _lootRoll.Clear();
+            table.Roll(_lootRandom, _lootRoll);
+            _loot.Fill(_lootRoll);
+            HoldsLoot = !_loot.Items.IsEmpty;
+            _loot.SetSearchable(HoldsLoot);
+            if (HoldsLoot)
+                _manager?.AddLootBody(this);
+        }
+
+        // The cap or dawn took its loot: it sinks now.
+        internal void ExpireLoot()
+        {
+            if (!HoldsLoot)
+                return;
+            ReleaseLoot(0f);
+            _loot.Clear();
+        }
+
+        void OnLootEmptied(LootContainer _)
+        {
+            if (IsDead && HoldsLoot)
+                ReleaseLoot(_system != null ? _system.LootedBodySinkDelay : 0f);
+        }
+
+        // Stops holding the body: it sinks after `delay` seconds.
+        void ReleaseLoot(float delay)
+        {
+            HoldsLoot = false;
+            _manager?.RemoveLootBody(this);
+            _loot.SetSearchable(false);
+            if (_settings != null)
+                _deadFor = Mathf.Max(0f, _settings.CorpseTime - delay);
         }
 
         // Returns false once there's nothing left to move (EnemyBodyManager drops it).
@@ -151,7 +215,15 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return _knockback != null && _knockback.Active;
 
             _deadFor += deltaTime;
-            float sink = Mathf.Clamp01((_deadFor - _settings.CorpseTime) / _settings.SinkTime);
+            if (HoldsLoot)
+            {
+                // Its death clip has played out by CorpseTime: the Animator stops (it was set to animate off screen too).
+                if (_deadFor >= _settings.CorpseTime && _brain.Animation != null)
+                    _brain.Animation.Freeze();
+                _deadFor = Mathf.Min(_deadFor, _settings.CorpseTime);
+                return true;
+            }
+            float sink =Mathf.Clamp01((_deadFor - _settings.CorpseTime) / _settings.SinkTime);
             if (_visual != null)
                 _visual.localPosition = _visualRest + Vector3.down * (sink * _settings.SinkDepth);
             if (sink < 1f)

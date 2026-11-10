@@ -1,16 +1,13 @@
-using Sirenix.OdinInspector;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.WeaponSystem
 {
-    // A kind of round. Guns that take the same type share one pool in the holder's AmmoReserve.
+    // A kind of round, carried as stacks in the backpack. Guns that take the same type reload from the same stacks
+    // (AmmoReserve). Its Prefab is the ammo box lying in the world.
     [CreateAssetMenu(fileName = "Ammo", menuName = "Aipocalypse/Weapons/Ammo Type")]
-    public sealed class AmmoType : ScriptableObject
+    public sealed class AmmoType : ItemDefinition
     {
-        [SerializeField] string _displayName;
-        [SerializeField, PreviewField(64)] Sprite _icon;
-
-        public string DisplayName => _displayName;
-        public Sprite Icon => _icon;
+        public override ItemCategory Category => ItemCategory.Ammo;
     }
 }

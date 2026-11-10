@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using MB13.Aipocalypse.Input;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
+    // What the player can carry: the hotbar's active slots and their keys, the gear slots, backpack size and carry weight.
     [CreateAssetMenu(fileName = "EquipmentConfig", menuName = "Aipocalypse/Equipment/Equipment Config")]
     public sealed class EquipmentConfig : ScriptableObject
     {
@@ -13,46 +15,89 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         {
             public string Name;
             [EnumToggleButtons] public ItemCategory Accepts;
-            [Tooltip("Placed at spawn until an inventory fills the hotbar")]
-            public ItemDefinition StartingItem;
+            [Tooltip("The key that selects it")] public HotbarKey Key;
+            [Tooltip("Placed at spawn")] public ItemDefinition StartingItem;
+        }
+
+        [Serializable]
+        public struct GearSlotConfig
+        {
+            public string Name;
+            [EnumToggleButtons] public ItemCategory Accepts;
+            [Tooltip("Worn at spawn")] public ItemDefinition StartingItem;
         }
 
         [SerializeField, Range(0.1f, 5f), Tooltip("Multiplies every item's equip and holster speed. 2 = switching takes half as long")]
         float _switchSpeed = 1f;
 
-        [SerializeField, EnumToggleButtons, Tooltip("Worn on the belt instead of going into the hotbar: one at a time, works " +
-            "whatever is in the hands")]
-        ItemCategory _beltAccepts = ItemCategory.Lantern;
-
-        public float SwitchSpeed => _switchSpeed;
-        public ItemCategory BeltAccepts => _beltAccepts;
-
-        public Equipment CreateEquipment() => new(CreateHotbar(), BeltAccepts);
-
-        [SerializeField, Tooltip("Hotbar slots in key order: slot 1 is key 1. At most 9")]
+        [SerializeField, Tooltip("Active slots in display order (guns, melee, quick slots), each with its key. Each key once")]
         [ListDrawerSettings(ShowIndexLabels = true, ListElementLabelName = nameof(SlotConfig.Name))]
         List<SlotConfig> _slots = new();
 
-        public Hotbar CreateHotbar()
-        {
-            var accepts = new ItemCategory[_slots.Count];
-            for (int i = 0; i < accepts.Length; i++)
-                accepts[i] = _slots[i].Accepts;
+        [SerializeField, Tooltip("Worn items: head, body, face, backpack, belt (lantern)")]
+        [ListDrawerSettings(ShowIndexLabels = true, ListElementLabelName = nameof(GearSlotConfig.Name))]
+        List<GearSlotConfig> _gear = new();
 
-            var hotbar = new Hotbar(accepts);
-            for (int i = 0; i < _slots.Count; i++)
+        [SerializeField, Min(0), Tooltip("Backpack slots without a backpack worn")]
+        int _backpackSlots = 10;
+
+        [SerializeField, Min(0f), Tooltip("Kilograms the player carries without a backpack worn (shown only: no slowdown yet)")]
+        float _maxWeight = 25f;
+
+        [SerializeField, Tooltip("Put in the backpack at spawn")]
+        List<ItemStack> _startingItems = new();
+
+        public float SwitchSpeed => _switchSpeed;
+        public IReadOnlyList<SlotConfig> Slots => _slots;
+        public IReadOnlyList<GearSlotConfig> Gear => _gear;
+
+        public Equipment CreateEquipment()
+        {
+            var keys = new HotbarKey[_slots.Count];
+            var names = new string[_slots.Count];
+            for (int i = 0; i < keys.Length; i++)
             {
-                ItemDefinition start = _slots[i].StartingItem;
-                if (start != null && !hotbar.TryPlace(i, start.CreateInstance()))
-                    Debug.LogWarning($"{name}: slot {i + 1} doesn't accept {start.name} ({start.Category}).", this);
+                keys[i] = _slots[i].Key;
+                names[i] = _slots[i].Name;
             }
-            return hotbar;
+            var gearNames = new string[_gear.Count];
+            for (int i = 0; i < gearNames.Length; i++)
+                gearNames[i] = _gear[i].Name;
+            return new Equipment(CreateInventory(), keys, names, gearNames);
+        }
+
+        public Inventory CreateInventory()
+        {
+            var hotbarAccepts = new ItemCategory[_slots.Count];
+            for (int i = 0; i < hotbarAccepts.Length; i++)
+                hotbarAccepts[i] = _slots[i].Accepts;
+            var gearAccepts = new ItemCategory[_gear.Count];
+            for (int i = 0; i < gearAccepts.Length; i++)
+                gearAccepts[i] = _gear[i].Accepts;
+
+            var inventory = new Inventory(new ItemContainer(hotbarAccepts), new ItemContainer(gearAccepts), _backpackSlots, _maxWeight);
+            for (int i = 0; i < _gear.Count; i++)
+                Place(inventory.Gear, i, _gear[i].StartingItem);
+            for (int i = 0; i < _slots.Count; i++)
+                Place(inventory.Hotbar, i, _slots[i].StartingItem);
+            foreach (ItemStack stack in _startingItems)
+                if (stack.Item != null && inventory.AddNew(stack.Item, stack.Count) < stack.Count)
+                    Debug.LogWarning($"{name}: no room for all {stack.Count} {stack.Item.name} at spawn.", this);
+            return inventory;
+        }
+
+        void Place(ItemContainer container, int index, ItemDefinition start)
+        {
+            if (start != null && !container.TryPlace(index, start.CreateInstance()))
+                Debug.LogWarning($"{name}: slot {index + 1} doesn't accept {start.name} ({start.Category}).", this);
         }
 
         void OnValidate()
         {
-            if (_slots.Count > Hotbar.MaxSlots)
-                _slots.RemoveRange(Hotbar.MaxSlots, _slots.Count - Hotbar.MaxSlots);
+            for (int i = 0; i < _slots.Count; i++)
+                for (int j = 0; j < i; j++)
+                    if (_slots[i].Key == _slots[j].Key)
+                        Debug.LogWarning($"{name}: slots {j + 1} and {i + 1} share the key {_slots[i].Key}; only the first one is selected by it.", this);
         }
     }
 }

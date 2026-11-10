@@ -166,7 +166,7 @@ namespace MB13.Aipocalypse.Tests
             var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>("Assets/_Game/Content/Weapons/PumpShotgun/PumpShotgun.asset");
             var item = new GunInstance(definition);
             item.SetRounds(definition.Magazine.Size - 2);
-            var ammo = new AmmoReserve();
+            var ammo = TestItems.Reserve();
             ammo.Add(definition.Magazine.AmmoType, 2);
             var gun = new Gun(item, ammo, () => 1f);
             gun.ActionStarted += a => _animation.StartAction(a, item.Rounds == 0);

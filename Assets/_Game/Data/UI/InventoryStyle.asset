@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a947f857bd60a041b582bd6a20b2c2d, type: 3}
+  m_Name: InventoryStyle
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.InventoryStyle
+  Font: {fileID: 11400000, guid: d10a2c4b67b4adc4088ef3445a4b6562, type: 2}
+  TextColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
+  DimTextColor: {r: 0.75, g: 0.75, b: 0.75, a: 0.9}
+  WarningColor: {r: 1, g: 0.45, b: 0.35, a: 1}
+  SlotSprite: {fileID: 21300000, guid: 7a314f21b40cab54cabe85512bda9ace, type: 3}
+  SlotColor: {r: 0.16, g: 0.17, b: 0.19, a: 0.92}
+  EmptySlotColor: {r: 0.12, g: 0.13, b: 0.15, a: 0.75}
+  HighlightSprite: {fileID: 21300000, guid: a7b56a80ac9b8ce469c1af0fb5f6f849, type: 3}
+  HighlightColor: {r: 1, g: 0.85, b: 0.55, a: 1}
+  IconColor: {r: 1, g: 1, b: 1, a: 1}
+  EmptyIconColor: {r: 1, g: 1, b: 1, a: 0.18}
+  DraggedAlpha: 0.35
+  NameFontSize: 13
+  CountFontSize: 16
+  KeyFontSize: 15
+  CaptionFontSize: 15
+  _emptyIcons:
+  - key: 1
+    value: {fileID: 21300000, guid: b4b6ed7980bc4524991e10d8befc7504, type: 3}
+  - key: 2
+    value: {fileID: 21300000, guid: 40a5cbe4fdec43b41b0e0df9d9ebc6a3, type: 3}
+  - key: 256
+    value: {fileID: 21300000, guid: 28a19294736fdde4ba1551844e2941da, type: 3}
+  - key: 512
+    value: {fileID: 21300000, guid: 3f185c73ff4c87c4a88e1727c3c77b45, type: 3}
+  - key: 1024
+    value: {fileID: 21300000, guid: dbde649cb394f3f4bb3d87c36113e0fc, type: 3}
+  - key: 128
+    value: {fileID: 21300000, guid: 8a65f66b8fbcf4248a5b819cb71edfeb, type: 3}
+  PanelSprite: {fileID: 21300000, guid: 7a314f21b40cab54cabe85512bda9ace, type: 3}
+  PanelColor: {r: 0.06, g: 0.07, b: 0.08, a: 0.82}
+  BackdropColor: {r: 0, g: 0, b: 0, a: 0.45}
+  WeightBarColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
+  OverweightColor: {r: 1, g: 0.45, b: 0.35, a: 1}
+  OpenSound:
+    _entity: {fileID: 11400000, guid: 1389e65a12c8e1742a0da2d70ffa4b16, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  CloseSound:
+    _entity: {fileID: 11400000, guid: 8fbc786eae5bcf646a66ea21064c4961, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  PlaceSound:
+    _entity: {fileID: 11400000, guid: be18494daccfb624f98a13d9351baa7d, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  RefusedSound:
+    _entity: {fileID: 11400000, guid: 0e2aab3473ca20147a50dd24612de860, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  RevealSound:
+    _entity: {fileID: 11400000, guid: 949ac5685a470ed429c56b828c24c614, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  PickupSound:
+    _entity: {fileID: 11400000, guid: fcd9c1a97c3fcc24ebb0fdd80b7c443f, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  TokensSound:
+    _entity: {fileID: 11400000, guid: 280e8aa64c1fa4f4ba99cb36ac9581b0, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}

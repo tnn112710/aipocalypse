@@ -8,7 +8,7 @@ How the in-game UI is built and how to extend or restyle it. Script locations an
 - **Art comes from Synty Interface Apocalypse HUD as sprites only** (`Assets/Synty/InterfaceApocalypseHUD/Sprites/`, font `Fonts/SairaCondensed/Font_Apocalypse_Bold`). Never use or nest its prefabs: they carry Synty's sample scripts and animators. Our widgets are our own prefabs under `_Core/UI/Prefabs/`.
 - **Views are passive.** A widget (`StatBar`, `HotbarSlotView`) only displays the values it's given. A presenter (`PlayerVitalsHud`, `HotbarHud`) reads game state and feeds the widgets. Widgets never know about the player, items, stats or events.
 - **Looks live in style assets, layout lives in prefabs.** Sprites, colors and fonts go in a `*Style` ScriptableObject (`Data/UI/`). Size, position and anchors stay on the prefab's RectTransforms.
-- **HUD images are not raycast targets** and the HUD canvas has no `GraphicRaycaster`, because nothing on it is clickable. Menus that need clicks get their own canvas with a raycaster.
+- **HUD images are not raycast targets** and the HUD canvas has no `GraphicRaycaster`, because nothing on it is clickable. Menus that need clicks get their own canvas with a raycaster and an EventSystem that's active only while they're open, its input module pointed at InputService's UI map (the inventory screen is the first: see below).
 - **Zero allocations per frame.** Widgets skip values that didn't change. Labels use `TMP_Text.SetText("{0}", value)`, never string concatenation.
 
 ## Canvas and scaling
@@ -39,14 +39,19 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    │  └─ Hotbar              nested Canvas · HorizontalLayoutGroup · ContentSizeFitter · HotbarHud
    │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
+   │  └─ PickupFeed          nested Canvas · PickupFeedHud: Line0…Line4 ("+30 Rifle Ammo", newest at the bottom) + Warning ("Backpack full"), 150 px up
    └─ Center
       ├─ Crosshair           nested Canvas · CrosshairHud; 6×6 dot (built-in Knob sprite, white 90 %, thin dark outline)
       │  ├─ SpreadUp/Right/Down/Left   2×7 px ticks pushed out to the spread cone (pivot on the inner end)
       │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
-      └─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre
-         ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
-         └─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[R] Repair Fence 63%")
+      ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
+      │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
+      │  └─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[R] Repair Fence 63%")
+LootMarkers                  full screen, nested Canvas · LootMarkerHud: Marker (inactive 56 px bag icon + Shadow, cloned 8 times), placed
+                             over crates and bodies holding loot (see Loot markers and pickup feed below)
+Inventory                    last child: the inventory screen, its own Canvas (sorting 50, off while closed) · GraphicRaycaster · CanvasGroup ·
+                             InventoryScreen; built by AgentScripts/Inventory/InventorySetup (see Inventory screen below)
 ```
 
 - **Region per corner.** New HUD info goes under the matching region: the clock (and later weather) in TopRight, quest tracker in TopRight below it, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
@@ -108,10 +113,42 @@ HotbarSlot                   HotbarSlotView component
 ```
 
 - `HotbarSlotView` API: `SetKey(string)`, `SetIcon(Sprite)` (null = empty), `SetSelected(bool)`, `SetBadge(count, reserve, showReserve, warning)`, `HideBadge()`, `ApplyStyle()`.
-- `HotbarHud` (presenter on `Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig` (up to 9). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight, each slot item's `ItemInstance.Changed` / `AmmoReserve.Changed` → badges. Nothing is polled.
+- `HotbarHud` (presenter on `Equipment.Hotbar`) spawns one view per hotbar slot, so the HUD follows `EquipmentConfig`: today 10 (1, 2, V, 3–9). Each key cap is the slot's `HotbarKey` binding (`Equipment.KeyOf` → `InputService.GetKeyLabel`). It's **event-driven**: `Hotbar.SlotChanged` → icon, `Equipment.SelectionChanged` → highlight, each slot item's `ItemInstance.Changed` / `AmmoReserve.Changed` → badges. Nothing is polled.
 - **Badge:** each item says what its slot shows (`ItemInstance.Badge`, an `ItemBadge`): a stack shows its count, a gun its rounds with its `AmmoType` as the reserve to look up. The reserve is shown only for an `AmmoType` when the reserve isn't infinite, so a gun reads as in Escape from Duckov: magazine / reserve, magazine only with infinite ammo, `AmmoWarningColor` when the magazine is empty or the gun is jammed. HotbarHud knows no item kinds.
 - The highlight moves as soon as a slot is selected, not when the switch animation finishes.
 - Behavior and switching rules: [EQUIPMENT.md](EQUIPMENT.md).
+
+## Inventory screen
+
+The first clickable UI: Tab or searching a crate or body (E) opens it, Tab / Esc close it. Laid out after Escape from Duckov at 1920×1080: the left panel (540×800, fixed) holds the Tokens carried, weight ("Weight 12.5 / 40.0 kg" + bar, red past the limit), EQUIPMENT (the two gun slots and the melee slot with their keys, then Head, Body, Face, Backpack, Light, each captioned, a silhouette when empty) and BACKPACK (n/N) with Sort and a scrolling grid of 5 columns; the loot panel (top right, under the clock) shows the crate or body being searched ("CRATE (5/8)") with Take all, its unrevealed slots as an "unknown" mark; the quick slots 3–9 sit along the bottom ("Drag items into slots 3-9 to set up your hotbar").
+
+```text
+Inventory                    Canvas (override sorting 50) · GraphicRaycaster · CanvasGroup · InventoryScreen
+├─ Backdrop                  full screen, BackdropColor; raycast target: an item dropped here is thrown away
+├─ Left                      panel · VerticalLayoutGroup: Header (Tokens, TokensLabel, Weight, WeightBar > Fill), EquipmentTitle,
+│                            EquipmentGrid (GridLayoutGroup 88 px, 5 columns), BackpackRow (BackpackTitle, Sort), BackpackScroll
+│                            (ScrollRect > Viewport (RectMask2D) > Content: GridLayoutGroup + ContentSizeFitter)
+├─ Loot                      panel: LootRow (LootTitle, Take all), LootGrid; shown only with a container
+├─ Quick                     panel: Hint, QuickRow (HorizontalLayoutGroup)
+├─ Message                   refusals ("Empty the backpack's extra slots first", "Backpack full"), 2.5 s
+├─ Tooltip                   ItemTooltipView: name + "30 x 0.016 kg = 0.48 kg" beside the hovered slot
+├─ DragIcon                  follows the pointer while dragging
+└─ EventSystem               EventSystem + InputSystemUIInputModule, active only while open
+```
+
+- `ItemSlot.prefab` (`Prefabs/Widgets/`, 88×88): Background (raycast target), EmptyIcon (silhouette), Icon, Name (bottom; 22 px tall: the 13 pt font's line is ~20.5 px and a shorter box truncates the whole name), Count (top right), Key (top left), Hidden (an unrevealed item: Mark, the Synty map "unknown" icon, since the font has no `?`, and Ring, a radial fill shown on the slot being revealed), Highlight (hover), Caption (under the tile). `ItemSlotView` API: `Show(icon, name, count, warning)`, `ShowEmpty(silhouette)`, `ShowHidden(progress)`, `SetSearchProgress`, `SetKey`, `SetCaption`, `SetDragged`; it raises Clicked / DragStarted / Dragging / DragEnded / DroppedOn / HoverChanged and knows no items. Labels are rebuilt only when their value changes.
+- `InventoryScreen` (a `PlayerHudView`) maps each slot view to a slot of a container (hotbar, gear, backpack, loot). Each grid keeps its own views, hooked once, and a rebuild only adds or hides the difference (0.4 ms; re-parenting pooled views on every open cost 5 ms). It refreshes them all when anything changes (`Inventory.Changed`, the loot container's `Changed` / `RevealChanged`; a flag read in `Update`, ~50 µs), and rebuilds when it opens or the backpack's size changes. **Drag** moves / merges / swaps (`Inventory.TryMove`), **Shift-drag** moves half a stack, **right-click** sends an item across (loot → inventory, backpack → loot, backpack → a free active or gear slot, active / gear → backpack), dropping on the backdrop throws it (`IPlayer.ThrowAway`). Sort: `Backpack.Sort()`; Take all: `Inventory.TakeFrom` per revealed loot slot. A loot slot still hidden by the search refuses every action. While a container is open, the screen ticks `PlayerLooting` on unscaled time and fills the ring of the slot being revealed each frame (one view).
+- **Pause and input:** opening takes `TimeService.RequestPause(this)` (not during a raid: `RaidStarted` → `RaidEnded`; then a `DamageDealt` on the player closes the screen) and `InputService.RequestUI(this)` (UI map on, gameplay map off, cursor free) and activates its EventSystem; closing releases both. The input module is pointed at InputService's own UI map (`InputService.ConfigureUiModule`), so nothing but InputService enables actions. Shift comes from `InputService.UiShiftHeld`.
+- **Closed, it costs nothing:** its Canvas is disabled (a canvas hidden only by alpha still batches every element each frame), its EventSystem is off, and `Update` only checks the Tab key.
+- **No q in titles:** the Synty font's atlas has 74 characters and no lowercase `q`; TMP would add it to the vendor font asset. Titles are written in capitals ("EQUIPMENT") and use the UpperCase style.
+- Built by `AgentScripts/Inventory/InventorySetup.Interface`; after changing layout, run `InventorySetup.Bake` (or `BakeCurrent` right after leaving Play) so the values layout groups and TMP compute in the scene are stored in HUD.prefab, and WorldMap doesn't get dirty with HUD overrides.
+
+- **Sounds** (`InventoryStyle` → Sounds, 2D entities in the Player library): open, close, place (a successful move, right-click send or Take all), refused (with every message), reveal (each revealed stack).
+
+## Loot markers and pickup feed
+
+- `LootMarkerHud` (`LootMarkers`, under the inventory screen): every 0.2 s (unscaled) it picks the nearest 8 `LootRegistry` containers holding loot within 15 m (sorted insert into fixed arrays, no allocation); each frame it projects only those (`Camera.main.WorldToScreenPoint` of `LootContainer.MarkerPoint`) and places the cloned markers: `UnsearchedColor` while something is hidden, `SearchedColor` (dim) after, scaled down to `FarScale` at the range's edge. Hidden behind the camera, for the container the player looks at, while a menu holds the UI and while dead. Values on the component.
+- `PickupFeedHud` (BottomRight): `Equipment.PickedUp` adds "+count Name" at the bottom (the same item while still showing adds up on its line), `PickUpBlocked` shows "Backpack full"; lines hold 2.5 s and fade over 0.6 s on unscaled time, then the component does nothing until the next pickup. Colours and times on the component. It plays the pickup sound (Tokens have their own) and the refused sound from `InventoryStyle`, at most one per 0.06 s, so the magnet collecting several piles sounds once.
 
 ## Interact prompt
 

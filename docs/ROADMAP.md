@@ -62,7 +62,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 
 ### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 3)
 
-- [ ] Basic inventory or backpack for produce and loot (12–18 h)
+- [x] Inventory (built 2026-11-10, ~55–80 h with the loot below; uncommitted): Duckov-style slots, 2 active guns + melee (V) + quick slots 3–9, backpack sized by the worn bag, gear slots, item weights (no slowdown yet), Tokens and ammo as items, the Token magnet, pickups with a feed, throwing, a paused drag-and-drop inventory screen ([EQUIPMENT.md](technicals/EQUIPMENT.md), [UI.md](technicals/UI.md#inventory-screen)). Produce items come with the animals
 - [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h)
 - [ ] Tokens + trading robot: sell produce, buy ammo and fence repairs (23–32 h)
 - [ ] Debt bar + guide drone with a few billing jokes (18–28 h)
@@ -79,7 +79,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 
 - [ ] Bridge repair (9–14 h)
 - [ ] Points of interest in one corner of the Pine Forest (17–26 h)
-- [ ] Loot containers and loot tables (14–18 h)
+- [x] Loot containers and loot tables: searched crates (`LootContainer`), lootable goblin bodies (`LootTable`, 20 at most, gone at dawn), Take all (built with the inventory above). Left: loot tables for crates and points of interest
 - [ ] Wandering goblins with caps (6–9 h)
 
 ### Phase 5: Defend (60–94 h, to about Jan 24)
@@ -99,7 +99,7 @@ This comes before the sound and VFX pass, because impact sounds are timed by mar
 
 ### Phase 7: Quality pass (144–223 h, to about Mar 3)
 
-- [ ] Shooting leftovers: crosshair polish, damageable targets in the scene, ammo pickups (12–17 h)
+- [ ] Shooting leftovers: crosshair polish, damageable targets in the scene (12–17 h; ammo pickups came with the inventory)
 - [ ] Shooting to Very High: real gun sounds instead of the `_Placeholder` clips, muzzle and impact VFX, feel passes (15–28 h)
 - [ ] Inner zone to Very High: yard, house and farm dressing, lighting, the cozy feel (35–52 h)
 - [ ] Goblins easy to read at night; hit reactions (12–17 h)

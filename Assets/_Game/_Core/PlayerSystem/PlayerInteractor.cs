@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using UnityEngine;
 
@@ -8,6 +9,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     // (IHoldInteractable: a gate's repair), a tap uses it on release and a hold does the hold use.
     public sealed class PlayerInteractor
     {
+        // Metres in front of the eye a thrown item starts.
+        const float ThrowStartDistance = 0.5f;
+
         readonly Transform _eye;
         readonly GameObject _actor;
         readonly PlayerInteractionTuning _tuning;
@@ -92,24 +96,26 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _focus = nearest != null ? nearest.GetComponentInParent<IInteractable>() : null;
         }
 
-        // Ground in front of the player, short of any wall, for dropping an item.
-        public Vector3 FindDropPoint()
+        // Spawns `item` in the world just in front of the eye (short of a wall) and throws it forward with a little lift. The
+        // pickup magnet leaves it alone until the player has walked away. Null when the item has no world prefab.
+        public WorldItem Throw(ItemInstance item, float yaw)
         {
-            Vector3 forward = Vector3.ProjectOnPlane(_eye.forward, Vector3.up);
-            if (forward.sqrMagnitude < 0.01f)
-                forward = _actor.transform.forward;
-            forward.Normalize();
+            Vector3 forward = _eye.forward;
+            float distance = ThrowStartDistance;
+            if (Physics.Raycast(_eye.position, forward, out RaycastHit wall, distance + _tuning.DropWallGap, _tuning.InteractMask, QueryTriggerInteraction.Ignore))
+                distance = Mathf.Max(0f, wall.distance - _tuning.DropWallGap);
 
-            float wallGap = _tuning.DropWallGap;
-            float distance = _tuning.DropDistance;
-            if (Physics.Raycast(_eye.position, forward, out RaycastHit wall, distance + wallGap, _tuning.InteractMask, QueryTriggerInteraction.Ignore))
-                distance = Mathf.Max(0f, wall.distance - wallGap);
-
-            Vector3 point = _eye.position + forward * distance;
-            return Physics.Raycast(point, Vector3.down, out RaycastHit ground, _tuning.DropGroundProbe, _tuning.InteractMask, QueryTriggerInteraction.Ignore)
-                ? ground.point
-                : _actor.transform.position + forward * distance;
+            WorldItem thrown = WorldItem.Spawn(item, _eye.position + forward * distance, Quaternion.Euler(0f, yaw, 0f), null);
+            if (thrown == null)
+                return null;
+            thrown.WaitsForPlayerToLeave = true;
+            thrown.Throw(forward * _tuning.ThrowSpeed + Vector3.up * _tuning.ThrowLift, _actor.GetComponent<Collider>());
+            Thrown?.Invoke(thrown);
+            return thrown;
         }
+
+        // An item was thrown (the pickup magnet waits for the player to walk away from it).
+        public event System.Action<WorldItem> Thrown;
 
         // A sphere cast also reports colliders it starts inside (the player's own capsule), so those are skipped.
         Collider FindNearestHit()

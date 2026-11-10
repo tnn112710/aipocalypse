@@ -17,12 +17,17 @@ MonoBehaviour:
   _interactMask:
     serializedVersion: 2
     m_Bits: 1083211827
-  _dropDistance: 1.2
   _dropWallGap: 0.25
-  _dropGroundProbe: 10
   _dropYaw: 90
+  _throwSpeed: 3.5
+  _throwLift: 1.5
+  _magnetRadius: 1
+  _magnetSpeed: 6
+  _pickupMask:
+    serializedVersion: 2
+    m_Bits: 1
+  _searchSecondsPerItem: 1
   _repairKnockInterval: 0.7
-  _repairRaiseTime: 0.25
   _repairReachSlack: 0.75
   _repairLookAngle: 45
   _repairLookAwayGrace: 0.4

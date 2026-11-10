@@ -17,8 +17,8 @@ namespace MB13.Aipocalypse.Tests
         [SetUp]
         public void SetUp()
         {
-            _rifleAmmo = ScriptableObject.CreateInstance<AmmoType>();
-            _pistolAmmo = ScriptableObject.CreateInstance<AmmoType>();
+            _rifleAmmo = TestItems.Create<AmmoType>(maxStack: 999);
+            _pistolAmmo = TestItems.Create<AmmoType>(maxStack: 999);
             _definition = ScriptableObject.CreateInstance<GunDefinition>();
             _definition.Fire.Mode = FireMode.Auto;
             _definition.Fire.RoundsPerMinute = 600f;
@@ -27,7 +27,7 @@ namespace MB13.Aipocalypse.Tests
             _definition.Magazine.ReloadTime = 1f;
             _definition.Jam.Chance = 0f;
             _definition.Jam.ClearTime = 1f;
-            _reserve = new AmmoReserve();
+            _reserve = TestItems.Reserve();
             _shots = 0;
         }
 

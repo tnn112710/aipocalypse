@@ -1,38 +1,73 @@
 using System;
+using System.Collections.Generic;
+using MB13.Aipocalypse.Input;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
-    // Which hotbar slot is selected, and keeping the switcher's target in sync with it. Plus the belt: one worn item.
-    // What a slot key does comes from the item (ItemDefinition.Selecting): hold it, or ask for a quick use.
+    // The player's Inventory plus what's in the hands: which hotbar slot is selected (each slot has a key) and keeping the
+    // switcher's target in sync with it. What a key does comes from the item (ItemDefinition.Selecting): hold it, or ask for
+    // a quick use. Picking up from the world goes through here so the HUD hears about it.
     public sealed class Equipment : IDisposable
     {
         readonly Func<ItemInstance, bool> _canSelect = CanHold;
-        readonly ItemCategory _beltAccepts;
+        readonly HotbarKey[] _keys;
+        readonly string[] _slotNames;
+        readonly string[] _gearNames;
 
         // previous index, new index; -1 = nothing selected
         public event Action<int, int> SelectionChanged;
         // A quick-use item's key was pressed; whoever uses it calls Consume. The hands don't change.
         public event Action<ItemInstance> QuickUseRequested;
+        // Taken from the world: which item and how many.
+        public event Action<ItemDefinition, int> PickedUp;
+        // Some or all of a world item didn't fit.
+        public event Action<ItemDefinition> PickUpBlocked;
 
-        // `beltAccepts`: categories worn on the belt instead of the hotbar (EquipmentConfig.BeltAccepts).
-        public Equipment(Hotbar hotbar, ItemCategory beltAccepts = ItemCategory.Lantern)
+        // `keys`: the key of each hotbar slot (EquipmentConfig); missing ones default to keys 1, 2, 3… in order. Names label the
+        // hotbar and gear slots on the inventory screen.
+        public Equipment(Inventory inventory, IReadOnlyList<HotbarKey> keys = null, IReadOnlyList<string> slotNames = null,
+            IReadOnlyList<string> gearNames = null)
         {
-            Hotbar = hotbar;
-            _beltAccepts = beltAccepts;
+            Inventory = inventory;
+            _keys = new HotbarKey[Hotbar.Count];
+            for (int i = 0; i < _keys.Length; i++)
+                _keys[i] = keys != null && i < keys.Count ? keys[i] : (HotbarKey)Math.Min(i, (int)HotbarKey.Key9);
+            _slotNames = Names(slotNames, Hotbar.Count);
+            _gearNames = Names(gearNames, inventory.Gear.Count);
             Switcher = new EquipmentSwitcher();
             Hotbar.SlotChanged += OnSlotChanged;
         }
 
-        public Hotbar Hotbar { get; }
+        public Inventory Inventory { get; }
+        public ItemContainer Hotbar => Inventory.Hotbar;
         public EquipmentSwitcher Switcher { get; }
         public int SelectedIndex { get; private set; } = -1;
         public ItemInstance Selected => SelectedIndex >= 0 ? Hotbar[SelectedIndex] : null;
-        // Worn, not held: works whatever is in the hands (a lantern).
-        public ItemInstance Belt { get; private set; }
+        // Worn on the belt, not held: works whatever is in the hands (a lantern).
+        public ItemInstance Belt => Inventory.FindGear(ItemCategory.Lantern);
         // Selection changes while lowered wait for RaiseHands.
         public bool HandsLowered { get; private set; }
 
-        public void Dispose() => Hotbar.SlotChanged -= OnSlotChanged;
+        public void Dispose()
+        {
+            Hotbar.SlotChanged -= OnSlotChanged;
+            Inventory.Dispose();
+        }
+
+        public HotbarKey KeyOf(int slot) => _keys[slot];
+        public string SlotName(int slot) => _slotNames[slot];
+        public string GearName(int slot) => _gearNames[slot];
+
+        static string[] Names(IReadOnlyList<string> names, int count)
+        {
+            var result = new string[count];
+            for (int i = 0; i < count; i++)
+                result[i] = names != null && i < names.Count ? names[i] : string.Empty;
+            return result;
+        }
+
+        // The hotbar slot a key selects, or -1.
+        public int SlotOf(HotbarKey key) => Array.IndexOf(_keys, key);
 
         public bool Select(int index)
         {
@@ -86,21 +121,28 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             Switcher.SetTarget(item != null && CanHold(item) ? item : null);
         }
 
-        // Merge onto a carried stack if it all fits, else Store in the first free accepting slot (switching to it), else Swap
-        // with the selected item. Belt items go on an empty belt or swap with the worn one, without changing the hands.
-        public PickUpAction GetPickUpAction(ItemInstance item)
+        // Whether a world item can be offered for pickup (room or not: no room shows a warning on pickup).
+        public bool CanPickUp(ItemInstance item) => item != null && !item.IsEmpty && !Inventory.Contains(item);
+
+        // Takes as much of a world item as fits (Inventory.TryAdd); a weapon stored in a hotbar slot is switched to. `added`
+        // = units taken. True when all of it was taken (the world copy goes); otherwise the item keeps what's left.
+        public bool TryPickUp(ItemInstance item, out int added)
         {
-            if (item == null || item.IsEmpty || item == Belt || Hotbar.IndexOf(item) >= 0)
-                return PickUpAction.None;
-            if (GoesOnBelt(item))
-                return Belt == null ? PickUpAction.Store : PickUpAction.Swap;
-            if (FindStack(item) >= 0)
-                return PickUpAction.Merge;
-            if (Hotbar.FindFreeSlot(item) >= 0)
-                return PickUpAction.Store;
-            if (SelectedIndex >= 0 && Hotbar.CanPlace(SelectedIndex, item))
-                return PickUpAction.Swap;
-            return PickUpAction.None;
+            added = 0;
+            if (!CanPickUp(item))
+                return false;
+
+            ItemDefinition definition = item.Definition;
+            bool all = Inventory.TryAdd(item, out added);
+            if (added > 0)
+                PickedUp?.Invoke(definition, added);
+            if (!all)
+                PickUpBlocked?.Invoke(definition);
+
+            int slot = Hotbar.IndexOf(item);
+            if (slot >= 0 && CanHold(item))
+                Select(slot);
+            return all;
         }
 
         // Takes the item in the hands out of the hotbar: mid-switch that's the one being put away, not the newly selected one.
@@ -111,70 +153,10 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             return index >= 0 ? Hotbar.Remove(index) : null;
         }
 
-        // `dropped` is the item a swap pushed out of the hotbar; the caller puts it in the world.
-        public bool TryPickUp(ItemInstance item, out ItemInstance dropped)
-        {
-            dropped = null;
-            PickUpAction action = GetPickUpAction(item);
-            if (action != PickUpAction.None && GoesOnBelt(item))
-            {
-                dropped = Belt;
-                Belt = item;
-                return true;
-            }
-
-            switch (action)
-            {
-                case PickUpAction.Merge:
-                    Hotbar[FindStack(item)].Merge(item);
-                    return true;
-
-                case PickUpAction.Store:
-                    int slot = Hotbar.FindFreeSlot(item);
-                    Hotbar.TryPlace(slot, item);
-                    // Only a held item is switched to; selecting a quick-use item would use it on pickup.
-                    if (CanHold(item))
-                        Select(slot);
-                    return true;
-
-                case PickUpAction.Swap:
-                    dropped = Hotbar[SelectedIndex];
-                    Hotbar.TryPlace(SelectedIndex, item);
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
-        // Uses up `amount` of a carried item; a stack that runs out leaves the hotbar (or the belt).
-        public bool Consume(ItemInstance item, int amount = 1)
-        {
-            if (item == null || !item.Consume(amount))
-                return false;
-            if (!item.IsEmpty)
-                return true;
-            int index = Hotbar.IndexOf(item);
-            if (index >= 0)
-                Hotbar.Remove(index);
-            else if (item == Belt)
-                Belt = null;
-            return true;
-        }
+        // Uses up `amount` of a carried item; a stack that runs out leaves its slot.
+        public bool Consume(ItemInstance item, int amount = 1) => item != null && item.Consume(amount);
 
         static bool CanHold(ItemInstance item) => item.Definition.Selecting == SelectBehaviour.Hold;
-
-        bool GoesOnBelt(ItemInstance item) => (item.Definition.Category & _beltAccepts) != 0;
-
-        int FindStack(ItemInstance item)
-        {
-            for (int i = 0; i < Hotbar.Count; i++)
-            {
-                if (Hotbar[i] != null && Hotbar[i].CanMerge(item))
-                    return i;
-            }
-            return -1;
-        }
 
         void SetSelection(int index)
         {
@@ -188,10 +170,13 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
 
         void OnSlotChanged(int index, ItemInstance previous, ItemInstance current)
         {
-            // The selected slot's item was swapped or removed: hold the new one, or nothing.
             if (index == SelectedIndex)
             {
-                if (current != null && CanHold(current))
+                // The selected item was moved to another hotbar slot: the selection follows it, the hands keep it.
+                int moved = previous != null ? Hotbar.IndexOf(previous) : -1;
+                if (moved >= 0 && moved != index)
+                    SetSelection(moved);
+                else if (current != null && CanHold(current))
                     Switcher.SetTarget(HandsLowered ? null : current);
                 else
                     SetSelection(-1);

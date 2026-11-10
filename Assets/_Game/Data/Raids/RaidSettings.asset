@@ -15,6 +15,7 @@ MonoBehaviour:
   StartHour: 20
   DawnHour: 6
   AliveCap: 12
+  CorpseHeadroom: 20
   Plan: {fileID: 11400000, guid: 0870bd503ebb2f2448904fc00839a0ac, type: 2}
   DefeatWakeHour: 7
   HoursLostOnDeath: 1
@@ -26,9 +27,14 @@ MonoBehaviour:
     ViewMargin: 10
     MaxHiddenWait: 5
     TargetHeight: 1.2
+    SeenLock: 3
+    SeenLockRadius: 8
     GroundMask:
       serializedVersion: 2
       m_Bits: 1
     SightBlockers:
+      serializedVersion: 2
+      m_Bits: 1
+    ObstacleMask:
       serializedVersion: 2
       m_Bits: 1

@@ -49,6 +49,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `cheat.infammo [on/off]` | Reloads never use up the reserve (`AmmoReserve.Infinite`) |
 | `cheat.god [on/off]` | Hits apply nothing to the player (`PlayerLife.Invulnerable`): no damage, no hurt feedback |
 | `cheat.notarget [on/off]` | Enemies don't choose the player as a target (`IPlayer.IgnoredByEnemies`); hunters wander instead |
+| `cheat.give <item> [count=1]` | Put an item in the inventory where a pickup would go (`cheat.give tokens 500`, `cheat.give medic`): the start of any loaded item's asset or display name |
 | `cheat.take <item>` | Pick up the first item lying in the scene whose name starts with it (`cheat.take ak47`), wherever it is |
 | `cheat.killall` | Kill every enemy in play with a real hit (scenes with an `EnemyInstaller` only) |
 | `cheat.autopilot [on/off]` | The player fights by itself: aims at the nearest enemy in sight, fires, reloads, swaps guns (`RaidAutopilot`; scenes with an `EnemyInstaller` only) |

@@ -12,14 +12,22 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _interactRadius = 0.12f;
         [SerializeField, Tooltip("Layers the look ray hits: interactables and anything that should block them")]
         LayerMask _interactMask = Physics.DefaultRaycastLayers;
-        [Header("Dropping"), SerializeField, Min(0f), Tooltip("How far in front of the player dropped items land (m)")]
-        float _dropDistance = 1.2f;
-        [SerializeField, Min(0f), Tooltip("Room kept between a dropped item and a wall in front (m)")]
+        [Header("Dropping"), SerializeField, Min(0f), Tooltip("Room kept between a thrown item's start and a wall in front (m)")]
         float _dropWallGap = 0.25f;
-        [SerializeField, Min(0.1f), Tooltip("How far down the ground is searched for under the drop point (m)")]
-        float _dropGroundProbe = 10f;
         [SerializeField, Range(-180f, 180f), Tooltip("Dropped item's yaw relative to the player's facing (degrees)")]
         float _dropYaw = 90f;
+        [SerializeField, Min(0f), Tooltip("Speed a dropped item is thrown forward at (m/s)")]
+        float _throwSpeed = 3.5f;
+        [SerializeField, Min(0f), Tooltip("Upward speed added to a throw (m/s)")]
+        float _throwLift = 1.5f;
+        [Header("Pickup magnet"), SerializeField, Min(0f), Tooltip("Auto-collected items (Tokens) within this many metres of the player fly to them; 0 = off")]
+        float _magnetRadius = 1f;
+        [SerializeField, Min(0.1f), Tooltip("How fast they fly in (m/s)")]
+        float _magnetSpeed = 6f;
+        [SerializeField, Tooltip("Layers world items' pickup boxes are on")]
+        LayerMask _pickupMask = 1;
+        [Header("Looting"), SerializeField, Min(0f), Tooltip("Seconds of searching per stack the first time a crate or body is opened")]
+        float _searchSecondsPerItem = 1f;
         [Header("Repair"), SerializeField, Min(0.1f), Tooltip("Seconds per hammer knock (one repair each)")]
         float _repairKnockInterval = 0.7f;
         [SerializeField, Min(0f), Tooltip("Metres past the interact range before walking off stops the repair")]
@@ -34,10 +42,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float InteractRange => _interactRange;
         public float InteractRadius => _interactRadius;
         public LayerMask InteractMask => _interactMask;
-        public float DropDistance => _dropDistance;
         public float DropWallGap => _dropWallGap;
-        public float DropGroundProbe => _dropGroundProbe;
         public float DropYaw => _dropYaw;
+        public float ThrowSpeed => _throwSpeed;
+        public float ThrowLift => _throwLift;
+        public float MagnetRadius => _magnetRadius;
+        public float MagnetSpeed => _magnetSpeed;
+        public LayerMask PickupMask => _pickupMask;
+        public float SearchSecondsPerItem => _searchSecondsPerItem;
         public float RepairKnockInterval => _repairKnockInterval;
         public float RepairReachSlack => _repairReachSlack;
         public float RepairLookAngle => _repairLookAngle;

@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &339180791620878904
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3036193630836530732}
+  - component: {fileID: 9209909032073168311}
+  m_Layer: 0
+  m_Name: LootSearch
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3036193630836530732
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339180791620878904}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 9030584623976743038}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &9209909032073168311
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339180791620878904}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 1.6, y: 0.7, z: 1.6}
+  m_Center: {x: 0, y: 0.35, z: 0}
 --- !u!1 &1748550174087501918
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,6 +253,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Goblin_04
       objectReference: {fileID: 0}
+    - target: {fileID: 4245400101695388750, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      propertyPath: _searchCollider
+      value: 
+      objectReference: {fileID: 9209909032073168311}
     - target: {fileID: 8146822747265026605, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
       propertyPath: _eyes.Array.size
       value: 2
@@ -255,10 +312,14 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 1353986892990824395, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+    - {fileID: 7893542769446767994, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3381268092496740932}
+    - targetCorrespondingSourceObject: {fileID: 8983778366778449174, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3036193630836530732}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 263235beb7721eb4287f055c522abdaa, type: 3}
 --- !u!4 &9030584623976743038 stripped

@@ -115,7 +115,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void EquipmentConfig_HasASlotForTheHammer()
         {
-            Hotbar hotbar = AssetDatabase.LoadAssetAtPath<EquipmentConfig>(ConfigPath).CreateHotbar();
+            ItemContainer hotbar = AssetDatabase.LoadAssetAtPath<EquipmentConfig>(ConfigPath).CreateInventory().Hotbar;
             Assert.That(hotbar.Count, Is.GreaterThanOrEqualTo(4));
             var hammer = AssetDatabase.LoadAssetAtPath<RepairToolDefinition>(HammerPath);
             Assert.That(hotbar.FindFreeSlot(hammer.CreateInstance()), Is.GreaterThanOrEqualTo(0), "a slot takes tools");

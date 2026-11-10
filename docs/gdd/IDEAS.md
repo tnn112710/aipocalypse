@@ -261,6 +261,38 @@ Suggested paths, tracked as lifetime earnings by source (shown as a ledger on th
   - Minimap late, so the drone's paper map and landmark navigation (World & environment) keep their value; the minimap is also the costliest item (top-down render of the map, markers)
   - Open: the forecast progress bar sits "under the HUD clock"; decide whether it's visible before the clock upgrade
 
+### Inventory and items (user, 2026-11-09)
+
+**Status (2026-11-10):** built from the decisions below ([EQUIPMENT.md](../technicals/EQUIPMENT.md)). Not yet in CORE.md: the GDD still says "limited backpack slots" is a suggestion and keeps the 50–70% grave rule.
+
+- Idea (user): an inventory like Escape from Duckov's, from basic to complex: items collected, used or spent, dropped, dragged around. Tokens are an item too (Duckov's Cash). First focus: Tokens and ammunition. Later: item weight (a heavy load slows and tires), backpacks with a set capacity, a pet that carries items
+- Duckov, researched 2026-11-09 (escapefromduckov.net item database, Steam discussions):
+  - Slots, not a grid, one stack per slot
+  - Cash is an item (weight 0, stacks to 1,000,000) next to a banked balance; an ATM at the base moves money between them
+  - Ammo items by calibre and tier (Rusty → AP): 0.01–0.02 kg a round, stacks of 240–320
+  - Backpacks add 8–30 slots; four load states: Agile +15% speed, Heavy −20%, Overweight −40%, Unbearable
+  - The dog: 1 → 6 safe slots that weigh nothing and survive death; one grave, the latest only, no timer
+  - Player complaints: hidden weight thresholds, slots plus weight as a double limit, a small stash; modders added sort, loot-all and value tooltips
+  - Ref: Escape from Tarkov — the grid creates tension, but "inventory Tetris" is the classic chore; Duckov, Valheim and Enshrouded use slots
+  - Ref: ARC Raiders — coins are a balance never carried; fragmented ammo stacks are a top complaint
+  - Ref: Abiotic Factor — two encumbrance tiers as yellow / red HUD markers; Palworld patched out freezing overweight players
+- Decided (user, 2026-11-09 / 10):
+  - Tokens: an item like Duckov's cash, weightless, no stack limit, auto-collected within 1 m (a magnet; the radius can be upgraded later). Placeholder coin model from Synty Polygon Prototype. No bank balance yet
+  - Ammo: items that stack with a limit per stack (pistol / rifle 120, shells 40); calibres per gun type later
+  - Loose items: aim and E to collect, with a HUD notice; a warning when full; a partial pickup leaves the rest
+  - Lootables (crates, dead enemies): aim, E, and the Duckov-style screen opens at once; hidden items are revealed one per second with a ring on the slot (changed 2026-11-10 from "wait 1 s × items with a circle on the HUD, then the screen"). Paused at home; during a raid not paused, and a hit closes it (2026-11-10). A bag marker floats over crates and bodies that still hold loot within ~15 m, dim once everything in them has been seen (2026-11-10). Placeholder inventory sounds (2026-11-10). Bodies stay while they hold loot and sink 3 s after being emptied; at most ~20, all gone at dawn. Goblin drops (placeholder): nothing 30, Tokens 5–20 (40), pistol 6–12 (20), rifle 10–20 (15), shells 2–4 (10), medic box (5); 1–2 picks
+  - Inventory screen: Tab, paused, drag and drop, sort, take all, drop by dragging out; G throws the held item forward
+  - Active slots: 2 guns (keys 1, 2), melee (V), consumables and tools (3–9); more guns ride in the backpack; a third gun slot (1, 2, 3) maybe as an upgrade later
+  - Equipment UI: Head, Body, Face slots shown, no items yet; no headphones or totems; a backpack item (+slots, +weight)
+  - Weight: values now, slowdown later. A medic box collectible, held in hand (no use yet)
+  - Later: the dog carrying items
+- Suggested (not agreed yet):
+  - Bank the carried Tokens at the trading robot (Duckov's ATM without the chore): carried Tokens are at risk, banked ones only lose the lost raid's X%. The walk home is the risk
+  - Weight tiers drawn on the bar, slower but never frozen; a heavy load makes the walk home slower, so greed competes with dusk. Generous slots, so weight is the limit that matters
+  - Death (???): Duckov's one-grave rule (everything carried drops, latest grave only, no timer; equipped melee and the dog's slots kept) instead of the 50–70% roll in CORE.md
+  - Ammo tiers later: crafted ammo cheaper but jams more
+- [TBD] the bank, weight tiers and slowdown, the death rule, item use, armour items, the dog's slots
+
 ### Farm and economy
 
 - Give animals, crops, fishing and exploration distinct economic roles: recurring production, planned harvests, active income and rare discoveries.

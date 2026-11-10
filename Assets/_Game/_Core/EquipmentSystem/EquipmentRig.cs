@@ -39,7 +39,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             _restPosition = _hand.localPosition;
             _restRotation = _hand.localRotation;
 
-            Hotbar hotbar = equipment.Hotbar;
+            ItemContainer hotbar = equipment.Hotbar;
             for (int i = 0; i < hotbar.Count; i++)
                 Spawn(hotbar[i]);
 

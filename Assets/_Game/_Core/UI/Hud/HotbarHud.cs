@@ -30,14 +30,14 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
 
             _ammo = player.Ammo;
-            Hotbar hotbar = _equipment.Hotbar;
+            ItemContainer hotbar = _equipment.Hotbar;
             _slots = new HotbarSlotView[hotbar.Count];
             _items = new ItemInstance[hotbar.Count];
             for (int i = 0; i < _slots.Length; i++)
             {
                 HotbarSlotView slot = Instantiate(_slotPrefab, _slotParent, false);
                 slot.name = $"Slot{i + 1}";
-                slot.SetKey(_input.GetSlotKeyLabel(i));
+                slot.SetKey(_input.GetKeyLabel(_equipment.KeyOf(i)));
                 slot.SetSelected(i == _equipment.SelectedIndex);
                 _slots[i] = slot;
                 ShowItem(i, hotbar[i]);

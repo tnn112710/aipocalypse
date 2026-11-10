@@ -23,8 +23,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     // The player's view: builds its parts, turns input into an intent and ticks them in order (look → move → vitals → head
     // motion → interaction → held item → pose sequence → light). Life and death: PlayerLife; move sounds: PlayerFeedback.
     [RequireComponent(typeof(CharacterController))]
-    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser, IRepairer
+    public sealed class Player : MonoBehaviour, IPlayer, IEquipmentOwner, IGunUser, IRepairer, ILooter
     {
+        // Metres below the eye that auto-collected items fly to (about the chest).
+        const float MagnetPullDrop = 0.5f;
+
         [SerializeField] PlayerTuning _tuning;
         [SerializeField] CharacterController _controller;
         [SerializeField, Tooltip("At eye height; head bob and landing dip move it")] Transform _cameraRoot;
@@ -60,6 +63,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerFeedback _feedback;
         HeldItemDriver _held;
         PlayerRepair _repair;
+        PlayerLooting _looting;
+        ItemMagnet _magnet;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -69,6 +74,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public AmmoReserve Ammo { get; private set; }
         public PlayerInteractor Interactor => _interactor;
         public PlayerRepair Repair => _repair;
+        public PlayerLooting Looting => _looting;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => _life != null && _life.IsDead;
         // A pose sequence (dying, sitting…) has the camera and the body until it's stopped.
@@ -109,6 +115,19 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         void IWeaponUser.Exert(float stamina) => Stamina.Spend(stamina * _stats.GetScale(StatId.AttackStaminaCostScale));
 
+        void ILooter.BeginLoot(LootContainer container)
+        {
+            if (!IsDead && !InSequence)
+                _looting?.Begin(container);
+        }
+
+        // Throws an item that's already out of the inventory to the ground in front (the inventory screen's drop).
+        public void ThrowAway(ItemInstance item)
+        {
+            if (item != null && !item.IsEmpty)
+                _interactor?.Throw(item, transform.eulerAngles.y + _tuning.Interaction.DropYaw);
+        }
+
         [Inject]
         void Construct(InputService input, TimeService time, ControlSettings controls, IStatProvider stats, DamageService damage, AudioService audio,
             IPublisher<PlayerDied> died, IPublisher<PlayerDeathSequenceEnded> deathEnded, IPublisher<PlayerRevived> revived, PlayerRegistry registry,
@@ -144,11 +163,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _sequence.Ended += OnSequenceEnded;
             _motor.Landed += _life.OnLanded;
             _stats.Changed += OnStatsChanged;
-            Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve() : new AmmoReserve();
+            _looting = new PlayerLooting(_tuning.Interaction);
 
             if (_equipmentConfig != null && _equipmentRig != null)
             {
                 Equipment = _equipmentConfig.CreateEquipment();
+                // Before the rig binds: its guns reload from it.
+                Ammo = _ammoConfig != null ? _ammoConfig.CreateReserve(Equipment.Inventory) : new AmmoReserve(Equipment.Inventory);
+                _magnet = new ItemMagnet(transform, Equipment, _tuning.Interaction);
+                _interactor.Thrown += _magnet.Ignore;
                 Equipment.EquipFirstImmediately();
                 _equipmentRig.Bind(Equipment, this, resolver);
                 _held = new HeldItemDriver(transform, Equipment, _equipmentRig, _equipmentConfig, _tuning, _motor, _look, _headBob, _zoom, _heldSway,
@@ -157,6 +180,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             else
             {
                 Debug.LogError($"{name}: Equipment Config or Equipment Rig not assigned; equipment is off.", this);
+                Ammo = new AmmoReserve(new Inventory(new ItemContainer(0), new ItemContainer(0), 0, 0f));
             }
 
             _repair = new PlayerRepair(gameObject, _cameraPitch, Equipment, _equipmentRig, _interactor, _tuning.Interaction);
@@ -191,6 +215,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _look.Tick(intent.LookDegrees);
             _motor.Tick(intent, deltaTime);
             _cameraRig.SetCrouchDrop(_motor.CrouchEyeDrop);
+            if (!IsDead)
+                _magnet?.Tick(deltaTime, _cameraRoot.position + Vector3.down * MagnetPullDrop);
             // A lethal landing kills inside the motor tick: the rest of this frame already belongs to the dead.
             if (canAct && (IsDead || InSequence))
             {
@@ -326,7 +352,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Sprint = _input.SprintHeld,
             Jump = _input.JumpPressed,
             Crouch = _input.CrouchPressed,
-            SelectSlot = _input.SlotPressed is var slot and >= 0 ? slot : null,
+            SelectSlot = SlotFor(_input.HotbarKeyPressed),
             CycleSlot = _input.CycleDirection,
             Interact = _input.InteractPressed,
             InteractHold = _input.InteractHoldPerformed,
@@ -337,6 +363,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Aim = _input.AimHeld,
             Reload = _input.ReloadPressed,
         };
+
+        // The hotbar slot a pressed key selects (EquipmentConfig), or null.
+        int? SlotFor(HotbarKey? key)
+        {
+            if (key == null || Equipment == null)
+                return null;
+            int slot = Equipment.SlotOf(key.Value);
+            return slot >= 0 ? slot : null;
+        }
 
         // While the hammer knocks (and on the frame a key stopped it) its keys do nothing else. Switching and dropping still
         // work: they stop the repair.

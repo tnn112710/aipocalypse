@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -29,6 +30,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [InlineEditor, Tooltip("Glances, fidgets and leaning of an animated model (EnemyAnimator); empty for unanimated kinds")]
         public EnemyAnimationSettings Animation;
         [InlineEditor, Tooltip("Voice, swing, impact and footsteps (EnemyVoice); empty = silent")] public EnemySoundSet Sounds;
+        [InlineEditor, Tooltip("What its body holds when it dies (searched through its LootContainer); empty = nothing")]
+        public LootTable Loot;
 
         public IReadOnlyDictionary<TargetKind, float> Targets => _targets;
 

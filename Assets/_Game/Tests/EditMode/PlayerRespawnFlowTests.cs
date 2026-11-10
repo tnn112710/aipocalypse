@@ -28,6 +28,7 @@ namespace MB13.Aipocalypse.Tests
             public HeldItem HeldItem => null;
             public PlayerInteractor Interactor => null;
             public PlayerRepair Repair => null;
+            public PlayerLooting Looting => null;
             public bool IsSprinting => false;
             public Vector2 CrosshairPosition => default;
             public float CrosshairSpread => 0f;
@@ -41,6 +42,7 @@ namespace MB13.Aipocalypse.Tests
             public DamageResult TakeDamage(in DamageInfo info) => default;
             public void MoveToSpawn() => MovedToSpawn++;
             public void Revive() => IsDead = false;
+            public void ThrowAway(ItemInstance item) { }
         }
 
         IObjectResolver _resolver;

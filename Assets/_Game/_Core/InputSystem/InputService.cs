@@ -4,6 +4,7 @@ using System.Text;
 using MB13.Aipocalypse.Core.Debugging;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Input
@@ -45,7 +46,8 @@ namespace MB13.Aipocalypse.Input
 
         readonly GameInputActions _actions = new();
         readonly ControlSettings _controls;
-        readonly InputAction[] _slots;
+        // Indexed by HotbarKey.
+        readonly InputAction[] _hotbarKeys;
         readonly HashSet<object> _uiOwners = new();
         readonly HashSet<object> _textOwners = new();
         readonly StringBuilder _typed = new();
@@ -57,7 +59,7 @@ namespace MB13.Aipocalypse.Input
         {
             _controls = controls;
             GameInputActions.PlayerActions player = _actions.Player;
-            _slots = new[] { player.Slot1, player.Slot2, player.Slot3, player.Slot4, player.Slot5, player.Slot6, player.Slot7, player.Slot8, player.Slot9 };
+            _hotbarKeys = new[] { player.Slot1, player.Slot2, player.Slot3, player.Slot4, player.Slot5, player.Slot6, player.Slot7, player.Slot8, player.Slot9, player.Melee };
             Array.Fill(_consumedFrame, -1);
         }
 
@@ -87,6 +89,12 @@ namespace MB13.Aipocalypse.Input
 
         // UI map (while a UI request is held): a click, or Submit (Enter, gamepad south), to confirm a full-screen menu.
         public bool UiConfirmPressed => _actions.UI.Click.WasPressedThisFrame() || _actions.UI.Submit.WasPressedThisFrame();
+        // UI map: Cancel (Esc, gamepad east) closes a menu.
+        public bool UiCancelPressed => _actions.UI.Cancel.WasPressedThisFrame();
+        // The inventory key (Tab), in gameplay to open the inventory and in the UI to close it.
+        public bool InventoryPressed => _actions.Player.Inventory.WasPressedThisFrame() || _actions.UI.Inventory.WasPressedThisFrame();
+        // Held modifiers while a menu is open: Shift moves half a stack.
+        public bool UiShiftHeld => Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 
         // Debug map: enabled in the editor and development builds only, independent of the gameplay / UI switch, but off
         // while text input is held (typing "k" must not kill the player).
@@ -105,15 +113,15 @@ namespace MB13.Aipocalypse.Input
         public bool WasPressed(ConsoleButton button) => Action(button).WasPressedThisFrame();
         public bool IsHeld(ConsoleButton button) => Action(button).IsPressed();
 
-        // Hotbar key pressed this frame (0 = Slot1), or -1.
-        public int SlotPressed
+        // Hotbar key pressed this frame (1-9, melee), or null.
+        public HotbarKey? HotbarKeyPressed
         {
             get
             {
-                for (int i = 0; i < _slots.Length; i++)
-                    if (_slots[i].WasPressedThisFrame())
-                        return i;
-                return -1;
+                for (int i = 0; i < _hotbarKeys.Length; i++)
+                    if (_hotbarKeys[i].WasPressedThisFrame())
+                        return (HotbarKey)i;
+                return null;
             }
         }
 
@@ -122,11 +130,28 @@ namespace MB13.Aipocalypse.Input
             _actions.Player.Next.WasPressedThisFrame() ? 1 :
             _actions.Player.Previous.WasPressedThisFrame() ? -1 : 0;
 
-        // Key name for a hotbar slot ("1", "2"…), follows rebinding. Allocates: call at setup, not per frame.
-        public string GetSlotKeyLabel(int index) =>
-            index >= 0 && index < _slots.Length
-                ? _slots[index].GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup))
+        // Key name for a hotbar key ("1", "V"…), follows rebinding. Allocates: call at setup, not per frame.
+        public string GetKeyLabel(HotbarKey key) =>
+            (int)key >= 0 && (int)key < _hotbarKeys.Length
+                ? _hotbarKeys[(int)key].GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup))
                 : string.Empty;
+
+        // Points a uGUI input module at this service's UI map, so menus click and navigate only while a UI request holds
+        // the map on. Call it while the module's GameObject is inactive (the module enables its actions when it wakes).
+        public void ConfigureUiModule(InputSystemUIInputModule module)
+        {
+            GameInputActions.UIActions ui = _actions.UI;
+            module.actionsAsset = _actions.asset;
+            module.point = InputActionReference.Create(ui.Point);
+            module.leftClick = InputActionReference.Create(ui.Click);
+            module.rightClick = InputActionReference.Create(ui.RightClick);
+            module.middleClick = InputActionReference.Create(ui.MiddleClick);
+            module.scrollWheel = InputActionReference.Create(ui.ScrollWheel);
+            module.move = InputActionReference.Create(ui.Navigate);
+            module.submit = InputActionReference.Create(ui.Submit);
+            module.cancel = InputActionReference.Create(ui.Cancel);
+            ApplyMode();
+        }
 
         // Key name for Interact ("E"), follows rebinding. Allocates: call at setup, not per frame.
         public string GetInteractKeyLabel() => GetKeyLabel(GameButton.Interact);

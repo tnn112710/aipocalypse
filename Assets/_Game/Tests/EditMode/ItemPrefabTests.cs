@@ -95,10 +95,10 @@ namespace MB13.Aipocalypse.Tests
             rigSo.FindProperty("_hand").objectReferenceValue = hand;
             rigSo.ApplyModifiedPropertiesWithoutUndo();
 
-            var hotbar = new Hotbar(new[] { ItemCategory.Gun });
+            var inventory = new Inventory(new ItemContainer(new[] { ItemCategory.Gun }), new ItemContainer(0), 0, 0f);
             ItemInstance gun = _definition.CreateInstance();
-            hotbar.TryPlace(0, gun);
-            var equipment = new Equipment(hotbar);
+            inventory.Hotbar.TryPlace(0, gun);
+            var equipment = new Equipment(inventory);
             equipment.EquipFirstImmediately();
             rig.Bind(equipment, null, null);
 

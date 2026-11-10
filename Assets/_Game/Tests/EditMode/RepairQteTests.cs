@@ -193,7 +193,7 @@ namespace MB13.Aipocalypse.Tests
         {
             var item = new GunInstance(_definition);
             item.SetJammed(true);
-            return new Gun(item, new AmmoReserve(), () => roll);
+            return new Gun(item, TestItems.Reserve(), () => roll);
         }
 
         [TestCase(0f, true, 3.8f)]

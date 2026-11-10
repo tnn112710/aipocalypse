@@ -1,5 +1,6 @@
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Input;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -57,25 +58,27 @@ namespace MB13.Aipocalypse.Tests
             return equipment;
         }
 
-        static Hotbar GunsAndMelee() => new(new[] { ItemCategory.Gun, ItemCategory.Gun, ItemCategory.Melee });
-        static Hotbar AnyWeapon() => new(new[] { Weapon, Weapon, Weapon });
+        static ItemCategory[] GunsAndMelee() => new[] { ItemCategory.Gun, ItemCategory.Gun, ItemCategory.Melee };
+        static ItemCategory[] AnyWeapon() => new[] { Weapon, Weapon, Weapon };
 
-        static Equipment Empty(Hotbar hotbar)
+        // A hotbar of `hotbar` slots, `backpackSlots` backpack slots and a belt.
+        static Equipment Empty(ItemCategory[] hotbar, int backpackSlots = 0, HotbarKey[] keys = null)
         {
-            var equipment = new Equipment(hotbar);
+            var inventory = new Inventory(new ItemContainer(hotbar), new ItemContainer(new[] { ItemCategory.Lantern }), backpackSlots, 25f);
+            var equipment = new Equipment(inventory, keys);
             equipment.EquipFirstImmediately();
             return equipment;
         }
 
         static void Settle(Equipment equipment) => equipment.Tick(10f, 1f);
 
-        Equipment Loaded()
+        Equipment Loaded(int backpackSlots = 0)
         {
-            Hotbar hotbar = GunsAndMelee();
-            hotbar.TryPlace(0, _rifle);
-            hotbar.TryPlace(1, _pistol);
-            hotbar.TryPlace(2, _axe);
-            var equipment = new Equipment(hotbar);
+            var inventory = new Inventory(new ItemContainer(GunsAndMelee()), new ItemContainer(new[] { ItemCategory.Lantern }), backpackSlots, 25f);
+            inventory.Hotbar.TryPlace(0, _rifle);
+            inventory.Hotbar.TryPlace(1, _pistol);
+            inventory.Hotbar.TryPlace(2, _axe);
+            var equipment = new Equipment(inventory);
             equipment.EquipFirstImmediately();
             return equipment;
         }
@@ -83,7 +86,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Hotbar_RejectsWrongCategory()
         {
-            Hotbar hotbar = GunsAndMelee();
+            var hotbar = new ItemContainer(GunsAndMelee());
 
             Assert.IsFalse(hotbar.TryPlace(0, _axe));
             Assert.IsFalse(hotbar.TryPlace(2, _rifle));
@@ -91,15 +94,9 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
-        public void Hotbar_RejectsMoreThanNineSlots()
-        {
-            Assert.Throws<System.ArgumentException>(() => new Hotbar(new ItemCategory[Hotbar.MaxSlots + 1]));
-        }
-
-        [Test]
         public void FindNext_SkipsEmptyAndWraps()
         {
-            Hotbar hotbar = GunsAndMelee();
+            var hotbar = new ItemContainer(GunsAndMelee());
             hotbar.TryPlace(0, _rifle);
             hotbar.TryPlace(2, _axe);
 
@@ -107,6 +104,18 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(0, hotbar.FindNext(2, 1, _ => true));
             Assert.AreEqual(2, hotbar.FindNext(0, -1, _ => true));
             Assert.AreEqual(0, hotbar.FindNext(-1, 1, _ => true));
+        }
+
+        [Test]
+        public void Keys_PickTheirSlot_AndDefaultToNumbersInOrder()
+        {
+            Equipment keyed = Empty(GunsAndMelee(), keys: new[] { HotbarKey.Key1, HotbarKey.Key2, HotbarKey.Melee });
+            Assert.AreEqual(2, keyed.SlotOf(HotbarKey.Melee));
+            Assert.AreEqual(HotbarKey.Melee, keyed.KeyOf(2));
+            Assert.AreEqual(-1, keyed.SlotOf(HotbarKey.Key3));
+
+            Equipment numbered = Empty(GunsAndMelee());
+            Assert.AreEqual(2, numbered.SlotOf(HotbarKey.Key3));
         }
 
         [Test]
@@ -197,9 +206,8 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Select_IgnoresEmptyAndCurrentSlot()
         {
-            Hotbar hotbar = GunsAndMelee();
-            hotbar.TryPlace(0, _rifle);
-            var equipment = new Equipment(hotbar);
+            Equipment equipment = Empty(GunsAndMelee());
+            equipment.Hotbar.TryPlace(0, _rifle);
             equipment.EquipFirstImmediately();
 
             Assert.IsFalse(equipment.Select(1));
@@ -231,12 +239,36 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void MovingTheHeldGunToAnotherSlot_KeepsItInHand_AndTheSelectionFollows()
+        {
+            Equipment equipment = Loaded();
+            Assert.IsTrue(ItemContainer.Move(equipment.Hotbar, 0, equipment.Hotbar, 1));
+
+            Assert.AreSame(_rifle, equipment.Hotbar[1]);
+            Assert.AreSame(_pistol, equipment.Hotbar[0]);
+            Assert.AreEqual(1, equipment.SelectedIndex);
+            Assert.AreSame(_rifle, equipment.Switcher.Held);
+            Assert.IsTrue(equipment.Switcher.IsReady, "no switch animation");
+        }
+
+        [Test]
+        public void MovingTheHeldGunToTheBackpack_EmptiesTheHands()
+        {
+            Equipment equipment = Loaded(backpackSlots: 2);
+            Assert.IsTrue(ItemContainer.Move(equipment.Hotbar, 0, equipment.Inventory.Backpack, 0));
+
+            Assert.AreSame(_rifle, equipment.Inventory.Backpack[0]);
+            Assert.AreEqual(-1, equipment.SelectedIndex);
+            Assert.IsNull(equipment.Switcher.Held);
+        }
+
+        [Test]
         public void PickUp_FillsFirstFreeSlot_WhateverTheKind()
         {
             Equipment equipment = Empty(AnyWeapon());
 
-            Assert.IsTrue(equipment.TryPickUp(_axe, out ItemInstance dropped));
-            Assert.IsNull(dropped);
+            Assert.IsTrue(equipment.TryPickUp(_axe, out int added));
+            Assert.AreEqual(1, added);
             Assert.IsTrue(equipment.TryPickUp(_rifle, out _));
             Assert.IsTrue(equipment.TryPickUp(_pistol, out _));
 
@@ -262,37 +294,65 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
-        public void PickUp_WhenFull_SwapsWithSelected_AndRaisesTheNewOne()
+        public void PickUp_WhenTheGunSlotsAreFull_GoesToTheBackpack_AndTheHandsStay()
         {
-            Equipment equipment = Empty(AnyWeapon());
-            equipment.TryPickUp(_rifle, out _);
-            equipment.TryPickUp(_pistol, out _);
+            Equipment equipment = Loaded(backpackSlots: 4);
+            ItemDefinition picked = null;
+            equipment.PickedUp += (definition, _) => picked = definition;
+
+            Assert.IsTrue(equipment.TryPickUp(_rifle2, out int added));
+
+            Assert.AreEqual(1, added);
+            Assert.AreSame(_rifle2, equipment.Inventory.Backpack[0]);
+            Assert.AreSame(_rifle.Definition, picked);
+            Assert.AreEqual(0, equipment.SelectedIndex);
+            Assert.AreSame(_rifle, equipment.Switcher.Held);
+        }
+
+        [Test]
+        public void PickUp_WithNoRoomAnywhere_IsBlocked_AndWarns()
+        {
+            Equipment equipment = Loaded();
+            int blocked = 0;
+            equipment.PickUpBlocked += _ => blocked++;
+
+            Assert.IsFalse(equipment.TryPickUp(_rifle2, out int added));
+
+            Assert.AreEqual(0, added);
+            Assert.AreEqual(1, blocked);
+            Assert.IsFalse(equipment.Inventory.Contains(_rifle2));
+        }
+
+        [Test]
+        public void PickUp_PartOfAStack_TakesWhatFits_LeavesTheRest_AndWarns()
+        {
+            Equipment equipment = HoldingRifle();
+            ItemDefinition bandage = Bandage(maxStack: 5).Definition;
+            ItemInstance carried = bandage.CreateInstance(4);
+            equipment.TryPickUp(carried, out _);
+            // The last free slot gets something else, so only the carried stack has room.
             equipment.TryPickUp(_axe, out _);
-            equipment.Select(1);
-            Settle(equipment);
+            int blocked = 0;
+            equipment.PickUpBlocked += _ => blocked++;
 
-            Assert.AreEqual(PickUpAction.Swap, equipment.GetPickUpAction(_rifle2));
-            Assert.IsTrue(equipment.TryPickUp(_rifle2, out ItemInstance dropped));
+            ItemInstance pile = bandage.CreateInstance(3);
+            Assert.IsFalse(equipment.TryPickUp(pile, out int added));
 
-            Assert.AreSame(_pistol, dropped);
-            Assert.AreSame(_rifle2, equipment.Hotbar[1]);
-            Assert.AreEqual(1, equipment.SelectedIndex);
-            Assert.AreSame(_rifle2, equipment.Switcher.Held);
-            Assert.AreEqual(SwitchPhase.Equipping, equipment.Switcher.Phase);
-            Assert.AreEqual(0f, equipment.Switcher.Raise);
+            Assert.AreEqual(1, added, "only one more fits on the carried stack of 4/5");
+            Assert.AreEqual(2, pile.Count);
+            Assert.AreEqual(5, carried.Count);
+            Assert.AreEqual(1, blocked);
         }
 
         [Test]
         public void PickUp_RespectsSlotCategories()
         {
             Equipment equipment = Loaded();
-            equipment.Select(2);
+            equipment.Hotbar.Remove(2);
 
-            Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_rifle2));
-            Assert.IsFalse(equipment.TryPickUp(_rifle2, out _));
-
-            equipment.Select(0);
-            Assert.AreEqual(PickUpAction.Swap, equipment.GetPickUpAction(_rifle2));
+            Assert.IsFalse(equipment.TryPickUp(_rifle2, out _), "the free slot is the melee slot");
+            Assert.IsTrue(equipment.TryPickUp(_axe, out _));
+            Assert.AreSame(_axe, equipment.Hotbar[2]);
         }
 
         [Test]
@@ -311,19 +371,19 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(SwitchPhase.Empty, equipment.Switcher.Phase);
             Assert.IsNull(equipment.DropHeld());
 
-            Assert.AreEqual(PickUpAction.Store, equipment.GetPickUpAction(_rifle2));
             equipment.TryPickUp(_rifle2, out _);
             Assert.AreSame(_rifle2, equipment.Hotbar[0]);
             Assert.AreEqual(0, equipment.SelectedIndex);
         }
 
         [Test]
-        public void PickUp_IgnoresItemAlreadyInHotbar()
+        public void PickUp_IgnoresItemAlreadyCarried()
         {
             Equipment equipment = Empty(AnyWeapon());
             equipment.TryPickUp(_rifle, out _);
 
-            Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_rifle));
+            Assert.IsFalse(equipment.CanPickUp(_rifle));
+            Assert.IsFalse(equipment.TryPickUp(_rifle, out _));
         }
 
         [Test]
@@ -331,28 +391,25 @@ namespace MB13.Aipocalypse.Tests
         {
             Equipment equipment = Loaded();
 
-            Assert.AreEqual(PickUpAction.Store, equipment.GetPickUpAction(_lantern));
-            Assert.IsTrue(equipment.TryPickUp(_lantern, out ItemInstance dropped));
+            Assert.IsTrue(equipment.TryPickUp(_lantern, out _));
 
-            Assert.IsNull(dropped);
             Assert.AreSame(_lantern, equipment.Belt);
             Assert.AreEqual(-1, equipment.Hotbar.IndexOf(_lantern));
             Assert.AreEqual(0, equipment.SelectedIndex);
             Assert.AreSame(_rifle, equipment.Switcher.Held);
-            Assert.AreEqual(PickUpAction.None, equipment.GetPickUpAction(_lantern));
+            Assert.IsFalse(equipment.CanPickUp(_lantern));
         }
 
         [Test]
-        public void SecondLantern_SwapsWithTheWornOne()
+        public void SecondLantern_GoesToTheBackpack_TheWornOneStays()
         {
-            Equipment equipment = Empty(AnyWeapon());
+            Equipment equipment = Empty(AnyWeapon(), backpackSlots: 2);
             equipment.TryPickUp(_lantern, out _);
 
-            Assert.AreEqual(PickUpAction.Swap, equipment.GetPickUpAction(_lantern2));
-            Assert.IsTrue(equipment.TryPickUp(_lantern2, out ItemInstance dropped));
+            Assert.IsTrue(equipment.TryPickUp(_lantern2, out _));
 
-            Assert.AreSame(_lantern, dropped);
-            Assert.AreSame(_lantern2, equipment.Belt);
+            Assert.AreSame(_lantern, equipment.Belt);
+            Assert.AreSame(_lantern2, equipment.Inventory.Backpack[0]);
         }
 
         [Test]
@@ -410,9 +467,9 @@ namespace MB13.Aipocalypse.Tests
             ItemInstance second = bandage.Definition.CreateInstance();
             equipment.TryPickUp(bandage, out _);
 
-            Assert.AreEqual(PickUpAction.Merge, equipment.GetPickUpAction(second));
-            Assert.IsTrue(equipment.TryPickUp(second, out _));
+            Assert.IsTrue(equipment.TryPickUp(second, out int added));
 
+            Assert.AreEqual(1, added);
             Assert.AreEqual(2, bandage.Count);
             Assert.IsTrue(second.IsEmpty);
             Assert.IsNull(equipment.Hotbar[2]);

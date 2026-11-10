@@ -13,17 +13,63 @@ MonoBehaviour:
   m_Name: EquipmentConfig
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.EquipmentConfig
   _switchSpeed: 1
-  _beltAccepts: 4
   _slots:
-  - Name: Slot 1
-    Accepts: 11
+  - Name: Firearm
+    Accepts: 1
+    Key: 0
     StartingItem: {fileID: 0}
-  - Name: Slot 2
-    Accepts: 11
+  - Name: Firearm
+    Accepts: 1
+    Key: 1
     StartingItem: {fileID: 0}
-  - Name: Slot 3
-    Accepts: 11
+  - Name: Melee
+    Accepts: 2
+    Key: 9
     StartingItem: {fileID: 0}
-  - Name: Slot 4
-    Accepts: 11
+  - Name: Quick 3
+    Accepts: 40
+    Key: 2
     StartingItem: {fileID: 0}
+  - Name: Quick 4
+    Accepts: 40
+    Key: 3
+    StartingItem: {fileID: 0}
+  - Name: Quick 5
+    Accepts: 40
+    Key: 4
+    StartingItem: {fileID: 0}
+  - Name: Quick 6
+    Accepts: 40
+    Key: 5
+    StartingItem: {fileID: 0}
+  - Name: Quick 7
+    Accepts: 40
+    Key: 6
+    StartingItem: {fileID: 0}
+  - Name: Quick 8
+    Accepts: 40
+    Key: 7
+    StartingItem: {fileID: 0}
+  - Name: Quick 9
+    Accepts: 40
+    Key: 8
+    StartingItem: {fileID: 0}
+  _gear:
+  - Name: Head
+    Accepts: 256
+    StartingItem: {fileID: 0}
+  - Name: Body
+    Accepts: 512
+    StartingItem: {fileID: 0}
+  - Name: Face
+    Accepts: 1024
+    StartingItem: {fileID: 0}
+  - Name: Backpack
+    Accepts: 128
+    StartingItem: {fileID: 0}
+  - Name: Light
+    Accepts: 4
+    StartingItem: {fileID: 0}
+  _backpackSlots: 10
+  _maxWeight: 25
+  _startingItems: []

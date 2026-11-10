@@ -26,7 +26,7 @@ Naming notes: "AIpocalypse" alone is taken by another Steam game. Players will s
 - Win, route 2: collect every region boss's key and defeat the ultimate AI boss in the final zone, a Megabonk-style run, without saving up the debt. Then leave for reality in 2018 (Ending 2) or stay at the farm (Ending 3); also open after Ending 1 and the return. The debt amount, time-travel mechanism and replay/post-victory details remain open.
 - Lose: never final. Raids hit the farm whether or not the player is home. Losing one (knocked out, or not home when it ends) costs a share of all Tokens (repaid ones are safe) and maybe animals; deposited items are safe. A lost raid leaves broken fences and stolen animals (3 days to get them back).
 
-**Controls (PC):** WASD move · mouse look · LMB fire / swing · RMB aim · R reload · E interact (hold: repair) · Space jump · Shift sprint · Ctrl crouch · 1–9 / wheel switch item · G drop.
+**Controls (PC):** WASD move · mouse look · LMB fire / swing · RMB aim · R reload · E interact (hold: repair) · Space jump · Shift sprint · Ctrl crouch · 1–2 guns · V melee · 3–9 quick slots / wheel switch item · Tab inventory · G throw.
 
 **Pillars:** build something worth protecting · choose how to spend the day · prepare before dark · every bullet counts · from office worker to survivor.
 

@@ -113,11 +113,12 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _aim.Tick(_sway.AimRotation, held != null ? held.Spread : 0f);
         }
 
+        // G throws the item in hand (a whole stack) forward.
         void DropHeld()
         {
             ItemInstance item = _equipment.DropHeld();
             if (item != null)
-                WorldItem.Spawn(item, _interactor.FindDropPoint(), Quaternion.Euler(0f, _body.eulerAngles.y + _tuning.Interaction.DropYaw, 0f), null);
+                _interactor.Throw(item, _body.eulerAngles.y + _tuning.Interaction.DropYaw);
         }
     }
 }

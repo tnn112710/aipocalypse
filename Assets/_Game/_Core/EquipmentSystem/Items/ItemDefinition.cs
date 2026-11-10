@@ -8,9 +8,9 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     {
         // Nothing: it's carried, not used from the hotbar.
         None,
-        // Holds it in the hands (guns, melee, tools).
+        // Holds it in the hands (guns, melee, tools, consumables).
         Hold,
-        // Uses it at once and keeps whatever is in the hands (Equipment.QuickUseRequested: consumables).
+        // Uses it at once and keeps whatever is in the hands (Equipment.QuickUseRequested).
         QuickUse,
     }
 
@@ -27,15 +27,35 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         [SerializeField, Min(1), Tooltip("How many fit in one slot. Above 1, picking up another adds to the stack")]
         int _maxStack = 1;
 
+        [SerializeField, Tooltip("No stack limit: any amount fits in one slot (Tokens)")]
+        bool _unlimitedStack;
+
+        [SerializeField, Min(0f), Tooltip("Kilograms per unit (one round, one token, one gun)")]
+        float _weight;
+
+        [SerializeField, Tooltip("Flies to the player within their pickup radius instead of waiting for the Interact key (Tokens)")]
+        bool _autoCollect;
+
         public string DisplayName => _displayName;
         public Sprite Icon => _icon;
         public WorldItem Prefab => _prefab;
-        public int MaxStack => _maxStack;
+        public int MaxStack => _unlimitedStack ? int.MaxValue : _maxStack;
+        public bool Stacks => MaxStack > 1;
+        public float Weight => _weight;
+        public bool AutoCollect => _autoCollect;
 
         public virtual SelectBehaviour Selecting => SelectBehaviour.None;
 
         public abstract ItemCategory Category { get; }
 
         public virtual ItemInstance CreateInstance() => new(this);
+
+        // A stack of `count` (clamped to 1..MaxStack).
+        public ItemInstance CreateInstance(int count)
+        {
+            ItemInstance item = CreateInstance();
+            item.SetCount(Mathf.Clamp(count, 1, MaxStack));
+            return item;
+        }
     }
 }

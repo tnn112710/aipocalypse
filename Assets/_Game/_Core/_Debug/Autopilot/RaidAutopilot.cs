@@ -188,7 +188,7 @@ namespace MB13.Aipocalypse.Core.Debugging
             Equipment equipment = player.Equipment;
             if (CanShoot(equipment.Selected as GunInstance, player.Ammo))
                 return -1;
-            Hotbar hotbar = equipment.Hotbar;
+            ItemContainer hotbar = equipment.Hotbar;
             for (int i = 0; i < hotbar.Count; i++)
                 if (i != equipment.SelectedIndex && CanShoot(hotbar[i] as GunInstance, player.Ammo))
                     return i;
@@ -200,7 +200,7 @@ namespace MB13.Aipocalypse.Core.Debugging
 
         static bool HasGun(IPlayer player)
         {
-            Hotbar hotbar = player.Equipment.Hotbar;
+            ItemContainer hotbar = player.Equipment.Hotbar;
             for (int i = 0; i < hotbar.Count; i++)
                 if (hotbar[i] is GunInstance)
                     return true;

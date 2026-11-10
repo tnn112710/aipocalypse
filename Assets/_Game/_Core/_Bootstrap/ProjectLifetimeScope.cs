@@ -2,6 +2,7 @@ using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Debugging;
 using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.GraphicsSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
@@ -51,6 +52,7 @@ namespace MB13.Aipocalypse.Core.Bootstrap
             new QuickTimeInstaller().Install(builder);
             new PlayerInstaller().Install(builder);
             new WeaponInstaller().Install(builder);
+            new EquipmentInstaller().Install(builder);
         }
     }
 }

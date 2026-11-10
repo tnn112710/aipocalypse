@@ -135,6 +135,30 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             return NoTarget();
         }
 
+        [Command("Put an item in the inventory where a pickup would go (cheat.give tokens 500, cheat.give medic). Matches the start of " +
+            "any loaded item's asset or display name")]
+        CommandResult Give(string item, int count = 1)
+        {
+            if (Current is not { } player || player.Equipment == null)
+                return NoPlayer;
+            ItemDefinition found = null;
+            foreach (ItemDefinition definition in Resources.FindObjectsOfTypeAll<ItemDefinition>())
+            {
+                if (definition.name.StartsWith(item, StringComparison.OrdinalIgnoreCase)
+                    || (definition.DisplayName ?? string.Empty).StartsWith(item, StringComparison.OrdinalIgnoreCase))
+                {
+                    found = definition;
+                    break;
+                }
+            }
+            if (found == null)
+                return CommandResult.Fail($"No loaded item called {item}");
+            int added = player.Equipment.Inventory.AddNew(found, Math.Max(1, count));
+            return added > 0
+                ? CommandResult.Ok($"+{added} {found.DisplayName}{(added < count ? " (no room for the rest)" : "")}")
+                : CommandResult.Fail($"No room for {found.DisplayName}");
+        }
+
         [Command("Pick up the first item lying in the scene whose name starts with this (cheat.take ak47), wherever it is")]
         CommandResult Take(string item)
         {

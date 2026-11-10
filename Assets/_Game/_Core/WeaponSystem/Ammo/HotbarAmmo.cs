@@ -6,7 +6,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     public static class HotbarAmmo
     {
         // The ammo types the guns in the hotbar load, each once, into `types` (cleared first).
-        public static void TypesInUse(Hotbar hotbar, List<AmmoType> types)
+        public static void TypesInUse(ItemContainer hotbar, List<AmmoType> types)
         {
             types.Clear();
             if (hotbar == null)

@@ -37,10 +37,12 @@ namespace MB13.Aipocalypse.Core.UI
                 _toolView.Hide();
         }
 
+        // Hidden while a menu (the inventory) holds the UI: the player isn't looking around then.
         void LateUpdate()
         {
-            ShowInteract(Player != null ? Player.Interactor : null);
-            ShowTool(Player != null ? Player.Repair : null);
+            bool menu = _input != null && _input.IsUIRequested;
+            ShowInteract(Player != null && !menu ? Player.Interactor : null);
+            ShowTool(Player != null && !menu ? Player.Repair : null);
         }
 
         void ShowInteract(PlayerInteractor interactor)

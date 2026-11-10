@@ -32,6 +32,11 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Header("Sound")]
         [Min(1), Tooltip("Most enemy footsteps played per second, all enemies together")] public int MaxFootstepsPerSecond = 12;
 
+        [Header("Loot")]
+        [Min(0), Tooltip("Most bodies left lying with loot; past this the oldest sinks with its loot. All of them sink at dawn")]
+        public int MaxLootBodies = 20;
+        [Min(0f), Tooltip("Seconds an emptied body lies before it sinks")] public float LootedBodySinkDelay = 3f;
+
         public IReadOnlyDictionary<TargetKind, int> AttackersPerTarget => _attackersPerTarget;
 
 #if UNITY_EDITOR

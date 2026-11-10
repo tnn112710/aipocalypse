@@ -161,8 +161,17 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             return Mathf.Abs(local.z) >= Mathf.Abs(local.x) ? (local.z < 0f ? HitFront : HitBack) : (local.x > 0f ? HitLeft : HitRight);
         }
 
+        // Stops evaluating the Animator: the body keeps its last pose (a body lying with loot, possibly until dawn). Revive
+        // turns it back on.
+        public void Freeze()
+        {
+            if (_animator != null && _animator.enabled)
+                _animator.enabled = false;
+        }
+
         void Revive()
         {
+            _animator.enabled = true;
             if (_layerWeights == null)
             {
                 _culling = _animator.cullingMode;
