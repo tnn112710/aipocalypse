@@ -1,5 +1,6 @@
 using System;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Effects;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -88,6 +89,11 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public ReloadType Reload = ReloadType.Magazine;
         [Min(0f), Tooltip("Seconds. Magazine: the whole reload. Per round: each round")] public float ReloadTime = 2f;
         [Tooltip("Reload by itself when the magazine runs dry")] public bool AutoReload = true;
+        [Range(0f, 1f), Tooltip("Share of the magazine counted as running low: the last-rounds click and the HUD warning (magazines of 6 or more only)")]
+        public float LowAmmoShare = 0.25f;
+
+        // Rounds left at which the magazine counts as running low; 0 = never (small magazines).
+        public int LowRounds => Size >= 6 ? Mathf.FloorToInt(Size * LowAmmoShare) : 0;
     }
 
     [Serializable]
@@ -163,6 +169,11 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Range(0f, 1f), ShowIf("@AccurateShots > 0"), Tooltip("Kick multiplier for those first shots")]
         public float AccurateShotsMultiplier = 1f;
 
+        [Header("Field of view punch"), Range(0f, 0.1f), Tooltip("Share the world view widens per shot (0.01 = 1%); 0 = off")]
+        public float FovKick = 0.008f;
+        [Range(0f, 0.2f), Tooltip("Most the view widens while spraying")] public float FovKickMax = 0.03f;
+        [Min(0f), Tooltip("How fast the view settles back (higher = sooner)")] public float FovReturnSpeed = 14f;
+
         [Header("Spray pattern (randomised per spray)"), Min(0f), Tooltip("Seconds without a shot after which the next one starts a new spray")]
         public float SprayResetDelay = 0.24f;
         [MinMaxSlider(0f, 0.2f, true), Tooltip("Extra upward kick per shot into a spray, as a share of Vertical: picked per spray between these")]
@@ -201,6 +212,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Range(0f, 1f), Tooltip("Scales every sound of this gun")] public float Volume = 1f;
         [Tooltip("When it starts being raised")] public SoundID Equip;
         public SoundID Fire;
+        [Tooltip("The shot ringing out: played once a spray ends (after every shot on a semi-auto)")] public SoundID FireTail;
+        [Tooltip("Mechanical click on each of the last rounds (Magazine → Low Ammo Share), louder as the magazine empties")]
+        public SoundID LowAmmo;
         public SoundID ReloadStart;
         [Tooltip("Per-round reload: each round")] public SoundID ReloadInsert;
         public SoundID ReloadEnd;
@@ -213,5 +227,17 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Tooltip("Each clip-authored repair punch; empty = the slap")] public SoundID RepairPunch;
         [Tooltip("Pump / bolt pulled back after a shot")] public SoundID CycleStart;
         [Tooltip("Pump / bolt pushed home")] public SoundID CycleEnd;
+    }
+
+    // Spent cases thrown from the gun's ejection port (HeldGun → Ejection Port; no port or no shell = nothing ejects).
+    [Serializable]
+    public sealed class EjectionSettings
+    {
+        [Tooltip("Pooled case with a Rigidbody")] public PooledEffect Shell;
+        [Tooltip("Throw in the port's space (m/s): x right, y up, z forward")] public Vector3 Velocity = new(2.2f, 1.4f, -0.3f);
+        [Range(0f, 1f), Tooltip("Random share added to or taken off the throw")] public float VelocityJitter = 0.25f;
+        [Min(0f), Tooltip("Spin (degrees/s)")] public float Spin = 900f;
+        [Tooltip("Pump / bolt guns: the case leaves when the action is worked, not with the shot")] public bool OnCycle;
+        [Min(0), Tooltip("Copies made when the gun is bound")] public int Prewarm = 6;
     }
 }

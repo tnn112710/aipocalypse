@@ -33,6 +33,7 @@ Look and feel (shared by every menu, mouse and gamepad, sounds): [UI.md → Menu
 | `defense` | `DefenseSaveSection` (DefenseSystem) | Each segment / gate: health, broken, gate open | Upgrade tiers |
 | `loot` | `LootSaveSection` (EquipmentSystem, root) | Scene crates: items by slot, which slots are still hidden | Enemy bodies and their loot |
 | `worldItems` | `WorldItemSaveSection` (EquipmentSystem, root) | Every item lying in the world, scene-placed or dropped (a picked-up item stays picked up) | Mid-flight physics (thrown items load where they were) |
+| `stats` | `StatSaveSection` (_Common/Stats, root) | Every stat modifier with its source id (upgrades, skills, the console's) | Timed buffs (they belong to the player's effects) |
 | `player` | `PlayerSaveSection` (PlayerSystem, root) | Position, facing, look pitch, health, hotbar / backpack / gear (ammo included: it's items), the selected slot; per item: count, a gun's rounds and jam, a kit's uses left | Stamina, timed effects (buffs, healing), a pose sequence |
 | `_header` | `SaveService` | Version, saved at (UTC), play time, scene, build, day and hour for the slot list | |
 

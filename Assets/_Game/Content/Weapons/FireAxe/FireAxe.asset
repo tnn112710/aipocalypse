@@ -33,6 +33,7 @@ MonoBehaviour:
     WindUp: 0.18
     Recovery: 0.42
     Knockback: 4
+    MaxTargets: 3
     HitLayers:
       serializedVersion: 2
       m_Bits: 4294967291
@@ -41,6 +42,8 @@ MonoBehaviour:
     StrikeTime: 0.1
     AlternateSides: 1
     PoseSpeed: 10
+    HitViewKick: 1.6
+    HitKickReturn: 14
   _sounds:
     Volume: 1
     Equip:

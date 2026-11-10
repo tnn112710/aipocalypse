@@ -34,6 +34,12 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Most degrees of flinch, however hard or often it's hit")] float _hurtKickMax = 5f;
         [SerializeField, Min(1f), Tooltip("Higher = the view settles back faster")] float _hurtKickStiffness = 150f;
 
+        [Header("Sprint"), SerializeField, Range(1f, 1.3f), Tooltip("Field of view multiplier while sprinting (1 = none)")]
+        float _sprintFovScale = 1.07f;
+        [SerializeField, Min(0f), Tooltip("How fast the view widens and settles (higher = sooner)")] float _sprintFovSpeed = 6f;
+
+        public float SprintFovScale => _sprintFovScale;
+        public float SprintFovSpeed => _sprintFovSpeed;
         public float EyeHeight => _eyeHeight;
         public float MinPitch => _minPitch;
         public float MaxPitch => _maxPitch;

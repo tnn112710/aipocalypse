@@ -53,6 +53,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `cheat.take <item>` | Pick up the first item lying in the scene whose name starts with it (`cheat.take ak47`), wherever it is |
 | `cheat.killall` | Kill every enemy in play with a real hit (scenes with an `EnemyInstaller` only) |
 | `cheat.autopilot [on/off]` | The player fights by itself: aims at the nearest enemy in sight, fires, reloads, swaps guns (`RaidAutopilot`; scenes with an `EnemyInstaller` only) |
+| `stat.list`, `stat.set <stat> <multiply> [add]`, `stat.remove <stat>`, `stat.clear` | The stat modifier layer (`StatModifiers`): every modifier in play; set, remove or clear the console's own (`stat.set SprintSpeed 1.5`, `stat.set MaxHealth 1 50`). Saved with the game like any modifier |
 | `player.pos` | Where the player stands |
 | `save.list`, `save.write [slot]`, `save.load [slot]`, `save.new [slot]`, `save.delete <slot>`, `save.deleteall`, `save.auto`, `save.path`, `save.menu` | Save slots ([SAVE.md](SAVE.md#console); 0 / no slot = the current game's, 99 = the editor slot): every slot's summary; save now (written in the background); load (the world reloads); new game in a slot (the first save overwrites its old one); delete one / all; autosave now (waits out a raid or death); the save folder (copied to the clipboard); back to the main menu |
 | `time.scale [0–1]` | Game speed (slow motion); 1 drops the console's request |

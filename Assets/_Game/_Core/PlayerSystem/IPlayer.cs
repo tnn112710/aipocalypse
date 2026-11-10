@@ -36,6 +36,17 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // Dev tools: plays the player instead of the keyboard, mouse and gamepad while set (null = InputService).
         IPlayerIntentSource IntentSource { get; set; }
 
+        // A scripted first-person moment is playing (dying, sleeping): the player can't act.
+        bool InSequence { get; }
+        // The playing sequence has reached its last beat.
+        bool SequenceSettled { get; }
+        // Hands the camera to a pose sequence; with an anchor its beats are placed in the anchor's space (a bed), else around
+        // the player. StopSequence gives the camera back.
+        void PlaySequence(PoseSequence sequence, Transform anchor = null);
+        void StopSequence();
+        // Puts the body there, facing `yaw`, looking level (no momentum, no fall damage).
+        void Teleport(Vector3 position, float yaw);
+
         // Teleports the body to the spawn point (a running sequence keeps the camera, now relative to the new spot).
         void MoveToSpawn();
         void Revive();

@@ -16,8 +16,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public int Rounds { get; private set; }
         public bool IsJammed { get; private set; }
         public bool IsFull => Rounds >= Gun.Magazine.Size;
-        // Rounds in the magazine over the owner's reserve of its ammo; flagged when empty or jammed.
-        public override ItemBadge Badge => new(Rounds, Rounds == 0 || IsJammed, Gun.Magazine.AmmoType);
+        public bool IsLow => Rounds <= Gun.Magazine.LowRounds;
+        // Rounds in the magazine over the owner's reserve of its ammo; flagged when running low, empty or jammed.
+        public override ItemBadge Badge => new(Rounds, IsLow || IsJammed, Gun.Magazine.AmmoType);
 
         public override void WriteSave(ItemSave save)
         {

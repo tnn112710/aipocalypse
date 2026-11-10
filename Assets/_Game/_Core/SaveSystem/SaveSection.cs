@@ -37,6 +37,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         public const int Raids = 30;
         public const int World = 40;
         public const int WorldItems = 50;
+        public const int Stats = 90;
         public const int Player = 100;
     }
 

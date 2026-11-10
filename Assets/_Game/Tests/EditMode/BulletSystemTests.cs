@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.SurfaceSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MessagePipe;
 using NUnit.Framework;
@@ -31,6 +33,9 @@ namespace MB13.Aipocalypse.Tests
             builder.RegisterMessagePipe();
             builder.Register<DamageService>(Lifetime.Singleton);
             builder.Register<EffectPool>(Lifetime.Singleton);
+            builder.Register<AudioService>(Lifetime.Singleton);
+            // No settings: one surface, the gun's own impact effect, no sounds.
+            new SurfaceInstaller(null).Install(builder);
             builder.Register<BulletSystem>(Lifetime.Singleton);
             _resolver = builder.Build();
             _effects = _resolver.Resolve<EffectPool>();

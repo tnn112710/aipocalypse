@@ -1,6 +1,8 @@
 using System;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.SurfaceSystem;
+using Ami.BroAudio;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.PlayerSystem
@@ -15,11 +17,17 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly AudioService _audio;
         readonly PlayerSoundTuning _sounds;
         readonly PlayerLife _life;
+        readonly SurfaceService _surfaces;
+        readonly Transform _body;
+        readonly LayerMask _ground;
         float _nextHurtSound;
 
         public PlayerFeedback(PlayerMotor motor, PlayerHeadBob headBob, HeldItemSway sway, AudioService audio, PlayerSoundTuning sounds,
-            PlayerLife life)
+            PlayerLife life, SurfaceService surfaces, Transform body, LayerMask ground)
         {
+            _surfaces = surfaces;
+            _body = body;
+            _ground = ground;
             _motor = motor;
             _headBob = headBob;
             _sway = sway;
@@ -49,8 +57,21 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _audio.Play(_sounds.HurtSound);
         }
 
-        void OnStepped() => _audio.Play(_sounds.FootstepSound,
+        void OnStepped() => _audio.Play(FootstepSound(),
             _motor.IsSprinting ? _sounds.SprintStepVolume : _motor.IsCrouching ? _sounds.CrouchStepVolume : _sounds.WalkStepVolume);
+
+        // The footstep of what's underfoot; the player's own when that surface has none.
+        SoundID FootstepSound()
+        {
+            if (_surfaces != null && _surfaces.Enabled &&
+                Physics.Raycast(_body.position + Vector3.up * 0.4f, Vector3.down, out RaycastHit hit, 1.2f, _ground, QueryTriggerInteraction.Ignore))
+            {
+                SurfaceLook look = _surfaces.LookAt(hit.collider, hit.point);
+                if (look != null && look.Footstep.IsValid())
+                    return look.Footstep;
+            }
+            return _sounds.FootstepSound;
+        }
 
         void OnJumped()
         {

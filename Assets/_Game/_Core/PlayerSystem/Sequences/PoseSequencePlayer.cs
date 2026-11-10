@@ -21,6 +21,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly RaycastHit[] _hits = new RaycastHit[8];
 
         PoseSequence _sequence;
+        // Beats are placed in its space instead of around the body (a bed, a bench); null = around the body, on the ground.
+        Transform _anchor;
         Segment[] _segments = Array.Empty<Segment>();
         int _segmentCount;
         // Continuous path: one key per beat arrival (plus the start), monotone cubic tangents per channel.
@@ -75,14 +77,16 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _audio = audio;
         }
 
-        // `pitch` is where the player was looking (degrees, positive = down).
-        public void Play(PoseSequence sequence, float pitch)
+        // `pitch` is where the player was looking (degrees, positive = down). With an `anchor` the beats' offsets, heights and
+        // yaws are in its space (x right, z forward, height above its origin) and nothing is probed or kept out of walls.
+        public void Play(PoseSequence sequence, float pitch, Transform anchor = null)
         {
             Stop();
             if (sequence == null)
                 return;
 
             _sequence = sequence;
+            _anchor = anchor;
             _time = 0f;
             _cuedTo = -1f;
             _ended = false;
@@ -108,7 +112,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             for (int i = 0; i < beats.Length; i++)
             {
                 PoseBeat beat = beats[i];
-                Pose next = PlaceOnGround(beat, pose);
+                Pose next = _anchor != null ? PlaceOnAnchor(beat, pose) : PlaceOnGround(beat, pose);
                 if (i == sequence.MusicBeat)
                     _musicTime = time + sequence.MusicDelay;
                 if (i == beats.Length - 1)
@@ -171,6 +175,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _audio?.Stop(_music, _sequence != null ? _sequence.MusicFadeOut : 0f);
             _music = null;
             _sequence = null;
+            _anchor = null;
             FovScale = 1f;
             _rig.ReleaseOverride();
         }
@@ -355,6 +360,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                     local = _body.InverseTransformPoint(from + path / distance * wall.distance);
             }
             return new Pose { Position = local, Euler = beat.Euler, Fov = Fov(beat) };
+        }
+
+        // In the anchor's space, turned into the body's; the yaw takes the short way round from the previous pose.
+        Pose PlaceOnAnchor(PoseBeat beat, in Pose previous)
+        {
+            Vector3 world = _anchor.TransformPoint(new Vector3(beat.Offset.x, beat.Height, beat.Offset.y));
+            float yaw = beat.Yaw + Mathf.DeltaAngle(_body.eulerAngles.y, _anchor.eulerAngles.y);
+            yaw = previous.Euler.y + Mathf.DeltaAngle(previous.Euler.y, yaw);
+            return new Pose { Position = _body.InverseTransformPoint(world), Euler = new Vector3(beat.Pitch, yaw, beat.Roll), Fov = Fov(beat) };
         }
 
         float GroundHeight(Vector3 local)

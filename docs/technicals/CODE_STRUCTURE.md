@@ -63,6 +63,10 @@ Assets/_Game/
 │  │  ├─ Interaction/IHoldInteractable.cs   optional second use on holding the key (TryGetHoldPrompt / InteractHold): a standing gate's Repair All; while offered, the tap fires on release
 │  │  ├─ Interaction/IRepairable.cs         IRepairable (NeedsRepair, TryGetRepairPrompt: what the repair tool's key would do, RepairPoint, Knock: one hammer knock) and IRepairer (HasTool: a repair tool in hand, IsRepairing: the player)
 │  │  ├─ Stats/IStatProvider.cs             MB13.Aipocalypse.Core.Stats — StatId enum (values; …Scale multipliers with base 1) + stat seam with a Changed event; GetScale(stat) extension
+│  │  ├─ Stats/StatModifiers.cs             the shared modifier layer (root IStatProvider): Set(source, stat, add, multiply) replaces that source's modifier on the stat, Remove(source[, stat]), Clear, Restore; value = (base + adds) × multiplies, totals cached per stat; StatModifier (serializable) (StatModifierTests)
+│  │  ├─ Stats/StatSaveSection.cs           SaveSection "stats": every modifier with its source id
+│  │  ├─ Stats/StatCommands.cs              console: stat.list, stat.set <stat> <multiply> [add], stat.remove <stat>, stat.clear (source "console")
+│  │  ├─ Stats/StatInstaller.cs             root: StatModifiers as itself and IStatProvider, StatSaveSection (+ StatCommands in dev builds)
 │  │  └─ Utils/                             MB13.Aipocalypse.Core
 │  │     ├─ Damping.cs                      ByRate / ByTime: frame-rate independent smoothing share for Lerp (0 = instant)
 │  │     ├─ Spring.cs                       Step(value, velocity, target, stiffness, dampingRatio, dt) for float / Vector2 / Vector3, in 1/120 s substeps (held-item sway, landing dip)
@@ -347,6 +351,16 @@ Assets/_Game/
 │  │  ├─ SaveFormat.cs                    how saves read: PlayTime ("2h 05m"), Progress ("Day 3  07:30  ·  2h 05m"), SavedAt, Summary
 │  │  ├─ SaveInstaller.cs                 root installer: SaveSettings, SaveService, SaveRegistry, SceneLoader, GameSession (+ SaveCommands in dev builds)
 │  │  └─ SaveCommands.cs                    console: save.list, write, load, new, delete, deleteall, auto, path, menu
+│  ├─ SleepSystem/                          MB13.Aipocalypse.Core.SleepSystem — sleeping in a bed, see SLEEP.md
+│  │  ├─ SleepInstaller.cs                  SceneInstaller (_settings: SleepSettings; beds collected on scene save / entering Play, injected): SleepService (entry point); needs a ready WorldTimeInstaller
+│  │  ├─ SleepService.cs                    ITickable: one sleep as stages (Choosing → LyingDown → FallingAsleep → Asleep → Waking); Begin(bed, player) (or Refusal), Shift / Confirm / Cancel, Wake, Window, Darkness; plays the sequences in the bed anchor's space, WorldClock.SkipTo, ends standing where the get-up's last beat is; raids optional (TryResolve RaidDirector, RaidSettings, IRaidSchedule)
+│  │  ├─ SleepRules.cs                      pure: Window(now, min, max, wakeBeforeRaid, SleepRaids?) → SleepWindow (earliest / latest whole hours, or a reason: raid running, raid coming, too close), DefaultWake (SleepTests)
+│  │  ├─ SleepSettings.cs                   SO: Enabled, MinHours, MaxHours, DefaultWakeHour, WakeBeforeRaid, LieDown / GetUp (PoseSequence), FadeOut, SkipSeconds, FadeIn, sounds; asset in Data/Sleep/
+│  │  └─ Bed.cs                             IInteractable "[E] Sleep" → SleepService.Begin; Anchor (on the floor: x = the side you get in from, z = towards the pillow)
+│  ├─ SurfaceSystem/                        MB13.Aipocalypse.Core.SurfaceSystem — what things are made of, for footsteps and bullet impacts
+│  │  ├─ SurfaceSettings.cs                 SurfaceKind enum (Grass, Dirt, Stone, Wood, Sand, Mud, Metal; append only), SurfaceRule (keyword → kind), SurfaceLook (Footstep, BulletImpact, ImpactEffect); SO: Enabled, Default, DefaultTerrain, Rules, Looks (Dictionary<SurfaceKind, SurfaceLook>), FleshImpact, MaxImpactSoundsPerFrame; asset Data/Surfaces/SurfaceSettings
+│  │  ├─ SurfaceService.cs                  root: KindOf(collider, point) (terrain: its strongest layer there; else the first rule keyword in the collider's, its parents' or its material's name, cached per collider), LookAt, BulletImpact (effect + 3D sound), FleshImpact
+│  │  └─ SurfaceInstaller.cs                root: SurfaceService with the settings from ProjectLifetimeScope (none = one surface, no sounds)
 │  ├─ SpawnSystem/                          MB13.Aipocalypse.Core.SpawnSystem — spawning and pooling for anything, see SPAWNING.md
 │  │  ├─ SpawnInstaller.cs                      SceneInstaller (partial; _settings: SpawnSystemSettings, _waterBodies: flat water renderers, _rivers: River Modeler rivers, SpawnAreas collected on scene save / entering Play): IWaterLevel (WaterBodies + RiverCourse), SpawnVisibility, SpawnPlacer, SpawnPointPicker, PrefabPool + SpawnService + PopulationDirector (entry points) (+ SpawnCommands in dev builds)
 │  │  ├─ SpawnSystemSettings.cs                 SO: SpawnBudgetMs (2), PrewarmPerFrame (2), StagingPoint, IdleTrimDelay (60 s), TrimPerFrame (2), GroupRadius / GroupSpacing (default scatter), RetryInterval, Cards (console), DefaultRules, PopulationInterval, GlobalCap, CategoryCaps (Dictionary<SpawnCategory, int>); asset in Data/Spawning/
@@ -431,6 +445,9 @@ Assets/_Game/
 │  │  ├─ Hud/RaidBannerHud.cs               RaidStarted / RaidEnded (Cleared, Dawn) → a banner (title + subtitle, DOTween punch and fade) and its sound through AudioService; nothing on Defeat / Stopped; built with its sounds (Raid_Start / Raid_Victory, Combat library) by AgentScripts/Hud/RaidBannerSetup
 │  │  ├─ Hud/BreachAlertHud.cs              PlayerHudView: BarrierBroken → "The fence is down behind you" (direction from the player's view), DOTween punch and fade; silent (the break sounds at the barrier)
 │  │  ├─ Hud/SaveToastHud.cs              "Game saved · Save N" / "Autosaved · Save N" (or why the save failed) for 2 s after GameSaved, fading in real time
+│  │  ├─ Hud/LowHealthHud.cs                PlayerHudView: under LowHealthStyle.Below a red vignette (texture made in code) pulses, stronger and faster the lower the health, with a heartbeat on each pulse; real time, frozen while paused
+│  │  ├─ Hud/SleepScreen.cs                 shows SleepService (TryResolve; nothing without one): the wake-up clock (-1 H / +1 H, Sleep, Cancel; Esc), the darkness, the clock while asleep, a refusal line; own canvas (sorting 150) and EventSystem while choosing
+│  │  ├─ Widgets/LowHealthStyle.cs          SO: Enabled, Below / FullAt / StartStrength, colour, alpha, pulse floor and rates, clear radius, ease, Heartbeat SoundID; asset Data/UI/LowHealthStyle
 │  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
@@ -607,6 +624,8 @@ Assets/_Game/
    ├─ PlayerMotorTests.cs                   real CharacterController: a fall lands once with its drop height; a steep-slope slide counts as a fall to the flat ground (ControllerHitRelay)
    ├─ StylizedGrassTests.cs                 Stylized Grass detail prefabs carry a vertex-colour wind mask; the lawn colour map is the repeating 25 m tile; the player prefab has its grass bender; GrassBendField adds each mover once and forgets removed ones; details whose bend mask is 1 down to the root (flat ground flowers) do not bend
    ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet; a hole sticks to the moving target it hit
+   ├─ StatModifierTests.cs                  StatModifiers: add then multiply across sources, Set replaces, Remove by source, Changed, Restore; PlayerEffects buffs stack on top
+   ├─ SleepTests.cs                         SleepRules.Window: whole hours, never past a raid that hasn't run, refusals (raid running / coming / too close), after tonight's raid, DefaultWake
    └─ TestConsumableDefinition.cs           quick-use stackable ItemDefinition for EquipmentTests
 ```
 
@@ -632,11 +651,12 @@ GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    SpawnInstaller       → SpawnSystemSettings, IWaterLevel (WaterBodies), SpawnVisibility, SpawnPlacer (TryResolve INavmeshQuery, IWaterLevel), SpawnPointPicker, PrefabPool,
                           SpawnService, PopulationDirector (the scene's SpawnAreas, collected list; TryResolve WorldClock) (+ SpawnCommands)
    AmbientInstaller     → FlockSystem; needs SpawnInstaller (flocks spawn through SpawnService, Flock TryResolves FlockSystem and IWaterLevel)
+   SleepInstaller       → SleepSettings, SleepService (WorldClock, InputService, AudioService; TryResolve RaidDirector, RaidSettings, IRaidSchedule); injects the scene's Beds; needs WorldTimeInstaller
    (scene ConsoleCommands add themselves to the root CommandRegistry on Initialize and leave on Dispose)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)
                                                 │
 PlayerScope : EntityScope ── parent: GameLifetimeScope if the scene has one, else root
-   │ registers default IStatProvider → BaseStats (only if no ancestor provides one)
+   │ registers default IStatProvider → BaseStats (only if no ancestor provides one; the root's StatModifiers does, so this is the fallback for tests and bare scenes)
    └─ injects the Player GameObject (whole hierarchy)
          Player.Construct(InputService, TimeService, ControlSettings, IStatProvider, DamageService, AudioService, IPublisher<PlayerDied>,
                           IPublisher<PlayerDeathSequenceEnded>, IPublisher<PlayerRevived>, PlayerRegistry, IObjectResolver)

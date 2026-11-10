@@ -58,7 +58,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 
 - [ ] Start-up flow into the new map, `DevStartConfig` (6–9 h)
 - [ ] Main menu, pause menu, basic settings: sensitivity, FOV, volume (12–17 h)
-- [ ] Sleep in bed → skip to morning → morning report (10–15 h)
+- [ ] Sleep in bed → skip to morning → morning report (10–15 h). Built 2026-11-11: the bed in the WorldMap house, a wake-up clock (whole hours, never past a raid that hasn't run), lie down / time skip / get up ([SLEEP.md](technicals/SLEEP.md)). Left: the morning report, what sleeping gives
 
 ### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 3)
 
@@ -100,7 +100,7 @@ This comes before the sound and VFX pass, because impact sounds are timed by mar
 ### Phase 7: Quality pass (144–223 h, to about Mar 3)
 
 - [ ] Shooting leftovers: crosshair polish, damageable targets in the scene (12–17 h; ammo pickups came with the inventory)
-- [ ] Shooting to Very High: real gun sounds instead of the `_Placeholder` clips, muzzle and impact VFX, feel passes (15–28 h)
+- [ ] Shooting to Very High: real gun sounds instead of the `_Placeholder` clips, muzzle and impact VFX, feel passes (15–28 h). First feel pass 2026-11-11 ([WEAPONS.md → Feel pass](technicals/WEAPONS.md#feel-pass)): view punch, shells, shot tails, last-rounds click, surfaces, enemy hit flash, kill and melee feedback, Token burst, low-health warning, sprint view. Not tuned by hand yet
 - [ ] Inner zone to Very High: yard, house and farm dressing, lighting, the cozy feel (35–52 h)
 - [ ] Goblins easy to read at night; hit reactions (12–17 h)
 - [ ] Final HUD style; audio and music pass (21–31 h)

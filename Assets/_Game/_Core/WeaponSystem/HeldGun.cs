@@ -17,6 +17,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [SerializeField, Tooltip("Bullets and the muzzle flash leave here, along its forward (blue axis)")] Transform _muzzle;
         [SerializeField, Tooltip("Optional: plays the gun's clips (equip, fire, reload, repair, pump) and drives its hand targets. " +
             "Without it the model only poses and kicks (a block-out from Gun_Base)")] GunAnimation _animation;
+        [SerializeField, Tooltip("Optional: spent cases leave here (the gun's Ejection settings), thrown along its right (red axis)")]
+        Transform _ejectionPort;
 
         [BoxGroup("Poses"), SerializeField, Tooltip("Siblings of the pose pivot; move them to pose the gun")] Transform _hipPose;
         [BoxGroup("Poses"), SerializeField] Transform _aimPose;
@@ -46,12 +48,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         int _pendingShots;
         // Seconds until it can fire after a sprint.
         float _sprintRecoveryLeft;
+        // Seconds until the shot's tail sounds (pushed back by every shot of a spray); negative = none waiting.
+        float _tailIn = -1f;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
         public override Vector2 LookTurn => _recoil != null ? _recoil.LookTurn : default;
-        public override float Zoom => _gun != null ? Mathf.Lerp(1f, _definition.Handling.AimZoom, _aimWeight) : 1f;
+        public override float Zoom => _gun != null ? Mathf.Lerp(1f, _definition.Handling.AimZoom, _aimWeight) * _recoil.FovScale : 1f;
         public override float AimWeight => _aimWeight;
         // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
         float AirSpread => _accuracy != null ? _accuracy.Spread : 0f;
@@ -107,6 +111,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
             if (_definition.Effects != null)
                 _definition.Effects.Prewarm(_effects);
+            if (_ejectionPort != null)
+                _effects.Prewarm(_definition.Ejection.Shell, _definition.Ejection.Prewarm);
         }
 
         public override void Tick(in HeldItemInput input, float deltaTime)
@@ -135,6 +141,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _recoil.Tick(deltaTime, _aimWeight);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
             _accuracy.Tick(input.IsAirborne, _aimWeight, _user.AirSpreadScale, deltaTime);
+            if (_tailIn >= 0f && (_tailIn -= deltaTime) < 0f)
+                Play(_definition.Sounds.FireTail);
             if (_animation != null)
                 _animation.Tick(deltaTime, _gun.ActionProgress);
         }
@@ -166,6 +174,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _aimWeight = 0f;
             _jam?.Hide();
             _sprintRecoveryLeft = 0f;
+            _tailIn = -1f;
             _pendingShots = 0;
             _gun?.Interrupt();
             _recoil?.Reset();
@@ -191,6 +200,30 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (_animation != null)
                 _animation.Fired();
             Play(_definition.Sounds.Fire);
+
+            // A spray's tail waits for the gap after its last shot; a semi-auto's follows each shot.
+            FireSettings fire = _definition.Fire;
+            _tailIn = fire.Mode == FireMode.SemiAuto ? 0f : fire.SecondsPerShot * 1.3f;
+            int low = _definition.Magazine.LowRounds;
+            int rounds = _gun.Item.Rounds;
+            if (low > 0 && rounds <= low)
+                _audio?.Play(_definition.Sounds.LowAmmo, _definition.Sounds.Volume * Mathf.Lerp(1f, 0.45f, rounds / (float)low));
+            if (!_definition.Ejection.OnCycle)
+                Eject();
+        }
+
+        void Eject()
+        {
+            EjectionSettings ejection = _definition.Ejection;
+            if (_ejectionPort == null || ejection.Shell == null)
+                return;
+            PooledEffect shell = _effects.Spawn(ejection.Shell, _ejectionPort.position, _ejectionPort.rotation * Random.rotation);
+            if (shell == null || !shell.TryGetComponent(out Rigidbody body))
+                return;
+            float jitter = 1f + Random.Range(-ejection.VelocityJitter, ejection.VelocityJitter);
+            body.linearVelocity = _ejectionPort.TransformDirection(ejection.Velocity) * jitter;
+            body.angularVelocity = Random.onUnitSphere * (ejection.Spin * Mathf.Deg2Rad);
+            body.WakeUp();
         }
 
         void Shoot()
@@ -234,6 +267,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         void OnActionStarted(GunAction action)
         {
             _jam.ActionStarted();
+            if (action == GunAction.Cycling && _definition.Ejection.OnCycle)
+                Eject();
             if (_animation != null)
                 _animation.StartAction(action, _gun.Item.Rounds == 0, _gun.RepairIsStubborn);
             GunSounds sounds = _definition.Sounds;

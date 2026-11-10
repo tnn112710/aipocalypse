@@ -14,6 +14,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Seconds after the hit before the next swing can start")] public float Recovery = 0.42f;
         [Min(0f), Tooltip("Push on what it hits (N·s): rigidbodies move, damageables get it in DamageInfo.Force")]
         public float Knockback = 4f;
+        [Min(1), Tooltip("Most things one swing hurts (cleave), nearest first. A wall in the way stops it")] public int MaxTargets = 1;
         [Tooltip("What swings can hit")] public LayerMask HitLayers = Physics.DefaultRaycastLayers;
         [Min(0f), Tooltip("Stamina each swing costs, hit or miss. Swinging pauses regen")] public float StaminaPerSwing = 10f;
         [Min(0f), Tooltip("Swings within this many seconds of the last one alternate sides; after a longer pause the next starts on the first side")]
@@ -25,6 +26,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public bool AlternateSides = true;
         [Min(0f), Tooltip("How fast it moves into and out of the sprint pose")]
         public float PoseSpeed = 10f;
+
+        [Header("Hit feel"), Min(0f), Tooltip("Degrees the view jolts when a swing lands (sideways with the swing, and down)")]
+        public float HitViewKick = 1.6f;
+        [Min(0f), Tooltip("How fast the view settles after the jolt (higher = sooner)")] public float HitKickReturn = 14f;
 
         public float Duration => WindUp + Recovery;
     }

@@ -329,6 +329,7 @@ Transform:
   - {fileID: 6349445093097876492}
   - {fileID: 8674700196304264585}
   - {fileID: 8357567049230644288}
+  - {fileID: 5660930571186444160}
   m_Father: {fileID: 8080292913804298957}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2360406541336335055
@@ -1080,6 +1081,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3158429573044867761}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8056631468510431571
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5660930571186444160}
+  m_Layer: 0
+  m_Name: EjectionPort
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5660930571186444160
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8056631468510431571}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.025, y: 0.043625027, z: 0.045}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 3158429573044867761}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8177935701492860443
 GameObject:
   m_ObjectHideFlags: 0
@@ -1600,6 +1632,10 @@ PrefabInstance:
       propertyPath: _animation
       value: 
       objectReference: {fileID: 2476574684350843089}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _ejectionPort
+      value: 
+      objectReference: {fileID: 5660930571186444160}
     - target: {fileID: 1290281886909534782, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.16
@@ -1778,6 +1814,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.WorldItem
   _definition: {fileID: 11400000, guid: 85ed89d0fc335ed43947cc8dc9477f8a, type: 2}
+  _count: 1
   _worldModel: {fileID: 4647084579972425924}
 --- !u!65 &1746475970349318503
 BoxCollider:

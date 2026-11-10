@@ -239,7 +239,29 @@ Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCostScal
 | Where the gun sits, aims, sprints | gun prefab → `Poses/*` |
 | Reload / jam / pump motion, pump stroke, break angle | the gun's clips in `Content/Weapons/<Gun>/Animations/` ([HANDS.md](HANDS.md#weapon-animation-authoring)) |
 
+## Feel pass
+
+Added 2026-11-11 on top of the tables above. Content built by `AgentScripts/Feel/FeelSetup.cs` (safe to re-run). None of it has been tuned by hand yet.
+
+| Feature | How it works | Where to change it |
+| --- | --- | --- |
+| View punch | Each shot widens the world view by `FovKick` (AK47 0.8 %, MP5 0.6 %, Pistol 1.2 %, shotguns 3 %), up to `FovKickMax` while spraying, settling at `FovReturnSpeed`. It rides on the gun's zoom, so the held model keeps its lens; a wider view never speeds the look up (`PlayerZoom.LookScale` is capped at 1) | Gun asset → Recoil → Field of view punch |
+| Spent cases | A pooled case (a small brass or red cylinder with a Rigidbody, Debris layer, 3 s, at most 24) leaves the gun's `EjectionPort` (a child of `Weapon`, x out of the port) with a jittered throw and spin: with the shot, or with the pump when `OnCycle` (PumpShotgun). The DoubleBarrel has no port | Gun asset → Ejection; the port on the gun prefab; `Content/Weapons/_Shared/Effects/Shell_*.prefab` |
+| Shot tail | `Sounds.FireTail` rings out once a spray ends (1.3 shot intervals after its last shot), or after every shot on a semi-auto. AK47 and MP5 have one | Gun asset → Sounds |
+| Own shots | MP5 `Fire_Smg`, both shotguns `Fire_Shotgun` (Gamemaster clips; AK47 and Pistol keep their `_Placeholder` clips) | Gun asset → Sounds → `Fire` |
+| Last rounds | From `Magazine.LowRounds` (a quarter of the magazine, magazines of 6 or more) each shot adds the `LowAmmo` click, louder as it empties, and the hotbar's ammo label turns to its warning colour (it used to at 0 only) | Magazine → `LowAmmoShare`; Sounds → `LowAmmo` |
+| Surfaces | A bullet landing on the world asks `SurfaceService` what it hit (terrain layer or name keywords): that surface's tinted impact (`BulletImpact_<Surface>.prefab`, the gun's own when it has none) and a 3D impact sound, at most 2 sounds a frame. Hits on something that bleeds add `Impact_Flesh`. Footsteps use the same lookup under the player's feet | `Data/Surfaces/SurfaceSettings.asset` (rules, looks, `Enabled`) |
+| Enemy hit flash | A hit lights the body for `HitFlashTime` (0.07 s): `HitFlashColor` written to `HitFlashProperty` (`_EmissionColor`) on its skinned meshes through a property block that is removed again, so the renderer is off the SRP Batcher only while it flashes | `Data/Enemies/` reaction settings → Hit flash |
+| Kill feedback | `LandedHitFeedback` now has four players: `Stagger` and `HeadshotKill` (hit stop, at most one per 3 s) plus `Kill` (any other kill: a light impulse) and `MeleeHit` (a swing landing on something that takes damage: impulse + 45 ms hit stop). The light two play at most once a frame | `Player/GunJamFeedback/LandedHitFeedback/*` |
+| Token burst | Auto-collected loot (Tokens) leaves a killed enemy's roll and flies out as up to `LootBurstPieces` pickups for the pickup magnet; the rest stays in the body to search | `Data/Enemies/EnemySystemSettings.asset` → Loot |
+| Melee | `MaxTargets` (fire axe 3): one swing hurts the nearest that many damageable things, each body once; a wall in the way ends it. A landed swing jolts the view (`HitViewKick`) and the axe head draws a trail through the strike | Melee asset → Swing; the `Trail` on the melee prefab |
+| Sprint view | The world view widens to `SprintFovScale` (1.07) while sprinting, eased at `SprintFovSpeed` | `Data/Player/PlayerCameraTuning.asset` → Sprint |
+
+Not added: a Cinemachine impulse per shot. The view already kicks and shakes per shot (`RecoilValues` aim kick and `CameraShake`); a second shake on top only blurred it.
+
 ## Known gaps
+
+- **Feel pass, unchecked by hand:** every value above is a first guess. The per-surface impacts are the one impact effect tinted, not own effects; the hit flash relies on the Sidekick shader's `_EmissionColor` and wasn't seen on screen; the heartbeat is a pitched-down body thump.
 
 - **No breath clip yet:** `PlayerSoundTuning` → `BreathSound` is unset (silent) until a BroAudio entity with a breathing clip (Loop on) is added to `Data/Audio/Player`. The visual breathing rate (`TiredBreathRate`) isn't synced to the clip; tune it by ear.
 - **Sound placeholders:** every gun sound is a stand-in clip (see Sounds above); swap the clips on the BroAudio entities, no code or gun asset changes needed.
@@ -251,7 +273,7 @@ Two stats (base 1) are the hooks for later growth: `StatId.AttackStaminaCostScal
 - **Shotguns:** no shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
 - **Knockback shows on rigidbodies, `TargetDummy` and enemies** (`EnemyBody`); the player ignores it.
 - Held weapons and muzzle flashes render through `FirstPersonRenderFeature` on the HeldWeapon layer. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).
-- **Melee:** no hit-stop or camera jolt yet; one target per swing (no cleave); the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (goblin blows carry none).
+- **Melee:** the backhand is a mirror of the forehand rather than its own poses; the swing motion is procedural until there are animations. `Player` ignores `DamageInfo.Force` (goblin blows carry none).
 
 
 ## Gun jam clearing and QTE

@@ -25,6 +25,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly Fatigue _fatigue;
         readonly PlayerBreathing _breathing;
         readonly FirstPersonHands _hands;
+        // Field of view multiplier from sprinting, eased.
+        float _sprintFov = 1f;
 
         public HeldItemDriver(Transform body, Equipment equipment, EquipmentRig rig, EquipmentConfig config, PlayerTuning tuning,
             PlayerMotor motor, PlayerLook look, PlayerHeadBob headBob, PlayerZoom zoom, HeldItemSway sway, PlayerAim aim,
@@ -79,8 +81,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (held != null)
                 _look.Turn(held.LookTurn);
             _look.SetKick(held != null ? held.ViewKick : default);
+            PlayerCameraTuning camera = _tuning.Camera;
+            _sprintFov = Mathf.Lerp(_sprintFov, _motor.IsSprinting ? camera.SprintFovScale : 1f, Damping.ByRate(camera.SprintFovSpeed, deltaTime));
             if (ownsZoom)
-                _zoom.Tick(held != null ? held.Zoom : 1f);
+                _zoom.Tick((held != null ? held.Zoom : 1f) * _sprintFov);
             TickSway(intent, held, feel, deltaTime);
             float aimSpeed = held != null && held.IsAiming ? tuning.AimMoveSpeedMultiplier * (feel?.AimMoveSpeedScale ?? 1f) : 1f;
             _motor.SpeedMultiplier = aimSpeed * (held != null ? held.MoveSpeedScale : 1f) * _fatigue.MoveSpeed;

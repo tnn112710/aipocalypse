@@ -41,6 +41,11 @@ namespace MB13.Aipocalypse.Tests
             public TargetKind Kind => TargetKind.Player;
             public bool IsTargetable => !IsDead;
             public DamageResult TakeDamage(in DamageInfo info) => default;
+            public bool InSequence => false;
+            public bool SequenceSettled => false;
+            public void PlaySequence(PoseSequence sequence, Transform anchor = null) { }
+            public void StopSequence() { }
+            public void Teleport(Vector3 position, float yaw) { }
             public void MoveToSpawn() => MovedToSpawn++;
             public void Revive() => IsDead = false;
             public void ThrowAway(ItemInstance item) { }

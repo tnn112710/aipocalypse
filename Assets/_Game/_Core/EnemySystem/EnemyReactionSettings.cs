@@ -20,6 +20,13 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Min(0f), Tooltip("The killing hit pushes this many times harder, so a body is thrown back by a heavy shot")]
         public float KillPushScale = 2f;
 
+        [Header("Hit flash"), Min(0f), Tooltip("Seconds the body lights up when hit; 0 = no flash")]
+        public float HitFlashTime = 0.07f;
+        [ColorUsage(false, true), Tooltip("Written to the property below on the body's skinned meshes while it flashes")]
+        public Color HitFlashColor = new(1.4f, 1.4f, 1.4f, 1f);
+        [Tooltip("Colour property of the body's shader the flash writes (its emission)")]
+        public string HitFlashProperty = "_EmissionColor";
+
         [Min(0f), Tooltip("Push speed (m/s) at which a hit plays the heavy reaction instead of the light one")]
         public float HeavyHitSpeed = 4f;
         [Min(0f), Tooltip("Seconds a body lies after dying before it sinks")]

@@ -20,6 +20,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         Vector3 _shake;
         float _kickTarget;
         float _kick;
+        float _fov;
         // Kept aim kick not yet turned into the look (x = pitch, y = yaw).
         Vector2 _keptLeft;
 
@@ -43,6 +44,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // Euler offset for the view; negative x looks up.
         public Vector3 ViewEuler => _view;
         public Vector3 ViewShake => _shake;
+        // Field of view multiplier from the shots (1 = none, above 1 = wider).
+        public float FovScale => 1f + _fov;
         // This frame's share of the kept kick, for the look to add: x = pitch (negative = up), y = yaw.
         public Vector2 LookTurn { get; private set; }
 
@@ -76,6 +79,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
             _gunTarget += new Vector3(-values.GunPitch * pitchScale, values.GunYaw * yawPattern, values.GunRoll * rollPattern) * multiplier;
             _kickTarget += values.KickBack * multiplier;
+            _fov = Mathf.Min(_fov + _settings.FovKick * stateMultiplier, Mathf.Max(_settings.FovKick, _settings.FovKickMax));
         }
 
         public void Tick(float deltaTime, float aimWeight)
@@ -101,6 +105,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _shake = Vector3.Lerp(_shake, _shakeTarget, horizontalSnap);
             _kickTarget = Mathf.Lerp(_kickTarget, 0f, gunReturn);
             _kick = Mathf.Lerp(_kick, _kickTarget, gunSnap);
+            _fov = Mathf.Lerp(_fov, 0f, Damping.ByRate(_settings.FovReturnSpeed, deltaTime));
 
             // The kept part rises at the snappiness rates, like the springing part.
             LookTurn = new Vector2(_keptLeft.x * verticalSnap, _keptLeft.y * horizontalSnap);
@@ -110,7 +115,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public void Reset()
         {
             _gunTarget = _gun = _viewTarget = _view = _shakeTarget = _shake = Vector3.zero;
-            _kickTarget = _kick = 0f;
+            _kickTarget = _kick = _fov = 0f;
             _keptLeft = LookTurn = Vector2.zero;
             _shotIndex = 0;
             _sinceShot = float.MaxValue;

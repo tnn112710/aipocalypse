@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.SurfaceSystem;
 using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
@@ -59,14 +60,16 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         readonly EffectPool _effects;
         readonly DamageService _damage;
+        readonly SurfaceService _surfaces;
         readonly List<Bullet> _bullets = new(64);
         // Raycast hits come back unordered and cut at the buffer's size, so it's sized for long aim rays through crowds.
         readonly RaycastHit[] _hits = new RaycastHit[64];
 
-        public BulletSystem(EffectPool effects, DamageService damage)
+        public BulletSystem(EffectPool effects, DamageService damage, SurfaceService surfaces)
         {
             _effects = effects;
             _damage = damage;
+            _surfaces = surfaces;
         }
 
         public void Fire(in BulletShot shot)
@@ -187,8 +190,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (effects == null)
                 return;
 
-            if (target is not IShowsOwnHits)
-                _effects.Spawn(effects.Impact, hit.point, Quaternion.LookRotation(normal));
+            if (target is IShowsOwnHits)
+                _surfaces.FleshImpact(hit.point);
+            else
+                _surfaces.BulletImpact(hit.collider, hit.point, normal, effects.Impact);
 
             // Things that take damage move and die; a hole would float in the air.
             if (target == null && (effects.BulletHoleLayers.value & (1 << hit.collider.gameObject.layer)) != 0)

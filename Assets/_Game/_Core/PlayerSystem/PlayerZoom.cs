@@ -30,10 +30,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         float BaseFieldOfView => _controls != null && _controls.FieldOfView > 0f ? _controls.FieldOfView : _prefabFov;
 
-        // Look speed scale that keeps aim feel the same at any zoom (1 unzoomed, < 1 zoomed in).
+        // Look speed scale that keeps aim feel the same at any zoom (1 unzoomed, < 1 zoomed in). A wider view (sprint, shot
+        // punch) doesn't speed the look up.
         public float LookScale { get; private set; } = 1f;
         // tan(half the world camera's vertical field of view): maps eye-space directions to the screen.
-        public float TanHalfFov => _baseTan * LookScale;
+        public float TanHalfFov { get; private set; }
 
         // `zoom` multiplies the base field of view: 1 = none, 0.85 = 15% narrower, above 1 wider (the death sequence).
         public void Tick(float zoom)
@@ -45,7 +46,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 SetBase(baseFov);
             float fov = _baseFov * Mathf.Clamp(zoom, MinScale, MaxScale);
             _camera.Lens.FieldOfView = fov;
-            LookScale = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) / _baseTan;
+            TanHalfFov = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
+            LookScale = Mathf.Min(1f, TanHalfFov / _baseTan);
         }
 
         void SetBase(float fieldOfView)

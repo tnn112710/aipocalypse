@@ -4,6 +4,7 @@ using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using Ami.BroAudio;
 using Sirenix.OdinInspector;
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 
@@ -19,8 +20,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [BoxGroup("Poses"), SerializeField, Tooltip("Raised, ready to strike")] Transform _windUpPose;
         [BoxGroup("Poses"), SerializeField, Tooltip("Where the swing ends, past the hit")] Transform _followThroughPose;
         [BoxGroup("Poses"), SerializeField] Transform _sprintPose;
+        [SerializeField, Tooltip("Optional: drawn only while the strike passes through the hit")] TrailRenderer _trail;
 
         readonly RaycastHit[] _hits = new RaycastHit[16];
+        readonly List<IDamageable> _struck = new();
         readonly PoseBlender _pose = new();
 
         EffectPool _effects;
@@ -35,6 +38,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         bool _mirrored;
         // Set by this frame's MeleeAttack.Tick, checked in LateTick once the camera is in its final place.
         bool _pendingStrike;
+        // View jolt from the last landed swing (euler), easing back to nothing.
+        Vector3 _hitKick;
+
+        public override ViewKick ViewKick => new(_hitKick, Vector3.zero);
 
         // Let the swing play without the obstacle pose changing its arc.
         public override bool KeepsClear => _attack == null || _attack.Phase == SwingPhase.None;
@@ -82,6 +89,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 CanAttack = !input.IsSprinting,
             }, deltaTime);
 
+            _hitKick = Vector3.Lerp(_hitKick, Vector3.zero, Damping.ByRate(_definition.Swing.HitKickReturn, deltaTime));
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
         }
 
@@ -104,6 +112,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         protected override void OnHidden()
         {
             _pendingStrike = false;
+            _hitKick = Vector3.zero;
+            if (_trail != null)
+                _trail.emitting = false;
             _attack?.Interrupt();
         }
 
@@ -130,24 +141,64 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             Transform eye = _user.Eye;
             SwingSettings swing = _definition.Swing;
-            if (!TryHit(eye.position, eye.forward, swing, out RaycastHit hit))
-                return;
+            Vector3 origin = eye.position, direction = eye.forward;
+            int count = Physics.SphereCastNonAlloc(origin, swing.Radius, direction, _hits, swing.Range, swing.HitLayers, QueryTriggerInteraction.Ignore);
 
             float power = _user.MeleePower;
-            Vector3 force = eye.forward * (swing.Knockback * power);
-            IDamageable target = _damage?.DealHit(hit, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
+            Vector3 force = direction * (swing.Knockback * power);
+            _struck.Clear();
+            bool hitSurface = false;
+            // Nearest first: up to MaxTargets things that take damage; anything else in the way ends the swing there.
+            while (_struck.Count < swing.MaxTargets && TakeNearest(ref count, origin, direction, out RaycastHit hit))
+            {
+                IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
+                if (target == null)
+                {
+                    hitSurface = _struck.Count == 0;
+                    if (hitSurface)
+                    {
+                        _damage?.DealHit(hit, new DamageInfo(0f, DamageType.Melee, hit.point, force, _user.Root.gameObject));
+                        SpawnImpact(hit);
+                    }
+                    break;
+                }
+                // Several colliders of one body (a head and a torso) count once.
+                if (_struck.Contains(target))
+                    continue;
+                _struck.Add(target);
+                _damage?.DealHit(hit, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
+                if (target is not IShowsOwnHits)
+                    SpawnImpact(hit);
+            }
 
-            if (_effects != null && target is not IShowsOwnHits)
-                _effects.Spawn(_definition.ImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
-            Play(target != null ? _definition.Sounds.HitFlesh : _definition.Sounds.HitSurface);
+            if (_struck.Count == 0 && !hitSurface)
+                return;
+            Play(_struck.Count > 0 ? _definition.Sounds.HitFlesh : _definition.Sounds.HitSurface);
+            _hitKick = new Vector3(swing.HitViewKick * 0.5f, _mirrored ? swing.HitViewKick : -swing.HitViewKick, 0f);
         }
 
-        // Nearest hit along a short sphere-cast that isn't the holder. Triggers (pickups) are ignored.
-        bool TryHit(Vector3 origin, Vector3 direction, SwingSettings swing, out RaycastHit nearest)
+        void SpawnImpact(in RaycastHit hit)
         {
-            int count = Physics.SphereCastNonAlloc(origin, swing.Radius, direction, _hits, swing.Range, swing.HitLayers, QueryTriggerInteraction.Ignore);
-            if (!PhysicsQueries.Nearest(_hits, count, _user.Root, out nearest))
+            if (_effects != null)
+                _effects.Spawn(_definition.ImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
+        }
+
+        // Takes the nearest remaining hit of the sphere-cast that isn't the holder out of the buffer. Triggers (pickups) were
+        // never in it.
+        bool TakeNearest(ref int count, Vector3 origin, Vector3 direction, out RaycastHit nearest)
+        {
+            nearest = default;
+            int index = -1;
+            for (int i = 0; i < count; i++)
+            {
+                if (_hits[i].collider.transform.IsChildOf(_user.Root) || (index >= 0 && _hits[i].distance >= _hits[index].distance))
+                    continue;
+                index = i;
+            }
+            if (index < 0)
                 return false;
+            nearest = _hits[index];
+            _hits[index] = _hits[--count];
 
             // Already touching at the start of the cast: Unity reports no point or normal.
             if (nearest.distance <= 0f)
@@ -171,7 +222,18 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             {
                 _pose.MoveTowards(sprinting && _sprintPose != null ? _sprintPose : _idlePose, _definition.Swing.PoseSpeed, deltaTime);
             }
+            if (_trail != null)
+                _trail.emitting = _attack.Phase != SwingPhase.None && InStrike(_attack.SwingTime);
             ApplyPose();
+        }
+
+        // The fast part of the swing, through the hit.
+        bool InStrike(float time)
+        {
+            SwingSettings swing = _definition.Swing;
+            float strike = Mathf.Min(swing.StrikeTime, swing.WindUp * 2f, swing.Duration);
+            float start = Mathf.Max(0f, swing.WindUp - strike * 0.5f);
+            return time >= start && time <= start + strike;
         }
 
         // Start → wind-up (eased out), a fast strike through the hit to the follow-through, then back to idle.

@@ -32,6 +32,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [SerializeField, FoldoutGroup("Sounds"), HideLabel, InlineProperty]
         GunSounds _sounds = new();
 
+        [SerializeField, FoldoutGroup("Ejection"), HideLabel, InlineProperty]
+        EjectionSettings _ejection = new();
+
         [SerializeField, Tooltip("Muzzle flash, tracer, impact and bullet hole; usually shared by many guns")]
         BulletEffects _effects;
 
@@ -43,6 +46,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public AccuracySettings Accuracy => _accuracy;
         public HandlingSettings Handling => _handling;
         public GunSounds Sounds => _sounds;
+        public EjectionSettings Ejection => _ejection;
         public BulletEffects Effects => _effects;
 
         public override ItemCategory Category => ItemCategory.Gun;

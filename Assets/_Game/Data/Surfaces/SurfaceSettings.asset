@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b456f35524e71964c87fb985fba9b354, type: 3}
+  m_Name: SurfaceSettings
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.SurfaceSystem.SurfaceSettings
+  Enabled: 1
+  Default: 1
+  DefaultTerrain: 0
+  Rules:
+  - Keyword: Foundation
+    Kind: 2
+  - Keyword: Fireplace
+    Kind: 2
+  - Keyword: Stone
+    Kind: 2
+  - Keyword: Rock
+    Kind: 2
+  - Keyword: Boulder
+    Kind: 2
+  - Keyword: Clif
+    Kind: 2
+  - Keyword: Pebbles
+    Kind: 2
+  - Keyword: Metal
+    Kind: 6
+  - Keyword: Lamp
+    Kind: 6
+  - Keyword: Fence
+    Kind: 3
+  - Keyword: Wall
+    Kind: 3
+  - Keyword: Roof
+    Kind: 3
+  - Keyword: Floor
+    Kind: 3
+  - Keyword: Beam
+    Kind: 3
+  - Keyword: Log
+    Kind: 3
+  - Keyword: Bench
+    Kind: 3
+  - Keyword: Barrel
+    Kind: 3
+  - Keyword: Box
+    Kind: 3
+  - Keyword: Crate
+    Kind: 3
+  - Keyword: Cart
+    Kind: 3
+  - Keyword: Door
+    Kind: 3
+  - Keyword: Stairs
+    Kind: 3
+  - Keyword: Rails
+    Kind: 3
+  - Keyword: Post
+    Kind: 3
+  - Keyword: Gable
+    Kind: 3
+  - Keyword: Extension
+    Kind: 3
+  - Keyword: Tree
+    Kind: 3
+  - Keyword: Bark
+    Kind: 3
+  - Keyword: Birch
+    Kind: 3
+  - Keyword: Broadleaf
+    Kind: 3
+  - Keyword: Sakura
+    Kind: 3
+  - Keyword: Bush
+    Kind: 3
+  - Keyword: Wood
+    Kind: 3
+  - Keyword: Table
+    Kind: 3
+  - Keyword: Bridge
+    Kind: 3
+  - Keyword: Plank
+    Kind: 3
+  - Keyword: Bed
+    Kind: 3
+  - Keyword: Sand
+    Kind: 4
+  - Keyword: Mud
+    Kind: 5
+  - Keyword: Dirt
+    Kind: 1
+  - Keyword: Grass
+    Kind: 0
+  FleshImpact:
+    _entity: {fileID: 11400000, guid: 641dd4e867501f44ebe7c3dbba4e561b, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  MaxImpactSoundsPerFrame: 2
+  ImpactPrewarm: 4

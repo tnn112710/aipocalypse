@@ -8,6 +8,7 @@ using MB13.Aipocalypse.Core.Ghosts;
 using MB13.Aipocalypse.Core.HandSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.Stats;
+using MB13.Aipocalypse.Core.SurfaceSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Input;
@@ -82,6 +83,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public bool IsDead => _life != null && _life.IsDead;
         // A pose sequence (dying, sitting…) has the camera and the body until it's stopped.
         public bool InSequence => _sequence != null && _sequence.IsPlaying;
+        public bool SequenceSettled => _sequence != null && _sequence.IsSettled;
         public PoseSequence CurrentSequence => _sequence?.Current;
         public bool IsSprinting => _motor != null && _motor.IsSprinting;
         public bool IsCrouching => _motor != null && _motor.IsCrouching;
@@ -134,7 +136,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Inject]
         void Construct(InputService input, TimeService time, ControlSettings controls, IStatProvider stats, DamageService damage, AudioService audio,
             IPublisher<PlayerDied> died, IPublisher<PlayerDeathSequenceEnded> deathEnded, IPublisher<PlayerRevived> revived, PlayerRegistry registry,
-            IObjectResolver resolver)
+            IObjectResolver resolver, SurfaceService surfaces)
         {
             _input = input;
             _time = time;
@@ -162,7 +164,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (_visionLight != null && _tuning.Vision != null)
                 Vision = new PlayerVision(_visionLight, _tuning.Vision);
             _sequence = new PoseSequencePlayer(transform, _cameraRig, audio);
-            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds, _life);
+            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds, _life, surfaces, transform, _tuning.Movement.GroundLayers);
 
             _life.Died += OnDied;
             _life.Hurt += OnHurt;
@@ -313,6 +315,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Health.Set(health);
         }
 
+        public void Teleport(Vector3 position, float yaw)
+        {
+            if (_motor == null)
+                return;
+            _motor.Teleport(position, Quaternion.Euler(0f, yaw, 0f));
+            _look.ResetPitch(0f);
+        }
+
         public void MoveToSpawn()
         {
             if (_life != null)
@@ -320,7 +330,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         }
 
         // Hands the camera and body to a scripted moment (dying, resting…).
-        public void PlaySequence(PoseSequence sequence)
+        public void PlaySequence(PoseSequence sequence, Transform anchor = null)
         {
             if (_sequence == null || sequence == null)
                 return;
@@ -328,7 +338,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 Equipment.LowerHands();
             else if (Equipment != null && Equipment.HandsLowered)
                 Equipment.RaiseHands();
-            _sequence.Play(sequence, _look.Pitch);
+            _sequence.Play(sequence, _look.Pitch, anchor);
         }
 
         // Gives the camera back, level, and raises the held item again.

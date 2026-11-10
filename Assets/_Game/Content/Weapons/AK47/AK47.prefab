@@ -209,6 +209,7 @@ Transform:
   - {fileID: 5697723323347071345}
   - {fileID: 1462620645398541694}
   - {fileID: 1367338039762099072}
+  - {fileID: 8373081667334446488}
   m_Father: {fileID: 5448538601704475529}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1246565060954060730
@@ -661,6 +662,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &2754919875610303220
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8373081667334446488}
+  m_Layer: 0
+  m_Name: EjectionPort
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8373081667334446488
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2754919875610303220}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.025, y: 0.06886319, z: 0.22850001}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 547427643516640649}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2957130028436017978
 GameObject:
   m_ObjectHideFlags: 0
@@ -1811,6 +1843,10 @@ PrefabInstance:
       propertyPath: _animation
       value: 
       objectReference: {fileID: 9169515244901684761}
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _ejectionPort
+      value: 
+      objectReference: {fileID: 8373081667334446488}
     - target: {fileID: 1290281886909534782, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.45999998
@@ -1979,6 +2015,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.WorldItem
   _definition: {fileID: 11400000, guid: 4d04baaf1d662094386a682ddff197de, type: 2}
+  _count: 1
   _worldModel: {fileID: 2957130028436017978}
 --- !u!65 &7117235674816823643
 BoxCollider:

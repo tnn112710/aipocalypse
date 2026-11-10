@@ -10,6 +10,8 @@ using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.QuickTimeSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
+using MB13.Aipocalypse.Core.Stats;
+using MB13.Aipocalypse.Core.SurfaceSystem;
 using MB13.Aipocalypse.Input;
 using MessagePipe;
 using UnityEngine;
@@ -26,6 +28,8 @@ namespace MB13.Aipocalypse.Core.Bootstrap
         [SerializeField, Tooltip("_Debug/Console/Prefabs/DebugConsole")] ConsoleView _consoleOverlay;
         [SerializeField, Tooltip("Data/Save/SaveSettings: slots, autosave, the menu and world scenes")] SaveSettings _saveSettings;
         [SerializeField, Tooltip("Data/Equipment/ItemCatalog: every item by id, for saves")] ItemCatalog _itemCatalog;
+        [SerializeField, Tooltip("Data/Surfaces/SurfaceSettings: footsteps and bullet impacts per surface; empty = one surface, no sounds")]
+        SurfaceSettings _surfaceSettings;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -49,8 +53,10 @@ namespace MB13.Aipocalypse.Core.Bootstrap
             new AudioInstaller().Install(builder);
             new CombatInstaller().Install(builder);
             new EffectsInstaller().Install(builder);
+            new SurfaceInstaller(_surfaceSettings).Install(builder);
             new TimeInstaller().Install(builder);
             new RandomInstaller().Install(builder);
+            new StatInstaller().Install(builder);
             new GraphicsInstaller().Install(builder);
             new QuickTimeInstaller().Install(builder);
             new PlayerInstaller().Install(builder);

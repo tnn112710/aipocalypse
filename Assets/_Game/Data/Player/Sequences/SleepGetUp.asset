@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e27e3b4d261888547af6fd92e636ca5f, type: 3}
+  m_Name: SleepGetUp
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.PoseSequence
+  _lowerHands: 1
+  _beats:
+  - Name: Lying
+    Duration: 0
+    Ease: 4
+    Height: 0.78
+    Offset: {x: 0, y: 0.5}
+    Pitch: -76
+    Yaw: 180
+    Roll: 0
+    FovScale: 1
+    Hold: 1.1
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - Name: Sit
+    Duration: 1.2
+    Ease: 4
+    Height: 1.12
+    Offset: {x: 0.5, y: -0.05}
+    Pitch: 8
+    Yaw: 90
+    Roll: 0
+    FovScale: 1
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - Name: Stand
+    Duration: 0.85
+    Ease: 4
+    Height: 1.65
+    Offset: {x: 1.05, y: -0.05}
+    Pitch: 0
+    Yaw: 90
+    Roll: 0
+    FovScale: 1
+    Hold: 0
+    StartSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ArriveSound:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  _continuous: 1
+  _handheldAngles: {x: 0.5, y: 0.5, z: 0.4}
+  _handheldOffset: 0.008
+  _handheldSpeed: 0.3
+  _handheldFadeIn: 0.25
+  _driftAmplitude: {x: 0, y: 0}
+  _driftPeriod: 14
+  _driftFadeIn: 2
+  _endAfter: 0
+  _music:
+    _entity: {fileID: 0}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  _musicBeat: 0
+  _musicDelay: 0
+  _musicFadeIn: 1.5
+  _musicFadeOut: 1
+  _groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967291
+  _headRadius: 0.15

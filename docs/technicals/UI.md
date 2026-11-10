@@ -300,6 +300,14 @@ Colors, durations and pop sizes are in `Data/UI/HitFeedbackStyle.asset` (`HitFee
 - It draws under the widgets, so the bars stay readable, and hides with the rest of the HUD while the player is dead (`HudVisibilityHud`). Damage that applies nothing (`cheat.god`) publishes no `DamageDealt`, so nothing flashes.
 - The pain grunt and the view flinch belong to the player: `PlayerFeedback` reacts to `PlayerLife.Hurt` (a hit that doesn't kill).
 
+## Low health
+
+`LowHealthHud` (a `PlayerHudView` on `HUD/LowHealth`, child 1 with its own canvas, built by `AgentScripts/Feel/FeelSetup.Hud`) warns that the active player is badly hurt. Under `Below` (35 % health) a red vignette pulses, growing from `StartStrength` to full at `FullAt` (10 %), faster as it grows (`PulseRate` → `PulseRateFull`), and `Heartbeat` plays at the top of every pulse, louder with the strength. Real time (a hit stop doesn't hold it), frozen while paused, gone while dead; it fades with the HUD. The vignette texture is made in code (clear inside `ClearRadius` of the half-diagonal). Everything is in `Data/UI/LowHealthStyle.asset`; `Enabled` off removes it.
+
+## Sleep screen
+
+`SleepScreen` (`HUD/SleepScreen`, own canvas at sorting 150 with a raycaster, built by `AgentScripts/Sleep/SleepSetup.Hud` in the menus' style) shows a sleep from `SleepService`: the wake-up clock, the darkness, the running clock while asleep and a refusal line ([SLEEP.md](SLEEP.md)). Its EventSystem is active only while the clock is open.
+
 ## QTE
 
 `SafeFrame/Center/RepairQte`: a nested Canvas whose centre anchor is offset (-80, -60) at 1080p, so a compact widget sits beside the gun near the screen centre. The circle is 112×112, the bar 210×20, with a small key cap below the selected view. No panel, title, countdown or result popup.

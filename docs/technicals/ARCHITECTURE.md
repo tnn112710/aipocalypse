@@ -105,7 +105,8 @@ Any scene (World, Proto_*, test arenas)
 ## Holding off on expensive commitments
 
 - **Save:** built (user, 2026-11-10; [SAVE.md](SAVE.md)): versioned JSON per slot, each system its own section, no old-save compatibility promise during development (a shape change bumps `SaveService.Version`; no migrations yet).
-- **Stats/modifiers:** minimal version first (today: `IStatProvider` with a pass-through default); extend only when a designed feature needs it.
+- **Stats/modifiers:** one shared layer, `StatModifiers` (root scope, `_Common/Stats`), is every entity's `IStatProvider`: upgrades, skills and gear `Set(source, stat, add, multiply)` under their own source id and `Remove(source)`; value = (base + adds) × multiplies; saved with the game (`stats`). The player's timed buffs (`PlayerEffects`) sit on top of it. Nothing sets a modifier yet but the console (`stat.set`); `BaseStats` stays as the entity default for tests and scenes without the root scope. Enemies keep their own per-life `EnemyStats`.
+- **Surfaces:** `SurfaceService` (root) names what a collider is made of from keyword rules on names and terrain layers (`Data/Surfaces/SurfaceSettings`), for footsteps and bullet impacts. No per-object tagging yet; add a rule (or later a tag component) when something is misread.
 - **Interfaces:** only at real seams (Core ↔ Feature, entity ↔ outside world).
 
 ## Experiments

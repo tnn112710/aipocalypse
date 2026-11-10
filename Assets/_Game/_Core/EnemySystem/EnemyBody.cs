@@ -16,6 +16,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
     public sealed class EnemyBody : MonoBehaviour, IDamageable, IShowsOwnHits
     {
         const string LootStream = "loot";
+        // One block for every flash: its only value is set right before each use.
+        static MaterialPropertyBlock _flashBlock;
 
         [SerializeField, Tooltip("Sinks into the ground after death: the Model (or mesh) child")] Transform _visual;
 
@@ -36,6 +38,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         LootContainer _loot;
         Vector3 _visualRest;
         float _deadFor;
+        SkinnedMeshRenderer[] _flashRenderers;
+        float _flashLeft;
 
         public bool IsDead { get; private set; }
         public Health Health => _health;
@@ -75,7 +79,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                     _visualRest = _visual.localPosition;
                 if (TryGetComponent(out _loot))
                     _loot.Emptied += OnLootEmptied;
+                _flashRenderers = GetComponentsInChildren<SkinnedMeshRenderer>(true);
             }
+            ClearFlash();
             _settings = settings;
             _knockback = settings != null ? new Knockback(settings) : null;
             _stagger = settings != null && settings.Stagger != null ? new StaggerMeter(settings.Stagger) : null;
@@ -126,10 +132,33 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                     _brain.Animation.Hit(push, heavy);
                 _brain.Voice?.Hurt();
             }
-            if (_knockback != null && (_knockback.Active || IsDead))
+            Flash();
+            if ((_knockback != null && (_knockback.Active || IsDead)) || _flashLeft > 0f)
                 _manager?.Track(this);
             ShowHit(info, killed);
             return new DamageResult(applied, killed, reaction == HitReaction.Stagger && !killed);
+        }
+
+        // The body lights up for a moment. A property block takes a renderer off the SRP Batcher, so it's only on while the
+        // flash lasts.
+        void Flash()
+        {
+            if (_settings == null || _settings.HitFlashTime <= 0f || _flashRenderers == null || _flashRenderers.Length == 0)
+                return;
+            _flashBlock ??= new MaterialPropertyBlock();
+            _flashBlock.SetColor(_settings.HitFlashProperty, _settings.HitFlashColor);
+            foreach (SkinnedMeshRenderer r in _flashRenderers)
+                r.SetPropertyBlock(_flashBlock);
+            _flashLeft = _settings.HitFlashTime;
+        }
+
+        void ClearFlash()
+        {
+            if (_flashLeft <= 0f || _flashRenderers == null)
+                return;
+            _flashLeft = 0f;
+            foreach (SkinnedMeshRenderer r in _flashRenderers)
+                r.SetPropertyBlock(null);
         }
 
         // Blood (the kind's effects): the hit spurts back towards the shooter, a kill sprays out along the shot.
@@ -168,11 +197,40 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return;
             _lootRoll.Clear();
             table.Roll(_lootRandom, _lootRoll);
+            BurstLoot();
             _loot.Fill(_lootRoll);
             HoldsLoot = !_loot.Items.IsEmpty;
             _loot.SetSearchable(HoldsLoot);
             if (HoldsLoot)
                 _manager?.AddLootBody(this);
+        }
+
+        // Auto-collected loot (Tokens) leaves the roll and flies out of the body as a few pickups, for the pickup magnet.
+        void BurstLoot()
+        {
+            int pieces = _system != null ? _system.LootBurstPieces : 0;
+            if (pieces <= 0)
+                return;
+            Vector3 from = transform.position + Vector3.up * _system.LootBurstHeight;
+            for (int i = _lootRoll.Count - 1; i >= 0; i--)
+            {
+                ItemInstance stack = _lootRoll[i];
+                ItemDefinition definition = stack.Definition;
+                if (!definition.AutoCollect || definition.Prefab == null)
+                    continue;
+                _lootRoll.RemoveAt(i);
+                int left = stack.Count;
+                for (int piece = Mathf.Min(pieces, left); piece > 0; piece--)
+                {
+                    int share = Mathf.CeilToInt(left / (float)piece);
+                    left -= share;
+                    WorldItem pickup = WorldItem.Spawn(definition.CreateInstance(share), from, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), null);
+                    if (pickup == null)
+                        continue;
+                    Vector2 side = Random.insideUnitCircle * _system.LootBurstSpeed;
+                    pickup.Throw(new Vector3(side.x, _system.LootBurstLift * Random.Range(0.7f, 1.1f), side.y));
+                }
+            }
         }
 
         // The cap or dawn took its loot: it sinks now.
@@ -205,6 +263,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         {
             if (!isActiveAndEnabled)
                 return false;
+            if (_flashLeft > 0f && _flashLeft - deltaTime <= 0f)
+                ClearFlash();
+            else if (_flashLeft > 0f)
+                _flashLeft -= deltaTime;
             if (_knockback != null)
             {
                 Vector3 step = _knockback.Advance(deltaTime);
@@ -212,7 +274,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                     _mover.Push(step);
             }
             if (!IsDead)
-                return _knockback != null && _knockback.Active;
+                return (_knockback != null && _knockback.Active) || _flashLeft > 0f;
 
             _deadFor += deltaTime;
             if (HoldsLoot)

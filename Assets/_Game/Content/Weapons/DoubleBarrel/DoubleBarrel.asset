@@ -55,6 +55,7 @@ MonoBehaviour:
     Reload: 0
     ReloadTime: 2
     AutoReload: 1
+    LowAmmoShare: 0.25
   _jam:
     Chance: 0
     Repair: {fileID: 11400000, guid: f95aa80e1b7c35f47bcee47d59da8d3c, type: 2}
@@ -101,6 +102,9 @@ MonoBehaviour:
     AirborneMultiplier: 1.65
     AccurateShots: 0
     AccurateShotsMultiplier: 1
+    FovKick: 0.03
+    FovKickMax: 0.045
+    FovReturnSpeed: 14
     SprayResetDelay: 0.24
     SprayClimb: {x: 0.02, y: 0.075}
     SprayDrift: 0.35
@@ -123,7 +127,15 @@ MonoBehaviour:
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
     Fire:
-      _entity: {fileID: 11400000, guid: 825c972435a05924984f5aa1ef2ac3ac, type: 2}
+      _entity: {fileID: 11400000, guid: e49e94bd684b1a14586d8137735c18c5, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    FireTail:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    LowAmmo:
+      _entity: {fileID: 11400000, guid: e7de188afe2cfb243ab7a39ae7dcc2e9, type: 2}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
     ReloadStart:
@@ -174,4 +186,11 @@ MonoBehaviour:
       _entity: {fileID: 0}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
+  _ejection:
+    Shell: {fileID: 0}
+    Velocity: {x: 2.2, y: 1.4, z: -0.3}
+    VelocityJitter: 0.25
+    Spin: 900
+    OnCycle: 0
+    Prewarm: 6
   _effects: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}

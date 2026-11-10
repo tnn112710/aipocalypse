@@ -36,6 +36,12 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Min(0), Tooltip("Most bodies left lying with loot; past this the oldest sinks with its loot. All of them sink at dawn")]
         public int MaxLootBodies = 20;
         [Min(0f), Tooltip("Seconds an emptied body lies before it sinks")] public float LootedBodySinkDelay = 3f;
+        [Min(0), Tooltip("Auto-collected loot (Tokens) bursts out of a killed enemy as up to this many pickups instead of " +
+            "waiting in the body. 0 = it stays in the body")]
+        public int LootBurstPieces = 5;
+        [Min(0f), Tooltip("Sideways speed of the burst (m/s)")] public float LootBurstSpeed = 2.5f;
+        [Min(0f), Tooltip("Upward speed of the burst (m/s)")] public float LootBurstLift = 4f;
+        [Min(0f), Tooltip("Height above the body's feet the burst starts (m)")] public float LootBurstHeight = 0.9f;
 
         public IReadOnlyDictionary<TargetKind, int> AttackersPerTarget => _attackersPerTarget;
 
