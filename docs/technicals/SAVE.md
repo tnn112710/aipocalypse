@@ -16,11 +16,11 @@ Five save slots (plus an editor-only one), an autosave every morning, a pause me
 
 | Where | What |
 | --- | --- |
-| Esc in play (gamepad Start) | **Pause menu** (`PauseMenu`, in `HUD.prefab`): pauses the game (also during a raid; not while the player is down, where the death screen owns the click). Resume, Save Game, Load Game, Settings (disabled until a settings menu exists), Main Menu, Quit Game; the last two ask first ("Progress since your last save will be lost"). Esc goes back one step: dialog → slot list → menu → game |
+| Esc in play (gamepad Start) | **Pause menu** (`PauseMenu`, in `HUD.prefab`): pauses the game (also during a raid; not while the player is down, where the death screen owns the click). Resume, Save Game, Load Game, Settings (disabled until a settings menu exists), Main Menu, Save & Quit (saves to the game's slot, then quits once the file is written; off while saving isn't allowed or the game has no slot), Quit Game; Main Menu and Quit Game ask first ("Progress since your last save will be lost"). Esc goes back one step: dialog → slot list → menu → game |
 | `MainMenu.unity` | **Main menu** (`MainMenuScreen`): a survival-game title screen. A shot of WorldMap at sunset, dark on the left under the title ("HASTA LA VISTA, *MAYBE*" with a "PROTOTYPE" tape tag) and a column of text buttons lit by a strip of tape when hovered or selected: Continue (the most recent save; its slot and summary under it), Prototype (quick game, above), Load Game, Settings (disabled), Quit; the build bottom left |
 | Save / Load | **Select Save Slot** (`SaveSlotsPanel`, after Escape from Duckov): one row per slot, "Save N" (or "Editor Save") with the day, hour, play time and the date it was saved, or Empty. The current game's slot is orange. Delete on each saved slot (asks first), Copy Save File Path (to the clipboard). Overwriting another game's slot and loading while playing ask first. The status line says "Saving to ..." and then how the write went |
 
-Look: `Data/UI/MenuStyle.asset` (font, rounded sprite, colours) for the pause menu, slot list and dialogs. The title screen uses Synty Interface Apocalypse sprites (`Box_Small_02` tape, `Gradient_Horizontal_01` shade) and its Saira fonts, over `Data/UI/MainMenu/Background.png` (a 1920×1080 game-view capture of WorldMap at 18.6 h, clear sky, from the home yard looking past the gate). Layout: rebuilt by `AgentScripts/Save/SaveSetup` (`Hud()` for the pause menu, `MainMenu()` for the scene, which must not be open then); edit there, not in the prefab.
+Look and feel (shared by every menu, mouse and gamepad, sounds): [UI.md → Menus](UI.md#menus). The title screen's background is `Data/UI/MainMenu/Background.png` (a 1920×1080 game-view capture of WorldMap at 18.6 h, clear sky, from the home yard looking past the gate). Layout: rebuilt by `AgentScripts/Save/SaveSetup` (`Hud()` for the pause menu, `MainMenu()` for the scene, which must not be open then); edit there, not in the prefab.
 
 ## What a save holds
 
@@ -46,12 +46,12 @@ Scene scope: WorldSaveInstaller → WorldSaver: first frame → GameSession.Ente
 Each system: <System>SaveSection registered by its own installer, joins SaveRegistry while its scope lives
 ```
 
-- **Save:** `GameSession.Save(slot)` → `SaveService.Create(carry)` (a copy of the loaded save, so keys no section wrote this time survive) → every section's `Capture` → header → `SaveService.WriteAsync`, which takes the bytes on the main thread and returns. On the thread pool: the new file goes to `.tmp`, the previous file is copied to `slot_N.es3.bak` if it reads (known from this session's reads and writes, checked by its time and size; otherwise read once first), and `.tmp` replaces the file. Back on the main thread `GameSession` publishes `GameSaved` (slot, autosave, ok, message): the toast and the slot list show it, and a failed autosave is retried. One write at a time: every other file access (`TryRead`, `Info`, `Exists`, `Delete`, the next write, quitting) waits for the one in progress (`SaveService.Flush`).
+- **Save:** `GameSession.Save(slot)` → `SaveService.Create(carry)` (goes on from the save loaded or last written, without copying it, so keys no section wrote this time survive) → every section's `Capture` → header → `SaveService.WriteAsync`, which takes the bytes on the main thread and returns. On the thread pool: the new file goes to `.tmp`, the previous file is copied to `slot_N.es3.bak` if it reads (known from this session's reads and writes, checked by its time and size; otherwise read once first), and `.tmp` replaces the file. Back on the main thread `GameSession` publishes `GameSaved` (slot, autosave, ok, message): the toast and the slot list show it, and a failed autosave is retried. One write at a time: every other file access (`TryRead`, `Info`, `Exists`, `Delete`, the next write, quitting) waits for the one in progress (`SaveService.Flush`).
 - **Load:** `GameSession.Load(slot)` reads the file (or its `.bak` when the file is damaged; a file from another save version is refused, never swapped for its older backup), loads the scene named in the header through `SceneLoader`, and `WorldSaver.PostStart` (after every Start, before the first Update) calls each section's `Restore` in `SaveOrder`: random, clock, weather, raids, world (defense, loot), world items, player. A section that throws is logged and skipped; the rest still load.
 - **New game:** `GameSession.NewGame(slot)` reseeds `RandomService` and loads the world scene; nothing is restored. The slot's old file is only replaced by the first save.
 - **Failures:** a section that throws while saving is logged and skipped (its entry from the last save is kept, the toast message says so); one that throws while loading keeps its new-game state. A scene load that fails leaves the current world running and playable. The pause menu releases its pause and UI requests before anything else, also when a load destroys it.
 - **Missing key = new-game state.** A system added after a save, or switched off, finds nothing and keeps its defaults; a switched-off system's key is carried over unchanged.
-- **Files:** `Application.persistentDataPath/Saves/slot_1.es3` … `slot_5.es3`, `slot_editor.es3` (+ `.bak`), plain JSON (`save.path` prints and copies the folder). A save is ~17 KB. In the editor the frame pays ~4-5 ms (capture ~2.3, the carried save's copy ~1.5, the bytes 0.2); the ~8 ms of file work (backup check, copy, write) runs in the background. `SavePlayTest.Timing <slot> <count>` measures it.
+- **Files:** `Application.persistentDataPath/Saves/slot_1.es3` … `slot_5.es3`, `slot_editor.es3` (+ `.bak`), plain JSON (`save.path` prints and copies the folder). A save is ~17 KB. In the editor the frame pays ~2 ms (capture ~1.7, the bytes 0.2); the ~8 ms of file work (backup check, copy, write) runs in the background. `SavePlayTest.Timing <slot> <count>` measures it.
 
 ## Ids
 
@@ -90,7 +90,7 @@ Editor and cheat builds (`save` group, root: also in the main menu). Slots are 1
 | What | Where |
 | --- | --- |
 | Slot count, folder, autosave on / phase / first day, scene names (Prototype and New Game use `WorldScene`), loading screen font and text | `Data/Save/SaveSettings.asset` |
-| Menu look | `Data/UI/MenuStyle.asset`; the title screen's in `SaveSetup.MainMenu()` |
+| Menu look and sounds (`Menu_Hover`, `Menu_Click`, `Menu_Back` in `Data/Audio/UI`) | `Data/UI/MenuStyle.asset` ([UI.md](UI.md#menus)) |
 | Toast time | `HUD` → `SaveToast` → `SaveToastHud` |
 
 ## Setup and checks
@@ -106,4 +106,3 @@ Editor and cheat builds (`save` group, root: also in the main menu). Slots are 1
 - No migrations: a version bump makes older saves unloadable (fine during development).
 - Quitting doesn't save: progress since the last save (morning or manual) is lost, as the menus warn. It does wait for a write in progress.
 - A build's Prototype game has no slot until Save Game picks one, so its first mornings aren't autosaved.
-- The pause and main menus have no controller navigation polish and no sounds.

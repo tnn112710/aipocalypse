@@ -40,7 +40,7 @@ public static class InventorySetup
     const string HotbarStylePath = "Assets/_Game/Data/UI/HotbarSlotStyle.asset";
     const string SlotPrefabPath = "Assets/_Game/_Core/UI/Prefabs/Widgets/ItemSlot.prefab";
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
-    const string FontPath = "Assets/Synty/InterfaceApocalypseHUD/Fonts/SairaCondensed/Font_Apocalypse_Bold.asset";
+    const string FontPath = "Assets/_Game/Data/UI/Fonts/SairaBold.asset";
     const string Icons = "Assets/Synty/InterfaceApocalypseHUD/Sprites/";
     const string Animpic = "Assets/_StoreAssets/Env/Animpic/";
     const string WorldMapPath = "Assets/_Game/Scenes/Prototypes/WorldMap.unity";

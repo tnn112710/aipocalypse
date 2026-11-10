@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
 {
-    // A yes / no question over a menu ("Overwrite Save 2?"). No is selected first, so Enter never destroys anything.
+    // A yes / no question over a menu ("Overwrite Save 2?"). No is selected first, so Enter never destroys anything; closing
+    // gives the focus back to the button that asked.
     public sealed class ConfirmDialog : MonoBehaviour
     {
         [SerializeField] TMP_Text _message;
@@ -15,6 +16,7 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] Button _no;
 
         Action _onYes;
+        GameObject _asker;
         bool _hooked;
 
         public bool IsOpen => gameObject.activeSelf;
@@ -23,16 +25,22 @@ namespace MB13.Aipocalypse.Core.UI
         {
             Hook();
             _message.text = message;
-            _yesLabel.text = yes;
+            _yesLabel.text = yes.ToUpperInvariant();
             _onYes = onYes;
+            _asker = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
             gameObject.SetActive(true);
-            EventSystem.current?.SetSelectedGameObject(_no.gameObject);
+            MenuButton.SelectSilently(_no);
         }
 
         public void Close()
         {
             _onYes = null;
+            if (!IsOpen)
+                return;
             gameObject.SetActive(false);
+            if (_asker != null && _asker.activeInHierarchy && _asker.TryGetComponent(out Selectable asker))
+                MenuButton.SelectSilently(asker);
+            _asker = null;
         }
 
         void Hook()

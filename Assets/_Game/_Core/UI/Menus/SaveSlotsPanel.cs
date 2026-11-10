@@ -3,7 +3,6 @@ using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.SaveSystem;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -47,7 +46,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             Hook();
             _mode = mode;
-            _title.text = mode == SlotsMode.Save ? "Save Game" : "Load Game";
+            _title.text = mode == SlotsMode.Save ? "SAVE GAME" : "LOAD GAME";
             gameObject.SetActive(true);
             _confirm.Close();
             SetStatus(null);
@@ -175,10 +174,10 @@ namespace MB13.Aipocalypse.Core.UI
             foreach (SaveSlotRow row in _rows)
                 if (row.Button.interactable)
                 {
-                    EventSystem.current?.SetSelectedGameObject(row.Button.gameObject);
+                    MenuButton.SelectSilently(row.Button);
                     return;
                 }
-            EventSystem.current?.SetSelectedGameObject(_back.gameObject);
+            MenuButton.SelectSilently(_back);
         }
     }
 }

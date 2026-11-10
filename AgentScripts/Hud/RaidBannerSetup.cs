@@ -20,7 +20,7 @@ public static class RaidBannerSetup
     const string StylePath = "Assets/_Game/Data/UI/RaidBannerStyle.asset";
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
     const string NodeName = "RaidBanner";
-    const string FontPath = "Assets/Synty/InterfaceApocalypseHUD/Fonts/SairaCondensed/Font_Apocalypse_Bold.asset";
+    const string FontPath = "Assets/_Game/Data/UI/Fonts/SairaBold.asset";
 
     public static string Build()
     {

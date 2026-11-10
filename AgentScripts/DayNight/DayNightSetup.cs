@@ -34,7 +34,7 @@ public static class DayNightSetup
     const string AudioDir = "Assets/_Game/Data/Audio/Ambience";
     const string ClockStylePath = "Assets/_Game/Data/UI/ClockStyle.asset";
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
-    const string FontDir = "Assets/Synty/InterfaceApocalypseHUD/Fonts/SairaCondensed/";
+    const string FontDir = "Assets/_Game/Data/UI/Fonts/";
 
     public static object All(bool resetLooks)
     {
@@ -529,10 +529,10 @@ public static class DayNightSetup
     static ClockStyle BuildClockStyle()
     {
         var style = LoadOrCreate<ClockStyle>(ClockStylePath, out _);
-        style.TimeFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontDir + "Font_Apocalypse_Header.asset");
-        style.TimeMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontDir + "Font_Apocalypse_Header_Underlay.mat");
-        style.LabelFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontDir + "Font_Apocalypse_Bold.asset");
-        style.LabelMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontDir + "Font_Apocalypse_Bold_Underlay.mat");
+        style.TimeFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontDir + "SairaHeader.asset");
+        style.TimeMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontDir + "SairaHeader_Underlay.mat");
+        style.LabelFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontDir + "SairaBold.asset");
+        style.LabelMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontDir + "SairaBold_Underlay.mat");
         style.LabelFontSize = 26f;
         style.BackingSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
         style.BackingColor = new Color(0.05f, 0.06f, 0.08f, 0.7f);

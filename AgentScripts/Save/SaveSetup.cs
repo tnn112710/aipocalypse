@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ami.BroAudio;
+using Ami.BroAudio.Data;
 using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.DefenseSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
@@ -16,27 +18,29 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-// Builds the save system's content: Data/Save/SaveSettings, Data/Equipment/ItemCatalog (collected), Data/UI/MenuStyle, the
-// root scope's references, the PauseMenu and SaveToast in HUD.prefab, WorldSaveInstaller + SaveIds in WorldMap, the MainMenu
-// scene, and the Build Settings scene list (MainMenu first). Safe to re-run: UI nodes are rebuilt, assets and ids kept.
+// Builds the save system's content: Data/Save/SaveSettings, Data/Equipment/ItemCatalog (collected), Data/UI/MenuStyle (look
+// and the UI sounds in Data/Audio/UI), the root scope's references, the PauseMenu and SaveToast in HUD.prefab,
+// WorldSaveInstaller + SaveIds in WorldMap, the MainMenu scene, and the Build Settings scene list (MainMenu first). Safe to
+// re-run: UI nodes are rebuilt, assets and ids kept. The menus share one look: Saira fonts (AgentScripts/UI/FontSetup),
+// Synty Interface Apocalypse's tape strip and shade, text buttons that light up when hovered or selected.
 public static class SaveSetup
 {
     const string SettingsPath = "Assets/_Game/Data/Save/SaveSettings.asset";
     const string CatalogPath = "Assets/_Game/Data/Equipment/ItemCatalog.asset";
     const string StylePath = "Assets/_Game/Data/UI/MenuStyle.asset";
-    const string FontPath = "Assets/_Game/Data/UI/DeathScreen/DeathScreenFont.asset";
+    const string FontDir = "Assets/_Game/Data/UI/Fonts/";
     const string RootPath = "Assets/_Game/_Core/_Bootstrap/ProjectLifetimeScope.prefab";
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
     const string WorldMapPath = "Assets/_Game/Scenes/Prototypes/WorldMap.unity";
     const string MainMenuPath = "Assets/_Game/Scenes/MainMenu.unity";
-    // Main menu look: a shot of WorldMap at sunset (Data/UI/MainMenu), Synty Interface Apocalypse sprites and Saira fonts.
+    // The title screen's background: a shot of WorldMap at sunset.
     const string BackgroundPath = "Assets/_Game/Data/UI/MainMenu/Background.png";
     const string SyntyHud = "Assets/Synty/InterfaceApocalypseHUD/";
     const string TapePath = SyntyHud + "Sprites/HUD/SPR_HUD_Apocalypse_Box_Small_02.png";
     const string ShadePath = SyntyHud + "Sprites/FX/SPR_FX_Apocalypse_Gradient_Horizontal_01.png";
-    const string HeaderFontPath = SyntyHud + "Fonts/SairaCondensed/Font_Apocalypse_Header.asset";
-    const string BoldFontPath = SyntyHud + "Fonts/SairaCondensed/Font_Apocalypse_Bold.asset";
-    const string BodyFontPath = SyntyHud + "Fonts/SairaCondensed/Font_Apocalypse_Body.asset";
+    const string UiAudio = "Assets/_Game/Data/Audio/UI";
+    const string UiLibrary = "Assets/_Game/Data/Audio/UI.asset";
+    const string UiClips = "Assets/_StoreAssets/Audio/PlaceHolder Inc/Interface & Item Sounds Lite - Version 2/Interface/";
     // Over the HUD (10), the inventory (50) and the death screen (100).
     const int PauseSorting = 200;
 
@@ -49,23 +53,32 @@ public static class SaveSetup
     public static string Assets()
     {
         var log = new List<string>();
-        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath) ?? throw new Exception("missing " + FontPath);
+        var bold = Load<TMP_FontAsset>(FontDir + "SairaBold.asset");
 
         var settings = LoadOrCreate<SaveSettings>(SettingsPath, log);
-        if (settings.LoadingFont == null)
-        {
-            settings.LoadingFont = font;
-            EditorUtility.SetDirty(settings);
-        }
+        settings.LoadingFont = bold;
+        EditorUtility.SetDirty(settings);
         AssetDatabase.SaveAssetIfDirty(settings);
 
         var catalog = LoadOrCreate<ItemCatalog>(CatalogPath, log);
         log.Add($"ItemCatalog: {catalog.Collect()} items");
         AssetDatabase.SaveAssetIfDirty(catalog);
 
+        // Every value from MenuStyle's defaults, then the references.
         var style = LoadOrCreate<MenuStyle>(StylePath, log);
-        style.Font = font;
-        style.ButtonSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+        var defaults = ScriptableObject.CreateInstance<MenuStyle>();
+        EditorUtility.CopySerialized(defaults, style);
+        Object.DestroyImmediate(defaults);
+        style.name = "MenuStyle";
+        style.Font = bold;
+        style.TitleFont = Load<TMP_FontAsset>(FontDir + "SairaHeader.asset");
+        style.BodyFont = Load<TMP_FontAsset>(FontDir + "SairaBody.asset");
+        style.ButtonSprite = Load<Sprite>(TapePath);
+        style.ShadeSprite = Load<Sprite>(ShadePath);
+        AudioAsset library = Library(log);
+        style.HoverSound = Sound(library, "Menu_Hover", 0.35f, 0.04f, "Interface Click 8-1.wav", log);
+        style.ClickSound = Sound(library, "Menu_Click", 0.6f, 0.03f, "Interface Click 15-1.wav", log);
+        style.BackSound = Sound(library, "Menu_Back", 0.5f, 0.03f, "Interface Click 19-4.wav", log);
         EditorUtility.SetDirty(style);
         AssetDatabase.SaveAssetIfDirty(style);
 
@@ -87,6 +100,57 @@ public static class SaveSetup
         return string.Join("\n", log);
     }
 
+    // ---- UI sounds: Data/Audio/UI (BroAudio library + one entity per sound, as DefenseSetup) ----
+
+    static AudioAsset Library(List<string> log)
+    {
+        if (!AssetDatabase.IsValidFolder(UiAudio))
+            AssetDatabase.CreateFolder("Assets/_Game/Data/Audio", "UI");
+        var library = AssetDatabase.LoadAssetAtPath<AudioAsset>(UiLibrary);
+        if (library != null)
+            return library;
+        library = ScriptableObject.CreateInstance<AudioAsset>();
+        AssetDatabase.CreateAsset(library, UiLibrary);
+        var so = new SerializedObject(library);
+        so.FindProperty("<AssetName>k__BackingField").stringValue = "UI";
+        so.FindProperty("_assetGUID").stringValue = AssetDatabase.AssetPathToGUID(UiLibrary);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        AssetDatabase.SaveAssetIfDirty(library);
+        log.Add("created library " + UiLibrary);
+        return library;
+    }
+
+    // A 2D one-shot UI entity: one clip, a volume and a little random pitch.
+    static SoundID Sound(AudioAsset library, string name, float volume, float pitchRandom, string clipFile, List<string> log)
+    {
+        string path = $"{UiAudio}/{name}.asset";
+        var entity = AssetDatabase.LoadAssetAtPath<AudioEntity>(path);
+        if (entity == null)
+        {
+            entity = AudioEntity.CreateNewInstance(library, name, BroAudioType.UI);
+            AssetDatabase.CreateAsset(entity, path);
+            log.Add("created " + path);
+        }
+        var so = new SerializedObject(entity);
+        so.FindProperty("<AudioAsset>k__BackingField").objectReferenceValue = library;
+        so.FindProperty("<AudioType>k__BackingField").intValue = (int)BroAudioType.UI;
+        so.FindProperty("<Loop>k__BackingField").boolValue = false;
+        so.FindProperty("<MasterVolume>k__BackingField").floatValue = volume;
+        so.FindProperty("<Pitch>k__BackingField").floatValue = 1f;
+        so.FindProperty("MulticlipsPlayMode").intValue = (int)MulticlipsPlayMode.Single;
+        so.FindProperty("<PitchRandomRange>k__BackingField").floatValue = pitchRandom;
+        so.FindProperty("<RandomFlags>k__BackingField").intValue = pitchRandom > 0f ? 1 : 0;
+        SerializedProperty clips = so.FindProperty("Clips");
+        clips.arraySize = 1;
+        SerializedProperty clip = clips.GetArrayElementAtIndex(0);
+        clip.FindPropertyRelative("AudioClip").objectReferenceValue = Load<AudioClip>(UiClips + clipFile);
+        clip.FindPropertyRelative("Volume").floatValue = 1f;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(entity);
+        AssetDatabase.SaveAssetIfDirty(entity);
+        return new SoundID(entity);
+    }
+
     // ---- HUD: pause menu and the "game saved" line ----
 
     public static string Hud()
@@ -101,7 +165,7 @@ public static class SaveSetup
             RectTransform toastNode = Ui("SaveToast", root.transform);
             Stretch(toastNode);
             toastNode.gameObject.AddComponent<Canvas>();
-            TMP_Text toastText = Text("Text", toastNode, style, 26f, TextAlignmentOptions.BottomRight, style.Text);
+            TMP_Text toastText = Text("Text", toastNode, style, 28f, TextAlignmentOptions.BottomRight, style.Text, style.Font);
             Pin(toastText.rectTransform, new Vector2(1f, 0f), new Vector2(-60f, 230f), new Vector2(700f, 40f));
             var toast = toastNode.gameObject.AddComponent<SaveToastHud>();
             var toastSo = new SerializedObject(toast);
@@ -118,28 +182,30 @@ public static class SaveSetup
             // The HUD fades out on death; the menu doesn't follow it.
             node.gameObject.AddComponent<CanvasGroup>().ignoreParentGroups = true;
             Box("Backdrop", node, style, style.Backdrop, true, stretch: true);
+            Shade(node, style);
 
             RectTransform page = Ui("Page", node);
             Stretch(page);
-            TMP_Text title = Text("Title", page, style, 72f, TextAlignmentOptions.MidlineLeft, style.Text);
-            title.text = "Paused";
-            Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(160f, -140f), new Vector2(900f, 96f));
-            RectTransform column = Column("Buttons", page, new Vector2(160f, -260f), 440f);
-            Button resume = Btn("Resume", "Resume", column, style, 64f);
-            Button save = Btn("Save", "Save Game", column, style, 64f);
-            Button load = Btn("Load", "Load Game", column, style, 64f);
-            Button settings = Btn("Settings", "Settings (soon)", column, style, 64f);
-            Button mainMenu = Btn("MainMenu", "Main Menu", column, style, 64f);
-            Button quit = Btn("Quit", "Quit Game", column, style, 64f);
-            TMP_Text hint = Text("Hint", page, style, 24f, TextAlignmentOptions.TopLeft, style.InfoText);
-            Pin(hint.rectTransform, new Vector2(0f, 1f), new Vector2(160f, -740f), new Vector2(1200f, 40f));
+            TMP_Text title = Text("Title", page, style, 120f, TextAlignmentOptions.MidlineLeft, style.Text, style.TitleFont);
+            title.text = "PAUSED";
+            Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -100f), new Vector2(900f, 150f));
+            RectTransform column = TextColumn(page, new Vector2(110f, -290f));
+            Button resume = TextButton("Resume", "RESUME", column, style);
+            Button save = TextButton("Save", "SAVE GAME", column, style);
+            Button load = TextButton("Load", "LOAD GAME", column, style);
+            Button settings = TextButton("Settings", "SETTINGS", column, style);
+            Button mainMenu = TextButton("MainMenu", "MAIN MENU", column, style);
+            Button saveQuit = TextButton("SaveQuit", "SAVE & QUIT", column, style);
+            Button quit = TextButton("Quit", "QUIT GAME", column, style);
+            TMP_Text hint = Text("Hint", page, style, 26f, TextAlignmentOptions.TopLeft, style.InfoText, style.BodyFont);
+            Pin(hint.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -815f), new Vector2(1200f, 40f));
 
             SaveSlotsPanel slots = SlotsPanel(node, style);
             ConfirmDialog confirm = Confirm(node, style);
             SetRef(slots, "_confirm", confirm);
+            MenuSounds sounds = Sounds(node, style);
 
-            var events = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-            events.transform.SetParent(node, false);
+            GameObject events = Events(node);
             events.SetActive(false);
 
             var menu = node.gameObject.AddComponent<PauseMenu>();
@@ -151,14 +217,16 @@ public static class SaveSetup
             Set(so, "_load", load);
             Set(so, "_settings", settings);
             Set(so, "_mainMenu", mainMenu);
+            Set(so, "_saveQuit", saveQuit);
             Set(so, "_quit", quit);
             Set(so, "_hint", hint);
             Set(so, "_slots", slots);
             Set(so, "_confirm", confirm);
+            Set(so, "_sounds", sounds);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(root, HudPath);
-            return "HUD.prefab: SaveToast (bottom right) + PauseMenu (own canvas, sorting 200, page / slots / confirm, EventSystem off)";
+            return "HUD.prefab: SaveToast (bottom right) + PauseMenu (own canvas, sorting 200, page / slots / confirm, sounds, EventSystem off)";
         }
         finally
         {
@@ -240,22 +308,21 @@ public static class SaveSetup
     // ---- MainMenu scene ----
 
     // The classic survival title screen: the world at sunset, darkened on the left under a big title and a column of text
-    // buttons that light up on a strip of torn tape when hovered or selected.
+    // buttons.
     public static string MainMenu()
     {
         MenuStyle style = Style();
-        Sprite background = LoadSprite(BackgroundPath);
-        Sprite tape = LoadSprite(TapePath);
-        var headerFont = Load<TMP_FontAsset>(HeaderFontPath);
-        var boldFont = Load<TMP_FontAsset>(BoldFontPath);
-        var bodyFont = Load<TMP_FontAsset>(BodyFontPath);
-        var tapeColor = new Color(0.86f, 0.74f, 0.27f, 1f);
+        Sprite background = Load<Sprite>(BackgroundPath);
 
+        // Built as the only open scene, then the previous one is opened again: building next to an open scene marks that
+        // one modified, and Unity won't overwrite the menu scene while it's open.
         Scene previous = SceneManager.GetActiveScene();
-        Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        if (previous.isDirty)
+            throw new Exception($"{previous.path} has unsaved changes: save or discard them first");
+        string previousPath = previous.path;
+        Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         try
         {
-            SceneManager.SetActiveScene(scene);
             var cameraObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener));
             var camera = cameraObject.GetComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
@@ -282,56 +349,45 @@ public static class SaveSetup
             var fitter = backdrop.gameObject.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
             fitter.aspectRatio = background.rect.width / background.rect.height;
-            // Dark on the left under the title and buttons, clear by the middle of the screen.
-            Image shade = Picture("Shade", node, LoadSprite(ShadePath), new Color(0f, 0f, 0f, 0.92f));
-            shade.rectTransform.anchorMin = Vector2.zero;
-            shade.rectTransform.anchorMax = new Vector2(0.62f, 1f);
-            shade.rectTransform.offsetMin = shade.rectTransform.offsetMax = Vector2.zero;
+            Shade(node, style);
 
             RectTransform page = Ui("Page", node);
             Stretch(page);
-            TMP_Text titleTop = Label("Title", page, headerFont, 92f, Color.white);
+            TMP_Text titleTop = Text("Title", page, style, 92f, TextAlignmentOptions.MidlineLeft, style.Text, style.TitleFont);
             titleTop.text = "HASTA LA VISTA,";
             Pin(titleTop.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -110f), new Vector2(1100f, 110f));
-            TMP_Text titleMaybe = Label("Maybe", page, headerFont, 150f, tapeColor);
+            TMP_Text titleMaybe = Text("Maybe", page, style, 150f, TextAlignmentOptions.MidlineLeft, style.Tape, style.TitleFont);
             titleMaybe.text = "MAYBE";
             Pin(titleMaybe.rectTransform, new Vector2(0f, 1f), new Vector2(150f, -200f), new Vector2(600f, 170f));
             titleMaybe.rectTransform.localEulerAngles = new Vector3(0f, 0f, 4f);
-            Image tag = Picture("PrototypeTag", page, tape, tapeColor);
+            Image tag = Picture("PrototypeTag", page, style.ButtonSprite, style.Tape);
             tag.type = Image.Type.Sliced;
             tag.pixelsPerUnitMultiplier = 2f;
             Pin(tag.rectTransform, new Vector2(0f, 1f), new Vector2(560f, -300f), new Vector2(230f, 52f));
             tag.rectTransform.localEulerAngles = new Vector3(0f, 0f, -3f);
-            TMP_Text tagText = Label("Label", tag.transform, boldFont, 30f, new Color(0.08f, 0.08f, 0.08f, 1f));
+            TMP_Text tagText = Text("Label", tag.transform, style, 30f, TextAlignmentOptions.Center, new Color(0.08f, 0.08f, 0.08f, 1f), style.Font);
             tagText.text = "PROTOTYPE";
-            tagText.alignment = TextAlignmentOptions.Center;
             Stretch(tagText.rectTransform);
 
-            RectTransform column = Ui("Buttons", page);
-            Pin(column, new Vector2(0f, 1f), new Vector2(110f, -450f), new Vector2(470f, 480f));
-            var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 4f;
-            layout.childControlWidth = layout.childControlHeight = layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            Button continueButton = TextButton("Continue", "CONTINUE", column, tape, boldFont, style);
-            TMP_Text continueInfo = Label("ContinueInfo", column, bodyFont, 24f, style.InfoText);
+            RectTransform column = TextColumn(page, new Vector2(110f, -450f));
+            Button continueButton = TextButton("Continue", "CONTINUE", column, style);
+            TMP_Text continueInfo = Text("ContinueInfo", column, style, 24f, TextAlignmentOptions.MidlineLeft, style.InfoText, style.BodyFont);
             continueInfo.margin = new Vector4(30f, -6f, 0f, 0f);
             continueInfo.gameObject.AddComponent<LayoutElement>().preferredHeight = 34f;
-            Button prototype = TextButton("Prototype", "PROTOTYPE", column, tape, boldFont, style);
-            Button load = TextButton("Load", "LOAD GAME", column, tape, boldFont, style);
-            Button settings = TextButton("Settings", "SETTINGS", column, tape, boldFont, style);
-            Button quit = TextButton("Quit", "QUIT", column, tape, boldFont, style);
-            TMP_Text status = Label("Status", page, bodyFont, 26f, style.InfoText);
+            Button prototype = TextButton("Prototype", "PROTOTYPE", column, style);
+            Button load = TextButton("Load", "LOAD GAME", column, style);
+            Button settings = TextButton("Settings", "SETTINGS", column, style);
+            Button quit = TextButton("Quit", "QUIT", column, style);
+            TMP_Text status = Text("Status", page, style, 26f, TextAlignmentOptions.MidlineLeft, style.InfoText, style.BodyFont);
             Pin(status.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -950f), new Vector2(1200f, 40f));
-            TMP_Text version = Label("Version", page, bodyFont, 22f, new Color(1f, 1f, 1f, 0.5f));
+            TMP_Text version = Text("Version", page, style, 22f, TextAlignmentOptions.MidlineLeft, new Color(1f, 1f, 1f, 0.5f), style.BodyFont);
             Pin(version.rectTransform, new Vector2(0f, 0f), new Vector2(140f, 36f), new Vector2(800f, 32f));
 
             SaveSlotsPanel slots = SlotsPanel(node, style);
             ConfirmDialog confirm = Confirm(node, style);
             SetRef(slots, "_confirm", confirm);
-
-            var events = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-            events.transform.SetParent(node, false);
+            MenuSounds sounds = Sounds(node, style);
+            GameObject events = Events(node);
 
             var screen = canvasObject.AddComponent<MainMenuScreen>();
             var so = new SerializedObject(screen);
@@ -347,58 +403,18 @@ public static class SaveSetup
             Set(so, "_version", version);
             Set(so, "_slots", slots);
             Set(so, "_confirm", confirm);
+            Set(so, "_sounds", sounds);
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            // Unity won't overwrite a scene that is open.
             if (!EditorSceneManager.SaveScene(scene, MainMenuPath))
-                throw new Exception($"couldn't save {MainMenuPath}: open another scene first");
-            return "MainMenu.unity: world shot, shade, title, text buttons (Continue, Prototype, Load, Settings, Quit), slots, confirm, EventSystem";
+                throw new Exception($"couldn't save {MainMenuPath}");
+            return "MainMenu.unity: world shot, shade, title, text buttons (Continue, Prototype, Load, Settings, Quit), slots, confirm, sounds, EventSystem";
         }
         finally
         {
-            if (previous.IsValid())
-                SceneManager.SetActiveScene(previous);
-            EditorSceneManager.CloseScene(scene, true);
+            if (!string.IsNullOrEmpty(previousPath))
+                EditorSceneManager.OpenScene(previousPath);
         }
-    }
-
-    // A text button for the title screen: the label over a strip of tape that only shows when hovered, selected or pressed.
-    static Button TextButton(string name, string label, Transform parent, Sprite tape, TMP_FontAsset font, MenuStyle style)
-    {
-        RectTransform rect = Ui(name, parent);
-        rect.gameObject.AddComponent<LayoutElement>().preferredHeight = 70f;
-        var image = rect.gameObject.AddComponent<Image>();
-        image.sprite = tape;
-        image.type = Image.Type.Sliced;
-        image.pixelsPerUnitMultiplier = 1.6f;
-        var button = rect.gameObject.AddComponent<Button>();
-        button.targetGraphic = image;
-        ColorBlock colors = ColorBlock.defaultColorBlock;
-        colors.normalColor = new Color(1f, 1f, 1f, 0f);
-        colors.highlightedColor = colors.selectedColor = new Color(style.Accent.r, style.Accent.g, style.Accent.b, 0.9f);
-        colors.pressedColor = style.ButtonPressed;
-        colors.disabledColor = new Color(1f, 1f, 1f, 0f);
-        colors.fadeDuration = 0.06f;
-        button.colors = colors;
-        TMP_Text text = Label("Label", rect, font, 50f, Color.white);
-        Stretch(text.rectTransform);
-        text.margin = new Vector4(30f, 0f, 0f, 0f);
-        text.text = label;
-        return button;
-    }
-
-    static TMP_Text Label(string name, Transform parent, TMP_FontAsset font, float size, Color color)
-    {
-        RectTransform rect = Ui(name, parent);
-        var text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-        text.font = font;
-        text.fontSize = size;
-        text.alignment = TextAlignmentOptions.MidlineLeft;
-        text.color = color;
-        text.textWrappingMode = TextWrappingModes.NoWrap;
-        text.raycastTarget = false;
-        text.text = string.Empty;
-        return text;
     }
 
     static Image Picture(string name, Transform parent, Sprite sprite, Color color)
@@ -410,8 +426,6 @@ public static class SaveSetup
         image.raycastTarget = false;
         return image;
     }
-
-    static Sprite LoadSprite(string path) => Load<Sprite>(path);
 
     static T Load<T>(string path) where T : Object =>
         AssetDatabase.LoadAssetAtPath<T>(path) ?? throw new Exception($"missing {typeof(T).Name} {path}");
@@ -433,19 +447,19 @@ public static class SaveSetup
     {
         RectTransform node = Ui("Slots", parent);
         Stretch(node);
-        Button back = Btn("Back", "<", node, style, 0f);
-        Pin((RectTransform)back.transform, new Vector2(0f, 1f), new Vector2(60f, -50f), new Vector2(84f, 84f));
-        back.GetComponent<Image>().pixelsPerUnitMultiplier = 0.12f;
-        back.GetComponentInChildren<TMP_Text>().fontSize = 44f;
-        TMP_Text title = Text("Title", node, style, 56f, TextAlignmentOptions.MidlineLeft, style.Text);
-        title.text = "Select Save Slot";
-        Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(170f, -50f), new Vector2(560f, 84f));
+        Button back = TextButton("Back", "< BACK", node, style);
+        Pin((RectTransform)back.transform, new Vector2(0f, 1f), new Vector2(40f, -50f), new Vector2(230f, 80f));
+        TMP_Text title = Text("Title", node, style, 84f, TextAlignmentOptions.MidlineLeft, style.Text, style.TitleFont);
+        title.text = "SAVE GAME";
+        Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(300f, -40f), new Vector2(600f, 100f));
         Button copy = Btn("CopyPath", "Copy Save File Path", node, style, 0f);
-        Pin((RectTransform)copy.transform, new Vector2(0f, 1f), new Vector2(740f, -68f), new Vector2(290f, 48f));
-        copy.GetComponentInChildren<TMP_Text>().fontSize = 20f;
+        Pin((RectTransform)copy.transform, new Vector2(0f, 1f), new Vector2(900f, -68f), new Vector2(290f, 50f));
+        TMP_Text copyLabel = copy.GetComponentInChildren<TMP_Text>();
+        copyLabel.font = style.BodyFont;
+        copyLabel.fontSize = 22f;
 
-        RectTransform rows = Ui("Rows", node);
         // Six rows in the editor (Save 1-5 and the editor's slot).
+        RectTransform rows = Ui("Rows", node);
         Pin(rows, new Vector2(0f, 1f), new Vector2(160f, -170f), new Vector2(820f, 620f));
         var layout = rows.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 14f;
@@ -455,7 +469,7 @@ public static class SaveSetup
         layout.childForceExpandHeight = false;
         SaveSlotRow row = Row(rows, style);
 
-        TMP_Text status = Text("Status", node, style, 24f, TextAlignmentOptions.TopLeft, style.InfoText);
+        TMP_Text status = Text("Status", node, style, 26f, TextAlignmentOptions.TopLeft, style.InfoText, style.BodyFont);
         Pin(status.rectTransform, new Vector2(0f, 1f), new Vector2(160f, -790f), new Vector2(1400f, 40f));
 
         var panel = node.gameObject.AddComponent<SaveSlotsPanel>();
@@ -478,22 +492,21 @@ public static class SaveSetup
         Button button = Btn("Button", string.Empty, node, style, 0f);
         Pin((RectTransform)button.transform, new Vector2(0f, 1f), Vector2.zero, new Vector2(660f, 86f));
         Object.DestroyImmediate(button.GetComponentInChildren<TMP_Text>().gameObject);
-        TMP_Text title = Text("Title", button.transform, style, 34f, TextAlignmentOptions.MidlineLeft, style.Text);
-        title.fontStyle = FontStyles.Bold;
+        TMP_Text title = Text("Title", button.transform, style, 40f, TextAlignmentOptions.MidlineLeft, style.Text, style.Font);
         // "Editor Save" shrinks to fit before the info box.
         title.enableAutoSizing = true;
-        title.fontSizeMin = 22f;
-        title.fontSizeMax = 34f;
-        Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(26f, 0f), new Vector2(200f, 86f));
+        title.fontSizeMin = 26f;
+        title.fontSizeMax = 40f;
+        Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(26f, 0f), new Vector2(190f, 86f));
         Image info = Box("Info", button.transform, style, style.InfoBox, false, stretch: false);
         Pin(info.rectTransform, new Vector2(0f, 1f), new Vector2(226f, -10f), new Vector2(420f, 66f));
-        TMP_Text progress = Text("Progress", info.transform, style, 22f, TextAlignmentOptions.MidlineLeft, style.Text);
-        Pin(progress.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -4f), new Vector2(396f, 30f));
-        TMP_Text date = Text("Date", info.transform, style, 20f, TextAlignmentOptions.MidlineLeft, style.InfoText);
+        TMP_Text progress = Text("Progress", info.transform, style, 26f, TextAlignmentOptions.MidlineLeft, style.Text, style.BodyFont);
+        Pin(progress.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -2f), new Vector2(396f, 32f));
+        TMP_Text date = Text("Date", info.transform, style, 22f, TextAlignmentOptions.MidlineLeft, style.InfoText, style.BodyFont);
         Pin(date.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -34f), new Vector2(396f, 28f));
-        Button delete = Btn("Delete", "Delete", node, style, 0f, style.Danger);
-        Pin((RectTransform)delete.transform, new Vector2(0f, 1f), new Vector2(676f, -15f), new Vector2(120f, 56f));
-        delete.GetComponentInChildren<TMP_Text>().fontSize = 22f;
+        Button delete = Btn("Delete", "DELETE", node, style, 0f, style.Danger);
+        Pin((RectTransform)delete.transform, new Vector2(0f, 1f), new Vector2(676f, -15f), new Vector2(124f, 56f));
+        delete.GetComponentInChildren<TMP_Text>().fontSize = 26f;
 
         var row = node.gameObject.AddComponent<SaveSlotRow>();
         var so = new SerializedObject(row);
@@ -513,16 +526,16 @@ public static class SaveSetup
         RectTransform node = Ui("Confirm", parent);
         Stretch(node);
         node.SetAsLastSibling();
-        Box("Dim", node, style, new Color(0f, 0f, 0f, 0.55f), true, stretch: true);
-        Image panel = Box("Panel", node, style, new Color(0.15f, 0.18f, 0.23f, 0.98f), true, stretch: false);
-        Pin(panel.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(720f, 300f), new Vector2(0.5f, 0.5f));
-        TMP_Text message = Text("Message", panel.transform, style, 30f, TextAlignmentOptions.Center, style.Text);
+        Box("Dim", node, style, new Color(0f, 0f, 0f, 0.6f), true, stretch: true);
+        Image panel = Box("Panel", node, style, style.Panel, true, stretch: false);
+        Pin(panel.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 320f), new Vector2(0.5f, 0.5f));
+        TMP_Text message = Text("Message", panel.transform, style, 34f, TextAlignmentOptions.Center, style.Text, style.BodyFont);
         message.textWrappingMode = TextWrappingModes.Normal;
-        Pin(message.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -30f), new Vector2(640f, 150f), new Vector2(0.5f, 1f));
-        Button yes = Btn("Yes", "Yes", panel.transform, style, 0f, style.Danger);
-        Pin((RectTransform)yes.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 36f), new Vector2(260f, 64f), new Vector2(0.5f, 0f));
-        Button no = Btn("No", "Cancel", panel.transform, style, 0f);
-        Pin((RectTransform)no.transform, new Vector2(0.5f, 0f), new Vector2(150f, 36f), new Vector2(260f, 64f), new Vector2(0.5f, 0f));
+        Pin(message.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(680f, 160f), new Vector2(0.5f, 1f));
+        Button yes = Btn("Yes", "YES", panel.transform, style, 0f, style.Danger);
+        Pin((RectTransform)yes.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 38f), new Vector2(260f, 66f), new Vector2(0.5f, 0f));
+        Button no = Btn("No", "CANCEL", panel.transform, style, 0f);
+        Pin((RectTransform)no.transform, new Vector2(0.5f, 0f), new Vector2(150f, 38f), new Vector2(260f, 66f), new Vector2(0.5f, 0f));
 
         var dialog = node.gameObject.AddComponent<ConfirmDialog>();
         var so = new SerializedObject(dialog);
@@ -535,21 +548,63 @@ public static class SaveSetup
         return dialog;
     }
 
-    // A vertical list of buttons from its top-left corner.
-    static RectTransform Column(string name, Transform parent, Vector2 position, float width)
+    // Dark on the left under the menu's column, clear by the middle of the screen.
+    static void Shade(Transform parent, MenuStyle style)
     {
-        RectTransform column = Ui(name, parent);
-        Pin(column, new Vector2(0f, 1f), position, new Vector2(width, 520f));
+        Image shade = Picture("Shade", parent, style.ShadeSprite, new Color(0f, 0f, 0f, 0.92f));
+        shade.rectTransform.anchorMin = Vector2.zero;
+        shade.rectTransform.anchorMax = new Vector2(0.62f, 1f);
+        shade.rectTransform.offsetMin = shade.rectTransform.offsetMax = Vector2.zero;
+    }
+
+    static MenuSounds Sounds(Transform node, MenuStyle style)
+    {
+        var sounds = node.gameObject.AddComponent<MenuSounds>();
+        SetRef(sounds, "_style", style);
+        return sounds;
+    }
+
+    // The menu's EventSystem, keeping the focus for a gamepad.
+    static GameObject Events(Transform parent)
+    {
+        var events = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule), typeof(MenuSelectionKeeper));
+        events.transform.SetParent(parent, false);
+        return events;
+    }
+
+    // The column of text buttons from its top-left corner.
+    static RectTransform TextColumn(Transform parent, Vector2 position)
+    {
+        RectTransform column = Ui("Buttons", parent);
+        Pin(column, new Vector2(0f, 1f), position, new Vector2(470f, 560f));
         var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 14f;
-        layout.childControlWidth = true;
-        layout.childControlHeight = true;
-        layout.childForceExpandWidth = true;
+        layout.spacing = 4f;
+        layout.childControlWidth = layout.childControlHeight = layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
         return column;
     }
 
-    // A rounded button with a centred label; `height` > 0 sizes it in a layout group.
+    // A text button: the label over a strip of tape that only shows when hovered, selected or pressed.
+    static Button TextButton(string name, string label, Transform parent, MenuStyle style)
+    {
+        RectTransform rect = Ui(name, parent);
+        rect.gameObject.AddComponent<LayoutElement>().preferredHeight = 70f;
+        var image = rect.gameObject.AddComponent<Image>();
+        image.sprite = style.ButtonSprite;
+        image.type = Image.Type.Sliced;
+        image.pixelsPerUnitMultiplier = style.CornerScale;
+        var button = rect.gameObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        button.colors = style.TextColors();
+        rect.gameObject.AddComponent<MenuButton>();
+        TMP_Text text = Text("Label", rect, style, 50f, TextAlignmentOptions.MidlineLeft, style.Text, style.Font);
+        Stretch(text.rectTransform);
+        text.margin = new Vector4(30f, 0f, 0f, 0f);
+        text.text = label;
+        return button;
+    }
+
+    // A filled button (tape strip) with a centred label; `height` > 0 sizes it in a layout group.
     static Button Btn(string name, string label, Transform parent, MenuStyle style, float height, Color? normal = null)
     {
         RectTransform rect = Ui(name, parent);
@@ -561,9 +616,10 @@ public static class SaveSetup
         var button = rect.gameObject.AddComponent<Button>();
         button.targetGraphic = image;
         button.colors = style.Colors(normal);
+        rect.gameObject.AddComponent<MenuButton>();
         if (height > 0f)
             rect.gameObject.AddComponent<LayoutElement>().preferredHeight = height;
-        TMP_Text text = Text("Label", rect, style, 30f, TextAlignmentOptions.Center, style.Text);
+        TMP_Text text = Text("Label", rect, style, 32f, TextAlignmentOptions.Center, style.Text, style.Font);
         Stretch(text.rectTransform);
         text.text = label;
         return button;
@@ -586,11 +642,12 @@ public static class SaveSetup
         return image;
     }
 
-    static TMP_Text Text(string name, Transform parent, MenuStyle style, float size, TextAlignmentOptions alignment, Color color)
+    static TMP_Text Text(string name, Transform parent, MenuStyle style, float size, TextAlignmentOptions alignment, Color color,
+        TMP_FontAsset font = null)
     {
         RectTransform rect = Ui(name, parent);
         var text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-        text.font = style.Font;
+        text.font = font != null ? font : style.Font;
         text.fontSize = size;
         text.alignment = alignment;
         text.color = color;

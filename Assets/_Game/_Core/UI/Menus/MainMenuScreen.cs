@@ -2,7 +2,6 @@ using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Input;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using VContainer;
@@ -13,8 +12,6 @@ namespace MB13.Aipocalypse.Core.UI
     // (the slot list), Settings (later), Quit. Holds the UI input while the scene is open.
     public sealed class MainMenuScreen : MonoBehaviour
     {
-        const float DisabledLabelAlpha = 0.35f;
-
         [SerializeField, Tooltip("EventSystem + InputSystemUIInputModule")] GameObject _eventSystem;
         [SerializeField, Tooltip("The buttons page")] GameObject _page;
         [SerializeField] Button _continue;
@@ -27,6 +24,7 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField, Tooltip("Bottom corner: the build")] TMP_Text _version;
         [SerializeField] SaveSlotsPanel _slots;
         [SerializeField] ConfirmDialog _confirm;
+        [SerializeField] MenuSounds _sounds;
 
         InputService _input;
         GameSession _session;
@@ -50,7 +48,7 @@ namespace MB13.Aipocalypse.Core.UI
             _continue.onClick.AddListener(Continue);
             _prototype.onClick.AddListener(Prototype);
             _load.onClick.AddListener(OpenSlots);
-            SetInteractable(_settings, false);
+            _settings.interactable = false;
             _quit.onClick.AddListener(() => _confirm.Ask("Quit the game?", "Quit", () => _session.Quit()));
             _slots.Closed += ShowPage;
             _slots.gameObject.SetActive(false);
@@ -72,6 +70,8 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_input == null || _session.IsLoading || !_input.UiCancelPressed)
                 return;
+            if (_confirm.IsOpen || _slots.IsOpen)
+                _sounds?.Back();
             if (_confirm.IsOpen)
                 _confirm.Close();
             else if (_slots.IsOpen)
@@ -82,10 +82,10 @@ namespace MB13.Aipocalypse.Core.UI
         {
             _page.SetActive(true);
             _latest = _saves != null ? _saves.LatestSlot() : 0;
-            SetInteractable(_continue, _latest > 0);
+            _continue.interactable = _latest > 0;
             if (_continueInfo != null)
                 _continueInfo.text = _latest > 0 ? $"{SaveFormat.SlotName(_latest)}  ·  {SaveFormat.Summary(_saves.Info(_latest))}" : "No saves yet";
-            EventSystem.current?.SetSelectedGameObject(_latest > 0 ? _continue.gameObject : _prototype.gameObject);
+            MenuButton.SelectSilently(_latest > 0 ? _continue : _prototype);
         }
 
         void Continue()
@@ -110,15 +110,6 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_status != null)
                 _status.text = message;
-        }
-
-        // Text buttons: the tint only lights the highlight behind the label, so a disabled one dims its label here.
-        static void SetInteractable(Button button, bool interactable)
-        {
-            button.interactable = interactable;
-            var label = button.GetComponentInChildren<TMP_Text>();
-            if (label != null)
-                label.alpha = interactable ? 1f : DisabledLabelAlpha;
         }
     }
 }

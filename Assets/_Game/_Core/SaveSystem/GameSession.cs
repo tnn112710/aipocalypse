@@ -198,6 +198,15 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             return true;
         }
 
+        // Saves to the game's slot, then quits once the file is written (Quit waits for it).
+        public bool SaveAndQuit(out string message)
+        {
+            if (!Save(Slot, out message))
+                return false;
+            Quit();
+            return true;
+        }
+
         public void Quit()
         {
             _saves.Flush();

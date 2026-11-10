@@ -53,13 +53,14 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             return IsValidSlot(slot) && (File.Exists(PathOf(slot)) || File.Exists(PathOf(slot) + BackupSuffix));
         }
 
-        // An empty save to fill, holding a copy of `carry` (keys no section claims today stay in the file).
+        // A save to fill with a fresh header. With `carry` (the save loaded or last written) it goes on from carry's entries
+        // instead of copying them (~1.5 ms): sections overwrite theirs, and keys no section claims today stay. Safe because
+        // a write takes its bytes at once (WriteAsync), so nothing written earlier changes.
         public SaveData Create(SaveData carry = null)
         {
-            var file = new ES3File(FileSettings(Path.Combine(FolderPath, "memory.es3")), false);
             if (carry != null)
-                file.SaveRaw(carry.File.LoadRawBytes());
-            file.DeleteKey(SaveData.HeaderKey);
+                return new SaveData(carry.File, null);
+            var file = new ES3File(FileSettings(Path.Combine(FolderPath, "memory.es3")), false);
             return new SaveData(file, null);
         }
 
