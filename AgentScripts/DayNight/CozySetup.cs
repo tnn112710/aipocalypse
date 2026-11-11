@@ -136,6 +136,35 @@ public static class CozySetup
         return $"baked {Samples} keys into {ProfilePath} (pitch {pitch}, rotation {rotation})";
     }
 
+    // Volumetric clouds without visible banding (user, 2026-11-11: ring and block patterns on lit night clouds). COZY drops
+    // its temporal smoothing whenever the camera turns, which a first-person camera always does, so the raw raymarch shows:
+    // its step bands as rings (fixed by half the step size over twice the steps, the same distance) and its blue-noise
+    // jitter as blocks at COZY 4's default quarter resolution (fixed by half resolution). `steps` 0 = drop the override.
+    public static object Clouds(int steps = 128, float stepSize = 8f, int downsampling = 2)
+    {
+        var profile = AssetDatabase.LoadAssetAtPath<AtmosphereProfile>(ProfilePath);
+        if (profile == null)
+            return "no " + ProfilePath;
+        var overrides = profile.overrides ??= new List<AtmosphereOverride>();
+        overrides.RemoveAll(o => o is CloudsVolumetricOverride);
+        if (steps > 0)
+            overrides.Add(new CloudsVolumetricOverride
+            {
+                steps = Constant<FloatValue>(steps),
+                stepSize = Constant<FloatValue>(stepSize),
+            });
+        EditorUtility.SetDirty(profile);
+        AssetDatabase.SaveAssetIfDirty(profile);
+
+        var prefs = new SerializedObject(CozyPreferences.Instance);
+        prefs.FindProperty("cloudDownsampling").intValue = downsampling;
+        prefs.ApplyModifiedPropertiesWithoutUndo();
+        AssetDatabase.SaveAssetIfDirty(CozyPreferences.Instance);
+        foreach (var module in Object.FindObjectsByType<CozyAtmosphereModule>(FindObjectsInactive.Include))
+            module.UpdateModel();
+        return $"clouds: {(steps > 0 ? $"{steps} steps of {stepSize} m" : "COZY's steps")}, downsampling {CozyPreferences.CloudDownsampling}";
+    }
+
     // Re-bakes only the night sky (stars, constellations, galaxy) into the profile; the other overrides stay as they are.
     public static object NightSky()
     {

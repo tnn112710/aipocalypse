@@ -63,10 +63,7 @@ public static class InventorySetup
 
     public static string Items()
     {
-        var tokens = Asset<CurrencyDefinition>($"{ItemsDir}/Tokens/Tokens.asset");
-        Define(tokens, "Tokens", Icons + "Icons_Resources/ICON_SM_Prop_Money_Strapped_04.png", maxStack: 1, weight: 0f, unlimited: true, autoCollect: true);
-        SetPrefab(tokens, WorldPrefab($"{ItemsDir}/Tokens/Tokens.prefab", tokens,
-            "Assets/Synty/PolygonPrototype/Prefabs/Icons/SM_Icon_Coin_03.prefab", 0.4f, new Vector3(0f, 0.13f, 0f), Vector3.zero));
+        Tokens();
 
         Ammo("PistolAmmo", Icons + "Icons_Ammo/ICON_SM_Wep_Pistol_Ammo_Box_01.png", 120, 0.012f, "Polygon-Mega Weapons Kit/Prefabs/SM_Ammo_Box_Closed.prefab", 0.22f);
         Ammo("RifleAmmo", Icons + "Icons_Ammo/ICON_SM_Prop_AmmoBox_04.png", 120, 0.016f, "Polygon-Mega Weapons Kit/Prefabs/SM_Ammo_Box_Large_Closed.prefab", 0.3f);
@@ -80,7 +77,7 @@ public static class InventorySetup
         so.ApplyModifiedPropertiesWithoutUndo();
         SetPrefab(backpack, WorldPrefab($"{ItemsDir}/Backpack/Backpack.prefab", backpack, Animpic + "Polygon-Mega Survival/Prefabs/Backpack.prefab",
             1f, Vector3.zero, Vector3.zero));
-        Save(tokens, backpack);
+        Save(backpack);
         return "items: Tokens, PistolAmmo/RifleAmmo/ShotgunShells boxes, Backpack (consumables: Consumables)";
     }
 
@@ -126,6 +123,129 @@ public static class InventorySetup
     }
 
     static Sprite Sprite(string path) => AssetDatabase.LoadAssetAtPath<Sprite>(path) ?? throw new Exception("missing sprite " + path);
+
+    // The Token pickup, easy to spot on grass and at night (user, 2026-11-11): the coin 15% bigger, floating 0.25 m higher,
+    // glowing (an emissive copy of its material) inside a soft pulsing gold halo (Gabriel Aguiar's Glow_02). Its pickup box
+    // reaches down to the ground, so a thrown pile still lands on it.
+    // Run alone: unity command script run --file AgentScripts/Inventory/InventorySetup.cs --entry InventorySetup.Tokens
+    public static string Tokens()
+    {
+        var tokens = Asset<CurrencyDefinition>($"{ItemsDir}/Tokens/Tokens.asset");
+        Define(tokens, "Tokens", Icons + "Icons_Resources/ICON_SM_Prop_Money_Strapped_04.png", maxStack: 1, weight: 0f, unlimited: true, autoCollect: true);
+        string path = $"{ItemsDir}/Tokens/Tokens.prefab";
+        var modelAt = new Vector3(0f, 0.38f, 0f);
+        WorldPrefab(path, tokens, "Assets/Synty/PolygonPrototype/Prefabs/Icons/SM_Icon_Coin_03.prefab", 0.46f, modelAt, Vector3.zero);
+
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            Transform world = root.transform.Find("World");
+            Material coin = TokenCoinMaterial();
+            foreach (MeshRenderer renderer in world.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var materials = new Material[renderer.sharedMaterials.Length];
+                for (int i = 0; i < materials.Length; i++)
+                    materials[i] = coin;
+                renderer.sharedMaterials = materials;
+            }
+            TokenHalo(world, modelAt);
+            var box = root.GetComponent<BoxCollider>();
+            float top = box.center.y + box.size.y * 0.5f;
+            box.center = new Vector3(box.center.x, top * 0.5f, box.center.z);
+            box.size = new Vector3(box.size.x, top, box.size.z);
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+        SetPrefab(tokens, AssetDatabase.LoadAssetAtPath<WorldItem>(path));
+        Save(tokens);
+        return $"tokens: {path} (coin ×0.46 at {modelAt.y} m, emissive, gold halo)";
+    }
+
+    // The coin's Polygon Prototype atlas material with its own colours as emission (Generic_Basic's Enable Emission toggle).
+    static Material TokenCoinMaterial()
+    {
+        string path = $"{ItemsDir}/Tokens/Token_Coin.mat";
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            var source = AssetDatabase.LoadAssetAtPath<Material>("Assets/Synty/PolygonPrototype/Materials/PolygonPrototype_01.mat")
+                ?? throw new Exception("missing PolygonPrototype_01.mat");
+            material = new Material(source);
+            AssetDatabase.CreateAsset(material, path);
+        }
+        material.SetFloat("_Enable_Emission", 1f);
+        material.SetTexture("_Emission_Map", material.GetTexture("_Albedo_Map"));
+        material.SetColor("_Emission_Color", new Color(1.4f, 1.1f, 0.45f, 1f));
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssetIfDirty(material);
+        return material;
+    }
+
+    // One soft additive glow billboard round the coin, pulsing (two overlapping particles that swell and fade); paused off screen.
+    static void TokenHalo(Transform world, Vector3 at)
+    {
+        string path = $"{ItemsDir}/Tokens/Token_Glow.mat";
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            AssetDatabase.CreateAsset(material, path);
+        }
+        material.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_StoreAssets/VFX/GabrielAguiarProductions/Textures/Glow_02.png"));
+        material.SetColor("_BaseColor", new Color(2.4f, 1.6f, 0.45f, 0.55f));
+        material.SetFloat("_Surface", 1f);
+        material.SetFloat("_Blend", 2f);
+        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+        material.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+        material.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+        material.SetFloat("_ZWrite", 0f);
+        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssetIfDirty(material);
+
+        var glow = new GameObject("Glow");
+        glow.transform.SetParent(world, false);
+        glow.transform.localPosition = at;
+        var particles = glow.AddComponent<ParticleSystem>();
+        ParticleSystem.MainModule main = particles.main;
+        main.duration = 1.6f;
+        main.loop = true;
+        main.prewarm = true;
+        main.startLifetime = 1.6f;
+        main.startSpeed = 0f;
+        main.startSize = 0.8f;
+        main.maxParticles = 3;
+        main.simulationSpace = ParticleSystemSimulationSpace.Local;
+        main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+        main.cullingMode = ParticleSystemCullingMode.Pause;
+        ParticleSystem.EmissionModule emission = particles.emission;
+        emission.rateOverTime = 1.25f;
+        ParticleSystem.ShapeModule shape = particles.shape;
+        shape.enabled = false;
+        ParticleSystem.SizeOverLifetimeModule size = particles.sizeOverLifetime;
+        size.enabled = true;
+        size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(new Keyframe(0f, 0.7f), new Keyframe(0.5f, 1f), new Keyframe(1f, 0.75f)));
+        ParticleSystem.ColorOverLifetimeModule colour = particles.colorOverLifetime;
+        colour.enabled = true;
+        var fade = new Gradient();
+        fade.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+            new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.4f), new GradientAlphaKey(0f, 1f) });
+        colour.color = fade;
+        var renderer = glow.GetComponent<ParticleSystemRenderer>();
+        renderer.sharedMaterial = material;
+        renderer.renderMode = ParticleSystemRenderMode.Billboard;
+        // Pushed away from the camera (pivot z, in particle sizes) so the halo sits behind the whole coin instead of
+        // cutting through it, which lit only its far half.
+        renderer.pivot = new Vector3(0f, 0f, 0.5f);
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+    }
 
     // A pickup: root WorldItem + trigger box, World/Model holding copies of the vendor model's meshes.
     static WorldItem WorldPrefab(string path, ItemDefinition item, string modelPath, float scale, Vector3 position, Vector3 euler)
