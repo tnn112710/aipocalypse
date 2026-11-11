@@ -67,6 +67,7 @@ namespace MB13.Aipocalypse.Tests
 
         readonly List<FakeTarget> _targets = new();
         readonly List<FakeBarrier> _barriers = new();
+        readonly List<TargetRegistry> _registries = new();
         EnemySystemSettings _settings;
 
         [SetUp]
@@ -75,6 +76,9 @@ namespace MB13.Aipocalypse.Tests
         [TearDown]
         public void TearDown()
         {
+            foreach (TargetRegistry registry in _registries)
+                registry.Dispose();
+            _registries.Clear();
             foreach (FakeTarget target in _targets)
                 Object.DestroyImmediate(target.Transform.gameObject);
             _targets.Clear();
@@ -82,6 +86,14 @@ namespace MB13.Aipocalypse.Tests
                 Object.DestroyImmediate(barrier.Transform.gameObject);
             _barriers.Clear();
             Object.DestroyImmediate(_settings);
+        }
+
+        // Disposed after the test (a registry with barriers owns the Farm's object).
+        TargetRegistry Registry()
+        {
+            var registry = new TargetRegistry(null);
+            _registries.Add(registry);
+            return registry;
         }
 
         FakeTarget Target(Vector3 position)
@@ -101,7 +113,7 @@ namespace MB13.Aipocalypse.Tests
         // A straight fence along X at z = 10, 2 m segments from x = -20 to 20; the player behind it at z = 20.
         TargetRegistry Fence(out FakeTarget player)
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             player = Target(new Vector3(0f, 0f, 20f));
             registry.Add(player);
             for (int x = -20; x <= 20; x += 2)
@@ -124,7 +136,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Selector_FenceShut_AttacksTheWeakestOfTheNearestBarriers()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
             registry.Add(Target(new Vector3(0f, 0f, 30f)));
             // Nearest five at x 0..4 (the one at 3 is the weakest of them); the weakest of all at x 9 is too far to be compared.
@@ -252,6 +264,72 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Selector_Newcomers_ShareTheBreaking_TheOnesFurthestFromTheGap()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            // A gap at x = 12; four goblins arriving outside at z = 5, none at the fence yet, all beyond 8 m of the gap and with
+            // it less than 15 m out of their way. Each chooses twice: the second choice knows the others.
+            At(12f).IsTargetable = false;
+            registry.BarriersChanged();
+            float[] xs = { 4f, 2f, 0f, -1f };
+            var goblins = new object[xs.Length];
+            for (int i = 0; i < xs.Length; i++)
+                goblins[i] = new object();
+            var breakers = new List<float>();
+            for (int pass = 0; pass < 2; pass++)
+            {
+                breakers.Clear();
+                for (int i = 0; i < xs.Length; i++)
+                    if (selector.Choose(goblins[i], new Vector3(xs[i], 0f, 5f), BreakerWeights, null, Rules) is IBreachable)
+                        breakers.Add(xs[i]);
+            }
+
+            Assert.That(breakers, Is.EqualTo(new[] { -1f }), "a third of four (at least one): the newcomer furthest from the gap");
+            Assert.That(selector.Choose(goblins[0], new Vector3(4f, 0f, 5f), BreakerWeights, null, Rules), Is.SameAs(player), "the rest go for the gap");
+        }
+
+        [Test]
+        public void Selector_Unaware_GoesForItsObjective_NeverThePlayer()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            At(0f).IsTargetable = false;
+            registry.BarriersChanged();
+            var from = new Vector3(0f, 0f, 5f);
+
+            Assert.That(selector.Choose(new object(), from, BreakerWeights, null, Rules, false, registry.Farm), Is.SameAs(registry.Farm), "the farm, through the gap");
+            Assert.That(selector.Choose(new object(), from, BreakerWeights, null, Rules, false, null), Is.Null, "no objective: nothing to hunt");
+            Assert.That(selector.Choose(new object(), from, BreakerWeights, null, Rules, true, registry.Farm), Is.SameAs(player), "once it knows");
+        }
+
+        [Test]
+        public void Selector_Unaware_FenceShut_BreaksInTowardTheFarm()
+        {
+            TargetRegistry registry = Fence(out _);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
+            At(0f).RemainingHealth = 50f;
+
+            Assert.That(selector.Choose(new object(), new Vector3(0f, 0f, 5f), BreakerWeights, null, Rules, false, registry.Farm), Is.SameAs(At(0f)));
+        }
+
+        [Test]
+        public void Registry_FarmIsTheMiddleOfItsBarriers_AndGoesWithThem()
+        {
+            TargetRegistry registry = Registry();
+            Assert.That(registry.Farm, Is.Null, "no barriers, no farm");
+            registry.Add(Barrier(-10f, 10f));
+            registry.Add(Barrier(10f, 10f));
+            Assert.That(registry.FarmPosition, Is.EqualTo(new Vector3(0f, 0f, 10f)));
+            Assert.That(registry.Farm.Kind, Is.EqualTo(TargetKind.Farm));
+            Assert.That(registry.Count, Is.Zero, "not among the hunted targets");
+            registry.Remove(_barriers[1]);
+            Assert.That(registry.FarmPosition.x, Is.EqualTo(-10f));
+            registry.Remove(_barriers[0]);
+            Assert.That(registry.Farm, Is.Null);
+        }
+
+        [Test]
         public void Selector_LoneHunter_TakesTheGap_AndForgetDropsIt()
         {
             TargetRegistry registry = Fence(out FakeTarget player);
@@ -267,7 +345,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Registry_CountsBarrierChanges()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             int before = registry.BarrierVersion;
             registry.BarriersChanged();
             Assert.That(registry.BarrierVersion, Is.EqualTo(before + 1));
@@ -287,7 +365,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Selector_WithoutAPath_AndNoBarrierStanding_KeepsTheTarget()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = false });
             FakeTarget player = Target(new Vector3(0f, 0f, 30f));
             registry.Add(player);
@@ -301,7 +379,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Registry_KeepsBarriersApartFromHuntedTargets()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             registry.Add(Target(Vector3.zero));
             FakeBarrier barrier = Barrier(0f, 10f);
             registry.Add(barrier);
@@ -316,7 +394,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Selector_PicksTheNearestWantedTarget_AndSkipsUntargetableOnes()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             var selector = new TargetSelector(registry, null);
             var weights = new Dictionary<TargetKind, float> { { TargetKind.Player, 1f } };
             FakeTarget far = Target(new Vector3(30f, 0f, 0f));
@@ -334,7 +412,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Selector_IgnoresKindsWithoutWeight()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             var selector = new TargetSelector(registry, null);
             registry.Add(Target(new Vector3(5f, 0f, 0f)));
 
@@ -346,7 +424,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Registry_AddsATargetOnce_AndRemovesIt()
         {
-            var registry = new TargetRegistry(null);
+            TargetRegistry registry = Registry();
             FakeTarget target = Target(Vector3.zero);
             registry.Add(target);
             registry.Add(target);

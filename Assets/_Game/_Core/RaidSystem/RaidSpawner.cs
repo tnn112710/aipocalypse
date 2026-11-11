@@ -65,7 +65,7 @@ namespace MB13.Aipocalypse.Core.RaidSystem
             SpawnZone from = FindZone(zone);
             if (card == null || count <= 0 || from == null)
                 return 0;
-            SpawnHandle group = _spawns.Spawn(SpawnRequest.Group(card, from, count).WithRules(_settings.Spawning));
+            SpawnHandle group = _spawns.Spawn(SpawnRequest.Group(card, from, count).WithRules(_settings.Spawning).WithTag(SpawnOrders.Raid));
             if (group.Count == 0)
                 return 0;
             _groups.Add(group);

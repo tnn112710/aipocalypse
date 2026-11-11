@@ -35,8 +35,14 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Min(1f), Tooltip("Move speed multiplier inside EngageRadius")] public float ChaseSpeedMultiplier = 2.5f;
         [Min(0f), Tooltip("Metres the target must move before the chase re-paths; far away, a tenth of the distance if that's more")]
         public float RepathDistance = 0.5f;
-        [Min(0.5f), Tooltip("Metres from the target where an enemy without an attack slot (AttackSlots) waits its turn")]
+        [Min(0.5f), Tooltip("Metres from the target where an enemy without an attack slot (AttackSlots) waits its turn, on its own " +
+            "spot round the target so a crowd surrounds instead of queueing")]
         public float HoldDistance = 3.5f;
+        [Min(0f), Tooltip("Seconds a waiting enemy keeps its spot round the target before it picks another; 0 = it keeps it")]
+        public float HoldShuffleTime = 4f;
+        [Min(0f), Tooltip("Metres from its objective (the farm's middle, for a raider that hasn't noticed the player) where it counts " +
+            "as arrived and roams there instead")]
+        public float ObjectiveRadius = 10f;
         [Range(0f, 60f), Tooltip("Most degrees an enemy's approach turns off the straight line (each picks its own side and amount), so a group fans out instead of running single file")]
         public float FlankAngle = 30f;
         [Min(0f), Tooltip("Metres from the target beyond which the approach keeps its full angle; it straightens towards the target from here in to EngageRadius")]

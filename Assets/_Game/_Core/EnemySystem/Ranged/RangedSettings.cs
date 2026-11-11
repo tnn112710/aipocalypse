@@ -15,6 +15,11 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public float MaxRange = 20f;
         [BoxGroup("Distance"), Min(0f), Tooltip("Closer than this it backs away to its stand-off distance before throwing again; 0 = it never backs away")]
         public float MinRange = 4f;
+        [BoxGroup("Distance"), Min(0f), Tooltip("A target this close (m) is fought hand to hand with the kind's MeleeSettings instead of " +
+            "backed away from; it throws again once the target is further off. 0 = it only backs away")]
+        public float MeleeRange = 2.5f;
+        [BoxGroup("Path"), Tooltip("Layers of its own side: it holds a straight throw while one of them stands in the line (a lob goes over)")]
+        public LayerMask Friends = 1 << 23;
 
         [BoxGroup("Throw"), Tooltip("What it throws")] public ProjectileDefinition Projectile;
         [BoxGroup("Throw"), Min(0.1f), Tooltip("Seconds the throw takes, standing (cover the attack clip)")] public float AttackDuration = 1.6f;

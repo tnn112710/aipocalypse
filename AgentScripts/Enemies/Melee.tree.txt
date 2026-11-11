@@ -4,10 +4,14 @@
 # wander as soon as a target exists, and ends the hunt when none is left.
 # Job: punish standing in the open at night; it runs at the player from wherever it spawned, from afar coming in from its
 # own side (MeleeSettings.FlankAngle, straightening inside FlankFadeDistance) so a group fans out.
-# Notices: always knows its target (raiders are sent at it); takes its fighting stance and shouts within EngageRadius.
+# Unaware: a raider goes for the farm (SpawnOrders.Objective): breaks in when the fence is shut, roams the yard once
+# there (ObjectiveRadius); otherwise it wanders (a camp, cheat.notarget).
+# Notices: the player within EnemyDefinition.SpotRange with a clear line (a fence is seen through), any hit, or a
+# neighbour's alarm (AlertRadius); it shouts and turns on them. Takes its fighting stance and shouts within EngageRadius.
 # Warns: a visible wind-up before each blow, which lands at HitTime and misses if the player stepped out of reach or arc.
-# Gives up: when the target can't be targeted any more (dead, notarget); at most AttackSlots' share swing at once, the
-# rest wait at HoldDistance.
+# Gives up: when the target can't be targeted any more (dead, notarget), or LoseSightTime seconds after it last saw the
+# player (then back to the farm, or it roams); at most AttackSlots' share swing at once, the rest wait on their own spot
+# round the target at HoldDistance.
 # Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
 #        --args '["AgentScripts/Enemies/Melee.tree.txt"]'
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.

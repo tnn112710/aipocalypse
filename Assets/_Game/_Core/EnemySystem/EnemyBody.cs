@@ -112,6 +112,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return default;
             float applied = _health.Damage(info.Amount);
             bool killed = _health.IsDead;
+            // A hit always makes it notice the player (and alarm its neighbours), even the one that kills it.
+            _brain.Notice(true);
 
             Vector3 push = info.Force;
             StaggerProfile weight = _settings != null ? _settings.Stagger : null;

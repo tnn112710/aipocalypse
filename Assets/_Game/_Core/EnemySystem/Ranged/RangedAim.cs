@@ -27,9 +27,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
 
         static readonly RaycastHit[] Hits = new RaycastHit[8];
 
-        // False when no throw reaches the target from here.
+        // False when no throw reaches the target from here. `lobOnly`: no straight throw (one of the thrower's own stands in the line).
         public static bool TryPlan(RangedSettings settings, Vector3 from, Vector3 targetPoint, Vector3 targetVelocity, Transform thrower,
-            Transform target, out RangedThrow plan)
+            Transform target, out RangedThrow plan, bool lobOnly = false)
         {
             plan = default;
             ProjectileDefinition projectile = settings.Projectile;
@@ -38,7 +38,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             float gravity = projectile.Gravity;
             float radius = projectile.Radius;
 
-            bool clear = IsClear(from, targetPoint, radius, settings.Obstacles, thrower, target);
+            bool clear = !lobOnly && IsClear(from, targetPoint, radius, settings.Obstacles, thrower, target);
             bool lob = !clear || Random.value < settings.LobAnyway;
             if (!lob && TryStraight(settings, from, targetPoint, targetVelocity, gravity, out plan))
                 return true;
@@ -94,6 +94,14 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             heading.y = 0f;
             Vector3 side = heading.sqrMagnitude > 0.0001f ? Vector3.Cross(Vector3.up, heading.normalized) : Vector3.right;
             return aim + side * off.x + Vector3.up * (off.y * 0.5f);
+        }
+
+        // One of the thrower's own side (`friends` layers, not the thrower itself) stands in the straight line to `to`.
+        public static bool FriendInLine(Vector3 from, Vector3 to, float radius, int friends, Transform thrower)
+        {
+            Vector3 path = to - from;
+            float distance = path.magnitude;
+            return distance >= 0.01f && Blocked(from, path / distance, distance, radius, friends, thrower, null);
         }
 
         static bool IsClear(Vector3 from, Vector3 to, float radius, int mask, Transform thrower, Transform target)

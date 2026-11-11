@@ -30,6 +30,9 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
         public Formation Formation;
         // Null = SpawnSystemSettings.DefaultRules.
         public SpawnRules Rules;
+        // Anything the spawner wants its members to know (SpawnHandle.Tag, read in ISpawnable.OnSpawned): enemies take
+        // SpawnOrders. Null = nothing.
+        public object Tag;
 
         // `count` of `card` somewhere in `area`, out of the player's view when it can.
         public static SpawnRequest Group(SpawnCard card, ISpawnArea area, int count = 0) =>
@@ -64,6 +67,13 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
         {
             SpawnRequest request = this;
             request.Direction = direction;
+            return request;
+        }
+
+        public SpawnRequest WithTag(object tag)
+        {
+            SpawnRequest request = this;
+            request.Tag = tag;
             return request;
         }
     }

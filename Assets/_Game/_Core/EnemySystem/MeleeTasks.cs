@@ -61,7 +61,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
 
     // Runs at the target (approach pace far away, sprint and fighting stance inside EngageRadius) until within attack range.
     // From afar it comes in from its own side (CrowdSpread.FlankPoint), straightening as it closes. Without a free attack
-    // slot it waits at HoldDistance, facing the target.
+    // slot it waits at HoldDistance on its own spot round the target (CrowdSpread.RingPoint, picked again every
+    // HoldShuffleTime), facing the target, so a crowd surrounds instead of queueing.
     [Category("Aipocalypse/Melee")]
     public sealed class ChaseTarget : ActionNode
     {
@@ -70,11 +71,16 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         // A flanking chase re-aims once its squared distance drops below this share of the last aim's. Must stay above
         // sin² of the widest FlankAngle (60°: 0.75), the closest its line to the aim passes the target.
         const float FlankReaim = 0.8f;
+        // Metres its waiting spot may drift (the target moved) before it walks to it again, and how close counts as on it.
+        const float SpotDrift = 0.75f;
 
         EnemyBrain _brain;
         EnemyMover _mover;
         Vector3 _heading;
+        Vector3 _spot;
         float _side;
+        float _angle;
+        float _nextShuffle;
         float _reaimInside;
         int _interruptions;
         bool _moving;
@@ -114,14 +120,13 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             }
 
             float hold = _brain.HoldsSlot || _waiting ? melee.HoldDistance * Slack : melee.HoldDistance;
+            bool waited = _waiting;
             _waiting = false;
             if (sqrDistance <= hold * hold)
             {
                 if (!_brain.TryHoldSlot())
                 {
-                    _waiting = true;
-                    _moving = false;
-                    _mover.Face(position);
+                    Wait(melee, position, waited);
                     return TaskStatus.Running;
                 }
             }
@@ -153,6 +158,28 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         {
             _mover.Halt();
             _brain.Stats.RemoveModifiers(this);
+        }
+
+        // No slot: stands on its own spot round the target (a new angle when it starts waiting and every HoldShuffleTime),
+        // walking to it when the target moved it, else facing the target.
+        void Wait(MeleeSettings melee, Vector3 target, bool waited)
+        {
+            _waiting = true;
+            _moving = false;
+            if (!waited || (melee.HoldShuffleTime > 0f && Time.time >= _nextShuffle))
+            {
+                _angle = Random.Range(0f, 360f);
+                _nextShuffle = Time.time + melee.HoldShuffleTime;
+                _spot = Vector3.positiveInfinity;
+            }
+            Vector3 spot = CrowdSpread.RingPoint(target, _angle, melee.HoldDistance);
+            if (MeleeHit.SqrFlatDistance(spot, _spot) > SpotDrift * SpotDrift)
+            {
+                _spot = spot;
+                _mover.MoveTo(spot, float.PositiveInfinity);
+            }
+            else if (_mover.Arrived)
+                _mover.Face(target);
         }
 
         void ApplyPace()
@@ -220,6 +247,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             float reach = melee.AttackRange * RangeSlack;
             if (MeleeHit.SqrFlatDistance(_brain.transform.position, position) > reach * reach || !_brain.HoldsSlot)
                 return TaskStatus.Success;
+            // Its objective (the farm) isn't hit: it stands there until ChooseTarget drops it or the player turns up.
+            if (target.Kind == TargetKind.Farm)
+                return TaskStatus.Running;
             if (Time.time < _brain.NextAttackTime)
                 return TaskStatus.Running;
             _swingTarget = target;

@@ -8,6 +8,8 @@ namespace MB13.Aipocalypse.Core.Entities
     {
         Player,
         Fence,
+        // The home's yard (the middle of the fence ring): what raiders go for before they notice the player. Can't be hurt.
+        Farm,
     }
 
     // Something enemies may choose as a target (EnemySystem's TargetSelector) and hurt through DamageService.

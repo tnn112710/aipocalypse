@@ -20,6 +20,8 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
         }
 
         internal SpawnRequest Request { get; }
+        // The request's Tag, for its members (SpawnInfo.Handle).
+        public object Tag => Request.Tag;
         internal float Since { get; }
         internal float NextTry { get; set; }
         internal bool Warned { get; set; }

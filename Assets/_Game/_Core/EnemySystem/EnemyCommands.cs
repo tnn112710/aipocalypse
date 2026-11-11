@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.SpawnSystem;
 using UnityEngine;
@@ -37,8 +38,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Command("Enemies in play")]
         int Count() => _enemies.Count;
 
-        [Command("Spawn enemies of a card (EnemySystemSettings.Cards, by name: goblin) in front of the player")]
-        CommandResult Spawn(string card, int count = 1)
+        [Command("Spawn enemies of a card (EnemySystemSettings.Cards, by name: goblin) in front of the player, as raiders (they go for " +
+            "the farm until they notice the player); `elite` makes every one elite")]
+        CommandResult Spawn(string card, int count = 1, bool elite = false)
         {
             EnemySpawnCard found = Find(card);
             if (found == null)
@@ -47,7 +49,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return CommandResult.Fail("No player in this scene");
             Transform body = player.Transform;
             Vector3 center = body.position + body.forward * SpawnDistance + body.right * SpawnSideOffset;
-            SpawnHandle handle = _spawns.Spawn(SpawnRequest.At(found, center, Mathf.Max(1, count)).Facing(body.position - center));
+            SpawnHandle handle = _spawns.Spawn(SpawnRequest.At(found, center, Mathf.Max(1, count)).Facing(body.position - center)
+                .WithTag(new SpawnOrders(TargetKind.Farm, elite)));
             _handles.Add(handle);
             return handle.Cancelled ? CommandResult.Fail("No walkable ground there") : CommandResult.Ok($"{handle.Count} {found.name}");
         }

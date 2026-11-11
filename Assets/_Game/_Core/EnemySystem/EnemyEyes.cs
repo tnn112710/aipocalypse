@@ -25,6 +25,17 @@ namespace MB13.Aipocalypse.Core.EnemySystem
 
         void Awake() => SetLit(true);
 
+        // Another look for this life (an elite's); null = the style's own.
+        public void SetMaterial(Material material)
+        {
+            Material wanted = material != null ? material : _style != null ? _style.Material : null;
+            if (wanted == null)
+                return;
+            foreach (MeshRenderer eye in _eyes)
+                if (eye != null && eye.sharedMaterial != wanted)
+                    eye.sharedMaterial = wanted;
+        }
+
         // EnemyBody: off when killed, on when revived.
         public void SetLit(bool lit)
         {

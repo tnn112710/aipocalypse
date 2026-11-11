@@ -62,7 +62,7 @@ _spawns.Release(this);                // let them go: copies nobody else keeps a
 
 **Pooled copies are reserved by owners.** `Prewarm(card, count, owner)` keeps `count` copies pooled for that owner, replacing its earlier reservation of the card. Every owner's reservations add up (a raid and a camp can need theirs at once). `Release(owner)` drops them. Copies past the reservations are destroyed `TrimPerFrame` (2) a frame: soon after a release, or once the prefab went `IdleTrimDelay` (60 s) without being taken. That also covers copies made mid-fight when a pool ran dry, and a `Prewarm` without an owner. `RaidSpawner` reserves the plan's cards (its last plan's are released), each `SpawnArea` its capacity.
 
-`SpawnRequest.Count` 0 means the card's group size. A request that can't find a spot keeps trying every `RetryInterval` (and warns once if nothing in its area fits the kind); one at a point where the kind can't stand ends cancelled with a warning.
+`SpawnRequest.Count` 0 means the card's group size. `WithTag(object)` hands the members anything the spawner wants them to know (`SpawnHandle.Tag`, read in `ISpawnable.OnSpawned`): enemies take `SpawnOrders` (their objective, elite). A request that can't find a spot keeps trying every `RetryInterval` (and warns once if nothing in its area fits the kind); one at a point where the kind can't stand ends cancelled with a warning.
 
 ### Flyers and swimmers
 

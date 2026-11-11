@@ -1,17 +1,22 @@
-# The ranged goblins' tree (spear throwers, archers): hunt a target, get to throwing distance, throw; dance when what it
-# hunted died; wander with nothing to hunt. Same shape as Melee.tree.txt; the hunt's abort (Both) re-checks ChooseTarget
-# every think.
+# The ranged goblins' tree (spear throwers, archers): hunt a target, get to throwing distance, throw; fight hand to hand
+# when the target is on top of it; dance when what it hunted died; wander with nothing to hunt. Same shape as
+# Melee.tree.txt; the hunt's abort (Both) re-checks ChooseTarget every think.
 # Job: punish standing still in the open, and standing behind the fence: it keeps its distance and throws, over the
 # fence when it must. It never breaks a fence (its definition gives Fence no weight).
-# Unaware: wanders (cheat.notarget).
-# Notices: always knows its target (raiders are sent at it); takes its stance inside RangedSettings.MaxRange.
+# Unaware: a raider goes for the farm (SpawnOrders) and waits outside the fence facing it; otherwise it wanders (a camp,
+# cheat.notarget).
+# Notices: the player within EnemyDefinition.SpotRange with a clear line (a fence is seen through), any hit, or a
+# neighbour's alarm (AlertRadius); it shouts. Takes its stance inside RangedSettings.MaxRange.
 # Then: runs to its own stand-off distance (each life picks one in StandOff), backs away when the target comes inside
-# MinRange, settles for anywhere inside MaxRange when a shut fence stops it.
+# MinRange, settles for anywhere inside MaxRange when a shut fence stops it. Inside MeleeRange it fights hand to hand
+# with the kind's MeleeSettings instead (TargetInMeleeReach aborts both ways), and throws again once the target is off.
 # Warns: a wind-up of ReleaseTime seconds with its sound (a bow drawn, a grunt) before every throw; the projectile has
 # a bright trail, a lob shows where it will land, and it whistles just before it passes the player.
 # Path: a straight throw with a clear line, a lob at a random angle over what's in the way (or by chance). Aim: a random
-# lead on the target's movement and a random error (Spread); no two throws alike.
-# Gives up: when the target can't be targeted any more; a stagger cancels a wind-up.
+# lead on the target's movement and a random error (Spread); no two throws alike. A straight throw is held while one of
+# its own side (Friends) stands in the line.
+# Gives up: when the target can't be targeted any more, or LoseSightTime seconds after it last saw the player (then back
+# to the farm, or it roams); a stagger cancels a wind-up.
 # Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
 #        --args '["AgentScripts/Enemies/Ranged.tree.txt"]'
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
@@ -20,8 +25,14 @@ Repeater "Repeat forever"
   Selector "Hunt, else celebrate, else wander"
     Sequence AbortType=Both "Hunt (aborts both ways)"
       ChooseTarget "Target?"
-      TakeRangedPosition "Get to throwing distance"
-      RangedAttack "Throw"
+      Selector "Fight"
+        Sequence AbortType=Both "Hand to hand when it's on top of it"
+          TargetInMeleeReach "Within MeleeRange?"
+          ChaseTarget "Close in"
+          MeleeAttack "Swing"
+        Sequence "Throw"
+          TakeRangedPosition "Get to throwing distance"
+          RangedAttack "Throw"
     Sequence "Celebrate the kill"
       TargetDefeated "Target died?"
       Celebrate "Dance in place"

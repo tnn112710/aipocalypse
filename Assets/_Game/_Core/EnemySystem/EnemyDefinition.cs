@@ -23,6 +23,19 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Min(0f), Tooltip("Up to this many seconds more, at random per enemy, so a group doesn't set off together")]
         public float AppearJitter = 0.5f;
         [Min(0f), Tooltip("Radius (m) of grass it bends around its feet, through the scene's GrassBendField; 0 = none")] public float GrassBendRadius = 0.6f;
+
+        [Header("Senses")]
+        [Min(0f), Tooltip("Metres within which it notices the player when nothing solid is in the way (a fence is seen through); " +
+            "a hit, or an alarmed neighbour, makes it notice at any distance. 0 = it always knows where the player is")]
+        public float SpotRange = 20f;
+        [Min(0f), Tooltip("Metres around it within which enemies are alarmed when it notices the player (one hop: they don't pass it on)")]
+        public float AlertRadius = 12f;
+        [Min(0f), Tooltip("Seconds without a sight of the player (out of 1.5 × SpotRange, or behind something) before it forgets " +
+            "them and goes back to its objective or roams")]
+        public float LoseSightTime = 6f;
+        [Tooltip("What blocks its sight; its own layer (other enemies) and barriers never do")]
+        public LayerMask SightBlockers = Physics.DefaultRaycastLayers;
+        [InlineEditor, Tooltip("Its elite tier (chance, stats, mark); empty = never elite")] public EliteSettings Elite;
         [Required, InlineEditor, Tooltip("Knockback, hit reactions and how long the body stays (EnemyBody)")] public EnemyReactionSettings Reaction;
         [Required, InlineEditor, Tooltip("Read by the Wander subtree's tasks")] public WanderSettings Wander;
         [InlineEditor, Tooltip("Read by the Melee subtree's tasks; empty for kinds that don't fight (they ignore the player)")]

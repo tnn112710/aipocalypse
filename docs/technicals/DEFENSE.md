@@ -41,7 +41,7 @@ Fences are made of segments, one per panel slot. Each segment has its own health
 - **A way in it fits through within `GapNear` (8 m)**: it always goes through. None of the rules below applies to it.
 - **A way in it fits through, further off**: most go for the player through it, walking round to it if needed. Some keep breaking instead, so the player has more than one gap to hold:
   - **Gap on the far side:** when a standing segment is between the goblin and the player and the walk through the nearest open way in is at least **`GapDetour` (15 m)** longer than going straight, it breaks its own way in (a 34 × 27 m yard: a gap on the opposite side).
-  - **A breaker share:** of the goblins at the fence beyond `GapNear`, the ones for whom the open way in is furthest keep breaking: **`BreakerShare` (a third)** of all the goblins hunting, at least **`MinBreakers` (1)**, never every one (a lone goblin takes the gap). Six goblins spread along the fence: two keep breaking, four go in; six crowded round the first gap all go in.
+  - **A breaker share:** of the goblins walled off beyond `GapNear`, at the fence or still on their way, the ones for whom the open way in is furthest keep breaking: **`BreakerShare` (a third)** of all the goblins hunting, at least **`MinBreakers` (1)**, never every one (a lone goblin takes the gap). Six goblins spread along the fence: two keep breaking, four go in; six crowded round the first gap all go in; of a wave arriving later, a third make their own gap. A breaker that stops being among the furthest goes for the gap on its next choice, unless its segment is about to fall.
   - **New gaps keep apart:** a breaker skips segments within **`GapSpacing` (6 m)** of an open way in, so it makes a second gap instead of widening the first.
   - **Almost broken:** a goblin whose segment would fall to **`FinishBreachBlows` (2) of its own blows** or fewer (30 HP for goblins) finishes it first.
 
@@ -53,11 +53,14 @@ It re-asks every `RetargetInterval` (1 s) and **at once whenever a barrier start
 - Attackers stand at `PointFor`: `StandOff` (0.75 m) off the centre line on their own side, and their blows land there.
 - A barrier plays its own hit sound (the goblin's flesh impact is skipped).
 - Goblins: `Goblin.asset` Targets Player 1, Fence 1. A kind without a Fence weight keeps chasing the closest reachable point instead.
+- A raider that hasn't noticed the player ([ARCHITECTURE.md → AI](ARCHITECTURE.md#ai) → Awareness) goes for the **Farm**, the middle of the fence ring (`TargetRegistry.Farm`), and breaks in toward it by the same rules; once inside it roams the yard until it notices the player.
 - Raid spawn points must have a path to the zone's `Origin`: `Raid/Spawn Zone (Front)` sets `OriginOffset` 3 m so that point lies outside the closed gate ([RAIDS.md](RAIDS.md)).
 
 Measured in WorldMap (`DefensePlayCheck`, 6 goblins, player inside): against the shut fence all six went for it and the first segment fell after about 19 s; 2 s later two were still breaking a segment 6.8 m from the gap and four went in; that second gap fell about 5 s later. With the back fence already broken, goblins arriving at the front broke a new gap there (27 m from the back gap) after 18 s and none walked round.
 
 Since `GapNear` (2026-11-11, scratch probe: 6 goblins against the shut front fence): when the first segment fell, all six went through it within 6 s; before it, two of them, standing 2–3 m from the gap, walked off to break a segment 6.8 m away. Two goblins made 2.6 m wide (their `FollowerEntity` radius raised in play, as a stand-in for a large kind) at a single broken panel attacked the segment beside it, and went in once it fell. `DefensePlayCheck`'s goblin steps spawn in front of the player, so they only test the breach when the player faces out of the yard.
+
+Since spotting (2026-11-11, scratch probe, the player 22 m from the gate inside): four raiders spawned 10 m outside the gate came for the fence unaware, three with slots on one segment, the fourth waiting; it fell after 18 s and all four walked to the farm and roamed the yard, none having noticed the player.
 
 ## Repair
 
@@ -119,6 +122,8 @@ Everything a kind is lives in its `BarrierDefinition`: health, damage scale per 
 | How far out of the way a gap may be before an enemy breaks its own; the share that keeps breaking; spacing between gaps; how close a gap is always taken | the kind's `MeleeSettings.GapDetour`, `BreakerShare`, `MinBreakers`, `GapSpacing`, `GapNear` |
 | How wide a gap an enemy needs | its prefab's `FollowerEntity` radius (body width = 2 × radius; a bigger radius also needs its own navmesh graph, ENVIRONMENT.md → Navigation) |
 | Attackers per segment | `Data/Enemies/EnemySystemSettings.asset` → Attackers Per Target → Fence |
+| When an enemy notices the player, alarms others, forgets them | the kind's `EnemyDefinition` → Senses (`SpotRange`, `AlertRadius`, `LoseSightTime`, `SightBlockers`) |
+| Where an unaware raider counts as arrived at the farm; how long a waiting enemy keeps its spot | the kind's `MeleeSettings.ObjectiveRadius`, `HoldShuffleTime` |
 | Repair rhythm, when it stops | `Data/Player/PlayerInteractionTuning.asset` → Repair |
 | Hammer poses | `Content/Tools/Hammer/Hammer.prefab` → `Poses` (Preview buttons on `RepairTool`); how it lies on the table: its `World/Model` |
 | Damage highlight: colours by health, range, fade up close | `Data/Defense/RepairHighlightStyle.asset` (material `RepairHighlight.mat`, shader `Aipocalypse/Ghosts/GhostXray`); off when `DefenseInstaller` has no style |

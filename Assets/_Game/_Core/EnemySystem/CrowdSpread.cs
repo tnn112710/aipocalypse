@@ -26,6 +26,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             return target + across * (distance * Mathf.Tan(angle * Mathf.Deg2Rad));
         }
 
+        // Where an enemy waits its turn: `radius` metres from `target` at `angle` degrees round it (its own spot).
+        public static Vector3 RingPoint(Vector3 target, float angle, float radius) =>
+            target + new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), 0f, Mathf.Cos(angle * Mathf.Deg2Rad)) * radius;
+
         // 0 within `fadeTo` metres of the target, 1 from `fadeFrom` out.
         public static float FlankWeight(float distance, float fadeFrom, float fadeTo) =>
             fadeFrom <= fadeTo ? (distance > fadeTo ? 1f : 0f) : Mathf.InverseLerp(fadeTo, fadeFrom, distance);

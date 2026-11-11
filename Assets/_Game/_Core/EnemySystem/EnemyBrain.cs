@@ -3,6 +3,7 @@ using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.SpawnSystem;
 using Opsive.BehaviorDesigner.Runtime;
 using UnityEngine;
@@ -16,22 +17,35 @@ namespace MB13.Aipocalypse.Core.EnemySystem
     [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover), typeof(Spawnable))]
     public sealed class EnemyBrain : MonoBehaviour, ISpawnable
     {
+        // Seconds between two looks for the player; the sight slack keeps one it knows a little past SpotRange.
+        const float SenseInterval = 0.2f;
+        const float KeepSightSlack = 1.5f;
+        const string EliteStream = "elites";
+
         [SerializeField, Tooltip("This enemy's kind: Content/Enemies/<Name>/<Name>.asset")] EnemyDefinition _definition;
 
         EnemyRegistry _registry;
         AstarPath _navigation;
+        TargetRegistry _targetRegistry;
         TargetSelector _targets;
         AttackSlots _slots;
         DamageService _damage;
+        RandomService _random;
         ProjectileSystem _projectiles;
         // This life's distance to throw from; 0 = not picked yet.
         float _standOff;
         GrassBendField _grassBending;
+        EnemyEyes _eyes;
         ITargetable _target;
         float _nextRetarget;
         int _barrierVersion;
-        // Source of the flinch's MoveSpeed modifier.
+        readonly Awareness _awareness = new();
+        float _nextSense;
+        SpawnOrders _orders;
+        Vector3 _restScale = Vector3.one;
+        // Sources of the flinch's and the elite tier's modifiers.
         static readonly object FlinchSource = new();
+        static readonly object EliteSource = new();
 
         // Time.time its appear ends (0: not appearing); requested by the spawner, begun on activation.
         float _appearEnd;
@@ -77,6 +91,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public ITargetable LastTarget { get; private set; }
         // Hunting nothing because what it last hunted died (the Melee subtree celebrates).
         public bool TargetDefeated => _target == null && LastTarget != null && LastTarget.IsDead;
+        // Knows the player is there (spotted, hit or alarmed); until then it goes for its objective or roams.
+        public bool Alerted => _awareness.Alerted;
+        // This life is elite (EnemyDefinition.Elite: rolled, or ordered by its spawner).
+        public bool IsElite { get; private set; }
         // Close to the target: fighting stance and sprint (set by ChaseTarget). Shouts when it starts.
         public bool Engaged
         {
@@ -102,14 +120,16 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public Spawnable Spawnable { get; private set; }
 
         [Inject]
-        void Construct(EnemyRegistry registry, AstarPath navigation, TargetSelector targets, AttackSlots slots, DamageService damage,
-            AudioService audio, EffectPool effects, IObjectResolver resolver)
+        void Construct(EnemyRegistry registry, AstarPath navigation, TargetRegistry targetRegistry, TargetSelector targets, AttackSlots slots,
+            DamageService damage, RandomService random, AudioService audio, EffectPool effects, IObjectResolver resolver)
         {
             _registry = registry;
             _navigation = navigation;
+            _targetRegistry = targetRegistry;
             _targets = targets;
             _slots = slots;
             _damage = damage;
+            _random = random;
             Voice = new EnemyVoice(audio, transform);
             resolver.TryResolve(out _grassBending);
             resolver.TryResolve(out _projectiles);
@@ -148,11 +168,15 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 Spawnable.Retire();
         }
 
-        // Spawned: the agent drops any old path at its new spot (a fresh instance starts there anyway), then it appears.
+        // Spawned: the agent drops any old path at its new spot (a fresh instance starts there anyway), takes its spawner's
+        // orders, then it appears.
         void ISpawnable.OnSpawned(in SpawnInfo info)
         {
             if (RegistryIndex >= 0)
                 Mover.Teleport(transform.position);
+            _orders = info.Handle?.Tag is SpawnOrders orders ? orders : default;
+            if (_orders.Elite && !IsElite && _definition.Elite != null)
+                MakeElite(_definition.Elite);
             Appear();
         }
 
@@ -191,7 +215,16 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 Animation.CancelAttack();
         }
 
-        // One think (EnemyManager): ends a flinch that ran out; nothing while appearing or staggered, else a tick of the tree.
+        // It knows the player is there: hit (EnemyBody), or alarmed by a neighbour. The first time it shouts, chooses again at
+        // once and, with `alarm`, alarms the enemies within AlertRadius (they don't pass it on).
+        public void Notice(bool alarm)
+        {
+            if (_awareness.Notice(Time.time))
+                Noticed(alarm);
+        }
+
+        // One think (EnemyManager): ends a flinch that ran out; nothing while appearing or staggered, else a look for the
+        // player and a tick of the tree.
         internal void Think()
         {
             float now = Time.time;
@@ -214,11 +247,14 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 if (Animation != null)
                     Animation.EndAppear();
             }
+            if (now >= _nextSense)
+                Sense(now);
             Tree.Tick();
         }
 
-        // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more
-        // or a barrier started or stopped blocking (a gap opened: TargetSelector decides who goes through and who keeps breaking).
+        // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more,
+        // a barrier started or stopped blocking (a gap opened: TargetSelector decides who goes through and who keeps breaking),
+        // or it noticed or lost the player. Unaware, it goes for its orders' objective; arrived there, it roams there.
         public ITargetable ChooseTarget()
         {
             MeleeSettings melee = _definition.Melee;
@@ -230,7 +266,16 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _barrierVersion = _targets.BarrierVersion;
             var rules = new BreachRules(melee.BreachCandidates, melee.FinishBreachBlows * Stats.Get(EnemyStat.AttackDamage), melee.GapDetour,
                 melee.BreakerShare, melee.MinBreakers, melee.GapSpacing, melee.GapNear, 2f * Mover.Radius);
-            return Target = _targets.Choose(this, transform.position, _definition.Targets, _target, rules);
+            ITargetable objective = _orders.Objective == TargetKind.Farm ? _targetRegistry.Farm : null;
+            ITargetable choice = _targets.Choose(this, transform.position, _definition.Targets, _target, rules, _awareness.Alerted, objective);
+            if (choice != null && ReferenceEquals(choice, objective)
+                && MeleeHit.SqrFlatDistance(transform.position, choice.Transform.position) <= melee.ObjectiveRadius * melee.ObjectiveRadius)
+            {
+                if (_target != null)
+                    Mover.Rehome();
+                choice = null;
+            }
+            return Target = choice;
         }
 
         // Holds one of the target's attack slots while true (AttackSlots).
@@ -265,6 +310,62 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 Voice.Impact(point);
         }
 
+        // Looks for the player: within SpotRange (1.5 × once it knows) with nothing solid between its eyes and their chest.
+        // SpotRange 0 = it always knows.
+        void Sense(float now)
+        {
+            _nextSense = now + SenseInterval;
+            ITargetable player = _targetRegistry.Player;
+            bool sees = false;
+            if (player != null && player.IsTargetable)
+            {
+                float range = _definition.SpotRange * (_awareness.Alerted ? KeepSightSlack : 1f);
+                Vector3 point = player.Transform.position + Vector3.up * EnemySight.TargetHeight;
+                sees = _definition.SpotRange <= 0f || (MeleeHit.SqrFlatDistance(transform.position, point) <= range * range
+                    && EnemySight.IsClear(transform.position + Vector3.up * EnemySight.EyeHeight, point, _definition.SightBlockers, transform, player.Transform));
+            }
+            int change = _awareness.Sense(sees, now, _definition.LoseSightTime);
+            if (change > 0)
+                Noticed(true);
+            else if (change < 0)
+                Forgot();
+        }
+
+        void Noticed(bool alarm)
+        {
+            _nextRetarget = 0f;
+            Voice?.Shout();
+            if (!alarm || _registry == null)
+                return;
+            float radius = _definition.AlertRadius;
+            for (int i = 0; i < _registry.Count; i++)
+            {
+                EnemyBrain other = _registry[i];
+                if (other != this && !other.IsDead && !other.Alerted
+                    && MeleeHit.SqrFlatDistance(transform.position, other.transform.position) <= radius * radius)
+                    other.Notice(false);
+            }
+        }
+
+        // Lost the player: drops them as a target and chooses again at once (its objective, or nothing).
+        void Forgot()
+        {
+            _nextRetarget = 0f;
+            if (_target != null && _target.Kind == TargetKind.Player)
+                Target = null;
+        }
+
+        void MakeElite(EliteSettings elite)
+        {
+            IsElite = true;
+            Stats.AddModifier(new EnemyStatModifier(EnemyStat.MaxHealth, EliteSource, multiply: elite.HealthMultiplier));
+            Stats.AddModifier(new EnemyStatModifier(EnemyStat.AttackDamage, EliteSource, multiply: elite.DamageMultiplier));
+            Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, EliteSource, multiply: elite.SpeedMultiplier));
+            transform.localScale = _restScale * elite.Scale;
+            if (_eyes != null)
+                _eyes.SetMaterial(elite.EyeMaterial);
+        }
+
         void CacheParts()
         {
             if (Mover != null)
@@ -274,6 +375,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             Animation = GetComponent<EnemyAnimator>();
             Body = GetComponent<EnemyBody>();
             Spawnable = GetComponent<Spawnable>();
+            _eyes = GetComponent<EnemyEyes>();
+            _restScale = transform.localScale;
         }
 
         // Its kind's hit, critical and kill effects, made when the enemy is (prewarming makes them before a fight).
@@ -315,9 +418,18 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _appearEnd = 0f;
             _flinchEnd = 0f;
             _staggerEnd = 0f;
+            _orders = default;
+            _awareness.Reset();
+            _nextSense = Time.time + Random.value * SenseInterval;
+            IsElite = false;
+            transform.localScale = _restScale;
+            if (_eyes != null)
+                _eyes.SetMaterial(null);
             Stats = new EnemyStats(_definition);
             Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this,
                 multiply: CrowdSpread.SpeedFactor(_definition.SpeedVariance, Random.value)));
+            if (_definition.Elite != null && _random != null && _random.Stream(EliteStream).Chance(_definition.Elite.Chance))
+                MakeElite(_definition.Elite);
             Stats.Changed += ApplyStat;
             Mover.Initialize(_navigation, _definition, Stats);
             if (Body != null)

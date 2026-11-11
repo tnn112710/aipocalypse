@@ -39,13 +39,13 @@ namespace MB13.Aipocalypse.Core.EnemySystem
     }
 
     // Picks an enemy's target: the best kind weight per metre (EnemyDefinition.Targets), skipping what can't be targeted and
-    // kinds the enemy doesn't want. For a kind that breaks fences:
+    // kinds the enemy doesn't want; one that hasn't noticed the player goes for its objective instead (the Farm). For a kind
+    // that breaks fences:
     // - no path to the target (fence shut): the weakest of the nearest standing barriers;
     // - only ways in too narrow for its body: it widens the nearest one (the weaker barrier beside it);
     // - a way in it fits through: it goes through when it is within GapNear of it; further off, it breaks a new one (away from
     //   the open ones) when a standing barrier is between it and the target and the way in is GapDetour or more out of its way,
-    //   or it is among the BreakerShare of hunters at the fence for whom the way in is furthest. A barrier about to fall is
-    //   finished first.
+    //   or it is among the BreakerShare of such hunters for whom the way in is furthest. A barrier about to fall is finished first.
     public sealed class TargetSelector
     {
         public const int MaxBreachCandidates = 16;
@@ -55,7 +55,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         struct Hunter
         {
             public Vector3 Position;
-            public bool AtFence;
+            // At the fence, or walled off beyond GapNear of a way in it fits through: in the running for the breaker share.
+            public bool Candidate;
         }
 
         // A run of joined barriers that don't block (broken, gate open): its two outer ends, width, and the standing barriers
@@ -92,10 +93,15 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         // Without breach rules: the best wanted target.
         public ITargetable Choose(Vector3 from, IReadOnlyDictionary<TargetKind, float> weights) => Choose(null, from, weights, null, default);
 
-        // `hunter`: who asks (its slot in the breaker ranking; null = not ranked); `current`: what it hunts now.
-        public ITargetable Choose(object hunter, Vector3 from, IReadOnlyDictionary<TargetKind, float> weights, ITargetable current, in BreachRules rules)
+        // `hunter`: who asks (its slot in the breaker ranking; null = not ranked); `current`: what it hunts now; `playerKnown`:
+        // false while it hasn't noticed the player, who is then never picked and `objective` (the Farm; may be null) stands in
+        // for it when nothing else is wanted.
+        public ITargetable Choose(object hunter, Vector3 from, IReadOnlyDictionary<TargetKind, float> weights, ITargetable current,
+            in BreachRules rules, bool playerKnown = true, ITargetable objective = null)
         {
-            ITargetable best = Best(from, weights);
+            ITargetable best = Best(from, weights, playerKnown);
+            if (best == null && !playerKnown && objective != null && objective.IsTargetable)
+                best = objective;
             if (best == null || _navmesh == null || rules.Candidates <= 0 || !weights.TryGetValue(TargetKind.Fence, out float breaks) || breaks <= 0f)
                 return Record(hunter, from, best);
 
@@ -115,9 +121,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return Record(hunter, from, best);
 
             float detour = Detour(from, to, rules.BodyWidth);
-            bool breaker = detour >= rules.GapDetour || (current is IBreachable && IsAmongFurthest(hunter, detour, to, rules));
+            bool breaker = detour >= rules.GapDetour || IsAmongFurthest(hunter, detour, to, rules);
             IBreachable breach = breaker ? ChooseBreach(from, rules.Candidates, rules.GapSpacing) : null;
-            return Record(hunter, from, (ITargetable)breach ?? best);
+            return Record(hunter, from, (ITargetable)breach ?? best, true);
         }
 
         public void Forget(object hunter)
@@ -201,7 +207,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             return false;
         }
 
-        ITargetable Best(Vector3 from, IReadOnlyDictionary<TargetKind, float> weights)
+        ITargetable Best(Vector3 from, IReadOnlyDictionary<TargetKind, float> weights, bool playerKnown = true)
         {
             ITargetable best = null;
             float bestScore = 0f;
@@ -209,6 +215,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             {
                 ITargetable target = _targets[i];
                 if (target == null || !target.IsTargetable || weights == null || !weights.TryGetValue(target.Kind, out float weight) || weight <= 0f)
+                    continue;
+                if (!playerKnown && target.Kind == TargetKind.Player)
                     continue;
                 float distance = Mathf.Max(1f, Mathf.Sqrt(MeleeHit.SqrFlatDistance(from, target.Transform.position)));
                 float score = weight / distance;
@@ -220,8 +228,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             return best;
         }
 
-        // Of the hunters at the fence, the BreakerShare (of all hunters; at least MinBreakers, never every one) for whom the way
-        // in is furthest keep breaking. Ranked by where each stood at its last choice. Those within GapNear never get here.
+        // Of the hunters walled off beyond GapNear (at the fence or still on their way), the BreakerShare (of all hunters; at
+        // least MinBreakers, never every one) for whom the way in is furthest keep breaking, so a crowd opens more than one gap.
+        // Ranked by where each stood at its last choice. Those within GapNear never get here.
         bool IsAmongFurthest(object hunter, float detour, Vector3 to, in BreachRules rules)
         {
             if (hunter == null)
@@ -232,7 +241,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return false;
             int further = 0;
             foreach (KeyValuePair<object, Hunter> other in _hunters)
-                if (other.Value.AtFence && !ReferenceEquals(other.Key, hunter) && Detour(other.Value.Position, to, rules.BodyWidth) > detour)
+                if (other.Value.Candidate && !ReferenceEquals(other.Key, hunter) && Detour(other.Value.Position, to, rules.BodyWidth) > detour)
                     further++;
             return further < needed;
         }
@@ -355,10 +364,15 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             return false;
         }
 
-        ITargetable Record(object hunter, Vector3 from, ITargetable choice)
+        // One that hunts nothing (unaware, wandering) isn't counted among the hunters.
+        ITargetable Record(object hunter, Vector3 from, ITargetable choice, bool candidate = false)
         {
-            if (hunter != null)
-                _hunters[hunter] = new Hunter { Position = from, AtFence = choice is IBreachable };
+            if (hunter == null)
+                return choice;
+            if (choice == null)
+                _hunters.Remove(hunter);
+            else
+                _hunters[hunter] = new Hunter { Position = from, Candidate = candidate || choice is IBreachable };
             return choice;
         }
 

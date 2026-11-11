@@ -1,11 +1,33 @@
 using MB13.Aipocalypse.Core.Entities;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
+using Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals;
 using Opsive.Shared.Utility;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.EnemySystem
 {
+    // The target is within RangedSettings.MeleeRange: it fights hand to hand (the Melee tasks) instead of backing away. Also
+    // the abort check of that branch: back to throwing once the target is further off.
+    [Category("Aipocalypse/Ranged")]
+    public sealed class TargetInMeleeReach : ConditionalNode
+    {
+        EnemyBrain _brain;
+
+        public override void OnAwake() => _brain = GetComponent<EnemyBrain>();
+
+        public override TaskStatus OnUpdate()
+        {
+            ITargetable target = _brain.Target;
+            RangedSettings ranged = _brain.Definition.Ranged;
+            if (target == null || ranged == null || ranged.MeleeRange <= 0f || _brain.Definition.Melee == null || target.Kind == TargetKind.Farm)
+                return TaskStatus.Failure;
+            float reach = ranged.MeleeRange;
+            return MeleeHit.SqrFlatDistance(_brain.transform.position, target.PointFor(_brain.transform.position)) <= reach * reach
+                ? TaskStatus.Success : TaskStatus.Failure;
+        }
+    }
+
     // Gets to where it throws from: runs at the target until it's inside its own stand-off distance (each life picks one in
     // RangedSettings.StandOff), backs away when the target comes inside MinRange, and settles for anywhere inside MaxRange
     // when it can't get closer (a shut fence: it throws over it).
@@ -109,8 +131,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
 
     // Faces the target and throws once: waits out its cooldown, plans the throw (RangedAim: straight with a clear line, a
     // lob over what's in the way), winds up (the attack clip, the wind-up sound), lets go at ReleaseTime aimed afresh, and
-    // recovers. Succeeds after the throw, or straight away when the target left its range, came too close, it was staggered
-    // (the throw is cancelled) or no throw reaches from here (it then stands closer next time).
+    // recovers. It never shoots through one of its own side (RangedSettings.Friends) standing in the straight line: it lobs
+    // over them, holding fire while no lob reaches. Succeeds after the throw, or straight away when the target left its
+    // range, came too close, it was staggered (the throw is cancelled) or no throw reaches from here (it then stands closer
+    // next time).
     [Category("Aipocalypse/Ranged")]
     public sealed class RangedAttack : ActionNode
     {
@@ -118,6 +142,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         const float RangeSlack = 1.15f;
         // Its stand-off distance shrinks by this share each time no throw reached.
         const float CloserShare = 0.8f;
+        // Metres off the straight line within which one of its own side counts as standing in it; checked from its chest, not
+        // the bow or the hand, which the wind-up moves.
+        const float FriendRadius = 0.5f;
 
         EnemyBrain _brain;
         EnemyMover _mover;
@@ -174,11 +201,19 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             float distance = Mathf.Sqrt(MeleeHit.SqrFlatDistance(self, position));
             if (distance > ranged.MaxRange * RangeSlack || (ranged.MinRange > 0f && distance < ranged.MinRange))
                 return TaskStatus.Success;
+            // Its objective (the farm) isn't thrown at: it stands there until ChooseTarget drops it or the player turns up.
+            if (target.Kind == TargetKind.Farm)
+                return TaskStatus.Running;
             if (Time.time < _brain.NextAttackTime)
                 return TaskStatus.Running;
-            if (!RangedAim.TryPlan(ranged, _brain.LaunchPoint, position + Vector3.up * ranged.AimHeight, _targetVelocity, _brain.transform,
-                    target.Transform, out _))
+            Vector3 aimAt = position + Vector3.up * ranged.AimHeight;
+            // One of its own in the straight line: it lobs over them, and holds fire while no lob reaches.
+            bool friendInLine = ranged.Friends != 0
+                && RangedAim.FriendInLine(self + Vector3.up * EnemySight.TargetHeight, aimAt, FriendRadius, ranged.Friends, _brain.transform);
+            if (!RangedAim.TryPlan(ranged, _brain.LaunchPoint, aimAt, _targetVelocity, _brain.transform, target.Transform, out RangedThrow plan, friendInLine))
             {
+                if (friendInLine)
+                    return TaskStatus.Running;
                 _brain.CloseIn(ranged, CloserShare);
                 _brain.NextAttackTime = Time.time + 0.5f;
                 return TaskStatus.Success;

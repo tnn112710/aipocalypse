@@ -29,9 +29,17 @@ MonoBehaviour:
   AppearTime: 3
   AppearJitter: 0.8
   GrassBendRadius: 0.6
+  SpotRange: 20
+  AlertRadius: 12
+  LoseSightTime: 6
+  SightBlockers:
+    serializedVersion: 2
+    m_Bits: 4294967291
+  Elite: {fileID: 11400000, guid: afa3b3480cd622f4d9c17810311d8a25, type: 2}
   Reaction: {fileID: 11400000, guid: 7dcd6109388675345815d2d54ac60c8e, type: 2}
   Wander: {fileID: 11400000, guid: c9a4e702e79221d40b15afaa7522480f, type: 2}
   Melee: {fileID: 11400000, guid: c177967a0a8efd2488ffcf1b5809a3ec, type: 2}
+  Ranged: {fileID: 0}
   Animation: {fileID: 11400000, guid: 0708082ba04115e4ca3fba56b2c58f07, type: 2}
   Sounds: {fileID: 11400000, guid: 4b0bddcfb5643de478c36bb131850307, type: 2}
   Loot: {fileID: 11400000, guid: b66f4ac4d0c87d248a9668ce5eada1e4, type: 2}

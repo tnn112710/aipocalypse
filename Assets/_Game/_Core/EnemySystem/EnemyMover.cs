@@ -20,8 +20,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         // Facing set by Face (zero while walking or halted), so a still target doesn't re-path every think.
         Vector3 _facing;
 
-        // Where it was when it started (wander circles around it).
+        // Where it was when it started (wander circles around it), or where its last hunt for an objective ended (Rehome).
         public Vector3 Home { get; private set; }
+
+        public void Rehome() => Home = transform.position;
         public bool Arrived => _agent.reachedDestination;
         public bool TimedOut => Time.time >= _deadline;
         // World velocity (m/s), for animation.
