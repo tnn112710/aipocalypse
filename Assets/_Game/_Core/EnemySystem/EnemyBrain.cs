@@ -229,7 +229,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _nextRetarget = Time.time + melee.RetargetInterval;
             _barrierVersion = _targets.BarrierVersion;
             var rules = new BreachRules(melee.BreachCandidates, melee.FinishBreachBlows * Stats.Get(EnemyStat.AttackDamage), melee.GapDetour,
-                melee.BreakerShare, melee.MinBreakers, melee.GapSpacing);
+                melee.BreakerShare, melee.MinBreakers, melee.GapSpacing, melee.GapNear, 2f * Mover.Radius);
             return Target = _targets.Choose(this, transform.position, _definition.Targets, _target, rules);
         }
 

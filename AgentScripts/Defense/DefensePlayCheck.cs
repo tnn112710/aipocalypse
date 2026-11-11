@@ -100,7 +100,8 @@ public static class DefensePlayCheck
         var breaks = new List<Vector3>();
         using var breakLog = c.Resolve<ISubscriber<BarrierBroken>>().Subscribe(e => breaks.Add(e.Position));
 
-        // 1. Shut fence: they open a gap; then most go through it while a share (a third of six: two) breaks a second one away from it.
+        // 1. Shut fence: they open a gap; those within GapNear of it go through, and a share of the ones further off (a third of
+        // six: two) breaks a second one away from it. enemy.spawn puts them in front of the player: face out of the yard first.
         commands.Execute("enemy.clear");
         breaks.Clear();
         log.AppendLine("spawn: " + commands.Execute("enemy.spawn goblin 6").Message);

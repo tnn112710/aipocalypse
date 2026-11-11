@@ -25,6 +25,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public int MinBreakers = 1;
         [Min(0f), Tooltip("Metres a new breach keeps from an open way in, so breakers make another gap instead of widening the first")]
         public float GapSpacing = 6f;
+        [Min(0f), Tooltip("Within this many metres of a way in it fits through (wider than its body), it always goes through instead " +
+            "of breaking a new one. Ways in narrower than its body it widens instead")]
+        public float GapNear = 8f;
         [Min(0f), Tooltip("Metres from the target where it takes its fighting stance and sprints")]
         public float EngageRadius = 5f;
         [Min(0.1f), Tooltip("Move speed multiplier while hunting from afar (an EnemyStats modifier on MoveSpeed)")]

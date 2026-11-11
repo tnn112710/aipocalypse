@@ -58,9 +58,12 @@ namespace MB13.Aipocalypse.Tests
         }
 
         static readonly Dictionary<TargetKind, float> BreakerWeights = new() { { TargetKind.Player, 1f }, { TargetKind.Fence, 1f } };
-        // 5 candidates, finish at 30 HP, a 15 m detour breaks a new gap, a third keep breaking (at least 1), new gaps 6 m apart.
-        static readonly BreachRules Rules = new(5, 30f, 15f, 0.34f, 1, 6f);
-        static readonly BreachRules NoBreakers = new(5, 30f, 1000f, 0f, 0, 6f);
+        // 5 candidates, finish at 30 HP, a 15 m detour breaks a new gap, a third keep breaking (at least 1), new gaps 6 m apart,
+        // a gap within 8 m is always taken, a 1 m wide body (a goblin; the fence's segments are 2 m).
+        static readonly BreachRules Rules = new(5, 30f, 15f, 0.34f, 1, 6f, 8f, 1f);
+        static readonly BreachRules NoBreakers = new(5, 30f, 1000f, 0f, 0, 6f, 8f, 1f);
+        // A body 3 m wide: one broken segment is too narrow for it, two side by side let it through.
+        static readonly BreachRules Large = new(5, 30f, 15f, 0.34f, 1, 6f, 8f, 3f);
 
         readonly List<FakeTarget> _targets = new();
         readonly List<FakeBarrier> _barriers = new();
@@ -192,8 +195,10 @@ namespace MB13.Aipocalypse.Tests
                 selector.Choose(goblins[i], new Vector3(xs[i], 0f, 9f), BreakerWeights, At(xs[i]), Rules);
             }
 
-            // A gap opens at x = 4: each chooses again, in an order that isn't the ranking.
+            // A gap opens at x = 4: each chooses again, in an order that isn't the ranking. The ones within 8 m of it (x -2..0)
+            // go through whatever the ranking says.
             At(4f).IsTargetable = false;
+            registry.BarriersChanged();
             navmesh.Reachable = true;
             var breakers = new List<float>();
             foreach (int i in new[] { 3, 0, 5, 1, 4, 2 })
@@ -202,6 +207,48 @@ namespace MB13.Aipocalypse.Tests
 
             breakers.Sort();
             Assert.That(breakers, Is.EqualTo(new[] { -10f, -8f }), "a third of six keep breaking: the two furthest from the gap");
+        }
+
+        [Test]
+        public void Selector_HuntersNextToAGap_AllGoThroughIt()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var navmesh = new FakeNavmesh { Reachable = false };
+            var selector = new TargetSelector(registry, navmesh);
+            // Six goblins hitting the fence on both sides of the segment about to fall, all within 7 m of it.
+            float[] xs = { -2f, 0f, 2f, 6f, 8f, 10f };
+            var goblins = new object[xs.Length];
+            for (int i = 0; i < xs.Length; i++)
+            {
+                goblins[i] = new object();
+                selector.Choose(goblins[i], new Vector3(xs[i], 0f, 9f), BreakerWeights, At(xs[i]), Rules);
+            }
+
+            At(4f).IsTargetable = false;
+            registry.BarriersChanged();
+            navmesh.Reachable = true;
+            for (int i = 0; i < xs.Length; i++)
+                Assert.That(selector.Choose(goblins[i], new Vector3(xs[i], 0f, 9f), BreakerWeights, At(xs[i]), Rules), Is.SameAs(player),
+                    $"the goblin at x {xs[i]} is next to the gap");
+        }
+
+        [Test]
+        public void Selector_GapTooNarrowForItsBody_WidensItByTheWeakerNeighbour_ThenGoesThrough()
+        {
+            TargetRegistry registry = Fence(out FakeTarget player);
+            var selector = new TargetSelector(registry, new FakeNavmesh { Reachable = true });
+            At(0f).IsTargetable = false;
+            registry.BarriersChanged();
+            At(2f).RemainingHealth = 100f;
+            var from = new Vector3(0f, 0f, 5f);
+
+            Assert.That(selector.Choose(new object(), from, BreakerWeights, null, Rules), Is.SameAs(player), "a goblin fits a 2 m gap");
+            Assert.That(selector.Choose(new object(), from, BreakerWeights, null, Large), Is.SameAs(At(2f)),
+                "too narrow for a 3 m body, even straight through it: the weaker barrier beside it");
+
+            At(2f).IsTargetable = false;
+            registry.BarriersChanged();
+            Assert.That(selector.Choose(new object(), from, BreakerWeights, null, Large), Is.SameAs(player), "4 m wide now");
         }
 
         [Test]

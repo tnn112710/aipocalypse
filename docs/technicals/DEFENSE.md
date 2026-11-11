@@ -36,13 +36,16 @@ Fences are made of segments, one per panel slot. Each segment has its own health
 `TargetSelector.Choose` picks the best target as before (the player). Then, for a kind with a **Fence** weight:
 
 - **Fence shut** (no path to the player: `INavmeshQuery.IsReachable`, a cheap connected-area check on the A\* graph): it attacks a barrier: of the **`MeleeSettings.BreachCandidates` (5) nearest standing barriers, the one with the least health left** (`ChooseBreach`).
-- **A way in exists** (a broken segment anywhere, or an open gate): most go for the player through it, walking round to it if needed. Some keep breaking instead, so the player has more than one gap to hold:
+- **Ways in** are runs of side-by-side barriers that don't block (broken, or a gate open): two broken neighbours make one opening 4.5 m wide. An opening counts for an enemy only if it's at least as wide as its body (twice its `FollowerEntity` radius: goblins 1 m, so one broken panel, about 2.25 m, lets them through).
+- **Only ways in too narrow for it** (a large enemy at a single broken panel): it widens the nearest one, attacking the weaker standing barrier beside it, then goes through once it's wide enough. It also counts a too-narrow opening as a wall, so it doesn't try to squeeze through one straight ahead.
+- **A way in it fits through within `GapNear` (8 m)**: it always goes through. None of the rules below applies to it.
+- **A way in it fits through, further off**: most go for the player through it, walking round to it if needed. Some keep breaking instead, so the player has more than one gap to hold:
   - **Gap on the far side:** when a standing segment is between the goblin and the player and the walk through the nearest open way in is at least **`GapDetour` (15 m)** longer than going straight, it breaks its own way in (a 34 × 27 m yard: a gap on the opposite side).
-  - **A breaker share:** of the goblins at the fence, the ones for whom the open way in is furthest keep breaking: **`BreakerShare` (a third)** of all the goblins hunting, at least **`MinBreakers` (1)**, never every one (a lone goblin takes the gap). Six goblins: two keep breaking, four go in.
+  - **A breaker share:** of the goblins at the fence beyond `GapNear`, the ones for whom the open way in is furthest keep breaking: **`BreakerShare` (a third)** of all the goblins hunting, at least **`MinBreakers` (1)**, never every one (a lone goblin takes the gap). Six goblins spread along the fence: two keep breaking, four go in; six crowded round the first gap all go in.
   - **New gaps keep apart:** a breaker skips segments within **`GapSpacing` (6 m)** of an open way in, so it makes a second gap instead of widening the first.
   - **Almost broken:** a goblin whose segment would fall to **`FinishBreachBlows` (2) of its own blows** or fewer (30 HP for goblins) finishes it first.
 
-  Detours are straight-line estimates (`TargetSelector.Detour`: to the way in, then to the player), and "a standing segment is between" is a line test against each standing barrier's `Span`, so this costs no path queries. The breaker ranking uses where each goblin stood at its last choice (`TargetSelector` keeps one record per hunter; `Forget` on death and disable).
+  Detours are straight-line estimates (`TargetSelector.Detour`: to the middle of the way in, then to the player), and "a standing segment is between" is a line test against each standing barrier's `Span`, so this costs no path queries. The openings are rebuilt only when a barrier starts or stops blocking (barrier ends closer than 0.25 m are joined; WorldMap's ring of 53 meets exactly). The breaker ranking uses where each goblin stood at its last choice (`TargetSelector` keeps one record per hunter; `Forget` on death and disable).
 
 It re-asks every `RetargetInterval` (1 s) and **at once whenever a barrier starts or stops blocking**: the segment applies its navmesh cut immediately (`ForceUpdate` + `FlushWorkItems`, a few ms, only on a break, a stand-up or a gate swing) and bumps `TargetRegistry.BarrierVersion`, which makes every hunter choose again. Without that, the goblins at the fence would see the old navmesh for a frame and pick the next segment instead of the new gap.
 
@@ -53,6 +56,8 @@ It re-asks every `RetargetInterval` (1 s) and **at once whenever a barrier start
 - Raid spawn points must have a path to the zone's `Origin`: `Raid/Spawn Zone (Front)` sets `OriginOffset` 3 m so that point lies outside the closed gate ([RAIDS.md](RAIDS.md)).
 
 Measured in WorldMap (`DefensePlayCheck`, 6 goblins, player inside): against the shut fence all six went for it and the first segment fell after about 19 s; 2 s later two were still breaking a segment 6.8 m from the gap and four went in; that second gap fell about 5 s later. With the back fence already broken, goblins arriving at the front broke a new gap there (27 m from the back gap) after 18 s and none walked round.
+
+Since `GapNear` (2026-11-11, scratch probe: 6 goblins against the shut front fence): when the first segment fell, all six went through it within 6 s; before it, two of them, standing 2–3 m from the gap, walked off to break a segment 6.8 m away. Two goblins made 2.6 m wide (their `FollowerEntity` radius raised in play, as a stand-in for a large kind) at a single broken panel attacked the segment beside it, and went in once it fell. `DefensePlayCheck`'s goblin steps spawn in front of the player, so they only test the breach when the player faces out of the yard.
 
 ## Repair
 
@@ -111,7 +116,8 @@ Everything a kind is lives in its `BarrierDefinition`: health, damage scale per 
 | Gate swing angle, time, starting open | `FenceGate` on the gate prefab |
 | How many segments an enemy compares | the kind's `MeleeSettings.BreachCandidates` |
 | When an enemy finishes a segment instead of taking the gap | the kind's `MeleeSettings.FinishBreachBlows` |
-| How far out of the way a gap may be before an enemy breaks its own; the share that keeps breaking; spacing between gaps | the kind's `MeleeSettings.GapDetour`, `BreakerShare`, `MinBreakers`, `GapSpacing` |
+| How far out of the way a gap may be before an enemy breaks its own; the share that keeps breaking; spacing between gaps; how close a gap is always taken | the kind's `MeleeSettings.GapDetour`, `BreakerShare`, `MinBreakers`, `GapSpacing`, `GapNear` |
+| How wide a gap an enemy needs | its prefab's `FollowerEntity` radius (body width = 2 × radius; a bigger radius also needs its own navmesh graph, ENVIRONMENT.md → Navigation) |
 | Attackers per segment | `Data/Enemies/EnemySystemSettings.asset` → Attackers Per Target → Fence |
 | Repair rhythm, when it stops | `Data/Player/PlayerInteractionTuning.asset` → Repair |
 | Hammer poses | `Content/Tools/Hammer/Hammer.prefab` → `Poses` (Preview buttons on `RepairTool`); how it lies on the table: its `World/Model` |

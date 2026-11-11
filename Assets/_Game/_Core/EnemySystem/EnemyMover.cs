@@ -26,6 +26,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public bool TimedOut => Time.time >= _deadline;
         // World velocity (m/s), for animation.
         public Vector3 Velocity => _agent.velocity;
+        // Its body's radius on the ground (the FollowerEntity's): whether it fits through a gap.
+        public float Radius => _agent.radius;
 
         public void Initialize(AstarPath navigation, EnemyDefinition definition, EnemyStats stats)
         {
