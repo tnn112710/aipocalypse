@@ -4,6 +4,7 @@ using MB13.Aipocalypse.Core.Debugging;
 using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.GraphicsSystem;
+using MB13.Aipocalypse.Core.MapSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
@@ -62,6 +63,7 @@ namespace MB13.Aipocalypse.Core.Bootstrap
             new PlayerInstaller().Install(builder);
             new WeaponInstaller().Install(builder);
             new EquipmentInstaller(_itemCatalog).Install(builder);
+            new MapInstaller().Install(builder);
             new SaveInstaller(_saveSettings != null ? _saveSettings : ScriptableObject.CreateInstance<SaveSettings>()).Install(builder);
         }
     }

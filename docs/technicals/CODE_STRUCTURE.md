@@ -20,7 +20,7 @@ Assets/_Game/
 ├─ _Core/                                   asmdef MB13.Aipocalypse.Core
 │  ├─ _Bootstrap/                           MB13.Aipocalypse.Core.Bootstrap
 │  │  ├─ BuildStamp.cs                      which build this is (name, config, commit, date): Load reads build_info.txt next to the player (written by AutoBuild), Parse / ToFileText; registered and logged once by the root scope
-│  │  ├─ ProjectLifetimeScope.cs            root scope: BuildStamp, MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller, EquipmentInstaller (ItemCatalog), SaveInstaller (SaveSettings)
+│  │  ├─ ProjectLifetimeScope.cs            root scope: BuildStamp, MessagePipe, InputInstaller, ConsoleInstaller, AudioInstaller, CombatInstaller, EffectsInstaller, TimeInstaller, GraphicsInstaller, QuickTimeInstaller, PlayerInstaller, WeaponInstaller, EquipmentInstaller (ItemCatalog), MapInstaller, SaveInstaller (SaveSettings)
 │  │  ├─ ProjectLifetimeScope.prefab        holds ControlSettings (mouse sensitivity, invert Y, field of view…), the console's ConsoleSettings and DebugConsole overlay prefab, SaveSettings and ItemCatalog
 │  │  ├─ VContainerSettings.asset           Preloaded Asset → spawns the root prefab before any scene
 │  │  ├─ GameLifetimeScope.cs               per-scene scope: installs every SceneInstaller on its GameObject, reports one with a Problem (warning, error when Strict); a Strict scene also reports each SceneInstaller type it lacks; execution order -5000
@@ -271,6 +271,12 @@ Assets/_Game/
 │  │  ├─ InputInstaller.cs                  registers ControlSettings + InputService (entry point)
 │  │  ├─ ControlSettings.cs                 player-facing control and view options: mouse sensitivity, gamepad look speed, invert Y, FieldOfView (read live by PlayerZoom)
 │  │  └─ GameInputActions.cs                GENERATED from Settings/InputSystem_Actions.inputactions — don't edit
+│  ├─ MapSystem/                            MB13.Aipocalypse.Core.MapSystem — what the minimap shows, see UI.md → Minimap
+│  │  ├─ MapMarker.cs                       puts its object on the minimap as its MapMarkerKind while enabled; registers in MapMarkerRegistry when injected (scene-placed: Auto Inject Game Objects)
+│  │  ├─ MapMarkerKind.cs                   SO: a marker kind's background / icon sprites + colours, size, PinToEdge (out of range: on the rim instead of hidden); assets Data/Map/Home, Objective
+│  │  ├─ MapMarkerRegistry.cs               enabled, injected MapMarkers (root scope) → MinimapHud
+│  │  ├─ MapInstaller.cs                    root-scope installer: MapMarkerRegistry
+│  │  └─ MinimapMath.cs                     Heading(forward) in compass degrees, ToDisc(offset, heading, px per m) heading-up, ClampToRadius
 │  ├─ PlayerSystem/                         MB13.Aipocalypse.Core.PlayerSystem
 │  │  ├─ Player.cs                          view MonoBehaviour: builds its parts, input (or IntentSource while set) → intent (look scaled by zoom; aim / trigger end a sprint via HeldItem.StopsSprint) and ticks them in order; IPlayer, IEquipmentOwner, IGunUser (owns the AmmoReserve); IDamageable explicitly (only through DamageService); ITargetable of kind Player, targetable while alive and not IgnoredByEnemies; PlaySequence / StopSequence (dying plays PlayerTuning.DeathSequence); MoveToSpawn, Revive; re-reads max health / stamina on IStatProvider.Changed; IConsumer: PlayerEffects over the injected IStatProvider (buffed stats for everything it builds), LastHurtTime, CannotUse ("Health full"), Use; Pitch, RestoreSaved(position, yaw, pitch, health)
 │  │  ├─ IPlayer.cs                         IPlayerTarget + Health, Stamina, Equipment, Ammo, HeldItem, Interactor, IsSprinting, CrosshairPosition, CrosshairSpread, SpawnPosition, View (the camera pivot), Invulnerable / IgnoredByEnemies (cheat.god / cheat.notarget), IntentSource (dev tools), MoveToSpawn, Revive: the player as PlayerRegistry hands it out
@@ -423,6 +429,8 @@ Assets/_Game/
 │  │  ├─ Widgets/HitFeedbackStyle.cs        ScriptableObject: hit / kill marker colors, durations, pops, PopShare
 │  │  ├─ Widgets/HurtFeedbackStyle.cs       ScriptableObject: hurt flash color, max alpha, thickness (share of screen height), min strength, full-strength damage (share of max health), fade-out (real time)
 │  │  ├─ Widgets/ClockView.cs               passive digital clock: SetTime (monospaced HH:MM, char buffer) / SetPhase / SetDay / Show / ApplyStyle
+│  │  ├─ Widgets/MinimapView.cs             passive heading-up radar disc: SetHeading (N / E / S / W around the rim), SetEnemies (pooled dots), SetMarker / HideMarkersFrom (pooled icons by MapMarkerKind), Show, ApplyStyle
+│  │  ├─ Widgets/MinimapStyle.cs            SO: Enabled, Range (m to the rim), EdgeInset, disc / ring / player / view cone sprites + colours, enemy dot sprite / colour / size, letter font / size / colours (N apart), LetterOffset; asset Data/UI/MinimapStyle
 │  │  ├─ Widgets/ClockStyle.cs              ScriptableObject: fonts + underlay materials, sizes, colors, backing panel, Phases (DayPhase → PhaseLabel: text, colour; Phase(phase))
 │  │  ├─ Widgets/DeathScreenView.cs         passive: eyelids + darkness (CloseEyes from the style's steps), menu (ShowMenu / HideMenu fades), SetStatus (pulse), HideAll, Illustration slot
 │  │  ├─ Widgets/DeathScreenStyle.cs        ScriptableObject: eyelid texture + EyelidSolidAt, EyeStep timeline (lids, darkness, ease), menu colors / glow / fonts / texts, fades, MinLoadingTime, continue pulse
@@ -445,6 +453,7 @@ Assets/_Game/
 │  │  ├─ Hud/PlayerVitalsHud.cs             PlayerHudView → health + stamina bars (LateUpdate)
 │  │  ├─ Hud/HotbarHud.cs                   PlayerHudView → one slot view per slot of Player.Equipment; each item's Changed → its Badge, AmmoReserve.Changed → reserve counts (events, no polling)
 │  │  ├─ Hud/InteractPromptHud.cs           PlayerHudView → prompt and hold prompt from Player.Interactor, and above it the repair tool's [R] prompt from Player.Repair (LateUpdate); hidden while a menu holds the UI
+│  │  ├─ Hud/MinimapHud.cs                  PlayerHudView → MinimapView each LateUpdate: heading from Player.View, living enemies within range (EnemyRegistry, TryResolve), every MapMarker (pinned to the rim or hidden beyond range); built by AgentScripts/Hud/MinimapSetup (also moves the clock to SafeFrame/TopCenter, places WorldMap's home marker)
 │  │  ├─ Hud/LootMarkerHud.cs               PlayerHudView → bag markers over the nearest crates / bodies holding loot (LootRegistry, rescanned 5×/s; bright = something hidden, dim = all seen)
 │  │  ├─ Hud/ItemUseHud.cs                  PlayerHudView → the ring under the crosshair while a HeldConsumable is used, its name; a refusal in red
 │  │  ├─ Hud/EffectsHud.cs                  PlayerHudView → icon + seconds left per PlayerEffects entry (dim while healing is paused), above the vitals
@@ -566,7 +575,8 @@ Assets/_Game/
 │  ├─ Weapons/AmmoConfig.asset              the player's starting rounds, put in the backpack (270 rifle, 144 pistol, 72 shells), Infinite off
 │  ├─ Weapons/BulletEffects.asset           effects shared by every gun
 │  ├─ Weapons/RepairFeedback.asset          the repair feedback preset every gun's repair profile uses
-│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InventoryStyle.asset, InteractPromptStyle.asset, BreachAlertStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset,
+│  ├─ Map/Home.asset, Objective.asset      MapMarkerKinds: the home (yellow tag, house icon) and a generic objective, both pinned to the minimap rim
+│  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InventoryStyle.asset, InteractPromptStyle.asset, BreachAlertStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset, MinimapStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ _Editor/                                asmdef MB13.Aipocalypse.Editor (editor only), namespace MB13.Aipocalypse.Editor.<Folder>
@@ -592,6 +602,7 @@ Assets/_Game/
    ├─ EnemyTargetingTests.cs                TargetSelector (nearest wanted target, skips untargetable ones and kinds without weight; shut fence: the weakest of the nearest barriers; a gap near: through it; far: a new breach away from it; finishes a barrier about to break; keeps a share of fence attackers, the furthest from the gap; every hunter within GapNear of the gap goes through; a gap narrower than the body is widened by the weaker barrier beside it, then taken; a lone one takes the gap; newcomers share the breaking; unaware: the objective, never the player; fence shut unaware: breaks in toward the farm; no Fence weight / no rules keep the target), TargetRegistry add / remove (barriers kept apart), BarrierVersion, the Farm at the barriers' middle, AttackSlots (cap per target, release, switching target, zero capacity, no target)
    ├─ DefenseTests.cs                       BarrierHealth (breaks at 0, stands at StandAt, new maximum keeps the share), fence / gate / double gate prefab wiring (definition, sounds, cut, Ignore Raycast blocker over 2 m, colliders out of the bake, hinges), the hammer item (Tool, icon, RepairTool with a right grip; none built into the Player), a hotbar slot takes it, highlight fade and x-ray look, Repair All text
    ├─ GhostTests.cs                         GhostShape.Capture (shown LOD 0 meshes at their rest pose), CaptureLive follows the model, a fallen fence look still captures standing, the player's ghost style wiring
+   ├─ MinimapTests.cs                       MinimapMath: compass heading, heading-up disc positions (what the player faces is up), clamping to the rim; MapMarkerRegistry adds once and removes
    ├─ AwarenessTests.cs                      Awareness: Notice once, Sense alerts / forgets after LoseSightTime, a hit keeps it looking, Reset
    ├─ EnemySpawningTests.cs                 EnemySpawnCard (variants by weight, group size range), EnemyVoice (a step per stride, only while audible); data: cards have variants with definitions and a cue, fighting definitions have sounds, damage and targets, EnemySystemSettings lists every card
    ├─ CrowdSpreadTests.cs                   SpeedFactor within the variance, FlankPoint (turned by the angle far away, straight close in)
@@ -692,7 +703,7 @@ HudScope : EntityScope (HUD.prefab root, separate from the Player) ── same p
          PlayerHudView (PlayerRegistry, ISubscriber<ActivePlayerChanged>) → Bind / Unbind the active IPlayer
            PlayerVitalsHud, CrosshairHud, HotbarHud, InteractPromptHud (+ InputService for key labels), InventoryScreen (+ InputService, TimeService, AudioService, RaidStarted / RaidEnded / DamageDealt), LootMarkerHud (+ LootRegistry, InputService), PickupFeedHud (+ AudioService), HitFeedbackHud (+ AudioService, DamageDealt),
            HurtFeedbackHud (+ TimeService, DamageDealt), HudVisibilityHud (PlayerDied / PlayerRevived), DeathScreenHud (PlayerRespawnFading, PlayerRespawning, RespawnStageChanged)
-         QteHud (QuickTimeService, TimeService, InputService, QteStarted / QteAttempted / QteEnded), ClockHud (TryResolve WorldClock)
+         QteHud (QuickTimeService, TimeService, InputService, QteStarted / QteAttempted / QteEnded), ClockHud (TryResolve WorldClock), MinimapHud (+ MapMarkerRegistry, TryResolve EnemyRegistry)
 ```
 
 - Only `Player` gets injected. The parts are plain classes it creates and owns. They get Unity components through their constructors, not through DI.

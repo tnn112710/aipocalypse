@@ -29,8 +29,10 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
 ├─ RaidBanner                upper middle band (anchors 0.62–0.82 of the height), CanvasGroup (alpha 0 at rest) · RaidBannerHud (Data/UI/RaidBannerStyle.asset): Title + Subtitle TMP texts, shown when a raid starts, is repelled or ends at dawn; built by AgentScripts/Hud/RaidBannerSetup.Build
 └─ SafeFrame                 stretch, inset 48/40
    ├─ TopLeft                corner anchors (zero size): widgets anchor to these
-   ├─ TopRight
+   ├─ TopCenter              top-middle anchor (zero size)
    │  └─ Clock               nested Canvas · ClockView · ClockHud (world clock, see Clock below)
+   ├─ TopRight
+   │  └─ Minimap             220×220, 10 px in from the corner · nested Canvas · MinimapView (MinimapStyle) · MinimapHud (see Minimap below)
    ├─ BottomLeft
    │  ├─ Effects             nested Canvas · HorizontalLayoutGroup · EffectsHud: Effect template (icon + seconds), 130 px up
    │  └─ Vitals              nested Canvas · VerticalLayoutGroup · ContentSizeFitter · PlayerVitalsHud
@@ -60,7 +62,7 @@ PauseMenu                    last child: Esc menu, its own Canvas (sorting 200, 
                              Confirm (ConfirmDialog), EventSystem (off while closed); built by AgentScripts/Save/SaveSetup.Hud (see Menus below)
 ```
 
-- **Region per corner.** New HUD info goes under the matching region: the clock (and later weather) in TopRight, quest tracker in TopRight below it, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
+- **Region per corner.** New HUD info goes under the matching region: the clock (and later weather) in TopCenter, the minimap in TopRight, quest tracker in TopRight below it, currency in TopLeft, crosshair and interact prompt in Center, hotbar in BottomCenter, ammo in BottomRight.
 - **A nested Canvas around anything that changes often.** `Vitals` has its own Canvas, so the bars changing every frame (stamina regen) only rebuild that group, not the whole HUD. Give each frequently updated group its own nested Canvas. Static decoration can share the root.
 
 ## Where the HUD lives
@@ -201,7 +203,10 @@ InteractPrompt               InteractPromptView component
 | Interact prompt sprite, fonts, colors, font size | `Data/UI/InteractPromptStyle.asset` |
 | Interact prompt position | `HUD` → `Center/Interact` anchored position |
 | Clock fonts, sizes, colors, backing panel, phase labels / colors, day format | `Data/UI/ClockStyle.asset` |
-| Clock position, size, text placement | `HUD` → `TopRight/Clock` RectTransforms (Clock size, Time and Labels offsets) |
+| Clock position, size, text placement | `HUD` → `TopCenter/Clock` RectTransforms (Clock size, Time and Labels offsets) |
+| Minimap sprites, colours, letters, range, enemy dot size | `Data/UI/MinimapStyle.asset` |
+| Minimap size, position | `HUD` → `TopRight/Minimap` RectTransform (the radius is half the `Disc` width) |
+| A marker kind's icon, colours, size, pin to the rim | `Data/Map/<Kind>.asset` (`MapMarkerKind`) |
 | Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
 | Crosshair sprint fade speed, spread tick threshold / speed | `Data/UI/CrosshairStyle.asset` |
 | Hit marker colors, durations, pops; how far above the hit a number starts | `Data/UI/HitFeedbackStyle.asset` (sounds and the number prefabs: `HitFeedbackHud`) |
@@ -252,10 +257,10 @@ DeathScreen                  nested Canvas (override sorting 100) · CanvasGroup
 
 ## Clock
 
-A digital clock as in Escape from Duckov, on `SafeFrame/TopRight/Clock` (built by `AgentScripts/DayNight/DayNightSetup.Hud()`). The clock itself: [DAYNIGHT.md](DAYNIGHT.md).
+A digital clock as in Escape from Duckov, on `SafeFrame/TopCenter/Clock` (built by `AgentScripts/DayNight/DayNightSetup.Hud()`). The clock itself: [DAYNIGHT.md](DAYNIGHT.md).
 
 ```text
-Clock                        296×76, anchored to TopRight · nested Canvas · ClockView (ClockStyle) · ClockHud
+Clock                        296×76, hanging from TopCenter · nested Canvas · ClockView (ClockStyle) · ClockHud
 └─ Content                   stretched; shown / hidden as a whole
    ├─ Backing                stretched Image: translucent rounded panel (built-in UISprite, 9-sliced)
    ├─ Time                   left 16–172 px: TMP "07:00", monospaced digits, header font + underlay
@@ -269,6 +274,28 @@ Clock                        296×76, anchored to TopRight · nested Canvas · C
 - `ClockView` API: `SetTime(hour, minute)`, `SetPhase(label, color)`, `SetDay(day)`, `Show(bool)`, `ApplyStyle()`. Each setter skips repeats; the time is written from a cached char buffer (`SetCharArray`), so updates allocate nothing.
 - `ClockHud` resolves the `WorldClock` if the scene has one (else the clock hides) and polls it in `LateUpdate`: 24-hour time, one-minute steps (every 0.75 s at 45 s per game hour).
 - A weather line goes under `Labels` when weather exists.
+
+## Minimap
+
+A radar disc on `SafeFrame/TopRight/Minimap` (built by `AgentScripts/Hud/MinimapSetup.Build`, looks after Synty's `HUD_Apocalypse_Minimap_Dial_01`, its sprites only). No terrain: only what is around the player, heading up (what the player faces is always up), with N / E / S / W turning around the rim (N in `NorthColor`). Always on for now; the GDD's "HUD earned back" unlock is not built.
+
+```text
+Minimap                      220×220 · nested Canvas · MinimapView · MinimapHud
+└─ Content                   stretched; shown / hidden as a whole (no player, or MinimapStyle.Enabled off)
+   ├─ Disc                   stretched; half its width is the radius
+   │  ├─ Background          dark translucent disc
+   │  ├─ ViewCone            fixed, pointing up, centre to rim
+   │  ├─ Markers             MarkerTemplate (background + Icon child), cloned _maxMarkers (12) times
+   │  ├─ Enemies             EnemyTemplate (red dot), cloned _maxEnemies (48) times
+   │  ├─ Player              fixed arrow in the middle
+   │  └─ Ring                rim with ticks
+   └─ Directions             N, E, S, W TMP letters placed on the rim each frame (upright)
+```
+
+- **What shows:** every living enemy in `EnemyRegistry` (TryResolve: none in scenes without an EnemyInstaller) within `MinimapStyle.Range` (60 m to the rim), hidden beyond; and every `MapMarker` in `MapMarkerRegistry` (root scope). A marker beyond range sits on the rim as a direction pointer when its `MapMarkerKind.PinToEdge` is on, else hides. Height is ignored.
+- **Adding a marker:** put a `MapMarker` with a kind (`Data/Map/Home`, `Data/Map/Objective`, or a new `MapMarkerKind` asset) on the object. It registers when injected: a scene-placed one goes in the scene scope's **Auto Inject Game Objects** (`MinimapSetup.HomeMarker` does it for `Home Interior/Home Marker` in WorldMap); a spawned one needs injecting by whatever spawns it.
+- `MinimapView` API: `SetHeading(degrees)`, `SetEnemies(positions, count)`, `SetMarker(index, position, kind)`, `HideMarkersFrom(index)`, `Show(bool)`, `ApplyStyle()`. Positions are pixels from the centre; the maths is `MapSystem/MinimapMath` (tested in `MinimapTests`).
+- `MinimapHud` rebuilds every frame in `LateUpdate` (the disc turns with the view, so every icon moves anyway): one pass over the enemies and markers, no allocations; the view only toggles pooled objects whose state changed.
 
 ## Crosshair
 

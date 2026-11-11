@@ -19968,6 +19968,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6135137017971627384, guid: 6967a898afa0a2d42be2b6d6060270a8, type: 3}
   m_PrefabInstance: {fileID: 75712132}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &76035913
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 76035914}
+  - component: {fileID: 76035915}
+  m_Layer: 0
+  m_Name: Home Marker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &76035914
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 76035913}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1308800886}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &76035915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 76035913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0501b47f52f03ba41a9c8248b0db6dba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.MapSystem.MapMarker
+  _kind: {fileID: 11400000, guid: 5238b2557deaaff4c92b843216df147b, type: 2}
 --- !u!1001 &76919665
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -287873,6 +287918,7 @@ MonoBehaviour:
   autoInjectGameObjects:
   - {fileID: 1156023922}
   - {fileID: 479439401}
+  - {fileID: 76035913}
   _strict: 0
 --- !u!4 &1051055994
 Transform:
@@ -359315,6 +359361,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1931451371}
+  - {fileID: 76035914}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1309091604

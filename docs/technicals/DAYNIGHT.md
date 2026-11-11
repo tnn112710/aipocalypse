@@ -225,7 +225,7 @@ Enemies stay readable in the dark with a light only they receive. Code: `Environ
 
 ## HUD clock
 
-Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day stacked beside it, on a translucent panel in `SafeFrame/TopRight`. Layout and style: [UI.md → Clock](UI.md#clock).
+Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day stacked beside it, on a translucent panel in `SafeFrame/TopCenter`. Layout and style: [UI.md → Clock](UI.md#clock).
 
 ## Changing things
 
@@ -264,7 +264,7 @@ Digital, as in Escape from Duckov: big monospaced `HH:MM` with the phase and day
 
 - `DayNightSetup.Assets(reset)` creates the data assets. **`reset = true` overwrites the looks, grades, profile keys and ambience with the script's values.** Use `false` to keep hand tuning and only add what's missing.
 - `DayNightSetup.Scene()` wires the world map (director, grade volumes, sky, reactors, door light) and saves the scene. Its scope step adds or updates the scope's `WorldTimeInstaller` (clock) and `EnvironmentInstaller` (director + ambience). Re-run it after `Atmosphere.Particles()` rebuilds the atmosphere groups.
-- `DayNightSetup.Hud()` rebuilds `SafeFrame/TopRight/Clock` in `HUD.prefab`.
+- `DayNightSetup.Hud()` rebuilds `SafeFrame/TopCenter/Clock` in `HUD.prefab` (the anchor comes from `MinimapSetup.Hud`).
 - `Prof.Start()` / `Prof.StartGpu()`, `Prof.Stop()`, `Prof.Window(from, to)`, `Prof.Compare(aFrom, aTo, bFrom, bTo, thread, top)`, `Prof.Spikes(...)`: Play-mode profiler captures (median CPU / GPU frame time, GC per frame, markers that grew between two frame ranges). Measured: a look transition costs about 0.3 ms main thread + 0.3 ms GPU over a hold (1–4 fps in the editor); the director writes the light, RenderSettings and volumes only when a value changes, so holds cost nothing.
 - `DayNightSetup.RestoreHudOverrides(path)` sets the open scene's HUD instance overrides back to those of another copy of the scene (for example `git show HEAD:<scene>` saved to a temp file). Editor layout passes write layout-driven values onto the instance, which would otherwise show up as noise in the scene diff.
 - `SkyboxPlusSetup.Create(preset)` builds `SkyboxPlus_Sky.mat` from a Skybox Plus preset (e.g. `"Clouds-B1"`) with the project's star, moon and sky values; **it overwrites hand tuning**. `Use(bool)` switches the open scene between Skybox Plus and the Time Of Day sky and saves it. `StarMap(on, intensity)` imports `StarMap.png` as a cubemap and turns the star map on or off. Play mode: `Try(preset)` shows another vendor preset (runtime copy, nothing saved), `Set(property, value)` tweaks the running copy.

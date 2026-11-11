@@ -810,15 +810,17 @@ public static class DayNightSetup
         var root = PrefabUtility.LoadPrefabContents(HudPath);
         try
         {
-            var topRight = root.transform.Find("SafeFrame/TopRight") ?? throw new Exception("no SafeFrame/TopRight");
-            var existing = topRight.Find("Clock");
+            // Top centre (the minimap holds the top-right corner); the anchor is made by MinimapSetup.
+            var topCenter = root.transform.Find("SafeFrame/TopCenter") ?? throw new Exception("no SafeFrame/TopCenter: run MinimapSetup.Hud first");
+            var existing = topCenter.Find("Clock");
             if (existing != null)
                 Object.DestroyImmediate(existing.gameObject);
 
             // Fixed rects, no layout groups: the digits are monospaced so the clock never changes size, and nothing
             // layout-driven ends up as overrides on the scene's HUD instance.
-            var clock = UiObject("Clock", topRight);
+            var clock = UiObject("Clock", topCenter);
             Anchor(clock, new Vector2(296f, 76f));
+            clock.anchorMin = clock.anchorMax = clock.pivot = new Vector2(0.5f, 1f);
             clock.gameObject.AddComponent<Canvas>();
 
             var content = UiObject("Content", clock);
@@ -863,7 +865,7 @@ public static class DayNightSetup
             hso.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(root, HudPath);
-            return "hud clock at SafeFrame/TopRight/Clock";
+            return "hud clock at SafeFrame/TopCenter/Clock";
         }
         finally
         {
