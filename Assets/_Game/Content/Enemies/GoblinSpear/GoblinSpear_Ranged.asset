@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45ca1670f6bee8e45ab490e9ce58436f, type: 3}
+  m_Name: GoblinSpear_Ranged
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnemySystem.RangedSettings
+  StandOff: {x: 9, y: 14}
+  MaxRange: 19
+  MinRange: 4
+  Projectile: {fileID: 11400000, guid: eb027bfa5e759374cbd8659987baebf0, type: 2}
+  AttackDuration: 2.4
+  ReleaseTime: 1.1
+  Cooldown: {x: 2.2, y: 4}
+  AimHeight: 1.1
+  StraightSpeed: 22
+  LobAngle: {x: 30, y: 50}
+  MaxLobSpeed: 26
+  LobAnyway: 0.15
+  Obstacles:
+    serializedVersion: 2
+    m_Bits: 3212836505
+  Spread: 2.5
+  Lead: {x: 0.3, y: 0.9}
+  WindUp:
+    _entity: {fileID: 11400000, guid: c339c47f6c57ac148b65abf3b2fcfc89, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  Launch:
+    _entity: {fileID: 11400000, guid: d509cc4cf89bc894685daa6a3d4ed80c, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}

@@ -40,6 +40,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             "from it), DeathIndex 10 × (side + 1) + n; a side without any uses the random deaths")]
         int[] _sideDeaths = new int[4];
         [SerializeField, Min(0), Tooltip("Attack states in the controller, picked at random by AttackIndex 0..n-1")] int _attacks;
+        [SerializeField, Tooltip("Ranged kinds: where the projectile leaves from (the throwing hand, the bow)")] Transform _launchPoint;
+        [SerializeField, Tooltip("Ranged kinds: the held copy of what's thrown, hidden between the throw and the next wind-up")]
+        GameObject _heldProjectile;
         [SerializeField, Min(0), Tooltip("Celebration (dance) states in the controller, picked at random by CelebrateIndex 0..n-1")]
         int _celebrations;
 
@@ -51,6 +54,15 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         AnimatorCullingMode _culling;
 
         public Animator Animator => _animator;
+        // Where a thrown thing leaves from; the chest when the prefab names no point.
+        public Vector3 LaunchPoint => _launchPoint != null ? _launchPoint.position : transform.position + Vector3.up * 1.2f;
+
+        // The spear in the hand: hidden once thrown, back for the next throw.
+        public void ShowHeldProjectile(bool shown)
+        {
+            if (_heldProjectile != null && _heldProjectile.activeSelf != shown)
+                _heldProjectile.SetActive(shown);
+        }
 
         public void Initialize(EnemyAnimationSettings settings)
         {

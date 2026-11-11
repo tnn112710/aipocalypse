@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d677ffea554c1a847963cac2f0afd0b4, type: 3}
+  m_Name: GoblinSpear
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnemySystem.EnemyDefinition
+  _stats:
+  - key: 0
+    value: 90
+  - key: 1
+    value: 1.4
+  - key: 2
+    value: 22
+  _targets:
+  - key: 0
+    value: 1
+  SpeedVariance: 0.12
+  StopDistance: 0.3
+  AppearTime: 3
+  AppearJitter: 0.8
+  GrassBendRadius: 0.6
+  Reaction: {fileID: 11400000, guid: 7dcd6109388675345815d2d54ac60c8e, type: 2}
+  Wander: {fileID: 11400000, guid: c9a4e702e79221d40b15afaa7522480f, type: 2}
+  Melee: {fileID: 11400000, guid: c177967a0a8efd2488ffcf1b5809a3ec, type: 2}
+  Ranged: {fileID: 11400000, guid: 416c668fee0e1ae48b18f87fbbc6cf3e, type: 2}
+  Animation: {fileID: 11400000, guid: 0708082ba04115e4ca3fba56b2c58f07, type: 2}
+  Sounds: {fileID: 11400000, guid: 4b0bddcfb5643de478c36bb131850307, type: 2}
+  Loot: {fileID: 11400000, guid: b66f4ac4d0c87d248a9668ce5eada1e4, type: 2}

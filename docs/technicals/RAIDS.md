@@ -53,7 +53,7 @@ The group then spreads over a 3–5 m radius round the point (`SpawnSystemSettin
 | Asset | Holds |
 | --- | --- |
 | `Data/Raids/RaidSettings.asset` | Start, dawn and wake hours, hours lost on death, alive cap, the nightly plan, spawn-point rules |
-| `Data/Raids/Night_Default.asset` (`RaidPlan`) | Three waves of goblins: 5, 6 and 7 (18 a night), each from `Front` |
+| `Data/Raids/Night_Default.asset` (`RaidPlan`) | Three waves from `Front`: 5 goblins; 6 goblins and 2 spear throwers; 7 goblins, 2 spear throwers and 2 archers (24 a night). The ranged entries are added by `RangedGoblinSetup.Raid` (`RaidNightSetup.Raid` rewrites the plan to its 5 / 6 / 7 goblins: run it again after) |
 | `Content/Enemies/Goblin/Goblin_Card.asset` (`EnemySpawnCard`) | The six goblin looks, groups of 2–3, the war horn |
 
 Settings and plans are read-only at runtime, like every definition asset.

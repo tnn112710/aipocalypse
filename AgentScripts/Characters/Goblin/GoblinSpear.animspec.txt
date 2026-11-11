@@ -1,0 +1,66 @@
+# Spear-thrower goblin controller: Goblin.animspec.txt with a spear throw instead of the sword swings (Kevin Iglesias
+# Throwing, ASSETS.md) and its hold pose as the fighting idle. The right-hand grip layer stays: it holds the spear.
+# Build: CharacterKit.BuildLocomotionController with this file (see Goblin.animspec.txt).
+controller = Assets/_Game/Content/Enemies/GoblinSpear/GoblinSpear.controller
+neutral = Assets/_Game/Content/Enemies/Goblin/Animations/Goblin_AdditiveNeutral.anim
+
+# Speeds are the pack's authored gaits (user guide): walk 1.4 m/s, run 3.5 m/s.
+move = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Standing_Neut.fbx @ 0
+move = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Locomotion/Walk/A_MOD_GBL_Walk_F_Neut.fbx @ 1.4
+move = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Locomotion/Run/A_MOD_GBL_Run_F_Neut.fbx @ 3.5
+
+fidget = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Fidget_Menacing_Neut.fbx
+fidget = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Fidget_Scratching_Neut.fbx
+fidget = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Idles/A_MOD_GBL_Idle_Fidget_Swipe_Neut.fbx
+
+headLook.left = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_L_Additive_Neut.fbx
+headLook.right = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_R_Additive_Neut.fbx
+headLook.up = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_U_Additive_Neut.fbx
+headLook.down = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_HeadLook_D_Additive_Neut.fbx
+bodyLook.left = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_L_Additive_Neut.fbx
+bodyLook.right = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_R_Additive_Neut.fbx
+bodyLook.up = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_U_Additive_Neut.fbx
+bodyLook.down = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Look/A_MOD_GBL_BodyLook_D_Additive_Neut.fbx
+bodyLook.weight = 0.5
+lean.left = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Lean/A_MOD_GBL_Lean_L_Additive_Neut.fbx
+lean.right = Assets/Synty/AnimationGoblinLocomotion/Animations/Sidekick/Neutral/Additive/Lean/A_MOD_GBL_Lean_R_Additive_Neut.fbx
+
+# Hits and deaths: Malbers Common human clips (ASSETS.md, Could; the Synty locomotion packs have none). Hits play on the
+# upper body over the walk; deaths in the base layer.
+hit.front = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Front_Light
+hit.back = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Back_Light
+hit.left = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Left_Light
+hit.right = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Right_Light
+heavy.front = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Frontt_Heavy
+heavy.back = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Back_Heavy
+heavy.left = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Left_Heavy
+heavy.right = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Hit/Hit_All.fbx#Human_Hit_From_Right_Heavy
+hit.mask = upper
+# Deaths fall away from the killing hit: Kevin Iglesias Human Animations (Should), sorted by where each clip leaves the head
+# (front = shot from the front, falls backwards). The Malbers deaths stay as the fallback for a hit with no direction.
+death = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Deaths/H_Death1.fbx
+death = Assets/_StoreAssets/Characters/Malbers Animations/Common/Human Anims/Deaths/H_Death3.fbx
+death.front = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath02.fbx
+death.front = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death02.fbx
+death.front = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death05.fbx
+death.back = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath04.fbx
+death.back = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death01.fbx
+death.back = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death03.fbx
+death.left = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath06.fbx
+death.right = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDeath01.fbx
+
+
+# Arrival when spawned: Synty Emotes and Taunts (ASSETS.md, Could), the Sidekick-format roar (3.8 s, cut short once it walks;
+# Goblin.asset's AppearTime holds it still meanwhile).
+appear = Assets/Synty/AnimationEmotesAndTaunts/Animations/Sidekick/Masculine/Aggressive/A_MOD_EMOT_Aggressive_Roar_High_Masc.fbx
+
+# Celebrating a kill (the player died): the same pack's Sidekick dances, one picked at random per goblin, repeated.
+celebrate = Assets/Synty/AnimationEmotesAndTaunts/Animations/Sidekick/Masculine/Dance/A_MOD_EMOT_Dance_ChestPump_Masc.fbx
+celebrate = Assets/Synty/AnimationEmotesAndTaunts/Animations/Sidekick/Masculine/Dance/A_MOD_EMOT_Dance_Twist_Masc.fbx
+celebrate = Assets/Synty/AnimationEmotesAndTaunts/Animations/Sidekick/Masculine/Celebrate/A_MOD_EMOT_Celebrate_BeatChest_Masc.fbx
+celebrate = Assets/Synty/AnimationEmotesAndTaunts/Animations/Sidekick/Masculine/Celebrate/A_MOD_EMOT_Celebrate_AmpedSkitter_Masc.fbx
+grip = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Masked Poses/Human@ObjectGripHands01.fbx
+grip.mask = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Models/Avatar Masks/Hands/Human Hand Right Mask.mask
+
+attack = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/Thrown/Weapon/Spear/HumanM@ThrowSpear01_R.fbx
+combatIdle = Assets/_StoreAssets/Animation/Kevin Iglesias/Human Animations/Animations/Male/Combat/Thrown/Weapon/Spear/HumanM@ThrowSpear01_R - Hold.fbx

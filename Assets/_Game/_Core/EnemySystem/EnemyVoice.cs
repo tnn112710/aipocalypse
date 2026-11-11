@@ -45,6 +45,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 _audio.PlayAt(_sounds.Attack, _body.position);
         }
 
+        // Any other sound of its kind (a ranged wind-up, a launch), at the body.
+        public void Play(Ami.BroAudio.SoundID sound) => _audio.PlayAt(sound, _body.position);
+
         public void Impact(Vector3 point)
         {
             if (_sounds != null)

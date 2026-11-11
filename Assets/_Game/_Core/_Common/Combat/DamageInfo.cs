@@ -8,6 +8,8 @@ namespace MB13.Aipocalypse.Core.Combat
         Fall,
         Gunshot,
         Melee,
+        // Thrown or shot by an enemy (a spear, an arrow).
+        Projectile,
     }
 
     public readonly struct DamageInfo

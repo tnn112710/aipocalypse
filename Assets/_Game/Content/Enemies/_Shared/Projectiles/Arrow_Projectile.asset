@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d3c25fa236431145882419b6c1a339c, type: 3}
+  m_Name: Arrow_Projectile
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnemySystem.ProjectileDefinition
+  Gravity: 9.81
+  Radius: 0.08
+  MaxFlightTime: 8
+  HitLayers:
+    serializedVersion: 2
+    m_Bits: 3212836505
+  Knockback: 2
+  Visual: {fileID: 8883451189609884979, guid: fa262dd0c90223d4baf7bf73e164dcca, type: 3}
+  StickSeconds: 6
+  StickDepth: 0.15
+  LandingMarker: {fileID: 8053839913916761648, guid: ef3b7fec86965014c8bf43ae3fca59bb, type: 3}
+  Prewarm: 6
+  FlyBy:
+    _entity: {fileID: 11400000, guid: 4c95271b5205e15478aaf7d95927c315, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  FlyByRadius: 5
+  FlyByLead: 0.6
+  Impact:
+    _entity: {fileID: 11400000, guid: 978c0bd25ad8ab2478472337988fd5d7, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  Hit:
+    _entity: {fileID: 11400000, guid: 65bf3f50d2f74b54ca813bc740854e79, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}

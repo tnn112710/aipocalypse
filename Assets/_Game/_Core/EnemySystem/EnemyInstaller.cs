@@ -37,6 +37,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             builder.RegisterEntryPoint<EnemyAnimationManager>();
             builder.RegisterEntryPoint<EnemyBodyManager>().AsSelf();
             builder.RegisterEntryPoint<EnemySoundManager>();
+            builder.RegisterEntryPoint<ProjectileSystem>().AsSelf();
             // Editor and cheat builds only.
             if (Cheats.Enabled)
             {

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45ca1670f6bee8e45ab490e9ce58436f, type: 3}
+  m_Name: GoblinArcher_Ranged
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnemySystem.RangedSettings
+  StandOff: {x: 16, y: 24}
+  MaxRange: 32
+  MinRange: 6
+  Projectile: {fileID: 11400000, guid: 035d3cfca9cbf1744a6536d95bd278aa, type: 2}
+  AttackDuration: 1.1
+  ReleaseTime: 0.62
+  Cooldown: {x: 1.6, y: 3.2}
+  AimHeight: 1.1
+  StraightSpeed: 32
+  LobAngle: {x: 28, y: 46}
+  MaxLobSpeed: 34
+  LobAnyway: 0.15
+  Obstacles:
+    serializedVersion: 2
+    m_Bits: 3212836505
+  Spread: 2
+  Lead: {x: 0.4, y: 1}
+  WindUp:
+    _entity: {fileID: 11400000, guid: e9df226ccd1ccdc4fa38329cc21e7283, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  Launch:
+    _entity: {fileID: 11400000, guid: 97ac0ffb3f71f244989f3ebdb425e116, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}

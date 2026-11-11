@@ -27,6 +27,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         [Required, InlineEditor, Tooltip("Read by the Wander subtree's tasks")] public WanderSettings Wander;
         [InlineEditor, Tooltip("Read by the Melee subtree's tasks; empty for kinds that don't fight (they ignore the player)")]
         public MeleeSettings Melee;
+        [InlineEditor, Tooltip("Read by the Ranged subtree's tasks; empty for kinds that don't throw or shoot")]
+        public RangedSettings Ranged;
         [InlineEditor, Tooltip("Glances, fidgets and leaning of an animated model (EnemyAnimator); empty for unanimated kinds")]
         public EnemyAnimationSettings Animation;
         [InlineEditor, Tooltip("Voice, swing, impact and footsteps (EnemyVoice); empty = silent")] public EnemySoundSet Sounds;

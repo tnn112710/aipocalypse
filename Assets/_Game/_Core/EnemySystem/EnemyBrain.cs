@@ -23,6 +23,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         TargetSelector _targets;
         AttackSlots _slots;
         DamageService _damage;
+        ProjectileSystem _projectiles;
+        // This life's distance to throw from; 0 = not picked yet.
+        float _standOff;
         GrassBendField _grassBending;
         ITargetable _target;
         float _nextRetarget;
@@ -109,6 +112,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _damage = damage;
             Voice = new EnemyVoice(audio, transform);
             resolver.TryResolve(out _grassBending);
+            resolver.TryResolve(out _projectiles);
             PrewarmEffects(effects);
             if (_started && isActiveAndEnabled)
                 Activate();
@@ -235,6 +239,23 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public void ReleaseSlot() => _slots.Release(this);
 
         // A melee blow landing on `target`: AttackDamage through DamageService, and the impact sound (a barrier plays its own).
+        // Ranged kinds: where a throw leaves from.
+        public Vector3 LaunchPoint => Animation != null ? Animation.LaunchPoint : transform.position + Vector3.up * 1.2f;
+
+        // Metres from its target this life throws from: its own pick inside the kind's band, so a group doesn't line up.
+        public float StandOff(RangedSettings ranged)
+        {
+            if (_standOff <= 0f)
+                _standOff = Random.Range(ranged.StandOff.x, ranged.StandOff.y);
+            return _standOff;
+        }
+
+        // No throw reached from where it stood: it stands closer from now on (never inside MinRange).
+        public void CloseIn(RangedSettings ranged, float share) =>
+            _standOff = Mathf.Max(ranged.MinRange + 1f, StandOff(ranged) * share);
+
+        public void Throw(in ProjectileShot shot) => _projectiles?.Launch(shot);
+
         public void Strike(ITargetable target)
         {
             Vector3 point = target.PointFor(transform.position);
@@ -287,6 +308,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return;
             CacheParts();
             NextAttackTime = 0f;
+            _standOff = 0f;
             _nextRetarget = 0f;
             _engaged = false;
             LastTarget = null;

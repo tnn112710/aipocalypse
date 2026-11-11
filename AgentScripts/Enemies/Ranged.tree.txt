@@ -1,0 +1,31 @@
+# The ranged goblins' tree (spear throwers, archers): hunt a target, get to throwing distance, throw; dance when what it
+# hunted died; wander with nothing to hunt. Same shape as Melee.tree.txt; the hunt's abort (Both) re-checks ChooseTarget
+# every think.
+# Job: punish standing still in the open, and standing behind the fence: it keeps its distance and throws, over the
+# fence when it must. It never breaks a fence (its definition gives Fence no weight).
+# Unaware: wanders (cheat.notarget).
+# Notices: always knows its target (raiders are sent at it); takes its stance inside RangedSettings.MaxRange.
+# Then: runs to its own stand-off distance (each life picks one in StandOff), backs away when the target comes inside
+# MinRange, settles for anywhere inside MaxRange when a shut fence stops it.
+# Warns: a wind-up of ReleaseTime seconds with its sound (a bow drawn, a grunt) before every throw; the projectile has
+# a bright trail, a lob shows where it will land, and it whistles just before it passes the player.
+# Path: a straight throw with a clear line, a lob at a random angle over what's in the way (or by chance). Aim: a random
+# lead on the target's movement and a random error (Spread); no two throws alike.
+# Gives up: when the target can't be targeted any more; a stagger cancels a wind-up.
+# Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
+#        --args '["AgentScripts/Enemies/Ranged.tree.txt"]'
+# Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
+tree Assets/_Game/Content/Enemies/_Shared/Ranged.asset
+Repeater "Repeat forever"
+  Selector "Hunt, else celebrate, else wander"
+    Sequence AbortType=Both "Hunt (aborts both ways)"
+      ChooseTarget "Target?"
+      TakeRangedPosition "Get to throwing distance"
+      RangedAttack "Throw"
+    Sequence "Celebrate the kill"
+      TargetDefeated "Target died?"
+      Celebrate "Dance in place"
+    Sequence "Wander"
+      ChooseWanderDestination "Choose reachable point"
+      WalkToWanderDestination "Walk to point"
+      PauseWander "Pause"

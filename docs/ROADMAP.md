@@ -86,7 +86,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 
 - [ ] Thieves steal animals (14–21 h)
 - [ ] Raids get harder over the 3 nights; losing a raid has a cost (13–21 h)
-- [ ] Spear thrower, a second goblin unit (9–14 h)
+- [x] Spear thrower, a second goblin unit (9–14 h). Built 2026-11-11 with an archer as well: stand-off distances, straight throws and lobs over the fence, a wind-up, trails, landing rings and a fly-by whistle ([ARCHITECTURE.md → AI](technicals/ARCHITECTURE.md#ai)). Left: tuning by hand, checking the weapons in the hands up close
 - [ ] Raid HUD (7–9 h)
 - [ ] Blood Moon on night 3, light version: red look, more goblins, one elite instead of a full miniboss (17–29 h)
 

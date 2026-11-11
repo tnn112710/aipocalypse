@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 126fc45c3cc0fa249b0a85381eec17fd, type: 3}
+  m_Name: GoblinSpear_Card
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnemySystem.EnemySpawnCard
+  _variants:
+  - key: {fileID: 985920546003167317, guid: 2ef2ef170d88e194387e17c1718a970b, type: 3}
+    value: 1
+  GroupSize: {x: 1, y: 2}
+  Category: 0
+  Placement:
+    Medium: 0
+    Navmesh: 0
+    Height: {x: 0, y: 0}
+    Clearance: 0
+    MaxSlope: 90
+    AlignToGround: 0
+    FallBackToAnchor: 1
+  MaxAlive: 0
+  WhenFull: 0
+  ArrivalCue:
+    _entity: {fileID: 11400000, guid: a1f4f808248830849b63f64f2958e24c, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
