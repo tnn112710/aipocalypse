@@ -1,3 +1,4 @@
+using System.Linq;
 using MB13.Aipocalypse.Core.EnvironmentSystem;
 using NUnit.Framework;
 
@@ -39,6 +40,19 @@ namespace MB13.Aipocalypse.Tests
                 Assert.That(advance, Is.GreaterThan(0f).And.LessThan(1f), $"{Sunrise + step}h");
                 previous = next;
             }
+        }
+
+        // COZY's own composite lets the sky over far geometry at night (DAYNIGHT.md → COZY); a feature re-add or a
+        // COZY update would silently bring it back.
+        [Test]
+        public void Renderer_CompositesWithOurCozyFork()
+        {
+            var feature = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/_Game/Settings/PC_Renderer.asset")
+                .FirstOrDefault(o => o != null && o.GetType().Name == "CozyRendererFeature");
+            Assert.That(feature, Is.Not.Null, "PC_Renderer has no COZY feature");
+            var material = new UnityEditor.SerializedObject(feature).FindProperty("compositeMat").objectReferenceValue as UnityEngine.Material;
+            Assert.That(material, Is.Not.Null);
+            Assert.That(material.shader.name, Is.EqualTo("Aipocalypse/Environment/CozyComposite"));
         }
     }
 }

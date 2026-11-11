@@ -1,0 +1,208 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: CozyComposite
+  m_Shader: {fileID: -6465566751694194690, guid: 6e0ddf29f96e28f43bdec66e4f0a02d5, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloudDepthTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloudMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloudTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloudTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud_Tex:
+        m_Texture: {fileID: 2800000, guid: 900b867290568a04e8d282a70c3b1823, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FogTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OriginalColor:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SkyTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AddPrecomputedVelocity: 0
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _Background_Fog_Intensity: 1
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 1
+    - _Blur_Amount: 0.01
+    - _BumpScale: 1
+    - _Cascade_Count: 4
+    - _ClearCoatMask: 0
+    - _ClearCoatSmoothness: 0
+    - _Cloud_Depth: 81.9
+    - _Cloud_Depth_Offset: 13.4
+    - _Cloud_Height: 250
+    - _Cloud_Lighting_Intenssity: 1
+    - _Cloud_Scale: 0.0001
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _Density: 0.5
+    - _DetailAlbedoMapScale: 1
+    - _DetailNormalMapScale: 1
+    - _Distance_Falloff: 0
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
+    - _EnvironmentReflections: 1
+    - _Fog_Height: 3
+    - _Fog_Multiplier: 1
+    - _Fog_Offset: 1
+    - _Fog_Smoothness: 1
+    - _Fog_Start_1: 5
+    - _Fog_Start_2: 20
+    - _Fog_Start_3: 50
+    - _Fog_Start_4: 100
+    - _GlossMapScale: 0
+    - _Glossiness: 0
+    - _GlossyReflections: 0
+    - _Height_Fog_Base: -11.8
+    - _Height_Fog_Density: 0.01
+    - _Height_Fog_Distance_Smoothing: 85.1
+    - _Height_Fog_Smoothness: -11.21
+    - _LOD_Coefficient: 4
+    - _LOD_Steps: 2
+    - _Light_Flare_Falloff: 15
+    - _Light_Flare_Intensity: 1
+    - _Light_Flare_Squish: 5.75
+    - _Max_Height: 0
+    - _Metallic: 0
+    - _Min_Height: 0
+    - _Noise_Amount: 1
+    - _OcclusionStrength: 1
+    - _Over_Cloud_Height: 150
+    - _Parallax: 0.005
+    - _QueueOffset: 0
+    - _ReceiveShadows: 1
+    - _Shadow_Strength: 0
+    - _Smoothness: 0.5
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _Split_Color_Multiplier: 1
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _Step_Size: 5
+    - _Steps: 128
+    - _Surface: 0
+    - _USE_SPLIT_COLOR: 1
+    - _Under_Cloud_Height: 682.14
+    - _VOLUMETRIC_FOG: 1
+    - _WorkflowMode: 1
+    - _ZWrite: 1
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BlurDirection: {r: 1, g: 0, b: 0, a: 0}
+    - _Color: {r: 0.4674484, g: 0.59168303, b: 0.6650944, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Fog_Color_1: {r: 0.059607506, g: 0.104399, b: 0.2216981, a: 0}
+    - _Fog_Color_2: {r: 0.0627451, g: 0.4862745, b: 0.7764706, a: 0.13725491}
+    - _Fog_Color_3: {r: 0.14901961, g: 0.61960787, b: 1.0039216, a: 0.5019608}
+    - _Fog_Color_4: {r: 0.023529412, g: 0.57254905, b: 1.0980393, a: 0.75686276}
+    - _Fog_Color_5: {r: 0.8665844, g: 1.3956038, b: 1.716971, a: 1}
+    - _Ground_Color: {r: 0.4385457, g: 0.6133141, b: 0.6886792, a: 1}
+    - _Height_Fog_Color: {r: 1, g: 1, b: 1, a: 0}
+    - _Light_Flare_Color: {r: 8, g: 0.532287, b: 0.18823528, a: 1}
+    - _Lightning_Strike: {r: 47.573902, g: 22.64151, b: 64, a: 1}
+    - _Lit_Color: {r: 3.876237, g: 2.463364, b: 2.011255, a: 1}
+    - _Moon_Side: {r: 0.27730066, g: 0.37870547, b: 0.5707547, a: 1}
+    - _Shadow_Color: {r: 0.7877358, g: 0.7877358, b: 0.7877358, a: 1}
+    - _Sky_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _Sun_SIde: {r: 1, g: 1, b: 1, a: 1}
+    - _Test: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

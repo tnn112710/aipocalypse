@@ -214,6 +214,7 @@ Assets/_Game/
 │  │  ├─ NightHighlight/NightHighlightSettings.cs  SO: Layer (rendering layer), light (on, colour, intensity, pitch, yaw), eyes (EyesEnabled, EyeBrightness); asset in Data/Environment/
 │  │  ├─ NightHighlight/NightHighlightCommands.cs  console: highlight.light [on/off], highlight.eyes [on/off], highlight.reset
 │  │  ├─ Shaders/SkyStarMap.shader          "Aipocalypse/Skybox/Skybox Plus Star Map": fork of Kronnect Skybox Plus Clouds; STAR_MAP draws a star cubemap (StarMap.png) turned by _StarMapRotation instead of the procedural stars
+│  │  ├─ Shaders/CozyComposite.shadergraph  "Aipocalypse/Environment/CozyComposite": fork of COZY 4's composite; CozyComposite.hlsl clamps the sky alpha so far geometry isn't replaced by sky (material on PC_Renderer's COZY feature)
 │  │  └─ Shaders/SkyTimeOfDay.shader        "Aipocalypse/Skybox/Time Of Day": painted panorama + night gradient, horizon glow, sun disc, stars, moon phases from _TOD_ globals
 │  ├─ EquipmentSystem/                      MB13.Aipocalypse.Core.EquipmentSystem — rules and how-tos in EQUIPMENT.md
 │  │  ├─ Items/ItemCategory.cs              [Flags] what a slot accepts: Gun, Melee, Lantern, Tool, Ammo, Consumable, Currency, Backpack, Head, Body, Face
