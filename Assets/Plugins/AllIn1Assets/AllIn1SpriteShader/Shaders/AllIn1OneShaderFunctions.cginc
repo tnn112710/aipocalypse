@@ -3,55 +3,109 @@
 #pragma warning (disable : 4008)  // floating point division by zero
 #pragma warning (disable : 3206)  // implicit truncation of vector type
 //BLURS-------------------------------------------------------------------------
-half4 Blur(half2 uv, sampler2D source, half Intensity)
+float BlurGaussian(float t, float sigma)
 {
-	const half2 texelSize = 1.0 / _ScreenParams.xy;
-	const half4 color = tex2D(source, uv);
-	const half2 offset = Intensity * texelSize;
-
-	half4 accumulatedColor = color;
-	half accumulatedWeight = 1.0;
-	for (int x = -1; x <= 1; x++)
-	{
-		for (int y = -1; y <= 1; y++)
-		{
-			const half2 sampleUV = uv + half2(x, y) * offset;
-			const half4 sampleColor = tex2D(source, sampleUV);
-
-			accumulatedColor += sampleColor;
-			accumulatedWeight += 1.0;
-		}
-	}
-
-	half4 blurredColor = accumulatedColor / accumulatedWeight;
-	return blurredColor;
+	return exp(-(t * t) / (2.0 * sigma * sigma));
 }
 
-half BlurHD_G(half bhqp, half x)
+//Spreads Intensity 0 to 100 over the kernel: the previous size at the default 10, close to a flat average at 100
+float BlurSigma(half intensity)
 {
-	return exp(-(x * x) / (2.0 * bhqp * bhqp));
+	return 0.1 + 12.0 * (1.0 - exp(-intensity * 0.054));
 }
-half4 BlurHD(half2 uv, sampler2D source, half BlurAmount, half xScale, half yScale)
+
+float SpriteLongestSideTexels(float2 texSize, float2 spriteUVSize)
 {
-	int iterations = 16;
-	int halfIterations = iterations / 2;
-	half sigmaX = 0.1 + BlurAmount * 0.5;
-	half sigmaY = sigmaX;
-	half total = 0.0;
-	half4 ret = half4(0, 0, 0, 0);
-	for (int iy = 0; iy < iterations; ++iy)
+	float2 spriteTexels = texSize * spriteUVSize;
+	return max(spriteTexels.x, spriteTexels.y);
+}
+
+//xy: UV size of one blur step, 1/256 of the sprite's longest side. z: extra mip levels so wide steps can read a prefiltered mip
+float3 GetBlurStep(float2 uv, float4 texelSize, float spriteSideTexels)
+{
+	float stepTexels = spriteSideTexels / 256.0;
+	float2 texelPos = uv * texelSize.zw;
+	float2 dx = ddx(texelPos);
+	float2 dy = ddy(texelPos);
+	float screenLod = 0.5 * log2(max(max(dot(dx, dx), dot(dy, dy)), 1e-8));
+	return float3(stepTexels * texelSize.xy, log2(stepTexels) - screenLod);
+}
+
+//Alpha weighted, so the colour stored in transparent texels doesn't bleed into the edges
+half4 BlurAccumulate(half4 texColor, bool weightByAlpha)
+{
+	return weightByAlpha ? half4(texColor.rgb * texColor.a, texColor.a) : texColor;
+}
+
+half4 BlurResolve(float4 sum, bool weightByAlpha)
+{
+	return weightByAlpha ? half4(sum.rgb / max(sum.a, 0.0001), sum.a) : half4(sum);
+}
+
+//3x3 binomial kernel spread to match BlurHD's variance, so Low Res trades quality for speed without changing the blur size
+half4 Blur(half2 uv, sampler2D source, half intensity, float3 blurStep, bool weightByAlpha)
+{
+	float sigma = BlurSigma(intensity);
+	float weightSum = 1.0;
+	float varianceSum = 0.0;
+	[unroll] for (int t = 1; t <= 8; t++)
 	{
-		half fy = BlurHD_G(sigmaY, half(iy) -half(halfIterations));
-		half offsetY = half(iy - halfIterations) * 0.00390625 * xScale;
-		for (int ix = 0; ix < iterations; ++ix)
+		float w = BlurGaussian(t, sigma);
+		weightSum += 2.0 * w;
+		varianceSum += 2.0 * w * t * t;
+	}
+	float spread = sqrt(2.0 * varianceSum / weightSum);
+	float mipBias = max(0.0, blurStep.z + log2(max(spread * 0.5, 1.0)));
+
+	float4 sum = 0;
+	[unroll] for (int y = -1; y <= 1; y++)
+	{
+		[unroll] for (int x = -1; x <= 1; x++)
 		{
-			half fx = BlurHD_G(sigmaX, half(ix) - half(halfIterations));
-			half offsetX = half(ix - halfIterations) * 0.00390625 * yScale;
-			total += fx * fy;
-			ret += tex2D(source, uv + half2(offsetX, offsetY)) * fx * fy;
+			half4 texColor = tex2Dbias(source, float4(uv + float2(x, y) * spread * blurStep.xy, 0, mipBias));
+			sum += BlurAccumulate(texColor, weightByAlpha) * ((2 - abs(x)) * (2 - abs(y)) / 16.0);
 		}
 	}
-	return ret / total;
+	return BlurResolve(sum, weightByAlpha);
+}
+
+//Gaussian over a disc of radius 8 steps: a 9x9 grid of bilinear fetches, each covering two neighbouring taps, minus its 12 corners
+half4 BlurHD(half2 uv, sampler2D source, half intensity, float3 blurStep, bool weightByAlpha)
+{
+	float sigma = BlurSigma(intensity);
+	float offsets[9];
+	float weights[9];
+	offsets[4] = 0.0;
+	weights[4] = 1.0;
+	float totalWeight = 1.0;
+	[unroll] for (int k = 1; k <= 4; k++)
+	{
+		float nearWeight = BlurGaussian(2 * k - 1, sigma);
+		float farWeight = BlurGaussian(2 * k, sigma);
+		float pairWeight = nearWeight + farWeight;
+		float pairOffset = ((2 * k - 1) * nearWeight + 2 * k * farWeight) / max(pairWeight, 1e-8);
+		offsets[4 + k] = pairOffset;
+		offsets[4 - k] = -pairOffset;
+		weights[4 + k] = pairWeight;
+		weights[4 - k] = pairWeight;
+		totalWeight += 2.0 * pairWeight;
+	}
+
+	float mipBias = max(0.0, blurStep.z);
+	float cornerWeight = 4.0 * weights[8] * weights[8] + 8.0 * weights[7] * weights[8];
+	float4 sum = 0;
+	[unroll] for (int y = 0; y < 9; y++)
+	{
+		[unroll] for (int x = 0; x < 9; x++)
+		{
+			if (abs(x - 4) + abs(y - 4) < 7)
+			{
+				half4 texColor = tex2Dbias(source, float4(uv + float2(offsets[x], offsets[y]) * blurStep.xy, 0, mipBias));
+				sum += BlurAccumulate(texColor, weightByAlpha) * (weights[x] * weights[y]);
+			}
+		}
+	}
+	return BlurResolve(sum / (totalWeight * totalWeight - cornerWeight), weightByAlpha);
 }
 //-----------------------------------------------------------------------
 half rand(half2 seed, half offset) {

@@ -10,7 +10,7 @@ namespace AllIn1Assets.AllIn1ShaderNodes
 	public class AllIn1ShaderNodesConfig : AbstractPluginConfig
 	{
 		private const string PLUGIN_NAME	= "AllIn1ShaderNodes";
-		private const string VERSION		= "1.2";
+		private const string VERSION		= "1.21";
 		private const PluginID PLUGIN_ID = PluginID.ALLIN1_SHADER_NODES;
 		private const string DEFAULT_EXPORT_FOLDER = "Export";
 

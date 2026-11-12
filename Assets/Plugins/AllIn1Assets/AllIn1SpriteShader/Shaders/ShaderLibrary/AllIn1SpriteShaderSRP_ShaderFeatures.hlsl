@@ -66,11 +66,11 @@
 #pragma shader_feature_local POSTERIZEOUTLINE_ON
 #pragma shader_feature_local BLURISHD_ON
 #pragma shader_feature_local MANUALWIND_ON
-#pragma shader_feature ATLAS_ON
-#pragma shader_feature PREMULTIPLYALPHA_ON
+#pragma shader_feature_local ATLAS_ON
+#pragma shader_feature_local PREMULTIPLYALPHA_ON
 
-#pragma shader_feature BILBOARD_ON
-#pragma shader_feature BILBOARDY_ON
-#pragma shader_feature FOG_ON
+#pragma shader_feature_local BILBOARD_ON
+#pragma shader_feature_local BILBOARDY_ON
+#pragma shader_feature_local FOG_ON
 
 #endif

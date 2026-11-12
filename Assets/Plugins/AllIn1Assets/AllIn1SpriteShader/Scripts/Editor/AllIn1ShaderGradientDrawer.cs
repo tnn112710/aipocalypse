@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
 	public class AllIn1ShaderGradientDrawer : MaterialPropertyDrawer
 	{

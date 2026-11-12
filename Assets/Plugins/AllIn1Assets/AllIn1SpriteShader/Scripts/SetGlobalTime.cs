@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     //This script is made with Unity version 2019 and onward in mind
     //This script will pass in the Unscaled Time to the shader to animate the effects even when the game is paused

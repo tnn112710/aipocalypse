@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     public class DemoRepositionExpositor : MonoBehaviour
     {

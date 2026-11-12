@@ -340,8 +340,8 @@
 			#pragma shader_feature_local POSTERIZEOUTLINE_ON
 			#pragma shader_feature_local BLURISHD_ON
 			#pragma shader_feature_local MANUALWIND_ON
-			#pragma shader_feature ATLAS_ON
-			#pragma shader_feature PREMULTIPLYALPHA_ON
+			#pragma shader_feature_local ATLAS_ON
+			#pragma shader_feature_local PREMULTIPLYALPHA_ON
 
 			#pragma multi_compile _ UNITY_UI_CLIP_RECT
             #pragma multi_compile _ UNITY_UI_ALPHACLIP
@@ -744,19 +744,21 @@
 				#endif
 
 				#if TWISTUV_ON
+				half twistUvPosX = _TwistUvPosX;
+				half twistUvPosY = _TwistUvPosY;
 				#if ATLAS_ON
-				_TwistUvPosX = ((_MaxXUV - _MinXUV) * _TwistUvPosX) + _MinXUV;
-				_TwistUvPosY = ((_MaxYUV - _MinYUV) * _TwistUvPosY) + _MinYUV;
+				twistUvPosX = ((_MaxXUV - _MinXUV) * twistUvPosX) + _MinXUV;
+				twistUvPosY = ((_MaxYUV - _MinYUV) * twistUvPosY) + _MinYUV;
 				#endif
-				half2 tempUv = i.uv - half2(_TwistUvPosX *  _MainTex_ST.x, _TwistUvPosY *  _MainTex_ST.y);
-				_TwistUvRadius *= (_MainTex_ST.x + _MainTex_ST.y) / 2;
-				half percent = (_TwistUvRadius - length(tempUv)) / _TwistUvRadius;
+				half2 tempUv = i.uv - half2(twistUvPosX *  _MainTex_ST.x, twistUvPosY *  _MainTex_ST.y);
+				half twistUvRadius = _TwistUvRadius * ((_MainTex_ST.x + _MainTex_ST.y) / 2);
+				half percent = saturate((twistUvRadius - length(tempUv)) / max(twistUvRadius, 0.0001));
 				half theta = percent * percent * (2.0 * sin(_TwistUvAmount)) * 8.0;
 				half s = sin(theta);
 				half c = cos(theta);
-				half beta = max(sign(_TwistUvRadius - length(tempUv)), 0.0);
+				half beta = max(sign(twistUvRadius - length(tempUv)), 0.0);
 				tempUv = half2(dot(tempUv, half2(c, -s)), dot(tempUv, half2(s, c))) * beta +	tempUv * (1 - beta);
-				tempUv += half2(_TwistUvPosX *  _MainTex_ST.x, _TwistUvPosY *  _MainTex_ST.y);
+				tempUv += half2(twistUvPosX *  _MainTex_ST.x, twistUvPosY *  _MainTex_ST.y);
 				i.uv = tempUv;
 				#endif
 
@@ -770,8 +772,8 @@
 
 				#if PINCH_ON
 				half2 dP = i.uv - centerTiled;
-				half pinchInt = (3.141592 / length(centerTiled)) * (-_PinchUvAmount + 0.001);
-				i.uv = centerTiled + normalize(dP) * atan(length(dP) * -pinchInt * 10.0) * 0.5 / atan(-pinchInt * 5);
+				half pinchInt = (3.141592 / length(centerTiled)) * (-_PinchUvAmount - 0.001);
+				i.uv = centerTiled + (dP / max(0.0001, length(dP))) * atan(length(dP) * -pinchInt * 10.0) * 0.5 / atan(-pinchInt * 5);
 				#endif
 
 				#if ZOOMUV_ON
@@ -782,15 +784,18 @@
 
 				#if DOODLE_ON
 				half2 uvCopy = uvRect;
-				_HandDrawnSpeed = (floor((globalUnscaledTime + randomSeed) * 20 * _HandDrawnSpeed) / _HandDrawnSpeed) * _HandDrawnSpeed;
-				uvCopy.x = sin((uvCopy.x * _HandDrawnAmount + _HandDrawnSpeed) * 4);
-				uvCopy.y = cos((uvCopy.y * _HandDrawnAmount + _HandDrawnSpeed) * 4);
+				//fmod by tau/4 (the *4 below makes it a full 2*PI period) keeps the value bounded so it never overflows to inf in half precision, which turns the uv into nan
+				float handDrawnTime = fmod(floor((globalUnscaledTime + randomSeed) * 20 * _HandDrawnSpeed), 1.57079632679);
+				uvCopy.x = sin((uvCopy.x * _HandDrawnAmount + handDrawnTime) * 4);
+				uvCopy.y = cos((uvCopy.y * _HandDrawnAmount + handDrawnTime) * 4);
 				i.uv = lerp(i.uv, i.uv + uvCopy, 0.0005 * _HandDrawnAmount);
 				#endif
             	
             	#if SHAKEUV_ON
-				half xShake = sin((globalUnscaledTime + randomSeed) * _ShakeUvSpeed * 50) * _ShakeUvX;
-				half yShake = cos((globalUnscaledTime + randomSeed) * _ShakeUvSpeed * 50) * _ShakeUvY;
+				//fmod by 2*PI keeps the trig input bounded: unbounded time values eventually lose precision or overflow on some platforms
+				float shakeTime = fmod((globalUnscaledTime + randomSeed) * _ShakeUvSpeed * 50, 6.28318530718);
+				half xShake = sin(shakeTime) * _ShakeUvX;
+				half yShake = cos(shakeTime) * _ShakeUvY;
 				i.uv += half2(xShake * 0.012, yShake * 0.01);
 				#endif
 
@@ -816,8 +821,10 @@
 				warpUv = half2((warpUv.x - _MinXUV) / (_MaxXUV - _MinXUV), (warpUv.y - _MinYUV) / (_MaxYUV - _MinYUV));
 				#endif
 				const float tau = 6.283185307179586;
-            	float xWarp = ((globalUnscaledTime * 20) + randomSeed) * _WarpSpeed + warpUv.x * tau / _WarpScale;
-            	float yWarp = ((globalUnscaledTime * 20) + randomSeed) * _WarpSpeed + warpUv.y * tau / _WarpScale;
+				//fmod by tau keeps the trig input bounded: unbounded time values eventually lose precision or overflow on some platforms
+				float warpTime = fmod(((globalUnscaledTime * 20) + randomSeed) * _WarpSpeed, tau);
+            	float xWarp = warpTime + warpUv.x * tau / _WarpScale;
+            	float yWarp = warpTime + warpUv.y * tau / _WarpScale;
             	float2 warp = float2(sin(xWarp), sin(yWarp)) * _WarpStrength;
             	i.uv += warp;
 				#endif
@@ -829,8 +836,9 @@
 				uvWave = half2(_WaveX, _WaveY) - uvRect;
 				#endif
 				uvWave.x *= _ScreenParams.x / _ScreenParams.y;
-            	float waveTime = (globalUnscaledTime * 20) + randomSeed;
-				float angWave = (sqrt(dot(uvWave, uvWave)) * _WaveAmount) - ((waveTime *  _WaveSpeed));
+				//fmod by 2*PI keeps the trig input bounded: unbounded time values eventually lose precision or overflow on some platforms
+            	float waveTime = fmod(((globalUnscaledTime * 20) + randomSeed) * _WaveSpeed, 6.28318530718);
+				float angWave = (sqrt(dot(uvWave, uvWave)) * _WaveAmount) - waveTime;
 				i.uv = i.uv + uvWave * sin(angWave) * (_WaveStrength / 1000.0);
 				#endif
 
@@ -838,11 +846,14 @@
 				half xWave = ((0.5 * _MainTex_ST.x) - uvRect.x);
 				half yWave = ((0.5 * _MainTex_ST.y) - uvRect.y) * (_MainTex_TexelSize.w / _MainTex_TexelSize.z);
 				half ripple = -sqrt(xWave*xWave + yWave* yWave);
-				i.uv += (sin((ripple + ((globalUnscaledTime * 20) + randomSeed) * (_RoundWaveSpeed/10.0)) / 0.015) * (_RoundWaveStrength/10.0)) % 1;
+				//fmod by 2*PI keeps the trig input bounded: unbounded time values eventually lose precision or overflow on some platforms
+				float roundWaveTime = fmod(((globalUnscaledTime * 20) + randomSeed) * (_RoundWaveSpeed/10.0) / 0.015, 6.28318530718);
+				i.uv += (sin((ripple / 0.015) + roundWaveTime) * (_RoundWaveStrength/10.0)) % 1;
 				#endif
 
 				#if WIND_ON
-				half windOffset = sin((globalUnscaledTime + randomSeed) * _GrassSpeed * 10);
+				//fmod by 2*PI keeps the trig input bounded: unbounded time values eventually lose precision or overflow on some platforms
+				half windOffset = sin(fmod((globalUnscaledTime + randomSeed) * _GrassSpeed * 10, 6.28318530718));
 				half2 windCenter = half2(0.5, 0.1);
 				#if ATLAS_ON
 				windCenter.x = ((_MaxXUV - _MinXUV) * windCenter.x) + _MinXUV;
@@ -873,6 +884,24 @@
 
 				half4 col = tex2D(_MainTex, i.uv);
 				half originalAlpha = col.a;
+				#if BLUR_ON || MOTIONBLUR_ON
+				#if ATLAS_ON
+				float spriteSideTexels = SpriteLongestSideTexels(_MainTex_TexelSize.zw, float2(_MaxXUV - _MinXUV, _MaxYUV - _MinYUV));
+				#else
+				float spriteSideTexels = SpriteLongestSideTexels(_MainTex_TexelSize.zw, float2(1, 1));
+				#endif
+				#endif
+				#if BLUR_ON
+				float3 blurStep = GetBlurStep(i.uv, _MainTex_TexelSize, spriteSideTexels);
+				#if !BLURISHD_ON
+				#define SAMPLE_MAINTEX_WITH_BLUR(uv) BlurHD(uv, _MainTex, _BlurIntensity, blurStep, true)
+				#else
+				#define SAMPLE_MAINTEX_WITH_BLUR(uv) Blur(uv, _MainTex, _BlurIntensity, blurStep, true)
+				#endif
+				col = SAMPLE_MAINTEX_WITH_BLUR(i.uv);
+				#else
+				#define SAMPLE_MAINTEX_WITH_BLUR(uv) tex2D(_MainTex, uv)
+				#endif
 				col *= i.color;
 				#if PREMULTIPLYALPHA_ON
 				col.rgb *= col.a;
@@ -883,48 +912,37 @@
 				uvGlitch.y -= 0.5;
 				half lineNoise = pow(rand2CustomTime(floor(uvGlitch * half2(24., 19.) * _GlitchSize) * 4.0, randomSeed, globalUnscaledTime, _GlitchSpeed), 3.0) * _GlitchAmount
 					* pow(rand2CustomTime(floor(uvGlitch * half2(38., 14.) * _GlitchSize) * 4.0, randomSeed, globalUnscaledTime, _GlitchSpeed), 3.0);
-				col = tex2D(_MainTex, i.uv + half2(lineNoise * 0.02 * rand2CustomTime(half2(2.0, 1), randomSeed, globalUnscaledTime, _GlitchSpeed), 0)) * i.color;
+				col = SAMPLE_MAINTEX_WITH_BLUR(i.uv + half2(lineNoise * 0.02 * rand2CustomTime(half2(2.0, 1), randomSeed, globalUnscaledTime, _GlitchSpeed), 0)) * i.color;
 				#endif
 
 				#if CHROMABERR_ON
-				half4 r = tex2D(_MainTex, i.uv + half2(_ChromAberrAmount/10, 0)) * i.color;
-				half4 b = tex2D(_MainTex, i.uv + half2(-_ChromAberrAmount/10, 0)) * i.color;
+				half4 r = SAMPLE_MAINTEX_WITH_BLUR(i.uv + half2(_ChromAberrAmount/10, 0)) * i.color;
+				half4 b = SAMPLE_MAINTEX_WITH_BLUR(i.uv + half2(-_ChromAberrAmount/10, 0)) * i.color;
 				col = half4(r.r * r.a, col.g, b.b * b.a, max(max(r.a, b.a) * _ChromAberrAlpha, col.a));
 				#endif
 
-				#if BLUR_ON
-                #if ATLAS_ON
-                #if !BLURISHD_ON
-				col = BlurHD(i.uv, _MainTex, _BlurIntensity, (_MaxXUV - _MinXUV), (_MaxYUV - _MinYUV)) * i.color;
-                #else
-                col = Blur(i.uv, _MainTex, _BlurIntensity * (_MaxXUV - _MinXUV)) * i.color;
-                #endif
-                #else
-                #if !BLURISHD_ON
-				col = BlurHD(i.uv, _MainTex, _BlurIntensity, 1, 1) * i.color;
-                #else
-                col = Blur(i.uv, _MainTex, _BlurIntensity) * i.color;
-                #endif
-                #endif
-                #endif
-
-                #if MOTIONBLUR_ON
-                _MotionBlurAngle = _MotionBlurAngle * 3.1415926;
-                #define rot(n) mul(n, half2x2(cos(_MotionBlurAngle), -sin(_MotionBlurAngle), sin(_MotionBlurAngle), cos(_MotionBlurAngle)))
-                _MotionBlurDist = _MotionBlurDist * 0.005;
-                #if ATLAS_ON
-                _MotionBlurDist *= (_MaxXUV - _MinXUV);
-                #endif
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(-_MotionBlurDist, -_MotionBlurDist)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(-_MotionBlurDist * 2, -_MotionBlurDist * 2)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(-_MotionBlurDist * 3, -_MotionBlurDist * 3)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(-_MotionBlurDist * 4, -_MotionBlurDist * 4)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(_MotionBlurDist, _MotionBlurDist)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(_MotionBlurDist * 2, _MotionBlurDist * 2)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(_MotionBlurDist * 3, _MotionBlurDist * 3)));
-                col.rgb += tex2D(_MainTex, i.uv + rot(half2(_MotionBlurDist * 4, _MotionBlurDist * 4)));
-                col.rgb = col.rgb / 9;
-                #endif
+				#if MOTIONBLUR_ON
+				half motionBlurAngle = _MotionBlurAngle * 3.1415926;
+				half2 motionBlurDir = mul(half2(1, 1), half2x2(cos(motionBlurAngle), -sin(motionBlurAngle), sin(motionBlurAngle), cos(motionBlurAngle)));
+				float2 motionBlurStep = motionBlurDir * (_MotionBlurDist * 0.005 * spriteSideTexels) * _MainTex_TexelSize.xy;
+				#if PREMULTIPLYALPHA_ON
+				half4 motionBlurSum = col;
+				#else
+				half4 motionBlurSum = half4(col.rgb * col.a, col.a);
+				#endif
+				[unroll] for (int motionTap = 1; motionTap <= 4; motionTap++)
+				{
+					half4 motionForward = tex2D(_MainTex, i.uv + motionBlurStep * motionTap) * i.color;
+					half4 motionBack = tex2D(_MainTex, i.uv - motionBlurStep * motionTap) * i.color;
+					motionBlurSum += half4(motionForward.rgb * motionForward.a, motionForward.a) + half4(motionBack.rgb * motionBack.a, motionBack.a);
+				}
+				motionBlurSum /= 9.0;
+				#if PREMULTIPLYALPHA_ON
+				col = motionBlurSum;
+				#else
+				col = half4(motionBlurSum.rgb / max(motionBlurSum.a, 0.0001), motionBlurSum.a);
+				#endif
+				#endif
 
 				#if NEGATIVE_ON
 				col.rgb = lerp(col.rgb, 1 - col.rgb, _NegativeAmount);
@@ -964,9 +982,11 @@
 
 				#if GRADIENT_ON
 				half2 tiledUvGrad = half2(uvRect.x / _MainTex_ST.x, uvRect.y / _MainTex_ST.y);
+				half4 gradTopRightCol = _GradTopRightCol;
+				half4 gradBotRightCol = _GradBotRightCol;
 				#if GRADIENT2COL_ON
-				_GradTopRightCol = _GradTopLeftCol;
-				_GradBotRightCol = _GradBotLeftCol;
+				gradTopRightCol = _GradTopLeftCol;
+				gradBotRightCol = _GradBotLeftCol;
 				#endif
 				#if RADIALGRADIENT_ON
 				half radialDist = 1 - length(tiledUvGrad - half2(0.5, 0.5));
@@ -975,8 +995,8 @@
 				half4 gradientResult = lerp(_GradTopLeftCol, _GradBotLeftCol, radialDist);
 				#else
 				half gradXLerpFactor = saturate(pow(tiledUvGrad.x, _GradBoostX));
-				half4 gradientResult = lerp(lerp(_GradBotLeftCol, _GradBotRightCol, gradXLerpFactor),
-				lerp(_GradTopLeftCol, _GradTopRightCol, gradXLerpFactor), saturate(pow(tiledUvGrad.y, _GradBoostY)));
+				half4 gradientResult = lerp(lerp(_GradBotLeftCol, gradBotRightCol, gradXLerpFactor),
+				lerp(_GradTopLeftCol, gradTopRightCol, gradXLerpFactor), saturate(pow(tiledUvGrad.y, _GradBoostY)));
 				#endif
 				gradientResult = lerp(col, gradientResult, _GradBlend);
 				col.rgb = gradientResult.rgb * col.a;
@@ -1030,7 +1050,7 @@
 
 				#if POSTERIZE_ON && !POSTERIZEOUTLINE_ON
 				col.rgb = pow(col.rgb, _PosterizeGamma) * _PosterizeNumColors;
-				col.rgb = floor(col.rgb) / _PosterizeNumColors;
+				col.rgb = floor(col.rgb) / max(_PosterizeNumColors, 0.0001);
 				col.rgb = pow(col.rgb, 1.0 / _PosterizeGamma);
 				#endif
 
@@ -1098,6 +1118,7 @@
 					
 					result = step(0.05, saturate(result));
 
+					half4 outlineColor = _OutlineColor;
 					#if OUTTEX_ON
 					i.uvOutTex.x += ((globalUnscaledTime + randomSeed) * _OutlineTexXSpeed) % 1;
 					i.uvOutTex.y += ((globalUnscaledTime + randomSeed) * _OutlineTexYSpeed) % 1;
@@ -1106,12 +1127,12 @@
 					#endif
 					half4 tempOutColor = tex2D(_OutlineTex, i.uvOutTex);
 					tempOutColor *= _OutlineColor;
-					_OutlineColor = tempOutColor;
+					outlineColor = tempOutColor;
 					#endif
 
 					result *= (1 - originalAlpha) * _OutlineAlpha;
 				
-					half4 outline = _OutlineColor * i.color.a;
+					half4 outline = outlineColor * i.color.a;
 					outline.rgb *= _OutlineGlow;
 					outline.a = result;
 					#if ONLYOUTLINE_ON
@@ -1133,8 +1154,8 @@
 				half fade = smoothstep(_FadeAmount, _FadeAmount + _FadeBurnTransition, fadeTemp);
 				half fadeBurn = saturate(smoothstep(_FadeAmount - _FadeBurnWidth, _FadeAmount - _FadeBurnWidth + 0.1, fadeTemp) * _FadeAmount);
 				col.a *= fade;
-				_FadeBurnColor.rgb *= _FadeBurnGlow;
-				col += fadeBurn * tex2D(_FadeBurnTex, tiledUvFade2) * _FadeBurnColor * originalAlpha * (1 - col.a);
+				half4 fadeBurnColor = half4(_FadeBurnColor.rgb * _FadeBurnGlow, _FadeBurnColor.a);
+				col += fadeBurn * tex2D(_FadeBurnTex, tiledUvFade2) * fadeBurnColor * originalAlpha * (1 - col.a);
 				#endif
 				
 				#if SHADOW_ON
@@ -1175,7 +1196,7 @@
 
 				#if POSTERIZE_ON && POSTERIZEOUTLINE_ON
 				col.rgb = pow(col.rgb, _PosterizeGamma) * _PosterizeNumColors;
-				col.rgb = floor(col.rgb) / _PosterizeNumColors;
+				col.rgb = floor(col.rgb) / max(_PosterizeNumColors, 0.0001);
 				col.rgb = pow(col.rgb, 1.0 / _PosterizeGamma);
 				#endif
 
@@ -1195,7 +1216,7 @@
 				#endif
 
 				#if HOLOGRAM_ON
-				half totalHologram = _HologramStripesAmount + _HologramUnmodAmount;
+				half totalHologram = max(_HologramStripesAmount + _HologramUnmodAmount, 0.0001);
 				half hologramYCoord = ((uvRect.y + (((globalUnscaledTime + randomSeed) % 1) * _HologramStripesSpeed)) % totalHologram) / totalHologram;
 				hologramYCoord = abs(hologramYCoord);
 				half alpha = RemapFloat(saturate(hologramYCoord - (_HologramUnmodAmount/totalHologram)), 0.0, 1.0, _HologramMinAlpha, saturate(_HologramMaxAlpha));
@@ -1244,6 +1265,6 @@
             ENDCG
 		}
 	}
-	CustomEditor "AllIn1SpriteShader.AllIn1SpriteShaderUiMaskMaterialInspector"
+	CustomEditor "AllIn1Assets.AllIn1SpriteShader.AllIn1SpriteShaderUiMaskMaterialInspector"
 	//Fallback "Sprites/Default" //Remove fallback so that any shader error is obvious to the user
 }

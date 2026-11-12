@@ -1,7 +1,9 @@
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
 	public class MissingScriptsRemover : MonoBehaviour
 	{

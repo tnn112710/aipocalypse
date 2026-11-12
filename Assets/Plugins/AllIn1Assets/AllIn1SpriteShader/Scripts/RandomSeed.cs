@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     public class RandomSeed : MonoBehaviour
     {
@@ -16,6 +16,8 @@ namespace AllIn1SpriteShader
             if(renderer != null)
             {
                 propertyBlock = new MaterialPropertyBlock();
+                //Keeps what the block already holds, a Sprite Renderer's texture included
+                renderer.GetPropertyBlock(propertyBlock);
                 propertyBlock.SetFloat(randomSeedProperty, Random.Range(0f, 100f));
                 renderer.SetPropertyBlock(propertyBlock);
             }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AllIn1SpriteShader.Demo.Scripts
+namespace AllIn1Assets.AllIn1SpriteShader.Demo.Scripts
 {
     public class AllIn1AutoRotate : MonoBehaviour
     {

@@ -1,4 +1,4 @@
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
 	public static class Constants
 	{

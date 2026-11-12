@@ -13,6 +13,11 @@ v2f CombinedShapeLightVertex(Attributes v)
 	UNITY_TRANSFER_INSTANCE_ID(v, o);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+	//Before Unity 6 an instanced sprite gets its flip per instance instead of baked into the vertices
+	#if UNITY_VERSION < 60000000 && defined(UNITY_INSTANCING_ENABLED)
+		v.vertex.xy *= unity_SpriteFlip;
+	#endif
+
 	#if BILBOARD_ON
 		half3 camRight = mul((half3x3)unity_CameraToWorld, half3(1,0,0));
 		half3 camUp = half3(0,1,0);
@@ -36,6 +41,13 @@ v2f CombinedShapeLightVertex(Attributes v)
 	o.color = v.color;
 	#if UNITY_VERSION >= 60000000
 		o.color *= unity_SpriteColor;
+	#elif defined(UNITY_INSTANCING_ENABLED)
+		//Batching hands the vertices a linear color in Linear projects, the instance data stays sRGB
+		half4 instanceColor = unity_SpriteColor;
+		#ifndef UNITY_COLORSPACE_GAMMA
+			instanceColor.rgb = instanceColor.rgb * (instanceColor.rgb * (instanceColor.rgb * 0.305306011 + 0.682171111) + 0.012522878);
+		#endif
+		o.color *= instanceColor;
 	#endif
 
 	half2 center = half2(0.5, 0.5);

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
 	[ExecuteInEditMode]
 	[RequireComponent(typeof(SpriteRenderer))]
@@ -14,11 +14,14 @@ namespace AllIn1SpriteShader
 			[InspectorName("Two Sided")] TWO_SIDED
 		}
 
-		private static int PROPID_SPRITE_FLIP = Shader.PropertyToID("_SpriteFlip");
+		private static readonly int PROPID_SPRITE_FLIP = Shader.PropertyToID("_SpriteFlip");
 
+		[Tooltip("The Sprite Renderer this component configures. Filled with the one on this GameObject when empty.")]
 		public SpriteRenderer spr;
+		[Tooltip("No longer has any effect: the Lit shaders now read the sprite's flip themselves.")]
 		public bool isMaterialDrivenByAnimator;
 
+		[Tooltip("How this sprite casts shadows. One Sided follows the material's Culling Option, so with Culling Off (the default) it still casts from both faces.")]
 		[SerializeField] private CastShadowMode shadowCastingMode = CastShadowMode.TWO_SIDED;
 
 		private MaterialPropertyBlock matPropBlock;

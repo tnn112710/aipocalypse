@@ -4,13 +4,14 @@ using UnityEngine.UI;
 using UnityEditor;
 #endif
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     [ExecuteInEditMode]
     public class SetAtlasUvs : MonoBehaviour
     {
+        [Tooltip("Reads the sprite's atlas rect every frame. Turn on when the sprite changes at runtime (animation, sprite swaps). Off, it reads it once when it starts and, in Play mode, then disables itself.")]
         [SerializeField] private bool updateEveryFrame = false;
-        [Tooltip("If using a Sprite Renderer it will use the material property instead of sharedMaterial"), SerializeField] private bool useMaterialInstanceIfPossible = false;
+        [Tooltip("Sprite Renderers only: in Play mode, writes the atlas rect to this renderer's own material copy instead of the shared material, so sprites on different atlas rects don't overwrite each other."), SerializeField] private bool useMaterialInstanceIfPossible = false;
         private Renderer render;
         private SpriteRenderer spriteRender;
         private Image uiImage;

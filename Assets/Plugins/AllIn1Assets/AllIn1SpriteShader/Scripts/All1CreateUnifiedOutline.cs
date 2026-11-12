@@ -5,21 +5,26 @@ using UnityEngine.UI;
 using UnityEditor;
 #endif
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     [ExecuteInEditMode]
     public class All1CreateUnifiedOutline : MonoBehaviour
     {
+        [Tooltip("Material given to every copy: an AllIn1 material with Outline on and \"Only render outline?\" ticked.")]
         [SerializeField] private Material outlineMaterial = null;
+        [Tooltip("Parent for all the copies. Empty: each copy goes under the object it copies.")]
         [SerializeField] private Transform outlineParentTransform = null;
 
         [Space]
         [Header("Only needed if Sprite (ignored if UI)")]
+        [Tooltip("Order in Layer of the copies. Keep it below the originals so the outline draws behind them.")]
         [SerializeField] private int duplicateOrderInLayer = -100;
+        [Tooltip("Sorting Layer of the copies, by name.")]
         [SerializeField] private string duplicateSortingLayer = "Default";
 
         [Space]
         [Header("This operation will delete the component")]
+        [Tooltip("Tick to copy every Sprite Renderer and UI Image on this object and its children with the outline material. The component then deletes itself.")]
         [SerializeField] private bool createUnifiedOutline;
 
         void Update()

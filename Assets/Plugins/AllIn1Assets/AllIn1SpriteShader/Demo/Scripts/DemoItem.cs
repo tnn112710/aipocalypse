@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     public class DemoItem : MonoBehaviour
     {

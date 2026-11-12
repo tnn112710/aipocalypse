@@ -1,12 +1,11 @@
 ﻿#if UNITY_EDITOR
 using System.Linq;
-using AllIn1SpriteShader;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     [CanEditMultipleObjects]
     public class AllIn1SpriteShaderUiMaskMaterialInspector : ShaderGUI
@@ -14,7 +13,7 @@ namespace AllIn1SpriteShader
         private Material targetMat;
         private BlendMode srcMode, dstMode;
 
-        private GUIStyle propertiesStyle, bigLabelStyle, smallLabelStyle, toggleButtonStyle;
+        private static GUIStyle propertiesStyle, bigLabelStyle, smallLabelStyle, toggleButtonStyle;
         private const int bigFontSize = 16, smallFontSize = 11;
         private string[] oldKeyWords;
         private int effectCount = 1;
@@ -27,6 +26,15 @@ namespace AllIn1SpriteShader
         private const uint colorFxShapeDrawer = 1;
         private const uint uvFxShapeDrawer = 2;
 
+        private static void InitStylesIfNeeded()
+        {
+            if(propertiesStyle != null) return;
+            propertiesStyle = new GUIStyle(EditorStyles.helpBox) { margin = new RectOffset(0, 0, 0, 0) };
+            bigLabelStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = bigFontSize };
+            smallLabelStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = smallFontSize };
+            toggleButtonStyle = new GUIStyle(GUI.skin.button) { alignment = TextAnchor.MiddleCenter, richText = true };
+        }
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             matEditor = materialEditor;
@@ -34,13 +42,7 @@ namespace AllIn1SpriteShader
             targetMat = materialEditor.target as Material;
             effectCount = 1;
             oldKeyWords = targetMat.shaderKeywords;
-            propertiesStyle = new GUIStyle(EditorStyles.helpBox);
-            propertiesStyle.margin = new RectOffset(0, 0, 0, 0);
-            bigLabelStyle = new GUIStyle(EditorStyles.boldLabel);
-            bigLabelStyle.fontSize = bigFontSize;
-            smallLabelStyle = new GUIStyle(EditorStyles.boldLabel);
-            smallLabelStyle.fontSize = smallFontSize;
-            toggleButtonStyle = new GUIStyle(GUI.skin.button) { alignment = TextAnchor.MiddleCenter, richText = true };
+            InitStylesIfNeeded();
             currEnabledDrawers = new bool[materialDrawers.Length];
             uint iniDrawers = (uint)ShaderGUI.FindProperty("_EditorDrawers", matProperties).floatValue;
             for(int i = 0; i < materialDrawers.Length; i++) currEnabledDrawers[i] = (materialDrawers[i] & iniDrawers) > 0;
@@ -169,7 +171,7 @@ namespace AllIn1SpriteShader
             dstM.floatValue = (float)(dstMode);
 
             bool ini = oldKeyWords.Contains("PREMULTIPLYALPHA_ON");
-            bool toggle = EditorGUILayout.Toggle("Premultiply Alpha?", ini);
+            bool toggle = PropertyNameCopyMenu.ToggleField(new GUIContent("Premultiply Alpha?", PropertyNameCopyMenu.Tooltip("PREMULTIPLYALPHA_ON")), ini, PropertyNameCopyMenu.KEYWORD, "PREMULTIPLYALPHA_ON");
             if(ini != toggle) Save();
             if(toggle) targetMat.EnableKeyword("PREMULTIPLYALPHA_ON");
             else targetMat.DisableKeyword("PREMULTIPLYALPHA_ON");
@@ -179,7 +181,7 @@ namespace AllIn1SpriteShader
         {
             bool toggle = oldKeyWords.Contains(keyword);
             bool ini = toggle;
-            toggle = GUILayout.Toggle(toggle, inspector);
+            toggle = PropertyNameCopyMenu.Toggle(toggle, new GUIContent(inspector, PropertyNameCopyMenu.Tooltip(keyword)), PropertyNameCopyMenu.KEYWORD, keyword);
             if(ini != toggle) Save();
             if(toggle)
             {
@@ -200,9 +202,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + ".Outline";
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -256,15 +258,15 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             if(effectCounter)
             {
                 effectNameLabel.text = effectCount + "." + inspector;
                 effectCount++;
             }
             else effectNameLabel.text = inspector;
-            if(boldToggleLetters) toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
-            else toggle = GUILayout.Toggle(toggle, effectNameLabel);
+            if(boldToggleLetters) toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
+            else toggle = PropertyNameCopyMenu.Toggle(toggle, effectNameLabel, PropertyNameCopyMenu.KEYWORD, keyword);
 
             if(ini != toggle) Save();
             if(toggle)
@@ -294,9 +296,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -325,9 +327,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -341,7 +343,7 @@ namespace AllIn1SpriteShader
                     {
                         useEditableGradient = oldKeyWords.Contains("GRADIENTCOLORRAMP_ON");
                         bool gradientTex = useEditableGradient;
-                        gradientTex = GUILayout.Toggle(gradientTex, new GUIContent("Use Editable Gradient?"));
+                        gradientTex = PropertyNameCopyMenu.Toggle(gradientTex, new GUIContent("Use Editable Gradient?", PropertyNameCopyMenu.Tooltip("GRADIENTCOLORRAMP_ON")), PropertyNameCopyMenu.KEYWORD, "GRADIENTCOLORRAMP_ON");
                         if(useEditableGradient != gradientTex)
                         {
                             Save();
@@ -353,7 +355,7 @@ namespace AllIn1SpriteShader
                             else targetMat.DisableKeyword("GRADIENTCOLORRAMP_ON");
                         }
 
-                        if(useEditableGradient) matEditor.ShaderProperty(matProperties[159], matProperties[159].displayName);
+                        if(useEditableGradient) PropertyNameCopyMenu.ShaderProperty(matEditor, matProperties[159]);
                     }
                     else GUILayout.Label("*Save to folder to allow for dynamic Gradient property", smallLabelStyle);
 
@@ -379,9 +381,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -395,7 +397,7 @@ namespace AllIn1SpriteShader
                     DrawLine(Color.grey, 1, 3);
                     ini = oldKeyWords.Contains("CHANGECOLOR2_ON");
                     bool toggle2 = ini;
-                    toggle2 = EditorGUILayout.Toggle("Use Color 2", ini);
+                    toggle2 = PropertyNameCopyMenu.ToggleField(new GUIContent("Use Color 2", PropertyNameCopyMenu.Tooltip("CHANGECOLOR2_ON")), ini, PropertyNameCopyMenu.KEYWORD, "CHANGECOLOR2_ON");
                     if(ini != toggle2) Save();
                     if(toggle2)
                     {
@@ -407,7 +409,7 @@ namespace AllIn1SpriteShader
                     DrawLine(Color.grey, 1, 3);
                     ini = oldKeyWords.Contains("CHANGECOLOR3_ON");
                     toggle2 = ini;
-                    toggle2 = EditorGUILayout.Toggle("Use Color 3", toggle2);
+                    toggle2 = PropertyNameCopyMenu.ToggleField(new GUIContent("Use Color 3", PropertyNameCopyMenu.Tooltip("CHANGECOLOR3_ON")), toggle2, PropertyNameCopyMenu.KEYWORD, "CHANGECOLOR3_ON");
                     if(ini != toggle2) Save();
                     if(toggle2)
                     {
@@ -429,9 +431,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -461,9 +463,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -492,9 +494,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -523,9 +525,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -556,9 +558,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -591,9 +593,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -617,7 +619,7 @@ namespace AllIn1SpriteShader
                     {
                         targetMat.DisableKeyword("RADIALGRADIENT_ON");
                         bool simpleGradient = oldKeyWords.Contains("GRADIENT2COL_ON");
-                        bool simpleGradToggle = EditorGUILayout.Toggle("2 Color Gradient?", simpleGradient);
+                        bool simpleGradToggle = PropertyNameCopyMenu.ToggleField(new GUIContent("2 Color Gradient?", PropertyNameCopyMenu.Tooltip("GRADIENT2COL_ON")), simpleGradient, PropertyNameCopyMenu.KEYWORD, "GRADIENT2COL_ON");
                         if(simpleGradient && !simpleGradToggle) targetMat.DisableKeyword("GRADIENT2COL_ON");
                         else if(!simpleGradient && simpleGradToggle) targetMat.EnableKeyword("GRADIENT2COL_ON");
                         DrawProperty(31);
@@ -642,9 +644,9 @@ namespace AllIn1SpriteShader
             bool ini = toggle;
 
             GUIContent effectNameLabel = new GUIContent();
-            effectNameLabel.tooltip = keyword + " (C#)";
+            effectNameLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
             effectNameLabel.text = effectCount + "." + inspector;
-            toggle = EditorGUILayout.BeginToggleGroup(effectNameLabel, toggle);
+            toggle = PropertyNameCopyMenu.BeginToggleGroup(effectNameLabel, toggle, keyword);
 
             effectCount++;
             if(ini != toggle) Save();
@@ -655,7 +657,7 @@ namespace AllIn1SpriteShader
                 {
                     bool multModeOn = oldKeyWords.Contains("OVERLAYMULT_ON");
                     bool isMultMode = multModeOn;
-                    isMultMode = GUILayout.Toggle(isMultMode, new GUIContent("Is overlay multiplicative?"));
+                    isMultMode = PropertyNameCopyMenu.Toggle(isMultMode, new GUIContent("Is overlay multiplicative?", PropertyNameCopyMenu.Tooltip("OVERLAYMULT_ON")), PropertyNameCopyMenu.KEYWORD, "OVERLAYMULT_ON");
                     if(multModeOn != isMultMode)
                     {
                         Save();
@@ -688,9 +690,9 @@ namespace AllIn1SpriteShader
             {
                 GUIContent propertyLabel = new GUIContent();
                 propertyLabel.text = targetProperty.displayName;
-                propertyLabel.tooltip = targetProperty.name + " (C#)";
+                propertyLabel.tooltip = PropertyNameCopyMenu.Tooltip(targetProperty.name);
 
-                matEditor.ShaderProperty(targetProperty, propertyLabel);
+                PropertyNameCopyMenu.ShaderProperty(matEditor, targetProperty, propertyLabel);
 
                 if(!noReset)
                 {
@@ -730,11 +732,11 @@ namespace AllIn1SpriteShader
         {
             GUIContent propertyLabel = new GUIContent();
             propertyLabel.text = inspector;
-            propertyLabel.tooltip = keyword + " (C#)";
+            propertyLabel.tooltip = PropertyNameCopyMenu.Tooltip(keyword);
 
             bool ini = oldKeyWords.Contains(keyword);
             bool toggle = ini;
-            toggle = GUILayout.Toggle(toggle, propertyLabel);
+            toggle = PropertyNameCopyMenu.Toggle(toggle, propertyLabel, PropertyNameCopyMenu.KEYWORD, keyword);
             if(ini != toggle)
             {
                 if(toggle) targetMat.EnableKeyword(keyword);

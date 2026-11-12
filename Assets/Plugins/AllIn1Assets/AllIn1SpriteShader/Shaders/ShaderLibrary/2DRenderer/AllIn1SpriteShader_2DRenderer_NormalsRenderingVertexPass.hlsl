@@ -19,11 +19,18 @@ FragmentDataNormalsPass NormalsRenderingVertex(VertexDataNormalsPass v)
 	#if BILBOARDY_ON
 	camUp = mul((half3x3)unity_CameraToWorld, half3(0,1,0));
 	#endif
-	half3 localPos = v.vertex.x * camRight + v.vertex.y * camUp;
-	o.vertex = TransformObjectToHClip(localPos);
+	float3 localPos = v.vertex.x * camRight + v.vertex.y * camUp;
 	#else
-	o.vertex = TransformObjectToHClip(v.vertex.xyz);
+	float3 localPos = v.vertex.xyz;
 	#endif
+	half3 tangentOS = v.tangent.xyz;
+	half3 bitangentOS = cross(half3(0, 0, -1), v.tangent.xyz) * v.tangent.w;
+	#if UNITY_VERSION >= 60000000
+	localPos.xy *= unity_SpriteProps.xy;
+	tangentOS.xy *= unity_SpriteProps.xy;
+	bitangentOS.xy *= unity_SpriteProps.xy;
+	#endif
+	o.vertex = TransformObjectToHClip(localPos);
     o.uv = /*TRANSFORM_TEX(v.uv, _MainTex);*/v.uv * _MainTex_ScaleAndTiling.xy + _MainTex_ScaleAndTiling.zw;
 	o.color = v.color;
 
@@ -59,8 +66,12 @@ FragmentDataNormalsPass NormalsRenderingVertex(VertexDataNormalsPass v)
 	#endif
 
     o.normalWS = -GetViewForwardDir();
-    o.tangentWS = TransformObjectToWorldDir(v.tangent.xyz);
+    o.tangentWS = TransformObjectToWorldDir(tangentOS);
     o.bitangentWS = cross(o.normalWS, o.tangentWS) * v.tangent.w;
+	#if UNITY_VERSION >= 60000000
+	//Unity 6 no longer folds mirrored transforms into tangent.w, so the object matrix decides which way the bitangent points
+	o.bitangentWS *= dot(o.bitangentWS, TransformObjectToWorldDir(bitangentOS, false)) < 0 ? -1 : 1;
+	#endif
 
     return o;
 }

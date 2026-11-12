@@ -462,5 +462,5 @@ Shader "AllIn1SpriteShader/AllIn1Urp2dRenderer"
     }
 
 	//FallBack "AllIn1SpriteShader/AllIn1SpriteShader"
-	CustomEditor "AllIn1SpriteShader.AllIn12DRendererMaterialInspector"
+	CustomEditor "AllIn1Assets.AllIn1SpriteShader.AllIn12DRendererMaterialInspector"
 }

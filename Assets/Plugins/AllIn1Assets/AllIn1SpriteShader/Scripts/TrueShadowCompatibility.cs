@@ -3,12 +3,12 @@ using LeTai.TrueShadow;
 using LeTai.TrueShadow.PluginInterfaces;
 using UnityEngine;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     [ExecuteAlways]
     public class TrueShadowCompatibility : MonoBehaviour, ITrueShadowCustomHashProvider
     {
-        [Tooltip("Use with animated effects")]
+        [Tooltip("Refreshes the True Shadow every frame in Play mode, for animated effects. Outside Play mode it always refreshes.")]
         public bool updateTrueShadowEveryFrame = false;
         private TrueShadow shadow;
 

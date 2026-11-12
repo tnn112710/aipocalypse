@@ -1,25 +1,34 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
 	public class AllIn1ShaderAssetPostProcessor : AssetPostprocessor
 	{
 		static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, bool didDomainReload)
 		{
-			bool needToRefreshConfig = false;
-			for (int i = 0; i < importedAssets.Length; i++)
+			if (AllIn1ShaderImporter.IsWritingLitShader)
+				return;
+
+			if (!NeedsLitShaderRefresh(importedAssets) && !NeedsLitShaderRefresh(movedAssets))
+				return;
+
+			//Erased now, so a domain reload before the delayCall still regenerates the Lit shaders
+			AllIn1ShaderImporter.InvalidateSession();
+			EditorApplication.delayCall -= AllIn1ShaderImporter.ForceReimport;
+			EditorApplication.delayCall += AllIn1ShaderImporter.ForceReimport;
+		}
+
+		private static bool NeedsLitShaderRefresh(string[] assetPaths)
+		{
+			for (int i = 0; i < assetPaths.Length; i++)
 			{
-				if (importedAssets[i].EndsWith(Constants.MAIN_ASSEMBLY_NAME))
-				{
-					needToRefreshConfig = needToRefreshConfig || true;
-				}
+				if (assetPaths[i].EndsWith(Constants.MAIN_ASSEMBLY_NAME, StringComparison.Ordinal) || AllIn1ShaderImporter.IsLitShaderFile(assetPaths[i]))
+					return true;
 			}
 
-			if (needToRefreshConfig)
-			{
-				AllIn1ShaderImporter.ForceReimport();
-			}
+			return false;
 		}
 	}
 }

@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
 	[InitializeOnLoad]
 	public static class AllIn1ShaderImporter
@@ -12,9 +12,6 @@ namespace AllIn1SpriteShader
 		public enum UnityVersion
 		{
 			NONE = 0,
-			UNITY_2019 = 1,
-			UNITY_2020 = 2,
-			UNITY_2021 = 3,
 			UNITY_2022 = 4,
 			UNITY_6 = 5,
 		}
@@ -35,26 +32,16 @@ namespace AllIn1SpriteShader
 		private const string SPRITE_LIT_SHADER_NAME = "AllIn1SpriteShaderLit";
 		private const string SPRITE_LIT_TRANSPARENT_SHADER_NAME = "AllIn1SpriteShaderLitTransparent";
 
-		private const string PIPELINE_SUFFIX_URP_2019 = "BetterShader_URP2019";
-		private const string PIPELINE_SUFFIX_HDRP_2019 = "BetterShader_HDRP2019";
-
-		private const string PIPELINE_SUFFIX_URP_2020 = "BetterShader_URP2020";
-		private const string PIPELINE_SUFFIX_HDRP_2020 = "BetterShader_HDRP2020";
-
-		private const string PIPELINE_SUFFIX_URP_2021 = "BetterShader_URP2021";
-		private const string PIPELINE_SUFFIX_HDRP_2021 = "BetterShader_HDRP2021";
-
-		private const string PIPELINE_SUFFIX_URP_2022 = "BetterShader_URP2022";
-		private const string PIPELINE_SUFFIX_HDRP_2022 = "BetterShader_HDRP2022";
-
-		private const string PIPELINE_SUFFIX_URP_2023 = "BetterShader_URP2023";
-		private const string PIPELINE_SUFFIX_HDRP_2023 = "BetterShader_HDRP2023";
-
-		private const string PIPELINE_SUFFIX_STANDARD = "BetterShader_Standard";
+		private const string TEMPLATE_STANDARD = "BetterShader_Standard";
+		private const string TEMPLATE_PIPELINE_FORMAT = "BetterShader_{0}{1}";
+		private const string TEMPLATE_NEWEST_VERSION = "2023";
 
 		private const string LIT_SHADER_PIPELINE_KEY = "AllIn1SpriteShader_LitShader_RenderPipeline";
 		private const string LIT_SHADER_UNITY_VERSION_KEY = "AllIn1SpriteShader_LitShader_UnityVersion";
 		private const string LIT_SHADER_FIRST_TIME_PROJECT = "AllIn1SpriteShader_LitShader_FirstTimeProject";
+
+		//True while the importer imports a shader it just wrote, so the postprocessor ignores that import
+		public static bool IsWritingLitShader { get; private set; }
 
 		static AllIn1ShaderImporter()
 		{
@@ -63,6 +50,9 @@ namespace AllIn1SpriteShader
 
 		private static void ConfigureShaders()
 		{
+			if (UnityEditor.MPE.ProcessService.level == UnityEditor.MPE.ProcessLevel.Secondary)
+				return;
+
 			RenderPipelineChecker.RefreshData();
 
 			UnityVersion unityVersion = GetUnityVersion();
@@ -85,58 +75,7 @@ namespace AllIn1SpriteShader
 
 		private static void ConfigureShader(string shaderName)
 		{
-			string pipelineSufix = string.Empty;
-
-			UnityVersion unityVersion = GetUnityVersion();
-			RenderPipeline renderPipeline = GetRenderPipeline();
-
-			if (renderPipeline == RenderPipeline.HDRP)
-			{
-				switch (unityVersion)
-				{
-					case UnityVersion.UNITY_2019:
-						pipelineSufix = PIPELINE_SUFFIX_HDRP_2019;
-						break;
-					case UnityVersion.UNITY_2020:
-						pipelineSufix = PIPELINE_SUFFIX_HDRP_2020;
-						break;
-					case UnityVersion.UNITY_2021:
-						pipelineSufix = PIPELINE_SUFFIX_HDRP_2021;
-						break;
-					case UnityVersion.UNITY_2022:
-						pipelineSufix = PIPELINE_SUFFIX_HDRP_2022;
-						break;
-					case UnityVersion.UNITY_6:
-						pipelineSufix = PIPELINE_SUFFIX_HDRP_2023;
-						break;
-
-				}
-			}
-			else if (renderPipeline == RenderPipeline.URP)
-			{
-				switch (unityVersion)
-				{
-					case UnityVersion.UNITY_2019:
-						pipelineSufix = PIPELINE_SUFFIX_URP_2019;
-						break;
-					case UnityVersion.UNITY_2020:
-						pipelineSufix = PIPELINE_SUFFIX_URP_2020;
-						break;
-					case UnityVersion.UNITY_2021:
-						pipelineSufix = PIPELINE_SUFFIX_URP_2021;
-						break;
-					case UnityVersion.UNITY_2022:
-						pipelineSufix = PIPELINE_SUFFIX_URP_2022;
-						break;
-					case UnityVersion.UNITY_6:
-						pipelineSufix = PIPELINE_SUFFIX_URP_2023;
-						break;
-				}
-			}
-			else
-			{
-				pipelineSufix = PIPELINE_SUFFIX_STANDARD;
-			}
+			string pipelineSufix = GetTemplateSuffix(GetRenderPipeline(), GetUnityVersion());
 
 			string templateFileName = string.Format(SHADER_TEMPLATE_NAME, shaderName, pipelineSufix);
 
@@ -145,62 +84,119 @@ namespace AllIn1SpriteShader
 
 			try
 			{
-				var currentFileGUID = AssetDatabase.FindAssets($"t:Script {nameof(AllIn1ShaderImporter)}")[0];
-				string currentFolder = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(currentFileGUID));
+				string[] results = AssetDatabase.FindAssets($"t:Script {nameof(AllIn1ShaderImporter)}");
+				if (results.Length == 0)
+				{
+					Debug.LogError($"Could not locate {nameof(AllIn1ShaderImporter)} in the project, {shaderName} was not configured");
+					return;
+				}
 
-				string newShaderStr = File.ReadAllText(Path.Combine(currentFolder, shaderTemplatePath));
+				string currentFolder = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(results[0]));
+
+				string sourceFilePath = Path.GetFullPath(Path.Combine(currentFolder, shaderTemplatePath));
+				string targetFilePath = Path.GetFullPath(Path.Combine(currentFolder, finalShaderPath));
+				string targetAssetPath = ToAssetPath(targetFilePath);
+
+				string newShaderStr = File.ReadAllText(sourceFilePath);
 				newShaderStr = newShaderStr.Replace($"Shader \"AllIn1SpriteShader/{shaderName}_BetterShader\"", $"Shader \"AllIn1SpriteShader/{shaderName}\"");
+				//Unity's shader upgrader makes this rewrite on import, so without it the shader never equals its template again
+				newShaderStr = newShaderStr.Replace("defined FOG_COMBINED_WITH_WORLD_POS", "defined (FOG_COMBINED_WITH_WORLD_POS)");
+				newShaderStr = EditorUtils.UnifyEOL(newShaderStr);
 
-				File.WriteAllText(Path.Combine(currentFolder, finalShaderPath), EditorUtils.UnifyEOL(newShaderStr));
+				if (File.Exists(targetFilePath))
+				{
+					//Normalize the existing file too, its line endings depend on how it was checked out (git autocrlf and similar)
+					string existingShaderStr = EditorUtils.UnifyEOL(File.ReadAllText(targetFilePath));
+					if (string.Equals(existingShaderStr, newShaderStr, StringComparison.Ordinal))
+						return;
+				}
 
-				AssetDatabase.SaveAssets();
-				AssetDatabase.Refresh();
+				File.WriteAllText(targetFilePath, newShaderStr);
+
+				IsWritingLitShader = true;
+				try
+				{
+					AssetDatabase.ImportAsset(targetAssetPath, ImportAssetOptions.ForceUpdate);
+				}
+				finally
+				{
+					IsWritingLitShader = false;
+				}
 			}
 			catch (Exception e)
 			{
-				Debug.LogError("Shader not found: " + e);
+				Debug.LogError($"{shaderName} could not be generated from template {templateFileName}: {e}");
+			}
+		}
+
+		private static string ToAssetPath(string absolutePath)
+		{
+			string fullPath = absolutePath.Replace('\\', '/');
+			string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..")).Replace('\\', '/');
+
+			if (!projectRoot.EndsWith("/", StringComparison.Ordinal))
+				projectRoot += "/";
+
+			return fullPath.StartsWith(projectRoot, StringComparison.Ordinal)
+				? fullPath.Substring(projectRoot.Length)
+				: fullPath;
+		}
+
+		private static string GetTemplateSuffix(RenderPipeline renderPipeline, UnityVersion unityVersion)
+		{
+			string pipelineName = GetPipelineTemplateName(renderPipeline);
+			if (string.IsNullOrEmpty(pipelineName))
+				return TEMPLATE_STANDARD;
+
+			return string.Format(TEMPLATE_PIPELINE_FORMAT, pipelineName, GetUnityVersionTemplateName(unityVersion));
+		}
+
+		private static string GetPipelineTemplateName(RenderPipeline renderPipeline)
+		{
+			switch (renderPipeline)
+			{
+				case RenderPipeline.URP:
+					return "URP";
+				case RenderPipeline.HDRP:
+					return "HDRP";
+				default:
+					return string.Empty;
+			}
+		}
+
+		//Unrecognised versions fall back to the newest template instead of to no template at all
+		private static string GetUnityVersionTemplateName(UnityVersion unityVersion)
+		{
+			switch (unityVersion)
+			{
+				case UnityVersion.UNITY_2022:
+					return "2022";
+				default:
+					return TEMPLATE_NEWEST_VERSION;
 			}
 		}
 
 		private static UnityVersion GetUnityVersion()
 		{
-			UnityVersion res = UnityVersion.NONE;
-
 			string unityVersion = Application.unityVersion;
 
-			if (unityVersion.Contains("2019"))
-			{
-				res = UnityVersion.UNITY_2019;
-			}
-			else if (unityVersion.Contains("2020"))
-			{
-				res = UnityVersion.UNITY_2020;
-			}
-			else if (unityVersion.Contains("2021"))
-			{
-				res = UnityVersion.UNITY_2021;
-			}
-			else if (unityVersion.Contains("2022"))
-			{
-				res = UnityVersion.UNITY_2022;
-			}
-			else if (unityVersion.Contains("6000"))
-			{
-				res = UnityVersion.UNITY_6;
-			}
+			if (unityVersion.StartsWith("2022", StringComparison.Ordinal))
+				return UnityVersion.UNITY_2022;
+			if (unityVersion.StartsWith("6000", StringComparison.Ordinal))
+				return UnityVersion.UNITY_6;
 
-			return res;
+			return UnityVersion.NONE;
 		}
 
 		private static RenderPipeline GetRenderPipeline()
 		{
 			RenderPipeline res = RenderPipeline.BIRP;
 
-			if (RenderPipelineChecker.IsURP)
+			if (RenderPipelineChecker.IsURP())
 			{
 				res = RenderPipeline.URP;
 			}
-			else if (RenderPipelineChecker.IsHDRP)
+			else if (RenderPipelineChecker.IsHDRP())
 			{
 				res = RenderPipeline.HDRP;
 			}
@@ -210,11 +206,33 @@ namespace AllIn1SpriteShader
 
 		public static void ForceReimport()
 		{
+			InvalidateSession();
+			ConfigureShaders();
+		}
+
+		public static void InvalidateSession()
+		{
 			SessionState.EraseInt(LIT_SHADER_PIPELINE_KEY);
 			SessionState.EraseInt(LIT_SHADER_UNITY_VERSION_KEY);
 			SessionState.EraseInt(LIT_SHADER_FIRST_TIME_PROJECT);
+		}
 
-			ConfigureShaders();
+		//A package update writes the shipped Built-in shaders over the generated ones and may change the templates
+		public static bool IsLitShaderFile(string assetPath)
+		{
+			string fileName = Path.GetFileName(assetPath);
+			if (fileName.EndsWith(".txt", StringComparison.Ordinal) &&
+			    (fileName.StartsWith(SPRITE_LIT_SHADER_NAME + "_BetterShader_", StringComparison.Ordinal) ||
+			     fileName.StartsWith(SPRITE_LIT_TRANSPARENT_SHADER_NAME + "_BetterShader_", StringComparison.Ordinal)))
+				return true;
+
+			if (!string.Equals(fileName, SPRITE_LIT_SHADER_NAME + ".shader", StringComparison.Ordinal) &&
+			    !string.Equals(fileName, SPRITE_LIT_TRANSPARENT_SHADER_NAME + ".shader", StringComparison.Ordinal))
+				return false;
+
+			//On Built-in the shipped shaders are already the right ones
+			RenderPipelineChecker.RefreshData();
+			return GetRenderPipeline() != RenderPipeline.BIRP;
 		}
 	}
 }

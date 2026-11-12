@@ -3,7 +3,7 @@ using System.Collections;
 using System.Reflection;
 using UnityEngine;
 
-namespace AllIn1SpriteShader
+namespace AllIn1Assets.AllIn1SpriteShader
 {
     public class DemoCamera : MonoBehaviour
     {
@@ -23,7 +23,6 @@ namespace AllIn1SpriteShader
 
         private void EnablePostProcessingForURP()
         {
-            #if UNITY_2019_3_OR_NEWER
             try
             {
                 Type urpCameraDataType = Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
@@ -65,7 +64,6 @@ namespace AllIn1SpriteShader
             {
                 Debug.LogWarning($"[DemoCamera] Failed to enable URP post processing: {e.Message}", this);
             }
-            #endif
         }
 
         private void Update()

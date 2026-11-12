@@ -727,6 +727,8 @@ namespace AllIn1Assets.AllIn1ShaderNodes
                             {
                                 SceneViewNotificationAndLog("Noise saved inside the project: " + subPath);
                                 importer.filterMode = noiseFiltering;
+                                //Noise is read as numbers, so Linear projects must not decode it
+                                importer.sRGBTexture = false;
                                 importer.SaveAndReimport();
                                 EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath(subPath, typeof(Texture)));
                             }
@@ -1371,6 +1373,7 @@ namespace AllIn1Assets.AllIn1ShaderNodes
 
         public static void ShowSceneViewNotification(string message)
         {
+            if(SceneView.lastActiveSceneView == null) return;
             GUIContent content = new GUIContent(message);
             SceneView.lastActiveSceneView.ShowNotification(content, 1.5f);
         }

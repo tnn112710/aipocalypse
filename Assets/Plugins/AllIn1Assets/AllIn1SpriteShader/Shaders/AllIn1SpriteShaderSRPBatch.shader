@@ -346,5 +346,5 @@ Shader "AllIn1SpriteShader/AllIn1SpriteShaderSRPBatch"
     }
 
 	//Fallback "AllIn1SpriteShader/AllIn1SpriteShader"
-	CustomEditor "AllIn1SpriteShader.AllIn1SpriteShaderMaterialInspector"
+	CustomEditor "AllIn1Assets.AllIn1SpriteShader.AllIn1SpriteShaderMaterialInspector"
 }

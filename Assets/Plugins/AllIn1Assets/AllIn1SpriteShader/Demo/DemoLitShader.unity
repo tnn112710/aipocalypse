@@ -97,8 +97,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: da89fb36cf5d6c54e86071a4c68e542d,
-    type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: da89fb36cf5d6c54e86071a4c68e542d, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -408,9 +407,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentShaderType: 5
+  currMaterial: {fileID: 0}
+  prevMaterial: {fileID: 0}
+  subPath: 
+  destroyed: 0
+  matAssigned: 1
   normalStrength: 5
   normalSmoothing: 1
   computingNormal: 0
+  needToWait: 0
+  waitingCycles: 0
+  timesWeWaited: 0
+  normalMapSr: {fileID: 0}
+  normalMapRenderer: {fileID: 0}
+  isSpriteRenderer: 0
+  path: 
+  importer: {fileID: 0}
+  mainTex2D: {fileID: 0}
 --- !u!95 &1331354941
 Animator:
   serializedVersion: 5
@@ -710,9 +723,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentShaderType: 5
+  currMaterial: {fileID: 0}
+  prevMaterial: {fileID: 0}
+  subPath: 
+  destroyed: 0
+  matAssigned: 1
   normalStrength: 5
   normalSmoothing: 1
   computingNormal: 0
+  needToWait: 0
+  waitingCycles: 0
+  timesWeWaited: 0
+  normalMapSr: {fileID: 0}
+  normalMapRenderer: {fileID: 0}
+  isSpriteRenderer: 0
+  path: 
+  importer: {fileID: 0}
+  mainTex2D: {fileID: 0}
 --- !u!212 &4467823508200106858
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -937,9 +964,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentShaderType: 5
+  currMaterial: {fileID: 0}
+  prevMaterial: {fileID: 0}
+  subPath: 
+  destroyed: 0
+  matAssigned: 1
   normalStrength: 5
   normalSmoothing: 1
   computingNormal: 0
+  needToWait: 0
+  waitingCycles: 0
+  timesWeWaited: 0
+  normalMapSr: {fileID: 0}
+  normalMapRenderer: {fileID: 0}
+  isSpriteRenderer: 0
+  path: 
+  importer: {fileID: 0}
+  mainTex2D: {fileID: 0}
 --- !u!114 &4467823508418042101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1029,7 +1070,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c597a6bd515e47a429c79f272eb6762a, type: 2}
+  - {fileID: 2100000, guid: 226f35f6bbbf5a44392503ae19b78864, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1089,9 +1130,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentShaderType: 5
+  currMaterial: {fileID: 2100000, guid: 226f35f6bbbf5a44392503ae19b78864, type: 2}
+  prevMaterial: {fileID: 0}
+  subPath: 
+  destroyed: 0
+  matAssigned: 1
   normalStrength: 5
   normalSmoothing: 1
   computingNormal: 0
+  needToWait: 0
+  waitingCycles: 0
+  timesWeWaited: 0
+  normalMapSr: {fileID: 0}
+  normalMapRenderer: {fileID: 0}
+  isSpriteRenderer: 0
+  path: 
+  importer: {fileID: 0}
+  mainTex2D: {fileID: 0}
 --- !u!114 &4467823509716073572
 MonoBehaviour:
   m_ObjectHideFlags: 0
