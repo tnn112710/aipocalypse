@@ -250,7 +250,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (_repair.IsBusy || wasRepairing)
                 intent = WithoutItemUse(intent);
             if (canAct && !_repair.IsBusy && !wasRepairing)
-                _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased);
+                _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased, intent.Collect);
             else
                 _interactor.Clear();
             DrawGhost();
@@ -408,6 +408,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Interact = _input.InteractPressed,
             InteractHold = _input.InteractHoldPerformed,
             InteractReleased = _input.InteractReleased,
+            Collect = _input.CollectPressed,
             Drop = _input.DropPressed,
             Fire = _input.AttackHeld,
             FirePressed = _input.AttackPressed,
@@ -435,6 +436,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             intent.Interact = false;
             intent.InteractHold = false;
             intent.InteractReleased = false;
+            intent.Collect = false;
             return intent;
         }
 

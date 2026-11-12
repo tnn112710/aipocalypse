@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
   DisplayName: Cow
   WalkSpeed: 0.9
-  HurrySpeed: 3
+  HurrySpeed: 1.5
+  FleeSpeed: 3
   StopDistance: 0.5
   GrassBendRadius: 1.2
   GrazeRadius: 10
@@ -37,3 +38,8 @@ MonoBehaviour:
     _entity: {fileID: 11400000, guid: 0e7f1239300a58248a97f3c0fec01015, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
+  Startled:
+    _entity: {fileID: 11400000, guid: 0e7f1239300a58248a97f3c0fec01015, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  MarkerDropAsleep: 0.9

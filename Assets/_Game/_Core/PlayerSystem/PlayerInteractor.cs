@@ -6,7 +6,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // What the player is looking at that can be used, and using it. A short sphere cast from the eye each frame;
     // walls block it, trigger colliders (pickups) are hit. The key uses it on press; when the focus also offers a hold use
-    // (IHoldInteractable: a gate's repair), a tap uses it on release and a hold does the hold use.
+    // (IHoldInteractable: a gate's repair), a tap uses it on release and a hold does the hold use. The Collect key uses what
+    // the focus offers to collect (ICollectInteractable: an animal's Tokens), on press.
     public sealed class PlayerInteractor
     {
         // Metres in front of the eye a thrown item starts.
@@ -34,8 +35,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public InteractionPrompt Prompt { get; private set; }
         public bool HasHoldPrompt { get; private set; }
         public InteractionPrompt HoldPrompt { get; private set; }
+        public bool HasCollectPrompt { get; private set; }
+        public InteractionPrompt CollectPrompt { get; private set; }
 
-        public void Tick(bool pressed, bool holdDone = false, bool released = false)
+        public void Tick(bool pressed, bool holdDone = false, bool released = false, bool collect = false)
         {
             Refocus();
 
@@ -45,6 +48,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             HasHoldPrompt = _focus is IHoldInteractable holdable && holdable.TryGetHoldPrompt(_actor, out holdPrompt);
             Prompt = prompt;
             HoldPrompt = holdPrompt;
+            InteractionPrompt collectPrompt = default;
+            HasCollectPrompt = _focus is ICollectInteractable collectable && collectable.TryGetCollectPrompt(_actor, out collectPrompt);
+            CollectPrompt = collectPrompt;
+            if (HasCollectPrompt && collect)
+            {
+                ((ICollectInteractable)_focus).Collect(_actor);
+                Clear();
+                return;
+            }
 
             if (!HasHoldPrompt)
             {
@@ -74,6 +86,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _pressedOn = null;
             HasPrompt = false;
             HasHoldPrompt = false;
+            HasCollectPrompt = false;
         }
 
         void Use(bool hold)

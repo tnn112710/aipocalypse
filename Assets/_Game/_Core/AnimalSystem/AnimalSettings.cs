@@ -1,4 +1,5 @@
 using Ami.BroAudio;
+using DamageNumbersPro;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
@@ -20,11 +21,19 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Min(0.1f), Tooltip("Seconds the Tokens take to arc from the animal to the player")] public float BurstFlightTime = 0.9f;
         [Min(0f), Tooltip("The pieces land this far round the player (m): inside the pickup magnet")] public float BurstScatter = 0.45f;
         [Tooltip("When an animal hands its Tokens over (3D)")] public SoundID CollectSound;
+        [Tooltip("\"+12 Tokens\" over the animal on a hand-over (Damage Numbers Pro, pooling on); empty = none")] public DamageNumber TokenNumber;
 
         [Header("Coming home")]
-        [Min(0f), Tooltip("Hurrying one animal hurries every animal this close to it (m)")] public float HurryRadius = 10f;
+        [Tooltip("Seconds after the bell before each animal answers with its call (min, max)")] public Vector2 AnswerDelay = new(0.2f, 1.2f);
         [Min(0.5f), Tooltip("A called animal that can't get into the pen waits this far from its gate (m)")] public float WaitRadius = 3f;
         [Min(0.5f), Tooltip("The pen gate won't close on an animal this close to it (m)")] public float DoorwayRadius = 1.6f;
+
+        [Header("Reactions")]
+        [Min(0f), Tooltip("A grazing animal stops eating and turns to the player this close (m)")] public float NoticeRadius = 4f;
+        [Min(0f), Tooltip("An animal steps aside from the player this close (m)")] public float BumpRadius = 1.3f;
+        [Min(0.5f), Tooltip("How far it steps aside (m)")] public float StepAside = 2.5f;
+        [Min(0f), Tooltip("Animals this close to a gunshot run from it (m)")] public float ShotRadius = 20f;
+        [Min(0.5f), Tooltip("How far they run (m)")] public float FleeDistance = 7f;
 
         [Header("Sounds")]
         public SoundID BellSound;

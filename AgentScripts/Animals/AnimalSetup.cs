@@ -17,10 +17,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-// Builds the farm animals: the Animals BroAudio library, Data/Animals/AnimalSettings, the cow and sheep (definition,
-// animator controller, model and entity prefabs from polyperfect Low Poly Animated Animals), the pen pieces (rail, post,
-// gate, bell from Lakefell parts), and in WorldMap the "Home Pen" root (pen in the yard's west corner, pasture in front of
-// the home gate, 2 cows and 4 sheep) plus the AnimalInstaller. Safe to re-run: animals already in the scene are kept.
+// Builds the farm animals: the Animals BroAudio library, Data/Animals/AnimalSettings and its "+N Tokens" number, the cow,
+// sheep, chicken (hen and rooster) and pig (definition, animator controller, model and entity prefabs from polyperfect Low
+// Poly Animated Animals), the pen pieces (rail, post, gate, bell from Lakefell parts), and in WorldMap the "Home Pen" root
+// (pen in the yard's west corner, pasture in front of the home gate, 2 cows, 6 sheep, a rooster, 3 hens, 2 pigs) plus the
+// AnimalInstaller. Safe to re-run: animals already in the scene are kept, missing ones from the list are added.
 // The tree is built apart: TreeKit.Build AgentScripts/Animals/Animal.tree.txt.
 // Run: unity command script run --file AgentScripts/Animals/AnimalSetup.cs --entry AnimalSetup.All
 public static class AnimalSetup
@@ -37,6 +38,8 @@ public static class AnimalSetup
     const string PenDir = "Assets/_Game/Content/Structures/Pen";
     const string TokensPath = "Assets/_Game/Content/Items/Tokens/Tokens.asset";
     const string TokensPrefabPath = "Assets/_Game/Content/Items/Tokens/Tokens.prefab";
+    const string DamageNumberPath = "Assets/_Game/_Core/UI/Prefabs/Widgets/DamageNumber.prefab";
+    const string TokenNumberPath = ContentDir + "/_Shared/TokenNumber.prefab";
     const string Template = "Assets/_Game/Content/Enemies/WanderCapsule/WanderCapsule.prefab";
     const string WorldMapPath = "Assets/_Game/Scenes/Prototypes/WorldMap.unity";
     const string AnimalLayer = "Animal";
@@ -45,13 +48,15 @@ public static class AnimalSetup
     // Pen: this far along the two fence sides that meet in the yard's west corner (whole rail slots).
     const float SlotWidth = 2.25f;
     const int SlotsAlongBack = 4;       // along side 0 (towards the south corner): the side with the gate
-    const int SlotsAlongSide = 5;       // along side 3 (towards the north corner)
+    const int SlotsAlongSide = 8;       // along side 3 (towards the north corner); the cart stands just past it
     const int GateSlot = 1;             // counted from the big fence
     const float RailMeshLength = 1.606f;    // Extension_1_Fence
     const float AgentRadius = 0.5f;         // the WorldMap bake's agent radius
     const float CutOverlap = 0.3f;
     const float PastureDistance = 32f;      // from the raid spawn zone's origin (the home gate), along its facing
     const float PastureRadius = 16f;
+    const float TurnSpeed = 180f;           // deg/s, the animals' FollowerEntity
+    const float TurnSmoothing = 0.2f;       // s, visual only
 
     sealed class Kind
     {
@@ -60,6 +65,8 @@ public static class AnimalSetup
         public string ClipFbx;
         public string ClipPrefix;
         public string IdleClip = "Idle";
+        // Looks whose clips live in another file (the rooster's): look -> (clip file, clip prefix, idle clip).
+        public Dictionary<string, (string Fbx, string Prefix, string Idle)> LookClips = new();
         public float ModelScale = 1f;
         public float AuthoredWalk, AuthoredRun;
         public float AgentRadius, AgentHeight;
@@ -88,7 +95,8 @@ public static class AnimalSetup
         {
             d.DisplayName = "Cow";
             d.WalkSpeed = 0.9f;
-            d.HurrySpeed = 3f;
+            d.HurrySpeed = 1.5f;
+            d.FleeSpeed = 3f;
             d.StopDistance = 0.5f;
             d.GrassBendRadius = 1.2f;
             d.GrazeRadius = 10f;
@@ -100,7 +108,9 @@ public static class AnimalSetup
             d.CollectAt = 5;
             d.Call = Id(AnimalAudioDir, "Cow_Call");
             d.Hurried = Id(AnimalAudioDir, "Cow_Hurried");
+            d.Startled = Id(AnimalAudioDir, "Cow_Hurried");
             d.CallInterval = new Vector2(15f, 40f);
+            d.MarkerDropAsleep = 0.9f;
         },
     };
 
@@ -122,7 +132,8 @@ public static class AnimalSetup
         {
             d.DisplayName = "Sheep";
             d.WalkSpeed = 1.1f;
-            d.HurrySpeed = 3.2f;
+            d.HurrySpeed = 1.8f;
+            d.FleeSpeed = 3.2f;
             d.StopDistance = 0.4f;
             d.GrassBendRadius = 0.7f;
             d.GrazeRadius = 8f;
@@ -135,9 +146,94 @@ public static class AnimalSetup
             d.CollectAt = 2;
             d.Call = Id(AnimalAudioDir, "Sheep_Call");
             d.Hurried = Id(AnimalAudioDir, "Sheep_Hurried");
+            d.Startled = Id(AnimalAudioDir, "Sheep_Hurried");
             d.CallInterval = new Vector2(10f, 30f);
+            d.MarkerDropAsleep = 0.5f;
         },
     };
+
+    // Hens follow the first chicken out on the pasture: the rooster, placed first.
+    static readonly Kind Chicken = new()
+    {
+        Name = "Chicken",
+        Looks = new[] { "Hen", "Rooster" },
+        ClipFbx = PP + "Meshes/Animals/Hen/SKM_Hen_Animations.fbx",
+        ClipPrefix = "Hen_",
+        IdleClip = "Idle Breathing",
+        LookClips = { ["Rooster"] = (PP + "Meshes/Animals/Rooster/SKM_Rooster_Animations.fbx", "Rooster_", "Idle_Breathing") },
+        AuthoredWalk = 0.6f,
+        AuthoredRun = 2.2f,
+        AgentRadius = 0.25f,
+        AgentHeight = 0.7f,
+        BodyRadius = 0.2f,
+        BodyLength = 0.6f,
+        BodyHeight = 0.4f,
+        MarkerHeight = 1.3f,
+        Tune = d =>
+        {
+            d.DisplayName = "Chicken";
+            d.WalkSpeed = 0.6f;
+            d.HurrySpeed = 1f;
+            d.FleeSpeed = 2.2f;
+            d.StopDistance = 0.25f;
+            d.GrassBendRadius = 0.35f;
+            d.GrazeRadius = 6f;
+            d.MinTravel = 1f;
+            d.GrazeTime = new Vector2(3f, 8f);
+            d.FollowsLeader = true;
+            d.FlockRadius = 4f;
+            d.TokensPerDayPenned = 3f;
+            d.TokensPerDayRoaming = 6f;
+            d.HoldDays = 2f;
+            d.CollectAt = 2;
+            d.Call = Id(AnimalAudioDir, "Chicken_Call");
+            d.Hurried = Id(AnimalAudioDir, "Chicken_Hurried");
+            d.Startled = Id(AnimalAudioDir, "Chicken_Startled");
+            d.CallInterval = new Vector2(8f, 25f);
+            d.MarkerDropAsleep = 0.25f;
+        },
+    };
+
+    static readonly Kind Pig = new()
+    {
+        Name = "Pig",
+        Looks = new[] { "Pig" },
+        ClipFbx = PP + "Meshes/Animals/Pig/SKM_Pig_Animations.fbx",
+        ClipPrefix = "Pig_",
+        IdleClip = "Idle_Breathing",
+        ModelScale = 1.2f,
+        AuthoredWalk = 0.9f,
+        AuthoredRun = 3f,
+        AgentRadius = 0.45f,
+        AgentHeight = 1f,
+        BodyRadius = 0.3f,
+        BodyLength = 1.5f,
+        BodyHeight = 0.5f,
+        MarkerHeight = 1.5f,
+        Tune = d =>
+        {
+            d.DisplayName = "Pig";
+            d.WalkSpeed = 0.8f;
+            d.HurrySpeed = 1.3f;
+            d.FleeSpeed = 2.6f;
+            d.StopDistance = 0.4f;
+            d.GrassBendRadius = 0.8f;
+            d.GrazeRadius = 8f;
+            d.GrazeTime = new Vector2(5f, 12f);
+            d.FollowsLeader = false;
+            d.TokensPerDayPenned = 12f;
+            d.TokensPerDayRoaming = 24f;
+            d.HoldDays = 2f;
+            d.CollectAt = 4;
+            d.Call = Id(AnimalAudioDir, "Pig_Call");
+            d.Hurried = Id(AnimalAudioDir, "Pig_Hurried");
+            d.Startled = Id(AnimalAudioDir, "Pig_Startled");
+            d.CallInterval = new Vector2(12f, 35f);
+            d.MarkerDropAsleep = 0.4f;
+        },
+    };
+
+    static readonly Kind[] Kinds = { Cow, Sheep, Chicken, Pig };
 
     public static string All() => string.Join("\n", Audio(), Content(), Pen(), World());
 
@@ -155,6 +251,12 @@ public static class AnimalSetup
         Finish(Entity(library, AnimalAudioDir, "Cow_Hurried", 0.75f, 1.05f, 0.06f, Range(voices + "cow_2_moo_", 6)), near, log);
         Finish(Entity(library, AnimalAudioDir, "Sheep_Call", 0.55f, 1f, 0.08f, Range(voices + "sheep_2_baa_calm_", 5)), near, log);
         Finish(Entity(library, AnimalAudioDir, "Sheep_Hurried", 0.7f, 1f, 0.08f, Range(voices + "sheep_2_baa_high_", 3)), near, log);
+        Finish(Entity(library, AnimalAudioDir, "Chicken_Call", 0.45f, 1f, 0.08f, Range(voices + "chicken_2_cluck_bwak_soft_", 11)), near, log);
+        Finish(Entity(library, AnimalAudioDir, "Chicken_Hurried", 0.55f, 1f, 0.08f, Range(voices + "chicken_2_bwak_", 10)), near, log);
+        Finish(Entity(library, AnimalAudioDir, "Chicken_Startled", 0.6f, 1f, 0.06f, Range(voices + "chicken_cluck_scream_", 5)), near, log);
+        Finish(Entity(library, AnimalAudioDir, "Pig_Call", 0.5f, 1f, 0.06f, Range(voices + "pig_2_hog_single_", 8)), near, log);
+        Finish(Entity(library, AnimalAudioDir, "Pig_Hurried", 0.6f, 1f, 0.06f, Range(voices + "pig_2_hog_seq_", 11)), near, log);
+        Finish(Entity(library, AnimalAudioDir, "Pig_Startled", 0.6f, 1f, 0.06f, Range(voices + "pig_scream_short_", 5)), near, log);
         Finish(Entity(library, AnimalAudioDir, "Pen_Bell", 0.9f, 1f, 0.02f, Range(GM + "Miscellaneous/Bell/bell_med_ringing_", 3)), far, log);
         Finish(Entity(library, AnimalAudioDir, "Animal_Collect", 0.5f, 1f, 0.08f,
             Range(GM + "Collectibles_Items_Powerup/chime_tinkle_wood_bell_positive_", 4)), near, log);
@@ -180,9 +282,10 @@ public static class AnimalSetup
         settings.CollectSound = Id(AnimalAudioDir, "Animal_Collect");
         settings.GateOpenSound = Id(DefenseAudioDir, "Gate_Open");
         settings.GateCloseSound = Id(DefenseAudioDir, "Gate_Close");
+        settings.TokenNumber = TokenNumber();
         Save(settings);
 
-        foreach (Kind kind in new[] { Cow, Sheep })
+        foreach (Kind kind in Kinds)
         {
             string dir = $"{ContentDir}/{kind.Name}";
             Folder(dir + "/Model");
@@ -196,23 +299,50 @@ public static class AnimalSetup
             kind.Tune(definition);
             Save(definition);
 
-            AnimatorController controller = Controller(kind, definition, $"{dir}/{kind.Name}.controller");
+            AnimatorController shared = Controller(definition, kind.ClipFbx, kind.ClipPrefix, kind.IdleClip, kind, $"{dir}/{kind.Name}.controller");
             for (int i = 0; i < kind.Looks.Length; i++)
             {
                 string look = kind.Looks[i];
                 GameObject model = Model(PP + $"Prefabs/Animals/{look}.prefab", $"{dir}/Model/{look}.prefab");
                 string entityName = i == 0 ? kind.Name : look;
+                AnimatorController controller = kind.LookClips.TryGetValue(look, out var clips)
+                    ? Controller(definition, clips.Fbx, clips.Prefix, clips.Idle, kind, $"{dir}/{entityName}.controller")
+                    : shared;
                 log.Add(Entity(kind, definition, controller, model, $"{dir}/{entityName}.prefab"));
             }
         }
         return "content: " + string.Join(", ", log);
     }
 
-    // Speed blends idle → walk → run at the definition's speeds (the clips retimed to them); Eat and Sleep are states.
-    static AnimatorController Controller(Kind kind, AnimalDefinition definition, string path)
+    // "+12 Tokens" over an animal handing its Tokens over: a gold copy of the HUD's damage number (its own pool).
+    static DamageNumbersPro.DamageNumber TokenNumber()
     {
-        var clips = AssetDatabase.LoadAllAssetsAtPath(kind.ClipFbx).OfType<AnimationClip>().ToDictionary(c => c.name);
-        AnimationClip Clip(string name) => clips.TryGetValue(kind.ClipPrefix + name, out AnimationClip clip) ? clip : throw new Exception($"no clip {kind.ClipPrefix}{name} in {kind.ClipFbx}");
+        Folder(ContentDir + "/_Shared");
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(TokenNumberPath) == null && !AssetDatabase.CopyAsset(DamageNumberPath, TokenNumberPath))
+            throw new Exception("couldn't copy " + DamageNumberPath);
+        var prefab = Load<GameObject>(TokenNumberPath);
+        var number = prefab.GetComponent<DamageNumbersPro.DamageNumber>();
+        var so = new SerializedObject(number);
+        var gold = new Color(1f, 0.82f, 0.25f, 1f);
+        foreach (string settings in new[] { "numberSettings", "leftTextSettings", "rightTextSettings" })
+        {
+            so.FindProperty(settings + ".customColor").boolValue = true;
+            so.FindProperty(settings + ".color").colorValue = gold;
+        }
+        so.FindProperty("enableLeftText").boolValue = true;
+        so.FindProperty("leftText").stringValue = "+";
+        so.FindProperty("enableRightText").boolValue = true;
+        so.FindProperty("rightText").stringValue = " Tokens";
+        so.ApplyModifiedPropertiesWithoutUndo();
+        PrefabUtility.SavePrefabAsset(prefab);
+        return number;
+    }
+
+    // Speed blends idle → walk → run (walking, then fleeing speed; the clips retimed to them); Eat and Sleep are states.
+    static AnimatorController Controller(AnimalDefinition definition, string fbx, string prefix, string idle, Kind kind, string path)
+    {
+        var clips = AssetDatabase.LoadAllAssetsAtPath(fbx).OfType<AnimationClip>().ToDictionary(c => c.name);
+        AnimationClip Clip(string name) => clips.TryGetValue(prefix + name, out AnimationClip clip) ? clip : throw new Exception($"no clip {prefix}{name} in {fbx}");
 
         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         if (controller == null)
@@ -237,12 +367,12 @@ public static class AnimalSetup
 
         var tree = new BlendTree { name = "Locomotion", blendParameter = "Speed", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
         AssetDatabase.AddObjectToAsset(tree, controller);
-        tree.AddChild(Clip(kind.IdleClip), 0f);
+        tree.AddChild(Clip(idle), 0f);
         tree.AddChild(Clip("Walk"), definition.WalkSpeed);
-        tree.AddChild(Clip("Run"), definition.HurrySpeed);
+        tree.AddChild(Clip("Run"), definition.FleeSpeed);
         ChildMotion[] children = tree.children;
         children[1].timeScale = definition.WalkSpeed / kind.AuthoredWalk;
-        children[2].timeScale = definition.HurrySpeed / kind.AuthoredRun;
+        children[2].timeScale = definition.FleeSpeed / kind.AuthoredRun;
         tree.children = children;
 
         AnimatorState locomotion = machine.AddState("Locomotion");
@@ -341,6 +471,11 @@ public static class AnimalSetup
             agent.FindProperty("shape.radius").floatValue = kind.AgentRadius;
             agent.FindProperty("shape.height").floatValue = kind.AgentHeight;
             agent.FindProperty("movement.debugFlags").intValue = 0;
+            // Calmer turning than an enemy's 600 deg/s, smoothed: a nudge from a neighbour no longer snaps the body round.
+            agent.FindProperty("movement.follower.rotationSpeed").floatValue = TurnSpeed;
+            agent.FindProperty("movement.follower.maxRotationSpeed").floatValue = TurnSpeed * 1.5f;
+            agent.FindProperty("movement.follower.maxOnSpotRotationSpeed").floatValue = TurnSpeed;
+            agent.FindProperty("movement.rotationSmoothing").floatValue = TurnSmoothing;
             agent.ApplyModifiedPropertiesWithoutUndo();
 
             var tree = new SerializedObject(root.GetComponent<Opsive.BehaviorDesigner.Runtime.BehaviorTree>());
@@ -630,33 +765,46 @@ public static class AnimalSetup
         pasture.Setup(PastureRadius);
         EditorUtility.SetDirty(pasture);
 
-        // The herd: kept when it's already there (their SaveIds are in saves).
+        // The herd: those already there are kept (their SaveIds are in saves); the rest of the list is added after them, in
+        // pen space (z along the side, away from the corner). The first six stood round the old, shorter pen's middle.
         Transform herd = root.transform.Find("Animals") ?? Child(root.transform, "Animals");
-        if (herd.childCount == 0)
+        (string prefab, Vector2 at, float yaw, float scale)[] animals =
         {
-            (string prefab, Vector2 at, float yaw, float scale)[] animals =
-            {
-                ("Cow/Cow", new Vector2(-1.8f, 2.6f), 200f, 1f),
-                ("Cow/Cow_Brown", new Vector2(1.6f, -2.2f), 70f, 0.95f),
-                ("Sheep/Sheep", new Vector2(1.9f, 2.4f), 150f, 1f),
-                ("Sheep/Sheep", new Vector2(-2.2f, -0.6f), 20f, 0.92f),
-                ("Sheep/Sheep", new Vector2(0.2f, -3.6f), 310f, 1.05f),
-                ("Sheep/Sheep", new Vector2(-1.2f, -2.9f), 250f, 0.88f),
-            };
-            foreach ((string prefab, Vector2 at, float yaw, float scale) in animals)
-            {
-                var asset = Load<GameObject>($"{ContentDir}/{prefab}.prefab");
-                var animal = (GameObject)PrefabUtility.InstantiatePrefab(asset, herd);
-                animal.transform.SetPositionAndRotation(Ground(penTransform.TransformPoint(new Vector3(at.x, 0f, at.y))), Quaternion.Euler(0f, yaw, 0f));
-                animal.transform.localScale = Vector3.one * scale;
-                animal.GetComponent<SaveId>().Regenerate();
-            }
-            for (int i = 0; i < herd.childCount; i++)
-                herd.GetChild(i).name = $"{herd.GetChild(i).name} {i + 1}";
-            log.Add($"{herd.childCount} animals placed");
+            ("Cow/Cow", new Vector2(-1.8f, -0.8f), 200f, 1f),
+            ("Cow/Cow_Brown", new Vector2(1.6f, -5.6f), 70f, 0.95f),
+            ("Sheep/Sheep", new Vector2(1.9f, -1f), 150f, 1f),
+            ("Sheep/Sheep", new Vector2(-2.2f, -4f), 20f, 0.92f),
+            ("Sheep/Sheep", new Vector2(0.2f, -7f), 310f, 1.05f),
+            ("Sheep/Sheep", new Vector2(-1.2f, -6.3f), 250f, 0.88f),
+            ("Sheep/Sheep", new Vector2(2.6f, 1.8f), 110f, 0.97f),
+            ("Sheep/Sheep", new Vector2(0.6f, 2.6f), 300f, 1.02f),
+            ("Chicken/Rooster", new Vector2(-2.4f, 4.6f), 40f, 1f),
+            ("Chicken/Chicken", new Vector2(-1.5f, 5.4f), 160f, 1f),
+            ("Chicken/Chicken", new Vector2(-3f, 6f), 260f, 0.95f),
+            ("Chicken/Chicken", new Vector2(-1.9f, 6.6f), 20f, 1.05f),
+            ("Pig/Pig", new Vector2(2.2f, 5.6f), 230f, 1f),
+            ("Pig/Pig", new Vector2(1f, 7.2f), 80f, 0.92f),
+        };
+        int kept = herd.childCount;
+        for (int i = kept; i < animals.Length; i++)
+        {
+            (string prefab, Vector2 at, float yaw, float scale) = animals[i];
+            var asset = Load<GameObject>($"{ContentDir}/{prefab}.prefab");
+            var animal = (GameObject)PrefabUtility.InstantiatePrefab(asset, herd);
+            animal.transform.SetPositionAndRotation(Ground(penTransform.TransformPoint(new Vector3(at.x, 0f, at.y))), Quaternion.Euler(0f, yaw, 0f));
+            animal.transform.localScale = Vector3.one * scale;
+            animal.GetComponent<SaveId>().Regenerate();
+            animal.name = $"{animal.name} {i + 1}";
         }
-        else
-            log.Add($"{herd.childCount} animals kept");
+        log.Add($"{kept} animals kept, {Mathf.Max(0, animals.Length - kept)} placed");
+
+        // The vendor cow once stood by hand next to the pen; it is not part of the system.
+        GameObject stray = scene.GetRootGameObjects().FirstOrDefault(go => go.name == "Cow_White");
+        if (stray != null)
+        {
+            Object.DestroyImmediate(stray);
+            log.Add("stray Cow_White removed");
+        }
 
         GameLifetimeScope scope = Object.FindAnyObjectByType<GameLifetimeScope>() ?? throw new Exception("WorldMap has no GameLifetimeScope");
         if (!scope.TryGetComponent(out AnimalInstaller installer))

@@ -1,7 +1,9 @@
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
 using Ami.BroAudio;
+using MessagePipe;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using VContainer;
@@ -28,6 +30,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         readonly PoseBlender _pose = new();
 
         BulletSystem _bullets;
+        IPublisher<ShotFired> _shots;
         EffectPool _effects;
         AudioService _audio;
         GunJamFactory _jams;
@@ -65,8 +68,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public override bool StopsSprint(bool useHeld, bool aimHeld) => _gun != null && (useHeld || aimHeld);
 
         [Inject]
-        void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, GunJamFactory jams)
+        void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, GunJamFactory jams, IPublisher<ShotFired> shots)
         {
+            _shots = shots;
             _bullets = bullets;
             _effects = effects;
             _audio = audio;
@@ -262,6 +266,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                     Effects = effects,
                 });
             }
+            _shots?.Publish(new ShotFired(_muzzle.position, _user.Root.gameObject));
         }
 
         void OnActionStarted(GunAction action)

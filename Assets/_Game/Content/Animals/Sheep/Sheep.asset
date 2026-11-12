@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
   DisplayName: Sheep
   WalkSpeed: 1.1
-  HurrySpeed: 3.2
+  HurrySpeed: 1.8
+  FleeSpeed: 3.2
   StopDistance: 0.4
   GrassBendRadius: 0.7
   GrazeRadius: 8
@@ -37,3 +38,8 @@ MonoBehaviour:
     _entity: {fileID: 11400000, guid: 48d4ef14d9f2893448e4ad175bf1091f, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
+  Startled:
+    _entity: {fileID: 11400000, guid: 48d4ef14d9f2893448e4ad175bf1091f, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  MarkerDropAsleep: 0.5

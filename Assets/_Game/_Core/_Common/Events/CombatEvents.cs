@@ -18,6 +18,20 @@ namespace MB13.Aipocalypse.Core.Events
         }
     }
 
+    // A gun went off (HeldGun, once per shot, not per pellet): what farm animals nearby scatter from.
+    public readonly struct ShotFired
+    {
+        public readonly Vector3 Position;
+        // Who fired (the user's root).
+        public readonly GameObject Source;
+
+        public ShotFired(Vector3 position, GameObject source)
+        {
+            Position = position;
+            Source = source;
+        }
+    }
+
     public readonly struct PlayerDied
     {
         public readonly Vector3 Position;

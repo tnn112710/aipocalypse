@@ -285,6 +285,16 @@ namespace MB13.Aipocalypse.Input
                     ""priority"": 0
                 },
                 {
+                    ""name"": ""Collect"",
+                    ""type"": ""Button"",
+                    ""id"": ""9a91d6f1-aeba-4698-a74a-538289183629"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
                     ""name"": ""Aim"",
                     ""type"": ""Button"",
                     ""id"": ""05a74c2a-5e36-4ddc-9687-6aca61443fc9"",
@@ -883,6 +893,28 @@ namespace MB13.Aipocalypse.Input
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""130c9a44-5be4-4fed-b683-0bb3cca3aba6"",
+                    ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Collect"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9763b50a-7a85-4474-8cc1-d61fe6c9fc80"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Collect"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -2054,6 +2086,7 @@ namespace MB13.Aipocalypse.Input
             m_Player_Slot8 = m_Player.FindAction("Slot8", throwIfNotFound: true);
             m_Player_Slot9 = m_Player.FindAction("Slot9", throwIfNotFound: true);
             m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
+            m_Player_Collect = m_Player.FindAction("Collect", throwIfNotFound: true);
             m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
             m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
             m_Player_Melee = m_Player.FindAction("Melee", throwIfNotFound: true);
@@ -2199,6 +2232,7 @@ namespace MB13.Aipocalypse.Input
         private readonly InputAction m_Player_Slot8;
         private readonly InputAction m_Player_Slot9;
         private readonly InputAction m_Player_Drop;
+        private readonly InputAction m_Player_Collect;
         private readonly InputAction m_Player_Aim;
         private readonly InputAction m_Player_Reload;
         private readonly InputAction m_Player_Melee;
@@ -2291,6 +2325,10 @@ namespace MB13.Aipocalypse.Input
             /// Provides access to the underlying input action "Player/Drop".
             /// </summary>
             public InputAction @Drop => m_Wrapper.m_Player_Drop;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Collect".
+            /// </summary>
+            public InputAction @Collect => m_Wrapper.m_Player_Collect;
             /// <summary>
             /// Provides access to the underlying input action "Player/Aim".
             /// </summary>
@@ -2394,6 +2432,9 @@ namespace MB13.Aipocalypse.Input
                 @Drop.started += instance.OnDrop;
                 @Drop.performed += instance.OnDrop;
                 @Drop.canceled += instance.OnDrop;
+                @Collect.started += instance.OnCollect;
+                @Collect.performed += instance.OnCollect;
+                @Collect.canceled += instance.OnCollect;
                 @Aim.started += instance.OnAim;
                 @Aim.performed += instance.OnAim;
                 @Aim.canceled += instance.OnAim;
@@ -2477,6 +2518,9 @@ namespace MB13.Aipocalypse.Input
                 @Drop.started -= instance.OnDrop;
                 @Drop.performed -= instance.OnDrop;
                 @Drop.canceled -= instance.OnDrop;
+                @Collect.started -= instance.OnCollect;
+                @Collect.performed -= instance.OnCollect;
+                @Collect.canceled -= instance.OnCollect;
                 @Aim.started -= instance.OnAim;
                 @Aim.performed -= instance.OnAim;
                 @Aim.canceled -= instance.OnAim;
@@ -3337,6 +3381,13 @@ namespace MB13.Aipocalypse.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnDrop(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Collect" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnCollect(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Aim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

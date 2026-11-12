@@ -80,10 +80,10 @@ MonoBehaviour:
     height: 1.1
   movement:
     follower:
-      rotationSpeed: 600
+      rotationSpeed: 180
       speed: 5
-      maxRotationSpeed: 720
-      maxOnSpotRotationSpeed: 720
+      maxRotationSpeed: 270
+      maxOnSpotRotationSpeed: 180
       slowdownTime: 0.5
       slowdownTimeWhenTurningOnSpot: 0
       desiredWallDistance: 0.5
@@ -91,7 +91,7 @@ MonoBehaviour:
       allowRotatingOnSpotBacking: 1
     debugFlags: 0
     stopDistance: 0.2
-    rotationSmoothing: 0
+    rotationSmoothing: 0.2
     positionSmoothing: 0
     groundMask:
       serializedVersion: 2

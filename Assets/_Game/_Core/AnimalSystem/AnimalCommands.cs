@@ -25,8 +25,12 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             foreach (Animal animal in _herd.Animals)
                 held += animal.Earnings.Held;
             HerdOrders orders = _herd.Orders;
+            int sent = 0;
+            foreach (Animal animal in _herd.Animals)
+                if (animal.SentHome)
+                    sent++;
             string state = orders.Released ? "released" : orders.GateOpen ? "called home" : "penned";
-            return $"{_herd.Animals.Count} animals, {_herd.CountHome()} home, {state}{(_herd.Asleep ? ", asleep" : "")}, {held:0.#} Tokens held";
+            return $"{_herd.Animals.Count} animals, {_herd.CountHome()} home, {sent} sent home, {state}{(_herd.Asleep ? ", asleep" : "")}, {held:0.#} Tokens held";
         }
 
         [Command("Open the pen gate: the herd goes out to graze")]

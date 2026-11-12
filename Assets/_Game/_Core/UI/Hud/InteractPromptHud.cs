@@ -7,11 +7,13 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.UI
 {
     // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it), plus, above it, what the
-    // hammer in hand would repair ("[R] Repair Fence 63%"). Polled: the focus changes as the player looks around.
+    // hammer in hand would repair ("[R] Repair Fence 63%"), and below it what the focus offers to collect ("[C] Collect
+    // Tokens"). Polled: the focus changes as the player looks around.
     public sealed class InteractPromptHud : PlayerHudView
     {
         [SerializeField] InteractPromptView _view;
         [SerializeField, Tooltip("Optional: the repair tool's prompt, on its own key")] InteractPromptView _toolView;
+        [SerializeField, Tooltip("Optional: what the focus offers to collect, on the Collect key")] InteractPromptView _collectView;
 
         InputService _input;
 
@@ -27,6 +29,11 @@ namespace MB13.Aipocalypse.Core.UI
                 _toolView.Hide();
                 _toolView.SetKey(_input?.GetKeyLabel(GameButton.Reload) ?? "R");
             }
+            if (_collectView != null)
+            {
+                _collectView.Hide();
+                _collectView.SetKey(_input?.GetKeyLabel(GameButton.Collect) ?? "C");
+            }
             base.Start();
         }
 
@@ -35,6 +42,8 @@ namespace MB13.Aipocalypse.Core.UI
             _view.Hide();
             if (_toolView != null)
                 _toolView.Hide();
+            if (_collectView != null)
+                _collectView.Hide();
         }
 
         // Hidden while a menu (the inventory) holds the UI: the player isn't looking around then.
@@ -43,6 +52,17 @@ namespace MB13.Aipocalypse.Core.UI
             bool menu = _input != null && _input.IsUIRequested;
             ShowInteract(Player != null && !menu ? Player.Interactor : null);
             ShowTool(Player != null && !menu ? Player.Repair : null);
+            ShowCollect(Player != null && !menu ? Player.Interactor : null);
+        }
+
+        void ShowCollect(PlayerInteractor interactor)
+        {
+            if (_collectView == null)
+                return;
+            if (interactor == null || !interactor.HasCollectPrompt)
+                _collectView.Hide();
+            else
+                _collectView.Show(interactor.CollectPrompt.Verb, interactor.CollectPrompt.Target);
         }
 
         void ShowInteract(PlayerInteractor interactor)

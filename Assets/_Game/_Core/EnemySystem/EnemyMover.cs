@@ -19,6 +19,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         float _deadline;
         // Facing set by Face (zero while walking or halted), so a still target doesn't re-path every think.
         Vector3 _facing;
+        // Standing still (halted or facing) locks its local avoidance: others steer round it instead of nudging it, which
+        // made crowded farm animals shake. Off for enemies.
+        bool _holdGround;
 
         // Where it was when it started (wander circles around it), or where its last hunt for an objective ended (Rehome).
         public Vector3 Home { get; private set; }
@@ -34,9 +37,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public void Initialize(AstarPath navigation, EnemyDefinition definition, EnemyStats stats) =>
             Initialize(navigation, stats.Get(EnemyStat.MoveSpeed), definition.StopDistance);
 
-        // For walkers that aren't enemies (farm animals).
-        public void Initialize(AstarPath navigation, float speed, float stopDistance)
+        // For walkers that aren't enemies (farm animals). `holdGround`: can't be pushed by others while standing still.
+        public void Initialize(AstarPath navigation, float speed, float stopDistance, bool holdGround = false)
         {
+            _holdGround = holdGround;
             _navigation = navigation;
             _agent = GetComponent<FollowerEntity>();
             if (!_avoidsRead)
@@ -49,6 +53,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _agent.maxSpeed = speed;
             _agent.stopDistance = stopDistance;
             _agent.isStopped = true;
+            Lock(true);
         }
 
         // Puts it at `position` with no path left over (pooled respawns: call after enabling, the agent's entity exists then).
@@ -102,6 +107,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _facing = Vector3.zero;
             _deadline = Time.time + timeout;
             _agent.isStopped = false;
+            Lock(false);
         }
 
         // Stands where it is and turns towards `point` (A* turns an agent in place toward the facing of a destination it's on).
@@ -118,6 +124,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _agent.SetDestination(transform.position, direction);
             _deadline = float.PositiveInfinity;
             _agent.isStopped = false;
+            Lock(true);
         }
 
         // Dead: others walk through the body instead of steering round it (its colliders are off too).
@@ -130,8 +137,21 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public void Halt()
         {
             _facing = Vector3.zero;
-            if (_agent != null)
-                _agent.isStopped = true;
+            if (_agent == null)
+                return;
+            _agent.isStopped = true;
+            Lock(true);
+        }
+
+        void Lock(bool standing)
+        {
+            if (!_holdGround)
+                return;
+            Pathfinding.ECS.RVO.RVOAgent settings = _agent.rvoSettings;
+            if (settings.locked == standing)
+                return;
+            settings.locked = standing;
+            _agent.rvoSettings = settings;
         }
     }
 }

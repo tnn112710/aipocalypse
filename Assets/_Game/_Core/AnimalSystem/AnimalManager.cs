@@ -1,29 +1,41 @@
+using System;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
+using MessagePipe;
 using UnityEngine;
 using VContainer.Unity;
+using Random = UnityEngine.Random;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
-    // Runs the herd on scaled time: each animal thinks (its Manual tree) every ThinkInterval, earns over the world clock's
-    // waking hours, and hands its Tokens over when the player collects them (Animal's interact). Shuts the pen gate once a
-    // called herd is home.
-    public sealed class AnimalManager : ITickable
+    // Runs the herd on scaled time: each animal thinks (its Manual tree) every ThinkInterval and earns over the world clock's
+    // waking hours; tells the herd where the player is, makes animals step aside from them and run from gunshots; hands
+    // Tokens over when the player collects them (Animal's Collect key). Shuts the pen gate once a called herd is home.
+    public sealed class AnimalManager : ITickable, IDisposable
     {
         readonly AnimalHerd _herd;
         readonly AnimalSettings _settings;
         readonly WorldClock _clock;
+        readonly PlayerRegistry _players;
         readonly AudioService _audio;
+        readonly IDisposable _shots;
         double _lastHours = double.NaN;
 
-        public AnimalManager(AnimalHerd herd, AnimalSettings settings, WorldClock clock, AudioService audio)
+        public AnimalManager(AnimalHerd herd, AnimalSettings settings, WorldClock clock, PlayerRegistry players, AudioService audio,
+            ISubscriber<ShotFired> shots)
         {
             _herd = herd;
             _settings = settings;
             _clock = clock;
+            _players = players;
             _audio = audio;
+            _shots = shots.Subscribe(OnShot);
         }
+
+        public void Dispose() => _shots.Dispose();
 
         public void Tick() => Advance(Time.deltaTime);
 
@@ -39,12 +51,20 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             float dayLength = AnimalEarnings.DayLength(_settings.Awake);
             _herd.Asleep = !_settings.Awake.Contains(_clock.Now.Hour);
 
+            IPlayer player = _players.Current;
+            _herd.HasPlayer = player != null && !player.IsDead;
+            _herd.PlayerPosition = _herd.HasPlayer ? player.Transform.position : default;
+            float bump = _settings.BumpRadius * _settings.BumpRadius;
             float time = Time.time;
             // Backwards: nothing here removes an animal, but a tree may one day.
             for (int i = _herd.Animals.Count - 1; i >= 0; i--)
             {
                 Animal animal = _herd.Animals[i];
                 animal.Advance(deltaTime, awakeHours, dayLength);
+                // Awake and about its own business: walked into, it steps aside.
+                if (_herd.HasPlayer && !animal.Startled && !animal.Sleeping && !animal.GoingHome
+                    && (animal.transform.position - _herd.PlayerPosition).sqrMagnitude <= bump)
+                    animal.Startle(_herd.PlayerPosition, _settings.StepAside, run: false);
                 if (time >= animal.NextThinkAt)
                 {
                     animal.NextThinkAt = time + _settings.ThinkInterval;
@@ -55,6 +75,17 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             HerdOrders orders = _herd.Orders;
             if (orders.Called && orders.GateOpen && _herd.Pen.Gate != null && _herd.CountHome() == _herd.Animals.Count)
                 _herd.Pen.Gate.Close();
+        }
+
+        // Every animal near the shot runs from it, even out of its sleep; one walking home keeps walking.
+        void OnShot(ShotFired shot)
+        {
+            if (!_herd.Enabled)
+                return;
+            float reach = _settings.ShotRadius * _settings.ShotRadius;
+            foreach (Animal animal in _herd.Animals)
+                if (!animal.GoingHome && (animal.transform.position - shot.Position).sqrMagnitude <= reach)
+                    animal.Startle(shot.Position, _settings.FleeDistance, run: true);
         }
 
         // The clock was put somewhere else (a loaded save): the next frame earns nothing for the jump.
@@ -71,6 +102,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 return;
             Vector3 from = animal.TokenPoint;
             _audio.PlayAt(_settings.CollectSound, from);
+            if (_settings.TokenNumber != null)
+                _settings.TokenNumber.Spawn(from + Vector3.up * 0.3f, left);
             for (int piece = Mathf.Min(_settings.BurstPieces, left); piece > 0; piece--)
             {
                 int share = Mathf.CeilToInt(left / (float)piece);

@@ -197,6 +197,16 @@
                     "priority": 0
                 },
                 {
+                    "name": "Collect",
+                    "type": "Button",
+                    "id": "9a91d6f1-aeba-4698-a74a-538289183629",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
                     "name": "Aim",
                     "type": "Button",
                     "id": "05a74c2a-5e36-4ddc-9687-6aca61443fc9",
@@ -795,6 +805,28 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Drop",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "130c9a44-5be4-4fed-b683-0bb3cca3aba6",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Collect",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9763b50a-7a85-4474-8cc1-d61fe6c9fc80",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Collect",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

@@ -16,6 +16,7 @@ namespace MB13.Aipocalypse.Input
         Interact,
         Attack,
         Jump,
+        Collect,
     }
 
     // Editing keys of the dev console's line (Console map).
@@ -74,6 +75,8 @@ namespace MB13.Aipocalypse.Input
         // The action's Hold interaction completed this frame (held past InputSettings' hold time).
         public bool InteractHoldPerformed => _consumedFrame[(int)GameButton.Interact] != Time.frameCount && _actions.Player.Interact.WasPerformedThisFrame();
         public bool InteractReleased => _actions.Player.Interact.WasReleasedThisFrame();
+        // The Collect key (C): what the focus offers to collect (an animal's Tokens).
+        public bool CollectPressed => WasPressed(GameButton.Collect);
         public bool DropPressed => _actions.Player.Drop.WasPressedThisFrame();
         public bool AttackHeld => _actions.Player.Attack.IsPressed();
         public bool AttackPressed => WasPressed(GameButton.Attack);
@@ -169,6 +172,7 @@ namespace MB13.Aipocalypse.Input
             GameButton.Attack => _actions.Player.Attack,
             GameButton.Jump => _actions.Player.Jump,
             GameButton.Reload => _actions.Player.Reload,
+            GameButton.Collect => _actions.Player.Collect,
             _ => throw new ArgumentOutOfRangeException(nameof(button), button, "no input action mapped"),
         };
 

@@ -125,6 +125,17 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Hud_ShowsTheCollectPrompt()
+        {
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/UI/Prefabs/HUD.prefab");
+            var prompts = hud.GetComponentInChildren<MB13.Aipocalypse.Core.UI.InteractPromptHud>(true);
+            var serialized = new SerializedObject(prompts);
+            Object collect = serialized.FindProperty("_collectView").objectReferenceValue;
+            Assert.IsNotNull(collect, "the HUD has no [C] Collect prompt");
+            Assert.AreNotEqual(serialized.FindProperty("_view").objectReferenceValue, collect, "the Collect prompt needs its own view");
+        }
+
+        [Test]
         public void AnimalPrefabs_AreWired()
         {
             string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/_Game/Content/Animals" });
@@ -144,12 +155,13 @@ namespace MB13.Aipocalypse.Tests
                 Assert.IsNotNull(animator.runtimeAnimatorController, $"{path}: the animator has no controller");
                 Assert.IsFalse(animator.applyRootMotion, $"{path}: root motion must be off (the mover moves it)");
                 Assert.IsNotNull(serialized.FindProperty("_marker").objectReferenceValue, $"{path}: no coin marker");
-                Assert.IsNotNull(prefab.GetComponentInChildren<Collider>(), $"{path}: no collider to look at (Hurry)");
+                Assert.IsNotNull(prefab.GetComponentInChildren<Collider>(), $"{path}: no collider to look at (Send Home, Collect)");
                 Assert.Greater(definition.HurrySpeed, definition.WalkSpeed, $"{definition.name}: hurrying must be faster than walking");
+                Assert.Greater(definition.FleeSpeed, definition.HurrySpeed, $"{definition.name}: running from a shot must be faster than a hurry");
                 Assert.Greater(definition.TokensPerDayRoaming, definition.TokensPerDayPenned, $"{definition.name}: roaming must pay more");
                 Assert.LessOrEqual(definition.CollectAt, definition.MaxHeld, $"{definition.name}: it could never reach CollectAt");
             }
-            Assert.Greater(animals, 0, "no animal prefab under Content/Animals");
+            Assert.GreaterOrEqual(animals, 6, "cow, brown cow, sheep, chicken, rooster, pig: an animal prefab is missing under Content/Animals");
         }
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
-    // One farm animal species (cow, sheep): how it moves, grazes, earns and sounds. Lives in Content/Animals/<Name>/.
+    // One farm animal species (cow, sheep, chicken, pig): how it moves, grazes, earns and sounds. Lives in Content/Animals/<Name>/.
     [CreateAssetMenu(fileName = "Animal", menuName = "Aipocalypse/Animals/Animal Definition")]
     public sealed class AnimalDefinition : ScriptableObject
     {
@@ -11,7 +11,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         [Header("Movement")]
         [Min(0.1f), Tooltip("Grazing and walking home (m/s); set near the walk clip's own pace")] public float WalkSpeed = 1f;
-        [Min(0.1f), Tooltip("Hurried home by the player (m/s)")] public float HurrySpeed = 3f;
+        [Min(0.1f), Tooltip("Sped up home by the player after the bell (m/s): a trot")] public float HurrySpeed = 1.6f;
+        [Min(0.1f), Tooltip("Running from a gunshot (m/s); the animator's run clip is timed to it")] public float FleeSpeed = 3f;
         [Min(0f)] public float StopDistance = 0.4f;
         [Min(0f), Tooltip("Grass bends this far round it (m); 0 = none")] public float GrassBendRadius = 1f;
 
@@ -24,7 +25,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Min(1)] public int DestinationAttempts = 8;
 
         [Header("Flock")]
-        [Tooltip("Grazes round the first of its kind (the leader) instead of anywhere in the pasture, and hurries when any of its kind is hurried")]
+        [Tooltip("Grazes round the first of its kind out on the pasture (the leader) instead of anywhere in it")]
         public bool FollowsLeader;
         [Min(0.5f), Tooltip("How far from the leader a follower grazes (m)")] public float FlockRadius = 5f;
 
@@ -38,6 +39,10 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Tooltip("Its call now and then while awake (3D)")] public SoundID Call;
         [Tooltip("Seconds between calls (min, max)")] public Vector2 CallInterval = new(12f, 30f);
         [Tooltip("When it is hurried (3D)")] public SoundID Hurried;
+        [Tooltip("When a gunshot scares it (3D)")] public SoundID Startled;
+
+        [Header("Look")]
+        [Min(0f), Tooltip("Its coin marker sits this much lower while it sleeps (m)")] public float MarkerDropAsleep = 0.5f;
 
         public float MaxHeld => HoldDays * TokensPerDayRoaming;
         public float TokensPerDay(bool roaming) => roaming ? TokensPerDayRoaming : TokensPerDayPenned;

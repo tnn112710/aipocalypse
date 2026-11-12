@@ -5,7 +5,8 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
-    // Saves the herd's orders (gate open, bell rung) and each animal by its SaveId: where it stands and the Tokens it holds.
+    // Saves the herd's orders (gate open, bell rung) and each animal by its SaveId: where it stands, the Tokens it holds and
+    // whether the player sent it home.
     public sealed class AnimalSaveSection : SaveSection
     {
         const string Key = "animals";
@@ -35,6 +36,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                     Position = transform.position,
                     Yaw = transform.eulerAngles.y,
                     Held = animal.Earnings.Held,
+                    SentHome = animal.SentHome,
                 });
             }
             save.Set(Key, saved);
@@ -55,7 +57,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                     byId[entry.Id] = entry;
             foreach (Animal animal in _herd.Animals)
                 if (animal.TryGetComponent(out SaveId id) && id.HasId && byId.TryGetValue(id.Id, out AnimalSave entry))
-                    animal.RestoreSaved(entry.Position, entry.Yaw, entry.Held);
+                    animal.RestoreSaved(entry.Position, entry.Yaw, entry.Held, entry.SentHome);
         }
 
         [Serializable]
@@ -73,6 +75,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             public Vector3 Position;
             public float Yaw;
             public float Held;
+            public bool SentHome;
         }
     }
 }

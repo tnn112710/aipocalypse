@@ -17,6 +17,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // Interact held long enough (its Hold interaction completed) this frame, and let go this frame.
         public bool InteractHold;
         public bool InteractReleased;
+        // The Collect key (C) pressed this frame: what the focus offers to collect.
+        public bool Collect;
         public bool Drop;
         public bool Fire;
         public bool FirePressed;
