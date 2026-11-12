@@ -103,6 +103,13 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             enabled = true;
         }
 
+        // While thrown, it also passes through `other` (the animals a burst of Tokens flies over).
+        public void PassThrough(Collider other)
+        {
+            if (_solid != null && other != null)
+                Physics.IgnoreCollision(_solid.GetComponent<Collider>(), other);
+        }
+
         // Stops simulating (it landed, or the magnet takes it over).
         public void Settle()
         {

@@ -31,6 +31,7 @@ Look and feel (shared by every menu, mouse and gamepad, sounds): [UI.md → Menu
 | `weather` | `WeatherSaveSection` (EnvironmentSystem) | Sky, wind override | The schedule's plan (it plans on from the restored sky), console holds |
 | `raids` | `RaidSaveSection` (RaidSystem) | Nights already handled | A raid in progress (saving is refused during one) |
 | `defense` | `DefenseSaveSection` (DefenseSystem) | Each segment / gate: health, broken, gate open | Upgrade tiers |
+| `animals` | `AnimalSaveSection` (AnimalSystem) | The herd's orders (pen gate open, bell rung); each animal by its `SaveId`: position, facing, Tokens held | What an animal was doing (its tree starts afresh), a hurry |
 | `loot` | `LootSaveSection` (EquipmentSystem, root) | Scene crates: items by slot, which slots are still hidden | Enemy bodies and their loot |
 | `worldItems` | `WorldItemSaveSection` (EquipmentSystem, root) | Every item lying in the world, scene-placed or dropped (a picked-up item stays picked up) | Mid-flight physics (thrown items load where they were) |
 | `stats` | `StatSaveSection` (_Common/Stats, root) | Every stat modifier with its source id (upgrades, skills, the console's) | Timed buffs (they belong to the player's effects) |

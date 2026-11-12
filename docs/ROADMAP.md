@@ -22,7 +22,7 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 **Open decisions (user):**
 
 - **Map size.** 2 × 2 km is assumed. The layout and a travel-time check decide it: a game hour is 45 s, so daylight is about 10 min.
-- **The farm animal:** chickens or goats.
+- **The farm animal:** decided 2026-11-12: cows and sheep first (built, below); chickens or goats later if wanted.
 - **Crops:** in the slice, or stretch only.
 - **Blood Moon on night 3.** This would be a slice-only setting; the GDD has it every 10 days.
 - **Skill tree and upgrades design** (user, 2026-11-09: both in the slice). Before building, design them in `docs/gdd/IDEAS.md`. The current suggestion has two parts:
@@ -63,7 +63,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 ### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 3)
 
 - [x] Inventory (built 2026-11-10, ~55–80 h with the loot below; uncommitted): Duckov-style slots, 2 active guns + melee (V) + quick slots 3–9, backpack sized by the worn bag, gear slots, item weights (no slowdown yet), Tokens and ammo as items, the Token magnet, pickups with a feed, throwing, a paused drag-and-drop inventory screen ([EQUIPMENT.md](technicals/EQUIPMENT.md), [UI.md](technicals/UI.md#inventory-screen)). Produce items come with the animals
-- [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h)
+- [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h). Built 2026-11-12 with two species: cows and a sheep flock in a pen in the WorldMap yard, released by the pen gate to a pasture (double rate), called home by the bell, hurried with E, asleep at night; they earn Tokens the player collects with E on the animal, saved ([ANIMALS.md](technicals/ANIMALS.md)). Left: produce items instead of Tokens, the paddock on the new map, tuning by hand
 - [ ] Tokens + trading robot: sell produce, buy ammo and fence repairs (23–32 h)
 - [ ] Debt bar + guide drone with a few billing jokes (18–28 h)
 - [ ] Fence repair costs Tokens (3–5 h)

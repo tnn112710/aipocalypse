@@ -27,7 +27,7 @@ The rest is what those docs don't spell out.
 
 ## 2. Entry points and ticks
 
-- `RegisterEntryPoint<T>().AsSelf()` whenever anything injects the concrete type (`TimeService`, `InputService`, `QuickTimeService`, `EffectPool`, `BulletSystem`, `WorldClock`, `AmbienceService`, `PlayerRespawnFlow`, `SpawnService`, `PrefabPool`, `PopulationDirector`, `FlockSystem`, `RaidDirector`). Without `.AsSelf()` only its interfaces resolve (nothing injects `EnemyManager` or the cheats, so they're registered bare).
+- `RegisterEntryPoint<T>().AsSelf()` whenever anything injects the concrete type (`TimeService`, `InputService`, `QuickTimeService`, `EffectPool`, `BulletSystem`, `WorldClock`, `AmbienceService`, `PlayerRespawnFlow`, `SpawnService`, `PrefabPool`, `PopulationDirector`, `FlockSystem`, `RaidDirector`, `AnimalManager`). Without `.AsSelf()` only its interfaces resolve (nothing injects `EnemyManager` or the cheats, so they're registered bare).
 - Put the tick's logic in a public `Advance(deltaTime)` (or `AdvanceHitStop`) that `Tick()` calls with `Time.deltaTime`, so EditMode tests step it without a PlayerLoop (`EnemyManager`, `WorldClock`, `TimeService`, `RaidDirector`).
 - A reader that must see input before `Player.Update` is an `ITickable` (VContainer ticks first). `QuickTimeService` uses that to `Consume` its button press.
 - Bindings to registry state happen in `Start`, not `Construct`: scopes build in `Awake` order, so the player may not be registered when the HUD is injected (`PlayerHudView.Start → Rebind`).

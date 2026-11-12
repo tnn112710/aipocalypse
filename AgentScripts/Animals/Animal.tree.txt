@@ -1,0 +1,29 @@
+# The farm animals' tree (cow, sheep): come home when the bell rang, sleep at night where they stand, otherwise graze
+# (in the pen, or on the pasture once the pen gate released them).
+# Job: no fight. They earn Tokens, more out on the pasture, and make the player come home in time to ring the bell.
+# Unaware: nothing to notice; they never react to enemies or shots.
+# Told by the herd (AnimalHerd.Orders, no perception): the pen gate opened = released, the bell = called home; the world
+# clock's waking hours (AnimalSettings.Awake) decide the night.
+# Then: released, each picks a grazing spot on the pasture (a flock follower near its leader), walks there, eats a while;
+# called, it walks into the pen at its walking pace, running once the player hurries it (E, with every animal nearby).
+# Warns: its call now and then; a louder one when hurried. A coin over it means it holds Tokens to collect.
+# Gives up: a called animal that can't get in (the pen gate or the home gate is shut) waits by the pen gate and looks
+# again every few seconds; at night it sleeps where it is unless the bell rang.
+# The two aborts (Both) re-check their conditional every think: the bell cuts into sleeping and grazing, the night into
+# grazing; either branch ends as soon as its conditional turns false (home, morning).
+# Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
+#        --args '["AgentScripts/Animals/Animal.tree.txt"]'
+# Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
+tree Assets/_Game/Content/Animals/_Shared/Animal.asset
+Repeater "Repeat forever"
+  Selector "Come home, else sleep, else graze"
+    Sequence AbortType=Both "Come home (aborts both ways)"
+      CalledHome "Bell rang and not home?"
+      WalkHome "Walk into the pen"
+    Sequence AbortType=Both "Sleep (aborts both ways)"
+      IsNight "Night?"
+      SleepHere "Sleep where it stands"
+    Sequence "Graze"
+      ChooseGrazeSpot "Choose a spot"
+      WalkToGrazeSpot "Walk to it"
+      GrazeHere "Eat"

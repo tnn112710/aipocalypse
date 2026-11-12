@@ -31,7 +31,11 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         // Its body's radius on the ground (the FollowerEntity's): whether it fits through a gap.
         public float Radius => _agent.radius;
 
-        public void Initialize(AstarPath navigation, EnemyDefinition definition, EnemyStats stats)
+        public void Initialize(AstarPath navigation, EnemyDefinition definition, EnemyStats stats) =>
+            Initialize(navigation, stats.Get(EnemyStat.MoveSpeed), definition.StopDistance);
+
+        // For walkers that aren't enemies (farm animals).
+        public void Initialize(AstarPath navigation, float speed, float stopDistance)
         {
             _navigation = navigation;
             _agent = GetComponent<FollowerEntity>();
@@ -42,8 +46,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             }
             _agent.enableLocalAvoidance = _avoids;
             Home = transform.position;
-            _agent.maxSpeed = stats.Get(EnemyStat.MoveSpeed);
-            _agent.stopDistance = definition.StopDistance;
+            _agent.maxSpeed = speed;
+            _agent.stopDistance = stopDistance;
             _agent.isStopped = true;
         }
 

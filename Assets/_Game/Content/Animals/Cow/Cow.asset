@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cdb207066351da4aa2800444e1c6d78, type: 3}
+  m_Name: Cow
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
+  DisplayName: Cow
+  WalkSpeed: 0.9
+  HurrySpeed: 3
+  StopDistance: 0.5
+  GrassBendRadius: 1.2
+  GrazeRadius: 10
+  MinTravel: 2
+  GrazeTime: {x: 5, y: 12}
+  TravelTimeout: 60
+  DestinationAttempts: 8
+  FollowsLeader: 0
+  FlockRadius: 5
+  TokensPerDayPenned: 20
+  TokensPerDayRoaming: 40
+  HoldDays: 2
+  CollectAt: 5
+  Call:
+    _entity: {fileID: 11400000, guid: 9726c92fdb7896c47b54f6e9732ba82b, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  CallInterval: {x: 15, y: 40}
+  Hurried:
+    _entity: {fileID: 11400000, guid: 0e7f1239300a58248a97f3c0fec01015, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
