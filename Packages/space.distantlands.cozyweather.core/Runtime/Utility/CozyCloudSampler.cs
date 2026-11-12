@@ -2,6 +2,7 @@
 // COZY: Stylized Weather 4
 // All code included in this file is protected under the Unity Asset Store Eula
 
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -13,11 +14,11 @@ namespace DistantLands.Cozy
     public struct CloudParams
     {
         public float bottom, top, invRange;
-        public float uvScale1;  
-        public float uvScale2; 
-        public float uvScale4;     
-        public float2 wind1;  
-        public float2 wind2; 
+        public float uvScale1;
+        public float uvScale2;
+        public float uvScale4;
+        public float2 wind1;
+        public float2 wind2;
         public float coverage;
         public float nimbusCoverage;
         public float noiseScale;
@@ -205,13 +206,27 @@ namespace DistantLands.Cozy
             return CloudMath.Density(cloudParams, cloudData, worldPos);
         }
 
-        public JobHandle ScheduleDensity(NativeArray<float3> positions, NativeArray<float> results, JobHandle dependency = default, int batchSize = 64)
+        private JobHandle activeJobs;
+
+        public JobHandle ScheduleDensity(
+            NativeArray<float3> positions,
+            NativeArray<float> results,
+            JobHandle dependency = default,
+            int batchSize = 64)
         {
             if (!Prepare())
-                return dependency;
+                throw new InvalidOperationException("Cloud density data is unavailable.");
 
-            var job = new CloudDensityJob { parameters = cloudParams, data = cloudData, positions = positions, results = results };
-            return job.Schedule(positions.Length, batchSize, dependency);
+            var combined = JobHandle.CombineDependencies(dependency, activeJobs);
+            activeJobs = new CloudDensityJob
+            {
+                parameters = cloudParams,
+                data = cloudData,
+                positions = positions,
+                results = results
+            }.Schedule(positions.Length, batchSize, combined);
+
+            return activeJobs;
         }
 
         bool Prepare()
@@ -349,6 +364,7 @@ namespace DistantLands.Cozy
 
         void DisposeData()
         {
+            activeJobs.Complete();
             if (cloudData.mainR.IsCreated) cloudData.mainR.Dispose();
             if (cloudData.mainG.IsCreated) cloudData.mainG.Dispose();
             if (cloudData.nimbusP.IsCreated) cloudData.nimbusP.Dispose();

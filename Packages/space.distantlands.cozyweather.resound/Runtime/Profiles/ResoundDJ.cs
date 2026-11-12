@@ -18,7 +18,7 @@ namespace DistantLands.Cozy
                 return null;
             }
 
-            return tracks[Random.Range(0, tracks.Count - 1)];
+            return tracks[Random.Range(0, tracks.Count)];
         }
     }
 }

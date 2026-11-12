@@ -184,22 +184,25 @@ namespace DistantLands.Cozy
 
         public override Type[] ModuleRequirements => DependsOn<CozyTimeModule>();
 
+        private ITimeModule timeModule;
+        private ICalendarModule calendarModule;
 
         public override void InitializeModule()
         {
-
-            if (WeatherSphere.Time != null)
+            if (timeModule != null)
+                timeModule.OnModifyTime -= ModifyDayPercentage;
+            if (calendarModule != null)
+                calendarModule.OnChangeDay -= OnDayChanged;
+            timeModule = WeatherSphere.Time;
+            calendarModule = WeatherSphere.Calendar;
+            if (timeModule != null)
             {
-                WeatherSphere.Time.OnModifyTime += ModifyDayPercentage;
+                timeModule.OnModifyTime += ModifyDayPercentage;
             }
 
-            if (WeatherSphere.Calendar != null)
+            if (calendarModule != null)
             {
-                WeatherSphere.Calendar.OnChangeDay += () =>
-                {
-                    GetModifiedDayPercent();
-                    CalculateSunriseAndSunset();
-                };
+                calendarModule.OnChangeDay += OnDayChanged;
             }
 
             CalculateSunriseAndSunset();
@@ -208,17 +211,18 @@ namespace DistantLands.Cozy
         public override void DeinitializeModule()
         {
 
-            if (WeatherSphere.Time != null)
-            {
-                WeatherSphere.Time.OnModifyTime -= ModifyDayPercentage;
-            }
+            if (timeModule != null)
+                timeModule.OnModifyTime -= ModifyDayPercentage;
+            if (calendarModule != null)
+                calendarModule.OnChangeDay -= OnDayChanged;
+            timeModule = null;
+            calendarModule = null;
+        }
 
-            if (WeatherSphere.Calendar != null)
-                WeatherSphere.Calendar.OnChangeDay -= () =>
-                {
-                    GetModifiedDayPercent();
-                    CalculateSunriseAndSunset();
-                };
+        private void OnDayChanged()
+        {
+            GetModifiedDayPercent();
+            CalculateSunriseAndSunset();
         }
 
 

@@ -6,5 +6,6 @@ If you have any issues or requests please feel free to reach out to me. Best of 
 Cheers! <br>
 Keller Bowman | Distant Lands<br><br>
 **CONNECT WITH US:**<br>
-[Website](https://distantlands.space) | [Email](mailto:contact@distantlands.space) | [Discord](https://discord.gg/HWGU4hj) | [Documentation](https://distant-lands.gitbook.io/cozy-stylized-weather-documentation/welcome/hello)
+[Website](https://distantlands.space) | [Email](mailto:contact@distantlands.space) | [Discord](https://discord.gg/HWGU4hj) | [Documentation](https://distant-lands.gitbook.io/cozy-weather-4)
+
 

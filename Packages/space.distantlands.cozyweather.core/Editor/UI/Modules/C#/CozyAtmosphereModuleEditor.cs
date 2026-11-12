@@ -100,10 +100,6 @@ namespace DistantLands.Cozy.EditorScripts
             overrides.BindProperty(serializedObject.FindProperty("overrides"));
             root.Add(overrides);
 
-            overrides.RegisterCallback<SerializedPropertyChangeEvent>(evt =>
-            {
-                atmosphereModule?.UpdateModel();
-            });
 
             Button addOverrideButton = new Button { text = "Add Override" };
             addOverrideButton.style.marginTop = 7;
@@ -124,11 +120,120 @@ namespace DistantLands.Cozy.EditorScripts
             });
             root.Add(addOverrideButton);
 
+            Button saveButton = new Button { text = "Save to Profile" };
+            saveButton.enabledSelf = serializedObject.FindProperty("overrides").arraySize > 0;
+            saveButton.tooltip = "Save the local overrides to a profile that can be assigned elsewhere.";
+            saveButton.RegisterCallback<ClickEvent>(evt =>
+            {
+                if (atmosphereModule.overrides.Count == 0)
+                {
+                    Debug.Log("Trying to save with no overrides. Add an override before saving!");
+                    return;
+                }
+
+                if (!atmosphereModule.AtmosphereProfile)
+                {
+                    EditorUtility.DisplayDialog("Save Atmosphere Profile", "Select an atmosphere profile before saving local overrides.", "OK");
+                    return;
+                }
+
+                string defaultName = $"Modified {atmosphereModule.AtmosphereProfile.Name}";
+                string path = EditorUtility.SaveFilePanelInProject("Save Atmosphere Profile", defaultName, "asset", "Save your new atmosphere profile.");
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    serializedObject.ApplyModifiedProperties();
+                    AssetDatabase.CreateAsset(CompileProfileAndOverrides(), path);
+                    AssetDatabase.SaveAssets();
+
+                    AtmosphereProfile savedProfile = AssetDatabase.LoadAssetAtPath<AtmosphereProfile>(path);
+                    if (atmosphereModule != null)
+                    {
+                        atmosphereModule.AtmosphereProfile = savedProfile;
+                        Selection.activeObject = savedProfile;
+                        atmosphereModule.overrides.Clear();
+
+                    }
+                }
+            });
+            root.Add(saveButton);
+
+
+            overrides.RegisterCallback<SerializedPropertyChangeEvent>(evt =>
+            {
+                atmosphereModule?.UpdateModel();
+                saveButton.enabledSelf = serializedObject.FindProperty("overrides").arraySize > 0;
+            });
+
             atmosphereProfileDisplayContainer.RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             atmosphereProfileDisplayContainer.RegisterCallback<DragPerformEvent>(OnDragPerform);
 
             return root;
 
+        }
+
+        private AtmosphereProfile CompileProfileAndOverrides()
+        {
+            return CompileProfileAndOverrides(atmosphereModule.AtmosphereProfile, serializedObject);
+        }
+
+        private static AtmosphereProfile CompileProfileAndOverrides(AtmosphereProfile sourceProfile, SerializedObject localObject)
+        {
+            var newProfile = Instantiate(sourceProfile);
+            newProfile.name = sourceProfile.name;
+            newProfile.Locked = false;
+
+            var profileObject = new SerializedObject(newProfile);
+            var profileOverrides = profileObject.FindProperty("overrides");
+            var localOverrides = localObject.FindProperty("overrides");
+
+            for (int i = 0; i < localOverrides.arraySize; i++)
+            {
+                var localOverride = localOverrides.GetArrayElementAtIndex(i);
+                var localValue = localOverride.managedReferenceValue as AtmosphereOverride;
+                if (localValue == null || !localValue.active)
+                    continue;
+
+                SerializedProperty targetOverride = null;
+                for (int j = profileOverrides.arraySize - 1; j >= 0; j--)
+                {
+                    var candidate = profileOverrides.GetArrayElementAtIndex(j);
+                    var candidateValue = candidate.managedReferenceValue as AtmosphereOverride;
+                    if (candidateValue != null && candidateValue.active && candidateValue.GetType() == localValue.GetType())
+                    {
+                        targetOverride = candidate;
+                        break;
+                    }
+                }
+
+                var property = localOverride.Copy();
+                var end = property.GetEndProperty();
+                bool enterChildren = true;
+                while (property.Next(enterChildren) && !SerializedProperty.EqualContents(property, end))
+                {
+                    enterChildren = false;
+                    if (property.depth != localOverride.depth + 1 || property.propertyType != SerializedPropertyType.Generic)
+                        continue;
+
+                    var enabled = property.FindPropertyRelative("overrideValue");
+                    if (enabled == null || !enabled.boolValue)
+                        continue;
+
+                    if (targetOverride == null)
+                    {
+                        int index = profileOverrides.arraySize;
+                        profileOverrides.InsertArrayElementAtIndex(index);
+                        targetOverride = profileOverrides.GetArrayElementAtIndex(index);
+                        targetOverride.managedReferenceValue = Activator.CreateInstance(localValue.GetType());
+                    }
+
+                    targetOverride.FindPropertyRelative(property.name).boxedValue = property.boxedValue;
+                }
+
+                profileObject.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            return newProfile;
         }
 
         private void OnDragUpdated(DragUpdatedEvent evt)
@@ -188,7 +293,7 @@ namespace DistantLands.Cozy.EditorScripts
         public override VisualElement DisplayBiomeUI()
         {
             root = new VisualElement();
-            
+
             atmosphereProfileDisplayContainer = new VisualElement();
             atmosphereProfileDisplayContainer.AddToClassList("profileDisplay");
             root.Add(atmosphereProfileDisplayContainer);

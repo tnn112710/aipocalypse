@@ -168,7 +168,7 @@ namespace DistantLands.Cozy
                 TextureHandle prevHistoryHandle;
                 bool hasValidHistory = false;
 
-                if (cameraData.historyManager != null)
+                if (!cameraData.xr.enabled && cameraData.historyManager != null)
                 {
                     cameraData.historyManager.RequestAccess<CozyFogVolumeHistory>();
                     CozyFogVolumeHistory fogVolumeHistory = cameraData.historyManager.GetHistoryForWrite<CozyFogVolumeHistory>();
@@ -203,7 +203,7 @@ namespace DistantLands.Cozy
                 Matrix4x4 prevViewMatrix = viewMatrix;
                 bool hasPrevCameraFrame = false;
 
-                if (cameraData.historyManager != null)
+                if (!cameraData.xr.enabled && cameraData.historyManager != null)
                 {
                     cameraData.historyManager.RequestAccess<CozyCameraMotionHistory>();
                     CozyCameraMotionHistory cameraMotion = cameraData.historyManager.GetHistoryForWrite<CozyCameraMotionHistory>();
@@ -224,7 +224,7 @@ namespace DistantLands.Cozy
 
                     passData.prevViewMatrix = prevViewMatrix;
                     passData.prevCamPos = prevCamPos;
-                    passData.useTemporalHistory = hasValidHistory && hasPrevCameraFrame;
+                    passData.useTemporalHistory = hasValidHistory && hasPrevCameraFrame && !cameraData.xr.enabled;
 
                     passData.cameraPos = camPos;
                     passData.positionDelta = Vector3.Distance(camPos, prevCamPos);

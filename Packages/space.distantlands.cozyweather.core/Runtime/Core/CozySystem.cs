@@ -67,6 +67,7 @@ namespace DistantLands.Cozy
         private Dictionary<Type, ICozyModule> modules = new();
         private Dictionary<Type, ICozyModule> singleModuleCache = new();
         private Dictionary<Type, object> listModuleCache = new();
+        internal bool IsLoadingSave { get; private set; }
 
         [SerializeField]
         private CozyModule[] moduleArray = new CozyModule[0];
@@ -121,7 +122,11 @@ namespace DistantLands.Cozy
                 return;
             }
 
-            DestroyImmediate((CozyModule)modules[type]);
+
+            if (Application.isPlaying)
+                Destroy((CozyModule)modules[type]);
+            else
+                DestroyImmediate((CozyModule)modules[type]);
             modules.Remove(type);
 
             ClearCaches();
@@ -328,12 +333,18 @@ namespace DistantLands.Cozy
         /// <summary>
         /// Saves to a JSON string
         /// </summary>
+        [Serializable]
+        private class SaveDataCollection
+        {
+            public List<SavedData> modules;
+        }
+
         public string GetSaveString()
         {
-            List<SavedData> savedData = new();
+            SaveDataCollection savedData = new() { modules = new List<SavedData>() };
             foreach (var module in GetModules<ISaveable>())
             {
-                savedData.Add(module.Save());
+                savedData.modules.Add(module.Save());
             }
 
             return JsonUtility.ToJson(savedData);
@@ -344,17 +355,40 @@ namespace DistantLands.Cozy
         /// </summary>
         public void LoadFromString(string save)
         {
-            List<SavedData> savedData = JsonUtility.FromJson<List<SavedData>>(save);
+            if (string.IsNullOrWhiteSpace(save))
+            {
+                Debug.LogWarning("Cannot load an empty COZY save.", this);
+                return;
+            }
+            SaveDataCollection savedData = JsonUtility.FromJson<SaveDataCollection>(save);
+            if (savedData == null || savedData.modules == null)
+            {
+                Debug.LogError("COZY save does not contain module data.", this);
+                return;
+            }
             Dictionary<string, SavedData> kvps = new();
 
-            foreach (var data in savedData)
+            foreach (var data in savedData.modules)
             {
                 kvps.Add(data.key, data);
             }
 
-            foreach (var module in GetModules<ISaveable>())
+            bool wasLoadingSave = IsLoadingSave;
+            IsLoadingSave = true;
+            try
             {
-                module.Load(kvps[module.GetType().FullName]);
+                foreach (var module in GetModules<ISaveable>())
+                {
+                    if (kvps.TryGetValue(module.GetType().FullName, out var data) ||
+                        kvps.TryGetValue(module.GetType().Name, out data))
+                        module.Load(data);
+                    else
+                        Debug.LogWarning($"COZY save contains no data for {module.GetType().FullName}.", this);
+                }
+            }
+            finally
+            {
+                IsLoadingSave = wasLoadingSave;
             }
         }
     }

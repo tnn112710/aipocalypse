@@ -30,11 +30,61 @@ namespace DistantLands.Cozy
             fogIntegrateVolume = TextureHandle.nullHandle;
             fogBuffer = TextureHandle.nullHandle;
             skyBuffer = TextureHandle.nullHandle;
+            volumetricCloudBuffer = TextureHandle.nullHandle;
             cloudBuffer = TextureHandle.nullHandle;
             volumetricCloudDepthBuffer = TextureHandle.nullHandle;
             beforeCloudsBuffer = TextureHandle.nullHandle;
             afterCloudsBuffer = TextureHandle.nullHandle;
             sunShaftsBuffer = TextureHandle.nullHandle;
+        }
+    }
+
+    internal static class CozyRenderGraphResources
+    {
+        private static Texture2D m_ClearTexture2D;
+        private static Texture2DArray m_ClearTextureArray;
+        private static RTHandle m_ClearTexture2DHandle;
+        private static RTHandle m_ClearTextureArrayHandle;
+
+        public static TextureHandle GetClearTexture(RenderGraph renderGraph, UniversalCameraData cameraData)
+        {
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+            {
+                if (m_ClearTextureArrayHandle == null)
+                {
+                    int slices = Mathf.Max(2, cameraData.xr.viewCount);
+                    m_ClearTextureArray = new Texture2DArray(1, 1, slices, TextureFormat.RGBA32, false, true)
+                    {
+                        name = "COZY Transparent XR Fallback",
+                        hideFlags = HideFlags.HideAndDontSave,
+                        filterMode = FilterMode.Point,
+                        wrapMode = TextureWrapMode.Clamp
+                    };
+                    var clearPixel = new[] { Color.clear };
+                    for (int slice = 0; slice < slices; slice++)
+                        m_ClearTextureArray.SetPixels(clearPixel, slice);
+                    m_ClearTextureArray.Apply();
+                    m_ClearTextureArrayHandle = RTHandles.Alloc(m_ClearTextureArray);
+                }
+
+                return renderGraph.ImportTexture(m_ClearTextureArrayHandle);
+            }
+
+            if (m_ClearTexture2DHandle == null)
+            {
+                m_ClearTexture2D = new Texture2D(1, 1, TextureFormat.RGBA32, false, true)
+                {
+                    name = "COZY Transparent Fallback",
+                    hideFlags = HideFlags.HideAndDontSave,
+                    filterMode = FilterMode.Point,
+                    wrapMode = TextureWrapMode.Clamp
+                };
+                m_ClearTexture2D.SetPixel(0, 0, Color.clear);
+                m_ClearTexture2D.Apply();
+                m_ClearTexture2DHandle = RTHandles.Alloc(m_ClearTexture2D);
+            }
+
+            return renderGraph.ImportTexture(m_ClearTexture2DHandle);
         }
     }
 
@@ -60,27 +110,46 @@ namespace DistantLands.Cozy
         [SerializeField] private Material sunshaftsMaskMat;
         [SerializeField] private Material compositeMat;
 
+        private Material runtimeSky;
+        private Material runtimeFog;
+        private Material runtimeClouds;
+        private Material runtimeVolumetricClouds;
+        private Material runtimeSunshafts;
+        private Material runtimeSunshaftsMask;
+        private Material runtimeComposite;
+
         public override void Create()
         {
+            ReleaseMaterials();
+            runtimeSky = CloneMaterial(skyMat);
+            runtimeFog = CloneMaterial(fogMat);
+            runtimeClouds = CloneMaterial(cloudsMat);
+            runtimeVolumetricClouds = CloneMaterial(volumetricCloudsMat);
+            runtimeSunshafts = CloneMaterial(sunshaftsMat);
+            runtimeSunshaftsMask = CloneMaterial(sunshaftsMaskMat);
+            runtimeComposite = CloneMaterial(compositeMat);
+            CozyShaderIDs.Initialize();
+            CozyMaterialProvider.KeywordsChanged += UpdateMaterialKeywords;
+            UpdateMaterialKeywords();
 
-            m_FogPass = new CozyFogRenderPass(fogMat, fogAccumulate, fogIntegrate)
+            m_FogPass = new CozyFogRenderPass(runtimeFog, fogAccumulate, fogIntegrate)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingSkybox
             };
             m_FogPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
 
-            m_SkyPass = new CozySkyRenderPass(skyMat)
+            m_SkyPass = new CozySkyRenderPass(runtimeSky)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingSkybox
             };
 
-            m_CloudsPass = new CozyCloudsRenderPass(volumetricCloudsMat, cloudsMat)
+            m_CloudsPass = new CozyCloudsRenderPass(runtimeVolumetricClouds, runtimeClouds)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingSkybox
             };
             m_CloudsPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
 
-            m_SunshaftsPass = new CozySunshaftsRenderPass(sunshaftsMat, sunshaftsMaskMat)
+            m_SunshaftsPass = new CozySunshaftsRenderPass(runtimeSunshafts, runtimeSunshaftsMask)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingSkybox
             };
@@ -89,7 +158,7 @@ namespace DistantLands.Cozy
             renderBeforeClouds = new CozyRenderObjectsPass("Render Before Clouds", LayerMask.GetMask("Before Clouds"), false);
             renderAfterClouds = new CozyRenderObjectsPass("Render After Clouds", LayerMask.GetMask("After Clouds"), true);
 
-            m_CompositePass = new CozyCompositePass(compositeMat)
+            m_CompositePass = new CozyCompositePass(runtimeComposite)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingSkybox + 2
             };
@@ -99,6 +168,9 @@ namespace DistantLands.Cozy
         {
             if (!CozyWeather.Active) return;
             if (renderingData.cameraData.cameraType == CameraType.Preview) return;
+            if (renderingData.cameraData.renderType == CameraRenderType.Overlay) return;
+            if (renderingData.cameraData.camera.TryGetComponent(out CozyCameraRendering cameraSettings) &&
+                cameraSettings.isActiveAndEnabled && cameraSettings.excludeFromCozyRendering) return;
 
             if (m_FogPass == null || m_SkyPass == null || m_CloudsPass == null || m_CompositePass == null)
             {
@@ -143,9 +215,35 @@ namespace DistantLands.Cozy
 
         protected override void Dispose(bool disposing)
         {
+            ReleaseMaterials();
             m_FogPass = null;
             m_CloudsPass = null;
             base.Dispose(disposing);
+        }
+
+        private static Material CloneMaterial(Material source)
+        {
+            if (source == null) return null;
+            return new Material(source) { name = source.name + " (COZY Runtime)", hideFlags = HideFlags.HideAndDontSave };
+        }
+
+        private void UpdateMaterialKeywords()
+        {
+            CozyMaterialProvider.ApplyKeywords(runtimeSky, runtimeFog, runtimeClouds, runtimeVolumetricClouds, runtimeSunshafts);
+        }
+
+        private void ReleaseMaterials()
+        {
+            CozyMaterialProvider.KeywordsChanged -= UpdateMaterialKeywords;
+            CoreUtils.Destroy(runtimeSky);
+            CoreUtils.Destroy(runtimeFog);
+            CoreUtils.Destroy(runtimeClouds);
+            CoreUtils.Destroy(runtimeVolumetricClouds);
+            CoreUtils.Destroy(runtimeSunshafts);
+            CoreUtils.Destroy(runtimeSunshaftsMask);
+            CoreUtils.Destroy(runtimeComposite);
+            runtimeSky = runtimeFog = runtimeClouds = runtimeVolumetricClouds = null;
+            runtimeSunshafts = runtimeSunshaftsMask = runtimeComposite = null;
         }
     }
 }

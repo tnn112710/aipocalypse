@@ -9,6 +9,7 @@ namespace DistantLands.Cozy
 {
 
 
+    [Serializable]
     public class RuntimeEvent : IMeridiemEvent
     {
         public MeridiemDate StartDate => RepeatStyle.LimitTo24Hour ? 0 : startDate;
@@ -39,18 +40,18 @@ namespace DistantLands.Cozy
         public MeridiemEventType EventType => eventType;
 
 
-        private MeridiemDate startDate = new(0, 0, 0000);
-        private MeridiemDate endDate = new(0, 0, 0000);
-        private MeridiemTime startTime = new(9, 00, Meridiem.AM);
-        private MeridiemTime endTime = new(10, 00, Meridiem.AM);
-        private MeridiemEventRepeatStyle repeatStyle = new RepeatNever();
+        [SerializeField] private MeridiemDate startDate = new(0, 0, 0000);
+        [SerializeField] private MeridiemDate endDate = new(0, 0, 0000);
+        [SerializeField] private MeridiemTime startTime = new(9, 00, Meridiem.AM);
+        [SerializeField] private MeridiemTime endTime = new(10, 00, Meridiem.AM);
+        [SerializeReference] private MeridiemEventRepeatStyle repeatStyle = new RepeatNever();
 
-        private bool allDay = false;
-        private bool dateRange = false;
-        private string eventName = "New Meridiem Event";
-        private string eventDescription = "";
-        private MeridiemEventType eventType = MeridiemEventType.None;
-        private bool eventRunning = false;
+        [SerializeField] private bool allDay = false;
+        [SerializeField] private bool dateRange = false;
+        [SerializeField] private string eventName = "New Meridiem Event";
+        [SerializeField] private string eventDescription = "";
+        [SerializeField] private MeridiemEventType eventType = MeridiemEventType.None;
+        [SerializeField] private bool eventRunning = false;
 
 
         public RuntimeEvent(MeridiemDate date, MeridiemTime startTime, MeridiemTime endTime, MeridiemEventRepeatStyle repeatStyle, string eventName = "New Event", string eventDescription = "", MeridiemEventType eventType = MeridiemEventType.None)

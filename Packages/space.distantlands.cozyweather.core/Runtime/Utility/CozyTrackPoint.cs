@@ -18,7 +18,7 @@ namespace DistantLands.Cozy
             {
                 if (Instance)
                     return Instance.transform.position;
-                
+
                 if (Camera.main)
                     return Camera.main.transform.position;
 
@@ -31,7 +31,8 @@ namespace DistantLands.Cozy
             if (Instance != null)
             {
                 Debug.LogWarning($"Only one COZY Track Point may be used in your scene at one time. Using {Instance.name} as the pivot point");
-                Destroy(gameObject);
+                if (Application.isPlaying)
+                    Destroy(gameObject);
                 return;
             }
             Instance = this;

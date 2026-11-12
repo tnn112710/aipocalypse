@@ -1,11 +1,15 @@
 #pragma kernel CSMain
 #pragma kernel CSBlur
+#pragma kernel CSExpandCookie
 
 #pragma multi_compile_local _ CZY_USE_CLOUDSCUMULONIMBUS
 
 RWTexture2D<float> Result;
 RWTexture2D<float> _RawTex;     
 Texture2D<float>   _RawTexRead; 
+Texture2D<float4> _CookieSource;
+RWTexture2D<float4> _CookieExpanded;
+int _CookieUseAlpha;
 
 float3   _LightDirection;
 float3   _CameraPosition;
@@ -193,4 +197,17 @@ void CSBlur(uint3 id : SV_DispatchThreadID)
     }
 
     Result[id.xy] = sum / wsum;
+}
+
+[numthreads(8, 8, 1)]
+void CSExpandCookie(uint3 id : SV_DispatchThreadID)
+{
+    uint width, height;
+    _CookieExpanded.GetDimensions(width, height);
+    if (id.x >= width || id.y >= height)
+        return;
+
+    float4 cookieSample = _CookieSource.Load(int3(id.xy, 0));
+    float value = _CookieUseAlpha != 0 ? cookieSample.a : cookieSample.r;
+    _CookieExpanded[id.xy] = float4(value, value, value, 1);
 }

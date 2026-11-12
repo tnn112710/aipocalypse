@@ -1,15 +1,15 @@
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyFogVariables.hlsl"
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyBaseVariables.hlsl"
 
-TEXTURE2D(_BlitTex);
-TEXTURE2D(_BeforeCloudsTex);
-TEXTURE2D(_AfterCloudsTex);
-TEXTURE2D(_SkyTex);
-TEXTURE2D(_FogTex);
-TEXTURE2D(_CloudTex);
-TEXTURE2D(_SunshaftsTex);
-TEXTURE2D(_VolumetricCloudTex);
-TEXTURE2D(_VolumetricCloudDepthTex);
+TEXTURE2D_X(_BlitTex);
+TEXTURE2D_X(_BeforeCloudsTex);
+TEXTURE2D_X(_AfterCloudsTex);
+TEXTURE2D_X(_SkyTex);
+TEXTURE2D_X(_FogTex);
+TEXTURE2D_X(_CloudTex);
+TEXTURE2D_X(_SunshaftsTex);
+TEXTURE2D_X(_VolumetricCloudTex);
+TEXTURE2D_X(_VolumetricCloudDepthTex);
 SamplerState linear_clamp_sampler;
 
 static const float DEPTH_DISTANCE = 50000.0;
@@ -17,15 +17,15 @@ static const float DEPTH_DISTANCE = 50000.0;
 
 void CompositeSky_float(float2 uv, out float4 output) {
     
-    float4 sceneColor = SAMPLE_TEXTURE2D(_BlitTex, linear_clamp_sampler, uv);
-    float4 fogColor = SAMPLE_TEXTURE2D(_FogTex, linear_clamp_sampler, uv);
-    float4 beforeClouds = SAMPLE_TEXTURE2D(_BeforeCloudsTex, linear_clamp_sampler, uv);
-    float4 afterClouds = SAMPLE_TEXTURE2D(_AfterCloudsTex, linear_clamp_sampler, uv);
-    float4 skyColor = SAMPLE_TEXTURE2D(_SkyTex, linear_clamp_sampler, uv);
-    float4 cloudColor = SAMPLE_TEXTURE2D(_CloudTex, linear_clamp_sampler, uv);
-    float4 sunshaftsColor = SAMPLE_TEXTURE2D(_SunshaftsTex, linear_clamp_sampler, uv);
-    float4 volumetricCloudColor = SAMPLE_TEXTURE2D(_VolumetricCloudTex, linear_clamp_sampler, uv);
-    float cloudDepth = SAMPLE_TEXTURE2D(_VolumetricCloudDepthTex, linear_clamp_sampler, uv).r;
+    float4 sceneColor = SAMPLE_TEXTURE2D_X(_BlitTex, linear_clamp_sampler, uv);
+    float4 fogColor = SAMPLE_TEXTURE2D_X(_FogTex, linear_clamp_sampler, uv);
+    float4 beforeClouds = SAMPLE_TEXTURE2D_X(_BeforeCloudsTex, linear_clamp_sampler, uv);
+    float4 afterClouds = SAMPLE_TEXTURE2D_X(_AfterCloudsTex, linear_clamp_sampler, uv);
+    float4 skyColor = SAMPLE_TEXTURE2D_X(_SkyTex, linear_clamp_sampler, uv);
+    float4 cloudColor = SAMPLE_TEXTURE2D_X(_CloudTex, linear_clamp_sampler, uv);
+    float4 sunshaftsColor = SAMPLE_TEXTURE2D_X(_SunshaftsTex, linear_clamp_sampler, uv);
+    float4 volumetricCloudColor = SAMPLE_TEXTURE2D_X(_VolumetricCloudTex, linear_clamp_sampler, uv);
+    float cloudDepth = SAMPLE_TEXTURE2D_X(_VolumetricCloudDepthTex, linear_clamp_sampler, uv).r;
 
     float rawDepth = SampleSceneDepth(uv);
     float depth01 = Linear01Depth(rawDepth, _ZBufferParams);

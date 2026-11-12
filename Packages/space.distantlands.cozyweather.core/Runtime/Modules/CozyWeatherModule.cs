@@ -3,7 +3,9 @@
 //  All code included in this file is protected under the Unity Asset Store Eula
 
 using UnityEngine;
+using System;
 using System.Collections.Generic;
+using Random = UnityEngine.Random;
 
 namespace DistantLands.Cozy
 {
@@ -32,7 +34,7 @@ namespace DistantLands.Cozy
 
         public WeatherInitializationBehavior WeatherInitializationBehavior => weatherInitializationBehavior;
         [SerializeField]
-        private WeatherInitializationBehavior weatherInitializationBehavior = WeatherInitializationBehavior.SetRandomWeather;
+        private WeatherInitializationBehavior weatherInitializationBehavior = WeatherInitializationBehavior.None;
 
         public NextWeatherSelectionMode NextWeatherSelectionMode => nextWeatherSelectionMode;
         [SerializeField]
@@ -61,10 +63,68 @@ namespace DistantLands.Cozy
 
         public override bool UpdateStateMachineTimer => weatherChangeMode == WeatherChangeMode.ChangeWhenWeatherFinishes;
 
+        public override List<WeatherProfile> GetAllProfiles()
+        {
+            var profiles = new List<WeatherProfile>();
+            if (forecastProfile != null && forecastProfile.profiles != null)
+                foreach (var forecastable in forecastProfile.profiles)
+                    if (forecastable.profile) profiles.Add(forecastable.profile);
+            if (startingWeather) profiles.Add(startingWeather);
+            if (startingForecast != null)
+                foreach (var profile in startingForecast)
+                    if (profile) profiles.Add(profile);
+            return profiles;
+        }
+
+        private ITimeModule timeModule;
+        private ICalendarModule calendarModule;
+        private long previousDailyTime;
+        private bool hasDailyTime;
+        private bool warnedAboutDailyTime;
+
         public override void InitializeModule()
         {
-            base.InitializeModule();
+            hasDailyTime = false;
+            warnedAboutDailyTime = false;
             currentForecast = new List<WeatherPattern>();
+            base.InitializeModule();
+
+            WeatherSphere.GetModule(out timeModule);
+            WeatherSphere.GetModule(out calendarModule);
+        }
+
+        public override void OnStateMachineUpdate()
+        {
+            if (!Application.isPlaying || weatherChangeMode != WeatherChangeMode.ChangeDaily)
+            {
+                hasDailyTime = false;
+                return;
+            }
+
+            if (timeModule == null || calendarModule == null)
+            {
+                hasDailyTime = false;
+                if (!warnedAboutDailyTime)
+                {
+                    Debug.LogWarning("Change Daily requires both a time module and a calendar module.", this);
+                    warnedAboutDailyTime = true;
+                }
+                return;
+            }
+
+            warnedAboutDailyTime = false;
+            const long millisecondsPerDay = 86400000;
+            long now = calendarModule.CurrentDate.AbsoluteDay * millisecondsPerDay + timeModule.CurrentTime.ToTotalMilliseconds();
+            if (hasDailyTime && now > previousDailyTime)
+            {
+                long changeTime = weatherChangeTime.ToTotalMilliseconds();
+                if (Math.Floor((double)(now - changeTime) / millisecondsPerDay) >
+                    Math.Floor((double)(previousDailyTime - changeTime) / millisecondsPerDay))
+                    ChangeProfile();
+            }
+
+            previousDailyTime = now;
+            hasDailyTime = true;
         }
 
         public override void SetupStateMachine()
@@ -94,6 +154,15 @@ namespace DistantLands.Cozy
                 case WeatherInitializationBehavior.SetRandomWeather:
                     SetProfile(forecastProfile.RandomWeatherProfile, resetTimer: true, transition: false);
                     break;
+                case WeatherInitializationBehavior.None:
+                    if (editorPreviewProfile)
+                        SetProfile(editorPreviewProfile, resetTimer: true, transition: false);
+                    else
+                    {
+                        Debug.LogWarning("Editor preview weather is null. Forecasting random profile instead.");
+                        SetProfile(forecastProfile.RandomWeatherProfile, resetTimer: true, transition: false);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -109,18 +178,36 @@ namespace DistantLands.Cozy
                     PopulateForecast();
                     if (currentForecast.Count > 0)
                     {
+                        var nextProfile = currentForecast[0].profile;
                         currentForecast.RemoveAt(0);
-                        return currentForecast[0].profile;
+                        return nextProfile;
+                    }
+                    if (forecastProfile == null || forecastProfile.profiles.Count == 0)
+                    {
+                        Debug.LogWarning("Cannot change weather: the forecast has no profiles.", this);
+                        return null;
                     }
                     return forecastProfile.profiles[Random.Range(0, forecastProfile.profiles.Count)].profile;
                 case NextWeatherSelectionMode.Random:
+                    if (forecastProfile == null || forecastProfile.profiles.Count == 0)
+                    {
+                        Debug.LogWarning("Cannot change weather: the forecast has no profiles.", this);
+                        return null;
+                    }
                     return forecastProfile.profiles[Random.Range(0, forecastProfile.profiles.Count)].profile;
                 case NextWeatherSelectionMode.WeightedRandom:
+                    if (forecastProfile == null || forecastProfile.profiles.Count == 0)
+                    {
+                        Debug.LogWarning("Cannot change weather: the forecast has no profiles.", this);
+                        return null;
+                    }
                     return GetNextWeatherProfile(lastProfile, conditionSnapshot);
+                case NextWeatherSelectionMode.ChangeViaScripting:
+                    Debug.LogWarning("Cannot automatically select weather when selection is controlled via scripting.", this);
+                    return null;
             }
-
-
-            return forecastProfile.profiles[Random.Range(0, forecastProfile.profiles.Count)].profile;
+            Debug.LogWarning("Cannot change weather: the selection mode is not recognized.", this);
+            return null;
         }
 
         public void PopulateForecast()

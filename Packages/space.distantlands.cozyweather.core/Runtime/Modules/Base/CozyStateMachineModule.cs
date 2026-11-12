@@ -12,13 +12,19 @@ namespace DistantLands.Cozy
     /// <summary>
     /// Helper for CozyStateMachines to manage profile weights without the use of coroutines
     /// </summary>
+    [Serializable]
     public struct ProfileWeight
     {
         public float weight;
+        [SerializeField]
         internal bool isTransitioning;
+        [SerializeField]
         private float targetWeight;
+        [SerializeField]
         private float startingWeight;
+        [SerializeField]
         private float t;
+        [SerializeField]
         private float time;
 
         public ProfileWeight(float weight)
@@ -61,15 +67,40 @@ namespace DistantLands.Cozy
 
             weight = Mathf.Lerp(startingWeight, targetWeight, t / time);
         }
+
+        internal bool IsValid()
+        {
+            return IsFinite(weight) && IsFinite(targetWeight) && IsFinite(startingWeight) &&
+                IsFinite(t) && IsFinite(time) && (!isTransitioning || (time > 0 && t >= 0));
+        }
+
+        private static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     }
 
+    [Serializable]
+    internal class StateMachineSaveData
+    {
+        public int version;
+        public MeridiemTimeDelta timeTillProfileChange;
+        public MeridiemTimeDelta resolvedProfileDuration;
+        public float transitionTime;
+        public float timerSpeedMultiplier;
+        public string selectedProfileName;
+        public List<StateMachineProfileSaveData> profiles;
+    }
 
+    [Serializable]
+    internal class StateMachineProfileSaveData
+    {
+        public string name;
+        public ProfileWeight weight;
+    }
     /// <summary>
     /// Creates a module that uses a state machine to blend profiles (states) into a parameters struct for output. Used for modules such as the Weather module, Ambience module, and ReSound module.
     /// </summary>
     /// <typeparam name="T">The profile used in the state machine</typeparam>
     public abstract class CozyStateMachineModule<T>
-        : CozyBiomeModule<CozyStateMachineModule<T>>, ISkippable
+        : CozyBiomeModule<CozyStateMachineModule<T>>, ISkippable, ISaveable
         where T : CozyProfile, IStateMachineProfile
     {
 
@@ -166,7 +197,7 @@ namespace DistantLands.Cozy
             }
         }
         private T cachedStrongestProfile;
-
+        private T selectedProfile;
 
         /// <summary>
         /// Change the rate at which time moves for the state machine. For example, if it will normally take 2 in game hours before a profile changes, a multiplier of 2 will make it take 1 hour to complete.
@@ -180,6 +211,12 @@ namespace DistantLands.Cozy
         /// </summary>
         public abstract bool UpdateStateMachineTimer { get; }
 
+        /// <summary>Time elapsed on this state machine's clock, in days.</summary>
+        protected virtual float StateMachineDeltaTime =>
+            WeatherSphere.Time != null
+                ? Time.deltaTime * WeatherSphere.Time.TimeMovementSpeed * timerSpeedMultiplier
+                : Time.deltaTime / 1440f * timerSpeedMultiplier;
+
         public override void InitializeModule()
         {
             Setup();
@@ -192,6 +229,7 @@ namespace DistantLands.Cozy
         private void Setup()
         {
             localProfileWeights = new();
+            selectedProfile = null;
 
             markedForRemoval = new List<T>();
             cachedProfiles = new();
@@ -297,10 +335,7 @@ namespace DistantLands.Cozy
 
             if (UpdateStateMachineTimer)
             {
-                if (WeatherSphere.Time != null)
-                    timeTillProfileChange -= Time.deltaTime * WeatherSphere.Time.TimeMovementSpeed * timerSpeedMultiplier;
-                else
-                    timeTillProfileChange -= Time.deltaTime / 1440f * timerSpeedMultiplier;
+                timeTillProfileChange -= StateMachineDeltaTime;
 
                 if (timeTillProfileChange <= 0)
                 {
@@ -332,6 +367,9 @@ namespace DistantLands.Cozy
         /// <returns>The next profile</returns>
         public abstract T GetNextProfile(T lastProfile, ConditionSnapshot conditionSnapshot);
 
+        /// <summary>Returns the profiles available for resolving saved profile names.</summary>
+        public abstract List<T> GetAllProfiles();
+
         /// <summary>
         /// Sets the current profile immediately
         /// </summary>
@@ -342,20 +380,27 @@ namespace DistantLands.Cozy
         /// <returns>Returns true if the operation is successful</returns>
         public bool SetProfile(T profile, MeridiemTimeDelta duration, bool resetTimer = true, bool transition = true)
         {
+            if (profile == null)
+            {
+                Debug.LogWarning("Cannot set a null profile.", this);
+                return false;
+            }
             if (resetTimer)
             {
                 timeTillProfileChange = duration;
             }
+            selectedProfile = profile;
             if (!Application.isPlaying || !transition)
             {
+                OnProfileChange?.Invoke(CurrentProfile, profile);
                 localProfileWeights = new Dictionary<T, ProfileWeight>
                 {
                     { profile, new ProfileWeight(1) }
                 };
 
+                resolvedProfileDuration = timeTillProfileChange;
                 return true;
             }
-            if (profile == null) return false;
             OnProfileChange?.Invoke(CurrentProfile, profile);
 
             keysCache ??= new List<T>();
@@ -400,7 +445,11 @@ namespace DistantLands.Cozy
         /// <returns>Returns true if the operation is successful</returns>
         public bool SetProfile(T profile, bool resetTimer = true, bool transition = true)
         {
-            if (profile == null) return false;
+            if (profile == null)
+            {
+                Debug.LogWarning("Cannot set a null profile.", this);
+                return false;
+            }
             return SetProfile(profile, GetProfilePlayTime(profile), resetTimer, transition);
         }
 
@@ -410,6 +459,138 @@ namespace DistantLands.Cozy
         }
 
         #endregion
+
+        private Dictionary<string, T> GetProfileNameLookup()
+        {
+            var lookup = new Dictionary<string, T>(StringComparer.Ordinal);
+            List<T> profiles = GetAllProfiles();
+            if (profiles == null)
+                throw new InvalidOperationException($"{GetType().Name} returned a null profile list.");
+            foreach (T profile in profiles)
+            {
+                if (!profile || string.IsNullOrEmpty(profile.name)) continue;
+                if (lookup.TryGetValue(profile.name, out T existing))
+                {
+                    if (existing != profile)
+                        lookup[profile.name] = null;
+                }
+                else
+                    lookup.Add(profile.name, profile);
+            }
+            return lookup;
+        }
+
+        private void ValidateSaveProfile(T profile, Dictionary<string, T> lookup)
+        {
+            if (!profile || string.IsNullOrEmpty(profile.name) ||
+                !lookup.TryGetValue(profile.name, out T match) || match != profile)
+                throw new InvalidOperationException($"Profile '{(profile ? profile.name : "<missing>")}' in {GetType().Name} is missing from its profile list or has an ambiguous name.");
+        }
+
+        /// <summary>Captures local profile weights, transitions and timing using profile names.</summary>
+        public SavedData Save()
+        {
+            var lookup = GetProfileNameLookup();
+
+            StateMachineSaveData data = new()
+            {
+                version = 2,
+                timeTillProfileChange = timeTillProfileChange,
+                resolvedProfileDuration = resolvedProfileDuration,
+                transitionTime = transitionTime,
+                timerSpeedMultiplier = timerSpeedMultiplier,
+                profiles = new List<StateMachineProfileSaveData>()
+            };
+
+            if (selectedProfile)
+            {
+                ValidateSaveProfile(selectedProfile, lookup);
+                data.selectedProfileName = selectedProfile.name;
+                if (localProfileWeights == null || !localProfileWeights.ContainsKey(selectedProfile))
+                    throw new InvalidOperationException($"Selected profile '{selectedProfile.name}' has no local weight.");
+            }
+            if (localProfileWeights != null)
+            {
+                foreach (var pair in localProfileWeights)
+                {
+                    ValidateSaveProfile(pair.Key, lookup);
+                    if (!pair.Value.IsValid())
+                        throw new InvalidOperationException($"Profile '{pair.Key.name}' has invalid transition state.");
+                    data.profiles.Add(new StateMachineProfileSaveData { name = pair.Key.name, weight = pair.Value });
+                }
+            }
+
+            return new SavedData(GetType().FullName, new List<string> { JsonUtility.ToJson(data) });
+        }
+
+        /// <summary>Restores local profile weights and timing; biome-resolved weights update on the next weather update.</summary>
+        public void Load(SavedData save)
+        {
+            if (save.properties == null || save.properties.Count != 1 || string.IsNullOrWhiteSpace(save.properties[0]))
+            {
+                Debug.LogError("COZY state machine save is missing required data.", this);
+                return;
+            }
+
+            StateMachineSaveData data;
+            try
+            {
+                data = JsonUtility.FromJson<StateMachineSaveData>(save.properties[0]);
+            }
+            catch (ArgumentException exception)
+            {
+                Debug.LogError($"Invalid COZY state machine save: {exception.Message}", this);
+                return;
+            }
+
+            if (data == null || data.version != 2 || data.profiles == null ||
+                float.IsNaN(data.transitionTime) || float.IsInfinity(data.transitionTime) ||
+                float.IsNaN(data.timerSpeedMultiplier) || float.IsInfinity(data.timerSpeedMultiplier))
+            {
+                Debug.LogError("COZY state machine save contains invalid or unsupported data.", this);
+                return;
+            }
+
+            var lookup = GetProfileNameLookup();
+            var restoredWeights = new Dictionary<T, ProfileWeight>();
+            foreach (var entry in data.profiles)
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.name) ||
+                    !lookup.TryGetValue(entry.name, out T profile) || !profile ||
+                    !entry.weight.IsValid() || restoredWeights.ContainsKey(profile))
+                {
+                    Debug.LogError($"COZY state machine save contains an invalid, missing, or ambiguous profile: '{entry?.name}'.", this);
+                    return;
+                }
+                restoredWeights.Add(profile, entry.weight);
+            }
+
+            T restoredSelection = null;
+            if (!string.IsNullOrEmpty(data.selectedProfileName))
+            {
+                if (!lookup.TryGetValue(data.selectedProfileName, out T profile) ||
+                    !profile || !restoredWeights.ContainsKey(profile))
+                {
+                    Debug.LogError($"COZY state machine save contains an invalid selected profile: '{data.selectedProfileName}'.", this);
+                    return;
+                }
+                restoredSelection = profile;
+            }
+
+            T oldProfile = CurrentProfile;
+            localProfileWeights = restoredWeights;
+            profileWeights = new Dictionary<T, float>();
+            foreach (var pair in restoredWeights)
+                profileWeights.Add(pair.Key, pair.Value.weight);
+            timeTillProfileChange = data.timeTillProfileChange;
+            resolvedProfileDuration = data.resolvedProfileDuration;
+            transitionTime = data.transitionTime;
+            timerSpeedMultiplier = data.timerSpeedMultiplier;
+            selectedProfile = restoredSelection;
+            cachedStrongestProfile = CurrentProfile;
+            if (oldProfile || restoredSelection)
+                OnProfileChange?.Invoke(oldProfile, restoredSelection);
+        }
 
         public void SkipTime(MeridiemTimeDelta timeToSkip)
         {

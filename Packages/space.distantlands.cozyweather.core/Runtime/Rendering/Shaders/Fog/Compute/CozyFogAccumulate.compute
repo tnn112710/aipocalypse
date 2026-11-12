@@ -63,8 +63,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     bool outOfBounds = any(uvwPrevious < 0.0) || any(uvwPrevious > 1.0);
 
-    if (! outOfBounds) {
-        float4 history = CZY_FogVolumePrevious.SampleLevel(sampler_LinearClamp, uvw, 0);
+    if (!outOfBounds && CZY_TemporalWeight > 0.0) {
+        float4 history = CZY_FogVolumePrevious.SampleLevel(sampler_LinearClamp, uvwPrevious, 0);
         float weight = CZY_TemporalWeight;
         currentColor = lerp(currentColor, history, weight);
     }

@@ -65,6 +65,13 @@ namespace DistantLands.Cozy
         private ResoundTrack initialTrack;
         public ResoundTrack InitialTrack => initialTrack;
 
+        public override List<ResoundTrack> GetAllProfiles()
+        {
+            var profiles = dj != null && dj.tracks != null ? new List<ResoundTrack>(dj.tracks) : new List<ResoundTrack>();
+            if (initialTrack) profiles.Add(initialTrack);
+            return profiles;
+        }
+
         /// <summary>
         /// One playing (or fading) track. Each voice owns its source and its own fade routine,
         /// so interrupting one transition can never orphan another voice's source.
@@ -173,6 +180,9 @@ namespace DistantLands.Cozy
 
         public override bool UpdateStateMachineTimer => true;
 
+        // Use the state machine's existing minute-per-second scale independently of COZY time.
+        protected override float StateMachineDeltaTime => Time.deltaTime / 1440f * TimerSpeedMultiplier;
+
         public override void InitializeModule()
         {
             base.InitializeModule();
@@ -248,6 +258,7 @@ namespace DistantLands.Cozy
             if (source == null) return;
             source.Stop();
             source.clip = null;
+            source.loop = false;
             source.gameObject.SetActive(false);
             audioSourcePool.Enqueue(source);
         }
@@ -449,27 +460,12 @@ namespace DistantLands.Cozy
             if (profile == null || profile.Clip == null)
                 return 10f;
 
-            float time = Random.Range(profile.MinTime, profile.MaxTime);
-            if (WeatherSphere?.Time != null)
-            {
-                time *= WeatherSphere.Time.TimeMovementSpeed * TimerSpeedMultiplier;
-            }
-            else
-            {
-                time *= TimerSpeedMultiplier / 1440f;
-            }
+            float time = Random.Range(profile.MinTime, profile.MaxTime) * 60f;
 
             if (UseSilence)
             {
                 float silenceTime = Random.Range(minSilence, maxSilence);
-                if (WeatherSphere?.Time != null)
-                {
-                    time += silenceTime * WeatherSphere.Time.TimeMovementSpeed * TimerSpeedMultiplier;
-                }
-                else
-                {
-                    time += (silenceTime / 1440f) * TimerSpeedMultiplier;
-                }
+                time += silenceTime / 1440f;
             }
 
             return time;
@@ -517,13 +513,24 @@ namespace DistantLands.Cozy
                         }
                     }
 
-                    if (currentSource != null && currentSource.isPlaying && currentSource.clip != null && !currentSource.loop)
+                    if (currentSource != null && currentSource.isPlaying && currentSource.clip != null)
                     {
+                        float previousTime = currentSource.time;
+                        float elapsed = 0f;
                         while (currentSource != null
                             && currentSource.isPlaying
-                            && currentSource.clip != null
-                            && currentSource.time < currentSource.clip.length)
+                            && currentSource.clip != null)
+                        {
                             yield return null;
+                            if (currentSource == null || currentSource.clip == null)
+                                break;
+
+                            elapsed += Time.unscaledDeltaTime * Mathf.Abs(currentSource.pitch);
+                            float playbackTime = currentSource.time;
+                            if (playbackTime < previousTime || elapsed >= currentSource.clip.length)
+                                break;
+                            previousTime = playbackTime;
+                        }
                     }
 
                     StopAllVoicesInstant();
@@ -610,7 +617,7 @@ namespace DistantLands.Cozy
             else
             {
                 AudioSource source = GetAudioSource();
-                source.clip = newProfile.Clip;
+                ConfigureSource(source, newProfile);
                 source.volume = 0f;
                 source.Play();
 
@@ -645,13 +652,19 @@ namespace DistantLands.Cozy
             else
             {
                 AudioSource source = GetAudioSource();
-                source.clip = newProfile.Clip;
+                ConfigureSource(source, newProfile);
                 source.volume = masterVolume * newProfile.Volume;
                 source.Play();
 
                 Voice voice = new Voice { track = newProfile, source = source };
                 voices.Add(voice);
             }
+        }
+
+        private static void ConfigureSource(AudioSource source, ResoundTrack track)
+        {
+            source.clip = track.Clip;
+            source.loop = track.LoopMode == ResoundTrack.LoopMethod.Loop;
         }
 
         /// <summary>

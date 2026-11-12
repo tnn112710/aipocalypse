@@ -30,13 +30,22 @@ namespace DistantLands.Cozy
 
         public override bool UpdateStateMachineTimer => AmbienceChangeMode == AmbienceChangeMode.ChangeWhenAmbienceFinishes;
 
+        public override List<AmbienceProfile> GetAllProfiles()
+        {
+            var profiles = possibleProfiles != null ? new List<AmbienceProfile>(possibleProfiles) : new List<AmbienceProfile>();
+            if (defaultProfile) profiles.Add(defaultProfile);
+            return profiles;
+        }
+
         private WeatherProfile trackedWeather = null;
+        private CozyWeatherModule weatherModule;
         private void ChangeTrackedWeather(WeatherProfile oldProfile, WeatherProfile newProfile)
         {
             if (!Application.isPlaying) return;
 
             trackedWeather = newProfile;
 
+            if (weatherModule.System != null && weatherModule.System.IsLoadingSave) return;
             if (CurrentProfile == null) return;
 
             if (CurrentProfile.GetChance(WeatherSphere) < 0.05f)
@@ -52,13 +61,24 @@ namespace DistantLands.Cozy
 
         public override void InitializeModule()
         {
+            if (weatherModule != null)
+                weatherModule.OnProfileChange -= ChangeTrackedWeather;
+            weatherModule = null;
             base.InitializeModule();
 
-            if (WeatherSphere.GetModule(out CozyWeatherModule weatherModule))
+            if (WeatherSphere.GetModule(out weatherModule))
             {
                 trackedWeather = weatherModule.CurrentProfile;
                 weatherModule.OnProfileChange += ChangeTrackedWeather;
             }
+        }
+
+        public override void DeinitializeModule()
+        {
+            if (weatherModule != null)
+                weatherModule.OnProfileChange -= ChangeTrackedWeather;
+            weatherModule = null;
+            base.DeinitializeModule();
         }
 
         public override AmbienceProfile GetNextProfile(AmbienceProfile lastProfile, ConditionSnapshot conditionSnapshot)

@@ -37,6 +37,14 @@ namespace DistantLands.Cozy
         public Light StrongestLight { get; }
 
         /// <summary>
+        /// Disables COZY's sun and moon lights for an external lighting engine while retaining
+        /// their normal property and lens flare updates. Clearing the override restores the
+        /// normal enabled state on the next atmosphere update. This runtime setting is not serialized.
+        /// Scene lighting must still be handled by COZY for these updates to occur.
+        /// </summary>
+        public bool OverrideSceneLights { get; set; }
+
+        /// <summary>
         /// How much is the lighting overridden by lightning at this time
         /// </summary>
         public float LightningLightingOverride { get; set; }

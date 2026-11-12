@@ -45,6 +45,16 @@ namespace DistantLands.Cozy
         public LensFlareComponentSRP sunLensFlare;
         public LensFlareComponentSRP moonLensFlare;
         public Light StrongestLight => GetLightStrength(SunLight) >= GetLightStrength(MoonLight) ? SunLight : MoonLight;
+        public bool OverrideSceneLights
+        {
+            get => overrideSceneLights;
+            set
+            {
+                overrideSceneLights = value;
+                if (value) DisableSceneLights();
+            }
+        }
+        private bool overrideSceneLights;
         private Vector3 moonDirection;
         private Vector3 sunDirection;
         private Light sunLight;
@@ -70,6 +80,7 @@ namespace DistantLands.Cozy
         private void ExecuteRunBeforeBiomes() { RunBeforeBiomes?.Invoke(this); }
         public event Action<CozyAtmosphereModule> RunAfterBiomes;
         private void ExecuteRunAfterBiomes() { RunAfterBiomes?.Invoke(this); }
+        internal event Action<bool, bool> SceneLightingUpdated;
 
         [SerializeReference]
         [AtmosphereOverridesList]
@@ -102,6 +113,8 @@ namespace DistantLands.Cozy
 
         private int framesBetweenCloudShadowRendering = 3;
         private int framesBetweenLensFlareOcclusionRendering = 3;
+        private float sunFlareOcclusion = 1;
+        private float moonFlareOcclusion = 1;
 
 
         public override void InitializeModule()
@@ -142,6 +155,13 @@ namespace DistantLands.Cozy
 
             sunCookieApplied = false;
 
+            if (overrideSceneLights) DisableSceneLights();
+        }
+
+        private void DisableSceneLights()
+        {
+            if (sunLight) sunLight.enabled = false;
+            if (moonLight) moonLight.enabled = false;
         }
 
         public override void ApplyBiome(CozyAtmosphereModule biome, float weight)
@@ -893,8 +913,7 @@ namespace DistantLands.Cozy
             }
             else
             {
-                sunLight.enabled = false;
-                moonLight.enabled = false;
+                DisableSceneLights();
             }
 
             lastFrameParameters.Copy(parameters);
@@ -1042,9 +1061,11 @@ namespace DistantLands.Cozy
             bool sunOn = (sunColor.r + sunColor.g + sunColor.b) * parameters.lightingSunLightIntensity * lightningMultiplier > 0;
             bool moonOn = (moonColor.r + moonColor.g + moonColor.b) * parameters.lightingMoonLightIntensity * lightningMultiplier > 0;
 
-            if (sunLight.enabled != sunOn) sunLight.enabled = sunOn;
+            bool sunLightEnabled = sunOn && !overrideSceneLights;
+            bool moonLightEnabled = moonOn && !overrideSceneLights;
+            if (sunLight.enabled != sunLightEnabled) sunLight.enabled = sunLightEnabled;
             if (sunLensFlare.enabled != sunOn) sunLensFlare.enabled = sunOn;
-            if (moonLight.enabled != moonOn) moonLight.enabled = moonOn;
+            if (moonLight.enabled != moonLightEnabled) moonLight.enabled = moonLightEnabled;
             if (moonLensFlare.enabled != moonOn) moonLensFlare.enabled = moonOn;
 
             LightShadows sunShadows = sunOn ? parameters.lightingSunShadowType : LightShadows.None;
@@ -1079,8 +1100,6 @@ namespace DistantLands.Cozy
                     if (sunLensFlare.lensFlareData != parameters.lightingSunLensFlareReference)
                         sunLensFlare.lensFlareData = parameters.lightingSunLensFlareReference;
 
-                    float occlusion = 1;
-
                     if (Time.frameCount % framesBetweenLensFlareOcclusionRendering == 0)
                     {
                         if (cozyCamera != null)
@@ -1088,11 +1107,11 @@ namespace DistantLands.Cozy
                             Vector3 screenPoint = cozyCamera.WorldToScreenPoint(cameraPosition - sunDirection * 10000);
 
                             if (screenPoint.z > 0)
-                                occlusion = FlareOcclusion.GetFlareOcclusion(screenPoint, sunFlareEntityID);
+                                sunFlareOcclusion = Mathf.Lerp(sunFlareOcclusion, FlareOcclusion.GetFlareOcclusion(screenPoint, sunFlareEntityID), 0.9f * Time.deltaTime);
                         }
                     }
 
-                    sunLensFlare.intensity = parameters.lightingSunLightIntensity * parameters.lightingSunLensFlareIntensity * occlusion;
+                    sunLensFlare.intensity = parameters.lightingSunLightIntensity * parameters.lightingSunLensFlareIntensity * sunFlareOcclusion;
                     sunLensFlare.scale = parameters.lightingSunLensFlareScale;
                 }
                 else
@@ -1102,6 +1121,10 @@ namespace DistantLands.Cozy
 
                 if (currentStyle.UseCloudsVolumetric && currentStyle.UseLightingSunCloudShadows && shadowShader)
                 {
+                    if (sunLight == null || sunLightData == null)
+                    {
+                        SetupReferences();
+                    }
                     if (Time.frameCount % framesBetweenCloudShadowRendering == 0)
                     {
                         float cookieSize = parameters.lightingSunCloudShadowsSize;
@@ -1162,7 +1185,6 @@ namespace DistantLands.Cozy
                 {
                     moonFlareTransform.rotation = Quaternion.LookRotation(moonDirection);
 
-                    float occlusion = 1;
 
                     if (Time.frameCount % framesBetweenLensFlareOcclusionRendering == 0)
                     {
@@ -1171,11 +1193,11 @@ namespace DistantLands.Cozy
                             Vector3 screenPoint = cozyCamera.WorldToScreenPoint(cameraPosition - moonDirection * 10000);
 
                             if (screenPoint.z > 0)
-                                occlusion = FlareOcclusion.GetFlareOcclusion(screenPoint, moonFlareEntityID);
+                                moonFlareOcclusion = Mathf.Lerp(moonFlareOcclusion, FlareOcclusion.GetFlareOcclusion(screenPoint, moonFlareEntityID), 0.9f * Time.deltaTime);
                         }
                     }
 
-                    moonLensFlare.intensity = parameters.lightingMoonLightIntensity * parameters.lightingMoonLensFlareIntensity * moonPhasePercentage * occlusion;
+                    moonLensFlare.intensity = parameters.lightingMoonLightIntensity * parameters.lightingMoonLensFlareIntensity * moonPhasePercentage * moonFlareOcclusion;
 
                     if (moonLensFlare.lensFlareData != parameters.lightingMoonLensFlareReference)
                         moonLensFlare.lensFlareData = parameters.lightingMoonLensFlareReference;
@@ -1186,6 +1208,8 @@ namespace DistantLands.Cozy
                     moonLensFlare.intensity = 0;
                 }
             }
+
+            SceneLightingUpdated?.Invoke(sunOn, moonOn);
         }
 
         public static float GetLightStrength(Light light)

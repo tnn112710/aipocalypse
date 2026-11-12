@@ -37,11 +37,11 @@ namespace DistantLands.Cozy
         }
         T high;
         T low;
-        D delta;
-        public D Delta
-        {
-            get => delta;
-        }
+        // D delta;
+        // public D Delta
+        // {
+        //     get => delta;
+        // }
 
         public static T Lerp(T a, T b, float time)
         {

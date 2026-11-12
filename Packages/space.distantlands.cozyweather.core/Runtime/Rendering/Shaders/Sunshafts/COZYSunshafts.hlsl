@@ -2,9 +2,9 @@
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozySunshaftsVariables.hlsl"
 #include "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyUtilities.hlsl"
 
-TEXTURE2D(_CloudTex);
-TEXTURE2D(_VolumetricCloudDepthTex);
-TEXTURE2D(_CozySunshaftsMaskTex);
+TEXTURE2D_X(_CloudTex);
+TEXTURE2D_X(_VolumetricCloudDepthTex);
+TEXTURE2D_X(_CozySunshaftsMaskTex);
 SamplerState linear_clamp_sampler;
 
 void COZYSunshaftsMask_float(float2 uv, out float4 output)
@@ -14,8 +14,8 @@ void COZYSunshaftsMask_float(float2 uv, out float4 output)
     float3 worldPos = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
     float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - worldPos.xyz);
 
-    float flatCloud = SAMPLE_TEXTURE2D(_CloudTex, linear_clamp_sampler, uv).a;
-    float cloudDepth = SAMPLE_TEXTURE2D(_VolumetricCloudDepthTex, linear_clamp_sampler, uv).a;
+    float flatCloud = SAMPLE_TEXTURE2D_X(_CloudTex, linear_clamp_sampler, uv).a;
+    float cloudDepth = SAMPLE_TEXTURE2D_X(_VolumetricCloudDepthTex, linear_clamp_sampler, uv).a;
     float depthMask = 1 - (step(depth01, 0.999));
     float cloudMask = (1 - cloudDepth * CZY_Sunshafts_Screenspace_CloudMaskAmount);
     float flatCloudMask = 1 - flatCloud * CZY_Sunshafts_Screenspace_CloudMaskAmount;
@@ -59,7 +59,7 @@ void COZYSunshafts_float(float2 uv, out float4 output)
     for (int i = 0; i < samples; i++)
     {
         sampleUV -= deltaUV;
-        float sampleMask = SAMPLE_TEXTURE2D(_CozySunshaftsMaskTex, linear_clamp_sampler, sampleUV).r;
+        float sampleMask = SAMPLE_TEXTURE2D_X(_CozySunshaftsMaskTex, linear_clamp_sampler, sampleUV).r;
         accum += sampleMask * illuminationDecay * illuminationAttack;
         illuminationDecay *= clamp(CZY_Sunshafts_Screenspace_Length, 0, 0.94);
         illuminationAttack = saturate(illuminationAttack + (2.0 / samples));

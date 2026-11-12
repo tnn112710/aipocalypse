@@ -31,47 +31,49 @@ namespace DistantLands.Cozy
             
             if (!resourceData.cameraColor.IsValid()) return;
 
+            var cameraData = frameData.Get<UniversalCameraData>();
             var cozyData = frameData.GetOrCreate<CozyFrameData>();
+            TextureHandle clearTexture = CozyRenderGraphResources.GetClearTexture(renderGraph, cameraData);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Cozy Composite", out var passData))
             {
                 TextureHandle cloudTex = cozyData.cloudBuffer.IsValid()
                     ? cozyData.cloudBuffer
-                    : renderGraph.defaultResources.blackTexture;
+                    : clearTexture;
                 builder.UseTexture(cloudTex, AccessFlags.Read);
 
                 TextureHandle sunshaftsTex = cozyData.sunShaftsBuffer.IsValid()
                     ? cozyData.sunShaftsBuffer
-                    : renderGraph.defaultResources.blackTexture;
+                    : clearTexture;
                 builder.UseTexture(sunshaftsTex, AccessFlags.Read);
 
                 TextureHandle volumetricCloudTex = cozyData.volumetricCloudBuffer.IsValid()
                     ? cozyData.volumetricCloudBuffer
-                    : renderGraph.defaultResources.blackTexture;
+                    : clearTexture;
                 builder.UseTexture(volumetricCloudTex, AccessFlags.Read);
 
                 TextureHandle volumetricCloudDepthTex = cozyData.volumetricCloudDepthBuffer.IsValid()
                     ? cozyData.volumetricCloudDepthBuffer
-                    : renderGraph.defaultResources.whiteTexture;
+                    : clearTexture;
                 builder.UseTexture(volumetricCloudDepthTex, AccessFlags.Read);
 
                 TextureHandle skyTex = cozyData.skyBuffer.IsValid()
                     ? cozyData.skyBuffer
-                    : renderGraph.defaultResources.clearTextureXR;
+                    : clearTexture;
                 builder.UseTexture(skyTex, AccessFlags.Read);
 
                 TextureHandle fogTex = cozyData.fogBuffer.IsValid()
                     ? cozyData.fogBuffer
-                    : renderGraph.defaultResources.blackTexture;
+                    : clearTexture;
                 builder.UseTexture(fogTex, AccessFlags.Read);
 
                 TextureHandle beforeCloudsTex = cozyData.beforeCloudsBuffer.IsValid()
                     ? cozyData.beforeCloudsBuffer
-                    : renderGraph.defaultResources.clearTextureXR;
+                    : clearTexture;
 
                 TextureHandle afterCloudsTex = cozyData.afterCloudsBuffer.IsValid()
                     ? cozyData.afterCloudsBuffer
-                    : renderGraph.defaultResources.clearTextureXR;
+                    : clearTexture;
 
                 builder.UseTexture(beforeCloudsTex, AccessFlags.Read);
                 builder.UseTexture(afterCloudsTex, AccessFlags.Read);

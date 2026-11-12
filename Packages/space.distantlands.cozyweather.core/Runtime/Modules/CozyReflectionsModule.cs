@@ -60,6 +60,8 @@ namespace DistantLands.Cozy
         private int cachedResolution;
         private bool cachedHDR;
         private bool cachedMipMaps;
+        private ITimeModule timeModule;
+        private int pendingHourFrame = -1;
 
         public override void InitializeModule()
         {
@@ -73,10 +75,7 @@ namespace DistantLands.Cozy
                 RenderReflections();
             }
 
-            if (updateFrequency == UpdateFrequency.onHour)
-            {
-                // WeatherSphere.Time.CurrentTime.onNewHour += RenderReflections;
-            }
+            UpdateTimeSubscription();
         }
 
         public override void OnCozyUpdateLoop()
@@ -85,10 +84,18 @@ namespace DistantLands.Cozy
             {
                 base.InitializeModule();
             }
+            UpdateTimeSubscription();
 
             if (!CozyPreferences.UpdateInEditMode && !Application.isPlaying)
             {
                 return;
+            }
+
+            if (pendingHourFrame >= 0 && Time.frameCount != pendingHourFrame)
+            {
+                pendingHourFrame = -1;
+                if (updateFrequency == UpdateFrequency.onHour)
+                    RenderReflections();
             }
 
             if (reflectionCubemap == null || cachedResolution != resolution || cachedHDR != hdr || cachedMipMaps != useMipMaps)
@@ -136,6 +143,10 @@ namespace DistantLands.Cozy
 
         public override void DeinitializeModule()
         {
+            if (timeModule != null)
+                timeModule.OnNewHour -= OnNewHour;
+            timeModule = null;
+            pendingHourFrame = -1;
 
             if (reflectionCamera)
             {
@@ -145,15 +156,27 @@ namespace DistantLands.Cozy
                     DestroyImmediate(reflectionCamera.gameObject);
             }
 
-            if (updateFrequency == UpdateFrequency.onHour)
-            {
-                // CozyWeather.Events.onNewHour -= RenderReflections;
-            }
-
             if (RenderSettings.customReflectionTexture == reflectionCubemap)
                 RenderSettings.customReflectionTexture = null;
 
             DisposeReflectionTexture();
+        }
+
+        private void UpdateTimeSubscription()
+        {
+            var time = WeatherSphere != null && WeatherSphere.Time != null ? WeatherSphere.Time : null;
+            if (time == timeModule) return;
+            if (timeModule != null)
+                timeModule.OnNewHour -= OnNewHour;
+            timeModule = time;
+            if (timeModule != null)
+                timeModule.OnNewHour += OnNewHour;
+        }
+
+        private void OnNewHour(int oldHour, int newHour)
+        {
+            if (updateFrequency == UpdateFrequency.onHour)
+                pendingHourFrame = Time.frameCount;
         }
 
         public void RenderReflections()

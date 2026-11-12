@@ -3,10 +3,11 @@
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyFogVariables.hlsl"
 #include "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyUtilities.hlsl"
 
-TEXTURE2D(_FogTex); SAMPLER(sampler_FogTex);
-TEXTURE2D(_SkyTex); SAMPLER(sampler_SkyTex);
-TEXTURE2D(_HistoryTex); SAMPLER(sampler_HistoryTex);
-TEXTURE2D(_DepthHistoryTex); SAMPLER(sampler_DepthHistoryTex);
+TEXTURE2D_X(_FogTex); SAMPLER(sampler_FogTex);
+TEXTURE2D_X(_SkyTex); SAMPLER(sampler_SkyTex);
+TEXTURE2D_X(_HistoryTex); SAMPLER(sampler_HistoryTex);
+TEXTURE2D_X(_DepthHistoryTex); SAMPLER(sampler_DepthHistoryTex);
+float4x4 _CozyPrevViewProjMatrix[2];
 float _HistoryWeight;
 
 static const float DEPTH_DISTANCE = 50000.0;
@@ -491,11 +492,8 @@ void COZYVolumetricClouds_float(float2 screenUV, out float4 output, out float de
     float3 viewDir = normalize(worldPos.xyz - _WorldSpaceCameraPos.xyz);
     float radialToPlanarLinear = depth01 / (worldDepth + 0.00001);
 
-    float4 fogColor = SAMPLE_TEXTURE2D(_FogTex, sampler_FogTex, screenUV);
-    float4 skyColor = SAMPLE_TEXTURE2D(_SkyTex, sampler_SkyTex, screenUV);
-    float4 historyColor = SAMPLE_TEXTURE2D(_HistoryTex, sampler_HistoryTex, screenUV);
-    // float historyDepth = SAMPLE_TEXTURE2D(_DepthHistoryTex, sampler_DepthHistoryTex, screenUV).r;
-
+    float4 fogColor = SAMPLE_TEXTURE2D_X(_FogTex, sampler_FogTex, screenUV);
+    float4 skyColor = SAMPLE_TEXTURE2D_X(_SkyTex, sampler_SkyTex, screenUV);
     output = float4(skyColor.rgb, 0);
 
     // float4 altoVolumetricColor;
@@ -518,7 +516,29 @@ void COZYVolumetricClouds_float(float2 screenUV, out float4 output, out float de
 
     output = float4(AdjustHSV(output.rgb, CZY_Base_Weather_SaturationFilter, 0), output.a);
 
-    output = lerp(output, historyColor, _HistoryWeight);
+    if (_HistoryWeight > 0.0 && volumetricColor.a > 0.001)
+    {
+        float3 cloudWorldPosition = _WorldSpaceCameraPos.xyz + viewDir * volumetricDepth;
+        uint eyeIndex = 0;
+        #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        eyeIndex = unity_StereoEyeIndex;
+        #endif
+
+        float4 previousClipPosition = mul(_CozyPrevViewProjMatrix[eyeIndex], float4(cloudWorldPosition, 1.0));
+        if (previousClipPosition.w > 0.0)
+        {
+            float2 historyUV = previousClipPosition.xy / previousClipPosition.w * 0.5 + 0.5;
+            #if UNITY_UV_STARTS_AT_TOP
+            historyUV.y = 1.0 - historyUV.y;
+            #endif
+
+            if (all(historyUV >= 0.0) && all(historyUV <= 1.0))
+            {
+                float4 historyColor = SAMPLE_TEXTURE2D_X(_HistoryTex, sampler_HistoryTex, historyUV);
+                output = lerp(output, historyColor, _HistoryWeight * step(0.001, historyColor.a));
+            }
+        }
+    }
     // output = historyColor;
 
     #endif

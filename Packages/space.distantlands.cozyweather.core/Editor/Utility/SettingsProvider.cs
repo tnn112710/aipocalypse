@@ -59,9 +59,14 @@ namespace DistantLands.Cozy.EditorScripts
             staticLightingRotation.style.display = CozyPreferences.StaticLighting ? DisplayStyle.Flex : DisplayStyle.None;
             lightingProperties.Add(staticLightingRotation);
             lightingProperties.Add(NewPropertyField(settings, "minLightAngle"));
-            lightingProperties.Add(NewPropertyField(settings, "quantizeLighting"));
+            var quantizeLightingField = NewPropertyField(settings, "quantizeLighting");
+            lightingProperties.Add(quantizeLightingField);
             PropertyField quantizeLightingAngle = NewPropertyField(settings, "quantizeLightingAngle");
             quantizeLightingAngle.style.display = CozyPreferences.QuantizeLighting ? DisplayStyle.Flex : DisplayStyle.None;
+            quantizeLightingField.RegisterValueChangeCallback(evt =>
+            {
+                quantizeLightingAngle.style.display = CozyPreferences.QuantizeLighting ? DisplayStyle.Flex : DisplayStyle.None;
+            });
             lightingProperties.Add(quantizeLightingAngle);
 
             Label time = new Label("Time");

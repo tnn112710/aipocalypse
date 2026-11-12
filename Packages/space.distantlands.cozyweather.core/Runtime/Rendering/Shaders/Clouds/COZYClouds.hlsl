@@ -3,8 +3,8 @@
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyFogVariables.hlsl"
 #include "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyUtilities.hlsl"
 
-TEXTURE2D(_FogTex); SAMPLER(sampler_FogTex);
-TEXTURE2D(_SkyTex); SAMPLER(sampler_SkyTex);
+TEXTURE2D_X(_FogTex); SAMPLER(sampler_FogTex);
+TEXTURE2D_X(_SkyTex); SAMPLER(sampler_SkyTex);
 
 float2 GetUVForLayer(float layerHeight, float3 viewDir, out float distanceToLayer, out float clip) {
     float cloudHeight = layerHeight - _WorldSpaceCameraPos.y;
@@ -246,8 +246,8 @@ void COZYClouds_float(float2 screenUV, out float4 output) {
     float3 worldPos = ComputeWorldSpacePosition(screenUV, rawDepth, UNITY_MATRIX_I_VP);
     float worldDepth = distance(_WorldSpaceCameraPos, worldPos);
 
-    float4 fogColor = SAMPLE_TEXTURE2D(_FogTex, sampler_FogTex, screenUV);
-    float4 skyColor = SAMPLE_TEXTURE2D(_SkyTex, sampler_SkyTex, screenUV);
+    float4 fogColor = SAMPLE_TEXTURE2D_X(_FogTex, sampler_FogTex, screenUV);
+    float4 skyColor = SAMPLE_TEXTURE2D_X(_SkyTex, sampler_SkyTex, screenUV);
 
     float3 viewDir = normalize(worldPos.xyz - _WorldSpaceCameraPos.xyz);
     float radialToPlanarLinear = depth01 / (worldDepth + 0.00001);

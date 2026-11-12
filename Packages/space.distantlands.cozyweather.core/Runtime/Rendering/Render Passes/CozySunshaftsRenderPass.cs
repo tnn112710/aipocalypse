@@ -52,6 +52,8 @@ namespace DistantLands.Cozy
 
             var data = frameData.GetOrCreate<CozyFrameData>();
             var resourceData = frameData.Get<UniversalResourceData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            TextureHandle clearTexture = CozyRenderGraphResources.GetClearTexture(renderGraph, cameraData);
             
             if (!resourceData.cameraColor.IsValid()) return;
             var cameraDesc = renderGraph.GetTextureDesc(resourceData.cameraColor);
@@ -63,16 +65,17 @@ namespace DistantLands.Cozy
 
             using (var builder = renderGraph.AddRasterRenderPass<MaskPassData>("COZY Sunshafts Mask", out var maskPassData))
             {
-                maskPassData.cloudTexture = data.cloudBuffer;
-                maskPassData.volumetricCloudTexture = data.volumetricCloudBuffer;
+                maskPassData.cloudTexture = data.cloudBuffer.IsValid()
+                    ? data.cloudBuffer
+                    : clearTexture;
+                maskPassData.volumetricCloudTexture = data.volumetricCloudBuffer.IsValid()
+                    ? data.volumetricCloudBuffer
+                    : clearTexture;
                 maskPassData.material = maskMaterial;
                 maskPassData.propertyBlock = m_SharedPropertyBlock;
 
-                if (maskPassData.cloudTexture.IsValid())
-                    builder.UseTexture(maskPassData.cloudTexture, AccessFlags.Read);
-
-                if (maskPassData.volumetricCloudTexture.IsValid())
-                    builder.UseTexture(maskPassData.volumetricCloudTexture, AccessFlags.Read);
+                builder.UseTexture(maskPassData.cloudTexture, AccessFlags.Read);
+                builder.UseTexture(maskPassData.volumetricCloudTexture, AccessFlags.Read);
 
                 if (resourceData.cameraDepthTexture.IsValid())
                     builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);

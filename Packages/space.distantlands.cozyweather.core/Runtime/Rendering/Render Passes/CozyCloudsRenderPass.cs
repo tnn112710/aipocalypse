@@ -16,63 +16,135 @@ namespace DistantLands.Cozy
 {
     public class CozyCloudsHistory : CameraHistoryItem
     {
-        private int m_ColorId;
-        private int m_DepthId;
-        private Hash128 m_DescKey;
-        private BufferedRTHandleSystem m_Storage = new();
-        private int m_LastFrameNumber = -1;
+        private class EyeHistory
+        {
+            public readonly BufferedRTHandleSystem storage = new();
+            public int colorId;
+            public int depthId;
+            public Hash128 descKey;
+            public int renderingMode = -1;
+            public int lastSwapFrame = -1;
+            public int lastRenderedFrame = -1;
+            public bool hasPreviousFrame;
+            public Vector3 position;
+            public Quaternion rotation;
+            public float time;
+            public bool hasTime;
+            public readonly Matrix4x4[] viewProjMatrices = new Matrix4x4[2];
+            public Vector3 previousPosition;
+            public Quaternion previousRotation;
+            public float previousTime;
+            public bool previousHasTime;
+            public readonly Matrix4x4[] previousViewProjMatrices = new Matrix4x4[2];
+        }
+
+        private EyeHistory[] m_Eyes = { new EyeHistory(), new EyeHistory() };
 
         public override void OnCreate(BufferedRTHandleSystem owner, uint typeId)
         {
             base.OnCreate(owner, typeId);
-            m_ColorId = MakeId(0);
-            m_DepthId = MakeId(1);
+            for (int i = 0; i < m_Eyes.Length; i++)
+            {
+                m_Eyes[i].colorId = MakeId((uint)(i * 2));
+                m_Eyes[i].depthId = MakeId((uint)(i * 2 + 1));
+            }
         }
 
         public override void Reset()
         {
-            m_Storage.Dispose();
-            m_Storage = new BufferedRTHandleSystem();
-            m_DescKey = default;
-            m_LastFrameNumber = -1;
+            foreach (var eye in m_Eyes)
+                eye.storage.Dispose();
+
+            m_Eyes = new[] { new EyeHistory(), new EyeHistory() };
+            for (int i = 0; i < m_Eyes.Length; i++)
+            {
+                m_Eyes[i].colorId = MakeId((uint)(i * 2));
+                m_Eyes[i].depthId = MakeId((uint)(i * 2 + 1));
+            }
         }
 
-        public RTHandle currentColor => m_Storage.GetFrameRT(m_ColorId, 0);
-        public RTHandle previousColor => m_Storage.GetFrameRT(m_ColorId, 1);
-        public RTHandle currentDepth => m_Storage.GetFrameRT(m_DepthId, 0);
-        public RTHandle previousDepth => m_Storage.GetFrameRT(m_DepthId, 1);
+        public RTHandle CurrentColor(int eyeIndex) => m_Eyes[eyeIndex].storage.GetFrameRT(m_Eyes[eyeIndex].colorId, 0);
+        public RTHandle PreviousColor(int eyeIndex) => m_Eyes[eyeIndex].storage.GetFrameRT(m_Eyes[eyeIndex].colorId, 1);
+        public RTHandle CurrentDepth(int eyeIndex) => m_Eyes[eyeIndex].storage.GetFrameRT(m_Eyes[eyeIndex].depthId, 0);
+        public RTHandle PreviousDepth(int eyeIndex) => m_Eyes[eyeIndex].storage.GetFrameRT(m_Eyes[eyeIndex].depthId, 1);
 
-        public void Update(int width, int height)
+        public void Update(int eyeIndex, int renderingMode, int width, int height, TextureDimension dimension, int slices, RenderTextureDescriptor cameraDescriptor)
         {
-            RenderTextureDescriptor colorDesc = new RenderTextureDescriptor(width, height)
-            {
-                dimension = TextureDimension.Tex2D,
-                graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat,
-                msaaSamples = 1,
-                depthBufferBits = 0
-            };
+            EyeHistory eye = m_Eyes[eyeIndex];
+            RenderTextureDescriptor colorDesc = cameraDescriptor;
+            colorDesc.width = width;
+            colorDesc.height = height;
+            colorDesc.dimension = dimension;
+            colorDesc.volumeDepth = Mathf.Max(1, slices);
+            colorDesc.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+            colorDesc.msaaSamples = 1;
+            colorDesc.depthBufferBits = 0;
+            colorDesc.bindMS = false;
 
             Hash128 key = Hash128.Compute(ref colorDesc);
-
-            if (currentColor == null || m_DescKey != key)
+            if (CurrentColor(eyeIndex) == null || eye.descKey != key)
             {
                 RenderTextureDescriptor depthDesc = colorDesc;
                 depthDesc.graphicsFormat = GraphicsFormat.D32_SFloat;
 
-                m_Storage.ReleaseBuffer(m_ColorId);
-                m_Storage.ReleaseBuffer(m_DepthId);
-                m_Storage.AllocBuffer(m_ColorId, 2, ref colorDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, "CozyCloudsColorHistory");
-                m_Storage.AllocBuffer(m_DepthId, 2, ref depthDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, "CozyCloudsDepthHistory");
-                m_DescKey = key;
-                m_LastFrameNumber = -1;
+                eye.storage.ReleaseBuffer(eye.colorId);
+                eye.storage.ReleaseBuffer(eye.depthId);
+                eye.storage.AllocBuffer(eye.colorId, 2, ref colorDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, "CozyCloudsColorHistory");
+                eye.storage.AllocBuffer(eye.depthId, 2, ref depthDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, "CozyCloudsDepthHistory");
+                eye.descKey = key;
+                eye.lastRenderedFrame = -1;
+                eye.hasPreviousFrame = false;
             }
 
-            // URP may advance a base camera's history again for each stacked overlay.
-            if (m_LastFrameNumber != Time.frameCount)
+            if (eye.renderingMode != renderingMode)
             {
-                m_Storage.SwapAndSetReferenceSize(width, height);
-                m_LastFrameNumber = Time.frameCount;
+                eye.renderingMode = renderingMode;
+                eye.lastRenderedFrame = -1;
+                eye.hasPreviousFrame = false;
             }
+
+            if (eye.lastSwapFrame != Time.frameCount)
+            {
+                eye.storage.SwapAndSetReferenceSize(width, height);
+                eye.lastSwapFrame = Time.frameCount;
+            }
+        }
+
+        public bool TryGetPreviousFrame(int eyeIndex, out Vector3 position, out Quaternion rotation,
+            out float time, out bool hasTime, out Matrix4x4[] viewProjMatrices)
+        {
+            EyeHistory eye = m_Eyes[eyeIndex];
+            if (eye.lastRenderedFrame != Time.frameCount)
+            {
+                eye.hasPreviousFrame = eye.lastRenderedFrame == Time.frameCount - 1 && eye.lastRenderedFrame >= 0;
+                if (eye.hasPreviousFrame)
+                {
+                    eye.previousPosition = eye.position;
+                    eye.previousRotation = eye.rotation;
+                    eye.previousTime = eye.time;
+                    eye.previousHasTime = eye.hasTime;
+                    System.Array.Copy(eye.viewProjMatrices, eye.previousViewProjMatrices, 2);
+                }
+            }
+
+            position = eye.previousPosition;
+            rotation = eye.previousRotation;
+            time = eye.previousTime;
+            hasTime = eye.previousHasTime;
+            viewProjMatrices = eye.previousViewProjMatrices;
+            return eye.hasPreviousFrame;
+        }
+
+        public void RecordCurrentFrame(int eyeIndex, Vector3 position, Quaternion rotation,
+            float time, bool hasTime, Matrix4x4[] viewProjMatrices)
+        {
+            EyeHistory eye = m_Eyes[eyeIndex];
+            eye.position = position;
+            eye.rotation = rotation;
+            eye.time = time;
+            eye.hasTime = hasTime;
+            System.Array.Copy(viewProjMatrices, eye.viewProjMatrices, 2);
+            eye.lastRenderedFrame = Time.frameCount;
         }
     }
 
@@ -84,30 +156,25 @@ namespace DistantLands.Cozy
         private MaterialPropertyBlock m_SharedPropertyBlock = new();
 
         public float positionThreshold = 10f;
-        public float rotationThreshold = 2f;
+        public float rotationThreshold = 0.025f;
         public float timeThreshold = 0.005f;
 
-        private static readonly int kBlitTexturePropertyId = Shader.PropertyToID("_BlitTexture");
         private static readonly int kFogTexPropertyId = Shader.PropertyToID("_FogTex");
         private static readonly int kSkyTexPropertyId = Shader.PropertyToID("_SkyTex");
         private static readonly int kHistoryTexPropertyId = Shader.PropertyToID("_HistoryTex");
         private static readonly int kDepthHistoryTexPropertyId = Shader.PropertyToID("_DepthHistoryTex");
-        private static readonly int kPrevViewProjMatrixId = Shader.PropertyToID("_PrevViewProjMatrix");
+        private static readonly int kPrevViewProjMatrixId = Shader.PropertyToID("_CozyPrevViewProjMatrix");
         private static readonly int kHistoryWeightPropertyId = Shader.PropertyToID("_HistoryWeight");
-
-        private float m_PrevTime;
-        private bool m_HasPrevTime;
 
         private class VolumetricPassData
         {
             public Material material;
             public MaterialPropertyBlock propertyBlock;
-            public TextureHandle inputTexture;
             public TextureHandle historyTexture;
             public TextureHandle depthHistoryTexture;
             public TextureHandle fogTexture;
             public TextureHandle skyTexture;
-            public Matrix4x4 prevViewProjMatrix;
+            public Matrix4x4[] prevViewProjMatrices;
             public float historyWeight;
         }
 
@@ -115,7 +182,6 @@ namespace DistantLands.Cozy
         {
             public Material material;
             public MaterialPropertyBlock propertyBlock;
-            public TextureHandle inputTexture;
             public TextureHandle fogTexture;
             public TextureHandle skyTexture;
         }
@@ -133,11 +199,16 @@ namespace DistantLands.Cozy
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var cozyData = frameData.GetOrCreate<CozyFrameData>();
+            TextureHandle clearTexture = CozyRenderGraphResources.GetClearTexture(renderGraph, cameraData);
+            cozyData.volumetricCloudBuffer = clearTexture;
+            cozyData.volumetricCloudDepthBuffer = clearTexture;
+            cozyData.cloudBuffer = clearTexture;
+
             if (!CozyPreferences.CurrentStyle.UseClouds) return;
 
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            var cozyData = frameData.GetOrCreate<CozyFrameData>();
-            var cameraData = frameData.Get<UniversalCameraData>();
             if (cameraData.renderType == CameraRenderType.Overlay) return;
 
 #if UNITY_EDITOR
@@ -156,45 +227,51 @@ namespace DistantLands.Cozy
                 int targetHeight = Mathf.Max(1, (int)(cameraDesc.height / (float)CozyPreferences.CloudDownsampling));
 
                 TextureHandle historyWrite, historyRead, historyDepthWrite, historyDepthRead;
-                bool useTemporalHistory = false;
-
-                if (cameraData.historyManager != null)
+                bool xrEnabled = cameraData.xr.enabled;
+                bool xrSinglePass = xrEnabled && cameraData.xr.singlePassEnabled;
+                int eyeIndex = xrEnabled && !xrSinglePass ? cameraData.xr.multipassId : 0;
+                int renderingMode = !xrEnabled ? 0 : xrSinglePass ? 1 : 2;
+                CozyCloudsHistory cloudsHistory = null;
+                if (eyeIndex < 0 || eyeIndex >= 2)
+                {
+                    Debug.LogWarning($"COZY cloud history does not support XR multipass eye index {eyeIndex}; using scratch textures.", currentCamera);
+                }
+                else if (cameraData.historyManager != null)
                 {
                     cameraData.historyManager.RequestAccess<CozyCloudsHistory>();
-                    CozyCloudsHistory cloudsHistory = cameraData.historyManager.GetHistoryForWrite<CozyCloudsHistory>();
+                    cloudsHistory = cameraData.historyManager.GetHistoryForWrite<CozyCloudsHistory>();
+                }
 
-                    if (cloudsHistory != null)
-                    {
-                        cloudsHistory.Update(targetWidth, targetHeight);
+                if (cloudsHistory != null)
+                {
+                    cloudsHistory.Update(
+                        eyeIndex,
+                        renderingMode,
+                        targetWidth,
+                        targetHeight,
+                        cameraDesc.dimension,
+                        cameraDesc.slices,
+                        cameraData.cameraTargetDescriptor);
 
-                        historyWrite = renderGraph.ImportTexture(cloudsHistory.currentColor);
-                        historyRead = renderGraph.ImportTexture(cloudsHistory.previousColor);
-                        historyDepthWrite = renderGraph.ImportTexture(cloudsHistory.currentDepth);
-                        historyDepthRead = renderGraph.ImportTexture(cloudsHistory.previousDepth);
-                        useTemporalHistory = true;
-                    }
-                    else
-                    {
-                        historyWrite = historyRead = historyDepthWrite = historyDepthRead = TextureHandle.nullHandle;
-                    }
+                    historyWrite = renderGraph.ImportTexture(cloudsHistory.CurrentColor(eyeIndex));
+                    historyRead = renderGraph.ImportTexture(cloudsHistory.PreviousColor(eyeIndex));
+                    historyDepthWrite = renderGraph.ImportTexture(cloudsHistory.CurrentDepth(eyeIndex));
+                    historyDepthRead = renderGraph.ImportTexture(cloudsHistory.PreviousDepth(eyeIndex));
                 }
                 else
                 {
-                    historyWrite = historyRead = historyDepthWrite = historyDepthRead = TextureHandle.nullHandle;
-                }
-
-                if (!useTemporalHistory)
-                {
-                    var scratchColorDesc = new TextureDesc(targetWidth, targetHeight)
-                    {
-                        colorFormat = GraphicsFormat.R16G16B16A16_SFloat,
-                        dimension = TextureDimension.Tex2D,
-                        msaaSamples = MSAASamples.None,
-                        name = "ScratchVolumetricCloudsTexture"
-                    };
+                    var scratchColorDesc = cameraDesc;
+                    scratchColorDesc.width = targetWidth;
+                    scratchColorDesc.height = targetHeight;
+                    scratchColorDesc.colorFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                    scratchColorDesc.depthBufferBits = 0;
+                    scratchColorDesc.msaaSamples = MSAASamples.None;
+                    scratchColorDesc.clearBuffer = true;
+                    scratchColorDesc.clearColor = Color.clear;
+                    scratchColorDesc.name = "ScratchVolumetricCloudsTexture";
 
                     var scratchDepthDesc = scratchColorDesc;
-                    scratchDepthDesc.colorFormat = GraphicsFormat.D32_SFloat;
+                    scratchDepthDesc.depthBufferBits = DepthBits.Depth32;
                     scratchDepthDesc.name = "ScratchVolumetricCloudsDepth";
 
                     historyWrite = renderGraph.CreateTexture(scratchColorDesc);
@@ -203,43 +280,56 @@ namespace DistantLands.Cozy
                     historyDepthRead = renderGraph.CreateTexture(scratchDepthDesc);
                 }
 
-                Matrix4x4 viewMatrix = currentCamera.worldToCameraMatrix;
-                Matrix4x4 projMatrix = currentCamera.nonJitteredProjectionMatrix;
-                Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(projMatrix, true);
-                Matrix4x4 viewProj = gpuProj * viewMatrix;
+                int viewCount = xrEnabled ? Mathf.Clamp(cameraData.xr.viewCount, 1, 2) : 1;
+                Matrix4x4[] currentViewProjMatrices = new Matrix4x4[2];
+                for (int viewIndex = 0; viewIndex < viewCount; viewIndex++)
+                {
+                    Matrix4x4 viewMatrix = cameraData.GetViewMatrix(viewIndex);
+                    Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix(viewIndex);
+                    currentViewProjMatrices[viewIndex] = GL.GetGPUProjectionMatrix(projectionMatrix, true) * viewMatrix;
+                }
 
-                Matrix4x4 prevViewProjMatrix = viewProj;
-                Vector3 prevCamPos = currentCamera.transform.position;
-                Quaternion prevCamRot = currentCamera.transform.rotation;
+                if (viewCount == 1)
+                    currentViewProjMatrices[1] = currentViewProjMatrices[0];
+
+                Vector3 currentCamPos = currentCamera.transform.position;
+                Quaternion currentCamRot = currentCamera.transform.rotation;
+                if (xrEnabled)
+                {
+                    Matrix4x4 inverseView = cameraData.GetViewMatrix(0).inverse;
+                    currentCamPos = inverseView.GetColumn(3);
+                    currentCamRot = Quaternion.LookRotation(-inverseView.GetColumn(2), inverseView.GetColumn(1));
+                }
+
+                Matrix4x4[] prevViewProjMatrices = (Matrix4x4[])currentViewProjMatrices.Clone();
+                Vector3 prevCamPos = currentCamPos;
+                Quaternion prevCamRot = currentCamRot;
                 bool hasPrevCameraFrame = false;
-
-                if (cameraData.historyManager != null)
-                {
-                    cameraData.historyManager.RequestAccess<CozyCameraMotionHistory>();
-                    CozyCameraMotionHistory cameraMotion = cameraData.historyManager.GetHistoryForWrite<CozyCameraMotionHistory>();
-
-                    if (cameraMotion != null)
-                    {
-                        hasPrevCameraFrame = cameraMotion.TryGetPreviousFrame(out prevCamPos, out prevCamRot, out _, out prevViewProjMatrix);
-                        cameraMotion.RecordCurrentFrame(currentCamera, viewMatrix, viewProj);
-                    }
-                }
-
+                bool hasTime = CozyWeather.Instance.Time != null;
+                float currentTime = hasTime ? CozyWeather.Instance.Time.CurrentTime : 0f;
                 float timeMovement = 0f;
-                if (CozyWeather.Instance.Time != null)
+                if (cloudsHistory != null)
                 {
-                    if (m_HasPrevTime)
-                        timeMovement = Mathf.Abs(m_PrevTime - CozyWeather.Instance.Time.CurrentTime);
-                    m_PrevTime = CozyWeather.Instance.Time.CurrentTime;
-                    m_HasPrevTime = true;
+                    hasPrevCameraFrame = cloudsHistory.TryGetPreviousFrame(
+                        eyeIndex, out Vector3 previousPosition, out Quaternion previousRotation,
+                        out float previousTime, out bool previousHasTime, out Matrix4x4[] previousMatrices);
+                    if (hasPrevCameraFrame)
+                    {
+                        prevCamPos = previousPosition;
+                        prevCamRot = previousRotation;
+                        System.Array.Copy(previousMatrices, prevViewProjMatrices, prevViewProjMatrices.Length);
+                        if (hasTime && previousHasTime)
+                            timeMovement = Mathf.Abs(previousTime - currentTime);
+                    }
+                    cloudsHistory.RecordCurrentFrame(eyeIndex, currentCamPos, currentCamRot, currentTime, hasTime, currentViewProjMatrices);
                 }
 
-                float posMovement = Vector3.Distance(currentCamera.transform.position, prevCamPos);
-                float rotMovement = Quaternion.Angle(currentCamera.transform.rotation, prevCamRot);
+                float posMovement = Vector3.Distance(currentCamPos, prevCamPos);
+                float rotMovement = Quaternion.Angle(currentCamRot, prevCamRot);
 
                 float currentHistoryWeight = 0.8f;
-                if (!useTemporalHistory || !hasPrevCameraFrame ||
-                    posMovement > positionThreshold || rotMovement > 0.005f || timeMovement > timeThreshold)
+                if (!hasPrevCameraFrame || posMovement > positionThreshold ||
+                    rotMovement > (xrEnabled ? 5f : rotationThreshold) || timeMovement > timeThreshold)
                 {
                     currentHistoryWeight = 0.0f;
                 }
@@ -251,18 +341,19 @@ namespace DistantLands.Cozy
 
                     passData.material = volumetricMaterial;
                     passData.propertyBlock = m_SharedPropertyBlock;
-                    passData.fogTexture = cozyData.fogBuffer;
-                    passData.skyTexture = cozyData.skyBuffer;
+                    passData.fogTexture = cozyData.fogBuffer.IsValid()
+                        ? cozyData.fogBuffer
+                        : clearTexture;
+                    passData.skyTexture = cozyData.skyBuffer.IsValid()
+                        ? cozyData.skyBuffer
+                        : clearTexture;
                     passData.historyTexture = historyRead;
                     passData.depthHistoryTexture = historyDepthRead;
-                    passData.prevViewProjMatrix = prevViewProjMatrix;
+                    passData.prevViewProjMatrices = prevViewProjMatrices;
                     passData.historyWeight = currentHistoryWeight;
 
-                    if (passData.fogTexture.IsValid())
-                        builder.UseTexture(passData.fogTexture, AccessFlags.Read);
-
-                    if (passData.skyTexture.IsValid())
-                        builder.UseTexture(passData.skyTexture, AccessFlags.Read);
+                    builder.UseTexture(passData.fogTexture, AccessFlags.Read);
+                    builder.UseTexture(passData.skyTexture, AccessFlags.Read);
 
                     builder.UseTexture(passData.historyTexture, AccessFlags.Read);
                     builder.UseTexture(passData.depthHistoryTexture, AccessFlags.Read);
@@ -271,13 +362,15 @@ namespace DistantLands.Cozy
                     builder.SetRenderAttachment(historyWrite, 0, AccessFlags.Write);
                     builder.SetRenderAttachmentDepth(historyDepthWrite, AccessFlags.Write);
 
+                    if (cloudsHistory != null)
+                        builder.AllowPassCulling(false);
                     builder.SetRenderFunc<VolumetricPassData>(ExecuteVolumetricsPass);
                 }
             }
             else
             {
-                cozyData.volumetricCloudBuffer = renderGraph.defaultResources.blackTexture;
-                cozyData.volumetricCloudDepthBuffer = renderGraph.defaultResources.whiteTexture;
+                cozyData.volumetricCloudBuffer = clearTexture;
+                cozyData.volumetricCloudDepthBuffer = clearTexture;
             }
 
             if (CozyPreferences.CurrentStyle.UseCloudsAltocumulus || CozyPreferences.CurrentStyle.UseCloudsCumulus || CozyPreferences.CurrentStyle.UseCloudsContrails || CozyPreferences.CurrentStyle.UseCloudsCirrus)
@@ -296,14 +389,15 @@ namespace DistantLands.Cozy
 
                     passData.material = layeredMaterial;
                     passData.propertyBlock = m_SharedPropertyBlock;
-                    passData.fogTexture = cozyData.fogBuffer;
-                    passData.skyTexture = cozyData.skyBuffer;
+                    passData.fogTexture = cozyData.fogBuffer.IsValid()
+                        ? cozyData.fogBuffer
+                        : clearTexture;
+                    passData.skyTexture = cozyData.skyBuffer.IsValid()
+                        ? cozyData.skyBuffer
+                        : clearTexture;
 
-                    if (passData.fogTexture.IsValid())
-                        builder.UseTexture(passData.fogTexture, AccessFlags.Read);
-
-                    if (passData.skyTexture.IsValid())
-                        builder.UseTexture(passData.skyTexture, AccessFlags.Read);
+                    builder.UseTexture(passData.fogTexture, AccessFlags.Read);
+                    builder.UseTexture(passData.skyTexture, AccessFlags.Read);
 
                     builder.SetRenderAttachment(cloudHandle, 0, AccessFlags.Write);
                     builder.SetRenderFunc<MainPassData>(ExecuteRenderCloudsPass);
@@ -331,9 +425,6 @@ namespace DistantLands.Cozy
         {
             data.propertyBlock.Clear();
 
-            if (data.inputTexture.IsValid())
-                data.propertyBlock.SetTexture(kBlitTexturePropertyId, data.inputTexture);
-
             if (data.fogTexture.IsValid())
                 data.propertyBlock.SetTexture(kFogTexPropertyId, data.fogTexture);
 
@@ -346,7 +437,7 @@ namespace DistantLands.Cozy
             if (data.depthHistoryTexture.IsValid())
                 data.propertyBlock.SetTexture(kDepthHistoryTexPropertyId, data.depthHistoryTexture);
 
-            data.propertyBlock.SetMatrix(kPrevViewProjMatrixId, data.prevViewProjMatrix);
+            data.propertyBlock.SetMatrixArray(kPrevViewProjMatrixId, data.prevViewProjMatrices);
             data.propertyBlock.SetFloat(kHistoryWeightPropertyId, data.historyWeight);
 
             context.cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1, data.propertyBlock);
@@ -355,9 +446,6 @@ namespace DistantLands.Cozy
         private static void ExecuteRenderCloudsPass(MainPassData data, RasterGraphContext context)
         {
             data.propertyBlock.Clear();
-
-            if (data.inputTexture.IsValid())
-                data.propertyBlock.SetTexture(kBlitTexturePropertyId, data.inputTexture);
 
             if (data.fogTexture.IsValid())
                 data.propertyBlock.SetTexture(kFogTexPropertyId, data.fogTexture);

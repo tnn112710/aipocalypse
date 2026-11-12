@@ -14,12 +14,14 @@ namespace DistantLands.Cozy
         private Quaternion m_PrevRotation;
         private Matrix4x4 m_PrevViewMatrix;
         private Matrix4x4 m_PrevViewProjMatrix;
+        private readonly Matrix4x4[] m_PrevViewProjMatrices = new Matrix4x4[2];
         private bool m_HasPreviousFrame;
 
         private Vector3 m_PendingPosition;
         private Quaternion m_PendingRotation;
         private Matrix4x4 m_PendingViewMatrix;
         private Matrix4x4 m_PendingViewProjMatrix;
+        private readonly Matrix4x4[] m_PendingViewProjMatrices = new Matrix4x4[2];
 
         private int m_LastFrameNumber = -1;
 
@@ -27,6 +29,8 @@ namespace DistantLands.Cozy
         {
             m_HasPreviousFrame = false;
             m_LastFrameNumber = -1;
+            System.Array.Clear(m_PrevViewProjMatrices, 0, m_PrevViewProjMatrices.Length);
+            System.Array.Clear(m_PendingViewProjMatrices, 0, m_PendingViewProjMatrices.Length);
         }
         public bool TryGetPreviousFrame(out Vector3 position, out Quaternion rotation, out Matrix4x4 viewMatrix, out Matrix4x4 viewProjMatrix)
         {
@@ -47,6 +51,26 @@ namespace DistantLands.Cozy
             m_PendingRotation = camera.transform.rotation;
             m_PendingViewMatrix = viewMatrix;
             m_PendingViewProjMatrix = viewProjMatrix;
+            m_PendingViewProjMatrices[0] = viewProjMatrix;
+            m_PendingViewProjMatrices[1] = viewProjMatrix;
+        }
+
+        public bool TryGetPreviousViewProjMatrices(out Matrix4x4[] viewProjMatrices)
+        {
+            AdvanceToCurrentFrame();
+            viewProjMatrices = m_PrevViewProjMatrices;
+            return m_HasPreviousFrame;
+        }
+
+        public void RecordCurrentFrame(Camera camera, Matrix4x4 viewMatrix, Matrix4x4[] viewProjMatrices)
+        {
+            AdvanceToCurrentFrame();
+
+            m_PendingPosition = camera.transform.position;
+            m_PendingRotation = camera.transform.rotation;
+            m_PendingViewMatrix = viewMatrix;
+            m_PendingViewProjMatrix = viewProjMatrices[0];
+            System.Array.Copy(viewProjMatrices, m_PendingViewProjMatrices, Mathf.Min(viewProjMatrices.Length, m_PendingViewProjMatrices.Length));
         }
 
         private void AdvanceToCurrentFrame()
@@ -60,6 +84,7 @@ namespace DistantLands.Cozy
                 m_PrevRotation = m_PendingRotation;
                 m_PrevViewMatrix = m_PendingViewMatrix;
                 m_PrevViewProjMatrix = m_PendingViewProjMatrix;
+                System.Array.Copy(m_PendingViewProjMatrices, m_PrevViewProjMatrices, m_PendingViewProjMatrices.Length);
                 m_HasPreviousFrame = true;
             }
 

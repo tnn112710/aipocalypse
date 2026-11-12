@@ -199,7 +199,6 @@ namespace DistantLands.Cozy.EditorScripts
             AddProperty(playbackOptionsContainer, "initialTrack");
             AddProperty(playbackOptionsContainer, "skipTrackIfChanceIsZero");
             AddProperty(playbackOptionsContainer, "transitionType");
-
             return root;
         }
 

@@ -29,6 +29,7 @@ namespace DistantLands.Cozy
             get => currentDate;
             set
             {
+                if (currentDate == value) return;
                 int oldYear = currentDate.year;
                 currentDate = value;
                 RunChangeDayEvents();
@@ -484,23 +485,41 @@ namespace DistantLands.Cozy
             timeSkipCoroutine = null;
         }
 
+        [Serializable]
+        private class RuntimeEventCollection
+        {
+            public List<RuntimeEvent> events;
+        }
+
         public SavedData Save()
         {
             List<string> saveString = new()
             {
                 JsonUtility.ToJson(CurrentTime),
                 JsonUtility.ToJson(CurrentDate),
-                JsonUtility.ToJson(RuntimeEvents)
+                JsonUtility.ToJson(new RuntimeEventCollection { events = RuntimeEvents })
             };
 
-            return new SavedData(GetType().Name, saveString);
+            return new SavedData(GetType().FullName, saveString);
         }
 
         public void Load(SavedData saveString)
         {
+            if (saveString.properties == null || saveString.properties.Count < 3)
+            {
+                Debug.LogError("COZY time save is missing required data.", this);
+                return;
+            }
+            var events = JsonUtility.FromJson<RuntimeEventCollection>(saveString.properties[2]);
+            if (events == null || events.events == null)
+            {
+                Debug.LogError("COZY time save is missing runtime events.", this);
+                return;
+            }
+            RuntimeEvents = events.events;
             CurrentTime = JsonUtility.FromJson<MeridiemTime>(saveString.properties[0]);
             CurrentDate = JsonUtility.FromJson<MeridiemDate>(saveString.properties[1]);
-            RuntimeEvents = JsonUtility.FromJson<List<RuntimeEvent>>(saveString.properties[2]);
+            RefreshTodaysEvents();
         }
 
         /// <summary>

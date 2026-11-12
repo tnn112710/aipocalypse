@@ -28,13 +28,14 @@ namespace DistantLands.Cozy
         ChangeViaScripting,
     }
     /// <summary>
-    /// Determine the weather behavior when the game starts
+    /// Determine the weather behavior when the game starts. None uses the editor preview weather.
     /// </summary>
     public enum WeatherInitializationBehavior
     {
         SetWeather,
         SetRandomWeather,
         SetForecast,
+        None,
     }
 
     /// <summary>

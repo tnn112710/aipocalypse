@@ -69,6 +69,14 @@ namespace DistantLands.Cozy.EditorScripts
                 return new(StatusType.Fail, "URP is not installed");
                 #endif
             }),
+            new SetupCheck("Visual Effect Graph", () =>
+            {
+                #if COZY_VFX_GRAPH
+                return new(StatusType.Pass, "Visual Effect Graph is installed");
+                #else
+                return new(StatusType.Warning, "Visual Effect Graph is not installed. Install it using Package Manager to enable rain, snow, and fog effects that use VFX Graph.");
+                #endif
+            }),
             new SetupCheck("Compute Shaders", () =>
             {
                 if (SystemInfo.supportsComputeShaders)
@@ -195,6 +203,77 @@ namespace DistantLands.Cozy.EditorScripts
 
                 so.ApplyModifiedProperties();
                 EditorUtility.SetDirty(rendererData);
+                AssetDatabase.SaveAssets();
+            }),
+            new SetupCheck("FX Blocking Renderer", () =>
+            {
+                if (!CozyPreferences.RenderFXBlocking)
+                    return new(StatusType.Pass, "FX blocking is disabled");
+
+                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                if (urpAsset == null)
+                    return new(StatusType.Warning, "FX blocking requires an active URP asset");
+
+                var renderers = GetRendererDataList(urpAsset);
+                int index = CozyPreferences.FXBlockingRendererIndex;
+                if (renderers == null || index < 0 || index >= renderers.Length || renderers[index] == null)
+                    return new(StatusType.Warning, "Select a valid lightweight renderer for the FX blocking camera");
+                if (index == GetDefaultRendererIndex(urpAsset) || renderers[index].rendererFeatures.Any(feature => feature != null && feature.isActive))
+                    return new(StatusType.Warning, "FX blocking uses the main renderer or a renderer with active features. Create a lightweight renderer to avoid unnecessary rendering.");
+                return new(StatusType.Pass, $"FX blocking uses {renderers[index].name}");
+            }, "Create Renderer", () =>
+            {
+                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                if (urpAsset == null)
+                {
+                    Debug.LogError("[COZY Setup] Cannot create an FX blocking renderer without an active URP asset.");
+                    return;
+                }
+
+                var renderers = GetRendererDataList(urpAsset);
+                int defaultIndex = GetDefaultRendererIndex(urpAsset);
+                if (renderers == null || defaultIndex < 0 || defaultIndex >= renderers.Length || !(renderers[defaultIndex] is UniversalRendererData source))
+                {
+                    Debug.LogError("[COZY Setup] Cannot create an FX blocking renderer: the default Universal Renderer data is missing.");
+                    return;
+                }
+                if (!AssetDatabase.IsOpenForEdit(urpAsset) || !AssetDatabase.IsOpenForEdit(CozyPreferences.Instance))
+                {
+                    Debug.LogError("[COZY Setup] The URP asset and COZY settings must be editable to configure the FX blocking renderer.");
+                    return;
+                }
+
+                var pipelineSettings = new SerializedObject(urpAsset);
+                var rendererList = pipelineSettings.FindProperty("m_RendererDataList");
+                if (rendererList == null || !rendererList.isArray)
+                {
+                    Debug.LogError("[COZY Setup] Cannot find the URP renderer list.");
+                    return;
+                }
+
+                var renderer = Instantiate(source);
+                renderer.name = "COZY FX Blocking Renderer";
+                var rendererSettings = new SerializedObject(renderer);
+                var features = rendererSettings.FindProperty("m_RendererFeatures");
+                var featureMap = rendererSettings.FindProperty("m_RendererFeatureMap");
+                if (features == null || featureMap == null)
+                {
+                    DestroyImmediate(renderer);
+                    Debug.LogError("[COZY Setup] Cannot clear renderer features from the FX blocking renderer.");
+                    return;
+                }
+                features.ClearArray();
+                featureMap.ClearArray();
+                rendererSettings.ApplyModifiedPropertiesWithoutUndo();
+                AssetDatabase.CreateAsset(renderer, AssetDatabase.GenerateUniqueAssetPath("Assets/COZY FX Blocking Renderer.asset"));
+
+                int index = rendererList.arraySize;
+                rendererList.arraySize++;
+                rendererList.GetArrayElementAtIndex(index).objectReferenceValue = renderer;
+                pipelineSettings.ApplyModifiedProperties();
+                CozyPreferences.FXBlockingRendererIndex = index;
+                EditorUtility.SetDirty(CozyPreferences.Instance);
+                EditorUtility.SetDirty(urpAsset);
                 AssetDatabase.SaveAssets();
             }),
             new SetupCheck("Linear Colorspace", () =>

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace DistantLands.Cozy
 {
+    [System.Serializable]
     public struct SavedData
     {
         public string key;

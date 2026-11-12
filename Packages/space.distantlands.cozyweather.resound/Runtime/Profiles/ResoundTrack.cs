@@ -10,14 +10,14 @@ namespace DistantLands.Cozy
         [Tooltip("Specifies the minimum length for this track in real-world time.")]
         [SerializeField]
         private MeridiemTimeDelta minTime = new MeridiemTimeDelta(0, 30);
-        public MeridiemTimeDelta MinTime => LoopMode == LoopMethod.PlayOnce ? clip.length : minTime;
+        public MeridiemTimeDelta MinTime => LoopMode == LoopMethod.PlayOnce ? clip.length / 86400f : minTime;
         
         [Tooltip("Specifies the maximum length for this track in real-world time.")]
         [SerializeField]
         private MeridiemTimeDelta maxTime = new MeridiemTimeDelta(2, 30);
 
 
-        public MeridiemTimeDelta MaxTime => LoopMode == LoopMethod.PlayOnce ? clip.length : maxTime;
+        public MeridiemTimeDelta MaxTime => LoopMode == LoopMethod.PlayOnce ? clip.length / 86400f : maxTime;
 
 
         [SerializeField]
@@ -41,8 +41,21 @@ namespace DistantLands.Cozy
 
 
         [SerializeField]
-        private WeightedRandomChance chance;
-        public float Chance => chance;
+        private WeightedRandomChance chance = new WeightedRandomChance();
+
+        /// <summary>
+        /// Gets the weight evaluated against the current COZY conditions, or the base weight
+        /// if no weather system is present. Setting it changes the base weight.
+        /// </summary>
+        public float Chance
+        {
+            get
+            {
+                CozyWeather weather = CozyWeather.Instance;
+                return chance.GetChance(weather != null ? ConditionSnapshot.GetConditions(weather) : default);
+            }
+            set => chance.baseChance = Mathf.Clamp01(value);
+        }
         public float GetChance(ConditionSnapshot conditions) => chance.GetChance(conditions);
     }
 }

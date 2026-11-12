@@ -50,6 +50,7 @@ namespace DistantLands.Cozy
                 camObj.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
                 fxBlockingCamera = camObj.AddComponent<Camera>();
+                camObj.AddComponent<CozyCameraRendering>();
                 UniversalAdditionalCameraData additionalCameraData = camObj.AddComponent<UniversalAdditionalCameraData>();
                 fxBlockingCamera.cullingMask = CozyPreferences.FXBlockLayerMask;
                 fxBlockingCamera.clearFlags = CameraClearFlags.SolidColor;

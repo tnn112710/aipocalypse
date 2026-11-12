@@ -74,13 +74,18 @@ namespace DistantLands.Cozy
         public override void Initialize()
         {
 #if COZY_BUTO
+#if Unity_6000_5_OR_NEWER
             Volume[] volumes = UnityEngine.Object.FindObjectsByType<Volume>();
+#else
+            Volume[] volumes = UnityEngine.Object.FindObjectsByType<Volume>(FindObjectsSortMode.None);
+#endif
             foreach (Volume volume in volumes)
             {
                 if (volume.isGlobal)
                     if (volume.profile != null)
                     {
-                        volume.profile.TryGet(out buto);
+                        if (volume.profile.TryGet(out buto))
+                            butoVolume = volume;
                     }
             }
 #endif

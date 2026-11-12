@@ -34,7 +34,7 @@ namespace DistantLands.Cozy.EditorScripts.Generation
 
                     string materialName = string.IsNullOrEmpty(feature.shaderName) ? layer.name : feature.shaderName;
                     AppendMaterialProperty(materialsBuilder, generatedMaterials, materialName);
-                    keywordsBuilder.AppendLine($"            {materialName}Material.SetKeyword(CozyShaderIDs.use{layer.name}{feature.name}, CozyPreferences.CurrentStyle.Use{layer.name}{feature.name});");
+                    keywordsBuilder.AppendLine($"            if ({materialName}Material != null) {materialName}Material.SetKeyword(CozyShaderIDs.use{layer.name}{feature.name}, CozyPreferences.CurrentStyle.Use{layer.name}{feature.name});");
                 }
             }
 

@@ -47,10 +47,10 @@ namespace DistantLands.Cozy
 
             if (audioSources.Length > 0)
             {
-                for (int i = audioSources.Length; i > 0; --i)
+                for (int i = audioSources.Length - 1; i >= 0; --i)
                 {
                     if (audioSources[i].source != null && audioSources[i].source.gameObject)
-                    Destroy(audioSources[i].source.gameObject);
+                        Destroy(audioSources[i].source.gameObject);
                 }
             }
 
@@ -172,9 +172,11 @@ namespace DistantLands.Cozy
             if (audioSources.Length == 0)
                 SetupThunderAudioSources();
 
+            if (thunderSounds.Length <= 0) return;
+
             (AudioSource source, AudioLowPassFilter lp) source = audioSources[thunderAudioSourceIndex];
 
-            source.source.clip = thunderSounds[Random.Range(0, thunderSounds.Length)];
+            source.source.clip = thunderSounds[Random.Range(0, thunderSounds.Length - 1)];
             source.source.transform.position = position;
             source.source.Play();
 
