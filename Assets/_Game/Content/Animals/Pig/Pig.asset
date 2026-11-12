@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Pig
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
   DisplayName: Pig
-  WalkSpeed: 0.8
-  HurrySpeed: 1.3
+  WalkSpeed: 0.75
+  HurrySpeed: 1.25
   FleeSpeed: 2.6
   StopDistance: 0.4
   GrassBendRadius: 0.8
@@ -23,6 +23,13 @@ MonoBehaviour:
   GrazeTime: {x: 5, y: 12}
   TravelTimeout: 60
   DestinationAttempts: 8
+  IdleChance: 0.3
+  IdleTime: {x: 4, y: 10}
+  Fidgets: 1
+  DriftChance: 0.6
+  DriftDistance: {x: 0.8, y: 2}
+  DartChance: 0
+  ScareScale: 1
   FollowsLeader: 0
   FlockRadius: 5
   TokensPerDayPenned: 12

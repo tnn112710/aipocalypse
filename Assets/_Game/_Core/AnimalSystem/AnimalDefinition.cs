@@ -24,6 +24,15 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Min(1f), Tooltip("Gives up on a spot after this many seconds of walking")] public float TravelTimeout = 60f;
         [Min(1)] public int DestinationAttempts = 8;
 
+        [Header("Variety")]
+        [Range(0f, 1f), Tooltip("Chance that, done walking, it stands and looks about instead of eating")] public float IdleChance = 0.25f;
+        [Tooltip("Seconds it stands about (min, max)")] public Vector2 IdleTime = new(3f, 7f);
+        [Min(0), Tooltip("Spare idle clips its controller has (Idle parameter 1..n; set by AnimalSetup)")] public int Fidgets = 1;
+        [Range(0f, 1f), Tooltip("Chance its next move is a short step on, head down, instead of a walk to a new spot")] public float DriftChance = 0.65f;
+        [Tooltip("How far a short step goes (m, min, max)")] public Vector2 DriftDistance = new(0.8f, 2f);
+        [Range(0f, 1f), Tooltip("Chance a short step is a dart at hurry pace (chickens)")] public float DartChance;
+        [Min(0.1f), Tooltip("Scales how close the player and gunshots may come before it moves off (jumpy kinds above 1)")] public float ScareScale = 1f;
+
         [Header("Flock")]
         [Tooltip("Grazes round the first of its kind out on the pasture (the leader) instead of anywhere in it")]
         public bool FollowsLeader;

@@ -100,15 +100,24 @@ public static class AnimalPlayCheck
         // 2. Grazing inside the pen.
         var before = herd.Animals.ToDictionary(a => a, a => a.transform.position);
         bool ate = false;
-        for (int i = 0; i < 30; i++)
+        var fidgeted = new System.Collections.Generic.HashSet<string>();
+        bool darted = false;
+        for (int i = 0; i < 60; i++)
         {
             await Seconds(0.5f);
             ate |= herd.Animals.Any(a => a.Eating);
+            foreach (Animal a in herd.Animals.Where(a => a.Fidget > 0))
+                fidgeted.Add(a.Definition.DisplayName);
+            darted |= herd.Animals.Any(a => a.Darting && a.Definition.DisplayName == "Chicken");
         }
         foreach (var kind in herd.Animals.GroupBy(a => a.Definition))
             Check($"{kind.Key.DisplayName}s walk about the pen", kind.Max(a => Vector3.Distance(before[a], a.transform.position)) > 0.8f,
                 $"furthest {kind.Max(a => Vector3.Distance(before[a], a.transform.position)):0.0} m");
         Check("they eat", ate);
+        Check("now and then they stand about with a spare idle", fidgeted.Count >= 2, string.Join(", ", fidgeted));
+        Check("chickens dart", darted);
+        Check("each has its own pace", herd.Animals.Select(a => Mathf.Round(a.Pace * 100f)).Distinct().Count() > herd.Animals.Count / 2,
+            string.Join(" ", herd.Animals.Select(a => a.Pace.ToString("0.00"))));
         Check("none left the pen", herd.CountHome() == herd.Animals.Count, Where());
 
         // 3. Tokens: shown, not taken by walking up, taken with the Collect key.
@@ -138,6 +147,15 @@ public static class AnimalPlayCheck
             Beside(grazer, settings.NoticeRadius * 0.7f);
             await Seconds(1.2f);
             Check("a grazing animal looks up at the player", !grazer.Eating && !grazer.Startled, grazer.name);
+            // Its meal may end meanwhile and it steps on: the closest it came to facing them in 3 s.
+            float facing = 180f;
+            for (int i = 0; i < 12; i++)
+            {
+                await Seconds(0.25f);
+                Vector3 toPlayer = Vector3.ProjectOnPlane(player.Transform.position - grazer.transform.position, Vector3.up);
+                facing = Mathf.Min(facing, Vector3.Angle(grazer.transform.forward, toPlayer));
+            }
+            Check("and turns to face them", facing < 40f, $"{facing:0} deg off at best");
         }
         else
             Check("a grazing animal looks up at the player", false, "nobody grazed");
@@ -150,9 +168,13 @@ public static class AnimalPlayCheck
             await Seconds(0.3f);
             bool startled = bumped.Startled;
             Away();
-            await Seconds(3f);
-            Check("walked into, it steps aside", startled && Vector3.Distance(bumpedAt, bumped.transform.position) > 1f,
-                $"{bumped.name} moved {Vector3.Distance(bumpedAt, bumped.transform.position):0.0} m");
+            float furthest = 0f;
+            for (int i = 0; i < 16; i++)
+            {
+                await Seconds(0.25f);
+                furthest = Mathf.Max(furthest, Vector3.Distance(bumpedAt, bumped.transform.position));
+            }
+            Check("walked into, it steps aside", startled && furthest > 1f, $"{bumped.name} moved up to {furthest:0.0} m");
         }
         else
             Check("walked into, it steps aside", false, "nobody grazed");
@@ -181,11 +203,33 @@ public static class AnimalPlayCheck
         Check("roaming rate on the pasture", Mathf.Abs(perHour - rate) < rate * 0.2f, $"{perHour:0.00} Tokens per game hour, expected {rate:0.00}");
         foreach (var flock in herd.Animals.Where(a => a.Definition.FollowsLeader).GroupBy(a => a.Definition))
         {
+            // Stragglers from the walk out trot back; give them a while.
             Animal leader = herd.LeaderOf(flock.Key);
-            float spread = flock.Max(a => Vector3.Distance(a.transform.position, leader.transform.position));
+            float Spread() => flock.Max(a => Vector3.Distance(a.transform.position, leader.transform.position));
+            float gather = Time.realtimeSinceStartup + 45f;
+            while (Time.realtimeSinceStartup < gather && Spread() > flock.Key.FlockRadius * 2.2f)
+                await Seconds(1f);
+            float spread = Spread();
             Check($"the {flock.Key.DisplayName.ToLower()}s keep round their leader", spread <= flock.Key.FlockRadius * 2.2f && (flock.Key.DisplayName != "Chicken" || leader.name.StartsWith("Rooster")),
                 $"{spread:0.0} m from {leader.name} (FlockRadius {flock.Key.FlockRadius})");
         }
+
+        // Dusk: the herd drifts to the pasture's home side.
+        Vector3 homeSide = herd.Pasture.Center + Vector3.ProjectOnPlane(herd.Pen.Center - herd.Pasture.Center, Vector3.up).normalized * herd.Pasture.Radius * 0.65f;
+        float FromHome() => herd.Animals.Where(a => !a.Definition.FollowsLeader).Average(a => Vector3.Distance(a.transform.position, homeSide));
+        float dayDistance = FromHome();
+        clock.JumpTo(settings.Awake.Off - 0.9f);
+        await Seconds(1f);
+        bool dusk = herd.Dusk;
+        float duskHour = clock.Now.Hour;
+        // Dusk lasts well under a minute at the clock's pace; stop before the night.
+        deadline = Time.realtimeSinceStartup + 30f;
+        while (Time.realtimeSinceStartup < deadline && FromHome() > herd.Pasture.Radius * 0.5f)
+            await Seconds(1f);
+        Check("at dusk they graze the home side of the pasture", dusk && FromHome() < dayDistance && FromHome() <= herd.Pasture.Radius * 0.5f,
+            $"hour {duskHour:0.0}, dusk {dusk}: cows and pigs {dayDistance:0.0} m -> {FromHome():0.0} m from it");
+        clock.JumpTo(9f);
+        await Seconds(1f);
 
         // 6. E on one animal: home it goes and stays; E again lets it out.
         Check("out on the pasture, E offers Send Home", Prompt(cow) == "Send Home", Prompt(cow));

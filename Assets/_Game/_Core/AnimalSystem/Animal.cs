@@ -9,7 +9,7 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
     // A farm animal: the bridge its behaviour tasks reach the herd through, its Tokens (AnimalEarnings), its own order (sent
-    // home), what startled it, its animation and its coin marker. Thought and advanced by AnimalManager only: no Update.
+    // home), what startled it, its own pace and patience (rolled when it wakes), its animation and its coin marker. Thought and advanced by AnimalManager only: no Update.
     // The interact key sends it home or lets it out again (after the bell: speeds it up); the Collect key takes its Tokens.
     [RequireComponent(typeof(BehaviorTree), typeof(EnemyMover))]
     [DisallowMultipleComponent]
@@ -26,6 +26,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         static readonly int SpeedParameter = Animator.StringToHash("Speed");
         static readonly int EatParameter = Animator.StringToHash("Eat");
         static readonly int SleepParameter = Animator.StringToHash("Sleep");
+        static readonly int IdleParameter = Animator.StringToHash("Idle");
 
         [SerializeField] AnimalDefinition _definition;
         [SerializeField, Tooltip("The Model's Animator (parameters Speed, Eat, Sleep)")] Animator _animator;
@@ -39,6 +40,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         bool _active;
         bool _eating;
         bool _sleeping;
+        int _fidget;
+        float _lastYaw;
         bool _wasCalled;
         float _nextCall;
         float _answerAt = float.PositiveInfinity;
@@ -56,7 +59,15 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         // Hand-off between its tasks: where it walks next.
         public Vector3 Destination { get; set; }
         public bool Hurrying { get; private set; }
+        // This animal's share of its kind: speeds times Pace, meals, idles and calls times Patience.
+        public float Pace { get; private set; } = 1f;
+        public float Patience { get; private set; } = 1f;
+        public float WalkSpeed => _definition.WalkSpeed * Pace;
+        public float HurrySpeed => _definition.HurrySpeed * Pace;
+        public float FleeSpeed => _definition.FleeSpeed * Pace;
         public float NextThinkAt { get; set; }
+        // Its next walk is at hurry pace: a chicken's dart, or catching up with its flock (ChooseGrazeSpot sets it, WalkToGrazeSpot runs it).
+        public bool Darting { get; set; }
         // Told by the player to go into the pen and stay there, whatever the herd does, until let out (or the bell rings).
         public bool SentHome { get; private set; }
         // Something it moves away from (Startle): where from, how far, running or stepping.
@@ -64,8 +75,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         public Vector3 StartledFrom { get; private set; }
         public float StartleDistance { get; private set; }
         public bool StartleRuns { get; private set; }
-        // Goes up whenever the herd's orders or its own change, so an animal busy eating looks again at once.
-        public int OrdersVersion => Herd.Orders.Version + _ownVersion;
+        // Changes whenever the herd's orders, its own, or dusk change, so an animal busy eating looks again at once.
+        public int OrdersVersion => Herd.Orders.Version + _ownVersion + (Herd.Dusk ? 1 << 20 : 0);
         public bool IsHome => Herd != null && Herd.Pen != null && Herd.Pen.Contains(transform.position);
         public bool IsRoaming => Herd != null && Herd.Pasture != null && Herd.Pasture.Contains(transform.position);
         // On its way into the pen: the bell rang, or the player sent it.
@@ -84,6 +95,20 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 _eating = value;
                 if (_animator != null)
                     _animator.SetBool(EatParameter, value);
+            }
+        }
+
+        // Which spare idle clip it plays while standing about (0: none).
+        public int Fidget
+        {
+            get => _fidget;
+            set
+            {
+                if (_fidget == value)
+                    return;
+                _fidget = value;
+                if (_animator != null)
+                    _animator.SetInteger(IdleParameter, value);
             }
         }
 
@@ -159,9 +184,17 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             Startled = false;
             Eating = false;
             Sleeping = false;
+            Fidget = 0;
+            float pace = Herd.Settings.PaceVariation, time = Herd.Settings.TimeVariation;
+            Pace = Random.Range(1f - pace, 1f + pace);
+            Patience = Random.Range(1f - time, 1f + time);
+            // Its legs keep up with its own pace and its size (a smaller one steps quicker); Speed is fed per kind.
+            if (_animator != null)
+                _animator.speed = Pace / Mathf.Max(0.1f, transform.lossyScale.y);
+            _lastYaw = transform.eulerAngles.y;
             _wasCalled = Herd.Orders.Called;
-            _nextCall = Time.time + Random.Range(_definition.CallInterval.x, _definition.CallInterval.y);
-            Mover.Initialize(_navigation, _definition.WalkSpeed, _definition.StopDistance, holdGround: true);
+            _nextCall = Time.time + NextCallDelay();
+            Mover.Initialize(_navigation, WalkSpeed, _definition.StopDistance, holdGround: true);
             Tree.StartBehavior();
             Herd.Add(this);
             if (_grassBending != null && _definition.GrassBendRadius > 0f)
@@ -176,7 +209,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             if (Hurrying || !_active)
                 return;
             Hurrying = true;
-            Mover.SetSpeed(_definition.HurrySpeed);
+            Mover.SetSpeed(HurrySpeed);
             _audio?.PlayAt(_definition.Hurried, transform.position);
         }
 
@@ -185,8 +218,11 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             if (!Hurrying)
                 return;
             Hurrying = false;
-            Mover.SetSpeed(_definition.WalkSpeed);
+            Mover.SetSpeed(WalkSpeed);
         }
+
+        // Back to its own walking pace after a dart or a run (a hurried one keeps trotting).
+        public void ResumePace() => Mover.SetSpeed(Hurrying ? HurrySpeed : WalkSpeed);
 
         public void SetSentHome(bool sent)
         {
@@ -218,8 +254,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             if (!_active)
                 return;
             Earnings.Earn(awakeHours, dayLength, _definition.TokensPerDay(IsRoaming), _definition.MaxHeld);
-            if (_animator != null)
-                _animator.SetFloat(SpeedParameter, Mover.Velocity.magnitude, SpeedDamping, deltaTime);
+            UpdateAnimator(deltaTime);
             UpdateMarker(deltaTime);
 
             // The bell: each answers with its call, a moment apart; a sent animal's own order gives way to it.
@@ -245,8 +280,26 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         void PlayCall()
         {
-            _nextCall = Time.time + Random.Range(_definition.CallInterval.x, _definition.CallInterval.y);
+            _nextCall = Time.time + NextCallDelay();
             _audio?.PlayAt(_definition.Call, transform.position);
+        }
+
+        float NextCallDelay() => Random.Range(_definition.CallInterval.x, _definition.CallInterval.y) * Patience;
+
+        // Speed in its kind's terms (the controller's thresholds are the definition's speeds); turning on the spot counts as a
+        // slow walk, so its legs step round instead of the body skating.
+        void UpdateAnimator(float deltaTime)
+        {
+            float yaw = transform.eulerAngles.y;
+            float turn = deltaTime > 0f ? Mathf.Abs(Mathf.DeltaAngle(_lastYaw, yaw)) * Mathf.Deg2Rad / deltaTime : 0f;
+            _lastYaw = yaw;
+            if (_animator == null)
+                return;
+            Vector3 velocity = Mover.Velocity;
+            velocity.y = 0f;
+            float stepping = _sleeping ? 0f : turn * Herd.Settings.TurnStep * _definition.WalkSpeed;
+            float speed = Mathf.Max(velocity.magnitude / Pace, stepping);
+            _animator.SetFloat(SpeedParameter, speed, SpeedDamping, deltaTime);
         }
 
         // Shown while it holds Tokens, spinning; lower while it lies asleep.

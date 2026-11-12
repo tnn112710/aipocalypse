@@ -56,6 +56,7 @@ public static class AnimalSetup
     const float PastureDistance = 32f;      // from the raid spawn zone's origin (the home gate), along its facing
     const float PastureRadius = 16f;
     const float TurnSpeed = 180f;           // deg/s, the animals' FollowerEntity
+    const float OnSpotTurnSpeed = 120f;     // deg/s, turning to face something while standing
     const float TurnSmoothing = 0.2f;       // s, visual only
 
     sealed class Kind
@@ -68,7 +69,12 @@ public static class AnimalSetup
         // Looks whose clips live in another file (the rooster's): look -> (clip file, clip prefix, idle clip).
         public Dictionary<string, (string Fbx, string Prefix, string Idle)> LookClips = new();
         public float ModelScale = 1f;
+        // Ground speed of the walk and run clips at model scale 1, measured by AgentScripts/Animals/AnimalStrideProbe (the
+        // planted feet's backward speed); the clips play at speed / (authored * ModelScale), so the feet stay planted.
         public float AuthoredWalk, AuthoredRun;
+        // Spare idle clips (Idle parameter 1..n), and optional clips for setting off and stopping.
+        public string[] Fidgets = Array.Empty<string>();
+        public string StartClip, StopClip;
         public float AgentRadius, AgentHeight;
         public float BodyRadius, BodyLength, BodyHeight;
         public float MarkerHeight;
@@ -83,8 +89,9 @@ public static class AnimalSetup
         ClipPrefix = "Cow_",
         IdleClip = "Idle1",
         ModelScale = 0.8f,
-        AuthoredWalk = 1f,
-        AuthoredRun = 4f,
+        AuthoredWalk = 0.91f,
+        AuthoredRun = 5.3f,         // a gallop: no foot stays down long, read from the lowest foot
+        Fidgets = new[] { "Idle_2" },
         AgentRadius = 0.6f,
         AgentHeight = 1.5f,
         BodyRadius = 0.42f,
@@ -94,9 +101,15 @@ public static class AnimalSetup
         Tune = d =>
         {
             d.DisplayName = "Cow";
-            d.WalkSpeed = 0.9f;
-            d.HurrySpeed = 1.5f;
+            d.WalkSpeed = 0.85f;
+            d.HurrySpeed = 1.4f;
             d.FleeSpeed = 3f;
+            d.IdleChance = 0.3f;
+            d.IdleTime = new Vector2(4f, 9f);
+            d.DriftChance = 0.6f;
+            d.DriftDistance = new Vector2(1f, 2.5f);
+            d.DartChance = 0f;
+            d.ScareScale = 0.8f;
             d.StopDistance = 0.5f;
             d.GrassBendRadius = 1.2f;
             d.GrazeRadius = 10f;
@@ -120,8 +133,11 @@ public static class AnimalSetup
         Looks = new[] { "Sheep_Wool" },
         ClipFbx = PP + "Meshes/Animals/Sheep/SKM_Sheep_Wool_Animations.fbx",
         ClipPrefix = "Sheep_Wool_",
-        AuthoredWalk = 0.8f,
-        AuthoredRun = 2.8f,
+        AuthoredWalk = 0.43f,
+        AuthoredRun = 3.5f,
+        Fidgets = new[] { "Idle_2" },
+        StartClip = "Idle_to_Walk",
+        StopClip = "Walk_To_Idle",
         AgentRadius = 0.4f,
         AgentHeight = 1.1f,
         BodyRadius = 0.28f,
@@ -131,9 +147,15 @@ public static class AnimalSetup
         Tune = d =>
         {
             d.DisplayName = "Sheep";
-            d.WalkSpeed = 1.1f;
-            d.HurrySpeed = 1.8f;
-            d.FleeSpeed = 3.2f;
+            d.WalkSpeed = 0.52f;
+            d.HurrySpeed = 0.9f;
+            d.FleeSpeed = 3f;
+            d.IdleChance = 0.25f;
+            d.IdleTime = new Vector2(3f, 8f);
+            d.DriftChance = 0.7f;
+            d.DriftDistance = new Vector2(0.6f, 1.6f);
+            d.DartChance = 0f;
+            d.ScareScale = 1f;
             d.StopDistance = 0.4f;
             d.GrassBendRadius = 0.7f;
             d.GrazeRadius = 8f;
@@ -161,8 +183,9 @@ public static class AnimalSetup
         ClipPrefix = "Hen_",
         IdleClip = "Idle Breathing",
         LookClips = { ["Rooster"] = (PP + "Meshes/Animals/Rooster/SKM_Rooster_Animations.fbx", "Rooster_", "Idle_Breathing") },
-        AuthoredWalk = 0.6f,
-        AuthoredRun = 2.2f,
+        AuthoredWalk = 0.28f,
+        AuthoredRun = 1f,
+        Fidgets = new[] { "Idle_2", "Idle_3" },
         AgentRadius = 0.25f,
         AgentHeight = 0.7f,
         BodyRadius = 0.2f,
@@ -172,14 +195,20 @@ public static class AnimalSetup
         Tune = d =>
         {
             d.DisplayName = "Chicken";
-            d.WalkSpeed = 0.6f;
-            d.HurrySpeed = 1f;
-            d.FleeSpeed = 2.2f;
+            d.WalkSpeed = 0.35f;
+            d.HurrySpeed = 1.1f;
+            d.FleeSpeed = 1.6f;
+            d.IdleChance = 0.2f;
+            d.IdleTime = new Vector2(1.5f, 4f);
+            d.DriftChance = 0.8f;
+            d.DriftDistance = new Vector2(0.5f, 1.5f);
+            d.DartChance = 0.35f;
+            d.ScareScale = 1.5f;
             d.StopDistance = 0.25f;
             d.GrassBendRadius = 0.35f;
             d.GrazeRadius = 6f;
             d.MinTravel = 1f;
-            d.GrazeTime = new Vector2(3f, 8f);
+            d.GrazeTime = new Vector2(1.5f, 4f);   // pecks
             d.FollowsLeader = true;
             d.FlockRadius = 4f;
             d.TokensPerDayPenned = 3f;
@@ -202,8 +231,11 @@ public static class AnimalSetup
         ClipPrefix = "Pig_",
         IdleClip = "Idle_Breathing",
         ModelScale = 1.2f,
-        AuthoredWalk = 0.9f,
-        AuthoredRun = 3f,
+        AuthoredWalk = 0.55f,
+        AuthoredRun = 2.62f,
+        Fidgets = new[] { "idle_2" },
+        StartClip = "Idle_To_Walk",
+        StopClip = "Walk_To_Idle",
         AgentRadius = 0.45f,
         AgentHeight = 1f,
         BodyRadius = 0.3f,
@@ -213,9 +245,15 @@ public static class AnimalSetup
         Tune = d =>
         {
             d.DisplayName = "Pig";
-            d.WalkSpeed = 0.8f;
-            d.HurrySpeed = 1.3f;
+            d.WalkSpeed = 0.75f;
+            d.HurrySpeed = 1.25f;
             d.FleeSpeed = 2.6f;
+            d.IdleChance = 0.3f;
+            d.IdleTime = new Vector2(4f, 10f);
+            d.DriftChance = 0.6f;
+            d.DriftDistance = new Vector2(0.8f, 2f);
+            d.DartChance = 0f;
+            d.ScareScale = 1f;
             d.StopDistance = 0.4f;
             d.GrassBendRadius = 0.8f;
             d.GrazeRadius = 8f;
@@ -283,6 +321,7 @@ public static class AnimalSetup
         settings.GateOpenSound = Id(DefenseAudioDir, "Gate_Open");
         settings.GateCloseSound = Id(DefenseAudioDir, "Gate_Close");
         settings.TokenNumber = TokenNumber();
+        settings.DuskHours = 1.5f;
         Save(settings);
 
         foreach (Kind kind in Kinds)
@@ -297,6 +336,7 @@ public static class AnimalSetup
                 AssetDatabase.CreateAsset(definition, definitionPath);
             }
             kind.Tune(definition);
+            definition.Fidgets = kind.Fidgets.Length;
             Save(definition);
 
             AnimatorController shared = Controller(definition, kind.ClipFbx, kind.ClipPrefix, kind.IdleClip, kind, $"{dir}/{kind.Name}.controller");
@@ -338,9 +378,12 @@ public static class AnimalSetup
         return number;
     }
 
-    // Speed blends idle → walk → run (walking, then fleeing speed; the clips retimed to them); Eat and Sleep are states.
+    // Stand (the idle clip) is home: Eat, the spare idles (Idle = 1..n) and setting off branch from it. Locomotion blends
+    // idle → walk → run on Speed (walking, then fleeing speed; the clips retimed so the feet stay planted), entered through
+    // the start clip and left through the stop clip where the kind has them. Sleep from anywhere, then WakeUp to Stand.
     static AnimatorController Controller(AnimalDefinition definition, string fbx, string prefix, string idle, Kind kind, string path)
     {
+        const float SetOff = 0.12f, Stopped = 0.06f, Moving = 0.25f;
         var clips = AssetDatabase.LoadAllAssetsAtPath(fbx).OfType<AnimationClip>().ToDictionary(c => c.name);
         AnimationClip Clip(string name) => clips.TryGetValue(prefix + name, out AnimationClip clip) ? clip : throw new Exception($"no clip {prefix}{name} in {fbx}");
 
@@ -363,7 +406,9 @@ public static class AnimalSetup
         controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
         controller.AddParameter("Eat", AnimatorControllerParameterType.Bool);
         controller.AddParameter("Sleep", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("Idle", AnimatorControllerParameterType.Int);
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
+        float scale = kind.ModelScale;
 
         var tree = new BlendTree { name = "Locomotion", blendParameter = "Speed", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
         AssetDatabase.AddObjectToAsset(tree, controller);
@@ -371,36 +416,76 @@ public static class AnimalSetup
         tree.AddChild(Clip("Walk"), definition.WalkSpeed);
         tree.AddChild(Clip("Run"), definition.FleeSpeed);
         ChildMotion[] children = tree.children;
-        children[1].timeScale = definition.WalkSpeed / kind.AuthoredWalk;
-        children[2].timeScale = definition.FleeSpeed / kind.AuthoredRun;
+        children[1].timeScale = definition.WalkSpeed / (kind.AuthoredWalk * scale);
+        children[2].timeScale = definition.FleeSpeed / (kind.AuthoredRun * scale);
         tree.children = children;
 
+        AnimatorState stand = machine.AddState("Stand");
+        stand.motion = Clip(idle);
+        machine.defaultState = stand;
         AnimatorState locomotion = machine.AddState("Locomotion");
         locomotion.motion = tree;
-        machine.defaultState = locomotion;
+
+        // Setting off and stopping.
+        if (kind.StartClip != null)
+        {
+            AnimatorState setOff = machine.AddState("Start");
+            setOff.motion = Clip(kind.StartClip);
+            Transition(stand.AddTransition(setOff), 0.1f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
+            Exit(setOff.AddTransition(locomotion), 0.8f, 0.15f);
+        }
+        else
+            Transition(stand.AddTransition(locomotion), 0.2f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
+        if (kind.StopClip != null)
+        {
+            AnimatorState stop = machine.AddState("Stop");
+            stop.motion = Clip(kind.StopClip);
+            Transition(locomotion.AddTransition(stop), 0.15f).AddCondition(AnimatorConditionMode.Less, Stopped, "Speed");
+            Exit(stop.AddTransition(stand), 0.85f, 0.15f);
+            Transition(stop.AddTransition(locomotion), 0.2f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+        }
+        else
+            Transition(locomotion.AddTransition(stand), 0.25f).AddCondition(AnimatorConditionMode.Less, Stopped, "Speed");
+
         AnimatorState eat = machine.AddState("Eat");
         eat.motion = Clip("Eat");
+        AnimatorStateTransition toEat = Transition(stand.AddTransition(eat), 0.4f);
+        toEat.AddCondition(AnimatorConditionMode.If, 0f, "Eat");
+        toEat.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
+        Transition(eat.AddTransition(stand), 0.35f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Eat");
+        Transition(eat.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+
+        for (int i = 0; i < kind.Fidgets.Length; i++)
+        {
+            int number = i + 1;
+            AnimatorState fidget = machine.AddState("Idle " + number);
+            fidget.motion = Clip(kind.Fidgets[i]);
+            AnimatorStateTransition into = Transition(stand.AddTransition(fidget), 0.4f);
+            into.AddCondition(AnimatorConditionMode.Equals, number, "Idle");
+            into.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
+            Transition(fidget.AddTransition(stand), 0.4f).AddCondition(AnimatorConditionMode.NotEqual, number, "Idle");
+            Transition(fidget.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+        }
+
         AnimatorState sleep = machine.AddState("Sleep");
         sleep.motion = Clip("Sleep");
         AnimatorState wake = machine.AddState("WakeUp");
         wake.motion = Clip("Sleep_Stand");
-
-        AnimatorStateTransition toEat = Transition(locomotion.AddTransition(eat), 0.4f);
-        toEat.AddCondition(AnimatorConditionMode.If, 0f, "Eat");
-        toEat.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
-        Transition(eat.AddTransition(locomotion), 0.35f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Eat");
-        Transition(eat.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, 0.2f, "Speed");
         AnimatorStateTransition toSleep = Transition(machine.AddAnyStateTransition(sleep), 0.8f);
         toSleep.canTransitionToSelf = false;
         toSleep.AddCondition(AnimatorConditionMode.If, 0f, "Sleep");
         Transition(sleep.AddTransition(wake), 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Sleep");
-        AnimatorStateTransition stood = wake.AddTransition(locomotion);
-        stood.hasExitTime = true;
-        stood.exitTime = 0.85f;
-        stood.duration = 0.25f;
-        stood.hasFixedDuration = true;
+        Exit(wake.AddTransition(stand), 0.85f, 0.25f);
         Save(controller);
         return controller;
+    }
+
+    static void Exit(AnimatorStateTransition transition, float exitTime, float duration)
+    {
+        transition.hasExitTime = true;
+        transition.exitTime = exitTime;
+        transition.duration = duration;
+        transition.hasFixedDuration = true;
     }
 
     static AnimatorStateTransition Transition(AnimatorStateTransition transition, float duration)
@@ -474,7 +559,9 @@ public static class AnimalSetup
             // Calmer turning than an enemy's 600 deg/s, smoothed: a nudge from a neighbour no longer snaps the body round.
             agent.FindProperty("movement.follower.rotationSpeed").floatValue = TurnSpeed;
             agent.FindProperty("movement.follower.maxRotationSpeed").floatValue = TurnSpeed * 1.5f;
-            agent.FindProperty("movement.follower.maxOnSpotRotationSpeed").floatValue = TurnSpeed;
+            agent.FindProperty("movement.follower.maxOnSpotRotationSpeed").floatValue = OnSpotTurnSpeed;
+            // Big turns while walking are arcs, not a spin on the spot with the feet skating.
+            agent.FindProperty("movement.follower.allowRotatingOnSpotBacking").boolValue = false;
             agent.FindProperty("movement.rotationSmoothing").floatValue = TurnSmoothing;
             agent.ApplyModifiedPropertiesWithoutUndo();
 

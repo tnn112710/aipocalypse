@@ -49,12 +49,13 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             _lastHours = now;
             float awakeHours = (float)AnimalEarnings.AwakeHours(from, now, _settings.Awake);
             float dayLength = AnimalEarnings.DayLength(_settings.Awake);
-            _herd.Asleep = !_settings.Awake.Contains(_clock.Now.Hour);
+            float hour = _clock.Now.Hour;
+            _herd.Asleep = !_settings.Awake.Contains(hour);
+            _herd.Dusk = !_herd.Asleep && !_settings.Awake.Contains(hour + _settings.DuskHours);
 
             IPlayer player = _players.Current;
             _herd.HasPlayer = player != null && !player.IsDead;
             _herd.PlayerPosition = _herd.HasPlayer ? player.Transform.position : default;
-            float bump = _settings.BumpRadius * _settings.BumpRadius;
             float time = Time.time;
             // Backwards: nothing here removes an animal, but a tree may one day.
             for (int i = _herd.Animals.Count - 1; i >= 0; i--)
@@ -62,8 +63,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 Animal animal = _herd.Animals[i];
                 animal.Advance(deltaTime, awakeHours, dayLength);
                 // Awake and about its own business: walked into, it steps aside.
+                float bump = _settings.BumpRadius * animal.Definition.ScareScale;
                 if (_herd.HasPlayer && !animal.Startled && !animal.Sleeping && !animal.GoingHome
-                    && (animal.transform.position - _herd.PlayerPosition).sqrMagnitude <= bump)
+                    && (animal.transform.position - _herd.PlayerPosition).sqrMagnitude <= bump * bump)
                     animal.Startle(_herd.PlayerPosition, _settings.StepAside, run: false);
                 if (time >= animal.NextThinkAt)
                 {
@@ -82,10 +84,12 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         {
             if (!_herd.Enabled)
                 return;
-            float reach = _settings.ShotRadius * _settings.ShotRadius;
             foreach (Animal animal in _herd.Animals)
-                if (!animal.GoingHome && (animal.transform.position - shot.Position).sqrMagnitude <= reach)
+            {
+                float reach = _settings.ShotRadius * animal.Definition.ScareScale;
+                if (!animal.GoingHome && (animal.transform.position - shot.Position).sqrMagnitude <= reach * reach)
                     animal.Startle(shot.Position, _settings.FleeDistance, run: true);
+            }
         }
 
         // The clock was put somewhere else (a loaded save): the next frame earns nothing for the jump.
@@ -93,7 +97,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         // The animal's whole Tokens leave the coin over its back as a few pickups and arc to `to` (the player's feet), each
         // landing within BurstScatter of it: inside the pickup magnet, which takes them from there. They pass through
-        // `catcher` (the player's body) and the herd, so none comes to rest on someone's back.
+        // `catcher` (the player's body), the herd and the pen's fence, so none comes to rest on someone's back or drops back
+        // into the pen off a rail.
         public void HandOver(Animal animal, Vector3 to, Collider catcher = null)
         {
             CurrencyDefinition tokens = _settings.Tokens;
@@ -116,6 +121,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 pickup.Throw(ArcVelocity(from, to + new Vector3(scatter.x, 0f, scatter.y), time), catcher);
                 foreach (Animal other in _herd.Animals)
                     pickup.PassThrough(other.Body);
+                foreach (Collider rail in _herd.FenceColliders)
+                    pickup.PassThrough(rail);
             }
         }
 

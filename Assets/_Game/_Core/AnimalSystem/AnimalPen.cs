@@ -16,6 +16,15 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         // A circle inside the box, clear of the fence: where animals pick their spots.
         public float Radius => Mathf.Max(0.5f, Mathf.Min(_size.x, _size.y) * 0.5f - 1f);
         public Vector3 WaitPoint => _waitPoint != null ? _waitPoint.position : transform.position;
+        // The rails and posts round it: the gate's parent (AnimalSetup builds the fence that way). Token bursts fly through them.
+        public Transform Fence => _gate != null ? _gate.transform.parent : null;
+
+        // Anywhere in the box, `margin` clear of the fence: the whole pen, where Radius only reaches round the middle.
+        public Vector3 RandomPoint(float margin)
+        {
+            float x = Mathf.Max(0f, _size.x * 0.5f - margin), z = Mathf.Max(0f, _size.y * 0.5f - margin);
+            return transform.TransformPoint(new Vector3(Random.Range(-x, x), 0f, Random.Range(-z, z)));
+        }
 
         public bool Contains(Vector3 point)
         {

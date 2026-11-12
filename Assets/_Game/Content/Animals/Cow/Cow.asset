@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Cow
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
   DisplayName: Cow
-  WalkSpeed: 0.9
-  HurrySpeed: 1.5
+  WalkSpeed: 0.85
+  HurrySpeed: 1.4
   FleeSpeed: 3
   StopDistance: 0.5
   GrassBendRadius: 1.2
@@ -23,6 +23,13 @@ MonoBehaviour:
   GrazeTime: {x: 5, y: 12}
   TravelTimeout: 60
   DestinationAttempts: 8
+  IdleChance: 0.3
+  IdleTime: {x: 4, y: 9}
+  Fidgets: 1
+  DriftChance: 0.6
+  DriftDistance: {x: 1, y: 2.5}
+  DartChance: 0
+  ScareScale: 0.8
   FollowsLeader: 0
   FlockRadius: 5
   TokensPerDayPenned: 20

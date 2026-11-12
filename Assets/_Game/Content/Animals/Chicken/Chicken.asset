@@ -13,16 +13,23 @@ MonoBehaviour:
   m_Name: Chicken
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
   DisplayName: Chicken
-  WalkSpeed: 0.6
-  HurrySpeed: 1
-  FleeSpeed: 2.2
+  WalkSpeed: 0.35
+  HurrySpeed: 1.1
+  FleeSpeed: 1.6
   StopDistance: 0.25
   GrassBendRadius: 0.35
   GrazeRadius: 6
   MinTravel: 1
-  GrazeTime: {x: 3, y: 8}
+  GrazeTime: {x: 1.5, y: 4}
   TravelTimeout: 60
   DestinationAttempts: 8
+  IdleChance: 0.2
+  IdleTime: {x: 1.5, y: 4}
+  Fidgets: 2
+  DriftChance: 0.8
+  DriftDistance: {x: 0.5, y: 1.5}
+  DartChance: 0.35
+  ScareScale: 1.5
   FollowsLeader: 1
   FlockRadius: 4
   TokensPerDayPenned: 3

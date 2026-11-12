@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Sheep
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
   DisplayName: Sheep
-  WalkSpeed: 1.1
-  HurrySpeed: 1.8
-  FleeSpeed: 3.2
+  WalkSpeed: 0.52
+  HurrySpeed: 0.9
+  FleeSpeed: 3
   StopDistance: 0.4
   GrassBendRadius: 0.7
   GrazeRadius: 8
@@ -23,6 +23,13 @@ MonoBehaviour:
   GrazeTime: {x: 4, y: 9}
   TravelTimeout: 60
   DestinationAttempts: 8
+  IdleChance: 0.25
+  IdleTime: {x: 3, y: 8}
+  Fidgets: 1
+  DriftChance: 0.7
+  DriftDistance: {x: 0.6, y: 1.6}
+  DartChance: 0
+  ScareScale: 1
   FollowsLeader: 1
   FlockRadius: 5
   TokensPerDayPenned: 6

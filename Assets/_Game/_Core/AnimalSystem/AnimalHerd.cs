@@ -18,15 +18,22 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         public AnimalPasture Pasture { get; private set; }
         // Outside the waking hours (set by AnimalManager).
         public bool Asleep { get; set; }
+        // The last DuskHours of the waking day: released animals graze the home side of the pasture (set by AnimalManager).
+        public bool Dusk { get; set; }
         // The living player's feet, for animals that notice them (set by AnimalManager every frame).
         public bool HasPlayer { get; set; }
         public Vector3 PlayerPosition { get; set; }
         public bool Enabled => Settings.Enabled && Pen != null;
 
+        // The pen's rails and posts: a Token burst passes through them, so collecting across the rail works.
+        public Collider[] FenceColliders { get; private set; } = System.Array.Empty<Collider>();
+
         public void Bind(AnimalPen pen, AnimalPasture pasture)
         {
             Pen = pen;
             Pasture = pasture;
+            if (pen != null && pen.Fence != null)
+                FenceColliders = pen.Fence.GetComponentsInChildren<Collider>(true);
         }
 
         // Kept in hierarchy order (animals wake in any order), so a flock's leader is the first of its kind placed: the rooster.

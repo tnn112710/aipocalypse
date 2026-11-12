@@ -14,6 +14,12 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Tooltip("Off: animals stand still, earn nothing, and the gate and bell offer nothing")] public bool Enabled = true;
         [Min(0.02f), Tooltip("Seconds between an animal's thinks")] public float ThinkInterval = 0.2f;
         [Tooltip("Awake and earning inside these hours; asleep where they stand outside them")] public TimeWindow Awake = new(6f, 20f);
+        [Min(0f), Tooltip("In this last part of the waking day (hours) released animals graze the home side of the pasture")] public float DuskHours = 1.5f;
+
+        [Header("Individuals")]
+        [Range(0f, 0.5f), Tooltip("Each animal's pace is its kind's speeds times 1 ± this, rolled when it wakes")] public float PaceVariation = 0.1f;
+        [Range(0f, 0.9f), Tooltip("Each animal's meals, idles and calls last its kind's times times 1 ± this")] public float TimeVariation = 0.25f;
+        [Min(0f), Tooltip("Turning on the spot steps its legs like walking at this share of its walking pace per radian a second")] public float TurnStep = 0.25f;
 
         [Header("Tokens")]
         [Tooltip("What animals earn")] public CurrencyDefinition Tokens;
@@ -31,7 +37,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Header("Reactions")]
         [Min(0f), Tooltip("A grazing animal stops eating and turns to the player this close (m)")] public float NoticeRadius = 4f;
         [Min(0f), Tooltip("An animal steps aside from the player this close (m)")] public float BumpRadius = 1.3f;
-        [Min(0.5f), Tooltip("How far it steps aside (m)")] public float StepAside = 2.5f;
+        [Min(0.5f), Tooltip("How far it steps aside, at its hurry pace (m)")] public float StepAside = 2.5f;
         [Min(0f), Tooltip("Animals this close to a gunshot run from it (m)")] public float ShotRadius = 20f;
         [Min(0.5f), Tooltip("How far they run (m)")] public float FleeDistance = 7f;
 
