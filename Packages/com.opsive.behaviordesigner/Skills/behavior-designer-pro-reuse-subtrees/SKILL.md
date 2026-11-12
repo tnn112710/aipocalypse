@@ -5,14 +5,14 @@ metadata:
   asset: "Behavior Designer Pro"
   publisher: "Opsive"
   asset-version: "3.3.4"
-  skill-version: "1.0.0"
+  skill-version: "1.0.1"
   unity: "2022.3.11+"
   render-pipelines: "Built-in, URP, HDRP (core behavior logic)"
   category: "tools/visual-scripting"
   asset-store-url: "https://assetstore.unity.com/packages/tools/visual-scripting/behavior-designer-pro-3-dots-powered-behavior-trees-368344"
   documentation-url: "https://opsive.com/support/documentation/behavior-designer-pro/"
   support-url: "https://opsive.com/support/"
-  last-verified: "2026-10-09"
+  last-verified: "2026-11-10"
 ---
 
 # Create and Reuse Subtrees
@@ -30,7 +30,7 @@ Not for: ordinary graph layout or implementing new gameplay actions.
 
 ## Prerequisites
 
-Use Behavior Designer Pro 3.3.3 and Unity 2022.3.11 or newer. The package requires Graph Designer, Opsive Shared, Entities, Burst, and Mathematics; retain the versions supplied with the installed release (Entities 1.3.8 in the verified manifest). Core tree logic does not require a render-pipeline change; sample materials may require their own setup.
+Use Behavior Designer Pro 3.3.4 and Unity 2022.3.11 or newer. The package requires Graph Designer, Opsive Shared, Entities, Burst, and Mathematics; retain the versions supplied with the installed release (Entities 1.3.8 in the verified manifest). Core tree logic does not require a render-pipeline change; sample materials may require their own setup.
 
 Run this read-only C# in an available Unity Editor execution tool before making changes:
 
@@ -49,7 +49,7 @@ Start with a valid saved graph and identify whether the request concerns the who
 1. Open the tree and select the logic root of the branch to reuse.
 2. Right-click the selection and choose **Save as Subtree**. Choose a new asset path inside the customer's project.
 3. Inspect the parent tree: the selected branch is replaced with a Subtree Reference. Inspect the new asset and compare its nodes with the original branch.
-4. Configure required variable overrides on the reference. Save both the asset and the owning scene/prefab.
+4. Configure required variable overrides on the reference. On a prefab asset or variant, the override dropdown must include compatible variables from the parent tree. Select the parent variable, save both assets, and verify the binding after reimporting the prefab. The Subtree asset defaults must remain unchanged.
 5. Run the parent tree. Expected result: the extracted behavior still runs through the reference. Reopen both assets to verify persistence.
 
 ## Workflows

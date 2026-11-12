@@ -68,8 +68,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Systems
                 return;
             }
 
+            m_Dependency.Complete();
             if (!stopRunning) {
-                m_Dependency.Complete();
                 m_EntityCommandBuffer.Playback(entityManager);
                 m_EntityCommandBuffer.Dispose();
             }

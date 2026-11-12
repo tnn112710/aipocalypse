@@ -154,7 +154,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
         public bool CompleteTraversal(World world, EntityManager entityManager)
         {
             var determineEvaluationSystemHandle = world.GetExistingSystem<DetermineEvaluationSystem>();
-            var determineEvaluationSystem = entityManager.WorldUnmanaged.GetUnsafeSystemRef<DetermineEvaluationSystem>(determineEvaluationSystemHandle);
+            ref var determineEvaluationSystem = ref entityManager.WorldUnmanaged.GetUnsafeSystemRef<DetermineEvaluationSystem>(determineEvaluationSystemHandle);
             determineEvaluationSystem.Complete(entityManager);
             var evaluate = determineEvaluationSystem.Evaluate;
 
@@ -172,7 +172,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Utility
         public void CompleteEvaluation(World world, EntityManager entityManager, bool stopRunning)
         {
             var evaluationSystemHandle = world.GetExistingSystem<EvaluationSystem>();
-            var evaluationSystem = entityManager.WorldUnmanaged.GetUnsafeSystemRef<EvaluationSystem>(evaluationSystemHandle);
+            ref var evaluationSystem = ref entityManager.WorldUnmanaged.GetUnsafeSystemRef<EvaluationSystem>(evaluationSystemHandle);
             evaluationSystem.Complete(entityManager, stopRunning);
         }
 

@@ -6,7 +6,7 @@
 /// ---------------------------------------------
 namespace Opsive.BehaviorDesigner.Runtime.Groups
 {
-    using Opsive.BehaviorDesigner.Runtime.Utility;
+    using Opsive.BehaviorDesigner.Runtime.Components;
     using Unity.Entities;
     using UnityEngine;
 
@@ -18,6 +18,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Groups
     public partial class BehaviorTreeSystemGroup : ComponentSystemGroup
     {
         private bool m_Alive;
+        private EntityQuery m_ActiveGraphQuery;
 
         public bool Alive { get => m_Alive; }
 
@@ -49,6 +50,7 @@ namespace Opsive.BehaviorDesigner.Runtime.Groups
             base.OnCreate();
 
             m_Alive = true;
+            m_ActiveGraphQuery = GetEntityQuery(ComponentType.ReadOnly<EnabledFlag>());
         }
 
         /// <summary>
@@ -58,8 +60,8 @@ namespace Opsive.BehaviorDesigner.Runtime.Groups
         {
             base.OnUpdate();
 
-            // Stop running if all trees have completed.
-            if (!BehaviorTreeExecution.IsActive(World, EntityManager)) {
+            // A tree waiting for the next frame remains enabled even when no traversal job ran this pass.
+            if (m_ActiveGraphQuery.IsEmpty) {
                 Enabled = false;
             }
         }

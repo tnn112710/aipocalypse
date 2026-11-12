@@ -5,14 +5,14 @@ metadata:
   asset: "Behavior Designer Pro"
   publisher: "Opsive"
   asset-version: "3.3.4"
-  skill-version: "1.0.5"
+  skill-version: "1.0.8"
   unity: "2022.3.11+"
   render-pipelines: "Built-in, URP, HDRP (core behavior logic)"
   category: "tools/visual-scripting"
   asset-store-url: "https://assetstore.unity.com/packages/tools/visual-scripting/behavior-designer-pro-3-dots-powered-behavior-trees-368344"
   documentation-url: "https://opsive.com/support/documentation/behavior-designer-pro/"
   support-url: "https://opsive.com/support/"
-  last-verified: "2026-11-04"
+  last-verified: "2026-11-09"
 ---
 
 # Diagnose Behavior Tree Problems
@@ -75,7 +75,7 @@ Record the selected object and tree, expected behavior, actual behavior, and a m
 
 **Goal:** Verify a prefab variant starts after its base tree changes, including variants spawned only at runtime.
 
-**Steps:** A "compiled from a stale parent" error means the variant's compiled snapshot predates its parent. Reproduce with a scene containing only a spawner that references the variant prefab; opening the variant tree first can refresh the snapshot and hide the failure. Save a base change and let the next editor update complete. Changed graph assets and prefab imports automatically refresh dependent compiled snapshots, including unopened variant chains, while retaining semantic overrides. Verify the saved variants are current while still in Edit Mode, then enter Play Mode without opening or repairing them. Pre-play preparation flushes pending dependency updates; it does not scan and repair every project prefab. Legacy prefab data still uses **Tools > Opsive > Behavior Designer > Upgrade Project Serialization...**; normal edits after migration must propagate automatically. Repeat with another base edit and with a chain of variants. Confirm inherited tasks update, local values remain overridden, and the spawned tree runs. The runtime stale-parent check must continue rejecting invalid snapshots.
+**Steps:** A "compiled from a stale parent" error means the variant's compiled snapshot predates its parent. Reproduce with a scene containing only a spawner that references the variant prefab; opening the variant tree first can refresh the snapshot and hide the failure. Save a base change and let automatic refresh finish over subsequent editor updates. Changed graph assets and imports of prefabs containing graph or supported SharedVariable components automatically refresh dependent compiled snapshots, including unopened variant chains, while retaining semantic overrides. Prefab dependency discovery runs once per Editor session. Initialization and automatic refresh use a 5 ms soft budget per editor update, yielding between prefab operations. Unity asset discovery and individual imports/saves are indivisible and can exceed that budget. Subsequent prefab imports update an incremental reverse dependency index, so saving a graph prefab follows cached links instead of scanning every project prefab. Script reloads retain the index; moves, deletions, and nested source replacements update the cached relationships. Verify the saved variants are current while still in Edit Mode, then enter Play Mode without opening or repairing them. Play and build preparation synchronously finish any partial index and pending dependency refresh before proceeding; unresolved updates stop the transition. Active refreshes survive script reload by retaining their source edits, and a new edit between frames restarts the affected batch. Pre-play preparation does not scan and repair every project prefab. Legacy prefab data still uses **Tools > Opsive > Behavior Designer > Upgrade Project Serialization...**; normal edits after migration must propagate automatically. Repeat with another base edit and with a chain of variants. Saving, reimporting, or moving a prefab with neither graph nor supported SharedVariable components must not schedule graph dependency discovery or display graph validation progress. Confirm inherited tasks update, local values remain overridden, and the spawned tree runs. The runtime stale-parent check must continue rejecting invalid snapshots.
 
 **Expected result:** The unopened variant starts after each base revision, retains its overrides, and executes the latest inherited tasks.
 

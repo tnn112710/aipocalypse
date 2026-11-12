@@ -6,6 +6,7 @@
 /// ---------------------------------------------
 // The distributed Runtime assembly is compiled outside Unity's Entities IL post-processor. Register its component
 // types from the source-built Systems assembly so Entities generates the required static type registry entries.
+// Runtime types opt out of automatic registration so source builds use this same single owner.
 [assembly: Unity.Entities.RegisterGenericComponentType(typeof(Opsive.BehaviorDesigner.Runtime.Components.BakedBehaviorTree))]
 [assembly: Unity.Entities.RegisterGenericComponentType(typeof(Opsive.BehaviorDesigner.Runtime.Components.BakedEditorReference))]
 [assembly: Unity.Entities.RegisterGenericComponentType(typeof(Opsive.BehaviorDesigner.Runtime.Components.DeferredBakedBehaviorTreeStart))]
