@@ -11,6 +11,7 @@
 
 using System;
 using sc.splines.spawner.runtime;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,40 +21,13 @@ namespace sc.splines.spawner.editor
     {
         public const int ASSET_ID = 305974;
         public const string ASSET_NAME = "Spline Spawner";
-        public const string VERSION = "1.2.1";
+        public const string ASSET_ABRV = "SP";
+        public const string VERSION = "1.2.2";
         
         public const string DOC_URL = "https://staggart.xyz/support/documentation/spline-spawner/";
         public const string FORUM_URL = "https://discussions.unity.com/t/1659478";
         public const string DISCORD_INVITE_URL = "https://discord.gg/GNjEaJc8gw";
 
-        private const string MIN_SPLINES_VERSION = "2.8.1";
-        
-        private static bool STARTUP_PERFORMED
-        {
-            get => SessionState.GetBool("SPLINE_SPAWNER_EDITOR_STARTED", false);
-            set => SessionState.SetBool("SPLINE_SPAWNER_EDITOR_STARTED", value);
-        }
-        
-        [InitializeOnLoadMethod]
-        static void Initialize()
-        {
-            #if !SPLINES
-            if (EditorUtility.DisplayDialog(ASSET_NAME, $"This asset requires the \"Splines\" (v{MIN_SPLINES_VERSION}) package dependency, which is not installed.", "Install now", "Later"))
-            {
-                //Note: Mathematics package is a dependency, so will also be installed
-                UnityEditor.PackageManager.Client.Add($"com.unity.splines@{MIN_SPLINES_VERSION}");
-            }
-            #endif
-            
-            #if !SP_DEV
-            if (STARTUP_PERFORMED == false)
-            #endif
-            {
-                VersionChecking.CheckForUpdate();
-                STARTUP_PERFORMED = true;
-            }
-        }
-        
         public static void OpenInPackageManager()
         {
             Application.OpenURL("com.unity3d.kharma:content/" + ASSET_ID);
@@ -61,26 +35,30 @@ namespace sc.splines.spawner.editor
         
         public static void OpenReviewsPage()
         {
-            Application.OpenURL($"https://assetstore.unity.com/packages/slug/{ASSET_ID}?aid=1011l7Uk8&pubref=speditor#reviews");
+            Application.OpenURL($"https://assetstore.unity.com/packages/slug/{ASSET_ID}?aid=1011l7Uk8&pubref=sp-editor#reviews");
         }
         
         internal static class VersionChecking
         {
             public static bool UPDATE_AVAILABLE
             {
-                get => SessionState.GetBool("SPLINE_SPAWNER_UPDATE_AVAILABLE", false);
-                set => SessionState.SetBool("SPLINE_SPAWNER_UPDATE_AVAILABLE", value);
+                get => SessionState.GetBool(ASSET_ABRV + "_UPDATE_AVAILABLE", false);
+                set => SessionState.SetBool(ASSET_ABRV + "_UPDATE_AVAILABLE", value);
             }
             
             public static string LATEST_VERSION_AVAILABLE
             {
-                get => SessionState.GetString("SPLINE_SPAWNER_LATEST_VERSION", VERSION);
-                set => SessionState.SetString("SPLINE_SPAWNER_LATEST_VERSION", value);
+                get => SessionState.GetString(ASSET_ABRV + "_LATEST_VERSION", VERSION);
+                set => SessionState.SetString(ASSET_ABRV + "_LATEST_VERSION", value);
             }
             
+            [NoAutoStaticsCleanup]
             public static string latestVersion = VERSION;
+            [NoAutoStaticsCleanup]
             private static string apiResult;
 
+            [NoAutoStaticsCleanup]
+            private static DateTime lastUpdateCheckTime;
             public static void CheckForUpdate()
             {
                 //Default, in case of a fail
@@ -88,6 +66,11 @@ namespace sc.splines.spawner.editor
                 
                 //Offline
                 if (Application.internetReachability == NetworkReachability.NotReachable) return;
+                                
+                //Prevent frequent calls from checking the latest version
+                DateTime now = DateTime.Now;
+                if (now.Subtract(lastUpdateCheckTime).TotalSeconds < 1) return;
+                lastUpdateCheckTime = now;
                 
                 //Debug.Log("Checking for version update");
                 

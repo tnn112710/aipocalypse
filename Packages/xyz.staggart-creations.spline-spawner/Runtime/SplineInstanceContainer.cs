@@ -21,6 +21,7 @@ namespace sc.splines.spawner.runtime
 {
     [AddComponentMenu("")]
     [ExecuteInEditMode]
+    [ExcludeFromPreset]
     public class SplineInstanceContainer : MonoBehaviour
     {
         //Important to track the container's owner, as duplicating a spawner (and thus its containers) would not update references (the copy will reference the original's containers)
@@ -28,7 +29,7 @@ namespace sc.splines.spawner.runtime
         public SplineSpawner owner;
         
         [SerializeField]
-        private List<GameObject> instances = new List<GameObject>(SplineSpawner.CAPACITY);
+        internal List<GameObject> instances = new List<GameObject>(SplineSpawner.CAPACITY);
         
         public readonly Dictionary<GameObject, Queue<GameObject>> prefabPools = new Dictionary<GameObject, Queue<GameObject>>(SplineSpawner.CAPACITY);
         
@@ -68,9 +69,11 @@ namespace sc.splines.spawner.runtime
 
         private void OnDisable()
         {
+            //Disabled as this also causes issues when the component is used in a prefab
             //if(owner.IsAllowedToSpawn()) ClearUnusedObjects();
         }
 
+        [ContextMenu("Destroy Instances")]
         public void DestroyInstances()
         {
             if (usePooling)

@@ -293,14 +293,13 @@ namespace sc.splines.spawner.runtime
             int2 cell = PositionToGridCoord(point);
             int index = cell.y * gridResolution.x + cell.x;
 
-            if (Application.isEditor || Debug.isDebugBuild)
+            #if DEBUG
+            if (index > grid.Length)
             {
-                if (index > grid.Length)
-                {
-                    Debug.LogError($"Grid Cell Index ({index}) out of bounds ({bounds.size.x}x{bounds.size.z})");
-                    return;
-                }
+                Debug.LogError($"Grid Cell Index ({index}) out of bounds ({bounds.size.x}x{bounds.size.z})");
+                return;
             }
+            #endif
 
             grid[index] = pointIndex;
         }

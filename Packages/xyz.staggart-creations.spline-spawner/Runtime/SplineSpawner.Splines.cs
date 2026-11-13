@@ -26,6 +26,15 @@ namespace sc.splines.spawner.runtime
 {
     public partial class SplineSpawner : MonoBehaviour
     {
+        [Tooltip("The spline container that defines the curves for spawning")]
+        [SerializeField]
+        private SplineContainer splineContainer;
+        public SplineContainer SplineContainer
+        {
+            get => splineContainer;
+            set => SetSplineContainer(value);
+        }
+        
         [SerializeField]
         private int splineCount; //Change tracking
         /// <summary>

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Splines;
 using Debug = UnityEngine.Debug;
@@ -23,11 +24,12 @@ namespace sc.splines.spawner.runtime
 {
     [ExecuteAlways]
     [Icon(SplineSpawner.kPackageRoot + "/Editor/Resources/Icons/spline-spawner-mask-icon-64px.psd")]
-    public class SplineSpawnerMask : MonoBehaviour
+    public partial class SplineSpawnerMask : MonoBehaviour
     {
         /// <summary>
         /// List of all SplineSpawnerMask instances in the scene
         /// </summary>
+        [AutoStaticsCleanup]
         public static readonly List<SplineSpawnerMask> Instances = new List<SplineSpawnerMask>(32);
         
         //Avoids streaking when sampling at the edges
@@ -117,6 +119,7 @@ namespace sc.splines.spawner.runtime
         /// <summary>
         /// Enable and disable callbacks. The instance being passed is the Spline Spawner Mask being (de)activated.
         /// </summary>
+        [NoAutoStaticsCleanup]
         public static event LoadEvent onStateChange;
         
         [AttributeUsage(AttributeTargets.Field)]

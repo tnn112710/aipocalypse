@@ -100,20 +100,28 @@ namespace sc.splines.spawner.runtime
         /// <returns></returns>
         public bool IsAllowedToSpawn(bool suppressError = true)
         {
+            var allowed = true;
+            
 #if UNITY_EDITOR
+            
             //Prefab selected in the Project window, with a Spline Mesher component on its root
             bool inspectingPrefab = UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this.gameObject) && this.gameObject.scene.name != string.Empty;
             
-            if (inspectingPrefab && !suppressError)
+            if (inspectingPrefab)
             {
-                Debug.LogError("[Spline Mesher] Unable to rebuild, since the instance is a prefab in the project, not a scene instance. Unity disallows modifying prefab files directly.", this);
-                return false;
+                if(!suppressError) Debug.LogError("[Spline Mesher] Unable to rebuild, since the instance is a prefab in the project, not a scene instance. Unity disallows modifying prefab files directly.", this);
+                allowed = false;
             }
             
-            return inspectingPrefab == false;
-#else
-            return true;
+            bool inPrefabEditor = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null;
+
+            if (inPrefabEditor && prefabBehaviour == PrefabBehaviour.DontSpawnInEditor)
+            {
+                allowed = false;
+            }
 #endif
+            
+            return allowed;
         }
     }
 }

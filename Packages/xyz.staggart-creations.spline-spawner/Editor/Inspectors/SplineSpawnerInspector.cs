@@ -15,6 +15,7 @@ using System.Reflection;
 using sc.splines.spawner.runtime;
 using UnityEditor;
 using UnityEditor.EditorTools;
+using UnityEditor.Presets;
 using UnityEditor.Splines;
 using UnityEditorInternal;
 using UnityEngine;
@@ -33,6 +34,7 @@ namespace sc.splines.spawner.editor
         private SerializedProperty root;
         private SerializedProperty hideInstances;
         private SerializedProperty startupBehaviour;
+        private SerializedProperty prefabBehaviour;
         
         private SerializedProperty inputObjects;
         private SerializedProperty distributionSettings;
@@ -91,8 +93,13 @@ namespace sc.splines.spawner.editor
         }
 
         private bool inspectingPrefab;
+        private bool editingPrefab;
         private bool isAbleToSpawn;
         private int openSplineCount;
+        private bool multipleRootTargets;
+
+        private bool presetSelectorOpen;
+        private bool hadPresetSelectorOpen;
         
         private ReorderableList modifierList;
         private void OnEnable()
@@ -100,7 +107,8 @@ namespace sc.splines.spawner.editor
             spawner = (SplineSpawner)target;
             isAbleToSpawn = spawner.IsAllowedToSpawn();
             
-            inspectingPrefab = PrefabUtility.IsPartOfPrefabInstance(spawner.gameObject) && spawner.gameObject.scene == null;
+            inspectingPrefab = spawner.gameObject.scene.IsValid() == false;
+            editingPrefab = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null;
             
             splineContainer = serializedObject.FindProperty("splineContainer");
             respawnTriggers = serializedObject.FindProperty("respawnTriggers");
@@ -108,6 +116,7 @@ namespace sc.splines.spawner.editor
             root = serializedObject.FindProperty("root");
             hideInstances = serializedObject.FindProperty("hideInstances");
             startupBehaviour = serializedObject.FindProperty("startupBehaviour");
+            prefabBehaviour = serializedObject.FindProperty("prefabBehaviour");
             
             inputObjects = serializedObject.FindProperty("inputObjects");
             distributionSettings = serializedObject.FindProperty("distributionSettings");
@@ -126,7 +135,7 @@ namespace sc.splines.spawner.editor
                 maskIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(maskIconAttribute.path);
             }
             
-            ValidateTargets();
+            if(!inspectingPrefab) ValidateTargets();
 
             if (spawner.HasMissingPrefabs())
             {
@@ -137,12 +146,8 @@ namespace sc.splines.spawner.editor
         }
         
         // layer list view
-        const int kElementHeight = 40;
-        const int kElementObjectFieldHeight = 16;
         const int kElementPadding = 2;
-        const int kElementObjectFieldWidth = 140;
         const int kElementToggleWidth = 20;
-        const int kElementThumbSize = 40;
 
         private void InitModifierStack()
         {
@@ -298,8 +303,14 @@ namespace sc.splines.spawner.editor
             
             if (isAbleToSpawn == false)
             {
-                EditorGUILayout.HelpBox("\nSpawning disabled. This instance is not a scene object." +
-                                        "\n\nEdit the source prefab\n", MessageType.Info);
+                string disableMsg = "Spawning disabled.\n\n";
+                
+                if(inspectingPrefab && !editingPrefab) disableMsg += "This instance is not a scene object.\nEdit the source prefab\n";
+
+                SplineSpawner.PrefabBehaviour prefabBehaviourValue = (SplineSpawner.PrefabBehaviour)prefabBehaviour.enumValueIndex;
+                if(editingPrefab && prefabBehaviourValue == SplineSpawner.PrefabBehaviour.DontSpawnInEditor) disableMsg += "Editing a prefab...";
+
+                EditorGUILayout.HelpBox(disableMsg, MessageType.Info);
                 EditorGUILayout.Separator();
             }
             
@@ -311,7 +322,18 @@ namespace sc.splines.spawner.editor
             EditorGUI.BeginChangeCheck();
 
             //base.OnInspectorGUI();
-            
+
+            if (EditorWindow.focusedWindow)
+            {
+                presetSelectorOpen = EditorWindow.focusedWindow.GetType() == typeof(PresetSelector);
+                if (hadPresetSelectorOpen && !presetSelectorOpen)
+                {
+                    RespawnTargets();
+                }
+
+                hadPresetSelectorOpen = presetSelectorOpen;
+            }
+
             serializedObject.Update();
             
             SplineSpawnerEditor.HasOpenSplines(spawner.SplineContainer, out openSplineCount);
@@ -367,10 +389,41 @@ namespace sc.splines.spawner.editor
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(root);
                     if (GUILayout.Button("This", EditorStyles.miniButton, GUILayout.Width(50f)))
                     {
+                        spawner.root = spawner.gameObject.transform;
                         root.objectReferenceValue = spawner.gameObject;
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        ValidateRoot();
+                        Repaint();
+                    }
+                }
+                
+                if (multipleRootTargets && root.objectReferenceValue)
+                {
+                    EditorGUILayout.HelpBox($"\n" +
+                                            $"One or more Spline Spawner components are targeting the same Root transform \"{root.objectReferenceValue.name}\"!" +
+                                            $"\n\n" +
+                                            $"This will lead to cyclic behaviour where spawners are finding objects that don't belong to them and will adopt them." +
+                                            $"\n\n" +
+                                            $"To prevent this, use a unique Root transform per spawner" +
+                                            $"\n", MessageType.Error);
+                    
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        
+                        if (GUILayout.Button("Use this transform", EditorStyles.miniButton, GUILayout.Width(125f)))
+                        {
+                            spawner.root = spawner.gameObject.transform;
+                            root.objectReferenceValue = spawner.gameObject;
+                            ValidateRoot();
+                            Repaint();
+                        }
                     }
                 }
 
@@ -433,6 +486,22 @@ namespace sc.splines.spawner.editor
                 }
                 
                 EditorGUILayout.PropertyField(startupBehaviour, GUILayout.MaxWidth(EditorGUIUtility.labelWidth + 160f));
+                if(editingPrefab)
+                {
+                    EditorGUILayout.PropertyField(prefabBehaviour, GUILayout.MaxWidth(EditorGUIUtility.labelWidth + 160f));
+
+                    if (spawner.InstanceCount > 0 && prefabBehaviour.enumValueIndex ==
+                        (int)SplineSpawner.PrefabBehaviour.DontSpawnInEditor)
+                    {
+                        EditorGUILayout.HelpBox("This prefab has 1 or more objects spawned, which is likely unwanted in this prefab.", MessageType.Warning);
+                        if (GUILayout.Button("Clear"))
+                        {
+                            spawner.DestroyInstances();
+                            spawner.ClearObjectPools();
+                            EditorUtility.SetDirty(spawner);
+                        }
+                    }
+                }
                 
                 EditorGUILayout.Space();
 
@@ -1146,6 +1215,33 @@ namespace sc.splines.spawner.editor
                 SplineSpawner targetSpawner = (SplineSpawner)m_target;
                 targetSpawner.Validate();
                 targetSpawner.CountInstances();
+            }
+
+            ValidateRoot();
+        }
+
+        private void ValidateRoot()
+        {
+#if UNITY_6000_4_OR_NEWER
+            SplineSpawner[] instances = FindObjectsByType<SplineSpawner>(FindObjectsInactive.Exclude);
+#else
+            SplineSpawner[] instances = FindObjectsByType<SplineSpawner>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+#endif
+
+            multipleRootTargets = false;
+            if (instances.Length > 0)
+            {
+                HashSet<Transform> seenRoots = new HashSet<Transform>();
+                foreach (SplineSpawner instance in instances)
+                {
+                    if (instance.root == null) continue;
+
+                    if (!seenRoots.Add(instance.root))
+                    {
+                        multipleRootTargets = true;
+                        break;
+                    }
+                }
             }
         }
     }

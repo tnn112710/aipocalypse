@@ -1,0 +1,738 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!181963792 &2655988077585873504
+Preset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Planks
+  m_TargetType:
+    m_NativeTypeID: 114
+    m_ManagedTypePPtr: {fileID: 11500000, guid: bf37ceaba248448e1b8f65150cbc925e, type: 3}
+    m_ManagedTypeFallback: 
+  m_Properties:
+  - target: {fileID: 0}
+    propertyPath: m_Enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorHideFlags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorClassIdentifier
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: respawnTriggers
+    value: 55
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: root
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hideInstances
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: startupBehaviour
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: prefabBehaviour
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.size
+    value: 3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].prefab
+    value: 
+    objectReference: {fileID: 6761753034324803483, guid: f22fb45841c4e984f9767db6227be663, type: 3}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].pivot
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].forwardDirection
+    value: 4
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].selectBySplineDistance
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].probability
+    value: 100
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].baseScale.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].baseScale.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].baseScale.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].prefab
+    value: 
+    objectReference: {fileID: 2893919864436072905, guid: 88f476fa057e6024aad771c17b40ef47, type: 3}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].pivot
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].forwardDirection
+    value: 4
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].selectBySplineDistance
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].probability
+    value: 100
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].baseScale.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].baseScale.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[1].baseScale.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].prefab
+    value: 
+    objectReference: {fileID: 7441219971978539127, guid: 88a4fe8cdf65e1f41981f0b49d423c6e, type: 3}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].pivot
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].forwardDirection
+    value: 4
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].selectBySplineDistance
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].probability
+    value: 100
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].baseScale.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].baseScale.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[2].baseScale.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.seed
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.mode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.instanceCountMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.instanceCount
+    value: 10
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacingMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacingMinMax.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacingMinMax.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.startEndTrimming.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.startEndTrimming.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.rotateToFitAxis
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.lanes
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.skipCenter
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.width
+    value: 10
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.alignment
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.alignDirection
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.spacing
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.tightness
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.padding
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.allowOverflow
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.overlapAccuracy
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.borderAccuracy
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.selection
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.linearOnly
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.mirrorLastRotation
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.range.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.range.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.linkedKnotFilter
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.minRadialSpacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.radialSpacing
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.angleRange.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.angleRange.y
+    value: 360
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.offset
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.heightOffset
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.spacing
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.center.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.center.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.borderAccuracy
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.createRows
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.rowSpacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.spacingOnRows
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.createColumns
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.columnSpacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.spacingOnColumns
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.margin
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.angle
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.minimumLength
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.concaveSupport
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.accuracy
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.size
+    value: 3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.data[0]
+    value: 1545005842539216924
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.data[1]
+    value: 1545005842539216925
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.data[2]
+    value: 1545005842539216926
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: containers.Array.size
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: containers.Array.data[0]
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: spawnObjects
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: maskRules.Array.size
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: splineContainer
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: splineCount
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: splineChangeTrigger
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: terrainMaskingComputeShader
+    value: 
+    objectReference: {fileID: 7200000, guid: 263534304a164b5b98f8963f652c6c09, type: 3}
+  - target: {fileID: 0}
+    propertyPath: terrainSplatShader
+    value: 
+    objectReference: {fileID: 4800000, guid: 79b64ce9fa4d4a47a8274a9ef6c7cd8c, type: 3}
+  - target: {fileID: 0}
+    propertyPath: terrainLayerMasks.Array.size
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: respawnOnTerrainTextureChange
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924]
+    value: sc.splines.spawning.runtime sc.splines.spawner.runtime.Scale
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].operation
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].axis.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].axis.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].axis.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].uniform
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomUniformMin
+    value: 0.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomUniformMax
+    value: 1.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomAxisMin.x
+    value: 0.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomAxisMin.y
+    value: 0.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomAxisMin.z
+    value: 0.8
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomAxisMax.x
+    value: 1.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomAxisMax.y
+    value: 1.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomAxisMax.z
+    value: 1.2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].randomnessFrequency
+    value: 10
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].byCurveDistance
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].invertCurveDistance
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].minMaxDistance.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].minMaxDistance.y
+    value: 3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].distanceScaleMultiplier
+    value: 0.25
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].overCurveLength
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.size
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].time
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].value
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].inSlope
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].outSlope
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].tangentMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].weightedMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].inWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[0].outWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].time
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].value
+    value: 0.1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].inSlope
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].outSlope
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].tangentMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].weightedMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].inWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_Curve.Array.data[1].outWeight
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_PreInfinity
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_PostInfinity
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleOverLength.m_RotationOrder
+    value: 4
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216924].scaleMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925]
+    value: sc.splines.spawning.runtime sc.splines.spawner.runtime.Rotate
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].direction
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].rotation.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].rotation.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].rotation.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMin.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMin.y
+    value: -5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMin.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMax.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMax.y
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomMax.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].randomnessFrequency
+    value: 10
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].angleLock.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].angleLock.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216925].angleLock.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926]
+    value: sc.splines.spawning.runtime sc.splines.spawner.runtime.Offset
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].direction
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].offset.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].offset.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].offset.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseAmplitude.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseAmplitude.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseAmplitude.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseFrequency.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseFrequency.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseFrequency.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseOffset.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseOffset.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].noiseOffset.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMin.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMin.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMin.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMax.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMax.y
+    value: 0.1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomMax.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216926].randomnessFrequency
+    value: 10
+    objectReference: {fileID: 0}
+  m_ExcludedProperties:
+  - splineContainer
+  - root
+  - containers

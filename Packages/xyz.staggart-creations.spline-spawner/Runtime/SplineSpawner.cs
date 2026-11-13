@@ -20,6 +20,7 @@ using UnityEditor;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Profiling;
 using UnityEngine.Splines;
 using Object = UnityEngine.Object;
@@ -39,15 +40,6 @@ namespace sc.splines.spawner.runtime
         
         public const float MIN_CURVE_LENGTH = 0.25f;
         public const float MIN_OBJECT_SIZE = 0.05f;
-        
-        [Tooltip("The spline container that defines the curves for spawning")]
-        [SerializeField]
-        private SplineContainer splineContainer;
-        public SplineContainer SplineContainer
-        {
-            get => splineContainer;
-            set => SetSplineContainer(value);
-        }
         
         [Flags]
         public enum RespawnTriggers
@@ -137,6 +129,17 @@ namespace sc.splines.spawner.runtime
         }
         [Tooltip("Action executed in Start()")]
         public StartupBehaviour startupBehaviour = StartupBehaviour.None;
+        
+        public enum PrefabBehaviour
+        {
+            Standard,
+            DontSpawnInEditor,
+        }
+
+        [Tooltip("Determines what happens when using the component on a prefab and being in the prefab editor." +
+                 "\n\n" +
+                 "Dont Spawn In Editor: Use when the prefab just needs to function as a preset, but not have core objects spawned inside of it.")]
+        public PrefabBehaviour prefabBehaviour = PrefabBehaviour.Standard;
 
         [UnityEngine.Serialization.FormerlySerializedAs("prefabs")]
         [Tooltip("List of prefab objects to spawn along the spline")]
@@ -165,6 +168,7 @@ namespace sc.splines.spawner.runtime
         /// <summary>
         /// Pre- and post-respawn callbacks. The instance being passed is the Spline Spawner being respawned.
         /// </summary>
+        [NoAutoStaticsCleanup]
         public static event Action onPreRespawn, onPostRespawn;
 
         public delegate void SpawnPointModifyEvent(NativeList<SpawnPoint> spawnPoints);
@@ -339,6 +343,7 @@ namespace sc.splines.spawner.runtime
             if (inputObjects.Count == 0)
             {
                 Debug.LogWarning("Cannot spawn anything, 0 prefabs assigned...", this);
+                container.DestroyInstances();
                 return;
             }
 
@@ -747,6 +752,14 @@ namespace sc.splines.spawner.runtime
                 if(container) container.ClearUnusedObjects();
             }
         }
+        
+        public void DestroyInstances()
+        {
+            foreach (SplineInstanceContainer container in containers)
+            {
+                if(container) container.DestroyInstances();;
+            }
+        }
 
         public int CountInstances()
         {
@@ -758,39 +771,55 @@ namespace sc.splines.spawner.runtime
             
             return InstanceCount;
         }
+
+        /// <summary>
+        /// Destroys all instances and clears out any objects that no longer belong to the Spline Spawner (eg. an old prefab)
+        /// </summary>
+        public void ClearUnusedObjects()
+        {
+            foreach (SplineInstanceContainer container in containers)
+            {
+                if(container) container.ClearUnusedObjects();
+            }
+        }
         
-        [NonSerialized]
-        private bool firstTransformChange = true;
+        //For tracking changes
+        private Matrix4x4 lastRootMatrix;
+        private Matrix4x4 lastSplineMatrix;
+        
         /// <summary>
         /// Checks for changes to the Spline Container or Root's transform. If so, a rebuild is triggered.
         /// </summary>
         public void ListenForTransformChanges()
         {
             if (!RespawnTriggerEnabled(RespawnTriggers.OnTransformChange)) return;
+
+            if (!splineContainer) return;
+            
+            //If the Spline Container, Root and Spline Spawner are the same object, no need to respawn on Transform changes. Since all objects are under the same parent.
+            if (root == this.transform && splineContainer.transform == this.transform) return;
             
             var hasSplineChange = false;
             if (splineContainer)
             {
-                hasSplineChange = splineContainer.transform.hasChanged;
-                splineContainer.transform.hasChanged = false;
+                hasSplineChange = lastSplineMatrix != splineContainer.transform.localToWorldMatrix;
+                lastSplineMatrix = splineContainer.transform.localToWorldMatrix;
             }
             
             var hasRootChange = false;
             if (root)
             {
-                hasRootChange = root.hasChanged;
-                root.hasChanged = false;
+                hasRootChange = lastRootMatrix != root.localToWorldMatrix;
+                lastRootMatrix = root.localToWorldMatrix;
             }
             
-            if (!firstTransformChange && (hasSplineChange || hasRootChange))
+            if (hasSplineChange || hasRootChange)
             {
                 if(hasSplineChange) RebuildSplineCache();
                 Respawn();
                 
                 //Debug.Log($"[Spline Spawner] {name} rebuilt due to transform change. Root:{hasRootChange}. Spline:{hasSplineChange}", this);
             }
-
-            if (firstTransformChange) firstTransformChange = false;
         }
 
         private void OnDrawGizmosSelected()

@@ -14,6 +14,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -232,16 +233,18 @@ namespace sc.splines.spawner.runtime
         //Entry point called during Respawning, processes the spawn points and culls them
         private void ProcessTerrainLayers()
         {
-            if (!terrainMaskingComputeShader)
-            {
-                Debug.LogError("[Spline Spawner] Terrain layer masking is enabled, but no terrain layer masking compute shader was found. Terrain layer masking will be skipped.");
-                return;
-            }
-
             if (!TerrainMaskingEnabled())
             {
                 return;
             }
+            
+            if (!terrainMaskingComputeShader)
+            {
+                Debug.LogError("[Spline Spawner] Terrain layer masking is enabled, but the required compute shader was is missing from this component. Be sure to assign it first. Terrain layer masking will be skipped.");
+                return;
+            }
+
+            if (Terrain.activeTerrains.Length == 0) return;
             
             if (spawnPoints.Length > 0)
             {
@@ -400,10 +403,12 @@ namespace sc.splines.spawner.runtime
     {
         private static readonly int _InputSplatmap = Shader.PropertyToID("_InputSplatmap");
         private static readonly int _MainTex = Shader.PropertyToID("_MainTex");
+        [NoAutoStaticsCleanup]
         private static RenderTexture splatmapData;
         public const string TERRAIN_SPLAT_RENDER_SHADER_NAME = "Hidden/TerrainSplatRenderer";
         //private const string TERRAIN_SPLAT_RENDER_SHADER = "Hidden/BlitCopy";
 
+        [NoAutoStaticsCleanup]
         private static Shader _terrainSplatShader;
         private static Shader terrainSplatShader => _terrainSplatShader ? _terrainSplatShader : _terrainSplatShader = Shader.Find(TERRAIN_SPLAT_RENDER_SHADER_NAME);
         
@@ -576,6 +581,7 @@ namespace sc.splines.spawner.runtime
             return -1;
         }
         
+        [NoAutoStaticsCleanup]
         private static Mesh _TerrainProxyMesh;
         private static Mesh TerrainProxyMesh
         {

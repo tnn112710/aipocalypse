@@ -10,6 +10,7 @@
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 
 using sc.splines.spawner.runtime;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -188,6 +189,7 @@ namespace sc.splines.spawner.editor
             }
         }
         
+        [NoAutoStaticsCleanup]
         private static Texture m_ReviewIcon;
         private static Texture ReviewIcon 
         { 

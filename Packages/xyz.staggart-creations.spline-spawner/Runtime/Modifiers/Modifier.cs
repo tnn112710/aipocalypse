@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
@@ -95,7 +96,9 @@ namespace sc.splines.spawner.runtime
             
         }
 
+        [NoAutoStaticsCleanup]
         public static Type[] types;
+        [NoAutoStaticsCleanup]
         public static string[] names;
 
         /// <summary>

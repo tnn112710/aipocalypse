@@ -1,0 +1,498 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!181963792 &2655988077585873504
+Preset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Streetlights
+  m_TargetType:
+    m_NativeTypeID: 114
+    m_ManagedTypePPtr: {fileID: 11500000, guid: bf37ceaba248448e1b8f65150cbc925e, type: 3}
+    m_ManagedTypeFallback: 
+  m_Properties:
+  - target: {fileID: 0}
+    propertyPath: m_Enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorHideFlags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorClassIdentifier
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: respawnTriggers
+    value: 55
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: root
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: hideInstances
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: startupBehaviour
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: prefabBehaviour
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.size
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].prefab
+    value: 
+    objectReference: {fileID: 6960842743660608557, guid: 16b4e2bd91b7e4946a84c5b4c472b5ac, type: 3}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].pivot
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].forwardDirection
+    value: 4
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].selectBySplineDistance
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].probability
+    value: 100
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].baseScale.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].baseScale.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: inputObjects.Array.data[0].baseScale.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.seed
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.mode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.instanceCountMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.instanceCount
+    value: 10
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacingMode
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacing
+    value: 15
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacingMinMax.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.spacingMinMax.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.startEndTrimming.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.startEndTrimming.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.rotateToFitAxis
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.lanes
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.skipCenter
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.width
+    value: 10
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.alignment
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onCurve.alignDirection
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.spacing
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.tightness
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.padding
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.allowOverflow
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.overlapAccuracy
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.insideArea.borderAccuracy
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.selection
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.linearOnly
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.mirrorLastRotation
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.range.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.range.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.onKnots.linkedKnotFilter
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.minRadialSpacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.radialSpacing
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.angleRange.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.angleRange.y
+    value: 360
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.offset
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.heightOffset
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.spacing
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.center.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.center.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.radial.borderAccuracy
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.createRows
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.rowSpacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.spacingOnRows
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.createColumns
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.columnSpacing
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.spacingOnColumns
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.margin
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.angle
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.minimumLength
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.concaveSupport
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: distributionSettings.grid.accuracy
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.size
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.data[0]
+    value: 1545005842539216911
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: modifiers.Array.data[1]
+    value: 1545005842539216912
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: containers.Array.size
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: containers.Array.data[0]
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: spawnObjects
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: maskRules.Array.size
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: splineContainer
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: splineCount
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: splineChangeTrigger
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: terrainMaskingComputeShader
+    value: 
+    objectReference: {fileID: 7200000, guid: 263534304a164b5b98f8963f652c6c09, type: 3}
+  - target: {fileID: 0}
+    propertyPath: terrainSplatShader
+    value: 
+    objectReference: {fileID: 4800000, guid: 79b64ce9fa4d4a47a8274a9ef6c7cd8c, type: 3}
+  - target: {fileID: 0}
+    propertyPath: terrainLayerMasks.Array.size
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: respawnOnTerrainTextureChange
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911]
+    value: sc.splines.spawning.runtime sc.splines.spawner.runtime.Offset
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].direction
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].offset.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].offset.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].offset.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseAmplitude.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseAmplitude.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseAmplitude.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseFrequency.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseFrequency.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseFrequency.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseOffset.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseOffset.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].noiseOffset.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMode
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMin.x
+    value: -5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMin.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMin.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMax.x
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMax.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomMax.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216911].randomnessFrequency
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912]
+    value: sc.splines.spawning.runtime sc.splines.spawner.runtime.Rotate
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].direction
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].rotation.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].rotation.y
+    value: -90
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].rotation.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMode
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMin.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMin.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMin.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMax.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMax.y
+    value: 180
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomMax.z
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].randomnessFrequency
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].angleLock.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].angleLock.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: managedReferences[1545005842539216912].angleLock.z
+    value: 0
+    objectReference: {fileID: 0}
+  m_ExcludedProperties:
+  - splineContainer
+  - root
+  - containers

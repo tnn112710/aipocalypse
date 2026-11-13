@@ -10,10 +10,12 @@
 // • Studying to understand for personal, educational or integration purposes is allowed, studying to reproduce is not.
 
 using System;
+using System.Collections.Generic;
 using sc.splines.spawner.runtime;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.EditorTools;
+using UnityEditor.Presets;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -26,8 +28,8 @@ namespace sc.splines.spawner.editor
     {
         private static bool STARTUP_PERFORMED
         {
-            get => SessionState.GetBool("SPLINE_SPAWNER_EDITOR_STARTED", false);
-            set => SessionState.SetBool("SPLINE_SPAWNER_EDITOR_STARTED", value);
+            get => SessionState.GetBool(AssetInfo.ASSET_ABRV + "_EDITOR_STARTED", false);
+            set => SessionState.SetBool(AssetInfo.ASSET_ABRV + "_EDITOR_STARTED", value);
         }
         
         [InitializeOnLoadMethod]
@@ -40,8 +42,56 @@ namespace sc.splines.spawner.editor
             }
 
             SplineSpawnerMask.onStateChange += OnMaskToggle;
+
         }
-        
+
+        public class PresetCreationProcessor : AssetModificationProcessor
+        {
+            //These properties are excluded, since they're per-instance scene references
+            private static readonly string[] ExcludedProperties =
+            {
+                "splineContainer",
+                "root",
+                "containers"
+            };
+
+            private static void OnWillCreateAsset(string path)
+            {
+                //Unity may pass the .meta path instead of the asset path.
+                path = path.Replace(".meta", "");
+
+                if (!path.EndsWith(".preset", StringComparison.OrdinalIgnoreCase)) return;
+
+                //Wait until the preset has been created and imported.
+                EditorApplication.delayCall += () => ConfigurePreset(path);
+            }
+
+            private static void ConfigurePreset(string path)
+            {
+                Preset preset = AssetDatabase.LoadAssetAtPath<Preset>(path);
+                if (preset == null)
+                    return;
+
+                if (preset.GetTargetTypeName() != "SplineSpawner") return;
+                
+                var exclusions = new HashSet<string>(preset.excludedProperties ?? Array.Empty<string>());
+
+                bool modified = false;
+
+                foreach (string property in ExcludedProperties)
+                {
+                    if (exclusions.Add(property)) modified = true;
+                }
+
+                if (!modified) return;
+
+                preset.excludedProperties = new List<string>(exclusions).ToArray();
+
+                EditorUtility.SetDirty(preset);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
         private static void OnMaskToggle(SplineSpawnerMask instance, bool enabled)
         {
             //Debug.Log($"{instance.name}: {(enabled ? "Enabled" : "Disabled")}");

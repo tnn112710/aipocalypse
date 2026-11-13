@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using sc.splines.spawner.runtime;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -30,7 +31,9 @@ namespace sc.splines.spawner.editor
         private static Texture FoldoutIcon => _foldoutIcon ??= EditorGUIUtility.IconContent("IN_foldout").image;
         private static Texture FoldoutOnIcon => _foldoutOnIcon ??= EditorGUIUtility.IconContent("IN_foldout_on").image;
 
+        [NoAutoStaticsCleanup]
         private static Texture _foldoutIcon;
+        [NoAutoStaticsCleanup]
         private static Texture _foldoutOnIcon;
         
         public static Texture CreateIcon(string data)
@@ -287,27 +290,36 @@ namespace sc.splines.spawner.editor
                 return icon;
             }
             
+            [NoAutoStaticsCleanup]
             private static Texture2D _Distribution;
             public static Texture2D Distribution => _Distribution ??= LoadFromResources("Icons/spline-spawner-distribution-icon-64px.psd");
             
+            [NoAutoStaticsCleanup]
             private static Texture2D _Masking;
             public static Texture2D Masking => _Masking ??= LoadFromResources("Icons/spline-spawner-mask-icon-64px.psd");
             
+            [NoAutoStaticsCleanup]
             private static Texture2D _Terrain;
             public static Texture2D Terrain => _Terrain ??= LoadFromResources("Icons/spline-spawner-terrain-icon-64px.psd");
             
+            [NoAutoStaticsCleanup]  
             private static Texture2D _Modifiers;
             public static Texture2D Modifiers => _Modifiers ??= LoadFromResources("Icons/spline-spawner-modifiers-icon-64px.psd");
 
+            [NoAutoStaticsCleanup]  
             private static Texture2D _Prefab;
             public static Texture2D Prefab => _Prefab ??= LoadNative("d_Prefab Icon");
             
+            [NoAutoStaticsCleanup]  
             private static Texture2D _Event;
             public static Texture2D Event => _Event ??= LoadNative("EventSystem Icon");
 
+            [NoAutoStaticsCleanup]
             private static readonly Dictionary<int, Texture2D> DownloadedAssetIcons = new();
+            [NoAutoStaticsCleanup]
             private static readonly HashSet<int> AssetIconsBeingDownloaded = new();
             
+            [NoAutoStaticsCleanup]
             private static Texture2D _TemporaryAssetIcon;
             private static Texture2D TemporaryAssetIcon =>
                 _TemporaryAssetIcon ??= EditorGUIUtility.IconContent("d_PreMatCube").image as Texture2D;
@@ -371,6 +383,7 @@ namespace sc.splines.spawner.editor
         
         public static class Styles
         {
+            [NoAutoStaticsCleanup]
             private static GUIStyle _Section;
             public static GUIStyle Section
             {
@@ -390,6 +403,7 @@ namespace sc.splines.spawner.editor
                 }
             }
             
+            [NoAutoStaticsCleanup]
             private static GUIStyle _H2;
             public static GUIStyle H2
             {
@@ -412,6 +426,7 @@ namespace sc.splines.spawner.editor
                 }
             }
             
+            [NoAutoStaticsCleanup]
             private static GUIStyle _Button;
             public static GUIStyle Button
             {
@@ -439,6 +454,7 @@ namespace sc.splines.spawner.editor
                 }
             }
             
+            [NoAutoStaticsCleanup]
             private static GUIStyle _UpdateText;
             public static GUIStyle UpdateText
             {
@@ -458,6 +474,7 @@ namespace sc.splines.spawner.editor
                 }
             }
             
+            [NoAutoStaticsCleanup]
             private static GUIStyle _WordWrappedRich;
             public static GUIStyle WordWrappedRich
             {
@@ -476,6 +493,7 @@ namespace sc.splines.spawner.editor
                 }
             }
 
+            [NoAutoStaticsCleanup]
             private static GUIStyle _Header;
             public static GUIStyle Header
             {
@@ -497,6 +515,7 @@ namespace sc.splines.spawner.editor
                 }
             }
             
+            [NoAutoStaticsCleanup]
             private static GUIStyle _Footer;
             public static GUIStyle Footer
             {
