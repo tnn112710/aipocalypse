@@ -315,6 +315,16 @@ namespace MB13.Aipocalypse.Input
                     ""priority"": 0
                 },
                 {
+                    ""name"": ""GunLight"",
+                    ""type"": ""Button"",
+                    ""id"": ""c7068eb5-17ea-41c0-ab8d-1377642595f9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
                     ""name"": ""Melee"",
                     ""type"": ""Button"",
                     ""id"": ""578d160d-00ba-42ef-a0a4-8fc63220684f"",
@@ -948,6 +958,28 @@ namespace MB13.Aipocalypse.Input
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3f3f9285-8e6c-4e75-896f-a3e9b5b07388"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""GunLight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2e6e449f-aca7-4a62-8a6f-6628a14c0811"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""GunLight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -2089,6 +2121,7 @@ namespace MB13.Aipocalypse.Input
             m_Player_Collect = m_Player.FindAction("Collect", throwIfNotFound: true);
             m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
             m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
+            m_Player_GunLight = m_Player.FindAction("GunLight", throwIfNotFound: true);
             m_Player_Melee = m_Player.FindAction("Melee", throwIfNotFound: true);
             m_Player_Inventory = m_Player.FindAction("Inventory", throwIfNotFound: true);
             m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
@@ -2235,6 +2268,7 @@ namespace MB13.Aipocalypse.Input
         private readonly InputAction m_Player_Collect;
         private readonly InputAction m_Player_Aim;
         private readonly InputAction m_Player_Reload;
+        private readonly InputAction m_Player_GunLight;
         private readonly InputAction m_Player_Melee;
         private readonly InputAction m_Player_Inventory;
         private readonly InputAction m_Player_Pause;
@@ -2337,6 +2371,10 @@ namespace MB13.Aipocalypse.Input
             /// Provides access to the underlying input action "Player/Reload".
             /// </summary>
             public InputAction @Reload => m_Wrapper.m_Player_Reload;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/GunLight".
+            /// </summary>
+            public InputAction @GunLight => m_Wrapper.m_Player_GunLight;
             /// <summary>
             /// Provides access to the underlying input action "Player/Melee".
             /// </summary>
@@ -2441,6 +2479,9 @@ namespace MB13.Aipocalypse.Input
                 @Reload.started += instance.OnReload;
                 @Reload.performed += instance.OnReload;
                 @Reload.canceled += instance.OnReload;
+                @GunLight.started += instance.OnGunLight;
+                @GunLight.performed += instance.OnGunLight;
+                @GunLight.canceled += instance.OnGunLight;
                 @Melee.started += instance.OnMelee;
                 @Melee.performed += instance.OnMelee;
                 @Melee.canceled += instance.OnMelee;
@@ -2527,6 +2568,9 @@ namespace MB13.Aipocalypse.Input
                 @Reload.started -= instance.OnReload;
                 @Reload.performed -= instance.OnReload;
                 @Reload.canceled -= instance.OnReload;
+                @GunLight.started -= instance.OnGunLight;
+                @GunLight.performed -= instance.OnGunLight;
+                @GunLight.canceled -= instance.OnGunLight;
                 @Melee.started -= instance.OnMelee;
                 @Melee.performed -= instance.OnMelee;
                 @Melee.canceled -= instance.OnMelee;
@@ -3402,6 +3446,13 @@ namespace MB13.Aipocalypse.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnReload(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "GunLight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnGunLight(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Melee" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

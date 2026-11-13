@@ -50,7 +50,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public Vector2 LookTurn { get; private set; }
 
         // `aimWeight`: 0 hip .. 1 aiming down sights. `stateMultiplier`: extra kick from moving, being airborne or tired.
-        public void Kick(float aimWeight, float stateMultiplier)
+        // `verticalScale` / `horizontalScale`: the gun's parts (GunStats), on the up and sideways kick of view and model.
+        public void Kick(float aimWeight, float stateMultiplier, float verticalScale = 1f, float horizontalScale = 1f)
         {
             RecoilValues values = Values(aimWeight);
 
@@ -69,15 +70,16 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             Pattern(shot, out float pitchScale, out float yawPattern, out float rollPattern);
 
             float multiplier = AccurateShotsMultiplier(shot) * values.Multiplier * stateMultiplier;
-            float pitch = Mathf.Max(0.01f, values.Vertical * pitchScale + pitchNoise * values.NoisePitch);
-            float yaw = yawPattern * values.Horizontal + yawNoise * values.NoiseYaw;
+            float pitch = Mathf.Max(0.01f, values.Vertical * pitchScale + pitchNoise * values.NoisePitch) * verticalScale;
+            float yaw = (yawPattern * values.Horizontal + yawNoise * values.NoiseYaw) * horizontalScale;
 
             float kept = Mathf.Clamp01(_settings.KeptShare);
             _viewTarget += new Vector3(-pitch * (1f - kept), yaw * (1f - kept), rollPattern * values.Roll) * multiplier;
             _keptLeft += new Vector2(-pitch, yaw) * (kept * multiplier);
             _shakeTarget += new Vector3(yawNoise, pitchNoise + shakeNoise * 0.35f, 0f) * (values.CameraShake * stateMultiplier);
 
-            _gunTarget += new Vector3(-values.GunPitch * pitchScale, values.GunYaw * yawPattern, values.GunRoll * rollPattern) * multiplier;
+            _gunTarget += new Vector3(-values.GunPitch * pitchScale * verticalScale, values.GunYaw * yawPattern * horizontalScale,
+                values.GunRoll * rollPattern) * multiplier;
             _kickTarget += values.KickBack * multiplier;
             _fov = Mathf.Min(_fov + _settings.FovKick * stateMultiplier, Mathf.Max(_settings.FovKick, _settings.FovKickMax));
         }

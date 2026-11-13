@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27fa7b4910c5cce4c8a6e35b216e7ae7, type: 3}
+  m_Name: PistolSuppressor
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.AttachmentDefinition
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 368719206371334
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _icon: {fileID: 21300000, guid: 477a3452a9173ae4b9502a8a11886e15, type: 3}
+  _prefab: {fileID: 6181515999372612237, guid: 9e8259b589e2ba142a19a31b0b17dcbc, type: 3}
+  _maxStack: 1
+  _unlimitedStack: 0
+  _weight: 0.25
+  _autoCollect: 0
+  _value: 250
+  _rarity: 2
+  _slot: 1
+  _families: 3
+  _guns: []
+  _ammo: {fileID: 0}
+  _modifiers:
+  - Stat: 4
+    Percent: -10
+  - Stat: 5
+    Percent: -10
+  _model: {fileID: 4315682613014595612, guid: 3aac935aad1c75b46adbd21bbdcb0a88, type: 3}
+  _optic:
+    Magnification: 1
+    EyeRelief: 0
+    SwayScale: 1
+    FullScope: 0
+    ScopeReticle: {fileID: 0}
+  _magazineScale: {x: 1, y: 1, z: 1}
+  _hidesFlash: 1
+  references:
+    version: 2
+    RefIds: []

@@ -7,6 +7,7 @@ using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
+using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Input;
 using MessagePipe;
 using TMPro;
@@ -25,6 +26,8 @@ namespace MB13.Aipocalypse.Core.UI
     // open, except during a raid: then the world goes on and a hit closes it.
     // Drag to move, merge or swap; Shift-drag moves half a stack; right-click sends an item across (loot <-> backpack,
     // backpack <-> a free active or gear slot); dropping on the backdrop throws it away.
+    // The centre inspects the item last clicked (the held one when the screen opens): in 3D, with a gun's part slots.
+    // Parts are fitted by dragging them onto a part slot or the 3D view, or by right-clicking them; taken off the same way.
     public sealed class InventoryScreen : PlayerHudView
     {
         const ItemCategory WeaponSlots = ItemCategory.Gun | ItemCategory.Melee;
@@ -35,6 +38,7 @@ namespace MB13.Aipocalypse.Core.UI
         static readonly LocalizedString NowhereToWear = Loc.UI("inventory.nowhere");
         static readonly LocalizedString BackpackFull = Loc.UI("inventory.backpack_full");
         static readonly LocalizedString StillSearching = Loc.UI("inventory.still_searching");
+        static readonly LocalizedString PickGun = Loc.UI("inventory.part_pick_gun");
         static readonly LocalizedString UsesFormat = Loc.UI("tooltip.uses");
         static readonly LocalizedString ValueFormat = Loc.UI("tooltip.value");
         // Indexed by ItemRarity.
@@ -64,13 +68,17 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField, Tooltip("Follows the pointer while dragging")] Image _dragIcon;
         [SerializeField] ItemTooltipView _tooltip;
         [SerializeField, Tooltip("Full-screen backdrop: an item dropped here is thrown away")] GameObject _backdrop;
+        [SerializeField, Tooltip("Optional: the centre panel inspecting the selected item, with a gun's part slots")]
+        ItemInspectorView _inspector;
 
-        // What each slot view shows: a slot of one of the containers.
+        // What each slot view shows: a slot of one of the containers, or a part slot of the inspected gun.
         struct SlotRef
         {
             public ItemSlotView View;
             public ItemContainer Container;
             public int Index;
+            public bool IsPart;
+            public GunSlot Part;
         }
 
         readonly List<SlotRef> _slots = new();
@@ -126,6 +134,12 @@ namespace MB13.Aipocalypse.Core.UI
                 _sortButton.onClick.AddListener(SortBackpack);
             if (_takeAllButton != null)
                 _takeAllButton.onClick.AddListener(TakeAll);
+            if (_inspector != null)
+            {
+                foreach (ItemSlotView view in _inspector.SlotViews)
+                    Hook(view);
+                _inspector.StageDropped += OnStageDropped;
+            }
         }
 
         protected override void Bind(IPlayer player)
@@ -211,6 +225,11 @@ namespace MB13.Aipocalypse.Core.UI
                 if (_eventSystem != null)
                     _eventSystem.SetActive(true);
                 SetVisible(true);
+                Rebuild();
+                // Opening shows the item in hand, as Duckov does.
+                HeldItem held = Player?.HeldItem;
+                Inspect(held != null && _inventory.Contains(held.Item) ? held.Item : null);
+                return;
             }
             Rebuild();
         }
@@ -224,6 +243,7 @@ namespace MB13.Aipocalypse.Core.UI
             CancelDrag();
             if (_tooltip != null)
                 _tooltip.Hide();
+            _inspector?.Hide();
             SetLoot(null);
             SetVisible(false);
             if (_eventSystem != null)
@@ -335,8 +355,31 @@ namespace MB13.Aipocalypse.Core.UI
             for (int i = 0; i < loot; i++)
                 AddSlot(_lootViews, _lootGrid, i, _loot.Items, i, null, null);
             HideFrom(_lootViews, loot);
+
+            if (_inspector != null)
+            {
+                for (int i = 0; i < _inspector.SlotViews.Count; i++)
+                {
+                    ItemSlotView view = _inspector.SlotViews[i];
+                    view.Index = _slots.Count;
+                    view.SetDragged(false);
+                    _slots.Add(new SlotRef { View = view, IsPart = true, Part = (GunSlot)i });
+                }
+            }
             Refresh();
         }
+
+        // Shows `item` in the centre; the part slots follow on the next refresh.
+        void Inspect(ItemInstance item)
+        {
+            if (_inspector == null)
+                return;
+            _inspector.Show(item);
+            _dirty = true;
+        }
+
+        // What a slot view shows: the container's item, or the part in the inspected gun's slot.
+        ItemInstance ItemAt(SlotRef slot) => slot.IsPart ? _inspector?.Gun?.AttachmentIn(slot.Part) : slot.Container[slot.Index];
 
         string Key(int hotbarSlot) => _input.GetKeyLabel(_equipment.KeyOf(hotbarSlot));
 
@@ -382,9 +425,15 @@ namespace MB13.Aipocalypse.Core.UI
         void Refresh()
         {
             _dirty = false;
+            // The inspected item left (thrown away, taken by the crate's search going away): nothing is inspected.
+            ItemInstance inspected = _inspector != null ? _inspector.Item : null;
+            if (inspected != null && !_inventory.Contains(inspected) && (_loot == null || _loot.Items.IndexOf(inspected) < 0))
+                Inspect(null);
+            _inspector?.Refresh();
+
             foreach (SlotRef slot in _slots)
             {
-                ItemInstance item = slot.Container[slot.Index];
+                ItemInstance item = ItemAt(slot);
                 if (IsHidden(slot))
                 {
                     bool revealing = _looting != null && _looting.Searching == _loot && _looting.RevealingSlot == slot.Index;
@@ -393,7 +442,8 @@ namespace MB13.Aipocalypse.Core.UI
                 }
                 if (item == null)
                 {
-                    slot.View.ShowEmpty(slot.Container.AcceptsAnything ? null : _style != null ? _style.EmptyIcon(slot.Container.AcceptsAt(slot.Index)) : null);
+                    slot.View.ShowEmpty(slot.IsPart || slot.Container.AcceptsAnything ? null
+                        : _style != null ? _style.EmptyIcon(slot.Container.AcceptsAt(slot.Index)) : null);
                     continue;
                 }
                 ItemBadge badge = item.Badge;
@@ -437,7 +487,7 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         // Not revealed yet by the search: it can't be moved, swapped, merged into or inspected.
-        bool IsHidden(SlotRef slot) => _loot != null && slot.Container == _loot.Items && _loot.IsHidden(slot.Index);
+        bool IsHidden(SlotRef slot) => _loot != null && !slot.IsPart && slot.Container == _loot.Items && _loot.IsHidden(slot.Index);
 
         void Play(SoundID sound) => _audio?.Play(sound);
 
@@ -455,17 +505,39 @@ namespace MB13.Aipocalypse.Core.UI
             _messageUntil = Time.unscaledTime + MessageSeconds;
         }
 
-        // Right-click: send the item across.
+        // Left-click: inspect the item. Right-click: send it across, or fit / take off a gun part.
         void OnSlotClicked(ItemSlotView view, PointerEventData eventData)
         {
-            if (eventData.button != PointerEventData.InputButton.Right || _dragFrom >= 0)
+            if (_dragFrom >= 0)
                 return;
             SlotRef slot = _slots[view.Index];
-            if (slot.Container[slot.Index] == null || IsHidden(slot))
+            ItemInstance item = ItemAt(slot);
+            if (item == null || IsHidden(slot))
+                return;
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                if (!slot.IsPart)
+                    Inspect(item);
+                return;
+            }
+            if (eventData.button != PointerEventData.InputButton.Right)
                 return;
 
             string refusal = null;
-            if (_loot != null && slot.Container == _loot.Items)
+            GunInstance gun = _inspector != null ? _inspector.Gun : null;
+            if (slot.IsPart)
+            {
+                if (!GunModding.TryDetach(_inventory, gun, slot.Part, null, 0, out refusal) && refusal == null)
+                    return;
+            }
+            else if (item.Definition is AttachmentDefinition && (gun != null || _loot == null))
+            {
+                if (gun == null)
+                    refusal = PickGun.Text();
+                else if (!GunModding.TryAttach(_inventory, slot.Container, slot.Index, gun, out refusal) && refusal == null)
+                    return;
+            }
+            else if (_loot != null && slot.Container == _loot.Items)
             {
                 if (_inventory.TakeFrom(slot.Container, slot.Index) == 0)
                     refusal = NoRoom.Text();
@@ -522,10 +594,12 @@ namespace MB13.Aipocalypse.Core.UI
             if (eventData.button != PointerEventData.InputButton.Left)
                 return;
             SlotRef slot = _slots[view.Index];
-            ItemInstance item = slot.Container[slot.Index];
+            ItemInstance item = ItemAt(slot);
             if (item == null || IsHidden(slot))
                 return;
             _dragFrom = view.Index;
+            if (item.Definition is AttachmentDefinition)
+                _inspector?.SetPreview(item);
             _dragAmount = _input.UiShiftHeld && item.Count > 1 ? item.Count / 2 : item.Count;
             _droppedOnSlot = false;
             view.SetDragged(true);
@@ -552,9 +626,34 @@ namespace MB13.Aipocalypse.Core.UI
             _droppedOnSlot = true;
             SlotRef from = _slots[_dragFrom];
             SlotRef to = _slots[target.Index];
+            GunInstance gun = _inspector != null ? _inspector.Gun : null;
+            if (from.IsPart && to.IsPart)
+                return;
             if (IsHidden(to))
                 ShowMessage(StillSearching.Text());
+            else if (from.IsPart)
+                Modded(GunModding.TryDetach(_inventory, gun, from.Part, to.Container, to.Index, out string detachRefusal), detachRefusal);
+            else if (to.IsPart)
+                Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, gun, out string attachRefusal), attachRefusal);
             else if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal, _dragAmount))
+                Play(_style != null ? _style.PlaceSound : default);
+            else
+                ShowMessage(refusal);
+        }
+
+        // A part dropped on the inspected gun's 3D view goes to its own slot.
+        void OnStageDropped()
+        {
+            if (_dragFrom < 0 || _slots[_dragFrom].IsPart || _inspector == null || _inspector.Gun == null)
+                return;
+            _droppedOnSlot = true;
+            SlotRef from = _slots[_dragFrom];
+            Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, _inspector.Gun, out string refusal), refusal);
+        }
+
+        void Modded(bool done, string refusal)
+        {
+            if (done)
                 Play(_style != null ? _style.PlaceSound : default);
             else
                 ShowMessage(refusal);
@@ -564,7 +663,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_dragFrom < 0)
                 return;
-            if (!_droppedOnSlot && _backdrop != null && eventData.pointerCurrentRaycast.gameObject == _backdrop)
+            if (!_droppedOnSlot && !_slots[_dragFrom].IsPart && _backdrop != null && eventData.pointerCurrentRaycast.gameObject == _backdrop)
                 ThrowAway(_slots[_dragFrom]);
             CancelDrag();
             _dirty = true;
@@ -588,11 +687,12 @@ namespace MB13.Aipocalypse.Core.UI
             _droppedOnSlot = false;
             if (_dragIcon != null)
                 _dragIcon.enabled = false;
+            _inspector?.SetPreview(null);
         }
 
         void OnHoverChanged(ItemSlotView view) => RefreshTooltip();
 
-        static string RarityName(ItemRarity rarity) => (int)rarity < RarityNames.Length ? RarityNames[(int)rarity].Text() : rarity.ToString();
+        internal static string RarityName(ItemRarity rarity) => (int)rarity < RarityNames.Length ? RarityNames[(int)rarity].Text() : rarity.ToString();
 
         void RefreshTooltip()
         {
@@ -602,7 +702,7 @@ namespace MB13.Aipocalypse.Core.UI
             {
                 if (!slot.View.IsHovered || _dragFrom >= 0)
                     continue;
-                ItemInstance item = slot.Container[slot.Index];
+                ItemInstance item = ItemAt(slot);
                 if (item == null || IsHidden(slot))
                     break;
                 ItemDefinition definition = item.Definition;
@@ -610,12 +710,23 @@ namespace MB13.Aipocalypse.Core.UI
                     ? $"{item.Count:N0} x {definition.Weight:0.###} kg = {item.Weight:0.##} kg"
                     : $"{definition.Weight:0.##} kg";
                 string uses = item is ConsumableInstance multiUse ? "\n" + UsesFormat.Format(multiUse.UsesLeft, multiUse.Consumable.Uses) : null;
-                string details = $"{RarityName(definition.Rarity)}\n{weight}{uses}\n{ValueFormat.Format(item.Value)}";
+                string details = $"{RarityName(definition.Rarity)}\n{weight}{uses}\n{ValueFormat.Format(item.Value)}{PartDetails(item)}";
                 Color title = _style != null ? _style.RarityColor(definition.Rarity) : Color.white;
                 _tooltip.Show((RectTransform)slot.View.transform, definition.DisplayName, details, title);
                 return;
             }
             _tooltip.Hide();
+        }
+
+        // A gun part's slot and what it changes ("Aim time -10%"), for the tooltip.
+        static string PartDetails(ItemInstance item)
+        {
+            if (item.Definition is not AttachmentDefinition part)
+                return null;
+            var text = new System.Text.StringBuilder("\n").Append(ItemInspectorView.SlotName(part.Slot));
+            foreach (GunStatModifier modifier in part.Modifiers)
+                text.Append('\n').Append(ItemInspectorView.StatNames[(int)modifier.Stat].Text()).Append(' ').Append(modifier.Percent.ToString("+0;-0")).Append('%');
+            return text.ToString();
         }
 
         void SortBackpack() => _inventory?.Backpack.Sort();

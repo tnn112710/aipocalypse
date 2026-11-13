@@ -24,5 +24,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public bool FirePressed;
         public bool Aim;
         public bool Reload;
+        // The held gun's light switched on or off this frame.
+        public bool GunLight;
     }
 }

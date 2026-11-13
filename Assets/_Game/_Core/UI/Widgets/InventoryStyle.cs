@@ -43,6 +43,11 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Panel")] public Color WeightBarColor = new(0.85f, 0.85f, 0.85f, 1f);
         [BoxGroup("Panel"), Tooltip("Weight bar past the carry limit")] public Color OverweightColor = new(1f, 0.45f, 0.35f, 1f);
 
+        [BoxGroup("Inspector"), Tooltip("Gun part slots a dragged part fits")] public Color FitColor = new(0.45f, 0.75f, 0.4f, 0.95f);
+        [BoxGroup("Inspector"), Tooltip("A stat a part would make better")] public Color BetterColor = new(0.45f, 0.9f, 0.45f, 1f);
+        [BoxGroup("Inspector"), Tooltip("A stat a part would make worse")] public Color WorseColor = new(1f, 0.45f, 0.35f, 1f);
+        [BoxGroup("Inspector"), Tooltip("The line from a hovered part slot to its mount on the gun")] public Color LeaderColor = new(1f, 0.85f, 0.55f, 0.9f);
+
         [BoxGroup("Sounds")] public SoundID OpenSound;
         [BoxGroup("Sounds")] public SoundID CloseSound;
         [BoxGroup("Sounds"), Tooltip("An item dropped into a slot (moved, merged, swapped, taken)")] public SoundID PlaceSound;

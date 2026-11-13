@@ -9,6 +9,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public bool UsePressed;
         public bool AimHeld;
         public bool ReloadPressed;
+        // Switch the item's light (a gun's flashlight part).
+        public bool LightPressed;
 
         // Fully raised; false while switching. Set by the rig.
         public bool IsReady;

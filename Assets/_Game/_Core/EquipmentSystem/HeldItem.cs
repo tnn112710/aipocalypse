@@ -30,6 +30,10 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public virtual float Spread => 0f;
         // Multiplies the holder's move speed (using a consumable slows the walk): 1 = none.
         public virtual float MoveSpeedScale => 1f;
+        // Multiplies the aim and model sway on top of the item's HoldFeel (a magnified scope calms it): 1 = none.
+        public virtual float SwayScale => 1f;
+        // A full scope's view over the screen while aiming through it (the HUD draws it); none by default.
+        public virtual ScopeView Scope => default;
 
         // Whether the holder's attack / aim input ends a sprint.
         public virtual bool StopsSprint(bool useHeld, bool aimHeld) => false;
@@ -39,13 +43,20 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             Item = item;
             Owner = owner;
             Hands = GetComponent<ItemHands>();
-            // Before anything gets parented to the model (muzzle flashes), so only the model's own meshes count.
+            RefreshRenderers();
+            OnBound();
+        }
+
+        // Collects the model's meshes for TryGetTip; again after parts are added to it. Before anything gets parented to
+        // the model (muzzle flashes), so only the model's own meshes count.
+        protected void RefreshRenderers()
+        {
+            _renderers.Clear();
             foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
             {
                 if (renderer is MeshRenderer or SkinnedMeshRenderer)
                     _renderers.Add(renderer);
             }
-            OnBound();
         }
 
         // The model's furthest point along `forward` from `eye`, from its meshes' bounds as drawn this frame.

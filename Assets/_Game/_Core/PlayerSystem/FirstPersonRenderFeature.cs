@@ -45,6 +45,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 public RendererListHandle Opaque;
                 public RendererListHandle Transparent;
                 public bool FirstPerson;
+                public bool Hidden;
                 public Matrix4x4 View;
                 public Matrix4x4 Projection;
                 public Matrix4x4 CameraProjection;
@@ -84,6 +85,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 Camera camera = cameraData.camera;
                 FirstPersonView firstPerson = null;
                 data.FirstPerson = cameraData.isGameCamera && !cameraData.xr.enabled && camera.TryGetComponent(out firstPerson);
+                data.Hidden = data.FirstPerson && firstPerson.HideHeld;
                 if (data.FirstPerson)
                 {
                     Rect pixels = camera.pixelRect;
@@ -98,6 +100,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                     // SSAO is computed from the world's depth, which doesn't hold this layer; sampling it here shades
                     // the held model with whatever is behind it. Zero intensity makes the AO factor 1. Nothing lit draws after this pass.
                     cmd.SetGlobalVector(AmbientOcclusionParam, Vector4.zero);
+                    if (d.Hidden)
+                        return;
                     if (d.FirstPerson)
                     {
                         bool flip = context.GetTextureUVOrigin(d.Color) == TextureUVOrigin.BottomLeft;

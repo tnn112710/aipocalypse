@@ -418,6 +418,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             FirePressed = _input.AttackPressed,
             Aim = _input.AimHeld,
             Reload = _input.ReloadPressed,
+            GunLight = _input.GunLightPressed,
         };
 
         // The hotbar slot a pressed key selects (EquipmentConfig), or null.

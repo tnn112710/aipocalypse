@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27fa7b4910c5cce4c8a6e35b216e7ae7, type: 3}
+  m_Name: Scope4x
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.AttachmentDefinition
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 368719206371330
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _icon: {fileID: 21300000, guid: 71931e64b1ad35e46968dcd997406eaf, type: 3}
+  _prefab: {fileID: 8426933279281074859, guid: 72b51ad2d0a11d54d92f0d17446db2be, type: 3}
+  _maxStack: 1
+  _unlimitedStack: 0
+  _weight: 0.6
+  _autoCollect: 0
+  _value: 600
+  _rarity: 3
+  _slot: 0
+  _families: 28
+  _guns: []
+  _ammo: {fileID: 0}
+  _modifiers:
+  - Stat: 4
+    Percent: 25
+  - Stat: 8
+    Percent: 25
+  - Stat: 11
+    Percent: 15
+  _model: {fileID: 959935570914824761, guid: a05c2dc1010af684d8c26bebe5501d60, type: 3}
+  _optic:
+    Magnification: 4
+    EyeRelief: 0
+    SwayScale: 0.35
+    FullScope: 1
+    ScopeReticle: {fileID: 21300000, guid: 591d51e3ba60fb14080e38ff357ce057, type: 3}
+  _magazineScale: {x: 1, y: 1, z: 1}
+  _hidesFlash: 0
+  references:
+    version: 2
+    RefIds: []

@@ -25,6 +25,9 @@ How the in-game UI is built and how to extend or restyle it. Script locations an
 ```text
 HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibilityHud (fades the HUD out while the player is dead)
 ├─ HurtFeedback              first child (draws under the widgets), stretched full screen past the SafeFrame inset · nested Canvas · HurtFeedbackHud (HurtFeedbackStyle), see Hurt feedback below
+├─ ScopeView                 full screen, under the widgets · nested Canvas (off while nothing shows) · CanvasGroup · ScopeHud: View (one screen height,
+│                            on the crosshair) > Mask (ScopeMask), Left / Right / Top / Bottom black bars, Reticle; see Scope view below; built by
+│                            AgentScripts/Weapons/InspectorSetup
 │  └─ Top / Bottom / Left / Right   RawImage edges, off until a hit; gradient made in code
 ├─ BreachAlert               band under the raid banner (anchors 0.56–0.62), CanvasGroup (alpha 0 at rest) · BreachAlertHud (Data/UI/BreachAlertStyle.asset): one TMP line when a fence segment or gate breaks, "The fence is down behind you" (side from the player's view); built by AgentScripts/Defense/DefenseSetup.Hud
 ├─ RaidBanner                upper middle band (anchors 0.62–0.82 of the height), CanvasGroup (alpha 0 at rest) · RaidBannerHud (Data/UI/RaidBannerStyle.asset): Title + Subtitle TMP texts, shown when a raid starts, is repelled or ends at dawn; built by AgentScripts/Hud/RaidBannerSetup.Build
@@ -135,6 +138,9 @@ The first clickable UI: Tab or searching a crate or body (E) opens it, Tab / Esc
 ```text
 Inventory                    Canvas (override sorting 50) · GraphicRaycaster · CanvasGroup · InventoryScreen
 ├─ Backdrop                  full screen, BackdropColor; raycast target: an item dropped here is thrown away
+├─ Inspector                 centre panel 720×740 · ItemInspectorView: Content (Title, Info, StageFrame > Stage (RawImage · ItemPreviewStage ·
+│                            ItemPreviewInput) + TurnHint, Slot_Optic … Slot_Magazine (ItemSlot), Stat0–13 / Value0–13), Hint, Leader; built by
+│                            AgentScripts/Weapons/InspectorSetup, not by InventorySetup.Interface
 ├─ Left                      panel · VerticalLayoutGroup: Header (Tokens, TokensLabel, Weight, WeightBar > Fill), EquipmentTitle,
 │                            EquipmentGrid (GridLayoutGroup 88 px, 5 columns), BackpackRow (BackpackTitle, Sort), BackpackScroll
 │                            (ScrollRect > Viewport (RectMask2D) > Content: GridLayoutGroup + ContentSizeFitter)
@@ -154,6 +160,7 @@ Inventory                    Canvas (override sorting 50) · GraphicRaycaster ·
 - Built by `AgentScripts/Inventory/InventorySetup.Interface`; after changing layout, run `InventorySetup.Bake` (or `BakeCurrent` right after leaving Play) so the values layout groups and TMP compute in the scene are stored in HUD.prefab, and WorldMap doesn't get dirty with HUD overrides.
 
 - **Sounds** (`InventoryStyle` → Sounds, 2D entities in the Player library): open, close, place (a successful move, right-click send or Take all), refused (with every message), reveal (each revealed stack).
+- **Inspector** (the centre, after Duckov's, with the item in 3D): a left click on any item shows it there; opening the screen shows the item in hand. Name in its rarity colour, rarity / weight / value, then the 3D view (`ItemPreviewStage`: the item's world model, a gun upright with its parts, rendered by its own camera into a texture far below the world on the `ItemPreview` layer with `Preview_Renderer`, a copy of PC_Renderer without its features; it renders only while something is shown; drag to turn, wheel to zoom). A gun shows its part slots in Duckov's order with their parts' icons; hovering one draws a leader line to its mount on the model. Stats sit in two columns (damage, fire rate, magazine, reload, range, bullet speed, recoil up / sideways, aim time, spread for shotguns, move speed, hip spread, weight, zoom with a scope). While a part is dragged, the slot it fits lights up (`ItemSlotView.SetMarked`, `InventoryStyle.FitColor`) and the stats preview it in `BetterColor` / `WorseColor`. A part shows its changes instead; its tooltip lists them too. Parts are moved by `GunModding` ([WEAPONS.md → Gun parts and optics](WEAPONS.md#gun-parts-and-optics)).
 
 ## Menus
 
@@ -299,6 +306,10 @@ Minimap                      220×220 · nested Canvas · MinimapView · Minimap
 - **Adding a marker:** put a `MapMarker` with a kind (`Data/Map/Home`, `Data/Map/Objective`, or a new `MapMarkerKind` asset) on the object. It registers when injected: a scene-placed one goes in the scene scope's **Auto Inject Game Objects** (`MinimapSetup.HomeMarker` does it for `Home Interior/Home Marker` in WorldMap); a spawned one needs injecting by whatever spawns it.
 - `MinimapView` API: `SetHeading(degrees)`, `SetEnemies(positions, count)`, `SetMarker(index, position, kind)`, `HideMarkersFrom(index)`, `Show(bool)`, `ApplyStyle()`. Positions are pixels from the centre; the maths is `MapSystem/MinimapMath` (tested in `MinimapTests`).
 - `MinimapHud` rebuilds every frame in `LateUpdate` (the disc turns with the view, so every icon moves anyway): one pass over the enemies and markers, no allocations; the view only toggles pooled objects whose state changed.
+
+## Scope view
+
+A full scope (the 4× scope) covers the screen when aimed through: `ScopeHud` reads `HeldItem.Scope` (weight 0..1 and the reticle sprite) each LateUpdate, fades the `ScopeView` node in over the last 20 % of raising the sights, and keeps it on `Player.CrosshairPosition` so the aim sway moves it like the sights. The mask is `Content/Weapons/_Shared/Optics/ScopeMask.png` (black outside a circle, darkening to its rim) with black bars past each side; the reticle is the optic's `ScopeReticle`. At full weight the held layer stops drawing (`FirstPersonView.HideHeld`). Its canvas is off while no scope view shows.
 
 ## Crosshair
 

@@ -40,6 +40,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         // Created on first use for scene-placed items, so per-copy state (a gun's rounds) starts fresh.
         public ItemInstance Item => _item ??= _definition != null ? _definition.CreateInstance(_count) : null;
         public bool IsTaken => _taken;
+        // The model lying in the world (the World child); null when every child shows.
+        public GameObject WorldModel => _worldModel;
         // Thrown and still in the air.
         public bool IsFlying => _body != null;
         // Set on items the player dropped: the pickup magnet ignores them until the player has walked away once.
@@ -57,6 +59,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             WorldItem worldItem = Instantiate(prefab, position, rotation, parent);
             worldItem.name = prefab.name;
             worldItem._item = item;
+            worldItem.ShowOnModel();
             return worldItem;
         }
 
@@ -68,6 +71,15 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 return;
             foreach (Transform child in transform)
                 child.gameObject.SetActive(child.gameObject == _worldModel);
+        }
+
+        // The world model shows the copy's own state (a dropped gun's parts).
+        void ShowOnModel()
+        {
+            if (_worldModel == null || _item == null)
+                return;
+            foreach (IItemView view in _worldModel.GetComponentsInChildren<IItemView>(true))
+                view.ShowItem(_item);
         }
 
         // Turns a fresh copy that hasn't woken up yet into a first-person model: removes the world model,

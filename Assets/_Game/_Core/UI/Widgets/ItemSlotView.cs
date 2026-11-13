@@ -29,6 +29,7 @@ namespace MB13.Aipocalypse.Core.UI
         bool _isHidden;
         bool _hovered;
         bool _dragged;
+        bool _marked;
         // What the labels show, so a refresh of every slot rebuilds only the text that changed.
         string _shownName;
         int _shownCount = int.MinValue;
@@ -146,6 +147,15 @@ namespace MB13.Aipocalypse.Core.UI
             Refresh();
         }
 
+        // A dragged item would fit here (a gun part over the gun's slots): the tile takes the style's fit colour.
+        public void SetMarked(bool marked)
+        {
+            if (marked == _marked)
+                return;
+            _marked = marked;
+            Refresh();
+        }
+
         [Button, PropertyOrder(-1)]
         public void ApplyStyle()
         {
@@ -196,7 +206,7 @@ namespace MB13.Aipocalypse.Core.UI
                 _rarityBorder.enabled = _hasItem && _rarityBorder.color.a > 0f;
             if (_style == null)
                 return;
-            _background.color = _hasItem || _isHidden ? _style.SlotColor : _style.EmptySlotColor;
+            _background.color = _marked ? _style.FitColor : _hasItem || _isHidden ? _style.SlotColor : _style.EmptySlotColor;
             Color icon = _style.IconColor;
             icon.a *= _dragged ? _style.DraggedAlpha : 1f;
             _icon.color = icon;

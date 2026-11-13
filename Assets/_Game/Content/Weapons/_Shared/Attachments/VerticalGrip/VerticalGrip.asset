@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27fa7b4910c5cce4c8a6e35b216e7ae7, type: 3}
+  m_Name: VerticalGrip
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.AttachmentDefinition
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 368719206371336
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _icon: {fileID: 21300000, guid: 0411158ea76b0ff4884dabf247adfbb3, type: 3}
+  _prefab: {fileID: 8170335747006795975, guid: ab2614345b3dac74f92ee377be022bed, type: 3}
+  _maxStack: 1
+  _unlimitedStack: 0
+  _weight: 0.15
+  _autoCollect: 0
+  _value: 150
+  _rarity: 1
+  _slot: 2
+  _families: 78
+  _guns: []
+  _ammo: {fileID: 0}
+  _modifiers:
+  - Stat: 6
+    Percent: -12
+  - Stat: 8
+    Percent: 5
+  _model: {fileID: 6572177168474293533, guid: cb348b213b25e3242bb895f338be48ec, type: 3}
+  _optic:
+    Magnification: 1
+    EyeRelief: 0
+    SwayScale: 1
+    FullScope: 0
+    ScopeReticle: {fileID: 0}
+  _magazineScale: {x: 1, y: 1, z: 1}
+  _hidesFlash: 0
+  references:
+    version: 2
+    RefIds: []

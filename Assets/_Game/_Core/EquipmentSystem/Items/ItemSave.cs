@@ -13,6 +13,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public int Rounds;
         public bool Jammed;
         public int Uses;
+        // Catalog ids of the items fitted to it (a gun's parts).
+        public List<string> Attachments;
     }
 
     // An item in a container slot.
@@ -39,6 +41,15 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             }
             var save = new ItemSave { Id = id, Count = item.Count };
             item.WriteSave(save);
+            if (item.Attachments != null)
+            {
+                foreach (ItemInstance attachment in item.Attachments)
+                {
+                    string attachmentId = attachment != null ? catalog.IdOf(attachment.Definition) : null;
+                    if (attachmentId != null)
+                        (save.Attachments ??= new List<string>()).Add(attachmentId);
+                }
+            }
             return save;
         }
 
@@ -54,6 +65,15 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 return null;
             }
             ItemInstance item = definition.CreateInstance(Math.Max(1, save.Count));
+            if (save.Attachments != null)
+            {
+                foreach (string attachmentId in save.Attachments)
+                {
+                    ItemDefinition attachment = catalog.Find(attachmentId);
+                    if (attachment != null)
+                        item.RestoreAttachment(attachment.CreateInstance());
+                }
+            }
             item.ReadSave(save);
             return item;
         }

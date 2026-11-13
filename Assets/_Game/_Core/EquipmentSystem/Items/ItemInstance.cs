@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
@@ -19,11 +20,14 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public bool IsEmpty => Count <= 0;
         // How many more fit on this stack.
         public int SpaceLeft => Math.Max(0, Definition.MaxStack - Count);
-        public float Weight => Definition.Weight * Count;
+        public virtual float Weight => Definition.Weight * Count;
         // What it's worth in Tokens, as it is now.
         public virtual long Value => (long)Definition.Value * Count;
 
         public virtual ItemBadge Badge => Definition.Stacks ? new ItemBadge(Count) : ItemBadge.None;
+
+        // Items fitted to this one (a gun's parts), saved with it; null entries are empty places. Null = it takes none.
+        public virtual IReadOnlyList<ItemInstance> Attachments => null;
 
         // Whether `other` is the same stackable item, so some of it can go onto this stack.
         public bool CanStackWith(ItemInstance other) =>
@@ -79,6 +83,9 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         // Per-copy state to and from a save (a gun's rounds, a kit's uses); the count is saved for every item.
         public virtual void WriteSave(ItemSave save) { }
         public virtual void ReadSave(ItemSave save) { }
+
+        // Loading: puts a saved attachment back (before ReadSave, so state that depends on it, a bigger magazine, fits).
+        protected internal virtual void RestoreAttachment(ItemInstance attachment) { }
 
         internal void SetCount(int count)
         {

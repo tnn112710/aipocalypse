@@ -93,7 +93,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public float LowAmmoShare = 0.25f;
 
         // Rounds left at which the magazine counts as running low; 0 = never (small magazines).
-        public int LowRounds => Size >= 6 ? Mathf.FloorToInt(Size * LowAmmoShare) : 0;
+        public int LowRounds => LowRoundsOf(Size);
+        // The same for a magazine of `size` (parts change the size).
+        public int LowRoundsOf(int size) => size >= 6 ? Mathf.FloorToInt(size * LowAmmoShare) : 0;
     }
 
     [Serializable]
@@ -185,11 +187,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Range(0f, 1f), Tooltip("Roll that follows the sideways kick")] public float SprayRollFromYaw = 0.55f;
     }
 
-    // Spread while airborne, on top of SpreadAngle (walking shows as visible aim sway instead). It moves the whole shot,
-    // so a shotgun's pattern shifts as one.
+    // Spread from the hip (shrinking to AimSpread as the sights come up) and while airborne, on top of SpreadAngle (walking
+    // shows as visible aim sway instead). It moves the whole shot, so a shotgun's pattern shifts as one.
     [Serializable]
     public sealed class AccuracySettings
     {
+        [Min(0f), Tooltip("Degrees shots may go off the aim from the hip (Escape from Duckov-style); the crosshair's ticks show it")]
+        public float HipSpread = 2.5f;
+        [Min(0f), Tooltip("Degrees off the aim when fully aimed down sights")] public float AimSpread;
         [Min(0f), Tooltip("Degrees off the aim while in the air, on top of the visible air drift")] public float AirborneSpread = 2f;
         [Range(0f, 1f), Tooltip("Share of the airborne spread kept while aiming down sights")] public float AimMultiplier = 0.4f;
         [Min(0f), Tooltip("How fast the spread settles after landing (higher = sooner)")] public float SettleSpeed = 6f;

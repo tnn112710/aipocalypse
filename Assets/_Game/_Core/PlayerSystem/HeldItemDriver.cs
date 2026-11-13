@@ -71,6 +71,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 UsePressed = intent.FirePressed,
                 AimHeld = intent.Aim,
                 ReloadPressed = intent.Reload,
+                LightPressed = intent.GunLight,
                 IsSprinting = _motor.IsSprinting,
                 IsMoving = _motor.HorizontalVelocity.sqrMagnitude > tuning.MovingSpeed * tuning.MovingSpeed,
                 IsAirborne = !_motor.IsGrounded,
@@ -85,6 +86,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _sprintFov = Mathf.Lerp(_sprintFov, _motor.IsSprinting ? camera.SprintFovScale : 1f, Damping.ByRate(camera.SprintFovSpeed, deltaTime));
             if (ownsZoom)
                 _zoom.Tick((held != null ? held.Zoom : 1f) * _sprintFov);
+            _zoom.SetHeldHidden(ownsZoom && held != null && held.Scope.HidesHeld);
             TickSway(intent, held, feel, deltaTime);
             float aimSpeed = held != null && held.IsAiming ? tuning.AimMoveSpeedMultiplier * (feel?.AimMoveSpeedScale ?? 1f) : 1f;
             _motor.SpeedMultiplier = aimSpeed * (held != null ? held.MoveSpeedScale : 1f) * _fatigue.MoveSpeed;
@@ -99,7 +101,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             Vector3 velocity = _body.InverseTransformDirection(_motor.HorizontalVelocity);
             velocity.y = _motor.IsGrounded ? 0f : _motor.VerticalVelocity;
-            _sway.ItemScale = feel?.SwayScale ?? 1f;
+            _sway.ItemScale = (feel?.SwayScale ?? 1f) * (held != null ? held.SwayScale : 1f);
             _sway.Tick(new HeldSwayInput
             {
                 LookRate = Time.unscaledDeltaTime > 0f ? intent.LookDegrees / Time.unscaledDeltaTime : Vector2.zero,

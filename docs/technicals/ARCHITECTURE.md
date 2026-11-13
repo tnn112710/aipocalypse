@@ -211,7 +211,7 @@ Per-system budgets (enemy counts, stress scenes) get added here with those syste
 
 ## Prototypes → main game
 
-Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the mechanics are tested together in `Assets/_Game/Scenes/Prototypes/WorldMap.unity`.
+Mechanics are built and tested in small scenes under `Assets/_Game/Scenes/Prototypes/` (not in Build Settings). Today the mechanics are tested together in `Assets/_Game/Scenes/Prototypes/WorldMap.unity`; guns and their parts also in `WeaponsTest.unity` (no scope of its own: the Player and HUD prefabs on root services).
 
 1. **Only the scene is a prototype, never the code.** Mechanic code goes in its real folder (Core, Feature or Experimental) from day one. No `Proto*` copies of classes or prefabs.
 2. **A prototype scene needs no scope of its own.** Drop in the entity prefabs (and `HUD.prefab` if you want the HUD); they run on root services + their defaults.
@@ -251,7 +251,7 @@ Assets/_Game/
   Data/                   settings shared by a whole system, one folder per system (one copy each: PlayerTuning, EquipmentConfig,
                           AmmoConfig, ClockSettings, EnemySystemSettings, RaidSettings + raid plans, UI styles, Audio libraries, HandSet + poses,
                           Environment/TimeOfDay)
-  Scenes/Prototypes/      WorldMap.unity (data in Maps/WorldMap/), Proto_* scenes (scene-only assets in a folder named after the scene)
+  Scenes/Prototypes/      WorldMap.unity (data in Maps/WorldMap/), WeaponsTest.unity, Proto_* scenes (scene-only assets in a folder named after the scene)
   Settings/               URP assets, Input System actions
   _Editor/                editor-only tools that aren't game code (player builds, BUILD.md). asmdef MB13.Aipocalypse.Editor
   Tests/EditMode/  Tests/PlayMode/

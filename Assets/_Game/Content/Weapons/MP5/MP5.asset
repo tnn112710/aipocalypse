@@ -25,7 +25,7 @@ MonoBehaviour:
   _prefab: {fileID: 3187096971251845946, guid: 33af3f639a604094d9d39e6847e07cdb, type: 3}
   _maxStack: 1
   _unlimitedStack: 0
-  _weight: 2.5
+  _weight: 3
   _autoCollect: 0
   _value: 600
   _rarity: 2
@@ -34,24 +34,26 @@ MonoBehaviour:
   _holdFeel:
     AimMoveSpeedScale: 1
     SwayScale: 1
+  _family: 2
+  _slots: 0000000001000000020000000400000005000000i
   _fire:
     Mode: 0
     RoundsPerMinute: 800
     BurstCount: 3
     BurstCooldown: 0.25
     Damage: 15
-    Knockback: 1
+    Knockback: 0.85
     Falloff:
-      Start: 25
-      End: 80
+      Start: 30
+      End: 91
       MinShare: 0.5
     Pellets: 1
     SpreadAngle: 0
     CycleTime: 0
-    StaminaPerShot: 0.5
+    StaminaPerShot: 0.43
   _bullet:
-    Speed: 200
-    Range: 100
+    Speed: 224
+    Range: 113
     GravityScale: 0
     HitLayers:
       serializedVersion: 2
@@ -71,38 +73,38 @@ MonoBehaviour:
   _recoil:
     Hip:
       Multiplier: 1
-      Vertical: 2.2
-      Horizontal: 1.6
-      Roll: 0.2
-      NoisePitch: 0.11
-      NoiseYaw: 0.08
-      CameraShake: 0.006
+      Vertical: 1.864
+      Horizontal: 1.356
+      Roll: 0.169
+      NoisePitch: 0.093
+      NoiseYaw: 0.068
+      CameraShake: 0.005
       VerticalReturnSpeed: 12
       HorizontalReturnSpeed: 12
       VerticalSnappiness: 10
       HorizontalSnappiness: 10
-      GunPitch: 0.7
-      GunYaw: 0.4
-      GunRoll: 0.7
-      KickBack: 0.04
+      GunPitch: 0.593
+      GunYaw: 0.339
+      GunRoll: 0.593
+      KickBack: 0.034
       GunReturnSpeed: 18
       GunSnappiness: 20
     Aim:
       Multiplier: 1
-      Vertical: 1.43
-      Horizontal: 1.04
-      Roll: 0.13
-      NoisePitch: 0.11
-      NoiseYaw: 0.08
-      CameraShake: 0.0039
+      Vertical: 1.212
+      Horizontal: 0.881
+      Roll: 0.11
+      NoisePitch: 0.093
+      NoiseYaw: 0.068
+      CameraShake: 0.003
       VerticalReturnSpeed: 12
       HorizontalReturnSpeed: 12
       VerticalSnappiness: 10
       HorizontalSnappiness: 10
-      GunPitch: 0.45499998
-      GunYaw: 0.26
-      GunRoll: 0.45499998
-      KickBack: 0.025999999
+      GunPitch: 0.386
+      GunYaw: 0.22
+      GunRoll: 0.386
+      KickBack: 0.022
       GunReturnSpeed: 18
       GunSnappiness: 20
     KeptShare: 0.25
@@ -120,6 +122,8 @@ MonoBehaviour:
     SprayYawJitter: 0.72
     SprayRollFromYaw: 0.55
   _accuracy:
+    HipSpread: 2
+    AimSpread: 0
     AirborneSpread: 2
     AimMultiplier: 0.4
     SettleSpeed: 6

@@ -15,6 +15,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         public float NearClip => _nearClip;
         public float FarClip => _farClip;
+        // Skip drawing the held layer (gun, hands, flash): a full scope's view covers the screen.
+        public bool HideHeld { get; set; }
 
         // The held model's own field of view, kept while the world camera zooms.
         public void SetFieldOfView(float fieldOfView) => _fieldOfView = fieldOfView;

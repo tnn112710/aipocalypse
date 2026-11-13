@@ -127,6 +127,7 @@ The current prefabs (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR 
 
 ## Known gaps
 
+- **Gun grips:** a fitted vertical or angled grip doesn't move the support hand yet: the clips keep it on the forend contact. The grip's hand point is ready for the gun animation rework (`GunMounts.SupportGrip`, [WEAPONS.md](WEAPONS.md#for-the-gun-animation-rework)).
 - **No forearms.** If they're wanted later, the elbow points and grips can drive an Animation Rigging Two Bone IK, evaluated after the hands are placed; options and steps in the `tools-unity-animation-rigging` skill.
 - **Fitting is approximate.** Fingers can't each bend joint by joint, and open or overlapping vendor meshes can confuse it. Check fits with Preview and use Keep fingers where it misjudges.
 - **Placeholder shells:** the shotgun shells are plain red cylinders (`Content/Weapons/_Shared/Materials/ShotgunShell.mat`).

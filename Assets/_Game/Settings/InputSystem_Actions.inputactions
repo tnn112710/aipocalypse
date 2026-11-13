@@ -227,6 +227,16 @@
                     "priority": 0
                 },
                 {
+                    "name": "GunLight",
+                    "type": "Button",
+                    "id": "c7068eb5-17ea-41c0-ab8d-1377642595f9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
                     "name": "Melee",
                     "type": "Button",
                     "id": "578d160d-00ba-42ef-a0a4-8fc63220684f",
@@ -860,6 +870,28 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Reload",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3f3f9285-8e6c-4e75-896f-a3e9b5b07388",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "GunLight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2e6e449f-aca7-4a62-8a6f-6628a14c0811",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "GunLight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -25,5 +25,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         Head = 1 << 8,
         Body = 1 << 9,
         Face = 1 << 10,
+        // Gun parts (AttachmentDefinition): carried, fitted to guns in the inventory screen.
+        Attachment = 1 << 11,
     }
 }

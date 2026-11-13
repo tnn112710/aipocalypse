@@ -50,6 +50,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             LookScale = Mathf.Min(1f, TanHalfFov / _baseTan);
         }
 
+        // A full scope's view covers the screen: the held model isn't drawn.
+        public void SetHeldHidden(bool hidden)
+        {
+            if (_firstPersonView != null)
+                _firstPersonView.HideHeld = hidden;
+        }
+
         void SetBase(float fieldOfView)
         {
             _baseFov = fieldOfView;

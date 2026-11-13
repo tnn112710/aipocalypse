@@ -11,7 +11,8 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.WeaponSystem
 {
     // A gun in hand: runs its Gun rules from the holder's input and shows them — bullets, aim / sprint poses and zoom,
-    // recoil, the gun's clips (GunAnimation) and sounds. Jams and their repair are one part (GunJam).
+    // recoil, the gun's clips (GunAnimation) and sounds. Jams and their repair are one part (GunJam). Its numbers come from
+    // the copy's stat sheet (GunStats: the model plus its parts); fitted parts show on its mounts (GunMounts).
     public sealed class HeldGun : HeldItem
     {
         [SerializeField, Tooltip("Moved to the active pose; parent of the recoil pivot")] Transform _posePivot;
@@ -21,6 +22,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             "Without it the model only poses and kicks (a block-out from Gun_Base)")] GunAnimation _animation;
         [SerializeField, Tooltip("Optional: spent cases leave here (the gun's Ejection settings), thrown along its right (red axis)")]
         Transform _ejectionPort;
+        [SerializeField, Tooltip("Optional: the model's part mounts (on Weapon). Without them fitted parts change the stats only")]
+        GunMounts _mounts;
 
         [BoxGroup("Poses"), SerializeField, Tooltip("Siblings of the pose pivot; move them to pose the gun")] Transform _hipPose;
         [BoxGroup("Poses"), SerializeField] Transform _aimPose;
@@ -36,6 +39,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         GunJamFactory _jams;
 
         IGunUser _user;
+        GunInstance _item;
         GunDefinition _definition;
         Gun _gun;
         GunRecoil _recoil;
@@ -53,16 +57,43 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float _sprintRecoveryLeft;
         // Seconds until the shot's tail sounds (pushed back by every shot of a spray); negative = none waiting.
         float _tailIn = -1f;
+        // Where shots and the flash leave: a fitted muzzle part's tip, else the gun's own muzzle.
+        Transform _shotMuzzle;
+        // The aim pose moved so a fitted optic's sight line sits where the iron sights' did.
+        Transform _opticAim;
+        bool _aimThroughOptic;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
         public override Vector2 LookTurn => _recoil != null ? _recoil.LookTurn : default;
-        public override float Zoom => _gun != null ? Mathf.Lerp(1f, _definition.Handling.AimZoom, _aimWeight) * _recoil.FovScale : 1f;
+        public override float Zoom => _gun != null ? Mathf.Lerp(1f, _item.Stats.AimZoom, _aimWeight) * _recoil.FovScale : 1f;
         public override float AimWeight => _aimWeight;
         // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
-        float AirSpread => _accuracy != null ? _accuracy.Spread : 0f;
-        public override float Spread => _gun != null ? AirSpread + _definition.Fire.SpreadAngle : 0f;
+        float AirSpread => _accuracy != null ? _accuracy.Spread * _item.Stats.SpreadScale : 0f;
+        // The hip-fire cone, shrinking as the sights come up.
+        float HipCone => _item != null ? _item.Stats.ConeAt(_aimWeight) : 0f;
+        public override float Spread => _gun != null ? AirSpread + HipCone + _item.Stats.SpreadAngle : 0f;
+        public override float MoveSpeedScale => _item != null ? _item.Stats.MoveSpeedScale : 1f;
+
+        // A scope's own sway calming, eased in with the aim.
+        public override float SwayScale
+        {
+            get
+            {
+                AttachmentDefinition optic = _item?.Stats.Optic;
+                return optic != null ? Mathf.Lerp(1f, optic.Optic.SwayScale, _aimWeight) : 1f;
+            }
+        }
+
+        public override ScopeView Scope
+        {
+            get
+            {
+                AttachmentDefinition optic = _item?.Stats.Optic;
+                return optic != null ? new ScopeView(optic.Optic.ScopeWeight(_aimWeight), optic.Optic.ScopeReticle) : default;
+            }
+        }
 
         // Aiming or pulling the trigger ends a sprint.
         public override bool StopsSprint(bool useHeld, bool aimHeld) => _gun != null && (useHeld || aimHeld);
@@ -97,6 +128,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 return;
             }
 
+            _item = item;
             _definition = item.Gun;
             if (_definition.Magazine.AmmoType == null)
                 Debug.LogWarning($"{_definition.name} has no ammo type and can't be reloaded.", _definition);
@@ -117,6 +149,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 _definition.Effects.Prewarm(_effects);
             if (_ejectionPort != null)
                 _effects.Prewarm(_definition.Ejection.Shell, _definition.Ejection.Prewarm);
+            _item.AttachmentsChanged += OnAttachmentsChanged;
+            OnAttachmentsChanged();
         }
 
         public override void Tick(in HeldItemInput input, float deltaTime)
@@ -140,6 +174,11 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 Recovering = _sprintRecoveryLeft > 0f,
             }, deltaTime);
 
+            if (input.LightPressed && input.IsReady && _mounts != null && _mounts.HasLights)
+            {
+                _item.ToggleLight();
+                _mounts.SetLights(_item.LightOn);
+            }
             _jam.Tick(input.IsReady, deltaTime);
             _jolt.Tick(deltaTime);
             _recoil.Tick(deltaTime, _aimWeight);
@@ -157,7 +196,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             {
                 Shoot();
                 // After the shot leaves: its kick shows from the next frame, as the bullet is already out of the barrel.
-                _recoil.Kick(_aimWeight, _stateMultiplier * _user.FatigueRecoilScale);
+                _recoil.Kick(_aimWeight, _stateMultiplier * _user.FatigueRecoilScale, _item.Stats.VerticalRecoilScale,
+                    _item.Stats.HorizontalRecoilScale);
             }
         }
 
@@ -195,6 +235,48 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _gun.ActionStarted -= OnActionStarted;
             _gun.RoundLoaded -= OnRoundLoaded;
             _gun.ActionEnded -= OnActionEnded;
+            _item.AttachmentsChanged -= OnAttachmentsChanged;
+        }
+
+        // A part was fitted or taken off (in the inventory, maybe while this gun is in hand): the model, the muzzle and the
+        // aim pose follow at once.
+        void OnAttachmentsChanged()
+        {
+            if (_mounts != null)
+            {
+                _mounts.Show(_item, held: true);
+                RefreshRenderers();
+            }
+            Transform tip = _mounts != null ? _mounts.MuzzleTip : null;
+            _shotMuzzle = tip != null ? tip : _muzzle;
+            PlaceOpticAim();
+        }
+
+        // Moves a copy of the aim pose so the optic's sight point lands on the iron sights' line (at the optic's depth),
+        // plus its eye relief. Measured in the model's space, which is the pose pivot's at rest.
+        void PlaceOpticAim()
+        {
+            AttachmentDefinition optic = _item.Stats.Optic;
+            Transform sight = _mounts != null ? _mounts.Sight : null;
+            _aimThroughOptic = optic != null && sight != null && _mounts.IronSight != null && sight != _mounts.IronSight && _aimPose != null;
+            if (!_aimThroughOptic)
+                return;
+
+            Transform space = _mounts.transform;
+            Vector3 sightPoint = space.InverseTransformPoint(sight.position);
+            Vector3 iron = space.InverseTransformPoint(_mounts.IronSight.position);
+            Vector3 along = space.InverseTransformDirection(_mounts.IronSight.forward);
+            if (Mathf.Abs(along.z) > 0.01f)
+                iron += along * ((sightPoint.z - iron.z) / along.z);
+            Vector3 offset = iron - sightPoint;
+            offset.z = optic.Optic.EyeRelief;
+
+            if (_opticAim == null)
+            {
+                _opticAim = new GameObject("AimOptic").transform;
+                _opticAim.SetParent(_aimPose.parent, false);
+            }
+            _opticAim.SetLocalPositionAndRotation(_aimPose.localPosition + _aimPose.localRotation * offset, _aimPose.localRotation);
         }
 
         void OnFired()
@@ -208,7 +290,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             // A spray's tail waits for the gap after its last shot; a semi-auto's follows each shot.
             FireSettings fire = _definition.Fire;
             _tailIn = fire.Mode == FireMode.SemiAuto ? 0f : fire.SecondsPerShot * 1.3f;
-            int low = _definition.Magazine.LowRounds;
+            int low = _definition.Magazine.LowRoundsOf(_item.Stats.MagazineSize);
             int rounds = _gun.Item.Rounds;
             if (low > 0 && rounds <= low)
                 _audio?.Play(_definition.Sounds.LowAmmo, _definition.Sounds.Volume * Mathf.Lerp(1f, 0.45f, rounds / (float)low));
@@ -232,10 +314,12 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         void Shoot()
         {
+            GunStats stats = _item.Stats;
+            Transform muzzle = _shotMuzzle;
             BulletEffects effects = _definition.Effects;
-            if (effects != null)
+            if (effects != null && !stats.HidesFlash)
             {
-                PooledEffect flash = _effects.Spawn(effects.MuzzleFlash, _muzzle.position, _muzzle.rotation, _muzzle);
+                PooledEffect flash = _effects.Spawn(effects.MuzzleFlash, muzzle.position, muzzle.rotation, muzzle);
                 // Pooled: only a fresh flash needs moving onto the first-person layer.
                 if (flash != null && flash.gameObject.layer != gameObject.layer)
                     flash.transform.SetLayerRecursively(gameObject.layer);
@@ -243,30 +327,30 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
-            GunAim.Shot(_user, _muzzle, bullet.Range, bullet.HitLayers, _bullets, out Vector3 origin, out Vector3 direction);
-            // Airborne spread moves the whole shot; pellets then spread around it.
-            direction = BulletSpread.Apply(direction, _accuracy.Spread);
+            GunAim.Shot(_user, muzzle, stats.Range, bullet.HitLayers, _bullets, out Vector3 origin, out Vector3 direction);
+            // Hip and airborne spread move the whole shot; pellets then spread around it.
+            direction = BulletSpread.Apply(direction, AirSpread + HipCone);
             for (int i = 0; i < fire.Pellets; i++)
             {
                 _bullets.Fire(new BulletShot
                 {
                     Origin = origin,
-                    Direction = BulletSpread.Apply(direction, fire.SpreadAngle),
-                    VisualOrigin = _user.AimFrom == AimOrigin.Camera ? _muzzle.position : origin,
-                    Speed = bullet.Speed,
-                    Range = bullet.Range,
+                    Direction = BulletSpread.Apply(direction, stats.SpreadAngle),
+                    VisualOrigin = _user.AimFrom == AimOrigin.Camera ? muzzle.position : origin,
+                    Speed = stats.BulletSpeed,
+                    Range = stats.Range,
                     GravityScale = bullet.GravityScale,
-                    Damage = fire.Damage,
+                    Damage = stats.Damage,
                     DamageType = bullet.DamageType,
                     Knockback = fire.Knockback,
-                    Falloff = fire.Falloff,
+                    Falloff = stats.Falloff,
                     Layers = bullet.HitLayers,
                     Ignore = _user.Root,
                     Source = _user.Root.gameObject,
                     Effects = effects,
                 });
             }
-            _shots?.Publish(new ShotFired(_muzzle.position, _user.Root.gameObject));
+            _shots?.Publish(new ShotFired(muzzle.position, _user.Root.gameObject));
         }
 
         void OnActionStarted(GunAction action)
@@ -324,12 +408,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         void UpdatePose(bool sprinting, float deltaTime)
         {
             HandlingSettings handling = _definition.Handling;
-            float aimBlend = Damping.ByRate(handling.AimSpeed, deltaTime);
+            float aimSpeed = _item.Stats.AimSpeed;
+            float aimBlend = Damping.ByRate(aimSpeed, deltaTime);
             _aimWeight = Mathf.Lerp(_aimWeight, _gun.IsAiming && !sprinting ? 1f : 0f, aimBlend);
-            Transform target = sprinting ? _sprintPose : _gun.IsAiming ? _aimPose : _hipPose;
+            Transform aim = _aimThroughOptic ? _opticAim : _aimPose;
+            Transform target = sprinting ? _sprintPose : _gun.IsAiming ? aim : _hipPose;
             if (target == null)
                 target = _hipPose;
-            _pose.MoveTowards(target, sprinting ? handling.SprintPoseSpeed : handling.AimSpeed, deltaTime);
+            _pose.MoveTowards(target, sprinting ? handling.SprintPoseSpeed : aimSpeed, deltaTime);
             ApplyPose();
         }
 

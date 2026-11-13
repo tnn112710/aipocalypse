@@ -33,6 +33,8 @@ Data (ScriptableObjects: items in Content/<Kind>/<Item>/, Data/Equipment/, Data/
   │  └─ ConsumableDefinition     Category Consumable: first aid kit, bandage, shots; UseSeconds, Uses (above 1: one item
   │                              with uses left, a ConsumableInstance), use move speed; Heal, HealOverTime, buff scales
   ├─ AmmoType                    Category Ammo (WeaponSystem): rounds, carried as stacks; Prefab = the ammo box
+  ├─ AttachmentDefinition        Category Attachment (WeaponSystem): a gun part, carried and fitted to a gun in the inventory
+                                 screen (WEAPONS.md → Gun parts and optics)
   ├─ CurrencyDefinition          Category Currency: Tokens (unlimited stack, weight 0, auto-collected)
   ├─ BackpackDefinition          Category Backpack: ExtraSlots, ExtraWeight while worn
   └─ LanternDefinition           Category Lantern: worn in the Light gear slot (PlayerVision)
@@ -42,7 +44,8 @@ Data (ScriptableObjects: items in Content/<Kind>/<Item>/, Data/Equipment/, Data/
 
 Rules (plain C#, EditMode-tested)
   ItemInstance                   one owned item or stack: Count, SpaceLeft, Weight, Merge / MergeFrom / Split / Consume, Changed,
-                                 Badge; per-copy state in subclasses (GunInstance: rounds, jam)
+                                 Badge; per-copy state in subclasses (GunInstance: rounds, jam, fitted parts); virtual Weight /
+                                 Value; Attachments (items fitted to it, saved by id)
   ItemContainer                  a row of slots: per-slot accepted categories (hotbar, gear) or anything (backpack, loot) with
                                  Resize; TryAdd (stacks first, then free slots, partial), Take / CountOf / SpaceFor, Weight, Sort,
                                  Move (move / split / merge / swap); an emptied stack leaves its slot
@@ -60,7 +63,7 @@ Views
   PoseBlender                    a held model's pose pivot easing between pose markers (HeldGun, HeldMelee), editor preview
   EquipmentRig                   spawns one HeldItem per hotbar item (world parts stripped, injected), shows the held one,
                                  poses the hand from Raise, TickHeld passes the input on with IsReady
-  HotbarHud, InventoryScreen,    HUD and the inventory screen, event-driven (see UI.md)
+  HotbarHud, InventoryScreen,    HUD and the inventory screen (its centre: ItemInspectorView), event-driven (see UI.md)
   LootMarkerHud, PickupFeedHud
   WorldItem                      on the item prefab's root: the item lying in the world (IInteractable); Spawn, Throw
   LootContainer                  something to search: a crate, an enemy body (IInteractable); hidden slots until revealed
@@ -80,7 +83,8 @@ Views
 - **Where a new item goes** (`Inventory.TryAdd`, used by pickups, loot and `AddNew`): onto its own stacks (hotbar, then backpack); a gear item into its free gear slot (a backpack is worn at once, a lantern goes on the Light slot); a gun or melee weapon into a free active slot; everything else into the backpack, then any free hotbar slot that takes it. Tools and consumables (the hammer, medic boxes) go to the backpack: drag them to a quick slot. What doesn't fit stays on the item (a partial pickup leaves the rest on the ground).
 - **Moving** (the inventory screen): `Inventory.TryMove` = `ItemContainer.Move` (into an empty slot, onto the same stackable item as far as it fits, or a whole-stack swap when both slots take the other item), plus one rule: the worn backpack can't come off, or be swapped for a smaller one, while a slot it adds holds an item, and it can't go into one of its own slots. The refusal is shown on the screen (`Inventory.BackpackNotEmpty`).
 - **The hands follow the item**: moving the held gun to the other gun slot keeps it in hand (the selection follows); moving it to the backpack empties the hands at once.
-- **Weight**: every item has `Weight` per unit (rounds 0.012–0.04 kg, Tokens 0, first aid kit 0.5, bandage 0.05, shots 0.2, guns 0.9–3.6, axe 1.8, hammer 0.6, lantern 0.8, backpack 1). `Inventory.Weight` / `MaxWeight` (25 kg + the worn bag's `ExtraWeight`) are shown on the inventory screen. Nothing slows the player yet.
+- **Inspecting and gun parts**: the screen's centre shows the item last clicked (the one in hand when it opens) large and in 3D, with its rarity, weight and value; a gun also shows its part slots and stats. Gun parts (`Attachment` items) are picked up into the backpack and fitted by dragging them onto the gun's slot or its 3D view, or by right-clicking them while a gun is inspected ([WEAPONS.md → Gun parts and optics](WEAPONS.md#gun-parts-and-optics)). A gun's parts stay on it through drop, pickup and saves; its world model shows them (`IItemView`).
+- **Weight**: every item has `Weight` per unit (rounds 0.012–0.04 kg, Tokens 0, first aid kit 0.5, bandage 0.05, shots 0.2, guns 1.2–3.6 plus their parts (0.1–0.6 each), axe 1.8, hammer 0.6, lantern 0.8, backpack 1). `Inventory.Weight` / `MaxWeight` (25 kg + the worn bag's `ExtraWeight`) are shown on the inventory screen. Nothing slows the player yet.
 - **Tokens** are an item (`CurrencyDefinition`): one unlimited stack in the backpack, weight 0, picked up by the magnet. Dropped, the coin floats about 0.35 m above the ground, glowing (`Token_Coin.mat`, emissive) inside a soft pulsing gold halo (one additive particle billboard, paused off screen), so it reads on grass and at night; its pickup box reaches down to the ground (`InventorySetup.Tokens`). No bank balance yet; the screen shows the Tokens carried.
 - **Starting items**: `EquipmentConfig` slot / gear `StartingItem`s and its starting items, plus `AmmoConfig`'s starting rounds (put in the backpack). Death keeps the inventory for now.
 

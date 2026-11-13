@@ -257,7 +257,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             {
                 if (_actionTime < duration)
                     return;
-                int loaded = _ammo.Take(magazine.AmmoType, magazine.Size - _item.Rounds);
+                int loaded = _ammo.Take(magazine.AmmoType, _item.Stats.MagazineSize - _item.Rounds);
                 _item.SetRounds(_item.Rounds + loaded);
                 EndAction(true);
                 return;
@@ -282,7 +282,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         float ActionDuration() => Action switch
         {
-            GunAction.Reloading => _definition.Magazine.ReloadTime,
+            GunAction.Reloading => _item.Stats.ReloadTime,
             GunAction.ClearingJam => _repairDuration,
             GunAction.Cycling => _definition.Fire.CycleTime,
             _ => 0f,

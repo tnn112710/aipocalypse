@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -8,6 +9,11 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     [CreateAssetMenu(fileName = "Gun", menuName = "Aipocalypse/Items/Gun")]
     public sealed class GunDefinition : EquippableDefinition
     {
+        [SerializeField, BoxGroup("Parts"), Tooltip("What kind of gun it is: generic parts fit by family")] GunFamily _family;
+
+        [SerializeField, BoxGroup("Parts"), Tooltip("The part slots it has; the gun model needs a mount for each (GunMounts)")]
+        List<GunSlot> _slots = new();
+
         [SerializeField, FoldoutGroup("Fire", true), HideLabel, InlineProperty]
         FireSettings _fire = new();
 
@@ -38,6 +44,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [SerializeField, Tooltip("Muzzle flash, tracer, impact and bullet hole; usually shared by many guns")]
         BulletEffects _effects;
 
+        public GunFamily Family => _family;
+        public IReadOnlyList<GunSlot> Slots => _slots;
         public FireSettings Fire => _fire;
         public BulletSettings Bullet => _bullet;
         public MagazineSettings Magazine => _magazine;
@@ -50,6 +58,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public BulletEffects Effects => _effects;
 
         public override ItemCategory Category => ItemCategory.Gun;
+
+        public bool HasSlot(GunSlot slot) => _slots.Contains(slot);
 
         public override ItemInstance CreateInstance() => new GunInstance(this);
     }

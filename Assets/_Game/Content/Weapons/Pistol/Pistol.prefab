@@ -1,5 +1,98 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &62996654147943015
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5613229543099492626}
+  m_Layer: 0
+  m_Name: Mount_Optic
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5613229543099492626
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62996654147943015}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.313226e-10, y: 0.017374968, z: -0.056999996}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8453528383397394247}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &141290404126204164
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4617119851539581923}
+  m_Layer: 0
+  m_Name: Mount_Tactical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4617119851539581923
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 141290404126204164}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0000000026193447, y: 0.0049999957, z: 0.138}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3158429573044867761}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &471137854289464445
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7659778061259745368}
+  m_Layer: 0
+  m_Name: Mount_Tactical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7659778061259745368
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 471137854289464445}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.656613e-10, y: 0.0049999994, z: 0.138}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 627671939460089881}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &961221531455177654
 GameObject:
   m_ObjectHideFlags: 0
@@ -301,6 +394,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3158429573044867761}
+  - component: {fileID: 623373064617598461}
   m_Layer: 0
   m_Name: Weapon
   m_TagString: Untagged
@@ -330,8 +424,39 @@ Transform:
   - {fileID: 8674700196304264585}
   - {fileID: 8357567049230644288}
   - {fileID: 5660930571186444160}
+  - {fileID: 3133476424575727765}
+  - {fileID: 4617119851539581923}
   m_Father: {fileID: 8080292913804298957}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &623373064617598461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2350648498751129611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cf417bd07b6bbf44b2fc3cc8ac7bf1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.GunMounts
+  _mounts:
+  - Slot: 0
+    Point: {fileID: 5613229543099492626}
+    ShowWhenFitted: []
+    HideWhenFitted: []
+  - Slot: 1
+    Point: {fileID: 6864432289752593027}
+    ShowWhenFitted: []
+    HideWhenFitted: []
+  - Slot: 4
+    Point: {fileID: 4617119851539581923}
+    ShowWhenFitted: []
+    HideWhenFitted: []
+  _ironSight: {fileID: 3133476424575727765}
+  _magazines:
+  - {fileID: 8636080224459490670}
+  - {fileID: 8674700196304264585}
 --- !u!1 &2360406541336335055
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,6 +522,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3971267744004951540}
+  - {fileID: 5613229543099492626}
   m_Father: {fileID: 3158429573044867761}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &578493132671585863
@@ -668,6 +794,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3827029509339410712}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3422457963752950871
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6864432289752593027}
+  m_Layer: 0
+  m_Name: Mount_Muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6864432289752593027
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3422457963752950871}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0000000433065, y: 0.0016249978, z: 0.088}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7815247025321632356}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4135438856139718315
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2883405689588894949}
+  m_Layer: 0
+  m_Name: Mount_Muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2883405689588894949
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4135438856139718315}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.440892e-16, y: 0.03900001, z: 0.183}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 627671939460089881}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4647084579972425924
 GameObject:
   m_ObjectHideFlags: 0
@@ -699,6 +887,37 @@ Transform:
   m_Children:
   - {fileID: 627671939460089881}
   m_Father: {fileID: 1175477573997140041}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4863369047020402560
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3133476424575727765}
+  m_Layer: 0
+  m_Name: IronSight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3133476424575727765
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4863369047020402560}
+  serializedVersion: 2
+  m_LocalRotation: {x: -2.1035242e-10, y: 5.964678e-11, z: 1.2546844e-20, w: 1}
+  m_LocalPosition: {x: -9.181347e-10, y: 0.05000004, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3158429573044867761}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5158148210084377931
 GameObject:
@@ -1207,6 +1426,37 @@ MonoBehaviour:
       Spread: 0
       Tip: 0
   _palmOffset: 0
+--- !u!1 &8252456811534649322
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9079254679808448137}
+  m_Layer: 0
+  m_Name: Mount_Optic
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9079254679808448137
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8252456811534649322}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -8.881784e-16, y: 0.051000014, z: -0.012000002}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 627671939460089881}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8691215662232400856
 GameObject:
   m_ObjectHideFlags: 0
@@ -1494,7 +1744,8 @@ Transform:
   m_LocalPosition: {x: -0.000000044703484, y: 0.037374996, z: 0.095}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6864432289752593027}
   m_Father: {fileID: 3158429573044867761}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1073845637593331958
@@ -1608,12 +1859,62 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1522006908678002795, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9079254679808448137}
+    - targetCorrespondingSourceObject: {fileID: 1522006908678002795, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2883405689588894949}
+    - targetCorrespondingSourceObject: {fileID: 1522006908678002795, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7659778061259745368}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2185531786904273617, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8965184754138071026}
   m_SourcePrefab: {fileID: 100100000, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+--- !u!1 &287703577748542115 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2185531786904273617, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+  m_PrefabInstance: {fileID: 2137716091819823218}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8965184754138071026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 287703577748542115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cf417bd07b6bbf44b2fc3cc8ac7bf1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.GunMounts
+  _mounts:
+  - Slot: 0
+    Point: {fileID: 9079254679808448137}
+    ShowWhenFitted: []
+    HideWhenFitted: []
+  - Slot: 1
+    Point: {fileID: 2883405689588894949}
+    ShowWhenFitted: []
+    HideWhenFitted: []
+  - Slot: 4
+    Point: {fileID: 7659778061259745368}
+    ShowWhenFitted: []
+    HideWhenFitted: []
+  _ironSight: {fileID: 0}
+  _magazines:
+  - {fileID: 6104782739204825030}
 --- !u!4 &627671939460089881 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1522006908678002795, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
+  m_PrefabInstance: {fileID: 2137716091819823218}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6104782739204825030 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5265335764374507444, guid: 1c33d555a064d18459a8a4bff4e66c66, type: 3}
   m_PrefabInstance: {fileID: 2137716091819823218}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5940286373862892860
@@ -1624,6 +1925,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: _mounts
+      value: 
+      objectReference: {fileID: 623373064617598461}
     - target: {fileID: 937464356449756893, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: _muzzle
       value: 
