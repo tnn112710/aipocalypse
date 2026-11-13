@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.UI;
 using TMPro;
 using UnityEditor;
@@ -146,7 +147,7 @@ public static class DeathScreenSetup
             RawImage glowImage = Raw(UiObject("Glow", menuRect));
             Center(glowImage.rectTransform, new Vector2(0f, 90f), new Vector2(2300f, 1500f));
 
-            TextMeshProUGUI title = Text("Title", menuRect, style.Title);
+            TextMeshProUGUI title = Text("Title", menuRect, style.Title.Text());
             Center(title.rectTransform, new Vector2(0f, 175f), new Vector2(1840f, 320f));
 
             RectTransform illustration = UiObject("Illustration", menuRect);
@@ -165,7 +166,7 @@ public static class DeathScreenSetup
             line.rectTransform.pivot = new Vector2(0.5f, 1f);
             line.rectTransform.anchoredPosition = Vector2.zero;
             line.rectTransform.sizeDelta = new Vector2(0f, 3f);
-            TextMeshProUGUI status = Text("Status", footerRect, style.LoadingText);
+            TextMeshProUGUI status = Text("Status", footerRect, style.LoadingText.Text());
             status.fontStyle = FontStyles.Bold;
             status.rectTransform.anchorMin = new Vector2(0f, 1f);
             status.rectTransform.anchorMax = Vector2.one;

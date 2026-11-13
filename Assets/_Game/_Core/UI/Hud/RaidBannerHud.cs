@@ -3,9 +3,11 @@ using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Events;
 using Ami.BroAudio;
 using DG.Tweening;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MessagePipe;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -43,11 +45,11 @@ namespace MB13.Aipocalypse.Core.UI
                 Show(_style.DawnTitle, _style.DawnSubtitle, raid.Night, _style.DawnColor, _style.DawnSound);
         }
 
-        void Show(string title, string subtitle, int night, Color color, SoundID sound)
+        void Show(LocalizedString title, LocalizedString subtitle, int night, Color color, SoundID sound)
         {
-            _title.text = title;
+            _title.text = title.Text();
             _title.color = color;
-            _subtitle.text = string.Format(subtitle, night);
+            _subtitle.text = subtitle.Format(night);
             _audio.Play(sound);
 
             _show?.Kill();

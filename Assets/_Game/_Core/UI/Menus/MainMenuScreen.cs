@@ -1,8 +1,13 @@
+using System;
+using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Input;
+using MessagePipe;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 using VContainer;
 
@@ -12,6 +17,11 @@ namespace MB13.Aipocalypse.Core.UI
     // (the slot list), Settings (later), Quit. Holds the UI input while the scene is open.
     public sealed class MainMenuScreen : MonoBehaviour
     {
+        static readonly LocalizedString ConfirmQuit = Loc.UI("confirm.quit_short");
+        static readonly LocalizedString QuitAction = Loc.UI("action.quit");
+        static readonly LocalizedString NoSaves = Loc.UI("menu.no_saves");
+        static readonly LocalizedString Version = Loc.UI("menu.version");
+
         [SerializeField, Tooltip("EventSystem + InputSystemUIInputModule")] GameObject _eventSystem;
         [SerializeField, Tooltip("The buttons page")] GameObject _page;
         [SerializeField] Button _continue;
@@ -29,11 +39,13 @@ namespace MB13.Aipocalypse.Core.UI
         InputService _input;
         GameSession _session;
         SaveService _saves;
+        IDisposable _languageSubscription;
         int _latest;
 
         [Inject]
-        void Construct(InputService input, GameSession session, SaveService saves)
+        void Construct(InputService input, GameSession session, SaveService saves, ISubscriber<LanguageChanged> languageChanged)
         {
+            _languageSubscription = languageChanged.Subscribe(_ => RefreshTexts());
             _input = input;
             _session = session;
             _saves = saves;
@@ -49,18 +61,18 @@ namespace MB13.Aipocalypse.Core.UI
             _prototype.onClick.AddListener(Prototype);
             _load.onClick.AddListener(OpenSlots);
             _settings.interactable = false;
-            _quit.onClick.AddListener(() => _confirm.Ask("Quit the game?", "Quit", () => _session.Quit()));
+            _quit.onClick.AddListener(() => _confirm.Ask(ConfirmQuit.Text(), QuitAction.Text(), () => _session.Quit()));
             _slots.Closed += ShowPage;
             _slots.gameObject.SetActive(false);
             _confirm.Close();
-            if (_version != null)
-                _version.text = $"Prototype build {Application.version}";
+            RefreshTexts();
         }
 
         void Start() => ShowPage();
 
         void OnDestroy()
         {
+            _languageSubscription?.Dispose();
             _input?.ReleaseUI(this);
             if (_slots != null)
                 _slots.Closed -= ShowPage;
@@ -83,9 +95,16 @@ namespace MB13.Aipocalypse.Core.UI
             _page.SetActive(true);
             _latest = _saves != null ? _saves.LatestSlot() : 0;
             _continue.interactable = _latest > 0;
-            if (_continueInfo != null)
-                _continueInfo.text = _latest > 0 ? $"{SaveFormat.SlotName(_latest)}  ·  {SaveFormat.Summary(_saves.Info(_latest))}" : "No saves yet";
+            RefreshTexts();
             MenuButton.SelectSilently(_latest > 0 ? _continue : _prototype);
+        }
+
+        void RefreshTexts()
+        {
+            if (_continueInfo != null)
+                _continueInfo.text = _latest > 0 ? $"{SaveFormat.SlotName(_latest)}  ·  {SaveFormat.Summary(_saves.Info(_latest))}" : NoSaves.Text();
+            if (_version != null)
+                _version.text = Version.Format(Application.version);
         }
 
         void Continue()

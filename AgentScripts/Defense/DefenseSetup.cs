@@ -6,9 +6,11 @@ using MB13.Aipocalypse.Core.DefenseSystem;
 using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.Entities;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.UI;
 using Ami.BroAudio;
 using Ami.BroAudio.Data;
+using MB13.Aipocalypse.Editor.Localization;
 using Pathfinding;
 using TMPro;
 using UnityEditor;
@@ -58,7 +60,7 @@ public static class DefenseSetup
     const string DoorwayName = "Doorway";
     const string GapName = "Gap";
 
-    public static object All() => string.Join("\n", Audio(), Effects(), Content(), Hud(), EnemyData());
+    public static object All() => string.Join("\n", Audio(), Effects(), Content(), Hud(), EnemyData(), LocalizationKit.ApplyLabels());
 
     // ---------------- sounds ----------------
 
@@ -362,25 +364,25 @@ public static class DefenseSetup
         Save(thorns);
 
         var spiked = Asset<BarrierDefinition>(FenceDir + "/WoodFence_Spiked.asset");
-        Define(spiked, "Spiked fence", 450f, 30f, fenceLook, hit, broke, "Fence");
+        Define(spiked, "barrier.spiked_fence", 450f, 30f, fenceLook, hit, broke, "Fence");
         spiked.OnStruck = new List<BarrierEffect> { thorns };
         spiked.UpgradesTo = null;
         Save(spiked);
 
         var fence = Asset<BarrierDefinition>(FenceDir + "/WoodFence.asset");
-        Define(fence, "Fence", 300f, 30f, fenceLook, hit, broke, "Fence");
+        Define(fence, "barrier.fence", 300f, 30f, fenceLook, hit, broke, "Fence");
         fence.OnStruck = new List<BarrierEffect>();
         fence.UpgradesTo = spiked;
         Save(fence);
 
         var gate = Asset<BarrierDefinition>(GateDir + "/WoodGate.asset");
-        Define(gate, "Gate", 500f, 40f, gateLook, hit, broke, "Gate");
+        Define(gate, "barrier.gate", 500f, 40f, gateLook, hit, broke, "Gate");
         gate.OnStruck = new List<BarrierEffect>();
         gate.UpgradesTo = null;
         Save(gate);
 
         var wide = Asset<BarrierDefinition>(GateDir + "/WoodGate_Double.asset");
-        Define(wide, "Gate", 700f, 50f, doubleLook, hit, broke, "Gate");
+        Define(wide, "barrier.gate", 700f, 50f, doubleLook, hit, broke, "Gate");
         wide.OnStruck = new List<BarrierEffect>();
         wide.UpgradesTo = null;
         Save(wide);
@@ -392,10 +394,11 @@ public static class DefenseSetup
         return string.Join("\n", log);
     }
 
-    static void Define(BarrierDefinition definition, string name, float health, float repair, BarrierLook look, PooledEffect hit, PooledEffect broke,
+    // `nameKey`: its name in the Interaction table.
+    static void Define(BarrierDefinition definition, string nameKey, float health, float repair, BarrierLook look, PooledEffect hit, PooledEffect broke,
         string kind)
     {
-        definition.DisplayName = name;
+        definition.DisplayName = LocalizationKit.Ref(Loc.InteractionTable, nameKey);
         definition.MaxHealth = health;
         definition.DamageScale = new Dictionary<DamageType, float>();
         definition.RepairPerKnock = repair;
@@ -656,7 +659,7 @@ public static class DefenseSetup
             text.alignment = TextAlignmentOptions.Center;
             text.textWrappingMode = TextWrappingModes.NoWrap;
             text.raycastTarget = false;
-            text.text = style.FenceText + style.BehindSuffix;
+            text.text = style.FenceText.Text() + style.BehindSuffix.Text();
 
             var hud = node.AddComponent<BreachAlertHud>();
             var so = new SerializedObject(hud);

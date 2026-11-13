@@ -7,6 +7,7 @@ using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Ghosts;
 using MB13.Aipocalypse.Core.HandSystem;
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.SurfaceSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
@@ -16,6 +17,7 @@ using MessagePipe;
 using Sirenix.OdinInspector;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.Serialization;
 using VContainer;
 
@@ -28,6 +30,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     {
         // Metres below the eye that auto-collected items fly to (about the chest).
         const float MagnetPullDrop = 0.5f;
+        static readonly LocalizedString CantUseNow = Loc.Hud("use.cant_use");
+        static readonly LocalizedString HealthFull = Loc.Hud("use.health_full");
 
         [SerializeField] PlayerTuning _tuning;
         [SerializeField] CharacterController _controller;
@@ -369,7 +373,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float IConsumer.LastHurtTime => _lastHurtTime;
 
         string IConsumer.CannotUse(ConsumableDefinition item) =>
-            IsDead || InSequence ? "Can't use that now" : item.OnlyHeals && Health.Current >= Health.Max ? "Health full" : null;
+            IsDead || InSequence ? CantUseNow.Text() : item.OnlyHeals && Health.Current >= Health.Max ? HealthFull.Text() : null;
 
         void IConsumer.Use(ConsumableDefinition item) => _effects.Use(item, Health);
 

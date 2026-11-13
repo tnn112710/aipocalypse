@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,6 +18,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         readonly SaveSettings _settings;
         GameObject _screen;
+        TMP_Text _screenText;
 
         public SceneLoader(SaveSettings settings) => _settings = settings;
 
@@ -74,6 +76,8 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                     return;
                 _screen = BuildScreen();
             }
+            if (show)
+                _screenText.text = _settings.LoadingText.Text();
             _screen.SetActive(show);
         }
 
@@ -109,7 +113,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             text.alignment = TextAlignmentOptions.BottomRight;
             text.color = new Color(1f, 1f, 1f, 0.85f);
             text.raycastTarget = false;
-            text.text = _settings.LoadingText;
+            _screenText = text;
             return root;
         }
 

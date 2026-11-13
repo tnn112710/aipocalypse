@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using MB13.Aipocalypse.Core.Bootstrap;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Build;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -118,13 +121,22 @@ namespace MB13.Aipocalypse.Editor.Build
         public static List<BuildOutcome> BuildAll(IEnumerable<BuildConfig> configs)
         {
             var outcomes = new List<BuildOutcome>();
-            foreach (BuildConfig config in configs.OrderBy(c => c.Target))
+            List<BuildConfig> ordered = configs.OrderBy(c => c.Target).ToList();
+            KeepLoaded(ordered, true);
+            try
             {
-                BuildOutcome outcome = Build(config, GetOutputFolder(config));
-                AutoBuildHistory.Record(config, outcome);
-                outcomes.Add(outcome);
-                if (outcome.Result == BuildResult.Cancelled)
-                    break;
+                foreach (BuildConfig config in ordered)
+                {
+                    BuildOutcome outcome = Build(config, GetOutputFolder(config));
+                    AutoBuildHistory.Record(config, outcome);
+                    outcomes.Add(outcome);
+                    if (outcome.Result == BuildResult.Cancelled)
+                        break;
+                }
+            }
+            finally
+            {
+                KeepLoaded(ordered, false);
             }
             if (outcomes.Count > 1)
                 Debug.Log($"{LogTag} {outcomes.Count(o => o.Succeeded)}/{outcomes.Count} built: " +
@@ -152,6 +164,30 @@ namespace MB13.Aipocalypse.Editor.Build
         // Cleans and builds into outputFolder, writes build_info.txt, zips when the config asks.
         public static BuildOutcome Build(BuildConfig config, string outputFolder)
         {
+            bool kept = (config.hideFlags & HideFlags.DontUnloadUnusedAsset) != 0;
+            KeepLoaded(new[] { config }, true);
+            try
+            {
+                return BuildLoaded(config, outputFolder);
+            }
+            finally
+            {
+                if (!kept)
+                    KeepLoaded(new[] { config }, false);
+            }
+        }
+
+        // The Addressables content build unloads every asset only managed code holds, which destroyed the BuildConfigs
+        // still read after it (name, history). They stay loaded for the build; the flag is cleared after, so it never
+        // reaches the asset file.
+        static void KeepLoaded(IEnumerable<BuildConfig> configs, bool keep)
+        {
+            foreach (BuildConfig config in configs.Where(c => c != null))
+                config.hideFlags = keep ? config.hideFlags | HideFlags.DontUnloadUnusedAsset : config.hideFlags & ~HideFlags.DontUnloadUnusedAsset;
+        }
+
+        static BuildOutcome BuildLoaded(BuildConfig config, string outputFolder)
+        {
             string buildName = GetBuildName(config);
             var outcome = new BuildOutcome { Name = buildName, Folder = outputFolder, Result = BuildResult.Failed };
             string[] scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
@@ -174,8 +210,15 @@ namespace MB13.Aipocalypse.Editor.Build
 
             string[] extraDefines = ExtraDefinesFor(config);
             BuildReport report;
+            AddressableAssetSettings addressables = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetSettings.PlayerBuildOption withPlayer = addressables != null ? addressables.BuildAddressablesWithPlayerBuild : default;
             try
             {
+                if (!BuildAddressables(config.Target, addressables))
+                    return outcome;
+                // Built just above: the player build only copies that content in (it would build it a second time).
+                if (addressables != null)
+                    addressables.BuildAddressablesWithPlayerBuild = AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer;
                 var added = buildDefines.Where(IsBuildDefine).Concat(extraDefines);
                 Debug.Log($"{LogTag} Building {buildName} (defines: {string.Join(", ", added.DefaultIfEmpty("none added"))})");
                 report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
@@ -194,6 +237,8 @@ namespace MB13.Aipocalypse.Editor.Build
             {
                 if (changeDefines)
                     PlayerSettings.SetScriptingDefineSymbols(namedTarget, playerDefines);
+                if (addressables != null)
+                    addressables.BuildAddressablesWithPlayerBuild = withPlayer;
             }
 
             BuildSummary summary = report.summary;
@@ -217,6 +262,28 @@ namespace MB13.Aipocalypse.Editor.Build
             if (config.Zip)
                 outcome.Zip = Zip(outputFolder, buildName);
             return outcome;
+        }
+
+        // Addressables content (Localization's string tables and locales) for `target`, into Library/com.unity.addressables;
+        // the player build copies it into StreamingAssets/aa. A failure stops the build: a player without it shows no text.
+        static bool BuildAddressables(BuildTarget target, AddressableAssetSettings settings)
+        {
+            if (settings == null)
+                return true;
+            if (EditorUserBuildSettings.activeBuildTarget != target &&
+                !EditorUserBuildSettings.SwitchActiveBuildTarget(BuildPipeline.GetBuildTargetGroup(target), target))
+            {
+                Debug.LogError($"{LogTag} Can't switch to {target} to build its Addressables content");
+                return false;
+            }
+            AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
+            if (!string.IsNullOrEmpty(result.Error))
+            {
+                Debug.LogError($"{LogTag} Addressables content failed: {result.Error}");
+                return false;
+            }
+            Debug.Log($"{LogTag} Addressables content built in {result.Duration:0.0} s: {result.OutputPath}");
+            return true;
         }
 
         static bool IsBuildDefine(string define) => define == PipelineDevDefine || define == PipelineReleaseDefine || define == CheatDefine;

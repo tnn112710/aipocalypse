@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
@@ -173,7 +174,7 @@ namespace MB13.Aipocalypse.Tests
 
             Assert.IsTrue(File.Exists(_saves.PathOf(1) + ".bak"), "a readable older backup exists");
             Assert.IsFalse(_saves.TryRead(1, out _, out string problem));
-            StringAssert.Contains("newer", problem);
+            Assert.AreEqual(SaveService.NewerVersion.Text(), problem);
         }
 
         [Test]
@@ -200,7 +201,7 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(4, _saves.Info(1).Header.Day);
             Assert.AreEqual(3, _saves.LatestSlot());
             Assert.IsFalse(_saves.TryRead(2, out _, out string problem));
-            Assert.AreEqual("Empty slot", problem);
+            Assert.AreEqual(SaveService.EmptySlot.Text(), problem);
         }
 
         [Test]
@@ -246,7 +247,7 @@ namespace MB13.Aipocalypse.Tests
         {
             CollectionAssert.AreEqual(new[] { 1, 2, 3, SaveService.EditorSlot }, new List<int>(_saves.Slots));
             StringAssert.EndsWith("slot_editor.es3", _saves.PathOf(SaveService.EditorSlot));
-            Assert.AreEqual("Editor Save", SaveFormat.SlotName(SaveService.EditorSlot));
+            Assert.AreEqual(SaveFormat.EditorSlotName.Text(), SaveFormat.SlotName(SaveService.EditorSlot));
 
             Write(1, Saved(1, savedAt: 100));
             Write(SaveService.EditorSlot, Saved(9, savedAt: 200));

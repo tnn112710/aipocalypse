@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using MB13.Aipocalypse.Core.LocalizationSystem;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.DefenseSystem
 {
@@ -6,9 +8,9 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
     // and, later, the morning report.
     public sealed class BarrierRegistry
     {
-        const string RepairAllName = "Fences";
-
+        static readonly LocalizedString RepairAllName = Loc.Interaction("target.fences");
         static readonly List<string> RepairAllTargets = new();
+        static Locale _repairAllLocale;
 
         readonly List<BarrierSegment> _segments = new();
 
@@ -42,11 +44,16 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             return mended;
         }
 
-        // "Fences (5)", made once per count so a steady look allocates nothing.
+        // "Fences (5)", made once per count and language so a steady look allocates nothing.
         public static string RepairAllTarget(int damaged)
         {
+            if (_repairAllLocale != Loc.Current)
+            {
+                RepairAllTargets.Clear();
+                _repairAllLocale = Loc.Current;
+            }
             while (RepairAllTargets.Count <= damaged)
-                RepairAllTargets.Add($"{RepairAllName} ({RepairAllTargets.Count})");
+                RepairAllTargets.Add(RepairAllName.Format(RepairAllTargets.Count));
             return RepairAllTargets[damaged];
         }
     }

@@ -1,7 +1,9 @@
 using DG.Tweening;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
@@ -10,8 +12,8 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
     [DisallowMultipleComponent]
     public sealed class AnimalBell : MonoBehaviour, IInteractable
     {
-        const string Verb = "Ring";
-        const string Name = "Bell";
+        static readonly LocalizedString Verb = Loc.Interaction("verb.ring");
+        static readonly LocalizedString Name = Loc.Interaction("target.bell");
 
         [SerializeField, Tooltip("Swings when rung; optional")] Transform _bell;
         [SerializeField, Min(0f), Tooltip("Seconds before it can ring again")] float _cooldown = 1.5f;
@@ -36,7 +38,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             prompt = default;
             if (_herd == null || !_herd.Enabled || Time.time < _readyAt)
                 return false;
-            prompt = new InteractionPrompt(Verb, Name);
+            prompt = new InteractionPrompt(Verb.Text(), Name.Text());
             return true;
         }
 

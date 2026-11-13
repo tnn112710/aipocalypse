@@ -232,6 +232,8 @@ MonoBehaviour:
   _deaths: 2
   _sideDeaths: 03000000030000000100000001000000i
   _attacks: 3
+  _launchPoint: {fileID: 0}
+  _heldProjectile: {fileID: 0}
   _celebrations: 4
 --- !u!114 &150208522003893482
 MonoBehaviour:
@@ -288,11 +290,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 761d48d14e95b864bad460fcf704e7d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.LootContainer
-  _label: Goblin
+  _label:
+    m_TableReference:
+      m_TableCollectionName: GUID:a787c9192f382f94ab219163507f97ef
+    m_TableEntryReference:
+      m_KeyId: 2577641475
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _capacity: 6
   _contents: []
   _hideWhenEmpty: 1
   _searchCollider: {fileID: 8140722919283255973}
+  _markerHeight: 1
+  references:
+    version: 2
+    RefIds: []
 --- !u!1 &7893542769446767994
 GameObject:
   m_ObjectHideFlags: 0

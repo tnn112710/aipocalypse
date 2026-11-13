@@ -1,5 +1,7 @@
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
@@ -9,7 +11,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     [DisallowMultipleComponent]
     public sealed class WorldItem : MonoBehaviour, IInteractable
     {
-        const string PickUpVerb = "Pick up";
+        static readonly LocalizedString PickUpVerb = Loc.Interaction("verb.pick_up");
         // The layer a thrown item's solid collider flies on: Item collides with Default (terrain, buildings); Debris and
         // Ignore Raycast don't, so items there fall through the ground.
         const string SolidLayerName = "Item";
@@ -30,6 +32,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         bool _taken;
         string _promptTarget;
         int _promptCount = -1;
+        Locale _promptLocale;
         Rigidbody _body;
         GameObject _solid;
         float _flightEnd;
@@ -135,7 +138,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             if (_taken || Item == null || !actor.TryGetComponent(out IEquipmentOwner owner) || owner.Equipment == null
                 || !owner.Equipment.CanPickUp(Item))
                 return false;
-            prompt = new InteractionPrompt(PickUpVerb, PromptTarget());
+            prompt = new InteractionPrompt(PickUpVerb.Text(), PromptTarget());
             return true;
         }
 
@@ -154,13 +157,14 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             return true;
         }
 
-        // "Rifle Ammo (30)": rebuilt only when the count changes, not every frame.
+        // "Rifle Ammo (30)": rebuilt only when the count or the language changes, not every frame.
         string PromptTarget()
         {
             int count = Item.Definition.Stacks ? Item.Count : 1;
-            if (count == _promptCount)
+            if (count == _promptCount && _promptLocale == Loc.Current)
                 return _promptTarget;
             _promptCount = count;
+            _promptLocale = Loc.Current;
             _promptTarget = count > 1 ? $"{Item.Definition.DisplayName} ({count})" : Item.Definition.DisplayName;
             return _promptTarget;
         }

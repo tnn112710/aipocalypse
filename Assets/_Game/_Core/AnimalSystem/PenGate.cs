@@ -1,8 +1,10 @@
 using DG.Tweening;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Pathfinding;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
@@ -12,10 +14,10 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
     [DisallowMultipleComponent]
     public sealed class PenGate : MonoBehaviour, IInteractable
     {
-        const string OpenVerb = "Open";
-        const string CloseVerb = "Close";
-        const string Name = "Pen";
-        const string BlockedName = "Pen (blocked)";
+        static readonly LocalizedString OpenVerb = Loc.Interaction("verb.open");
+        static readonly LocalizedString CloseVerb = Loc.Interaction("verb.close");
+        static readonly LocalizedString Name = Loc.Interaction("target.pen");
+        static readonly LocalizedString BlockedName = Loc.Interaction("target.pen_blocked");
 
         [SerializeField, Tooltip("The leaf turns round this")] Transform _hinge;
         [SerializeField, Tooltip("Cuts the navmesh while the gate is shut")] NavmeshCut _cut;
@@ -48,7 +50,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             prompt = default;
             if (_herd == null || !_herd.Enabled)
                 return false;
-            prompt = !IsOpen ? new InteractionPrompt(OpenVerb, Name) : new InteractionPrompt(CloseVerb, IsBlocked() ? BlockedName : Name);
+            prompt = !IsOpen
+                ? new InteractionPrompt(OpenVerb.Text(), Name.Text())
+                : new InteractionPrompt(CloseVerb.Text(), (IsBlocked() ? BlockedName : Name).Text());
             return true;
         }
 

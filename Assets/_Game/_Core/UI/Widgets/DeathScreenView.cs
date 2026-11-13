@@ -1,4 +1,5 @@
 using DG.Tweening;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -61,6 +62,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         public Tween ShowMenu()
         {
+            _title.SetText(_style.Title.Text());
             _menuTween?.Kill();
             _menu.gameObject.SetActive(true);
             _menu.alpha = 0f;
@@ -121,7 +123,7 @@ namespace MB13.Aipocalypse.Core.UI
                 _title.fontSharedMaterial = _style.TitleMaterial;
             _title.fontSize = _style.TitleSize;
             _title.color = _style.TitleColor;
-            _title.SetText(_style.Title);
+            _title.SetText(_style.Title.Text());
 
             if (_style.StatusFont != null)
                 _status.font = _style.StatusFont;

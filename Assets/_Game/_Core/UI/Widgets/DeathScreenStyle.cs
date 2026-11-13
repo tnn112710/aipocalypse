@@ -1,7 +1,9 @@
 using System;
 using DG.Tweening;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.UI
 {
@@ -40,9 +42,9 @@ namespace MB13.Aipocalypse.Core.UI
         public TMP_FontAsset StatusFont;
         public float StatusSize = 44f;
         public Color StatusColor = Color.white;
-        public string Title = "You're dead";
-        public string LoadingText = "Loading...";
-        public string ContinueText = "Click to continue";
+        [Tooltip("HUD table")] public LocalizedString Title = Loc.Hud("death.title");
+        public LocalizedString LoadingText = Loc.Hud("death.loading");
+        public LocalizedString ContinueText = Loc.Hud("death.continue");
 
         [Header("Timing")]
         [Min(0f)] public float MenuFadeIn = 0.6f;

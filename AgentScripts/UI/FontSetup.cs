@@ -11,19 +11,34 @@ using Object = UnityEngine.Object;
 // saves it (git noise, and vendor files changed). Builds Data/UI/Fonts/SairaHeader / SairaBold / SairaBody from the Synty
 // Saira Condensed TTFs (ExtraBold / SemiBold / Regular, as Synty's own font assets) with Synty's settings and their
 // underlay presets, makes DeathScreenFont static, then points every _Game prefab and asset from the Synty fonts to ours.
-// Text outside `Characters` shows as a missing glyph: add it there and re-run. Safe to re-run (assets and GUIDs kept).
+// The atlases hold printable ASCII, the punctuation the game uses, the Vietnamese and French alphabets and every character in
+// the string tables (Data/Localization/Csv): after adding text with new characters, re-run (LocalizationTests checks it).
+// An atlas grows (1024 -> 2048) only when the characters don't fit. RepairQteFont is made static the same way. Safe to
+// re-run (assets and GUIDs kept).
 public static class FontSetup
 {
     const string Dir = "Assets/_Game/Data/UI/Fonts";
     const string Synty = "Assets/Synty/InterfaceApocalypseHUD/Fonts/SairaCondensed/";
     const string DeathFontPath = "Assets/_Game/Data/UI/DeathScreen/DeathScreenFont.asset";
+    const string QteFontPath = "Assets/_Game/Data/UI/RepairQteFont.asset";
+    const string CsvFolder = "Assets/_Game/Data/Localization/Csv";
+    const string Vietnamese = "àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ";
+    const string French = "àâæçéèêëîïôœùûüÿ«»";
     const int SamplingSize = 90;
     const int Padding = 9;
     const int AtlasSize = 1024;
 
-    // Printable ASCII and the punctuation the game's text uses.
-    static readonly string Characters =
-        new string(Enumerable.Range(32, 95).Select(c => (char)c).ToArray()) + "·…—–‘’“”°×•";
+    static readonly (int width, int height)[] AtlasSizes = { (1024, 1024), (2048, 1024), (2048, 2048) };
+
+    public static string Characters()
+    {
+        var set = new SortedSet<char>(Enumerable.Range(32, 95).Select(c => (char)c));
+        set.UnionWith("·…—–‘’“”°×•");
+        set.UnionWith(Vietnamese + Vietnamese.ToUpperInvariant() + French + French.ToUpperInvariant());
+        foreach (string csv in System.IO.Directory.GetFiles(CsvFolder, "*.csv"))
+            set.UnionWith(System.IO.File.ReadAllText(csv).Where(c => !char.IsControl(c) && c != '﻿'));
+        return new string(set.ToArray());
+    }
 
     static readonly (string synty, string ttf, string ours)[] Fonts =
     {
@@ -73,19 +88,66 @@ public static class FontSetup
         }
     }
 
-    // Empties the atlas, adds `Characters`, then freezes it.
+    // Empties the atlas, adds `Characters()`, then freezes it; a bigger atlas when they don't all fit.
     static string Fill(TMP_FontAsset font)
     {
-        font.atlasPopulationMode = AtlasPopulationMode.Dynamic;
-        font.ClearFontAssetData(true);
-        font.TryAddCharacters(Characters, out string missing);
+        string characters = Characters();
+        string missing = string.Empty;
+        foreach ((int width, int height) in AtlasSizes)
+        {
+            var so = new SerializedObject(font);
+            so.FindProperty("m_AtlasWidth").intValue = width;
+            so.FindProperty("m_AtlasHeight").intValue = height;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            font.atlasPopulationMode = AtlasPopulationMode.Dynamic;
+            font.isMultiAtlasTexturesEnabled = false;
+            font.ClearFontAssetData(true);
+            font.TryAddCharacters(characters, out missing);
+            // Characters the font file lacks stay missing whatever the size; anything else means the atlas is full.
+            if (string.IsNullOrEmpty(missing) || !missing.Any(c => InFontFile(font, c)))
+                break;
+        }
         font.atlasPopulationMode = AtlasPopulationMode.Static;
+        font.material.SetFloat(ShaderUtilities.ID_TextureWidth, font.atlasWidth);
+        font.material.SetFloat(ShaderUtilities.ID_TextureHeight, font.atlasHeight);
         EditorUtility.SetDirty(font);
+        EditorUtility.SetDirty(font.material);
         foreach (Texture2D atlas in font.atlasTextures)
             EditorUtility.SetDirty(atlas);
         AssetDatabase.SaveAssetIfDirty(font);
-        return $"{font.name}: static, {font.characterTable.Count} characters" +
+        int presets = SyncPresets(font);
+        return $"{font.name}: static {font.atlasWidth}x{font.atlasHeight}, {font.characterTable.Count} characters" +
+               (presets > 0 ? $", {presets} material preset(s) resized" : string.Empty) +
                (string.IsNullOrEmpty(missing) ? string.Empty : $", not in the font: {missing}");
+    }
+
+    static bool InFontFile(TMP_FontAsset font, char c)
+    {
+        Font source = font.sourceFontFile != null ? font.sourceFontFile
+            : AssetDatabase.LoadAssetAtPath<Font>(AssetDatabase.GUIDToAssetPath(new SerializedObject(font).FindProperty("m_SourceFontFileGUID").stringValue));
+        return source != null && FontEngine.LoadFontFace(source) == FontEngineError.Success && FontEngine.TryGetGlyphIndex(c, out uint index) && index != 0;
+    }
+
+    // Other materials under _Game drawing this atlas (underlay and title presets) need its new size.
+    static int SyncPresets(TMP_FontAsset font)
+    {
+        int changed = 0;
+        foreach (string guid in AssetDatabase.FindAssets("t:Material", new[] { "Assets/_Game" }))
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+            if (material == font.material || !material.HasProperty(ShaderUtilities.ID_MainTex) ||
+                material.GetTexture(ShaderUtilities.ID_MainTex) != font.atlasTexture)
+                continue;
+            if (Mathf.Approximately(material.GetFloat(ShaderUtilities.ID_TextureWidth), font.atlasWidth) &&
+                Mathf.Approximately(material.GetFloat(ShaderUtilities.ID_TextureHeight), font.atlasHeight))
+                continue;
+            material.SetFloat(ShaderUtilities.ID_TextureWidth, font.atlasWidth);
+            material.SetFloat(ShaderUtilities.ID_TextureHeight, font.atlasHeight);
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssetIfDirty(material);
+            changed++;
+        }
+        return changed;
     }
 
     // A copy of a Synty material preset (underlay look) that draws our atlas.
@@ -111,7 +173,11 @@ public static class FontSetup
         return existing;
     }
 
-    static void DeathFont(List<string> log) => log.Add(Fill(Load<TMP_FontAsset>(DeathFontPath)));
+    static void DeathFont(List<string> log)
+    {
+        log.Add(Fill(Load<TMP_FontAsset>(DeathFontPath)));
+        log.Add(Fill(Load<TMP_FontAsset>(QteFontPath)));
+    }
 
     // Every object reference under Assets/_Game (prefabs, ScriptableObjects; scenes are rebuilt by their setup scripts).
     static void Remap(Dictionary<Object, Object> map, List<string> log)

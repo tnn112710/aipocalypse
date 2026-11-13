@@ -1,6 +1,8 @@
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.SleepSystem
@@ -10,7 +12,7 @@ namespace MB13.Aipocalypse.Core.SleepSystem
     [DisallowMultipleComponent]
     public sealed class Bed : MonoBehaviour, IInteractable
     {
-        const string Verb = "Sleep";
+        static readonly LocalizedString Verb = Loc.Interaction("verb.sleep");
 
         [SerializeField, Tooltip("On the floor under the bed: x (red) points to the side you get in from, z (blue) towards the pillow. " +
             "The sleep sequences are placed in its space")]
@@ -28,7 +30,7 @@ namespace MB13.Aipocalypse.Core.SleepSystem
             prompt = default;
             if (_sleep == null || !_sleep.Enabled || _sleep.IsBusy || !actor.TryGetComponent(out IPlayer _))
                 return false;
-            prompt = new InteractionPrompt(Verb, string.Empty);
+            prompt = new InteractionPrompt(Verb.Text(), string.Empty);
             return true;
         }
 

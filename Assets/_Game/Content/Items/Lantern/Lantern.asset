@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76095fa4dbcb142419230612fa2e8fb3, type: 3}
   m_Name: Lantern
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.LanternDefinition
-  _displayName: Lantern
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 2023993346
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _icon: {fileID: 0}
   _prefab: {fileID: 6424093824897372807, guid: f1a9d5050dd0b7e4faba2959029571cd, type: 3}
   _maxStack: 1
@@ -27,3 +35,6 @@ MonoBehaviour:
   _flicker: 0.08
   _flickerSpeed: 6
   _shadows: 0
+  references:
+    version: 2
+    RefIds: []

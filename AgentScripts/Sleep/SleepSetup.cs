@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.SleepSystem;
 using MB13.Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Editor.Localization;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -48,7 +50,7 @@ public static class SleepSetup
     const float SittingHeight = 1.12f;
     static readonly Vector2 StandingOffset = new(1.05f, -0.05f);
 
-    public static string All() => string.Join("\n", Assets(), Hud(), World());
+    public static string All() => string.Join("\n", Assets(), Hud(), World(), LocalizationKit.ApplyLabels());
 
     // ---- settings and sequences ----
 

@@ -4,6 +4,7 @@ using Ami.BroAudio;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Input;
@@ -12,6 +13,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 using VContainer;
 
@@ -27,6 +29,20 @@ namespace MB13.Aipocalypse.Core.UI
     {
         const ItemCategory WeaponSlots = ItemCategory.Gun | ItemCategory.Melee;
         const float MessageSeconds = 2.5f;
+        static readonly LocalizedString BackpackTitle = Loc.UI("inventory.backpack_title");
+        static readonly LocalizedString WeightFormat = Loc.UI("inventory.weight");
+        static readonly LocalizedString NoRoom = Loc.UI("inventory.no_room");
+        static readonly LocalizedString NowhereToWear = Loc.UI("inventory.nowhere");
+        static readonly LocalizedString BackpackFull = Loc.UI("inventory.backpack_full");
+        static readonly LocalizedString StillSearching = Loc.UI("inventory.still_searching");
+        static readonly LocalizedString UsesFormat = Loc.UI("tooltip.uses");
+        static readonly LocalizedString ValueFormat = Loc.UI("tooltip.value");
+        // Indexed by ItemRarity.
+        static readonly LocalizedString[] RarityNames =
+        {
+            Loc.Items("rarity.common"), Loc.Items("rarity.uncommon"), Loc.Items("rarity.rare"), Loc.Items("rarity.epic"),
+            Loc.Items("rarity.legendary"),
+        };
 
         [SerializeField] InventoryStyle _style;
         [SerializeField, Tooltip("Shown and raycast only while open")] CanvasGroup _group;
@@ -387,7 +403,7 @@ namespace MB13.Aipocalypse.Core.UI
 
             ItemContainer backpack = _inventory.Backpack;
             if (_backpackTitle != null)
-                _backpackTitle.SetText("Backpack ({0}/{1})", (float)backpack.UsedSlots, (float)backpack.Count);
+                _backpackTitle.SetText(BackpackTitle.Text(), (float)backpack.UsedSlots, (float)backpack.Count);
             if (_loot != null && _lootTitle != null)
                 _lootTitle.SetText($"{_loot.Label} ({_loot.Items.UsedSlots}/{_loot.Items.Count})");
             if (_tokens != null)
@@ -395,7 +411,7 @@ namespace MB13.Aipocalypse.Core.UI
             float weight = _inventory.Weight;
             float max = _inventory.MaxWeight;
             if (_weight != null)
-                _weight.SetText("Weight {0:1} / {1:1} kg", weight, max);
+                _weight.SetText(WeightFormat.Text(), weight, max);
             if (_weightFill != null)
             {
                 _weightFill.fillAmount = max > 0f ? Mathf.Clamp01(weight / max) : 0f;
@@ -452,21 +468,21 @@ namespace MB13.Aipocalypse.Core.UI
             if (_loot != null && slot.Container == _loot.Items)
             {
                 if (_inventory.TakeFrom(slot.Container, slot.Index) == 0)
-                    refusal = "No room";
+                    refusal = NoRoom.Text();
             }
             else if (_loot != null && slot.Container == _inventory.Backpack)
             {
                 if (_inventory.SendTo(slot.Container, slot.Index, _loot.Items, out refusal) == 0 && refusal == null)
-                    refusal = "No room";
+                    refusal = NoRoom.Text();
             }
             else if (slot.Container == _inventory.Backpack)
             {
                 if (!Equip(slot))
-                    refusal = "Nowhere to put it on";
+                    refusal = NowhereToWear.Text();
             }
             else if (_inventory.SendTo(slot.Container, slot.Index, _inventory.Backpack, out refusal) == 0 && refusal == null)
             {
-                refusal = "Backpack full";
+                refusal = BackpackFull.Text();
             }
             if (refusal == null)
                 Play(_style != null ? _style.PlaceSound : default);
@@ -537,7 +553,7 @@ namespace MB13.Aipocalypse.Core.UI
             SlotRef from = _slots[_dragFrom];
             SlotRef to = _slots[target.Index];
             if (IsHidden(to))
-                ShowMessage("Still searching");
+                ShowMessage(StillSearching.Text());
             else if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal, _dragAmount))
                 Play(_style != null ? _style.PlaceSound : default);
             else
@@ -576,6 +592,8 @@ namespace MB13.Aipocalypse.Core.UI
 
         void OnHoverChanged(ItemSlotView view) => RefreshTooltip();
 
+        static string RarityName(ItemRarity rarity) => (int)rarity < RarityNames.Length ? RarityNames[(int)rarity].Text() : rarity.ToString();
+
         void RefreshTooltip()
         {
             if (_tooltip == null)
@@ -591,8 +609,8 @@ namespace MB13.Aipocalypse.Core.UI
                 string weight = definition.Stacks
                     ? $"{item.Count:N0} x {definition.Weight:0.###} kg = {item.Weight:0.##} kg"
                     : $"{definition.Weight:0.##} kg";
-                string uses = item is ConsumableInstance multiUse ? $"\nUses {multiUse.UsesLeft}/{multiUse.Consumable.Uses}" : null;
-                string details = $"{definition.Rarity}\n{weight}{uses}\nValue {item.Value:N0}";
+                string uses = item is ConsumableInstance multiUse ? "\n" + UsesFormat.Format(multiUse.UsesLeft, multiUse.Consumable.Uses) : null;
+                string details = $"{RarityName(definition.Rarity)}\n{weight}{uses}\n{ValueFormat.Format(item.Value)}";
                 Color title = _style != null ? _style.RarityColor(definition.Rarity) : Color.white;
                 _tooltip.Show((RectTransform)slot.View.transform, definition.DisplayName, details, title);
                 return;
@@ -619,7 +637,7 @@ namespace MB13.Aipocalypse.Core.UI
             if (took)
                 Play(_style != null ? _style.PlaceSound : default);
             if (full)
-                ShowMessage("Backpack full");
+                ShowMessage(BackpackFull.Text());
         }
     }
 }

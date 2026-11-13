@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.SaveSystem
 {
@@ -19,6 +21,14 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         public const int EditorSlot = 99;
         const string BackupSuffix = ".bak";
         const string TempSuffix = ".tmp";
+        public static readonly LocalizedString EmptySlot = Loc.UI("save.empty_slot");
+        static readonly LocalizedString NoSlotPicked = Loc.UI("session.no_slot_picked");
+        static readonly LocalizedString NoSlotInRange = Loc.UI("save.no_slot_range");
+        static readonly LocalizedString MissingFile = Loc.UI("save.missing_file");
+        static readonly LocalizedString DamagedNoHeader = Loc.UI("save.damaged_no_header");
+        public static readonly LocalizedString NewerVersion = Loc.UI("save.newer_version");
+        static readonly LocalizedString OldFormat = Loc.UI("save.old_format");
+        static readonly LocalizedString Damaged = Loc.UI("save.damaged");
 
         readonly SaveSettings _settings;
         // Slots whose file is known to read (read or written this session, and unchanged since: its time and size), so the
@@ -121,7 +131,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 return true;
             }
             if (!File.Exists(path) && !File.Exists(path + BackupSuffix))
-                problem = "Empty slot";
+                problem = EmptySlot.Text();
             else if (problem == null)
                 problem = backupProblem;
             return false;
@@ -216,7 +226,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             return file.Exists && file.LastWriteTimeUtc == known.time && file.Length == known.size;
         }
 
-        string NoSlot(int slot) => slot == 0 ? "No save slot picked" : $"No slot {slot} (1-{SlotCount})";
+        string NoSlot(int slot) => slot == 0 ? NoSlotPicked.Text() : NoSlotInRange.Format(slot, SlotCount);
 
         bool TryReadFile(string path, out SaveData data, out string problem, out bool otherVersion)
         {
@@ -225,7 +235,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             otherVersion = false;
             if (!File.Exists(path))
             {
-                problem = "Missing file";
+                problem = MissingFile.Text();
                 return false;
             }
             try
@@ -233,14 +243,14 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 var file = new ES3File(FileSettings(path), true);
                 if (!file.KeyExists(SaveData.HeaderKey))
                 {
-                    problem = "Damaged save (no header)";
+                    problem = DamagedNoHeader.Text();
                     return false;
                 }
                 var header = file.Load<SaveHeader>(SaveData.HeaderKey);
                 if (header.Version != Version)
                 {
                     otherVersion = true;
-                    problem = header.Version > Version ? "Saved by a newer version" : $"Old save format (v{header.Version})";
+                    problem = header.Version > Version ? NewerVersion.Text() : OldFormat.Format(header.Version);
                     return false;
                 }
                 file.DeleteKey(SaveData.HeaderKey);
@@ -249,7 +259,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             }
             catch (Exception exception)
             {
-                problem = "Damaged save";
+                problem = Damaged.Text();
                 Debug.LogWarning($"{path}: {exception.Message}");
                 return false;
             }

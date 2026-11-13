@@ -62,6 +62,7 @@ Who publishes → who subscribes today:
 | `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | `RaidBannerHud` (`RaidStarted`, `RaidEnded` Cleared / Dawn); music and morning report later |
 | `WeatherChanged` (empty: read `WeatherService`) | `WeatherService` | none yet (weather rules, HUD later) |
 | `GameSaved` | `GameSession` (when a save's background write finishes, ok or not) | `SaveToastHud`, `PauseMenu` (→ `SaveSlotsPanel`) |
+| `LanguageChanged` (empty: read `LanguageService.Current`) | `LanguageService` | `LanguageButton`, `PauseMenu` (hint), `MainMenuScreen` (Continue info, version); polled views and cached prompt texts compare `Loc.Current` instead |
 
 Update this table when you add an event or a subscriber.
 
@@ -78,7 +79,7 @@ Update this table when you add an event or a subscriber.
 ## 5. Unity 6.6 state of this project
 
 - Editor: check `ProjectSettings/ProjectVersion.txt` (6000.6.7f1 when this was written).
-- **Enter Play Mode Options:** enabled with flags `0`, so domain and scene still reload and statics reset. Mutable statics today: a type cache (`GameLifetimeScope._installerTypes`), editor-preview state (`EnvironmentDirector._editRevision`, `HandPreview`) and Feel's `MMF_HitStop.FeedbackTypeAuthorized`; the rest are readonly tables and `ProfilerMarker`s. Before anyone turns domain reload off, audit statics with `[AutoStaticsCleanup]` (unity-6-new-apis §2).
+- **Enter Play Mode Options:** enabled with flags `0`, so domain and scene still reload and statics reset. Mutable statics today: a type cache (`GameLifetimeScope._installerTypes`), editor-preview state (`EnvironmentDirector._editRevision`, `HandPreview`), Feel's `MMF_HitStop.FeedbackTypeAuthorized`, and text caches keyed by language (`Loc`'s per-`LocalizedString` cache, `BarrierRegistry`'s "Fences (N)" strings); the rest are readonly tables and `ProfilerMarker`s. Before anyone turns domain reload off, audit statics with `[AutoStaticsCleanup]` (unity-6-new-apis §2).
 - Serialized key→value data uses the built-in `[SerializeField] Dictionary<,>` (in use: `ClockSettings.Phases`, `ClockStyle` phases, `TimeOfDayProfile.PhaseLooks`, `AmmoConfig` starting reserve, `EnemyDefinition` stats and targets, `EnemySystemSettings.AttackersPerTarget`, `EnemySpawnCard` variants). Enum-keyed tables get an EditMode test that every value has an entry (`PhaseDataTests`).
 - Existing `[InitializeOnLoadMethod]` + `playModeStateChanged` hooks (`EnemyInstaller`, `EnvironmentDirector`, `HandPreview`) stay until that code is touched; new hooks use the 6.5 lifecycle attributes (`RaidInstaller`: `[OnCodeInitializing]` on a `partial` class, which the lifecycle source generator needs).
 - Input is read only through `InputService` (no `OnMouseDown`, no `UnityEngine.Input`, no cursor or action-map changes elsewhere). The `Debug` map is enabled when `Cheats.Enabled`. The one sanctioned stand-in is `IPlayer.IntentSource`: a dev tool (`RaidAutopilot`, `cheat.autopilot`) implements `IPlayerIntentSource` and hands `Player` its `PlayerIntent` instead of the `InputService` read; it reads no devices itself, and `Player` still asks for intent only while it can act.

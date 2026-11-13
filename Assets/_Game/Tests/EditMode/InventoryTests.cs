@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEditor;
@@ -131,7 +132,7 @@ namespace MB13.Aipocalypse.Tests
             inventory.Backpack.TryPlace(BaseSlots + 1, _rounds.CreateInstance(5));
 
             Assert.IsFalse(inventory.TryMove(inventory.Gear, BackpackGear, inventory.Backpack, 0, out string refusal));
-            Assert.AreEqual(Inventory.BackpackNotEmpty, refusal);
+            Assert.AreEqual(Inventory.BackpackNotEmpty.Text(), refusal);
             Assert.AreSame(_bigPack, inventory.WornBackpack);
 
             inventory.Backpack.Remove(BaseSlots + 1);
@@ -148,7 +149,7 @@ namespace MB13.Aipocalypse.Tests
             inventory.TryAdd(_bigPack.CreateInstance(), out _);
 
             Assert.IsFalse(inventory.TryMove(inventory.Gear, BackpackGear, inventory.Backpack, BaseSlots + 2, out string refusal));
-            Assert.AreEqual(Inventory.BackpackNotEmpty, refusal);
+            Assert.AreEqual(Inventory.BackpackNotEmpty.Text(), refusal);
             Assert.AreSame(_bigPack, inventory.WornBackpack);
         }
 

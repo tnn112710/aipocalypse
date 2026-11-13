@@ -1,7 +1,9 @@
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using DG.Tweening;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.DefenseSystem
@@ -13,9 +15,10 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
     [DisallowMultipleComponent]
     public sealed class FenceGate : MonoBehaviour
     {
-        const string OpenVerb = "Open";
-        const string CloseVerb = "Close";
-        const string BlockedSuffix = " (blocked)";
+        static readonly LocalizedString OpenVerb = Loc.Interaction("verb.open");
+        static readonly LocalizedString CloseVerb = Loc.Interaction("verb.close");
+        static readonly LocalizedString BlockedSuffix = Loc.Interaction("suffix.blocked");
+        static readonly LocalizedString FallbackName = Loc.Interaction("target.gate");
 
         [SerializeField, Range(30f, 170f), Tooltip("Degrees the leaves swing open")] float _openAngle = 100f;
         [SerializeField, Min(0.05f), Tooltip("Seconds a swing takes")] float _swingTime = 0.6f;
@@ -29,6 +32,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         BarrierDefinition _namedFor;
         string _name;
         string _blockedName;
+        Locale _nameLocale;
 
         public bool IsOpen { get; private set; }
 
@@ -47,19 +51,20 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
 
         public bool TryGetPrompt(out InteractionPrompt prompt)
         {
-            if (_name == null || _namedFor != _segment.Definition)
+            if (_name == null || _namedFor != _segment.Definition || _nameLocale != Loc.Current)
             {
                 _namedFor = _segment.Definition;
-                _name = _namedFor != null ? _namedFor.DisplayName : "Gate";
-                _blockedName = _name + BlockedSuffix;
+                _nameLocale = Loc.Current;
+                _name = (_namedFor != null ? _namedFor.DisplayName : FallbackName).Text();
+                _blockedName = _name + BlockedSuffix.Text();
             }
             if (!IsOpen)
             {
-                prompt = new InteractionPrompt(OpenVerb, _name);
+                prompt = new InteractionPrompt(OpenVerb.Text(), _name);
                 return true;
             }
             // Checked only while open: one overlap query a frame while the player looks at an open gate.
-            prompt = new InteractionPrompt(CloseVerb, _segment.IsOccupied() ? _blockedName : _name);
+            prompt = new InteractionPrompt(CloseVerb.Text(), _segment.IsOccupied() ? _blockedName : _name);
             return true;
         }
 

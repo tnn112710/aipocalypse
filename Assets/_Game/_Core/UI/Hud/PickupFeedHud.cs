@@ -1,8 +1,10 @@
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -12,7 +14,7 @@ namespace MB13.Aipocalypse.Core.UI
     // sounds (InventoryStyle).
     public sealed class PickupFeedHud : PlayerHudView
     {
-        public const string NoRoom = "Backpack full";
+        static readonly LocalizedString NoRoom = Loc.UI("inventory.backpack_full");
         // Several piles collected in one go (the magnet) sound once.
         const float SoundGap = 0.06f;
 
@@ -51,7 +53,6 @@ namespace MB13.Aipocalypse.Core.UI
             if (_warning != null)
             {
                 _warning.enabled = false;
-                _warning.SetText(NoRoom);
             }
         }
 
@@ -108,6 +109,8 @@ namespace MB13.Aipocalypse.Core.UI
                 Play(_style.RefusedSound);
             _warningAt = Time.unscaledTime;
             _quietAt = Mathf.Max(_quietAt, _warningAt + _hold + _fade);
+            if (_warning != null)
+                _warning.SetText(NoRoom.Text());
         }
 
         void Play(Ami.BroAudio.SoundID sound)

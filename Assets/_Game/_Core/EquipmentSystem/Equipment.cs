@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Input;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
@@ -11,8 +13,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     {
         readonly Func<ItemInstance, bool> _canSelect = CanHold;
         readonly HotbarKey[] _keys;
-        readonly string[] _slotNames;
-        readonly string[] _gearNames;
+        readonly LocalizedString[] _slotNames;
+        readonly LocalizedString[] _gearNames;
 
         // previous index, new index; -1 = nothing selected
         public event Action<int, int> SelectionChanged;
@@ -25,8 +27,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
 
         // `keys`: the key of each hotbar slot (EquipmentConfig); missing ones default to keys 1, 2, 3… in order. Names label the
         // hotbar and gear slots on the inventory screen.
-        public Equipment(Inventory inventory, IReadOnlyList<HotbarKey> keys = null, IReadOnlyList<string> slotNames = null,
-            IReadOnlyList<string> gearNames = null)
+        public Equipment(Inventory inventory, IReadOnlyList<HotbarKey> keys = null, IReadOnlyList<LocalizedString> slotNames = null,
+            IReadOnlyList<LocalizedString> gearNames = null)
         {
             Inventory = inventory;
             _keys = new HotbarKey[Hotbar.Count];
@@ -55,14 +57,14 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         }
 
         public HotbarKey KeyOf(int slot) => _keys[slot];
-        public string SlotName(int slot) => _slotNames[slot];
-        public string GearName(int slot) => _gearNames[slot];
+        public string SlotName(int slot) => _slotNames[slot].Text();
+        public string GearName(int slot) => _gearNames[slot].Text();
 
-        static string[] Names(IReadOnlyList<string> names, int count)
+        static LocalizedString[] Names(IReadOnlyList<LocalizedString> names, int count)
         {
-            var result = new string[count];
+            var result = new LocalizedString[count];
             for (int i = 0; i < count; i++)
-                result[i] = names != null && i < names.Count ? names[i] : string.Empty;
+                result[i] = names != null && i < names.Count ? names[i] : null;
             return result;
         }
 

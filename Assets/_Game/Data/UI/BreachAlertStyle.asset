@@ -12,14 +12,65 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d4c5d5a1f2327d4f96b9cb6f5f100ae, type: 3}
   m_Name: BreachAlertStyle
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.BreachAlertStyle
-  FenceText: The fence is down
-  GateText: The gate is down
-  AheadSuffix: ' ahead'
-  BehindSuffix: ' behind you'
-  LeftSuffix: ' to your left'
-  RightSuffix: ' to your right'
+  FenceText:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301572
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  GateText:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301573
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  AheadSuffix:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301574
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  BehindSuffix:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301575
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  LeftSuffix:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301576
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  RightSuffix:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301577
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   Color: {r: 1, g: 0.45, b: 0.3, a: 1}
   FadeIn: 0.15
   Hold: 2.2
   FadeOut: 0.6
   PunchScale: 1.15
+  references:
+    version: 2
+    RefIds: []

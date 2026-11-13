@@ -1,6 +1,8 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -20,6 +22,7 @@ namespace MB13.Aipocalypse.Core.UI
         char[] _digits;
         int _shownMinute = -1;
         int _shownDay = -1;
+        Locale _dayLocale;
         string _shownPhase;
 
         public ClockStyle Style => _style;
@@ -55,10 +58,11 @@ namespace MB13.Aipocalypse.Core.UI
 
         public void SetDay(int day)
         {
-            if (day == _shownDay || _style == null)
+            if (day == _shownDay && _dayLocale == Loc.Current || _style == null)
                 return;
             _shownDay = day;
-            _day.SetText(_style.DayFormat, day);
+            _dayLocale = Loc.Current;
+            _day.SetText(_style.DayFormat.Text(), day);
         }
 
         [Button, PropertyOrder(-1)]
@@ -94,7 +98,7 @@ namespace MB13.Aipocalypse.Core.UI
             }
 
             if (_shownDay >= 0)
-                _day.SetText(_style.DayFormat, _shownDay);
+                _day.SetText(_style.DayFormat.Text(), _shownDay);
         }
 
 #if UNITY_EDITOR

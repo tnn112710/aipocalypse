@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Creatures Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Creatures
+  m_TableCollectionNameGuidString: a787c9192f382f94ab219163507f97ef
+  m_Entries:
+  - m_Id: 2510532608
+    m_Key: animal.chicken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2577641472
+    m_Key: animal.cow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2577641473
+    m_Key: animal.pig
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2577641474
+    m_Key: animal.sheep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2577641475
+    m_Key: enemy.goblin
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 3024104767828525357
+  references:
+    version: 2
+    RefIds:
+    - rid: 3024104767828525357
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1794512638872

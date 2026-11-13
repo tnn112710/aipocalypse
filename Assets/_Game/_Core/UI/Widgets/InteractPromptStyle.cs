@@ -1,6 +1,8 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.UI
 {
@@ -19,7 +21,7 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Text")] public Color VerbColor = new(0.95f, 0.95f, 0.95f, 1f);
         [BoxGroup("Text"), Tooltip("Color of the item / object name")] public Color TargetColor = new(1f, 0.72f, 0.6f, 1f);
         [BoxGroup("Text"), Min(1f)] public float FontSize = 31f;
-        [BoxGroup("Text"), Tooltip("Before a hold use on the second line")] public string HoldPrefix = "Hold: ";
+        [BoxGroup("Text"), Tooltip("Interaction table: before a hold use on the second line")] public LocalizedString HoldPrefix = Loc.Interaction("hold_prefix");
         [BoxGroup("Text"), Range(0.4f, 1f), Tooltip("Size of the hold line against the first")] public float HoldLineScale = 0.75f;
 
 #if UNITY_EDITOR

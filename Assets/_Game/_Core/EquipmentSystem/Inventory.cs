@@ -1,4 +1,6 @@
 using System;
+using MB13.Aipocalypse.Core.LocalizationSystem;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
@@ -6,7 +8,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     // (head, body, face, backpack, belt). The worn backpack adds backpack slots and carry weight.
     public sealed class Inventory : IDisposable
     {
-        public const string BackpackNotEmpty = "Empty the backpack's extra slots first";
+        public static readonly LocalizedString BackpackNotEmpty = Loc.UI("inventory.backpack_not_empty");
 
         readonly int _baseSlots;
         readonly float _baseMaxWeight;
@@ -128,7 +130,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 return false;
             if ((from == Gear) != (to == Gear) && !WornBackpackCanLeave(from, fromIndex, to, toIndex))
             {
-                refusal = BackpackNotEmpty;
+                refusal = BackpackNotEmpty.Text();
                 return false;
             }
             return ItemContainer.Move(from, fromIndex, to, toIndex, amount);
@@ -145,7 +147,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 return false;
             if (IsWornBackpackWithItems(from, item))
             {
-                refusal = BackpackNotEmpty;
+                refusal = BackpackNotEmpty.Text();
                 return false;
             }
             removed = amount < item.Count ? item.Split(amount) : from.Remove(index);
@@ -175,7 +177,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 return 0;
             if (IsWornBackpackWithItems(from, item))
             {
-                refusal = BackpackNotEmpty;
+                refusal = BackpackNotEmpty.Text();
                 return 0;
             }
             from.Remove(index);

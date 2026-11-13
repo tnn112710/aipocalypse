@@ -1,5 +1,6 @@
 using System.Linq;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
 using UnityEngine;
@@ -120,7 +121,7 @@ public static class DeathReview
         view.HideAll();
         if (what == "menu")
         {
-            view.SetStatus(view.Style.LoadingText, false);
+            view.SetStatus(view.Style.LoadingText.Text(), false);
             DG.Tweening.TweenExtensions.Complete(view.ShowMenu());
         }
         else if (what == "eyes")

@@ -1,5 +1,6 @@
 using Ami.BroAudio;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
@@ -7,7 +8,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
     [CreateAssetMenu(fileName = "Animal", menuName = "Aipocalypse/Animals/Animal Definition")]
     public sealed class AnimalDefinition : ScriptableObject
     {
-        public string DisplayName = "Animal";
+        [Tooltip("Creatures table: the name in its prompts")] public LocalizedString DisplayName;
 
         [Header("Movement")]
         [Min(0.1f), Tooltip("Grazing and walking home (m/s); set near the walk clip's own pace")] public float WalkSpeed = 1f;

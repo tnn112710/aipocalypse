@@ -7,8 +7,10 @@ using MB13.Aipocalypse.Core.AnimalSystem;
 using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Core.SpawnSystem;
+using MB13.Aipocalypse.Editor.Localization;
 using Pathfinding;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -100,7 +102,7 @@ public static class AnimalSetup
         MarkerHeight = 2f,
         Tune = d =>
         {
-            d.DisplayName = "Cow";
+            d.DisplayName = LocalizationKit.Ref(Loc.CreaturesTable, "animal.cow");
             d.WalkSpeed = 0.85f;
             d.HurrySpeed = 1.4f;
             d.FleeSpeed = 3f;
@@ -146,7 +148,7 @@ public static class AnimalSetup
         MarkerHeight = 1.6f,
         Tune = d =>
         {
-            d.DisplayName = "Sheep";
+            d.DisplayName = LocalizationKit.Ref(Loc.CreaturesTable, "animal.sheep");
             d.WalkSpeed = 0.52f;
             d.HurrySpeed = 0.9f;
             d.FleeSpeed = 3f;
@@ -194,7 +196,7 @@ public static class AnimalSetup
         MarkerHeight = 1.3f,
         Tune = d =>
         {
-            d.DisplayName = "Chicken";
+            d.DisplayName = LocalizationKit.Ref(Loc.CreaturesTable, "animal.chicken");
             d.WalkSpeed = 0.35f;
             d.HurrySpeed = 1.1f;
             d.FleeSpeed = 1.6f;
@@ -244,7 +246,7 @@ public static class AnimalSetup
         MarkerHeight = 1.5f,
         Tune = d =>
         {
-            d.DisplayName = "Pig";
+            d.DisplayName = LocalizationKit.Ref(Loc.CreaturesTable, "animal.pig");
             d.WalkSpeed = 0.75f;
             d.HurrySpeed = 1.25f;
             d.FleeSpeed = 2.6f;

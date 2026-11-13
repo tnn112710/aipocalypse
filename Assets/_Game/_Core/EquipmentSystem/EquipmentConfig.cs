@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MB13.Aipocalypse.Input;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
@@ -14,6 +15,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public struct SlotConfig
         {
             public string Name;
+            [Tooltip("Items table: the caption under its inventory tile; empty = none")] public LocalizedString Caption;
             [EnumToggleButtons] public ItemCategory Accepts;
             [Tooltip("The key that selects it")] public HotbarKey Key;
             [Tooltip("Placed at spawn")] public ItemDefinition StartingItem;
@@ -23,6 +25,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public struct GearSlotConfig
         {
             public string Name;
+            [Tooltip("Items table: the caption under its inventory tile")] public LocalizedString Caption;
             [EnumToggleButtons] public ItemCategory Accepts;
             [Tooltip("Worn at spawn")] public ItemDefinition StartingItem;
         }
@@ -54,15 +57,15 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public Equipment CreateEquipment()
         {
             var keys = new HotbarKey[_slots.Count];
-            var names = new string[_slots.Count];
+            var names = new LocalizedString[_slots.Count];
             for (int i = 0; i < keys.Length; i++)
             {
                 keys[i] = _slots[i].Key;
-                names[i] = _slots[i].Name;
+                names[i] = _slots[i].Caption;
             }
-            var gearNames = new string[_gear.Count];
+            var gearNames = new LocalizedString[_gear.Count];
             for (int i = 0; i < gearNames.Length; i++)
-                gearNames[i] = _gear[i].Name;
+                gearNames[i] = _gear[i].Caption;
             return new Equipment(CreateInventory(), keys, names, gearNames);
         }
 

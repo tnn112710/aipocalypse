@@ -3,6 +3,7 @@ using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Effects;
 using Ami.BroAudio;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.DefenseSystem
 {
@@ -11,7 +12,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
     [CreateAssetMenu(fileName = "BarrierDefinition", menuName = "Aipocalypse/Defense/Barrier Definition")]
     public sealed class BarrierDefinition : ScriptableObject
     {
-        [Tooltip("Shown in prompts: \"[E] Repair Fence\"")] public string DisplayName = "Fence";
+        [Tooltip("Interaction table: shown in prompts, \"[E] Repair Fence\"")] public LocalizedString DisplayName;
         [Min(1f)] public float MaxHealth = 300f;
         [Tooltip("Damage multiplier per damage type; no entry = 1. Player damage never counts")]
         public Dictionary<DamageType, float> DamageScale = new();

@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 619a0cddf53e8824aac44829c0ce6d3c, type: 3}
   m_Name: ShotgunShells
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.AmmoType
-  _displayName: 12 Gauge
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 2028187660
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _icon: {fileID: 21300000, guid: d6ad0d3d913381c4bb9fc515848e43e7, type: 3}
   _prefab: {fileID: 8794154773426960891, guid: 4e919cc90bdd6014fa620b14c5b38797, type: 3}
   _maxStack: 40
@@ -21,3 +29,6 @@ MonoBehaviour:
   _autoCollect: 0
   _value: 5
   _rarity: 0
+  references:
+    version: 2
+    RefIds: []

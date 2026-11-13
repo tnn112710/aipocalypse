@@ -1,6 +1,7 @@
 using System;
 using MB13.Aipocalypse.Core.Events;
 using DG.Tweening;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MessagePipe;
 using TMPro;
 using UnityEngine;
@@ -35,7 +36,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_style == null)
                 return;
-            _text.text = (broken.IsGate ? _style.GateText : _style.FenceText) + Where(broken.Position);
+            _text.text = (broken.IsGate ? _style.GateText : _style.FenceText).Text() + Where(broken.Position);
             _text.color = _style.Color;
 
             _show?.Kill();
@@ -58,10 +59,10 @@ namespace MB13.Aipocalypse.Core.UI
             Vector3 to = Vector3.ProjectOnPlane(position - view.position, Vector3.up);
             Vector3 forward = Vector3.ProjectOnPlane(view.forward, Vector3.up);
             float angle = Vector3.SignedAngle(forward, to, Vector3.up);
-            return Mathf.Abs(angle) <= 45f ? _style.AheadSuffix
+            return (Mathf.Abs(angle) <= 45f ? _style.AheadSuffix
                 : Mathf.Abs(angle) >= 135f ? _style.BehindSuffix
                 : angle < 0f ? _style.LeftSuffix
-                : _style.RightSuffix;
+                : _style.RightSuffix).Text();
         }
     }
 }

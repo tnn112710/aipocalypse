@@ -46,7 +46,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 761d48d14e95b864bad460fcf704e7d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.LootContainer
-  _label: Crate
+  _label:
+    m_TableReference:
+      m_TableCollectionName: GUID:2a08767527ddaff4d9c1c41c86a721de
+    m_TableEntryReference:
+      m_KeyId: 2019799056
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _capacity: 8
   _contents:
   - Item: {fileID: 11400000, guid: bc8db5480d7fe64468451f59aaf52f75, type: 2}
@@ -62,6 +70,9 @@ MonoBehaviour:
   _hideWhenEmpty: 0
   _searchCollider: {fileID: 0}
   _markerHeight: 1
+  references:
+    version: 2
+    RefIds: []
 --- !u!114 &1258633867810963315
 MonoBehaviour:
   m_ObjectHideFlags: 0

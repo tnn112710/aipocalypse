@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 619a0cddf53e8824aac44829c0ce6d3c, type: 3}
   m_Name: RifleAmmo
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.AmmoType
-  _displayName: Rifle Ammo
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 2028187659
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _icon: {fileID: 21300000, guid: 8470476a7aab8eb42b3295e9d5f5a76b, type: 3}
   _prefab: {fileID: 8746943973218649754, guid: 144ec97504993c14cbaa1aea1d3146a6, type: 3}
   _maxStack: 120
@@ -21,3 +29,6 @@ MonoBehaviour:
   _autoCollect: 0
   _value: 3
   _rarity: 0
+  references:
+    version: 2
+    RefIds: []

@@ -3,7 +3,9 @@ using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using Ami.BroAudio;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.WeaponSystem
@@ -13,8 +15,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     [DisallowMultipleComponent]
     public sealed class AmmoCrate : MonoBehaviour, IInteractable
     {
-        const string TakeVerb = "Take";
-        const string AmmoTarget = "ammo";
+        static readonly LocalizedString TakeVerb = Loc.Interaction("verb.take");
+        static readonly LocalizedString AmmoTarget = Loc.Interaction("target.ammo");
 
         [SerializeField, Tooltip("Each type is refilled up to its starting amount here: the player's AmmoConfig")]
         AmmoConfig _ammo;
@@ -33,7 +35,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             prompt = default;
             if (!TryFindTypes(actor, out _))
                 return false;
-            prompt = new InteractionPrompt(TakeVerb, AmmoTarget);
+            prompt = new InteractionPrompt(TakeVerb.Text(), AmmoTarget.Text());
             return true;
         }
 

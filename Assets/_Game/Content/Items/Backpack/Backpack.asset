@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cc6a190a75a2ab4c9a5cbec74936a2c, type: 3}
   m_Name: Backpack
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EquipmentSystem.BackpackDefinition
-  _displayName: Backpack
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 2023993344
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _icon: {fileID: 21300000, guid: 1ee26eaf27848c945bd7f365c7751d08, type: 3}
   _prefab: {fileID: 4753500842306786040, guid: 4108e6a848747db42b580e5f7197de35, type: 3}
   _maxStack: 1
@@ -23,3 +31,6 @@ MonoBehaviour:
   _rarity: 1
   _extraSlots: 15
   _extraWeight: 15
+  references:
+    version: 2
+    RefIds: []

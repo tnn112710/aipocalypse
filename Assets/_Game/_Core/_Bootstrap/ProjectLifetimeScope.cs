@@ -4,6 +4,7 @@ using MB13.Aipocalypse.Core.Debugging;
 using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.GraphicsSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.MapSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
@@ -49,6 +50,7 @@ namespace MB13.Aipocalypse.Core.Bootstrap
                 Debug.Log($"Build: {stamp}");
             builder.RegisterInstance(stamp);
 
+            new LocalizationInstaller().Install(builder);
             new InputInstaller(_controls).Install(builder);
             new ConsoleInstaller(_consoleSettings, _consoleOverlay).Install(builder);
             new AudioInstaller().Install(builder);

@@ -1,0 +1,103 @@
+Key,Id,en,vi,fr,Context
+language.name,2881841508352,English,Tiếng Việt,Français,"This language's own name, shown in the language option"
+menu.language,2881887645696,LANGUAGE: {0},NGÔN NGỮ: {0},LANGUE : {0},"Menu button; {0} = the language's own name, upper case"
+menu.continue,2881887645697,CONTINUE,TIẾP TỤC,CONTINUER,Main menu button
+menu.prototype,2881887645698,PROTOTYPE,CHƠI THỬ,PROTOTYPE,Main menu button: start the prototype world
+menu.prototype_tag,2881887645699,PROTOTYPE,BẢN THỬ,PROTOTYPE,Badge under the game title
+menu.load_game,2881887645700,LOAD GAME,TẢI GAME,CHARGER,Menu button and slot list title
+menu.save_game,2881887645701,SAVE GAME,LƯU GAME,SAUVEGARDER,Pause menu button and slot list title
+menu.settings,2881887645702,SETTINGS,CÀI ĐẶT,OPTIONS,Menu button (not built yet)
+menu.quit,2881887645703,QUIT,THOÁT,QUITTER,Main menu button
+menu.quit_game,2881887645704,QUIT GAME,THOÁT GAME,QUITTER LE JEU,Pause menu button
+menu.resume,2881887645705,RESUME,CHƠI TIẾP,REPRENDRE,Pause menu button
+menu.main_menu,2881887645706,MAIN MENU,MENU CHÍNH,MENU PRINCIPAL,Pause menu button
+menu.save_quit,2881887645707,SAVE & QUIT,LƯU & THOÁT,SAUVER & QUITTER,Pause menu button
+menu.paused,2881887645708,PAUSED,TẠM DỪNG,PAUSE,Pause menu title
+menu.back,2881887645709,< BACK,< QUAY LẠI,< RETOUR,Slot list: back button
+menu.copy_path,2881887645710,Copy Save File Path,Chép đường dẫn file lưu,Copier le dossier des sauvegardes,Slot list button
+menu.delete,2881887645711,DELETE,XÓA,SUPPRIMER,Slot row button
+menu.cancel,2881887645712,CANCEL,HỦY,ANNULER,Dialog and sleep screen button
+menu.no_saves,2881887645713,No saves yet,Chưa có bản lưu,Aucune sauvegarde,Under Continue when nothing is saved
+menu.version,2881887645714,Prototype build {0},Bản thử nghiệm {0},Prototype {0},Main menu corner; {0} = version number
+menu.no_main_menu,2881887645715,No main menu scene in the Build Settings,Thiếu cảnh menu chính trong Build Settings,Pas de scène de menu principal dans les Build Settings,Developer error in the pause menu
+action.quit,2881887645716,Quit,Thoát,Quitter,Confirm button (shown upper case)
+action.main_menu,2881887645717,Main Menu,Menu chính,Menu principal,Confirm button (shown upper case)
+action.overwrite,2881887645718,Overwrite,Ghi đè,Écraser,Confirm button (shown upper case)
+action.load,2881887645719,Load,Tải,Charger,Confirm button (shown upper case)
+action.delete,2881887645720,Delete,Xóa,Supprimer,Confirm button (shown upper case)
+confirm.quit_short,2881887645721,Quit the game?,Thoát game?,Quitter le jeu ?,Main menu confirm
+confirm.quit,2881887645722,"Quit the game?
+Progress since your last save will be lost.","Thoát game?
+Tiến trình từ lần lưu cuối sẽ mất.","Quitter le jeu ?
+Ta progression depuis la dernière sauvegarde sera perdue.",Pause menu confirm
+confirm.main_menu,2881887645723,"Return to the main menu?
+Progress since your last save will be lost.","Về menu chính?
+Tiến trình từ lần lưu cuối sẽ mất.","Retourner au menu principal ?
+Ta progression depuis la dernière sauvegarde sera perdue.",Pause menu confirm
+confirm.overwrite,2881887645724,"Overwrite {0}?
+{1}","Ghi đè {0}?
+{1}","Écraser {0} ?
+{1}","{0} = slot name, {1} = its summary"
+confirm.load,2881891840000,"Load {0}?
+Progress since your last save will be lost.","Tải {0}?
+Tiến trình từ lần lưu cuối sẽ mất.","Charger {0} ?
+Ta progression depuis la dernière sauvegarde sera perdue.",{0} = slot name
+confirm.delete,2881891840001,"Delete {0}?
+This can't be undone.","Xóa {0}?
+Không thể hoàn tác.","Supprimer {0} ?
+C'est irréversible.",{0} = slot name
+pause.hint_slot,2881891840002,Playing in {0}  ·  {1},Đang chơi {0}  ·  {1},Partie : {0}  ·  {1},"{0} = slot name, {1} = play time"
+pause.hint_no_slot,2881891840003,Not saved to a slot yet  ·  {0},Chưa lưu vào ô nào  ·  {0},Pas encore sauvegardé  ·  {0},{0} = play time
+slots.empty,2881891840004,Empty,Trống,Vide,An empty save slot
+slots.deleted,2881891840005,{0} deleted,Đã xóa {0},{0} supprimée,{0} = slot name
+slots.copied,2881891840006,Copied: {0},Đã chép: {0},Copié : {0},{0} = folder path
+slots.backup,2881891840007,"  (backup)","  (dự phòng)","  (secours)",After a slot loaded from its backup copy; keep the leading spaces
+save.slot,2881891840008,Save {0},Bản lưu {0},Sauvegarde {0},Slot name; {0} = slot number
+save.editor_slot,2881891840009,Editor Save,Bản lưu Editor,Sauvegarde éditeur,The editor-only slot
+save.playtime_hours,2881891840010,{0}h {1:00}m,{0}g {1:00}p,{0} h {1:00},"Play time; {0} = hours, {1} = minutes"
+save.playtime_minutes,2881891840011,{0}m,{0}p,{0} min,Play time under an hour
+save.progress,2881891840012,Day {0}  {1}  ·  {2},Ngày {0}  {1}  ·  {2},Jour {0}  {1}  ·  {2},"{0} = day, {1} = time of day, {2} = play time"
+save.backup_tag,2881891840013," [backup]"," [dự phòng]"," [secours]",After a summary loaded from the backup copy; keep the leading space
+save.no_slot_range,2881891840014,No slot {0} (1-{1}),Không có ô {0} (1-{1}),Pas d'emplacement {0} (1-{1}),
+save.empty_slot,2881891840015,Empty slot,Ô trống,Emplacement vide,
+save.missing_file,2881891840016,Missing file,Thiếu file,Fichier manquant,
+save.damaged_no_header,2881891840017,Damaged save (no header),Bản lưu hỏng (thiếu header),Sauvegarde endommagée (sans en-tête),
+save.newer_version,2881891840018,Saved by a newer version,Lưu từ phiên bản mới hơn,Sauvegardé par une version plus récente,
+save.old_format,2881891840019,Old save format (v{0}),Định dạng lưu cũ (v{0}),Ancien format de sauvegarde (v{0}),{0} = format version
+save.damaged,2881891840020,Damaged save,Bản lưu hỏng,Sauvegarde endommagée,
+toast.saved,2881891840021,Game saved  ·  {0},Đã lưu game  ·  {0},Partie sauvegardée  ·  {0},{0} = slot name
+toast.autosaved,2881891840022,Autosaved  ·  {0},Tự động lưu  ·  {0},Sauvegarde auto  ·  {0},{0} = slot name
+session.not_in_game,2881891840023,Not in a game,Chưa vào game,Pas en partie,Why saving is off
+session.loading,2881891840024,Loading,Đang tải,Chargement,Why saving is off
+session.no_player,2881891840025,No player,Không có người chơi,Aucun joueur,Why saving is off
+session.down,2881891840026,Can't save while down,"Đang gục, không lưu được",Impossible de sauver à terre,Why saving is off
+session.raid,2881891840027,Can't save during a raid,"Đang đột kích, không lưu được",Pas de sauvegarde pendant l'attaque,Why saving is off
+session.already_loading,2881891840028,Already loading,Đang tải rồi,Chargement déjà en cours,
+session.cant_open_scene,2881891840029,Can't open scene {0},Không mở được cảnh {0},Impossible d'ouvrir la scène {0},{0} = scene name
+session.loading_save,2881891840030,Loading {0},Đang tải {0},Chargement de {0},{0} = slot name
+session.loading_backup,2881891840031,{0} was damaged: loading its backup,{0} bị hỏng: đang tải bản dự phòng,{0} endommagée : chargement de la copie de secours,{0} = slot name
+session.new_game,2881891840032,New game in {0},Game mới ở {0},Nouvelle partie dans {0},{0} = slot name
+session.loading_prototype,2881891840033,Loading the prototype,Đang tải bản thử nghiệm,Chargement du prototype,
+session.no_autosave_slot,2881891840034,"Not autosaved: no save slot yet (pause menu, Save Game)","Chưa tự lưu: chưa có ô lưu (menu tạm dừng, Lưu game)","Pas de sauvegarde auto : aucun emplacement (menu pause, Sauvegarder)",Morning toast
+session.no_slot_picked,2881891840035,No save slot picked,Chưa chọn ô lưu,Aucun emplacement choisi,
+session.no_slot,2881891840036,No slot {0},Không có ô {0},Pas d'emplacement {0},{0} = slot number
+session.saving_to,2881891840037,Saving to {0}...,Đang lưu vào {0}...,Sauvegarde dans {0}...,{0} = slot name
+session.save_failed,2881891840038,Save failed: {0},Lưu thất bại: {0},Échec de la sauvegarde : {0},{0} = the problem
+session.autosaved_to,2881891840039,Autosaved to {0},Đã tự lưu vào {0},Sauvegarde auto dans {0},{0} = slot name
+session.saved_to,2881891840040,Saved to {0},Đã lưu vào {0},Sauvegardé dans {0},{0} = slot name
+session.sections_failed,2881891840041," ({0} system(s) kept their last saved state: see the console)"," ({0} hệ thống giữ trạng thái lưu cũ: xem console)"," ({0} système(s) ont gardé leur dernier état : voir la console)",Appended to a save message; keep the leading space
+loading,2881891840042,Loading...,Đang tải...,Chargement...,Loading screen between scenes
+inventory.tokens,2881891840043,TOKENS,XU,JETONS,Inventory header next to the currency
+inventory.equipment,2881891840044,EQUIPMENT,TRANG BỊ,ÉQUIPEMENT,Inventory panel title
+inventory.sort,2881891840045,Sort,Xếp,Trier,Inventory button
+inventory.take_all,2881891840046,Take all,Lấy hết,Tout prendre,Loot panel button
+inventory.hint,2881891840047,Drag items into slots 3-9 to set up your hotbar,Kéo đồ vào ô 3-9 để xếp thanh dùng nhanh,Glisse des objets dans les cases 3 à 9 pour ta barre rapide,Under the quick slots
+inventory.backpack_title,2881891840048,Backpack ({0}/{1}),Ba lô ({0}/{1}),Sac à dos ({0}/{1}),"{0} = used slots, {1} = slots"
+inventory.weight,2881891840049,Weight {0:1} / {1:1} kg,Nặng {0:1} / {1:1} kg,Poids {0:1} / {1:1} kg,"{0:1} = carried, {1:1} = max, one decimal (TextMeshPro format)"
+inventory.no_room,2881891840050,No room,Hết chỗ,Pas de place,Refusal
+inventory.nowhere,2881891840051,Nowhere to put it on,Không có ô trang bị,Impossible de l'équiper,Refusal: no gear slot takes it
+inventory.backpack_full,2881891840052,Backpack full,Ba lô đầy,Sac plein,Refusal and pickup warning
+inventory.still_searching,2881891840053,Still searching,Đang lục soát...,Fouille en cours,Refusal: the slot isn't revealed yet
+inventory.backpack_not_empty,2881891840054,Empty the backpack's extra slots first,Dọn trống các ô thêm của ba lô trước,Vide d'abord les cases en plus du sac,Refusal: taking off a full backpack
+tooltip.uses,2881891840055,Uses {0}/{1},Lượt dùng {0}/{1},Utilisations {0}/{1},"{0} = uses left, {1} = max"
+tooltip.value,2881891840056,Value {0:N0},Giá trị {0:N0},Valeur {0:N0},{0} = value in Tokens

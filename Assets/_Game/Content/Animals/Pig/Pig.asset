@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cdb207066351da4aa2800444e1c6d78, type: 3}
   m_Name: Pig
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.AnimalDefinition
-  DisplayName: Pig
+  DisplayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:a787c9192f382f94ab219163507f97ef
+    m_TableEntryReference:
+      m_KeyId: 2577641473
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   WalkSpeed: 0.75
   HurrySpeed: 1.25
   FleeSpeed: 2.6
@@ -50,3 +58,6 @@ MonoBehaviour:
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
   MarkerDropAsleep: 0.4
+  references:
+    version: 2
+    RefIds: []

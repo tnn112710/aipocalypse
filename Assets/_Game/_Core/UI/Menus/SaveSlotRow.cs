@@ -1,6 +1,8 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -9,6 +11,7 @@ namespace MB13.Aipocalypse.Core.UI
     public sealed class SaveSlotRow : MonoBehaviour
     {
         const string EmptyDate = "----/--/-- --:--";
+        static readonly LocalizedString Backup = Loc.UI("slots.backup");
 
         [SerializeField] Button _button;
         [SerializeField] TMP_Text _title;
@@ -40,6 +43,6 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         static string SaveSlotProgress(SaveSlotInfo info) =>
-            info.FromBackup ? SaveFormat.Progress(info.Header) + "  (backup)" : SaveFormat.Progress(info.Header);
+            info.FromBackup ? SaveFormat.Progress(info.Header) + Backup.Text() : SaveFormat.Progress(info.Header);
     }
 }

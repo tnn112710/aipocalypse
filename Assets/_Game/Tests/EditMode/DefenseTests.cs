@@ -1,6 +1,7 @@
 using MB13.Aipocalypse.Core.DefenseSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using Ami.BroAudio;
 using NUnit.Framework;
@@ -141,7 +142,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void RepairAllTarget_NamesTheCount_WithoutNewStringsEachTime()
         {
-            Assert.That(BarrierRegistry.RepairAllTarget(5), Is.EqualTo("Fences (5)"));
+            Assert.That(BarrierRegistry.RepairAllTarget(5), Is.EqualTo(Loc.Interaction("target.fences").Format(5)));
             Assert.That(BarrierRegistry.RepairAllTarget(5), Is.SameAs(BarrierRegistry.RepairAllTarget(5)));
         }
 

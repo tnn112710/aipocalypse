@@ -2,8 +2,10 @@ using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.EnvironmentSystem;
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Opsive.BehaviorDesigner.Runtime;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
@@ -15,11 +17,11 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
     [DisallowMultipleComponent]
     public sealed class Animal : MonoBehaviour, IInteractable, ICollectInteractable
     {
-        const string SendHomeVerb = "Send Home";
-        const string LetOutVerb = "Let Out";
-        const string HurryVerb = "Hurry";
-        const string CollectVerb = "Collect";
-        const string CollectTarget = "Tokens";
+        static readonly LocalizedString SendHomeVerb = Loc.Interaction("verb.send_home");
+        static readonly LocalizedString LetOutVerb = Loc.Interaction("verb.let_out");
+        static readonly LocalizedString HurryVerb = Loc.Interaction("verb.hurry");
+        static readonly LocalizedString CollectVerb = Loc.Interaction("verb.collect");
+        static readonly LocalizedString CollectTarget = Loc.Items("item.tokens");
         const float SpeedDamping = 0.15f;
         const float MarkerSpin = 120f;
         const float MarkerDropSpeed = 1.5f;
@@ -343,11 +345,11 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             if (!_active || !Herd.Enabled)
                 return false;
             if (CanSpeedUp)
-                prompt = new InteractionPrompt(HurryVerb, _definition.DisplayName);
+                prompt = new InteractionPrompt(HurryVerb.Text(), _definition.DisplayName.Text());
             else if (CanLetOut)
-                prompt = new InteractionPrompt(LetOutVerb, _definition.DisplayName);
+                prompt = new InteractionPrompt(LetOutVerb.Text(), _definition.DisplayName.Text());
             else if (CanSendHome)
-                prompt = new InteractionPrompt(SendHomeVerb, _definition.DisplayName);
+                prompt = new InteractionPrompt(SendHomeVerb.Text(), _definition.DisplayName.Text());
             else
                 return false;
             return true;
@@ -370,7 +372,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             prompt = default;
             if (!_active || !Herd.Enabled || !HasTokens)
                 return false;
-            prompt = new InteractionPrompt(CollectVerb, CollectTarget);
+            prompt = new InteractionPrompt(CollectVerb.Text(), CollectTarget.Text());
             return true;
         }
 

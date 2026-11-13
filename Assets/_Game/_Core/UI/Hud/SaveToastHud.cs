@@ -1,8 +1,10 @@
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MessagePipe;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -10,6 +12,9 @@ namespace MB13.Aipocalypse.Core.UI
     // "Game saved" in a corner for a moment after any save (the morning autosave too), or why it failed; fades in real time.
     public sealed class SaveToastHud : MonoBehaviour
     {
+        static readonly LocalizedString Saved = Loc.UI("toast.saved");
+        static readonly LocalizedString Autosaved = Loc.UI("toast.autosaved");
+
         [SerializeField] TMP_Text _text;
         [SerializeField, Min(0.1f)] float _holdSeconds = 2f;
         [SerializeField, Min(0.05f)] float _fadeSeconds = 0.6f;
@@ -43,7 +48,7 @@ namespace MB13.Aipocalypse.Core.UI
         void OnSaved(GameSaved saved)
         {
             string name = SaveFormat.SlotName(saved.Slot);
-            _text.text = !saved.Ok ? saved.Message : saved.Autosave ? $"Autosaved  ·  {name}" : $"Game saved  ·  {name}";
+            _text.text = !saved.Ok ? saved.Message : (saved.Autosave ? Autosaved : Saved).Format(name);
             _text.alpha = 1f;
             _text.enabled = true;
             _shownAt = Time.unscaledTime;

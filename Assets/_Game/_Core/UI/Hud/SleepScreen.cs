@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SleepSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
@@ -5,6 +6,7 @@ using MB13.Aipocalypse.Input;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 using VContainer;
 
@@ -16,6 +18,11 @@ namespace MB13.Aipocalypse.Core.UI
     [RequireComponent(typeof(Canvas))]
     public sealed class SleepScreen : MonoBehaviour
     {
+        static readonly LocalizedString DetailOne = Loc.Hud("sleep.detail_one");
+        static readonly LocalizedString DetailMany = Loc.Hud("sleep.detail_many");
+        static readonly LocalizedString Limit = Loc.Hud("sleep.limit");
+        static readonly LocalizedString AsleepDay = Loc.Hud("sleep.day");
+
         [SerializeField, Tooltip("EventSystem + InputSystemUIInputModule: active only while choosing")] GameObject _eventSystem;
         [SerializeField, Tooltip("The wake-up clock")] GameObject _chooser;
         [SerializeField, Tooltip("The chosen wake-up time, HH:MM")] TMP_Text _wakeTime;
@@ -137,8 +144,8 @@ namespace MB13.Aipocalypse.Core.UI
             _shownWake = wake.TotalHours;
             _wakeTime.text = $"{wake.WholeHour:00}:{wake.Minute:00}";
             int hours = _service.HoursAsleep;
-            _detail.text = hours == 1 ? $"DAY {wake.Day}  -  1 HOUR OF SLEEP" : $"DAY {wake.Day}  -  {hours} HOURS OF SLEEP";
-            _limit.text = $"FROM {window.Earliest.WholeHour:00}:00 TO {window.Latest.WholeHour:00}:00";
+            _detail.text = (hours == 1 ? DetailOne : DetailMany).Format(wake.Day, hours);
+            _limit.text = Limit.Format(window.Earliest.WholeHour.ToString("00"), window.Latest.WholeHour.ToString("00"));
         }
 
         void ShowAsleepClock(WorldTime now)
@@ -148,7 +155,7 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
             _shownMinute = minute;
             _asleepTime.text = $"{now.WholeHour:00}:{now.Minute:00}";
-            _asleepDay.text = $"DAY {now.Day}";
+            _asleepDay.text = AsleepDay.Format(now.Day);
         }
 
         void SetDarkness(float darkness)

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
@@ -12,10 +14,10 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     [DisallowMultipleComponent]
     public sealed class LootContainer : MonoBehaviour, IInteractable
     {
-        const string SearchVerb = "Search";
-        const string OpenVerb = "Open";
+        static readonly LocalizedString SearchVerb = Loc.Interaction("verb.search");
+        static readonly LocalizedString OpenVerb = Loc.Interaction("verb.open");
 
-        [SerializeField, Tooltip("Name in the prompt and the loot panel")] string _label = "Crate";
+        [SerializeField, Tooltip("Name in the prompt and the loot panel (Interaction or Creatures table)")] LocalizedString _label;
         [SerializeField, Min(1)] int _capacity = 8;
         [SerializeField, Tooltip("What a scene-placed container holds at start")] List<ItemStack> _contents = new();
         [SerializeField, Tooltip("Offered only while it holds something (a body): no prompt once empty")] bool _hideWhenEmpty;
@@ -37,7 +39,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public event Action<LootContainer> RevealChanged;
 
         public ItemContainer Items => _items ??= Build();
-        public string Label => _label;
+        public string Label => _label.Text();
         // Everything inside has been revealed: opening it again needs no wait.
         public bool Searched => _hiddenCount == 0;
         public int HiddenCount => _hiddenCount;
@@ -94,7 +96,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             RevealChanged?.Invoke(this);
         }
 
-        public void SetLabel(string label) => _label = label;
+        public void SetLabel(LocalizedString label) => _label = label;
 
         // The slots still hidden (saving).
         public List<int> HiddenSlots()
@@ -153,7 +155,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             prompt = default;
             if (!Searchable || !actor.TryGetComponent(out ILooter _))
                 return false;
-            prompt = new InteractionPrompt(Searched ? OpenVerb : SearchVerb, _label);
+            prompt = new InteractionPrompt((Searched ? OpenVerb : SearchVerb).Text(), _label.Text());
             return true;
         }
 

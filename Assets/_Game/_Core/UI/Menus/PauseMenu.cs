@@ -1,4 +1,5 @@
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
@@ -7,6 +8,7 @@ using MessagePipe;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 using VContainer;
 
@@ -18,6 +20,14 @@ namespace MB13.Aipocalypse.Core.UI
     [RequireComponent(typeof(Canvas))]
     public sealed class PauseMenu : MonoBehaviour
     {
+        static readonly LocalizedString ConfirmMainMenu = Loc.UI("confirm.main_menu");
+        static readonly LocalizedString MainMenuAction = Loc.UI("action.main_menu");
+        static readonly LocalizedString ConfirmQuit = Loc.UI("confirm.quit");
+        static readonly LocalizedString QuitAction = Loc.UI("action.quit");
+        static readonly LocalizedString HintSlot = Loc.UI("pause.hint_slot");
+        static readonly LocalizedString HintNoSlot = Loc.UI("pause.hint_no_slot");
+        static readonly LocalizedString NoMainMenu = Loc.UI("menu.no_main_menu");
+
         [SerializeField, Tooltip("EventSystem + InputSystemUIInputModule: active only while open")] GameObject _eventSystem;
         [SerializeField, Tooltip("The buttons page")] GameObject _page;
         [SerializeField] Button _resume;
@@ -38,6 +48,7 @@ namespace MB13.Aipocalypse.Core.UI
         PlayerRegistry _players;
         Canvas _canvas;
         System.IDisposable _savedSubscription;
+        System.IDisposable _languageSubscription;
         bool _open;
         int _openedFrame;
 
@@ -45,7 +56,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         [Inject]
         void Construct(InputService input, TimeService time, GameSession session, SaveService saves, PlayerRegistry players,
-            ISubscriber<GameSaved> saved)
+            ISubscriber<GameSaved> saved, ISubscriber<LanguageChanged> languageChanged)
         {
             _players = players;
             _input = input;
@@ -53,6 +64,7 @@ namespace MB13.Aipocalypse.Core.UI
             _session = session;
             _slots.Bind(session, saves);
             _savedSubscription = saved.Subscribe(_slots.ShowSaved);
+            _languageSubscription = languageChanged.Subscribe(_ => RefreshHint());
             if (_eventSystem != null && _eventSystem.TryGetComponent(out InputSystemUIInputModule module))
                 _input.ConfigureUiModule(module);
         }
@@ -65,10 +77,10 @@ namespace MB13.Aipocalypse.Core.UI
             _load.onClick.AddListener(() => OpenSlots(SlotsMode.Load));
             _settings.interactable = false;
             _mainMenu.onClick.AddListener(() =>
-                _confirm.Ask("Return to the main menu?\nProgress since your last save will be lost.", "Main Menu", ToMainMenu));
+                _confirm.Ask(ConfirmMainMenu.Text(), MainMenuAction.Text(), ToMainMenu));
             _saveQuit.onClick.AddListener(SaveAndQuit);
             _quit.onClick.AddListener(() =>
-                _confirm.Ask("Quit the game?\nProgress since your last save will be lost.", "Quit", () => _session.Quit()));
+                _confirm.Ask(ConfirmQuit.Text(), QuitAction.Text(), () => _session.Quit()));
             _slots.Closed += ShowPage;
             SetVisible(false);
         }
@@ -77,6 +89,7 @@ namespace MB13.Aipocalypse.Core.UI
         void OnDestroy()
         {
             _savedSubscription?.Dispose();
+            _languageSubscription?.Dispose();
             if (_open)
                 Release();
             _open = false;
@@ -144,14 +157,21 @@ namespace MB13.Aipocalypse.Core.UI
             if (!_open)
                 return;
             _page.SetActive(true);
+            RefreshHint();
+            MenuButton.SelectSilently(_resume);
+        }
+
+        void RefreshHint()
+        {
+            if (!_open)
+                return;
             bool canSave = _session.CanSave(out string reason);
             _save.interactable = canSave;
             _saveQuit.interactable = canSave && _session.Slot > 0;
             if (_hint != null)
                 _hint.text = !canSave ? reason
-                    : _session.Slot > 0 ? $"Playing in {SaveFormat.SlotName(_session.Slot)}  ·  {SaveFormat.PlayTime(_session.PlayTime)}"
-                    : $"Not saved to a slot yet  ·  {SaveFormat.PlayTime(_session.PlayTime)}";
-            MenuButton.SelectSilently(_resume);
+                    : _session.Slot > 0 ? HintSlot.Format(SaveFormat.SlotName(_session.Slot), SaveFormat.PlayTime(_session.PlayTime))
+                    : HintNoSlot.Format(SaveFormat.PlayTime(_session.PlayTime));
         }
 
         void OpenSlots(SlotsMode mode)
@@ -169,7 +189,7 @@ namespace MB13.Aipocalypse.Core.UI
         void ToMainMenu()
         {
             if (!_session.ReturnToMainMenu() && _hint != null)
-                _hint.text = "No main menu scene in the Build Settings";
+                _hint.text = NoMainMenu.Text();
         }
 
         void SetVisible(bool visible)

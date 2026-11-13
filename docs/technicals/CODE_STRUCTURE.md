@@ -6,10 +6,10 @@ Map of the scripts that exist today: where each one lives, what it owns, and how
 
 | Assembly | Folder | References |
 | --- | --- | --- |
-| `MB13.Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime, sc.stylizedgrass.runtime, CodeStage.AFPSCounter.Runtime, EasySave3 (Easy Save 3 with its assembly definitions enabled); precompiled plugin DLLs auto-referenced |
-| `MB13.Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `MB13.Aipocalypse.Core`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
+| `MB13.Aipocalypse.Core` | `Assets/_Game/_Core/` | VContainer, MessagePipe (+ .VContainer), UniTask, Unity.InputSystem, Unity.Cinemachine, UnityEngine.UI, Unity.TextMeshPro, AstarPathfindingProject, PackageTools, Drawing, Unity.Animation.Rigging, DOTween.Modules, MoreMountains.Tools, BroAudio, DamageNumbersPro, Unity.RenderPipelines.Core.Runtime, Unity.RenderPipelines.Universal.Runtime, sc.stylizedgrass.runtime, CodeStage.AFPSCounter.Runtime, EasySave3 (Easy Save 3 with its assembly definitions enabled), Unity.Localization, Unity.ResourceManager; precompiled plugin DLLs auto-referenced |
+| `MB13.Aipocalypse.Tests.EditMode` | `Assets/_Game/Tests/EditMode/` | `MB13.Aipocalypse.Core`, `MB13.Aipocalypse.Editor`, VContainer, MessagePipe (+ .VContainer), UniTask, BroAudio, Unity.Localization (+ .Editor), Unity.ResourceManager, Unity.TextMeshPro, UnityEngine.TestRunner, UnityEditor.TestRunner; precompiled (overrideReferences) `nunit.framework.dll`, `DOTween.dll`. Editor only |
 | `MB13.Aipocalypse.Tests.PlayMode` | `Assets/_Game/Tests/PlayMode/` | `MB13.Aipocalypse.Core`, VContainer, test runner, NUnit |
-| `MB13.Aipocalypse.Editor` | `Assets/_Game/_Editor/` | none (Odin attributes auto-referenced). Editor only: tools that aren't game code (player builds) |
+| `MB13.Aipocalypse.Editor` | `Assets/_Game/_Editor/` | `MB13.Aipocalypse.Core`, Unity.Localization (+ .Editor), Unity.Addressables (+ .Editor), Unity.ResourceManager, Unity.TextMeshPro (Odin attributes auto-referenced). Editor only: tools that aren't game code (player builds) |
 
 Namespaces follow the folder: `MB13.Aipocalypse.Core.<Folder>` (e.g. `MB13.Aipocalypse.Core.PlayerSystem`, `MB13.Aipocalypse.Core.Combat`). One exception: input uses **`MB13.Aipocalypse.Input`**, because a namespace ending in `InputSystem` shadows `UnityEngine.InputSystem.InputSystem`.
 
@@ -49,6 +49,7 @@ Assets/_Game/
 │  │  ├─ Events/WorldTimeEvents.cs          HourChanged, DayPhaseChanged, DayStarted, TimeJumped, TimeSkipEnded (published by WorldClock)
 │  │  ├─ Events/RaidEvents.cs               RaidStarted (night), RaidWaveStarted (night, wave from 0, count), RaidEnded (night, RaidEndReason: Cleared, Dawn, Defeat, Stopped) (published by RaidDirector)
 │  │  ├─ Events/DefenseEvents.cs            BarrierBroken, BarrierRestored (position, IsGate): a fence segment or gate fell / stands again (published by BarrierSegment)
+│  │  ├─ Events/LocalizationEvents.cs     LanguageChanged (empty: read LanguageService.Current) when the player picks another language (published by LanguageService) → LanguageButton, PauseMenu, MainMenuScreen
 │  │  ├─ Events/SaveEvents.cs             GameSaved (Slot, Autosave, Ok, Message) when a save's write finishes (published by GameSession) → SaveToastHud, PauseMenu (→ SaveSlotsPanel)
 │  │  ├─ Events/WeatherEvents.cs            WeatherChanged (empty: read WeatherService), published by WeatherService when the sky weather or wind level changes
 │  │  ├─ Feedback/FeedbackContext.cs        MB13.Aipocalypse.Core.Feedback — injected bridge on hosts of MMF_Players so custom Feel feedbacks reach our services
@@ -126,6 +127,11 @@ Assets/_Game/
 │  ├─ AudioSystem/                          MB13.Aipocalypse.Core.AudioSystem
 │  │  ├─ AudioService.cs                    root service: Play(SoundID, volume) 2D, PlayAt(SoundID, position) 3D, Start / SetVolume / Pause / UnPause / Stop for a kept 2D sound (loops), over BroAudio (unset ids are silent)
 │  │  └─ AudioInstaller.cs                  registers AudioService
+│  ├─ LocalizationSystem/                    MB13.Aipocalypse.Core.LocalizationSystem — LOCALIZATION.md
+│  │  ├─ Loc.cs                             table names, code keys (Loc.UI / Hud / Items / Interaction / Creatures("key")), Text() (each string cached per language, same instance until a switch), Format, Current
+│  │  ├─ LanguageService.cs                 root entry point: waits for Localization's synchronous init, Languages, Current, Select(locale / code) (kept in PlayerPrefs "selected-locale"), Step(±1), NameOf (a language's own name); publishes LanguageChanged
+│  │  ├─ LanguageCommands.cs                console: lang.list, lang.set <code>, lang.next
+│  │  └─ LocalizationInstaller.cs           registers LanguageService (+ LanguageCommands in dev builds)
 │  ├─ DefenseSystem/                         MB13.Aipocalypse.Core.DefenseSystem — fences and gates, DEFENSE.md
 │  │  ├─ DefenseInstaller.cs                SceneInstaller: BarrierRegistry, DefenseSaveSection, RepairHighlight (when it has a RepairHighlightStyle) (+ DefenseCommands in dev builds); injects the scene's BarrierSegments (collected on save / Play)
 │  │  ├─ DefenseSaveSection.cs            SaveSection "defense": each segment / gate by its SaveId: health, broken, gate open (upgrade tiers not saved)
@@ -459,6 +465,7 @@ Assets/_Game/
 │  │  ├─ Widgets/BreachAlertStyle.cs        ScriptableObject: the breach line's words (fence / gate, ahead / behind / left / right), colour, timing
 │  │  ├─ Widgets/MenuStyle.cs             SO: menu fonts (buttons, titles, small text), tape strip + corner scale, shade sprite, colours (backdrop, button states, accent for the current slot, tape, panel, danger), hover / click / back SoundIDs; Colors(normal), TextColors() → ColorBlock; asset Data/UI/MenuStyle
 │  │  ├─ Menus/ConfirmDialog.cs           yes / no question over a dimmed screen (Ask(message, yes, onYes), Close); No is selected first, closing gives the focus back to the asker
+│  │  ├─ Menus/LanguageButton.cs          a menu button (main and pause menus): each press switches to the next language; label "LANGUAGE: <its own name>", refreshed on LanguageChanged
 │  │  ├─ Menus/MenuButton.cs              on every menu button: mouse over → selected, focus → hover tick, click → click sound (MenuSounds above), labels dimmed while not interactable; SelectSilently
 │  │  ├─ Menus/MenuSounds.cs              on a menu's root: MenuStyle's hover / click / back sounds through AudioService
 │  │  ├─ Menus/MenuSelectionKeeper.cs     next to a menu's EventSystem: gives the focus back to the last button when it's cleared (gamepad)
@@ -606,6 +613,9 @@ Assets/_Game/
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
 │        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ _Editor/                                asmdef MB13.Aipocalypse.Editor (editor only), namespace MB13.Aipocalypse.Editor.<Folder>
+│  ├─ Localization/                         LOCALIZATION.md
+│  │  ├─ LocalizationCsv.cs                 the CSVs in Data/Localization/Csv → their string tables (add, rename by Id, update, remove; Ids written back), auto on import (AssetPostprocessor) + Aipocalypse/Localization/Import All CSVs; Compare (for tests), Parse / Write (RFC 4180)
+│  │  └─ LocalizationKit.cs                 Ref / Set / Clear (references by table GUID + Id), English(table, key), BindLabel (LocalizeStringEvent, RuntimeOnly, → TMP set_text), Labels (every fixed label in HUD.prefab and MainMenu.unity) + ApplyLabels()
 │  ├─ EnvironmentSystem/
 │  │  └─ WeatherRulesEditor.cs              WeatherRules inspector: how often (per period, shares + stripes), how long (duration columns, average), wind grids; a seeded Test running WeatherPlanner over N days (time shares per period, rain, windy, not-allowed time)
 │  ├─ RandomSystem/                         inspectors for RandomSystem tables
@@ -614,12 +624,13 @@ Assets/_Game/
 │  │  └─ SpawnTableEditor.cs                SpawnTable inspector: WeightStripe of the entries above the default inspector
 │  └─ Build/                                player builds, see BUILD.md
 │     ├─ BuildConfig.cs                     SO, one kind of build: Target, Development, Profiler, Cheat, Pipeline, DeleteDoNotShipFolders (on), Zip; IsDevelopment / HasCheat; Odin build name preview + Build button
-│     ├─ AutoBuild.cs                       GetBuildName (<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]), PlayerDefinesFor / ExtraDefinesFor, BuildLater (Play mode / unsaved scenes / distribution + Pipeline checks, then BuildAll and open the folder), Build (into _builds/, ENABLE_CHEAT as an extra define, Pipeline toggle set in Player Settings for the build, do-not-ship folders deleted, build_info.txt, zip) → BuildOutcome, BuildFromCommandLine (-buildConfig a,b), Autobuild/Open Builds Folder
+│     ├─ AutoBuild.cs                       GetBuildName (<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]), PlayerDefinesFor / ExtraDefinesFor, BuildLater (Play mode / unsaved scenes / distribution + Pipeline checks, then BuildAll and open the folder), Build (Addressables content first (stops if it fails), then into _builds/, ENABLE_CHEAT as an extra define, Pipeline toggle set in Player Settings for the build, do-not-ship folders deleted, build_info.txt, zip) → BuildOutcome, BuildFromCommandLine (-buildConfig a,b), Autobuild/Open Builds Folder
 │     ├─ AutoBuildHistory.cs                last build of each config on this machine (Library/AutoBuild/History.json)
 │     └─ AutoBuildWindow.cs                 Autobuild/Build Window: every BuildConfig with its build name and last build (time, duration, size); tick several + Build Selected, or Edit / Open / Run / Build one; New Config
 ├─ Tests/PlayMode/ControllerHitRelay.cs    [ExecuteAlways] forwards OnControllerColliderHit to a PlayerMotor in PlayerMotorTests (here because an editor-only assembly's component can't be added)
 ├─ Tests/PlayMode/WorldMapSmokeTests.cs   asmdef MB13.Aipocalypse.Tests.PlayMode: loads WorldMap.unity, checks injection and the enemy system, picks up a gun, fires and reloads; jumps the clock to the raid's start hour and checks raiders spawned; any logged error fails it
 └─ Tests/EditMode/                          asmdef MB13.Aipocalypse.Tests.EditMode
+   ├─ LocalizationTests.cs                  CSVs match their tables, every key in en / vi / fr, code keys and asset / prefab references resolve, items and loot containers have text, HUD labels bound, Language button in the pause menu, static fonts hold every character, a rarity name each, Text() cache and switch
    ├─ CombatTests.cs                        DamageService: applies, publishes with source / result, kill, ignores dead / null / zero
    ├─ EnemyAnimationTests.cs                LocomotionAnimation (look / lean into turns, glances, one fidget per stop) + every animated enemy prefab wired to the parameter contract
    ├─ BallisticsTests.cs                    Ballistics (the flat throw and the lob land on the target; out of reach fails; steeper lobs fly longer), RangedAim.Aim (full lead with no spread, error inside the Spread cone)
@@ -684,7 +695,7 @@ Assets/_Game/
 ## Who depends on whom
 
 ```text
-ProjectLifetimeScope (root) ──registers──> InputService, ControlSettings, MessagePipe brokers, AudioService, DamageService, TimeService,
+ProjectLifetimeScope (root) ──registers──> LanguageService, InputService, ControlSettings, MessagePipe brokers, AudioService, DamageService, TimeService,
                                            GraphicsService, QuickTimeService, RandomService, SaveService, SaveRegistry, SceneLoader, GameSession, the root SaveSections, PlayerRegistry, PlayerRespawnFlow, EffectPool, BulletSystem,
                                            GunJamFactory, ScreenLog (+ in dev builds: PlayerCheats, CommandRegistry, ConsoleSettings, LogBuffer,
                                            ConsoleService, the ConsoleView overlay, and BuiltIn / Player / PlayerCheat / Time / Graphics ConsoleCommands);

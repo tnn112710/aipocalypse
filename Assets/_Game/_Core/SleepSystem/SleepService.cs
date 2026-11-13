@@ -1,10 +1,12 @@
 using System;
 using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.RaidSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using MB13.Aipocalypse.Input;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 using VContainer.Unity;
 
@@ -30,6 +32,8 @@ namespace MB13.Aipocalypse.Core.SleepSystem
     // Shift / Confirm / Cancel. Scaled time: a pause freezes it.
     public sealed class SleepService : ITickable, IDisposable
     {
+        static readonly LocalizedString TooLate = Loc.Hud("sleep.too_late");
+
         readonly SleepSettings _settings;
         readonly WorldClock _clock;
         readonly InputService _input;
@@ -92,7 +96,7 @@ namespace MB13.Aipocalypse.Core.SleepSystem
             SleepWindow window = CurrentWindow();
             if (!window.CanSleep)
             {
-                Refusal = window.Reason;
+                Refusal = window.Reason.Text();
                 RefusalCount++;
                 return false;
             }
@@ -128,7 +132,7 @@ namespace MB13.Aipocalypse.Core.SleepSystem
             SleepWindow window = CurrentWindow();
             if (!window.CanSleep || Wake.TotalHours < window.Earliest.TotalHours - 0.001)
             {
-                Refusal = window.CanSleep ? "Too late for that hour" : window.Reason;
+                Refusal = (window.CanSleep ? TooLate : window.Reason).Text();
                 RefusalCount++;
                 End();
                 return;

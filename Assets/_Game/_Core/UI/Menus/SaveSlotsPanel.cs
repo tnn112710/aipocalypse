@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -18,6 +20,18 @@ namespace MB13.Aipocalypse.Core.UI
     // path. Used by the pause menu and the main menu, which hand it the session (Bind) and close it on Esc (Cancel).
     public sealed class SaveSlotsPanel : MonoBehaviour
     {
+        static readonly LocalizedString SaveTitle = Loc.UI("menu.save_game");
+        static readonly LocalizedString LoadTitle = Loc.UI("menu.load_game");
+        static readonly LocalizedString Empty = Loc.UI("slots.empty");
+        static readonly LocalizedString ConfirmOverwrite = Loc.UI("confirm.overwrite");
+        static readonly LocalizedString OverwriteAction = Loc.UI("action.overwrite");
+        static readonly LocalizedString ConfirmLoad = Loc.UI("confirm.load");
+        static readonly LocalizedString LoadAction = Loc.UI("action.load");
+        static readonly LocalizedString ConfirmDelete = Loc.UI("confirm.delete");
+        static readonly LocalizedString DeleteAction = Loc.UI("action.delete");
+        static readonly LocalizedString Deleted = Loc.UI("slots.deleted");
+        static readonly LocalizedString Copied = Loc.UI("slots.copied");
+
         [SerializeField] MenuStyle _style;
         [SerializeField] TMP_Text _title;
         [SerializeField] Button _back;
@@ -46,7 +60,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             Hook();
             _mode = mode;
-            _title.text = mode == SlotsMode.Save ? "SAVE GAME" : "LOAD GAME";
+            _title.text = (mode == SlotsMode.Save ? SaveTitle : LoadTitle).Text();
             gameObject.SetActive(true);
             _confirm.Close();
             SetStatus(null);
@@ -93,7 +107,7 @@ namespace MB13.Aipocalypse.Core.UI
                 SaveSlotInfo info = _saves.Info(slot);
                 bool clickable = _mode == SlotsMode.Save ? canSave : info.Header != null;
                 bool current = _session.InWorld && _session.Slot == slot;
-                _rows[index++].Show(info, "Empty", current, clickable, _style);
+                _rows[index++].Show(info, Empty.Text(), current, clickable, _style);
             }
         }
 
@@ -128,10 +142,10 @@ namespace MB13.Aipocalypse.Core.UI
                 if (info.IsEmpty || slot == _session.Slot)
                     Save(slot);
                 else
-                    _confirm.Ask($"Overwrite {name}?\n{SaveFormat.Summary(info)}", "Overwrite", () => Save(slot));
+                    _confirm.Ask(ConfirmOverwrite.Format(name, SaveFormat.Summary(info)), OverwriteAction.Text(), () => Save(slot));
             }
             else if (_session.InWorld)
-                _confirm.Ask($"Load {name}?\nProgress since your last save will be lost.", "Load", () => Load(slot));
+                _confirm.Ask(ConfirmLoad.Format(name), LoadAction.Text(), () => Load(slot));
             else
                 Load(slot);
         }
@@ -150,17 +164,17 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         void OnDelete(int slot) =>
-            _confirm.Ask($"Delete {SaveFormat.SlotName(slot)}?\nThis can't be undone.", "Delete", () =>
+            _confirm.Ask(ConfirmDelete.Format(SaveFormat.SlotName(slot)), DeleteAction.Text(), () =>
             {
                 _session.Delete(slot);
                 Refresh();
-                SetStatus($"{SaveFormat.SlotName(slot)} deleted");
+                SetStatus(Deleted.Format(SaveFormat.SlotName(slot)));
             });
 
         void CopyPath()
         {
             GUIUtility.systemCopyBuffer = _saves.FolderPath;
-            SetStatus($"Copied: {_saves.FolderPath}");
+            SetStatus(Copied.Format(_saves.FolderPath));
         }
 
         void SetStatus(string message)

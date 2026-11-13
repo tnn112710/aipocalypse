@@ -107,8 +107,8 @@ public static class AnimalPlayCheck
             await Seconds(0.5f);
             ate |= herd.Animals.Any(a => a.Eating);
             foreach (Animal a in herd.Animals.Where(a => a.Fidget > 0))
-                fidgeted.Add(a.Definition.DisplayName);
-            darted |= herd.Animals.Any(a => a.Darting && a.Definition.DisplayName == "Chicken");
+                fidgeted.Add(a.Definition.name);
+            darted |= herd.Animals.Any(a => a.Darting && a.Definition.name == "Chicken");
         }
         foreach (var kind in herd.Animals.GroupBy(a => a.Definition))
             Check($"{kind.Key.DisplayName}s walk about the pen", kind.Max(a => Vector3.Distance(before[a], a.transform.position)) > 0.8f,
@@ -125,7 +125,7 @@ public static class AnimalPlayCheck
         await Seconds(0.3f);
         Check("coin markers show", herd.Animals.All(a => a.transform.Find("CoinMarker").gameObject.activeSelf));
         int tokensBefore = player.Equipment.Inventory.CountOf(settings.Tokens);
-        Animal nearest = herd.Animals.First(a => a.Definition.DisplayName == "Pig");
+        Animal nearest = herd.Animals.First(a => a.Definition.name == "Pig");
         Beside(nearest, 2f);
         await Seconds(2f);
         Check("walking up takes nothing", nearest.HasTokens && player.Equipment.Inventory.CountOf(settings.Tokens) == tokensBefore);
@@ -141,7 +141,7 @@ public static class AnimalPlayCheck
 
         // 4. Noticing the player, stepping aside.
         Away();
-        Animal grazer = await Grazing(a => a.Definition.DisplayName == "Sheep");
+        Animal grazer = await Grazing(a => a.Definition.name == "Sheep");
         if (grazer != null)
         {
             Beside(grazer, settings.NoticeRadius * 0.7f);
@@ -194,7 +194,7 @@ public static class AnimalPlayCheck
             await Seconds(1f);
         }
         Check("the herd reaches the pasture", herd.Animals.All(a => a.IsRoaming), Where());
-        Animal cow = herd.Animals.First(a => a.Definition.DisplayName == "Cow");
+        Animal cow = herd.Animals.First(a => a.Definition.name == "Cow");
         float cowHeld = cow.Earnings.Held;
         double hourBefore = clock.Now.TotalHours;
         await Seconds(20f);
@@ -210,7 +210,7 @@ public static class AnimalPlayCheck
             while (Time.realtimeSinceStartup < gather && Spread() > flock.Key.FlockRadius * 2.2f)
                 await Seconds(1f);
             float spread = Spread();
-            Check($"the {flock.Key.DisplayName.ToLower()}s keep round their leader", spread <= flock.Key.FlockRadius * 2.2f && (flock.Key.DisplayName != "Chicken" || leader.name.StartsWith("Rooster")),
+            Check($"the {flock.Key.name.ToLower()}s keep round their leader", spread <= flock.Key.FlockRadius * 2.2f && (flock.Key.name != "Chicken" || leader.name.StartsWith("Rooster")),
                 $"{spread:0.0} m from {leader.name} (FlockRadius {flock.Key.FlockRadius})");
         }
 
@@ -250,7 +250,7 @@ public static class AnimalPlayCheck
             await Seconds(1f);
         Check("E again lets it out", !cow.SentHome && !cow.IsHome, $"{Prompt(cow)}, {Where()}");
 
-        AnimalDefinition sheep = herd.Animals.First(a => a.Definition.DisplayName == "Sheep").Definition;
+        AnimalDefinition sheep = herd.Animals.First(a => a.Definition.name == "Sheep").Definition;
         Animal oldLeader = herd.LeaderOf(sheep);
         oldLeader.Interact(actor);
         Animal newLeader = herd.LeaderOf(sheep);
@@ -259,7 +259,7 @@ public static class AnimalPlayCheck
         oldLeader.Interact(actor);
 
         // 7. A gunshot: the animals near it run.
-        Animal target = herd.Animals.First(a => a.Definition.DisplayName == "Pig" && !a.GoingHome);
+        Animal target = herd.Animals.First(a => a.Definition.name == "Pig" && !a.GoingHome);
         await Seconds(1f);
         Vector3 targetAt = target.transform.position;
         Vector3 shotAt = targetAt + Vector3.forward * 4f;

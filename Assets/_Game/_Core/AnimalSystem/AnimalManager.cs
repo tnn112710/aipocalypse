@@ -1,4 +1,5 @@
 using System;
+using DamageNumbersPro;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Events;
@@ -108,7 +109,12 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             Vector3 from = animal.TokenPoint;
             _audio.PlayAt(_settings.CollectSound, from);
             if (_settings.TokenNumber != null)
-                _settings.TokenNumber.Spawn(from + Vector3.up * 0.3f, left);
+            {
+                // "+12 Tokens": the word follows the language (the prefab's right text is only its default).
+                DamageNumber number = _settings.TokenNumber.Spawn(from + Vector3.up * 0.3f, left);
+                number.rightText = " " + tokens.DisplayName;
+                number.UpdateText();
+            }
             for (int piece = Mathf.Min(_settings.BurstPieces, left); piece > 0; piece--)
             {
                 int share = Mathf.CeilToInt(left / (float)piece);

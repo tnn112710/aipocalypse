@@ -6,8 +6,10 @@ using Ami.BroAudio.Data;
 using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.DefenseSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
 using MB13.Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Editor.Localization;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -46,7 +48,7 @@ public static class SaveSetup
 
     public static object All()
     {
-        var log = new List<string> { Assets(), Hud(), World(), MainMenu(), BuildScenes() };
+        var log = new List<string> { Assets(), Hud(), World(), MainMenu(), BuildScenes(), LocalizationKit.ApplyLabels() };
         return string.Join("\n", log);
     }
 
@@ -194,11 +196,15 @@ public static class SaveSetup
             Button save = TextButton("Save", "SAVE GAME", column, style);
             Button load = TextButton("Load", "LOAD GAME", column, style);
             Button settings = TextButton("Settings", "SETTINGS", column, style);
+            LanguageButton(column, style);
             Button mainMenu = TextButton("MainMenu", "MAIN MENU", column, style);
             Button saveQuit = TextButton("SaveQuit", "SAVE & QUIT", column, style);
             Button quit = TextButton("Quit", "QUIT GAME", column, style);
             TMP_Text hint = Text("Hint", page, style, 26f, TextAlignmentOptions.TopLeft, style.InfoText, style.BodyFont);
-            Pin(hint.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -815f), new Vector2(1200f, 40f));
+            Pin(hint.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -825f), new Vector2(1200f, 40f));
+            // Eight buttons in the room seven had, so the column stays clear of the health bars.
+            foreach (LayoutElement element in column.GetComponentsInChildren<LayoutElement>())
+                element.preferredHeight = 62f;
 
             SaveSlotsPanel slots = SlotsPanel(node, style);
             ConfirmDialog confirm = Confirm(node, style);
@@ -369,7 +375,7 @@ public static class SaveSetup
             tagText.text = "PROTOTYPE";
             Stretch(tagText.rectTransform);
 
-            RectTransform column = TextColumn(page, new Vector2(110f, -450f));
+            RectTransform column = TextColumn(page, new Vector2(110f, -390f));
             Button continueButton = TextButton("Continue", "CONTINUE", column, style);
             TMP_Text continueInfo = Text("ContinueInfo", column, style, 24f, TextAlignmentOptions.MidlineLeft, style.InfoText, style.BodyFont);
             continueInfo.margin = new Vector4(30f, -6f, 0f, 0f);
@@ -377,6 +383,7 @@ public static class SaveSetup
             Button prototype = TextButton("Prototype", "PROTOTYPE", column, style);
             Button load = TextButton("Load", "LOAD GAME", column, style);
             Button settings = TextButton("Settings", "SETTINGS", column, style);
+            LanguageButton(column, style);
             Button quit = TextButton("Quit", "QUIT", column, style);
             TMP_Text status = Text("Status", page, style, 26f, TextAlignmentOptions.MidlineLeft, style.InfoText, style.BodyFont);
             Pin(status.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -950f), new Vector2(1200f, 40f));
@@ -576,12 +583,22 @@ public static class SaveSetup
     static RectTransform TextColumn(Transform parent, Vector2 position)
     {
         RectTransform column = Ui("Buttons", parent);
-        Pin(column, new Vector2(0f, 1f), position, new Vector2(470f, 560f));
+        Pin(column, new Vector2(0f, 1f), position, new Vector2(470f, 640f));
         var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 4f;
         layout.childControlWidth = layout.childControlHeight = layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
         return column;
+    }
+
+    // Switches the language on each press; LanguageButton writes its label ("LANGUAGE: ENGLISH") at runtime.
+    static void LanguageButton(Transform column, MenuStyle style)
+    {
+        Button button = TextButton("Language", "LANGUAGE: ENGLISH", column, style);
+        var language = button.gameObject.AddComponent<LanguageButton>();
+        var so = new SerializedObject(language);
+        so.FindProperty("_label").objectReferenceValue = button.GetComponentInChildren<TMP_Text>(true);
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // A text button: the label over a strip of tape that only shows when hovered, selected or pressed.

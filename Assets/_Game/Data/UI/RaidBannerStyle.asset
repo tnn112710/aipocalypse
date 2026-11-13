@@ -13,22 +13,70 @@ MonoBehaviour:
   m_Name: RaidBannerStyle
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.RaidBannerStyle
   Font: {fileID: 11400000, guid: 2a9bcb2c0bce95349bc567d9dfedea95, type: 2}
-  StartTitle: RAID INCOMING
-  StartSubtitle: 'Night {0}: hold the farm'
+  StartTitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301578
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  StartSubtitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301579
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   StartColor: {r: 1, g: 0.38, b: 0.22, a: 1}
   StartSound:
     _entity: {fileID: 11400000, guid: a997464f10aa428409b60c6340bba4cf, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  VictoryTitle: RAID REPELLED
-  VictorySubtitle: Night {0} survived
+  VictoryTitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301580
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  VictorySubtitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301581
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   VictoryColor: {r: 1, g: 0.82, b: 0.35, a: 1}
   VictorySound:
     _entity: {fileID: 11400000, guid: ab840b0e6c55cc44790d81dadb4e50af, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}
-  DawnTitle: DAWN
-  DawnSubtitle: The raiders retreat
+  DawnTitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301582
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  DawnSubtitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301583
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   DawnColor: {r: 0.8, g: 0.88, b: 1, a: 1}
   DawnSound:
     _entity: {fileID: 0}
@@ -38,3 +86,6 @@ MonoBehaviour:
   Hold: 2.6
   FadeOut: 0.9
   PunchScale: 1.35
+  references:
+    version: 2
+    RefIds: []

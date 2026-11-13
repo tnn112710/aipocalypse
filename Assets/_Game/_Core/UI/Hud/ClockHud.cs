@@ -1,5 +1,7 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -12,6 +14,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         WorldClock _clock;
         int _phase = -1;
+        Locale _phaseLocale;
 
         [Inject]
         void Construct(IObjectResolver resolver) => resolver.TryResolve(out _clock);
@@ -28,11 +31,11 @@ namespace MB13.Aipocalypse.Core.UI
             _view.SetDay(now.Day);
 
             DayPhase phase = _clock.Phase;
-            if ((int)phase != _phase && _view.Style != null)
+            if (((int)phase != _phase || _phaseLocale != Loc.Current) && _view.Style != null)
             {
                 _phase = (int)phase;
-                PhaseLabel label = _view.Style.Phase(phase);
-                _view.SetPhase(label.Text, label.Color);
+                _phaseLocale = Loc.Current;
+                _view.SetPhase(_view.Style.PhaseText(phase), _view.Style.PhaseColor(phase));
             }
         }
     }

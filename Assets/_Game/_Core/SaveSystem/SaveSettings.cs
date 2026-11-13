@@ -1,6 +1,8 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.SaveSystem
 {
@@ -22,6 +24,6 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         [Header("Loading screen")]
         public TMP_FontAsset LoadingFont;
-        public string LoadingText = "Loading...";
+        [Tooltip("UI table")] public LocalizedString LoadingText = Loc.UI("loading");
     }
 }

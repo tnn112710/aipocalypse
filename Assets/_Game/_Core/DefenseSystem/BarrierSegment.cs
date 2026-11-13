@@ -6,10 +6,12 @@ using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Ghosts;
 using MB13.Aipocalypse.Core.Interaction;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MessagePipe;
 using Pathfinding;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Localization;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.DefenseSystem
@@ -22,10 +24,11 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
     [DisallowMultipleComponent]
     public sealed class BarrierSegment : MonoBehaviour, IBreachable, IInteractable, IHoldInteractable, IRepairable, IGhostSource
     {
-        const string RepairVerb = "Repair";
-        const string RebuildVerb = "Rebuild";
-        const string RepairAllVerb = "Repair All";
-        const string BlockedSuffix = " (blocked)";
+        static readonly LocalizedString RepairVerb = Loc.Interaction("verb.repair");
+        static readonly LocalizedString RebuildVerb = Loc.Interaction("verb.rebuild");
+        static readonly LocalizedString RepairAllVerb = Loc.Interaction("verb.repair_all");
+        static readonly LocalizedString BlockedSuffix = Loc.Interaction("suffix.blocked");
+        static readonly LocalizedString HealthTarget = Loc.Interaction("target.health");
         // Metres above the base where knocks, breaks and debug hits land.
         const float RepairHeight = 0.8f;
 
@@ -55,6 +58,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         string _promptTarget;
         int _promptPercent = -1;
         bool _promptBlocked;
+        Locale _promptLocale;
         GhostShape _ghost;
         GhostShape _overlay;
 
@@ -184,7 +188,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             prompt = default;
             if (!NeedsRepair)
                 return false;
-            prompt = new InteractionPrompt(IsBroken ? RebuildVerb : RepairVerb, PromptTarget(StandBlocked()));
+            prompt = new InteractionPrompt((IsBroken ? RebuildVerb : RepairVerb).Text(), PromptTarget(StandBlocked()));
             return true;
         }
 
@@ -375,7 +379,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             int damaged = _registry != null ? _registry.CountDamaged() : NeedsRepair ? 1 : 0;
             if (damaged == 0)
                 return false;
-            prompt = new InteractionPrompt(RepairAllVerb, BarrierRegistry.RepairAllTarget(damaged));
+            prompt = new InteractionPrompt(RepairAllVerb.Text(), BarrierRegistry.RepairAllTarget(damaged));
             return true;
         }
 
@@ -384,15 +388,16 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         // Only checked once it's ready to stand: the next knock would stand it up if nothing were in the way.
         bool StandBlocked() => IsBroken && _health.CanStand(_definition.StandAt) && IsOccupied();
 
-        // "Fence 63%": rebuilt only when the number changes, so a steady look allocates nothing.
+        // "Fence 63%": rebuilt only when the number or the language changes, so a steady look allocates nothing.
         string PromptTarget(bool blocked)
         {
             int percent = Mathf.FloorToInt(HealthShare * 100f);
-            if (percent != _promptPercent || blocked != _promptBlocked || _promptTarget == null)
+            if (percent != _promptPercent || blocked != _promptBlocked || _promptTarget == null || _promptLocale != Loc.Current)
             {
                 _promptPercent = percent;
                 _promptBlocked = blocked;
-                _promptTarget = $"{_definition.DisplayName} {percent}%{(blocked ? BlockedSuffix : string.Empty)}";
+                _promptLocale = Loc.Current;
+                _promptTarget = HealthTarget.Format(_definition.DisplayName.Text(), percent) + (blocked ? BlockedSuffix.Text() : string.Empty);
             }
             return _promptTarget;
         }

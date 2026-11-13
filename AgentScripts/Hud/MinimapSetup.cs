@@ -1,7 +1,9 @@
 using System;
 using MB13.Aipocalypse.Core.Bootstrap;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.MapSystem;
 using MB13.Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Editor.Localization;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -26,7 +28,7 @@ public static class MinimapSetup
     const string FontUnderlayPath = "Assets/_Game/Data/UI/Fonts/SairaHeader_Underlay.mat";
     const float Size = 220f;
 
-    public static string Build() => string.Join("\n", Assets(), Hud(), HomeMarker());
+    public static string Build() => string.Join("\n", Assets(), Hud(), HomeMarker(), LocalizationKit.ApplyLabels());
 
     public static string Assets()
     {

@@ -1,5 +1,7 @@
 using System;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.SleepSystem
 {
@@ -7,7 +9,7 @@ namespace MB13.Aipocalypse.Core.SleepSystem
     public readonly struct SleepWindow
     {
         public readonly bool CanSleep;
-        public readonly string Reason;
+        public readonly LocalizedString Reason;
         public readonly WorldTime Earliest;
         public readonly WorldTime Latest;
 
@@ -19,7 +21,7 @@ namespace MB13.Aipocalypse.Core.SleepSystem
             Latest = latest;
         }
 
-        public SleepWindow(string reason)
+        public SleepWindow(LocalizedString reason)
         {
             CanSleep = false;
             Reason = reason;
@@ -48,9 +50,9 @@ namespace MB13.Aipocalypse.Core.SleepSystem
 
     public static class SleepRules
     {
-        public const string RaidRunning = "Can't sleep during a raid";
-        public const string RaidTonight = "Can't sleep: the raid is coming";
-        public const string RaidTooClose = "Too close to tonight's raid to sleep";
+        public static readonly LocalizedString RaidRunning = Loc.Hud("sleep.raid_running");
+        public static readonly LocalizedString RaidTonight = Loc.Hud("sleep.raid_tonight");
+        public static readonly LocalizedString RaidTooClose = Loc.Hud("sleep.raid_too_close");
 
         // Days ahead searched for the next raid (longer than any sleep).
         const int DaysAhead = 3;

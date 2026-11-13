@@ -1,6 +1,8 @@
 using Ami.BroAudio;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.UI
 {
@@ -13,20 +15,21 @@ namespace MB13.Aipocalypse.Core.UI
         public TMP_FontAsset Font;
 
         [Header("Raid starts")]
-        public string StartTitle = "RAID INCOMING";
-        public string StartSubtitle = "Night {0}: hold the farm";
+        [Tooltip("HUD table; subtitles: {0} = night number")]
+        public LocalizedString StartTitle = Loc.Hud("raid.start_title");
+        public LocalizedString StartSubtitle = Loc.Hud("raid.start_subtitle");
         public Color StartColor = new(1f, 0.38f, 0.22f, 1f);
         public SoundID StartSound;
 
         [Header("Every wave killed")]
-        public string VictoryTitle = "RAID REPELLED";
-        public string VictorySubtitle = "Night {0} survived";
+        public LocalizedString VictoryTitle = Loc.Hud("raid.cleared_title");
+        public LocalizedString VictorySubtitle = Loc.Hud("raid.cleared_subtitle");
         public Color VictoryColor = new(1f, 0.82f, 0.35f, 1f);
         public SoundID VictorySound;
 
         [Header("Dawn came first")]
-        public string DawnTitle = "DAWN";
-        public string DawnSubtitle = "The raiders retreat";
+        public LocalizedString DawnTitle = Loc.Hud("raid.dawn_title");
+        public LocalizedString DawnSubtitle = Loc.Hud("raid.dawn_subtitle");
         public Color DawnColor = new(0.8f, 0.88f, 1f, 1f);
         public SoundID DawnSound;
 

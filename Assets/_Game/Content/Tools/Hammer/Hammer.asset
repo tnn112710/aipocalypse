@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 287e7f7f2f96d0c428774a484693d59c, type: 3}
   m_Name: Hammer
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.RepairToolDefinition
-  _displayName: Hammer
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 2028187651
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _icon: {fileID: 21300000, guid: adb51e3db54330a4cb7689499f5397e4, type: 3}
   _prefab: {fileID: 7850285473520843441, guid: 69ae50939bebec9448fa0e20eae6a8e8, type: 3}
   _maxStack: 1
@@ -26,3 +34,6 @@ MonoBehaviour:
   _holdFeel:
     AimMoveSpeedScale: 1
     SwayScale: 1
+  references:
+    version: 2
+    RefIds: []

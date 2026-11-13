@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -75,7 +76,7 @@ namespace MB13.Aipocalypse.Core.UI
             {
                 string separator = line.Length > 0 ? "\n" : string.Empty;
                 int size = Mathf.RoundToInt(_style.HoldLineScale * 100f);
-                line += $"{separator}<size={size}%>{_style.HoldPrefix}{_holdVerb} <color=#{target}>{_holdTarget}</color></size>";
+                line += $"{separator}<size={size}%>{_style.HoldPrefix.Text()}{_holdVerb} <color=#{target}>{_holdTarget}</color></size>";
             }
             _text.text = line;
         }

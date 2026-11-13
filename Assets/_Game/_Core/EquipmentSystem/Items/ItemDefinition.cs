@@ -1,5 +1,7 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.EquipmentSystem
 {
@@ -17,7 +19,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     // Static data shared by every copy of an item. Runtime state lives in ItemInstance.
     public abstract class ItemDefinition : ScriptableObject
     {
-        [SerializeField] string _displayName;
+        [SerializeField, Tooltip("Items table (Data/Localization/Csv/Items.csv)")] LocalizedString _displayName;
         [SerializeField, PreviewField(64)] Sprite _icon;
 
         [SerializeField, Tooltip("The item's one prefab: lies in the world (picked up from it, spawned when dropped) and, " +
@@ -42,7 +44,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         [SerializeField, Tooltip("Its slot border and tooltip colour")]
         ItemRarity _rarity;
 
-        public string DisplayName => _displayName;
+        public string DisplayName => _displayName.Text();
         public Sprite Icon => _icon;
         public WorldItem Prefab => _prefab;
         public int MaxStack => _unlimitedStack ? int.MaxValue : _maxStack;

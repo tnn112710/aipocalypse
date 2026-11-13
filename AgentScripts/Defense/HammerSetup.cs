@@ -4,8 +4,10 @@ using System.Linq;
 using MB13.Aipocalypse.Core.DefenseSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.HandSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.UI;
+using MB13.Aipocalypse.Editor.Localization;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -115,7 +117,7 @@ public static class HammerSetup
         }
 
         var iso = new SerializedObject(item);
-        iso.FindProperty("_displayName").stringValue = "Hammer";
+        LocalizationKit.Set(iso.FindProperty("_displayName"), Loc.ItemsTable, "item.hammer");
         iso.FindProperty("_icon").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(IconPath);
         iso.FindProperty("_prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<WorldItem>(PrefabPath);
         iso.ApplyModifiedPropertiesWithoutUndo();

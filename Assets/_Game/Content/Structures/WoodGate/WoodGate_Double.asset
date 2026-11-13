@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ad521ca88125b34e80f320587226716, type: 3}
   m_Name: WoodGate_Double
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DefenseSystem.BarrierDefinition
-  DisplayName: Gate
+  DisplayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:2a08767527ddaff4d9c1c41c86a721de
+    m_TableEntryReference:
+      m_KeyId: 2019799055
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   MaxHealth: 700
   RepairPerKnock: 50
   StandAt: 0.3
@@ -42,3 +50,6 @@ MonoBehaviour:
     <DebugObject>k__BackingField: {fileID: 0}
   OnStruck: []
   UpgradesTo: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

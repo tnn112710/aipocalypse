@@ -5,11 +5,13 @@ using Ami.BroAudio.Data;
 using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Editor.Localization;
 using MB13.Aipocalypse.Input;
 using TMPro;
 using UnityEditor;
@@ -55,7 +57,10 @@ public static class InventorySetup
 
     public static string Build()
     {
-        var log = new List<string> { Items(), Weights(), Consumables(), Values(), Loot(), Config(), Sounds(), Interface(), Yard(), Bake() };
+        var log = new List<string>
+        {
+            Items(), Weights(), Consumables(), Values(), Loot(), Config(), Sounds(), Interface(), Yard(), Bake(), LocalizationKit.ApplyLabels(),
+        };
         return string.Join("\n", log);
     }
 
@@ -70,7 +75,7 @@ public static class InventorySetup
         Ammo("ShotgunShells", Icons + "Icons_Ammo/ICON_SM_Wep_Shotgun_Ammo_Box_01.png", 40, 0.04f, "Polygon-Mega Weapons Kit/Prefabs/SM_Ammo_Box_Wood_Closed.prefab", 0.3f);
 
         var backpack = Asset<BackpackDefinition>($"{ItemsDir}/Backpack/Backpack.asset");
-        Define(backpack, "Backpack", Icons + "Icons_Resources/ICON_SM_Chr_Attach_Backpack_01.png", maxStack: 1, weight: 1f);
+        Define(backpack, "item.backpack", Icons + "Icons_Resources/ICON_SM_Chr_Attach_Backpack_01.png", maxStack: 1, weight: 1f);
         var so = new SerializedObject(backpack);
         so.FindProperty("_extraSlots").intValue = 15;
         so.FindProperty("_extraWeight").floatValue = 15f;
@@ -100,12 +105,12 @@ public static class InventorySetup
         return asset;
     }
 
-    // `displayName` null keeps the current one.
-    static void Define(ItemDefinition item, string displayName, string iconPath, int maxStack, float weight, bool unlimited = false, bool autoCollect = false)
+    // `nameKey`: its name in the Items table; null keeps the current one.
+    static void Define(ItemDefinition item, string nameKey, string iconPath, int maxStack, float weight, bool unlimited = false, bool autoCollect = false)
     {
         var so = new SerializedObject(item);
-        if (displayName != null)
-            so.FindProperty("_displayName").stringValue = displayName;
+        if (nameKey != null)
+            LocalizationKit.Set(so.FindProperty("_displayName"), Loc.ItemsTable, nameKey);
         so.FindProperty("_icon").objectReferenceValue = Sprite(iconPath);
         so.FindProperty("_maxStack").intValue = maxStack;
         so.FindProperty("_unlimitedStack").boolValue = unlimited;
@@ -131,7 +136,7 @@ public static class InventorySetup
     public static string Tokens()
     {
         var tokens = Asset<CurrencyDefinition>($"{ItemsDir}/Tokens/Tokens.asset");
-        Define(tokens, "Tokens", Icons + "Icons_Resources/ICON_SM_Prop_Money_Strapped_04.png", maxStack: 1, weight: 0f, unlimited: true, autoCollect: true);
+        Define(tokens, "item.tokens", Icons + "Icons_Resources/ICON_SM_Prop_Money_Strapped_04.png", maxStack: 1, weight: 0f, unlimited: true, autoCollect: true);
         string path = $"{ItemsDir}/Tokens/Tokens.prefab";
         var modelAt = new Vector3(0f, 0.38f, 0f);
         WorldPrefab(path, tokens, "Assets/Synty/PolygonPrototype/Prefabs/Icons/SM_Icon_Coin_03.prefab", 0.46f, modelAt, Vector3.zero);
@@ -372,7 +377,7 @@ public static class InventorySetup
     public static string Consumables()
     {
         var kit = Asset<ConsumableDefinition>($"{ItemsDir}/MedicBox/MedicBox.asset");
-        Define(kit, "First Aid Kit", FlatIcons + "aidkit.png", maxStack: 1, weight: 0.5f);
+        Define(kit, "item.first_aid_kit", FlatIcons + "aidkit.png", maxStack: 1, weight: 0.5f);
         kit.SetUse(3f, uses: 5, moveSpeedScale: 0.5f);
         kit.SetEffects(heal: 20f, healOverTime: 0f, healSeconds: 10f, buffSeconds: 0f, null);
         SetPrefab(kit, HeldPrefab($"{ItemsDir}/MedicBox/MedicBox.prefab", kit, Medical + "SM_Med_Kit.prefab",
@@ -380,7 +385,7 @@ public static class InventorySetup
             worldEuler: new Vector3(-90f, 0f, 0f)));
 
         var bandage = Asset<ConsumableDefinition>($"{ItemsDir}/Bandage/Bandage.asset");
-        Define(bandage, "Bandage", FlatIcons + "bandage.png",
+        Define(bandage, "item.bandage", FlatIcons + "bandage.png",
             maxStack: 5, weight: 0.05f);
         bandage.SetUse(1.5f, uses: 1, moveSpeedScale: 0.6f);
         bandage.SetEffects(heal: 0f, healOverTime: 15f, healSeconds: 10f, buffSeconds: 0f, null);
@@ -389,7 +394,7 @@ public static class InventorySetup
             worldEuler: new Vector3(-90f, 0f, 0f), worldScale: 1.4f));
 
         var adrenaline = Asset<ConsumableDefinition>($"{ItemsDir}/Adrenaline/Adrenaline.asset");
-        Define(adrenaline, "Adrenaline", FlatIcons + "syringe1.png", maxStack: 3, weight: 0.2f);
+        Define(adrenaline, "item.adrenaline", FlatIcons + "syringe1.png", maxStack: 3, weight: 0.2f);
         adrenaline.SetUse(1f, uses: 1, moveSpeedScale: 0.7f);
         adrenaline.SetEffects(0f, 0f, 10f, buffSeconds: 60f, new Dictionary<StatId, float> { { StatId.WalkSpeed, 1.25f }, { StatId.SprintSpeed, 1.25f } });
         SetPrefab(adrenaline, HeldPrefab($"{ItemsDir}/Adrenaline/Adrenaline.prefab", adrenaline, Medical + "SM_Injector_With_Adrenalin.prefab",
@@ -397,7 +402,7 @@ public static class InventorySetup
             worldEuler: new Vector3(0f, 0f, 90f), worldScale: 1.4f));
 
         var stamina = Asset<ConsumableDefinition>($"{ItemsDir}/StaminaShot/StaminaShot.asset");
-        Define(stamina, "Stamina Shot", FlatIcons + "syringe2.png", maxStack: 3, weight: 0.2f);
+        Define(stamina, "item.stamina_shot", FlatIcons + "syringe2.png", maxStack: 3, weight: 0.2f);
         stamina.SetUse(1f, uses: 1, moveSpeedScale: 0.7f);
         stamina.SetEffects(0f, 0f, 10f, buffSeconds: 60f,
             new Dictionary<StatId, float> { { StatId.StaminaRegen, 2f }, { StatId.SprintStaminaCost, 0.5f } });
@@ -540,7 +545,8 @@ public static class InventorySetup
         if (!root.TryGetComponent(out LootContainer loot))
             loot = root.AddComponent<LootContainer>();
         var so = new SerializedObject(loot);
-        so.FindProperty("_label").stringValue = label;
+        // Bodies are named in the Creatures table: "enemy.<definition name>" (goblins only so far).
+        LocalizationKit.Set(so.FindProperty("_label"), Loc.CreaturesTable, label.StartsWith("Goblin") ? "enemy.goblin" : "enemy." + label.ToLowerInvariant());
         so.FindProperty("_capacity").intValue = 6;
         so.FindProperty("_contents").ClearArray();
         so.FindProperty("_hideWhenEmpty").boolValue = true;
@@ -561,7 +567,7 @@ public static class InventorySetup
             root.AddComponent<MB13.Aipocalypse.Core.SaveSystem.SaveId>();
             var loot = root.AddComponent<LootContainer>();
             var so = new SerializedObject(loot);
-            so.FindProperty("_label").stringValue = "Crate";
+            LocalizationKit.Set(so.FindProperty("_label"), Loc.InteractionTable, "container.crate");
             so.FindProperty("_capacity").intValue = 8;
             SerializedProperty contents = so.FindProperty("_contents");
             var stacks = new (ItemDefinition item, int count)[] { (tokens, 35), (pistol, 24), (rifle, 30), (shells, 8), (medic, 1) };
@@ -602,6 +608,7 @@ public static class InventorySetup
         {
             SerializedProperty slot = slots.GetArrayElementAtIndex(i);
             slot.FindPropertyRelative("Name").stringValue = hotbar[i].name;
+            Caption(slot, hotbar[i].name.StartsWith("Quick") ? null : "slot." + hotbar[i].name.ToLowerInvariant());
             slot.FindPropertyRelative("Accepts").intValue = (int)hotbar[i].accepts;
             slot.FindPropertyRelative("Key").intValue = (int)hotbar[i].key;
             slot.FindPropertyRelative("StartingItem").objectReferenceValue = null;
@@ -618,6 +625,7 @@ public static class InventorySetup
         {
             SerializedProperty slot = gear.GetArrayElementAtIndex(i);
             slot.FindPropertyRelative("Name").stringValue = gearSlots[i].name;
+            Caption(slot, "slot." + gearSlots[i].name.ToLowerInvariant());
             slot.FindPropertyRelative("Accepts").intValue = (int)gearSlots[i].accepts;
             slot.FindPropertyRelative("StartingItem").objectReferenceValue = null;
         }
@@ -632,6 +640,15 @@ public static class InventorySetup
         tuningSo.ApplyModifiedPropertiesWithoutUndo();
         Save(tuning);
         return $"config: {hotbar.Count} hotbar slots (1, 2, V, 3-9), {gearSlots.Length} gear slots, 10 backpack slots, 25 kg";
+    }
+
+    // The caption under its inventory tile (Items table), or none.
+    static void Caption(SerializedProperty slot, string key)
+    {
+        if (key == null)
+            LocalizationKit.Clear(slot.FindPropertyRelative("Caption"));
+        else
+            LocalizationKit.Set(slot.FindPropertyRelative("Caption"), Loc.ItemsTable, key);
     }
 
     // ---- Sounds: 2D one-shots in the Player library (the player's own inventory), set on InventoryStyle ----

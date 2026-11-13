@@ -51,11 +51,38 @@ MonoBehaviour:
   StatusFont: {fileID: 11400000, guid: 3e26a0e98906ae4419e8ed36dfbc65c1, type: 2}
   StatusSize: 44
   StatusColor: {r: 1, g: 1, b: 1, a: 1}
-  Title: You're dead
-  LoadingText: Loading...
-  ContinueText: Click to continue
+  Title:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301592
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  LoadingText:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301593
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  ContinueText:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 1944301594
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   MenuFadeIn: 0.6
   MenuFadeOut: 0.5
   MinLoadingTime: 1.2
   ContinuePulseAlpha: 0.45
   ContinuePulsePeriod: 1.6
+  references:
+    version: 2
+    RefIds: []

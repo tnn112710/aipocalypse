@@ -2,11 +2,13 @@ using System;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MessagePipe;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.SceneManagement;
 using VContainer.Unity;
 
@@ -19,6 +21,25 @@ namespace MB13.Aipocalypse.Core.SaveSystem
     public sealed class GameSession : ITickable, IDisposable
     {
         const float AutosaveRetrySeconds = 30f;
+        static readonly LocalizedString NotInGame = Loc.UI("session.not_in_game");
+        static readonly LocalizedString Loading = Loc.UI("session.loading");
+        static readonly LocalizedString NoPlayer = Loc.UI("session.no_player");
+        static readonly LocalizedString Down = Loc.UI("session.down");
+        static readonly LocalizedString DuringRaid = Loc.UI("session.raid");
+        static readonly LocalizedString AlreadyLoading = Loc.UI("session.already_loading");
+        static readonly LocalizedString CantOpenScene = Loc.UI("session.cant_open_scene");
+        static readonly LocalizedString LoadingSave = Loc.UI("session.loading_save");
+        static readonly LocalizedString LoadingBackup = Loc.UI("session.loading_backup");
+        static readonly LocalizedString NoSlot = Loc.UI("session.no_slot");
+        static readonly LocalizedString NoSlotPicked = Loc.UI("session.no_slot_picked");
+        static readonly LocalizedString NewGameIn = Loc.UI("session.new_game");
+        static readonly LocalizedString LoadingPrototype = Loc.UI("session.loading_prototype");
+        static readonly LocalizedString NoAutosaveSlot = Loc.UI("session.no_autosave_slot");
+        static readonly LocalizedString SavingTo = Loc.UI("session.saving_to");
+        static readonly LocalizedString SaveFailed = Loc.UI("session.save_failed");
+        static readonly LocalizedString AutosavedTo = Loc.UI("session.autosaved_to");
+        static readonly LocalizedString SavedTo = Loc.UI("session.saved_to");
+        static readonly LocalizedString SectionsFailed = Loc.UI("session.sections_failed");
 
         readonly SaveService _saves;
         readonly SaveRegistry _sections;
@@ -92,11 +113,11 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         // Saving needs a living player in the world and no raid running (a raid's enemies and waves aren't saved).
         public bool CanSave(out string reason)
         {
-            reason = !InWorld ? "Not in a game"
-                : _scenes.IsLoading ? "Loading"
-                : _players.Current == null ? "No player"
-                : _players.Current.IsDead ? "Can't save while down"
-                : _raid ? "Can't save during a raid"
+            reason = !InWorld ? NotInGame.Text()
+                : _scenes.IsLoading ? Loading.Text()
+                : _players.Current == null ? NoPlayer.Text()
+                : _players.Current.IsDead ? Down.Text()
+                : _raid ? DuringRaid.Text()
                 : null;
             return reason == null;
         }
@@ -110,7 +131,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             if (_scenes.IsLoading)
             {
-                message = "Already loading";
+                message = AlreadyLoading.Text();
                 return false;
             }
             if (!_saves.TryRead(slot, out SaveData data, out message, out bool fromBackup))
@@ -122,7 +143,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             if (!_scenes.Load(scene, () => _pending = null))
             {
                 _pending = null;
-                message = $"Can't open scene {scene}";
+                message = CantOpenScene.Format(scene);
                 return false;
             }
             Slot = slot;
@@ -132,7 +153,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _autosaveDue = false;
             _game++;
             string name = SaveFormat.SlotName(slot);
-            message = fromBackup ? $"{name} was damaged: loading its backup" : $"Loading {name}";
+            message = (fromBackup ? LoadingBackup : LoadingSave).Format(name);
             return true;
         }
 
@@ -142,12 +163,12 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             if (!_saves.IsValidSlot(slot))
             {
-                message = $"No slot {slot}";
+                message = NoSlot.Format(slot);
                 return false;
             }
             if (!_scenes.Load(_settings.WorldScene))
             {
-                message = $"Can't open scene {_settings.WorldScene}";
+                message = CantOpenScene.Format(_settings.WorldScene);
                 return false;
             }
             // Before the scene starts, so its systems roll on the new game's seed from their first roll.
@@ -159,7 +180,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _started = true;
             _autosaveDue = false;
             _game++;
-            message = $"New game in {SaveFormat.SlotName(slot)}";
+            message = NewGameIn.Format(SaveFormat.SlotName(slot));
             return true;
         }
 
@@ -168,7 +189,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             if (!_scenes.Load(_settings.WorldScene))
             {
-                message = $"Can't open scene {_settings.WorldScene}";
+                message = CantOpenScene.Format(_settings.WorldScene);
                 return false;
             }
             _random.Reseed(NewSeed());
@@ -179,7 +200,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _started = false;
             _autosaveDue = false;
             _game++;
-            message = "Loading the prototype";
+            message = LoadingPrototype.Text();
             return true;
         }
 
@@ -257,7 +278,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 return;
             if (Slot <= 0)
             {
-                _saved.Publish(new GameSaved(0, true, false, "Not autosaved: no save slot yet (pause menu, Save Game)"));
+                _saved.Publish(new GameSaved(0, true, false, NoAutosaveSlot.Text()));
                 return;
             }
             _autosaveDue = true;
@@ -268,7 +289,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             if (!_saves.IsValidSlot(slot))
             {
-                message = slot == 0 ? "No save slot picked" : $"No slot {slot}";
+                message = slot == 0 ? NoSlotPicked.Text() : NoSlot.Format(slot);
                 return false;
             }
             if (!CanSave(out message))
@@ -284,7 +305,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             Slot = slot;
             _carry = data;
             FinishSave(write, slot, autosave, failed, _game).Forget();
-            message = $"Saving to {SaveFormat.SlotName(slot)}...";
+            message = SavingTo.Format(SaveFormat.SlotName(slot));
             return true;
         }
 
@@ -296,15 +317,15 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             string message;
             if (problem != null)
             {
-                message = $"Save failed: {problem}";
+                message = SaveFailed.Format(problem);
                 if (autosave && game == _game)
                     RetryAutosave(message);
             }
             else
             {
-                message = autosave ? $"Autosaved to {name}" : $"Saved to {name}";
+                message = (autosave ? AutosavedTo : SavedTo).Format(name);
                 if (failedSections > 0)
-                    message += $" ({failedSections} system(s) kept their last saved state: see the console)";
+                    message += SectionsFailed.Format(failedSections);
                 Debug.Log(message);
             }
             _saved.Publish(new GameSaved(slot, autosave, problem == null, message));

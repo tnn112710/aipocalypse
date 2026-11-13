@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -46,7 +47,7 @@ namespace MB13.Aipocalypse.Core.UI
             await UniTask.WaitWhile(() => eyes.IsActive() && eyes.IsPlaying(), cancellationToken: cancellation);
             if (!_open || this == null)
                 return;
-            _view.SetStatus(_view.Style.LoadingText, pulse: false);
+            _view.SetStatus(_view.Style.LoadingText.Text(), pulse: false);
             _view.ShowMenu();
         }
 
@@ -57,7 +58,7 @@ namespace MB13.Aipocalypse.Core.UI
         void OnStageChanged(RespawnStageChanged change)
         {
             if (change.Stage == RespawnStage.Ready && _open)
-                _view.SetStatus(_view.Style.ContinueText, pulse: true);
+                _view.SetStatus(_view.Style.ContinueText.Text(), pulse: true);
             else if (change.Stage == RespawnStage.None)
                 Close(fade: true);
         }

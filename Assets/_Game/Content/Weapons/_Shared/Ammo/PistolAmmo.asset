@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 619a0cddf53e8824aac44829c0ce6d3c, type: 3}
   m_Name: PistolAmmo
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.AmmoType
-  _displayName: Pistol Ammo
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 2028187658
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _icon: {fileID: 21300000, guid: aac102832f264f94fb5d3d7db31a126c, type: 3}
   _prefab: {fileID: 3650208988260037231, guid: 7f158f1b2493fb44286b790d380e4b55, type: 3}
   _maxStack: 120
@@ -21,3 +29,6 @@ MonoBehaviour:
   _autoCollect: 0
   _value: 2
   _rarity: 0
+  references:
+    version: 2
+    RefIds: []
