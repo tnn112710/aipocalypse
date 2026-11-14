@@ -112,7 +112,7 @@ namespace StylizedWater3
             [InspectorName("Default Unity")]
             UnityFog,
             [InspectorName("COZY: Stylized Weather v3")]
-            COZY,
+            COZY3,
             AtmosphericHeightFog,
             [InspectorName("Enviro 3 - Sky & Weather")]
             Enviro3,
@@ -121,7 +121,9 @@ namespace StylizedWater3
             [InspectorName("Buto (2022+)")]
             Buto,
             [InspectorName("SC Screen Effects")]
-            SCScreenEffects
+            SCScreenEffects,
+            [InspectorName("COZY: Stylized Weather v4")]
+            COZY4
         }
 
         [NoAutoStaticsCleanup]
@@ -147,7 +149,8 @@ namespace StylizedWater3
                 new Integration<FogAssets>("None", FogAssets.None, 0, true, true, "", ""),
                 new Integration<FogAssets>("Default Unity", FogAssets.UnityFog, 0, true, true, "", ""),
                 new Integration<FogAssets>("SC Screen Effects (Screen-Space Fog)", FogAssets.SCScreenEffects, 377136, true, true, "b0ad0918009d7454c846bbd229f6aec4", "https://assetstore.unity.com/packages/slug/377136"),
-                new Integration<FogAssets>("COZY: Stylized Weather v3", FogAssets.COZY, 271742, true, true, "e9bc566e199a97947a3e600f2563fe85", "https://assetstore.unity.com/packages/slug/271742"),
+                new Integration<FogAssets>("COZY: Stylized Weather v3", FogAssets.COZY3, 271742, true, true, "e9bc566e199a97947a3e600f2563fe85", "https://assetstore.unity.com/packages/slug/271742"),
+                new Integration<FogAssets>("COZY: Stylized Weather v4", FogAssets.COZY4, 389284, false, true, "23eb33f4988c6c04ab529e639c603dd5", "https://assetstore.unity.com/packages/slug/389284"),
                 new Integration<FogAssets>("Enviro 3 - Sky & Weather", FogAssets.Enviro3, 236601, true, true, "8db9bd7b531f93d46ae2cb21180a00a8", "https://assetstore.unity.com/packages/slug/236601"),
                 new Integration<FogAssets>("Atmospheric Height Fog", FogAssets.AtmosphericHeightFog, 143825, false, true, "8db8edf9bba0e9d48998019ca6c2f9ff", "https://assetstore.unity.com/packages/slug/143825"),
                 new Integration<FogAssets>("Azure[Sky] Dynamic Skybox", FogAssets.Azure, 36050, true, true, "5da6209b193d6eb49b25c88c861e52fa", "https://assetstore.unity.com/packages/slug/36050"),

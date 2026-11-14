@@ -213,7 +213,7 @@ namespace DistantLands.Cozy.EditorScripts
             });
             root.Q<ToolbarButton>("help").RegisterCallback<ClickEvent>(evt =>
             {
-                Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation");
+                Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4");
             });
 
             timelineClickArea.RegisterCallback<PointerDownEvent>(evt =>

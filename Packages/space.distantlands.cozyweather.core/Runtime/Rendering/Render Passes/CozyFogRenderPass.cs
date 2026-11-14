@@ -183,13 +183,13 @@ namespace DistantLands.Cozy
                     else
                     {
                         currHistoryHandle = renderGraph.CreateTexture(scratchVolDesc);
-                        prevHistoryHandle = renderGraph.CreateTexture(scratchVolDesc);
+                        prevHistoryHandle = renderGraph.defaultResources.blackTexture3DXR;
                     }
                 }
                 else
                 {
                     currHistoryHandle = renderGraph.CreateTexture(scratchVolDesc);
-                    prevHistoryHandle = renderGraph.CreateTexture(scratchVolDesc);
+                    prevHistoryHandle = renderGraph.defaultResources.blackTexture3DXR;
                 }
 
                 Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
@@ -364,7 +364,7 @@ namespace DistantLands.Cozy
 
             cmd.SetComputeTextureParam(data.integrationShader, data.integrateKernel, s_FogIntegrationId, data.integrateVolume);
             cmd.SetComputeTextureParam(data.integrationShader, data.integrateKernel, s_FogAccumulationId, data.accumulateVolume);
-            cmd.DispatchCompute(data.integrationShader, data.integrateKernel, data.dispatchX, data.dispatchY, data.dispatchZ);
+            cmd.DispatchCompute(data.integrationShader, data.integrateKernel, data.dispatchX, data.dispatchY, 1);
         }
 
         static void RenderFog(FogPassData data, RasterCommandBuffer cmd)

@@ -153,7 +153,7 @@ namespace DistantLands.Cozy.EditorScripts
             AddModuleButton.RegisterCallback((ClickEvent evt) => { AddModule(evt); });
             SettingsButton.RegisterCallback((ClickEvent evt) => { SettingsService.OpenProjectSettings("Project/COZY: Stylized Weather 4/Runtime"); });
             StylesButton.RegisterCallback((ClickEvent evt) => { SettingsService.OpenProjectSettings("Project/COZY: Stylized Weather 4/Features"); });
-            DocumentationButton.RegisterCallback((ClickEvent evt) => { Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation"); });
+            DocumentationButton.RegisterCallback((ClickEvent evt) => { Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4"); });
             BackButton.RegisterCallback<ClickEvent>(evt =>
             {
                 OpenHomePage();

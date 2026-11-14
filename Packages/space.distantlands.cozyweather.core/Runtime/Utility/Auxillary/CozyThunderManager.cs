@@ -72,6 +72,7 @@ namespace DistantLands.Cozy
                     source.maxDistance = 500f;
                     source.dopplerLevel = 0f;
                     source.spread = 180f;
+                    source.outputAudioMixerGroup = thunderFX.audioMixer;
 
                     lp.cutoffFrequency = 5000f;
                     lp.lowpassResonanceQ = 1f;
@@ -156,7 +157,7 @@ namespace DistantLands.Cozy
             }
             else
             {
-                position = weatherSphere.CozyCamera.transform.position + new Vector3(Random.Range(-1, 1) * 500, 0, Random.Range(-1, 1) * 500);
+                position = weatherSphere.CozyCamera.transform.position + new Vector3(Random.Range(-500f, 500f), 0, Random.Range(-500f, 500f));
             }
 
             thunderLight.transform.forward = ((weatherSphere.CozyCamera.transform.position - position).normalized - Vector3.up).normalized;
@@ -176,7 +177,8 @@ namespace DistantLands.Cozy
 
             (AudioSource source, AudioLowPassFilter lp) source = audioSources[thunderAudioSourceIndex];
 
-            source.source.clip = thunderSounds[Random.Range(0, thunderSounds.Length - 1)];
+            source.source.outputAudioMixerGroup = thunderFX.audioMixer;
+            source.source.clip = thunderSounds[Random.Range(0, thunderSounds.Length)];
             source.source.transform.position = position;
             source.source.Play();
 
@@ -192,7 +194,7 @@ namespace DistantLands.Cozy
         {
             float timer = 0;
 
-            VisualEffect instance = Instantiate(thunderPrefab, position, Quaternion.identity);
+            VisualEffect instance = thunderPrefab != null ? Instantiate(thunderPrefab, position, Quaternion.identity) : null;
 
             while (timer < duration)
             {
@@ -205,7 +207,8 @@ namespace DistantLands.Cozy
 
             thunderLight.enabled = false;
             atmosphereModule.LightningLightingOverride = 0;
-            Destroy(instance.gameObject);
+            if (instance != null)
+                Destroy(instance.gameObject);
         }
         IEnumerator ThunderCoroutine(Vector3 position)
         {

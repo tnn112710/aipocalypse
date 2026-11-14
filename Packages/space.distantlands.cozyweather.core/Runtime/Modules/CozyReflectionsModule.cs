@@ -3,6 +3,7 @@
 //  All code included in this file is protected under the Unity Asset Store Eula
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 #if COZY_URP
 using UnityEngine.Rendering.Universal;
 #endif
@@ -118,10 +119,26 @@ namespace DistantLands.Cozy
             }
         }
 
+        public override void OnSceneLoaded(LoadSceneMode mode)
+        {
+            RefreshReflectionsOnSceneChange();
+        }
+
+        public override void OnSceneUnloaded()
+        {
+            RefreshReflectionsOnSceneChange();
+        }
+
         protected void RefreshReflectionsOnSceneChange()
         {
-            if (refreshOnSceneChange)
-                RenderReflections();
+            if (!refreshOnSceneChange)
+                return;
+
+            if (reflectionCubemap == null)
+                CreateReflectionTexture();
+            RenderSettings.customReflectionTexture = reflectionCubemap;
+            RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Custom;
+            RenderReflections();
         }
 
         public int ToLayer(LayerMask mask)

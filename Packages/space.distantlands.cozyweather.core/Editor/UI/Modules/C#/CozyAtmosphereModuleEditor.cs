@@ -530,7 +530,7 @@ namespace DistantLands.Cozy.EditorScripts
 
         public override void OpenDocumentationURL()
         {
-            Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation/how-it-works/modules/atmosphere-module");
+            Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4/using-cozy/modules/atmosphere-module");
         }
 
 

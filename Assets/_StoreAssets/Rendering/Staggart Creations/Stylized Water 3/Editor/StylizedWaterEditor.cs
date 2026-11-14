@@ -120,6 +120,17 @@ namespace StylizedWater3
             
             if(Application.isPlaying == false) EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         }
+
+        [MenuItem("Window/Stylized Water 3/Open demo scene", false, 1002)]
+        public static void OpenDemoScene()
+        {
+            string path = AssetDatabase.GUIDToAssetPath("2477c7e727bfe2f4bba7e621f08fd50b");
+            
+            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                EditorSceneManager.OpenScene(path);
+            }
+        }
         
         [MenuItem("Window/Stylized Water 3/Create default reflection probe", false, 2000)]
         public static void CreateDefaultReflectionProbe()

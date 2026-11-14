@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using DistantLands.Cozy;
 using NUnit.Framework;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace DistantLands.Cozy.Tests
         private const float Tolerance = 0.001f;
 
         [TestFixture]
-        public class TemperatureTests
+        public class TemperatureTests : TestMeridiemProperties.IsolatedPreferencesTests
         {
 
             // --- STATIC CONVERSION TESTS ---
@@ -109,11 +110,21 @@ namespace DistantLands.Cozy.Tests
                 Assert.AreEqual(80.33f, temp, Tolerance); // 300K ~ 80.33F
             }
 
-            [Test] // 13
-            public void Parse_StringWithWeirdSpacingAndCaps_ParsesCorrectly()
+            [TestCase("en-US")]
+            [TestCase("fr-FR")]
+            public void Parse_StringWithWeirdSpacingAndCaps_ParsesCorrectly(string cultureName)
             {
-                Temperature temp = Temperature.Parse("  -12.5   °   CeLsIuS ");
-                Assert.AreEqual(9.5f, temp, Tolerance); // -12.5C = 9.5F
+                var previousCulture = CultureInfo.CurrentCulture;
+                try
+                {
+                    CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+                    Temperature temp = Temperature.Parse("  -12.5   °   CeLsIuS ");
+                    Assert.AreEqual(9.5f, temp, Tolerance); // -12.5C = 9.5F
+                }
+                finally
+                {
+                    CultureInfo.CurrentCulture = previousCulture;
+                }
             }
 
             [Test] // 14
@@ -129,24 +140,34 @@ namespace DistantLands.Cozy.Tests
                 Assert.Throws<FormatException>(() => Temperature.Parse("Not A Temperature"));
             }
 
-            [Test] // 16
-            public void Parse_NoUnitString_FallsBackToValue()
+            [TestCase(TemperatureUnit.Fahrenheit)]
+            [TestCase(TemperatureUnit.Celsius)]
+            [TestCase(TemperatureUnit.Kelvin)]
+            public void Parse_NoUnitString_UsesTemperaturePreference(TemperatureUnit unit)
             {
-                // Tests the fallback float.TryParse block
+                SetPreference("temperatureUnit", unit);
                 Temperature temp = Temperature.Parse("45.5");
-                // Since we don't know the global CozyPreferences state in a unit test, 
-                // we at least assert it doesn't throw and registers a value.
-                Assert.DoesNotThrow(() => Temperature.Parse("45.5"));
+                Assert.AreEqual(45.5f, temp.GetTemperature(unit), Tolerance);
             }
 
             // --- STRING FORMATTING TESTS ---
 
-            [Test] // 17
-            public void ToString_SpecificUnit_FormatsWithOneDecimal()
+            [TestCase("en-US", "0.0°C", "32.0°F")]
+            [TestCase("fr-FR", "0,0°C", "32,0°F")]
+            public void ToString_SpecificUnit_FormatsWithOneDecimal(string cultureName, string expectedCelsius, string expectedFahrenheit)
             {
-                Temperature temp = new Temperature(32f, TemperatureUnit.Fahrenheit);
-                Assert.AreEqual("0.0°C", temp.ToString(TemperatureUnit.Celsius));
-                Assert.AreEqual("32.0°F", temp.ToString(TemperatureUnit.Fahrenheit));
+                var previousCulture = CultureInfo.CurrentCulture;
+                try
+                {
+                    CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+                    Temperature temp = new Temperature(32f, TemperatureUnit.Fahrenheit);
+                    Assert.AreEqual(expectedCelsius, temp.ToString(TemperatureUnit.Celsius));
+                    Assert.AreEqual(expectedFahrenheit, temp.ToString(TemperatureUnit.Fahrenheit));
+                }
+                finally
+                {
+                    CultureInfo.CurrentCulture = previousCulture;
+                }
             }
 
             // --- LERP TESTS ---

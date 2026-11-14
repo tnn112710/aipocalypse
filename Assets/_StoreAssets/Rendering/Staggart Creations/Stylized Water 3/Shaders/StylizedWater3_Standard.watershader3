@@ -381,7 +381,7 @@
             %define_fog_integration%
             %include_fog_integration_library%
             
-			#include_library "Libraries/Fog.hlsl"
+			#include_library_with_pragmas "Libraries/Fog.hlsl"
 			#include_library "Libraries/Terrain.hlsl"
 			
 			#include_library "Libraries/Depth.hlsl"

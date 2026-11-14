@@ -294,7 +294,7 @@ namespace StylizedWater3
                 {
                     int stencilID = STENCIL_REF;
                     
-                    if (importer.settings.fogIntegration == Integrations.FogAssets.COZY)
+                    if (importer.settings.fogIntegration == Integrations.FogAssets.COZY3)
                     {
                         
                     }
@@ -533,6 +533,16 @@ namespace StylizedWater3
 
                         //Mark the asset integration as being compiled in
                         importer.configurationState.fogIntegration = fogIntegration.asset;
+
+                        if (fogIntegration.asset == Integrations.FogAssets.COZY4)
+                        {
+                            //Library uses Shader Graph macros, remap to real texture type
+                            AddLine("#ifndef UnityTexture3D");
+                            AddLine("#define UnityTexture3D Texture3D");
+                            AddLine("#endif");
+                            //Otherwise fog color just returns white
+                            AddLine("#define CZY_USE_FOGBASE");
+                        }
                         
                         if (fogIntegration.asset != Integrations.FogAssets.None && fogIntegration.asset != Integrations.FogAssets.UnityFog)
                         {
@@ -561,31 +571,29 @@ namespace StylizedWater3
                         }
                     }
                 }
-
+                
                 //Shaders created using "ShaderUtil.CreateShaderAsset" don't exist in a literal sense. Hence any relative file paths are invalid
                 //Convert them to absolute file paths
                 //Bonus: moving a shader file (or its folder) triggers it to re-import, thus always keeping the file path up-to-date
-                if (line.StartsWith("#include_library"))
+                if (line.StartsWith("#include_library") || line.StartsWith("#include_library_with_pragmas"))
                 {
-                    string relativePath = line.Replace("#include_library ", string.Empty);
+                    bool pragmas = line.StartsWith("#include_library_with_pragmas");
+                    string relativePath = line.Replace(pragmas ? "#include_library_with_pragmas " : "#include_library ", string.Empty);
                     //Remove parenthesis
                     relativePath = relativePath.Replace("\"", string.Empty);
 
-                    string includePath = RelativeToAbsoluteIncludePath(shaderPath, relativePath);
+                    string absoluteIncludePath = RelativeToAbsoluteIncludePath(shaderPath, relativePath);
 
-                    line = $"#include \"{includePath}\"";
+                    line = $"#{(pragmas ? "include_with_pragmas" : "include")} \"{absoluteIncludePath}\"";
 
-                    importer.RegisterDependency(includePath);
+                    importer.RegisterDependency(absoluteIncludePath);
 
                     AddLine(line);
                     continue;
                 }
-
-                //Insert whitespace back in
-                line = line.Insert(0, whitespace);
-
+                
                 //Nothing special, keep whatever line this is
-                sb.AppendLine(line);
+                AddLine(line);
             }
 
             //Convert to separate lines again

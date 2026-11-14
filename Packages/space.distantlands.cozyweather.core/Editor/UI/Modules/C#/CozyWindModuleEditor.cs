@@ -462,7 +462,7 @@ namespace DistantLands.Cozy.EditorScripts
 
         public override void OpenDocumentationURL()
         {
-            Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation/how-it-works/modules/wind-module");
+            Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4/using-cozy/modules/atmosphere-module-1");
         }
 
         private static Vector2 RotatePoint(Vector2 point, Vector2 pivot, float angleDegrees)
