@@ -86,8 +86,22 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Min(0f), Tooltip("Degrees the sights overshoot upwards when raised, then settle")] public float AimInKick = 0.5f;
         [Range(0f, 1f), Tooltip("Random sideways part of that kick, as a share of it")] public float AimInKickSideways = 0.5f;
 
+        [Header("Crouching"), Range(0f, 1f), Tooltip("Share of the aim and model sway kept while crouching (steadier)")]
+        public float CrouchSway = 0.7f;
+
         [Header("Limits"), Min(0f), Tooltip("Most degrees off the screen centre, at the hip")] public float MaxOffset = 4f;
         [Min(0f)] public float AimMaxOffset = 3f;
+
+        [Header("Hip wobble (fills the gun's envelope, HeldItem.Wobble)"), Min(0f), Tooltip("Wander speed at rest (noise cycles per second)")]
+        public float WobbleRate = 0.35f;
+        [Min(0f), Tooltip("Wander speed when gasping (out of breath)")] public float TiredWobbleRate = 0.8f;
+        [Min(1f), Tooltip("Spring for a shot's jolt: higher = settles faster")] public float WobbleStiffness = 150f;
+        [Range(0.1f, 1f), Tooltip("Below 1 the jolt overshoots before settling")] public float WobbleDamping = 0.5f;
+        [Min(0f), Tooltip("Degrees: a safety cap on the envelope the wander fills")] public float MaxWobble = 10f;
+        [Min(0.1f), Tooltip("Degrees per second the wander's size follows the envelope (walking, landing, a new gun), so it never pops")]
+        public float WobbleGrowSpeed = 4f;
+        [Range(1f, 4f), Tooltip("How much of the time the wander spends near the envelope's edge (noise stretch): higher = wider, more often at the edge")]
+        public float WobbleFill = 2.5f;
     }
 
     public struct HeldSwayInput
@@ -106,6 +120,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // 0 calm .. 1 gasping (PlayerBreathing).
         public float Tiredness;
         public bool IsWinded;
+        public bool IsCrouching;
+        // Degrees the aim may wander (the held gun's hip envelope); 0 = none.
+        public float Wobble;
     }
 
     // Procedural held-item motion (breathing, footstep bob, springs lagging turns, moves, jumps, landings). AimOffset moves the
@@ -130,14 +147,22 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _time;
         float _airborne;
         float _winded;
+        float _crouched;
         float _strafeShare;
         float _aimWeight;
         bool _wasAiming;
+        float _wobblePhase;
+        // The envelope the wander fills, eased toward the held item's.
+        float _wobbleSize;
+        Vector2 _wobbleKick;
+        Vector2 _wobbleKickVelocity;
 
         public Vector3 Position { get; private set; }
         public Quaternion Rotation { get; private set; } = Quaternion.identity;
-        // Degrees off the screen centre: x = right, y = up.
+        // Degrees off the screen centre: x = right, y = up. RestOffset plus the hip wobble.
         public Vector2 AimOffset { get; private set; }
+        // The aim sway without the hip wobble: the middle of the wander.
+        public Vector2 RestOffset { get; private set; }
         // AimOffset as a rotation in the eye's space.
         public Quaternion AimRotation => Quaternion.Euler(-AimOffset.y, AimOffset.x, 0f);
         // The held item's own multiplier (HoldFeel.SwayScale): 1 = as tuned, higher = heavier.
@@ -162,6 +187,16 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Kick(new Vector2(jolt, -dip));
         }
 
+        // A shot's jolt to the hip wobble (degrees): peaks about that far off, then settles.
+        public void KickWobble(Vector2 degrees)
+        {
+            if (degrees != Vector2.zero)
+                _wobbleKickVelocity += degrees * (Mathf.Sqrt(_aim.WobbleStiffness) / PeakShare(_aim.WobbleDamping));
+        }
+
+        // Drops a pending jolt (the held item changed); the wander's size eases to the new item's.
+        public void ResetWobble() => _wobbleKick = _wobbleKickVelocity = Vector2.zero;
+
         public void Tick(in HeldSwayInput input, float deltaTime)
         {
             if (deltaTime <= 0f)
@@ -169,11 +204,12 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             deltaTime = Mathf.Min(deltaTime, MaxDeltaTime);
 
             float aim = _aimWeight = Mathf.Clamp01(input.AimWeight);
-            float scale = Mathf.Max(0f, _stats.GetScale(StatId.HeldItemSwayScale) * ItemScale);
             float blend = Damping.ByTime(_aim.BlendTime, deltaTime);
             _time += deltaTime;
             _airborne = Mathf.Lerp(_airborne, input.IsAirborne ? 1f : 0f, blend);
             _winded = Mathf.Lerp(_winded, input.IsWinded ? 1f : 0f, blend);
+            _crouched = Mathf.Lerp(_crouched, input.IsCrouching ? 1f : 0f, blend);
+            float scale = Mathf.Max(0f, _stats.GetScale(StatId.HeldItemSwayScale) * ItemScale * Mathf.Lerp(1f, _aim.CrouchSway, _crouched));
             if (input.IsAiming && !_wasAiming)
                 Kick(new Vector2(((float)_random.NextDouble() * 2f - 1f) * _aim.AimInKickSideways, 1f) * _aim.AimInKick);
             _wasAiming = input.IsAiming;
@@ -193,7 +229,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             float step = Mathf.Sin(input.BobPhase * 2f - _aim.StepLag);
 
             Vector2 aimSway = AimTick(input, aim, b, heavy, bob * Mathf.Lerp(1f, _aim.SprintBob, sprint), side, step, blend, deltaTime);
-            AimOffset = Vector2.ClampMagnitude(aimSway * scale, Mathf.Lerp(_aim.MaxOffset, _aim.AimMaxOffset, aim));
+            RestOffset = Vector2.ClampMagnitude(aimSway * scale, Mathf.Lerp(_aim.MaxOffset, _aim.AimMaxOffset, aim));
+            AimOffset = RestOffset + WobbleTick(input.Wobble, tiredness, deltaTime);
             ModelTick(input, aim, b, heavy, bob, sprint, side, step, scale, deltaTime);
         }
 
@@ -222,6 +259,22 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Vector2 air = new Vector2(Drift(t, 0.31f), Drift(0.73f, t)) * (s.AirDrift * _airborne * move);
 
             return _aimLag + breath + walk + air;
+        }
+
+        // The hip wobble: a slow smooth wander inside the envelope (not rescaled by steadiness: the envelope has it), plus
+        // shot jolts on their own spring.
+        Vector2 WobbleTick(float envelope, float tiredness, float deltaTime)
+        {
+            AimSwaySettings s = _aim;
+            Spring.Step(ref _wobbleKick, ref _wobbleKickVelocity, Vector2.zero, s.WobbleStiffness, s.WobbleDamping, deltaTime);
+            // Unity's Perlin noise repeats every 256 units, so the phase wraps there without a jump.
+            _wobblePhase = (_wobblePhase + deltaTime * Mathf.Lerp(s.WobbleRate, s.TiredWobbleRate, tiredness)) % 256f;
+            _wobbleSize = Mathf.MoveTowards(_wobbleSize, Mathf.Clamp(envelope, 0f, s.MaxWobble), s.WobbleGrowSpeed * deltaTime);
+            if (_wobbleSize <= 0f)
+                return _wobbleKick;
+            // Perlin stays mostly within ±0.3 of its middle: stretched so the wander reaches toward the envelope's edge.
+            var wander = new Vector2(Mathf.PerlinNoise(_wobblePhase, 3.7f) - 0.5f, Mathf.PerlinNoise(11.3f, _wobblePhase) - 0.5f) * (2f * s.WobbleFill);
+            return Vector2.ClampMagnitude(wander, 1f) * _wobbleSize + _wobbleKick;
         }
 
         void ModelTick(in HeldSwayInput input, float aim, float b, float heavy, float bob, float sprint, float side, float step, float scale, float deltaTime)

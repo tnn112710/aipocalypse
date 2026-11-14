@@ -48,8 +48,8 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    ├─ BottomRight
    │  └─ PickupFeed          nested Canvas · PickupFeedHud: Line0…Line4 ("+30 Rifle Ammo", newest at the bottom) + Warning ("Backpack full"), 150 px up
    └─ Center
-      ├─ Crosshair           nested Canvas · CrosshairHud; 6×6 dot (built-in Knob sprite, white 90 %, thin dark outline)
-      │  ├─ SpreadUp/Right/Down/Left   2×7 px ticks pushed out to the spread cone (pivot on the inner end)
+      ├─ Crosshair           nested Canvas · CrosshairHud; moved to where the barrel points
+      │  ├─ (reticle)        spawned at runtime from CrosshairHud's reticle prefab (Prefabs/Widgets/Reticles, see Crosshair below)
       │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
@@ -82,7 +82,7 @@ The HUD is **standalone**, not part of the player. It holds info that isn't the 
 ```text
 PlayerRegistry (root) ── ActivePlayerChanged ──> PlayerHudView.Rebind → Unbind(old) / Bind(new)
    ▲ Register / Unregister                         ├─ PlayerVitalsHud   polls the bound player in LateUpdate
-Player (Construct / OnDestroy)                    ├─ CrosshairHud      polls Player.CrosshairPosition in LateUpdate
+Player (Construct / OnDestroy)                    ├─ CrosshairHud      polls Player.CrosshairPosition / CrosshairSpread in LateUpdate
                                                   └─ HotbarHud         spawns slot views, listens to Hotbar / Equipment
 ```
 
@@ -217,8 +217,9 @@ InteractPrompt               InteractPromptView component
 | Minimap sprites, colours, letters, range, enemy dot size | `Data/UI/MinimapStyle.asset` |
 | Minimap size, position | `HUD` → `TopRight/Minimap` RectTransform (the radius is half the `Disc` width) |
 | A marker kind's icon, colours, size, pin to the rim | `Data/Map/<Kind>.asset` (`MapMarkerKind`) |
-| Crosshair size, color | `HUD` → `Center/Crosshair` (RectTransform size, Image color, Outline) |
-| Crosshair sprint fade speed, spread tick threshold / speed | `Data/UI/CrosshairStyle.asset` |
+| Crosshair look (dot / line size, color, outline) | the reticle prefab, `Prefabs/Widgets/Reticles/HipReticle_Cross.prefab` |
+| Which reticle the HUD uses | `HUD` → `Center/Crosshair` → `CrosshairHud` → Reticle Prefab |
+| Cross minimum gap, open / close speed, sprint fade speed | `Data/UI/CrosshairStyle.asset` |
 | Hit marker colors, durations, pops; how far above the hit a number starts | `Data/UI/HitFeedbackStyle.asset` (sounds and the number prefabs: `HitFeedbackHud`) |
 | Hurt flash color, max alpha, edge thickness, strength by damage, fade-out | `Data/UI/HurtFeedbackStyle.asset` (the pain grunt: `Data/Player/PlayerSoundTuning.asset` → Hurt; the view flinch: `PlayerCameraTuning.asset` → Hurt flinch) |
 | Damage number look (normal white, critical red) | `Prefabs/Widgets/DamageNumber.prefab`, `DamageNumber_Critical.prefab` (a variant) |
@@ -315,14 +316,15 @@ A full scope (the 4× scope) covers the screen when aimed through: `ScopeHud` re
 
 `CrosshairHud` (presenter on `SafeFrame/Center/Crosshair`) polls the active player in `LateUpdate`:
 
-- **Position:** `Player.CrosshairPosition` (the aim sway, in half-screen-heights) × half the root canvas height. Shots go exactly there with `Camera` / `MuzzleToCrosshair` aim. Moves under half a pixel are skipped; its own nested Canvas keeps the per-frame move from rebuilding the HUD.
-- **Fade:** only the dot (its `CanvasRenderer` alpha), so the hit marker child still shows. Hidden in proportion to the held item's `AimWeight` (the gun's sights take over) and faded out at `FadeSpeed` while sprinting.
-- **Spread ticks:** `Player.CrosshairSpread` (the held item's `Spread` cone, in half-screen-heights) × half the canvas height, eased at `SpreadSpeed`. They hide under `MinSpread` px (8) and fade in over `SpreadFade` px (`Data/UI/CrosshairStyle.asset`), so a rifle shows them only while airborne and a shotgun always; they share the dot's fade.
+- **Reticle:** one design at a time, a prefab with a `HipReticle` (a dot plus spread parts, each a graphic and the direction it opens in, pivot on its inner end). `CrosshairHud` spawns its Reticle Prefab under `Crosshair` on Awake; `SetReticle(prefab)` swaps it at runtime (for unlockable reticles or a settings choice). A new design is a new prefab in `Prefabs/Widgets/Reticles/` (duplicate `HipReticle_Cross`, change its graphics, sizes and part directions); the parts can be any number at any angle, or none.
+- **Position:** `Player.CrosshairPosition` (the aim sway with the gun's hip wobble, in half-screen-heights) × half the root canvas height moves the whole `Crosshair` node, so the reticle wobbles with the barrel. Shots go exactly to its centre with `Camera` / `MuzzleToCrosshair` aim. Moves under half a pixel are skipped; its own nested Canvas keeps the per-frame move from rebuilding the HUD. The hit marker is a sibling of the reticle, so it pops on the current aim.
+- **Cross size:** the spread parts sit at `Player.CrosshairSpread` (the held item's `Spread`: the hip wobble envelope plus pellet spread) × half the canvas height, never under `MinGap` px (10), eased at `OpenSpeed` (40) while growing and `CloseSpeed` (8) while shrinking (`Data/UI/CrosshairStyle.asset`): a shot or a step opens it at once, standing still lets it close. Standing with the AK it's about 40 px at 1080p.
+- **Fade:** the reticle (`CanvasRenderer` alpha), not the hit marker. Hidden in proportion to the held item's `AimWeight` (the gun's sights take over) and faded out at `FadeSpeed` while sprinting. Items with no spread (axe, consumables, empty hands) show only the dot.
 - On unbind it snaps back to the centre, fully visible.
 
 ## Hit feedback
 
-`HitFeedbackHud` sits on `SafeFrame/Center/Crosshair/HitMarker` (an X of four 2.5×9 px ticks round the dot, in a CanvasGroup). It subscribes to `DamageDealt` and reacts only to hits whose `Info.Source` is the active player (not the player hurting itself):
+`HitFeedbackHud` sits on `SafeFrame/Center/Crosshair/HitMarker` (an X of four 2.5×9 px ticks round the reticle's centre, in a CanvasGroup). It subscribes to `DamageDealt` and reacts only to hits whose `Info.Source` is the active player (not the player hurting itself):
 
 - **Marker:** pops to 1.3× and fades over 0.18 s; on a kill it turns red, pops to 1.8× and fades over 0.4 s. Unscaled time, so a hit stop doesn't freeze it. Several hits in one frame (shotgun pellets) mark once; a kill among them wins.
 - **Sound:** `Combat/HitMarker` or `Combat/KillConfirm` BroAudio entities, once per frame.

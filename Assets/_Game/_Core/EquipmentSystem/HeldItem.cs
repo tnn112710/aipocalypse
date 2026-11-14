@@ -28,7 +28,11 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public virtual float AimZoom => 1f;
         // False while an obstacle pose would interfere with the item's motion.
         public virtual bool KeepsClear => true;
-        // Degrees shots may go off the aim (airborne spread plus pellet spread); the crosshair shows it.
+        // Degrees the aim may wander from the hip (a gun's wobble envelope); 0 = held still.
+        public virtual float Wobble => 0f;
+        // Degrees the wobble is jolted this frame (a shot), x right / y up; read after Tick, like LookTurn.
+        public virtual Vector2 WobbleKick => default;
+        // Radius the crosshair's cross shows (degrees): the wobble plus pellet spread.
         public virtual float Spread => 0f;
         // Multiplies the holder's move speed (using a consumable slows the walk): 1 = none.
         public virtual float MoveSpeedScale => 1f;

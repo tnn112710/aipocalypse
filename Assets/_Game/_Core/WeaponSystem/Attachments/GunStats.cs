@@ -91,7 +91,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public float SpreadScale { get; }
         public float SpreadAngle { get; }
         public float MoveSpeedScale { get; }
-        // Degrees shots may go off the aim from the hip, and fully aimed.
+        // The hip wobble's cone (degrees) from the hip, and fully aimed (GunAccuracy).
         public float HipSpread { get; }
         public float AimSpread { get; }
         // Field of view multiplier when fully aimed: the gun's own, or the optic's magnification if that zooms further.

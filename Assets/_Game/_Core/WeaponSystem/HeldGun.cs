@@ -44,6 +44,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         Gun _gun;
         GunRecoil _recoil;
         GunAccuracy _accuracy;
+        // This frame's shot jolts to the wobble (degrees).
+        Vector2 _wobbleKick;
         GunJam _jam;
 
         Vector3 _restRecoilPosition;
@@ -73,12 +75,16 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public override float Zoom => _gun != null ? AimZoom * _recoil.FovScale : 1f;
         public override float AimZoom => _gun != null ? Mathf.Lerp(1f, _item.Stats.AimZoom, _aimWeight) : 1f;
         public override float AimWeight => _aimWeight;
-        // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
-        float AirSpread => _accuracy != null ? _accuracy.Spread * _item.Stats.SpreadScale : 0f;
-        // The hip-fire cone, shrinking as the sights come up.
-        float HipCone => _item != null ? _item.Stats.ConeAt(_aimWeight) : 0f;
-        public override float Spread => _gun != null ? AirSpread + HipCone + _item.Stats.SpreadAngle : 0f;
+        public override float Wobble => _accuracy != null ? _accuracy.Spread : 0f;
+        public override Vector2 WobbleKick => _wobbleKick;
+        public override float Spread => _gun != null ? Wobble + _item.Stats.SpreadAngle : 0f;
         public override float MoveSpeedScale => _item != null ? _item.Stats.MoveSpeedScale : 1f;
+
+        // Live in the Inspector while playing (any scene), for tuning the hip feel: the envelope, its shot bloom, the stance's
+        // recoil multiplier.
+        [ShowInInspector, ReadOnly, HideInEditorMode, BoxGroup("Live"), LabelText("Wobble (°)")] float LiveWobble => Wobble;
+        [ShowInInspector, ReadOnly, HideInEditorMode, BoxGroup("Live"), LabelText("Bloom (°)")] float LiveBloom => _accuracy?.Bloom ?? 0f;
+        [ShowInInspector, ReadOnly, HideInEditorMode, BoxGroup("Live"), LabelText("Recoil ×")] float LiveRecoil => _stateMultiplier;
 
         // A scope's own sway calming, eased in with the aim.
         public override float SwayScale
@@ -181,8 +187,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (_gun == null)
                 return;
 
+            _wobbleKick = default;
             RecoilSettings recoil = _definition.Recoil;
-            _stateMultiplier = input.IsAirborne ? recoil.AirborneMultiplier : input.IsMoving ? recoil.MovingMultiplier : 1f;
+            _stateMultiplier = recoil.StateMultiplier(input.IsAirborne, input.IsMoving, input.IsCrouching);
             _sprintRecoveryLeft = input.IsSprinting ? _definition.Handling.SprintRecoveryTime : _sprintRecoveryLeft - deltaTime;
 
             _gun.Tick(new GunInput
@@ -209,7 +216,16 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _jolt.Tick(deltaTime);
             _recoil.Tick(deltaTime, _aimWeight);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
-            _accuracy.Tick(input.IsAirborne, _aimWeight, _user.AirSpreadScale, deltaTime);
+            _accuracy.Tick(new AccuracyInput
+            {
+                Cone = _item.Stats.ConeAt(_aimWeight),
+                MoveScale = input.MoveSpreadScale,
+                AimWeight = _aimWeight,
+                Airborne = input.IsAirborne,
+                AirScale = _user.AirSpreadScale * _item.Stats.SpreadScale,
+                Fatigue = _user.FatigueRecoilScale,
+                Steadiness = _user.SteadinessScale,
+            }, deltaTime);
             if (_tailIn >= 0f && (_tailIn -= deltaTime) < 0f)
                 Play(_item.Stats.FireTailSound);
             if (_animation != null)
@@ -263,6 +279,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _gun?.Interrupt();
             _recoil?.Reset();
             _accuracy?.Reset();
+            _wobbleKick = default;
         }
 
         void OnDestroy()
@@ -334,6 +351,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         void OnFired()
         {
             _pendingShots++;
+            _wobbleKick += Random.insideUnitCircle.normalized * _accuracy.AddShot();
             _user.Exert(_definition.Fire.StaminaPerShot);
             if (_animation != null)
                 _animation.Fired();
@@ -380,8 +398,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
             GunAim.Shot(_user, muzzle, stats.Range, bullet.HitLayers, _bullets, out Vector3 origin, out Vector3 direction);
-            // Hip and airborne spread move the whole shot; pellets then spread around it.
-            direction = BulletSpread.Apply(direction, AirSpread + HipCone);
+            // No hidden cone: hip inaccuracy is the visible wobble the aim already follows. Pellets spread around it.
             for (int i = 0; i < fire.Pellets; i++)
             {
                 _bullets.Fire(new BulletShot

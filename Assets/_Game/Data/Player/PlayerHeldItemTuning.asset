@@ -15,6 +15,9 @@ MonoBehaviour:
   _aimFrom: 2
   _aimMoveSpeedMultiplier: 0.6
   _movingSpeed: 0.5
+  _walkSpreadScale: 1.5
+  _crouchSpreadScale: 0.7
+  _sprintSpreadScale: 2.5
   _keepHeldItemClear: 1
   _clearanceMargin: 0.05
   _clearanceRadius: 0.05
@@ -54,8 +57,16 @@ MonoBehaviour:
     AimLanding: 0.5
     AimInKick: 0.5
     AimInKickSideways: 0.5
+    CrouchSway: 0.7
     MaxOffset: 4
     AimMaxOffset: 3
+    WobbleRate: 0.35
+    TiredWobbleRate: 0.8
+    WobbleStiffness: 150
+    WobbleDamping: 0.5
+    MaxWobble: 10
+    WobbleGrowSpeed: 4
+    WobbleFill: 2.5
   _heldSway:
     BreathPosition: {x: 0.0025, y: 0.003, z: 0}
     BreathRoll: 0.3

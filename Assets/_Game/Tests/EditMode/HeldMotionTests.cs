@@ -9,48 +9,319 @@ namespace MB13.Aipocalypse.Tests
 {
     public class GunAccuracyTests
     {
-        static AccuracySettings Settings() => new() { AirborneSpread = 2f, AimMultiplier = 0.25f, SettleSpeed = 6f };
-
-        [Test]
-        public void OnTheGround_HasNoSpread()
+        static AccuracySettings Settings() => new()
         {
-            var accuracy = new GunAccuracy(Settings());
-            accuracy.Tick(false, 0f, 1f, 0.016f);
-            Assert.AreEqual(0f, accuracy.Spread);
+            AirborneSpread = 2f, AimMultiplier = 0.25f, SettleSpeed = 6f, BloomPerShot = 0.5f, MaxBloom = 3f, BloomRecovery = 4f
+        };
+
+        static AccuracyInput Input() => new() { Cone = 3f, MoveScale = 1f, AirScale = 1f, Fatigue = 1f, Steadiness = 1f };
+
+        static float SpreadAfter(GunAccuracy accuracy, AccuracyInput input)
+        {
+            accuracy.Tick(input, 0.016f);
+            return accuracy.Spread;
         }
 
         [Test]
-        public void Airborne_Spreads()
+        public void Standing_IsTheCone() => Assert.AreEqual(3f, SpreadAfter(new GunAccuracy(Settings()), Input()), 0.001f);
+
+        [Test]
+        public void Moving_ScalesTheCone()
         {
-            var accuracy = new GunAccuracy(Settings());
-            accuracy.Tick(true, 0f, 1f, 0.016f);
-            Assert.AreEqual(2f, accuracy.Spread, 0.001f);
+            var input = Input();
+            input.MoveScale = 1.5f;
+            Assert.AreEqual(4.5f, SpreadAfter(new GunAccuracy(Settings()), input), 0.001f);
         }
 
         [Test]
-        public void Aiming_AndSteadiness_ReduceSpread()
+        public void Airborne_AddsAirSpread_LessWhileAiming()
+        {
+            var input = Input();
+            input.Cone = 0f;
+            input.Airborne = true;
+            Assert.AreEqual(2f, SpreadAfter(new GunAccuracy(Settings()), input), 0.001f);
+
+            input.AimWeight = 1f;
+            Assert.AreEqual(0.5f, SpreadAfter(new GunAccuracy(Settings()), input), 0.001f, "aiming keeps 25%");
+        }
+
+        [Test]
+        public void Shots_AddBloom_UpToTheCap_ThenRecover()
         {
             var accuracy = new GunAccuracy(Settings());
-            accuracy.Tick(true, 1f, 1f, 0.016f);
-            Assert.AreEqual(0.5f, accuracy.Spread, 0.001f, "aiming keeps 25%");
+            accuracy.Tick(Input(), 0.016f);
+            for (int i = 0; i < 10; i++)
+                accuracy.AddShot();
+            accuracy.Tick(Input(), 0.016f);
+            Assert.AreEqual(6f, accuracy.Spread, 0.1f, "cone 3 + bloom capped at 3");
 
-            accuracy.Reset();
-            accuracy.Tick(true, 0f, 0.5f, 0.016f);
-            Assert.AreEqual(1f, accuracy.Spread, 0.001f, "a steadier holder halves it");
+            for (int i = 0; i < 120; i++)
+                accuracy.Tick(Input(), 1f / 60f);
+            Assert.AreEqual(3f, accuracy.Spread, 0.05f);
+        }
+
+        [Test]
+        public void Aiming_RemovesBloom()
+        {
+            var accuracy = new GunAccuracy(Settings());
+            for (int i = 0; i < 4; i++)
+                accuracy.AddShot();
+            var input = Input();
+            input.Cone = 0f;
+            input.AimWeight = 1f;
+            Assert.AreEqual(0f, SpreadAfter(accuracy, input), 0.001f);
+        }
+
+        [Test]
+        public void HalfAimed_IsBetweenHipAndAimed()
+        {
+            var accuracy = new GunAccuracy(Settings());
+            var input = Input();
+            input.Cone = Mathf.Lerp(3f, 0f, 0.5f);
+            input.AimWeight = 0.5f;
+            accuracy.Tick(input, 0.016f);
+            accuracy.AddShot();
+            accuracy.AddShot();
+            Assert.That(SpreadAfter(accuracy, input), Is.InRange(1.5f, 2.5f));
+        }
+
+        [Test]
+        public void Fatigue_AndSteadiness_Multiply()
+        {
+            var input = Input();
+            input.Fatigue = 1.5f;
+            input.Steadiness = 0.5f;
+            Assert.AreEqual(2.25f, SpreadAfter(new GunAccuracy(Settings()), input), 0.001f);
         }
 
         [Test]
         public void Spread_SettlesOverTime_AfterLanding()
         {
             var accuracy = new GunAccuracy(Settings());
-            accuracy.Tick(true, 0f, 1f, 0.016f);
+            var input = Input();
+            input.Cone = 0f;
+            input.Airborne = true;
+            accuracy.Tick(input, 0.016f);
 
-            accuracy.Tick(false, 0f, 1f, 0.1f);
-            Assert.That(accuracy.Spread, Is.InRange(0.4f, 2f), "doesn't snap back on landing");
+            input.Airborne = false;
+            accuracy.Tick(input, 0.1f);
+            Assert.That(accuracy.Spread, Is.InRange(0.01f, 1.99f), "doesn't snap back on landing");
 
             for (int i = 0; i < 60; i++)
-                accuracy.Tick(false, 0f, 1f, 0.05f);
+                accuracy.Tick(input, 0.05f);
             Assert.AreEqual(0f, accuracy.Spread, 0.01f);
+        }
+
+        [Test]
+        public void AddShot_ReturnsTheKick()
+        {
+            var accuracy = new GunAccuracy(Settings());
+            var input = Input();
+            accuracy.Tick(input, 0.016f);
+            Assert.AreEqual(0.5f, accuracy.AddShot(), 0.001f);
+
+            input.Fatigue = 2f;
+            accuracy.Tick(input, 0.016f);
+            Assert.AreEqual(1f, accuracy.AddShot(), 0.001f);
+
+            input.AimWeight = 1f;
+            accuracy.Tick(input, 0.016f);
+            Assert.AreEqual(0f, accuracy.AddShot(), 0.001f);
+        }
+
+        [Test]
+        public void Reset_ClearsBloomAndSpread()
+        {
+            var accuracy = new GunAccuracy(Settings());
+            accuracy.Tick(Input(), 0.016f);
+            accuracy.AddShot();
+            accuracy.Tick(Input(), 0.016f);
+            accuracy.Reset();
+            Assert.AreEqual(3f, SpreadAfter(accuracy, Input()), 0.001f);
+        }
+    }
+
+    public class RecoilStateTests
+    {
+        [Test]
+        public void Standing_IsOne() => Assert.AreEqual(1f, new RecoilSettings().StateMultiplier(false, false, false), 0.001f);
+
+        [Test]
+        public void Crouching_KicksLess()
+        {
+            var recoil = new RecoilSettings { MovingMultiplier = 1.15f, CrouchMultiplier = 0.8f };
+            Assert.AreEqual(0.8f, recoil.StateMultiplier(false, false, true), 0.001f);
+            Assert.AreEqual(1.15f * 0.8f, recoil.StateMultiplier(false, true, true), 0.001f, "crouch-walking");
+        }
+
+        [Test]
+        public void Airborne_WinsOverMoving() =>
+            Assert.AreEqual(1.6f, new RecoilSettings { AirborneMultiplier = 1.6f }.StateMultiplier(true, true, false), 0.001f);
+    }
+
+    public class MoveSpreadScaleTests
+    {
+        static float Scale(bool sprinting, bool moving, bool crouching)
+        {
+            var tuning = ScriptableObject.CreateInstance<PlayerHeldItemTuning>();
+            float scale = tuning.MoveSpreadScale(sprinting, moving, crouching);
+            Object.DestroyImmediate(tuning);
+            return scale;
+        }
+
+        [Test]
+        public void Standing_IsOne() => Assert.AreEqual(1f, Scale(false, false, false), 0.001f);
+
+        [Test]
+        public void Walking_IsWalkScale() => Assert.AreEqual(1.5f, Scale(false, true, false), 0.001f);
+
+        [Test]
+        public void Crouching_Reduces()
+        {
+            Assert.AreEqual(0.7f, Scale(false, false, true), 0.001f);
+            Assert.AreEqual(1.05f, Scale(false, true, true), 0.001f, "crouch-walking");
+        }
+
+        [Test]
+        public void Sprinting_Overrides() => Assert.AreEqual(2.5f, Scale(true, true, false), 0.001f);
+    }
+
+    public class HipWobbleTests
+    {
+        [Test]
+        public void Crouching_CalmsTheSway()
+        {
+            float Largest(bool crouching)
+            {
+                var sway = Sway();
+                var input = new HeldSwayInput { Tiredness = 1f, IsCrouching = crouching };
+                for (int i = 0; i < 60; i++)
+                    sway.Tick(input, Frame);
+                float largest = 0f;
+                for (int i = 0; i < 600; i++)
+                {
+                    sway.Tick(input, Frame);
+                    largest = Mathf.Max(largest, sway.AimOffset.magnitude);
+                }
+                return largest;
+            }
+
+            float standing = Largest(false);
+            Assert.That(Largest(true), Is.InRange(standing * 0.6f, standing * 0.8f), "crouched keeps about 70% of the sway");
+        }
+
+        const float Frame = 1f / 60f;
+
+        static HeldItemSway Sway() => new(new HeldSwaySettings(), new AimSwaySettings(), new BaseStats());
+
+        static HeldSwayInput Input(float wobble) => new() { Wobble = wobble };
+
+        static Vector2 Wander(HeldItemSway sway) => sway.AimOffset - sway.RestOffset;
+
+        [Test]
+        public void ZeroWobble_GivesNoWander()
+        {
+            var sway = Sway();
+            for (int i = 0; i < 600; i++)
+            {
+                sway.Tick(Input(0f), Frame);
+                Assert.AreEqual(Vector2.zero, Wander(sway), $"tick {i}");
+            }
+        }
+
+        [Test]
+        public void Wander_StaysInsideTheEnvelope()
+        {
+            var sway = Sway();
+            float total = 0f;
+            for (int i = 0; i < 3600; i++)
+            {
+                sway.Tick(Input(3f), Frame);
+                float magnitude = Wander(sway).magnitude;
+                Assert.LessOrEqual(magnitude, 3f + 1e-4f, $"tick {i}");
+                total += magnitude;
+            }
+            Assert.Greater(total / 3600f, 0.5f, "it actually wanders");
+        }
+
+        [Test]
+        public void Wander_IsSlow()
+        {
+            var sway = Sway();
+            sway.Tick(Input(3f), Frame);
+            Vector2 last = Wander(sway);
+            for (int i = 0; i < 3600; i++)
+            {
+                sway.Tick(Input(3f), Frame);
+                Vector2 now = Wander(sway);
+                Assert.Less((now - last).magnitude, 0.25f, $"tick {i}");
+                last = now;
+            }
+        }
+
+        [Test]
+        public void Wander_StaysSmooth_WhenTheEnvelopeJumps()
+        {
+            var sway = Sway();
+            for (int i = 0; i < 120; i++)
+                sway.Tick(Input(3f), Frame);
+            Vector2 last = Wander(sway);
+
+            void Run(float wobble, string step)
+            {
+                for (int i = 0; i < 120; i++)
+                {
+                    sway.Tick(Input(wobble), Frame);
+                    Vector2 now = Wander(sway);
+                    Assert.Less((now - last).magnitude, 0.25f, $"{step}, tick {i}");
+                    last = now;
+                }
+            }
+
+            Run(4.5f, "start walking");
+            Run(3f, "stop");
+            sway.ResetWobble();
+            Run(2f, "switching to a steadier gun");
+        }
+
+        [Test]
+        public void Kick_JoltsThenSettles()
+        {
+            var sway = Sway();
+            sway.Tick(Input(0f), Frame);
+            sway.KickWobble(new Vector2(0f, 1f));
+            float peak = 0f;
+            for (int i = 0; i < 60; i++)
+            {
+                sway.Tick(Input(0f), Frame);
+                peak = Mathf.Max(peak, Wander(sway).magnitude);
+            }
+            Assert.That(peak, Is.InRange(0.5f, 1.5f));
+            Assert.Less(Wander(sway).magnitude, 0.1f);
+        }
+
+        [Test]
+        public void Paused_FreezesTheWander()
+        {
+            var sway = Sway();
+            for (int i = 0; i < 30; i++)
+                sway.Tick(Input(3f), Frame);
+            Vector2 before = sway.AimOffset;
+            sway.Tick(Input(3f), 0f);
+            Assert.AreEqual(before, sway.AimOffset);
+        }
+
+        [Test]
+        public void ResetWobble_ClearsTheKick()
+        {
+            var sway = Sway();
+            sway.Tick(Input(0f), Frame);
+            sway.KickWobble(new Vector2(0f, 1f));
+            sway.Tick(Input(0f), Frame);
+            sway.Tick(Input(0f), Frame);
+            sway.ResetWobble();
+            sway.Tick(Input(0f), Frame);
+            Assert.AreEqual(Vector2.zero, Wander(sway));
         }
     }
 

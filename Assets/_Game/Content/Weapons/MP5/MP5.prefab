@@ -2465,6 +2465,7 @@ MonoBehaviour:
   _magazines:
   - {fileID: 7923494235370162886}
   - {fileID: 4571642387033503341}
+  _sightWindow: {fileID: 0}
 --- !u!1 &8291426093651194083
 GameObject:
   m_ObjectHideFlags: 0
@@ -2873,52 +2874,60 @@ PrefabInstance:
       value: MP5
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.04
+      value: 0.03
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.4
+      value: -0.24
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9990453
+      value: 0.9998372
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.0018655288
+      value: -0.002532012
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.0016538168
+      value: -0.0038679221
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.043616153
+      value: 0.017443096
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.01
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.04
+      value: 0.03
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.4
+      value: -0.24
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9990453
+      value: 0.9998372
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.0018655288
+      value: -0.002532012
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.0016538168
+      value: -0.0038679221
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.043616153
+      value: 0.017443096
       objectReference: {fileID: 0}
     - target: {fileID: 8157045338376080571, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_Name
@@ -3134,6 +3143,7 @@ MonoBehaviour:
   _ironSight: {fileID: 0}
   _magazines:
   - {fileID: 4505321481829294405}
+  _sightWindow: {fileID: 0}
 --- !u!4 &4505321481829294405 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7612354082490596591, guid: 396cd3030c29c86448686ece9bf15d87, type: 3}

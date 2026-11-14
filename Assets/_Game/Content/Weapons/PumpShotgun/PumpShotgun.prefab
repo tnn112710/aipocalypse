@@ -574,6 +574,7 @@ MonoBehaviour:
     HideWhenFitted: []
   _ironSight: {fileID: 3753476323534048828}
   _magazines: []
+  _sightWindow: {fileID: 0}
 --- !u!1 &2187348333100641763
 GameObject:
   m_ObjectHideFlags: 0
@@ -2839,52 +2840,60 @@ PrefabInstance:
       value: PumpShotgun
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.06
+      value: 0.045
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.39999998
+      value: -0.33
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99904346
+      value: 0.99983513
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.0026693346
+      value: -0.0029171156
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.001682525
+      value: -0.004135222
       objectReference: {fileID: 0}
     - target: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.043614514
+      value: 0.017440395
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.06
+      value: 0.045
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.39999998
+      value: -0.33
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99904346
+      value: 0.99983513
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.0026693346
+      value: -0.0029171156
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.001682525
+      value: -0.004135222
       objectReference: {fileID: 0}
     - target: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.043614514
+      value: 0.017440395
       objectReference: {fileID: 0}
     - target: {fileID: 8157045338376080571, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
       propertyPath: m_Name
@@ -3100,6 +3109,7 @@ MonoBehaviour:
     HideWhenFitted: []
   _ironSight: {fileID: 0}
   _magazines: []
+  _sightWindow: {fileID: 0}
 --- !u!4 &5375085608131695053 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1304480727694404628, guid: fe26a96149707bc4d93b7954556dac31, type: 3}

@@ -13,6 +13,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _aimMoveSpeedMultiplier = 0.6f;
         [SerializeField, Min(0f), Tooltip("Above this ground speed (m/s) the held item counts as moving (guns use their moving recoil)")]
         float _movingSpeed = 0.5f;
+        [SerializeField, Min(0f), Tooltip("Hip wobble multiplier while walking")] float _walkSpreadScale = 1.5f;
+        [SerializeField, Min(0f), Tooltip("Hip wobble multiplier while crouching (stacks with walking)")] float _crouchSpreadScale = 0.7f;
+        [SerializeField, Min(0f), Tooltip("Hip wobble multiplier while sprinting (replaces the others); it settles after the sprint")]
+        float _sprintSpreadScale = 2.5f;
 
         [Header("Obstacle pose"), SerializeField, Tooltip("Retract and tilt the held model near walls or entities")]
         bool _keepHeldItemClear = true;
@@ -35,6 +39,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public AimOrigin AimFrom => _aimFrom;
         public float AimMoveSpeedMultiplier => _aimMoveSpeedMultiplier;
         public float MovingSpeed => _movingSpeed;
+
+        // The hip wobble's movement scale (HeldItemInput.MoveSpreadScale).
+        public float MoveSpreadScale(bool sprinting, bool moving, bool crouching) =>
+            sprinting ? _sprintSpreadScale : (moving ? _walkSpreadScale : 1f) * (crouching ? _crouchSpreadScale : 1f);
         public bool KeepHeldItemClear => _keepHeldItemClear;
         public float ClearanceMargin => _clearanceMargin;
         public float ClearanceRadius => _clearanceRadius;

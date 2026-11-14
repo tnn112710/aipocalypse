@@ -25,7 +25,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         bool IsSprinting { get; }
         // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
         Vector2 CrosshairPosition { get; }
-        // Radius of the held item's spread cone on screen, in the same units.
+        // Radius of the held item's wobble envelope plus pellet spread on screen, in the same units.
         float CrosshairSpread { get; }
         Vector3 SpawnPosition { get; }
         // The camera's pivot: its forward is where the player looks (kick and sequences included).

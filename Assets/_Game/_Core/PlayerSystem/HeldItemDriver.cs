@@ -25,6 +25,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly Fatigue _fatigue;
         readonly PlayerBreathing _breathing;
         readonly FirstPersonHands _hands;
+        // The item whose wobble the sway carries; a switch drops its pending jolts.
+        HeldItem _wobbling;
         // Field of view multiplier from sprinting, eased.
         float _sprintFov = 1f;
 
@@ -65,6 +67,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             PlayerHeldItemTuning tuning = _tuning.HeldItem;
             _equipment.Tick(deltaTime, _config.SwitchSpeed);
             _rig.Tick();
+            bool moving = _motor.HorizontalVelocity.sqrMagnitude > tuning.MovingSpeed * tuning.MovingSpeed;
             _rig.TickHeld(new HeldItemInput
             {
                 UseHeld = intent.Fire,
@@ -73,8 +76,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 ReloadPressed = intent.Reload,
                 LightPressed = intent.GunLight,
                 IsSprinting = _motor.IsSprinting,
-                IsMoving = _motor.HorizontalVelocity.sqrMagnitude > tuning.MovingSpeed * tuning.MovingSpeed,
+                IsMoving = moving,
                 IsAirborne = !_motor.IsGrounded,
+                IsCrouching = _motor.IsCrouching,
+                MoveSpreadScale = tuning.MoveSpreadScale(_motor.IsSprinting, moving, _motor.IsCrouching),
             }, deltaTime);
 
             HeldItem held = _rig.Current;
@@ -103,6 +108,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Vector3 velocity = _body.InverseTransformDirection(_motor.HorizontalVelocity);
             velocity.y = _motor.IsGrounded ? 0f : _motor.VerticalVelocity;
             _sway.ItemScale = (feel?.SwayScale ?? 1f) * (held != null ? held.SwayScale : 1f);
+            if (held != _wobbling)
+            {
+                _sway.ResetWobble();
+                _wobbling = held;
+            }
+            if (held != null)
+                _sway.KickWobble(held.WobbleKick);
             _sway.Tick(new HeldSwayInput
             {
                 LookRate = Time.unscaledDeltaTime > 0f ? intent.LookDegrees / Time.unscaledDeltaTime : Vector2.zero,
@@ -115,6 +127,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 IsAiming = held != null && held.IsAiming,
                 Tiredness = _breathing.Tiredness,
                 IsWinded = _stamina.IsWinded,
+                IsCrouching = _motor.IsCrouching,
+                Wobble = held != null ? held.Wobble : 0f,
             }, deltaTime);
             _rig.ApplyHandMotion(_sway.Position, _sway.Rotation);
             _aim.Tick(_sway.AimRotation, held != null ? held.Spread : 0f);

@@ -92,8 +92,11 @@ namespace MB13.Aipocalypse.Core.Debugging
                     .Append(((head - 1) * interval).ToString("0.00")).Append(" s\n");
             }
 
-            _sb.Append("\n<b>Cone</b> ").Append(held.Spread.ToString("0.00")).Append("° now  (hip ").Append(stats.HipSpread.ToString("0.00"))
-                .Append("°, aimed ").Append(stats.AimSpread.ToString("0.00")).Append("°)");
+            _sb.Append("\n<b>Wobble</b> ").Append(held.Wobble.ToString("0.00")).Append("° now  (hip ").Append(stats.HipSpread.ToString("0.00"))
+                .Append("°, aimed ").Append(stats.AimSpread.ToString("0.00")).Append("°, +").Append(gun.Gun.Accuracy.BloomPerShot.ToString("0.0"))
+                .Append("° a shot)");
+            if (stats.SpreadAngle > 0f)
+                _sb.Append("  pellets ").Append(stats.SpreadAngle.ToString("0.0")).Append('°');
         }
 
         void AppendParts(GunInstance gun)

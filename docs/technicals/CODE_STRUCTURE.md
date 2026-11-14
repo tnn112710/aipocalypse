@@ -80,7 +80,7 @@ Assets/_Game/
 │  ├─ _Debug/                               MB13.Aipocalypse.Core.Debugging — debug tools, see DEBUG.md (console: CONSOLE.md)
 │  │  ├─ Cheats.cs                          Cheats.Enabled: true in the editor and ENABLE_CHEAT builds (BUILD.md); gates the console, commands and cheat hotkeys
 │  │  ├─ FpsCounterCommands.cs              console afps.show / afps.hide (Advanced FPS Counter: off on every scene load, hotkey cleared, sort order 999 under the console); registered by ConsoleInstaller in dev builds
-│  │  ├─ GunReadout.cs                      Weapons Test dev readout (PlayerHudView under the scene's HUD, not localized): the held gun's stat sheet with each part's share, DPS, shots / time to kill at the range's distances, the shot cone; built by AgentScripts/Weapons/WeaponsTestSetup
+│  │  ├─ GunReadout.cs                      Weapons Test dev readout (PlayerHudView under the scene's HUD, not localized): the held gun's stat sheet with each part's share, DPS, shots / time to kill at the range's distances, the hip wobble now (cone, bloom per shot, pellets); built by AgentScripts/Weapons/WeaponsTestSetup
 │  │  ├─ TargetDummy.cs                     shooting-range target: logs hits, refills its health (the emptying hit counts as a kill), tips over from knockback, flinches from every hit, springs back
 │  │  ├─ Autopilot/RaidAutopilot.cs         console cheat.autopilot [on/off] (dev builds, registered by EnemyInstaller) + ITickable + IPlayerIntentSource: the player stands still, turns (≤ 540°/s) to the nearest living enemy within 70 m in sight, fires when its real shot direction (view × IGunUser.AimOffset) is within 2° (tighter far away), reloads when empty or jammed, takes up another hotbar gun when the held one is spent; used by AgentScripts/Raids/RaidSoak
 │  │  └─ Console/                           the dev console (editor and dev builds) and the screen log
@@ -275,7 +275,7 @@ Assets/_Game/
 │  │  ├─ WorldItemSaveSection.cs          SaveSection "worldItems": every WorldItem lying in the scene (found when saving / loading only); a load removes the scene's own copies first
 │  │  ├─ LootTable.cs                       SO: WeightedTable<LootDrop> (item + amount range); Roll(RandomStream, results)
 │  │  ├─ EquipmentConfig.cs                 SO: SwitchSpeed, hotbar slots (name, accepts, HotbarKey, starting item), gear slots (name, accepts, starting item), backpack slots, max weight, starting items → CreateInventory, CreateEquipment
-│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, LookTurn, IsAiming, AimWeight, KeepsClear, Zoom (field of view multiplier), Spread (shot cone for the crosshair), StopsSprint(use, aim), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands); MoveSpeedScale (the holder's walk while using); Scope (a full scope's view, ScopeView); RefreshRenderers after parts are added to the model
+│  │  ├─ HeldItem.cs                        root of an item's first-person prefab; Bind(item, owner), Show / Hide / OnReady, Tick(input), LateTick, ViewKick, LookTurn, IsAiming, AimWeight, KeepsClear, Zoom (field of view multiplier), Wobble (hip wobble envelope) and WobbleKick (a shot's jolt), Spread (wobble + pellet spread, the crosshair's cross), StopsSprint(use, aim), TryGetTip (model's furthest point from mesh bounds), Hands (its ItemHands); MoveSpeedScale (the holder's walk while using); Scope (a full scope's view, ScopeView); RefreshRenderers after parts are added to the model
 │  │  ├─ HeldItemInput.cs                   per-frame use / aim / reload wish + holder state (IsReady, sprinting…); ViewKick struct
 │  │  ├─ PoseBlender.cs                     a held model's pose pivot easing between pose markers: SnapTo, Set, MoveTowards, ApplyTo; static editor Preview (HeldGun / HeldMelee preview buttons)
 │  │  └─ EquipmentRig.cs                    spawns HeldItems (inactive staging → inject → StripForHand → hand), shows the held one, temporary lower/raise pose, TickHeld
@@ -328,7 +328,7 @@ Assets/_Game/
 │  │  ├─ PlayerMotor.cs                     CharacterController movement, jump, slopes, landing (+ LandingInfo; sliding down a steep slope counts as falling until stable ground); Jumped / Landed events; SpeedMultiplier (aiming, fatigue); Teleport (no momentum, no fall damage)
 │  │  ├─ PlayerLook.cs                      yaw on the body, pitch + the held item's ViewKick (recoil) into the camera rig; Turn (kept recoil), Pitch, ResetPitch (after a sequence)
 │  │  ├─ PlayerHeadBob.cs                   footstep bob + landing dip + hurt flinch (OnHurt: the view jerks up by damage, capped, springs back) into the camera rig's head motion; Stepped at the bottom of each bob; Phase / Intensity / SprintBlend for the held item's bob
-│  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight, scaled by StatId.HeldItemSwayScale × ItemScale (the held item's HoldFeel.SwayScale)
+│  │  ├─ HeldItemSway.cs                    held item's procedural motion (+ AimSwaySettings, HeldSwaySettings, HeldSwayInput): AimOffset / AimRotation for the crosshair, shots and model (breathing heavier when tired, walk / strafe bob, move / look lag, jump, air drift, landing, ADS raise), plus model-only position and roll; calmed by AimWeight and crouching (CrouchSway), scaled by StatId.HeldItemSwayScale × ItemScale (the held item's HoldFeel.SwayScale). The hip wobble on top: a Perlin wander filling HeldSwayInput.Wobble (eased by WobbleGrowSpeed) + shot jolts (KickWobble, ResetWobble); RestOffset is the aim without it
 │  │  ├─ PlayerZoom.cs                      sole writer of the lens field of view: ControlSettings.FieldOfView (read live) × the held item's Zoom or a pose sequence's FovScale (MinScale 0.1 … MaxScale 1.5); FirstPersonView's lens takes only the held item's AimZoom (× HeldAimZoomShare); LookScale, TanHalfFov, ModelScale (world / held lens, LensRatio); SetHeldHidden (FirstPersonView.HideHeld)
 │  │  ├─ PlayerAim.cs                       aim sway → CrosshairPosition and CrosshairSpread on screen (world FOV) + the rig's zoom-corrected turn (EquipmentRig.SetAimRotation); static ScreenPosition / ScreenRadius / ModelRotation
 │  │  ├─ PlayerBreathSound.cs               loops PlayerSoundTuning.BreathSound while out of breath (+ BreathSoundSettings: MinVolume, FadeIn, FadeOut; VolumeFor(tiredness, minVolume)), pauses it while TimeService is paused
@@ -352,7 +352,7 @@ Assets/_Game/
 │  │  ├─ Tuning/PlayerVitalsTuning.cs       max health, max stamina + regen, winded time, out of breath (BreathingSettings), fatigue tiers, fall damage heights → Player, PlayerLife; HealPauseOnHit → PlayerEffects
 │  │  ├─ Tuning/PlayerCameraTuning.cs       eye height, pitch limits, head bob, landing dip, hurt flinch → PlayerCameraRig, PlayerLook, PlayerHeadBob
 │  │  ├─ Tuning/PlayerInteractionTuning.cs  look ray reach / radius / mask, drop wall gap, yaw, throw speed / lift → PlayerInteractor; pickup magnet radius / speed / mask → ItemMagnet; search seconds per stack → PlayerLooting; repair knock interval, reach slack, look-away angle and grace → PlayerRepair; Ghost (GhostStyle) → the ghost Player draws of what's being rebuilt or looked at
-│  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, obstacle pose, AimSwaySettings, HeldSwaySettings → HeldItemDriver, HeldItemClearance, HeldItemSway
+│  │  ├─ Tuning/PlayerHeldItemTuning.cs     aim origin, aim move speed, hip wobble walk / crouch / sprint scales (MoveSpreadScale), obstacle pose, AimSwaySettings, HeldSwaySettings → HeldItemDriver, HeldItemClearance, HeldItemSway
 │  │  ├─ Tuning/PlayerSoundTuning.cs        footstep (walk / sprint volume) / jump / land / hurt (+ cooldown) / breath SoundIDs and volumes, breath sound volume and fades (BreathSoundSettings) → PlayerFeedback, PlayerBreathSound
 │  │  ├─ Tuning/PlayerVisionTuning.cs       vision radius, colour, edge brightness, light / lantern positions, range scale, max intensity, blend → PlayerVision
 │  │  ├─ Defaults/BaseStats.cs              IStatProvider default: returns base values; Changed never fires
@@ -453,7 +453,8 @@ Assets/_Game/
 │  │  ├─ Widgets/HotbarSlotStyle.cs         ScriptableObject: tile, frame, key cap sprites + colors, key font, ammo badge font + colors
 │  │  ├─ Widgets/InteractPromptView.cs      passive "[E] Pick up Rifle" view: SetKey / Show / Hide / ApplyStyle
 │  │  ├─ Widgets/InteractPromptStyle.cs     ScriptableObject: key cap sprite, fonts, verb / target colors, hold line prefix and size
-│  │  ├─ Widgets/CrosshairStyle.cs          ScriptableObject: MinSpread, SpreadFade, SpreadSpeed, FadeSpeed
+│  │  ├─ Widgets/CrosshairStyle.cs          ScriptableObject: MinGap, OpenSpeed, CloseSpeed (the cross), FadeSpeed
+│  │  ├─ Widgets/HipReticle.cs              one hip reticle design (a prefab in Prefabs/Widgets/Reticles): a dot + SpreadParts (graphic + direction) pushed out to the wobble; Show(gap, dotAlpha, spreadAlpha)
 │  │  ├─ Widgets/HitFeedbackStyle.cs        ScriptableObject: hit / kill marker colors, durations, pops, PopShare
 │  │  ├─ Widgets/HurtFeedbackStyle.cs       ScriptableObject: hurt flash color, max alpha, thickness (share of screen height), min strength, full-strength damage (share of max health), fade-out (real time)
 │  │  ├─ Widgets/ClockView.cs               passive digital clock: SetTime (monospaced HH:MM, char buffer) / SetPhase / SetDay / Show / ApplyStyle
@@ -491,7 +492,7 @@ Assets/_Game/
 │  │  ├─ Inventory/ItemInspectorView.cs     the inventory's centre panel: the selected item's name (rarity colour), rarity / weight / value, 3D view, a gun's six part slots (captions, the fit highlight), stats in two columns with green / red previews of a dragged part (GunStats), a leader line from the hovered slot to its mount on the model; StatNames, SlotName
 │  │  ├─ Inventory/ItemPreviewStage.cs      the inspector's 3D view: the item's world model (a gun upright with its parts, IItemView) on the ItemPreview layer far below the world, its own camera into a render texture (Preview_Renderer: no world features), key + fill point lights; Turn / Zoom / TryProject; Nudge (a DOTween size punch when a part goes on or off)
 │  │  ├─ Inventory/ItemPreviewInput.cs      the 3D view as a pointer target: drag turns, wheel zooms, a dropped item goes to InventoryScreen (a part onto the gun)
-│  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: moves the crosshair to Player.CrosshairPosition, fades the dot while aiming / sprinting, pushes the spread ticks out to Player.CrosshairSpread (CrosshairStyle)
+│  │  ├─ Hud/CrosshairHud.cs                PlayerHudView: spawns its reticle prefab (SetReticle swaps it), moves it to Player.CrosshairPosition (with the hip wobble), fades it while aiming / sprinting, opens the cross to Player.CrosshairSpread (CrosshairStyle); the hit marker follows
 │  │  ├─ Hud/ScopeHud.cs                    PlayerHudView: a full scope's view from HeldItem.Scope: black around a circle (ScopeMask) with the scope's reticle, on the crosshair position; the circle opens from dark while raising and slides with ScopeView.EyeOffset, a shadow darkening the edge it leaves; its canvas off while nothing shows. Node HUD/ScopeView, built by AgentScripts/Weapons/InspectorSetup
 │  │  ├─ Hud/HitFeedbackHud.cs              PlayerHudView → DamageDealt from the player: crosshair hit / kill marker (HitFeedbackStyle), hit / kill sound, pooled damage numbers (critical hits: the critical prefab)
 │  │  ├─ Hud/HurtFeedbackHud.cs             PlayerHudView → DamageDealt to the active player: screen-edge flash toward the source against the View yaw (top front, bottom back, left, right; no direction = every edge), strength by damage / max health (HurtFeedbackStyle); gradient textures made in code; unscaled, frozen while paused
@@ -507,6 +508,7 @@ Assets/_Game/
 │  │  ├─ Hud/DeathScreenHud.cs              PlayerHudView presenting PlayerRespawnFlow: PlayerRespawnFading → eyes close, menu "Loading..."; PlayerRespawning → at least MinLoadingTime; RespawnStageChanged Ready → "Click to continue", None → fade out
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, HurtFeedback edges, SafeFrame + regions, HudScope (placed in the scene), SaveToast, PauseMenu (built by AgentScripts/Save/SaveSetup)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
+│  │  ├─ Prefabs/Widgets/Reticles/          hip reticle designs (HipReticle): HipReticle_Cross (dot + four lines), the HUD's default
 │  │  ├─ Prefabs/Widgets/HotbarSlot.prefab  the hotbar slot widget
 │  │  ├─ Prefabs/Widgets/ItemSlot.prefab    the inventory slot widget (built by AgentScripts/Inventory/InventorySetup)
 │  │  ├─ Prefabs/Widgets/InteractPrompt.prefab  the interact prompt widget
@@ -534,13 +536,13 @@ Assets/_Game/
 │     ├─ Ammo/HotbarAmmo.cs                 TypesInUse(hotbar, types): each ammo type the hotbar's guns load, once (AmmoCrate, cheat.ammo)
 │     ├─ AmmoCrate.cs                       test aid, IInteractable "[E] Take ammo" while the actor carries a gun: TopUp refills each ammo type its hotbar guns use to the AmmoConfig starting amount (never above, unlimited uses); AmmoCrate_Take through AudioService (scene-placed: injected through the scope's Auto Inject Game Objects)
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root, MeleePower, Exert (stamina per attack; StatId.AttackStaminaCostScale)
-│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, AirSpreadScale, FatigueRecoilScale, AimOffset (Player implements it; StatId.AirSpreadScale)
+│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, AirSpreadScale, FatigueRecoilScale, SteadinessScale (StatId.HeldItemSwayScale), AimOffset (Player implements it; StatId.AirSpreadScale)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear (jam pause, repair timing, AddRepairTime), pump cycle, aim, sprint recovery (shots wait, clicks kept), empty click; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil: spray pattern → aim kick (view, springs back) + kept share (LookTurn) + small gun kick (model); hip / aim values blended by aim weight
 │     ├─ GunJolt.cs                         GunJolt (self-returning kick / wobble of the model) + GunJoltPlayer (runs one; HeldGun applies it on the recoil pivot)
 │     ├─ BulletSpread.cs                    random direction inside a cone
-│     ├─ GunAccuracy.cs                     spread while airborne (AccuracySettings): less when aiming, × the holder's AirSpreadScale, settles back after landing
+│     ├─ GunAccuracy.cs                     the hip wobble envelope (AccuracySettings, AccuracyInput): (cone × movement + airborne + bloom × (1 − aim)) × fatigue × steadiness; AddShot (bloom + the jolt), rises at once, settles back
 │     ├─ GunAim.cs                          Shot(user, muzzle, range, layers, bullets, out origin, out direction): the origin / direction rules for anything that aims through an eye and leaves a muzzle (AimOrigin, cover check); MuzzleToPoint with the too-close fallback
 │     ├─ HeldGun.cs                         HeldItem for guns: runs Gun, spawns bullets (GunAim.Shot), aim / sprint poses (PoseBlender) + aim zoom, recoil + jolts on the recoil pivot, drives its optional GunAnimation, sprint recovery, empty click, its GunJam, sounds (AudioService); publishes ShotFired once per shot. Numbers from the copy's GunStats; its parts on GunMounts (live while in hand), shots and flash from a muzzle part's tip (no flash with a suppressor), the aim pose moved to a fitted optic's sight line (+ eye relief), Scope (full scopes), MoveSpeedScale
 │     ├─ GunJam.cs                          GunJam: one gun's jam part (GunRepairFlow + GunRepairFeedback + QteAttempted subscription; Tick, ActionStarted, ActionEnded → cleared?, Cleared, Hide, Dispose); GunJamFactory: root service holding AudioService, QuickTimeService and the jam publishers / subscriber
@@ -688,7 +690,7 @@ Assets/_Game/
    ├─ HandRigTests.cs                       normal grip compatibility, bounded fist calibration/blending, safe fallback and all guns' punch-contact finger shapes/closure timing
    ├─ ItemPrefabTests.cs                    every item has one prefab for world + hand; world layout; rig strips world parts
    ├─ HeldItemClearanceTests.cs              obstacle retraction and recovery, stable pose, ignores self / triggers, never moves the player
-   ├─ HeldMotionTests.cs                    GunAccuracy (speed, airborne, aiming, steadiness, settling); HeldItemSway (look / move lag, aiming, sway stat, landing)
+   ├─ HeldMotionTests.cs                    GunAccuracy (cone, movement, airborne, bloom, aiming, fatigue / steadiness, settling); RecoilSettings.StateMultiplier; PlayerHeldItemTuning.MoveSpreadScale; HipWobbleTests (wander inside the envelope, slow, smooth on jumps, kicks, pause, crouch); HeldItemSway (look / move lag, aiming, sway stat, landing); PlayerAim
    ├─ WorldClockTests.cs                    clock speed, real minutes per day, phase speeds, events in one long frame, no skipped phase at a boundary, midnight, jumps, N / M cheats, skip (and a jump ending it), freeze, moon phase
    ├─ NightHighlightTests.cs                LightRotation (level with the view, tilted, turned); enemies join the layer the highlight lights; glowing eyes are placed, use the eye shader, cast no shadows
    ├─ PhaseDataTests.cs                     every ClockSettings / ClockStyle / TimeOfDayProfile asset has every DayPhase
@@ -826,7 +828,7 @@ HeldItemDriver.Tick
                        → EquipmentRig.ApplyHandMotion (model extras); PlayerAim.Tick → CrosshairPosition / CrosshairSpread (world FOV), EquipmentRig.SetAimRotation (zoom-corrected)
   PlayerMotor.SpeedMultiplier  aiming ? AimMoveSpeedMultiplier × HoldFeel.AimMoveSpeedScale : 1, × Fatigue.MoveSpeed
   HeldItemClearance  eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
-  HeldItem.LateTick  model and camera are final: HeldGun spawns this frame's shots (muzzle flash, one GunAccuracy spread for the shot, GunAim.Shot, BulletSystem.Fire per pellet)
+  HeldItem.LateTick  model and camera are final: HeldGun spawns this frame's shots (muzzle flash, GunAim.Shot along the aim with the hip wobble, no hidden cone; BulletSystem.Fire per pellet within SpreadAngle)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).
                        HeldMelee sphere-casts from the camera → damage, knockback, impact effect, hit sound
   FirstPersonHands.Tick  each hand onto the held item's grip, turned towards its implied elbow; hidden with no grip
@@ -836,7 +838,7 @@ PlayerVision.Tick    darkness (TimeOfDayWeight, eased by the director last frame
 
 LateUpdate           CinemachineBrain moves PlayerCamera to CameraPitch
                      PlayerVitalsHud reads Health / Stamina → StatBar.SetValue (skips unchanged values)
-                     CrosshairHud reads Player.CrosshairPosition / AimWeight / IsSprinting → moves and fades the dot
+                     CrosshairHud reads Player.CrosshairPosition / CrosshairSpread / AimWeight / IsSprinting → moves the reticle, opens its cross, fades it
                      InteractPromptHud reads Player.Interactor → InteractPromptView
                      QteHud reads the running session → its QteView (idle frames skip)
                      EnvironmentDirector reads WorldClock.Now → CozyBridge → COZY (sky, clouds, sun / moon lights) or its own light and sky globals; RenderSettings, fog, grades → reactors

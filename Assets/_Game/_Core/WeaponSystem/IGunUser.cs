@@ -11,6 +11,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float AirSpreadScale { get; }
         // Recoil multiplier from fatigue: 1 = fresh, higher = shakier.
         float FatigueRecoilScale { get; }
+        // Scales the hip wobble: 1 = normal, lower = steadier hands (skills; a sanity effect can plug in here).
+        float SteadinessScale { get; }
         // Where the crosshair is, as a turn from the eye's forward (aim sway). Camera and muzzle-to-crosshair shots follow it.
         Quaternion AimOffset { get; }
     }
