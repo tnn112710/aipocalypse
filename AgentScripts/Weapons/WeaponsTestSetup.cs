@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.Debugging;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using TMPro;
@@ -9,10 +10,12 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-// Builds Scenes/Prototypes/WeaponsTest.unity: grid ground, the Player and HUD, a table of the five guns (with a backpack
-// and the ammo crate), two tables of gun parts, and a range down +Z with target dummies at 10-100 m and a backstop.
+// Builds Scenes/Prototypes/WeaponsTest.unity: grid ground, the Player and HUD (with the dev gun readout), three tables of
+// guns (with a backpack and the ammo crate), two tables of gun parts, a loot crate, and a range down +Z with target
+// dummies at 10-100 m and a backstop.
 // Built in an additive scene and closed again, so the open scene (WorldMap) is never touched. Safe to re-run.
 // Run: unity command script run --file AgentScripts/Weapons/WeaponsTestSetup.cs --entry WeaponsTestSetup.Build
 public static class WeaponsTestSetup
@@ -24,11 +27,18 @@ public static class WeaponsTestSetup
     const string TablePath = "Assets/_StoreAssets/Env/Animpic/POLY-SurvivalWorkshop/Models/Interiors/SM_Table.fbx";
     const string AmmoCratePath = "Assets/_Game/Content/Props/AmmoCrate/AmmoCrate.prefab";
     const string BackpackPath = "Assets/_Game/Content/Items/Backpack/Backpack.prefab";
+    const string LootCratePath = "Assets/_Game/Content/Props/LootCrate/LootCrate.prefab";
     const string FontPath = "Assets/_Game/Data/UI/Fonts/SairaBold.asset";
     const string Weapons = "Assets/_Game/Content/Weapons/";
     const string Parts = "Assets/_Game/Content/Weapons/_Shared/Attachments/";
 
-    static readonly string[] Guns = { "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" };
+    // Three tables of guns: the five built first, then the block-outs (GunBlockoutSetup).
+    static readonly string[][] GunTables =
+    {
+        new[] { "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" },
+        new[] { "AK74M", "M4", "M1Carbine", "FAL", "HuntingRifle", "RPD" },
+        new[] { "Glock17", "DesertEagle", "Uzi", "P90", "AA12" },
+    };
     static readonly string[] PartNames =
     {
         "RedDot", "Holo", "Scope2x", "Scope4x", "PistolRedDot", "Compensator", "Suppressor", "PistolSuppressor",
@@ -61,17 +71,31 @@ public static class WeaponsTestSetup
             floor.isStatic = true;
 
             Instance(PlayerPath, null, new Vector3(0f, 0.05f, -4f), Quaternion.identity);
-            Instance(HudPath, null, Vector3.zero, Quaternion.identity);
+            GameObject hud = Instance(HudPath, null, Vector3.zero, Quaternion.identity);
+            Readout(hud.transform, AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath));
 
             var armoury = new GameObject("Armoury").transform;
-            float top = Table(armoury, "GunsTable", new Vector3(-3.2f, 0f, 0f));
-            for (int i = 0; i < Guns.Length; i++)
+            float top = 0f;
+            for (int t = 0; t < GunTables.Length; t++)
             {
-                GameObject gun = Instance($"{Weapons}{Guns[i]}/{Guns[i]}.prefab", armoury, new Vector3(-3.2f + (i - 2) * 0.36f, top + 0.03f, 0f), Quaternion.identity);
-                ShowWorldSide(gun);
+                float x = -3.2f * (t + 1);
+                top = Table(armoury, t == 0 ? "GunsTable" : "GunsTable" + (t + 1), new Vector3(x, 0f, 0f));
+                string[] guns = GunTables[t];
+                for (int i = 0; i < guns.Length; i++)
+                    ShowWorldSide(Instance($"{Weapons}{guns[i]}/{guns[i]}.prefab", armoury,
+                        new Vector3(x + (i - (guns.Length - 1) * 0.5f) * 0.34f, top + 0.03f, 0f), Quaternion.identity));
             }
-            ShowWorldSide(Instance(BackpackPath, armoury, new Vector3(-4.6f, top, 0.35f), Quaternion.Euler(0f, 30f, 0f)));
-            Instance(AmmoCratePath, armoury, new Vector3(-5.3f, 0f, 0.4f), Quaternion.Euler(0f, 90f, 0f));
+            // The new calibres aren't in the starting rounds or the ammo crate: full boxes on the floor in front of their guns.
+            AmmoBox(armoury, "HeavyAmmoBox", 60, new Vector3(-6.6f, 0.02f, -0.8f));
+            AmmoBox(armoury, "HeavyAmmoBox", 60, new Vector3(-6.1f, 0.02f, -0.8f));
+            AmmoBox(armoury, "MagnumAmmoBox", 42, new Vector3(-9.6f, 0.02f, -0.8f));
+            float edge = -3.2f * GunTables.Length - 1.4f;
+            ShowWorldSide(Instance(BackpackPath, armoury, new Vector3(edge, top, 0.35f), Quaternion.Euler(0f, 30f, 0f)));
+            Instance(AmmoCratePath, armoury, new Vector3(edge - 0.7f, 0f, 0.4f), Quaternion.Euler(0f, 90f, 0f));
+            // A loot crate rolls a part from its table (CrateLoot) when first opened; the scene scope injects it (the
+            // random stream, the loot marker).
+            GameObject crate = Instance(LootCratePath, armoury, new Vector3(5.6f, 0f, 0.4f), Quaternion.Euler(0f, -90f, 0f));
+            SceneScope(crate);
 
             for (int t = 0; t < 2; t++)
             {
@@ -98,7 +122,7 @@ public static class WeaponsTestSetup
             Box(range, "FiringLine", new Vector3(0f, 0.01f, 3f), new Vector3(12f, 0.02f, 0.08f), post);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
-            return $"saved {ScenePath}: 5 guns, {PartNames.Length} parts, {Distances.Length + 2} dummies";
+            return $"saved {ScenePath}: {GunTables.Sum(t => t.Length)} guns, {PartNames.Length} parts, a loot crate, {Distances.Length + 2} dummies";
         }
         finally
         {
@@ -106,6 +130,60 @@ public static class WeaponsTestSetup
                 SceneManager.SetActiveScene(active);
             EditorSceneManager.CloseScene(scene, true);
         }
+    }
+
+    static void AmmoBox(Transform parent, string name, int count, Vector3 position)
+    {
+        GameObject box = Instance($"{Weapons}_Shared/Ammo/{name}.prefab", parent, position, Quaternion.identity);
+        var so = new SerializedObject(box.GetComponent<WorldItem>());
+        so.FindProperty("_count").intValue = count;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        ShowWorldSide(box);
+    }
+
+    // A prototype scene scope (not strict, no installers): it injects the listed scene objects.
+    static void SceneScope(params GameObject[] inject)
+    {
+        var scope = new GameObject("SceneScope").AddComponent<GameLifetimeScope>();
+        var so = new SerializedObject(scope);
+        SerializedProperty list = so.FindProperty("autoInjectGameObjects");
+        list.arraySize = inject.Length;
+        for (int i = 0; i < inject.Length; i++)
+            list.GetArrayElementAtIndex(i).objectReferenceValue = inject[i];
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // The dev readout (GunReadout) top left, under the HUD so its scope injects it, drawn below the inventory screen.
+    static void Readout(Transform hud, TMP_FontAsset font)
+    {
+        var root = new GameObject("GunReadout", typeof(RectTransform)).GetComponent<RectTransform>();
+        root.SetParent(hud, false);
+        Transform inventory = hud.Find("Inventory");
+        root.SetSiblingIndex(inventory != null ? inventory.GetSiblingIndex() : hud.childCount - 1);
+        root.anchorMin = root.anchorMax = root.pivot = new Vector2(0f, 1f);
+        root.anchoredPosition = new Vector2(24f, -24f);
+        root.sizeDelta = new Vector2(520f, 640f);
+        var background = root.gameObject.AddComponent<Image>();
+        background.color = new Color(0f, 0f, 0f, 0.55f);
+        background.raycastTarget = false;
+
+        var text = new GameObject("Text", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+        text.rectTransform.SetParent(root, false);
+        text.rectTransform.anchorMin = Vector2.zero;
+        text.rectTransform.anchorMax = Vector2.one;
+        text.rectTransform.offsetMin = new Vector2(14f, 12f);
+        text.rectTransform.offsetMax = new Vector2(-14f, -12f);
+        text.font = font;
+        text.fontSize = 17f;
+        text.color = new Color(0.92f, 0.93f, 0.95f);
+        text.alignment = TextAlignmentOptions.TopLeft;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.raycastTarget = false;
+
+        var readout = root.gameObject.AddComponent<GunReadout>();
+        var so = new SerializedObject(readout);
+        so.FindProperty("_text").objectReferenceValue = text;
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     static void Lighting()

@@ -1,0 +1,211 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bda7d6fff4aafbc469978ca4877fb654, type: 3}
+  m_Name: FAL
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.WeaponSystem.GunDefinition
+  _displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:673a1de996d5806429c0704ea79349b9
+    m_TableEntryReference:
+      m_KeyId: 368719206371356
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _icon: {fileID: 21300000, guid: ec44beaf6d9a19a438f95864b4733657, type: 3}
+  _prefab: {fileID: 5729452817047624139, guid: c43d2959fbada974f9ffdc4517f73faa, type: 3}
+  _maxStack: 1
+  _unlimitedStack: 0
+  _weight: 4.8
+  _autoCollect: 0
+  _value: 900
+  _rarity: 2
+  _equipTime: 0.45
+  _holsterTime: 0.3
+  _holdFeel:
+    AimMoveSpeedScale: 1
+    SwayScale: 1
+  _family: 8
+  _slots: 0000000001000000020000000400000005000000i
+  _fire:
+    Mode: 1
+    RoundsPerMinute: 400
+    BurstCount: 3
+    BurstCooldown: 0.25
+    Damage: 24
+    Knockback: 2.12
+    Falloff:
+      Start: 52
+      End: 157
+      MinShare: 0.6
+    Pellets: 1
+    SpreadAngle: 0
+    CycleTime: 0
+    StaminaPerShot: 1.05
+  _bullet:
+    Speed: 325
+    Range: 196
+    GravityScale: 0
+    HitLayers:
+      serializedVersion: 2
+      m_Bits: 1083211827
+    DamageType: 2
+  _magazine:
+    AmmoType: {fileID: 11400000, guid: 1aae8361b1c14024f925bc11fc76f24a, type: 2}
+    Size: 20
+    Reload: 0
+    ReloadTime: 2.24
+    AutoReload: 1
+    LowAmmoShare: 0.25
+  _jam:
+    Chance: 0.002
+    Repair: {fileID: 0}
+    ClearTime: 1.5
+  _recoil:
+    Hip:
+      Multiplier: 1
+      Vertical: 4.59
+      Horizontal: 3.278
+      Roll: 0.393
+      NoisePitch: 0.144
+      NoiseYaw: 0.105
+      CameraShake: 0.013
+      VerticalReturnSpeed: 10
+      HorizontalReturnSpeed: 10
+      VerticalSnappiness: 10
+      HorizontalSnappiness: 10
+      GunPitch: 1.311
+      GunYaw: 0.656
+      GunRoll: 1.311
+      KickBack: 0.079
+      GunReturnSpeed: 18
+      GunSnappiness: 20
+    Aim:
+      Multiplier: 1
+      Vertical: 2.754
+      Horizontal: 2.491
+      Roll: 0.393
+      NoisePitch: 0.144
+      NoiseYaw: 0.105
+      CameraShake: 0.013
+      VerticalReturnSpeed: 15
+      HorizontalReturnSpeed: 15
+      VerticalSnappiness: 10
+      HorizontalSnappiness: 10
+      GunPitch: 0.787
+      GunYaw: 0.393
+      GunRoll: 0.656
+      KickBack: 0.052
+      GunReturnSpeed: 18
+      GunSnappiness: 20
+    KeptShare: 0.25
+    MovingMultiplier: 1.14
+    AirborneMultiplier: 1.65
+    AccurateShots: 2
+    AccurateShotsMultiplier: 0.5
+    FovKick: 0.008
+    FovKickMax: 0.03
+    FovReturnSpeed: 14
+    SprayResetDelay: 0.24
+    SprayClimb: {x: 0.02, y: 0.075}
+    SprayDrift: 0.35
+    SprayPitchJitter: 0.18
+    SprayYawJitter: 0.72
+    SprayRollFromYaw: 0.55
+  _accuracy:
+    HipSpread: 3
+    AimSpread: 0
+    AirborneSpread: 2
+    AimMultiplier: 0.4
+    SettleSpeed: 6
+  _handling:
+    AimSpeed: 8
+    SprintPoseSpeed: 7
+    AimZoom: 0.85
+    SprintRecoveryTime: 0.25
+  _sounds:
+    Volume: 1
+    Equip:
+      _entity: {fileID: 11400000, guid: be173cdcd70200043aa98337c6cc1942, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Fire:
+      _entity: {fileID: 11400000, guid: 2ee4147df30cc7f4cb44700a2d0f3bf6, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    FireTail:
+      _entity: {fileID: 11400000, guid: 6a34da5ff70523c4a9808e67777b5e69, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    LowAmmo:
+      _entity: {fileID: 11400000, guid: e7de188afe2cfb243ab7a39ae7dcc2e9, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ReloadStart:
+      _entity: {fileID: 11400000, guid: 556b682a194693341935a2b2a1aa55ac, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ReloadInsert:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ReloadEnd:
+      _entity: {fileID: 11400000, guid: b40f2da62b965cd439b54f60e5e8e9c8, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Jam:
+      _entity: {fileID: 11400000, guid: bfcc47202ecc9694dbbcb0b5485ec9ac, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    DryFire:
+      _entity: {fileID: 11400000, guid: 4cdf77544b15aec44b4e9b830dca23e3, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    Empty:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ClearJamStart:
+      _entity: {fileID: 11400000, guid: 7c46b85da282ee345aad7cbea2653514, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    ClearJamEnd:
+      _entity: {fileID: 11400000, guid: 84f8be6ab74aa6d41b12ab83fc1373bd, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    RepairSlap:
+      _entity: {fileID: 11400000, guid: bda1536e51d1bda448a35fa4fb6c2612, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    RepairPunch:
+      _entity: {fileID: 11400000, guid: af6b3b83b9911bf41852cec0ba0f6c69, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    CycleStart:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    CycleEnd:
+      _entity: {fileID: 0}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  _ejection:
+    Shell: {fileID: 2558262962116616820, guid: ed11d38d3e6f41448b13635b39df7ec1, type: 3}
+    Velocity: {x: 2.2, y: 1.4, z: -0.3}
+    VelocityJitter: 0.25
+    Spin: 900
+    OnCycle: 0
+    Prewarm: 6
+  _effects: {fileID: 11400000, guid: a81b9912543aefd4aab61e763191d0ea, type: 2}
+  references:
+    version: 2
+    RefIds: []

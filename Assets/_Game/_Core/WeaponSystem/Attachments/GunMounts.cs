@@ -67,7 +67,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         public AttachmentModel ModelIn(GunSlot slot) => _models[(int)slot];
 
-        // A fitted part carries a light (switched with the gun light key).
+        // A fitted part carries a light or a laser (switched with the gun light key).
         public bool HasLights
         {
             get
@@ -84,6 +84,28 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             foreach (AttachmentModel model in _models)
                 if (model != null)
                     model.SetLights(on);
+        }
+
+        // The fitted laser (a tactical part with a beam), or null.
+        public AttachmentModel Laser
+        {
+            get
+            {
+                AttachmentModel model = _models[(int)GunSlot.Tactical];
+                return model != null && model.HasLaser ? model : null;
+            }
+        }
+
+        // The first fitted part with a light or laser: its switch sound is the gun light key's click.
+        public AttachmentDefinition SwitchedPart
+        {
+            get
+            {
+                for (int i = 0; i < _models.Length; i++)
+                    if (_models[i] != null && _models[i].HasLights)
+                        return _shown[i];
+                return null;
+            }
         }
 
         public Transform MountOf(GunSlot slot)

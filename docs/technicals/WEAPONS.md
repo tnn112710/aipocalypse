@@ -147,19 +147,19 @@ Same steps with `Pellets` > 1 and `SpreadAngle` > 0 (each pellet does `Damage`);
 
 ## Gun parts and optics
 
-Built 2026-11-14 ([design](../superpowers/specs/2026-11-14-gun-system-design.md)). Parts are items: picked up, carried in the backpack and fitted to a gun in the inventory screen's centre inspector ([UI.md → Inventory screen](UI.md#inventory-screen)). Try them in `Scenes/Prototypes/WeaponsTest.unity` (built by `AgentScripts/Weapons/WeaponsTestSetup.cs`; play it with the scene open, or set it as the play-mode start scene).
+Built 2026-11-14 ([design](../superpowers/specs/2026-11-14-gun-system-design.md)). Parts are items: picked up, carried in the backpack and fitted to a gun in the inventory screen's centre inspector ([UI.md → Inventory screen](UI.md#inventory-screen)). Try them in `Scenes/Prototypes/WeaponsTest.unity` (built by `AgentScripts/Weapons/WeaponsTestSetup.cs`; play it with the scene open, or set it as the play-mode start scene). Its HUD carries a dev readout top left (`GunReadout`, not localized, like the console): the held gun's stat sheet with each part's share, damage per second firing and with reloads, shots and time to kill a 100 HP target (body / head) at 10, 25, 50 and 100 m with damage falloff, and the current shot cone. In play, parts come from goblins and crates ([Loot](#loot)).
 
 | Feature | How it works | Where to change it |
 | --- | --- | --- |
 | Slots | Duckov's six: Optic, Muzzle, Grip, Stock, Tactical, Magazine. Each gun lists the ones it has: AK47 and MP5 Optic, Muzzle, Grip, Tactical, Magazine; Pistol Optic, Muzzle, Tactical, Magazine; PumpShotgun Optic, Muzzle, Grip, Tactical; DoubleBarrel Tactical. No stock parts yet | Gun asset → Parts → `Slots`, `Family` |
 | What fits | A part fits a gun that has its slot and is either in its exact-gun list or of one of its families (Pistol, Smg, Rifle, Marksman, Sniper, MachineGun, Shotgun). Magazines also need the gun's ammo type | Part asset → `Families`, `Guns`, `Ammo` |
 | Stats | Each part adds percentages to the copy's stat sheet (`GunStats`): damage, fire rate, magazine, reload time, range (bullet range and both falloff distances), bullet speed, recoil up and sideways, aim time, spread (pellets and airborne), move speed while held, hip spread. They add up, then apply: base × (1 + Σ % / 100), each sum clamped to −90 … +300 %. The gun's weight and value add its parts'. `Gun`, `GunRecoil` and `HeldGun` read the sheet, not the asset; fire-rate parts don't reach the trigger yet | Part asset → `Modifiers` |
-| Fitting | With a gun inspected: drag a part onto its slot or onto the 3D view, or right-click it; the part it replaces takes its place. Drag a fitted part to a backpack slot, or right-click it, to take it off. A smaller magazine's extra rounds go back to the backpack as ammo. With no room for the part or the rounds nothing changes ("Backpack full"). Rules in `GunModding` | — |
+| Fitting | With a gun inspected: drag a part onto its slot or onto the 3D view, or right-click it; the part it replaces takes its place. Drag a fitted part to a backpack slot, or right-click it, to take it off. A smaller magazine's extra rounds go back to the backpack as ammo. With no room for the part or the rounds nothing changes ("Backpack full"). A part going on or off plays its own sound (`Part_Attach` / `Part_Detach`, `InventoryStyle`) and nudges the 3D view (`ItemPreviewStage.Nudge`). Rules in `GunModding` | — |
 | On the model | `GunMounts` (on the first-person `Weapon` and on `World/Model`) spawns each part's model on its slot's mount; rails and adapters show and iron sights hide while a part is fitted (the MP5's rear drum, the pump's rear sight). Mounts sit under the gun part they move with (the pistol optic on the slide, the pump's grip on the pump), so the clips carry them. Magazine parts scale the gun's own magazine (no models of their own yet). The model in hand changes at once when a part is fitted | gun prefab → `GunMounts` (placed from the Castle Bravo presets by `AttachmentSetup.Mounts`) |
-| Muzzle parts | Shots and the flash leave the part's tip. Suppressors hide the flash (`HidesFlash`); the shot still sounds the same (a suppressed sound needs new BroAudio entities) | Part asset → Muzzle |
+| Muzzle parts | Shots and the flash leave the part's tip. Suppressors hide the flash (`HidesFlash`), replace the shot sound (`FireSound`: `Fire_SuppressedRifle`, `Fire_SuppressedPistol`; no tail unless `FireTailSound` is set) and carry less far: `Loudness` 0.3 scales `ShotFired.Loudness`, so animals scatter from a third of the distance (`AnimalSettings.ShotRadius` × it) | Part asset → Muzzle |
 | Optics | Aiming moves the aim pose so the optic's sight point sits on the iron sights' line (the gun's `IronSight` marker, worked out from its Aim pose and the player's hand anchor), plus the optic's `EyeRelief` forward (red dot 7 cm, holo 8 cm, 2× scope 3 cm). Aim zoom is the gun's own `AimZoom` or 1 / `Magnification`, whichever zooms more (2× scope 0.5, 4× 0.25). Magnification shows the aim sway larger, so a scope's `SwayScale` calms the sway as the sights come up (2× 0.7, 4× 0.35; `HeldItem.SwayScale`). Lenses draw their reticle at infinity along the barrel (`Optics/OpticReticle` shader), so the dot stays on the aim point | Part asset → Optic; lens look `Optics/Lens_*.mat` |
-| Full scopes | `FullScope` optics (the 4×): over the last 20 % of raising the sights the scope view fades in (HUD `ScopeView`: black around a circle with the scope's reticle, following the aim sway) and the held layer (gun, hands, flash) stops drawing | Part asset → Optic → `FullScope`, `ScopeReticle` |
-| Lights | Gun lights carry a spot light, shining only while the gun is in hand and switched on: `GunLight` (F, d-pad up) switches it, per gun copy, on by default. No click sound yet (needs a BroAudio entity) | the part's `_Model` prefab → Light |
+| Full scopes | `FullScope` optics (the 4×): over the last 20 % of raising the sights the scope view fades in (HUD `ScopeView`: black around a circle with the scope's reticle, following the aim sway) and the held layer (gun, hands, flash) stops drawing. The circle opens from dark as the eye finds the scope, and slides with the scope off the eye's line (sway, kick) while a shadow darkens the edge it leaves: `HeldGun` measures the sight point's offset and tilt from the eye's aim line in shares of the optic's `EyeBox` (4×: 6 mm) as `ScopeView.EyeOffset` ([UI.md → Scope view](UI.md#scope-view)) | Part asset → Optic → `FullScope`, `ScopeReticle`, `EyeBox` |
+| Lights and laser | Gun lights carry a spot light, and the laser puts a red dot where the next shot goes (it aims along the holder's shot line from the laser, like the bullets, so it agrees with the crosshair whatever way the hip pose holds the barrel; a camera-facing disc on the world layer, sized by distance). Both work only while the gun is in hand and switched on: `GunLight` (F, d-pad up) switches them, per gun copy, on by default, with the part's `SwitchSound` (`GunLight_Switch`) | the part's `_Model` prefab → Light, `AttachmentModel` (Laser, LaserDot, range, dot size); dot look `Optics/LaserDot.mat` |
 
 | Part | Slot | Fits | Changes (first guesses) | Castle Bravo source |
 | --- | --- | --- | --- | --- |
@@ -169,15 +169,15 @@ Built 2026-11-14 ([design](../superpowers/specs/2026-11-14-gun-system-design.md)
 | 4x Scope | Optic | rifle, marksman, sniper | 4× full scope, sway ×0.35 aimed, range +25 %, aim time +25 %, hip spread +15 % | `Optic_Recon_D` |
 | Pistol Red Dot | Optic | pistol | aim time −8 % | `Optic_Pistol_A` |
 | Compensator | Muzzle | SMG, rifle, marksman, MG | recoil up −10 % | `Muzzle_Brake_C` |
-| Suppressor | Muzzle | rifle, marksman, MG | no flash, range −10 %, bullet speed −10 %, recoil up −5 % | `Muzzle_Suppressor_A` |
-| Pistol Suppressor | Muzzle | pistol, SMG | no flash, range −10 %, bullet speed −10 % | `Muzzle_Pistol_Suppressor_A` |
+| Suppressor | Muzzle | rifle, marksman, MG | no flash, suppressed shot, heard at 30 %, range −10 %, bullet speed −10 %, recoil up −5 % | `Muzzle_Suppressor_A` |
+| Pistol Suppressor | Muzzle | pistol, SMG | no flash, suppressed shot, heard at 30 %, range −10 %, bullet speed −10 % | `Muzzle_Pistol_Suppressor_A` |
 | Choke | Muzzle | shotgun | spread −20 % | `Muzzle_ShotGun_Shoke_A` |
 | Vertical Grip | Grip | SMG, rifle, marksman, shotgun | recoil up −12 %, aim time +5 % | `ForwardGrip_C` |
 | Angled Grip | Grip | same | aim time −10 %, recoil sideways −5 % | `ForwardGrip_A` |
-| Laser Sight | Tactical | SMG, rifle, marksman, MG, shotgun | hip spread −25 % (no beam yet) | `Laser_A_Right` |
+| Laser Sight | Tactical | SMG, rifle, marksman, MG, shotgun | hip spread −25 %, a red dot | `Laser_A_Right` |
 | Gun Flashlight | Tactical | same | a light | `Light_A_Right` |
 | Pistol Light | Tactical | pistol | a light | `Light_Pistol_A` |
-| Extended Rifle Mag | Magazine | rifle ammo guns | magazine +33 %, aim and reload time +5 % | the AK's magazine, scaled |
+| Extended Rifle Mag | Magazine | rifles and marksman rifles on rifle ammo (not the RPD's drum) | magazine +33 %, aim and reload time +5 % | the AK's magazine, scaled |
 | Extended Pistol Mag | Magazine | pistol ammo guns | magazine +33 %, aim time +5 % | the 1911's magazine, scaled |
 
 **Adding a part:** add a row to `Specs` in `AgentScripts/Weapons/AttachmentSetup.cs` (Castle Bravo prefab, slot, families, modifiers, weight, value, rarity, optic settings), its name in `Data/Localization/Csv/Items.csv`, then run `AttachmentSetup.Parts` (Optics first for a new lens). It builds the unpacked model with its markers (`AttachmentModel`: muzzle tip, optic sight point at the lens centre, grip hand point, light), the pickup, the item asset, the icon, and refreshes the Item Catalog. **A new gun's mounts:** a `GunSpec` row (slots, family, mount points in the model's space from its Castle Bravo `*_PreSet`, the part each mount rides on, rails to show, sights to hide, magazines), then `AttachmentSetup.Mounts`; `GunPartsTests` checks every declared slot has a mount on both models.
@@ -203,6 +203,44 @@ Built 2026-11-14 ([design](../superpowers/specs/2026-11-14-gun-system-design.md)
 | DoubleBarrel (00 buck) | 10 × 9 | 300 | 2 | 2.4 s | 227 | 51 (14–41) | 7.2° | 3.4 kg |
 
 Against a 100 HP goblin that is 5 AK body shots, 7 MP5, 7 pistol (one full magazine) and two close shotgun blasts (90 each, one when pellets hit the head). Before this the pistol did 25 with 12 rounds and a blast 96–108.
+
+The block-out guns (below) by the same rule, from the real figures in `RealisticGunStats.Others`:
+
+| Gun | Damage | Rate | Magazine | Reload | Speed | Range (falloff) | Recoil up (hip) | Weight |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Glock 17 (9 mm) | 15 | 450 (semi) | 17 | 1.44 s | 217 m/s | 57 m (15–45) | 3.2° | 0.9 kg |
+| Desert Eagle (.50 AE, Magnum) | 25 | 180 (semi) | 7 | 1.6 s | 243 | 57 (15–45) | 7.1° | 2 kg |
+| Uzi (9 mm) | 15 | 600 | 32 | 2 s | 224 | 98 (26–79) | 1.7° | 3.8 kg |
+| P90 (5.7 mm, pistol ammo) | 10 | 900 | 50 | 2.4 s | 300 | 113 (30–91) | 1.0° | 3 kg |
+| M1 Carbine (.30 Carbine) | 17 | 450 (semi) | 15 | 1.6 s | 275 | 139 (37–111) | 2.9° | 2.6 kg |
+| M4 (5.56) | 16 | 800 | 30 | 2 s | 333 | 179 (48–143) | 2.6° | 3.4 kg |
+| AK-74M (5.45) | 15 | 650 | 30 | 2 s | 337 | 179 (48–143) | 2.1° | 3.9 kg |
+| FAL (7.62×51, Heavy) | 24 | 400 (semi) | 20 | 2.24 s | 325 | 196 (52–157) | 4.6° | 4.8 kg |
+| Hunting rifle (.308, Heavy) | 25 | bolt 1 s | 5 | 0.64 s / round | 321 | 227 (60–181) | 5.2° | 4.3 kg |
+| AA-12 (00 buck) | 10 × 9 | 300 | 8 | 2 s | 219 | 47 (13–38) | 5.2° | 5.7 kg |
+| RPD (7.62×39, rifle ammo) | 20 | 700 | 100 | 4 s | 304 | 227 (60–181) | 2.3° | 9 kg |
+
+The square-root rule flattens the big rounds: the hunting rifle, FAL and Desert Eagle take 4 body shots (2 to the head), where the design guessed 2. To tune by hand.
+
+### Block-out guns
+
+Built 2026-11-14 *(user: the design's roster, with the Desert Eagle, the RPD and the AK-74M picked)*: Glock 17, Desert Eagle, Uzi, P90, M1 Carbine, M4, AK-74M, FAL, hunting rifle (a scoped Remington 700), AA-12 and RPD, on the tables of the Weapons Test scene. Two new ammo items: **Heavy** (`HeavyAmmo`, FAL and hunting rifle) and **Magnum** (`MagnumAmmo`, Desert Eagle), one quality each until ammo tiers. They aren't in the starting rounds (they would fill the bare backpack), so the test scene places boxes and goblins drop them.
+
+| | How |
+| --- | --- |
+| Prefab | A `Gun_Base` variant with no clips: it poses, kicks and shoots. The Castle Bravo model's parts keep their own names under `AnimationRoot/Motion/Weapon` (rails off until a part needs them), with a `Muzzle` at the barrel's tip and an `EjectionPort` by the bolt |
+| Poses | Aim puts the sight line (iron sights, or the hunting rifle's built-in scope) on the eye's axis: `(−0.17, 0.21 − sight height, the reference's Aim z)`. Hip and Sprint are the reference gun's, lowered by how much taller the sights are, so a tall rail or optic doesn't fill the view |
+| Hands | The reference gun's `HandGrip`s (finger shapes, hand scale 1.12): the right one where the reference holds its trigger, the left one on the forend (a point per gun) or, on pistols, cupping the right as the 1911's does. The shapes stay as authored; nothing keys them |
+| Item | A copy of the reference gun's asset (handling, recoil, sounds, effects) with its own name, ammo and action, and no jam repair profile (that one plays clips): a jam clears on its own over `ClearTime`. References: the 1911 for the pistols, the MP5 for the SMGs, the AK47 for the rifles and the RPD, the pump shotgun for the hunting rifle (bolt `CycleTime` 1 s, rounds loaded one at a time, the sniper shot sound) and the AA-12 (automatic, box magazine, the AK's reload sounds) |
+| Parts | Mounts from each model's `*_PreSet` (`AttachmentSetup` → Guns), all on `Weapon` itself until clips move parts. The hunting rifle's only slot is Optic (a fitted optic replaces its scope, whose lens draws the reticle at infinity; `AimZoom` 0.4); the P90's magazine parts change stats only (its magazine lies on top); the RPD's Grip slot waits for a bipod |
+| Icons | Rendered from the world model (`AttachmentSetup.GunIcons`) |
+| AK-74M | A variant of the **AK47 prefab** with the AK-74M's meshes (Castle Bravo `AR_B_2`, the same layout) and its muzzle device: it keeps the AK47's clips, hands, mounts and jam repair, and they fit (checked in play: reload and jam clearing). Same-layout `_2` models can be cheap guns this way |
+
+Rebuild order: `GunBlockoutSetup.All`, `AttachmentSetup.Mounts`, `GunBlockoutSetup.Ak74m` again (Mounts recreates the AK47's mount nodes, which drops the variant's overrides on them), `AttachmentSetup.GunIcons`, `RealisticGunStats.Apply`, `WeaponLootSetup.Apply`, `WeaponsTestSetup.Build`.
+
+### Loot
+
+Where parts come from in play *(user, 2026-11-14: goblins and crates)*, first guesses in `AgentScripts/Weapons/WeaponLootSetup.cs`: every part is in `Data/Loot/GoblinLoot.asset` at a weight by rarity (common 1, uncommon 0.7, rare 0.4, epic 0.15: all parts together about 7 % of a pick), with Heavy rounds 6–12 (weight 8) and Magnum rounds 4–8 (4). `Data/Loot/CrateLoot.asset` rolls one part (83 %) or nothing, and `LootCrate.prefab`'s `LootContainer` rolls it once on top of its fixed contents when first filled ([EQUIPMENT.md → Looting](EQUIPMENT.md#looting)). `InventorySetup.Loot` rebuilds GoblinLoot from scratch: re-run `WeaponLootSetup.Apply` after it.
 
 ## Melee
 
@@ -331,7 +369,8 @@ Not added: a Cinemachine impulse per shot. The view already kicks and shakes per
 - **Close cover:** Muzzle / MuzzleToCrosshair check the eye-to-muzzle segment. If blocked, the shot and tracer start at the eye toward that obstruction so the bullet hits nearby cover rather than starting beyond it. Camera aiming keeps its screen-centre origin.
 - **No empty-click sound of its own:** no gun sets `Sounds.Empty` yet, so the empty click reuses the jam's `DryFire` clip.
 - **One quality per calibre:** no Rusty / Standard / AP tiers yet, and a gun takes exactly one `AmmoType`. Rounds can't be unloaded from a magazine back into the backpack, except the extra rounds a smaller magazine part can't hold.
-- **Gun parts, first version:** no rarity per copy, no stock parts or stock slot on any gun, no suppressed shot sound, no laser beam, no light click sound, magazine parts reuse the gun's magazine scaled up, fire-rate modifiers don't reach the trigger, and the support hand doesn't move onto a fitted grip ([For the gun animation rework](#for-the-gun-animation-rework)). Only the five built guns have mounts. Part icons are renders with lifted colours and a light outline (`AttachmentSetup.Outline`), so they read on the dark slots.
+- **Gun parts, first version:** no rarity per copy, no stock parts or stock slot on any gun, no laser beam (only its dot), magazine parts reuse the gun's magazine scaled up, fire-rate modifiers don't reach the trigger, and the support hand doesn't move onto a fitted grip ([For the gun animation rework](#for-the-gun-animation-rework)).
+- **Block-out guns:** no clips (they pose and kick only; reload and jam clearing are timers) except the AK-74M's borrowed AK47 clips; hands sit on points read off the models, not fitted; sight heights, hip poses and stats are first guesses; the Desert Eagle, FAL and hunting rifle hit softer than the design wanted under the square-root rule; no grip part fits the RPD yet. Part icons are renders with lifted colours and a light outline (`AttachmentSetup.Outline`), so they read on the dark slots.
 - **Shotguns:** no shotgun sound clips yet (placeholders above), and the pump's start sound plays with the shot.
 - **Knockback shows on rigidbodies, `TargetDummy` and enemies** (`EnemyBody`); the player ignores it.
 - Held weapons and muzzle flashes render through `FirstPersonRenderFeature` on the HeldWeapon layer. A smooth obstacle pose retracts and tilts the model near walls and entities without pushing the player ([EQUIPMENT.md](EQUIPMENT.md#first-person-rendering-and-obstacle-pose)).

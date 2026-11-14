@@ -55,6 +55,8 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Sounds"), Tooltip("A searched stack revealed")] public SoundID RevealSound;
         [BoxGroup("Sounds"), Tooltip("Something picked up from the ground")] public SoundID PickupSound;
         [BoxGroup("Sounds"), Tooltip("Tokens picked up (instead of the pickup sound)")] public SoundID TokensSound;
+        [BoxGroup("Sounds"), Tooltip("A part fitted to the inspected gun")] public SoundID AttachSound;
+        [BoxGroup("Sounds"), Tooltip("A part taken off the inspected gun")] public SoundID DetachSound;
 
         public Color RarityColor(ItemRarity rarity) =>
             _rarityColors != null && _rarityColors.TryGetValue(rarity, out Color color) ? color : TextColor;

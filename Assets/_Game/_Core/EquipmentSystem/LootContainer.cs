@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using UnityEngine;
 using UnityEngine.Localization;
 using VContainer;
@@ -16,10 +17,15 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     {
         static readonly LocalizedString SearchVerb = Loc.Interaction("verb.search");
         static readonly LocalizedString OpenVerb = Loc.Interaction("verb.open");
+        // The same stream as enemy bodies' loot.
+        const string LootStream = "loot";
 
         [SerializeField, Tooltip("Name in the prompt and the loot panel (Interaction or Creatures table)")] LocalizedString _label;
         [SerializeField, Min(1)] int _capacity = 8;
         [SerializeField, Tooltip("What a scene-placed container holds at start")] List<ItemStack> _contents = new();
+        [SerializeField, Tooltip("Optional: rolled once on top of Contents when it's first filled (a crate's random loot, the " +
+            "\"loot\" random stream; needs injection). A loaded save replaces both")]
+        LootTable _table;
         [SerializeField, Tooltip("Offered only while it holds something (a body): no prompt once empty")] bool _hideWhenEmpty;
         [SerializeField, Tooltip("Optional: the collider the look ray finds it by, turned off while it can't be searched (a body's trigger)")]
         Collider _searchCollider;
@@ -32,6 +38,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         bool _searchable = true;
         bool _wasEmpty;
         LootRegistry _registry;
+        RandomStream _random;
+        bool _tableRolled;
 
         // It went from holding something to empty.
         public event Action<LootContainer> Emptied;
@@ -53,6 +61,13 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         void Construct(IObjectResolver resolver)
         {
             resolver.TryResolve(out _registry);
+            if (_table != null && resolver.TryResolve(out RandomService random))
+            {
+                _random = random.Stream(LootStream);
+                // Filled before injection (something looked inside first): its table rolls now.
+                if (_items != null && RollTable())
+                    HideContents();
+            }
             // Injected after OnEnable when the scope builds late: register now (the list ignores repeats).
             if (isActiveAndEnabled)
                 OnEnable();
@@ -186,10 +201,26 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             }
             items.Changed += OnItemsChanged;
             items.SlotChanged += OnSlotChanged;
-            _wasEmpty = items.IsEmpty;
             _items = items;
+            RollTable();
+            _wasEmpty = items.IsEmpty;
             HideContents();
             return items;
+        }
+
+        // Adds the table's roll once (needs the random stream from injection); true if it rolled.
+        bool RollTable()
+        {
+            if (_tableRolled || _table == null || _random == null)
+                return false;
+            _tableRolled = true;
+            var rolled = new List<ItemInstance>();
+            _table.Roll(_random, rolled);
+            foreach (ItemInstance item in rolled)
+                if (!_items.TryAdd(item, out _))
+                    Debug.LogWarning($"{name}: no room for rolled {item.Definition.name}.", this);
+            _wasEmpty = _items.IsEmpty;
+            return true;
         }
 
         void HideContents()

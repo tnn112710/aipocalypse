@@ -91,8 +91,27 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             get
             {
                 AttachmentDefinition optic = _item?.Stats.Optic;
-                return optic != null ? new ScopeView(optic.Optic.ScopeWeight(_aimWeight), optic.Optic.ScopeReticle) : default;
+                if (optic == null)
+                    return default;
+                float weight = optic.Optic.ScopeWeight(_aimWeight);
+                return new ScopeView(weight, optic.Optic.ScopeReticle, weight > 0f ? EyeOffset(optic.Optic) : default);
             }
+        }
+
+        // How far the optic's sight line is off the eye's aim line, in shares of its eye box: the sight point's offset plus
+        // the scope's tilt over a short lever (model sway, gun kick, the last of raising it).
+        Vector2 EyeOffset(OpticSettings optic)
+        {
+            const float tiltLever = 0.1f;
+            Transform sight = _mounts != null ? _mounts.Sight : null;
+            if (sight == null || _user?.Eye == null)
+                return default;
+            Transform eye = _user.Eye;
+            Quaternion toAim = Quaternion.Inverse(eye.rotation * _user.AimOffset);
+            Vector3 point = toAim * (sight.position - eye.position);
+            Vector3 along = toAim * sight.forward;
+            var offset = new Vector2(point.x + along.x * tiltLever, point.y + along.y * tiltLever);
+            return Vector2.ClampMagnitude(offset / optic.EyeBox, 2f);
         }
 
         // Aiming or pulling the trigger ends a sprint.
@@ -178,6 +197,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             {
                 _item.ToggleLight();
                 _mounts.SetLights(_item.LightOn);
+                AttachmentDefinition part = _mounts.SwitchedPart;
+                if (part != null)
+                    Play(part.SwitchSound);
             }
             _jam.Tick(input.IsReady, deltaTime);
             _jolt.Tick(deltaTime);
@@ -185,7 +207,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
             _accuracy.Tick(input.IsAirborne, _aimWeight, _user.AirSpreadScale, deltaTime);
             if (_tailIn >= 0f && (_tailIn -= deltaTime) < 0f)
-                Play(_definition.Sounds.FireTail);
+                Play(_item.Stats.FireTailSound);
             if (_animation != null)
                 _animation.Tick(deltaTime, _gun.ActionProgress);
         }
@@ -199,6 +221,19 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 _recoil.Kick(_aimWeight, _stateMultiplier * _user.FatigueRecoilScale, _item.Stats.VerticalRecoilScale,
                     _item.Stats.HorizontalRecoilScale);
             }
+            AimLaser();
+        }
+
+        // A fitted laser's dot sits where the next shot goes (the holder's aim rule from the laser, before spread), so it
+        // agrees with the crosshair whatever way the hip pose holds the barrel.
+        void AimLaser()
+        {
+            AttachmentModel laser = _mounts != null ? _mounts.Laser : null;
+            if (laser == null)
+                return;
+            int layers = _definition.Bullet.HitLayers;
+            GunAim.Shot(_user, laser.LaserOrigin, _item.Stats.Range, layers, _bullets, out Vector3 origin, out Vector3 direction);
+            laser.AimLaser(origin, direction, layers, _user.Eye);
         }
 
         protected override void OnShown()
@@ -285,7 +320,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _user.Exert(_definition.Fire.StaminaPerShot);
             if (_animation != null)
                 _animation.Fired();
-            Play(_definition.Sounds.Fire);
+            Play(_item.Stats.FireSound);
 
             // A spray's tail waits for the gap after its last shot; a semi-auto's follows each shot.
             FireSettings fire = _definition.Fire;
@@ -350,7 +385,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                     Effects = effects,
                 });
             }
-            _shots?.Publish(new ShotFired(muzzle.position, _user.Root.gameObject));
+            _shots?.Publish(new ShotFired(muzzle.position, _user.Root.gameObject, stats.Loudness));
         }
 
         void OnActionStarted(GunAction action)

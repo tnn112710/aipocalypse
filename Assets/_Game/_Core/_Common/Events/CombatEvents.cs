@@ -24,11 +24,14 @@ namespace MB13.Aipocalypse.Core.Events
         public readonly Vector3 Position;
         // Who fired (the user's root).
         public readonly GameObject Source;
+        // How far it carries, as a share of a normal shot (a suppressor's is lower): listeners scale their reach by it.
+        public readonly float Loudness;
 
-        public ShotFired(Vector3 position, GameObject source)
+        public ShotFired(Vector3 position, GameObject source, float loudness = 1f)
         {
             Position = position;
             Source = source;
+            Loudness = loudness;
         }
     }
 

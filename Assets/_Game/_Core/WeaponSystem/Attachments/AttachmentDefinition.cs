@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Ami.BroAudio;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -34,6 +35,19 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         [SerializeField, ShowIf(nameof(IsMuzzle)), Tooltip("No muzzle flash (suppressors)")] bool _hidesFlash;
 
+        [SerializeField, ShowIf(nameof(IsMuzzle)), Tooltip("Replaces the gun's shot sound (suppressors). Unset = the gun's own")]
+        SoundID _fireSound;
+
+        [SerializeField, ShowIf(nameof(IsMuzzle)), Tooltip("The shot's tail while Fire Sound replaces the shot. Unset = no tail")]
+        SoundID _fireTailSound;
+
+        [SerializeField, ShowIf(nameof(IsMuzzle)), Range(0f, 2f), Tooltip("How far shots carry, as a share of the gun's own " +
+            "(who reacts to them: animals' scare radius). 1 = unchanged")]
+        float _loudness = 1f;
+
+        [SerializeField, ShowIf(nameof(IsTactical)), Tooltip("Played when the gun light key switches its light or laser")]
+        SoundID _switchSound;
+
         public GunSlot Slot => _slot;
         public GunFamily Families => _families;
         public IReadOnlyList<GunDefinition> Guns => _guns;
@@ -43,12 +57,17 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public OpticSettings Optic => _optic;
         public Vector3 MagazineScale => _magazineScale;
         public bool HidesFlash => _hidesFlash;
+        public SoundID FireSound => _fireSound;
+        public SoundID FireTailSound => _fireTailSound;
+        public float Loudness => _loudness;
+        public SoundID SwitchSound => _switchSound;
 
         public override ItemCategory Category => ItemCategory.Attachment;
 
         bool IsOptic => _slot == GunSlot.Optic;
         bool IsMagazine => _slot == GunSlot.Magazine;
         bool IsMuzzle => _slot == GunSlot.Muzzle;
+        bool IsTactical => _slot == GunSlot.Tactical;
 
         public bool Fits(GunDefinition gun)
         {
@@ -76,6 +95,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public bool FullScope;
 
         [ShowIf(nameof(FullScope)), Tooltip("Drawn in the middle of the scope view")] public Sprite ScopeReticle;
+
+        [ShowIf(nameof(FullScope)), Min(0.001f), Tooltip("Metres the scope's sight line can be off the eye's (sway, kick) before " +
+            "the scope view's edge goes fully dark on that side")]
+        public float EyeBox = 0.012f;
 
         // How much of the scope view shows at this aim weight (0 hip .. 1 aimed): only at the very end of raising it.
         public float ScopeWeight(float aimWeight) => FullScope ? Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.8f, 0.98f, aimWeight)) : 0f;

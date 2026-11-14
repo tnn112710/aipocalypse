@@ -527,17 +527,18 @@ namespace MB13.Aipocalypse.Core.UI
             GunInstance gun = _inspector != null ? _inspector.Gun : null;
             if (slot.IsPart)
             {
-                if (!GunModding.TryDetach(_inventory, gun, slot.Part, null, 0, out refusal) && refusal == null)
-                    return;
+                Modded(GunModding.TryDetach(_inventory, gun, slot.Part, null, 0, out refusal), refusal, attached: false);
+                return;
             }
-            else if (item.Definition is AttachmentDefinition && (gun != null || _loot == null))
+            if (item.Definition is AttachmentDefinition && (gun != null || _loot == null))
             {
                 if (gun == null)
-                    refusal = PickGun.Text();
-                else if (!GunModding.TryAttach(_inventory, slot.Container, slot.Index, gun, out refusal) && refusal == null)
-                    return;
+                    ShowMessage(PickGun.Text());
+                else
+                    Modded(GunModding.TryAttach(_inventory, slot.Container, slot.Index, gun, out refusal), refusal, attached: true);
+                return;
             }
-            else if (_loot != null && slot.Container == _loot.Items)
+            if (_loot != null && slot.Container == _loot.Items)
             {
                 if (_inventory.TakeFrom(slot.Container, slot.Index) == 0)
                     refusal = NoRoom.Text();
@@ -632,9 +633,9 @@ namespace MB13.Aipocalypse.Core.UI
             if (IsHidden(to))
                 ShowMessage(StillSearching.Text());
             else if (from.IsPart)
-                Modded(GunModding.TryDetach(_inventory, gun, from.Part, to.Container, to.Index, out string detachRefusal), detachRefusal);
+                Modded(GunModding.TryDetach(_inventory, gun, from.Part, to.Container, to.Index, out string detachRefusal), detachRefusal, attached: false);
             else if (to.IsPart)
-                Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, gun, out string attachRefusal), attachRefusal);
+                Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, gun, out string attachRefusal), attachRefusal, attached: true);
             else if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal, _dragAmount))
                 Play(_style != null ? _style.PlaceSound : default);
             else
@@ -648,15 +649,21 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
             _droppedOnSlot = true;
             SlotRef from = _slots[_dragFrom];
-            Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, _inspector.Gun, out string refusal), refusal);
+            Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, _inspector.Gun, out string refusal), refusal, attached: true);
         }
 
-        void Modded(bool done, string refusal)
+        // A part went on or came off the inspected gun: its own sound and a small nudge of the 3D view.
+        void Modded(bool done, string refusal, bool attached)
         {
-            if (done)
-                Play(_style != null ? _style.PlaceSound : default);
-            else
+            if (!done)
+            {
                 ShowMessage(refusal);
+                return;
+            }
+            SoundID sound = _style == null ? default : attached ? _style.AttachSound : _style.DetachSound;
+            Play(sound.IsValid() ? sound : _style != null ? _style.PlaceSound : default);
+            if (_inspector != null)
+                _inspector.Nudge(attached);
         }
 
         void OnDragEnded(ItemSlotView view, PointerEventData eventData)

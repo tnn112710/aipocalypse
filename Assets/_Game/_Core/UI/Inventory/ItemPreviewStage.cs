@@ -1,3 +1,4 @@
+using DG.Tweening;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -28,6 +29,9 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] float _keyIntensity = 3f;
         [SerializeField] Color _fillLight = new(0.65f, 0.75f, 1f, 1f);
         [SerializeField] float _fillIntensity = 1.6f;
+        [SerializeField, Range(0f, 0.2f), Tooltip("Share of its size the model grows for a moment when a part is fitted (half when one comes off)")]
+        float _nudge = 0.05f;
+        [SerializeField, Min(0.05f)] float _nudgeSeconds = 0.28f;
 
         Transform _root;
         Transform _pivot;
@@ -83,6 +87,16 @@ namespace MB13.Aipocalypse.Core.UI
                 light.enabled = false;
         }
 
+        // A part snapped on (or came off): a short punch of the model's size, on unscaled time (the bag may pause the game).
+        public void Nudge(bool attached)
+        {
+            if (_model == null)
+                return;
+            Transform model = _model.transform;
+            model.DOKill(true);
+            model.DOPunchScale(Vector3.one * (attached ? _nudge : _nudge * 0.5f), _nudgeSeconds, 6, 0.6f).SetUpdate(true);
+        }
+
         public void Turn(Vector2 pixels)
         {
             if (_model == null)
@@ -135,6 +149,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_model == null)
                 return;
+            _model.transform.DOKill();
             _model.SetActive(false);
             Destroy(_model);
             _model = null;

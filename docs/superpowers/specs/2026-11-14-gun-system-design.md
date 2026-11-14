@@ -1,6 +1,6 @@
 # Guns: stats, rarity, parts, ammo and the Weapons Test scene
 
-**Status: partly built (2026-11-14).** The first step is in the game (see [Built: step 1](#built-step-1-2026-11-14)); the rest is still a proposal for the user to correct. Numbers are first guesses to tune in the test scene, not balance. Decisions the user has made are marked *(user)*; everything else is a proposal.
+**Status: partly built (2026-11-14).** The parts, optics, test scene and the 16-gun roster (11 as block-outs) are in the game (see [Built: step 1](#built-step-1-2026-11-14)); the rest is still a proposal for the user to correct. Numbers are first guesses to tune in the test scene, not balance. Decisions the user has made are marked *(user)*; everything else is a proposal.
 
 ## Why
 
@@ -180,7 +180,7 @@ Castle Bravo has 165 guns (19 pistols, 23 SMGs, 40 assault rifles, 18 DMRs, 17 L
 | Rifle | M1 Carbine | P5/WWII_Rifle_A | Rifle | semi | light early rifle, the farm gun | 26 / 450 / 15 → 4 | grey–blue | new |
 | Rifle | AK47 | P1/AR_B | Rifle | auto | hits hard, kicks hard | 20 / 600 / 30 → 5 | green–gold | built |
 | Rifle | M4 | P1/AR_A | Rifle | auto | low recoil, takes every part | 18 / 750 / 30 → 6 | blue–gold | new |
-| Rifle | AUG | P3/AR_O | Rifle | auto | built-in scope, so no optic slot | 19 / 700 / 30 → 6 | blue–gold | new |
+| Rifle | AUG | P3/AR_O | Rifle | auto | built-in scope, so no optic slot | 19 / 700 / 30 → 6 | blue–gold | replaced by the AK-74M (P1/AR_B_2, AK47 clips) *(user, 2026-11-14)* |
 | Rifle | FAL | P3/DMR_L | Heavy | semi | mid-range marksman | 38 / 400 / 20 → 3 (head 2) | blue–gold | new |
 | Rifle | Hunting rifle | P1/Recon_E (Remington 700, scoped) | Heavy | bolt | one-shot heads, slow | 70 / bolt / 5 → 2 (head 1) | green–purple | new |
 | Shotgun | Double barrel | P1/ShotGun_E | Shell | break | starter shotgun | 12 × 9 pellets / 2 | grey–blue | built |
@@ -190,8 +190,8 @@ Castle Bravo has 165 guns (19 pistols, 23 SMGs, 40 assault rifles, 18 DMRs, 17 L
 
 Body shots are against a 100 HP goblin at Common, before parts; a Legendary copy's +25 % damage takes one shot off most of them.
 
-- **The Desert Eagle brings the Magnum calibre forward** (section 4 listed it for later), making five calibres. Staying at four: the TEC-9 (P1/Pistol_A, an automatic pistol on Pistol ammo) instead.
-- **No true heavy machine gun** (an M2 .50) is in the pack; the RPD is the closest. For one on Heavy ammo instead of sharing rifle ammo: the PKM (P3/LMG_L).
+- **The Desert Eagle brings the Magnum calibre forward** (section 4 listed it for later), making five calibres. Staying at four: the TEC-9 (P1/Pistol_A, an automatic pistol on Pistol ammo) instead. **Decided** *(user, 2026-11-14)*: the Desert Eagle.
+- **No true heavy machine gun** (an M2 .50) is in the pack; the RPD is the closest. For one on Heavy ammo instead of sharing rifle ammo: the PKM (P3/LMG_L). **Decided** *(user, 2026-11-14)*: the RPD.
 - **New guns start as block-outs** (prefab, poses and stats, about 1–2 h each; a gun without clips already poses, kicks and shoots). Full clips at about 9–14 h each come only for the guns that stay.
 
 **Calibres for this roster:** Pistol (1911, Glock, MP5, Uzi, P90), Rifle (M1 Carbine, AK47, M4, AUG, RPD), Heavy (FAL, Hunting rifle), Shell (Double barrel, Pump, AA-12), Magnum (Desert Eagle). Tiers for now: Rusty, Standard, AP (shells: Rusty buckshot, Buckshot, Slug); Magnum only Standard and AP; Advanced AP once armoured bosses exist. 14 ammo items.
@@ -295,6 +295,8 @@ The user asked for *(user, 2026-11-14)*: a Weapons Test scene where guns and gun
 - **The modding screen** as chosen (section 3 → The modding screen): the inventory's centre inspector with the item in 3D, the slot row, the leader line, green / red previews. No ammo bar yet (no ammo tiers).
 - **Weapons Test scene** (section 7), smaller than proposed: the five built guns and the 16 parts on tables, a backpack and the ammo crate, dummies at 10–100 m and a backstop. No armoury racks, rarity selector, ammo wall, workbench, armoured dummies or arena yet.
 - **Real-life first stats** for the other four guns from the AK (WEAPONS.md → First-pass real-life stats).
+
+Second follow-up *(user, 2026-11-14: "do 2, 3, 5, 6, 7, 8, 11, 12")*, details in WEAPONS.md: suppressed shot sounds and a quieter shot (`ShotFired.Loudness`); the laser's dot; the light switch click; the Weapons Test readout (stats with each part's share, DPS, shots and time to kill by distance); the 4× scope view opening from dark and darkening the edge it slides from; a sound and a nudge when a part goes on or off; parts from goblins and crates *(user: "goblins + crates")*; and the 11 new guns as block-outs with the Heavy and Magnum calibres *(user: Desert Eagle, RPD, and the AK-74M instead of the AUG)*. The AK-74M is an AK47 prefab variant that keeps the AK47's clips, which work: same-layout Castle Bravo variants are cheap guns. The roster is now: 1911, Glock 17, Desert Eagle; MP5, Uzi, P90; M1 Carbine, AK47, M4, AK-74M, FAL, hunting rifle; double barrel, pump, AA-12; RPD.
 
 Follow-up the same day *(user, 2026-11-14: "do 1, 2, 3, 4, 5")*: the inventory's fitting checked with real UI pointer events; hip spread (Decision 3) with the laser tightening it; brighter part icons with an outline; a gun light key (`GunLight`, F / d-pad up); scopes calm the aim sway while aimed through (2× ×0.7, 4× ×0.35).
 

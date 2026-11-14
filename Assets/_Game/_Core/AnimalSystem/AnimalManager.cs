@@ -87,7 +87,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 return;
             foreach (Animal animal in _herd.Animals)
             {
-                float reach = _settings.ShotRadius * animal.Definition.ScareScale;
+                float reach = _settings.ShotRadius * animal.Definition.ScareScale * shot.Loudness;
                 if (!animal.GoingHome && (animal.transform.position - shot.Position).sqrMagnitude <= reach * reach)
                     animal.Startle(shot.Position, _settings.FleeDistance, run: true);
             }

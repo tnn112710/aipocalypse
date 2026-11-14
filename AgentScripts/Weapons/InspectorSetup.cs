@@ -23,6 +23,7 @@ public static class InspectorSetup
     const string RendererPath = "Assets/_Game/Settings/PC_Renderer.asset";
     const string PreviewRendererPath = "Assets/_Game/Settings/Preview_Renderer.asset";
     const string ScopeMaskPath = "Assets/_Game/Content/Weapons/_Shared/Optics/ScopeMask.png";
+    const string ScopeShadowPath = "Assets/_Game/Content/Weapons/_Shared/Optics/ScopeShadow.png";
     const string PreviewLayer = "ItemPreview";
     const int StatRows = 14;
 
@@ -81,6 +82,22 @@ public static class InspectorSetup
         EditorUtility.SetDirty(pipeline);
         AssetDatabase.SaveAssetIfDirty(pipeline);
         return $"preview renderer added at index {list.arraySize - 1}";
+    }
+
+    // Rebuilds only HUD.prefab's ScopeView.
+    public static string ScopeOnly()
+    {
+        GameObject hud = PrefabUtility.LoadPrefabContents(HudPath);
+        try
+        {
+            Scope(hud.transform);
+            PrefabUtility.SaveAsPrefabAsset(hud, HudPath, out bool saved);
+            return saved ? "HUD.prefab: ScopeView" : "failed to save HUD.prefab";
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(hud);
+        }
     }
 
     public static string Hud()
@@ -239,15 +256,25 @@ public static class InspectorSetup
 
         RectTransform view = Ui("View", root);
         Place(view, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1080f, 1080f));
-        Image mask = Black("Mask", view);
+        // Under the mask, so they only show through the circle: the dark while the eye finds the scope, and the shadow
+        // (twice the circle's size) that slides off it.
+        Image dim = Black("Dim", view);
+        Place(dim.rectTransform, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        Image shadow = Black("Shadow", view);
+        Place(shadow.rectTransform, new Vector2(-0.5f, -0.5f), new Vector2(1.5f, 1.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        shadow.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(ScopeShadowPath) ?? throw new Exception("run AttachmentSetup.Optics first");
+        // The circle and its bars move and open together.
+        RectTransform pupil = Ui("Pupil", view);
+        Place(pupil, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        Image mask = Black("Mask", pupil);
         Place(mask.rectTransform, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
         mask.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(ScopeMaskPath) ?? throw new Exception("run AttachmentSetup.Optics first");
         // The bars reach a few pixels into the square, so no seam shows between them and the mask.
         const float far = 4000f, overlap = 4f;
-        Place(Black("Left", view).rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 0.5f), new Vector2(overlap, 0f), new Vector2(far, far * 2f));
-        Place(Black("Right", view).rectTransform, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 0.5f), new Vector2(-overlap, 0f), new Vector2(far, far * 2f));
-        Place(Black("Top", view).rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 0f), new Vector2(0f, -overlap), new Vector2(0f, far));
-        Place(Black("Bottom", view).rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, overlap), new Vector2(0f, far));
+        Place(Black("Left", pupil).rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 0.5f), new Vector2(overlap, 0f), new Vector2(far, far * 2f));
+        Place(Black("Right", pupil).rectTransform, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 0.5f), new Vector2(-overlap, 0f), new Vector2(far, far * 2f));
+        Place(Black("Top", pupil).rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 0f), new Vector2(0f, -overlap), new Vector2(0f, far));
+        Place(Black("Bottom", pupil).rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, overlap), new Vector2(0f, far));
         Image reticle = Black("Reticle", view);
         Place(reticle.rectTransform, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
         reticle.preserveAspect = true;
@@ -258,6 +285,9 @@ public static class InspectorSetup
         so.FindProperty("_canvas").objectReferenceValue = canvas;
         so.FindProperty("_group").objectReferenceValue = group;
         so.FindProperty("_view").objectReferenceValue = view;
+        so.FindProperty("_pupil").objectReferenceValue = pupil;
+        so.FindProperty("_shadow").objectReferenceValue = shadow.rectTransform;
+        so.FindProperty("_dim").objectReferenceValue = dim;
         so.FindProperty("_reticle").objectReferenceValue = reticle;
         so.ApplyModifiedPropertiesWithoutUndo();
         canvas.enabled = false;

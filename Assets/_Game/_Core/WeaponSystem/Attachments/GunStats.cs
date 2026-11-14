@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Ami.BroAudio;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using UnityEngine;
 
@@ -21,6 +22,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             Gun = gun;
             float partsWeight = 0f;
+            float loudness = 1f;
             if (parts != null)
             {
                 foreach (ItemInstance part in parts)
@@ -32,7 +34,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                         _percent[(int)modifier.Stat] += modifier.Percent;
                     if (attachment.Slot == GunSlot.Optic)
                         Optic = attachment;
+                    else if (attachment.Slot == GunSlot.Muzzle)
+                        Muzzle = attachment;
                     HidesFlash |= attachment.HidesFlash;
+                    loudness *= attachment.Loudness;
                 }
             }
 
@@ -54,12 +59,21 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             AimSpread = gun.Accuracy.AimSpread;
             AimZoom = Optic != null ? Mathf.Min(gun.Handling.AimZoom, 1f / Optic.Optic.Magnification) : gun.Handling.AimZoom;
             Weight = gun.Weight + partsWeight;
+            Loudness = loudness;
         }
 
         public GunDefinition Gun { get; }
         // The fitted optic, or null (iron sights).
         public AttachmentDefinition Optic { get; }
+        // The fitted muzzle part, or null.
+        public AttachmentDefinition Muzzle { get; }
         public bool HidesFlash { get; }
+        // How far its shots carry, as a share of the bare gun's (ShotFired.Loudness).
+        public float Loudness { get; }
+
+        // The shot sound and its tail: a suppressor's, else the gun's own.
+        public SoundID FireSound => Muzzle != null && Muzzle.FireSound.IsValid() ? Muzzle.FireSound : Gun.Sounds.Fire;
+        public SoundID FireTailSound => Muzzle != null && Muzzle.FireSound.IsValid() ? Muzzle.FireTailSound : Gun.Sounds.FireTail;
 
         public float Damage { get; }
         public float RoundsPerMinute { get; }

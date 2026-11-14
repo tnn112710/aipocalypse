@@ -58,6 +58,10 @@ MonoBehaviour:
   BackdropColor: {r: 0, g: 0, b: 0, a: 0.45}
   WeightBarColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
   OverweightColor: {r: 1, g: 0.45, b: 0.35, a: 1}
+  FitColor: {r: 0.45, g: 0.75, b: 0.4, a: 0.95}
+  BetterColor: {r: 0.45, g: 0.9, b: 0.45, a: 1}
+  WorseColor: {r: 1, g: 0.45, b: 0.35, a: 1}
+  LeaderColor: {r: 1, g: 0.85, b: 0.55, a: 0.9}
   OpenSound:
     _entity: {fileID: 11400000, guid: 1389e65a12c8e1742a0da2d70ffa4b16, type: 2}
     ID: 0
@@ -84,5 +88,13 @@ MonoBehaviour:
     <DebugObject>k__BackingField: {fileID: 0}
   TokensSound:
     _entity: {fileID: 11400000, guid: 280e8aa64c1fa4f4ba99cb36ac9581b0, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  AttachSound:
+    _entity: {fileID: 11400000, guid: 1a00f83e8816518439142eb6096587cd, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  DetachSound:
+    _entity: {fileID: 11400000, guid: 46f2b1bba54ca83478b2dbbcf89bff3e, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}

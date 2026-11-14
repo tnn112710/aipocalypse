@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Ami.BroAudio;
+using Ami.BroAudio.Data;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Editor.Localization;
 using UnityEditor;
@@ -34,15 +37,36 @@ public static class AttachmentSetup
     sealed class Part
     {
         public string Name, Key, Source, Lens, MagazineFrom, Ammo;
+        // Sound entity names (Sounds below): a suppressor's shot, a light or laser's switch click.
+        public string FireSound, SwitchSound;
         public GunSlot Slot;
         public GunFamily Families;
         public (GunStat stat, float percent)[] Mods = Array.Empty<(GunStat, float)>();
-        public float Weight, Magnification = 1f, EyeRelief, SwayScale = 1f;
+        public float Weight, Magnification = 1f, EyeRelief, SwayScale = 1f, Loudness = 1f, EyeBox = 0.012f;
         public int Value;
         public ItemRarity Rarity;
-        public bool FullScope, HidesFlash, Light;
+        public bool FullScope, HidesFlash, Light, Laser;
         public Vector3 MagazineScale = Vector3.one;
     }
+
+    const string GM = "Assets/_StoreAssets/Audio/Gamemaster Audio - Pro Sound Collection/";
+    const string Silenced = GM + "Guns_Weapons/Guns_Silenced/";
+    const string GunsLibrary = "Assets/_Game/Data/Audio/Guns.asset";
+    const string PlayerLibrary = "Assets/_Game/Data/Audio/Player.asset";
+    const string InventoryStylePath = "Assets/_Game/Data/UI/InventoryStyle.asset";
+
+    // 2D one-shot entities (library, name, volume, random pitch, clips). Gamemaster Audio (Could): no Should pack has
+    // suppressed shots, a gun light switch or part latches (ASSETS.md).
+    static readonly (string library, string name, float volume, float pitch, string[] clips)[] Sounds =
+    {
+        (GunsLibrary, "Fire_SuppressedRifle", 0.75f, 0.06f, Numbered(Silenced + "gun_silenced_rifle1_shot_", 4)),
+        (GunsLibrary, "Fire_SuppressedPistol", 0.75f, 0.06f, Numbered(Silenced + "gun_silenced_pistol1_shot_", 4)),
+        (GunsLibrary, "GunLight_Switch", 0.6f, 0.05f, Numbered(GM + "Switches_Buttons_Gears_Levers/switch_button_push_on_off_", 3)),
+        (PlayerLibrary, "Part_Attach", 0.6f, 0.06f, Numbered(GM + "Guns_Weapons/Guns/gun_pistol_insert_mag_", 3)),
+        (PlayerLibrary, "Part_Detach", 0.55f, 0.06f, Numbered(GM + "Guns_Weapons/Guns/gun_pistol_remove_mag_", 3)),
+    };
+
+    static string[] Numbered(string prefix, int count) => Enumerable.Range(1, count).Select(i => $"{prefix}{i:00}.wav").ToArray();
 
     // Numbers from the design spec (docs/superpowers/specs/2026-11-14-gun-system-design.md, section 3), first guesses.
     static readonly Part[] Specs =
@@ -58,7 +82,7 @@ public static class AttachmentSetup
         new() { Name = "Scope4x", Key = "item.part_scope_4x", Source = "Optics/Optics_Recon/Optic_Recon_D", Slot = GunSlot.Optic,
             Families = GunFamily.Rifle | GunFamily.Marksman | GunFamily.Sniper,
             Mods = new[] { (GunStat.Range, 25f), (GunStat.AimTime, 25f), (GunStat.HipSpread, 15f) }, Weight = 0.6f, Value = 600,
-            Rarity = ItemRarity.Epic, Lens = "Scope", Magnification = 4f, FullScope = true, SwayScale = 0.35f },
+            Rarity = ItemRarity.Epic, Lens = "Scope", Magnification = 4f, FullScope = true, SwayScale = 0.35f, EyeBox = 0.006f },
         new() { Name = "PistolRedDot", Key = "item.part_pistol_red_dot", Source = "Optics/Optics_Pistol/Optic_Pistol_A", Slot = GunSlot.Optic,
             Families = GunFamily.Pistol, Mods = new[] { (GunStat.AimTime, -8f) }, Weight = 0.1f, Value = 100, Rarity = ItemRarity.Uncommon,
             Lens = "PistolDot" },
@@ -67,10 +91,10 @@ public static class AttachmentSetup
             Rarity = ItemRarity.Uncommon },
         new() { Name = "Suppressor", Key = "item.part_suppressor", Source = "Muzzles/Muzzles/Muzzle_Suppressor_A", Slot = GunSlot.Muzzle,
             Families = Rifles, Mods = new[] { (GunStat.Range, -10f), (GunStat.BulletSpeed, -10f), (GunStat.VerticalRecoil, -5f) },
-            Weight = 0.45f, Value = 300, Rarity = ItemRarity.Rare, HidesFlash = true },
+            Weight = 0.45f, Value = 300, Rarity = ItemRarity.Rare, HidesFlash = true, FireSound = "Fire_SuppressedRifle", Loudness = 0.3f },
         new() { Name = "PistolSuppressor", Key = "item.part_pistol_suppressor", Source = "Muzzles/Muzzles_Pistol/Muzzle_Pistol_Suppressor_A",
             Slot = GunSlot.Muzzle, Families = GunFamily.Pistol | GunFamily.Smg, Mods = new[] { (GunStat.Range, -10f), (GunStat.BulletSpeed, -10f) },
-            Weight = 0.25f, Value = 250, Rarity = ItemRarity.Rare, HidesFlash = true },
+            Weight = 0.25f, Value = 250, Rarity = ItemRarity.Rare, HidesFlash = true, FireSound = "Fire_SuppressedPistol", Loudness = 0.3f },
         new() { Name = "Choke", Key = "item.part_choke", Source = "Muzzles/Muzzles_ShotGun/Muzzle_ShotGun_Shoke_A", Slot = GunSlot.Muzzle,
             Families = GunFamily.Shotgun, Mods = new[] { (GunStat.Spread, -20f) }, Weight = 0.1f, Value = 120, Rarity = ItemRarity.Uncommon },
         new() { Name = "VerticalGrip", Key = "item.part_vertical_grip", Source = "UnderBarrels/ForwardGrip_C", Slot = GunSlot.Grip,
@@ -80,12 +104,14 @@ public static class AttachmentSetup
             Families = GunFamily.Smg | GunFamily.Rifle | GunFamily.Marksman | GunFamily.Shotgun,
             Mods = new[] { (GunStat.AimTime, -10f), (GunStat.HorizontalRecoil, -5f) }, Weight = 0.12f, Value = 150, Rarity = ItemRarity.Uncommon },
         new() { Name = "Laser", Key = "item.part_laser", Source = "Accessories/Lasers/Laser_A_Right", Slot = GunSlot.Tactical, Families = Long,
-            Mods = new[] { (GunStat.HipSpread, -25f) }, Weight = 0.12f, Value = 150, Rarity = ItemRarity.Uncommon },
+            Mods = new[] { (GunStat.HipSpread, -25f) }, Weight = 0.12f, Value = 150, Rarity = ItemRarity.Uncommon, Laser = true,
+            SwitchSound = "GunLight_Switch" },
         new() { Name = "Flashlight", Key = "item.part_flashlight", Source = "Accessories/Lights/Light_A_Right", Slot = GunSlot.Tactical,
-            Families = Long, Weight = 0.15f, Value = 100, Rarity = ItemRarity.Common, Light = true },
+            Families = Long, Weight = 0.15f, Value = 100, Rarity = ItemRarity.Common, Light = true, SwitchSound = "GunLight_Switch" },
         new() { Name = "PistolLight", Key = "item.part_pistol_light", Source = "Accessories/Accessories_Pistol/Light_Pistol_A",
-            Slot = GunSlot.Tactical, Families = GunFamily.Pistol, Weight = 0.1f, Value = 80, Rarity = ItemRarity.Common, Light = true },
-        new() { Name = "RifleMag", Key = "item.part_rifle_mag", Slot = GunSlot.Magazine, Families = Rifles, Ammo = "RifleAmmo",
+            Slot = GunSlot.Tactical, Families = GunFamily.Pistol, Weight = 0.1f, Value = 80, Rarity = ItemRarity.Common, Light = true,
+            SwitchSound = "GunLight_Switch" },
+        new() { Name = "RifleMag", Key = "item.part_rifle_mag", Slot = GunSlot.Magazine, Families = GunFamily.Rifle | GunFamily.Marksman, Ammo = "RifleAmmo",
             Mods = new[] { (GunStat.MagazineSize, 33f), (GunStat.AimTime, 5f), (GunStat.ReloadTime, 5f) }, Weight = 0.3f, Value = 200,
             Rarity = ItemRarity.Uncommon, MagazineScale = new Vector3(1f, 1.3f, 1f), MagazineFrom = "AK47" },
         new() { Name = "PistolMag", Key = "item.part_pistol_mag", Slot = GunSlot.Magazine, Families = GunFamily.Pistol | GunFamily.Smg,
@@ -93,7 +119,66 @@ public static class AttachmentSetup
             Rarity = ItemRarity.Uncommon, MagazineScale = new Vector3(1f, 1.3f, 1f), MagazineFrom = "Pistol" },
     };
 
-    public static string All() => Optics() + "\n" + Parts() + "\n" + Mounts();
+    public static string All() => Optics() + "\n" + Audio() + "\n" + Parts() + "\n" + Mounts();
+
+    // ---- Audio: the parts' sound entities, and the inventory's fit / take-off sounds ----
+
+    public static string Audio()
+    {
+        foreach ((string library, string name, float volume, float pitch, string[] clips) in Sounds)
+            Sound(library, name, volume, pitch, clips);
+        var style = AssetDatabase.LoadAssetAtPath<InventoryStyle>(InventoryStylePath) ?? throw new Exception("missing " + InventoryStylePath);
+        style.AttachSound = SoundOf("Part_Attach");
+        style.DetachSound = SoundOf("Part_Detach");
+        EditorUtility.SetDirty(style);
+        AssetDatabase.SaveAssetIfDirty(style);
+        return "sounds: " + string.Join(", ", Sounds.Select(s => s.name));
+    }
+
+    // A 2D one-shot SFX entity in the library's folder with shuffled clips and a random pitch range (as InventorySetup.Sound).
+    static AudioEntity Sound(string libraryPath, string name, float volume, float pitchRandom, string[] clips)
+    {
+        var library = AssetDatabase.LoadAssetAtPath<AudioAsset>(libraryPath) ?? throw new Exception("missing " + libraryPath);
+        string path = $"{libraryPath.Substring(0, libraryPath.Length - ".asset".Length)}/{name}.asset";
+        var entity = AssetDatabase.LoadAssetAtPath<AudioEntity>(path);
+        if (entity == null)
+        {
+            entity = AudioEntity.CreateNewInstance(library, name, BroAudioType.SFX);
+            AssetDatabase.CreateAsset(entity, path);
+        }
+        var so = new SerializedObject(entity);
+        so.FindProperty("<AudioAsset>k__BackingField").objectReferenceValue = library;
+        so.FindProperty("<AudioType>k__BackingField").intValue = (int)BroAudioType.SFX;
+        so.FindProperty("<Loop>k__BackingField").boolValue = false;
+        so.FindProperty("<MasterVolume>k__BackingField").floatValue = volume;
+        so.FindProperty("<Pitch>k__BackingField").floatValue = 1f;
+        so.FindProperty("MulticlipsPlayMode").intValue = (int)(clips.Length > 1 ? MulticlipsPlayMode.Shuffle : MulticlipsPlayMode.Single);
+        so.FindProperty("<PitchRandomRange>k__BackingField").floatValue = pitchRandom;
+        so.FindProperty("<RandomFlags>k__BackingField").intValue = pitchRandom > 0f ? 1 : 0;
+        so.FindProperty("<SpatialSetting>k__BackingField").objectReferenceValue = null;
+        SerializedProperty list = so.FindProperty("Clips");
+        list.arraySize = clips.Length;
+        for (int i = 0; i < clips.Length; i++)
+        {
+            SerializedProperty element = list.GetArrayElementAtIndex(i);
+            element.FindPropertyRelative("AudioClip").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<AudioClip>(clips[i]) ?? throw new Exception("missing clip " + clips[i]);
+            element.FindPropertyRelative("Volume").floatValue = 1f;
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(entity);
+        AssetDatabase.SaveAssetIfDirty(entity);
+        return entity;
+    }
+
+    static AudioEntity EntityOf(string name)
+    {
+        (string library, string _, float _, float _, string[] _) = Sounds.First(s => s.name == name);
+        string path = $"{library.Substring(0, library.Length - ".asset".Length)}/{name}.asset";
+        return AssetDatabase.LoadAssetAtPath<AudioEntity>(path) ?? throw new Exception("run Audio first: missing " + path);
+    }
+
+    static SoundID SoundOf(string name) => new(EntityOf(name));
 
     // ---- Optics: procedural reticles (white on transparent; the material tints them) and one lens material per optic ----
 
@@ -115,6 +200,11 @@ public static class AttachmentSetup
             float r = Mathf.Sqrt(x * x + y * y) / 512f;
             return Mathf.Max(Mathf.Clamp01((r - 0.985f) * 60f), Mathf.SmoothStep(0f, 0.75f, Mathf.InverseLerp(0.8f, 0.99f, r)));
         });
+        // The scope's shadow: twice the circle's size, clear inside, dark from just inside its rim outwards. Slid off the
+        // circle it darkens the edge the scope moves away from.
+        Reticle("ScopeShadow", 1024, (x, y) => Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.45f, 0.56f, Mathf.Sqrt(x * x + y * y) / 512f)));
+        // The laser's dot: a solid core fading out at its rim (tinted red by its material).
+        Reticle("LaserDot", 64, (x, y) => 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.3f, 1f, Mathf.Sqrt(x * x + y * y) / 32f)));
 
         Shader shader = Shader.Find(ReticleShader) ?? throw new Exception("missing shader " + ReticleShader);
         var lensTint = new Color(0.55f, 0.75f, 0.9f, 0.12f);
@@ -123,7 +213,36 @@ public static class AttachmentSetup
         Lens("Holo", shader, holo, 10f, new Color(3f, 0.35f, 0.12f, 1f), lensTint);
         Lens("Chevron", shader, chevron, 7f, new Color(3f, 0.2f, 0.1f, 1f), new Color(0.45f, 0.6f, 0.75f, 0.2f));
         Lens("Scope", shader, scope, 12f, new Color(0f, 0f, 0f, 1f), new Color(0.35f, 0.5f, 0.65f, 0.25f));
-        return "optics: reticles, ScopeMask, 5 lens materials in " + OpticsDir;
+        LaserDot();
+        return "optics: reticles, ScopeMask, ScopeShadow, 5 lens materials, the laser dot in " + OpticsDir;
+    }
+
+    const string LaserDotMaterial = OpticsDir + "/LaserDot.mat";
+    const string TracerMaterial = "Assets/_Game/Content/Weapons/_Shared/Effects/Tracer_Line.mat";
+
+    // An unlit HDR red disc (the tracer's URP Particles Unlit setup, alpha blended rather than additive so it reads red on
+    // orange or white too); bloom gives it a glow.
+    static void LaserDot()
+    {
+        var tracer = AssetDatabase.LoadAssetAtPath<Material>(TracerMaterial) ?? throw new Exception("missing " + TracerMaterial);
+        Material material = AssetDatabase.LoadAssetAtPath<Material>(LaserDotMaterial);
+        if (material == null)
+        {
+            material = new Material(tracer);
+            AssetDatabase.CreateAsset(material, LaserDotMaterial);
+        }
+        material.CopyPropertiesFromMaterial(tracer);
+        material.shaderKeywords = tracer.shaderKeywords;
+        material.renderQueue = tracer.renderQueue;
+        material.SetFloat("_Blend", 0f);
+        material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+        material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+        material.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+        material.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{OpticsDir}/LaserDot.png"));
+        material.SetColor("_BaseColor", new Color(4f, 0.06f, 0.03f, 1f));
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssetIfDirty(material);
     }
 
     static float Disc(float x, float y, float radius) => Mathf.Clamp01(radius - Mathf.Sqrt(x * x + y * y) + 0.5f);
@@ -276,6 +395,23 @@ public static class AttachmentSetup
                 lights.arraySize = 1;
                 lights.GetArrayElementAtIndex(0).objectReferenceValue = light;
             }
+            if (spec.Laser)
+            {
+                // The beam leaves the front face; the dot is a camera-facing quad the model moves into the world while held.
+                Transform emitter = Marker(root.transform, "Laser", new Vector3(bounds.center.x, bounds.center.y, bounds.max.z + 0.002f), Quaternion.identity);
+                var dot = new GameObject("LaserDot");
+                dot.transform.SetParent(root.transform, false);
+                dot.AddComponent<MeshFilter>().sharedMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+                var renderer = dot.AddComponent<MeshRenderer>();
+                renderer.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(LaserDotMaterial) ?? throw new Exception("run Optics first: no " + LaserDotMaterial);
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+                renderer.lightProbeUsage = LightProbeUsage.Off;
+                renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+                renderer.enabled = false;
+                so.FindProperty("_laser").objectReferenceValue = emitter;
+                so.FindProperty("_laserDot").objectReferenceValue = renderer;
+            }
             so.ApplyModifiedPropertiesWithoutUndo();
             return PrefabUtility.SaveAsPrefabAsset(root, $"{folder}/{spec.Name}_Model.prefab").GetComponent<AttachmentModel>();
         }
@@ -415,22 +551,28 @@ public static class AttachmentSetup
         so.FindProperty("_optic.EyeRelief").floatValue = spec.EyeRelief;
         so.FindProperty("_optic.SwayScale").floatValue = spec.SwayScale;
         so.FindProperty("_optic.FullScope").boolValue = spec.FullScope;
+        so.FindProperty("_optic.EyeBox").floatValue = spec.EyeBox;
         so.FindProperty("_optic.ScopeReticle").objectReferenceValue = spec.FullScope
             ? AssetDatabase.LoadAssetAtPath<Sprite>($"{OpticsDir}/Reticle_Scope.png")
             : null;
         so.FindProperty("_magazineScale").vector3Value = spec.MagazineScale;
         so.FindProperty("_hidesFlash").boolValue = spec.HidesFlash;
+        so.FindProperty("_fireSound._entity").objectReferenceValue = spec.FireSound != null ? EntityOf(spec.FireSound) : null;
+        so.FindProperty("_fireTailSound._entity").objectReferenceValue = null;
+        so.FindProperty("_loudness").floatValue = spec.Loudness;
+        so.FindProperty("_switchSound._entity").objectReferenceValue = spec.SwitchSound != null ? EntityOf(spec.SwitchSound) : null;
         so.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(item);
         AssetDatabase.SaveAssetIfDirty(item);
     }
 
     // A three-quarter render on transparent (rendered on black and on white; alpha from the difference), as a 256 sprite.
-    static Sprite Icon(GameObject prefab, string path)
+    // `gun`: only the pickup's world model, standing upright as the inventory's 3D view shows it.
+    static Sprite Icon(GameObject prefab, string path, bool gun = false)
     {
         const int size = 256;
-        Texture2D black = Render(prefab, size, Color.black);
-        Texture2D white = Render(prefab, size, Color.white);
+        Texture2D black = Render(prefab, size, Color.black, gun);
+        Texture2D white = Render(prefab, size, Color.white, gun);
         Color[] b = black.GetPixels(), w = white.GetPixels();
         var pixels = new Color[b.Length];
         for (int i = 0; i < b.Length; i++)
@@ -492,14 +634,17 @@ public static class AttachmentSetup
         }
     }
 
-    static Texture2D Render(GameObject prefab, int size, Color background)
+    static Texture2D Render(GameObject prefab, int size, Color background, bool gun = false)
     {
         var preview = new PreviewRenderUtility();
         try
         {
             GameObject go = preview.InstantiatePrefabInScene(prefab);
+            GameObject world = gun ? go.GetComponent<WorldItem>().WorldModel : null;
             foreach (Transform child in go.transform)
-                child.gameObject.SetActive(true);
+                child.gameObject.SetActive(!gun || child.gameObject == world);
+            if (gun && world.GetComponentInChildren<IItemView>(true) is Component view)
+                view.transform.localRotation = Quaternion.identity;
             var renderers = go.GetComponentsInChildren<MeshRenderer>(false);
             Bounds bounds = renderers[0].bounds;
             foreach (MeshRenderer renderer in renderers)
@@ -564,6 +709,8 @@ public static class AttachmentSetup
         public GunSlot[] Slots;
         public MountSpec[] Mounts;
         public string[] Magazines = Array.Empty<string>();
+        // A rendered icon from its world model (GunIcons); the first five keep their Synty icons.
+        public bool Icon;
     }
 
     const string RailDown = "Attachments/Accessories/Rails/Rail_Down";
@@ -640,8 +787,162 @@ public static class AttachmentSetup
                     Adapters = new[] { (RailRight, (string)null, new Vector3(0.011f, 0.047f, 0.522f)) } },
             },
         },
+
+        // Block-outs (GunBlockoutSetup): Castle Bravo part names, mounts from each model's *_PreSet. No clips yet, so every
+        // mount sits on Weapon itself; the animation rework re-parents them under the parts that move. Rendered icons.
+        new()
+        {
+            Name = "Glock17", HipSpread = 2.5f, Family = GunFamily.Pistol, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.057f, -0.041f) },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0f, 0.004f, 0.111f) },
+            },
+            Magazines = new[] { "Pistol_B_Mag" },
+        },
+        new()
+        {
+            Name = "DesertEagle", HipSpread = 3f, Family = GunFamily.Pistol, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.056f, -0.003f) },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0f, 0.003f, 0.132f) },
+            },
+            Magazines = new[] { "Pistol_D_Mag" },
+        },
+        new()
+        {
+            Name = "Uzi", HipSpread = 2f, Family = GunFamily.Smg, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.107f, -0.089f), Show = new[] { "SMG_M_Rail" } },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0.042f, 0.023f, 0.180f),
+                    Adapters = new[] { (RailRight, (string)null, new Vector3(0.030f, 0.023f, 0.178f)) } },
+            },
+            Magazines = new[] { "SMG_M_Mag" },
+        },
+        new()
+        {
+            // Its magazine lies on top: a magazine part changes the stats only.
+            Name = "P90", HipSpread = 2f, Family = GunFamily.Smg, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.157f, 0.060f), Hide = new[] { "SMG_O_Sight_Back", "SMG_O_Sight_Front" } },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0.040f, 0.118f, 0.085f) },
+            },
+        },
+        new()
+        {
+            // The optic sits where the preset's scout scope does, ahead of the receiver.
+            Name = "M1Carbine", HipSpread = 2.5f, Family = GunFamily.Rifle, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.088f, 0.280f) },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+            },
+            Magazines = new[] { "WWII_Rifle_A_Mag" },
+        },
+        new()
+        {
+            Name = "M4", HipSpread = 2.5f, Family = GunFamily.Rifle, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Grip, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.131f, 0.031f), Hide = new[] { "AR_A_Sight" } },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Grip, At = new Vector3(0f, 0.026f, 0.348f) },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0.033f, 0.080f, 0.520f) },
+            },
+            Magazines = new[] { "AR_A_Mag" },
+        },
+        new()
+        {
+            Name = "FAL", HipSpread = 3f, Family = GunFamily.Marksman, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Grip, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.105f, 0.063f) },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Grip, At = new Vector3(0f, 0.012f, 0.394f) },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0.039f, 0.058f, 0.332f), Show = new[] { "DMR_L_BarrelGuared/DMR_L_BarrelGuard_Rail_Right" } },
+            },
+            Magazines = new[] { "DMR_L_Mag" },
+        },
+        new()
+        {
+            // A fitted optic replaces the built-in scope.
+            Name = "HuntingRifle", HipSpread = 4f, Family = GunFamily.Sniper, Icon = true,
+            Slots = new[] { GunSlot.Optic },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.103f, 0.159f), Hide = new[] { "Recon_E_Optic" } },
+            },
+        },
+        new()
+        {
+            Name = "AA12", HipSpread = 2.5f, Family = GunFamily.Shotgun, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Grip, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.127f, 0.031f), Show = new[] { "ShotGun_A_Rail" },
+                    Hide = new[] { "ShotGun_A_Sight_Back", "ShotGun_A_Sight_Forward" } },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Grip, At = new Vector3(0f, 0.008f, 0.334f), Show = new[] { "ShotGun_A_Receiver_Rail" } },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0.040f, 0.070f, 0.339f),
+                    Adapters = new[] { (RailRight, (string)null, new Vector3(0.029f, 0.071f, 0.344f)) } },
+            },
+            Magazines = new[] { "ShotGun_A_Mag" },
+        },
+        new()
+        {
+            // Grip slot for a bipod later (no grip fits a machine gun yet); its drum isn't scaled by magazine parts.
+            Name = "RPD", HipSpread = 4f, Family = GunFamily.MachineGun, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Grip, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.101f, 0.168f), Show = new[] { "LMG_A_Rail" }, Hide = new[] { "LMG_A_Sight" } },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Grip, At = new Vector3(0f, -0.015f, 0.507f),
+                    Adapters = new[] { (RailDown, (string)null, new Vector3(0f, -0.008f, 0.528f)) } },
+            },
+        },
     };
 
+    // The AK47 variant keeps the AK47's mounts and clips; it only needs its icon.
+    static readonly string[] IconOnly = { "AK74M" };
+
+    // Rendered icons for the block-out guns, set on their items.
+    public static string GunIcons()
+    {
+        var done = new List<string>();
+        foreach (string name in Guns.Where(g => g.Icon).Select(g => g.Name).Concat(IconOnly))
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{Weapons}{name}/{name}.prefab") ?? throw new Exception("missing gun " + name);
+            Sprite icon = Icon(prefab, $"{Weapons}{name}/{name}_Icon.png", gun: true);
+            var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>($"{Weapons}{name}/{name}.asset");
+            var so = new SerializedObject(definition);
+            so.FindProperty("_icon").objectReferenceValue = icon;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(definition);
+            AssetDatabase.SaveAssetIfDirty(definition);
+            done.Add(name);
+        }
+        var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(CatalogPath);
+        int count = catalog.Collect();
+        AssetDatabase.SaveAssetIfDirty(catalog);
+        return $"icons: {string.Join(", ", done)}; catalog: {count} items";
+    }
+
+    // Rebuilds the AK47's mount nodes: run GunBlockoutSetup.Ak74m after it (the AK-74M variant's overrides on them drop).
     public static string Mounts()
     {
         var report = new StringBuilder();

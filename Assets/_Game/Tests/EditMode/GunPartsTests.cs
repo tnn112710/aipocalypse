@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using Ami.BroAudio;
+using Ami.BroAudio.Data;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.LocalizationSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using VContainer;
 
 namespace MB13.Aipocalypse.Tests.EditMode
 {
@@ -328,9 +332,102 @@ namespace MB13.Aipocalypse.Tests.EditMode
             Assert.That(MB13.Aipocalypse.Core.UI.ItemInspectorView.StatNames.Length, Is.EqualTo(GunStats.StatCount));
         }
 
+        [Test]
+        public void Stats_SuppressorReplacesTheShotSoundAndQuietsTheShot()
+        {
+            AudioEntity entity = Track(AudioEntity.CreateNewInstance(null, "Suppressed", BroAudioType.SFX));
+            AttachmentDefinition suppressor = Part(GunSlot.Muzzle, GunFamily.Rifle);
+            var so = new SerializedObject(suppressor);
+            so.FindProperty("_fireSound._entity").objectReferenceValue = entity;
+            so.FindProperty("_loudness").floatValue = 0.3f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            GunInstance gun = NewRifle();
+            Assert.That(gun.Stats.Loudness, Is.EqualTo(1f));
+            Assert.That(gun.Stats.Muzzle, Is.Null);
+
+            gun.TryAttach(suppressor.CreateInstance(), out _);
+
+            Assert.That(gun.Stats.Muzzle, Is.SameAs(suppressor));
+            Assert.That(gun.Stats.FireSound, Is.EqualTo(new SoundID(entity)));
+            Assert.That(gun.Stats.FireTailSound.IsValid(), Is.False, "no tail unless the suppressor names one");
+            Assert.That(gun.Stats.Loudness, Is.EqualTo(0.3f).Within(0.0001f));
+        }
+
+        [Test]
+        public void LootCrate_RollsItsTableOnceOnTopOfItsContents()
+        {
+            AttachmentDefinition part = Part(GunSlot.Grip, GunFamily.Rifle);
+            LootTable table = Track(ScriptableObject.CreateInstance<LootTable>());
+            table.Drops.Count = Vector2Int.one;
+            table.Drops.Entries.Add(new WeightedEntry<LootDrop> { Value = new LootDrop { Item = part, Count = Vector2Int.one }, Weight = 1f });
+            var crate = Track(new GameObject("Crate")).AddComponent<LootContainer>();
+            var so = new SerializedObject(crate);
+            so.FindProperty("_table").objectReferenceValue = table;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            var builder = new ContainerBuilder();
+            builder.RegisterInstance(new RandomService(7));
+            builder.Build().Inject(crate);
+
+            int Parts()
+            {
+                int count = 0;
+                for (int i = 0; i < crate.Items.Count; i++)
+                    if (crate.Items[i]?.Definition == part)
+                        count++;
+                return count;
+            }
+
+            Assert.That(Parts(), Is.EqualTo(1));
+            Assert.That(crate.HiddenCount, Is.EqualTo(1), "rolled loot starts hidden like the rest");
+            Assert.That(Parts(), Is.EqualTo(1), "it rolls once");
+        }
+
         // ---- Content wiring ----
 
-        static readonly string[] Guns = { "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" };
+        // The five built first, then the block-outs (AgentScripts/Weapons/GunBlockoutSetup.cs).
+        static readonly string[] Guns =
+        {
+            "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel",
+            "Glock17", "DesertEagle", "Uzi", "P90", "M1Carbine", "M4", "AK74M", "FAL", "HuntingRifle", "AA12", "RPD",
+        };
+
+        [Test]
+        public void GunPrefabs_ShootFromAMuzzleAndHoldBothHands()
+        {
+            foreach (string name in Guns)
+            {
+                var definition = AssetDatabase.LoadAssetAtPath<GunDefinition>($"Assets/_Game/Content/Weapons/{name}/{name}.asset");
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/_Game/Content/Weapons/{name}/{name}.prefab");
+                Assert.That(definition, Is.Not.Null, name + ": no item");
+                Assert.That(definition.Prefab, Is.Not.Null.And.SameAs(prefab.GetComponent<WorldItem>()), name + ": item doesn't point at its prefab");
+                Assert.That(definition.Icon, Is.Not.Null, name + ": no icon");
+                Assert.That(definition.Magazine.AmmoType, Is.Not.Null, name + ": no ammo type");
+                Assert.That(definition.Magazine.AmmoType.Prefab, Is.Not.Null, name + ": its ammo has no box");
+                var held = new SerializedObject(prefab.GetComponent<HeldGun>());
+                var muzzle = (Transform)held.FindProperty("_muzzle").objectReferenceValue;
+                Assert.That(muzzle, Is.Not.Null.And.Property("parent").Not.Null, name + ": no muzzle");
+                Assert.That(muzzle.IsChildOf(prefab.transform.Find("PosePivot")), Is.True, name + ": muzzle outside the posed model");
+                var hands = prefab.GetComponent<MB13.Aipocalypse.Core.HandSystem.ItemHands>();
+                Assert.That(hands, Is.Not.Null, name + ": no ItemHands");
+                Assert.That(hands.GetGrip(MB13.Aipocalypse.Core.HandSystem.HandSide.Right), Is.Not.Null, name + ": no right grip");
+                Assert.That(hands.GetGrip(MB13.Aipocalypse.Core.HandSystem.HandSide.Left), Is.Not.Null, name + ": no left grip");
+            }
+        }
+
+        [Test]
+        public void Loot_GoblinsAndCratesDropEveryPart()
+        {
+            var goblin = AssetDatabase.LoadAssetAtPath<LootTable>("Assets/_Game/Data/Loot/GoblinLoot.asset");
+            var crate = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Props/LootCrate/LootCrate.prefab");
+            var crateTable = (LootTable)new SerializedObject(crate.GetComponent<LootContainer>()).FindProperty("_table").objectReferenceValue;
+            Assert.That(crateTable, Is.Not.Null, "the loot crate rolls no table");
+            foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(AttachmentDefinition), new[] { "Assets/_Game" }))
+            {
+                var part = AssetDatabase.LoadAssetAtPath<AttachmentDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                Assert.That(goblin.Drops.Entries.Exists(e => e.Value.Item == part && e.Weight > 0f), Is.True, part.name + ": goblins never drop it");
+                Assert.That(crateTable.Drops.Entries.Exists(e => e.Value.Item == part && e.Weight > 0f), Is.True, part.name + ": crates never hold it");
+            }
+        }
 
         [Test]
         public void GunPrefabs_HaveAMountForEverySlotTheyDeclare()

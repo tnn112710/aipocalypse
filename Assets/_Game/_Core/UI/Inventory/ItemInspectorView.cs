@@ -86,6 +86,13 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         // The screen closed: the 3D view stops rendering.
+        // A part went on (or came off) the shown gun.
+        public void Nudge(bool attached)
+        {
+            if (_stage != null)
+                _stage.Nudge(attached);
+        }
+
         public void Hide()
         {
             _shown = false;
