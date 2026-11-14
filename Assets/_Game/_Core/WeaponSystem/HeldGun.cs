@@ -62,6 +62,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // The aim pose moved so a fitted optic's sight line sits where the iron sights' did.
         Transform _opticAim;
         bool _aimThroughOptic;
+        // The sight window shown now (a tube optic's, near full aim).
+        Renderer _shownWindow;
+        const float SightWindowFrom = 0.6f;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
@@ -252,6 +255,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             _jolt.Stop();
             _aimWeight = 0f;
+            ShowSightWindow(false);
             _jam?.Hide();
             _sprintRecoveryLeft = 0f;
             _tailIn = -1f;
@@ -465,6 +469,21 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 target = _hipPose;
             _pose.MoveTowards(target, sprinting ? handling.SprintPoseSpeed : aimSpeed, deltaTime);
             ApplyPose();
+            ShowSightWindow(_gun.IsAiming && !sprinting && _aimWeight > SightWindowFrom);
+        }
+
+        // A tube optic's window hides its inside walls only once the eye is nearly behind it: from further off the walls
+        // are what the eye would really see.
+        void ShowSightWindow(bool on)
+        {
+            Renderer window = on && _mounts != null ? _mounts.SightWindow : null;
+            if (window == _shownWindow)
+                return;
+            if (_shownWindow != null)
+                _shownWindow.enabled = false;
+            _shownWindow = window;
+            if (window != null)
+                window.enabled = true;
         }
 
         void ApplyPose()

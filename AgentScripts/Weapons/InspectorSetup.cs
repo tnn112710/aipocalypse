@@ -269,6 +269,8 @@ public static class InspectorSetup
         Image mask = Black("Mask", pupil);
         Place(mask.rectTransform, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
         mask.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(ScopeMaskPath) ?? throw new Exception("run AttachmentSetup.Optics first");
+        // White: the mask texture carries its own greys (the tube ring).
+        mask.color = Color.white;
         // The bars reach a few pixels into the square, so no seam shows between them and the mask.
         const float far = 4000f, overlap = 4f;
         Place(Black("Left", pupil).rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 0.5f), new Vector2(overlap, 0f), new Vector2(far, far * 2f));

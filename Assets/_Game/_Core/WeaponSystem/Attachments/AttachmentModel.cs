@@ -10,6 +10,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     {
         [SerializeField, Tooltip("Muzzle parts: shots and the flash leave here, along its blue (Z) axis")] Transform _tip;
         [SerializeField, Tooltip("Optics: a point on the sight line (the lens centre), blue axis along it")] Transform _sight;
+        [SerializeField, Tooltip("Tube optics: a disc just inside the rear opening that writes only depth (Optics/SightWindow) and " +
+            "draws the reticle. On near full aim (HeldGun), it hides the tube's inside walls and the gun behind it, so the target " +
+            "shows through the whole opening. Off in the prefab")] Renderer _sightWindow;
         [SerializeField, Tooltip("Grips: where the support hand holds, as a HandGrip would sit (Z from little finger to index). " +
             "Read by the gun's animation; the hands don't use it yet")] Transform _handGrip;
         [SerializeField, Tooltip("On only while the gun is in hand and its light is switched on (flashlights)")] Light[] _lights = System.Array.Empty<Light>();
@@ -26,6 +29,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         public Transform Tip => _tip;
         public Transform Sight => _sight;
+        public Renderer SightWindow => _sightWindow;
         public Transform HandGrip => _handGrip;
         // Something the gun light key switches: a light or a laser.
         public bool HasLights => _lights.Length > 0 || _laser != null;

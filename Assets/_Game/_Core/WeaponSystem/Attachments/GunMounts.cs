@@ -26,6 +26,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [SerializeField, Tooltip("First-person model: a point on the iron sights' line in the aim pose, blue axis along it. Optics " +
             "shift the aim pose so their own sight line lands here")] Transform _ironSight;
         [SerializeField, Tooltip("Scaled by magazine parts: the magazine and its reload copy")] Transform[] _magazines = Array.Empty<Transform>();
+        [SerializeField, Tooltip("First-person model with a built-in tube scope: its sight window (see AttachmentModel). A fitted " +
+            "optic's window replaces it")] Renderer _sightWindow;
 
         readonly AttachmentModel[] _models = new AttachmentModel[GunSlots.Count];
         readonly AttachmentDefinition[] _shown = new AttachmentDefinition[GunSlots.Count];
@@ -42,6 +44,16 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             {
                 AttachmentModel optic = _models[(int)GunSlot.Optic];
                 return optic != null && optic.Sight != null ? optic.Sight : _ironSight;
+            }
+        }
+
+        // The fitted optic's sight window (null if it has none), else the built-in scope's.
+        public Renderer SightWindow
+        {
+            get
+            {
+                AttachmentModel optic = _models[(int)GunSlot.Optic];
+                return optic != null ? optic.SightWindow : _sightWindow;
             }
         }
 

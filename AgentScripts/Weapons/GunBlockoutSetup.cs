@@ -58,6 +58,8 @@ public static class GunBlockoutSetup
         public bool SniperShot, BoxReload;
         // A built-in scope: this lens gets the reticle lens material.
         public string ScopeLens;
+        // A built-in tube scope: its sight window's radius (m; see AttachmentSetup.Windows), 0 = none.
+        public float ScopeWindow;
     }
 
     // Sight heights, muzzles and hand points read off each model's mesh bounds (first guesses to tune in the prefab).
@@ -81,7 +83,8 @@ public static class GunBlockoutSetup
             AimCloser = -0.22f },
         new() { Name = "HuntingRifle", Key = "item.hunting_rifle", Source = CB1 + "Recon Weapons/Recon_E.prefab", Reference = "PumpShotgun",
             Ammo = "HeavyAmmo", Sight = 0.135f, Muzzle = new Vector3(0f, 0.070f, 1.028f), Left = new Vector3(0.007f, 0.030f, 0.420f),
-            CycleTime = 1f, AimZoom = 0.4f, SniperShot = true, ScopeLens = "Recon_E_Optic/Recon_E_Optic_Lens", AimCloser = 0.10f },
+            CycleTime = 1f, AimZoom = 0.4f, SniperShot = true, ScopeLens = "Recon_E_Optic/Recon_E_Optic_Lens", AimCloser = -0.06f,
+            ScopeWindow = 0.0265f },
         new() { Name = "AA12", Key = "item.aa12", Source = CB1 + "ShotGun Weapons/ShotGun_A.prefab", Reference = "PumpShotgun",
             Mode = FireMode.Auto, Reload = ReloadType.Magazine, CycleTime = 0f, BoxReload = true, Sight = 0.180f,
             Muzzle = new Vector3(0f, 0.055f, 0.568f), Left = new Vector3(0.007f, 0.045f, 0.330f), AimCloser = -0.04f },
@@ -179,6 +182,8 @@ public static class GunBlockoutSetup
             if (gun.ScopeLens != null)
                 weapon.Find(gun.ScopeLens).GetComponent<MeshRenderer>().sharedMaterial =
                     AssetDatabase.LoadAssetAtPath<Material>(LensScope) ?? throw new Exception("run AttachmentSetup.Optics first");
+            if (gun.ScopeWindow > 0f)
+                ScopeWindow(weapon.Find(gun.ScopeLens), gun.ScopeWindow);
             Transform muzzle = Node("Muzzle", weapon);
             muzzle.localPosition = gun.Muzzle;
             Transform ejection = EjectionPort(weapon);
@@ -286,6 +291,76 @@ public static class GunBlockoutSetup
         so.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(definition);
         AssetDatabase.SaveAssetIfDirty(definition);
+    }
+
+    // ---- Built-in tube scopes: a sight window just inside the rear opening (AttachmentSetup.Windows does the same for
+    // optic parts; AttachmentSetup.Mounts wires it into the held GunMounts) ----
+
+    const string SightWindowMaterial = "Assets/_Game/Content/Weapons/_Shared/Optics/SightWindow.mat";
+    const string SightWindowMesh = "Assets/_Game/Content/Weapons/_Shared/Optics/SightWindowDisc.asset";
+
+    // Adds the windows to the existing block-out prefabs (and wires them if GunMounts is there already).
+    public static string ScopeWindows()
+    {
+        var report = new System.Text.StringBuilder();
+        foreach (Gun gun in Guns)
+        {
+            if (gun.ScopeWindow <= 0f)
+                continue;
+            string path = $"{Weapons}{gun.Name}/{gun.Name}.prefab";
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                Transform weapon = root.transform.Find("PosePivot/RecoilPivot/AnimationRoot/Motion/Weapon");
+                Renderer window = ScopeWindow(weapon.Find(gun.ScopeLens), gun.ScopeWindow);
+                if (weapon.TryGetComponent(out GunMounts mounts))
+                {
+                    var so = new SerializedObject(mounts);
+                    so.FindProperty("_sightWindow").objectReferenceValue = window;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+                report.Append($"{gun.Name}: window at z {window.transform.localPosition.z:F3}, wired {mounts != null}; ");
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+        return report.ToString();
+    }
+
+    // Beside the lens (same pose, so the reticle drawn on it lines up), 2 mm inside the scope body's rear face.
+    static Renderer ScopeWindow(Transform lens, float radius)
+    {
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(SightWindowMesh) ?? throw new Exception("run AttachmentSetup.Optics first");
+        var material = AssetDatabase.LoadAssetAtPath<Material>(SightWindowMaterial) ?? throw new Exception("run AttachmentSetup.Optics first");
+        float rear = 0f;
+        foreach (MeshFilter filter in lens.parent.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (filter.sharedMesh == null || filter.transform == lens)
+                continue;
+            foreach (Vector3 vertex in filter.sharedMesh.vertices)
+            {
+                Vector3 p = lens.InverseTransformPoint(filter.transform.TransformPoint(vertex));
+                if (p.x * p.x + p.y * p.y < radius * radius * 1.69f)
+                    rear = Mathf.Min(rear, p.z);
+            }
+        }
+        Transform existing = lens.parent.Find("SightWindow");
+        GameObject go = existing != null ? existing.gameObject : new GameObject("SightWindow", typeof(MeshFilter), typeof(MeshRenderer));
+        go.transform.SetParent(lens.parent, false);
+        go.layer = lens.gameObject.layer;
+        go.transform.SetPositionAndRotation(lens.TransformPoint(new Vector3(0f, 0f, rear + 0.002f)), lens.rotation);
+        // Uniform scale: the reticle shader reads the view direction in object space.
+        go.transform.localScale = Vector3.one * (radius / lens.parent.lossyScale.x);
+        go.GetComponent<MeshFilter>().sharedMesh = mesh;
+        var renderer = go.GetComponent<MeshRenderer>();
+        renderer.sharedMaterials = new[] { material, lens.GetComponent<MeshRenderer>().sharedMaterial };
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        renderer.enabled = false;
+        return renderer;
     }
 
     // ---- AK-74M: the AK47's prefab and clips with the AK-74M's meshes (same layout), and its muzzle device ----

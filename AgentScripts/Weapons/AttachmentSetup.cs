@@ -43,6 +43,8 @@ public static class AttachmentSetup
         public GunFamily Families;
         public (GunStat stat, float percent)[] Mods = Array.Empty<(GunStat, float)>();
         public float Weight, Magnification = 1f, EyeDistance = 0.22f, SwayScale = 1f, Loudness = 1f, EyeBox = 0.012f;
+        // Tube optics: the sight window's radius (m), between the rear opening's inner rim and the housing's outer edge.
+        public float WindowRadius;
         public int Value;
         public ItemRarity Rarity;
         public bool FullScope, HidesFlash, Light, Laser;
@@ -72,17 +74,19 @@ public static class AttachmentSetup
     static readonly Part[] Specs =
     {
         new() { Name = "RedDot", Key = "item.part_red_dot", Source = "Optics/Optics/Optic_H", Slot = GunSlot.Optic, Families = Long,
-            Mods = new[] { (GunStat.AimTime, -5f) }, Weight = 0.2f, Value = 120, Rarity = ItemRarity.Uncommon, Lens = "Dot", Magnification = 1.5f, EyeDistance = 0.22f },
+            Mods = new[] { (GunStat.AimTime, -5f) }, Weight = 0.2f, Value = 120, Rarity = ItemRarity.Uncommon, Lens = "Dot", Magnification = 1.5f, EyeDistance = 0.22f,
+            SwayScale = 0.85f, WindowRadius = 0.022f },
         new() { Name = "Holo", Key = "item.part_holo", Source = "Optics/Optics/Optic_I", Slot = GunSlot.Optic, Families = Long,
             Mods = new[] { (GunStat.Spread, -15f), (GunStat.AimTime, 5f) }, Weight = 0.3f, Value = 200, Rarity = ItemRarity.Rare, Lens = "Holo",
-            Magnification = 1.5f, EyeDistance = 0.22f },
+            Magnification = 1.5f, EyeDistance = 0.22f, SwayScale = 0.85f },
         new() { Name = "Scope2x", Key = "item.part_scope_2x", Source = "Optics/Optics/Optic_C", Slot = GunSlot.Optic, Families = Rifles,
             Mods = new[] { (GunStat.Range, 15f), (GunStat.AimTime, 15f) }, Weight = 0.45f, Value = 350, Rarity = ItemRarity.Rare,
-            Lens = "Chevron", Magnification = 2f, EyeDistance = 0.2f, SwayScale = 0.7f },
+            Lens = "Chevron", Magnification = 2f, EyeDistance = 0.2f, SwayScale = 0.7f, WindowRadius = 0.02f },
         new() { Name = "Scope4x", Key = "item.part_scope_4x", Source = "Optics/Optics_Recon/Optic_Recon_D", Slot = GunSlot.Optic,
             Families = GunFamily.Rifle | GunFamily.Marksman | GunFamily.Sniper,
             Mods = new[] { (GunStat.Range, 25f), (GunStat.AimTime, 25f), (GunStat.HipSpread, 15f) }, Weight = 0.6f, Value = 600,
-            Rarity = ItemRarity.Epic, Lens = "Scope", Magnification = 4f, FullScope = true, SwayScale = 0.35f, EyeBox = 0.006f, EyeDistance = 0.235f },
+            Rarity = ItemRarity.Epic, Lens = "Scope", Magnification = 4f, FullScope = true, SwayScale = 0.35f, EyeBox = 0.006f, EyeDistance = 0.28f,
+            WindowRadius = 0.0265f },
         new() { Name = "PistolRedDot", Key = "item.part_pistol_red_dot", Source = "Optics/Optics_Pistol/Optic_Pistol_A", Slot = GunSlot.Optic,
             Families = GunFamily.Pistol, Mods = new[] { (GunStat.AimTime, -8f) }, Weight = 0.1f, Value = 100, Rarity = ItemRarity.Uncommon,
             Lens = "PistolDot", EyeDistance = 0.18f },
@@ -185,20 +189,49 @@ public static class AttachmentSetup
     public static string Optics()
     {
         Directory.CreateDirectory(OpticsDir);
-        Texture2D dot = Reticle("Reticle_Dot", 256, (x, y) => Disc(x, y, 7f));
-        Texture2D holo = Reticle("Reticle_Holo", 256, (x, y) => Mathf.Max(Disc(x, y, 5f), Ring(x, y, 78f, 3.5f)));
-        Texture2D chevron = Reticle("Reticle_Chevron", 256, (x, y) => Mathf.Max(
-            Mathf.Max(Segment(x, y, new Vector2(0f, 0f), new Vector2(-34f, -40f), 4f), Segment(x, y, new Vector2(0f, 0f), new Vector2(34f, -40f), 4f)),
-            Segment(x, y, new Vector2(0f, -55f), new Vector2(0f, -110f), 2.5f)));
-        Texture2D scope = Reticle("Reticle_Scope", 1024, (x, y) => Mathf.Max(
-            Mathf.Max(Segment(x, y, new Vector2(-500f, 0f), new Vector2(500f, 0f), 1.6f), Segment(x, y, new Vector2(0f, -500f), new Vector2(0f, 500f), 1.6f)),
-            Mathf.Max(Mathf.Max(Segment(x, y, new Vector2(-500f, 0f), new Vector2(-150f, 0f), 7f), Segment(x, y, new Vector2(500f, 0f), new Vector2(150f, 0f), 7f)),
-                Segment(x, y, new Vector2(0f, -500f), new Vector2(0f, -150f), 7f))));
-        // The scope view: black outside a circle, darkening towards its rim.
+        // Bold shapes with a soft glow around them, so they read on bright sky and at a glance (user: better reticles).
+        Texture2D dot = Reticle("Reticle_Dot", 256, (x, y) => Mathf.Max(Disc(x, y, 8f), Glow(Mathf.Sqrt(x * x + y * y) - 8f, 16f, 0.35f)));
+        Texture2D holo = Reticle("Reticle_Holo", 256, (x, y) =>
+        {
+            float r = Mathf.Sqrt(x * x + y * y);
+            return Mathf.Max(Mathf.Max(Disc(x, y, 6f), Ring(x, y, 78f, 6f)),
+                Mathf.Max(Glow(r - 6f, 10f, 0.3f), Glow(Mathf.Abs(r - 78f) - 3f, 10f, 0.25f)));
+        });
+        Texture2D chevron = Reticle("Reticle_Chevron", 256, (x, y) =>
+        {
+            float d = Mathf.Min(Mathf.Min(SegmentDistance(x, y, Vector2.zero, new Vector2(-34f, -40f)), SegmentDistance(x, y, Vector2.zero, new Vector2(34f, -40f))),
+                SegmentDistance(x, y, new Vector2(0f, -55f), new Vector2(0f, -110f)) + 1.5f);
+            return Mathf.Max(Mathf.Clamp01(3.5f - d + 0.5f), Glow(d - 3.5f, 10f, 0.3f));
+        });
+        // The 4x (also the HUD scope view, 1024 px = one screen height): thick posts in from the edge, a fine cross with
+        // range ticks, a centre dot.
+        Texture2D scope = Reticle("Reticle_Scope", 1024, (x, y) =>
+        {
+            float fine = Mathf.Max(Segment(x, y, new Vector2(-500f, 0f), new Vector2(500f, 0f), 2.4f), Segment(x, y, new Vector2(0f, -500f), new Vector2(0f, 500f), 2.4f));
+            float posts = Mathf.Max(Mathf.Max(Segment(x, y, new Vector2(-500f, 0f), new Vector2(-130f, 0f), 14f), Segment(x, y, new Vector2(500f, 0f), new Vector2(130f, 0f), 14f)),
+                Segment(x, y, new Vector2(0f, -500f), new Vector2(0f, -130f), 14f));
+            float ticks = 0f;
+            for (int i = 1; i <= 2; i++)
+            {
+                float at = i * 45f;
+                ticks = Mathf.Max(ticks, Mathf.Max(Segment(x, y, new Vector2(at, -7f), new Vector2(at, 7f), 2.4f), Segment(x, y, new Vector2(-at, -7f), new Vector2(-at, 7f), 2.4f)));
+                ticks = Mathf.Max(ticks, Segment(x, y, new Vector2(-7f, -at), new Vector2(7f, -at), 2.4f));
+            }
+            return Mathf.Max(Mathf.Max(fine, posts), Mathf.Max(ticks, Disc(x, y, 4.5f)));
+        });
+        // The scope view: clear inside, a narrow dark edge, then a thin grey tube ring (lit a little from above), black past
+        // it. Grey values in the texture: the HUD's Mask image is white.
         Reticle("ScopeMask", 1024, (x, y) =>
         {
             float r = Mathf.Sqrt(x * x + y * y) / 512f;
-            return Mathf.Max(Mathf.Clamp01((r - 0.985f) * 60f), Mathf.SmoothStep(0f, 0.75f, Mathf.InverseLerp(0.8f, 0.99f, r)));
+            return r >= RingFrom ? 1f : Mathf.SmoothStep(0f, 0.55f, Mathf.InverseLerp(0.92f, RingFrom, r));
+        }, (x, y) =>
+        {
+            float r = Mathf.Sqrt(x * x + y * y) / 512f;
+            if (r < RingFrom || r > 1f)
+                return 0f;
+            float lit = 0.5f + 0.5f * y / Mathf.Max(Mathf.Sqrt(x * x + y * y), 1f);
+            return (r < RingFrom + 0.006f ? 0.26f : 0.1f) + 0.06f * lit;
         });
         // The scope's shadow: twice the circle's size, clear inside, dark from just inside its rim outwards. Slid off the
         // circle it darkens the edge the scope moves away from.
@@ -215,7 +248,143 @@ public static class AttachmentSetup
         Lens("Chevron", shader, chevron, 7f, new Color(3f, 0.2f, 0.1f, 1f), lensTint);
         Lens("Scope", shader, scope, 12f, new Color(0f, 0f, 0f, 1f), lensTint);
         LaserDot();
-        return "optics: reticles, ScopeMask, ScopeShadow, 5 lens materials, the laser dot in " + OpticsDir;
+        SightWindowAssets();
+        return "optics: reticles, ScopeMask, ScopeShadow, 5 lens materials, the laser dot, the sight window disc and material in " + OpticsDir;
+    }
+
+    // Where the scope view's tube ring starts (share of the circle's radius).
+    const float RingFrom = 0.975f;
+    const string SightWindowShader = "Aipocalypse/Weapons/SightWindow";
+    const string SightWindowMaterial = OpticsDir + "/SightWindow.mat";
+    const string SightWindowMesh = OpticsDir + "/SightWindowDisc.asset";
+
+    // A soft halo `width` px wide past a shape's edge (`distance` = px outside it), `strength` at the edge.
+    static float Glow(float distance, float width, float strength) =>
+        distance <= 0f ? strength : strength * (1f - Mathf.SmoothStep(0f, 1f, distance / width));
+
+    static float SegmentDistance(float x, float y, Vector2 a, Vector2 b)
+    {
+        var p = new Vector2(x, y);
+        Vector2 ab = b - a;
+        float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / ab.sqrMagnitude);
+        return Vector2.Distance(p, a + ab * t);
+    }
+
+    // The sight window: a unit disc facing the eye (-Z, scaled by its radius) and its depth-only material, queued before
+    // the opaque models so the tube behind it never draws (Optics/SightWindow.shadergraph: transparent, alpha 0, depth write on).
+    static void SightWindowAssets()
+    {
+        const int sides = 32;
+        Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(SightWindowMesh);
+        if (mesh == null)
+        {
+            mesh = new Mesh { name = "SightWindowDisc" };
+            AssetDatabase.CreateAsset(mesh, SightWindowMesh);
+        }
+        var vertices = new Vector3[sides + 1];
+        var normals = new Vector3[sides + 1];
+        var triangles = new int[sides * 3];
+        normals[0] = Vector3.back;
+        for (int i = 0; i < sides; i++)
+        {
+            float angle = i * Mathf.PI * 2f / sides;
+            vertices[i + 1] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f);
+            normals[i + 1] = Vector3.back;
+            // Clockwise as seen from -Z (the eye), Unity's front face.
+            triangles[i * 3] = 0;
+            triangles[i * 3 + 1] = (i + 1) % sides + 1;
+            triangles[i * 3 + 2] = i + 1;
+        }
+        mesh.Clear();
+        mesh.vertices = vertices;
+        mesh.normals = normals;
+        mesh.triangles = triangles;
+        mesh.RecalculateBounds();
+        EditorUtility.SetDirty(mesh);
+        AssetDatabase.SaveAssetIfDirty(mesh);
+
+        Shader shader = Shader.Find(SightWindowShader) ?? throw new Exception("missing shader " + SightWindowShader);
+        Material material = AssetDatabase.LoadAssetAtPath<Material>(SightWindowMaterial);
+        if (material == null)
+        {
+            material = new Material(shader);
+            AssetDatabase.CreateAsset(material, SightWindowMaterial);
+        }
+        material.shader = shader;
+        material.SetFloat("_QueueControl", 1f);
+        material.renderQueue = 1990;
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssetIfDirty(material);
+    }
+
+    // Adds (or refits) the sight window on each tube optic's model: just inside the rear opening, on the sight line, with
+    // the window material then the optic's lens material (so the reticle draws on it). Off in the prefab; HeldGun turns it on.
+    public static string Windows()
+    {
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(SightWindowMesh) ?? throw new Exception("run Optics first: no " + SightWindowMesh);
+        var window = AssetDatabase.LoadAssetAtPath<Material>(SightWindowMaterial) ?? throw new Exception("run Optics first: no " + SightWindowMaterial);
+        var report = new StringBuilder();
+        foreach (Part spec in Specs)
+        {
+            if (spec.WindowRadius <= 0f)
+                continue;
+            string path = $"{Dir}/{spec.Name}/{spec.Name}_Model.prefab";
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                var model = root.GetComponent<AttachmentModel>();
+                Transform sight = model.Sight;
+                var lens = new SerializedObject(model);
+                Renderer lensRenderer = root.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.name.EndsWith("_Lens"));
+                float rear = RearOf(root.transform, sight, spec.WindowRadius * 1.3f, lensRenderer);
+                Renderer renderer = SightWindow(sight, mesh, window, lensRenderer.sharedMaterial, spec.WindowRadius, rear);
+                lens.FindProperty("_sightWindow").objectReferenceValue = renderer;
+                lens.ApplyModifiedPropertiesWithoutUndo();
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+                report.Append($"{spec.Name}: window r {spec.WindowRadius} at z {rear + 0.002f:F3}; ");
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+        return report.ToString();
+    }
+
+    // The rear face of a tube: the lowest z (along the sight line) of the model's vertices within `radius` of the line.
+    static float RearOf(Transform root, Transform sight, float radius, Renderer skip)
+    {
+        float rear = 0f;
+        foreach (MeshFilter filter in root.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (filter.sharedMesh == null || skip != null && filter.gameObject == skip.gameObject)
+                continue;
+            foreach (Vector3 vertex in filter.sharedMesh.vertices)
+            {
+                Vector3 p = sight.InverseTransformPoint(filter.transform.TransformPoint(vertex));
+                if (p.x * p.x + p.y * p.y < radius * radius)
+                    rear = Mathf.Min(rear, p.z);
+            }
+        }
+        return rear;
+    }
+
+    static Renderer SightWindow(Transform sight, Mesh mesh, Material window, Material lens, float radius, float rear)
+    {
+        Transform existing = sight.Find("SightWindow");
+        GameObject go = existing != null ? existing.gameObject : new GameObject("SightWindow", typeof(MeshFilter), typeof(MeshRenderer));
+        go.transform.SetParent(sight, false);
+        go.layer = sight.gameObject.layer;
+        // Uniform scale: the reticle shader reads the view direction in object space.
+        go.transform.SetLocalPositionAndRotation(new Vector3(0f, 0f, rear + 0.002f), Quaternion.identity);
+        go.transform.localScale = Vector3.one * radius;
+        go.GetComponent<MeshFilter>().sharedMesh = mesh;
+        var renderer = go.GetComponent<MeshRenderer>();
+        renderer.sharedMaterials = new[] { window, lens };
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        renderer.enabled = false;
+        return renderer;
     }
 
     const string LaserDotMaterial = OpticsDir + "/LaserDot.mat";
@@ -259,9 +428,9 @@ public static class AttachmentSetup
         return Mathf.Clamp01(width * 0.5f - Vector2.Distance(p, a + ab * t) + 0.5f);
     }
 
-    // White, alpha from `shape(x, y)` with (0, 0) at the centre, in pixels. Imported as a sprite (the HUD uses the scope ones),
-    // clamped so a lens never repeats it.
-    static Texture2D Reticle(string name, int size, Func<float, float, float> shape)
+    // White (or `grey(x, y)`), alpha from `shape(x, y)` with (0, 0) at the centre, in pixels. Imported as a sprite (the HUD
+    // uses the scope ones), clamped so a lens never repeats it.
+    static Texture2D Reticle(string name, int size, Func<float, float, float> shape, Func<float, float, float> grey = null)
     {
         var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
         var pixels = new Color32[size * size];
@@ -271,7 +440,8 @@ public static class AttachmentSetup
         {
             // The edge pixels stay empty: a lens samples them past the texture.
             float a = x == 0 || y == 0 || x == size - 1 || y == size - 1 ? 0f : shape(x + 0.5f - half, y + 0.5f - half);
-            pixels[y * size + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(Mathf.Clamp01(a) * 255f));
+            byte value = grey != null ? (byte)Mathf.RoundToInt(Mathf.Clamp01(grey(x + 0.5f - half, y + 0.5f - half)) * 255f) : (byte)255;
+            pixels[y * size + x] = new Color32(value, value, value, (byte)Mathf.RoundToInt(Mathf.Clamp01(a) * 255f));
         }
         texture.SetPixels32(pixels);
         string path = $"{OpticsDir}/{name}.png";
@@ -324,6 +494,7 @@ public static class AttachmentSetup
             Define(item, spec, model, pickup, icon);
             report.AppendLine($"{spec.Name}: {spec.Slot}, model {(model != null ? model.name : "none")}, icon {icon != null}");
         }
+        report.AppendLine(Windows());
 
         var catalog = AssetDatabase.LoadAssetAtPath<ItemCatalog>(CatalogPath);
         int count = catalog.Collect();
@@ -1030,6 +1201,10 @@ public static class AttachmentSetup
         }
         Fill(so.FindProperty("_magazines"), gun.Magazines.Select(name => Match(weapon, target, name, held)).Where(go => go != null).Distinct()
             .Select(go => (Object)go.transform).ToList());
+        // A built-in tube scope's window (GunBlockoutSetup adds it under the scope, e.g. the hunting rifle's).
+        so.FindProperty("_sightWindow").objectReferenceValue = held
+            ? target.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.name == "SightWindow" && r.GetComponentInParent<AttachmentModel>(true) == null)
+            : null;
         so.ApplyModifiedPropertiesWithoutUndo();
         return mounts;
     }
