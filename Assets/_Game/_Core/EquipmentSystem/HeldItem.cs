@@ -24,6 +24,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public virtual float AimWeight => 0f;
         // Field of view multiplier the holder applies (aiming down sights): 1 = none.
         public virtual float Zoom => 1f;
+        // The aim part of Zoom alone (no shot punch): the held model's own lens zooms by it, so the sights grow on screen.
+        public virtual float AimZoom => 1f;
         // False while an obstacle pose would interfere with the item's motion.
         public virtual bool KeepsClear => true;
         // Degrees shots may go off the aim (airborne spread plus pellet spread); the crosshair shows it.

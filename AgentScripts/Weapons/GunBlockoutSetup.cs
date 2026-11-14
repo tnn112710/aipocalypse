@@ -52,7 +52,8 @@ public static class GunBlockoutSetup
         public FireMode? Mode;
         public ReloadType? Reload;
         public float? CycleTime, AimZoom;
-        // Metres the aim pose brings the model closer to the eye than the reference does (a scope's eyepiece).
+        // Metres the aim pose brings the model closer to the eye than the reference does (negative = further): how far its rear
+        // sight or eyepiece sits from the reference gun's.
         public float AimCloser;
         public bool SniperShot, BoxReload;
         // A built-in scope: this lens gets the reticle lens material.
@@ -67,23 +68,25 @@ public static class GunBlockoutSetup
         new() { Name = "DesertEagle", Key = "item.desert_eagle", Source = CB1 + "Pistol Weapons/Pistol_D.prefab", Reference = "Pistol",
             Ammo = "MagnumAmmo", Sight = 0.062f, Muzzle = new Vector3(0f, 0.034f, 0.204f) },
         new() { Name = "Uzi", Key = "item.uzi", Source = CB3 + "Weapons_SMG/SMG_M.prefab", Reference = "MP5",
-            Sight = 0.112f, Muzzle = new Vector3(0f, 0.042f, 0.380f), Left = new Vector3(0.007f, -0.010f, 0.170f) },
+            Sight = 0.112f, Muzzle = new Vector3(0f, 0.042f, 0.380f), Left = new Vector3(0.007f, -0.010f, 0.170f), AimCloser = 0.16f },
         new() { Name = "P90", Key = "item.p90", Source = CB3 + "Weapons_SMG/SMG_O.prefab", Reference = "MP5",
             Sight = 0.205f, Muzzle = new Vector3(0f, 0.028f, 0.240f), Left = new Vector3(0.007f, -0.040f, 0.120f) },
         new() { Name = "M1Carbine", Key = "item.m1_carbine", Source = CB5 + "WWII_Rifle_A.prefab", Reference = "AK47",
-            Mode = FireMode.SemiAuto, Sight = 0.095f, Muzzle = new Vector3(0f, 0.065f, 0.785f), Left = new Vector3(0.007f, 0.020f, 0.380f) },
+            Mode = FireMode.SemiAuto, Sight = 0.095f, Muzzle = new Vector3(0f, 0.065f, 0.785f), Left = new Vector3(0.007f, 0.020f, 0.380f),
+            AimCloser = -0.06f },
         new() { Name = "M4", Key = "item.m4", Source = CB1 + "AR Weapons/AR_A.prefab", Reference = "AK47",
-            Sight = 0.178f, Muzzle = new Vector3(0f, 0.080f, 0.765f), Left = new Vector3(0.007f, 0.069f, 0.330f) },
+            Sight = 0.178f, Muzzle = new Vector3(0f, 0.080f, 0.765f), Left = new Vector3(0.007f, 0.069f, 0.330f), AimCloser = -0.18f },
         new() { Name = "FAL", Key = "item.fal", Source = CB3 + "Weapons_DMR/DMR_L.prefab", Reference = "AK47", Ammo = "HeavyAmmo",
-            Mode = FireMode.SemiAuto, Sight = 0.120f, Muzzle = new Vector3(0f, 0.053f, 0.838f), Left = new Vector3(0.007f, 0.063f, 0.400f) },
+            Mode = FireMode.SemiAuto, Sight = 0.120f, Muzzle = new Vector3(0f, 0.053f, 0.838f), Left = new Vector3(0.007f, 0.063f, 0.400f),
+            AimCloser = -0.22f },
         new() { Name = "HuntingRifle", Key = "item.hunting_rifle", Source = CB1 + "Recon Weapons/Recon_E.prefab", Reference = "PumpShotgun",
             Ammo = "HeavyAmmo", Sight = 0.135f, Muzzle = new Vector3(0f, 0.070f, 1.028f), Left = new Vector3(0.007f, 0.030f, 0.420f),
-            CycleTime = 1f, AimZoom = 0.4f, SniperShot = true, ScopeLens = "Recon_E_Optic/Recon_E_Optic_Lens", AimCloser = 0.06f },
+            CycleTime = 1f, AimZoom = 0.4f, SniperShot = true, ScopeLens = "Recon_E_Optic/Recon_E_Optic_Lens", AimCloser = 0.10f },
         new() { Name = "AA12", Key = "item.aa12", Source = CB1 + "ShotGun Weapons/ShotGun_A.prefab", Reference = "PumpShotgun",
             Mode = FireMode.Auto, Reload = ReloadType.Magazine, CycleTime = 0f, BoxReload = true, Sight = 0.180f,
-            Muzzle = new Vector3(0f, 0.055f, 0.568f), Left = new Vector3(0.007f, 0.045f, 0.330f) },
+            Muzzle = new Vector3(0f, 0.055f, 0.568f), Left = new Vector3(0.007f, 0.045f, 0.330f), AimCloser = -0.04f },
         new() { Name = "RPD", Key = "item.rpd", Source = CB1 + "LMG Weapons/LMG_A.prefab", Reference = "AK47",
-            Sight = 0.120f, Muzzle = new Vector3(0f, 0.046f, 0.983f), Left = new Vector3(0.007f, 0.020f, 0.385f) },
+            Sight = 0.120f, Muzzle = new Vector3(0f, 0.046f, 0.983f), Left = new Vector3(0.007f, 0.020f, 0.385f), AimCloser = -0.02f },
     };
 
     public static string All() => Ammo() + "\n" + Blockouts() + "\n" + Ak74m();

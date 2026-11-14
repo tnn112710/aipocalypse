@@ -67,7 +67,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public override bool IsAiming => _gun != null && _gun.IsAiming;
         public override ViewKick ViewKick => _recoil != null ? new ViewKick(_recoil.ViewEuler, _recoil.ViewShake) : default;
         public override Vector2 LookTurn => _recoil != null ? _recoil.LookTurn : default;
-        public override float Zoom => _gun != null ? Mathf.Lerp(1f, _item.Stats.AimZoom, _aimWeight) * _recoil.FovScale : 1f;
+        public override float Zoom => _gun != null ? AimZoom * _recoil.FovScale : 1f;
+        public override float AimZoom => _gun != null ? Mathf.Lerp(1f, _item.Stats.AimZoom, _aimWeight) : 1f;
         public override float AimWeight => _aimWeight;
         // Degrees the next shot may go off the aim from being airborne (on top of the gun's pellet spread).
         float AirSpread => _accuracy != null ? _accuracy.Spread * _item.Stats.SpreadScale : 0f;
@@ -287,8 +288,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             PlaceOpticAim();
         }
 
-        // Moves a copy of the aim pose so the optic's sight point lands on the iron sights' line (at the optic's depth),
-        // plus its eye relief. Measured in the model's space, which is the pose pivot's at rest.
+        // Moves a copy of the aim pose so the optic's sight point lands on the iron sights' line, its EyeDistance from the eye
+        // (whatever the gun's own aim pose: guns with far-forward irons are held closer). Measured in the model's space, which
+        // is the pose pivot's at rest.
         void PlaceOpticAim()
         {
             AttachmentDefinition optic = _item.Stats.Optic;
@@ -304,7 +306,18 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (Mathf.Abs(along.z) > 0.01f)
                 iron += along * ((sightPoint.z - iron.z) / along.z);
             Vector3 offset = iron - sightPoint;
-            offset.z = optic.Optic.EyeRelief;
+            offset.z = 0f;
+            Transform eye = _user?.Eye;
+            if (eye != null)
+            {
+                // Depth from the eye is linear in offset.z: solve for the optic's distance.
+                Matrix4x4 eyeFromPoses = eye.worldToLocalMatrix * _aimPose.parent.localToWorldMatrix;
+                Quaternion rotation = _aimPose.localRotation;
+                float depth = eyeFromPoses.MultiplyPoint(_aimPose.localPosition + rotation * (offset + sightPoint)).z;
+                float perMetre = eyeFromPoses.MultiplyVector(rotation * Vector3.forward).z;
+                if (perMetre > 0.1f)
+                    offset.z = (optic.Optic.EyeDistance - depth) / perMetre;
+            }
 
             if (_opticAim == null)
             {

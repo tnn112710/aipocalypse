@@ -42,7 +42,7 @@ public static class AttachmentSetup
         public GunSlot Slot;
         public GunFamily Families;
         public (GunStat stat, float percent)[] Mods = Array.Empty<(GunStat, float)>();
-        public float Weight, Magnification = 1f, EyeRelief, SwayScale = 1f, Loudness = 1f, EyeBox = 0.012f;
+        public float Weight, Magnification = 1f, EyeDistance = 0.22f, SwayScale = 1f, Loudness = 1f, EyeBox = 0.012f;
         public int Value;
         public ItemRarity Rarity;
         public bool FullScope, HidesFlash, Light, Laser;
@@ -72,20 +72,20 @@ public static class AttachmentSetup
     static readonly Part[] Specs =
     {
         new() { Name = "RedDot", Key = "item.part_red_dot", Source = "Optics/Optics/Optic_H", Slot = GunSlot.Optic, Families = Long,
-            Mods = new[] { (GunStat.AimTime, -5f) }, Weight = 0.2f, Value = 120, Rarity = ItemRarity.Uncommon, Lens = "Dot", EyeRelief = 0.07f },
+            Mods = new[] { (GunStat.AimTime, -5f) }, Weight = 0.2f, Value = 120, Rarity = ItemRarity.Uncommon, Lens = "Dot", Magnification = 1.5f, EyeDistance = 0.22f },
         new() { Name = "Holo", Key = "item.part_holo", Source = "Optics/Optics/Optic_I", Slot = GunSlot.Optic, Families = Long,
             Mods = new[] { (GunStat.Spread, -15f), (GunStat.AimTime, 5f) }, Weight = 0.3f, Value = 200, Rarity = ItemRarity.Rare, Lens = "Holo",
-            EyeRelief = 0.08f },
+            Magnification = 1.5f, EyeDistance = 0.22f },
         new() { Name = "Scope2x", Key = "item.part_scope_2x", Source = "Optics/Optics/Optic_C", Slot = GunSlot.Optic, Families = Rifles,
             Mods = new[] { (GunStat.Range, 15f), (GunStat.AimTime, 15f) }, Weight = 0.45f, Value = 350, Rarity = ItemRarity.Rare,
-            Lens = "Chevron", Magnification = 2f, EyeRelief = 0.03f, SwayScale = 0.7f },
+            Lens = "Chevron", Magnification = 2f, EyeDistance = 0.2f, SwayScale = 0.7f },
         new() { Name = "Scope4x", Key = "item.part_scope_4x", Source = "Optics/Optics_Recon/Optic_Recon_D", Slot = GunSlot.Optic,
             Families = GunFamily.Rifle | GunFamily.Marksman | GunFamily.Sniper,
             Mods = new[] { (GunStat.Range, 25f), (GunStat.AimTime, 25f), (GunStat.HipSpread, 15f) }, Weight = 0.6f, Value = 600,
-            Rarity = ItemRarity.Epic, Lens = "Scope", Magnification = 4f, FullScope = true, SwayScale = 0.35f, EyeBox = 0.006f },
+            Rarity = ItemRarity.Epic, Lens = "Scope", Magnification = 4f, FullScope = true, SwayScale = 0.35f, EyeBox = 0.006f, EyeDistance = 0.235f },
         new() { Name = "PistolRedDot", Key = "item.part_pistol_red_dot", Source = "Optics/Optics_Pistol/Optic_Pistol_A", Slot = GunSlot.Optic,
             Families = GunFamily.Pistol, Mods = new[] { (GunStat.AimTime, -8f) }, Weight = 0.1f, Value = 100, Rarity = ItemRarity.Uncommon,
-            Lens = "PistolDot" },
+            Lens = "PistolDot", EyeDistance = 0.18f },
         new() { Name = "Compensator", Key = "item.part_compensator", Source = "Muzzles/Muzzles/Muzzle_Brake_C", Slot = GunSlot.Muzzle,
             Families = GunFamily.Smg | Rifles, Mods = new[] { (GunStat.VerticalRecoil, -10f) }, Weight = 0.15f, Value = 150,
             Rarity = ItemRarity.Uncommon },
@@ -207,12 +207,13 @@ public static class AttachmentSetup
         Reticle("LaserDot", 64, (x, y) => 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.3f, 1f, Mathf.Sqrt(x * x + y * y) / 32f)));
 
         Shader shader = Shader.Find(ReticleShader) ?? throw new Exception("missing shader " + ReticleShader);
-        var lensTint = new Color(0.55f, 0.75f, 0.9f, 0.12f);
+        // Clear glass (user: a tinted lens hid the target): only the reticle draws.
+        Color lensTint = Color.clear;
         Lens("Dot", shader, dot, 8f, new Color(3f, 0.15f, 0.1f, 1f), lensTint);
         Lens("PistolDot", shader, dot, 7f, new Color(3f, 0.15f, 0.1f, 1f), lensTint);
         Lens("Holo", shader, holo, 10f, new Color(3f, 0.35f, 0.12f, 1f), lensTint);
-        Lens("Chevron", shader, chevron, 7f, new Color(3f, 0.2f, 0.1f, 1f), new Color(0.45f, 0.6f, 0.75f, 0.2f));
-        Lens("Scope", shader, scope, 12f, new Color(0f, 0f, 0f, 1f), new Color(0.35f, 0.5f, 0.65f, 0.25f));
+        Lens("Chevron", shader, chevron, 7f, new Color(3f, 0.2f, 0.1f, 1f), lensTint);
+        Lens("Scope", shader, scope, 12f, new Color(0f, 0f, 0f, 1f), lensTint);
         LaserDot();
         return "optics: reticles, ScopeMask, ScopeShadow, 5 lens materials, the laser dot in " + OpticsDir;
     }
@@ -548,7 +549,7 @@ public static class AttachmentSetup
         }
         so.FindProperty("_model").objectReferenceValue = model;
         so.FindProperty("_optic.Magnification").floatValue = spec.Magnification;
-        so.FindProperty("_optic.EyeRelief").floatValue = spec.EyeRelief;
+        so.FindProperty("_optic.EyeDistance").floatValue = spec.EyeDistance;
         so.FindProperty("_optic.SwayScale").floatValue = spec.SwayScale;
         so.FindProperty("_optic.FullScope").boolValue = spec.FullScope;
         so.FindProperty("_optic.EyeBox").floatValue = spec.EyeBox;

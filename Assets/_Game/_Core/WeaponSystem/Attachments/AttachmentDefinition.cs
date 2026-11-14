@@ -85,8 +85,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Min(1f), Tooltip("1 = no magnification (the gun's own aim zoom); 2 = the world view halves")]
         public float Magnification = 1f;
 
-        [Tooltip("Metres the gun sits further from the eye while aiming through it (negative = closer)")]
-        public float EyeRelief;
+        [Min(0.02f), Tooltip("Metres from the eye to the sight point (lens centre) while aiming through it, on any gun: closer " +
+            "= a bigger window on screen, but a long tube shows its inside walls")]
+        public float EyeDistance = 0.22f;
 
         [Range(0.1f, 1f), Tooltip("Aim and model sway while aimed through it: magnification shows sway larger, so a scope calms it")]
         public float SwayScale = 1f;

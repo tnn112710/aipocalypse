@@ -38,6 +38,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _sprintFovScale = 1.07f;
         [SerializeField, Min(0f), Tooltip("How fast the view widens and settles (higher = sooner)")] float _sprintFovSpeed = 6f;
 
+        [Header("Aiming"), SerializeField, Range(0f, 1f), Tooltip("How much of the aim zoom the held gun's own lens takes: 0 = the gun " +
+            "keeps its size while the world zooms, 1 = it zooms with the world (sights grow on screen, COD-style)")]
+        float _heldAimZoomShare = 1f;
+
+        public float HeldAimZoomShare => _heldAimZoomShare;
         public float SprintFovScale => _sprintFovScale;
         public float SprintFovSpeed => _sprintFovSpeed;
         public float EyeHeight => _eyeHeight;

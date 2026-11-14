@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // On the world camera: the lens FirstPersonRenderFeature draws the HeldWeapon layer with (its own field of view and
-    // clip planes), so held models keep their size while the world zooms and never clip into walls.
+    // clip planes), so held models never clip into walls and only zoom with the aim.
     [DisallowMultipleComponent, RequireComponent(typeof(Camera))]
     public sealed class FirstPersonView : MonoBehaviour
     {
@@ -18,7 +18,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // Skip drawing the held layer (gun, hands, flash): a full scope's view covers the screen.
         public bool HideHeld { get; set; }
 
-        // The held model's own field of view, kept while the world camera zooms.
+        // The held model's own field of view (PlayerZoom: it follows the aim zoom, not the shot punch or sprint).
         public void SetFieldOfView(float fieldOfView) => _fieldOfView = fieldOfView;
 
         public float GetFieldOfView(Camera camera) => _fieldOfView > 0f ? _fieldOfView : camera.fieldOfView;

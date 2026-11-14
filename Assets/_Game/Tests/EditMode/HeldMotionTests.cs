@@ -312,5 +312,13 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(Vector3.Angle(Vector3.forward, aim), unzoomed, 0.001f);
             Assert.Greater(zoomed, unzoomed);
         }
+
+        [Test]
+        public void LensRatio_IsOneWhenTheGunZoomsWithTheWorld_AndBelowOneWhenItKeepsItsLens()
+        {
+            Assert.AreEqual(1f, PlayerZoom.LensRatio(70f * 0.67f, 70f * 0.67f), 0.0001f);
+            Assert.AreEqual(Mathf.Tan(35f * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(35f * Mathf.Deg2Rad), PlayerZoom.LensRatio(35f, 70f), 0.0001f);
+            Assert.Greater(PlayerZoom.LensRatio(70f * 0.67f * 1.03f, 70f * 0.67f), 1f, "a shot punch widens only the world");
+        }
     }
 }

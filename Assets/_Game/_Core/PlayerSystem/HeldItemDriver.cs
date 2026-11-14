@@ -85,7 +85,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             PlayerCameraTuning camera = _tuning.Camera;
             _sprintFov = Mathf.Lerp(_sprintFov, _motor.IsSprinting ? camera.SprintFovScale : 1f, Damping.ByRate(camera.SprintFovSpeed, deltaTime));
             if (ownsZoom)
-                _zoom.Tick((held != null ? held.Zoom : 1f) * _sprintFov);
+                _zoom.Tick((held != null ? held.Zoom : 1f) * _sprintFov,
+                    Mathf.LerpUnclamped(1f, held != null ? held.AimZoom : 1f, camera.HeldAimZoomShare));
             _zoom.SetHeldHidden(ownsZoom && held != null && held.Scope.HidesHeld);
             TickSway(intent, held, feel, deltaTime);
             float aimSpeed = held != null && held.IsAiming ? tuning.AimMoveSpeedMultiplier * (feel?.AimMoveSpeedScale ?? 1f) : 1f;

@@ -29,7 +29,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             float tanHalfFov = _zoom.TanHalfFov;
             CrosshairPosition = ScreenPosition(aim, tanHalfFov);
             CrosshairSpread = ScreenRadius(spreadDegrees, tanHalfFov);
-            _rig.SetAimRotation(ModelRotation(aim, _zoom.LookScale));
+            _rig.SetAimRotation(ModelRotation(aim, _zoom.ModelScale));
         }
 
         // A direction in the eye's space, projected onto the screen.
@@ -38,8 +38,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public static float ScreenRadius(float degrees, float tanHalfFov) =>
             Mathf.Tan(Mathf.Clamp(degrees, 0f, MaxSpreadDegrees) * Mathf.Deg2Rad) / tanHalfFov;
 
-        // The weapon camera keeps the unzoomed field of view while the world zooms, so the same angle lands on different
-        // pixels in each. Turning the model further by the zoom keeps its sights on the crosshair's pixel.
+        // The weapon camera's field of view can differ from the world's (it skips the shot punch and sprint, and may take
+        // less of the aim zoom), so the same angle lands on different pixels in each. `zoomScale` = world tan / held tan;
+        // turning the model by it keeps its sights on the crosshair's pixel.
         public static Quaternion ModelRotation(Vector3 aim, float zoomScale)
         {
             float scale = Mathf.Max(zoomScale, 0.01f);
