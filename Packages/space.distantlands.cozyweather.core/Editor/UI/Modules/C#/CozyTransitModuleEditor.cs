@@ -662,7 +662,7 @@ namespace DistantLands.Cozy.EditorScripts
 
         public override void OpenDocumentationURL()
         {
-            Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation/how-it-works/modules/transit-module");
+            Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4/using-cozy/modules/transit-module");
         }
 
 

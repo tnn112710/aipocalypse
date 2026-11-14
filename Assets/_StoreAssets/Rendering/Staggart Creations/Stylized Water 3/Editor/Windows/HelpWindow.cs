@@ -33,7 +33,7 @@ namespace StylizedWater3
         [NonSerialized] private string projectDetails;
         private Vector2 projectDetailsScrollPos;
         
-		[MenuItem("Window/Stylized Water 3/Hub Window", false, 1001)]
+		[MenuItem("Window/Stylized Water 3/Hub Window", false, 0)]
         public static void ShowWindow()
         {
             ShowWindow(false);

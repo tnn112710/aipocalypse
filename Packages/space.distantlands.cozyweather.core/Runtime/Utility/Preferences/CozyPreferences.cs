@@ -14,9 +14,18 @@ namespace DistantLands.Cozy
 {
     public class CozyPreferences : ScriptableObject
     {
-
         public static float SkyPitch => Instance.skyPitch;
-        public static float SkyRotation => Instance.skyRotation;
+        public static float SkyPitchOffset
+        {
+            get => Instance.skyPitchOffset;
+            set => Instance.skyPitchOffset = value;
+        }
+        public static float SkyRotation => Instance.skyRotation + Instance.skyRotationOffset;
+        public static float SkyRotationOffset
+        {
+            get => Instance.skyRotationOffset;
+            set => Instance.skyRotationOffset = value;
+        }
         public static TemperatureUnit TemperatureUnit => Instance.temperatureUnit;
         public static PressureUnit PressureUnit => Instance.pressureUnit;
         public static MeridiemTime.Unit TimeUnit => Instance.timeUnit;
@@ -46,16 +55,16 @@ namespace DistantLands.Cozy
 
         public static bool HandleSceneLighting
         {
-            get => Instance.handleSceneLighting; 
+            get => Instance.handleSceneLighting;
             set => Instance.handleSceneLighting = value;
         }
-        
+
         /// <summary>
         /// If true, the sun and moon lights will move in discrete steps instead of continuously
         /// </summary>
         public static bool QuantizeLighting
         {
-            get => Instance.quantizeLighting; 
+            get => Instance.quantizeLighting;
             set => Instance.quantizeLighting = value;
         }
         [SerializeField]
@@ -66,7 +75,7 @@ namespace DistantLands.Cozy
         /// </summary>
         public static float QuantizeLightingAngle
         {
-            get => Instance.quantizeLightingAngle; 
+            get => Instance.quantizeLightingAngle;
             set => Instance.quantizeLightingAngle = value;
         }
         [SerializeField]
@@ -79,7 +88,7 @@ namespace DistantLands.Cozy
         [Range(-15, 90)]
         public static float MinLightAngle
         {
-            get => Instance.minLightAngle; 
+            get => Instance.minLightAngle;
             set => Instance.minLightAngle = value;
         }
         [SerializeField]
@@ -87,7 +96,7 @@ namespace DistantLands.Cozy
 
         public static float SkyFogAmount
         {
-            get => Instance.skyFogAmount; 
+            get => Instance.skyFogAmount;
             set => Instance.skyFogAmount = value;
         }
         [SerializeField]
@@ -96,7 +105,7 @@ namespace DistantLands.Cozy
 
         public static float CloudsFogAmount
         {
-            get => Instance.cloudsFogAmount; 
+            get => Instance.cloudsFogAmount;
             set => Instance.cloudsFogAmount = value;
         }
         [SerializeField]
@@ -108,7 +117,7 @@ namespace DistantLands.Cozy
         /// </summary>
         public static bool StaticLighting
         {
-            get => Instance.staticLighting; 
+            get => Instance.staticLighting;
             set => Instance.staticLighting = value;
         }
         [SerializeField]
@@ -119,11 +128,11 @@ namespace DistantLands.Cozy
         /// </summary>
         public static Vector3 StaticLightingRotation
         {
-            get => Instance.staticLightingRotation; 
+            get => Instance.staticLightingRotation;
             set => Instance.staticLightingRotation = value;
         }
         [SerializeField]
-        private Vector3 staticLightingRotation = new Vector3(0,0,0);
+        private Vector3 staticLightingRotation = new Vector3(0, 0, 0);
 
         public static bool UpdateInEditMode
         {
@@ -212,6 +221,9 @@ namespace DistantLands.Cozy
         [Range(0, 360)]
         private float skyRotation;
 
+        private float skyRotationOffset = 0;
+        private float skyPitchOffset = 0;
+
         [Serializable]
         public struct MonthData
         {
@@ -297,7 +309,7 @@ namespace DistantLands.Cozy
         private LayerMask fxBlockingLayerMask = 0;
         public static int FXBlockingRendererIndex
         {
-            get => Instance.fxBlockingRendererIndex; 
+            get => Instance.fxBlockingRendererIndex;
             set => Instance.fxBlockingRendererIndex = value;
         }
         [SerializeField]

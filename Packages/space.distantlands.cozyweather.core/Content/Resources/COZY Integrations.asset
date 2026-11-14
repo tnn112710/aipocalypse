@@ -21,15 +21,11 @@ MonoBehaviour:
   - rid: 7945989208878874899
   - rid: 7945989208878874901
   - rid: 7945989208878874902
-  - rid: 1600032695553622490
+  - rid: 7945989360888840636
+  - rid: 7945989427468173438
   references:
     version: 2
     RefIds:
-    - rid: 1600032695553622490
-      type: {class: CozyGigaLightsIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
-      data:
-        lightBrightnessMultiplier: 1
-        fogDensityMultiplier: 1
     - rid: 7945989208878874894
       type: {class: CozyButoIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
       data:
@@ -83,3 +79,11 @@ MonoBehaviour:
       type: {class: CozyZephyrIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
       data:
         windStrengthMultiplier: 1
+    - rid: 7945989360888840636
+      type: {class: CozyGigaLightsIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data:
+        lightBrightnessMultiplier: 1
+        fogDensityMultiplier: 1
+    - rid: 7945989427468173438
+      type: {class: CozyStylizedWater3Integration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data: 

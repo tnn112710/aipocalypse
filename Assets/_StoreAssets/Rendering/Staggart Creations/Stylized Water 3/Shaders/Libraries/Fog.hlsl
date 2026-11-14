@@ -60,8 +60,12 @@ void ApplyFog(inout float3 color, float fogFactor, float4 screenPos, float3 posi
 	ApplyTransparencyFog(positionWS, normalizedUV, foggedColor.rgb);
 #endif
 
-#ifdef COZY
+#ifdef COZY3
 	foggedColor = BlendStylizedFog(positionWS, float4(color.rgb, 1.0)).rgb;
+#endif
+	
+#ifdef COZY4
+	foggedColor = BlendStylizedFog(float4(color.rgb, 1.0), positionWS).rgb;
 #endif
 
 #ifdef Buto

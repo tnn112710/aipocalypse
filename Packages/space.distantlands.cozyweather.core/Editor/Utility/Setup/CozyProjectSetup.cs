@@ -130,79 +130,101 @@ namespace DistantLands.Cozy.EditorScripts
             }),
             new SetupCheck("Renderer Feature", () =>
             {
-                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-                if (urpAsset == null)
+                if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
                     return new(StatusType.Fail, "URP is not the active render pipeline");
 
-                var list = GetRendererDataList(urpAsset);
-                if (list == null || list.Length == 0)
-                    return new(StatusType.Fail, "No renderer data assets found.");
-
-                int idx = GetDefaultRendererIndex(urpAsset);
-                if (idx < 0 || idx >= list.Length) idx = 0;
-
-                var rendererData = list[idx];
-                if (rendererData == null)
-                    return new(StatusType.Fail, "Default renderer data is missing.");
-
-                foreach (var feature in rendererData.rendererFeatures)
+                var failures = new List<string>();
+                var inactive = new List<string>();
+                foreach (var urpAsset in GetConfiguredUrpAssets())
                 {
-                    if (feature is CozyRendererFeature)
+                    var list = GetRendererDataList(urpAsset);
+                    if (list == null || list.Length == 0)
                     {
-                        return feature.isActive
-                            ? new(StatusType.Pass, $"Renderer feature is added to the main renderer of {urpAsset.name}")
-                            : new(StatusType.Warning, "Renderer feature is added, but not active.");
+                        failures.Add($"{urpAsset.name}: no renderer data assets found");
+                        continue;
                     }
+
+                    int idx = GetDefaultRendererIndex(urpAsset);
+                    if (idx < 0 || idx >= list.Length) idx = 0;
+                    var rendererData = list[idx];
+                    if (rendererData == null)
+                        failures.Add($"{urpAsset.name}: default renderer data is missing");
+                    else if (!rendererData.rendererFeatures.Any(feature => feature is CozyRendererFeature))
+                        failures.Add($"{urpAsset.name}: renderer feature is not installed");
+                    else if (!rendererData.rendererFeatures.Any(feature => feature is CozyRendererFeature && feature.isActive))
+                        inactive.Add(urpAsset.name);
                 }
-                return new(StatusType.Fail, "Renderer feature is not installed");
+
+                if (failures.Count > 0)
+                    return new(StatusType.Fail, string.Join("; ", failures));
+                if (inactive.Count > 0)
+                    return new(StatusType.Warning, $"Renderer feature is inactive: {string.Join(", ", inactive)}");
+                return new(StatusType.Pass, "Renderer feature is active on all configured URP default renderers");
             }, "Fix", () =>
             {
-                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-                if (urpAsset == null) { Debug.LogError("Auto-Fix Failed: The active render pipeline is not set to URP."); return; }
-
-                var list = GetRendererDataList(urpAsset);
-                if (list == null || list.Length == 0) { Debug.LogError("Auto-Fix Failed: No renderer data assets found."); return; }
-
-                int idx = GetDefaultRendererIndex(urpAsset);
-                if (idx < 0 || idx >= list.Length) idx = 0;
-                var rendererData = list[idx];
-                if (rendererData == null) return;
-
-                foreach (var feature in rendererData.rendererFeatures)
+                if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
                 {
-                    if (feature is CozyRendererFeature)
+                    Debug.LogError("Auto-Fix Failed: The active render pipeline is not set to URP.");
+                    return;
+                }
+
+                foreach (var urpAsset in GetConfiguredUrpAssets())
+                {
+                    var list = GetRendererDataList(urpAsset);
+                    if (list == null || list.Length == 0)
+                    {
+                        Debug.LogError($"Auto-Fix Failed: No renderer data assets found for {urpAsset.name}.");
+                        continue;
+                    }
+
+                    int idx = GetDefaultRendererIndex(urpAsset);
+                    if (idx < 0 || idx >= list.Length) idx = 0;
+                    var rendererData = list[idx];
+                    if (rendererData == null)
+                    {
+                        Debug.LogError($"Auto-Fix Failed: Default renderer data is missing for {urpAsset.name}.");
+                        continue;
+                    }
+
+                    if (rendererData.rendererFeatures.Any(item => item is CozyRendererFeature && item.isActive))
+                        continue;
+
+                    var feature = rendererData.rendererFeatures.FirstOrDefault(item => item is CozyRendererFeature);
+                    if (feature != null)
                     {
                         if (!feature.isActive)
                         {
                             feature.SetActive(true);
                             EditorUtility.SetDirty(feature);
                             EditorUtility.SetDirty(rendererData);
-                            AssetDatabase.SaveAssets();
                         }
-                        return;
+                        continue;
                     }
+
+                    var so = new SerializedObject(rendererData);
+                    var featuresProp = so.FindProperty("m_RendererFeatures");
+                    var mapProp = so.FindProperty("m_RendererFeatureMap");
+                    if (featuresProp == null || mapProp == null)
+                    {
+                        Debug.LogError($"Auto-Fix Failed: Cannot find renderer feature properties for {rendererData.name}.");
+                        continue;
+                    }
+
+                    var newFeature = CreateInstance<CozyRendererFeature>();
+                    newFeature.name = "Cozy Renderer Feature";
+                    newFeature.SetActive(true);
+                    AssetDatabase.AddObjectToAsset(newFeature, rendererData);
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(newFeature, out _, out long localId);
+
+                    so.Update();
+                    featuresProp.arraySize++;
+                    featuresProp.GetArrayElementAtIndex(featuresProp.arraySize - 1).objectReferenceValue = newFeature;
+                    mapProp.arraySize++;
+                    mapProp.GetArrayElementAtIndex(mapProp.arraySize - 1).longValue = localId;
+
+                    so.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(rendererData);
                 }
-
-                // Create and register the feature the same way Unity's inspector does.
-                var newFeature = CreateInstance<CozyRendererFeature>();
-                newFeature.name = "Cozy Renderer Feature";
-                newFeature.SetActive(true);
-
-                AssetDatabase.AddObjectToAsset(newFeature, rendererData);
-                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(newFeature, out _, out long localId);
-
-                var so = new SerializedObject(rendererData);
-                var featuresProp = so.FindProperty("m_RendererFeatures");
-                var mapProp = so.FindProperty("m_RendererFeatureMap");
-                so.Update();
-
-                featuresProp.arraySize++;
-                featuresProp.GetArrayElementAtIndex(featuresProp.arraySize - 1).objectReferenceValue = newFeature;
-                mapProp.arraySize++;
-                mapProp.GetArrayElementAtIndex(mapProp.arraySize - 1).longValue = localId;
-
-                so.ApplyModifiedProperties();
-                EditorUtility.SetDirty(rendererData);
                 AssetDatabase.SaveAssets();
             }),
             new SetupCheck("FX Blocking Renderer", () =>
@@ -758,6 +780,15 @@ namespace DistantLands.Cozy.EditorScripts
             }
 
             return status;
+        }
+
+        private static IEnumerable<UniversalRenderPipelineAsset> GetConfiguredUrpAssets()
+        {
+            return GraphicsSettings.allConfiguredRenderPipelines
+                .OfType<UniversalRenderPipelineAsset>()
+                .Concat(new[] { GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset })
+                .Where(asset => asset != null)
+                .Distinct();
         }
 
         private static ScriptableRendererData[] GetRendererDataList(UniversalRenderPipelineAsset asset)

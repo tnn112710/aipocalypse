@@ -32,6 +32,10 @@ namespace DistantLands.Cozy.EditorScripts
             thunderSounds.BindProperty(serializedObject.FindProperty("thunderSounds"));
             container.Add(thunderSounds);
 
+            PropertyField audioMixer = new PropertyField();
+            audioMixer.BindProperty(serializedObject.FindProperty("audioMixer"));
+            container.Add(audioMixer);
+
             PropertyField sunLightDimming = new PropertyField();
             sunLightDimming.BindProperty(serializedObject.FindProperty("sunLightDimming"));
             container.Add(sunLightDimming);

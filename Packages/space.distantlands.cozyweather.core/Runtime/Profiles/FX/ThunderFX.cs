@@ -4,6 +4,7 @@
 
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.VFX;
 
 namespace DistantLands.Cozy
@@ -15,6 +16,8 @@ namespace DistantLands.Cozy
         public Vector2 timeBetweenStrikes;
         public VisualEffect thunderPrefab = null;
         public AudioClip[] thunderSounds;
+        [Tooltip("The audio mixer group that the COZY thunder audio will use.")]
+        public AudioMixerGroup audioMixer;
         public AnimationCurve sunLightDimming;
         public AnimationCurve lightningLightIntensityCurve;
         public float lightningLightIntensity;

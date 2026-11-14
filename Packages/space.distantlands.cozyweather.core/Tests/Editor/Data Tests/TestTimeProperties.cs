@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using System.Reflection;
 using DistantLands.Cozy;
 using NUnit.Framework;
 using UnityEngine;
@@ -9,8 +11,40 @@ namespace DistantLands.Cozy.Tests
     {
         private const float Tolerance = 0.0001f;
 
+        public abstract class IsolatedPreferencesTests
+        {
+            private static readonly FieldInfo InstanceField = typeof(CozyPreferences).GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic);
+            private static readonly FieldInfo DaysPerYearField = typeof(CozyPreferences).GetField("daysPerYear", BindingFlags.Static | BindingFlags.NonPublic);
+            private CozyPreferences previousPreferences;
+            private CozyPreferences testPreferences;
+            private int previousDaysPerYear;
+
+            [SetUp]
+            public void SetUpPreferences()
+            {
+                previousPreferences = (CozyPreferences)InstanceField.GetValue(null);
+                previousDaysPerYear = (int)DaysPerYearField.GetValue(null);
+                testPreferences = ScriptableObject.CreateInstance<CozyPreferences>();
+                InstanceField.SetValue(null, testPreferences);
+                DaysPerYearField.SetValue(null, 0);
+            }
+
+            [TearDown]
+            public void RestorePreferences()
+            {
+                InstanceField.SetValue(null, previousPreferences);
+                DaysPerYearField.SetValue(null, previousDaysPerYear);
+                UnityEngine.Object.DestroyImmediate(testPreferences);
+            }
+
+            protected void SetPreference(string name, object value)
+            {
+                typeof(CozyPreferences).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(testPreferences, value);
+            }
+        }
+
         [TestFixture]
-        public class MeridiemTimeTests
+        public class MeridiemTimeTests : IsolatedPreferencesTests
         {
             [Test]
             public void Add_SimpleMinutes_CalculatesCorrectly()
@@ -99,7 +133,7 @@ namespace DistantLands.Cozy.Tests
             {
                 // TEST 15 - Negative time subtraction returns a negative duration
                 MeridiemTimeDelta result = new MeridiemTime(3, 0, Meridiem.AM) - new MeridiemTime(4, 0, Meridiem.AM);
-                Assert.AreEqual("-01:00:00:000", result.ToString());
+                Assert.AreEqual(new MeridiemTimeDelta(-1, 0), result);
             }
 
             [Test]
@@ -144,12 +178,21 @@ namespace DistantLands.Cozy.Tests
                 Assert.AreEqual(0.25f, timeFloat, Tolerance);
             }
 
-            [Test]
-            public void ImplicitConversion_TimeToDateTime_MapsCorrectly()
+            [TestCase("en-US")]
+            [TestCase("fi-FI")]
+            public void ImplicitConversion_TimeToDateTime_MapsCorrectly(string cultureName)
             {
-                // TEST 11
-                DateTime dt = (DateTime)new MeridiemTime(9, 30, Meridiem.AM);
-                Assert.AreEqual("09:30:00", dt.ToString("HH:mm:ss"));
+                var previousCulture = CultureInfo.CurrentCulture;
+                try
+                {
+                    CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+                    DateTime dt = (DateTime)new MeridiemTime(9, 30, Meridiem.AM);
+                    Assert.AreEqual(new DateTime(1, 1, 1, 9, 30, 0), dt);
+                }
+                finally
+                {
+                    CultureInfo.CurrentCulture = previousCulture;
+                }
             }
 
             // --- STRING FORMATTING TESTS ---
@@ -175,11 +218,12 @@ namespace DistantLands.Cozy.Tests
                 Assert.AreEqual("15:04:05:067", new MeridiemTime(3, 4, 5, 67, Meridiem.PM).FullMilitaryTime());
             }
 
-            [Test]
-            public void Formatting_ToStringOverride_OutputsStandardTime()
+            [TestCase(MeridiemTime.Unit.Standard, "7:45 PM")]
+            [TestCase(MeridiemTime.Unit.Military, "19:45")]
+            public void Formatting_ToStringOverride_UsesTimePreference(MeridiemTime.Unit unit, string expected)
             {
-                // TEST 30
-                Assert.AreEqual("7:45 PM", new MeridiemTime(7, 45, Meridiem.PM).ToString());
+                SetPreference("timeUnit", unit);
+                Assert.AreEqual(expected, new MeridiemTime(7, 45, Meridiem.PM).ToString());
             }
 
             [Test]
@@ -232,13 +276,16 @@ namespace DistantLands.Cozy.Tests
         }
 
         [TestFixture]
-        public class MeridiemDateTests
+        public class MeridiemDateTests : IsolatedPreferencesTests
         {
-            [Test]
-            public void ToStringFunction()
+            [TestCase(CozyPreferences.DateFormat.MDY, "7/5/2026")]
+            [TestCase(CozyPreferences.DateFormat.DMY, "5/7/2026")]
+            [TestCase(CozyPreferences.DateFormat.YMD, "2026/7/5")]
+            public void ToStringFunction(CozyPreferences.DateFormat format, string expected)
             {
-                MeridiemDate date = new MeridiemDate(1, 1, 2026);
-                Assert.AreEqual("1/1/2026", date.ToString());
+                SetPreference("dateFormat", format);
+                MeridiemDate date = new MeridiemDate(7, 5, 2026);
+                Assert.AreEqual(expected, date.ToString());
             }
 
             [Test]
@@ -562,13 +609,23 @@ namespace DistantLands.Cozy.Tests
                 Assert.AreEqual(CozyPreferences.StartingWeekday, date.Weekday);
             }
 
-            [Test]
-            public void IsWeekend_IdentifiesSaturdayAndSunday()
+            [TestCase(DayOfWeek.Sunday)]
+            [TestCase(DayOfWeek.Monday)]
+            [TestCase(DayOfWeek.Tuesday)]
+            [TestCase(DayOfWeek.Wednesday)]
+            [TestCase(DayOfWeek.Thursday)]
+            [TestCase(DayOfWeek.Friday)]
+            [TestCase(DayOfWeek.Saturday)]
+            public void IsWeekend_IdentifiesSaturdayAndSunday(DayOfWeek startingWeekday)
             {
-                var sat = new MeridiemDate(6); // 0=Mon, 5=Sat
-                var sun = new MeridiemDate(0); // 6=Sun
-                var mon = new MeridiemDate(1);
+                SetPreference("startingWeekday", startingWeekday);
+                var sat = new MeridiemDate(((int)DayOfWeek.Saturday - (int)startingWeekday + 7) % 7);
+                var sun = new MeridiemDate(((int)DayOfWeek.Sunday - (int)startingWeekday + 7) % 7);
+                var mon = new MeridiemDate(((int)DayOfWeek.Monday - (int)startingWeekday + 7) % 7);
 
+                Assert.AreEqual(DayOfWeek.Saturday, sat.Weekday);
+                Assert.AreEqual(DayOfWeek.Sunday, sun.Weekday);
+                Assert.AreEqual(DayOfWeek.Monday, mon.Weekday);
                 Assert.IsTrue(sat.IsWeekend);
                 Assert.IsTrue(sun.IsWeekend);
                 Assert.IsFalse(mon.IsWeekend);

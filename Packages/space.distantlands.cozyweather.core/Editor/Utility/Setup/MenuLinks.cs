@@ -20,7 +20,7 @@ namespace DistantLands.Cozy.EditorScripts
         [MenuItem("Tools/COZY: Weather 4/Documentation", false, 1000)]
         public static void OpenDocs()
         {
-            Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation/welcome/hello");
+            Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4");
         }
 
 
@@ -33,7 +33,7 @@ namespace DistantLands.Cozy.EditorScripts
         [MenuItem("Tools/COZY: Weather 4/FAQs", false, 1000)]
         public static void OpenFAQs()
         {
-            Application.OpenURL("https://distant-lands.gitbook.io/cozy-stylized-weather-documentation/appendix/frequently-asked-questions-faqs");
+            Application.OpenURL("https://distant-lands.gitbook.io/cozy-weather-4/appendix/faqs");
         }
         [MenuItem("Tools/COZY: Weather 4/Integrations", false, 200)]
         public static void OpenIntegrations()
