@@ -79,7 +79,7 @@ namespace MB13.Aipocalypse.Tests
                         state + ": " + binding.path + "/" + binding.propertyName);
             }
             var hands = _item.GetComponent<ItemHands>();
-            Assert.That(hands.HandScale, Is.EqualTo(1.12f).Within(0.001f));
+            Assert.That(hands.HandScale, Is.EqualTo(1f).Within(0.001f));
             var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
             _animation.Show();
             foreach (HandSide side in new[] { HandSide.Left, HandSide.Right })

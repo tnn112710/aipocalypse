@@ -184,9 +184,34 @@ public static class ReloadRetarget
     public static string Bake(string gun)
     {
         var report = new StringBuilder();
+        report.AppendLine(ResetHandScale(gun));
         report.AppendLine(BakeClip(gun, false, true));
         report.AppendLine(BakeClip(gun, true, false));
         return report.ToString();
+    }
+
+    // The arms carry their own size (ArmSetup.ArmScale): a per-gun hand scale left over from the smaller floating
+    // hands would enlarge them again, so a baked gun goes back to 1.
+    static string ResetHandScale(string gun)
+    {
+        string prefabPath = $"Assets/_Game/Content/Weapons/{gun}/{gun}.prefab";
+        GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
+        try
+        {
+            var hands = new SerializedObject(contents.GetComponent<ItemHands>());
+            SerializedProperty scale = hands.FindProperty("_handScale");
+            float was = scale.floatValue;
+            if (Mathf.Approximately(was, 1f))
+                return "hand scale 1";
+            scale.floatValue = 1f;
+            hands.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
+            return $"hand scale {was:0.##} -> 1";
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(contents);
+        }
     }
 
     static string BakeClip(string gun, bool empty, bool writeIdle)

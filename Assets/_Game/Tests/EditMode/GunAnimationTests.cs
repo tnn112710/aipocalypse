@@ -33,12 +33,11 @@ namespace MB13.Aipocalypse.Tests
         public void LargerHandsKeepTheirGripPointOnTheAnimatedContact()
         {
             var hands = _item.GetComponent<ItemHands>();
-            Assert.That(hands.HandScale, Is.EqualTo(1.12f).Within(0.001f));
             var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
             var hand = Object.Instantiate(set.Get(HandSide.Right));
             try
             {
-                hand.transform.localScale *= hands.HandScale;
+                hand.transform.localScale *= 1.12f;
                 _animation.Show();
                 var grip = hands.GetGrip(HandSide.Right);
                 grip.Resolve(hand, Vector3.zero, out var position, out var rotation);
