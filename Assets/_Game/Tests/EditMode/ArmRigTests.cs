@@ -70,6 +70,52 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(Vector3.Distance(hand.parent.position, hand.position), Is.EqualTo(lowerLength).Within(0.001f));
         }
 
+        [TestCase("Left")]
+        [TestCase("Right")]
+        public void Place_WristShare_SwingsTheElbowToStraightenTheWrist(string side)
+        {
+            Load(side);
+            float sign = side == "Left" ? -1f : 1f;
+            Vector3 shoulder = new(0.2f * sign, -0.3f, 0f);
+            Vector3 elbow = new(0.5f * sign, -0.5f, 0.1f);
+            var arm = _rig.GetComponent<ArmRig>();
+            var so = new SerializedObject(arm);
+            Quaternion rest = so.FindProperty("_handRest").quaternionValue;
+
+            float Bend(float share)
+            {
+                so.FindProperty("_wristShare").floatValue = share;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                _rig.Place(new Vector3(0.05f * sign, -0.35f, 0.3f), Quaternion.Euler(60f, -50f * sign, 30f), shoulder, elbow);
+                return Quaternion.Angle(arm.Hand.localRotation, rest);
+            }
+
+            Assert.That(Bend(1f), Is.LessThan(Bend(0f) - 5f));
+        }
+
+        [Test]
+        public void Carry_MovesShouldersWithTheGunsPose()
+        {
+            var gun = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/AK47/AK47.prefab"));
+            try
+            {
+                var hands = gun.GetComponent<ItemHands>();
+                var held = new SerializedObject(gun.GetComponent<MB13.Aipocalypse.Core.WeaponSystem.HeldGun>());
+                var pivot = (Transform)held.FindProperty("_posePivot").objectReferenceValue;
+                var hip = (Transform)held.FindProperty("_hipPose").objectReferenceValue;
+                var aim = (Transform)held.FindProperty("_aimPose").objectReferenceValue;
+                Vector3 shoulder = new(0.3f, -0.2f, -0.2f);
+
+                pivot.SetLocalPositionAndRotation(hip.localPosition, hip.localRotation);
+                Assert.That(Vector3.Distance(hands.Carry(shoulder), shoulder), Is.LessThan(0.0001f), "hip: where the hand set puts it");
+
+                pivot.SetLocalPositionAndRotation(aim.localPosition, aim.localRotation);
+                Assert.That(Vector3.Distance(hands.Carry(hip.position), aim.position), Is.LessThan(0.0001f));
+                Assert.That(Vector3.Distance(hands.Carry(shoulder), shoulder), Is.GreaterThan(0.05f), "aimed: the shoulder comes along");
+            }
+            finally { Object.DestroyImmediate(gun); }
+        }
+
         [Test]
         public void HandSet_HandsShowOnEveryGripOfTheAk47()
         {

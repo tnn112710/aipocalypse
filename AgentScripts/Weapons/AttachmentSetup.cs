@@ -891,7 +891,7 @@ public static class AttachmentSetup
     const string RailRight = "Attachments/Accessories/Rails/Rail_Right";
     const string Mp5Preset = "Weapons/SMG Weapons/SMG_PreSet/SMG_B_PreSet";
 
-    static readonly GunSpec[] Guns =
+    static readonly GunSpec[] Every =
     {
         new()
         {
@@ -1076,6 +1076,10 @@ public static class AttachmentSetup
             },
         },
     };
+
+    // Parked: not in the game for now (user, 2026-11-16). Their rows stay; take a name out to bring that gun back.
+    static readonly string[] Parked = { "Uzi", "M1Carbine", "FAL", "HuntingRifle", "AA12" };
+    static readonly GunSpec[] Guns = Every.Where(gun => !Parked.Contains(gun.Name)).ToArray();
 
     // The AK47 variant keeps the AK47's mounts and clips; it only needs its icon.
     static readonly string[] IconOnly = { "AK74M" };

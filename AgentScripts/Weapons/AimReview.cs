@@ -21,10 +21,8 @@ public static class AimReview
     // Block-outs that copy a base gun's hip (GunBlockoutSetup.Guns, Reference); AK74M is a variant and inherits.
     static readonly Dictionary<string, string[]> BlockOuts = new()
     {
-        ["AK47"] = new[] { "M1Carbine", "M4", "FAL", "RPD" },
-        ["MP5"] = new[] { "Uzi" },
+        ["AK47"] = new[] { "M4", "RPD" },
         ["Pistol"] = new[] { "Glock17", "DesertEagle" },
-        ["PumpShotgun"] = new[] { "HuntingRifle", "AA12" },
     };
 
     // Background play, enemies idle, pause menu closed.

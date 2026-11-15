@@ -1796,6 +1796,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 6490903341782168972}
   m_SourcePrefab: {fileID: 100100000, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+--- !u!4 &1817903275831655123 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 8230610102865315655}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2021325458992480165 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 8230610102865315655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2948245103266398609 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6544650596526180054, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
@@ -1816,6 +1826,8 @@ MonoBehaviour:
   _right: {fileID: 1267745330352599482}
   _left: {fileID: 988264931798011913}
   _handScale: 1
+  _bodyAnchor: {fileID: 2021325458992480165}
+  _bodyRest: {fileID: 1817903275831655123}
 --- !u!65 &1701668984298375303
 BoxCollider:
   m_ObjectHideFlags: 0

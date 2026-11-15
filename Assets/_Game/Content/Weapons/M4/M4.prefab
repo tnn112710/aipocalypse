@@ -3169,6 +3169,8 @@ MonoBehaviour:
   _right: {fileID: 3734143742509687987}
   _left: {fileID: 5759090405908425057}
   _handScale: 1
+  _bodyAnchor: {fileID: 2833966582222561935}
+  _bodyRest: {fileID: 2477833261023356921}
 --- !u!65 &6465839862037147802
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3205,6 +3207,16 @@ MonoBehaviour:
   _definition: {fileID: 11400000, guid: df913ce6a72bc5e4c988a420fe3f9faa, type: 2}
   _count: 1
   _worldModel: {fileID: 814313433040498175}
+--- !u!4 &2477833261023356921 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 5287354721927977581}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2833966582222561935 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 5287354721927977581}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4699254445644136179 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 601070152146707614, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}

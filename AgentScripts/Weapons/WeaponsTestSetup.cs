@@ -37,8 +37,8 @@ public static class WeaponsTestSetup
     static readonly string[][] GunTables =
     {
         new[] { "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel" },
-        new[] { "AK74M", "M4", "M1Carbine", "FAL", "HuntingRifle", "RPD" },
-        new[] { "Glock17", "DesertEagle", "Uzi", "AA12" },
+        new[] { "AK74M", "M4", "RPD" },
+        new[] { "Glock17", "DesertEagle" },
     };
     static readonly string[] PartNames =
     {

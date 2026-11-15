@@ -128,9 +128,9 @@ public static class ArmReview
                         rigs[side].SetVisible(false);
                         continue;
                     }
-                    Vector3 elbow = set.Elbow((HandSide)side);
+                    Vector3 elbow = hands.Carry(set.Elbow((HandSide)side));
                     grip.Resolve(rigs[side], elbow, out Vector3 position, out Quaternion rotation);
-                    rigs[side].Place(position, rotation, set.Shoulder((HandSide)side), elbow);
+                    rigs[side].Place(position, rotation, hands.Carry(set.Shoulder((HandSide)side)), elbow);
                     rigs[side].Apply(grip.Shape);
                 }
                 Blit(camera, image, i % columns * width, (rows - 1 - i / columns) * height, width, height);

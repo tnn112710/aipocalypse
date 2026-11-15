@@ -20,6 +20,8 @@ namespace MB13.Aipocalypse.Core.HandSystem
         [SerializeField, Tooltip("The same hinge in the forearm's space")] Vector3 _lowerHinge = Vector3.forward;
         [SerializeField, Range(0.8f, 1f), Tooltip("Longest reach as a share of the arm's length; past it the shoulder follows the hand")]
         float _maxReach = 0.97f;
+        [SerializeField, Range(0f, 1f), Tooltip("How far the elbow swings from the elbow point to behind the hand, where the wrist is straight. 0 = always towards the elbow point")]
+        float _wristShare = 0.4f;
         [SerializeField, HideInInspector] Quaternion _handRest = Quaternion.identity;
         [SerializeField, HideInInspector] Quaternion _twistRest = Quaternion.identity;
 
@@ -51,6 +53,15 @@ namespace MB13.Aipocalypse.Core.HandSystem
             float height = Mathf.Sqrt(Mathf.Max(upperLength * upperLength - along * along, 0f));
             Vector3 side = Vector3.ProjectOnPlane(elbow - shoulder, direction);
             side = side.sqrMagnitude > 1e-8f ? side.normalized : Vector3.ProjectOnPlane(Vector3.down, direction).normalized;
+            if (_wristShare > 0f && height > 1e-4f)
+            {
+                // The elbow a straight wrist asks for; it counts less the nearer it sits to the shoulder-hand line.
+                Vector3 forearm = handRotation * Quaternion.Inverse(_handRest) * _hand.localPosition.normalized;
+                Vector3 relaxed = Vector3.ProjectOnPlane(handPosition - forearm * lowerLength - shoulder, direction) / height;
+                Vector3 leaning = Vector3.Lerp(side, Vector3.ClampMagnitude(relaxed, 1f), _wristShare);
+                if (leaning.sqrMagnitude > 1e-6f)
+                    side = leaning.normalized;
+            }
             Vector3 elbowPosition = shoulder + direction * along + side * height;
             Vector3 hinge = Vector3.Cross(side, direction);
 

@@ -63,7 +63,7 @@ public static class GunBlockoutSetup
     }
 
     // Sight heights, muzzles and hand points read off each model's mesh bounds (first guesses to tune in the prefab).
-    static readonly Gun[] Guns =
+    static readonly Gun[] Every =
     {
         new() { Name = "Glock17", Key = "item.glock17", Source = CB1 + "Pistol Weapons/Pistol_B.prefab", Reference = "Pistol",
             Sight = 0.062f, Muzzle = new Vector3(0f, 0.040f, 0.153f) },
@@ -89,6 +89,10 @@ public static class GunBlockoutSetup
         new() { Name = "RPD", Key = "item.rpd", Source = CB1 + "LMG Weapons/LMG_A.prefab", Reference = "AK47",
             Sight = 0.120f, Muzzle = new Vector3(0f, 0.046f, 0.983f), Left = new Vector3(0.007f, 0.020f, 0.385f), AimCloser = -0.02f },
     };
+
+    // Parked: not in the game for now (user, 2026-11-16). Their rows stay; take a name out to bring that gun back.
+    static readonly string[] Parked = { "Uzi", "M1Carbine", "FAL", "HuntingRifle", "AA12" };
+    static readonly Gun[] Guns = Every.Where(gun => !Parked.Contains(gun.Name)).ToArray();
 
     public static string All() => Ammo() + "\n" + Blockouts() + "\n" + Ak74m();
 
@@ -218,6 +222,8 @@ public static class GunBlockoutSetup
             handsSo.FindProperty("_right").objectReferenceValue = right;
             handsSo.FindProperty("_left").objectReferenceValue = leftGrip;
             handsSo.FindProperty("_handScale").floatValue = reference.GetComponent<ItemHands>().HandScale;
+            handsSo.FindProperty("_bodyAnchor").objectReferenceValue = root.transform.Find("PosePivot");
+            handsSo.FindProperty("_bodyRest").objectReferenceValue = poses.Find("Hip");
             handsSo.ApplyModifiedPropertiesWithoutUndo();
 
             // The pickup: the model lying on its side, a trigger box round it.

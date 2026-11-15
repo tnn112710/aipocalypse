@@ -386,7 +386,7 @@ namespace MB13.Aipocalypse.Tests.EditMode
         static readonly string[] Guns =
         {
             "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel",
-            "Glock17", "DesertEagle", "Uzi", "M1Carbine", "M4", "AK74M", "FAL", "HuntingRifle", "AA12", "RPD",
+            "Glock17", "DesertEagle", "M4", "AK74M", "RPD",
         };
 
         [Test]

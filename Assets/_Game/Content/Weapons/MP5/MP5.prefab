@@ -2978,6 +2978,8 @@ MonoBehaviour:
   _right: {fileID: 3385204267833754477}
   _left: {fileID: 1589516435524897070}
   _handScale: 1
+  _bodyAnchor: {fileID: 2402845129596111877}
+  _bodyRest: {fileID: 2625549398781675891}
 --- !u!114 &3187096971251845946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3014,6 +3016,16 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.47102, y: 0.25, z: 1.0104439}
   m_Center: {x: 0, y: 0.05, z: 0}
+--- !u!4 &2402845129596111877 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7941025422101477602, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 5723140980990735591}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2625549398781675891 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7711144572607380884, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}
+  m_PrefabInstance: {fileID: 5723140980990735591}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5132907822830686329 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 601070152146707614, guid: 6d3a403d6906b944d9834d9932d5bb33, type: 3}

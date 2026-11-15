@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using UnityEditor;
@@ -26,7 +27,7 @@ public static class RealisticGunStats
     // Remington 870 (4+1 tube) and a 28" side-by-side. Loaded weights. Powder charges for the free-recoil estimate.
     static readonly Real Akm = new() { Gun = "AK47", BulletGrams = 7.9f, Velocity = 715f, EffectiveRange = 350f, LoadedKg = 3.6f, PowderGrams = 1.6f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 600f };
 
-    static readonly Real[] Others =
+    static readonly Real[] EveryOther =
     {
         new() { Gun = "MP5", BulletGrams = 8f, Velocity = 400f, EffectiveRange = 200f, LoadedKg = 3f, PowderGrams = 0.4f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 800f },
         new() { Gun = "Pistol", BulletGrams = 14.9f, Velocity = 253f, EffectiveRange = 50f, LoadedKg = 1.2f, PowderGrams = 0.4f, ReloadSeconds = 1.8f, Magazine = 7, RoundsPerMinute = 400f },
@@ -50,6 +51,10 @@ public static class RealisticGunStats
         new() { Gun = "AA12", BulletGrams = 3.5f, Pellets = 9, Velocity = 380f, EffectiveRange = 35f, LoadedKg = 5.7f, PowderGrams = 1.8f, ReloadSeconds = 2.5f, Magazine = 8, RoundsPerMinute = 300f },
         new() { Gun = "RPD", BulletGrams = 7.9f, Velocity = 735f, EffectiveRange = 800f, LoadedKg = 9f, PowderGrams = 1.6f, ReloadSeconds = 5f, Magazine = 100, RoundsPerMinute = 700f },
     };
+
+    // Parked: not in the game for now (user, 2026-11-16). Their rows stay; take a name out to bring that gun back.
+    static readonly string[] Parked = { "Uzi", "M1Carbine", "FAL", "HuntingRifle", "AA12" };
+    static readonly Real[] Others = EveryOther.Where(real => !Parked.Contains(real.Gun)).ToArray();
 
     static float Momentum(Real gun) => gun.BulletGrams * 0.001f * gun.Velocity;
 

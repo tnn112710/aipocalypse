@@ -12,7 +12,15 @@ namespace MB13.Aipocalypse.Core.HandSystem
         [SerializeField, Tooltip("None = this hand stays off screen (one-handed item)")] HandGrip _left;
         [SerializeField, Min(0.1f), Tooltip("Hand size for this item; the hand's grip point stays on its contact")] float _handScale = 1f;
 
+        [SerializeField, Tooltip("Optional: the shoulders and elbows move with this transform, measured from Body Rest (a gun's pose pivot and its hip pose): aiming carries the whole arm instead of folding it")]
+        Transform _bodyAnchor;
+        [SerializeField, Tooltip("Where Body Anchor sits when the arms are at the hand set's own shoulders")] Transform _bodyRest;
+
         public float HandScale => _handScale;
+
+        // A shoulder or elbow point, carried along with the item's pose.
+        public Vector3 Carry(Vector3 point) =>
+            _bodyAnchor != null && _bodyRest != null ? _bodyAnchor.TransformPoint(_bodyRest.InverseTransformPoint(point)) : point;
 
         public HandGrip GetGrip(HandSide side) => side == HandSide.Left ? _left : _right;
 
