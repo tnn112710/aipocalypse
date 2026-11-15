@@ -54,7 +54,7 @@ Not carried over: the pack's camera clips (the reload's view bob) and the right 
 
 ### Which guns the pack covers
 
-Matched by name; only the AK47 has been baked.
+The guns in the game, matched by name; only the AK47 has been baked. Every gun in the Castle Bravo bundle is rated the same way in [CASTLE_BRAVO_GUNS.md](CASTLE_BRAVO_GUNS.md): check it before adding a gun. The FAL, M1 Carbine, AA-12, Uzi and hunting rifle were parked on 2026-11-16.
 
 | Gun | Pack source | How hard | Why |
 | --- | --- | --- | --- |
@@ -63,12 +63,7 @@ Matched by name; only the AK47 has been baked.
 | Pistol (.45) | M1911 | Easy to medium | Has the layout, but the part is `Slide`, not `Bolt`, and the support hand wraps the shooting hand: the tool needs the part name per gun |
 | M4 | MX16A4 | Medium | A block-out: needs the animated layout and base clips first. Mechanically a straight match |
 | Glock 17, Desert Eagle | X18, DGL50 | Medium | Block-outs, and the pistol points above |
-| FAL | G3 (or Mk14EBR) | Medium | Block-out. The G3's handle is on the forward tube, the FAL's on the receiver's left: the rack needs `BoltOffset` |
-| M1 Carbine | Mk14EBR | Medium | Block-out. The M14 rocks its magazine in, the carbine's goes straight up; small magazine |
-| AA-12 | AK or MX16A4 (closest) | Medium | Block-out. No shotgun with a box or drum magazine was identified in the pack; a rifle magazine swap fits, the charging handle is on top |
-| Uzi | X18 or MPS5 (closest) | Hard | The magazine is inside the pistol grip, like a pistol, but it is held like an SMG: no single pack clip does both |
 | Pump shotgun | KXG12 | Hard | Source exists (shell by shell: start, loop, end, plus pump), but the tool only does magazine swaps: it needs a loop mode, shell props and a hand that stays on the pump |
-| Hunting rifle | Kar98K or L96X | Hard | Bolt action: the right hand leaves the grip to work the bolt, and our right hand has one fixed contact. Needs a free control for the right hand |
 | RPD | MGX5 | Hard | Belt fed: top cover, belt and drum. Our model has no cover or belt parts; treating the drum as a magazine would work but looks wrong up close |
 | Double barrel | none | Hard | No break-action gun in the pack: keep its hand-keyed clips (they work with the arms) or make the reload procedural |
 
@@ -89,6 +84,8 @@ Item prefab                            Player
 
 - **Hands follow grips each frame.** On still items, grips sit under the part they hold. On clip-driven guns, constrained hand targets select part contacts or an animated free-hand control. Both follow the parent's recoil, aim / sprint poses, switch motion and wall retraction.
 - **Arms.** A hand prefab with an `ArmRig` is a whole arm: `HandRig.Place` works out the hand bone's pose from the grip, and the arm solves two bones from the shoulder point to it, bending toward the elbow point (both in `HandSet`, view space). No Animator or RigBuilder runs: the solve happens in the hands' tick, after the item's final pose, so the arm is never a frame late. A grip out of reach pulls the shoulder along instead of stretching the arm; the forearm's twist bone takes half the wrist's turn. A hand prefab without an `ArmRig` (the floating hands) just moves to the grip.
+- **The arms come along with the gun.** `ItemHands > Body Anchor` and `Body Rest` (on guns: the pose pivot and the hip pose) carry the shoulder and elbow points with the item's pose (`ItemHands.Carry`). Aiming or sprinting moves the whole arm with the gun, as a first-person rig does; with shoulders fixed to the camera, aiming brought the hands so close that the arms folded shut (left elbow 23°, wrist bent 121°). Recoil, jolts and the shake sit below the pose pivot, so the arms still absorb those.
+- **The elbow favours a straight wrist.** `ArmRig > Wrist Share` (0.4) swings the elbow from the elbow point towards where it would sit behind the hand. With 0, a reload that turns the hand bent the left wrist up to 96° (the pack's own arms: 76° at that moment); with 0.4 it stays within about 10° of the pack's through the AK47 reload.
 - **Implied elbow.** The wrist tells the eye where the arm is. A grip only fixes *where* the hand holds and *along which direction* (the held part's axis). By default (`Aim = TowardElbow`) the hand turns round that axis so its wrist points at an invisible elbow (`HandSet` → elbows, in view space, low and out to each side). That keeps the wrist believable on every grip, including mid-reload, without tuning a rotation per grip. `Roll` adds a turn on top. `AsAuthored` uses the grip's exact rotation instead (e.g. a palm-up hand feeding shells).
 - **Fitted fingers.** **Bake fit** (on a grip, or **Bake fit for all grips** on `ItemHands`) runs in the editor. It slides the palm onto the part's surface, then searches each finger's curl and tip bend for the shape that hugs the item's meshes without going into them, staying close to the pose. The result is saved on the grip, so nothing runs in game. **Keep fingers** leaves chosen fingers at the pose (trigger finger, support hand round the other hand, small props).
 - **Each hand has one grip per item.** A hand never jumps between grips: moving work (reloads, jam clears, reaches) is the item's clips moving that grip's target between contacts. Items without clips keep their hands still on their grips.
@@ -155,7 +152,7 @@ Switching only changes the two prefabs `Data/Hands/HandSet.asset` points at; dra
 
 `ArmSetup.MakePrefab` does what [Changing the hand mesh](#changing-the-hand-mesh-retargeting) describes by hand: it drops the bones the arm doesn't use, sets up the `ArmRig` (elbow hinge read off the rest pose), places `GripPoint`, and writes the Open / Closed / Spread / Fist calibration from numbers at the top of the script (finger bend per joint, thumb directions in the palm's frame). The Sidekick fingers have three bones and no metacarpal, so joint 0 of each finger chain is a still marker at the wrist: fitting and the forearm direction read the chain as wrist, knuckle, joints.
 
-Tuning: `HandSet` > shoulders (where each arm starts; keep them off screen) and elbows (which way the arms bend, and where wrists aim on elbow-aimed grips). The current values follow the pack's own AK idle mapped onto our AK47: the right shoulder beside the stock's butt with the elbow down and out to the right, the left elbow under the gun. An elbow point on the body's side of the arm folds the arm under the stock, which reads as broken from any outside view. Also: `ArmRig` > Twist Share and Max Reach; the arm's size is the variant prefab's root scale (`ArmScale` in `ArmSetup`), then `ItemHands > Hand Scale` per item. Check with `ArmReview.Hand` (the hand alone at a given curl / spread / tip) and `ArmReview.Gun`.
+Tuning: `HandSet` > shoulders (where each arm starts; keep them off screen) and elbows (which way the arms bend, and where wrists aim on elbow-aimed grips). The current values follow the pack's own AK idle mapped onto our AK47: the right shoulder beside the stock's butt with the elbow down and out to the right, the left elbow under the gun. An elbow point on the body's side of the arm folds the arm under the stock, which reads as broken from any outside view. Also: `ArmRig` > Twist Share, Max Reach and Wrist Share; `ItemHands` > Body Anchor / Body Rest (None = shoulders stay with the camera); the arm's size is the variant prefab's root scale (`ArmScale` in `ArmSetup`), then `ItemHands > Hand Scale` per item. Check with `ArmReview.Hand` (the hand alone at a given curl / spread / tip) and `ArmReview.Gun`.
 
 ## Changing the hand mesh (retargeting)
 
