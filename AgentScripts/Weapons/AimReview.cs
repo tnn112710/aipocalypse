@@ -22,7 +22,7 @@ public static class AimReview
     static readonly Dictionary<string, string[]> BlockOuts = new()
     {
         ["AK47"] = new[] { "M1Carbine", "M4", "FAL", "RPD" },
-        ["MP5"] = new[] { "Uzi", "P90" },
+        ["MP5"] = new[] { "Uzi" },
         ["Pistol"] = new[] { "Glock17", "DesertEagle" },
         ["PumpShotgun"] = new[] { "HuntingRifle", "AA12" },
     };

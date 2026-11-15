@@ -20,6 +20,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public bool IsCrouching;
         // Scales a gun's hip wobble for walking, crouching or sprinting: 1 = standing. The holder must set it (0 = no hip cone).
         public float MoveSpreadScale;
+        // Degrees a gun's hip wobble grows from the holder turning fast; 0 = none.
+        public float TurnSpread;
     }
 
     // Camera offset an item adds on top of the look (gun recoil).

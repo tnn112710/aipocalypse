@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.RandomSystem;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.WeaponSystem
@@ -10,7 +11,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         readonly RecoilSettings _settings;
         readonly RecoilValues _blend = new();
-        readonly float _instanceNoise = Random.Range(0f, 100f);
+        readonly RandomStream _random;
+        readonly float _instanceNoise;
 
         Vector3 _gunTarget;
         Vector3 _gun;
@@ -31,8 +33,11 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float _sprayDrift;
         float _sprayClimb;
 
-        public GunRecoil(RecoilSettings settings)
+        // `random` rolls each spray's pattern (a seeded stream, so tests can fix it).
+        public GunRecoil(RecoilSettings settings, RandomStream random)
         {
+            _random = random;
+            _instanceNoise = random.Range(0f, 100f);
             _settings = settings;
             BeginSpray();
         }
@@ -153,10 +158,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         void BeginSpray()
         {
-            _sprayNoise = Random.Range(-1000f, 1000f);
-            _sprayPhase = Random.Range(-Mathf.PI, Mathf.PI);
-            _sprayDrift = Random.Range(-_settings.SprayDrift, _settings.SprayDrift);
-            _sprayClimb = Random.Range(_settings.SprayClimb.x, _settings.SprayClimb.y);
+            _sprayNoise = _random.Range(-1000f, 1000f);
+            _sprayPhase = _random.Range(-Mathf.PI, Mathf.PI);
+            _sprayDrift = _random.Range(-_settings.SprayDrift, _settings.SprayDrift);
+            _sprayClimb = _random.Range(_settings.SprayClimb.x, _settings.SprayClimb.y);
         }
 
         static float SignedNoise(float x, float y) => Mathf.PerlinNoise(x, y) * 2f - 1f;

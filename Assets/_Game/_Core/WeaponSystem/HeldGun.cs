@@ -2,6 +2,7 @@ using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.RandomSystem;
 using Ami.BroAudio;
 using MessagePipe;
 using Sirenix.OdinInspector;
@@ -44,6 +45,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         Gun _gun;
         GunRecoil _recoil;
         GunAccuracy _accuracy;
+        // Gameplay rolls (jams, pellets, spray pattern, wobble jolts): one saved, seeded stream for every gun.
+        RandomStream _random;
+        const string RandomStreamName = "guns";
         // This frame's shot jolts to the wobble (degrees).
         Vector2 _wobbleKick;
         GunJam _jam;
@@ -61,12 +65,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float _tailIn = -1f;
         // Where shots and the flash leave: a fitted muzzle part's tip, else the gun's own muzzle.
         Transform _shotMuzzle;
-        // The aim pose moved so a fitted optic's sight line sits where the iron sights' did.
-        Transform _opticAim;
-        bool _aimThroughOptic;
-        // The sight window shown now (a tube optic's, near full aim).
-        Renderer _shownWindow;
-        const float SightWindowFrom = 0.6f;
+        // The aim pose through a fitted optic, its scope view offset and sight window.
+        GunOpticAim _optic;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
@@ -104,32 +104,21 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 if (optic == null)
                     return default;
                 float weight = optic.Optic.ScopeWeight(_aimWeight);
-                return new ScopeView(weight, optic.Optic.ScopeReticle, weight > 0f ? EyeOffset(optic.Optic) : default);
+                Vector2 eyeOffset = weight > 0f && _user != null
+                    ? GunOpticAim.EyeOffset(optic.Optic, _mounts != null ? _mounts.Sight : null, _user.Eye, _user.AimOffset)
+                    : default;
+                return new ScopeView(weight, optic.Optic.ScopeReticle, eyeOffset);
             }
-        }
-
-        // How far the optic's sight line is off the eye's aim line, in shares of its eye box: the sight point's offset plus
-        // the scope's tilt over a short lever (model sway, gun kick, the last of raising it).
-        Vector2 EyeOffset(OpticSettings optic)
-        {
-            const float tiltLever = 0.1f;
-            Transform sight = _mounts != null ? _mounts.Sight : null;
-            if (sight == null || _user?.Eye == null)
-                return default;
-            Transform eye = _user.Eye;
-            Quaternion toAim = Quaternion.Inverse(eye.rotation * _user.AimOffset);
-            Vector3 point = toAim * (sight.position - eye.position);
-            Vector3 along = toAim * sight.forward;
-            var offset = new Vector2(point.x + along.x * tiltLever, point.y + along.y * tiltLever);
-            return Vector2.ClampMagnitude(offset / optic.EyeBox, 2f);
         }
 
         // Aiming or pulling the trigger ends a sprint.
         public override bool StopsSprint(bool useHeld, bool aimHeld) => _gun != null && (useHeld || aimHeld);
 
         [Inject]
-        void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, GunJamFactory jams, IPublisher<ShotFired> shots)
+        void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, GunJamFactory jams, IPublisher<ShotFired> shots,
+            RandomService random)
         {
+            _random = random.Stream(RandomStreamName);
             _shots = shots;
             _bullets = bullets;
             _effects = effects;
@@ -162,8 +151,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (_definition.Magazine.AmmoType == null)
                 Debug.LogWarning($"{_definition.name} has no ammo type and can't be reloaded.", _definition);
 
-            _gun = new Gun(item, _user.Ammo);
-            _recoil = new GunRecoil(_definition.Recoil);
+            _gun = new Gun(item, _user.Ammo, () => _random.Value);
+            _recoil = new GunRecoil(_definition.Recoil, _random);
+            _optic = new GunOpticAim(_aimPose);
             _accuracy = new GunAccuracy(_definition.Accuracy);
             _jam = _jams.Create(_gun, _definition, _animation, _jolt, this, Owner, Item);
             _gun.Fired += OnFired;
@@ -220,6 +210,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             {
                 Cone = _item.Stats.ConeAt(_aimWeight),
                 MoveScale = input.MoveSpreadScale,
+                Turn = input.TurnSpread,
                 AimWeight = _aimWeight,
                 Airborne = input.IsAirborne,
                 AirScale = _user.AirSpreadScale * _item.Stats.SpreadScale,
@@ -271,7 +262,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             _jolt.Stop();
             _aimWeight = 0f;
-            ShowSightWindow(false);
+            _optic?.ShowWindow(null, 0f);
             _jam?.Hide();
             _sprintRecoveryLeft = 0f;
             _tailIn = -1f;
@@ -306,52 +297,16 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             }
             Transform tip = _mounts != null ? _mounts.MuzzleTip : null;
             _shotMuzzle = tip != null ? tip : _muzzle;
-            PlaceOpticAim();
-        }
-
-        // Moves a copy of the aim pose so the optic's sight point lands on the iron sights' line, its EyeDistance from the eye
-        // (whatever the gun's own aim pose: guns with far-forward irons are held closer). Measured in the model's space, which
-        // is the pose pivot's at rest.
-        void PlaceOpticAim()
-        {
             AttachmentDefinition optic = _item.Stats.Optic;
-            Transform sight = _mounts != null ? _mounts.Sight : null;
-            _aimThroughOptic = optic != null && sight != null && _mounts.IronSight != null && sight != _mounts.IronSight && _aimPose != null;
-            if (!_aimThroughOptic)
-                return;
-
-            Transform space = _mounts.transform;
-            Vector3 sightPoint = space.InverseTransformPoint(sight.position);
-            Vector3 iron = space.InverseTransformPoint(_mounts.IronSight.position);
-            Vector3 along = space.InverseTransformDirection(_mounts.IronSight.forward);
-            if (Mathf.Abs(along.z) > 0.01f)
-                iron += along * ((sightPoint.z - iron.z) / along.z);
-            Vector3 offset = iron - sightPoint;
-            offset.z = 0f;
-            Transform eye = _user?.Eye;
-            if (eye != null)
-            {
-                // Depth from the eye is linear in offset.z: solve for the optic's distance.
-                Matrix4x4 eyeFromPoses = eye.worldToLocalMatrix * _aimPose.parent.localToWorldMatrix;
-                Quaternion rotation = _aimPose.localRotation;
-                float depth = eyeFromPoses.MultiplyPoint(_aimPose.localPosition + rotation * (offset + sightPoint)).z;
-                float perMetre = eyeFromPoses.MultiplyVector(rotation * Vector3.forward).z;
-                if (perMetre > 0.1f)
-                    offset.z = (optic.Optic.EyeDistance - depth) / perMetre;
-            }
-
-            if (_opticAim == null)
-            {
-                _opticAim = new GameObject("AimOptic").transform;
-                _opticAim.SetParent(_aimPose.parent, false);
-            }
-            _opticAim.SetLocalPositionAndRotation(_aimPose.localPosition + _aimPose.localRotation * offset, _aimPose.localRotation);
+            _optic.Place(optic != null ? optic.Optic : null, _mounts != null ? _mounts.Sight : null,
+                _mounts != null ? _mounts.IronSight : null, _mounts != null ? _mounts.transform : null, _user?.Eye);
         }
 
         void OnFired()
         {
             _pendingShots++;
-            _wobbleKick += Random.insideUnitCircle.normalized * _accuracy.AddShot();
+            float angle = _random.Value * 2f * Mathf.PI;
+            _wobbleKick += new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * _accuracy.AddShot();
             _user.Exert(_definition.Fire.StaminaPerShot);
             if (_animation != null)
                 _animation.Fired();
@@ -404,7 +359,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 _bullets.Fire(new BulletShot
                 {
                     Origin = origin,
-                    Direction = BulletSpread.Apply(direction, stats.SpreadAngle),
+                    Direction = BulletSpread.Apply(direction, stats.SpreadAngle, _random.InsideUnitCircle),
                     VisualOrigin = _user.AimFrom == AimOrigin.Camera ? muzzle.position : origin,
                     Speed = stats.BulletSpeed,
                     Range = stats.Range,
@@ -480,27 +435,13 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             float aimSpeed = _item.Stats.AimSpeed;
             float aimBlend = Damping.ByRate(aimSpeed, deltaTime);
             _aimWeight = Mathf.Lerp(_aimWeight, _gun.IsAiming && !sprinting ? 1f : 0f, aimBlend);
-            Transform aim = _aimThroughOptic ? _opticAim : _aimPose;
+            Transform aim = _optic.AimPose;
             Transform target = sprinting ? _sprintPose : _gun.IsAiming ? aim : _hipPose;
             if (target == null)
                 target = _hipPose;
             _pose.MoveTowards(target, sprinting ? handling.SprintPoseSpeed : aimSpeed, deltaTime);
             ApplyPose();
-            ShowSightWindow(_gun.IsAiming && !sprinting && _aimWeight > SightWindowFrom);
-        }
-
-        // A tube optic's window hides its inside walls only once the eye is nearly behind it: from further off the walls
-        // are what the eye would really see.
-        void ShowSightWindow(bool on)
-        {
-            Renderer window = on && _mounts != null ? _mounts.SightWindow : null;
-            if (window == _shownWindow)
-                return;
-            if (_shownWindow != null)
-                _shownWindow.enabled = false;
-            _shownWindow = window;
-            if (window != null)
-                window.enabled = true;
+            _optic.ShowWindow(_mounts != null ? _mounts.SightWindow : null, _gun.IsAiming && !sprinting ? _aimWeight : 0f);
         }
 
         void ApplyPose()

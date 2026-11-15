@@ -7,6 +7,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     {
         public float Cone;          // the gun's hip cone at this aim weight (GunStats.ConeAt), degrees
         public float MoveScale;     // walk / crouch / sprint, from the holder
+        public float Turn;          // degrees added by turning fast, from the holder
         public float AimWeight;
         public bool Airborne;
         public float AirScale;      // the holder's airborne spread scale
@@ -21,6 +22,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         readonly AccuracySettings _settings;
         AccuracyInput _input;
         float _bloom;
+        float _sinceShot;
 
         public float Spread { get; private set; }
         // Degrees the recent hip shots add (before aiming, fatigue and steadiness).
@@ -31,11 +33,13 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public void Tick(in AccuracyInput input, float deltaTime)
         {
             _input = input;
-            _bloom = Mathf.MoveTowards(_bloom, 0f, _settings.BloomRecovery * deltaTime);
+            _sinceShot += deltaTime;
+            if (_sinceShot >= _settings.BloomRecoveryDelay)
+                _bloom = Mathf.MoveTowards(_bloom, 0f, _settings.BloomRecovery * deltaTime);
 
             float aim = Mathf.Clamp01(input.AimWeight);
             float air = input.Airborne ? _settings.AirborneSpread * Mathf.Lerp(1f, _settings.AimMultiplier, aim) * input.AirScale : 0f;
-            float target = (input.Cone * input.MoveScale + air + _bloom * (1f - aim)) * Scale(input);
+            float target = (input.Cone * input.MoveScale + air + (_bloom + input.Turn) * (1f - aim)) * Scale(input);
 
             Spread = target >= Spread ? target : Mathf.Lerp(Spread, target, Damping.ByRate(_settings.SettleSpeed, deltaTime));
         }
@@ -44,6 +48,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public float AddShot()
         {
             _bloom = Mathf.Min(_bloom + _settings.BloomPerShot, _settings.MaxBloom);
+            _sinceShot = 0f;
             return _settings.BloomPerShot * (1f - Mathf.Clamp01(_input.AimWeight)) * Scale(_input);
         }
 

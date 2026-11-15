@@ -101,7 +101,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Min(0.1f), Tooltip("Degrees per second the wander's size follows the envelope (walking, landing, a new gun), so it never pops")]
         public float WobbleGrowSpeed = 4f;
         [Range(1f, 4f), Tooltip("How much of the time the wander spends near the envelope's edge (noise stretch): higher = wider, more often at the edge")]
-        public float WobbleFill = 2.5f;
+        public float WobbleFill = 2f;
     }
 
     public struct HeldSwayInput
@@ -272,9 +272,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _wobbleSize = Mathf.MoveTowards(_wobbleSize, Mathf.Clamp(envelope, 0f, s.MaxWobble), s.WobbleGrowSpeed * deltaTime);
             if (_wobbleSize <= 0f)
                 return _wobbleKick;
-            // Perlin stays mostly within ±0.3 of its middle: stretched so the wander reaches toward the envelope's edge.
+            // Perlin stays mostly within ±0.3 of its middle: stretched so the wander reaches toward the envelope's edge, then
+            // eased in by tanh. A hard clamp would pin it to the rim and let go with a jerk.
             var wander = new Vector2(Mathf.PerlinNoise(_wobblePhase, 3.7f) - 0.5f, Mathf.PerlinNoise(11.3f, _wobblePhase) - 0.5f) * (2f * s.WobbleFill);
-            return Vector2.ClampMagnitude(wander, 1f) * _wobbleSize + _wobbleKick;
+            float reach = wander.magnitude;
+            if (reach > 1e-5f)
+                wander *= (float)System.Math.Tanh(reach) / reach;
+            return wander * _wobbleSize + _wobbleKick;
         }
 
         void ModelTick(in HeldSwayInput input, float aim, float b, float heavy, float bob, float sprint, float side, float step, float scale, float deltaTime)

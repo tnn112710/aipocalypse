@@ -68,6 +68,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _equipment.Tick(deltaTime, _config.SwitchSpeed);
             _rig.Tick();
             bool moving = _motor.HorizontalVelocity.sqrMagnitude > tuning.MovingSpeed * tuning.MovingSpeed;
+            float lookRate = Time.unscaledDeltaTime > 0f ? intent.LookDegrees.magnitude / Time.unscaledDeltaTime : 0f;
             _rig.TickHeld(new HeldItemInput
             {
                 UseHeld = intent.Fire,
@@ -80,6 +81,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 IsAirborne = !_motor.IsGrounded,
                 IsCrouching = _motor.IsCrouching,
                 MoveSpreadScale = tuning.MoveSpreadScale(_motor.IsSprinting, moving, _motor.IsCrouching),
+                TurnSpread = tuning.TurnSpread(lookRate),
             }, deltaTime);
 
             HeldItem held = _rig.Current;

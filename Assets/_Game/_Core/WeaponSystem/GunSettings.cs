@@ -205,6 +205,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Min(0f), Tooltip("Degrees each hip shot adds to the envelope (and jolts the gun by)")] public float BloomPerShot = 0.5f;
         [Min(0f), Tooltip("Most degrees shot bloom can add")] public float MaxBloom = 3f;
         [Min(0f), Tooltip("Degrees per second the bloom falls")] public float BloomRecovery = 4f;
+        [Min(0f), Tooltip("Seconds without a shot before the bloom starts falling, so full auto keeps building it")]
+        public float BloomRecoveryDelay = 0.2f;
     }
 
     [Serializable]

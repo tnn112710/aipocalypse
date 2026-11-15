@@ -17,6 +17,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Hip wobble multiplier while crouching (stacks with walking)")] float _crouchSpreadScale = 0.7f;
         [SerializeField, Min(0f), Tooltip("Hip wobble multiplier while sprinting (replaces the others); it settles after the sprint")]
         float _sprintSpreadScale = 2.5f;
+        [SerializeField, Min(0f), Tooltip("Hip wobble degrees added per 100°/s of turning (a flick shakes the aim, then it settles)")]
+        float _turnSpread = 0.5f;
+        [SerializeField, Min(0f), Tooltip("Most degrees turning can add")] float _maxTurnSpread = 2f;
 
         [Header("Obstacle pose"), SerializeField, Tooltip("Retract and tilt the held model near walls or entities")]
         bool _keepHeldItemClear = true;
@@ -39,6 +42,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public AimOrigin AimFrom => _aimFrom;
         public float AimMoveSpeedMultiplier => _aimMoveSpeedMultiplier;
         public float MovingSpeed => _movingSpeed;
+
+        // Hip wobble degrees from turning at `lookDegreesPerSecond` (HeldItemInput.TurnSpread).
+        public float TurnSpread(float lookDegreesPerSecond) => Mathf.Min(Mathf.Abs(lookDegreesPerSecond) * 0.01f * _turnSpread, _maxTurnSpread);
 
         // The hip wobble's movement scale (HeldItemInput.MoveSpreadScale).
         public float MoveSpreadScale(bool sprinting, bool moving, bool crouching) =>

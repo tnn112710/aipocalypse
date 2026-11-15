@@ -72,7 +72,7 @@ MonoBehaviour:
     ClearTime: 1.5
   _recoil:
     Hip:
-      Multiplier: 1
+      Multiplier: 0.75
       Vertical: 3.5
       Horizontal: 2.5
       Roll: 0.3
@@ -131,6 +131,7 @@ MonoBehaviour:
     BloomPerShot: 0.5
     MaxBloom: 3
     BloomRecovery: 4
+    BloomRecoveryDelay: 0.2
   _handling:
     AimSpeed: 8
     SprintPoseSpeed: 7

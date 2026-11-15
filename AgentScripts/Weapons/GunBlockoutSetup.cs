@@ -71,8 +71,6 @@ public static class GunBlockoutSetup
             Ammo = "MagnumAmmo", Sight = 0.062f, Muzzle = new Vector3(0f, 0.034f, 0.204f) },
         new() { Name = "Uzi", Key = "item.uzi", Source = CB3 + "Weapons_SMG/SMG_M.prefab", Reference = "MP5",
             Sight = 0.112f, Muzzle = new Vector3(0f, 0.042f, 0.380f), Left = new Vector3(0.007f, -0.010f, 0.170f), AimCloser = 0.16f },
-        new() { Name = "P90", Key = "item.p90", Source = CB3 + "Weapons_SMG/SMG_O.prefab", Reference = "MP5",
-            Sight = 0.205f, Muzzle = new Vector3(0f, 0.028f, 0.240f), Left = new Vector3(0.007f, -0.040f, 0.120f) },
         new() { Name = "M1Carbine", Key = "item.m1_carbine", Source = CB5 + "WWII_Rifle_A.prefab", Reference = "AK47",
             Mode = FireMode.SemiAuto, Sight = 0.095f, Muzzle = new Vector3(0f, 0.065f, 0.785f), Left = new Vector3(0.007f, 0.020f, 0.380f),
             AimCloser = -0.06f },

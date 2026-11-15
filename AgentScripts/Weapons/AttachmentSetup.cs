@@ -1001,18 +1001,6 @@ public static class AttachmentSetup
         },
         new()
         {
-            // Its magazine lies on top: a magazine part changes the stats only.
-            Name = "P90", HipSpread = 2f, Family = GunFamily.Smg, Icon = true,
-            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Tactical, GunSlot.Magazine },
-            Mounts = new MountSpec[]
-            {
-                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.157f, 0.060f), Hide = new[] { "SMG_O_Sight_Back", "SMG_O_Sight_Front" } },
-                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
-                new() { Slot = GunSlot.Tactical, At = new Vector3(0.040f, 0.118f, 0.085f) },
-            },
-        },
-        new()
-        {
             // The optic sits where the preset's scout scope does, ahead of the receiver.
             Name = "M1Carbine", HipSpread = 2.5f, Family = GunFamily.Rifle, Icon = true,
             Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Magazine },

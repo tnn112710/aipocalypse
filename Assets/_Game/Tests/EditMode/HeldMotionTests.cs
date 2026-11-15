@@ -11,7 +11,8 @@ namespace MB13.Aipocalypse.Tests
     {
         static AccuracySettings Settings() => new()
         {
-            AirborneSpread = 2f, AimMultiplier = 0.25f, SettleSpeed = 6f, BloomPerShot = 0.5f, MaxBloom = 3f, BloomRecovery = 4f
+            AirborneSpread = 2f, AimMultiplier = 0.25f, SettleSpeed = 6f, BloomPerShot = 0.5f, MaxBloom = 3f, BloomRecovery = 4f,
+            BloomRecoveryDelay = 0.2f
         };
 
         static AccuracyInput Input() => new() { Cone = 3f, MoveScale = 1f, AirScale = 1f, Fatigue = 1f, Steadiness = 1f };
@@ -61,6 +62,21 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Bloom_WaitsForAPause_BeforeRecovering()
+        {
+            var accuracy = new GunAccuracy(Settings());
+            accuracy.Tick(Input(), 0.016f);
+            accuracy.AddShot();
+            for (int i = 0; i < 6; i++)
+                accuracy.Tick(Input(), 1f / 60f);
+            Assert.AreEqual(0.5f, accuracy.Bloom, 0.001f, "0.1 s after the shot: still full, so full auto keeps building");
+
+            for (int i = 0; i < 12; i++)
+                accuracy.Tick(Input(), 1f / 60f);
+            Assert.Less(accuracy.Bloom, 0.5f, "0.3 s after: recovering");
+        }
+
+        [Test]
         public void Aiming_RemovesBloom()
         {
             var accuracy = new GunAccuracy(Settings());
@@ -83,6 +99,18 @@ namespace MB13.Aipocalypse.Tests
             accuracy.AddShot();
             accuracy.AddShot();
             Assert.That(SpreadAfter(accuracy, input), Is.InRange(1.5f, 2.5f));
+        }
+
+        [Test]
+        public void Turning_AddsSpread_LessWhileAiming()
+        {
+            var input = Input();
+            input.Turn = 1f;
+            Assert.AreEqual(4f, SpreadAfter(new GunAccuracy(Settings()), input), 0.001f, "cone 3 + turning 1");
+
+            input.Cone = 0f;
+            input.AimWeight = 1f;
+            Assert.AreEqual(0f, SpreadAfter(new GunAccuracy(Settings()), input), 0.001f, "aimed: the aim sway's look lag covers it");
         }
 
         [Test]
@@ -183,6 +211,17 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Turning_AddsWobble_UpToTheCap()
+        {
+            var tuning = ScriptableObject.CreateInstance<PlayerHeldItemTuning>();
+            Assert.AreEqual(0f, tuning.TurnSpread(0f), 0.001f);
+            Assert.AreEqual(1f, tuning.TurnSpread(200f), 0.001f, "0.5 per 100°/s");
+            Assert.AreEqual(2f, tuning.TurnSpread(1000f), 0.001f, "capped");
+            Assert.AreEqual(1f, tuning.TurnSpread(-200f), 0.001f, "either way");
+            Object.DestroyImmediate(tuning);
+        }
+
+        [Test]
         public void Sprinting_Overrides() => Assert.AreEqual(2.5f, Scale(true, true, false), 0.001f);
     }
 
@@ -257,6 +296,29 @@ namespace MB13.Aipocalypse.Tests
                 Assert.Less((now - last).magnitude, 0.25f, $"tick {i}");
                 last = now;
             }
+        }
+
+        // A hard limit at the envelope's edge pins the wander to the rim, then lets go with a jerk in its speed.
+        [Test]
+        public void Wander_SpeedChangesSmoothly_AndDoesNotRideTheRim()
+        {
+            var sway = Sway();
+            for (int i = 0; i < 120; i++)
+                sway.Tick(Input(3f), Frame);
+            Vector2 last = Wander(sway), lastVelocity = Vector2.zero;
+            int nearRim = 0;
+            for (int i = 0; i < 3600; i++)
+            {
+                sway.Tick(Input(3f), Frame);
+                Vector2 now = Wander(sway), velocity = (now - last) / Frame;
+                if (i > 0)
+                    Assert.Less((velocity - lastVelocity).magnitude / Frame, 30f, $"tick {i}: speed jerked");
+                if (now.magnitude > 3f * 0.95f)
+                    nearRim++;
+                last = now;
+                lastVelocity = velocity;
+            }
+            Assert.Less(nearRim, 3600 * 0.05f, "frames pressed against the envelope's edge");
         }
 
         [Test]

@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEngine;
@@ -396,7 +397,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Recoil_KicksTheViewUp_ThenSettles()
         {
-            var recoil = new GunRecoil(_definition.Recoil);
+            var recoil = new GunRecoil(_definition.Recoil, new RandomStream(1));
 
             recoil.Kick(0f, 1f);
             for (int i = 0; i < 6; i++)
@@ -415,7 +416,7 @@ namespace MB13.Aipocalypse.Tests
         {
             _definition.Recoil.KeptShare = 0.4f;
             _definition.Recoil.Hip.NoisePitch = 0f;
-            var recoil = new GunRecoil(_definition.Recoil);
+            var recoil = new GunRecoil(_definition.Recoil, new RandomStream(1));
 
             recoil.Kick(0f, 1f);
             Vector2 turned = Vector2.zero;
@@ -434,7 +435,7 @@ namespace MB13.Aipocalypse.Tests
         public void Recoil_NoKeptShare_NeverTurnsTheLook()
         {
             _definition.Recoil.KeptShare = 0f;
-            var recoil = new GunRecoil(_definition.Recoil);
+            var recoil = new GunRecoil(_definition.Recoil, new RandomStream(1));
 
             recoil.Kick(0f, 1f);
             for (int i = 0; i < 30; i++)
@@ -493,12 +494,42 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Spread_StaysInsideTheCone()
         {
+            var random = new RandomStream(3);
             for (int i = 0; i < 200; i++)
             {
-                Vector3 direction = BulletSpread.Apply(Vector3.forward, 5f);
+                Vector3 direction = BulletSpread.Apply(Vector3.forward, 5f, random.InsideUnitCircle);
                 Assert.LessOrEqual(Vector3.Angle(Vector3.forward, direction), 5.01f);
             }
-            Assert.AreEqual(Vector3.forward, BulletSpread.Apply(Vector3.forward, 0f));
+            Assert.AreEqual(Vector3.forward, BulletSpread.Apply(Vector3.forward, 0f, random.InsideUnitCircle));
+        }
+
+        [Test]
+        public void Spread_GoesWhereTheRollSays()
+        {
+            Vector3 edge = BulletSpread.Apply(Vector3.forward, 5f, Vector2.right);
+            Assert.AreEqual(5f, Vector3.Angle(Vector3.forward, edge), 0.01f, "a roll on the rim lands on the cone's edge");
+            Assert.Greater(edge.x, 0f, "to the right");
+            Assert.AreEqual(Vector3.forward, BulletSpread.Apply(Vector3.forward, 5f, Vector2.zero), "a centre roll goes straight");
+        }
+
+        [Test]
+        public void Recoil_SameSeed_GivesTheSameSpray()
+        {
+            Vector3 Spray(ulong seed)
+            {
+                var recoil = new GunRecoil(_definition.Recoil, new RandomStream(seed));
+                Vector3 sum = Vector3.zero;
+                for (int i = 0; i < 8; i++)
+                {
+                    recoil.Kick(0f, 1f);
+                    recoil.Tick(0.1f, 0f);
+                    sum += recoil.ViewEuler;
+                }
+                return sum;
+            }
+
+            Assert.AreEqual(Spray(7), Spray(7), "tests and replays can fix the pattern");
+            Assert.AreNotEqual(Spray(7), Spray(8));
         }
 
         [Test]

@@ -36,13 +36,12 @@ public static class RealisticGunStats
 
         // Block-outs (GunBlockoutSetup). Semi-automatics' rate is a practical click limit; the hunting rifle's bolt
         // (CycleTime) and per-round reload are its own.
-        // Glock 17 9x19 124 gr; Desert Eagle .50 AE 300 gr; Uzi 9x19; P90 5.7x28 SS190; M1 Carbine .30 Carbine; M4 5.56 M855
+        // Glock 17 9x19 124 gr; Desert Eagle .50 AE 300 gr; Uzi 9x19; M1 Carbine .30 Carbine; M4 5.56 M855
         // from 14.5"; AK-74M 5.45x39 7N6; FAL 7.62x51 M80; Remington 700 .308 168 gr (4 + 1, loaded one at a time); AA-12
         // 00 buckshot, 8-round box; RPD 7.62x39 from a 100-round drum.
         new() { Gun = "Glock17", BulletGrams = 8f, Velocity = 375f, EffectiveRange = 50f, LoadedKg = 0.9f, PowderGrams = 0.4f, ReloadSeconds = 1.8f, Magazine = 17, RoundsPerMinute = 450f },
         new() { Gun = "DesertEagle", BulletGrams = 19.4f, Velocity = 470f, EffectiveRange = 50f, LoadedKg = 2f, PowderGrams = 1.9f, ReloadSeconds = 2f, Magazine = 7, RoundsPerMinute = 180f },
         new() { Gun = "Uzi", BulletGrams = 8f, Velocity = 400f, EffectiveRange = 150f, LoadedKg = 3.8f, PowderGrams = 0.4f, ReloadSeconds = 2.5f, Magazine = 32, RoundsPerMinute = 600f },
-        new() { Gun = "P90", BulletGrams = 2f, Velocity = 715f, EffectiveRange = 200f, LoadedKg = 3f, PowderGrams = 0.4f, ReloadSeconds = 3f, Magazine = 50, RoundsPerMinute = 900f },
         new() { Gun = "M1Carbine", BulletGrams = 7.1f, Velocity = 600f, EffectiveRange = 300f, LoadedKg = 2.6f, PowderGrams = 0.9f, ReloadSeconds = 2f, Magazine = 15, RoundsPerMinute = 450f },
         new() { Gun = "M4", BulletGrams = 4f, Velocity = 880f, EffectiveRange = 500f, LoadedKg = 3.4f, PowderGrams = 1.6f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 800f },
         new() { Gun = "AK74M", BulletGrams = 3.4f, Velocity = 900f, EffectiveRange = 500f, LoadedKg = 3.9f, PowderGrams = 1.45f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 650f },

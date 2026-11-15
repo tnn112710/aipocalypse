@@ -289,11 +289,9 @@ namespace MB13.Aipocalypse.Tests.EditMode
         public void Recoil_ScalesVerticalAndHorizontalKick()
         {
             // Same random spray for both.
-            Random.InitState(7);
-            var plain = new GunRecoil(_rifle.Recoil);
+            var plain = new GunRecoil(_rifle.Recoil, new RandomStream(7));
             plain.Kick(0f, 1f);
-            Random.InitState(7);
-            var scaled = new GunRecoil(_rifle.Recoil);
+            var scaled = new GunRecoil(_rifle.Recoil, new RandomStream(7));
             scaled.Kick(0f, 1f, 0.5f, 0.5f);
             plain.Tick(0.05f, 0f);
             scaled.Tick(0.05f, 0f);
@@ -388,7 +386,7 @@ namespace MB13.Aipocalypse.Tests.EditMode
         static readonly string[] Guns =
         {
             "AK47", "MP5", "Pistol", "PumpShotgun", "DoubleBarrel",
-            "Glock17", "DesertEagle", "Uzi", "P90", "M1Carbine", "M4", "AK74M", "FAL", "HuntingRifle", "AA12", "RPD",
+            "Glock17", "DesertEagle", "Uzi", "M1Carbine", "M4", "AK74M", "FAL", "HuntingRifle", "AA12", "RPD",
         };
 
         [Test]
