@@ -162,8 +162,9 @@ public static class ShotEffectsSetup
                 new[] { new GradientColorKey(new Color(1f, 0.9f, 0.75f), 0f), new GradientColorKey(new Color(1f, 0.75f, 0.5f), 1f) },
                 new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0.4f, 0.5f), new GradientAlphaKey(0f, 1f) }, log);
             Head(root, head, log);
+            Streak(root);
         });
-        log.Add($"{TracerPath}: Core, Halo, Head");
+        log.Add($"{TracerPath}: Core, Halo, Head, TracerStreak");
         return string.Join("\n", log);
     }
 
@@ -189,6 +190,23 @@ public static class ShotEffectsSetup
         gradient.SetKeys(colors, alphas);
         trail.colorGradient = gradient;
         log.Add($"{name}: {time:0.###} s, width {width}");
+    }
+
+    // Per-shot variation, screen-size width and the head going out on impact (tuning on the component is kept).
+    static void Streak(GameObject root)
+    {
+        if (!root.TryGetComponent(out MB13.Aipocalypse.Core.WeaponSystem.TracerStreak streak))
+            streak = root.AddComponent<MB13.Aipocalypse.Core.WeaponSystem.TracerStreak>();
+        var so = new SerializedObject(streak);
+        TrailRenderer[] trails = root.GetComponentsInChildren<TrailRenderer>(true);
+        SerializedProperty list = so.FindProperty("_trails");
+        list.arraySize = trails.Length;
+        for (int i = 0; i < trails.Length; i++)
+            list.GetArrayElementAtIndex(i).objectReferenceValue = trails[i];
+        so.FindProperty("_core").objectReferenceValue = root.transform.Find("Core").GetComponent<TrailRenderer>();
+        so.FindProperty("_glow").objectReferenceValue = root.transform.Find("Halo").GetComponent<TrailRenderer>();
+        so.FindProperty("_head").objectReferenceValue = root.transform.Find("Head").GetComponent<ParticleSystem>();
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // One camera-facing glow that rides with the tracer; size and tint vary a little per shot so bursts don't repeat.

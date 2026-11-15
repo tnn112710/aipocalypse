@@ -21,6 +21,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float _tracerConvergeTime = 0.08f;
         [SerializeField, Min(0f), Tooltip("Seconds the tracer stays at the bullet's end point so its trail can catch up and fade; at least the trail's time")]
         float _tracerLinger = 0.12f;
+        [SerializeField, Tooltip("A round shows its tracer every this many rounds, re-picked at random between x and y after each one; (1, 1) = every round")]
+        Vector2Int _tracerEvery = new(2, 3);
+        [SerializeField, Min(0), Tooltip("The last this many rounds of a magazine all show tracers, so you see it running dry; 0 = off")]
+        int _tracerLastRounds = 4;
 
         [Header("Prewarm (copies made when a gun is bound)"), SerializeField, Min(0)] int _muzzleFlashPrewarm = 4;
         [SerializeField, Min(0)] int _tracerPrewarm = 16;
@@ -36,10 +40,22 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public float BulletHoleOffset => _bulletHoleOffset;
         public float TracerConvergeTime => _tracerConvergeTime;
         public float TracerLinger => _tracerLinger;
+        public Vector2Int TracerEvery => _tracerEvery;
+        public int TracerLastRounds => _tracerLastRounds;
         public int MuzzleFlashPrewarm => _muzzleFlashPrewarm;
         public int TracerPrewarm => _tracerPrewarm;
         public int ImpactPrewarm => _impactPrewarm;
         public int BulletHolePrewarm => _bulletHolePrewarm;
+
+        // Rounds until the next tracer round, from TracerEvery; `roll` in [0, 1).
+        public int NextTracerGap(float roll)
+        {
+            int min = Mathf.Max(1, _tracerEvery.x), max = Mathf.Max(min, _tracerEvery.y);
+            return Mathf.Min(max, min + (int)(roll * (max - min + 1)));
+        }
+
+        // Whether a round fired with `roundsLeft` still in the magazine is one of its last, always-traced rounds.
+        public bool IsLastRound(int roundsLeft) => roundsLeft < _tracerLastRounds;
 
         public void Prewarm(EffectPool pool)
         {

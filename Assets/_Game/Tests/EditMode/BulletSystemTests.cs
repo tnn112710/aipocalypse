@@ -92,7 +92,7 @@ namespace MB13.Aipocalypse.Tests
             return box;
         }
 
-        void Fire(Vector3 origin, float range, Transform ignore = null) => _bullets.Fire(new BulletShot
+        void Fire(Vector3 origin, float range, Transform ignore = null, bool noTracer = false) => _bullets.Fire(new BulletShot
         {
             Origin = Far + origin,
             VisualOrigin = Far + origin,
@@ -102,6 +102,7 @@ namespace MB13.Aipocalypse.Tests
             Layers = Physics.DefaultRaycastLayers,
             Ignore = ignore,
             Effects = _bulletEffects,
+            NoTracer = noTracer,
         });
 
         // The tracer each live bullet is moving, spawned in order under the pool root.
@@ -186,6 +187,59 @@ namespace MB13.Aipocalypse.Tests
 
             target.transform.position += Vector3.right * 5f;
             Assert.AreEqual(target.transform.position.x, spawned.transform.position.x, 0.01f, "it moves with the target");
+        }
+
+        [Test]
+        public void RoundBetweenTracers_StillHits_WithoutATracer()
+        {
+            PooledEffect hole = Effect("Hole", maxActive: 0);
+            var so = new SerializedObject(_bulletEffects);
+            so.FindProperty("_bulletHole").objectReferenceValue = hole;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            GameObject target = Box(new Vector3(0f, 0f, 3f), new Vector3(4f, 1f, 0.2f));
+
+            Fire(Vector3.zero, range: 100f, noTracer: true);
+            Assert.AreEqual(0, LiveTracers().Count);
+            _bullets.Advance(0.05f);
+            Assert.AreEqual(1, target.transform.childCount, "it hit and left a hole");
+        }
+
+        [TestCase(2, 3, 0f, 2)]
+        [TestCase(2, 3, 0.49f, 2)]
+        [TestCase(2, 3, 0.5f, 3)]
+        [TestCase(2, 3, 0.999f, 3)]
+        [TestCase(1, 1, 0.7f, 1)]
+        [TestCase(0, 0, 0.7f, 1)]
+        [TestCase(3, 1, 0.2f, 3)]
+        public void TracerGap_IsPickedWithinTracerEvery(int min, int max, float roll, int expected)
+        {
+            var so = new SerializedObject(_bulletEffects);
+            so.FindProperty("_tracerEvery").vector2IntValue = new Vector2Int(min, max);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Assert.AreEqual(expected, _bulletEffects.NextTracerGap(roll));
+        }
+
+        [TestCase(2f, 70f, 1f)]
+        [TestCase(15f, 70f, 1f)]
+        [TestCase(45f, 70f, 3f)]
+        [TestCase(500f, 70f, 6f)]
+        [TestCase(45f, 17.5f, 1f)]
+        public void TracerWidth_KeepsItsScreenSizeFarAway_LessWhenZoomed_UpToTheCap(float distance, float fov, float expected)
+        {
+            float tan = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad), reference = Mathf.Tan(35f * Mathf.Deg2Rad);
+            Assert.AreEqual(expected, TracerStreak.ScreenScale(distance, tan, 15f, reference, 6f), 0.001f);
+        }
+
+        [TestCase(10, false)]
+        [TestCase(4, false)]
+        [TestCase(3, true)]
+        [TestCase(0, true)]
+        public void LastRoundsOfAMagazine_AlwaysShowTracers(int roundsLeft, bool expected)
+        {
+            var so = new SerializedObject(_bulletEffects);
+            so.FindProperty("_tracerLastRounds").intValue = 4;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Assert.AreEqual(expected, _bulletEffects.IsLastRound(roundsLeft));
         }
 
         [Test]

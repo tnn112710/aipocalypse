@@ -1,5 +1,6 @@
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Effects;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.RandomSystem;
@@ -67,6 +68,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         Transform _shotMuzzle;
         // The aim pose through a fitted optic, its scope view offset and sight window.
         GunOpticAim _optic;
+        // Rounds until the next one shows tracers (BulletEffects.TracerEvery); 0 = the next one does.
+        int _roundsToTracer;
+        // Optional (scenes without one are always day): how dark it is, for the tracer's glow.
+        EnvironmentDirector _environment;
 
         public Gun Gun => _gun;
         public override bool IsAiming => _gun != null && _gun.IsAiming;
@@ -116,8 +121,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
         [Inject]
         void Construct(BulletSystem bullets, EffectPool effects, AudioService audio, GunJamFactory jams, IPublisher<ShotFired> shots,
-            RandomService random)
+            RandomService random, IObjectResolver resolver)
         {
+            resolver.TryResolve(out _environment);
             _random = random.Stream(RandomStreamName);
             _shots = shots;
             _bullets = bullets;
@@ -267,6 +273,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _sprintRecoveryLeft = 0f;
             _tailIn = -1f;
             _pendingShots = 0;
+            _roundsToTracer = 0;
             _gun?.Interrupt();
             _recoil?.Reset();
             _accuracy?.Reset();
@@ -353,6 +360,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             FireSettings fire = _definition.Fire;
             BulletSettings bullet = _definition.Bullet;
             GunAim.Shot(_user, muzzle, stats.Range, bullet.HitLayers, _bullets, out Vector3 origin, out Vector3 direction);
+            // The first round after equipping is a tracer round, and so are a magazine's last few; a round's pellets all
+            // show theirs or none.
+            bool traced = --_roundsToTracer <= 0;
+            if (traced && effects != null)
+                _roundsToTracer = effects.NextTracerGap(Random.value);
+            if (effects != null && effects.IsLastRound(_gun.Item.Rounds))
+                traced = true;
+            float darkness = _environment != null ? 1f - _environment.Daylight : 0f;
             // No hidden cone: hip inaccuracy is the visible wobble the aim already follows. Pellets spread around it.
             for (int i = 0; i < fire.Pellets; i++)
             {
@@ -372,6 +387,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                     Ignore = _user.Root,
                     Source = _user.Root.gameObject,
                     Effects = effects,
+                    NoTracer = !traced,
+                    Darkness = darkness,
                 });
             }
             _shots?.Publish(new ShotFired(muzzle.position, _user.Root.gameObject, stats.Loudness));

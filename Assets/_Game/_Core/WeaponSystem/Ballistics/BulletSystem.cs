@@ -30,6 +30,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // Who fired it, for DamageInfo.Source.
         public GameObject Source;
         public BulletEffects Effects;
+        // A round between tracer rounds (BulletEffects.TracerEvery): flies and hits the same, unseen.
+        public bool NoTracer;
+        // 0 by day, 1 at night: the tracer's glow is brighter in the dark.
+        public float Darkness;
     }
 
     // Every bullet in flight as plain data: moved and ray-tested each frame, no rigidbodies, one central tick.
@@ -54,6 +58,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             public BulletEffects Effects;
             public PooledEffect Tracer;
             public int TracerSpawnId;
+            public TracerStreak Streak;
         }
 
         static readonly ProfilerMarker AdvanceMarker = new("Aipocalypse.BulletSystem.Advance");
@@ -92,11 +97,15 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 Effects = shot.Effects,
             };
 
-            if (shot.Effects != null)
+            if (shot.Effects != null && !shot.NoTracer)
             {
                 bullet.Tracer = _effects.Spawn(shot.Effects.Tracer, shot.VisualOrigin, Quaternion.LookRotation(direction), null, 0f);
                 if (bullet.Tracer != null)
+                {
                     bullet.TracerSpawnId = bullet.Tracer.SpawnId;
+                    if (bullet.Tracer.TryGetComponent(out bullet.Streak))
+                        bullet.Streak.Begin(shot.Darkness);
+                }
             }
             _bullets.Add(bullet);
         }
@@ -109,10 +118,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 return;
 
             using var _ = AdvanceMarker.Auto();
+            Camera eye = Camera.main;
+            bool hasEye = eye != null;
+            Vector3 eyePosition = hasEye ? eye.transform.position : default;
+            float eyeTan = hasEye ? Mathf.Tan(eye.fieldOfView * 0.5f * Mathf.Deg2Rad) : 1f;
             for (int i = _bullets.Count - 1; i >= 0; i--)
             {
                 Bullet bullet = _bullets[i];
-                if (Step(ref bullet, deltaTime))
+                if (Step(ref bullet, deltaTime, hasEye, eyePosition, eyeTan))
                 {
                     _bullets[i] = bullet;
                     continue;
@@ -122,6 +135,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 if (OwnsTracer(bullet))
                 {
                     bullet.Tracer.transform.position = bullet.Position;
+                    if (bullet.Streak != null)
+                        bullet.Streak.End();
                     _effects.ReturnAfter(bullet.Tracer, bullet.Effects.TracerLinger);
                 }
                 // Order doesn't matter: swap-remove.
@@ -131,8 +146,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             }
         }
 
-        // False when the bullet is done (hit something or ran out of range).
-        bool Step(ref Bullet bullet, float deltaTime)
+        // False when the bullet is done (hit something or ran out of range). The eye is the camera the tracer's width keeps up with.
+        bool Step(ref Bullet bullet, float deltaTime, bool hasEye, Vector3 eyePosition, float eyeTan)
         {
             Vector3 velocity = bullet.Velocity + Physics.gravity * (bullet.GravityScale * deltaTime);
             Vector3 step = (bullet.Velocity + velocity) * (0.5f * deltaTime);
@@ -162,7 +177,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (OwnsTracer(bullet))
             {
                 bullet.VisualOffset *= 1f - Damping.ByTime(bullet.Effects.TracerConvergeTime, deltaTime);
-                bullet.Tracer.transform.SetPositionAndRotation(bullet.Position + bullet.VisualOffset, Quaternion.LookRotation(velocity));
+                Vector3 position = bullet.Position + bullet.VisualOffset;
+                bullet.Tracer.transform.SetPositionAndRotation(position, Quaternion.LookRotation(velocity));
+                if (hasEye && bullet.Streak != null)
+                    bullet.Streak.ScaleFor(Vector3.Distance(position, eyePosition), eyeTan);
             }
             return !lastStep;
         }
