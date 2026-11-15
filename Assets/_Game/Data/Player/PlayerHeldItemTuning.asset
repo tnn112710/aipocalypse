@@ -20,6 +20,7 @@ MonoBehaviour:
   _sprintSpreadScale: 2.5
   _turnSpread: 0.5
   _maxTurnSpread: 2
+  _turnSmoothing: 0.1
   _keepHeldItemClear: 1
   _clearanceMargin: 0.05
   _clearanceRadius: 0.05
@@ -35,6 +36,7 @@ MonoBehaviour:
     TiredBreathRate: 0.75
     TiredBreath: 3
     WindedBreath: 1.5
+    BreathVariation: 0.2
     WalkBob: {x: 0.35, y: 1}
     StrafeBob: {x: 1.6, y: 0.3}
     StepLag: 0.5
@@ -68,6 +70,8 @@ MonoBehaviour:
     WobbleDamping: 0.5
     MaxWobble: 10
     WobbleGrowSpeed: 4
+    WobbleEase: 0.3
+    WobbleSpeedSize: 3
     WobbleFill: 2
   _heldSway:
     BreathPosition: {x: 0.0025, y: 0.003, z: 0}

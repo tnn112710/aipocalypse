@@ -52,6 +52,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Min(1f), Tooltip("Breath sway multiplier when gasping; builds as stamina drops under the breathing threshold")]
         public float TiredBreath = 3f;
         [Min(1f), Tooltip("Extra breath sway multiplier while winded (stamina just ran dry)")] public float WindedBreath = 1.5f;
+        [Range(0f, 0.5f), Tooltip("Share each breath's pace and depth stray, on slow noise: 0 = a perfect loop")]
+        public float BreathVariation = 0.2f;
 
         [Header("Walking (in step with the head bob)"), Tooltip("Degrees at walking speed, moving forward / back: sideways (once per two steps), up / down (each step)")]
         public Vector2 WalkBob = new(0.35f, 1f);
@@ -92,14 +94,18 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Header("Limits"), Min(0f), Tooltip("Most degrees off the screen centre, at the hip")] public float MaxOffset = 4f;
         [Min(0f)] public float AimMaxOffset = 3f;
 
-        [Header("Hip wobble (fills the gun's envelope, HeldItem.Wobble)"), Min(0f), Tooltip("Wander speed at rest (noise cycles per second)")]
+        [Header("Hip wobble (fills the gun's envelope, HeldItem.Wobble)"), Min(0f), Tooltip("Wander speed at rest, at WobbleSpeedSize (noise cycles per second)")]
         public float WobbleRate = 0.35f;
         [Min(0f), Tooltip("Wander speed when gasping (out of breath)")] public float TiredWobbleRate = 0.8f;
         [Min(1f), Tooltip("Spring for a shot's jolt: higher = settles faster")] public float WobbleStiffness = 150f;
         [Range(0.1f, 1f), Tooltip("Below 1 the jolt overshoots before settling")] public float WobbleDamping = 0.5f;
         [Min(0f), Tooltip("Degrees: a safety cap on the envelope the wander fills")] public float MaxWobble = 10f;
-        [Min(0.1f), Tooltip("Degrees per second the wander's size follows the envelope (walking, landing, a new gun), so it never pops")]
+        [Min(0.1f), Tooltip("Most degrees per second the wander's size follows the envelope (walking, landing, a new gun), so it never pops")]
         public float WobbleGrowSpeed = 4f;
+        [Min(0.01f), Tooltip("Seconds the wander's size takes to ease toward a new envelope: no sudden start or stop")]
+        public float WobbleEase = 0.3f;
+        [Min(0.1f), Tooltip("Envelope (degrees) the wander runs at WobbleRate; wider ones slow the noise so the aim drifts at the same speed (heavy, not frantic)")]
+        public float WobbleSpeedSize = 3f;
         [Range(1f, 4f), Tooltip("How much of the time the wander spends near the envelope's edge (noise stretch): higher = wider, more often at the edge")]
         public float WobbleFill = 2f;
     }
@@ -131,6 +137,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     {
         const float MaxDeltaTime = 0.1f;
         const float TwoPi = Mathf.PI * 2f;
+        // Small envelopes speed the wander's noise up at most this much, or it would jitter.
+        const float MaxWobbleRateScale = 2f;
 
         readonly HeldSwaySettings _settings;
         readonly AimSwaySettings _aim;
@@ -144,6 +152,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         Vector2 _aimLag;
         Vector2 _aimLagVelocity;
         float _breathPhase;
+        // Breaths taken (halved), the time of the noise that varies each breath.
+        float _breathCount;
         float _time;
         float _airborne;
         float _winded;
@@ -154,6 +164,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _wobblePhase;
         // The envelope the wander fills, eased toward the held item's.
         float _wobbleSize;
+        float _wobbleSizeVelocity;
         Vector2 _wobbleKick;
         Vector2 _wobbleKickVelocity;
 
@@ -163,6 +174,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public Vector2 AimOffset { get; private set; }
         // The aim sway without the hip wobble: the middle of the wander.
         public Vector2 RestOffset { get; private set; }
+        // Degrees the wander fills now: the held item's envelope, eased.
+        public float WobbleSize => _wobbleSize;
         // AimOffset as a rotation in the eye's space.
         public Quaternion AimRotation => Quaternion.Euler(-AimOffset.y, AimOffset.x, 0f);
         // The held item's own multiplier (HoldFeel.SwayScale): 1 = as tuned, higher = heavier.
@@ -217,10 +230,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             // Breathing: up / down once per breath, slower sideways drift (period 4π covers both): a figure-8.
             // Faster and bigger out of breath.
             float tiredness = Mathf.Clamp01(input.Tiredness);
+            // Each breath's pace and depth stray a little on slow noise, so it never reads as a loop.
             float breathRate = Mathf.Lerp(_aim.BreathRate, _aim.TiredBreathRate, tiredness);
-            _breathPhase = (_breathPhase + deltaTime * breathRate * TwoPi) % (2f * TwoPi);
+            _breathCount = (_breathCount + deltaTime * breathRate * 0.5f) % 256f;
+            float pace = 1f + _aim.BreathVariation * Soft(_breathCount, 5.1f);
+            _breathPhase = (_breathPhase + deltaTime * breathRate * pace * TwoPi) % (2f * TwoPi);
             float b = _breathPhase;
-            float heavy = Mathf.Lerp(1f, _aim.TiredBreath, tiredness) * Mathf.Lerp(1f, _aim.WindedBreath, _winded);
+            float heavy = Mathf.Lerp(1f, _aim.TiredBreath, tiredness) * Mathf.Lerp(1f, _aim.WindedBreath, _winded)
+                * (1f + _aim.BreathVariation * Soft(8.9f, _breathCount));
 
             // Footstep bob: sideways once per two steps (with the head), up / down once per step.
             float bob = Mathf.Clamp01(input.BobIntensity);
@@ -267,11 +284,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             AimSwaySettings s = _aim;
             Spring.Step(ref _wobbleKick, ref _wobbleKickVelocity, Vector2.zero, s.WobbleStiffness, s.WobbleDamping, deltaTime);
-            // Unity's Perlin noise repeats every 256 units, so the phase wraps there without a jump.
-            _wobblePhase = (_wobblePhase + deltaTime * Mathf.Lerp(s.WobbleRate, s.TiredWobbleRate, tiredness)) % 256f;
-            _wobbleSize = Mathf.MoveTowards(_wobbleSize, Mathf.Clamp(envelope, 0f, s.MaxWobble), s.WobbleGrowSpeed * deltaTime);
+            _wobbleSize = Mathf.SmoothDamp(_wobbleSize, Mathf.Clamp(envelope, 0f, s.MaxWobble), ref _wobbleSizeVelocity, s.WobbleEase,
+                s.WobbleGrowSpeed, deltaTime);
             if (_wobbleSize <= 0f)
                 return _wobbleKick;
+            // The noise slows as the envelope widens, so the aim drifts at the same degrees per second whatever its size.
+            // Unity's Perlin noise repeats every 256 units, so the phase wraps there without a jump.
+            float rate = Mathf.Lerp(s.WobbleRate, s.TiredWobbleRate, tiredness) * Mathf.Min(s.WobbleSpeedSize / _wobbleSize, MaxWobbleRateScale);
+            _wobblePhase = (_wobblePhase + deltaTime * rate) % 256f;
             // Perlin stays mostly within ±0.3 of its middle: stretched so the wander reaches toward the envelope's edge, then
             // eased in by tanh. A hard clamp would pin it to the rim and let go with a jerk.
             var wander = new Vector2(Mathf.PerlinNoise(_wobblePhase, 3.7f) - 0.5f, Mathf.PerlinNoise(11.3f, _wobblePhase) - 0.5f) * (2f * s.WobbleFill);
@@ -316,6 +336,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         // Smooth noise in -1..1. Perlin mostly stays within ±0.25 of its middle, so it's stretched to reach the full drift.
         static float Drift(float x, float y) => Mathf.Clamp((Mathf.PerlinNoise(x, y) - 0.5f) * 4f, -1f, 1f);
+
+        // The same stretch eased in by tanh: no flat spots where a clamp would hold it.
+        static float Soft(float x, float y) => (float)System.Math.Tanh((Mathf.PerlinNoise(x, y) - 0.5f) * 4f);
 
         // A jolt to the aim spring sized so the aim peaks about `degrees` off before it settles.
         void Kick(Vector2 degrees)

@@ -13,11 +13,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-// Builds Scenes/Prototypes/WeaponsTest.unity: grid ground, the Player and HUD (with the dev gun readout), three tables of
+// Builds Scenes/Prototypes/WeaponsTest.unity: grid ground, the Player and HUD (with the dev gun readout and aim trace), three tables of
 // guns (with a backpack and the ammo crate), two tables of gun parts, a loot crate, and a range down +Z with target
 // dummies at 10-100 m and a backstop.
 // Built in an additive scene and closed again, so the open scene (WorldMap) is never touched. Safe to re-run.
 // Run: unity command script run --file AgentScripts/Weapons/WeaponsTestSetup.cs --entry WeaponsTestSetup.Build
+// AddTrace (re)builds only the aim trace on the open WeaponsTest scene's HUD (and saves it).
 public static class WeaponsTestSetup
 {
     const string ScenePath = "Assets/_Game/Scenes/Prototypes/WeaponsTest.unity";
@@ -73,6 +74,7 @@ public static class WeaponsTestSetup
             Instance(PlayerPath, null, new Vector3(0f, 0.05f, -4f), Quaternion.identity);
             GameObject hud = Instance(HudPath, null, Vector3.zero, Quaternion.identity);
             Readout(hud.transform, AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath));
+            Trace(hud.transform, AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath));
 
             var armoury = new GameObject("Armoury").transform;
             float top = 0f;
@@ -183,6 +185,64 @@ public static class WeaponsTestSetup
         var readout = root.gameObject.AddComponent<GunReadout>();
         var so = new SerializedObject(readout);
         so.FindProperty("_text").objectReferenceValue = text;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    public static string AddTrace()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        if (scene.path != ScenePath)
+            return "open " + ScenePath + " first";
+        Transform hud = scene.GetRootGameObjects().Select(root => root.transform).FirstOrDefault(root => root.Find("GunReadout") != null);
+        if (hud == null)
+            return "no HUD with a GunReadout";
+        Transform old = hud.Find("AimTrace");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        Trace(hud, AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath));
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        return "built";
+    }
+
+    // The aim trace (AimTrace) on the right edge: the crosshair's last 2 s, magnified, to tune the hip wobble by eye.
+    static void Trace(Transform hud, TMP_FontAsset font)
+    {
+        var root = new GameObject("AimTrace", typeof(RectTransform)).GetComponent<RectTransform>();
+        root.SetParent(hud, false);
+        Transform readout = hud.Find("GunReadout");
+        root.SetSiblingIndex(readout != null ? readout.GetSiblingIndex() + 1 : hud.childCount - 1);
+        root.anchorMin = root.anchorMax = root.pivot = new Vector2(1f, 0.5f);
+        root.anchoredPosition = new Vector2(-24f, -20f);
+        root.sizeDelta = new Vector2(400f, 400f);
+        var background = root.gameObject.AddComponent<Image>();
+        background.color = new Color(0f, 0f, 0f, 0.55f);
+        background.raycastTarget = false;
+        root.gameObject.AddComponent<RectMask2D>();
+
+        var graphic = new GameObject("Path", typeof(RectTransform), typeof(CanvasRenderer)).AddComponent<AimTraceGraphic>();
+        graphic.rectTransform.SetParent(root, false);
+        graphic.rectTransform.anchorMin = graphic.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        graphic.rectTransform.sizeDelta = Vector2.zero;
+        graphic.color = new Color(0.45f, 0.9f, 1f);
+        graphic.raycastTarget = false;
+
+        var label = new GameObject("Label", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+        label.rectTransform.SetParent(root, false);
+        label.rectTransform.anchorMin = Vector2.zero;
+        label.rectTransform.anchorMax = Vector2.one;
+        label.rectTransform.offsetMin = new Vector2(10f, 8f);
+        label.rectTransform.offsetMax = new Vector2(-10f, -8f);
+        label.font = font;
+        label.fontSize = 14f;
+        label.color = new Color(0.92f, 0.93f, 0.95f, 0.8f);
+        label.alignment = TextAlignmentOptions.TopLeft;
+        label.raycastTarget = false;
+        label.text = "Aim path, last 2 s, x3. Even dot spacing = even speed. Ring: wobble envelope";
+
+        var trace = root.gameObject.AddComponent<AimTrace>();
+        var so = new SerializedObject(trace);
+        so.FindProperty("_graphic").objectReferenceValue = graphic;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 

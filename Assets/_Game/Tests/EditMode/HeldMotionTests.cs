@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.PlayerSystem.Defaults;
 using MB13.Aipocalypse.Core.Stats;
@@ -222,6 +224,21 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void TurnSpread_EasesIn_SoAFlickDoesNotSnap()
+        {
+            var tuning = ScriptableObject.CreateInstance<PlayerHeldItemTuning>();
+            float spread = tuning.SmoothTurnSpread(0f, 1000f, 1f / 60f);
+            Assert.Less(spread, 0.5f, "one frame of a fast flick");
+            for (int i = 0; i < 60; i++)
+                spread = tuning.SmoothTurnSpread(spread, 1000f, 1f / 60f);
+            Assert.AreEqual(2f, spread, 0.05f, "a held turn reaches the cap");
+            for (int i = 0; i < 60; i++)
+                spread = tuning.SmoothTurnSpread(spread, 0f, 1f / 60f);
+            Assert.Less(spread, 0.05f, "and lets go");
+            Object.DestroyImmediate(tuning);
+        }
+
+        [Test]
         public void Sprinting_Overrides() => Assert.AreEqual(2.5f, Scale(true, true, false), 0.001f);
     }
 
@@ -344,6 +361,77 @@ namespace MB13.Aipocalypse.Tests
             Run(3f, "stop");
             sway.ResetWobble();
             Run(2f, "switching to a steadier gun");
+        }
+
+        [Test]
+        public void Size_EasesIntoANewEnvelope_WithoutASuddenStart()
+        {
+            var sway = Sway();
+            for (int i = 0; i < 180; i++)
+                sway.Tick(Input(1f), Frame);
+            Assert.AreEqual(1f, sway.WobbleSize, 0.01f);
+            float last = sway.WobbleSize, first = 0f, largest = 0f;
+            for (int i = 0; i < 120; i++)
+            {
+                sway.Tick(Input(4f), Frame);
+                float step = sway.WobbleSize - last;
+                if (i == 0)
+                    first = step;
+                largest = Mathf.Max(largest, step);
+                Assert.LessOrEqual(sway.WobbleSize, 4f + 1e-4f, $"tick {i}: overshot");
+                last = sway.WobbleSize;
+            }
+            Assert.Less(first, largest * 0.5f, "starts gently");
+            Assert.AreEqual(4f, sway.WobbleSize, 0.1f, "arrives within 2 s");
+        }
+
+        // A wider envelope slows the noise, so the aim drifts at about the same degrees per second (heavy, not frantic).
+        [Test]
+        public void Wander_DriftsAtAboutTheSameSpeed_WhateverTheEnvelope()
+        {
+            float MeanSpeed(float wobble)
+            {
+                var sway = Sway();
+                for (int i = 0; i < 300; i++)
+                    sway.Tick(Input(wobble), Frame);
+                Vector2 last = Wander(sway);
+                float total = 0f;
+                for (int i = 0; i < 7200; i++)
+                {
+                    sway.Tick(Input(wobble), Frame);
+                    Vector2 now = Wander(sway);
+                    total += (now - last).magnitude;
+                    last = now;
+                }
+                return total / 120f;
+            }
+
+            float ratio = MeanSpeed(6f) / MeanSpeed(3f);
+            Assert.That(ratio, Is.InRange(0.75f, 1.33f), "speed at 6° over speed at 3°");
+        }
+
+        [Test]
+        public void Breathing_VariesFromBreathToBreath()
+        {
+            var sway = Sway();
+            var peaks = new List<float>();
+            var times = new List<float>();
+            float before = 0f, previous = 0f;
+            for (int i = 0; i < 3600; i++)
+            {
+                sway.Tick(default, Frame);
+                float now = sway.RestOffset.y;
+                if (i >= 2 && previous > before && previous >= now)
+                {
+                    peaks.Add(previous);
+                    times.Add(i * Frame);
+                }
+                before = previous;
+                previous = now;
+            }
+            var gaps = times.Zip(times.Skip(1), (a, b) => b - a).ToList();
+            Assert.Greater((peaks.Max() - peaks.Min()) / peaks.Average(), 0.15f, "each breath's depth differs");
+            Assert.Greater((gaps.Max() - gaps.Min()) / gaps.Average(), 0.1f, "each breath's pace differs");
         }
 
         [Test]

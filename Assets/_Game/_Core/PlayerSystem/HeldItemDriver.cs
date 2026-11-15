@@ -29,6 +29,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         HeldItem _wobbling;
         // Field of view multiplier from sprinting, eased.
         float _sprintFov = 1f;
+        // Hip wobble degrees from turning, eased (HeldItemInput.TurnSpread).
+        float _turnSpread;
 
         public HeldItemDriver(Transform body, Equipment equipment, EquipmentRig rig, EquipmentConfig config, PlayerTuning tuning,
             PlayerMotor motor, PlayerLook look, PlayerHeadBob headBob, PlayerZoom zoom, HeldItemSway sway, PlayerAim aim,
@@ -69,6 +71,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _rig.Tick();
             bool moving = _motor.HorizontalVelocity.sqrMagnitude > tuning.MovingSpeed * tuning.MovingSpeed;
             float lookRate = Time.unscaledDeltaTime > 0f ? intent.LookDegrees.magnitude / Time.unscaledDeltaTime : 0f;
+            _turnSpread = tuning.SmoothTurnSpread(_turnSpread, lookRate, Time.unscaledDeltaTime);
             _rig.TickHeld(new HeldItemInput
             {
                 UseHeld = intent.Fire,
@@ -81,7 +84,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 IsAirborne = !_motor.IsGrounded,
                 IsCrouching = _motor.IsCrouching,
                 MoveSpreadScale = tuning.MoveSpreadScale(_motor.IsSprinting, moving, _motor.IsCrouching),
-                TurnSpread = tuning.TurnSpread(lookRate),
+                TurnSpread = _turnSpread,
             }, deltaTime);
 
             HeldItem held = _rig.Current;

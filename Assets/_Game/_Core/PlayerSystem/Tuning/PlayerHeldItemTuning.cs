@@ -20,6 +20,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Hip wobble degrees added per 100°/s of turning (a flick shakes the aim, then it settles)")]
         float _turnSpread = 0.5f;
         [SerializeField, Min(0f), Tooltip("Most degrees turning can add")] float _maxTurnSpread = 2f;
+        [SerializeField, Min(0f), Tooltip("Seconds turning's wobble takes to follow the mouse (smooths per-frame mouse jitter)")]
+        float _turnSmoothing = 0.1f;
 
         [Header("Obstacle pose"), SerializeField, Tooltip("Retract and tilt the held model near walls or entities")]
         bool _keepHeldItemClear = true;
@@ -45,6 +47,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         // Hip wobble degrees from turning at `lookDegreesPerSecond` (HeldItemInput.TurnSpread).
         public float TurnSpread(float lookDegreesPerSecond) => Mathf.Min(Mathf.Abs(lookDegreesPerSecond) * 0.01f * _turnSpread, _maxTurnSpread);
+
+        // TurnSpread eased from `current` over TurnSmoothing, so per-frame mouse jitter doesn't shake the envelope.
+        public float SmoothTurnSpread(float current, float lookDegreesPerSecond, float deltaTime) =>
+            Mathf.Lerp(current, TurnSpread(lookDegreesPerSecond), Damping.ByTime(_turnSmoothing, deltaTime));
 
         // The hip wobble's movement scale (HeldItemInput.MoveSpreadScale).
         public float MoveSpreadScale(bool sprinting, bool moving, bool crouching) =>
