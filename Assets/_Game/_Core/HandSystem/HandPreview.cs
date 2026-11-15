@@ -112,9 +112,20 @@ namespace MB13.Aipocalypse.Core.HandSystem
             ItemHands item = grip.GetComponentInParent<ItemHands>(true);
             HandRig prefab = Set != null ? Set.Get(rig.Side) : null;
             rig.transform.localScale = (prefab != null ? prefab.transform.localScale : Vector3.one) * (item != null ? item.HandScale : 1f);
-            grip.Resolve(rig, Elbow(grip.transform, rig.Side), out Vector3 position, out Quaternion rotation);
-            rig.Place(position, rotation);
+            Vector3 elbow = Elbow(grip.transform, rig.Side);
+            grip.Resolve(rig, elbow, out Vector3 position, out Quaternion rotation);
+            rig.Place(position, rotation, Shoulder(grip.transform, rig.Side), elbow);
             rig.Apply(grip.Shape);
+        }
+
+        public static Vector3 Shoulder(Transform grip, HandSide side)
+        {
+            HandSet set = Set;
+            if (set == null)
+                return Elbow(grip, side);
+            ItemHands item = grip.GetComponentInParent<ItemHands>(true);
+            Transform root = item != null ? item.transform : grip.root;
+            return root.TransformPoint(set.Shoulder(side) - set.PreviewItemPosition);
         }
 
         // The implied elbow in edit mode: the item's root is assumed to sit at the player's Hand point, unrotated.

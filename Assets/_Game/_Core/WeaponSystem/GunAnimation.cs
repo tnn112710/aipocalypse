@@ -38,8 +38,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         Transform _magazine;
         [SerializeField, Tooltip("Pooled physics copy thrown out on reload")] PooledEffect _droppedMagazine;
         [SerializeField, Min(0)] int _magazinePrewarm = 3;
-        [SerializeField, Range(0f, 1f), Tooltip("Reload progress at which it drops")] float _releaseTime = 0.3f;
-        [SerializeField, Tooltip("Launch velocity, in the gun's space")] Vector3 _dropVelocity = new(-0.25f, -0.8f, 0.1f);
+        [SerializeField, Tooltip("Launch velocity, in the gun's space, of a magazine the hand lets go of; one the clip throws keeps its own speed")]
+        Vector3 _dropVelocity = new(-0.25f, -0.8f, 0.1f);
         [SerializeField] Vector3 _dropAngularVelocity = new(2f, 0f, -3f);
 
         // Keyed in the repair clips: impacts so far, and 1 while the latest one is a punch (0 = slap).
@@ -55,7 +55,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         GunClip _state = GunClip.Idle;
         GunClip _repairState = GunClip.Repairing;
         float _elapsed;
+        // Faster than this (m/s, gun space) when the clip hides it, the magazine was thrown.
+        const float ThrownSpeed = 1.5f;
+
         bool _released;
+        bool _tracked;
+        Renderer _magazineRenderer;
+        Vector3 _magazineWas;
+        Vector3 _magazineVelocity;
         int _notifiedImpacts;
 
         // RepairEnd after a QTE success: blends from the pose the repair was cut at.
@@ -144,8 +151,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 Evaluate(Mathf.Clamp01(actionProgress));
                 if (IsRepairing)
                     NotifyImpacts();
-                if (!_released && (_state is GunClip.Reloading or GunClip.ReloadingEmpty) && Progress >= _releaseTime)
-                    ReleaseMagazine();
+                if (_state is GunClip.Reloading or GunClip.ReloadingEmpty)
+                    TrackMagazine(deltaTime);
                 return;
             }
 
@@ -213,6 +220,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _state = state;
             _elapsed = 0f;
             _released = false;
+            _tracked = false;
             Progress = 0f;
             _returnFromSequence = false;
             _repairImpactCount = 0f;
@@ -266,6 +274,25 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _graph.Evaluate(0f);
         }
 
+        // The pooled copy takes over the moment the reload clip hides the magazine, wherever the clip left it.
+        void TrackMagazine(float deltaTime)
+        {
+            if (_released || _magazine == null)
+                return;
+            if (_magazineRenderer == null)
+                _magazine.TryGetComponent(out _magazineRenderer);
+            if (_magazineRenderer != null && !_magazineRenderer.enabled)
+            {
+                ReleaseMagazine();
+                return;
+            }
+            // Its speed while still shown: a thrown magazine flies on, a held one just drops.
+            Vector3 position = transform.InverseTransformPoint(_magazine.position);
+            _magazineVelocity = _tracked ? (position - _magazineWas) / deltaTime : Vector3.zero;
+            _magazineWas = position;
+            _tracked = true;
+        }
+
         void ReleaseMagazine()
         {
             _released = true;
@@ -274,7 +301,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             PooledEffect dropped = _effects.Spawn(_droppedMagazine, _magazine.position, _magazine.rotation);
             if (dropped != null && dropped.TryGetComponent(out Rigidbody body))
             {
-                body.linearVelocity = transform.TransformDirection(_dropVelocity);
+                Vector3 velocity = _magazineVelocity.sqrMagnitude > ThrownSpeed * ThrownSpeed ? _magazineVelocity : _dropVelocity;
+                body.linearVelocity = transform.TransformDirection(velocity);
                 body.angularVelocity = transform.TransformDirection(_dropAngularVelocity);
                 body.WakeUp();
             }

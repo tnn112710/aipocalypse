@@ -30,7 +30,7 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
   - **Upgrades** are bought with Tokens at a bench, for gear and home.
   - To decide: the XP sources, the node list, the upgrade list, and keeping skills and upgrades from overlapping.
   - This differs from the GDD: `ONE_PAGE.md` lists XP skills under "Not this version".
-- **Gun animation scope.** The estimate assumes the floating hands stay and the clips are re-keyed. Full arms or a store animation pack adds 30–50 h.
+- **Gun animation scope.** The estimate was made for floating hands and re-keyed clips. Since 2026-11-16 the hands are Sidekick arms, the AK47's reloads are retargeted from the KINEMATION pack and its jam clearing is a procedural shake (HANDS.md); the Phase 6 hours have not been re-estimated for that route.
 
 **Building rules for this milestone:**
 
@@ -95,6 +95,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 This comes before the sound and VFX pass, because impact sounds are timed by markers inside the clips.
 
 - [ ] Re-key every clip on the five guns: equip, idle, fire, reload, empty reload, jam clearing, cycle (46–69 h)
+  - [x] Trial on the AK47 (2026-11-16): arms, retargeted reload and empty reload, shake for jam clearing. Next: the other guns in the order of HANDS.md → "Which guns the pack covers"
 - [ ] Replace the procedural holster, axe swing and hammer knocks with clips (12–17 h)
 
 ### Phase 7: Quality pass (144–223 h, to about Mar 3)

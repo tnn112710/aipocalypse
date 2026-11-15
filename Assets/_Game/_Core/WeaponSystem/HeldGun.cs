@@ -32,6 +32,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [BoxGroup("Poses"), SerializeField] Transform _sprintPose;
 
         readonly GunJoltPlayer _jolt = new();
+        // Jam clearing as a shake of the whole gun, for guns whose repair profile has one.
+        readonly GunShake _shake = new();
         readonly PoseBlender _pose = new();
 
         BulletSystem _bullets;
@@ -210,6 +212,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             }
             _jam.Tick(input.IsReady, deltaTime);
             _jolt.Tick(deltaTime);
+            _shake.TickReturn(deltaTime);
+            if (_shake.Tick(_gun.ActionProgress, out bool hardShake))
+                _jam.Shaken(hardShake);
             _recoil.Tick(deltaTime, _aimWeight);
             UpdatePose(input.IsSprinting && input.IsReady, deltaTime);
             _accuracy.Tick(new AccuracyInput
@@ -267,6 +272,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         protected override void OnHidden()
         {
             _jolt.Stop();
+            _shake.Stop();
             _aimWeight = 0f;
             _optic?.ShowWindow(null, 0f);
             _jam?.Hide();
@@ -399,7 +405,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _jam.ActionStarted();
             if (action == GunAction.Cycling && _definition.Ejection.OnCycle)
                 Eject();
-            if (_animation != null)
+            GunShakeSettings shake = action == GunAction.ClearingJam && _definition.Jam.Repair != null ? _definition.Jam.Repair.Shake : null;
+            if (shake != null)
+                _shake.Start(shake, _gun.RepairIsStubborn);
+            else if (_animation != null)
                 _animation.StartAction(action, _gun.Item.Rounds == 0, _gun.RepairIsStubborn);
             GunSounds sounds = _definition.Sounds;
             Play(action switch
@@ -416,7 +425,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         void OnActionEnded(GunAction action, bool finished)
         {
             bool cleared = _jam.ActionEnded(action, finished);
-            if (_animation != null)
+            bool shaken = _shake.IsPlaying;
+            _shake.Finish();
+            if (_animation != null && !shaken)
             {
                 if (cleared && _jam.QteSucceeded)
                     _animation.FinishRepair();
@@ -467,6 +478,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             Vector3 position = _restRecoilPosition + Vector3.back * _recoil.GunKickBack;
             Quaternion rotation = _restRecoilRotation * Quaternion.Euler(_recoil.GunEuler);
             _jolt.Apply(ref position, ref rotation);
+            _shake.Apply(ref position, ref rotation);
             _recoilPivot.SetLocalPositionAndRotation(position, rotation);
         }
 

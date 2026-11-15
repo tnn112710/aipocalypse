@@ -412,6 +412,24 @@ QteChallenge.CreateSession(ownerControlled) and IQteSession separate mechanics f
 
 The shared Animator has RepairingStubborn and RepairEnd slots. Repairing and RepairingStubborn are editable clips sampled from Gun.ActionProgress. Each gun supplies its own Repairing, RepairingStubborn and RepairEnd overrides. Pistol slaps target its slide; the others target their receivers. Mechanical parts remain at rest during repair, including the shotgun pump and hinge.
 
+### Repair as a shake
+
+A repair profile with a **Shake** (`GunShakeSettings`, shared asset `Data/Weapons/GunShake.asset`) shows the repair without clips: both hands stay on the gun, it tilts to show the ejection port, is jerked a few times, and tilts back. The AK47 (and the AK-74M, which shares its profile) uses it; the other four guns still play their slap and punch clips. Any gun can opt in, block-outs included, by assigning the asset on its `<Gun>_Repair.asset` (`AgentScripts/Weapons/GunShakeSetup.cs` > `Assign`); clearing the field goes back to the gun's clips.
+
+`HeldGun` owns a `GunShake` beside its jolt player and adds its offset on the recoil pivot, so the whole gun and both hand targets move together; `GunAnimation` stays on Idle. It follows `Gun.ActionProgress`, so miss penalties slow it like the clips. Each shake that lands reports to the gun's jam part (`GunJam.Shaken`), which plays the same slap beat as a clip's slap (sound, jolt, `GunJamBeat`); a stubborn repair's second and fourth shakes are harder and play the punch beat. When the repair ends, early or not, the gun eases back from wherever it was over `ReturnTime`.
+
+| GunShake.asset | Default | Meaning |
+| --- | --- | --- |
+| TiltPosition / TiltEuler | (-0.05, 0.05, -0.02) m / (-8, -6, 28)° | The pose held while clearing; z rolls the gun so the port shows |
+| TiltShare | 0.12 | Share of the repair spent tilting in, and again tilting back |
+| QuickShakes / StubbornShakes | 3 / 4 | Shakes in a quick and a stubborn repair, spread evenly between the tilts |
+| ShakePosition / ShakeEuler | (0, -0.035, 0.05) m / (9, 2, -5)° | The peak of one shake, added to the tilt |
+| ShakeShare | 0.16 | Share of the repair one shake rings for |
+| Swings | 1.75 | Back-and-forth swings in one shake |
+| WindUp | 0.3 | Pull the other way before each shake, as a share of its peak |
+| HardScale | 1.5 | How much harder a stubborn repair's hard shakes are |
+| ReturnTime | 0.22 s | Back to rest when the repair ends |
+
 For an Editor trial, enter Play, equip any of the five guns, select its spawned HeldGun and click **Jam gun (test)**. Clearing starts automatically. Ignore the QTE to see full completion or press R in the green zone to finish early. The debug button exists only in the Editor.
 
 

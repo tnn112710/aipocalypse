@@ -99,6 +99,8 @@ Its scripts have no asmdef, so they compile into `Assembly-CSharp-firstpass` / `
 
 ## 6. First-person forearms (the floating hands)
 
+**Built (2026-11-16):** the hands are Sidekick arms with a first-party `ArmRig` (a plain two-bone solve called from `HandRig.Place`, no RigBuilder); see HANDS.md → "Arms and their variants". The notes below are the options that were considered and still apply to a rig-based arm.
+
 The hands are placed by `FirstPersonHands` from item grips (HANDS.md). Forearms **follow the hands**, so gun clips never change. Decide the look first:
 
 | Look | Rig |

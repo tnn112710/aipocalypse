@@ -23,5 +23,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Tooltip("The optional QTE that finishes the repair early; none = no QTE")] public QteChallenge Qte;
         [Tooltip("Shared cosmetic preset; duplicate it to customize one gun independently.")]
         public RepairFeedbackSettings Feedback;
+        [Tooltip("Show the repair as a shake of the gun, hands staying on. None = the gun's repair clips")]
+        public GunShakeSettings Shake;
     }
 }

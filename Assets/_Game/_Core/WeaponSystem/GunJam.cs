@@ -74,6 +74,9 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // A slap or punch keyed in the repair clip landed.
         void OnRepairSlapped() => _feedback.Impact(_animation.ImpactIsPunch);
 
+        // A shake of the gun landed (GunShake): the same beat as a slap, or a punch for a hard one.
+        public void Shaken(bool hard) => _feedback.Impact(hard);
+
         void OnAttempted(QteAttempted attempt) => _repair.OnAttempted(attempt);
     }
 

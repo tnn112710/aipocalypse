@@ -95,32 +95,68 @@ namespace MB13.Aipocalypse.Tests
             }
         }
 
-        [TestCase(false, 0.2f, "Magazine")]
-        [TestCase(false, 0.55f, "ReplacementMagazine")]
-        [TestCase(true, 0.2f, "Magazine")]
-        [TestCase(true, 0.5f, "ReplacementMagazine")]
-        [TestCase(true, 0.81f, "Bolt")]
-        public void ReloadHandFollowsTheContactInTheSameTick(bool empty, float progress, string part)
+        // The reloads are retargeted clips: the left hand rides its free control the whole way, so what must hold is
+        // that it leaves and rejoins the forend contact without a jump.
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ReloadStartsAndEndsOnTheForendContact(bool empty)
         {
-            _animation.StartAction(GunAction.Reloading, empty);
-            _animation.Tick(1f / 60f, progress);
             var target = _root.Find("Motion/HandTargets/Left");
-            var contact = _root.Find("Motion/Weapon/" + part + "/LeftGrip");
-            Assert.That(Vector3.Distance(target.position, contact.position), Is.LessThan(0.0001f));
-            Assert.That(Quaternion.Angle(target.rotation, contact.rotation), Is.LessThan(0.1f));
+            var forend = _root.Find("Motion/Weapon/Handguard/LeftGrip");
+            foreach (float progress in new[] { 0f, 1f })
+            {
+                _animation.StartAction(GunAction.Reloading, empty);
+                _animation.Tick(1f / 60f, progress);
+                Assert.That(Vector3.Distance(target.position, forend.position), Is.LessThan(0.0005f), "progress " + progress);
+                Assert.That(Quaternion.Angle(target.rotation, forend.rotation), Is.LessThan(0.5f), "progress " + progress);
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ReplacementMagazineTakesOverWhereTheOldOneHidesThenSeats(bool empty)
+        {
+            var magazine = _root.Find("Motion/Weapon/Magazine");
+            var replacement = _root.Find("Motion/Weapon/ReplacementMagazine");
+            var shown = magazine.GetComponent<MeshRenderer>();
+            var replacementShown = replacement.GetComponent<MeshRenderer>();
+            Vector3 rest = magazine.localPosition;
+            Quaternion restRotation = magazine.localRotation;
+            _animation.StartAction(GunAction.Reloading, empty);
+            int swap = -1;
+            const int steps = 240;
+            for (int i = 0; i <= steps; i++)
+            {
+                _animation.Tick(1f / 60f, i / (float)steps);
+                Assert.That(shown.enabled, Is.Not.EqualTo(replacementShown.enabled), "one magazine shows at " + i);
+                if (swap >= 0 || shown.enabled)
+                    continue;
+                swap = i;
+                // A thrown magazine is moving fast here: the two only meet exactly on the swap key.
+                Assert.That(Vector3.Distance(magazine.position, replacement.position), Is.LessThan(0.08f));
+            }
+            Assert.That(swap, Is.GreaterThan(steps / 20), "the old magazine leaves the gun before it hides");
+            Assert.That(Vector3.Distance(replacement.localPosition, rest), Is.LessThan(0.0005f));
+            Assert.That(Quaternion.Angle(replacement.localRotation, restRotation), Is.LessThan(0.5f));
         }
 
         [Test]
-        public void ReleasedHandMovesIndependentlyAndReplacementBecomesVisible()
+        public void ReloadHandCarriesTheNewMagazineToTheWell()
         {
-            _animation.StartAction(GunAction.Reloading, false);
-            _animation.Tick(0.1f, 0.36f);
             var target = _root.Find("Motion/HandTargets/Left");
-            var oldMagazine = _root.Find("Motion/Weapon/Magazine");
-            Assert.That(Vector3.Distance(target.position, oldMagazine.Find("LeftGrip").position), Is.GreaterThan(0.03f));
-            Assert.That(oldMagazine.GetComponent<MeshRenderer>().enabled, Is.False);
-            _animation.Tick(0.1f, 0.5f);
-            Assert.That(_root.Find("Motion/Weapon/ReplacementMagazine").GetComponent<MeshRenderer>().enabled, Is.True);
+            var replacement = _root.Find("Motion/Weapon/ReplacementMagazine");
+            var shown = replacement.GetComponent<MeshRenderer>();
+            _animation.StartAction(GunAction.Reloading, false);
+            float swap = 0f;
+            for (; swap < 1f && !shown.enabled; swap += 0.01f)
+                _animation.Tick(1f / 60f, swap);
+            Assert.That(swap, Is.LessThan(0.7f));
+            _animation.Tick(1f / 60f, swap + 0.08f);
+            Vector3 held = replacement.InverseTransformPoint(target.position);
+            Assert.That(Vector3.Distance(replacement.localPosition, _root.Find("Motion/Weapon/Magazine").localPosition), Is.GreaterThan(0.05f),
+                "still on its way to the well");
+            _animation.Tick(1f / 60f, swap + 0.2f);
+            Assert.That(Vector3.Distance(replacement.InverseTransformPoint(target.position), held), Is.LessThan(0.02f));
         }
 
         [Test]

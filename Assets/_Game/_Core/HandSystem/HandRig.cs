@@ -32,11 +32,31 @@ namespace MB13.Aipocalypse.Core.HandSystem
         float _fingerRadius = 0.009f;
         [SerializeField, Min(0f), Tooltip("Bone to palm skin: how close the palm gets to an item when grips are fitted")]
         float _palmThickness = 0.014f;
+        [SerializeField, Tooltip("Optional: the arm this hand is the end of. With one, the root stays put and the arm reaches for the grip")]
+        ArmRig _arm;
 
         bool _visible = true;
 
         public HandSide Side => _side;
         public Transform GripPoint => _gripPoint != null ? _gripPoint : transform;
+
+        public bool HasArm => _arm != null;
+
+        // Puts the grip point at this pose: the arm reaches for it from the shoulder, bending towards the elbow point.
+        // A hand without an arm just moves there.
+        public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow)
+        {
+            if (_arm == null)
+            {
+                Place(position, rotation);
+                return;
+            }
+            Transform grip = GripPoint;
+            Transform hand = _arm.Hand;
+            Quaternion inverseHand = Quaternion.Inverse(hand.rotation);
+            Quaternion handRotation = rotation * Quaternion.Inverse(inverseHand * grip.rotation);
+            _arm.Solve(shoulder, elbow, position - handRotation * (inverseHand * (grip.position - hand.position)), handRotation);
+        }
 
         // Moves the whole hand so its grip point sits at this pose.
         public void Place(Vector3 position, Quaternion rotation)

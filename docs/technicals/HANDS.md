@@ -1,6 +1,6 @@
 # Hands
 
-First-person floating hands (no arms), in the style of How to Fish and VR games. Shared hands follow **grips** on the held item. AK47, MP5, pistol, pump shotgun and double barrel use editable animation clips and Animation Rigging constraints to drive their grips and finger shapes; other items (the axe) hold still grips. Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Weapons: [WEAPONS.md](WEAPONS.md).
+First-person hands on arms. Shared hands follow **grips** on the held item; each hand is the end of a Synty Sidekick arm (`ArmRig`) that reaches for the grip from a shoulder point off screen. AK47, MP5, pistol, pump shotgun and double barrel use animation clips and Animation Rigging constraints to drive their grips and finger shapes; other items (the axe) hold still grips. The AK47's reloads are retargeted from the KINEMATION FPS Animation Pack ([Retargeted reloads](#retargeted-reloads)) and its jam clearing is a procedural shake ([WEAPONS.md](WEAPONS.md#gun-jam-clearing-and-qte)); the other four guns still use hand-keyed clips. Script locations: [CODE_STRUCTURE.md](CODE_STRUCTURE.md). Weapons: [WEAPONS.md](WEAPONS.md).
 
 ## Weapon animation authoring
 
@@ -22,11 +22,57 @@ To edit:
 2. On the prefab root's `ItemHands`, use **Preview > Show hands** with default grips to show the shared ghost hands. Then scrub the clip in the Animation window; the ghosts follow the constrained targets. End the hand preview when finished.
 3. Key `Motion` for whole-weapon gestures; `Motion/Weapon/Magazine`, `ReplacementMagazine`, `Bolt`, `Slide`, `Pump`, `Hinge` or `Shells` for the parts that gun has; `Motion/Controls/LeftFree` for independent reaches. Double-barrel shells live under `Hinge/Shells`. Grip contacts remain children of their parts.
 4. Key `Rig/LeftHand > Source Objects > Weight` to select a contact. At a switch, make `LeftFree` coincide with the contact's position and rotation to prevent jumps. Key `Motion/HandTargets/Left > HandGrip > Animated Shape` to open and close fingers around contact.
-5. Magazine visibility uses MeshRenderer **Enabled**, so hidden meshes do not disable their contact controls. On AK47/MP5/pistol, at normalized time 0.3 the original magazine hides and `GunAnimation` releases a pooled world magazine. If this moment changes, update the clip's hide/contact keys and `GunAnimation`'s **Release Time** together. The replacement appears at 0.42 and seats later; it resets on cancellation or the next idle frame. Shotgun shells show at 0.28 and hide at 0.73, without spawning a magazine.
+5. Magazine visibility uses MeshRenderer **Enabled**, so hidden meshes do not disable their contact controls. On AK47/MP5/pistol, `GunAnimation` releases a pooled world magazine the moment the reload clip hides the original one, at the pose the clip left it in (MP5 and pistol: normalized time 0.3). A magazine the clip was throwing (faster than 1.5 m/s) keeps its speed; a held one drops with **Drop Velocity**. The replacement appears as the original hides and seats later; it resets on cancellation or the next idle frame. Shotgun shells show at 0.28 and hide at 0.73, without spawning a magazine.
 
 `Content/Weapons/_Shared/Animations/Gun.controller` defines the base action slots, including Cycling, plus RepairingStubborn and RepairEnd; each gun's `<Gun>.overrideController` assigns its actual clips (AK47 does not need a Cycling override). `GunAnimation` selects states and samples the controller plus constraints manually in the player's tick, before hands and shots. During playback it detaches the controller from the Animator component and gives it exclusively to the manual graph, so Unity's later automatic Animator pass cannot restore Idle over the action. Stop/holster restores the component's controller for re-equipping and editor previews. Reload/repair/cycle progress comes from `Gun.ActionProgress`, so changing clip length does not change ammo, jam or pump rules. Equip/idle/fire and RepairEnd use clip duration. Early success captures current transforms and finger shapes, then blends into RepairEnd over its clip duration, skipping any remaining slaps. Keep the end of each repair clip at its normal grip/rest pose so completion can return cleanly from any progress. All clip-driven properties have baseline keys in every clip, including visibility and constraint weights; keep those reset keys when editing. The controller has no automatic transitions to compete with gameplay state.
 
-For another gun, use the same generic control paths and a new Override Controller. Matching names make bindings reusable; different proportions and reload mechanisms still need fitting and often different clips. Author the clips by hand in the Animation window (steps above); there is no generator script for them in the repo.
+For another gun, use the same generic control paths and a new Override Controller. Matching names make bindings reusable; different proportions and reload mechanisms still need fitting and often different clips. Reloads come from the retarget tool below where the pack has a matching weapon; anything else is authored by hand in the Animation window (steps above).
+
+## Retargeted reloads
+
+`AgentScripts/Hands/ReloadRetarget.cs` bakes a KINEMATION FPS Animation Pack reload onto one of our guns. Nothing in `_Game` references the pack: the output is our own `<Gun>_Reloading.anim` / `<Gun>_ReloadingEmpty.anim`, with the same bindings as the hand-keyed clips, so `GunAnimation`, the controller and the hands don't change.
+
+```bash
+unity command script run --file AgentScripts/Hands/ReloadRetarget.cs --entry ReloadRetarget.Bake --args '["AK47"]' --timeout 300
+unity command script run --file AgentScripts/Hands/ArmReview.cs --entry ArmReview.Strip --args '["AK47","Reloading",12,""]'   # check it
+```
+
+What `Bake` does, per clip:
+
+1. **Samples the pack** in a preview scene: its arms (`FPSPlayer.prefab`) with its gun on the weapon bone, the character clip and the weapon clip together, 30 keys a second.
+2. **Fits our gun to the pack's.** The two guns are lined up at the pistol grip (the right hand holds the gun) and scaled by the middle of three measures: grip to magazine, grip to muzzle, magazine height. The report prints them; AK47 is 1.33.
+3. **Left hand path:** the pack hand's grip frame (palm centre, the handle direction across the palm, the back of the hand: the same rule `ArmSetup` uses for our `GripPoint`) in gun space, mapped onto our gun, keyed on `Motion/Controls/LeftFree`. The hand rides that control for the whole clip.
+4. **Contact corrections:** while the hand is on the magazine it is shifted by the difference between our magazine and the pack's; near the bolt, onto our bolt contact when the pack's hand comes within 12 cm of its charging handle. `Entry.ForendOffset` / `MagazineOffset` / `BoltOffset` are hand-tuned nudges per gun.
+5. **Fingers:** per finger and key, the `FingerShape` (Curl, Spread, Tip) whose bones point most like the pack's, searched on the hand set's own rig. Shapes, not bone rotations: the clips work on any hand mesh.
+6. **Magazine and bolt:** the pack's magazine motion relative to its seat drives `Magazine` until the swap (its far point, or the moment the hand throws it), then `ReplacementMagazine`. The charging handle's travel, as a 0 to 1 share, drives `Bolt` over the travel the old clip used.
+7. **Gun tilt:** the pack gun's motion in view, in its own rest frame, on `Motion`, plus `Entry.PresentPosition` / `PresentEuler`: an extra lift eased in and out so the hands work in view with our low hip framing.
+8. **Idle hold:** the first clip's first frame becomes the forend contact (`Handguard/LeftGrip`), `LeftFree`'s rest pose and the left grip's finger shape. `HandFit` then presses the palm onto our handguard and closes the fingers until they touch. Both clips start and end exactly on that hold (their ends are eased onto it), and the gun's other clips are rebased to it where they held the old values still.
+
+To add a gun: add an `Entry` to `Table` in the script (pack weapon prefab, clip paths), run `Bake`, look at `ArmReview.Strip` and `Gun` renders (a tag with `@left`, `@top` or `@below` looks from outside), then tune the entry's offsets and present pose. The gun needs the animated prefab layout first ([Weapon animation authoring](#weapon-animation-authoring)): `Motion/Weapon/Magazine`, `ReplacementMagazine`, `Bolt`, `Controls/LeftFree`, `HandTargets`, `Rig/LeftHand`, and existing reload clips to replace. `ReloadRetarget.SourceStrip` renders the pack's own animation for reference; `AgentScripts/Hands/ArmPlayReview.cs` captures reload and jam clearing from the real player camera in play mode.
+
+Not carried over: the pack's camera clips (the reload's view bob) and the right hand's small moves (it stays on the pistol grip).
+
+### Which guns the pack covers
+
+Matched by name; only the AK47 has been baked.
+
+| Gun | Pack source | How hard | Why |
+| --- | --- | --- | --- |
+| AK47, AK-74M | AK | Done | AK-74M is a variant of the AK47 prefab and inherits its clips |
+| MP5 | MPS5 | Easy | Already has the animated layout; the charging handle sits forward on the left, check the bolt contact |
+| Pistol (.45) | M1911 | Easy to medium | Has the layout, but the part is `Slide`, not `Bolt`, and the support hand wraps the shooting hand: the tool needs the part name per gun |
+| M4 | MX16A4 | Medium | A block-out: needs the animated layout and base clips first. Mechanically a straight match |
+| Glock 17, Desert Eagle | X18, DGL50 | Medium | Block-outs, and the pistol points above |
+| FAL | G3 (or Mk14EBR) | Medium | Block-out. The G3's handle is on the forward tube, the FAL's on the receiver's left: the rack needs `BoltOffset` |
+| M1 Carbine | Mk14EBR | Medium | Block-out. The M14 rocks its magazine in, the carbine's goes straight up; small magazine |
+| AA-12 | AK or MX16A4 (closest) | Medium | Block-out. No shotgun with a box or drum magazine was identified in the pack; a rifle magazine swap fits, the charging handle is on top |
+| Uzi | X18 or MPS5 (closest) | Hard | The magazine is inside the pistol grip, like a pistol, but it is held like an SMG: no single pack clip does both |
+| Pump shotgun | KXG12 | Hard | Source exists (shell by shell: start, loop, end, plus pump), but the tool only does magazine swaps: it needs a loop mode, shell props and a hand that stays on the pump |
+| Hunting rifle | Kar98K or L96X | Hard | Bolt action: the right hand leaves the grip to work the bolt, and our right hand has one fixed contact. Needs a free control for the right hand |
+| RPD | MGX5 | Hard | Belt fed: top cover, belt and drum. Our model has no cover or belt parts; treating the drum as a magazine would work but looks wrong up close |
+| Double barrel | none | Hard | No break-action gun in the pack: keep its hand-keyed clips (they work with the arms) or make the reload procedural |
+
+Every block-out also needs the step the five clip guns already had: the animated prefab layout and its Equipped / Idle / Firing clips. The pack has no jam-clearing clips and equip clips only for a generic rifle and pistol, so those stay procedural or ours for every gun.
 
 ## How it works
 
@@ -37,11 +83,13 @@ Item prefab                            Player
            Left  = Grip_L_Forend           each frame, after the item is posed:
   HandGrip under the part it holds           grip = ItemHands.GetGrip(side)
   (guns: Motion/HandTargets, moved           grip.Resolve: turn round the held part so the wrist points at the implied elbow
-   by the clips' constraints)                hand.Place + hand.Apply(the grip's finger shape)
+   by the clips' constraints)                hand.Place(grip pose, shoulder, elbow): with an ArmRig, the arm reaches for it
+                                             hand.Apply(the grip's finger shape)
 ```
 
 - **Hands follow grips each frame.** On still items, grips sit under the part they hold. On clip-driven guns, constrained hand targets select part contacts or an animated free-hand control. Both follow the parent's recoil, aim / sprint poses, switch motion and wall retraction.
-- **Implied arms.** There are no forearms, so the wrist is what tells the eye where an arm would be. A grip only fixes *where* the hand holds and *along which direction* (the held part's axis). By default (`Aim = TowardElbow`) the hand turns round that axis so its wrist points at an invisible elbow (`HandSet` → elbows, in view space, low and out to each side). That keeps the wrist believable on every grip, including mid-reload, without tuning a rotation per grip. `Roll` adds a turn on top. `AsAuthored` uses the grip's exact rotation instead (e.g. a palm-up hand feeding shells).
+- **Arms.** A hand prefab with an `ArmRig` is a whole arm: `HandRig.Place` works out the hand bone's pose from the grip, and the arm solves two bones from the shoulder point to it, bending toward the elbow point (both in `HandSet`, view space). No Animator or RigBuilder runs: the solve happens in the hands' tick, after the item's final pose, so the arm is never a frame late. A grip out of reach pulls the shoulder along instead of stretching the arm; the forearm's twist bone takes half the wrist's turn. A hand prefab without an `ArmRig` (the floating hands) just moves to the grip.
+- **Implied elbow.** The wrist tells the eye where the arm is. A grip only fixes *where* the hand holds and *along which direction* (the held part's axis). By default (`Aim = TowardElbow`) the hand turns round that axis so its wrist points at an invisible elbow (`HandSet` → elbows, in view space, low and out to each side). That keeps the wrist believable on every grip, including mid-reload, without tuning a rotation per grip. `Roll` adds a turn on top. `AsAuthored` uses the grip's exact rotation instead (e.g. a palm-up hand feeding shells).
 - **Fitted fingers.** **Bake fit** (on a grip, or **Bake fit for all grips** on `ItemHands`) runs in the editor. It slides the palm onto the part's surface, then searches each finger's curl and tip bend for the shape that hugs the item's meshes without going into them, staying close to the pose. The result is saved on the grip, so nothing runs in game. **Keep fingers** leaves chosen fingers at the pose (trigger finger, support hand round the other hand, small props).
 - **Each hand has one grip per item.** A hand never jumps between grips: moving work (reloads, jam clears, reaches) is the item's clips moving that grip's target between contacts. Items without clips keep their hands still on their grips.
 
@@ -92,9 +140,26 @@ Editing a pose asset updates every grip that uses it and isn't fitted. Fitted gr
 7. Hands that move (reloads, props in hand): give the item clips and hand-target constraints like the guns ([Weapon animation authoring](#weapon-animation-authoring)); use **Preview > Show hands** on `ItemHands` while scrubbing them.
 8. Check it from the player's view: the item's own pose decides whether the hands' work is visible.
 
+## Arms and their variants
+
+The hands in use are Sidekick arms built from a Sidekick character's upper-arm, lower-arm and hand parts. Each look is a **variant** in `Content/Player/Arms/<Variant>/`: the two `.sk` files (the parts and colours), a mesh, material and colour map per side, and `FPArm_<Variant>_Left` / `_Right.prefab` (root: `HandRig` + `ArmRig`; the prefab's root scale, 1.2, sizes the arm). Built so far: `Survivor02` (wrapped forearms, fingerless gloves; in use) and `Survivor04` (jacket sleeves, bare hands), both from Apocalypse Survivors.
+
+```bash
+# Build a variant from any Sidekick character and switch to it (editor open, repo root):
+bash AgentScripts/Hands/build_arms.sh Assets/Synty/SidekickCharacters/Characters/ApocalypseSurvivors/ApocalypseSurvivor_04/ApocalypseSurvivor_04.sk Survivor04 --use
+# Switch between built variants ("" = back to the floating hands):
+unity command script run --file AgentScripts/Hands/ArmSetup.cs --entry ArmSetup.Use --args '["Survivor02"]'
+```
+
+Switching only changes the two prefabs `Data/Hands/HandSet.asset` points at; dragging a variant's prefabs into the HandSet does the same. Every Sidekick arm shares one skeleton and the clips store finger shapes, not bone rotations, so grips, poses and gun clips are the same for every variant. For a look of your own, save a character in **Synty > Sidekick Character Tool** (only its arm and hand parts and colours matter) and pass that `.sk`.
+
+`ArmSetup.MakePrefab` does what [Changing the hand mesh](#changing-the-hand-mesh-retargeting) describes by hand: it drops the bones the arm doesn't use, sets up the `ArmRig` (elbow hinge read off the rest pose), places `GripPoint`, and writes the Open / Closed / Spread / Fist calibration from numbers at the top of the script (finger bend per joint, thumb directions in the palm's frame). The Sidekick fingers have three bones and no metacarpal, so joint 0 of each finger chain is a still marker at the wrist: fitting and the forearm direction read the chain as wrist, knuckle, joints.
+
+Tuning: `HandSet` > shoulders (where each arm starts; keep them off screen) and elbows (which way the arms bend, and where wrists aim on elbow-aimed grips); `ArmRig` > Twist Share and Max Reach; the arm's size is the variant prefab's root scale (`ArmScale` in `ArmSetup`), then `ItemHands > Hand Scale` per item. Check with `ArmReview.Hand` (the hand alone at a given curl / spread / tip) and `ArmReview.Gun`.
+
 ## Changing the hand mesh (retargeting)
 
-Items only reference `HandGrip`s and `HandPose`s, which don't depend on the mesh. To use another hand model:
+Items only reference `HandGrip`s and `HandPose`s, which don't depend on the mesh. To use another hand model that isn't a Sidekick arm:
 
 1. Make a prefab per side: an empty root with **`HandRig`**, and the hand model as a child (shadows off, **Update When Offscreen** on the skinned mesh renderer). Scale it so it reads well next to the weapons; they are ~1.3x real size, and the current hands are ~26 cm.
 2. `HandRig` → Setup → **Auto-find finger bones**. It finds chains named thumb / index / middle / ring / pinky or little under the hand bone. Check the five lists and fix them by hand if the rig uses other names.
@@ -109,9 +174,9 @@ Items only reference `HandGrip`s and `HandPose`s, which don't depend on the mesh
 5. Point `Data/Hands/HandSet.asset` at the new prefabs, or make a new `HandSet` and assign it on the player's `Hands` object. Previews and Bake fit use the first `HandSet` found in the project.
 6. Bake fit again on every item (**Bake fit for all grips**): fits depend on the hand's size and shape.
 
-The current prefabs (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR Low Poly Hand pack, NO UV variant) follow the steps above; recalibrate them with `HandRig`'s setup buttons and **Bake fit** (the editor script that first built them is not in the repo).
+The floating hands (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR Low Poly Hand pack, NO UV variant) follow the steps above and stay as the fallback (`ArmSetup.Use ""`); recalibrate them with `HandRig`'s setup buttons and **Bake fit** (the editor script that first built them is not in the repo). Baked fits on the other items were made for those hands: bake them again for the arms when a grip looks off.
 
-`Tools/HandFistReview.cs` supplies the current Fist calibration and targeted repair-finger curve update (`Apply`), isolated hand renders (`Render`) and player-view weapon renders (`Weapon`) under Temp/HandFist. It preserves existing Open/Closed/Spread calibrations and does not rebuild reloads or repair movement/impact tracks. HandRigTests checks ordinary grip compatibility, bounded fist blending, safe fallback and fist/closure timing at every gun's punch contacts.
+`Tools/HandFistReview.cs` (written for the floating hands; its `Weapon` render no longer compiles against `ItemHands`, use `ArmReview` instead) supplies their Fist calibration and targeted repair-finger curve update (`Apply`), isolated hand renders (`Render`) and player-view weapon renders (`Weapon`) under Temp/HandFist. It preserves existing Open/Closed/Spread calibrations and does not rebuild reloads or repair movement/impact tracks. HandRigTests checks ordinary grip compatibility, bounded fist blending, safe fallback and fist/closure timing at every gun's punch contacts.
 
 ## Tuning
 
@@ -119,7 +184,8 @@ The current prefabs (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR 
 | --- | --- |
 | Where a hand sits on an item | That item's `HandGrip` (Preview hand on), then Bake fit |
 | Which way a hand faces round a part | `HandGrip` → Roll, or flip its Z; `Aim = AsAuthored` for full control |
-| Where the arms seem to come from (all grips) | `Data/Hands/HandSet.asset` → elbows (view space), then re-bake |
+| Where the arms come from and bend (all grips) | `Data/Hands/HandSet.asset` → shoulders and elbows (view space); re-bake fits after moving elbows |
+| The arms' look | another variant: [Arms and their variants](#arms-and-their-variants) |
 | Finger shape everywhere a pose is used | `Data/Hands/Poses/<Pose>.asset` (Curl, Spread, Tip), then re-bake |
 | Timing / path of a reload step or reach | the item's Animation clip on `AnimationRoot` |
 | How the whole gun tilts while reloading | the clip's `Motion` curves |
@@ -128,7 +194,10 @@ The current prefabs (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR 
 ## Known gaps
 
 - **Gun grips:** a fitted vertical or angled grip doesn't move the support hand yet: the clips keep it on the forend contact. The grip's hand point is ready for the gun animation rework (`GunMounts.SupportGrip`, [WEAPONS.md](WEAPONS.md#for-the-gun-animation-rework)).
-- **No forearms.** If they're wanted later, the elbow points and grips can drive an Animation Rigging Two Bone IK, evaluated after the hands are placed; options and steps in the `tools-unity-animation-rigging` skill.
+- **Arms on the other items.** Only the AK47 (and the AK-74M) was reviewed with the arms. The other guns, the axe and the hammer use them too, with grips, finger shapes and fits made for the slimmer floating hands. The pistol is visibly wrong (2026-11-16): the two hands overlap and bury it. Check each from the player's view (`ArmReview.Gun`); the fix is the gun's own retarget pass or re-baked fits. `ArmSetup.Use ""` puts the floating hands back meanwhile.
+- **Shadow.** The arms cast none (like every held item) and there is no player body.
+- **Retargeted reloads:** only the AK47 (and the AK-74M through it). The pack's camera motion isn't carried over, and the hand on the bolt in the empty reload isn't snapped to our bolt handle (the pack's hand never comes close enough to its own for the automatic correction).
+- **AK47 repair clips** (`AK47_Repairing`, `_RepairingStubborn`, `_RepairEnd`) are no longer played while its repair profile has a shake; they still exist, keyed for the old forend hold.
 - **Fitting is approximate.** Fingers can't each bend joint by joint, and open or overlapping vendor meshes can confuse it. Check fits with Preview and use Keep fingers where it misjudges.
 - **Placeholder shells:** the shotgun shells are plain red cylinders (`Content/Weapons/_Shared/Materials/ShotgunShell.mat`).
 - **Axe:** the swing is the existing procedural one, and both hands stay on the handle (no one-handed swing).
