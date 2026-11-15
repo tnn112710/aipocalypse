@@ -183,6 +183,9 @@ public static class ReloadRetarget
 
     public static string Bake(string gun)
     {
+        // In play, WorldItem.Awake hides the held gun on a fresh instance: the fit would find nothing to touch.
+        if (Application.isPlaying)
+            return "leave Play mode first";
         var report = new StringBuilder();
         report.AppendLine(ResetHandScale(gun));
         report.AppendLine(BakeClip(gun, false, true));

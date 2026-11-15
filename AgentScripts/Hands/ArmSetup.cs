@@ -185,7 +185,7 @@ public static class ArmSetup
         so.FindProperty("_side").enumValueIndex = left ? 0 : 1;
         so.FindProperty("_arm").objectReferenceValue = arm;
         so.FindProperty("_fingerRadius").floatValue = 0.011f;
-        so.FindProperty("_palmThickness").floatValue = 0.018f;
+        so.FindProperty("_palmThickness").floatValue = 0.028f;
         SerializedProperty renderers = so.FindProperty("_renderers");
         renderers.arraySize = 1;
         renderers.GetArrayElementAtIndex(0).objectReferenceValue = renderer;

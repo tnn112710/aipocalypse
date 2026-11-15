@@ -55,6 +55,7 @@ MonoBehaviour:
   _upperHinge: {x: 0.00000033527613, y: -0.000010356307, z: 0.99999994}
   _lowerHinge: {x: -0.0000003668001, y: -0.000010355238, z: 0.99999994}
   _maxReach: 0.97
+  _wristShare: 0.4
   _handRest: {x: -0.7071068, y: -1.596662e-14, z: 2.7264898e-14, w: 0.7071068}
   _twistRest: {x: 0, y: -0, z: -0, w: 1}
 --- !u!114 &3128093822519951169
@@ -200,7 +201,7 @@ MonoBehaviour:
   _renderers:
   - {fileID: 7874755807503917268}
   _fingerRadius: 0.011
-  _palmThickness: 0.018
+  _palmThickness: 0.028
   _arm: {fileID: 8991123801236861697}
 --- !u!1 &317975212387011004
 GameObject:
