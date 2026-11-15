@@ -5,16 +5,21 @@ using UnityEngine.Rendering;
 
 // Shared shot effects in Content/Weapons/_Shared/Effects: the guns' muzzle flash is a wrapped vendor flash (GunFlash*)
 // with a short flash of point light (particle Lights module), the older Gabriel Aguiar MuzzleFlash keeps its vendor look
-// plus the same light, and the tracer is a stylized glowing line (a trail with Gabriel Aguiar's
-// Line001) instead of a bullet model. Safe to re-run.
+// plus the same light, and the tracer is a stylized glowing streak (Tracer()) instead of a bullet model. Safe to re-run.
 public static class ShotEffectsSetup
 {
     const string Dir = "Assets/_Game/Content/Weapons/_Shared/Effects";
     const string Gabriel = "Assets/_StoreAssets/VFX/GabrielAguiarProductions";
     const string VendorMaterials = Gabriel + "/UniqueProjectilesVol_1/Materials";
     const string Hovl = "Assets/_StoreAssets/VFX/Hovl Studio/Muzzle flashes";
+    const string HovlTextures = "Assets/_StoreAssets/VFX/Hovl Studio/HSFiles/Textures";
     const string LightPrefabPath = Dir + "/MuzzleFlashLight.prefab";
+    const string TracerPath = Dir + "/Tracer.prefab";
     const string TracerLinePath = Dir + "/Tracer_Line.mat";
+    const string TracerHaloPath = Dir + "/Tracer_Halo.mat";
+    const string TracerHeadPath = Dir + "/Tracer_Head.mat";
+    const string TracerGlowPath = Dir + "/Tracer_Glow.png";
+    const float DefaultTracerTime = 0.025f;
     const string LightChild = "FlashLight";
     const string BulletEffectsPath = "Assets/_Game/Data/Weapons/BulletEffects.asset";
     // The guns' flash, wrapped from a vendor prefab at a size that reads in first person.
@@ -34,7 +39,6 @@ public static class ShotEffectsSetup
         var flashCore = AssetDatabase.LoadAssetAtPath<Material>(VendorMaterials + "/Impact02_SGAddScroll.mat");
         var vendorGlow = AssetDatabase.LoadAssetAtPath<Material>(VendorMaterials + "/UniqueProjectiles_Add_8x8.mat");
         Light lightTemplate = LightPrefab(log);
-        Material line = TracerLine(log);
         AssetDatabase.SaveAssets();
 
         EditPrefab(Dir + "/MuzzleFlash.prefab", root =>
@@ -43,13 +47,7 @@ public static class ShotEffectsSetup
             Swap(root, "Beam", vendorGlow, log);
             FlashLight(root, lightTemplate, log);
         });
-        EditPrefab(Dir + "/Tracer.prefab", root =>
-        {
-            Swap(root, "vfx_Projectile_BulletOrange", vendorGlow, log);
-            SetActive(root, "Bullet_B_Part", false, log);
-            SetActive(root, "Beam", false, log);
-            TracerTrail(root.GetComponentInChildren<TrailRenderer>(true), line, log);
-        });
+        log.Add(Tracer().ToString());
 
         log.Add(WrapFlash(GunFlashSource, GunFlashName, GunFlashScale).ToString());
         var effects = AssetDatabase.LoadAssetAtPath<MB13.Aipocalypse.Core.WeaponSystem.BulletEffects>(BulletEffectsPath);
@@ -137,17 +135,141 @@ public static class ShotEffectsSetup
         return material;
     }
 
-    // Additive, HDR so bloom picks it up; the trail's colour gradient tints it from a hot head to an orange tail.
-    static Material TracerLine(List<string> log)
+    // Tracer.prefab rebuilt from scratch: a thin white-hot core (Hovl's soft-edged Line3) over a wide, dim amber halo
+    // that fades smoothly from the middle (our generated Tracer_Glow.png), plus a head spark (Hovl's Glow1) so a shot
+    // flying straight away still reads as a bright point. The halo stays below white so its colour shows across its whole
+    // width instead of only as a reddish rim. Keeps the prefab's tuned trail time. Touches only the tracer's assets.
+    public static object Tracer()
     {
-        var material = AssetDatabase.LoadAssetAtPath<Material>(TracerLinePath);
+        var log = new List<string>();
+        var line = AssetDatabase.LoadAssetAtPath<Texture2D>(HovlTextures + "/Line3.png");
+        var glow = AssetDatabase.LoadAssetAtPath<Texture2D>(HovlTextures + "/Glow1.png");
+        Material core = Additive(TracerLinePath, line, new Color(6f, 5f, 3.6f, 1f), log);
+        Material halo = Additive(TracerHaloPath, GlowProfile(log), new Color(0.85f, 0.7f, 0.45f, 1f), log);
+        Material head = Additive(TracerHeadPath, glow, new Color(4f, 2.6f, 1.2f, 1f), log);
+
+        EditPrefab(TracerPath, root =>
+        {
+            TrailRenderer tuned = root.GetComponentInChildren<TrailRenderer>(true);
+            float time = tuned != null ? tuned.time : DefaultTracerTime;
+            for (int i = root.transform.childCount - 1; i >= 0; i--)
+                Object.DestroyImmediate(root.transform.GetChild(i).gameObject);
+
+            Trail(root, "Core", core, time, 0.03f, 0.4f,
+                new[] { new GradientColorKey(new Color(1f, 1f, 0.9f), 0f), new GradientColorKey(new Color(1f, 0.7f, 0.35f), 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.5f), new GradientAlphaKey(0f, 1f) }, log);
+            Trail(root, "Halo", halo, time * 1.2f, 0.3f, 0.25f,
+                new[] { new GradientColorKey(new Color(1f, 0.9f, 0.75f), 0f), new GradientColorKey(new Color(1f, 0.75f, 0.5f), 1f) },
+                new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0.4f, 0.5f), new GradientAlphaKey(0f, 1f) }, log);
+            Head(root, head, log);
+        });
+        log.Add($"{TracerPath}: Core, Halo, Head");
+        return string.Join("\n", log);
+    }
+
+    static void Trail(GameObject root, string name, Material material, float time, float width, float tailWidth,
+        GradientColorKey[] colors, GradientAlphaKey[] alphas, List<string> log)
+    {
+        var go = new GameObject(name);
+        go.layer = root.layer;
+        go.transform.SetParent(root.transform, false);
+        var trail = go.AddComponent<TrailRenderer>();
+        trail.sharedMaterial = material;
+        trail.time = time;
+        trail.minVertexDistance = 0.05f;
+        trail.widthMultiplier = width;
+        trail.widthCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, tailWidth));
+        trail.textureMode = LineTextureMode.Stretch;
+        trail.alignment = LineAlignment.View;
+        trail.shadowCastingMode = ShadowCastingMode.Off;
+        trail.receiveShadows = false;
+        trail.lightProbeUsage = LightProbeUsage.Off;
+        trail.reflectionProbeUsage = ReflectionProbeUsage.Off;
+        var gradient = new Gradient();
+        gradient.SetKeys(colors, alphas);
+        trail.colorGradient = gradient;
+        log.Add($"{name}: {time:0.###} s, width {width}");
+    }
+
+    // One camera-facing glow that rides with the tracer; size and tint vary a little per shot so bursts don't repeat.
+    static void Head(GameObject root, Material material, List<string> log)
+    {
+        var go = new GameObject("Head");
+        go.layer = root.layer;
+        go.transform.SetParent(root.transform, false);
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        var main = ps.main;
+        main.duration = 1f;
+        main.loop = false;
+        main.playOnAwake = true;
+        main.startLifetime = 5f; // outlives any flight: the bullet code returns the tracer
+        main.startSpeed = 0f;
+        main.startSize = new ParticleSystem.MinMaxCurve(0.3f, 0.42f);
+        main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.9f, 0.7f), new Color(1f, 0.7f, 0.45f));
+        main.maxParticles = 1;
+        main.simulationSpace = ParticleSystemSimulationSpace.Local;
+        main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 0f;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 1) });
+        var shape = ps.shape;
+        shape.enabled = false;
+
+        var renderer = go.GetComponent<ParticleSystemRenderer>();
+        renderer.renderMode = ParticleSystemRenderMode.Billboard;
+        renderer.sharedMaterial = material;
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        log.Add("Head: 1 glow, 0.3-0.42 m");
+    }
+
+    // A trail's cross-section: white, alpha falling smoothly from 1 in the middle to exactly 0 at both edges, the same
+    // along the whole length. Generated because URP particle shaders ignore texture tiling, so a round glow can't be used.
+    static Texture2D GlowProfile(List<string> log)
+    {
+        const int width = 8, height = 64;
+        var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        float edge = Mathf.Exp(-4.5f);
+        for (int y = 0; y < height; y++)
+        {
+            float d = (y + 0.5f) / height * 2f - 1f;
+            float alpha = Mathf.Clamp01((Mathf.Exp(-4.5f * d * d) - edge) / (1f - edge));
+            for (int x = 0; x < width; x++)
+                texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+        }
+        System.IO.File.WriteAllBytes(TracerGlowPath, texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+        AssetDatabase.ImportAsset(TracerGlowPath);
+
+        var importer = (TextureImporter)AssetImporter.GetAtPath(TracerGlowPath);
+        importer.textureType = TextureImporterType.Default;
+        importer.alphaSource = TextureImporterAlphaSource.FromInput;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.mipmapEnabled = true;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        EditorUtility.SetDirty(importer);
+        AssetDatabase.WriteImportSettingsIfDirty(TracerGlowPath);
+        AssetDatabase.ImportAsset(TracerGlowPath);
+        log.Add($"{TracerGlowPath}: {width}x{height} soft profile");
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(TracerGlowPath);
+    }
+
+    // Additive URP Particles/Unlit, HDR colour so bloom picks it up; trails and particles tint it per vertex.
+    static Material Additive(string path, Texture2D texture, Color color, List<string> log)
+    {
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (material == null)
         {
             material = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
-            AssetDatabase.CreateAsset(material, TracerLinePath);
+            AssetDatabase.CreateAsset(material, path);
         }
-        material.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(Gabriel + "/Textures/Line001.PNG"));
-        material.SetColor("_BaseColor", new Color(4.5f, 3.4f, 1.6f, 1f));
+        material.SetTexture("_BaseMap", texture);
+        material.SetTextureScale("_BaseMap", Vector2.one);
+        material.SetTextureOffset("_BaseMap", Vector2.zero);
+        material.SetColor("_BaseColor", color);
         material.SetFloat("_Surface", 1f);
         material.SetFloat("_Blend", 2f);
         material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
@@ -159,27 +281,9 @@ public static class ShotEffectsSetup
         material.SetOverrideTag("RenderType", "Transparent");
         material.renderQueue = (int)RenderQueue.Transparent;
         EditorUtility.SetDirty(material);
-        log.Add($"{TracerLinePath}: additive Line001, colour {material.GetColor("_BaseColor")}");
+        AssetDatabase.SaveAssetIfDirty(material);
+        log.Add($"{path}: additive {texture.name}, colour {color}");
         return material;
-    }
-
-    static void TracerTrail(TrailRenderer trail, Material line, List<string> log)
-    {
-        trail.sharedMaterial = line;
-        trail.time = 0.08f;
-        trail.minVertexDistance = 0.05f;
-        trail.widthMultiplier = 0.14f;
-        trail.widthCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 0.35f));
-        trail.textureMode = LineTextureMode.Stretch;
-        trail.alignment = LineAlignment.View;
-        trail.shadowCastingMode = ShadowCastingMode.Off;
-        trail.receiveShadows = false;
-        var gradient = new Gradient();
-        gradient.SetKeys(
-            new[] { new GradientColorKey(new Color(1f, 1f, 0.85f), 0f), new GradientColorKey(new Color(1f, 0.75f, 0.3f), 0.4f), new GradientColorKey(new Color(1f, 0.45f, 0.1f), 1f) },
-            new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.85f, 0.4f), new GradientAlphaKey(0f, 1f) });
-        trail.colorGradient = gradient;
-        log.Add($"Trail: {trail.time} s, width {trail.widthMultiplier}");
     }
 
     // Template the Lights module copies per particle; its intensity is scaled by the module's curve.
@@ -257,17 +361,6 @@ public static class ShotEffectsSetup
                 continue;
             renderer.sharedMaterial = material;
             log.Add($"{root.name}/{child} -> {material.name}");
-        }
-    }
-
-    static void SetActive(GameObject root, string child, bool active, List<string> log)
-    {
-        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
-        {
-            if (t.name != child)
-                continue;
-            t.gameObject.SetActive(active);
-            log.Add($"{root.name}/{child} active {active}");
         }
     }
 
