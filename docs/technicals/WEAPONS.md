@@ -101,7 +101,8 @@ AK47 (variant of Gun_Base)    HeldGun
 ├─ Poses
 │  ├─ Hip                     where the gun rests (relative to the rig's Hand), barrel on the screen centre 20 m out
 │  ├─ Aim                     sights on the screen centre
-│  └─ Sprint                  lowered and turned
+│  ├─ Sprint                  lowered and turned
+│  └─ Work                    optional: held here while reloading or clearing a jam at the hip
 └─ PosePivot                  moved to the active pose
    └─ RecoilPivot             gun kick
       └─ AnimationRoot        Animator, RigBuilder, GunAnimation (see Gun clips and constraints)
@@ -112,6 +113,8 @@ AK47 (variant of Gun_Base)    HeldGun
 `Gun_Base` itself is `PosePivot > RecoilPivot > Muzzle` with no `GunAnimation`: a working block-out (put a model under `RecoilPivot` and it poses, kicks and shoots). The variants remove that base `Muzzle` and point `HeldGun` at their animated one.
 
 Shotgun parts move only in their clips: `PumpShotgun`'s Cycling clip slides the pump; `DoubleBarrel`'s barrels, rib and forend sit under a `Hinge` at the front of the receiver that its reload clip opens.
+
+**Work pose (2026-11-16):** the hip framing keeps the gun low, so a rifle's magazine well and the hand working it sat below the screen edge. A gun with a `Poses/Work` marker (`HeldGun._workPose`) eases to it while it is Reloading or ClearingJam and not aiming or sprinting, then back to Hip; the arms come along (`ItemHands.Carry`). It is the Hip pose plus an offset, set per gun with `AimReview.SetWork(gun, x, y, z, pitch, roll)` in edit mode: AK47 (and the AK-74M) (−0.03, 0.035, 0), M4 and SCAR (−0.05, 0.09, −0.02). The MP5, the pistols and the shotguns have none: their hands are in view already. The **Work** preview button shows it.
 
 Poses came from the old project (gun root at (0, −0.15, 0.3) under the camera) and are stored relative to `Hand`.
 
@@ -232,6 +235,8 @@ Built 2026-11-14 *(user: the design's roster, with the Desert Eagle, the RPD and
 | Parts | Mounts from each model's `*_PreSet` (`AttachmentSetup` → Guns), all on `Weapon` itself until clips move parts. The hunting rifle's only slot is Optic (a fitted optic replaces its scope, whose lens draws the reticle at infinity; `AimZoom` 0.4); the RPD's Grip slot waits for a bipod |
 | Icons | Rendered from the world model (`AttachmentSetup.GunIcons`) |
 | AK-74M | A variant of the **AK47 prefab** with the AK-74M's meshes (Castle Bravo `AR_B_2`, the same layout) and its muzzle device: it keeps the AK47's clips, hands, mounts and jam repair, and they fit (checked in play: reload and jam clearing). Same-layout `_2` models can be cheap guns this way |
+
+**Animated since 2026-11-16:** M4, Glock 17, Desert Eagle and the new SCAR (Castle Bravo `AR_C`, built with `GunBlockoutSetup.One("SCAR")`) went through `GunAnimateSetup` and now have clips, a rig and a jam repair profile ([HANDS.md → Animating a block-out](HANDS.md#animating-a-block-out)); `GunBlockoutSetup` skips them. The RPD is the only block-out left. The M4's Aim pose sits at z −0.40 (`AimCloser` −0.28): nearer the eye its carry-handle sight filled the view. The SCAR is not on the Weapons Test tables yet (`WeaponsTestSetup` lists it; the scene has not been rebuilt).
 
 Rebuild order: `GunBlockoutSetup.All`, `AttachmentSetup.Mounts`, `GunBlockoutSetup.Ak74m` again (Mounts recreates the AK47's mount nodes, which drops the variant's overrides on them), `AttachmentSetup.GunIcons`, `RealisticGunStats.Apply`, `WeaponLootSetup.Apply`, `WeaponsTestSetup.Build`.
 
@@ -405,11 +410,13 @@ Press the challenge's `Button` (Reload, R) while the fill is in the green zone t
 
 QteChallenge.CreateSession(ownerControlled) and IQteSession separate mechanics from the service and widgets. Timed sessions still support TotalDuration for other uses; persistent sessions close with their owner. QteStarted/QteEnded are MessagePipe lifecycle announcements. QteView is the presentation seam: TimingQteView renders the same timing session as a circle or bar. New widgets register their ID in the HUD array and challenge Presentations. A different mechanic supplies a compatible challenge/session and view. Missing IDs fall back to a compatible view.
 
-The shared Animator has RepairingStubborn and RepairEnd slots. Repairing and RepairingStubborn are editable clips sampled from Gun.ActionProgress. Each gun supplies its own Repairing, RepairingStubborn and RepairEnd overrides. Pistol slaps target its slide; the others target their receivers. Mechanical parts remain at rest during repair, including the shotgun pump and hinge.
+The shared Animator has RepairingStubborn and RepairEnd slots. Repairing and RepairingStubborn are editable clips sampled from Gun.ActionProgress. Each gun supplies its own Repairing, RepairingStubborn and RepairEnd overrides. The magazine guns' two clips are generated (Reseat tugs the magazine, Rack pulls the bolt or slide); the shotguns keep hand-keyed slaps on the receiver, with the pump and hinge at rest.
 
 ### Repair as a shake
 
-A repair profile with a **Shake** (`GunShakeSettings`, shared asset `Data/Weapons/GunShake.asset`) shows the repair without clips: both hands stay on the gun, it tilts to show the ejection port, is jerked a few times, and tilts back. The AK47 (and the AK-74M, which shares its profile) uses it; the other four guns still play their slap and punch clips. Any gun can opt in, block-outs included, by assigning the asset on its `<Gun>_Repair.asset` (`AgentScripts/Weapons/GunShakeSetup.cs` > `Assign`); clearing the field goes back to the gun's clips.
+A jam clears with one of three motions: the **shake** below, or one of the gun's two clips, **Reseat** (quick jams: the magazine is tugged and slapped home) and **Rack** (stubborn jams: the bolt or slide is pulled three times), generated per gun by `RepairClips` ([HANDS.md → Generated repair clips](HANDS.md#generated-repair-clips)). `GunRepairProfile.ShakeChance` (0 to 1, shown when a Shake is assigned) is the chance a repair is the shake; otherwise the clip for its kind plays. AK47: 0.34. The pump shotgun and the double barrel: 1 (their slap clips were keyed for the floating hands and look wrong with arms). A gun with no `GunAnimation` always shakes.
+
+A repair profile with a **Shake** (`GunShakeSettings`, shared asset `Data/Weapons/GunShake.asset`) shows the repair without clips: both hands stay on the gun, it tilts to show the ejection port, is jerked a few times, and tilts back. The AK47 (and the AK-74M, which shares its profile) uses it; the magazine guns mix it with their Reseat and Rack clips by `ShakeChance`, and the shotguns still play their slap and punch clips. Any gun can opt in, block-outs included, by assigning the asset on its `<Gun>_Repair.asset` (`AgentScripts/Weapons/GunShakeSetup.cs` > `Assign`); clearing the field goes back to the gun's clips.
 
 `HeldGun` owns a `GunShake` beside its jolt player and adds its offset on the recoil pivot, so the whole gun and both hand targets move together; `GunAnimation` stays on Idle. It follows `Gun.ActionProgress`, so miss penalties slow it like the clips. Each shake that lands reports to the gun's jam part (`GunJam.Shaken`), which plays the same slap beat as a clip's slap (sound, jolt, `GunJamBeat`); a stubborn repair's second and fourth shakes are harder and play the punch beat. When the repair ends, early or not, the gun eases back from wherever it was over `ReturnTime`.
 

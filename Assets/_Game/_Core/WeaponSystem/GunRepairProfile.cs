@@ -25,5 +25,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public RepairFeedbackSettings Feedback;
         [Tooltip("Show the repair as a shake of the gun, hands staying on. None = the gun's repair clips")]
         public GunShakeSettings Shake;
+        [Range(0f, 1f), ShowIf(nameof(Shake)), Tooltip("Chance a repair is shown as the shake; the others play the gun's repair clips (quick: reseat the magazine, stubborn: rack the bolt)")]
+        public float ShakeChance = 1f;
     }
 }

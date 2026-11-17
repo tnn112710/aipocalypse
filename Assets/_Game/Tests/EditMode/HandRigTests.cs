@@ -112,12 +112,7 @@ namespace MB13.Aipocalypse.Tests
             }
         }
 
-        [TestCase("AK47", false)]
-        [TestCase("AK47", true)]
-        [TestCase("MP5", false)]
-        [TestCase("MP5", true)]
-        [TestCase("Pistol", false)]
-        [TestCase("Pistol", true)]
+        // The hand-keyed slap clips only: the magazine guns' repair clips are generated (RepairClips) and punch nothing.
         [TestCase("PumpShotgun", false)]
         [TestCase("PumpShotgun", true)]
         [TestCase("DoubleBarrel", false)]

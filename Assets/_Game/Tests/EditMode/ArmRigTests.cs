@@ -28,6 +28,11 @@ namespace MB13.Aipocalypse.Tests
         {
             Load(side);
             Assert.That(_rig.HasArm, Is.True);
+            // The plain two-bone solve: nothing gives way for the wrist.
+            var plain = new SerializedObject(_rig.GetComponent<ArmRig>());
+            plain.FindProperty("_wristShare").floatValue = 0f;
+            plain.FindProperty("_shoulderGive").floatValue = 0f;
+            plain.ApplyModifiedPropertiesWithoutUndo();
             float sign = side == "Left" ? -1f : 1f;
             Vector3 shoulder = new(0.2f * sign, -0.4f, 0f);
             Vector3 elbow = new(0.45f * sign, -0.6f, 0.1f);
@@ -91,6 +96,65 @@ namespace MB13.Aipocalypse.Tests
             }
 
             Assert.That(Bend(1f), Is.LessThan(Bend(0f) - 5f));
+        }
+
+        [TestCase("Left")]
+        [TestCase("Right")]
+        public void Place_ShoulderGive_StraightensTheWristWithoutRisingIntoView(string side)
+        {
+            Load(side);
+            float sign = side == "Left" ? -1f : 1f;
+            Vector3 shoulder = new(0.2f * sign, -0.3f, 0f);
+            Vector3 elbow = new(0.5f * sign, -0.5f, 0.1f);
+            var arm = _rig.GetComponent<ArmRig>();
+            var so = new SerializedObject(arm);
+            Quaternion rest = so.FindProperty("_handRest").quaternionValue;
+            so.FindProperty("_wristShare").floatValue = 0f;
+            so.FindProperty("_maxGive").floatValue = 0.15f;
+            so.FindProperty("_giveIntoView").vector2Value = new Vector2(0.02f, 0.02f);
+            Transform upper = arm.Hand.parent.parent;
+            // A hand that wants its forearm to come from above and in front: the give that would help most is capped.
+            var targets = new[] { Quaternion.Euler(60f, -50f * sign, 30f), Quaternion.Euler(-70f, 20f * sign, 0f), Quaternion.Euler(10f, 170f, 40f * sign) };
+            foreach (Quaternion rotation in targets)
+            {
+                float Bend(float give)
+                {
+                    so.FindProperty("_shoulderGive").floatValue = give;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    _rig.Place(new Vector3(0.05f * sign, -0.35f, 0.3f), rotation, shoulder, elbow);
+                    return Quaternion.Angle(arm.Hand.localRotation, rest);
+                }
+
+                Bend(1f);
+                Vector3 moved = upper.position - shoulder;
+                Assert.That(moved.magnitude, Is.LessThanOrEqualTo(0.151f));
+                Assert.That(moved.y, Is.LessThanOrEqualTo(0.021f));
+                Assert.That(moved.z, Is.LessThanOrEqualTo(0.021f));
+                Assert.That(Vector3.Distance(_rig.GripPoint.position, new Vector3(0.05f * sign, -0.35f, 0.3f)), Is.LessThan(0.001f));
+            }
+
+            // A hand whose forearm should come from lower and farther back than the shoulder point: the shoulder may go there.
+            // Built backwards: an arm hung from that lower shoulder, and the hand pose its straight wrist would have.
+            Vector3 axis = arm.Hand.localPosition.normalized;
+            float upperLength = Vector3.Distance(upper.position, arm.Hand.parent.position);
+            float lowerLength = Vector3.Distance(arm.Hand.parent.position, arm.Hand.position);
+            Vector3 from = new Vector3(-0.5f * sign, 0.2f, 0.8f).normalized;
+            Vector3 at = shoulder + new Vector3(0f, -0.1f, -0.1f) + new Vector3(0.3f * sign, -0.6f, 0.5f).normalized * upperLength + from * lowerLength;
+            Quaternion handRotation = Quaternion.FromToRotation(Quaternion.Inverse(rest) * axis, from);
+            // The elbow has to swing as well, or the forearm still comes from the elbow point.
+            so.FindProperty("_wristShare").floatValue = 1f;
+            so.FindProperty("_elbowIntoView").vector2Value = Vector2.one;
+            float Swing(float give)
+            {
+                so.FindProperty("_shoulderGive").floatValue = give;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                Quaternion grip = handRotation * (Quaternion.Inverse(arm.Hand.rotation) * _rig.GripPoint.rotation);
+                _rig.Place(at, grip, shoulder, elbow);
+                Vector3 wanted = arm.Hand.rotation * Quaternion.Inverse(rest) * axis;
+                return Vector3.Angle(wanted, arm.Hand.position - arm.Hand.parent.position);
+            }
+
+            Assert.That(Swing(1f), Is.LessThan(Swing(0f) - 3f));
         }
 
         [Test]

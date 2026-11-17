@@ -21,7 +21,7 @@ public static class AimReview
     // Block-outs that copy a base gun's hip (GunBlockoutSetup.Guns, Reference); AK74M is a variant and inherits.
     static readonly Dictionary<string, string[]> BlockOuts = new()
     {
-        ["AK47"] = new[] { "M4", "RPD" },
+        ["AK47"] = new[] { "M4", "SCAR", "RPD" },
         ["Pistol"] = new[] { "Glock17", "DesertEagle" },
     };
 
@@ -186,6 +186,29 @@ public static class AimReview
                 note += ", " + blockOut;
             }
         return note;
+    }
+
+    // Edit mode: gives a gun prefab its Work pose (HeldGun: where it is held while reloading or clearing a jam at the hip),
+    // the Hip pose moved by this much (rig space, metres) and pitched / rolled by these degrees.
+    public static object SetWork(string gun, float x, float y, float z, float pitch, float roll)
+    {
+        if (Application.isPlaying)
+            return "leave Play mode first";
+        string path = $"Assets/_Game/Content/Weapons/{gun}/{gun}.prefab";
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        Transform hip = root.transform.Find("Poses/Hip"), work = root.transform.Find("Poses/Work");
+        if (work == null)
+        {
+            work = new GameObject("Work").transform;
+            work.SetParent(hip.parent, false);
+        }
+        work.SetLocalPositionAndRotation(hip.localPosition + new Vector3(x, y, z), hip.localRotation * Quaternion.Euler(pitch, 0f, roll));
+        var held = new SerializedObject(root.GetComponent<HeldGun>());
+        held.FindProperty("_workPose").objectReferenceValue = work;
+        held.ApplyModifiedPropertiesWithoutUndo();
+        PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
+        return $"{gun}: work pose at hip + ({x}, {y}, {z}), pitch {pitch}, roll {roll}";
     }
 
     // Sets a prefab's Hip (and PosePivot, which mirrors it) to `position`, or moves it by `shift`; returns the move.

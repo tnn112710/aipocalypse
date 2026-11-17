@@ -35,13 +35,14 @@ Whole categories to be careful with: **Recon** (16 of 20 are bolt actions), **Sh
 
 | Gun | Prefab | Rating | State |
 | --- | --- | --- | --- |
-| AK47 | Pack1 `AR_B` | Easy | Reloads retargeted (done) |
+| AK47 | Pack1 `AR_B` | Easy | Reloads retargeted, repair clips generated |
 | AK-74M | Pack1 `AR_B_2` | Easy | Variant of the AK47: inherits its clips |
-| MP5 | Pack1 `SMG_B` | Easy | Hand-keyed clips; retarget next |
-| Pistol (.45) | Pack1 `Pistol_E` | Easy | Hand-keyed clips; looks wrong with the arms, retarget next |
-| Glock 17 | Pack1 `Pistol_B` | Easy | Block-out |
-| Desert Eagle | Pack1 `Pistol_D` | Easy | Block-out |
-| M4 | Pack1 `AR_A` | Easy | Block-out |
+| MP5 | Pack1 `SMG_B` | Easy | Reloads retargeted, repair clips generated |
+| Pistol (.45) | Pack1 `Pistol_E` | Easy | Reloads retargeted, repair clips generated |
+| Glock 17 | Pack1 `Pistol_B` | Easy | Animated (reloads retargeted, repair clips); the model has no separate slide, so it does not move |
+| Desert Eagle | Pack1 `Pistol_D` | Easy | Animated (reloads retargeted, repair clips) |
+| M4 | Pack1 `AR_A` | Easy | Animated (reloads retargeted, repair clips) |
+| SCAR | Pack1 `AR_C` | Easy | Added 2026-11-16; animated (reloads retargeted, repair clips) |
 | Pump shotgun | Pack1 `ShotGun_C` | Hard | Hand-keyed clips (shell by shell) that work with the arms |
 | Double barrel | Pack1 `ShotGun_E` | Hard | Hand-keyed clips that work with the arms; no pack source |
 | RPD | Pack1 `LMG_A` | Hard | Block-out; belt fed, and the model has no cover or belt parts |

@@ -1,6 +1,7 @@
 // Play-mode captures of the held gun's actions from the real player camera, for `unity command script run`.
 // Enter play (WeaponsTest), run AimReview.Prepare and AimReview.Hold first; the Game window must be open.
-//   Action(kind, progresses, tag)   kind = Reload, ReloadEmpty or Jam; progresses = "0.2,0.5,0.8": starts the action
+//   Action(kind, progresses, tag)   kind = Reload, ReloadEmpty, Jam (as the profile rolls it), or one repair motion:
+//                                   JamShake, JamReseat (quick clip), JamRack (stubborn clip); progresses = "0.2,0.5,0.8": starts the action
 //                                   and saves the game view at each progress to Temp/ArmReview/Play_<kind>_<p><tag>.png
 //   Still(tag)                      the game view as it is
 using System;
@@ -39,9 +40,23 @@ public static class ArmPlayReview
         gun.Interrupt();
         GunInstance item = gun.Item;
         typeof(GunInstance).GetProperty("Rounds", Any).SetValue(item, kind == "ReloadEmpty" ? 0 : Mathf.Max(1, item.Stats.MagazineSize / 2));
-        item.SetJammed(kind == "Jam");
+        bool jam = kind.StartsWith("Jam");
+        item.SetJammed(jam);
         await Frames(2);
-        typeof(Gun).GetMethod("StartAction", Any).Invoke(gun, new object[] { kind == "Jam" ? GunAction.ClearingJam : GunAction.Reloading });
+        // One motion on request: the profile's chances are forced for the start only, then put back.
+        GunRepairProfile repair = jam ? item.Gun.Jam.Repair : null;
+        float shakeChance = repair != null ? repair.ShakeChance : 0f, stubbornChance = repair != null ? repair.StubbornChance : 0f;
+        if (repair != null && kind != "Jam")
+        {
+            repair.ShakeChance = kind == "JamShake" ? 1f : 0f;
+            repair.StubbornChance = kind == "JamRack" ? 1f : kind == "JamReseat" ? 0f : stubbornChance;
+        }
+        typeof(Gun).GetMethod("StartAction", Any).Invoke(gun, new object[] { jam ? GunAction.ClearingJam : GunAction.Reloading });
+        if (repair != null)
+        {
+            repair.ShakeChance = shakeChance;
+            repair.StubbornChance = stubbornChance;
+        }
 
         Directory.CreateDirectory(OutFolder);
         var paths = new List<string>();

@@ -54,20 +54,87 @@ Not carried over: the pack's camera clips (the reload's view bob) and the right 
 
 ### Which guns the pack covers
 
-The guns in the game, matched by name; only the AK47 has been baked. Every gun in the Castle Bravo bundle is rated the same way in [CASTLE_BRAVO_GUNS.md](CASTLE_BRAVO_GUNS.md): check it before adding a gun. The FAL, M1 Carbine, AA-12, Uzi and hunting rifle were parked on 2026-11-16.
+The guns in the game, matched by name. Baked: AK47 (the AK-74M inherits), MP5, Pistol, M4, SCAR, Glock 17 and Desert Eagle. Every gun in the Castle Bravo bundle is rated the same way in [CASTLE_BRAVO_GUNS.md](CASTLE_BRAVO_GUNS.md): check it before adding a gun. The FAL, M1 Carbine, AA-12, Uzi and hunting rifle were parked on 2026-11-16.
 
 | Gun | Pack source | How hard | Why |
 | --- | --- | --- | --- |
 | AK47, AK-74M | AK | Done | AK-74M is a variant of the AK47 prefab and inherits its clips |
-| MP5 | MPS5 | Easy | Already has the animated layout; the charging handle sits forward on the left, check the bolt contact |
-| Pistol (.45) | M1911 | Easy to medium | Has the layout, but the part is `Slide`, not `Bolt`, and the support hand wraps the shooting hand: the tool needs the part name per gun |
-| M4 | MX16A4 | Medium | A block-out: needs the animated layout and base clips first. Mechanically a straight match |
-| Glock 17, Desert Eagle | X18, DGL50 | Medium | Block-outs, and the pistol points above |
-| Pump shotgun | KXG12 | Hard | Source exists (shell by shell: start, loop, end, plus pump), but the tool only does magazine swaps: it needs a loop mode, shell props and a hand that stays on the pump |
-| RPD | MGX5 | Hard | Belt fed: top cover, belt and drum. Our model has no cover or belt parts; treating the drum as a magazine would work but looks wrong up close |
-| Double barrel | none | Hard | No break-action gun in the pack: keep its hand-keyed clips (they work with the arms) or make the reload procedural |
+| MP5 | MPS5 | Done | `Entry.Charge = "ChargingHandle"` (the pack names its parts per weapon) |
+| Pistol (.45) | M1911 | Done | The moving part is `Slide` (`Entry.Charge = "Slider"`); the bolt part is whatever the bolt contact sits on |
+| M4, SCAR | MX16A4 | Done | Block-outs animated with `GunAnimateSetup` first. The pack reload uses the bolt release, so nothing racks: the Rack repair pulls the charging handle straight back |
+| Glock 17, Desert Eagle | X18, DGL50 | Done | Animated like the 1911. The Glock model has no separate slide part, so its slide does not move |
+| Pump shotgun | KXG12 | Hard | Source exists (shell by shell: start, loop, end, plus pump), but the tool only does magazine swaps: it needs a loop mode, shell props and a hand that stays on the pump. Keeps its hand-keyed clips, with the AK47's forend hold (`HoldLike`) |
+| RPD | MGX5 | Hard | Belt fed: top cover, belt and drum. Our model has no cover or belt parts; treating the drum as a magazine would work but looks wrong up close. Still a block-out, with the AK47's forend hold (`HoldLike`) |
+| Double barrel | none | Hard | No break-action gun in the pack: keeps its hand-keyed clips, with the AK47's forend hold (`HoldLike`) |
 
-Every block-out also needs the step the five clip guns already had: the animated prefab layout and its Equipped / Idle / Firing clips. The pack has no jam-clearing clips and equip clips only for a generic rifle and pistol, so those stay procedural or ours for every gun.
+Every block-out also needs the step the five clip guns already had: the animated prefab layout and its Equipped / Idle / Firing clips ([Animating a block-out](#animating-a-block-out)). The pack has no jam-clearing clips and equip clips only for a generic rifle and pistol, so those stay procedural or ours for every gun.
+
+## Generated repair clips
+
+`AgentScripts/Hands/RepairClips.cs` writes a magazine gun's two jam-clearing clips from its own reloads (run it after `ReloadRetarget.Bake`, and again after any re-bake):
+
+```bash
+unity command script run --file AgentScripts/Hands/RepairClips.cs --entry RepairClips.Bake --args '["AK47"]'
+```
+
+| Clip | Motion | Used for | Impacts |
+| --- | --- | --- | --- |
+| `<Gun>_Repairing` | **Reseat:** the support hand goes to the magazine, tugs it 22 mm down its well and slaps it home, twice | Quick jams | 2, at 0.5 and 0.75 of a 4 s clip |
+| `<Gun>_RepairingStubborn` | **Rack:** the hand goes to the bolt or slide and pulls it 45 %, 60 %, then all of its travel | Stubborn jams | 3, at 0.41, 0.58 and 0.79 of a 5 s clip; the last is the hard one (`_repairPunch`) |
+
+The third motion, the **shake**, is procedural ([WEAPONS.md → Repair as a shake](WEAPONS.md#repair-as-a-shake)); `ShakeChance` on the repair profile picks between it and the clips.
+
+What it reads off the reloads, sampled through `GunAnimation` so hand-keyed and retargeted reloads both work:
+
+- **Magazine hold and how the gun is shown:** the moment the replacement magazine arrives within 2 cm of home ("presented and held as at 0.60 of the reload" in the report). Not the moment the old magazine first moves: an AR magazine drops free while the hand is still on the forend.
+- **Which way the magazine and bolt move:** their travel in the reload. A reload that never racks (M4, SCAR) gets a 7 cm straight pull.
+- **Bolt hold:** the gun's own bolt contact (constraint source 3) with a closed hand, not the reload's hand, which often only passes near.
+
+Everything else the reload keys is held at its rest value, and the hand rides `LeftFree` all the way (weight item 4 = 1), as in the retargeted reloads. The shotguns keep their hand-keyed slap clips.
+
+## Animating a block-out
+
+`AgentScripts/Weapons/GunAnimateSetup.cs` turns a block-out (`GunBlockoutSetup`) into an animated gun by grafting an animated gun's layout onto it:
+
+```bash
+unity command script run --file AgentScripts/Weapons/GunAnimateSetup.cs --entry GunAnimateSetup.Animate --args '["M4","AK47"]'   # pistols: like "Pistol"
+unity command script run --file AgentScripts/Hands/ReloadRetarget.cs --entry ReloadRetarget.Bake --args '["M4"]' --timeout 300    # needs a Table entry
+unity command script run --file AgentScripts/Hands/RepairClips.cs --entry RepairClips.Bake --args '["M4"]'
+```
+
+`Animate(gun, like)` copies `<like>`'s clips, override controller, dropped-magazine prefab and repair profile under the gun's name; renames the Castle Bravo parts to the names the clips key (`Magazine`, `Bolt` or `Slide`, `Handguard`, `Grip`; suffix table `Parts` in the script) and adds `ReplacementMagazine`; adds the hand contacts, `Controls/LeftFree`, the `Rig` with its constraints, Animator + RigBuilder + `GunAnimation`; moves the copied clips' part curves to this gun's part positions; and points `HeldGun` and the jam profile at the new pieces. Then the two bakes above give it its own motion. Afterwards: `AttachmentSetup` (the gun's `Magazines` become `"Magazine", "ReplacementMagazine"`), add it to the tests that list animated guns (`WeaponAnimationTests`), and review it in play.
+
+`GunBlockoutSetup` leaves a gun that has a `GunAnimation` alone, so a rebuild of the block-outs does not undo this.
+
+## A hold borrowed from another gun
+
+For a gun with no pack reload to retarget (the shotguns, the RPD), `AgentScripts/Hands/HoldLike.cs` gives the support hand another gun's hold:
+
+```bash
+unity command script run --file AgentScripts/Hands/HoldLike.cs --entry HoldLike.Apply --args '["PumpShotgun","AK47"]'
+```
+
+The forend hold keeps its place on the gun and takes the other gun's hand rotation and finger shape; `HandFit` then presses the palm onto this gun's forend and closes the fingers until they touch. In the gun's clips, every key that sat on the old hold (hand control and finger shape) moves to the new one, so the hand-offs between the forend contact and `LeftFree` stay seamless. Before this the three guns kept shapes made for the floating hands, and the arms' fingers stood straight up beside the forend.
+
+## Wrist comfort
+
+Clips and grips say where the hand is and how it is turned; nothing in them knows where the forearm is. With a fixed shoulder and an elbow that only follows its hint, the forearm often arrived from above or the side and the hand folded at the wrist (measured 2026-11-16: AK47 idle 69° left and 78° right, reload peaks near 150°). `ArmRig.Solve` now gives way for the wrist in two steps, both capped so the arm does not swing into view:
+
+| ArmRig field | Value | Meaning |
+| --- | --- | --- |
+| `_shoulderGive` | 0.7 | How far the shoulder moves towards the nearest point a straight wrist's arm could hang from |
+| `_maxGive` | 0.15 m | The farthest it moves |
+| `_giveIntoView` | (0.02, 0.02) m | The most of that upwards and forwards, in the viewer's frame (`FirstPersonHands` passes the view rotation) |
+| `_wristShare` | 0.8 | How far the elbow swings from its hint to behind the hand |
+| `_elbowIntoView` | (0.08, 0.08) m | The most that swing lifts the elbow upwards and forwards |
+
+After it: idle wrists 5 to 30° on most guns, means of 10 to 30° through reloads. What the caps leave bent, because the hand pose itself asks for an arm from above or in front: the AK47's trigger hand (about 70°, mostly out of view), the Rack repair on the M4, SCAR and Desert Eagle (60 to 130°), the double barrel's reload (about 60°). Those need the hold turned, not the solver: for a generated Rack, roll the bolt hold round the handle towards the elbow (what `GripAim.TowardElbow` does for static grips).
+
+Looser caps straighten more and show more arm: with no caps the wrists are straight and the double barrel's upper arm fills the lower half of the hip view. Measure with a play-mode probe (the angle between the forearm and `hand.rotation * inverse(_handRest) * hand.localPosition`) rather than by eye.
+
+## Play review
+
+`AgentScripts/Weapons/AimReview.cs` (hold a gun, fit parts, virtual gamepad, hip and work poses) and `AgentScripts/Hands/ArmPlayReview.cs` (one action captured at chosen progress values: `Reload`, `ReloadEmpty`, `JamShake`, `JamReseat`, `JamRack`) drive the Weapons Test scene in Play mode. A full pass over a gun is: hip, ADS with iron sights and with each optic that fits, firing, both reloads at three or four points, the three repair motions. Look at every gun this way after changing arms, hand set values, poses or a bake; edit-mode strips (`ArmReview.Strip`) miss what the camera crops.
 
 ## How it works
 
@@ -190,12 +257,12 @@ The floating hands (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR L
 
 ## Known gaps
 
-- **Gun grips:** a fitted vertical or angled grip doesn't move the support hand yet: the clips keep it on the forend contact. The grip's hand point is ready for the gun animation rework (`GunMounts.SupportGrip`, [WEAPONS.md](WEAPONS.md#for-the-gun-animation-rework)).
-- **Arms on the other items.** Only the AK47 (and the AK-74M) was reviewed with the arms. The other guns, the axe and the hammer use them too, with grips, finger shapes and fits made for the slimmer floating hands. The pistol is visibly wrong (2026-11-16): the two hands overlap and bury it, also at hand scale 1. The MP5's support fingers stand open above its handguard. Check each from the player's view (`ArmReview.Gun`); the fix is the gun's own retarget pass or re-baked fits. `ArmSetup.Use ""` puts the floating hands back meanwhile.
+- **Gun grips:** a fitted vertical or angled grip doesn't move the support hand yet: the clips keep it on the forend contact. The grip's hand point is ready (`GunMounts.SupportGrip`, [WEAPONS.md](WEAPONS.md#for-the-gun-animation-rework)); the plan is an offset from the forend contact to the grip, applied in proportion to how much the hand is on the forend.
+- **Arms on the other items.** Every gun was reviewed in play on 2026-11-16 ([Play review](#play-review)). Still wrong: wrists the solver cannot straighten ([Wrist comfort](#wrist-comfort)); the shotguns' hand-keyed slap repairs rear the whole arm above the gun, so both shotguns clear jams with the shake only (`ShakeChance` 1); the pistols' rack covers the gun with the hand; the axe and the hammer were not reviewed. `ArmSetup.Use ""` puts the floating hands back.
 - **Hand proportions.** Sidekick hands are short and wide. Against the pack's hands scaled to our AK47 (1.33), ours at 1.2 have fingers about 9% shorter, a palm about as wide, and fingers about a fifth thicker. Thinning the finger vertices round their bones at build time was tried as an in-memory preview (15 to 22%) and is subtle; not built.
 - **Shadow.** The arms cast none (like every held item) and there is no player body.
-- **Retargeted reloads:** only the AK47 (and the AK-74M through it). The pack's camera motion isn't carried over, and the hand on the bolt in the empty reload isn't snapped to our bolt handle (the pack's hand never comes close enough to its own for the automatic correction).
-- **AK47 repair clips** (`AK47_Repairing`, `_RepairingStubborn`, `_RepairEnd`) are no longer played while its repair profile has a shake; they still exist, keyed for the old forend hold.
+- **Retargeted reloads:** the pack's camera motion isn't carried over, and the hand on the bolt in the empty reload isn't snapped to our bolt handle (the pack's hand never comes close enough to its own for the automatic correction). The Glock's slide doesn't move (no separate part). The pump shotgun, double barrel and RPD have no retarget.
+- **Repair clips** are generated ([Generated repair clips](#generated-repair-clips)); `<Gun>_RepairEnd` is still the old hand-keyed clip.
 - **Fitting is approximate.** Fingers can't each bend joint by joint, and open or overlapping vendor meshes can confuse it. Check fits with Preview and use Keep fingers where it misjudges.
 - **Placeholder shells:** the shotgun shells are plain red cylinders (`Content/Weapons/_Shared/Materials/ShotgunShell.mat`).
 - **Axe:** the swing is the existing procedural one, and both hands stay on the handle (no one-handed swing).

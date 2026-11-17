@@ -239,8 +239,9 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
         }
 
-        [TestCase(false, 3)]
-        [TestCase(true, 4)]
+        // Reseat (quick) slaps the magazine home twice, Rack (stubborn) lets the bolt go three times (RepairClips).
+        [TestCase(false, 2)]
+        [TestCase(true, 3)]
         public void RepairImpactsNotifyOncePerSlapEvenWhenFramesSkip(bool stubborn, int expected)
         {
             int impacts = 0;
@@ -250,10 +251,10 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(impacts, Is.Zero);
             _animation.Tick(0f, 0.9f);
             Assert.That(impacts, Is.Zero);
-            _animation.Tick(0.1f, 0.5f);
-            Assert.That(impacts, Is.EqualTo(2));
-            _animation.Tick(0.1f, 0.5f);
-            Assert.That(impacts, Is.EqualTo(2));
+            _animation.Tick(0.1f, 0.55f);
+            Assert.That(impacts, Is.EqualTo(1));
+            _animation.Tick(0.1f, 0.55f);
+            Assert.That(impacts, Is.EqualTo(1));
             _animation.Tick(0.1f, 0.95f);
             Assert.That(impacts, Is.EqualTo(expected));
             _animation.StartAction(GunAction.ClearingJam, false, stubborn);
@@ -267,7 +268,7 @@ namespace MB13.Aipocalypse.Tests
             int impacts = 0;
             _animation.RepairSlapped += () => impacts++;
             _animation.StartAction(GunAction.ClearingJam, false);
-            _animation.Tick(0.1f, 0.3f);
+            _animation.Tick(0.1f, 0.55f);
             Assert.That(impacts, Is.EqualTo(1));
             _animation.FinishRepair();
             for (int i = 0; i < 30; i++)

@@ -30,6 +30,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [BoxGroup("Poses"), SerializeField, Tooltip("Siblings of the pose pivot; move them to pose the gun")] Transform _hipPose;
         [BoxGroup("Poses"), SerializeField] Transform _aimPose;
         [BoxGroup("Poses"), SerializeField] Transform _sprintPose;
+        [BoxGroup("Poses"), SerializeField, Tooltip("Optional: where the gun is held while reloading or clearing a jam at the hip, so the hands stay in view")]
+        Transform _workPose;
 
         readonly GunJoltPlayer _jolt = new();
         // Jam clearing as a shake of the whole gun, for guns whose repair profile has one.
@@ -405,7 +407,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _jam.ActionStarted();
             if (action == GunAction.Cycling && _definition.Ejection.OnCycle)
                 Eject();
-            GunShakeSettings shake = action == GunAction.ClearingJam && _definition.Jam.Repair != null ? _definition.Jam.Repair.Shake : null;
+            GunRepairProfile repair = action == GunAction.ClearingJam ? _definition.Jam.Repair : null;
+            GunShakeSettings shake = repair != null && (_animation == null || Random.value < repair.ShakeChance) ? repair.Shake : null;
             if (shake != null)
                 _shake.Start(shake, _gun.RepairIsStubborn);
             else if (_animation != null)
@@ -464,7 +467,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             float aimBlend = Damping.ByRate(aimSpeed, deltaTime);
             _aimWeight = Mathf.Lerp(_aimWeight, _gun.IsAiming && !sprinting ? 1f : 0f, aimBlend);
             Transform aim = _optic.AimPose;
-            Transform target = sprinting ? _sprintPose : _gun.IsAiming ? aim : _hipPose;
+            bool working = _workPose != null && _gun.Action is GunAction.Reloading or GunAction.ClearingJam;
+            Transform target = sprinting ? _sprintPose : _gun.IsAiming ? aim : working ? _workPose : _hipPose;
             if (target == null)
                 target = _hipPose;
             _pose.MoveTowards(target, sprinting ? handling.SprintPoseSpeed : aimSpeed, deltaTime);
@@ -494,6 +498,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [ButtonGroup("Preview"), Button("Hip")] void PreviewHip() => PoseBlender.Preview(_posePivot, _hipPose);
         [ButtonGroup("Preview"), Button("Aim")] void PreviewAim() => PoseBlender.Preview(_posePivot, _aimPose);
         [ButtonGroup("Preview"), Button("Sprint")] void PreviewSprint() => PoseBlender.Preview(_posePivot, _sprintPose);
+        [ButtonGroup("Preview"), Button("Work")] void PreviewWork() => PoseBlender.Preview(_posePivot, _workPose);
 #endif
     }
 }

@@ -972,7 +972,7 @@ public static class AttachmentSetup
                 new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
                 new() { Slot = GunSlot.Tactical, At = new Vector3(0f, 0.004f, 0.111f) },
             },
-            Magazines = new[] { "Pistol_B_Mag" },
+            Magazines = new[] { "Magazine", "ReplacementMagazine" },
         },
         new()
         {
@@ -984,7 +984,7 @@ public static class AttachmentSetup
                 new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
                 new() { Slot = GunSlot.Tactical, At = new Vector3(0f, 0.003f, 0.132f) },
             },
-            Magazines = new[] { "Pistol_D_Mag" },
+            Magazines = new[] { "Magazine", "ReplacementMagazine" },
         },
         new()
         {
@@ -1022,7 +1022,20 @@ public static class AttachmentSetup
                 new() { Slot = GunSlot.Grip, At = new Vector3(0f, 0.026f, 0.348f) },
                 new() { Slot = GunSlot.Tactical, At = new Vector3(0.033f, 0.080f, 0.520f) },
             },
-            Magazines = new[] { "AR_A_Mag" },
+            Magazines = new[] { "Magazine", "ReplacementMagazine" },
+        },
+        new()
+        {
+            Name = "SCAR", HipSpread = 2.5f, Family = GunFamily.Rifle, Icon = true,
+            Slots = new[] { GunSlot.Optic, GunSlot.Muzzle, GunSlot.Grip, GunSlot.Tactical, GunSlot.Magazine },
+            Mounts = new MountSpec[]
+            {
+                new() { Slot = GunSlot.Optic, At = new Vector3(0f, 0.142f, 0.050f), Hide = new[] { "AR_C_Sight_Back" } },
+                new() { Slot = GunSlot.Muzzle, AtMuzzle = true },
+                new() { Slot = GunSlot.Grip, At = new Vector3(0f, 0.018f, 0.330f) },
+                new() { Slot = GunSlot.Tactical, At = new Vector3(0.041f, 0.074f, 0.373f) },
+            },
+            Magazines = new[] { "Magazine", "ReplacementMagazine" },
         },
         new()
         {

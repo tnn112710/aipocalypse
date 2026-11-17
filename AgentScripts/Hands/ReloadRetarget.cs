@@ -33,6 +33,8 @@ public static class ReloadRetarget
         public string Idle, WeaponIdle;
         public string Reload, WeaponReload;
         public string ReloadEmpty, WeaponReloadEmpty;
+        // The pack gun's magazine and charging handle (or slide) bones.
+        public string Mag = "Mag", Charge = "Charge";
         // Hand-tuned nudges in our gun's space (m), on top of the fitted mapping.
         public Vector3 ForendOffset, MagazineOffset, BoltOffset;
         // Extra lift / turn of the whole gun while reloading, so the hands' work is in view (eased in and out).
@@ -50,6 +52,48 @@ public static class ReloadRetarget
             Reload = "Character/A_FP_AKX_Reload_Tac.anim", WeaponReload = "Weapon/A_W_AKX_Reload_Tac.FBX",
             ReloadEmpty = "Character/A_FP_AKX_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_W_AKX200_Reload_Empty.FBX",
             PresentPosition = new Vector3(-0.04f, 0.07f, 0f), PresentEuler = new Vector3(-6f, 0f, 0f),
+        },
+        ["MP5"] = new Entry
+        {
+            PackWeapon = "MPS5", Folder = "MPS5", Charge = "ChargingHandle",
+            Idle = "Character/A_FP_MPS5_Pose.anim", WeaponIdle = "Weapon/A_W_MPS5_Pose.FBX",
+            Reload = "Character/A_FP_MPS5_Reload_Tac.anim", WeaponReload = "Weapon/A_W_MPS5_ReloadTac.FBX",
+            ReloadEmpty = "Character/A_FP_MPS5_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_W_MPS5_ReloadEmpty.FBX",
+        },
+        ["M4"] = new Entry
+        {
+            PackWeapon = "MX16A4", Folder = "MX16A4", Charge = "ChargingHandle",
+            Idle = "Character/A_FP_MX16A4_Pose.anim", WeaponIdle = "Weapon/A_W_MX16A4_Pose.FBX",
+            Reload = "Character/A_FP_MX16A4_Reload_Tac.anim", WeaponReload = "Weapon/A_W_MX16A4_Reload_Tac.FBX",
+            ReloadEmpty = "Character/A_FP_MX16A4_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_W_MX16A4_Reload_Empty.FBX",
+        },
+        ["SCAR"] = new Entry
+        {
+            PackWeapon = "MX16A4", Folder = "MX16A4", Charge = "ChargingHandle",
+            Idle = "Character/A_FP_MX16A4_Pose.anim", WeaponIdle = "Weapon/A_W_MX16A4_Pose.FBX",
+            Reload = "Character/A_FP_MX16A4_Reload_Tac.anim", WeaponReload = "Weapon/A_W_MX16A4_Reload_Tac.FBX",
+            ReloadEmpty = "Character/A_FP_MX16A4_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_W_MX16A4_Reload_Empty.FBX",
+        },
+        ["Glock17"] = new Entry
+        {
+            PackWeapon = "X18", Folder = "X18", Charge = "Slider",
+            Idle = "Character/A_FP_X18_Pose.anim", WeaponIdle = "Weapon/SK_X18.FBX",
+            Reload = "Character/A_FP_X18_Reload_Tac.anim", WeaponReload = "Weapon/A_X18_Reload_Tac.FBX",
+            ReloadEmpty = "Character/A_FP_X18_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_X18_Reload_Empty.FBX",
+        },
+        ["DesertEagle"] = new Entry
+        {
+            PackWeapon = "DGL50", Folder = "DGL50", Charge = "Slider",
+            Idle = "Character/A_FP_DGL50_Pose.anim", WeaponIdle = "Weapon/A_W_DGL50_pose.FBX",
+            Reload = "Character/A_FP_DGL50_Reload_Tac.anim", WeaponReload = "Weapon/A_W_DGL50_Reload_Tac.FBX",
+            ReloadEmpty = "Character/A_FP_DGL50_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_W_DGL50_Empty_Reload.FBX",
+        },
+        ["Pistol"] = new Entry
+        {
+            PackWeapon = "M1911", Folder = "M1911", Charge = "Slider",
+            Idle = "Character/A_FP_M1911_Idle.anim", WeaponIdle = "Weapon/A_W_M1911_Idle.FBX",
+            Reload = "Character/A_FP_M1911_Reload_Tac.anim", WeaponReload = "Weapon/A_W_M1911_Reload_Tac.FBX",
+            ReloadEmpty = "Character/A_FP_M1911_Reload_Empty.anim", WeaponReloadEmpty = "Weapon/A_W_M1911_Reload_Empty.FBX",
         },
     };
 
@@ -111,7 +155,9 @@ public static class ReloadRetarget
         sb.AppendLine($"weaponBone={source.WeaponBone.name} parent={source.WeaponBone.parent.name} offset={source.RotationOffset.eulerAngles}");
         sb.AppendLine($"character={source.Character.name} {source.Character.length:0.###}s  weapon={source.WeaponClip.name} {source.WeaponClip.length:0.###}s");
         sb.AppendLine("weapon parts: " + string.Join(", ", source.WeaponAnimated.GetComponentsInChildren<Transform>(true).Select(t => t.name)));
-        Transform hand = source.Bone("hand_l"), mag = source.Part("Mag"), charge = source.Part("Charge");
+        Transform hand = source.Bone("hand_l"), mag = source.Part(entry.Mag), charge = source.Part(entry.Charge);
+        if (mag == null || charge == null)
+            return sb.ToString() + "no Mag or Charge part: name them in the entry";
         for (int i = 0; i <= 16; i++)
         {
             float time = source.Character.length * i / 16f;
@@ -233,11 +279,14 @@ public static class ReloadRetarget
         SceneManager.MoveGameObjectToScene(item, source.Scene);
         Transform root = item.GetComponentInChildren<GunAnimation>(true).transform;
         Transform motion = root.Find("Motion"), weapon = motion.Find("Weapon");
-        Transform magazine = weapon.Find("Magazine"), bolt = weapon.Find("Bolt");
+        Transform magazine = weapon.Find("Magazine");
         Transform leftFree = motion.Find("Controls/LeftFree"), leftTarget = motion.Find("HandTargets/Left"), rightTarget = motion.Find("HandTargets/Right");
         var constraint = root.Find("Rig/LeftHand").GetComponent<MultiParentConstraint>();
         WeightedTransformArray contacts = constraint.data.sourceObjects;
         Transform forend = contacts[0].transform, boltContact = contacts.Count > 3 ? contacts[3].transform : null;
+        // The part the bolt contact rides: Bolt, or a pistol's Slide.
+        Transform bolt = boltContact != null && boltContact.parent != weapon && boltContact.IsChildOf(weapon) ? boltContact.parent : weapon.Find("Bolt");
+        string boltPath = "Motion/Weapon/" + bolt.name;
 
         var set = AssetDatabase.LoadAssetAtPath<HandSet>(HandSetPath);
         HandRig rig = Object.Instantiate(set.Get(HandSide.Left));
@@ -258,7 +307,7 @@ public static class ReloadRetarget
         Vector3 OursIn(Vector3 world) => Quaternion.Inverse(weapon.rotation) * (world - weapon.position);
 
         var weaponSkin = source.WeaponAnimated.GetComponentInChildren<SkinnedMeshRenderer>(true);
-        Bounds sourceMag = PartBounds(weaponSkin, "Mag", source.Weapon);
+        Bounds sourceMag = PartBounds(weaponSkin, entry.Mag, source.Weapon);
         Bounds sourceGun = PartBounds(weaponSkin, null, source.Weapon);
         Bounds ourMag = magazine.GetComponent<Renderer>().bounds;
         Vector3 ourMagCentre = OursIn(ourMag.center);
@@ -288,7 +337,7 @@ public static class ReloadRetarget
         var gunPosition = new Vector3[count];
         var gunRotation = new Quaternion[count];
         var fingers = new Vector3[count][][];
-        Transform magBone = source.Part("Mag"), chargeBone = source.Part("Charge");
+        Transform magBone = source.Part(entry.Mag), chargeBone = source.Part(entry.Charge);
         Vector3 magCentreInBone = Vector3.zero;
         for (int k = 0; k < count; k++)
         {
@@ -411,7 +460,7 @@ public static class ReloadRetarget
         float boltBack = 0.085f;
         foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(clip))
         {
-            if (binding.path == "Motion/Weapon/Bolt" && binding.propertyName == "m_LocalPosition.z")
+            if (binding.path == boltPath && binding.propertyName == "m_LocalPosition.z")
             {
                 Keyframe[] keys = AnimationUtility.GetEditorCurve(clip, binding).keys;
                 float travel = bolt.localPosition.z - keys.Min(key => key.value);
@@ -545,7 +594,7 @@ public static class ReloadRetarget
         Track("Motion/Weapon/Magazine", typeof(MeshRenderer), "m_Enabled", k => k < swapKey ? 1f : 0f, true);
         Track("Motion/Weapon/ReplacementMagazine", typeof(MeshRenderer), "m_Enabled", k => k < swapKey ? 0f : 1f, true);
         if (empty)
-            Track("Motion/Weapon/Bolt", typeof(Transform), "m_LocalPosition.z", k => bolt.localPosition.z - boltTravel[k] * boltBack);
+            Track(boltPath, typeof(Transform), "m_LocalPosition.z", k => bolt.localPosition.z - boltTravel[k] * boltBack);
 
         for (int i = 0; i < 5; i++)
         {

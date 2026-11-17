@@ -75,7 +75,9 @@ public static class GunBlockoutSetup
             Mode = FireMode.SemiAuto, Sight = 0.095f, Muzzle = new Vector3(0f, 0.065f, 0.785f), Left = new Vector3(0.007f, 0.020f, 0.380f),
             AimCloser = -0.06f },
         new() { Name = "M4", Key = "item.m4", Source = CB1 + "AR Weapons/AR_A.prefab", Reference = "AK47",
-            Sight = 0.178f, Muzzle = new Vector3(0f, 0.080f, 0.765f), Left = new Vector3(0.007f, 0.069f, 0.330f), AimCloser = -0.18f },
+            Sight = 0.178f, Muzzle = new Vector3(0f, 0.080f, 0.765f), Left = new Vector3(0.007f, 0.069f, 0.330f), AimCloser = -0.28f },
+        new() { Name = "SCAR", Key = "item.scar", Source = CB1 + "AR Weapons/AR_C.prefab", Reference = "AK47",
+            Sight = 0.185f, Muzzle = new Vector3(0f, 0.085f, 0.668f), Left = new Vector3(0.007f, 0.070f, 0.330f), AimCloser = -0.12f },
         new() { Name = "FAL", Key = "item.fal", Source = CB3 + "Weapons_DMR/DMR_L.prefab", Reference = "AK47", Ammo = "HeavyAmmo",
             Mode = FireMode.SemiAuto, Sight = 0.120f, Muzzle = new Vector3(0f, 0.053f, 0.838f), Left = new Vector3(0.007f, 0.063f, 0.400f),
             AimCloser = -0.22f },
@@ -150,6 +152,9 @@ public static class GunBlockoutSetup
 
     // ---- Block-outs ----
 
+    // One gun of the table by name.
+    public static string One(string name) => Build(Guns.First(gun => gun.Name == name));
+
     public static string Blockouts()
     {
         var report = new StringBuilder();
@@ -161,6 +166,10 @@ public static class GunBlockoutSetup
     static string Build(Gun gun)
     {
         string folder = Weapons + gun.Name;
+        // A gun GunAnimateSetup has animated keeps its prefab: a rebuild would drop the grafted layout.
+        var built = AssetDatabase.LoadAssetAtPath<GameObject>($"{folder}/{gun.Name}.prefab");
+        if (built != null && built.GetComponentInChildren<GunAnimation>(true) != null)
+            return gun.Name + ": animated, left alone";
         Directory.CreateDirectory(folder);
         GunDefinition definition = CopiedAsset(gun.Name, gun.Reference);
         string path = $"{folder}/{gun.Name}.prefab";

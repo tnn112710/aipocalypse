@@ -21,20 +21,48 @@ namespace MB13.Aipocalypse.Core.HandSystem
         [SerializeField, Range(0.8f, 1f), Tooltip("Longest reach as a share of the arm's length; past it the shoulder follows the hand")]
         float _maxReach = 0.97f;
         [SerializeField, Range(0f, 1f), Tooltip("How far the elbow swings from the elbow point to behind the hand, where the wrist is straight. 0 = always towards the elbow point")]
-        float _wristShare = 0.4f;
+        float _wristShare = 0.8f;
+        [SerializeField, Range(0f, 1f), Tooltip("How far the shoulder gives way towards where a straight wrist would hang the arm from. 0 = the shoulder point never moves")]
+        float _shoulderGive = 0.7f;
+        [SerializeField, Min(0f), Tooltip("The farthest the shoulder gives way (m)")]
+        float _maxGive = 0.15f;
+        [SerializeField, Tooltip("The most it gives way upwards and forwards in the viewer's frame (m): more brings the upper arm into view")]
+        Vector2 _giveIntoView = new(0.02f, 0.02f);
+        [SerializeField, Tooltip("The most the wrist share lifts the elbow upwards and forwards from where the elbow point puts it (m)")]
+        Vector2 _elbowIntoView = new(0.08f, 0.08f);
         [SerializeField, HideInInspector] Quaternion _handRest = Quaternion.identity;
         [SerializeField, HideInInspector] Quaternion _twistRest = Quaternion.identity;
 
         public Transform Hand => _hand;
 
         // Puts the hand bone at this pose. The elbow bends towards `elbow`; a hand out of reach pulls the shoulder along.
-        public void Solve(Vector3 shoulder, Vector3 elbow, Vector3 handPosition, Quaternion handRotation)
+        public void Solve(Vector3 shoulder, Vector3 elbow, Vector3 handPosition, Quaternion handRotation) =>
+            Solve(shoulder, elbow, handPosition, handRotation, Quaternion.identity);
+
+        // `frame` is the viewer's rotation: it tells which way is up and forward for the shoulder's give.
+        public void Solve(Vector3 shoulder, Vector3 elbow, Vector3 handPosition, Quaternion handRotation, Quaternion frame)
         {
             if (_upper == null || _lower == null || _hand == null)
                 return;
 
             float upperLength = Vector3.Distance(_upper.position, _lower.position);
             float lowerLength = Vector3.Distance(_lower.position, _hand.position);
+            // Where the forearm comes from when the wrist is straight.
+            Vector3 forearm = handRotation * Quaternion.Inverse(_handRest) * _hand.localPosition.normalized;
+            if (_shoulderGive > 0f)
+            {
+                // The nearest shoulder that a straight wrist's elbow could hang from.
+                Vector3 straightElbow = handPosition - forearm * lowerLength;
+                Vector3 fromElbow = shoulder - straightElbow;
+                if (fromElbow.sqrMagnitude > 1e-8f)
+                {
+                    Vector3 give = Vector3.ClampMagnitude((straightElbow + fromElbow.normalized * upperLength - shoulder) * _shoulderGive, _maxGive);
+                    give = Quaternion.Inverse(frame) * give;
+                    give.y = Mathf.Min(give.y, _giveIntoView.x);
+                    give.z = Mathf.Min(give.z, _giveIntoView.y);
+                    shoulder += frame * give;
+                }
+            }
             Vector3 reach = handPosition - shoulder;
             float distance = reach.magnitude;
             if (distance < 1e-5f)
@@ -56,11 +84,33 @@ namespace MB13.Aipocalypse.Core.HandSystem
             if (_wristShare > 0f && height > 1e-4f)
             {
                 // The elbow a straight wrist asks for; it counts less the nearer it sits to the shoulder-hand line.
-                Vector3 forearm = handRotation * Quaternion.Inverse(_handRest) * _hand.localPosition.normalized;
                 Vector3 relaxed = Vector3.ProjectOnPlane(handPosition - forearm * lowerLength - shoulder, direction) / height;
                 Vector3 leaning = Vector3.Lerp(side, Vector3.ClampMagnitude(relaxed, 1f), _wristShare);
                 if (leaning.sqrMagnitude > 1e-6f)
-                    side = leaning.normalized;
+                {
+                    // As far towards it as keeps the elbow from rising or coming forward into view.
+                    Vector3 hinted = side, wanted = leaning.normalized;
+                    Quaternion toFrame = Quaternion.Inverse(frame);
+                    bool Shows(Vector3 swung)
+                    {
+                        Vector3 moved = toFrame * ((swung - hinted) * height);
+                        return moved.y > _elbowIntoView.x || moved.z > _elbowIntoView.y;
+                    }
+                    side = wanted;
+                    if (Shows(wanted))
+                    {
+                        float low = 0f, high = 1f;
+                        for (int i = 0; i < 6; i++)
+                        {
+                            float middle = (low + high) * 0.5f;
+                            if (Shows(Vector3.Slerp(hinted, wanted, middle)))
+                                high = middle;
+                            else
+                                low = middle;
+                        }
+                        side = Vector3.Slerp(hinted, wanted, low);
+                    }
+                }
             }
             Vector3 elbowPosition = shoulder + direction * along + side * height;
             Vector3 hinge = Vector3.Cross(side, direction);

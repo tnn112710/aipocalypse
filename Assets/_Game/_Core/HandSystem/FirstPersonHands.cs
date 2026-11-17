@@ -66,7 +66,7 @@ namespace MB13.Aipocalypse.Core.HandSystem
             Vector3 elbow = _view != null ? item.Carry(_view.TransformPoint(_set.Elbow(hand.Side))) : item.transform.position;
             grip.Resolve(hand.Rig, elbow, out Vector3 position, out Quaternion rotation);
             Vector3 shoulder = _view != null ? item.Carry(_view.TransformPoint(_set.Shoulder(hand.Side))) : elbow;
-            hand.Rig.Place(position, rotation, shoulder, elbow);
+            hand.Rig.Place(position, rotation, shoulder, elbow, _view != null ? _view.rotation : Quaternion.identity);
             hand.Rig.Apply(grip.Shape);
             hand.Rig.SetVisible(true);
         }

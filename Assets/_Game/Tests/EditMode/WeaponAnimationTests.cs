@@ -14,15 +14,20 @@ namespace MB13.Aipocalypse.Tests
         GunAnimation _animation;
         Transform _root;
 
-        [TestCase("MP5", false, 3)]
-        [TestCase("MP5", true, 4)]
-        [TestCase("Pistol", false, 3)]
-        [TestCase("Pistol", true, 4)]
-        [TestCase("PumpShotgun", false, 3)]
-        [TestCase("PumpShotgun", true, 4)]
-        [TestCase("DoubleBarrel", false, 3)]
-        [TestCase("DoubleBarrel", true, 4)]
-        public void RepairSlapsAndEarlyReturnWorkForEachWeapon(string name, bool stubborn, int expected)
+        // Impacts in the whole clip, and by 55 % of it. Magazine guns: generated Reseat / Rack; shotguns: hand-keyed slaps.
+        [TestCase("MP5", false, 2, 1)]
+        [TestCase("MP5", true, 3, 1)]
+        [TestCase("Pistol", false, 2, 1)]
+        [TestCase("Pistol", true, 3, 1)]
+        [TestCase("M4", false, 2, 1)]
+        [TestCase("SCAR", true, 3, 1)]
+        [TestCase("Glock17", false, 2, 1)]
+        [TestCase("DesertEagle", true, 3, 1)]
+        [TestCase("PumpShotgun", false, 3, 2)]
+        [TestCase("PumpShotgun", true, 4, 2)]
+        [TestCase("DoubleBarrel", false, 3, 2)]
+        [TestCase("DoubleBarrel", true, 4, 2)]
+        public void RepairSlapsAndEarlyReturnWorkForEachWeapon(string name, bool stubborn, int expected, int byHalf)
         {
             Load(name);
             int impacts = 0;
@@ -32,16 +37,53 @@ namespace MB13.Aipocalypse.Tests
                 _animation.Tick(1f / 60f, i / 240f);
             Assert.That(impacts, Is.EqualTo(expected));
             _animation.StartAction(GunAction.ClearingJam, false, stubborn);
-            _animation.Tick(0.1f, 0.5f);
-            Assert.That(impacts, Is.EqualTo(expected + 2));
+            _animation.Tick(0.1f, 0.55f);
+            Assert.That(impacts, Is.EqualTo(expected + byHalf));
             var hand = _root.Find("Motion/HandTargets/Left");
             Vector3 start = hand.position;
             _animation.FinishRepair();
             _animation.Tick(0.001f, 0f);
             Assert.That(Vector3.Distance(hand.position, start), Is.LessThan(0.005f));
             _animation.Tick(0.4f, 0f);
-            Assert.That(impacts, Is.EqualTo(expected + 2));
+            Assert.That(impacts, Is.EqualTo(expected + byHalf));
             Assert.That(_animation.State, Is.EqualTo(GunClip.Idle));
+        }
+
+        // Without the layer's rig the hand targets never follow their constraints: the hand stays on the forend.
+        [TestCase("AK47")]
+        [TestCase("AK74M")]
+        [TestCase("MP5")]
+        [TestCase("Pistol")]
+        [TestCase("M4")]
+        [TestCase("SCAR")]
+        [TestCase("Glock17")]
+        [TestCase("DesertEagle")]
+        [TestCase("PumpShotgun")]
+        [TestCase("DoubleBarrel")]
+        public void RigBuilderLayerPointsAtTheGunsRig(string name)
+        {
+            Load(name);
+            var layers = new SerializedObject(_root.GetComponent("RigBuilder")).FindProperty("m_RigLayers");
+            Assert.That(layers.arraySize, Is.EqualTo(1));
+            var rig = layers.GetArrayElementAtIndex(0).FindPropertyRelative("m_Rig").objectReferenceValue as Component;
+            Assert.That(rig, Is.Not.Null);
+            Assert.That(rig.transform, Is.EqualTo(_root.Find("Rig")));
+        }
+
+        // The rifles reload below the screen edge at the hip: they need a work pose, a sibling of Hip that differs from it.
+        [TestCase("AK47")]
+        [TestCase("AK74M")]
+        [TestCase("M4")]
+        [TestCase("SCAR")]
+        public void RiflesHaveAWorkPose(string name)
+        {
+            Load(name);
+            var held = new SerializedObject(_item.GetComponent<HeldGun>());
+            var work = held.FindProperty("_workPose").objectReferenceValue as Transform;
+            var hip = held.FindProperty("_hipPose").objectReferenceValue as Transform;
+            Assert.That(work, Is.Not.Null);
+            Assert.That(work.parent, Is.EqualTo(hip.parent));
+            Assert.That(Vector3.Distance(work.localPosition, hip.localPosition), Is.GreaterThan(0.01f));
         }
 
         void Load(string name)
@@ -61,6 +103,8 @@ namespace MB13.Aipocalypse.Tests
 
         [TestCase("MP5")]
         [TestCase("Pistol")]
+        [TestCase("Glock17")]
+        [TestCase("DesertEagle")]
         [TestCase("PumpShotgun")]
         [TestCase("DoubleBarrel")]
         public void AllClipsBindAndHandsKeepTheSameScale(string name)
@@ -98,12 +142,7 @@ namespace MB13.Aipocalypse.Tests
             }
         }
 
-        [TestCase("MP5", false, 0.2f, "Magazine")]
-        [TestCase("MP5", false, 0.5f, "ReplacementMagazine")]
-        [TestCase("MP5", true, 0.81f, "Bolt")]
-        [TestCase("Pistol", false, 0.2f, "Magazine")]
-        [TestCase("Pistol", false, 0.5f, "ReplacementMagazine")]
-        [TestCase("Pistol", true, 0.81f, "Slide")]
+        // Hand-keyed reloads only: retargeted ones carry the hand on LeftFree all the way (GunAnimationTests covers the AK47).
         [TestCase("PumpShotgun", false, 0.5f, "Shells")]
         [TestCase("DoubleBarrel", false, 0.5f, "Hinge/Shells")]
         public void ReloadHandFollowsItsPartAfterTheAutomaticAnimatorPass(string name, bool empty, float progress, string part)
@@ -122,6 +161,10 @@ namespace MB13.Aipocalypse.Tests
 
         [TestCase("MP5")]
         [TestCase("Pistol")]
+        [TestCase("M4")]
+        [TestCase("SCAR")]
+        [TestCase("Glock17")]
+        [TestCase("DesertEagle")]
         [TestCase("PumpShotgun")]
         [TestCase("DoubleBarrel")]
         public void SlapAndInterruptedReloadRestoreTheMechanicalParts(string name)
@@ -135,7 +178,9 @@ namespace MB13.Aipocalypse.Tests
             _animation.StartAction(GunAction.ClearingJam, false);
             _animation.Tick(0.01f, 0.43f);
             AssertContact("Motion/Controls/LeftFree");
-            for (int i = 0; i < parts.Length; i++)
+            // A slap leaves the parts alone; the generated Reseat tugs the magazine.
+            bool slaps = name == "PumpShotgun" || name == "DoubleBarrel";
+            for (int i = 0; slaps && i < parts.Length; i++)
             {
                 Assert.That(Vector3.Distance(parts[i].localPosition, positions[i]), Is.LessThan(0.0001f));
                 Assert.That(Quaternion.Angle(parts[i].localRotation, rotations[i]), Is.LessThan(0.1f));

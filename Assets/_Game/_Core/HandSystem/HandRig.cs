@@ -44,7 +44,11 @@ namespace MB13.Aipocalypse.Core.HandSystem
 
         // Puts the grip point at this pose: the arm reaches for it from the shoulder, bending towards the elbow point.
         // A hand without an arm just moves there.
-        public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow)
+        public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow) =>
+            Place(position, rotation, shoulder, elbow, Quaternion.identity);
+
+        // `frame`: the viewer's rotation (ArmRig.Solve).
+        public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow, Quaternion frame)
         {
             if (_arm == null)
             {
@@ -55,7 +59,7 @@ namespace MB13.Aipocalypse.Core.HandSystem
             Transform hand = _arm.Hand;
             Quaternion inverseHand = Quaternion.Inverse(hand.rotation);
             Quaternion handRotation = rotation * Quaternion.Inverse(inverseHand * grip.rotation);
-            _arm.Solve(shoulder, elbow, position - handRotation * (inverseHand * (grip.position - hand.position)), handRotation);
+            _arm.Solve(shoulder, elbow, position - handRotation * (inverseHand * (grip.position - hand.position)), handRotation, frame);
         }
 
         // Moves the whole hand so its grip point sits at this pose.

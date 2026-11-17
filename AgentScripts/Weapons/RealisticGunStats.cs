@@ -44,6 +44,7 @@ public static class RealisticGunStats
         new() { Gun = "DesertEagle", BulletGrams = 19.4f, Velocity = 470f, EffectiveRange = 50f, LoadedKg = 2f, PowderGrams = 1.9f, ReloadSeconds = 2f, Magazine = 7, RoundsPerMinute = 180f },
         new() { Gun = "Uzi", BulletGrams = 8f, Velocity = 400f, EffectiveRange = 150f, LoadedKg = 3.8f, PowderGrams = 0.4f, ReloadSeconds = 2.5f, Magazine = 32, RoundsPerMinute = 600f },
         new() { Gun = "M1Carbine", BulletGrams = 7.1f, Velocity = 600f, EffectiveRange = 300f, LoadedKg = 2.6f, PowderGrams = 0.9f, ReloadSeconds = 2f, Magazine = 15, RoundsPerMinute = 450f },
+        new() { Gun = "SCAR", BulletGrams = 4f, Velocity = 870f, EffectiveRange = 500f, LoadedKg = 3.6f, PowderGrams = 1.6f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 625f },
         new() { Gun = "M4", BulletGrams = 4f, Velocity = 880f, EffectiveRange = 500f, LoadedKg = 3.4f, PowderGrams = 1.6f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 800f },
         new() { Gun = "AK74M", BulletGrams = 3.4f, Velocity = 900f, EffectiveRange = 500f, LoadedKg = 3.9f, PowderGrams = 1.45f, ReloadSeconds = 2.5f, Magazine = 30, RoundsPerMinute = 650f },
         new() { Gun = "FAL", BulletGrams = 9.5f, Velocity = 840f, EffectiveRange = 600f, LoadedKg = 4.8f, PowderGrams = 2.9f, ReloadSeconds = 2.8f, Magazine = 20, RoundsPerMinute = 400f },
