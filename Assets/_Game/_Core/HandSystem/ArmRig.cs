@@ -30,6 +30,8 @@ namespace MB13.Aipocalypse.Core.HandSystem
         Vector2 _giveIntoView = new(0.02f, 0.02f);
         [SerializeField, Tooltip("The most the wrist share lifts the elbow upwards and forwards from where the elbow point puts it (m)")]
         Vector2 _elbowIntoView = new(0.08f, 0.08f);
+        [SerializeField, Min(0f), Tooltip("The most the wrist share swings the elbow in towards the middle of the body (m): more folds the arm across the chest")]
+        float _elbowInward = 0.06f;
         [SerializeField, HideInInspector] Quaternion _handRest = Quaternion.identity;
         [SerializeField, HideInInspector] Quaternion _twistRest = Quaternion.identity;
 
@@ -88,13 +90,15 @@ namespace MB13.Aipocalypse.Core.HandSystem
                 Vector3 leaning = Vector3.Lerp(side, Vector3.ClampMagnitude(relaxed, 1f), _wristShare);
                 if (leaning.sqrMagnitude > 1e-6f)
                 {
-                    // As far towards it as keeps the elbow from rising or coming forward into view.
+                    // As far towards it as keeps the elbow from rising, coming forward into view or folding across the body
+                    // (inward is away from the side the elbow point hangs out to).
                     Vector3 hinted = side, wanted = leaning.normalized;
                     Quaternion toFrame = Quaternion.Inverse(frame);
+                    float inward = (toFrame * hinted).x > 0f ? -1f : 1f;
                     bool Shows(Vector3 swung)
                     {
                         Vector3 moved = toFrame * ((swung - hinted) * height);
-                        return moved.y > _elbowIntoView.x || moved.z > _elbowIntoView.y;
+                        return moved.y > _elbowIntoView.x || moved.z > _elbowIntoView.y || moved.x * inward > _elbowInward;
                     }
                     side = wanted;
                     if (Shows(wanted))
