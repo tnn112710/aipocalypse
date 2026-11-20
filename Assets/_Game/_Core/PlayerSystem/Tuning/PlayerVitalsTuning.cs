@@ -11,7 +11,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         [Header("Stamina"), SerializeField, Min(1f)] float _maxStamina = 100f;
         [SerializeField, Min(0f)] float _staminaRegenPerSecond = 18f;
-        [SerializeField, Min(0f), Tooltip("Seconds standing idle after the last spend before regen starts")]
+        [SerializeField, Range(0f, 1f), Tooltip("Share of the regen rate while walking (crouch walking too); standing still gets all of it")]
+        float _walkRegenShare = 0.5f;
+        [SerializeField, Min(0f), Tooltip("Seconds standing or walking after the last spend before regen starts")]
         float _staminaRegenDelay = 1f;
         [SerializeField, Range(0f, 1f), Tooltip("Exhausted at 0: no sprint or jump until stamina refills to this fraction")]
         float _exhaustionRecoverFraction = 0.3f;
@@ -33,6 +35,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float MaxStamina => _maxStamina;
         public float StaminaRegenPerSecond => _staminaRegenPerSecond;
         public float StaminaRegenDelay => _staminaRegenDelay;
+        public float WalkRegenShare => _walkRegenShare;
         public float ExhaustionRecoverFraction => _exhaustionRecoverFraction;
         public float WindedTime => _windedTime;
         public BreathingSettings Breathing => _breathing;

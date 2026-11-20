@@ -95,6 +95,7 @@ What to check and what fixes it:
 | Support arm straight, hand only reaching the front of the gun | The forend is out of reach at that pose: bring the pose closer to the eye (MP5 hip z -0.36), don't move the contact off the handguard |
 | Support fingers drape over the barrel | The hold from the pack sits on the side with the fingers over the top: `HoldLike.Apply(gun, "AK47")` (palm under the forend; it rebases the gun's clips) |
 | Hands fill the ADS view | The Aim pose is too close: pistols at z -0.22, rifles about -0.4 to -0.68 |
+| Support wrist cocked at the hip, forearm rising almost straight up into the hand | The hold wants its forearm along the barrel: the left arms' `ArmRig > Turn To Arm` (15°, 35°) turns the hand on the forend to meet the arm (HANDS.md → Wrist comfort). Measure with a probe (forearm vs `hand.rotation * inverse(_handRest) * hand.localPosition`); more roll puts fingertips over the rail |
 | Hand folded at the wrist, forearm arriving from above | The solver gives way for the wrist (HANDS.md → Wrist comfort: `_shoulderGive`, `_wristShare`, and their into-view caps). If it is capped out, the hold itself is turned wrong: re-author or roll the hold, do not loosen the caps |
 | Upper arm or elbow blob at the bottom of the hip view | The caps are too loose (`_giveIntoView`, `_elbowIntoView`), or a grip authored for the floating hands asks for an arm from in front |
 | Palm sinks into the gun | `HandRig._palmThickness` (0.028 for the Sidekick arms), then re-bake |

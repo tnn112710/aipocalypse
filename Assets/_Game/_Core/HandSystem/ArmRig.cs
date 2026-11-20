@@ -32,6 +32,12 @@ namespace MB13.Aipocalypse.Core.HandSystem
         Vector2 _elbowIntoView = new(0.08f, 0.08f);
         [SerializeField, Min(0f), Tooltip("The most the wrist share swings the elbow in towards the middle of the body (m): more folds the arm across the chest")]
         float _elbowInward = 0.06f;
+        [SerializeField, Tooltip("The most the hand turns on its grip to meet the arm (degrees): x round the held part (grip Z), " +
+            "y flat on the palm (grip Y). Never tilts the palm off the part. 0 = the hold exactly as authored")]
+        Vector2 _turnToArm;
+        [SerializeField, Min(0f), Tooltip("From the grip point to the middle of the held part (m): the hand rolls round that line, " +
+            "so the fingers stay wrapped round the part")]
+        float _turnRadius = 0.04f;
         [SerializeField, HideInInspector] Quaternion _handRest = Quaternion.identity;
         [SerializeField, HideInInspector] Quaternion _twistRest = Quaternion.identity;
 
@@ -40,6 +46,15 @@ namespace MB13.Aipocalypse.Core.HandSystem
         // Puts the hand bone at this pose. The elbow bends towards `elbow`; a hand out of reach pulls the shoulder along.
         public void Solve(Vector3 shoulder, Vector3 elbow, Vector3 handPosition, Quaternion handRotation) =>
             Solve(shoulder, elbow, handPosition, handRotation, Quaternion.identity);
+
+        // `grip` is the pose of the point the hand holds by (HandRig's grip point): the hand may turn round it (_turnToArm).
+        public void Solve(Vector3 shoulder, Vector3 elbow, Vector3 handPosition, Quaternion handRotation, Quaternion frame,
+            Vector3 gripPosition, Quaternion grip)
+        {
+            if (_turnToArm != Vector2.zero && _upper != null && _lower != null && _hand != null)
+                TurnToArm(shoulder, elbow, gripPosition, grip, ref handPosition, ref handRotation);
+            Solve(shoulder, elbow, handPosition, handRotation, frame);
+        }
 
         // `frame` is the viewer's rotation: it tells which way is up and forward for the shoulder's give.
         public void Solve(Vector3 shoulder, Vector3 elbow, Vector3 handPosition, Quaternion handRotation, Quaternion frame)
@@ -131,6 +146,47 @@ namespace MB13.Aipocalypse.Core.HandSystem
             {
                 Quaternion turned = _hand.localRotation * Quaternion.Inverse(_handRest);
                 _lowerTwist.localRotation = Quaternion.Slerp(Quaternion.identity, Twist(turned, _hand.localPosition.normalized), _twistShare) * _twistRest;
+            }
+        }
+
+        // Turns the hand round its grip point so a straight wrist's forearm points more towards where the plain two-bone
+        // elbow (shoulder and elbow point only) puts it: a hold authored for another arm still meets this one without
+        // folding the wrist. Flat on the palm (about the hold's palm normal), then round the held part (about its axis):
+        // the palm never tilts off the part. Each within _turnToArm.
+        void TurnToArm(Vector3 shoulder, Vector3 elbow, Vector3 gripPosition, Quaternion grip, ref Vector3 handPosition, ref Quaternion handRotation)
+        {
+            float upperLength = Vector3.Distance(_upper.position, _lower.position);
+            float lowerLength = Vector3.Distance(_lower.position, _hand.position);
+            Vector3 palm = grip * Vector3.up, part = grip * Vector3.forward;
+            Vector3 middle = gripPosition - palm * _turnRadius;
+            Vector3 heldOffset = handPosition - gripPosition;
+            Quaternion heldRotation = handRotation;
+            float yaw = 0f, roll = 0f;
+            for (int i = 0; i < 3; i++)
+            {
+                Vector3 reach = handPosition - shoulder;
+                if (reach.sqrMagnitude < 1e-8f)
+                    return;
+                float distance = Mathf.Clamp(reach.magnitude, Mathf.Abs(upperLength - lowerLength) + 1e-4f, upperLength + lowerLength);
+                Vector3 direction = reach.normalized;
+                float along = (upperLength * upperLength - lowerLength * lowerLength + distance * distance) / (2f * distance);
+                float height = Mathf.Sqrt(Mathf.Max(upperLength * upperLength - along * along, 0f));
+                Vector3 side = Vector3.ProjectOnPlane(elbow - shoulder, direction);
+                side = side.sqrMagnitude > 1e-8f ? side.normalized : Vector3.ProjectOnPlane(Vector3.down, direction).normalized;
+                Vector3 natural = handPosition - (shoulder + direction * along + side * height);
+                Vector3 straight = handRotation * Quaternion.Inverse(_handRest) * _hand.localPosition.normalized;
+
+                // The turn that would line them up, split into its parts about the palm normal and the part's axis.
+                Quaternion.FromToRotation(straight, natural).ToAngleAxis(out float angle, out Vector3 axis);
+                if (angle > 180f)
+                    angle -= 360f;
+                Quaternion turned = Quaternion.AngleAxis(roll, part);
+                yaw = Mathf.Clamp(yaw + Vector3.Dot(axis, turned * palm) * angle, -_turnToArm.y, _turnToArm.y);
+                roll = Mathf.Clamp(roll + Vector3.Dot(axis, part) * angle, -_turnToArm.x, _turnToArm.x);
+
+                Quaternion rolled = Quaternion.AngleAxis(roll, part), yawed = Quaternion.AngleAxis(yaw, palm);
+                handPosition = middle + rolled * (gripPosition + yawed * heldOffset - middle);
+                handRotation = rolled * yawed * heldRotation;
             }
         }
 

@@ -20,6 +20,12 @@ MonoBehaviour:
   _groundAcceleration: 10
   _groundDeceleration: 12
   _airAcceleration: 1.5
+  _crouchHeight: 1.2
+  _crouchSpeedMultiplier: 0.5
+  _crouchTransitionTime: 0.15
+  _standUpBlockers:
+    serializedVersion: 2
+    m_Bits: 4294967291
   _jumpHeight: 1.1
   _gravity: 22
   _maxFallSpeed: 50
@@ -33,7 +39,7 @@ MonoBehaviour:
   _heavyLandingHeight: 2
   _heavyLandingSpeedMultiplier: 0.5
   _heavyLandingRecoveryTime: 0.4
-  _walkStaminaPerSecond: 2
-  _sprintStaminaPerSecond: 12
+  _walkStaminaPerSecond: 0
+  _sprintStaminaPerSecond: 10
   _jumpStaminaCost: 12
   _idleMaxSpeed: 0.2

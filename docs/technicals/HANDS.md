@@ -118,7 +118,7 @@ The forend hold keeps its place on the gun and takes the other gun's hand rotati
 
 ## Wrist comfort
 
-Clips and grips say where the hand is and how it is turned; nothing in them knows where the forearm is. With a fixed shoulder and an elbow that only follows its hint, the forearm often arrived from above or the side and the hand folded at the wrist (measured 2026-11-16: AK47 idle 69° left and 78° right, reload peaks near 150°). `ArmRig.Solve` now gives way for the wrist in two steps, both capped so the arm does not swing into view:
+Clips and grips say where the hand is and how it is turned; nothing in them knows where the forearm is. With a fixed shoulder and an elbow that only follows its hint, the forearm often arrived from above or the side and the hand folded at the wrist (measured 2026-11-16: AK47 idle 69° left and 78° right, reload peaks near 150°). `ArmRig.Solve` now gives way for the wrist in three steps, each capped so the arm does not swing into view or the hand off the part:
 
 | ArmRig field | Value | Meaning |
 | --- | --- | --- |
@@ -127,8 +127,12 @@ Clips and grips say where the hand is and how it is turned; nothing in them know
 | `_giveIntoView` | (0.02, 0.02) m | The most of that upwards and forwards, in the viewer's frame (`FirstPersonHands` passes the view rotation) |
 | `_wristShare` | 0.8 right, 0.6 left | How far the elbow swings from its hint to behind the hand |
 | `_elbowIntoView` | (0.08, 0.08) m | The most that swing lifts the elbow upwards and forwards |
+| `_elbowInward` | 0.06 m | The most that swing moves the elbow in towards the body's middle (more folds the arm across the chest) |
+| `_turnToArm` | (15°, 35°) left, 0 right | Before the solve: the most the hand turns on its grip to meet the arm, round the held part (x) and flat on the palm (y) |
+| `_turnRadius` | 0.05 m | From the grip point to the held part's middle line: the hand rolls round that line, so the fingers stay wrapped |
 
-After it: idle wrists 5 to 30° on most guns, means of 10 to 30° through reloads. What the caps leave bent, because the hand pose itself asks for an arm from above or in front: the AK47's trigger hand (about 70°, mostly out of view), the Rack repair on the M4, SCAR and Desert Eagle (60 to 130°), the double barrel's reload (about 60°). Those need the hold turned, not the solver: for a generated Rack, roll the bolt hold round the handle towards the elbow (what `GripAim.TowardElbow` does for static grips).
+**The hand turns on its grip (`_turnToArm`).** The retargeted forend holds come from the pack's arms: their straight wrist wants a forearm running along the barrel, while ours comes from the lower left. Without the turn the left wrist folded 26 to 40° at the hip (AK47 36°, M4 35°, MP5 26°, measured 2026-11-21), the forearm rising almost straight up into a cocked hand. `ArmRig.TurnToArm` finds where the plain two-bone elbow (shoulder and elbow points only) puts the forearm and turns the hand towards it: first flat on the palm (round the hold's palm normal, grip Y), then round the held part (its axis, grip Z, through a line `_turnRadius` below the grip point). It never tilts the palm along the part, so the hand stays on it, and it works on every gun, pose and clip without touching a hold. With (15°, 35°): AK47 14°, M4 11°, SCAR 11°, MP5 16°, and the forearm reads as one straight line into the hand. More roll (30°) straightens further but puts the palm on the forend's left side with the fingertips over the top of the rail; rolling round the grip point instead of the part's middle lifted the fingers off the part. The right hand stays at 0: turning it round the pistol grip moves the trigger finger.
+After it: idle wrists 5 to 30° on most guns, means of 10 to 30° through reloads. What the caps leave bent, because the hand pose itself asks for an arm from above or in front: the AK47's trigger hand (about 70°, mostly out of view), the Rack repair on the M4, SCAR and Desert Eagle (60 to 130°), the double barrel's reload (about 60°). Those need the hold turned, not the solver (`_turnToArm` turns a hand only a little, and not the right one): for a generated Rack, roll the bolt hold round the handle towards the elbow (what `GripAim.TowardElbow` does for static grips).
 
 Looser caps straighten more and show more arm: with no caps the wrists are straight and the double barrel's upper arm fills the lower half of the hip view. Measure with a play-mode probe (the angle between the forearm and `hand.rotation * inverse(_handRest) * hand.localPosition`) rather than by eye.
 

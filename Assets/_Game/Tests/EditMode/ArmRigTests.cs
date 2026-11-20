@@ -32,6 +32,7 @@ namespace MB13.Aipocalypse.Tests
             var plain = new SerializedObject(_rig.GetComponent<ArmRig>());
             plain.FindProperty("_wristShare").floatValue = 0f;
             plain.FindProperty("_shoulderGive").floatValue = 0f;
+            plain.FindProperty("_turnToArm").vector2Value = Vector2.zero;
             plain.ApplyModifiedPropertiesWithoutUndo();
             float sign = side == "Left" ? -1f : 1f;
             Vector3 shoulder = new(0.2f * sign, -0.4f, 0f);
@@ -66,6 +67,9 @@ namespace MB13.Aipocalypse.Tests
             Transform upper = hand.parent.parent;
             float upperLength = Vector3.Distance(upper.position, hand.parent.position);
             float lowerLength = Vector3.Distance(hand.parent.position, hand.position);
+            var so = new SerializedObject(_rig.GetComponent<ArmRig>());
+            so.FindProperty("_turnToArm").vector2Value = Vector2.zero;
+            so.ApplyModifiedPropertiesWithoutUndo();
 
             _rig.Place(far, Quaternion.identity, shoulder, shoulder + Vector3.down);
 
@@ -86,6 +90,8 @@ namespace MB13.Aipocalypse.Tests
             var arm = _rig.GetComponent<ArmRig>();
             var so = new SerializedObject(arm);
             Quaternion rest = so.FindProperty("_handRest").quaternionValue;
+            // The swing alone: this hold wants the elbow tucked in, which the inward cap would stop.
+            so.FindProperty("_elbowInward").floatValue = 1f;
 
             float Bend(float share)
             {
@@ -96,6 +102,48 @@ namespace MB13.Aipocalypse.Tests
             }
 
             Assert.That(Bend(1f), Is.LessThan(Bend(0f) - 5f));
+        }
+
+        [TestCase("Left")]
+        [TestCase("Right")]
+        public void Place_TurnToArm_StraightensTheWristTurningOnlyRoundThePartAndFlatOnThePalm(string side)
+        {
+            Load(side);
+            float sign = side == "Left" ? -1f : 1f;
+            Vector3 shoulder = new(0.25f * sign, -0.27f, -0.08f);
+            Vector3 elbow = new(0.3f * sign, -0.6f, 0.2f);
+            Vector3 target = new(-0.08f * sign, -0.28f, 0.39f);
+            var arm = _rig.GetComponent<ArmRig>();
+            var so = new SerializedObject(arm);
+            Quaternion rest = so.FindProperty("_handRest").quaternionValue;
+            so.FindProperty("_wristShare").floatValue = 0f;
+            so.FindProperty("_shoulderGive").floatValue = 0f;
+            // A forend hold whose straight wrist wants the forearm along the barrel, as the retargeted holds do.
+            Vector3 axis = arm.Hand.localPosition.normalized;
+            Quaternion handRotation = Quaternion.FromToRotation(Quaternion.Inverse(rest) * axis, new Vector3(0.1f * -sign, 0f, 1f).normalized);
+            Quaternion grip = handRotation * (Quaternion.Inverse(arm.Hand.rotation) * _rig.GripPoint.rotation);
+
+            float Bend(Vector2 turn)
+            {
+                so.FindProperty("_turnToArm").vector2Value = turn;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                _rig.Place(target, grip, shoulder, elbow);
+                // Forearm against where a straight wrist would put it (its twist is the twist bone's job).
+                return Vector3.Angle(arm.Hand.position - arm.Hand.parent.position, arm.Hand.rotation * Quaternion.Inverse(rest) * axis);
+            }
+
+            float held = Bend(Vector2.zero);
+            float turned = Bend(new Vector2(30f, 30f));
+            Assert.That(turned, Is.LessThan(held - 10f));
+            // Rolled round the part's middle line, turned flat on the palm: the grip point stays that far from the line.
+            Vector3 middle = target - grip * Vector3.up * so.FindProperty("_turnRadius").floatValue;
+            Vector3 fromLine = Vector3.ProjectOnPlane(_rig.GripPoint.position - middle, grip * Vector3.forward);
+            Assert.That(fromLine.magnitude, Is.EqualTo(so.FindProperty("_turnRadius").floatValue).Within(0.001f));
+            Assert.That(Vector3.Dot(_rig.GripPoint.position - target, grip * Vector3.forward), Is.EqualTo(0f).Within(0.001f));
+            // The palm stays on the part (its normal square to the part's axis), rolled round it no more than allowed.
+            Vector3 part = grip * Vector3.forward;
+            Assert.That(Vector3.Angle(_rig.GripPoint.up, part), Is.EqualTo(90f).Within(0.5f));
+            Assert.That(Vector3.Angle(_rig.GripPoint.up, grip * Vector3.up), Is.LessThanOrEqualTo(30.5f));
         }
 
         [TestCase("Left")]
@@ -112,6 +160,7 @@ namespace MB13.Aipocalypse.Tests
             so.FindProperty("_wristShare").floatValue = 0f;
             so.FindProperty("_maxGive").floatValue = 0.15f;
             so.FindProperty("_giveIntoView").vector2Value = new Vector2(0.02f, 0.02f);
+            so.FindProperty("_turnToArm").vector2Value = Vector2.zero;
             Transform upper = arm.Hand.parent.parent;
             // A hand that wants its forearm to come from above and in front: the give that would help most is capped.
             var targets = new[] { Quaternion.Euler(60f, -50f * sign, 30f), Quaternion.Euler(-70f, 20f * sign, 0f), Quaternion.Euler(10f, 170f, 40f * sign) };
@@ -229,7 +278,11 @@ namespace MB13.Aipocalypse.Tests
                 HandGrip grip = hands.GetGrip(side);
                 grip.Resolve(_rig, set.Elbow(side), out Vector3 position, out Quaternion rotation);
                 _rig.Place(position, rotation, set.Shoulder(side), set.Elbow(side));
-                Assert.That(Vector3.Distance(_rig.GripPoint.position, position), Is.LessThan(0.001f), side.ToString());
+                // On the grip, or rolled round the held part's middle line by no more than the arm allows.
+                var arm = new SerializedObject(_rig.GetComponent<ArmRig>());
+                float roll = arm.FindProperty("_turnToArm").vector2Value.x;
+                float slack = 2f * arm.FindProperty("_turnRadius").floatValue * Mathf.Sin(roll * 0.5f * Mathf.Deg2Rad);
+                Assert.That(Vector3.Distance(_rig.GripPoint.position, position), Is.LessThan(0.001f + slack), side.ToString());
                 Object.DestroyImmediate(_rig.gameObject);
             }
         }

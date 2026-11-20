@@ -59,7 +59,8 @@ namespace MB13.Aipocalypse.Core.HandSystem
             Transform hand = _arm.Hand;
             Quaternion inverseHand = Quaternion.Inverse(hand.rotation);
             Quaternion handRotation = rotation * Quaternion.Inverse(inverseHand * grip.rotation);
-            _arm.Solve(shoulder, elbow, position - handRotation * (inverseHand * (grip.position - hand.position)), handRotation, frame);
+            _arm.Solve(shoulder, elbow, position - handRotation * (inverseHand * (grip.position - hand.position)), handRotation, frame,
+                position, rotation);
         }
 
         // Moves the whole hand so its grip point sits at this pose.
