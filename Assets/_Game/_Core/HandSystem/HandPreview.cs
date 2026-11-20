@@ -126,7 +126,10 @@ namespace MB13.Aipocalypse.Core.HandSystem
             ItemHands item = grip.GetComponentInParent<ItemHands>(true);
             Transform root = item != null ? item.transform : grip.root;
             Vector3 shoulder = root.TransformPoint(set.Shoulder(side) - set.PreviewItemPosition);
-            return item != null ? item.Carry(shoulder) : shoulder;
+            if (item == null)
+                return shoulder;
+            Vector3 carried = root.InverseTransformPoint(item.Carry(shoulder)) + set.PreviewItemPosition;
+            return root.TransformPoint(set.LimitShoulder(side, carried) - set.PreviewItemPosition);
         }
 
         // The implied elbow in edit mode: the item's root is assumed to sit at the player's Hand point, unrotated.

@@ -18,9 +18,10 @@ namespace MB13.Aipocalypse.Core.HandSystem
 
         public float HandScale => _handScale;
 
-        // A shoulder or elbow point, carried along with the item's pose.
+        // A shoulder or elbow point, moved as far as the item's pose has moved. Not turned with it: tipping the muzzle down
+        // (sprint) would swing points behind the grip up into view.
         public Vector3 Carry(Vector3 point) =>
-            _bodyAnchor != null && _bodyRest != null ? _bodyAnchor.TransformPoint(_bodyRest.InverseTransformPoint(point)) : point;
+            _bodyAnchor != null && _bodyRest != null ? point + (_bodyAnchor.position - _bodyRest.position) : point;
 
         public HandGrip GetGrip(HandSide side) => side == HandSide.Left ? _left : _right;
 

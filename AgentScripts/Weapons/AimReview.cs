@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.HandSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WeaponSystem;
@@ -186,6 +187,28 @@ public static class AimReview
                 note += ", " + blockOut;
             }
         return note;
+    }
+
+    // Edit mode: gives a gun prefab its Sprint pose, turned by (pitch, yaw, roll) and placed so its right grip sits at (x, y, z)
+    // in view space (metres from the eye). Long guns 10, -40, -30, (0.22, -0.2, 0.32); pistols 35, -10, -10, (0.12, -0.24, 0.45).
+    public static object SetSprint(string gun, float pitch, float yaw, float roll, float x, float y, float z)
+    {
+        if (Application.isPlaying)
+            return "leave Play mode first";
+        string path = $"Assets/_Game/Content/Weapons/{gun}/{gun}.prefab";
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        var held = new SerializedObject(root.GetComponent<HeldGun>());
+        var sprint = (Transform)held.FindProperty("_sprintPose").objectReferenceValue;
+        var pivot = (Transform)held.FindProperty("_posePivot").objectReferenceValue;
+        Vector3 grip = pivot.InverseTransformPoint(root.GetComponent<ItemHands>().GetGrip(HandSide.Right).transform.position);
+        // The gun's root sits at the player's Hand point, which the hand set's previews use too.
+        Vector3 item = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset").PreviewItemPosition;
+        Quaternion rotation = Quaternion.Euler(pitch, yaw, roll);
+        Vector3 position = new Vector3(x, y, z) - item - rotation * grip;
+        sprint.SetLocalPositionAndRotation(position, rotation);
+        PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
+        return $"{gun}: sprint pose at {position.ToString("F3")}, turned ({pitch}, {yaw}, {roll})";
     }
 
     // Edit mode: gives a gun prefab its Work pose (HeldGun: where it is held while reloading or clearing a jam at the hip),

@@ -17,6 +17,9 @@ namespace MB13.Aipocalypse.Core.HandSystem
         [SerializeField, Tooltip("Hands with an arm (ArmRig): where each arm starts, off screen. A hand out of reach pulls it along")]
         Vector3 _leftShoulder = new(-0.2f, -0.4f, 0.1f);
         [SerializeField] Vector3 _rightShoulder = new(0.3f, -0.4f, -0.05f);
+        [SerializeField, Tooltip("The most a shoulder carried with the item's pose (ItemHands.Carry) moves towards the screen centre, up and forward (m). " +
+            "A pose may swing the gun far (sprint), the body stays where it is")]
+        Vector3 _shoulderCarry = new(0.1f, 0.05f, 0.1f);
         [SerializeField, Tooltip("Edit-mode previews only: where an item's root sits in view space (the player's Hand point)")]
         Vector3 _previewItemPosition = new(0.17f, -0.21f, 0.62f);
 
@@ -24,5 +27,16 @@ namespace MB13.Aipocalypse.Core.HandSystem
         public Vector3 Elbow(HandSide side) => side == HandSide.Left ? _leftElbow : _rightElbow;
         public Vector3 Shoulder(HandSide side) => side == HandSide.Left ? _leftShoulder : _rightShoulder;
         public Vector3 PreviewItemPosition => _previewItemPosition;
+
+        // A carried shoulder (view space) held near the body: no further towards the centre, up or forward than Shoulder Carry.
+        public Vector3 LimitShoulder(HandSide side, Vector3 carried)
+        {
+            Vector3 rest = Shoulder(side);
+            float inward = side == HandSide.Left ? 1f : -1f;
+            carried.x = rest.x + inward * Mathf.Min((carried.x - rest.x) * inward, _shoulderCarry.x);
+            carried.y = Mathf.Min(carried.y, rest.y + _shoulderCarry.y);
+            carried.z = Mathf.Min(carried.z, rest.z + _shoulderCarry.z);
+            return carried;
+        }
     }
 }

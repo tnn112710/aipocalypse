@@ -37,7 +37,7 @@ All run with `unity command script run --file <path> --entry <Class.Method> --ar
 | `AgentScripts/Hands/RepairClips.cs` | `Bake(gun)` | Reseat and Rack clips from the gun's own reloads |
 | `AgentScripts/Hands/HoldLike.cs` | `Apply(gun, like)` | Another gun's support-hand hold, fitted to this gun; for guns with no retarget |
 | `AgentScripts/Hands/ArmSetup.cs` | see HANDS.md | Builds and switches arm variants |
-| `AgentScripts/Weapons/AimReview.cs` | `Prepare`, `Hold`, `Fit`, `Aim`, `Pad`, `Hip`, `SaveHip`, `SetWork`, `Release` | Play-mode driving and pose tuning |
+| `AgentScripts/Weapons/AimReview.cs` | `Prepare`, `Hold`, `Fit`, `Aim`, `Pad`, `Hip`, `SaveHip`, `SetWork`, `SetSprint`, `Release` | Play-mode driving and pose tuning |
 | `AgentScripts/Hands/ArmPlayReview.cs` | `Action(kind, progresses, tag)`, `Still(tag)` | Play-mode captures of one action at chosen progress values |
 | `AgentScripts/Hands/ArmReview.cs` | `Gun`, `Strip` | Edit-mode renders of a clip (quick, but not what the camera crops) |
 | `AgentScripts/Weapons/AttachmentSetup.cs`, `RealisticGunStats.cs` | `Mounts`, `GunIcons`, `Apply` | Mounts, icons and stats for a new gun |
@@ -51,7 +51,7 @@ All run with `unity command script run --file <path> --entry <Class.Method> --ar
 5. **Repair clips:** `RepairClips.Bake("<Gun>")`. Copy-pasted repair profiles carry the reference gun's `ShakeChance`.
 6. **Magazines in `AttachmentSetup`** become `"Magazine", "ReplacementMagazine"`; rerun `Mounts`.
 7. **Tests:** add the gun to the `TestCase` lists in `WeaponAnimationTests` (clips bind, repair impacts, parts restored).
-8. **Review in play** (below) and tune: hip pose, work pose, aim depth.
+8. **Review in play** (below) and tune: hip pose, work pose, aim depth. Sprint pose: `AimReview.SetSprint(gun, 10, -40, -30, 0.22, -0.2, 0.32)` for long guns, `(gun, 35, -10, -10, 0.12, -0.24, 0.45)` for pistols (rotation, then where the right grip sits from the eye).
 
 `WeaponsTestSetup.Build` rebuilds and **saves the whole Weapons Test scene**: ask the user before running it.
 
@@ -91,6 +91,10 @@ What to check and what fixes it:
 | Hand stays on the forend through a reload or repair, test says `LeftFree` is off | The prefab's `RigBuilder` layer lost its `Rig` (hand targets never follow their constraint). `GunAnimateSetup` now sets it outright |
 | Hip gun too big, elbow bend showing | Hip pose: `AimReview.Hip(x, y, z, roll)` live (it re-aims the barrel at the screen centre 20 m out), then `SaveHip` |
 | Arms fold shut or stretch when the gun moves to another pose | Shoulders and elbows must go through `ItemHands.Carry` (pose pivot as anchor, Hip as rest) |
+| Upper arm or elbow in view while sprinting | `Carry` moves the points by the pose's move only (turning them with a tipped muzzle swings the shoulder in front of the eye), and `HandSet.LimitShoulder` caps the rest. If it still shows, the sprint pose holds the grip too far out or too high: rerun `AimReview.SetSprint` with the grip about 0.3 m from the eye, below the screen's middle (WEAPONS.md → Poses) |
+| Support arm straight, hand only reaching the front of the gun | The forend is out of reach at that pose: bring the pose closer to the eye (MP5 hip z -0.36), don't move the contact off the handguard |
+| Support fingers drape over the barrel | The hold from the pack sits on the side with the fingers over the top: `HoldLike.Apply(gun, "AK47")` (palm under the forend; it rebases the gun's clips) |
+| Hands fill the ADS view | The Aim pose is too close: pistols at z -0.22, rifles about -0.4 to -0.68 |
 | Hand folded at the wrist, forearm arriving from above | The solver gives way for the wrist (HANDS.md → Wrist comfort: `_shoulderGive`, `_wristShare`, and their into-view caps). If it is capped out, the hold itself is turned wrong: re-author or roll the hold, do not loosen the caps |
 | Upper arm or elbow blob at the bottom of the hip view | The caps are too loose (`_giveIntoView`, `_elbowIntoView`), or a grip authored for the floating hands asks for an arm from in front |
 | Palm sinks into the gun | `HandRig._palmThickness` (0.028 for the Sidekick arms), then re-bake |

@@ -181,6 +181,43 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Carry_FollowsThePosesMoveButNotItsTurn()
+        {
+            var gun = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/AK47/AK47.prefab"));
+            try
+            {
+                var hands = gun.GetComponent<ItemHands>();
+                var held = new SerializedObject(gun.GetComponent<MB13.Aipocalypse.Core.WeaponSystem.HeldGun>());
+                var pivot = (Transform)held.FindProperty("_posePivot").objectReferenceValue;
+                var hip = (Transform)held.FindProperty("_hipPose").objectReferenceValue;
+                Vector3 shoulder = new(0.3f, -0.2f, -0.2f);
+
+                // Tipping the muzzle down (sprint) must not swing the shoulder behind the grip up into view.
+                pivot.SetLocalPositionAndRotation(hip.localPosition, hip.localRotation * Quaternion.Euler(40f, -45f, -30f));
+                Assert.That(Vector3.Distance(hands.Carry(shoulder), shoulder), Is.LessThan(0.0001f));
+            }
+            finally { Object.DestroyImmediate(gun); }
+        }
+
+        [TestCase(HandSide.Left)]
+        [TestCase(HandSide.Right)]
+        public void HandSet_LimitShoulder_CapsInwardUpAndForward(HandSide side)
+        {
+            var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
+            Vector3 cap = new SerializedObject(set).FindProperty("_shoulderCarry").vector3Value;
+            Vector3 rest = set.Shoulder(side);
+            float inward = side == HandSide.Left ? 1f : -1f;
+
+            Vector3 far = set.LimitShoulder(side, rest + new Vector3(inward, 1f, 1f));
+            Assert.That((far - rest).x * inward, Is.EqualTo(cap.x).Within(0.0001f));
+            Assert.That(far.y - rest.y, Is.EqualTo(cap.y).Within(0.0001f));
+            Assert.That(far.z - rest.z, Is.EqualTo(cap.z).Within(0.0001f));
+            // Out, down and back are free: that keeps the arm off screen.
+            Vector3 away = rest + new Vector3(-inward * 0.3f, -0.3f, -0.3f);
+            Assert.That(Vector3.Distance(set.LimitShoulder(side, away), away), Is.LessThan(0.0001f));
+        }
+
+        [Test]
         public void HandSet_HandsShowOnEveryGripOfTheAk47()
         {
             var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
