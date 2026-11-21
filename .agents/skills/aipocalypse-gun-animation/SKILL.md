@@ -99,6 +99,7 @@ What to check and what fixes it:
 | Support wrist cocked at the hip or on the bolt, forearm rising almost straight up into the hand | The gun's left grip lacks turn contacts: `GripTurnSetup.One(gun)` (forend 15°/35° round its measured middle, bolt pinch 90°/20°; HANDS.md → Wrist comfort). Measure with a probe (forearm vs `hand.rotation * inverse(_handRest) * hand.localPosition`); more forend roll puts fingertips over the rail |
 | Right wrist bent hard, grip close to the shoulder | The right shoulder point is too far forward (`HandSet`: (0.32, -0.24, -0.36)); a straight wrist needs the elbow behind the hand |
 | Support knuckles above the barrels in the sight picture | The borrowed hold wraps too high on a slim forend: roll the left grip (`HandGrip > Roll`; double barrel -30°) |
+| Support hand beside the rear sight on a low-sight gun (AK47) | Expected with low sights; aim depth and grip roll don't fix it (HANDS.md → Known gaps). Don't retry them |
 | Hand folded at the wrist, forearm arriving from above | The solver gives way for the wrist (HANDS.md → Wrist comfort: `_shoulderGive`, `_wristShare`, and their into-view caps). If it is capped out, the hold itself is turned wrong: re-author or roll the hold, do not loosen the caps |
 | Upper arm or elbow blob at the bottom of the hip view | The caps are too loose (`_giveIntoView`, `_elbowIntoView`), or a grip authored for the floating hands asks for an arm from in front |
 | Palm sinks into the gun | `HandRig._palmThickness` (0.028 for the Sidekick arms), then re-bake |
