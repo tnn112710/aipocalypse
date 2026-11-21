@@ -64,6 +64,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float CrouchSpeed => WalkSpeed * _tuning.CrouchSpeedMultiplier;
         // Ground speed scale set by the player each frame (slower while aiming down sights).
         public float SpeedMultiplier { get; set; } = 1f;
+        // Sprint stamina cost scale set by the player each frame (a heavy item in hand costs more).
+        public float SprintCostMultiplier { get; set; } = 1f;
 
         public event Action Jumped;
         public event Action<LandingInfo> Landed;
@@ -102,7 +104,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             IsWalking = hasMove && stableGround && !IsSprinting && !_isJumping;
 
             if (IsSprinting)
-                _stamina.Spend(_stats.Get(StatId.SprintStaminaCost, _tuning.SprintStaminaPerSecond) * deltaTime);
+                _stamina.Spend(_stats.Get(StatId.SprintStaminaCost, _tuning.SprintStaminaPerSecond) * SprintCostMultiplier * deltaTime);
             else if (hasMove && stableGround)
                 _stamina.Spend(_stats.Get(StatId.WalkStaminaCost, _tuning.WalkStaminaPerSecond) * deltaTime);
 
@@ -161,6 +163,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 ? Mathf.Lerp(1f, strafeMultiplier, angle / 90f)
                 : Mathf.Lerp(strafeMultiplier, backwardMultiplier, (angle - 90f) / 90f);
         }
+
+        // The gait's speed × every slowdown (direction, held item, aiming, fatigue, landing), never under the floor
+        // (MinSpeedShare of walking) so stacked slowdowns can't stop the player; a gait slower than the floor keeps its own speed.
+        public static float SlowedSpeed(float gaitSpeed, float slowdown, float floorSpeed) =>
+            Mathf.Max(gaitSpeed * slowdown, Mathf.Min(gaitSpeed, floorSpeed));
 
         void UpdateTimers(bool jumpPressed, float deltaTime)
         {
@@ -237,23 +244,25 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Vector3 right = Vector3.ProjectOnPlane(_body.right, Vector3.up).normalized;
             Vector3 wishDirection = hasMove ? (right * move.x + forward * move.y).normalized : Vector3.zero;
 
-            float scale = hasMove
-                ? DirectionalSpeedScale(move.normalized, _tuning.StrafeSpeedMultiplier, _tuning.BackwardSpeedMultiplier) * move.magnitude
+            float slowdown = hasMove
+                ? DirectionalSpeedScale(move.normalized, _tuning.StrafeSpeedMultiplier, _tuning.BackwardSpeedMultiplier) * SpeedMultiplier
                 : 0f;
             if (_landingSlowLeft > 0f && _tuning.HeavyLandingRecoveryTime > 0f)
-                scale *= Mathf.Lerp(1f, _tuning.HeavyLandingSpeedMultiplier, _landingSlowLeft / _tuning.HeavyLandingRecoveryTime);
+                slowdown *= Mathf.Lerp(1f, _tuning.HeavyLandingSpeedMultiplier, _landingSlowLeft / _tuning.HeavyLandingRecoveryTime);
+            float floorSpeed = WalkSpeed * _tuning.MinSpeedShare;
 
             if (stableGround)
             {
                 float gaitSpeed = wantsSprint ? SprintSpeed : IsCrouching ? CrouchSpeed : WalkSpeed;
-                Vector3 target = wishDirection * (gaitSpeed * scale * SpeedMultiplier);
+                Vector3 target = wishDirection * (SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude);
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate, deltaTime));
             }
             else if (hasMove)
             {
-                // Airborne: steer, keep momentum, never gain sprint speed mid-air.
-                float speed = Mathf.Max(_horizontalVelocity.magnitude, (IsCrouching ? CrouchSpeed : WalkSpeed) * scale);
+                // Airborne: steer, keep momentum, never gain sprint speed mid-air; slowed like on foot, so hops don't outrun aiming.
+                float gaitSpeed = IsCrouching ? CrouchSpeed : WalkSpeed;
+                float speed = Mathf.Max(_horizontalVelocity.magnitude, SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude);
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, Damping.ByRate(_tuning.AirAcceleration, deltaTime));
             }
 

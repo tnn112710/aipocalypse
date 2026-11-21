@@ -43,6 +43,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // The view jerks up at once and springs back; hits close together add up to HurtKickMax.
         public void OnHurt(float damage) => _flinch = Mathf.Max(_flinch - damage * _tuning.HurtKickPerDamage, -_tuning.HurtKickMax);
 
+        // Strides shorten as the player slows (a careful aimed walk takes short steps, not slow long ones).
+        public static float StepLength(float speed, float sprintSpeed, float slowStepLength, float sprintStepLength) =>
+            Mathf.Lerp(slowStepLength, sprintStepLength, speed / Mathf.Max(sprintSpeed, 0.01f));
+
         public void Tick(PlayerMotor motor, float deltaTime)
         {
             // Sliding down a steep slope isn't walking: no bob, no footsteps.
@@ -57,7 +61,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (onFoot)
             {
                 float previous = _phase;
-                _phase = (_phase + speed * deltaTime / _tuning.StepLength * Mathf.PI) % (2f * Mathf.PI);
+                float stepLength = StepLength(speed, motor.SprintSpeed, _tuning.SlowStepLength, _tuning.StepLength);
+                _phase = (_phase + speed * deltaTime / stepLength * Mathf.PI) % (2f * Mathf.PI);
                 // The bob (sin 2·phase) bottoms out at 3π/4 and 7π/4.
                 if (StepIndex(_phase) != StepIndex(previous) && _intensity > _tuning.StepMinIntensity)
                     Stepped?.Invoke();

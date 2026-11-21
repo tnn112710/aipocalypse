@@ -330,6 +330,30 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(1f, HoldFeel.ClampMobility(0.8f * 1.5f), 0.001f, "light parts can't beat empty hands");
             Assert.AreEqual(0.72f, HoldFeel.ClampMobility(0.8f * 0.9f), 0.001f);
         }
+
+        [Test]
+        public void SlowedSpeed_StackedSlowdownsStopAtTheFloor()
+        {
+            Assert.AreEqual(2f, PlayerMotor.SlowedSpeed(2.5f, 0.8f, 0.75f), 0.001f, "one slowdown applies as is");
+            Assert.AreEqual(0.75f, PlayerMotor.SlowedSpeed(1.25f, 0.5f * 0.8f * 0.5f, 0.75f), 0.001f, "crouched, aimed, backward: the floor");
+            Assert.AreEqual(0.5f, PlayerMotor.SlowedSpeed(0.5f, 0.1f, 0.75f), 0.001f, "a gait slower than the floor keeps its own speed");
+        }
+
+        [Test]
+        public void SprintCostScale_HeavierCostsMore()
+        {
+            Assert.AreEqual(1f, HoldFeel.SprintCostScale(1f), 0.001f);
+            Assert.AreEqual(1.25f, HoldFeel.SprintCostScale(0.8f), 0.001f);
+            Assert.AreEqual(2f, HoldFeel.SprintCostScale(0.2f), 0.001f, "clamped to the mobility floor");
+        }
+
+        [Test]
+        public void StepLength_ShortensAsThePlayerSlows()
+        {
+            Assert.AreEqual(1.7f, PlayerHeadBob.StepLength(5f, 5f, 0.75f, 1.7f), 0.001f);
+            Assert.AreEqual(0.94f, PlayerHeadBob.StepLength(1f, 5f, 0.75f, 1.7f), 0.001f);
+            Assert.AreEqual(1.7f, PlayerHeadBob.StepLength(7f, 5f, 0.75f, 1.7f), 0.001f, "never longer than at sprint");
+        }
     }
 
     public class PlayerVisionTests

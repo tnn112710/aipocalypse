@@ -99,9 +99,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                     Mathf.LerpUnclamped(1f, held != null ? held.AimZoom : 1f, camera.HeldAimZoomShare));
             _zoom.SetHeldHidden(ownsZoom && held != null && held.Scope.HidesHeld);
             TickSway(intent, held, feel, deltaTime);
-            float aimSpeed = held != null && held.IsAiming ? tuning.AimMoveSpeedMultiplier : 1f;
-            float carrySpeed = held != null ? held.Mobility * held.MoveSpeedScale : 1f;
-            _motor.SpeedMultiplier = aimSpeed * carrySpeed * _fatigue.MoveSpeed;
+            // Slows in step with the gun rising to the sights, so a quick peek costs less than staying aimed.
+            float aimSpeed = held != null ? Mathf.Lerp(1f, tuning.AimMoveSpeedMultiplier, held.AimWeight) : 1f;
+            float mobility = held != null ? held.Mobility : 1f;
+            _motor.SpeedMultiplier = aimSpeed * mobility * (held != null ? held.MoveSpeedScale : 1f) * _fatigue.MoveSpeed;
+            _motor.SprintCostMultiplier = HoldFeel.SprintCostScale(mobility);
             _clearance.Tick(held, deltaTime);
             if (held != null)
                 held.LateTick();

@@ -11,6 +11,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _strafeSpeedMultiplier = 0.75f;
         [SerializeField, Range(0f, 1f), Tooltip("Speed share moving straight backward; between the side and here it eases with the angle")]
         float _backwardSpeedMultiplier = 0.5f;
+        [SerializeField, Range(0f, 1f), Tooltip("Stacked slowdowns (direction, held item, aiming, crouch, fatigue) never take the speed under this share of walking")]
+        float _minSpeedShare = 0.3f;
         [SerializeField, Range(0f, 1f), Tooltip("Forward stick/key amount needed to sprint")]
         float _sprintMinForwardInput = 0.5f;
         [SerializeField, Min(0f)] float _groundAcceleration = 10f;
@@ -54,6 +56,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float SprintMultiplier => _sprintMultiplier;
         public float StrafeSpeedMultiplier => _strafeSpeedMultiplier;
         public float BackwardSpeedMultiplier => _backwardSpeedMultiplier;
+        public float MinSpeedShare => _minSpeedShare;
         public float SprintMinForwardInput => _sprintMinForwardInput;
         public float GroundAcceleration => _groundAcceleration;
         public float GroundDeceleration => _groundDeceleration;

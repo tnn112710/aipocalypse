@@ -16,5 +16,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public float SwayScale = 1f;
 
         public static float ClampMobility(float mobility) => Mathf.Clamp(mobility, MinMobility, MaxMobility);
+
+        // Sprinting with it costs stamina ÷ mobility: empty hands ×1, the heaviest ×2.
+        public static float SprintCostScale(float mobility) => 1f / ClampMobility(mobility);
     }
 }

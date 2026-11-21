@@ -11,8 +11,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Header("Look (degrees)"), SerializeField, Range(-90f, 0f)] float _minPitch = -85f;
         [SerializeField, Range(0f, 90f)] float _maxPitch = 85f;
 
-        [Header("Head bob"), SerializeField, Min(0.1f), Tooltip("Metres per footstep; bob follows distance, not time")]
+        [Header("Head bob"), SerializeField, Min(0.1f), Tooltip("Metres per footstep at sprint speed; bob follows distance, not time")]
         float _stepLength = 1.7f;
+        [SerializeField, Min(0.1f), Tooltip("Metres per footstep when barely moving; the step lengthens with speed up to Step Length at sprint")]
+        float _slowStepLength = 0.75f;
         [SerializeField, Min(0f)] float _walkBobAmplitude = 0.03f;
         [SerializeField, Min(0f)] float _sprintBobAmplitude = 0.055f;
         [SerializeField, Range(0f, 2f)] float _bobSideRatio = 0.5f;
@@ -49,6 +51,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float MinPitch => _minPitch;
         public float MaxPitch => _maxPitch;
         public float StepLength => _stepLength;
+        public float SlowStepLength => _slowStepLength;
         public float WalkBobAmplitude => _walkBobAmplitude;
         public float SprintBobAmplitude => _sprintBobAmplitude;
         public float BobSideRatio => _bobSideRatio;
