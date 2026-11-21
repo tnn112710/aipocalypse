@@ -446,8 +446,9 @@ Assets/_Game/
 │  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
 │  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point (+ TimeCommands in dev builds)
 │  ├─ UI/                                   MB13.Aipocalypse.Core.UI — rules and how-tos in UI.md
-│  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail
-│  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar
+│  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail, optional shape mask
+│  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar; ShapeSprite clips the bar to an outline through the Bar's Mask
+│  │  ├─ Widgets/ShrinkToFit.cs             scales a stretched full-screen layout of fixed-size panels down on canvases shorter or narrower than 1920×1080 (21:9, 16:10), Play only
 │  │  ├─ Widgets/StyleUtils.cs              ImageTypeFor(sprite) (Sliced when the sprite has 9-slice borders); editor: RefreshViews re-applies a style asset to the open views using it (the *Style OnValidate)
 │  │  ├─ Widgets/HotbarSlotView.cs          passive slot view: SetKey / SetIcon / SetSelected / SetBadge(count, reserve, showReserve, warning) / HideBadge / ApplyStyle
 │  │  ├─ Widgets/ItemSlotView.cs            passive inventory slot: Show(icon, name, count, warning) / ShowEmpty(silhouette) / ShowHidden(progress) + SetSearchProgress (an unrevealed loot item) / SetKey / SetCaption / SetDragged / SetMarked (a dragged part fits here: FitColor), pointer + drag events to the presenter

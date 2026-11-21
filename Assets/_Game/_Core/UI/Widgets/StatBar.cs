@@ -10,6 +10,7 @@ namespace MB13.Aipocalypse.Core.UI
     {
         [SerializeField, InlineEditor] StatBarStyle _style;
         [SerializeField] Image _background;
+        [SerializeField, Tooltip("Mask on the Bar: clips background, trail and fill to the style's ShapeSprite")] Mask _shape;
         [SerializeField] Image _iconFrame;
         [SerializeField] Image _icon;
         [SerializeField] Image _trail;
@@ -74,6 +75,7 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
 
             Paint(_background, _style.BackgroundSprite, _style.BackgroundColor);
+            ApplyShape();
             Paint(_fill, _style.FillSprite, _warning ? _style.WarningColor : _style.FillColor);
             MakeHorizontalFill(_fill);
 
@@ -144,6 +146,22 @@ namespace MB13.Aipocalypse.Core.UI
 
             image.sprite = sprite;
             image.color = color;
+        }
+
+        // A mask, not a shaped fill sprite: a Filled image can't 9-slice, so a shaped fill would stretch and cut off flat.
+        void ApplyShape()
+        {
+            if (_shape == null)
+                return;
+
+            bool shaped = _style.ShapeSprite != null;
+            _shape.enabled = shaped;
+            if (_shape.graphic is Image image)
+            {
+                image.enabled = shaped;
+                image.sprite = _style.ShapeSprite;
+                image.type = StyleUtils.ImageTypeFor(_style.ShapeSprite);
+            }
         }
 
         static void MakeHorizontalFill(Image image)

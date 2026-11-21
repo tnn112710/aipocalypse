@@ -536,8 +536,9 @@ public static class DayNightSetup
         style.LabelFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontDir + "SairaBold.asset");
         style.LabelMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontDir + "SairaBold_Underlay.mat");
         style.LabelFontSize = 26f;
-        style.BackingSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        style.BackingColor = new Color(0.05f, 0.06f, 0.08f, 0.7f);
+        // Layer Lab chamfered plate, as LayerLabSetup.
+        style.BackingSprite = AssetDatabase.LoadAllAssetsAtPath("Assets/_StoreAssets/UI/Layer Lab/GUI Pro-SurvivalClean/ResourcesData/Sprites/Components/Frame_Custom/Frame_ItemFrame04_n_White3.png").OfType<Sprite>().First();
+        style.BackingColor = new Color(0.047f, 0.094f, 0.157f, 0.82f);
         style.Phases[DayPhase.Morning] = new PhaseLabel(LocalizationKit.Ref(Loc.HudTable, "phase.morning"), new Color(1f, 0.86f, 0.45f, 1f));
         style.DayColor = new Color(0.97f, 0.97f, 0.95f, 1f);
         EditorUtility.SetDirty(style);

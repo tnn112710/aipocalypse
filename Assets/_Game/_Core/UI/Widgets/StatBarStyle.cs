@@ -10,6 +10,8 @@ namespace MB13.Aipocalypse.Core.UI
     {
         [BoxGroup("Background")] public Sprite BackgroundSprite;
         [BoxGroup("Background")] public Color BackgroundColor = new(0.08f, 0.08f, 0.08f, 0.6f);
+        [BoxGroup("Background"), Tooltip("Outline the background, trail and fill are clipped to (9-sliced). Empty: plain rectangle")]
+        public Sprite ShapeSprite;
 
         [BoxGroup("Icon")] public Sprite IconSprite;
         [BoxGroup("Icon")] public Color IconColor = Color.white;

@@ -885,6 +885,7 @@ public static class InventorySetup
         RectTransform node = Ui("Inventory", hud);
         Place(node, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
         node.SetAsLastSibling();
+        node.gameObject.AddComponent<ShrinkToFit>();
         var canvas = node.gameObject.AddComponent<Canvas>();
         canvas.overrideSorting = true;
         canvas.sortingOrder = 50;

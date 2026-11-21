@@ -38,7 +38,10 @@ public static class SaveSetup
     // The title screen's background: a shot of WorldMap at sunset.
     const string BackgroundPath = "Assets/_Game/Data/UI/MainMenu/Background.png";
     const string SyntyHud = "Assets/Synty/InterfaceApocalypseHUD/";
-    const string TapePath = SyntyHud + "Sprites/HUD/SPR_HUD_Apocalypse_Box_Small_02.png";
+    // Layer Lab GUI Pro - Survival Clean (the UI pack, ASSETS.md); LayerLabSetup skins the rest of the UI the same way.
+    const string LayerLab = "Assets/_StoreAssets/UI/Layer Lab/GUI Pro-SurvivalClean/ResourcesData/Sprites/Components/";
+    const string TapePath = LayerLab + "Frame_Custom/Frame_ItemFrame04_n_White3.png";
+    const string TagPath = LayerLab + "Label/Label_Tag01_White1.png";
     const string ShadePath = SyntyHud + "Sprites/FX/SPR_FX_Apocalypse_Gradient_Horizontal_01.png";
     const string UiAudio = "Assets/_Game/Data/Audio/UI";
     const string UiLibrary = "Assets/_Game/Data/Audio/UI.asset";
@@ -188,6 +191,7 @@ public static class SaveSetup
 
             RectTransform page = Ui("Page", node);
             Stretch(page);
+            page.gameObject.AddComponent<ShrinkToFit>();
             TMP_Text title = Text("Title", page, style, 120f, TextAlignmentOptions.MidlineLeft, style.Text, style.TitleFont);
             title.text = "PAUSED";
             Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -100f), new Vector2(900f, 150f));
@@ -359,6 +363,7 @@ public static class SaveSetup
 
             RectTransform page = Ui("Page", node);
             Stretch(page);
+            page.gameObject.AddComponent<ShrinkToFit>();
             TMP_Text titleTop = Text("Title", page, style, 92f, TextAlignmentOptions.MidlineLeft, style.Text, style.TitleFont);
             titleTop.text = "HASTA LA VISTA,";
             Pin(titleTop.rectTransform, new Vector2(0f, 1f), new Vector2(140f, -110f), new Vector2(1100f, 110f));
@@ -366,9 +371,9 @@ public static class SaveSetup
             titleMaybe.text = "MAYBE";
             Pin(titleMaybe.rectTransform, new Vector2(0f, 1f), new Vector2(150f, -200f), new Vector2(600f, 170f));
             titleMaybe.rectTransform.localEulerAngles = new Vector3(0f, 0f, 4f);
-            Image tag = Picture("PrototypeTag", page, style.ButtonSprite, style.Tape);
+            Image tag = Picture("PrototypeTag", page, Load<Sprite>(TagPath), style.Tape);
             tag.type = Image.Type.Sliced;
-            tag.pixelsPerUnitMultiplier = 2f;
+            tag.pixelsPerUnitMultiplier = 1.5f;
             Pin(tag.rectTransform, new Vector2(0f, 1f), new Vector2(560f, -300f), new Vector2(230f, 52f));
             tag.rectTransform.localEulerAngles = new Vector3(0f, 0f, -3f);
             TMP_Text tagText = Text("Label", tag.transform, style, 30f, TextAlignmentOptions.Center, new Color(0.08f, 0.08f, 0.08f, 1f), style.Font);
@@ -454,6 +459,7 @@ public static class SaveSetup
     {
         RectTransform node = Ui("Slots", parent);
         Stretch(node);
+        node.gameObject.AddComponent<ShrinkToFit>();
         Button back = TextButton("Back", "< BACK", node, style);
         Pin((RectTransform)back.transform, new Vector2(0f, 1f), new Vector2(40f, -50f), new Vector2(230f, 80f));
         TMP_Text title = Text("Title", node, style, 84f, TextAlignmentOptions.MidlineLeft, style.Text, style.TitleFont);
@@ -558,7 +564,7 @@ public static class SaveSetup
     // Dark on the left under the menu's column, clear by the middle of the screen.
     static void Shade(Transform parent, MenuStyle style)
     {
-        Image shade = Picture("Shade", parent, style.ShadeSprite, new Color(0f, 0f, 0f, 0.92f));
+        Image shade = Picture("Shade", parent, style.ShadeSprite, new Color(0.024f, 0.063f, 0.11f, 0.92f));
         shade.rectTransform.anchorMin = Vector2.zero;
         shade.rectTransform.anchorMax = new Vector2(0.62f, 1f);
         shade.rectTransform.offsetMin = shade.rectTransform.offsetMax = Vector2.zero;
