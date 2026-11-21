@@ -347,6 +347,67 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(2f, HoldFeel.SprintCostScale(0.2f), 0.001f, "clamped to the mobility floor");
         }
 
+        sealed class FlatWater : MB13.Aipocalypse.Core.SpawnSystem.IWaterLevel
+        {
+            public float Level;
+            public bool TryGetLevel(Vector3 point, out float level)
+            {
+                level = Level;
+                return true;
+            }
+        }
+
+        [Test]
+        public void Footing_WaterDepthDecidesOverTheGround()
+        {
+            var tuning = ScriptableObject.CreateInstance<PlayerMovementTuning>();
+            try
+            {
+                var water = new FlatWater { Level = -10f };
+                var footing = new PlayerFooting(tuning, water);
+                footing.OnSurface(MB13.Aipocalypse.Core.SurfaceSystem.SurfaceKind.Mud);
+                footing.Tick(Vector3.zero);
+                Assert.AreEqual(0f, footing.WaterDepth);
+                Assert.AreEqual(0.8f, footing.SpeedScale, 0.001f, "dry mud");
+                Assert.IsFalse(footing.BlocksSprint);
+
+                water.Level = 0.5f;
+                footing.Tick(Vector3.zero);
+                Assert.AreEqual(0.5f, footing.WaterDepth, 0.001f);
+                Assert.AreEqual(0.7f, footing.SpeedScale, 0.001f, "knee-deep: the water's speed, not the mud's on top");
+                Assert.IsFalse(footing.BlocksSprint, "at the sprint depth itself, still allowed");
+
+                water.Level = 1.3f;
+                footing.Tick(Vector3.zero);
+                Assert.AreEqual(0.35f, footing.SpeedScale, 0.001f);
+                Assert.IsTrue(footing.BlocksSprint);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
+        }
+
+        [Test]
+        public void Footing_UnlistedGroundAndNoWaterDontSlow()
+        {
+            var tuning = ScriptableObject.CreateInstance<PlayerMovementTuning>();
+            try
+            {
+                var footing = new PlayerFooting(tuning, null);
+                footing.OnSurface(MB13.Aipocalypse.Core.SurfaceSystem.SurfaceKind.Stone);
+                footing.Tick(Vector3.zero);
+                Assert.AreEqual(1f, footing.SpeedScale);
+                footing.OnSurface(MB13.Aipocalypse.Core.SurfaceSystem.SurfaceKind.Snow);
+                footing.Tick(Vector3.zero);
+                Assert.AreEqual(0.8f, footing.SpeedScale, 0.001f);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
+        }
+
         [Test]
         public void StepLength_ShortensAsThePlayerSlows()
         {

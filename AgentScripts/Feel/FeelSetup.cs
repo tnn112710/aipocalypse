@@ -101,7 +101,7 @@ public static class FeelSetup
         ("Extension", SurfaceKind.Wood), ("Tree", SurfaceKind.Wood), ("Bark", SurfaceKind.Wood), ("Birch", SurfaceKind.Wood),
         ("Broadleaf", SurfaceKind.Wood), ("Sakura", SurfaceKind.Wood), ("Bush", SurfaceKind.Wood), ("Wood", SurfaceKind.Wood),
         ("Table", SurfaceKind.Wood), ("Bridge", SurfaceKind.Wood), ("Plank", SurfaceKind.Wood), ("Bed", SurfaceKind.Wood),
-        ("Sand", SurfaceKind.Sand), ("Mud", SurfaceKind.Mud), ("Dirt", SurfaceKind.Dirt), ("Grass", SurfaceKind.Grass),
+        ("Sand", SurfaceKind.Sand), ("Snow", SurfaceKind.Snow), ("Mud", SurfaceKind.Mud), ("Dirt", SurfaceKind.Dirt), ("Grass", SurfaceKind.Grass),
     };
 
     // Impact dust per surface: the shared bullet impact with its particles tinted (the dark mark keeps its colour).

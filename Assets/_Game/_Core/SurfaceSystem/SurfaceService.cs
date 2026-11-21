@@ -49,6 +49,7 @@ namespace MB13.Aipocalypse.Core.SurfaceSystem
 
         // The surface's look, or null when the system is off or the kind has none.
         public SurfaceLook LookAt(Collider collider, Vector3 point) => Enabled ? _settings.Look(KindOf(collider, point)) : null;
+        public SurfaceLook Look(SurfaceKind kind) => Enabled ? _settings.Look(kind) : null;
 
         // A bullet landed on a surface: its impact effect (or `fallback`) and its sound.
         public void BulletImpact(Collider collider, Vector3 point, Vector3 normal, PooledEffect fallback)

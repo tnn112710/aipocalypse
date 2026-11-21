@@ -20,11 +20,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly SurfaceService _surfaces;
         readonly Transform _body;
         readonly LayerMask _ground;
+        readonly PlayerFooting _footing;
         float _nextHurtSound;
 
         public PlayerFeedback(PlayerMotor motor, PlayerHeadBob headBob, HeldItemSway sway, AudioService audio, PlayerSoundTuning sounds,
-            PlayerLife life, SurfaceService surfaces, Transform body, LayerMask ground)
+            PlayerLife life, SurfaceService surfaces, Transform body, LayerMask ground, PlayerFooting footing)
         {
+            _footing = footing;
             _surfaces = surfaces;
             _body = body;
             _ground = ground;
@@ -57,20 +59,25 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _audio.Play(_sounds.HurtSound);
         }
 
-        void OnStepped() => _audio.Play(FootstepSound(),
+        void OnStepped() => _audio.Play(FootstepSound(SampleGround()),
             _motor.IsSprinting ? _sounds.SprintStepVolume : _motor.IsCrouching ? _sounds.CrouchStepVolume : _sounds.WalkStepVolume);
 
-        // The footstep of what's underfoot; the player's own when that surface has none.
-        SoundID FootstepSound()
+        // The kind of ground underfoot, also handed to the footing (mud and snow slow the player); null = none found.
+        SurfaceKind? SampleGround()
         {
+            SurfaceKind? kind = null;
             if (_surfaces != null && _surfaces.Enabled &&
                 Physics.Raycast(_body.position + Vector3.up * 0.4f, Vector3.down, out RaycastHit hit, 1.2f, _ground, QueryTriggerInteraction.Ignore))
-            {
-                SurfaceLook look = _surfaces.LookAt(hit.collider, hit.point);
-                if (look != null && look.Footstep.IsValid())
-                    return look.Footstep;
-            }
-            return _sounds.FootstepSound;
+                kind = _surfaces.KindOf(hit.collider, hit.point);
+            _footing?.OnSurface(kind);
+            return kind;
+        }
+
+        // The footstep of what's underfoot; the player's own when that surface has none.
+        SoundID FootstepSound(SurfaceKind? kind)
+        {
+            SurfaceLook look = kind is { } k ? _surfaces.Look(k) : null;
+            return look != null && look.Footstep.IsValid() ? look.Footstep : _sounds.FootstepSound;
         }
 
         void OnJumped()
@@ -81,6 +88,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         void OnLanded(LandingInfo landing)
         {
+            SampleGround();
             _headBob.OnLanded(landing.ImpactSpeed);
             _sway.OnLanded(landing.ImpactSpeed);
             if (landing.ImpactSpeed >= _sounds.LandingSoundMinSpeed)

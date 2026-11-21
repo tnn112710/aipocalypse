@@ -11,7 +11,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         public MovementReadout(ScreenLog log) => _log = log;
 
-        public void Show(PlayerMotor motor, HeldItemDriver held, Fatigue fatigue)
+        public void Show(PlayerMotor motor, HeldItemDriver held, Fatigue fatigue, PlayerFooting footing)
         {
             string gait = !motor.IsGrounded ? "Air" : motor.IsSprinting ? "Sprint" : motor.IsCrouching ? "Crouch" : "Walk";
             float gaitSpeed = motor.IsSprinting ? motor.SprintSpeed : motor.IsCrouching ? motor.CrouchSpeed : motor.WalkSpeed;
@@ -20,7 +20,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 .Append(gait).Append(' ').Append(gaitSpeed.ToString("0.00"));
             _log.Show("movement.speed", _text.ToString());
 
-            _text.Clear().Append("Direction ×").Append(motor.DirectionShare.ToString("0.00"));
+            _text.Clear().Append("Direction ×").Append(motor.DirectionShare.ToString("0.00"))
+                .Append("  Ground ×").Append(motor.GroundMultiplier.ToString("0.00"));
+            if (footing != null && footing.WaterDepth > 0f)
+                _text.Append(" (water ").Append(footing.WaterDepth.ToString("0.00")).Append(" m)");
             if (held != null)
                 _text.Append("  Mobility ×").Append(held.Mobility.ToString("0.00"))
                     .Append("  Aim ×").Append(held.AimSpeed.ToString("0.00"))

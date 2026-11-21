@@ -9,6 +9,7 @@ using MB13.Aipocalypse.Core.Ghosts;
 using MB13.Aipocalypse.Core.HandSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
+using MB13.Aipocalypse.Core.SpawnSystem;
 using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.SurfaceSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
@@ -73,6 +74,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         ItemMagnet _magnet;
         PlayerEffects _effects;
         MovementReadout _readout;
+        PlayerFooting _footing;
         float _lastHurtTime = float.NegativeInfinity;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
@@ -174,7 +176,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (_visionLight != null && _tuning.Vision != null)
                 Vision = new PlayerVision(_visionLight, _tuning.Vision);
             _sequence = new PoseSequencePlayer(transform, _cameraRig, audio);
-            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds, _life, surfaces, transform, _tuning.Movement.GroundLayers);
+            // Optional: scenes without the spawn system's water have no wading.
+            resolver.TryResolve(out IWaterLevel water);
+            _footing = new PlayerFooting(_tuning.Movement, water);
+            _feedback = new PlayerFeedback(_motor, _headBob, _heldSway, audio, _tuning.Sounds, _life, surfaces, transform, _tuning.Movement.GroundLayers,
+                _footing);
 
             _life.Died += OnDied;
             _life.Hurt += OnHurt;
@@ -229,6 +235,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             HeldItem held = HeldItem;
             if (intent.Sprint && held != null && held.StopsSprint(intent.Fire, intent.Aim))
                 intent.Sprint = false;
+            _footing.Tick(transform.position);
+            _motor.GroundMultiplier = _footing.SpeedScale;
+            if (_footing.BlocksSprint)
+                intent.Sprint = false;
 
             if (!inSequence)
                 _look.Tick(intent.LookDegrees);
@@ -268,7 +278,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             DrawGhost();
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
             if (ShowMovementReadout)
-                _readout?.Show(_motor, _held, Fatigue);
+                _readout?.Show(_motor, _held, Fatigue, _footing);
             // After the held item, so the sequence's camera and field of view win over its kick and zoom.
             if (inSequence)
             {

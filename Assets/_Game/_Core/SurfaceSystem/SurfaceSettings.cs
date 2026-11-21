@@ -16,6 +16,7 @@ namespace MB13.Aipocalypse.Core.SurfaceSystem
         Sand,
         Mud,
         Metal,
+        Snow,
     }
 
     // A word that marks a surface kind when it appears in a collider's, its material's or a terrain layer's name.

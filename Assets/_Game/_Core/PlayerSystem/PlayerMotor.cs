@@ -64,6 +64,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float CrouchSpeed => WalkSpeed * _tuning.CrouchSpeedMultiplier;
         // Ground speed scale set by the player each frame (slower while aiming down sights).
         public float SpeedMultiplier { get; set; } = 1f;
+        // Ground speed scale from what the feet are in (mud, snow, water), set by the player each frame (PlayerFooting).
+        public float GroundMultiplier { get; set; } = 1f;
         // Sprint stamina cost scale set by the player each frame (a heavy item in hand costs more).
         public float SprintCostMultiplier { get; set; } = 1f;
         // Ground acceleration and braking scale set by the player each frame (a heavy item in hand gets going and stops slower).
@@ -250,7 +252,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Vector3 wishDirection = hasMove ? (right * move.x + forward * move.y).normalized : Vector3.zero;
 
             DirectionShare = hasMove ? DirectionalSpeedScale(move.normalized, _tuning.StrafeSpeedMultiplier, _tuning.BackwardSpeedMultiplier) : 0f;
-            float slowdown = DirectionShare * SpeedMultiplier;
+            float slowdown = DirectionShare * SpeedMultiplier * GroundMultiplier;
             if (_landingSlowLeft > 0f && _tuning.HeavyLandingRecoveryTime > 0f)
                 slowdown *= Mathf.Lerp(1f, _tuning.HeavyLandingSpeedMultiplier, _landingSlowLeft / _tuning.HeavyLandingRecoveryTime);
             float floorSpeed = WalkSpeed * _tuning.MinSpeedShare;

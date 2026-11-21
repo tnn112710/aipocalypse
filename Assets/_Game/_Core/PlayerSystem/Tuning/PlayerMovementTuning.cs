@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using MB13.Aipocalypse.Core.SurfaceSystem;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.PlayerSystem
@@ -28,6 +30,16 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _crouchTransitionTime = 0.15f;
         [SerializeField, Tooltip("What stops standing up under it (a low beam, a table)")]
         LayerMask _standUpBlockers = Physics.DefaultRaycastLayers;
+
+        [Header("Ground & water"), SerializeField, Tooltip("Off: mud, snow and water don't slow the player")]
+        bool _groundSlowdown = true;
+        [SerializeField, Tooltip("Speed multiplier on each kind of ground; kinds not listed = 1")]
+        Dictionary<SurfaceKind, float> _surfaceSpeed = new() { { SurfaceKind.Mud, 0.8f }, { SurfaceKind.Snow, 0.8f } };
+        [SerializeField, Tooltip("Speed multiplier (y) by water depth over the feet (x, metres); replaces the ground's")]
+        AnimationCurve _wadingSpeed = new(new Keyframe(0f, 1f), new Keyframe(0.15f, 0.9f), new Keyframe(0.5f, 0.7f),
+            new Keyframe(0.9f, 0.5f), new Keyframe(1.3f, 0.35f));
+        [SerializeField, Min(0f), Tooltip("No sprinting in water deeper than this (m, about the knee)")]
+        float _wadingSprintDepth = 0.5f;
 
         [Header("Jump & gravity"), SerializeField, Min(0f)] float _jumpHeight = 1.1f;
         [SerializeField, Min(0.01f)] float _gravity = 22f;
@@ -65,6 +77,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float CrouchSpeedMultiplier => _crouchSpeedMultiplier;
         public float CrouchTransitionTime => _crouchTransitionTime;
         public LayerMask StandUpBlockers => _standUpBlockers;
+        public bool GroundSlowdown => _groundSlowdown;
+        public float WadingSprintDepth => _wadingSprintDepth;
+        public float SurfaceSpeed(SurfaceKind kind) => _surfaceSpeed != null && _surfaceSpeed.TryGetValue(kind, out float scale) ? scale : 1f;
+        public float WadingSpeed(float depth) => _wadingSpeed != null && _wadingSpeed.length > 0 ? Mathf.Max(0f, _wadingSpeed.Evaluate(depth)) : 1f;
         public float JumpHeight => _jumpHeight;
         public float Gravity => _gravity;
         public float MaxFallSpeed => _maxFallSpeed;
