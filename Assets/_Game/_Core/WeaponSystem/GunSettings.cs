@@ -53,19 +53,25 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         bool IsBurst => Mode is FireMode.AutoBurst or FireMode.SingleBurst;
     }
 
-    // Full damage up to Start metres, easing down to MinShare of it at End and beyond.
+    // Full damage over the first EffectiveRangeShare of the bullet's range (the effective range), easing (smoothstep) down to
+    // MinShare of it where the bullet vanishes (Bullet → Range).
     [Serializable]
     public sealed class DamageFalloff
     {
-        [Min(0f), Tooltip("Metres of full damage")] public float Start = 30f;
-        [Min(0f), Tooltip("Metres where it reaches the minimum")] public float End = 90f;
-        [Range(0f, 1f), Tooltip("Share of the damage left at End and beyond")] public float MinShare = 0.5f;
+        [Range(0f, 1f), Tooltip("Effective range as a share of the bullet's Range: full damage up to this distance, shown as the gun's Range. 0.3 of 300 m = 90 m")]
+        public float EffectiveRangeShare = 0.3f;
+        [Range(0f, 1f), Tooltip("Share of the damage left when the bullet reaches its Range (Bullet → Range), where it vanishes")]
+        public float MinShare = 0.5f;
 
-        public float At(float distance)
+        // Metres of full damage for a bullet of this range.
+        public float EffectiveRange(float range) => EffectiveRangeShare * range;
+
+        public float At(float distance, float range)
         {
-            if (distance <= Start || End <= Start)
-                return distance <= Start ? 1f : MinShare;
-            return Mathf.Lerp(1f, MinShare, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(Start, End, distance)));
+            float start = EffectiveRange(range);
+            if (distance <= start || range <= start)
+                return distance <= start ? 1f : MinShare;
+            return Mathf.Lerp(1f, MinShare, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(start, range, distance)));
         }
     }
 
@@ -73,7 +79,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     public sealed class BulletSettings
     {
         [Min(1f), Tooltip("m/s")] public float Speed = 120f;
-        [Min(1f), Tooltip("Bullets vanish after this distance (m)")] public float Range = 150f;
+        [Min(1f), Tooltip("Bullets vanish after this distance (m); damage reaches Fire → Falloff's minimum here")] public float Range = 150f;
         [Min(0f), Tooltip("0 = flies straight, 1 = normal gravity")] public float GravityScale;
         [Tooltip("What bullets and the crosshair's aim ray can hit. Leave out Debris (dropped magazines) and HeldWeapon")]
         public LayerMask HitLayers = Physics.DefaultRaycastLayers;

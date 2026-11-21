@@ -84,8 +84,6 @@ public static class RealisticGunStats
             so.FindProperty("_fire.Knockback").floatValue = Round2(ak.Fire.Knockback * Momentum(real) / Momentum(Akm));
             so.FindProperty("_fire.Pellets").intValue = real.Pellets;
             so.FindProperty("_fire.RoundsPerMinute").floatValue = real.RoundsPerMinute;
-            so.FindProperty("_fire.Falloff.Start").floatValue = Mathf.Round(ak.Fire.Falloff.Start * range);
-            so.FindProperty("_fire.Falloff.End").floatValue = Mathf.Round(ak.Fire.Falloff.End * range);
             so.FindProperty("_fire.StaminaPerShot").floatValue = Round2(ak.Fire.StaminaPerShot * recoil);
             so.FindProperty("_bullet.Speed").floatValue = Mathf.Round(ak.Bullet.Speed * speed);
             so.FindProperty("_bullet.Range").floatValue = Mathf.Round(ak.Bullet.Range * range);
@@ -104,7 +102,7 @@ public static class RealisticGunStats
 
             report.AppendLine($"{real.Gun}: damage {gun.Fire.Damage}x{gun.Fire.Pellets}, knockback {gun.Fire.Knockback}, {gun.Fire.RoundsPerMinute} rpm, " +
                 $"mag {gun.Magazine.Size}, reload {gun.Magazine.ReloadTime} s, speed {gun.Bullet.Speed} m/s, range {gun.Bullet.Range} m, " +
-                $"falloff {gun.Fire.Falloff.Start}-{gun.Fire.Falloff.End} m, recoil up {gun.Recoil.Hip.Vertical:0.0} deg (x{scale:0.00}), " +
+                $"full damage to {gun.Fire.Falloff.EffectiveRange(gun.Bullet.Range):0} m, recoil up {gun.Recoil.Hip.Vertical:0.0} deg (x{scale:0.00}), " +
                 $"stamina {gun.Fire.StaminaPerShot}, weight {gun.Weight} kg (free recoil {RecoilEnergy(real):0.0} J vs AK {RecoilEnergy(Akm):0.0} J)");
         }
         return report.ToString();

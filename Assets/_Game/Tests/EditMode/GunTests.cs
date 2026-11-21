@@ -459,16 +459,18 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
-        public void Falloff_FullUpToStart_EasesToTheMinimumAtEnd()
+        public void Falloff_FullUpToStart_EasesToTheMinimumAtTheBulletsRange()
         {
-            var falloff = new DamageFalloff { Start = 20f, End = 60f, MinShare = 0.4f };
+            var falloff = new DamageFalloff { EffectiveRangeShare = 1f / 3f, MinShare = 0.4f };
+            const float range = 60f;
 
-            Assert.AreEqual(1f, falloff.At(0f));
-            Assert.AreEqual(1f, falloff.At(20f));
-            Assert.AreEqual(0.7f, falloff.At(40f), 0.0001f);
-            Assert.AreEqual(0.4f, falloff.At(60f), 0.0001f);
-            Assert.AreEqual(0.4f, falloff.At(500f), 0.0001f);
-            Assert.Greater(falloff.At(30f), falloff.At(50f));
+            Assert.AreEqual(20f, falloff.EffectiveRange(range), 0.0001f);
+
+            Assert.AreEqual(1f, falloff.At(0f, range));
+            Assert.AreEqual(1f, falloff.At(20f, range));
+            Assert.AreEqual(0.7f, falloff.At(40f, range), 0.0001f);
+            Assert.AreEqual(0.4f, falloff.At(60f, range), 0.0001f);
+            Assert.Greater(falloff.At(30f, range), falloff.At(50f, range));
         }
 
         [Test]

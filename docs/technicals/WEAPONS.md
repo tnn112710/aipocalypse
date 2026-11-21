@@ -25,7 +25,7 @@ References for gun play and feel: **Far Cry** (gun position and view, hip and ai
 | Shotgun pellets | `Pellets` bullets per shot (one round, one muzzle flash), each up to `SpreadAngle`° off the aim. A rifle is `Pellets 1, SpreadAngle 0` | Fire |
 | Travelling bullets | Plain data moved each frame and ray-tested along their path: speed, range (then they vanish), optional gravity. No rigidbodies, no GameObject per bullet (only its pooled tracer). AK47 300 m/s, MP5 224, Pistol 178, PumpShotgun 222, DoubleBarrel 227 ([First-pass real-life stats](#first-pass-real-life-stats)) | Gun asset → Bullet |
 | What bullets hit | `HitLayers`: bullets and the crosshair's aim ray only test these (all five guns: everything but Ignore Raycast, `Debris` and `HeldWeapon`). Dropped magazines are on `Debris`, so they never stop a shot or catch the aim ray; the player's capsule and the obstacle pose ignore them too | Bullet → `HitLayers`; damage type: Bullet → `DamageType` |
-| Damage falloff | Every gun: full damage up to `Falloff.Start` metres travelled, easing (smoothstep) down to `MinShare` of it at `End` and beyond; knockback falls off the same way. AK47 40 → 120 m, 60 % · MP5 30 → 91 m, 50 % · Pistol 15 → 45 m, 50 % · PumpShotgun 13 → 38 m, 25 % · DoubleBarrel 14 → 41 m, 25 % (per pellet). Range parts scale both distances | Fire → `Falloff` |
+| Damage falloff | Every gun: full damage over the first `Falloff.EffectiveRangeShare` of `Bullet.Range` travelled (the effective range, shown as the gun's Range), easing (smoothstep) down to `MinShare` of it at `Bullet.Range`, where the bullet vanishes; knockback falls off the same way. Shares: rifles 0.33 (M4, SCAR, AK-74M: high-velocity rounds keep their punch), AK47 and RPD 0.3, Desert Eagle 0.3 (magnum), MP5 and 9 mm / .45 pistols 0.25 (pistol rounds lose energy fast), shotguns 0.2 per pellet. AK47 90 → 300 m, 30 % · MP5 57 → 227 m, 50 % · Pistol 28 → 113 m, 50 % · PumpShotgun 19 → 95 m, 25 %. Range parts scale both distances | Fire → `Falloff` |
 | Knockback | Each bullet pushes along its flight by `Knockback` N·s (× the falloff): rigidbodies get the impulse at the hit point, damageables get it as `DamageInfo.Force` (`TargetDummy` tips; enemies slide back, [ARCHITECTURE.md → AI](ARCHITECTURE.md#ai)). AK47 1.5, MP5 0.85, Pistol 1, shotguns 0.36–0.38 per pellet (about 3.3 for a full blast) | Fire → `Knockback` |
 | Damage | Each bullet hurts what it hits through `DamageService.DealHit` (the shot's `DamageType`, `Gunshot` by default; source = the shooter; a `Hitbox` on the collider hit scales it: enemy heads ×2 and critical, a red number); the service publishes `DamageDealt` with what landed and whether it killed, which drives the hit marker and damage numbers ([UI.md](UI.md#hit-feedback)) | Fire → `Damage` |
 | Never hits the shooter | Anything under the shooter's root is skipped (body, held gun). Triggers (pickups) are ignored | `IGunUser.Root` |
@@ -159,7 +159,7 @@ Built 2026-11-14 ([design](../superpowers/specs/2026-11-14-gun-system-design.md)
 | --- | --- | --- |
 | Slots | Duckov's six: Optic, Muzzle, Grip, Stock, Tactical, Magazine. Each gun lists the ones it has: AK47 and MP5 Optic, Muzzle, Grip, Tactical, Magazine; Pistol Optic, Muzzle, Tactical, Magazine; PumpShotgun Optic, Muzzle, Grip, Tactical; DoubleBarrel Tactical. No stock parts yet | Gun asset → Parts → `Slots`, `Family` |
 | What fits | A part fits a gun that has its slot and is either in its exact-gun list or of one of its families (Pistol, Smg, Rifle, Marksman, Sniper, MachineGun, Shotgun). Magazines also need the gun's ammo type | Part asset → `Families`, `Guns`, `Ammo` |
-| Stats | Each part adds percentages to the copy's stat sheet (`GunStats`): damage, fire rate, magazine, reload time, range (bullet range and both falloff distances), bullet speed, recoil up and sideways, aim time, spread (pellets and airborne), move speed while held, hip spread. They add up, then apply: base × (1 + Σ % / 100), each sum clamped to −90 … +300 %. The gun's weight and value add its parts'. `Gun`, `GunRecoil` and `HeldGun` read the sheet, not the asset; fire-rate parts don't reach the trigger yet | Part asset → `Modifiers` |
+| Stats | Each part adds percentages to the copy's stat sheet (`GunStats`): damage, fire rate, magazine, reload time, range (bullet range, so the full-damage distance too), bullet speed, recoil up and sideways, aim time, spread (pellets and airborne), move speed while held, hip spread. They add up, then apply: base × (1 + Σ % / 100), each sum clamped to −90 … +300 %. The gun's weight and value add its parts'. `Gun`, `GunRecoil` and `HeldGun` read the sheet, not the asset; fire-rate parts don't reach the trigger yet | Part asset → `Modifiers` |
 | Fitting | With a gun inspected: drag a part onto its slot or onto the 3D view, or right-click it; the part it replaces takes its place. Drag a fitted part to a backpack slot, or right-click it, to take it off. A smaller magazine's extra rounds go back to the backpack as ammo. With no room for the part or the rounds nothing changes ("Backpack full"). A part going on or off plays its own sound (`Part_Attach` / `Part_Detach`, `InventoryStyle`) and nudges the 3D view (`ItemPreviewStage.Nudge`). Rules in `GunModding` | — |
 | On the model | `GunMounts` (on the first-person `Weapon` and on `World/Model`) spawns each part's model on its slot's mount; rails and adapters show and iron sights hide while a part is fitted (the MP5's rear drum, the pump's rear sight). Mounts sit under the gun part they move with (the pistol optic on the slide, the pump's grip on the pump), so the clips carry them. Magazine parts scale the gun's own magazine (no models of their own yet). The model in hand changes at once when a part is fitted | gun prefab → `GunMounts` (placed from the Castle Bravo presets by `AttachmentSetup.Mounts`) |
 | Muzzle parts | Shots and the flash leave the part's tip. Suppressors hide the flash (`HidesFlash`), replace the shot sound (`FireSound`: `Fire_SuppressedRifle`, `Fire_SuppressedPistol`; no tail unless `FireTailSound` is set) and carry less far: `Loudness` 0.3 scales `ShotFired.Loudness`, so animals scatter from a third of the distance (`AnimalSettings.ShotRadius` × it) | Part asset → Muzzle |
@@ -201,25 +201,25 @@ Built 2026-11-14 ([design](../superpowers/specs/2026-11-14-gun-system-design.md)
 
 `AgentScripts/Weapons/RealisticGunStats.cs` (entry `Apply`) sets the other four guns from the AK47 asset (tuned by hand) and each gun's real-life ratio to the AKM. Re-run it after retuning the AK. Fire rate, magazine size and loaded weight are the real ones; reload times are real times × the AK's 2 s / 2.5 s. Damage, bullet speed, range and recoil use the **square root** of the real ratio (bullet momentum, muzzle velocity, effective range, free recoil energy), because the game compresses them: the AK already runs at 42 % of its real muzzle velocity, and a straight ratio would put .45 rounds at 106 m/s with 6 m of full damage. Knockback is momentum and takes the straight ratio. Feel values (aim speed, sway, zoom, recoil response, spread) are unchanged.
 
-| Gun | Damage | Rate | Magazine | Reload | Speed | Range (falloff) | Recoil up (hip) | Weight |
+| Gun | Damage | Rate | Magazine | Reload | Speed | Range (full damage to) | Recoil up (hip) | Weight |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| AK47 (anchor) | 20 | 600 | 30 | 2 s | 300 m/s | 150 m (40–120) | 3.5° | 3.6 kg |
-| MP5 (9 mm) | 15 | 800 | 30 | 2 s | 224 | 113 (30–91) | 1.9° | 3 kg |
-| Pistol (.45) | 16 | 400 | 7 | 1.44 s | 178 | 57 (15–45) | 3.4° | 1.2 kg |
-| PumpShotgun (00 buck) | 10 × 9 | pump 0.55 s | 5 | 0.48 s / shell | 222 | 47 (13–38) | 6.7° | 3.6 kg |
-| DoubleBarrel (00 buck) | 10 × 9 | 300 | 2 | 2.4 s | 227 | 51 (14–41) | 7.2° | 3.4 kg |
+| AK47 (anchor) | 20 | 600 | 30 | 2 s | 300 m/s | 300 m (90) | 3.5° | 3.6 kg |
+| MP5 (9 mm) | 15 | 800 | 30 | 2 s | 224 | 227 (57) | 1.9° | 3 kg |
+| Pistol (.45) | 16 | 400 | 7 | 1.44 s | 178 | 113 (28) | 3.4° | 1.2 kg |
+| PumpShotgun (00 buck) | 10 × 9 | pump 0.55 s | 5 | 0.48 s / shell | 222 | 95 (19) | 6.7° | 3.6 kg |
+| DoubleBarrel (00 buck) | 10 × 9 | 300 | 2 | 2.4 s | 227 | 101 (20) | 7.2° | 3.4 kg |
 
 Against a 100 HP goblin that is 5 AK body shots, 7 MP5, 7 pistol (one full magazine) and two close shotgun blasts (90 each, one when pellets hit the head). Before this the pistol did 25 with 12 rounds and a blast 96–108.
 
 The block-out guns (below) by the same rule, from the real figures in `RealisticGunStats.Others`:
 
-| Gun | Damage | Rate | Magazine | Reload | Speed | Range (falloff) | Recoil up (hip) | Weight |
+| Gun | Damage | Rate | Magazine | Reload | Speed | Range (full damage to) | Recoil up (hip) | Weight |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Glock 17 (9 mm) | 15 | 450 (semi) | 17 | 1.44 s | 217 m/s | 57 m (15–45) | 3.2° | 0.9 kg |
-| Desert Eagle (.50 AE, Magnum) | 25 | 180 (semi) | 7 | 1.6 s | 243 | 57 (15–45) | 7.1° | 2 kg |
-| M4 (5.56) | 16 | 800 | 30 | 2 s | 333 | 179 (48–143) | 2.6° | 3.4 kg |
-| AK-74M (5.45) | 15 | 650 | 30 | 2 s | 337 | 179 (48–143) | 2.1° | 3.9 kg |
-| RPD (7.62×39, rifle ammo) | 20 | 700 | 100 | 4 s | 304 | 227 (60–181) | 2.3° | 9 kg |
+| Glock 17 (9 mm) | 15 | 450 (semi) | 17 | 1.44 s | 217 m/s | 113 m (28) | 3.2° | 0.9 kg |
+| Desert Eagle (.50 AE, Magnum) | 25 | 180 (semi) | 7 | 1.6 s | 243 | 113 (34) | 7.1° | 2 kg |
+| M4 (5.56) | 16 | 800 | 30 | 2 s | 333 | 359 (118) | 2.6° | 3.4 kg |
+| AK-74M (5.45) | 15 | 650 | 30 | 2 s | 337 | 359 (118) | 2.1° | 3.9 kg |
+| RPD (7.62×39, rifle ammo) | 20 | 700 | 100 | 4 s | 304 | 454 (136) | 2.3° | 9 kg |
 
 The square-root rule flattens the big rounds: the Desert Eagle takes 4 body shots (2 to the head), where the design guessed 2. To tune by hand.
 

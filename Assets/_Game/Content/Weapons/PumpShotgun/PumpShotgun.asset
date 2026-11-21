@@ -44,8 +44,7 @@ MonoBehaviour:
     Damage: 10
     Knockback: 0.36
     Falloff:
-      Start: 13
-      End: 38
+      EffectiveRangeShare: 0.2
       MinShare: 0.25
     Pellets: 9
     SpreadAngle: 5
@@ -53,7 +52,7 @@ MonoBehaviour:
     StaminaPerShot: 1.15
   _bullet:
     Speed: 222
-    Range: 47
+    Range: 95
     GravityScale: 0
     HitLayers:
       serializedVersion: 2

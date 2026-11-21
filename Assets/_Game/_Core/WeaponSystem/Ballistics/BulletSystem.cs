@@ -200,7 +200,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             Vector3 normal = hit.normal != Vector3.zero ? hit.normal : -bullet.Velocity.normalized;
 
-            float share = bullet.Falloff != null ? bullet.Falloff.At(travelled) : 1f;
+            float share = bullet.Falloff != null ? bullet.Falloff.At(travelled, bullet.Range) : 1f;
             Vector3 force = bullet.Velocity.normalized * (bullet.Knockback * share);
             IDamageable target = _damage.DealHit(hit, new DamageInfo(bullet.Damage * share, bullet.DamageType, hit.point, force, bullet.Source));
 

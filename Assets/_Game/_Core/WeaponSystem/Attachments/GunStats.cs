@@ -45,9 +45,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             RoundsPerMinute = Get(GunStat.FireRate);
             MagazineSize = Mathf.RoundToInt(Get(GunStat.MagazineSize));
             ReloadTime = Get(GunStat.ReloadTime);
-            float range = Scale(GunStat.Range);
-            Range = gun.Bullet.Range * range;
-            Falloff = new DamageFalloff { Start = gun.Fire.Falloff.Start * range, End = gun.Fire.Falloff.End * range, MinShare = gun.Fire.Falloff.MinShare };
+            Range = gun.Bullet.Range * Scale(GunStat.Range);
+            Falloff = gun.Fire.Falloff;
             BulletSpeed = Get(GunStat.BulletSpeed);
             VerticalRecoilScale = Scale(GunStat.VerticalRecoil);
             HorizontalRecoilScale = Scale(GunStat.HorizontalRecoil);
@@ -121,7 +120,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             GunStat.MagazineSize => Mathf.Max(1, Mathf.RoundToInt(gun.Magazine.Size * scale)),
             GunStat.ReloadTime => gun.Magazine.ReloadTime * scale,
             // Shown as the distance of full damage.
-            GunStat.Range => gun.Fire.Falloff.Start * scale,
+            GunStat.Range => gun.Fire.Falloff.EffectiveRange(gun.Bullet.Range) * scale,
             GunStat.BulletSpeed => gun.Bullet.Speed * scale,
             // Degrees per shot at the hip.
             GunStat.VerticalRecoil => gun.Recoil.Hip.Vertical * scale,

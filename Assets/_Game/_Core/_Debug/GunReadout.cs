@@ -85,7 +85,7 @@ namespace MB13.Aipocalypse.Core.Debugging
                     _sb.Append("out of range\n");
                     continue;
                 }
-                float hit = perShot * stats.Falloff.At(distance);
+                float hit = perShot * stats.Falloff.At(distance, stats.Range);
                 int body = Mathf.CeilToInt(_targetHealth / hit);
                 int head = Mathf.CeilToInt(_targetHealth / (hit * _headMultiplier));
                 _sb.Append(body).Append(" / ").Append(head).Append("<pos=40%>").Append(((body - 1) * interval).ToString("0.00")).Append(" s / ")
