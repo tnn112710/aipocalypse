@@ -54,14 +54,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
     }
 
     // Full damage over the first EffectiveRangeShare of the bullet's range (the effective range), easing (smoothstep) down to
-    // MinShare of it where the bullet vanishes (Bullet → Range).
+    // MinDamageShare of it where the bullet vanishes (Bullet → Range).
     [Serializable]
     public sealed class DamageFalloff
     {
         [Range(0f, 1f), Tooltip("Effective range as a share of the bullet's Range: full damage up to this distance, shown as the gun's Range. 0.3 of 300 m = 90 m")]
         public float EffectiveRangeShare = 0.3f;
         [Range(0f, 1f), Tooltip("Share of the damage left when the bullet reaches its Range (Bullet → Range), where it vanishes")]
-        public float MinShare = 0.5f;
+        public float MinDamageShare = 0.5f;
 
         // Metres of full damage for a bullet of this range.
         public float EffectiveRange(float range) => EffectiveRangeShare * range;
@@ -70,8 +70,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             float start = EffectiveRange(range);
             if (distance <= start || range <= start)
-                return distance <= start ? 1f : MinShare;
-            return Mathf.Lerp(1f, MinShare, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(start, range, distance)));
+                return distance <= start ? 1f : MinDamageShare;
+            return Mathf.Lerp(1f, MinDamageShare, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(start, range, distance)));
         }
     }
 

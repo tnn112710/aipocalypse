@@ -461,7 +461,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Falloff_FullUpToStart_EasesToTheMinimumAtTheBulletsRange()
         {
-            var falloff = new DamageFalloff { EffectiveRangeShare = 1f / 3f, MinShare = 0.4f };
+            var falloff = new DamageFalloff { EffectiveRangeShare = 1f / 3f, MinDamageShare = 0.4f };
             const float range = 60f;
 
             Assert.AreEqual(20f, falloff.EffectiveRange(range), 0.0001f);
