@@ -122,6 +122,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float IGunUser.AirSpreadScale => _stats.GetScale(StatId.AirSpreadScale);
         float IGunUser.FatigueRecoilScale => Fatigue.RecoilMultiplier;
         float IGunUser.SteadinessScale => _stats.GetScale(StatId.HeldItemSwayScale);
+        AimWhileFiring IGunUser.AimWhileFiring => _tuning.HeldItem.AimWhileFiringAt(
+            Mathf.RoundToInt(_stats.Get(StatId.AimWhileFiringLevel, _tuning.HeldItem.AimWhileFiringLevel)));
         Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
         float IWeaponUser.MeleePower => Fatigue.MeleePower;
 

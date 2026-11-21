@@ -586,6 +586,51 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void AimWhileFiring_Locked_IgnoresAimUntilTheTriggerIsLetGo()
+        {
+            Gun gun = NewGun();
+            GunInput input = Trigger(true, true);
+            input.Aim = true;
+
+            Run(gun, input, 0.2f);
+            Assert.IsFalse(gun.IsAiming);
+
+            input.TriggerHeld = false;
+            input.TriggerPressed = false;
+            gun.Tick(input, Frame);
+            Assert.IsTrue(gun.IsAiming);
+        }
+
+        [Test]
+        public void AimWhileFiring_Unlocked_StartsTheAimMidSpray()
+        {
+            Gun gun = NewGun();
+            GunInput input = Trigger(true, true);
+            input.Aim = true;
+            input.CanAimWhileFiring = true;
+
+            gun.Tick(input, Frame);
+
+            Assert.IsTrue(gun.IsAiming);
+        }
+
+        [Test]
+        public void AimWhileFiring_Locked_KeepsAnAimAlreadyUp()
+        {
+            Gun gun = NewGun();
+            GunInput input = Trigger(false);
+            input.Aim = true;
+            gun.Tick(input, Frame);
+
+            input.TriggerHeld = true;
+            input.TriggerPressed = true;
+            Run(gun, input, 0.2f);
+
+            Assert.IsTrue(gun.IsAiming);
+            Assert.Greater(_shots, 0);
+        }
+
+        [Test]
         public void SprintRecovery_StillLetsItAim()
         {
             Gun gun = NewGun();

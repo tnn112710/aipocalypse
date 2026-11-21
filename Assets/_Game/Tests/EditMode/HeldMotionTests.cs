@@ -189,6 +189,26 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(1.6f, new RecoilSettings { AirborneMultiplier = 1.6f }.StateMultiplier(true, true, false), 0.001f);
     }
 
+    public class AimWhileFiringLevelTests
+    {
+        [Test]
+        public void AimWhileFiringAt_LevelZeroIsLocked_HigherLevelsGetFasterAndSteadier_PastTheEndKeepsTheLast()
+        {
+            var tuning = ScriptableObject.CreateInstance<PlayerHeldItemTuning>();
+            Assert.IsFalse(tuning.AimWhileFiringAt(0).Allowed);
+            Assert.IsFalse(tuning.AimWhileFiringAt(-1).Allowed);
+
+            AimWhileFiring first = tuning.AimWhileFiringAt(1);
+            AimWhileFiring second = tuning.AimWhileFiringAt(2);
+            Assert.IsTrue(first.Allowed);
+            Assert.Greater(second.AimSpeedScale, first.AimSpeedScale);
+            Assert.Less(second.RecoilScale, first.RecoilScale);
+            Assert.Less(second.WobbleScale, first.WobbleScale);
+            Assert.AreEqual(tuning.AimWhileFiringAt(3).AimSpeedScale, tuning.AimWhileFiringAt(99).AimSpeedScale);
+            Object.DestroyImmediate(tuning);
+        }
+    }
+
     public class MoveSpreadScaleTests
     {
         static float Scale(bool sprinting, bool moving, bool crouching)

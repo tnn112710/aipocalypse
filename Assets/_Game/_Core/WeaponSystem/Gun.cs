@@ -24,6 +24,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // False while sprinting.
         public bool CanFire;
         public bool CanAim;
+        // Aiming may start while the trigger is held (a holder's skill); without it only an aim already up is kept.
+        public bool CanAimWhileFiring;
         // Just out of a sprint: shots wait, and a click meanwhile is kept until they can go.
         public bool Recovering;
     }
@@ -106,7 +108,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 StartActionIfNeeded(input.Reload);
 
             // Reloading and clearing a jam drop the aim; working the pump doesn't.
-            IsAiming = input.Aim && input.CanAim && Action is GunAction.None or GunAction.Cycling;
+            bool startsWhileFiring = !IsAiming && input.TriggerHeld && !input.CanAimWhileFiring;
+            IsAiming = input.Aim && input.CanAim && !startsWhileFiring && Action is GunAction.None or GunAction.Cycling;
 
             _trigger.Update(deltaTime, input.TriggerHeld, input.TriggerPressed);
             bool keepsClick = Action == GunAction.Cycling || (Action == GunAction.Reloading && _stopReload) ||

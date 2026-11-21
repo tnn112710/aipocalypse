@@ -13,6 +13,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float FatigueRecoilScale { get; }
         // Scales the hip wobble: 1 = normal, lower = steadier hands (skills; a sanity effect can plug in here).
         float SteadinessScale { get; }
+        // Raising the sights while the trigger is held: default = can't.
+        AimWhileFiring AimWhileFiring { get; }
         // Where the crosshair is, as a turn from the eye's forward (aim sway). Camera and muzzle-to-crosshair shots follow it.
         Quaternion AimOffset { get; }
     }

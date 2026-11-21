@@ -27,6 +27,9 @@ namespace MB13.Aipocalypse.Core.Stats
         // Metres around the player that read clearly in the dark; a belt lantern adds its own radius on top.
         VisionRadius,
         WalkStaminaCost,
+        // 0 = can't raise the sights while firing; each level above unlocks it, then makes it faster and steadier
+        // (PlayerHeldItemTuning's levels). Rounded to a whole level.
+        AimWhileFiringLevel,
     }
 
     // Core reads tunable numbers through this seam; perks, XP and buffs plug in a modifying implementation and raise Changed

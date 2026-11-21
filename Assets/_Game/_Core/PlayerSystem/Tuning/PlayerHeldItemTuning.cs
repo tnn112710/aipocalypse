@@ -23,6 +23,17 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Seconds turning's wobble takes to follow the mouse (smooths per-frame mouse jitter)")]
         float _turnSmoothing = 0.1f;
 
+        [Header("Aiming while firing"), SerializeField, Min(0), Tooltip("The level before skills (StatId.AimWhileFiringLevel adds to it). " +
+            "0 = RMB does nothing while the trigger is held; 1+ = the matching entry below")]
+        int _aimWhileFiringLevel = 1;
+        [SerializeField, Tooltip("Level 1, 2, …: raising the sights with the trigger held. Levels past the end use the last entry")]
+        AimWhileFiring[] _aimWhileFiringLevels =
+        {
+            new() { AimSpeedScale = 0.4f, RecoilScale = 1.6f, WobbleScale = 2f },
+            new() { AimSpeedScale = 0.6f, RecoilScale = 1.35f, WobbleScale = 1.5f },
+            new() { AimSpeedScale = 0.8f, RecoilScale = 1.15f, WobbleScale = 1.2f },
+        };
+
         [Header("Obstacle pose"), SerializeField, Tooltip("Retract and tilt the held model near walls or entities")]
         bool _keepHeldItemClear = true;
         [SerializeField, Min(0f), Tooltip("Extra room kept in front of the model's tip (m)")]
@@ -44,6 +55,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public AimOrigin AimFrom => _aimFrom;
         public float AimMoveSpeedMultiplier => _aimMoveSpeedMultiplier;
         public float MovingSpeed => _movingSpeed;
+        public int AimWhileFiringLevel => _aimWhileFiringLevel;
+
+        // The entry for `level` (0 or below, or no entries = can't aim in while firing).
+        public AimWhileFiring AimWhileFiringAt(int level)
+        {
+            if (level <= 0 || _aimWhileFiringLevels == null || _aimWhileFiringLevels.Length == 0)
+                return default;
+            return _aimWhileFiringLevels[Mathf.Min(level, _aimWhileFiringLevels.Length) - 1];
+        }
 
         // Hip wobble degrees from turning at `lookDegreesPerSecond` (HeldItemInput.TurnSpread).
         public float TurnSpread(float lookDegreesPerSecond) => Mathf.Min(Mathf.Abs(lookDegreesPerSecond) * 0.01f * _turnSpread, _maxTurnSpread);

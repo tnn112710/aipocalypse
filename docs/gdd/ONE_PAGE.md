@@ -2,7 +2,7 @@
 
 The whole game on one page, after Unity's [one-page game design document](https://unity.com/blog/one-page-game-design-document). Detail lives in [CORE.md](CORE.md), [STORY.md](STORY.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md); if they disagree, they win and this page gets fixed. The scope, "done" and milestone sections are **proposals to confirm**, not decisions yet.
 
-**Title:** **Hasta la Vista, M.A.Y.B.E** (chosen 2026-11-08). **aipocalypse** stays the development codename and namespace (repo, folders, namespaces, Unity product name). Logo: make "MAYBE" the biggest word so the short form isn't the crowded "Hasta la Vista". Other candidates kept as backups:
+**Title, genre, audience, platform and price:** final, in [official/IDENTITY.md](official/IDENTITY.md). Other title candidates kept as backups:
 
 - *Hasta la Vista, M.A.Y.B.E* (Model for Analyzing Your Behavior and Experience)
 - *Hasta la Vista, Maybe*
@@ -30,7 +30,7 @@ Naming notes: "AIpocalypse" alone is taken by another Steam game. Players will s
 
 **Pillars:** build something worth protecting · choose how to spend the day · prepare before dark · every bullet counts · from office worker to survivor.
 
-**Release:** Early Access first, after 6–9 months solo; regions, bosses and endings then grow through updates shaped by player feedback. Valheim and Enshrouded both added biomes during Early Access.
+**Release:** see [official/IDENTITY.md](official/IDENTITY.md). Valheim and Enshrouded both added biomes during Early Access.
 
 **First Early Access version can't ship without** *(proposal)*
 - First-person shooting with limited ammo (a few guns) and melee as fallback.
@@ -57,7 +57,7 @@ Naming notes: "AIpocalypse" alone is taken by another Steam game. Players will s
 - 7 Days to Die / Terraria — Blood Moons and eclipses players prepare for.
 - Slime Rancher — physical produce and home trading.
 
-**Who it's for:** PC players who like midcore survival shooters with a home to tend, and want short, tense fights between calm days. Steam, $8–12.
+**Who it's for:** see [official/IDENTITY.md](official/IDENTITY.md).
 
 **Done means** *(proposal)*
 - A new player goes from the wake-up intro through the first eclipse (day 30) without help or blocking bugs.

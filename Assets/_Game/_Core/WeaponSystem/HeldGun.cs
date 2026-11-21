@@ -53,6 +53,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         // Gameplay rolls (jams, pellets, spray pattern, wobble jolts): one saved, seeded stream for every gun.
         RandomStream _random;
         const string RandomStreamName = "guns";
+        // Aim weight that counts as sights up, ending an aim-in's mid-fire penalty.
+        const float AimedInWeight = 0.95f;
         // This frame's shot jolts to the wobble (degrees).
         Vector2 _wobbleKick;
         GunJam _jam;
@@ -62,6 +64,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         float _stateMultiplier = 1f;
         // 0 at the hip, 1 aiming down sights; eases with the aim pose and drives the zoom.
         float _aimWeight;
+        // The holder's skill at raising the sights mid-fire, and whether this aim-in started that way (trigger still held):
+        // it's slower, kicks harder and wobbles more until the sights are up or the trigger is let go.
+        AimWhileFiring _aimWhileFiring;
+        bool _aimingInWhileFiring;
         // Shots from this frame's Gun.Tick, spawned in LateTick once the model and camera are in their final place.
         int _pendingShots;
         // Seconds until it can fire after a sprint.
@@ -192,6 +198,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _stateMultiplier = recoil.StateMultiplier(input.IsAirborne, input.IsMoving, input.IsCrouching);
             _sprintRecoveryLeft = input.IsSprinting ? _definition.Handling.SprintRecoveryTime : _sprintRecoveryLeft - deltaTime;
 
+            _aimWhileFiring = _user.AimWhileFiring;
+            bool wasAiming = _gun.IsAiming;
             _gun.Tick(new GunInput
             {
                 TriggerHeld = input.UseHeld,
@@ -201,8 +209,15 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 IsReady = input.IsReady,
                 CanFire = !input.IsSprinting,
                 CanAim = !input.IsSprinting,
+                CanAimWhileFiring = _aimWhileFiring.Allowed,
                 Recovering = _sprintRecoveryLeft > 0f,
             }, deltaTime);
+            if (!wasAiming && _gun.IsAiming && input.UseHeld)
+                _aimingInWhileFiring = true;
+            else if (!_gun.IsAiming || !input.UseHeld || _aimWeight >= AimedInWeight)
+                _aimingInWhileFiring = false;
+            if (_aimingInWhileFiring)
+                _stateMultiplier *= _aimWhileFiring.RecoilScale;
 
             if (input.LightPressed && input.IsReady && _mounts != null && _mounts.HasLights)
             {
@@ -228,7 +243,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 Airborne = input.IsAirborne,
                 AirScale = _user.AirSpreadScale * _item.Stats.SpreadScale,
                 Fatigue = _user.FatigueRecoilScale,
-                Steadiness = _user.SteadinessScale,
+                Steadiness = _user.SteadinessScale * (_aimingInWhileFiring ? _aimWhileFiring.WobbleScale : 1f),
             }, deltaTime);
             if (_tailIn >= 0f && (_tailIn -= deltaTime) < 0f)
                 Play(_item.Stats.FireTailSound);
@@ -276,6 +291,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _jolt.Stop();
             _shake.Stop();
             _aimWeight = 0f;
+            _aimingInWhileFiring = false;
             _optic?.ShowWindow(null, 0f);
             _jam?.Hide();
             _sprintRecoveryLeft = 0f;
@@ -463,7 +479,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         void UpdatePose(bool sprinting, float deltaTime)
         {
             HandlingSettings handling = _definition.Handling;
-            float aimSpeed = _item.Stats.AimSpeed;
+            float aimSpeed = _item.Stats.AimSpeed * (_aimingInWhileFiring ? _aimWhileFiring.AimSpeedScale : 1f);
             float aimBlend = Damping.ByRate(aimSpeed, deltaTime);
             _aimWeight = Mathf.Lerp(_aimWeight, _gun.IsAiming && !sprinting ? 1f : 0f, aimBlend);
             Transform aim = _optic.AimPose;

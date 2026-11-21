@@ -1,6 +1,6 @@
 # Game Design Document — aipocalypse
 
-Release title: **Hasta la Vista, Maybe**; "aipocalypse" is the development codename and namespace. Backup names and naming notes: [ONE_PAGE.md](ONE_PAGE.md).
+Release title: **Hasta la Vista, M.A.Y.B.E**; "aipocalypse" is the development codename and namespace ([official/IDENTITY.md](official/IDENTITY.md)). Backup names and naming notes: [ONE_PAGE.md](ONE_PAGE.md).
 
 Design intent, split into topic files. Current direction revised 2026-11-07. Technical implementation is documented in [ARCHITECTURE.md](../technicals/ARCHITECTURE.md); the development schedule is in [ROADMAP.md](../ROADMAP.md).
 
@@ -14,6 +14,7 @@ Beyond the river, open regions ranked by difficulty each have their own terrain,
 
 ## Reading the draft
 
+- [official/](official/README.md) holds the finalized design: rules the user confirmed as final, with no open items. Everything else in this folder is working draft.
 - Current direction records the user's choices. Sections labelled **proposals**, **retained draft** or **open** are not additional confirmed rules.
 - [IDEAS.md](IDEAS.md) contains unapproved suggestions, extras for later and a clearly marked historical notebook. The fire choice, opt-in fights and the full-cozy path no longer exist.
 - A design decision does not mean that the feature is implemented. Follow the roadmap and technical docs for implementation status, and confirm gameplay work against the user's prompt.

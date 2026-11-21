@@ -541,7 +541,8 @@ Assets/_Game/
 │     ├─ Ammo/HotbarAmmo.cs                 TypesInUse(hotbar, types): each ammo type the hotbar's guns load, once (AmmoCrate, cheat.ammo)
 │     ├─ AmmoCrate.cs                       test aid, IInteractable "[E] Take ammo" while the actor carries a gun: TopUp refills each ammo type its hotbar guns use to the AmmoConfig starting amount (never above, unlimited uses); AmmoCrate_Take through AudioService (scene-placed: injected through the scope's Auto Inject Game Objects)
 │     ├─ IWeaponUser.cs                     holder seam for any weapon: Eye, Root, MeleePower, Exert (stamina per attack; StatId.AttackStaminaCostScale)
-│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, AirSpreadScale, FatigueRecoilScale, SteadinessScale (StatId.HeldItemSwayScale), AimOffset (Player implements it; StatId.AirSpreadScale)
+│     ├─ IGunUser.cs                        IWeaponUser + Ammo, AimFrom, AirSpreadScale, FatigueRecoilScale, SteadinessScale (StatId.HeldItemSwayScale), AimWhileFiring (StatId.AimWhileFiringLevel → PlayerHeldItemTuning.AimWhileFiringAt), AimOffset (Player implements it; StatId.AirSpreadScale)
+│     ├─ AimWhileFiring.cs                  struct: one level of raising the sights while the trigger is held: AimSpeedScale, RecoilScale, WobbleScale; Allowed (default = can't)
 │     ├─ GunTrigger.cs                      fire modes, fire rate, bursts; frame-rate independent
 │     ├─ Gun.cs                             a held gun's rules: shoot, magazine, reload (per-round stopped by firing after the current round), jam + clear (jam pause, repair timing, AddRepairTime), pump cycle, aim, sprint recovery (shots wait, clicks kept), empty click; events (+ GunAction, GunInput)
 │     ├─ GunRecoil.cs                       procedural recoil (spray rolled from a RandomStream): spray pattern → aim kick (view, springs back) + kept share (LookTurn) + small gun kick (model); hip / aim values blended by aim weight
