@@ -39,16 +39,15 @@ namespace DistantLands.Cozy
         {
             get
             {
-                if (daysPerYear == 0)
-                {
-                    daysPerYear = Instance.months.ToList().Sum(x => x.days);
-                }
+                ResetDaysPerYear();
                 return daysPerYear;
             }
         }
         public static void ResetDaysPerYear()
         {
-            daysPerYear = Instance.months.ToList().Sum(x => x.days);
+            daysPerYear = 0;
+            foreach (var month in Instance.months)
+                daysPerYear += month.days;
         }
         public static DateFormat NumericDateFormat => Instance.dateFormat;
         public static DayOfWeek StartingWeekday => Instance.startingWeekday;

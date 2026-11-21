@@ -103,10 +103,10 @@ namespace DistantLands.Cozy.EditorScripts
             });
 
             CozyProfileField<ClimateProfile> profile = new(serializedObject.FindProperty("climateProfile"));
-            profile.style.display = serializedObject.FindProperty("controlMethod").intValue == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            profile.style.display = serializedObject.FindProperty("controlMethod").intValue == 1 ? DisplayStyle.None : DisplayStyle.Flex;
 
             VisualElement nativeSettingsContainer = new();
-            nativeSettingsContainer.style.display = serializedObject.FindProperty("controlMethod").intValue == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            nativeSettingsContainer.style.display = serializedObject.FindProperty("controlMethod").intValue == 1 ? DisplayStyle.Flex : DisplayStyle.None;
 
             PropertyField GetPropertyContainer(string prop)
             {
@@ -151,10 +151,19 @@ namespace DistantLands.Cozy.EditorScripts
             PrecipitationContainer.Add(dryingSpeedElement);
 
 
-            InspectorElement inspector = new(climateModule.climateProfile);
+            VisualElement inspector = new();
             inspector.style.display = serializedObject.FindProperty("controlMethod").intValue == 1 ? DisplayStyle.None : DisplayStyle.Flex;
             inspector.AddToClassList("p-0");
             root.Add(inspector);
+
+            void RefreshProfileInspector()
+            {
+                inspector.Clear();
+                if (climateModule.climateProfile)
+                    inspector.Add(new InspectorElement(climateModule.climateProfile));
+            }
+            RefreshProfileInspector();
+            inspector.TrackPropertyValue(serializedObject.FindProperty("climateProfile"), _ => RefreshProfileInspector());
 
             controlMethodElement.RegisterCallback<ChangeEvent<string>>((ChangeEvent<string> evt) =>
             {

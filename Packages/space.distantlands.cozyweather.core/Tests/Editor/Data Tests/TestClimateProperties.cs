@@ -12,6 +12,72 @@ namespace DistantLands.Cozy.Tests
         private const float Tolerance = 0.001f;
 
         [TestFixture]
+        public class ClimateCalendarTests : TestMeridiemProperties.IsolatedPreferencesTests
+        {
+            [TestCase(ClimateProfile.SeasonalTemperatureSmoothness.Steps)]
+            [TestCase(ClimateProfile.SeasonalTemperatureSmoothness.Smooth)]
+            public void OldSeasonDates_RemainEditableAndProduceFiniteClimate(ClimateProfile.SeasonalTemperatureSmoothness smoothness)
+            {
+                SetPreference("months", new[]
+                {
+                    new CozyPreferences.MonthData("Spring", 3),
+                    new CozyPreferences.MonthData("Summer", 3),
+                    new CozyPreferences.MonthData("Fall", 3),
+                    new CozyPreferences.MonthData("Winter", 3)
+                });
+                var profile = ScriptableObject.CreateInstance<ClimateProfile>();
+                try
+                {
+                    profile.temperatureSmoothness = smoothness;
+                    profile.spring.startDay = new MeridiemDate(3, 21);
+                    profile.summer.startDay = new MeridiemDate(6, 21);
+                    profile.fall.startDay = new MeridiemDate(9, 21);
+                    profile.winter.startDay = new MeridiemDate(12, 21);
+                    profile.winter.climateInformation.temperature.high = new Temperature(40, TemperatureUnit.Fahrenheit);
+
+                    Assert.AreEqual(new MeridiemDate(4, 3), profile.winter.StartDay);
+                    Assert.AreEqual(new MeridiemDate(12, 21), profile.winter.startDay);
+                    for (int day = 0; day < CozyPreferences.DaysPerYear; day++)
+                    {
+                        profile.GetClimateRanges(new MeridiemDate(day), out ClimateRanges ranges);
+                        float temperature = ranges.temperature.high.GetTemperature(TemperatureUnit.Fahrenheit);
+                        Assert.IsFalse(float.IsNaN(temperature) || float.IsInfinity(temperature));
+                    }
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(profile);
+                }
+            }
+
+            [Test]
+            public void CoincidentSeasons_SmoothingFallsBackToSeasonRange()
+            {
+                SetPreference("months", new[]
+                {
+                    new CozyPreferences.MonthData("Spring", 1),
+                    new CozyPreferences.MonthData("Summer", 1),
+                    new CozyPreferences.MonthData("Fall", 1),
+                    new CozyPreferences.MonthData("Winter", 1)
+                });
+                var profile = ScriptableObject.CreateInstance<ClimateProfile>();
+                try
+                {
+                    profile.temperatureSmoothness = ClimateProfile.SeasonalTemperatureSmoothness.Smooth;
+                    profile.spring.startDay = profile.summer.startDay = profile.fall.startDay = profile.winter.startDay = new MeridiemDate(1, 1);
+                    profile.winter.climateInformation.temperature.high = new Temperature(40, TemperatureUnit.Fahrenheit);
+
+                    profile.GetClimateRanges(new MeridiemDate(2, 1), out ClimateRanges ranges);
+                    Assert.AreEqual(40f, ranges.temperature.high.GetTemperature(TemperatureUnit.Fahrenheit), Tolerance);
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(profile);
+                }
+            }
+        }
+
+        [TestFixture]
         public class TemperatureTests : TestMeridiemProperties.IsolatedPreferencesTests
         {
 

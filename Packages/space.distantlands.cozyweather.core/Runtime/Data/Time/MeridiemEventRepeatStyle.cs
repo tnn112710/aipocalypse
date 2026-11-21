@@ -447,7 +447,7 @@ namespace DistantLands.Cozy
                 if (climateModule.climateProfile)
                 {
 
-                    startDateOffset = climateModule.climateProfile.spring.startDay - date.AbsoluteDayInYear;
+                    startDateOffset = climateModule.climateProfile.spring.StartDay - date.AbsoluteDayInYear;
                     endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
 
                     return;
@@ -470,9 +470,9 @@ namespace DistantLands.Cozy
             {
                 if (climateModule.climateProfile)
                 {
-                    if (date.AbsoluteDayInYear < climateModule.climateProfile.spring.startDay || date.AbsoluteDayInYear >= climateModule.climateProfile.summer.startDay)
+                    if (date.AbsoluteDayInYear < climateModule.climateProfile.spring.StartDay || date.AbsoluteDayInYear >= climateModule.climateProfile.summer.StartDay)
                     {
-                        startDateOffset = climateModule.climateProfile.spring.startDay - date.AbsoluteDayInYear;
+                        startDateOffset = climateModule.climateProfile.spring.StartDay - date.AbsoluteDayInYear;
                         endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
                     }
                     else
@@ -502,7 +502,7 @@ namespace DistantLands.Cozy
                 if (climateModule.climateProfile)
                 {
 
-                    startDateOffset = climateModule.climateProfile.summer.startDay - date.AbsoluteDayInYear;
+                    startDateOffset = climateModule.climateProfile.summer.StartDay - date.AbsoluteDayInYear;
                     endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
 
                     return;
@@ -525,9 +525,9 @@ namespace DistantLands.Cozy
             {
                 if (climateModule.climateProfile)
                 {
-                    if (date.AbsoluteDayInYear < climateModule.climateProfile.summer.startDay || date.AbsoluteDayInYear >= climateModule.climateProfile.fall.startDay)
+                    if (date.AbsoluteDayInYear < climateModule.climateProfile.summer.StartDay || date.AbsoluteDayInYear >= climateModule.climateProfile.fall.StartDay)
                     {
-                        startDateOffset = climateModule.climateProfile.summer.startDay - date.AbsoluteDayInYear;
+                        startDateOffset = climateModule.climateProfile.summer.StartDay - date.AbsoluteDayInYear;
                         endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
                     }
                     else
@@ -557,7 +557,7 @@ namespace DistantLands.Cozy
                 if (climateModule.climateProfile)
                 {
 
-                    startDateOffset = climateModule.climateProfile.fall.startDay - date.AbsoluteDayInYear;
+                    startDateOffset = climateModule.climateProfile.fall.StartDay - date.AbsoluteDayInYear;
                     endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
 
                     return;
@@ -580,9 +580,9 @@ namespace DistantLands.Cozy
             {
                 if (climateModule.climateProfile)
                 {
-                    if (date.AbsoluteDayInYear < climateModule.climateProfile.fall.startDay || date.AbsoluteDayInYear >= climateModule.climateProfile.winter.startDay)
+                    if (date.AbsoluteDayInYear < climateModule.climateProfile.fall.StartDay || date.AbsoluteDayInYear >= climateModule.climateProfile.winter.StartDay)
                     {
-                        startDateOffset = climateModule.climateProfile.fall.startDay - date.AbsoluteDayInYear;
+                        startDateOffset = climateModule.climateProfile.fall.StartDay - date.AbsoluteDayInYear;
                         endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
                     }
                     else
@@ -612,7 +612,7 @@ namespace DistantLands.Cozy
                 if (climateModule.climateProfile)
                 {
 
-                    startDateOffset = climateModule.climateProfile.winter.startDay - date.AbsoluteDayInYear;
+                    startDateOffset = climateModule.climateProfile.winter.StartDay - date.AbsoluteDayInYear;
                     endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
 
                     return;
@@ -636,14 +636,14 @@ namespace DistantLands.Cozy
             {
                 if (climateModule.climateProfile)
                 {
-                    if (date.AbsoluteDayInYear < climateModule.climateProfile.spring.startDay || date.AbsoluteDayInYear >= climateModule.climateProfile.winter.startDay)
+                    if (date.AbsoluteDayInYear < climateModule.climateProfile.spring.StartDay || date.AbsoluteDayInYear >= climateModule.climateProfile.winter.StartDay)
                     {
                         startDateOffset = 0;
                         endDateOffset = 0;
                     }
                     else
                     {
-                        startDateOffset = climateModule.climateProfile.winter.startDay - date.AbsoluteDayInYear;
+                        startDateOffset = climateModule.climateProfile.winter.StartDay - date.AbsoluteDayInYear;
                         endDateOffset = startDateOffset + (evt.Overnight ? 1 : 0);
                     }
 

@@ -219,6 +219,7 @@ namespace DistantLands.Cozy
 
         public override void InitializeModule()
         {
+            base.InitializeModule();
             Setup();
 
             if (IsBiomeModule) return;
@@ -390,9 +391,23 @@ namespace DistantLands.Cozy
                 timeTillProfileChange = duration;
             }
             selectedProfile = profile;
-            if (!Application.isPlaying || !transition)
+            if (!Application.isPlaying || !transition || transitionTime == 0)
             {
                 OnProfileChange?.Invoke(CurrentProfile, profile);
+                if (localProfileWeights != null)
+                {
+                    var profilesToStop = new List<T>();
+                    foreach (var previousProfile in localProfileWeights)
+                    {
+                        if (previousProfile.Key != profile &&
+                            (previousProfile.Value.weight > 0 || previousProfile.Value.isTransitioning))
+                            profilesToStop.Add(previousProfile.Key);
+                    }
+
+                    foreach (T previousProfile in profilesToStop)
+                        previousProfile.Play(0);
+                }
+
                 localProfileWeights = new Dictionary<T, ProfileWeight>
                 {
                     { profile, new ProfileWeight(1) }
@@ -412,10 +427,7 @@ namespace DistantLands.Cozy
                 if (key != profile)
                 {
                     ProfileWeight w = localProfileWeights[key];
-                    if (transition)
-                        w.StartTransition(0, transitionTime);
-                    else
-                        w.weight = 0;
+                    w.StartTransition(0, transitionTime);
                     localProfileWeights[key] = w;
                 }
             }
@@ -424,10 +436,7 @@ namespace DistantLands.Cozy
                 localProfileWeights[profile] = new ProfileWeight(0);
 
             ProfileWeight targetWeight = localProfileWeights[profile];
-            if (transition)
-                targetWeight.StartTransition(1, transitionTime);
-            else
-                targetWeight.weight = 1;
+            targetWeight.StartTransition(1, transitionTime);
             localProfileWeights[profile] = targetWeight; // Save changes
 
 

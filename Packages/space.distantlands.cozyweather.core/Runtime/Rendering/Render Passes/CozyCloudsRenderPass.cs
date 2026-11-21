@@ -30,11 +30,13 @@ namespace DistantLands.Cozy
             public Quaternion rotation;
             public float time;
             public bool hasTime;
+            public Vector4 worldOffset;
             public readonly Matrix4x4[] viewProjMatrices = new Matrix4x4[2];
             public Vector3 previousPosition;
             public Quaternion previousRotation;
             public float previousTime;
             public bool previousHasTime;
+            public Vector4 previousWorldOffset;
             public readonly Matrix4x4[] previousViewProjMatrices = new Matrix4x4[2];
         }
 
@@ -123,6 +125,7 @@ namespace DistantLands.Cozy
                     eye.previousRotation = eye.rotation;
                     eye.previousTime = eye.time;
                     eye.previousHasTime = eye.hasTime;
+                    eye.previousWorldOffset = eye.worldOffset;
                     System.Array.Copy(eye.viewProjMatrices, eye.previousViewProjMatrices, 2);
                 }
             }
@@ -132,7 +135,8 @@ namespace DistantLands.Cozy
             time = eye.previousTime;
             hasTime = eye.previousHasTime;
             viewProjMatrices = eye.previousViewProjMatrices;
-            return eye.hasPreviousFrame;
+            return eye.hasPreviousFrame &&
+                eye.previousWorldOffset.Equals(Shader.GetGlobalVector(CozyShaderIDs.baseWeatherCloudWorldOffset));
         }
 
         public void RecordCurrentFrame(int eyeIndex, Vector3 position, Quaternion rotation,
@@ -143,6 +147,7 @@ namespace DistantLands.Cozy
             eye.rotation = rotation;
             eye.time = time;
             eye.hasTime = hasTime;
+            eye.worldOffset = Shader.GetGlobalVector(CozyShaderIDs.baseWeatherCloudWorldOffset);
             System.Array.Copy(viewProjMatrices, eye.viewProjMatrices, 2);
             eye.lastRenderedFrame = Time.frameCount;
         }
@@ -252,10 +257,17 @@ namespace DistantLands.Cozy
                         cameraDesc.dimension,
                         cameraDesc.slices,
                         cameraData.cameraTargetDescriptor);
+                        
+                    var clearParams = new ImportResourceParams
+                    {
+                        clearOnFirstUse = true,
+                        clearColor = Color.clear,
+                        discardOnLastUse = false 
+                    };
 
-                    historyWrite = renderGraph.ImportTexture(cloudsHistory.CurrentColor(eyeIndex));
+                    historyWrite = renderGraph.ImportTexture(cloudsHistory.CurrentColor(eyeIndex), clearParams);
+                    historyDepthWrite = renderGraph.ImportTexture(cloudsHistory.CurrentDepth(eyeIndex), clearParams);
                     historyRead = renderGraph.ImportTexture(cloudsHistory.PreviousColor(eyeIndex));
-                    historyDepthWrite = renderGraph.ImportTexture(cloudsHistory.CurrentDepth(eyeIndex));
                     historyDepthRead = renderGraph.ImportTexture(cloudsHistory.PreviousDepth(eyeIndex));
                 }
                 else

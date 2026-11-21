@@ -44,6 +44,7 @@ float  CZY_Clouds_Volumetric_WindStrength;
 float  CZY_Base_Weather_CumulusCoverage;
 float  CZY_Base_Weather_CumulonimbusCoverage;
 float4 CZY_Base_Weather_CloudWindOffset;
+float4 CZY_Base_Weather_CloudWorldOffset;
 
 float RemapValue(float v, float inMin, float inMax, float outMin, float outMax)
 {
@@ -57,6 +58,7 @@ float InterleavedGradientNoise(float2 p)
 
 float CloudDensity(float3 pos)
 {
+    pos.xz += CZY_Base_Weather_CloudWorldOffset.xz;
     float2 windOffset = CZY_Base_Weather_CloudWindOffset.xz * CZY_Clouds_Volumetric_WindStrength;
 
     float halfHeight   = CZY_Clouds_Volumetric_Height;

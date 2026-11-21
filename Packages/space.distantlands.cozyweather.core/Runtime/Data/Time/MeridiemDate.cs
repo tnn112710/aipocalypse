@@ -21,16 +21,20 @@ namespace DistantLands.Cozy
         {
             get
             {
-                int totalDays = 0;
-                totalDays += year * CozyPreferences.DaysPerYear;
-
-                // Loop from 0 to (month - 2) to add preceding months
-                for (int m = 0; m < month - 1; m++)
+                int monthIndex = month - 1;
+                int yearOffset = monthIndex / CozyPreferences.MonthsPerYear;
+                monthIndex %= CozyPreferences.MonthsPerYear;
+                if (monthIndex < 0)
                 {
-                    totalDays += CozyPreferences.Months[m].days;
+                    monthIndex += CozyPreferences.MonthsPerYear;
+                    yearOffset--;
                 }
 
-                totalDays += (day - 1);
+                int totalDays = (year + yearOffset) * CozyPreferences.DaysPerYear;
+                for (int m = 0; m < monthIndex; m++)
+                    totalDays += CozyPreferences.Months[m].days;
+
+                totalDays += day - 1;
                 return totalDays;
             }
         }
@@ -39,15 +43,7 @@ namespace DistantLands.Cozy
         {
             get
             {
-                int totalDays = 0;
-
-                for (int m = 0; m < month - 1; m++)
-                {
-                    totalDays += CozyPreferences.Months[m].days;
-                }
-
-                totalDays += (day - 1);
-                return totalDays;
+                return Yearless.AbsoluteDay;
             }
         }
 
@@ -161,12 +157,24 @@ namespace DistantLands.Cozy
             }
         }
 
+        public readonly bool IsValidForCalendar =>
+            month >= 1 && month <= CozyPreferences.MonthsPerYear &&
+            day >= 1 && day <= CozyPreferences.Months[month - 1].days;
+
+        /// <summary>Clamps a date to the current calendar without changing its year.</summary>
+        public readonly MeridiemDate ToCalendarDate()
+        {
+            int calendarMonth = Mathf.Clamp(month, 1, CozyPreferences.MonthsPerYear);
+            int calendarDay = Mathf.Clamp(day, 1, CozyPreferences.Months[calendarMonth - 1].days);
+            return new MeridiemDate(calendarMonth, calendarDay, year);
+        }
+
 
         public readonly string MonthName
         {
             get
             {
-                if (month > CozyPreferences.MonthsPerYear || month < 0)
+                if (month > CozyPreferences.MonthsPerYear || month <= 0)
                     return "Invalid Month";
 
                 return CozyPreferences.Months[month - 1].name;
@@ -228,7 +236,7 @@ namespace DistantLands.Cozy
 
         public override int GetHashCode() => HashCode.Combine(year, month, day);
 
-        public MeridiemDate Yearless => new(month, day);
+        public readonly MeridiemDate Yearless => new(month, day);
     }
     public class DayOfYearAttribute : PropertyAttribute { }
 }

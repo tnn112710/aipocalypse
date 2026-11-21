@@ -97,6 +97,7 @@ namespace DistantLands.Cozy
         CozyCloudsRenderPass m_CloudsPass;
         CozyCompositePass m_CompositePass;
         CozySunshaftsRenderPass m_SunshaftsPass;
+        TransparentFogCleanupPass m_TransparentFogCleanupPass;
         CozyRenderObjectsPass renderBeforeClouds;
         CozyRenderObjectsPass renderAfterClouds;
 
@@ -137,6 +138,10 @@ namespace DistantLands.Cozy
                 renderPassEvent = RenderPassEvent.AfterRenderingSkybox
             };
             m_FogPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
+            m_TransparentFogCleanupPass = new TransparentFogCleanupPass
+            {
+                renderPassEvent = RenderPassEvent.AfterRenderingTransparents
+            };
 
             m_SkyPass = new CozySkyRenderPass(runtimeSky)
             {
@@ -182,6 +187,7 @@ namespace DistantLands.Cozy
             {
                 m_FogPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
                 renderer.EnqueuePass(m_FogPass);
+                renderer.EnqueuePass(m_TransparentFogCleanupPass);
             }
 
             if (skyMat != null)
@@ -244,6 +250,25 @@ namespace DistantLands.Cozy
             CoreUtils.Destroy(runtimeComposite);
             runtimeSky = runtimeFog = runtimeClouds = runtimeVolumetricClouds = null;
             runtimeSunshafts = runtimeSunshaftsMask = runtimeComposite = null;
+        }
+
+        private class TransparentFogCleanupPass : ScriptableRenderPass
+        {
+            private class PassData { }
+
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+            {
+                using (var builder = renderGraph.AddUnsafePass("COZY Transparent Fog Cleanup", out PassData passData))
+                {
+                    builder.AllowGlobalStateModification(true);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc(static (PassData data, UnsafeGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalVector(CozyFogRenderPass.TransparentFogFeaturesId, Vector4.zero);
+                        context.cmd.SetGlobalVector(CozyFogRenderPass.TransparentFogFeatures2Id, Vector4.zero);
+                    });
+                }
+            }
         }
     }
 }

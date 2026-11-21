@@ -35,7 +35,9 @@ uniform float CZY_Base_Weather_ValueFilter;
 uniform float4 CZY_Base_Weather_FilterColor;
 uniform float4 CZY_Base_Weather_SunFilter;
 uniform float4 CZY_Base_Weather_CloudFilter;
+uniform float CZY_Base_Weather_CloudNoiseTime;
 uniform float3 CZY_Base_Weather_CloudWindOffset;
+uniform float3 CZY_Base_Weather_CloudWorldOffset;
 uniform float CZY_Base_Weather_Wetness;
 uniform float CZY_Base_Weather_Snow;
 

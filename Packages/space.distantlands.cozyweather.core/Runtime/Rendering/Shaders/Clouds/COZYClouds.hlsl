@@ -49,7 +49,7 @@ float2 GetUVForLayerSpherical(float layerHeight, float3 viewDir, out float3 worl
 
     distanceToLayer = t;
     clip = step(0, t);
-    return intersectionPoint.xz / 100.0;
+    return (intersectionPoint.xz + CZY_Base_Weather_CloudWorldOffset.xz) / 100.0;
 }
 
 
@@ -307,7 +307,7 @@ void COZYClouds_float(float2 screenUV, out float4 output) {
     finalColor.a = cumulusColor.a + finalColor.a * (1.0 - cumulusColor.a);
     #endif
 
-    finalColor = float4(AdjustHSV(finalColor.rgb, CZY_Base_Weather_SaturationFilter, 0), finalColor.a);
+    finalColor = float4(AdjustHSV(finalColor.rgb, CZY_Base_Weather_SaturationFilter, 0), saturate(finalColor.a));
 
     output = finalColor;
 

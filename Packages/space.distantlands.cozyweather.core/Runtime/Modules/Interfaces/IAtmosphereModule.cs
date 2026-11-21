@@ -48,5 +48,12 @@ namespace DistantLands.Cozy
         /// How much is the lighting overridden by lightning at this time
         /// </summary>
         public float LightningLightingOverride { get; set; }
+
+        /// <summary>
+        /// Keeps clouds and their sun shadow cookie fixed relative to the world after its objects
+        /// and camera move by deltaXZ. Call once after the move; only X and Z are used.
+        /// For example, after subtracting an origin from every position, pass its negation.
+        /// </summary>
+        public void ShiftWorld(Vector3 deltaXZ);
     }
 }

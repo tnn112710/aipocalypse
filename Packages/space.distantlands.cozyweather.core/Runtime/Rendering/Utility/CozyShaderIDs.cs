@@ -296,7 +296,9 @@ namespace DistantLands.Cozy
         public static int baseWeatherFilterColor;
         public static int baseWeatherSunFilter;
         public static int baseWeatherCloudFilter;
+        public static int baseWeatherCloudNoiseTime;
         public static int baseWeatherCloudWindOffset;
+        public static int baseWeatherCloudWorldOffset;
         public static int baseWeatherWetness;
         public static int baseWeatherSnow;
         public static int baseTimeDayPercentage;
@@ -623,7 +625,9 @@ namespace DistantLands.Cozy
             baseWeatherFilterColor = Shader.PropertyToID("CZY_Base_Weather_FilterColor");
             baseWeatherSunFilter = Shader.PropertyToID("CZY_Base_Weather_SunFilter");
             baseWeatherCloudFilter = Shader.PropertyToID("CZY_Base_Weather_CloudFilter");
+            baseWeatherCloudNoiseTime = Shader.PropertyToID("CZY_Base_Weather_CloudNoiseTime");
             baseWeatherCloudWindOffset = Shader.PropertyToID("CZY_Base_Weather_CloudWindOffset");
+            baseWeatherCloudWorldOffset = Shader.PropertyToID("CZY_Base_Weather_CloudWorldOffset");
             baseWeatherWetness = Shader.PropertyToID("CZY_Base_Weather_Wetness");
             baseWeatherSnow = Shader.PropertyToID("CZY_Base_Weather_Snow");
 

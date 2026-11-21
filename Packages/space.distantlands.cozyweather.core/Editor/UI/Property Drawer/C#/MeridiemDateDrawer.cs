@@ -32,6 +32,11 @@ namespace DistantLands.Cozy.EditorScripts
             field.Add(label);
             field.Add(input);
 
+            HelpBox invalidDate = new HelpBox(
+                "This date is outside the current calendar. The nearest valid date is used until you apply it.",
+                HelpBoxMessageType.Warning);
+            Button applyDate = new Button { text = "Apply Valid Date" };
+
             Refresh();
 
             void Refresh()
@@ -42,6 +47,10 @@ namespace DistantLands.Cozy.EditorScripts
                     property.FindPropertyRelative("day").intValue,
                     property.FindPropertyRelative("year").intValue
                 );
+                bool valid = date.IsValidForCalendar;
+                invalidDate.style.display = valid ? DisplayStyle.None : DisplayStyle.Flex;
+                applyDate.style.display = valid ? DisplayStyle.None : DisplayStyle.Flex;
+                date = date.ToCalendarDate();
 
                 bool militaryTime = CozyPreferences.TimeUnit == MeridiemTime.Unit.Military;
 
@@ -52,7 +61,7 @@ namespace DistantLands.Cozy.EditorScripts
                     name = "month",
                     style = { flexGrow = 1 },
                     choices = CozyPreferences.Months.Select(x => x.name).ToList(),
-                    index = property.FindPropertyRelative("month").intValue - 1
+                    index = date.month - 1
                 };
 
                 DropdownField day = new DropdownField
@@ -60,7 +69,7 @@ namespace DistantLands.Cozy.EditorScripts
                     name = "day",
                     style = { flexGrow = 1 },
                     choices = Enumerable.Range(1, date.DaysInMonth).Select(i => i.ToString()).ToList(),
-                    index = property.FindPropertyRelative("day").intValue - 1
+                    index = date.day - 1
                 };
 
                 TextField year = new TextField
@@ -93,7 +102,7 @@ namespace DistantLands.Cozy.EditorScripts
                 void SetValueFromInputFields()
                 {
                     int.TryParse(year.value, out int yearVal);
-                    MeridiemDate newDate = new MeridiemDate(month.index + 1, day.index + 1, yearVal).ToBalanced();
+                    MeridiemDate newDate = new MeridiemDate(month.index + 1, date.day, yearVal).ToCalendarDate();
 
                     property.FindPropertyRelative("month").intValue = newDate.month;
                     property.FindPropertyRelative("day").intValue = newDate.day;
@@ -101,17 +110,23 @@ namespace DistantLands.Cozy.EditorScripts
                     property.serializedObject.ApplyModifiedProperties();
                     property.serializedObject.Update();
 
-                    // Refresh dropdowns
-                    month.index = newDate.month - 1;
-                    day.index = newDate.day - 1;
-                    year.value = ParseYear();
-
+                    date = newDate;
                     day.choices = Enumerable.Range(1, newDate.DaysInMonth).Select(i => i.ToString()).ToList();
+                    month.SetValueWithoutNotify(CozyPreferences.Months[newDate.month - 1].name);
+                    day.SetValueWithoutNotify(newDate.day.ToString());
+                    year.SetValueWithoutNotify(ParseYear());
+                    invalidDate.style.display = DisplayStyle.None;
+                    applyDate.style.display = DisplayStyle.None;
                 }
 
                 month.RegisterValueChangedCallback(evt => SetValueFromInputFields());
-                day.RegisterValueChangedCallback(evt => SetValueFromInputFields());
+                day.RegisterValueChangedCallback(evt =>
+                {
+                    date.day = day.index + 1;
+                    SetValueFromInputFields();
+                });
                 year.RegisterCallback<BlurEvent>(evt => SetValueFromInputFields());
+                applyDate.clicked += SetValueFromInputFields;
 
                 // --- Label Drag Handling ---
                 float accumulatorX = 0f;
@@ -160,6 +175,8 @@ namespace DistantLands.Cozy.EditorScripts
 
                                 property.serializedObject.ApplyModifiedProperties();
                                 property.serializedObject.Update();
+                                invalidDate.style.display = DisplayStyle.None;
+                                applyDate.style.display = DisplayStyle.None;
                             }
                         }
                     }
@@ -177,7 +194,11 @@ namespace DistantLands.Cozy.EditorScripts
                 });
             }
 
-            return field;
+            VisualElement container = new VisualElement();
+            container.Add(field);
+            container.Add(invalidDate);
+            container.Add(applyDate);
+            return container;
         }
     }
 
@@ -199,6 +220,11 @@ namespace DistantLands.Cozy.EditorScripts
             input.style.flexWrap = Wrap.NoWrap;
             input.AddToClassList("unity-base-field__input");
 
+            HelpBox invalidDate = new HelpBox(
+                "This date is outside the current calendar. The nearest valid date is used until you apply it.",
+                HelpBoxMessageType.Warning);
+            Button applyDate = new Button { text = "Apply Valid Date" };
+
             Refresh();
 
             void Refresh()
@@ -212,13 +238,17 @@ namespace DistantLands.Cozy.EditorScripts
                     date = new MeridiemDate(property.FindPropertyRelative("month").intValue,
                                             property.FindPropertyRelative("day").intValue,
                                             0);
+                    bool valid = date.IsValidForCalendar;
+                    invalidDate.style.display = valid ? DisplayStyle.None : DisplayStyle.Flex;
+                    applyDate.style.display = valid ? DisplayStyle.None : DisplayStyle.Flex;
+                    date = date.ToCalendarDate();
                 }
 
                 DropdownField month = new DropdownField();
                 month.name = "month";
                 month.style.flexGrow = 1;
                 month.choices = CozyPreferences.Months.Select(x => x.name).ToList();
-                month.index = property.FindPropertyRelative("month").intValue - 1;
+                month.index = date.month - 1;
 
                 DropdownField day = new DropdownField();
                 day.name = "day";
@@ -229,7 +259,7 @@ namespace DistantLands.Cozy.EditorScripts
                     days.Add((i + 1).ToString());
                 }
                 day.choices = days;
-                day.index = property.FindPropertyRelative("day").intValue - 1;
+                day.index = date.day - 1;
 
                 switch (CozyPreferences.NumericDateFormat)
                 {
@@ -247,15 +277,12 @@ namespace DistantLands.Cozy.EditorScripts
 
                 void SetValueFromInputFields()
                 {
-                    MeridiemDate time = new MeridiemDate(month.index + 1, day.index + 1, 0).ToBalanced();
+                    MeridiemDate time = new MeridiemDate(month.index + 1, date.day, 0).ToCalendarDate();
                     property.FindPropertyRelative("month").intValue = time.month;
                     property.FindPropertyRelative("day").intValue = time.day;
                     property.FindPropertyRelative("year").intValue = 0;
                     property.serializedObject.ApplyModifiedProperties();
                     RefreshMeridiemTime();
-                    month.index = time.month - 1;
-                    day.index = time.day - 1;
-                    CozyTimeModuleEditor.UpdateCalendarUI();
 
                     List<string> days = new List<string>();
                     for (int i = 0; i < date.DaysInMonth; i++)
@@ -263,6 +290,9 @@ namespace DistantLands.Cozy.EditorScripts
                         days.Add((i + 1).ToString());
                     }
                     day.choices = days;
+                    month.SetValueWithoutNotify(CozyPreferences.Months[time.month - 1].name);
+                    day.SetValueWithoutNotify(time.day.ToString());
+                    CozyTimeModuleEditor.UpdateCalendarUI();
 
                 }
 
@@ -272,8 +302,10 @@ namespace DistantLands.Cozy.EditorScripts
                 });
                 day.RegisterValueChangedCallback(evt =>
                 {
+                    date.day = day.index + 1;
                     SetValueFromInputFields();
                 });
+                applyDate.clicked += SetValueFromInputFields;
 
 
                 // --- Label Drag Handling ---
@@ -313,6 +345,7 @@ namespace DistantLands.Cozy.EditorScripts
                                 property.FindPropertyRelative("month").intValue = newDate.month;
                                 property.FindPropertyRelative("day").intValue = newDate.day;
                                 property.serializedObject.ApplyModifiedProperties();
+                                RefreshMeridiemTime();
 
                                 month.SetValueWithoutNotify(CozyPreferences.Months[newDate.month - 1].name);
                                 day.choices = Enumerable.Range(1, newDate.DaysInMonth).Select(i => i.ToString()).ToList();
@@ -340,8 +373,12 @@ namespace DistantLands.Cozy.EditorScripts
 
             field.Add(label);
             field.Add(input);
+            VisualElement container = new VisualElement();
+            container.Add(field);
+            container.Add(invalidDate);
+            container.Add(applyDate);
 
-            return field;
+            return container;
         }
 
     }

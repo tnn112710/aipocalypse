@@ -484,7 +484,7 @@ namespace DistantLands.Cozy.EditorScripts.Generation
                     .WithFloat("Steps", "Sets the total number of raymarching sample iterations.",
                         presetValue: "Constant<FloatValue>(64)")
                     .WithFloat("LODCoefficient", "Controls the distance-based level of detail reduction factor.",
-                        presetValue: "Constant<FloatValue>(4)")
+                        presetValue: "Constant<FloatValue>(2)")
                     .WithFloat("LODSteps", "Sets the reduced raymarching step count applied at distance.",
                         presetValue: "Constant<FloatValue>(3)")
                     .WithTexture2D("BlueNoise", "Blue noise texture used for jittering raymarch offsets to reduce banding.",
@@ -615,7 +615,9 @@ namespace DistantLands.Cozy.EditorScripts.Generation
                     .WithColor("FilterColor", "Tint color filter applied to the rendered scene.")
                     .WithColor("SunFilter", "Color filter applied specifically to direct sunlight.")
                     .WithColor("CloudFilter", "Color filter applied specifically to cloud rendering.")
+                    .WithFloat("CloudNoiseTime", "Drives the time for the current cloud noise.")
                     .WithVector3("CloudWindOffset", "3D movement offset vector driven by wind velocity.")
+                    .WithVector3("CloudWorldOffset", "Offset the clouds by a set vector for origin-shifted projects.")
                     .WithFloat("Wetness", "Ground and surface wetness factor driven by rain weather.")
                     .WithFloat("Snow", "Snow accumulation factor on scene surfaces.")
                 )

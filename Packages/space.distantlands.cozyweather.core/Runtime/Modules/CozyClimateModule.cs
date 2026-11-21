@@ -140,7 +140,8 @@ namespace DistantLands.Cozy
             coldestDayOfTheYear = new MeridiemDate(1, 1);
             for (int day = 1; day < CozyPreferences.DaysPerYear + 1; day++)
             {
-                climateProfile.GetClimateRanges(new MeridiemDate(1, day, CozyWeather.Instance.Calendar.CurrentDate.year), out ClimateRanges range);
+                MeridiemDate date = new MeridiemDate(day - 1) { year = CozyWeather.Instance.Calendar.CurrentDate.year };
+                climateProfile.GetClimateRanges(date, out ClimateRanges range);
                 if (range.temperature.high > high)
                 {
                     high = range.temperature.high;
@@ -202,9 +203,9 @@ namespace DistantLands.Cozy
                 return;
             }
 
-            int date = calendar.CurrentDate;
+            int date = calendar.CurrentDate.ToCalendarDate().AbsoluteDayInYear;
 
-            if (date >= climateProfile.winter.startDay)
+            if (date >= climateProfile.winter.StartDay)
             {
                 if (cachedSeason != SeasonName.Winter)
                 {
@@ -213,7 +214,7 @@ namespace DistantLands.Cozy
                 }
                 return;
             }
-            if (date >= climateProfile.fall.startDay)
+            if (date >= climateProfile.fall.StartDay)
             {
                 if (cachedSeason != SeasonName.Fall)
                 {
@@ -222,7 +223,7 @@ namespace DistantLands.Cozy
                 }
                 return;
             }
-            if (date >= climateProfile.summer.startDay)
+            if (date >= climateProfile.summer.StartDay)
             {
                 if (cachedSeason != SeasonName.Summer)
                 {
@@ -231,7 +232,7 @@ namespace DistantLands.Cozy
                 }
                 return;
             }
-            if (date >= climateProfile.spring.startDay)
+            if (date >= climateProfile.spring.StartDay)
             {
                 if (cachedSeason != SeasonName.Spring)
                 {

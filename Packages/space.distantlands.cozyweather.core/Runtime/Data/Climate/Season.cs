@@ -116,6 +116,7 @@ namespace DistantLands.Cozy
         /// </summary>
         [DayOfYear]
         public MeridiemDate startDay;
+        public readonly MeridiemDate StartDay => startDay.ToCalendarDate().Yearless;
         public ClimateRanges climateInformation;
     }
 

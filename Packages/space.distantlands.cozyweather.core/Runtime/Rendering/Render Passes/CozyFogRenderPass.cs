@@ -58,6 +58,9 @@ namespace DistantLands.Cozy
 
         private MaterialPropertyBlock m_SharedPropertyBlock = new();
         private static readonly int s_FogVolumePropertyId = Shader.PropertyToID("CZY_FogVolume");
+        internal static readonly int TransparentFogFeaturesId = Shader.PropertyToID("CZY_TransparentFogFeatures");
+        internal static readonly int TransparentFogFeatures2Id = Shader.PropertyToID("CZY_TransparentFogFeatures2");
+        private static readonly int s_TransparentFogVolumeId = Shader.PropertyToID("CZY_TransparentFogVolume");
         private static readonly int s_TemporalWeightId = Shader.PropertyToID("CZY_TemporalWeight");
         private static readonly int s_InvViewProjId = Shader.PropertyToID("CZY_Base_Camera_InverseViewProjection");
         private static readonly int s_InvProjId = Shader.PropertyToID("CZY_Base_Camera_InverseProjection");
@@ -102,6 +105,8 @@ namespace DistantLands.Cozy
             public TextureHandle historyVolume;
             public TextureHandle integrateVolume;
             public MaterialPropertyBlock propertyBlock;
+            public Vector4 transparentFogFeatures;
+            public Vector4 transparentFogFeatures2;
 
             public Matrix4x4 prevViewMatrix;
             public Vector3 prevCamPos;
@@ -281,6 +286,7 @@ namespace DistantLands.Cozy
                     builder.UseTexture(passData.accumulateVolume, AccessFlags.Write);
                     builder.UseTexture(passData.historyVolume, AccessFlags.Read);
                     builder.UseTexture(passData.integrateVolume, AccessFlags.Write);
+                    builder.SetGlobalTextureAfterPass(passData.integrateVolume, s_TransparentFogVolumeId);
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc(static (FogPassData passData, ComputeGraphContext cgContext) => ComputeFog(passData, cgContext));
@@ -292,6 +298,15 @@ namespace DistantLands.Cozy
             {
                 passData.material = material;
                 passData.propertyBlock = m_SharedPropertyBlock;
+                var style = CozyPreferences.CurrentStyle;
+                passData.transparentFogFeatures = new Vector4(
+                    style.UseFogBase ? 1f : 0f,
+                    style.UseFogTwoTone ? 1f : 0f,
+                    style.UseFogSunLightFlare ? 1f : 0f,
+                    style.UseFogMoonLightFlare ? 1f : 0f);
+                passData.transparentFogFeatures2 = new Vector4(
+                    style.UseFogHeight ? 1f : 0f,
+                    data.fogIntegrateVolume.IsValid() ? 1f : 0f, 0f, 0f);
 
                 var cameraDesc = renderGraph.GetTextureDesc(resourceData.cameraColor);
                 var desc = cameraDesc;
@@ -369,6 +384,8 @@ namespace DistantLands.Cozy
 
         static void RenderFog(FogPassData data, RasterCommandBuffer cmd)
         {
+            cmd.SetGlobalVector(TransparentFogFeaturesId, data.transparentFogFeatures);
+            cmd.SetGlobalVector(TransparentFogFeatures2Id, data.transparentFogFeatures2);
             data.propertyBlock.Clear();
 
             if (data.integrateVolume.IsValid())

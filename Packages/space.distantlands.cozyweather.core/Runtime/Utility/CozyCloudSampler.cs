@@ -26,6 +26,7 @@ namespace DistantLands.Cozy
         public float densityScale;
         public float time;
         public bool useNimbus;
+        public float2 worldOffset;
     }
 
 
@@ -50,6 +51,7 @@ namespace DistantLands.Cozy
 
         public static float Density(in CloudParams p, in CloudData d, float3 pos)
         {
+            pos.xz += p.worldOffset;
             if (pos.y < p.bottom || pos.y > p.top) return 0f;
             float h = (pos.y - p.bottom) * p.invRange;
 
@@ -171,6 +173,7 @@ namespace DistantLands.Cozy
         static readonly int CumulusCoverageID = Shader.PropertyToID("CZY_Base_Weather_CumulusCoverage");
         static readonly int CumulonimbusCoverageID = Shader.PropertyToID("CZY_Base_Weather_CumulonimbusCoverage");
         static readonly int WindOffsetID = Shader.PropertyToID("CZY_Base_Weather_CloudWindOffset");
+        static readonly int WorldOffsetID = Shader.PropertyToID("CZY_Base_Weather_CloudWorldOffset");
 
         private CloudParams cloudParams;
         private CloudData cloudData;
@@ -231,7 +234,11 @@ namespace DistantLands.Cozy
 
         bool Prepare()
         {
-            if (preparedFrame == Time.frameCount) return hasData;
+            if (preparedFrame == Time.frameCount)
+            {
+                ReadWorldOffset();
+                return hasData;
+            }
             preparedFrame = Time.frameCount;
 
             var main = Shader.GetGlobalTexture(MainTextureID);
@@ -256,8 +263,15 @@ namespace DistantLands.Cozy
             return true;
         }
 
+        void ReadWorldOffset()
+        {
+            Vector4 offset = Shader.GetGlobalVector(WorldOffsetID);
+            cloudParams.worldOffset = new float2(offset.x, offset.z);
+        }
+
         void ReadParams()
         {
+            ReadWorldOffset();
             float height = Shader.GetGlobalFloat(HeightID);
             float place = Shader.GetGlobalFloat(PlacementHeightID);
             float windStrength = Shader.GetGlobalFloat(WindStrengthID);

@@ -76,12 +76,31 @@ namespace DistantLands.Cozy.EditorScripts
             var timeProperties = new VisualElement();
             scroll.Add(timeProperties);
 
-            PropertyField monthsField = NewPropertyField(settings, "months");
+            PropertyField monthsField = new PropertyField(settings.FindProperty("months"));
             monthsField.RegisterValueChangeCallback(evt =>
             {
+                var months = settings.FindProperty("months");
+                bool corrected = false;
+                if (months.arraySize == 0)
+                {
+                    months.arraySize = 1;
+                    corrected = true;
+                }
+                for (int i = 0; i < months.arraySize; i++)
+                {
+                    var days = months.GetArrayElementAtIndex(i).FindPropertyRelative("days");
+                    if (days.intValue < 1)
+                    {
+                        days.intValue = 1;
+                        corrected = true;
+                    }
+                }
+                if (corrected)
+                    Debug.LogWarning("A COZY calendar must have at least one month, with at least one day in each month.");
                 settings.ApplyModifiedProperties();
                 settings.Update();
                 CozyPreferences.ResetDaysPerYear();
+                CozyWeatherEditor.RedrawAllUI();
             });
             timeProperties.Add(monthsField);
             timeProperties.Add(NewPropertyField(settings, "startingWeekday"));

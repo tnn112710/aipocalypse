@@ -44,11 +44,21 @@ namespace DistantLands.Cozy.EditorScripts
         {
             if (wnd)
             {
-                wnd.atmosphereModule = atm;
-                wnd.action = act;
-                // wnd.RefreshWindowData();
-                wnd.Focus();
-                return;
+                if (wnd.atmosphereModule != atm)
+                {
+                    wnd.Close();
+                    if (wnd)
+                    {
+                        wnd.Focus();
+                        return;
+                    }
+                }
+                else
+                {
+                    wnd.action = act;
+                    wnd.Focus();
+                    return;
+                }
             }
 
             wnd = CreateInstance<CozyAtmosphereBrowserWindow>();
@@ -388,10 +398,14 @@ namespace DistantLands.Cozy.EditorScripts
                     return;
                 }
 
-                if (isCreatingNew || (currentInspectedProfile != null && currentInspectedProfile.Locked))
+                if (isCreatingNew || atmosphereModule.IsBiomeModule || (currentInspectedProfile != null && currentInspectedProfile.Locked))
                 {
                     string defaultName = isCreatingNew ? "New Atmosphere Profile" : currentInspectedProfile.name + " (Copy)";
-                    string dialogDesc = isCreatingNew ? "Save your new atmosphere profile." : "This profile is locked. Save your modified profile as a new asset.";
+                    string dialogDesc = isCreatingNew
+                        ? "Save your new atmosphere profile."
+                        : atmosphereModule.IsBiomeModule
+                            ? "Save your biome-specific changes as a new profile so other systems using this preset are not affected."
+                            : "This profile is locked. Save your modified profile as a new asset.";
 
                     string path = EditorUtility.SaveFilePanelInProject("Save Atmosphere Profile", defaultName, "asset", dialogDesc);
 
@@ -460,6 +474,9 @@ namespace DistantLands.Cozy.EditorScripts
             {
                 DestroyImmediate(editableProfile);
             }
+
+            if (wnd == this)
+                wnd = null;
         }
     }
 }

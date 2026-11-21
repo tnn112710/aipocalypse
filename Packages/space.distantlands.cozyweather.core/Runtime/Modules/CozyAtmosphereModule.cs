@@ -75,6 +75,23 @@ namespace DistantLands.Cozy
         private float lightningLightingOverride = 0;
 
         private Vector3 cloudWindOffset;
+        private float cloudNoiseTime;
+        private Vector3 cloudWorldOffset;
+        private bool cloudShadowRefreshRequested;
+
+        /// <summary>
+        /// Compensates cloud sampling for the displacement applied to world objects and the camera.
+        /// Call once after moving them; only X and Z are supported.
+        /// </summary>
+        public void ShiftWorld(Vector3 deltaXZ)
+        {
+            cloudWorldOffset.x -= deltaXZ.x;
+            cloudWorldOffset.z -= deltaXZ.z;
+            Shader.SetGlobalVector(CozyShaderIDs.baseWeatherCloudWorldOffset, cloudWorldOffset);
+            cloudShadowRefreshRequested = true;
+            if (sunCookieApplied && shadowShader && sunLight && sunLightData && WeatherSphere.CozyCamera)
+                RenderCloudShadowCookie(WeatherSphere.CozyCamera.transform.position, sunLightTransform.rotation);
+        }
 
         public event Action<CozyAtmosphereModule> RunBeforeBiomes;
         private void ExecuteRunBeforeBiomes() { RunBeforeBiomes?.Invoke(this); }
@@ -126,6 +143,7 @@ namespace DistantLands.Cozy
             parameters = new AtmosphereParameters();
             lastFrameParameters = new AtmosphereParameters();
             // cloudWindOffset = Vector3.zero;
+            Shader.SetGlobalVector(CozyShaderIDs.baseWeatherCloudWorldOffset, cloudWorldOffset);
             SetupReferences();
 
             FlareOcclusion.TargetCamera = WeatherSphere.CozyCamera;
@@ -883,13 +901,18 @@ namespace DistantLands.Cozy
             if (WeatherSphere.Wind != null)
             {
                 cloudWindOffset += Time.deltaTime * WeatherSphere.Wind.WindStrength * WeatherSphere.Wind.WindDirection * 0.2f;
+                cloudNoiseTime += Time.deltaTime * WeatherSphere.Wind.WindStrength;
             }
             else
             {
                 cloudWindOffset -= Vector3.right * Time.deltaTime * 0.2f;
+                cloudNoiseTime += Time.deltaTime;
             }
 
+            Shader.SetGlobalFloat(CozyShaderIDs.baseWeatherCloudNoiseTime, cloudNoiseTime);
+
             Shader.SetGlobalVector(CozyShaderIDs.baseWeatherCloudWindOffset, cloudWindOffset);
+            Shader.SetGlobalVector(CozyShaderIDs.baseWeatherCloudWorldOffset, cloudWorldOffset);
             Shader.SetGlobalVector(CozyShaderIDs.baseOrientationSunDirection, sunDirection);
             Shader.SetGlobalVector(CozyShaderIDs.baseOrientationMoonDirection, -moonDirection);
             Shader.SetGlobalVector(CozyShaderIDs.baseOrientationWest, CozyPreferences.West);
@@ -1125,45 +1148,10 @@ namespace DistantLands.Cozy
                     {
                         SetupReferences();
                     }
-                    if (Time.frameCount % framesBetweenCloudShadowRendering == 0)
+                    if (cloudShadowRefreshRequested || Time.frameCount % framesBetweenCloudShadowRendering == 0)
                     {
-                        float cookieSize = parameters.lightingSunCloudShadowsSize;
-                        UpdateCookie((int)parameters.lightingSunCloudShadowsResolution.value, cookieSize);
-
-                        shadowShader.SetVector(LightDirectionID, -sunDirection);
-                        shadowShader.SetVector(CameraPositionID, cameraPosition);
-                        shadowShader.SetVector(CookieSizeID, new Vector4(cookieSize, cookieSize, 1, 1));
-                        shadowShader.SetFloat(CloudTimeID, Time.time);
-                        shadowShader.SetFloat(ShadowStrengthID, parameters.lightingSunCloudShadowsIntensity);
-                        shadowShader.SetInt(ShadowStepsID, (int)parameters.lightingSunCloudShadowsSteps);
-                        shadowShader.SetFloat(BlurRadiusID, parameters.lightingSunCloudShadowsBlurRadius);
-                        shadowShader.SetVector(LightPositionID, sunLightTransform.position);
-                        shadowShader.SetVector(LightRightID, sunLightRotation * Vector3.right);
-                        shadowShader.SetVector(LightUpID, sunLightRotation * Vector3.up);
-
-                        int groups = Mathf.CeilToInt(parameters.lightingSunCloudShadowsResolution / 8.0f);
-
-                        shadowShader.SetTexture(mainKernel, RawTexID, rawTexture);
-                        shadowShader.Dispatch(mainKernel, groups, groups, 1);
-
-                        shadowShader.SetTexture(blurKernel, RawTexReadID, rawTexture);
-                        shadowShader.SetTexture(blurKernel, ResultID, cookieTexture);
-                        shadowShader.Dispatch(blurKernel, groups, groups, 1);
-
-                        if (!sunCookieApplied)
-                        {
-                            sunLight.cookie = cookieTexture;
-                            sunCookieApplied = true;
-                        }
-
-                        if (cookieSize != lastCookieSize)
-                        {
-                            if (!sunLightData)
-                                SetupReferences();
-
-                            sunLightData.lightCookieSize = new Vector2(cookieSize, cookieSize);
-                            lastCookieSize = cookieSize;
-                        }
+                        RenderCloudShadowCookie(cameraPosition, sunLightRotation);
+                        cloudShadowRefreshRequested = false;
                     }
                 }
                 else if (sunCookieApplied)
@@ -1227,6 +1215,47 @@ namespace DistantLands.Cozy
             };
             rt.Create();
             return rt;
+        }
+
+        void RenderCloudShadowCookie(Vector3 cameraPosition, Quaternion sunLightRotation)
+        {
+            float cookieSize = parameters.lightingSunCloudShadowsSize;
+            UpdateCookie((int)parameters.lightingSunCloudShadowsResolution.value, cookieSize);
+
+            shadowShader.SetVector(LightDirectionID, -sunDirection);
+            shadowShader.SetVector(CameraPositionID, cameraPosition);
+            shadowShader.SetVector(CookieSizeID, new Vector4(cookieSize, cookieSize, 1, 1));
+            shadowShader.SetFloat(CloudTimeID, cloudNoiseTime);
+            shadowShader.SetFloat(ShadowStrengthID, parameters.lightingSunCloudShadowsIntensity);
+            shadowShader.SetInt(ShadowStepsID, (int)parameters.lightingSunCloudShadowsSteps);
+            shadowShader.SetFloat(BlurRadiusID, parameters.lightingSunCloudShadowsBlurRadius);
+            shadowShader.SetVector(LightPositionID, sunLightTransform.position);
+            shadowShader.SetVector(LightRightID, sunLightRotation * Vector3.right);
+            shadowShader.SetVector(LightUpID, sunLightRotation * Vector3.up);
+            shadowShader.SetVector(CozyShaderIDs.baseWeatherCloudWorldOffset, cloudWorldOffset);
+
+            int groups = Mathf.CeilToInt(parameters.lightingSunCloudShadowsResolution / 8.0f);
+            shadowShader.SetTexture(mainKernel, RawTexID, rawTexture);
+            shadowShader.Dispatch(mainKernel, groups, groups, 1);
+
+            shadowShader.SetTexture(blurKernel, RawTexReadID, rawTexture);
+            shadowShader.SetTexture(blurKernel, ResultID, cookieTexture);
+            shadowShader.Dispatch(blurKernel, groups, groups, 1);
+
+            if (!sunCookieApplied)
+            {
+                sunLight.cookie = cookieTexture;
+                sunCookieApplied = true;
+            }
+
+            if (cookieSize != lastCookieSize)
+            {
+                if (!sunLightData)
+                    SetupReferences();
+
+                sunLightData.lightCookieSize = new Vector2(cookieSize, cookieSize);
+                lastCookieSize = cookieSize;
+            }
         }
 
         void UpdateCookie(int resolution, float cookieSize)

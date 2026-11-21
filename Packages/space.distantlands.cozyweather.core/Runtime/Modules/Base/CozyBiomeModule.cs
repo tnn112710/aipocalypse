@@ -32,11 +32,16 @@ namespace DistantLands.Cozy
 
         public void ApplyBiomes()
         {
+            biomeModuleInstances.Sort(biomePriorityComparison);
             int highestPriority = -1000;
 
             foreach (var moduleInstance in biomeModuleInstances)
             {
-                if (moduleInstance.System.weight == 0) continue;
+                if (moduleInstance.System.weight == 0)
+                {
+                    ApplyBiome(moduleInstance, 0f);
+                    continue;
+                }
                 if (moduleInstance.System.Priority <= highestPriority) continue;
 
                 ApplyBiome(moduleInstance, moduleInstance.System.weight);

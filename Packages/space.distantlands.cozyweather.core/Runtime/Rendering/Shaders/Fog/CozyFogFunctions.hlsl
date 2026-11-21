@@ -6,6 +6,11 @@
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyFogVariables.hlsl"
 #include_with_pragmas "Packages/space.distantlands.cozyweather.core/Runtime/Rendering/Shaders/Data/Includes/CozyUtilities.hlsl"
 
+float4 CZY_TransparentFogFeatures;
+float4 CZY_TransparentFogFeatures2;
+TEXTURE3D(CZY_TransparentFogVolume);
+SAMPLER(sampler_CZY_TrilinearClamp);
+
 half4 ComputeFogGradient(float depth) {
 
     half4 fogColor;
@@ -102,29 +107,50 @@ half4 ComputeHeightFog(float3 viewDirection, float3 worldPos, float depth)
 
 float4 BlendStylizedFog(float4 inputColor, float3 worldPos) 
 {
+    if (CZY_TransparentFogFeatures.x < 0.5)
+        return inputColor;
+
     float worldDepth = distance(_WorldSpaceCameraPos, worldPos);
 
     float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - worldPos.xyz);
+    float3 positionNDC = ComputeNormalizedDeviceCoordinatesWithZ(worldPos, UNITY_MATRIX_VP);
+    float deviceDepth = positionNDC.z;
+    #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
+    deviceDepth = deviceDepth * 0.5 + 0.5;
+    #endif
+    float depth01 = Linear01Depth(deviceDepth, _ZBufferParams);
 
     half4 combinedColor = ComputeFogGradient(worldDepth * CZY_Fog_Base_DensityMultiplier * CZY_Base_Weather_FogCoverage);
-    half verticalFalloff = ComputeFogVerticalFalloff(viewDir, worldPos, length(float3(_WorldSpaceCameraPos.xz, _WorldSpaceCameraPos.y * 0.3) - float3(worldPos.xz, worldPos.y * 0.3)) * CZY_Fog_Base_DensityMultiplier * CZY_Base_Weather_FogCoverage, saturate(worldDepth / _ProjectionParams.y));
+    half verticalFalloff = ComputeFogVerticalFalloff(viewDir, worldPos, length(float3(_WorldSpaceCameraPos.xz, _WorldSpaceCameraPos.y * 0.3) - float3(worldPos.xz, worldPos.y * 0.3)) * CZY_Fog_Base_DensityMultiplier * CZY_Base_Weather_FogCoverage, depth01);
 
     half fogLightAmount = 1;
-    
-    combinedColor *= ComputeTwoTone(viewDir);
+
+    if (CZY_TransparentFogFeatures.y > 0.5)
+        combinedColor *= ComputeTwoTone(viewDir);
+
+    if (CZY_TransparentFogFeatures2.y > 0.5)
+    {
+        float sliceZ = sqrt(saturate(worldDepth / 500.0));
+        combinedColor *= saturate(SAMPLE_TEXTURE3D_LOD(CZY_TransparentFogVolume, sampler_CZY_TrilinearClamp, float3(positionNDC.xy, sliceZ), 0));
+    }
 
     half fogOpacity = verticalFalloff * combinedColor.a;
-    
-    combinedColor += ComputeSunLightFlare(viewDir, worldDepth) * fogLightAmount * CZY_Base_Weather_SunFilter;
-    combinedColor += ComputeMoonLightFlare(viewDir, worldDepth) * fogLightAmount * CZY_Base_Weather_SunFilter;
 
-    half4 heightFogColor = ComputeHeightFog(viewDir, worldPos, worldDepth);
-    half heightFogDensity = (heightFogColor.a * heightFogColor.a);
-    heightFogDensity = min(heightFogDensity, verticalFalloff * verticalFalloff * verticalFalloff);
-    fogOpacity = max(heightFogDensity, fogOpacity);
-    combinedColor = lerp(combinedColor, heightFogColor, heightFogDensity);
+    if (CZY_TransparentFogFeatures.z > 0.5)
+        combinedColor += ComputeSunLightFlare(viewDir, worldDepth) * fogLightAmount * CZY_Base_Weather_SunFilter;
+    if (CZY_TransparentFogFeatures.w > 0.5)
+        combinedColor += ComputeMoonLightFlare(viewDir, worldDepth) * fogLightAmount * CZY_Base_Weather_SunFilter;
 
-    return float4(lerp(inputColor.rgb, AdjustHSV(combinedColor.rgb, CZY_Base_Weather_SaturationFilter, CZY_Base_Weather_ValueFilter), fogOpacity).rgb, max(inputColor.a, fogOpacity));
+    if (CZY_TransparentFogFeatures2.x > 0.5)
+    {
+        half4 heightFogColor = ComputeHeightFog(viewDir, worldPos, worldDepth);
+        half heightFogDensity = (heightFogColor.a * heightFogColor.a);
+        heightFogDensity = min(heightFogDensity, verticalFalloff * verticalFalloff * verticalFalloff);
+        fogOpacity = max(heightFogDensity, fogOpacity);
+        combinedColor = lerp(combinedColor, heightFogColor, heightFogDensity);
+    }
+
+    return float4(lerp(inputColor.rgb, AdjustHSV(combinedColor.rgb, CZY_Base_Weather_SaturationFilter, CZY_Base_Weather_ValueFilter), fogOpacity), max(inputColor.a, fogOpacity));
 }
 
 void BlendStylizedFog_float(float4 inputColor, float3 worldPos, out float4 output) 

@@ -18,7 +18,7 @@ float Jitter(float2 uv) {
 
 void ComputeAltoVolumetricLights(float3 pos, out float lighting)
 {
-    float3 position = pos;
+    float3 position = pos + CZY_Base_Weather_CloudWorldOffset;
     lighting = 1;
 
     for (int i = 0; i < 4; i++)
@@ -77,8 +77,9 @@ float GetAltoVolumetricDensity(float3 pos, float3 viewDir, out float lightingRat
     float2 heightRamp = (pos.y - cloudBottom) / (cloudTop - cloudBottom);
 
     float2 heightInCloud = float2(saturate((pos.y - cloudBottom) / (cloudTop - cloudBottom)), 0);
-    float2 baseUV = float2(pos.x, pos.z) * 0.000005 + float2(0.64, 0.25) * 0.05 * (1 - sin(heightRamp * 3.1415)) * 0.1;
-    float3 remappedPosition = pos * 0.0002;
+    float3 samplePos = pos + CZY_Base_Weather_CloudWorldOffset;
+    float2 baseUV = samplePos.xz * 0.000005 + float2(0.64, 0.25) * 0.05 * (1 - sin(heightRamp * 3.1415)) * 0.1;
+    float3 remappedPosition = samplePos * 0.0002;
     float3 remappedPosition2 = pos * 0.001;
 
     float heightValue = SAMPLE_TEXTURE2D(CZY_Clouds_Volumetric_Ramp, samplerCZY_Clouds_Volumetric_Ramp, heightInCloud);
@@ -103,7 +104,7 @@ float GetAltoVolumetricDensity(float3 pos, float3 viewDir, out float lightingRat
         return 0;
     }
 
-    float noise3D = (1 - SAMPLE_TEXTURE3D_LOD(CZY_Clouds_Volumetric_NoiseTexture, samplerCZY_Clouds_Volumetric_NoiseTexture, (remappedPosition * CZY_Clouds_Volumetric_NoiseScale + float3(_Time.y * 0.05, _Time.y * 0.01, 0)), 0).g) * CZY_Clouds_Volumetric_NoiseAmount;
+    float noise3D = (1 - SAMPLE_TEXTURE3D_LOD(CZY_Clouds_Volumetric_NoiseTexture, samplerCZY_Clouds_Volumetric_NoiseTexture, (remappedPosition * CZY_Clouds_Volumetric_NoiseScale + float3(CZY_Base_Weather_CloudNoiseTime * 0.05, CZY_Base_Weather_CloudNoiseTime * 0.01, 0)), 0).g) * CZY_Clouds_Volumetric_NoiseAmount;
     // float cloudNoise2 = (1 - SAMPLE_TEXTURE3D(CZY_Clouds_Volumetric_NoiseTexture, samplerCZY_Clouds_Volumetric_NoiseTexture, (remappedPosition2)).r) * CZY_Clouds_Volumetric_NoiseAmount;
 
     float density = saturate(cloudPlacement - (noise3D)) * CZY_Clouds_Volumetric_Density * 0.01;
@@ -201,7 +202,7 @@ void ComputeAltoVolumetricCloudLayer(float3 viewDir, float2 screenUV, float scen
 
 void ComputeVolumetricLights(float3 position, out float lighting)
 {
-    float3 pos = position;
+    float3 pos = position + CZY_Base_Weather_CloudWorldOffset;
     lighting = 1;
 
     for (int i = 0; i < 4; i++)
@@ -232,10 +233,10 @@ void ComputeVolumetricLights(float3 position, out float lighting)
         float cloudSample1 = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv2), 3.0).g;
         float cloudSample2 = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv3), 3.0).r;
 
-        float cumulusRamp = SAMPLE_TEXTURE2D(CZY_Clouds_Volumetric_Ramp, samplerCZY_Clouds_Volumetric_Ramp, heightInCloud).r;
+        float cumulusRamp = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_Ramp, samplerCZY_Clouds_Volumetric_Ramp, heightInCloud, 0.0).r;
         
         #if defined(CZY_USE_CLOUDSCUMULONIMBUS)
-        float nimbusRamp = SAMPLE_TEXTURE2D(CZY_Clouds_Cumulonimbus_Ramp, samplerCZY_Clouds_Cumulonimbus_Ramp, heightInCloud).r;
+        float nimbusRamp = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Cumulonimbus_Ramp, samplerCZY_Clouds_Cumulonimbus_Ramp, heightInCloud, 0.0).r;
 
         float nimbusPlacement = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv4), 3.0).r;
 
@@ -258,7 +259,7 @@ void ComputeVolumetricLights(float3 position, out float lighting)
 
 void ComputeVolumetricSelfShadow(float3 position, out float lighting)
 {
-    float3 pos = position;
+    float3 pos = position + CZY_Base_Weather_CloudWorldOffset;
     lighting = 1;
 
     for (int i = 0; i < 6; i++)
@@ -298,7 +299,7 @@ void ComputeVolumetricSelfShadow(float3 position, out float lighting)
         float cumulusRamp = SAMPLE_TEXTURE2D(CZY_Clouds_Volumetric_Ramp, samplerCZY_Clouds_Volumetric_Ramp, heightInCloud).r;
         
         #if defined(CZY_USE_CLOUDSCUMULONIMBUS)
-        float nimbusRamp = SAMPLE_TEXTURE2D(CZY_Clouds_Cumulonimbus_Ramp, samplerCZY_Clouds_Cumulonimbus_Ramp, heightInCloud).r;
+        float nimbusRamp = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Cumulonimbus_Ramp, samplerCZY_Clouds_Cumulonimbus_Ramp, heightInCloud, 0.0).r;
 
         float nimbusPlacement = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv4), 3.0).r;
 
@@ -333,8 +334,9 @@ float GetVolumetricDensity(float3 pos, float3 viewDir, out float lightingRatio, 
     float2 heightRamp = (pos.y - cloudBottom) / (cloudTop - cloudBottom);
 
     float2 heightInCloud = float2(saturate((pos.y - cloudBottom) / (cloudTop - cloudBottom)), 0);
-    float2 baseUV = float2(pos.x, pos.z) * 0.000005 + float2(0.64, 0.25) * 0.005 * (1 - sin(heightRamp * 3.1415)) * 0.1;
-    float3 remappedPosition = pos * 0.0002;
+    float3 samplePos = pos + CZY_Base_Weather_CloudWorldOffset;
+    float2 baseUV = samplePos.xz * 0.000005 + float2(0.64, 0.25) * 0.005 * (1 - sin(heightRamp * 3.1415)) * 0.1;
+    float3 remappedPosition = samplePos * 0.0002;
     float3 remappedPosition2 = pos * 0.001;
 
     float2 uv1 = baseUV * 1;
@@ -345,15 +347,15 @@ float GetVolumetricDensity(float3 pos, float3 viewDir, out float lightingRatio, 
     float oneMinusCoverage = RemapValue(CZY_Base_Weather_CumulusCoverage, 0, 1, -0.1, 1) - 1;
     cloudCoverage = 1.2 - (oneMinusCoverage * oneMinusCoverage);
 
-    float cloudSample1 = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv2), 3.0).g;
-    float cloudSample2 = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv3), 3.0).r;
+    float cloudSample1 = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv2), 2.0).g;
+    float cloudSample2 = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Volumetric_MainTexture, samplerCZY_Clouds_Volumetric_MainTexture, (uv3), 2.0).r;
 
     float cumulusRamp = SAMPLE_TEXTURE2D(CZY_Clouds_Volumetric_Ramp, samplerCZY_Clouds_Volumetric_Ramp, heightInCloud).r;
 
     #if defined(CZY_USE_CLOUDSCUMULONIMBUS)
-    float nimbusRamp = SAMPLE_TEXTURE2D(CZY_Clouds_Cumulonimbus_Ramp, samplerCZY_Clouds_Cumulonimbus_Ramp, heightInCloud).r;
+    float nimbusRamp = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Cumulonimbus_Ramp, samplerCZY_Clouds_Cumulonimbus_Ramp, heightInCloud, 0).r;
 
-    float nimbusPlacement = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Cumulonimbus_MainTexture, samplerCZY_Clouds_Cumulonimbus_MainTexture, (uv4), 3.0).r;
+    float nimbusPlacement = SAMPLE_TEXTURE2D_LOD(CZY_Clouds_Cumulonimbus_MainTexture, samplerCZY_Clouds_Cumulonimbus_MainTexture, (uv4), 2.0).r;
 
     cumulusRamp = lerp(cumulusRamp, nimbusRamp, saturate(-nimbusPlacement + 2 * CZY_Base_Weather_CumulonimbusCoverage));
     #endif
@@ -370,7 +372,7 @@ float GetVolumetricDensity(float3 pos, float3 viewDir, out float lightingRatio, 
         return 0;
     }
 
-    float noise3D = (1 - SAMPLE_TEXTURE3D_LOD(CZY_Clouds_Volumetric_NoiseTexture, samplerCZY_Clouds_Volumetric_NoiseTexture, (remappedPosition * CZY_Clouds_Volumetric_NoiseScale + float3(_Time.y * 0.05, _Time.y * 0.01, 0)), 0).g) * CZY_Clouds_Volumetric_NoiseAmount;
+    float noise3D = (1 - SAMPLE_TEXTURE3D_LOD(CZY_Clouds_Volumetric_NoiseTexture, samplerCZY_Clouds_Volumetric_NoiseTexture, (remappedPosition * CZY_Clouds_Volumetric_NoiseScale + float3(CZY_Base_Weather_CloudNoiseTime * 0.05, CZY_Base_Weather_CloudNoiseTime * 0.01, 0)), 0).g) * CZY_Clouds_Volumetric_NoiseAmount;
     // float cloudNoise2 = (1 - SAMPLE_TEXTURE3D(CZY_Clouds_Volumetric_NoiseTexture, samplerCZY_Clouds_Volumetric_NoiseTexture, (remappedPosition2)).r) * CZY_Clouds_Volumetric_NoiseAmount;
 
     float density = saturate(cloudPlacement - (noise3D)) * CZY_Clouds_Volumetric_Density * 0.01;
@@ -419,7 +421,7 @@ void ComputeVolumetricCloudLayer(float3 viewDir, float2 screenUV, float sceneDep
     float tAbove = (cloudTop - position.y) / safeDirYAbove;
     float tBelow = (cloudBottom - position.y) / safeDirYBelow;
 
-    float t = isAboveLookingDown * tAbove + isBelowLookingUp * tBelow;
+    float t = isAboveLookingDown * tAbove + isBelowLookingUp * tBelow + 0.5;
     float3 offset = viewDir * t;
 
     position += offset;

@@ -145,6 +145,21 @@ namespace DistantLands.Cozy.EditorScripts
             // 1. Build the UI hierarchy via C#
             BuildNativeUI(root);
 
+            HelpBox invalidDates = new HelpBox(
+                "Some season dates are outside the current calendar. The nearest valid dates are used until you correct them in the season tabs.",
+                HelpBoxMessageType.Warning);
+            root.Insert(0, invalidDates);
+            void UpdateDateWarning()
+            {
+                bool invalid = !climateProfile.spring.startDay.IsValidForCalendar ||
+                    !climateProfile.summer.startDay.IsValidForCalendar ||
+                    !climateProfile.fall.startDay.IsValidForCalendar ||
+                    !climateProfile.winter.startDay.IsValidForCalendar;
+                invalidDates.style.display = invalid ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+            UpdateDateWarning();
+            invalidDates.TrackSerializedObjectValue(serializedObject, _ => UpdateDateWarning());
+
             // 2. Bind the serialized object to the newly created UI
             root.Bind(serializedObject);
 
@@ -166,13 +181,13 @@ namespace DistantLands.Cozy.EditorScripts
                 selectedSeason = 0;
                 MeridiemDate date = CozyWeather.Instance.Calendar.CurrentDate.Yearless;
 
-                if (date >= climateProfile.spring.startDay && date < climateProfile.summer.startDay)
+                if (date >= climateProfile.spring.StartDay && date < climateProfile.summer.StartDay)
                 {
                     selectedSeason = 1;
                 }
-                if (date >= climateProfile.summer.startDay && date < climateProfile.fall.startDay)
+                if (date >= climateProfile.summer.StartDay && date < climateProfile.fall.StartDay)
                     selectedSeason = 2;
-                if (date >= climateProfile.fall.startDay && date < climateProfile.winter.startDay)
+                if (date >= climateProfile.fall.StartDay && date < climateProfile.winter.StartDay)
                     selectedSeason = 3;
             }
 
@@ -233,13 +248,13 @@ namespace DistantLands.Cozy.EditorScripts
                     selectedSeason = 0;
                     MeridiemDate date = CozyWeather.Instance.Calendar.CurrentDate.Yearless;
 
-                    if (date >= climateProfile.spring.startDay && date < climateProfile.summer.startDay)
+                    if (date >= climateProfile.spring.StartDay && date < climateProfile.summer.StartDay)
                     {
                         selectedSeason = 1;
                     }
-                    if (date >= climateProfile.summer.startDay && date < climateProfile.fall.startDay)
+                    if (date >= climateProfile.summer.StartDay && date < climateProfile.fall.StartDay)
                         selectedSeason = 2;
-                    if (date >= climateProfile.fall.startDay && date < climateProfile.winter.startDay)
+                    if (date >= climateProfile.fall.StartDay && date < climateProfile.winter.StartDay)
                         selectedSeason = 3;
 
                     if (SeasonTabs != null) SeasonTabs.selectedTabIndex = selectedSeason;
@@ -262,23 +277,39 @@ namespace DistantLands.Cozy.EditorScripts
 
             void CreateGraphTabs()
             {
-                void CreateSection(float start, float end, Action action)
+                VisualElement CreateSection(Action action)
                 {
                     VisualElement sectionElement = new VisualElement();
                     sectionElement.style.position = Position.Absolute;
                     sectionElement.style.top = 0;
                     sectionElement.style.bottom = 0;
-                    sectionElement.style.left = new StyleLength(new Length(start * 100f, LengthUnit.Percent));
-                    sectionElement.style.right = new StyleLength(new Length((1 - end) * 100f, LengthUnit.Percent));
                     sectionElement.RegisterCallback<ClickEvent>(evt => action.Invoke());
                     SeasonalGraph.Add(sectionElement);
+                    return sectionElement;
                 }
 
-                CreateSection(0f, (float)climateProfile.spring.startDay / CozyPreferences.DaysPerYear, () => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 0; });
-                CreateSection((float)climateProfile.spring.startDay / CozyPreferences.DaysPerYear, (float)climateProfile.summer.startDay / CozyPreferences.DaysPerYear, () => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 1; });
-                CreateSection((float)climateProfile.summer.startDay / CozyPreferences.DaysPerYear, (float)climateProfile.fall.startDay / CozyPreferences.DaysPerYear, () => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 2; });
-                CreateSection((float)climateProfile.fall.startDay / CozyPreferences.DaysPerYear, (float)climateProfile.winter.startDay / CozyPreferences.DaysPerYear, () => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 3; });
-                CreateSection((float)climateProfile.winter.startDay / CozyPreferences.DaysPerYear, 1f, () => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 0; });
+                var sections = new[]
+                {
+                    CreateSection(() => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 0; }),
+                    CreateSection(() => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 1; }),
+                    CreateSection(() => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 2; }),
+                    CreateSection(() => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 3; }),
+                    CreateSection(() => { if (SeasonTabs != null) SeasonTabs.selectedTabIndex = 0; })
+                };
+                void UpdateSections()
+                {
+                    float[] boundaries = { 0f, climateProfile.spring.StartDay.YearPercentage,
+                        climateProfile.summer.StartDay.YearPercentage, climateProfile.fall.StartDay.YearPercentage,
+                        climateProfile.winter.StartDay.YearPercentage, 1f };
+                    for (int i = 0; i < sections.Length; i++)
+                    {
+                        sections[i].style.left = new Length(boundaries[i] * 100f, LengthUnit.Percent);
+                        sections[i].style.right = new Length((1f - boundaries[i + 1]) * 100f, LengthUnit.Percent);
+                    }
+                    SeasonalGraph.MarkDirtyRepaint();
+                }
+                UpdateSections();
+                root.TrackSerializedObjectValue(serializedObject, _ => UpdateSections());
             }
 
             SeasonalGraph.generateVisualContent += (MeshGenerationContext context) =>
@@ -311,11 +342,11 @@ namespace DistantLands.Cozy.EditorScripts
                     MeridiemDate date = new((int)(i / stems * CozyPreferences.DaysPerYear));
                     painter.strokeGradient = selectedSeason == 0 ? winterGradient : winterDisabledGradient;
 
-                    if (date >= climateProfile.spring.startDay && date < climateProfile.summer.startDay)
+                    if (date >= climateProfile.spring.StartDay && date < climateProfile.summer.StartDay)
                         painter.strokeGradient = selectedSeason == 1 ? springGradient : springDisabledGradient;
-                    if (date >= climateProfile.summer.startDay && date < climateProfile.fall.startDay)
+                    if (date >= climateProfile.summer.StartDay && date < climateProfile.fall.StartDay)
                         painter.strokeGradient = selectedSeason == 2 ? summerGradient : summerDisabledGradient;
-                    if (date >= climateProfile.fall.startDay && date < climateProfile.winter.startDay)
+                    if (date >= climateProfile.fall.StartDay && date < climateProfile.winter.StartDay)
                         painter.strokeGradient = selectedSeason == 3 ? fallGradient : fallDisabledGradient;
 
                     if (CozyWeather.Instance && CozyWeather.Instance.Calendar != null)

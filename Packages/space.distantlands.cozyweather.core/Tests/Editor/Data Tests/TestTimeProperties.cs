@@ -406,6 +406,40 @@ namespace DistantLands.Cozy.Tests
                 Assert.AreEqual(31, date2.AbsoluteDayInYear);
             }
 
+            [Test]
+            public void CalendarChange_UpdatesYearLengthAndBalancesRemovedMonths()
+            {
+                Assert.AreEqual(365, CozyPreferences.DaysPerYear);
+                var months = new[]
+                {
+                    new CozyPreferences.MonthData("Spring", 3),
+                    new CozyPreferences.MonthData("Summer", 3),
+                    new CozyPreferences.MonthData("Fall", 3),
+                    new CozyPreferences.MonthData("Winter", 3)
+                };
+                SetPreference("months", months);
+
+                Assert.AreEqual(12, CozyPreferences.DaysPerYear);
+                var date = new MeridiemDate(9, 2, 1);
+                Assert.AreEqual(37, date.AbsoluteDay);
+                Assert.AreEqual(date.ToBalanced().AbsoluteDay, date.AbsoluteDay);
+                Assert.AreEqual(new MeridiemDate(4, 2, 1), date.ToCalendarDate());
+
+                months[0].days = 5;
+                Assert.AreEqual(14, CozyPreferences.DaysPerYear);
+                Assert.AreEqual(new MeridiemDate(2, 1), new MeridiemDate(5).Yearless);
+            }
+
+            [Test]
+            public void CalendarDate_ClampsShortenedMonthWithoutChangingOriginal()
+            {
+                SetPreference("months", new[] { new CozyPreferences.MonthData("Season", 3) });
+                var date = new MeridiemDate(1, 21, 7);
+                Assert.IsFalse(date.IsValidForCalendar);
+                Assert.AreEqual(new MeridiemDate(1, 3, 7), date.ToCalendarDate());
+                Assert.AreEqual(21, date.day);
+            }
+
             #endregion
 
             #region Comparisons

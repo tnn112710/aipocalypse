@@ -28,13 +28,14 @@ namespace DistantLands.Cozy
         public void GetClimateRanges(MeridiemDate date, out ClimateRanges climateRanges)
         {
             climateRanges = new ClimateRanges();
+            date = date.ToBalanced();
             float yearPercent = date.YearPercentage;
 
             // Season starts
-            float springStart = spring.startDay.YearPercentage;
-            float summerStart = summer.startDay.YearPercentage;
-            float fallStart = fall.startDay.YearPercentage;
-            float winterStart = winter.startDay.YearPercentage;
+            float springStart = spring.StartDay.YearPercentage;
+            float summerStart = summer.StartDay.YearPercentage;
+            float fallStart = fall.StartDay.YearPercentage;
+            float winterStart = winter.StartDay.YearPercentage;
 
 
             climateRanges = winter.climateInformation;
@@ -80,72 +81,75 @@ namespace DistantLands.Cozy
                 float wWinter = Weight(yearPercent, winterMid);
 
                 float sum = wSpring + wSummer + wFall + wWinter;
-                wSpring /= sum;
-                wSummer /= sum;
-                wFall /= sum;
-                wWinter /= sum;
+                if (sum > 0f)
+                {
+                    wSpring /= sum;
+                    wSummer /= sum;
+                    wFall /= sum;
+                    wWinter /= sum;
 
-                climateRanges.temperature.high = (spring.climateInformation.temperature.high * wSpring) +
-                                                 (summer.climateInformation.temperature.high * wSummer) +
-                                                 (fall.climateInformation.temperature.high * wFall) +
-                                                 (winter.climateInformation.temperature.high * wWinter);
-                climateRanges.temperature.low = (spring.climateInformation.temperature.low * wSpring) +
-                                                (summer.climateInformation.temperature.low * wSummer) +
-                                                (fall.climateInformation.temperature.low * wFall) +
-                                                (winter.climateInformation.temperature.low * wWinter);
-                climateRanges.temperature.variationAmplitude = (spring.climateInformation.temperature.variationAmplitude * wSpring) +
-                                                (summer.climateInformation.temperature.variationAmplitude * wSummer) +
-                                                (fall.climateInformation.temperature.variationAmplitude * wFall) +
-                                                (winter.climateInformation.temperature.variationAmplitude * wWinter);
+                    climateRanges.temperature.high = (spring.climateInformation.temperature.high * wSpring) +
+                                                     (summer.climateInformation.temperature.high * wSummer) +
+                                                     (fall.climateInformation.temperature.high * wFall) +
+                                                     (winter.climateInformation.temperature.high * wWinter);
+                    climateRanges.temperature.low = (spring.climateInformation.temperature.low * wSpring) +
+                                                    (summer.climateInformation.temperature.low * wSummer) +
+                                                    (fall.climateInformation.temperature.low * wFall) +
+                                                    (winter.climateInformation.temperature.low * wWinter);
+                    climateRanges.temperature.variationAmplitude = (spring.climateInformation.temperature.variationAmplitude * wSpring) +
+                                                    (summer.climateInformation.temperature.variationAmplitude * wSummer) +
+                                                    (fall.climateInformation.temperature.variationAmplitude * wFall) +
+                                                    (winter.climateInformation.temperature.variationAmplitude * wWinter);
 
-                climateRanges.humidity.high = (spring.climateInformation.humidity.high * wSpring) +
-                                                 (summer.climateInformation.humidity.high * wSummer) +
-                                                 (fall.climateInformation.humidity.high * wFall) +
-                                                 (winter.climateInformation.humidity.high * wWinter);
-                climateRanges.humidity.low = (spring.climateInformation.humidity.low * wSpring) +
-                                                (summer.climateInformation.humidity.low * wSummer) +
-                                                (fall.climateInformation.humidity.low * wFall) +
-                                                (winter.climateInformation.humidity.low * wWinter);
-                climateRanges.humidity.variationAmplitude = (spring.climateInformation.humidity.variationAmplitude * wSpring) +
-                                                (summer.climateInformation.humidity.variationAmplitude * wSummer) +
-                                                (fall.climateInformation.humidity.variationAmplitude * wFall) +
-                                                (winter.climateInformation.humidity.variationAmplitude * wWinter);
+                    climateRanges.humidity.high = (spring.climateInformation.humidity.high * wSpring) +
+                                                     (summer.climateInformation.humidity.high * wSummer) +
+                                                     (fall.climateInformation.humidity.high * wFall) +
+                                                     (winter.climateInformation.humidity.high * wWinter);
+                    climateRanges.humidity.low = (spring.climateInformation.humidity.low * wSpring) +
+                                                    (summer.climateInformation.humidity.low * wSummer) +
+                                                    (fall.climateInformation.humidity.low * wFall) +
+                                                    (winter.climateInformation.humidity.low * wWinter);
+                    climateRanges.humidity.variationAmplitude = (spring.climateInformation.humidity.variationAmplitude * wSpring) +
+                                                    (summer.climateInformation.humidity.variationAmplitude * wSummer) +
+                                                    (fall.climateInformation.humidity.variationAmplitude * wFall) +
+                                                    (winter.climateInformation.humidity.variationAmplitude * wWinter);
 
-                climateRanges.pressure.high = (spring.climateInformation.pressure.high * wSpring) +
-                                                 (summer.climateInformation.pressure.high * wSummer) +
-                                                 (fall.climateInformation.pressure.high * wFall) +
-                                                 (winter.climateInformation.pressure.high * wWinter);
-                climateRanges.pressure.low = (spring.climateInformation.pressure.low * wSpring) +
-                                                (summer.climateInformation.pressure.low * wSummer) +
-                                                (fall.climateInformation.pressure.low * wFall) +
-                                                (winter.climateInformation.pressure.low * wWinter);
-                climateRanges.pressure.variationAmplitude = (spring.climateInformation.pressure.variationAmplitude * wSpring) +
-                                                (summer.climateInformation.pressure.variationAmplitude * wSummer) +
-                                                (fall.climateInformation.pressure.variationAmplitude * wFall) +
-                                                (winter.climateInformation.pressure.variationAmplitude * wWinter);
+                    climateRanges.pressure.high = (spring.climateInformation.pressure.high * wSpring) +
+                                                     (summer.climateInformation.pressure.high * wSummer) +
+                                                     (fall.climateInformation.pressure.high * wFall) +
+                                                     (winter.climateInformation.pressure.high * wWinter);
+                    climateRanges.pressure.low = (spring.climateInformation.pressure.low * wSpring) +
+                                                    (summer.climateInformation.pressure.low * wSummer) +
+                                                    (fall.climateInformation.pressure.low * wFall) +
+                                                    (winter.climateInformation.pressure.low * wWinter);
+                    climateRanges.pressure.variationAmplitude = (spring.climateInformation.pressure.variationAmplitude * wSpring) +
+                                                    (summer.climateInformation.pressure.variationAmplitude * wSummer) +
+                                                    (fall.climateInformation.pressure.variationAmplitude * wFall) +
+                                                    (winter.climateInformation.pressure.variationAmplitude * wWinter);
 
-                climateRanges.uvIndex.high = (spring.climateInformation.uvIndex.high * wSpring) +
-                                                 (summer.climateInformation.uvIndex.high * wSummer) +
-                                                 (fall.climateInformation.uvIndex.high * wFall) +
-                                                 (winter.climateInformation.uvIndex.high * wWinter);
-                climateRanges.uvIndex.variationAmplitude = (spring.climateInformation.uvIndex.variationAmplitude * wSpring) +
-                                                (summer.climateInformation.uvIndex.variationAmplitude * wSummer) +
-                                                (fall.climateInformation.uvIndex.variationAmplitude * wFall) +
-                                                (winter.climateInformation.uvIndex.variationAmplitude * wWinter);
-                climateRanges.uvIndex.low = 0;
+                    climateRanges.uvIndex.high = (spring.climateInformation.uvIndex.high * wSpring) +
+                                                     (summer.climateInformation.uvIndex.high * wSummer) +
+                                                     (fall.climateInformation.uvIndex.high * wFall) +
+                                                     (winter.climateInformation.uvIndex.high * wWinter);
+                    climateRanges.uvIndex.variationAmplitude = (spring.climateInformation.uvIndex.variationAmplitude * wSpring) +
+                                                    (summer.climateInformation.uvIndex.variationAmplitude * wSummer) +
+                                                    (fall.climateInformation.uvIndex.variationAmplitude * wFall) +
+                                                    (winter.climateInformation.uvIndex.variationAmplitude * wWinter);
+                    climateRanges.uvIndex.low = 0;
 
-                climateRanges.airQuality.high = (spring.climateInformation.airQuality.high * wSpring) +
-                                                 (summer.climateInformation.airQuality.high * wSummer) +
-                                                 (fall.climateInformation.airQuality.high * wFall) +
-                                                 (winter.climateInformation.airQuality.high * wWinter);
-                climateRanges.airQuality.low = (spring.climateInformation.airQuality.low * wSpring) +
-                                                (summer.climateInformation.airQuality.low * wSummer) +
-                                                (fall.climateInformation.airQuality.low * wFall) +
-                                                (winter.climateInformation.airQuality.low * wWinter);
-                climateRanges.airQuality.variationAmplitude = (spring.climateInformation.airQuality.variationAmplitude * wSpring) +
-                                                (summer.climateInformation.airQuality.variationAmplitude * wSummer) +
-                                                (fall.climateInformation.airQuality.variationAmplitude * wFall) +
-                                                (winter.climateInformation.airQuality.variationAmplitude * wWinter);
+                    climateRanges.airQuality.high = (spring.climateInformation.airQuality.high * wSpring) +
+                                                     (summer.climateInformation.airQuality.high * wSummer) +
+                                                     (fall.climateInformation.airQuality.high * wFall) +
+                                                     (winter.climateInformation.airQuality.high * wWinter);
+                    climateRanges.airQuality.low = (spring.climateInformation.airQuality.low * wSpring) +
+                                                    (summer.climateInformation.airQuality.low * wSummer) +
+                                                    (fall.climateInformation.airQuality.low * wFall) +
+                                                    (winter.climateInformation.airQuality.low * wWinter);
+                    climateRanges.airQuality.variationAmplitude = (spring.climateInformation.airQuality.variationAmplitude * wSpring) +
+                                                    (summer.climateInformation.airQuality.variationAmplitude * wSummer) +
+                                                    (fall.climateInformation.airQuality.variationAmplitude * wFall) +
+                                                    (winter.climateInformation.airQuality.variationAmplitude * wWinter);
+                }
 
             }
 

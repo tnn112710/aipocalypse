@@ -26,7 +26,7 @@ namespace DistantLands.Cozy
         private MeridiemDate currentDate = new(0);
         public MeridiemDate CurrentDate
         {
-            get => currentDate;
+            get => currentDate.ToCalendarDate();
             set
             {
                 if (currentDate == value) return;
@@ -465,14 +465,14 @@ namespace DistantLands.Cozy
                     current--;
                     originalTime--;
                     newTimePercentage--;
-                    currentDate++;
+                    currentDate = CurrentDate + 1;
                 }
                 if (current < 0)
                 {
                     current++;
                     originalTime++;
                     newTimePercentage++;
-                    currentDate--;
+                    currentDate = CurrentDate - 1;
                 }
 
                 CurrentTime = current;

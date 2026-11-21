@@ -1387,7 +1387,7 @@ namespace DistantLands.Cozy
               cloudsVolumetricPlacementHeight = Constant<FloatValue>(1500);
               cloudsVolumetricStepSize = Constant<FloatValue>(16);
               cloudsVolumetricSteps = Constant<FloatValue>(64);
-              cloudsVolumetricLODCoefficient = Constant<FloatValue>(4);
+              cloudsVolumetricLODCoefficient = Constant<FloatValue>(2);
               cloudsVolumetricLODSteps = Constant<FloatValue>(3);
               cloudsVolumetricWindStrength = Constant<FloatValue>(1);
               cloudsVolumetricHighlightBrightness = Constant<FloatValue>(0.6f);
@@ -1564,7 +1564,7 @@ namespace DistantLands.Cozy
               cloudsVolumetricPlacementHeight = Constant<FloatValue>(1500);
               cloudsVolumetricStepSize = Constant<FloatValue>(16);
               cloudsVolumetricSteps = Constant<FloatValue>(64);
-              cloudsVolumetricLODCoefficient = Constant<FloatValue>(4);
+              cloudsVolumetricLODCoefficient = Constant<FloatValue>(2);
               cloudsVolumetricLODSteps = Constant<FloatValue>(3);
               cloudsVolumetricWindStrength = Constant<FloatValue>(1);
               cloudsVolumetricHighlightBrightness = Constant<FloatValue>(0.6f);

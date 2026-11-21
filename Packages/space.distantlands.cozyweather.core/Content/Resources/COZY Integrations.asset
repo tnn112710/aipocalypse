@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: COZY Integrations
   m_EditorClassIdentifier: DistantLands.Cozy.Runtime::DistantLands.Cozy.CozyIntegrations
   integrations:
+  - rid: 7945989208878874890
+  - rid: 7945989208878874891
+  - rid: 7945989208878874892
+  - rid: 7945989208878874893
   - rid: 7945989208878874894
   - rid: 7945989208878874895
   - rid: 7945989208878874896
@@ -23,9 +27,22 @@ MonoBehaviour:
   - rid: 7945989208878874902
   - rid: 7945989360888840636
   - rid: 7945989427468173438
+  - rid: 7945989560832360802
   references:
     version: 2
     RefIds:
+    - rid: 7945989208878874890
+      type: {class: CozyHazeIntegration, ns: DistantLands.Cozy, asm: Assembly-CSharp}
+      data: 
+    - rid: 7945989208878874891
+      type: {class: CozyMLSIntegration, ns: DistantLands.Cozy, asm: Assembly-CSharp}
+      data: 
+    - rid: 7945989208878874892
+      type: {class: CozySoulLinkIntegration, ns: DistantLands.Cozy, asm: Assembly-CSharp}
+      data: 
+    - rid: 7945989208878874893
+      type: {class: CozyWeatheradeIntegration, ns: DistantLands.Cozy, asm: Assembly-CSharp}
+      data: 
     - rid: 7945989208878874894
       type: {class: CozyButoIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
       data:
@@ -86,4 +103,7 @@ MonoBehaviour:
         fogDensityMultiplier: 1
     - rid: 7945989427468173438
       type: {class: CozyStylizedWater3Integration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
+      data: 
+    - rid: 7945989560832360802
+      type: {class: CozyDynamicStylizedWaterIntegration, ns: DistantLands.Cozy, asm: DistantLands.Cozy.Runtime}
       data: 

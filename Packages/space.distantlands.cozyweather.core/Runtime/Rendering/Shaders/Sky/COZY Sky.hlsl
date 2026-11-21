@@ -346,5 +346,5 @@ void COZYSky_float(float2 screenUV, float4 sceneBlit, out float4 output) {
     additiveLayers = lerp(additiveLayers, float4(sunDisk.xyz, 1), sunDisk.w) * skyMask;
 
     output = background + additiveLayers + rainbowColor;
-    output = float4(AdjustHSV(output.rgb, CZY_Base_Weather_SaturationFilter, CZY_Base_Weather_ValueFilter), output.a);
+    output = float4(AdjustHSV(output.rgb, CZY_Base_Weather_SaturationFilter, CZY_Base_Weather_ValueFilter), saturate(output.a));
 }

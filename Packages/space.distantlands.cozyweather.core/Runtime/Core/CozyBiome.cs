@@ -56,6 +56,16 @@ namespace DistantLands.Cozy
         {
             ResetModules();
             UpdateColliders();
+#if UNITY_EDITOR
+            SceneView.duringSceneGui += UpdateBiomeWeightFromSceneView;
+#endif
+        }
+
+        void OnDisable()
+        {
+#if UNITY_EDITOR
+            SceneView.duringSceneGui -= UpdateBiomeWeightFromSceneView;
+#endif
         }
 
         /// <summary>
@@ -83,20 +93,25 @@ namespace DistantLands.Cozy
 
         private float CalculateWeight()
         {
-            if (biomeType == BiomeType.Global)
-                return TargetWeight;
-
-            float calculatedWeight = 0;
-
             Vector3 pos = Vector3.zero;
 
             if (CozyTrackPoint.Instance != null)
                 pos = CozyTrackPoint.Instance.transform.position;
 
 #if UNITY_EDITOR
-            if (!Application.isPlaying && SceneView.lastActiveSceneView)
+            if (!Application.isPlaying && SceneView.lastActiveSceneView && SceneView.lastActiveSceneView.camera)
                 pos = SceneView.lastActiveSceneView.camera.transform.position;
 #endif
+
+            return CalculateWeight(pos);
+        }
+
+        private float CalculateWeight(Vector3 pos)
+        {
+            if (biomeType == BiomeType.Global)
+                return TargetWeight;
+
+            float calculatedWeight = 0;
 
             foreach (Collider collider in colliders)
             {
@@ -157,6 +172,16 @@ namespace DistantLands.Cozy
 
             return calculatedWeight * TargetWeight;
         }
+
+#if UNITY_EDITOR
+        private void UpdateBiomeWeightFromSceneView(SceneView sceneView)
+        {
+            if (Application.isPlaying || sceneView != SceneView.lastActiveSceneView || !sceneView.camera)
+                return;
+
+            weight = CalculateWeight(sceneView.camera.transform.position);
+        }
+#endif
 
         void OnDrawGizmosSelected()
         {
