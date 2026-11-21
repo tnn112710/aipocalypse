@@ -15,7 +15,7 @@ Guidance for AI coding agents (Claude Code, Codex, …) working in this reposito
 ```bash
 P="$(cygpath -w "$PWD")"                                    # Git Bash: the CLI doesn't match /d/... paths
 unity status --project-path "$P"                            # not ready: Safe Mode (unity pipeline list) or ask the user to open the project
-unity command --project-path "$P" editor set_auto_tick --enable true   # commands stall while Unity is unfocused otherwise
+unity command --project-path "$P" editor set_auto_tick --enabled true  # commands stall while Unity is unfocused otherwise
 unity command --project-path "$P" script recompile          # then poll until completed / up_to_date:
 unity command --project-path "$P" script recompile_status
 unity command --project-path "$P" console status            # console get for the messages

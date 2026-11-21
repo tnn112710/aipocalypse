@@ -219,6 +219,9 @@ namespace MB13.Aipocalypse.Editor.Localization
                 any = true;
                 if (quoted)
                 {
+                    // Drop CR so a CRLF checkout (core.autocrlf) imports the same text as an LF one.
+                    if (c == '\r')
+                        continue;
                     if (c != '"')
                         cell.Append(c);
                     else if (i + 1 < text.Length && text[i + 1] == '"')

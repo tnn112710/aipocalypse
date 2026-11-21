@@ -8,8 +8,16 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 
 - Hours include +15% for making the systems work together.
 - Weeks assume about 45 h of work a week: 4–6 h on weekdays, 8–12 h on weekend days.
-- Counting from 2026-11-09, the slice is about **585–875 h (about 730)**, or **13–19 weeks**. That is about early March 2027, or mid-March after the holidays.
+- Counting from 2026-11-09, the slice was about **585–875 h (about 730)**, or **13–19 weeks**: early to mid-March 2027.
+- Re-estimated 2026-11-22, with Phase 1 postponed (below): about **375–580 h left**, or **9–13 weeks**: late January to late February 2027. The new map comes on top of that when it is picked up again.
 - Early Access follows in about late June 2027.
+
+**Status (2026-11-22):** the first two weeks went to shooting (gun parts and optics, 11 guns, arms with retargeted reloads), inventory and loot, save and menus, sleep, animals, ranged goblins, localization, weather rules and the UI look. Phase 1 has not started. What the loop still lacks is anything that spends Tokens (trading, repair costs, upgrades) and a cost for losing a night.
+
+**Decided (user, 2026-11-22):**
+
+- **Keep the current map.** The slice work happens on `WorldMap`; the map redesign (Phase 1) waits until all the basic mechanics are done.
+- **Keep the current guns:** all 11 stay in the game and the slice.
 
 **Done means:**
 
@@ -21,7 +29,7 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 
 **Open decisions (user):**
 
-- **Map size.** 2 × 2 km is assumed. The layout and a travel-time check decide it: a game hour is 45 s, so daylight is about 10 min.
+- **Map size**, for when Phase 1 comes back: 2 × 2 km is assumed. The layout and a travel-time check decide it: a game hour is 45 s, so daylight is about 10 min. Until then the slice uses `WorldMap` (700 × 700 m playable).
 - **The farm animal:** decided 2026-11-12: cows and sheep first (built, below); chickens or goats later if wanted.
 - **Crops:** in the slice, or stretch only.
 - **Blood Moon on night 3.** This would be a slice-only setting; the GDD has it every 10 days.
@@ -30,7 +38,7 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
   - **Upgrades** are bought with Tokens at a bench, for gear and home.
   - To decide: the XP sources, the node list, the upgrade list, and keeping skills and upgrades from overlapping.
   - This differs from the GDD: `ONE_PAGE.md` lists XP skills under "Not this version".
-- **Gun animation scope.** The estimate was made for floating hands and re-keyed clips. Since 2026-11-16 the hands are Sidekick arms, the AK47's reloads are retargeted from the KINEMATION pack and its jam clearing is a procedural shake (HANDS.md); the Phase 6 hours have not been re-estimated for that route.
+- **Gun animation scope.** The estimate was made for floating hands and five re-keyed guns. Since 2026-11-16 the hands are Sidekick arms, reloads are retargeted from the KINEMATION pack and jam clearing is generated or a procedural shake (HANDS.md), on 11 guns. Phase 6 is re-estimated below for that route.
 
 **Building rules for this milestone:**
 
@@ -41,7 +49,9 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 
 - [x] Crouch (2–3 h)
 
-### Phase 1: New world map (114–175 h, to about Dec 4)
+### Phase 1: New world map (114–175 h) — postponed
+
+**Postponed (user, 2026-11-22):** the current `WorldMap` stays the game map until all the basic mechanics are done; this phase is planned again after that. Phases 2–7 build on `WorldMap`.
 
 A bigger map replaces the prototype WorldMap as the game scene. WorldMap stays as the test scene.
 
@@ -54,13 +64,13 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Move the gameplay setups over: spawn areas, goblin camp, fish, bridge, landmarks (9–14 h)
 - [ ] Performance on the bigger map: terrain tiles, draw distances, navmesh memory (17–29 h)
 
-### Phase 2: From prototype to game (28–41 h, to about Dec 9)
+### Phase 2: From prototype to game (about 15–23 h left)
 
-- [ ] Start-up flow into the new map, `DevStartConfig` (6–9 h)
-- [ ] Main menu, pause menu, basic settings: sensitivity, FOV, volume (12–17 h)
+- [ ] Start-up flow into the game map, `DevStartConfig` (6–9 h). The main menu already loads `WorldMap`
+- [ ] Main menu, pause menu, basic settings: sensitivity, FOV, volume (12–17 h). Main and pause menus built 2026-11-11 with the save system ([SAVE.md](technicals/SAVE.md)). Left: the settings menu (5–8 h; the pause menu's Settings button waits for it)
 - [ ] Sleep in bed → skip to morning → morning report (10–15 h). Built 2026-11-11: the bed in the WorldMap house, a wake-up clock (whole hours, never past a raid that hasn't run), lie down / time skip / get up ([SLEEP.md](technicals/SLEEP.md)). Left: the morning report, what sleeping gives
 
-### Phase 3: The day, farm, economy and progression (126–186 h, to about Jan 3)
+### Phase 3: The day, farm, economy and progression (about 100–150 h left)
 
 - [x] Inventory (built 2026-11-10, ~55–80 h with the loot below; uncommitted): Duckov-style slots, 2 active guns + melee (V) + quick slots 3–9, backpack sized by the worn bag, gear slots, item weights (no slowdown yet), Tokens and ammo as items, the Token magnet, pickups with a feed, throwing, a paused drag-and-drop inventory screen ([EQUIPMENT.md](technicals/EQUIPMENT.md), [UI.md](technicals/UI.md#inventory-screen)). Produce items come with the animals
 - [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h). Built 2026-11-12 with two species: cows and a sheep flock in a pen in the WorldMap yard, released by the pen gate to a pasture (double rate), called home by the bell, hurried with E, asleep at night; E sends one home and lets it out, they earn Tokens the player collects with C on the animal, they look up at the player and scatter from gunshots, saved; chickens and pigs added the same day ([ANIMALS.md](technicals/ANIMALS.md)). Left: produce items instead of Tokens, the paddock on the new map, tuning by hand
@@ -75,14 +85,14 @@ The whole map gets generator quality. Only the home side and one corner of the P
   - skill effects through a shared stat-modifier layer, which upgrades use too
 - [ ] *Stretch:* 1–2 crops (12–17 h), rod fishing (`Proto_Fishing`, 23–35 h)
 
-### Phase 4: Explore (46–67 h, to about Jan 12)
+### Phase 4: Explore (about 32–49 h left)
 
 - [ ] Bridge repair (9–14 h)
 - [ ] Points of interest in one corner of the Pine Forest (17–26 h)
 - [x] Loot containers and loot tables: searched crates (`LootContainer`), lootable goblin bodies (`LootTable`, 20 at most, gone at dawn), Take all (built with the inventory above). Left: loot tables for crates and points of interest
 - [ ] Wandering goblins with caps (6–9 h)
 
-### Phase 5: Defend (60–94 h, to about Jan 24)
+### Phase 5: Defend (about 51–80 h left)
 
 - [ ] Thieves steal animals (14–21 h)
 - [ ] Raids get harder over the 3 nights; losing a raid has a cost (13–21 h)
@@ -90,12 +100,14 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Raid HUD (7–9 h)
 - [ ] Blood Moon on night 3, light version: red look, more goblins, one elite instead of a full miniboss (17–29 h)
 
-### Phase 6: Gun animation rework (58–86 h, to about Feb 4)
+### Phase 6: Gun animation rework (about 30–50 h left)
 
 This comes before the sound and VFX pass, because impact sounds are timed by markers inside the clips.
 
-- [ ] Re-key every clip on the five guns: equip, idle, fire, reload, empty reload, jam clearing, cycle (46–69 h)
-  - [x] Trial on the AK47 (2026-11-16): arms, retargeted reload and empty reload, shake for jam clearing. Next: the other guns in the order of HANDS.md → "Which guns the pack covers"
+- [ ] Clips on every gun (the 11 current guns, user 2026-11-22): equip, idle, fire, reload, empty reload, jam clearing, cycle
+  - [x] Trial on the AK47 (2026-11-16): arms, retargeted reload and empty reload, shake for jam clearing
+  - [x] The other guns (2026-11-16 to 11-21): reloads retargeted and Reseat / Rack repairs generated for MP5, pistol, M4, SCAR, Glock 17, Desert Eagle (AK-74M shares the AK47's); block-outs animated; sprint poses and grip turns on all 11 ([HANDS.md](technicals/HANDS.md))
+  - [ ] Left: Rack repair wrists on M4 / SCAR / Desert Eagle, hand-keyed shotgun reloads, the double barrel's ADS and reload hands, underbarrel grips moving the support hand, the Glock slide, SCAR on the Weapons Test tables
 - [ ] Replace the procedural holster, axe swing and hammer knocks with clips (12–17 h)
 
 ### Phase 7: Quality pass (144–223 h, to about Mar 3)
@@ -112,8 +124,8 @@ This comes before the sound and VFX pass, because impact sounds are timed by mar
 **If a phase slips by more than a week, cut rather than add hours.** Cuts in order:
 
 1. Crops and other stretch items
-2. A 1.5 × 1.5 km map (about 1 week)
-3. Rework only 3 guns in the slice (AK-47, pistol, pump), the rest after it (about 0.5 week)
+2. ~~A 1.5 × 1.5 km map~~ (no longer needed: the slice keeps `WorldMap`, user 2026-11-22)
+3. Polish only 3 guns' animation in the slice (AK-47, pistol, pump), the rest after it; all 11 stay in the game (about 0.5 week)
 4. A smaller skill tree: 1 branch of 4 nodes, the rest after the slice (about 0.5 week)
 5. A shorter intro
 

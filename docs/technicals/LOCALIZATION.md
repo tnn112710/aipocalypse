@@ -38,6 +38,7 @@ Keys are lower case and dotted, area first: `menu.resume`, `item.ak47`, `verb.pi
 - **Renaming a key:** change `Key` and keep `Id`. References in assets point at the Id, so they still work. Keys used in code (`Loc.UI("key")`) must be renamed in code too; `LocalizationTests` fails until they match.
 - **Deleting a row** removes the entry. Anything still pointing at it fails `LocalizationTests`.
 - Every key needs text in every language (tested). Keep the leading or trailing spaces some texts carry (suffixes like `" behind you"`, the `"Hold: "` prefix); the Context column says where they matter.
+- **Line breaks** go inside a quoted cell. The import stores them as `\n` whatever the file's line endings (Git's `core.autocrlf` checks the CSVs out with CRLF on Windows), so every clone builds the same tables.
 - **Placeholders** `{0}`, `{1}` are filled by code. Two formats exist, and the Context column says which one a text uses: .NET `string.Format` (`Loc.Format`), or TextMeshPro's `SetText`, where `{0:1}` means one decimal. Smart Strings are off. A plural is two keys (`sleep.detail_one`, `sleep.detail_many`).
 - **Writing style:** short and natural, like a game HUD, not a literal translation. A translation should be about as long as the English. Vietnamese addresses the player as "bạn" and may use gamer slang ("Toi rồi!"); French uses "tu".
 

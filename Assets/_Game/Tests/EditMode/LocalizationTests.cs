@@ -41,6 +41,16 @@ namespace MB13.Aipocalypse.Tests
             Assert.IsEmpty(diffs, "Run Aipocalypse > Localization > Import All CSVs:\n" + string.Join("\n", diffs));
         }
 
+        // With core.autocrlf the CSVs check out as CRLF; tables must get the same text on every clone.
+        [Test]
+        public void Parse_StoresLineBreaksInsideCellsAsLf()
+        {
+            List<string[]> crlf = LocalizationCsv.Parse("key,en\r\na,\"one\r\ntwo\"\r\n");
+            List<string[]> lf = LocalizationCsv.Parse("key,en\na,\"one\ntwo\"\n");
+            Assert.AreEqual("one\ntwo", crlf[1][1]);
+            Assert.AreEqual(lf[1][1], crlf[1][1]);
+        }
+
         [Test]
         public void Csvs_EveryKeyHasEveryLanguage()
         {
