@@ -54,7 +54,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float CrouchEyeDrop => (_standHeight - _crouchHeight) * Mathf.SmoothStep(0f, 1f, _crouchBlend);
         // Standing still on stable ground with no move input: stamina regenerates at the full rate.
         public bool IsIdle { get; private set; }
-        // Moving on stable ground without sprinting (crouch walking too): stamina regenerates at a share of the rate.
+        // Moving or coasting on stable ground without sprinting (crouch walking too): stamina regenerates at a share of the rate.
         public bool IsWalking { get; private set; }
         public Vector3 HorizontalVelocity => _horizontalVelocity;
         // Up is positive; on the ground it holds the small stick-down speed, not a real fall.
@@ -108,7 +108,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             bool hasMove = move.sqrMagnitude > 0.0001f;
             IsIdle = !hasMove && stableGround && !_isJumping
                 && _horizontalVelocity.sqrMagnitude <= _tuning.IdleMaxSpeed * _tuning.IdleMaxSpeed;
-            IsWalking = hasMove && stableGround && !IsSprinting && !_isJumping;
+            // Coasting to a stop after letting go counts as walking, so the regen delay keeps counting down through it.
+            IsWalking = !IsIdle && stableGround && !IsSprinting && !_isJumping;
 
             if (IsSprinting)
                 _stamina.Spend(_stats.Get(StatId.SprintStaminaCost, _tuning.SprintStaminaPerSecond) * SprintCostMultiplier * deltaTime);
