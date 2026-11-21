@@ -41,7 +41,7 @@ namespace FIMSpace.FTextureTools
             FMeshPaintWindow window = (FMeshPaintWindow)GetWindow( typeof( FMeshPaintWindow ) );
             window.titleContent = new GUIContent( "Mesh Paint Tool", FTextureToolsGUIUtilities.FindIcon( "SPR_MeshPaint" ), "Paint texture/channel over mesh model" );
 
-            window.position = new Rect( 340, 50, 550, 580 );
+            window.position = new Rect( 340, 50, 550, 700 );
             window.Show();
             called = true;
 

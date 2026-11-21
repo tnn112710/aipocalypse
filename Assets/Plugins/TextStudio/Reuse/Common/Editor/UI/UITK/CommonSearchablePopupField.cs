@@ -27,6 +27,9 @@ namespace ImpossibleRobert.Common
 
         public int Value { get; private set; }
 
+        /// <summary>Raised after this field creates its popup so callers can configure its visual tree.</summary>
+        public event Action<SearchablePopupWindow> PopupOpened;
+
         public CommonSearchablePopupField(
             EditorWindow owner,
             string[] items,
@@ -130,7 +133,7 @@ namespace ImpossibleRobert.Common
             if (_owner == null || _items.Length == 0) return;
 
             Rect anchor = CommonUITK.ToScreenDropdownAnchor(_owner, this);
-            SearchablePopupWindow.ShowAsDropDown(
+            SearchablePopupWindow popup = SearchablePopupWindow.ShowAsDropDown(
                 anchor,
                 _items,
                 Value,
@@ -139,6 +142,7 @@ namespace ImpossibleRobert.Common
                 _maximumHeight,
                 _showBracketedValues,
                 _treatSlashLiterally);
+            if (popup != null) PopupOpened?.Invoke(popup);
         }
 
         private void OnInputKeyDown(KeyDownEvent evt)

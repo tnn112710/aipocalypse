@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.Collections;
 using UnityEngine;
 using UnityEditor;
 #if UNITY_EDITOR_WIN && NET_4_6
@@ -152,11 +153,30 @@ namespace ImpossibleRobert.Common
 
         public static Texture2D MakeReadable(this Texture2D src)
         {
-            RenderTexture rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+            // a readable texture is copied as stored, the GPU copy below re-encodes its colors
+            if (src.isReadable)
+            {
+                Texture2D copy = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false, !src.isDataSRGB);
+                try
+                {
+                    copy.SetPixels32(src.GetPixels32());
+                    copy.Apply();
+                    return copy;
+                }
+                catch (UnityException)
+                {
+                    // formats the CPU cannot decode take the GPU copy
+                    UnityEngine.Object.DestroyImmediate(copy);
+                }
+            }
+
+            // writing back in the source's color encoding keeps sRGB data from coming back darker in projects using linear color space
+            bool srgb = src.isDataSRGB;
+            RenderTexture rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.Default, srgb ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear);
             UnityEngine.Graphics.Blit(src, rt);
             RenderTexture prev = RenderTexture.active;
             RenderTexture.active = rt;
-            Texture2D tex = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false);
+            Texture2D tex = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false, !srgb);
             tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
             tex.Apply();
             RenderTexture.active = prev;
@@ -635,69 +655,72 @@ namespace ImpossibleRobert.Common
 
             if (texture == null) return false;
 
-            // Sample pixels in a grid pattern for performance (don't need to check every pixel)
-            // Check every 4th pixel in both dimensions for a 16x smaller sample set
-            int sampleStep = 4;
-            int totalSamples = 0;
-            int differentPixels = 0;
-
-            // Color difference threshold - account for anti-aliasing and compression artifacts
-            float colorThreshold = 0.1f;
-
-            for (int y = 0; y < texture.height; y += sampleStep)
+            // Direct access since a native call per pixel adds up quickly with supersampled previews
+            bool isRaw = texture.format == TextureFormat.RGBA32;
+            NativeArray<Color32> pixels = isRaw ? texture.GetRawTextureData<Color32>() : new NativeArray<Color32>(texture.GetPixels32(), Allocator.Temp);
+            try
             {
-                for (int x = 0; x < texture.width; x += sampleStep)
+                // Sample pixels in a grid pattern for performance (don't need to check every pixel)
+                // Check every 4th pixel in both dimensions for a 16x smaller sample set
+                int sampleStep = 4;
+                int totalSamples = 0;
+                int differentPixels = 0;
+                int width = texture.width;
+                int height = texture.height;
+
+                for (int y = 0; y < height; y += sampleStep)
                 {
-                    Color pixel = texture.GetPixel(x, y);
-                    totalSamples++;
-
-                    // Calculate color difference (Manhattan distance in RGB space)
-                    float diff = Mathf.Abs(pixel.r - backgroundColor.r) +
-                        Mathf.Abs(pixel.g - backgroundColor.g) +
-                        Mathf.Abs(pixel.b - backgroundColor.b);
-
-                    if (diff > colorThreshold)
+                    int rowStart = y * width;
+                    for (int x = 0; x < width; x += sampleStep)
                     {
-                        differentPixels++;
+                        totalSamples++;
+                        if (DiffersFromBackground(pixels[rowStart + x], backgroundColor)) differentPixels++;
                     }
                 }
-            }
 
-            // If more than x% of sampled pixels are different, consider it has content.
-            // Low to detect very small objects (like mechanical parts, pulleys, gears).
-            // This threshold accounts for edge anti-aliasing while filtering out empty scenes.
-            float differentPercentage = (float)differentPixels / totalSamples;
-            detectionPercentage = differentPercentage * 100f; // Convert to percentage for logging
-            float threshold = 0.003f; // 0.3% to cater for really thin objects
-            if (differentPercentage > threshold) return true;
+                // If more than x% of sampled pixels are different, consider it has content.
+                // Low to detect very small objects (like mechanical parts, pulleys, gears).
+                // This threshold accounts for edge anti-aliasing while filtering out empty scenes.
+                float differentPercentage = (float)differentPixels / totalSamples;
+                detectionPercentage = differentPercentage * 100f; // Convert to percentage for logging
+                float threshold = 0.003f; // 0.3% to cater for really thin objects
+                if (differentPercentage > threshold) return true;
 
-            // Sparse lines or bone visualizations can fall between the sampled grid points
-            // or occupy less than 0.3% of the frame. Run an exact fallback before declaring
-            // the render empty so valid thin content is not discarded.
-            Color[] pixels = texture.GetPixels();
-            int exactDifferentPixels = 0;
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                Color pixel = pixels[i];
-                float diff = Mathf.Abs(pixel.r - backgroundColor.r) +
-                    Mathf.Abs(pixel.g - backgroundColor.g) +
-                    Mathf.Abs(pixel.b - backgroundColor.b);
-
-                if (diff > colorThreshold)
+                // Sparse lines or bone visualizations can fall between the sampled grid points
+                // or occupy less than 0.3% of the frame. Run an exact fallback before declaring
+                // the render empty so valid thin content is not discarded.
+                int pixelCount = width * height;
+                int exactDifferentPixels = 0;
+                for (int i = 0; i < pixelCount; i++)
                 {
-                    exactDifferentPixels++;
+                    if (DiffersFromBackground(pixels[i], backgroundColor)) exactDifferentPixels++;
                 }
-            }
 
-            float exactDifferentPercentage = pixels.Length > 0 ? (float)exactDifferentPixels / pixels.Length : 0f;
-            if (exactDifferentPercentage > differentPercentage)
+                float exactDifferentPercentage = pixelCount > 0 ? (float)exactDifferentPixels / pixelCount : 0f;
+                if (exactDifferentPercentage > differentPercentage)
+                {
+                    detectionPercentage = exactDifferentPercentage * 100f;
+                }
+
+                const float sparseThreshold = 0.001f; // 0.1% exact coverage for sparse but real content
+                int minimumSparsePixels = Mathf.Max(4, Mathf.CeilToInt(pixelCount * sparseThreshold));
+                return exactDifferentPixels >= minimumSparsePixels;
+            }
+            finally
             {
-                detectionPercentage = exactDifferentPercentage * 100f;
+                if (!isRaw) pixels.Dispose();
             }
+        }
 
-            const float sparseThreshold = 0.001f; // 0.1% exact coverage for sparse but real content
-            int minimumSparsePixels = Mathf.Max(4, Mathf.CeilToInt(pixels.Length * sparseThreshold));
-            return exactDifferentPixels >= minimumSparsePixels;
+        private static bool DiffersFromBackground(Color32 pixel, Color backgroundColor)
+        {
+            // Manhattan distance in RGB space, threshold accounts for anti-aliasing and compression artifacts
+            const float colorThreshold = 0.1f;
+            float diff = Mathf.Abs(pixel.r / 255f - backgroundColor.r) +
+                Mathf.Abs(pixel.g / 255f - backgroundColor.g) +
+                Mathf.Abs(pixel.b / 255f - backgroundColor.b);
+
+            return diff > colorThreshold;
         }
 
         public static Texture2D AssembleTextureSheet(List<Texture2D> frames)
@@ -722,7 +745,7 @@ namespace ImpossibleRobert.Common
                 int x = (i % columns) * frameWidth;
                 int y = ((rows - 1) - (i / columns)) * frameHeight; // Start from bottom
 
-                textureSheet.SetPixels(x, y, frameWidth, frameHeight, frames[i].GetPixels());
+                textureSheet.SetPixels32(x, y, frameWidth, frameHeight, frames[i].GetPixels32());
             }
 
             textureSheet.Apply();

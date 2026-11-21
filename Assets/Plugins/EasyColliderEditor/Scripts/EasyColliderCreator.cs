@@ -1941,6 +1941,10 @@ namespace ECE
       else if (createdCollider is MeshCollider)
       {
         MeshCollider mc = (MeshCollider)createdCollider;
+        // need to pre-bake collision meshes for unity 6.6+
+#if (UNITY_6000_6_OR_NEWER && UNITY_EDITOR)
+        mc.sharedMesh.SetPreBakeCollisionMesh(true, true);
+#endif
         if (EasyColliderPostProcessor != null)
         {
           EasyColliderPostProcessor.PostProcessCollider(mc, properties);

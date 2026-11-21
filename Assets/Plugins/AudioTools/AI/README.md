@@ -15,8 +15,8 @@ These Markdown files are documentation only. They do not add an AI service, subs
 
 - `audio-tools-setup-and-overview`: Open the installed Audio Tools editor, confirm that a supported source is available, and route the request to the narrowest editing skill.
 - `audio-tools-preview-and-select-audio`: Use Audio Tools playback and waveform controls to inspect a source and define an exact sample-aligned selection without changing the original file.
-- `audio-tools-trim-and-process-audio`: Apply Audio Tools processing to an explicit selection or full source while preserving the original asset until export.
-- `audio-tools-export-processed-audio`: Write verified processed samples to a new WAV file with the correct channel, frequency, bit-depth, and project import behavior.
+- `audio-tools-trim-and-process-audio`: Apply Audio Tools processing to an explicit selection, trimmed audio or the full source while preserving the original asset until export.
+- `audio-tools-export-processed-audio`: Write verified processed samples to new WAV files with the correct channels, sample rate, bit depth, and project import behavior.
 
 Documentation: https://www.wetzold.com/tools/audiotools/docs/
 

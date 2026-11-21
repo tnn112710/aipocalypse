@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'preview this clip', loop
 metadata:
   asset: "Audio Tools"
   publisher: "Impossible Robert"
-  asset-version: "1.2.0"
+  asset-version: "1.3.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/audio/audio-tools-356424"
   documentation-url: "https://www.wetzold.com/tools/audiotools/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-10-02"
+  last-verified: "2026-11-11"
 ---
 
 # Preview and Select Audio
@@ -42,7 +42,7 @@ Use Audio Tools playback and waveform controls to inspect a source and define an
 ### Workflow: Select and loop a region
 
 1. Drag from the intended start to end on the waveform.
-2. Enable or retain loop playback and play the range.
+2. Enable or retain loop playback and play the range. With Selection only on, playback covers exactly what saving writes: the selection, the trimmed audio or the span of split clips, and a looped region repeats sample-accurately.
 3. Adjust both handles until the audible boundaries are correct.
 
 ### Workflow: Navigate a long clip
@@ -54,7 +54,7 @@ Use Audio Tools playback and waveform controls to inspect a source and define an
 ## Verification
 
 - Playback starts and stops without Console errors.
-- The loop remains inside the selected sample range.
+- The loop remains inside the selected sample range, and a Seamless Loop repeats without a gap.
 - Selection handles and timing labels agree.
 - Clicking within the waveform outside the selected region clears only the selection, not the loaded source.
 
@@ -67,7 +67,7 @@ Use Audio Tools playback and waveform controls to inspect a source and define an
 
 ## Common issues
 
-- **Playback ignores the selection:** Stop existing preview playback, confirm both range handles, then start range playback.
+- **Playback ignores the selection:** Turn on the Selection only toggle, stop existing preview playback, confirm both range handles, then start playback again. The toggle is available with a selection or with Trim Silence enabled.
 - **Zoom changes the wrong region:** Place the pointer over the intended waveform position before using Ctrl or Cmd plus the wheel.
 - **Timing looks offset:** Use sample positions and the clip frequency rather than rounded display text for processing.
 

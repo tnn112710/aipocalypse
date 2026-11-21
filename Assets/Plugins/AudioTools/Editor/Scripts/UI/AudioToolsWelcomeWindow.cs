@@ -48,7 +48,7 @@ namespace AudioTool
                 ProductName = "AUDIO TOOLS",
                 Headline = "Polished audio, right inside Unity",
                 Description =
-                    "Trim silence, shape fades, normalize peaks, and export production-ready WAV files without switching tools.",
+                    "Trim silence, shape fades, normalize peak or loudness levels, make seamless loops, and save production-ready WAV files for one clip or a whole folder without switching tools.",
                 SectionTitle = "A focused edit-to-export workflow",
                 SectionDescription =
                     "Work visually and non-destructively, then save exactly the result you intend.",
@@ -56,7 +56,7 @@ namespace AudioTool
                 {
                     new CommonWelcomeStep(
                         "Choose audio",
-                        "Open Audio Editor, select an AudioClip, browse for a file, or use Assets/Edit Audio in the Project window."),
+                        "Open Audio Editor, select an AudioClip, browse for a file, or use Assets/Edit Audio on clips or folders in the Project window."),
                     new CommonWelcomeStep(
                         "Shape the edit",
                         "Drag across the waveform, refine the handles, and remove quiet edges with Select Audible Content."),
@@ -80,6 +80,16 @@ namespace AudioTool
                 "Read Documentation",
                 "Open the Audio Tools documentation.",
                 () => Application.OpenURL(DocumentationUrl));
+            if (AudioToolsPreferences.IsStandaloneInstallation && AudioToolsPreferences.StoreLink != null)
+            {
+                Button rate = CommonWelcomeWindow.CreateAction(
+                    "Rate on the Asset Store",
+                    "Open the Audio Tools store page to leave a rating.",
+                    AudioToolsPreferences.OpenStorePage);
+                CommonWelcomeWindow.Build(rootVisualElement, content, open, documentation, rate);
+                return;
+            }
+
             CommonWelcomeWindow.Build(rootVisualElement, content, open, documentation);
         }
     }

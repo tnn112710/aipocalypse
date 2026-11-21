@@ -34,6 +34,7 @@ namespace ImpossibleRobert.Common
         private IList<T> _items = Array.Empty<T>();
         private int _activeIndex = -1;
         private int _selectionAnchor = -1;
+        private int _pendingPointerSelection = -1;
         private int _columnCount = 1;
         private float _preferredTileWidth = 160f;
         private float _tileAspectRatio = 1f;
@@ -108,6 +109,7 @@ namespace ImpossibleRobert.Common
 
         public void SetItems(IList<T> items, bool preserveSelection = false)
         {
+            _pendingPointerSelection = -1;
             _items = items ?? Array.Empty<T>();
             if (!preserveSelection)
             {
@@ -187,6 +189,7 @@ namespace ImpossibleRobert.Common
 
         public void SetSelection(IEnumerable<int> indices, int activeIndex = -1, bool notify = false)
         {
+            _pendingPointerSelection = -1;
             _selectedIndices.Clear();
             if (indices != null)
             {
@@ -208,6 +211,7 @@ namespace ImpossibleRobert.Common
 
         public void ClearSelection(bool notify = false)
         {
+            _pendingPointerSelection = -1;
             _selectedIndices.Clear();
             _activeIndex = -1;
             _selectionAnchor = -1;
@@ -275,11 +279,25 @@ namespace ImpossibleRobert.Common
         {
             int index = GetItemIndex(item);
             if (index < 0 || index >= _items.Count) return;
+            _pendingPointerSelection = -1;
             Focus();
 
             if (evt.button == 0)
             {
-                ApplyPointerSelection(index, evt.actionKey, evt.shiftKey);
+                if (evt.clickCount < 2 && AllowMultipleSelection && !evt.actionKey && !evt.shiftKey &&
+                    _selectedIndices.Count > 1 && _selectedIndices.Contains(index))
+                {
+                    // Keep the full selection available to a drag; an ordinary release still selects this item.
+                    _pendingPointerSelection = index;
+                    _selectionAnchor = index;
+                    if (_activeIndex != index)
+                    {
+                        _activeIndex = index;
+                        RefreshSelectionClasses();
+                        NotifySelectionChanged();
+                    }
+                }
+                else ApplyPointerSelection(index, evt.actionKey, evt.shiftKey);
                 ItemPointerDown?.Invoke(_items[index], index, evt);
                 if (evt.clickCount > 1)
                 {
@@ -297,12 +315,17 @@ namespace ImpossibleRobert.Common
             int index = GetItemIndex(item);
             if (index < 0 || index >= _items.Count) return;
             ItemPointerMove?.Invoke(_items[index], index, evt);
+            // A consumer accepts a drag by consuming the move, so its later release must not collapse selection.
+            if (evt.isPropagationStopped) _pendingPointerSelection = -1;
         }
 
         private void OnItemPointerUp(VisualElement item, PointerUpEvent evt)
         {
             int index = GetItemIndex(item);
+            bool selectPressedItem = evt.button == 0 && index == _pendingPointerSelection;
+            _pendingPointerSelection = -1;
             if (index < 0 || index >= _items.Count) return;
+            if (selectPressedItem) SetSingleSelection(index, true);
             ItemPointerUp?.Invoke(_items[index], index, evt);
         }
 
@@ -355,6 +378,7 @@ namespace ImpossibleRobert.Common
 
         private void OnKeyDown(KeyDownEvent evt)
         {
+            _pendingPointerSelection = -1;
             if (_items.Count == 0) return;
 
             // Alt+horizontal navigation is commonly owned by the host for paging/history.
@@ -436,6 +460,7 @@ namespace ImpossibleRobert.Common
 
         private void SetSingleSelection(int index, bool notify)
         {
+            _pendingPointerSelection = -1;
             _selectedIndices.Clear();
             if (index >= 0 && index < _items.Count)
             {

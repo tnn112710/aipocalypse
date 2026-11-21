@@ -21,6 +21,7 @@ namespace ImpossibleRobert.Common
         private readonly Button _next;
         private int _currentPage = 1;
         private int _pageCount = 1;
+        private bool _hasMore;
         private Action<int> _onPageChanged;
 
         public int CurrentPage => _currentPage;
@@ -46,20 +47,28 @@ namespace ImpossibleRobert.Common
 
         public void SetState(int currentPage, int pageCount, string tooltip, Action<int> onPageChanged, bool visible = true)
         {
+            SetState(currentPage, pageCount, tooltip, onPageChanged, visible, false);
+        }
+
+        /// <summary>Displays loaded pages and optionally allows requesting another page when the total is not known.</summary>
+        public void SetState(int currentPage, int pageCount, string tooltip, Action<int> onPageChanged, bool visible, bool hasMore)
+        {
             _pageCount = Math.Max(1, pageCount);
+            _hasMore = hasMore;
             _currentPage = Math.Max(1, Math.Min(currentPage, _pageCount));
             _onPageChanged = onPageChanged;
 
             _previous.SetEnabled(_currentPage > 1);
-            _next.SetEnabled(_currentPage < _pageCount);
-            _page.text = $"Page {_currentPage:N0}/{_pageCount:N0}";
+            _next.SetEnabled(_currentPage < _pageCount || _hasMore);
+            _page.SetEnabled(_pageCount > 1);
+            _page.text = _hasMore ? $"Page {_currentPage:N0}/…" : $"Page {_currentPage:N0}/{_pageCount:N0}";
             _page.tooltip = tooltip ?? string.Empty;
-            style.display = visible && _pageCount > 1 ? DisplayStyle.Flex : DisplayStyle.None;
+            style.display = visible && (_pageCount > 1 || _hasMore) ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void ChangePage(int page)
         {
-            if (page < 1 || page > _pageCount || page == _currentPage) return;
+            if (page < 1 || page > _pageCount + (_hasMore ? 1 : 0) || page == _currentPage) return;
             _onPageChanged?.Invoke(page);
         }
 

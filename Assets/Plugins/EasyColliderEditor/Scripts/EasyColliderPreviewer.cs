@@ -554,6 +554,7 @@ namespace ECE
           || CurrentVertexNormalInset != preferences.VertexNormalInset
           || CurrentShrinkGrow != preferences.ShrinkGrow
           || CurrentNormalOffset != preferences.VertexNormalOffsetType
+          || PreviewData.GetType() == typeof(EasyColliderData)
           )
         {
           return true;
@@ -606,8 +607,15 @@ namespace ECE
             if (preferences.rotatedDupeSettings.enabled == true)
             {
               RotateAndDuplicateData = new List<EasyColliderData>();
-              CurrentAttachTo = preferences.rotatedDupeSettings.pivot.transform;
-              CalculatePreviewRotateAndDuplicate(preferences, editor);
+              if (preferences.rotatedDupeSettings.pivot == null && editor.SelectedGameObject != null)
+              {
+                preferences.rotatedDupeSettings.pivot = editor.SelectedGameObject;
+              }
+              if (preferences.rotatedDupeSettings.pivot != null)
+              {
+                CurrentAttachTo = preferences.rotatedDupeSettings.pivot.transform;
+                CalculatePreviewRotateAndDuplicate(preferences, editor);
+              }
             }
             else
             {

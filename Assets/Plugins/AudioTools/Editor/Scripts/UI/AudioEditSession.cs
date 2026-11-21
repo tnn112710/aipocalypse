@@ -6,6 +6,8 @@ namespace AudioTool
     [Serializable]
     internal sealed class AudioEditSession : ScriptableObject
     {
+        internal const float DefaultPeakCeiling = 0.8912509f; // -1 dBFS
+
         [SerializeField] private string _materializedPath;
         [SerializeField] private string _fileName;
         [SerializeField] private string _projectPath;
@@ -21,8 +23,21 @@ namespace AudioTool
         [SerializeField] private bool _loop = true;
         [SerializeField] private bool _playSelection = true;
 
+        [SerializeField] private bool _trimSilence;
+        [SerializeField] private AudioSilenceMode _silenceMode;
+        [SerializeField] private float _paddingBefore = 0.005f;
+        [SerializeField] private float _paddingAfter = 0.02f;
+        [SerializeField] private float _minimumPause = 0.3f;
+        [SerializeField] private float _keptPause = 0.1f;
+        [SerializeField] private bool _removeDcOffset;
+        [SerializeField] private bool _highPass;
+        [SerializeField] private float _highPassFrequency = 80f;
+        [SerializeField] private bool _reverse;
         [SerializeField] private bool _normalize;
+        [SerializeField] private AudioNormalizeMode _normalizeMode;
         [SerializeField] private float _normalizeTarget = 0.95f;
+        [SerializeField] private float _loudnessTarget = -23f;
+        [SerializeField] private float _peakCeiling = DefaultPeakCeiling;
         [SerializeField] private bool _fadeIn;
         [SerializeField] private float _fadeInDuration = 1f;
         [SerializeField] private AnimationCurve _fadeInCurve = null;
@@ -31,8 +46,14 @@ namespace AudioTool
         [SerializeField] private AnimationCurve _fadeOutCurve = null;
         [SerializeField] private bool _adjustVolume;
         [SerializeField] private float _volume = 1f;
+        [SerializeField] private bool _seamlessLoop;
+        [SerializeField] private float _loopCrossfade = 0.25f;
+        [SerializeField] private AudioLoopShape _loopShape;
+        [SerializeField] private AudioOutputChannels _outputChannels;
+        [SerializeField] private int _outputSampleRate;
         [SerializeField] private float _silenceThreshold = 0.01f;
         [SerializeField] private bool _processingExpanded = true;
+        [SerializeField] private bool _outputExpanded;
         [SerializeField] private bool _advancedExpanded;
 
         internal string MaterializedPath { get => _materializedPath; set => _materializedPath = value; }
@@ -48,8 +69,21 @@ namespace AudioTool
         internal float ViewportStart { get => _viewportStart; set => _viewportStart = Mathf.Clamp01(value); }
         internal bool Loop { get => _loop; set => _loop = value; }
         internal bool PlaySelection { get => _playSelection; set => _playSelection = value; }
+        internal bool TrimSilence { get => _trimSilence; set => _trimSilence = value; }
+        internal AudioSilenceMode SilenceMode { get => _silenceMode; set => _silenceMode = value; }
+        internal float PaddingBefore { get => _paddingBefore; set => _paddingBefore = Mathf.Clamp(value, 0f, 2f); }
+        internal float PaddingAfter { get => _paddingAfter; set => _paddingAfter = Mathf.Clamp(value, 0f, 2f); }
+        internal float MinimumPause { get => _minimumPause; set => _minimumPause = Mathf.Clamp(value, 0.01f, 10f); }
+        internal float KeptPause { get => _keptPause; set => _keptPause = Mathf.Clamp(value, 0f, 5f); }
+        internal bool RemoveDcOffset { get => _removeDcOffset; set => _removeDcOffset = value; }
+        internal bool HighPass { get => _highPass; set => _highPass = value; }
+        internal float HighPassFrequency { get => _highPassFrequency; set => _highPassFrequency = Mathf.Clamp(value, 20f, 500f); }
+        internal bool Reverse { get => _reverse; set => _reverse = value; }
         internal bool Normalize { get => _normalize; set => _normalize = value; }
+        internal AudioNormalizeMode NormalizeMode { get => _normalizeMode; set => _normalizeMode = value; }
         internal float NormalizeTarget { get => _normalizeTarget; set => _normalizeTarget = Mathf.Clamp01(value); }
+        internal float LoudnessTarget { get => _loudnessTarget; set => _loudnessTarget = Mathf.Clamp(value, -40f, -6f); }
+        internal float PeakCeiling { get => _peakCeiling; set => _peakCeiling = Mathf.Clamp(value, 0.1f, 1f); }
         internal bool FadeIn { get => _fadeIn; set => _fadeIn = value; }
         internal float FadeInDuration { get => _fadeInDuration; set => _fadeInDuration = Mathf.Max(0.001f, value); }
         internal AnimationCurve FadeInCurve { get => _fadeInCurve ??= AnimationCurve.EaseInOut(0f, 0f, 1f, 1f); set => _fadeInCurve = value; }
@@ -58,11 +92,73 @@ namespace AudioTool
         internal AnimationCurve FadeOutCurve { get => _fadeOutCurve ??= AnimationCurve.EaseInOut(0f, 1f, 1f, 0f); set => _fadeOutCurve = value; }
         internal bool AdjustVolume { get => _adjustVolume; set => _adjustVolume = value; }
         internal float Volume { get => _volume; set => _volume = Mathf.Clamp(value, 0f, 2f); }
+        internal bool SeamlessLoop { get => _seamlessLoop; set => _seamlessLoop = value; }
+        internal float LoopCrossfade { get => _loopCrossfade; set => _loopCrossfade = Mathf.Clamp(value, 0.001f, 10f); }
+        internal AudioLoopShape LoopShape { get => _loopShape; set => _loopShape = value; }
+        internal AudioOutputChannels OutputChannels { get => _outputChannels; set => _outputChannels = value; }
+        internal int OutputSampleRate { get => _outputSampleRate; set => _outputSampleRate = Mathf.Max(0, value); }
         internal float SilenceThreshold { get => _silenceThreshold; set => _silenceThreshold = Mathf.Clamp(value, 0.0001f, 1f); }
         internal bool ProcessingExpanded { get => _processingExpanded; set => _processingExpanded = value; }
+        internal bool OutputExpanded { get => _outputExpanded; set => _outputExpanded = value; }
         internal bool AdvancedExpanded { get => _advancedExpanded; set => _advancedExpanded = value; }
 
         internal float ViewportDurationNormalized => 1f / Mathf.Max(1f, _zoom);
+
+        /// <summary>True when Selection only playback has a region to play: a selection, trimmed silence or a seamless loop.</summary>
+        internal bool HasEffectiveRegion => _hasSelection || _trimSilence || _seamlessLoop;
+
+        internal bool SplitsClips => _trimSilence && _silenceMode == AudioSilenceMode.SplitClips;
+
+        internal bool ChangesSamples => _removeDcOffset || _highPass || _reverse || _normalize || _fadeIn || _fadeOut || _adjustVolume || _seamlessLoop
+                                        || _outputChannels != AudioOutputChannels.Keep || _outputSampleRate > 0;
+
+        internal AudioEditSettings CreateSettings()
+        {
+            float[] fadeIn = new float[AudioEditSettings.CurveResolution];
+            float[] fadeOut = new float[AudioEditSettings.CurveResolution];
+            for (int i = 0; i < AudioEditSettings.CurveResolution; i++)
+            {
+                float t = (float)i / (AudioEditSettings.CurveResolution - 1);
+                fadeIn[i] = FadeInCurve.Evaluate(t);
+                fadeOut[i] = FadeOutCurve.Evaluate(t);
+            }
+
+            return new AudioEditSettings
+            {
+                HasSelection = _hasSelection,
+                SelectionStart = _selectionStart,
+                SelectionEnd = _selectionEnd,
+                TrimSilence = _trimSilence,
+                SilenceMode = _silenceMode,
+                SilenceThreshold = _silenceThreshold,
+                PaddingBefore = _paddingBefore,
+                PaddingAfter = _paddingAfter,
+                MinimumPause = _minimumPause,
+                KeptPause = _keptPause,
+                RemoveDcOffset = _removeDcOffset,
+                HighPass = _highPass,
+                HighPassFrequency = _highPassFrequency,
+                Reverse = _reverse,
+                Normalize = _normalize,
+                NormalizeMode = _normalizeMode,
+                NormalizeTarget = _normalizeTarget,
+                LoudnessTarget = _loudnessTarget,
+                PeakCeiling = _peakCeiling,
+                FadeIn = _fadeIn,
+                FadeInDuration = _fadeInDuration,
+                FadeInCurve = fadeIn,
+                FadeOut = _fadeOut,
+                FadeOutDuration = _fadeOutDuration,
+                FadeOutCurve = fadeOut,
+                AdjustVolume = _adjustVolume,
+                Volume = _volume,
+                SeamlessLoop = _seamlessLoop,
+                LoopCrossfade = _loopCrossfade,
+                LoopShape = _loopShape,
+                Channels = _outputChannels,
+                SampleRate = _outputSampleRate
+            };
+        }
 
         internal void ClearSelection()
         {
@@ -81,8 +177,21 @@ namespace AudioTool
             _viewportStart = 0f;
             _loop = true;
             _playSelection = true;
+            _trimSilence = false;
+            _silenceMode = AudioSilenceMode.TrimEdges;
+            _paddingBefore = 0.005f;
+            _paddingAfter = 0.02f;
+            _minimumPause = 0.3f;
+            _keptPause = 0.1f;
+            _removeDcOffset = false;
+            _highPass = false;
+            _highPassFrequency = 80f;
+            _reverse = false;
             _normalize = false;
+            _normalizeMode = AudioNormalizeMode.Peak;
             _normalizeTarget = 0.95f;
+            _loudnessTarget = -23f;
+            _peakCeiling = DefaultPeakCeiling;
             _fadeIn = false;
             _fadeInDuration = 1f;
             _fadeOut = false;
@@ -91,6 +200,11 @@ namespace AudioTool
             _fadeOutCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
             _adjustVolume = false;
             _volume = 1f;
+            _seamlessLoop = false;
+            _loopCrossfade = 0.25f;
+            _loopShape = AudioLoopShape.EqualPower;
+            _outputChannels = AudioOutputChannels.Keep;
+            _outputSampleRate = 0;
             _silenceThreshold = 0.01f;
         }
 
@@ -118,94 +232,6 @@ namespace AudioTool
         {
             float maximumStart = Mathf.Max(0f, 1f - ViewportDurationNormalized);
             _viewportStart = Mathf.Clamp(_viewportStart, 0f, maximumStart);
-        }
-
-        internal EditSnapshot CaptureEdits()
-        {
-            return new EditSnapshot(
-                _hasSelection, _selectionStart, _selectionEnd, _playhead, _zoom, _viewportStart, _loop, _playSelection,
-                _normalize, _normalizeTarget, _fadeIn, _fadeInDuration, FadeInCurve, _fadeOut, _fadeOutDuration, FadeOutCurve,
-                _adjustVolume, _volume, _silenceThreshold, _processingExpanded, _advancedExpanded);
-        }
-
-        internal void RestoreEdits(EditSnapshot snapshot)
-        {
-            _hasSelection = snapshot.HasSelection;
-            _selectionStart = snapshot.SelectionStart;
-            _selectionEnd = snapshot.SelectionEnd;
-            _playhead = snapshot.Playhead;
-            _zoom = snapshot.Zoom;
-            _viewportStart = snapshot.ViewportStart;
-            _loop = snapshot.Loop;
-            _playSelection = snapshot.PlaySelection;
-            _normalize = snapshot.Normalize;
-            _normalizeTarget = snapshot.NormalizeTarget;
-            _fadeIn = snapshot.FadeIn;
-            _fadeInDuration = snapshot.FadeInDuration;
-            _fadeInCurve = snapshot.FadeInCurve;
-            _fadeOut = snapshot.FadeOut;
-            _fadeOutDuration = snapshot.FadeOutDuration;
-            _fadeOutCurve = snapshot.FadeOutCurve;
-            _adjustVolume = snapshot.AdjustVolume;
-            _volume = snapshot.Volume;
-            _silenceThreshold = snapshot.SilenceThreshold;
-            _processingExpanded = snapshot.ProcessingExpanded;
-            _advancedExpanded = snapshot.AdvancedExpanded;
-            NormalizeSelection();
-        }
-
-        internal readonly struct EditSnapshot
-        {
-            internal EditSnapshot(
-                bool hasSelection, float selectionStart, float selectionEnd, float playhead, float zoom, float viewportStart,
-                bool loop, bool playSelection, bool normalize, float normalizeTarget, bool fadeIn, float fadeInDuration,
-                AnimationCurve fadeInCurve, bool fadeOut, float fadeOutDuration, AnimationCurve fadeOutCurve,
-                bool adjustVolume, float volume, float silenceThreshold, bool processingExpanded, bool advancedExpanded)
-            {
-                HasSelection = hasSelection;
-                SelectionStart = selectionStart;
-                SelectionEnd = selectionEnd;
-                Playhead = playhead;
-                Zoom = zoom;
-                ViewportStart = viewportStart;
-                Loop = loop;
-                PlaySelection = playSelection;
-                Normalize = normalize;
-                NormalizeTarget = normalizeTarget;
-                FadeIn = fadeIn;
-                FadeInDuration = fadeInDuration;
-                FadeInCurve = fadeInCurve == null ? null : new AnimationCurve(fadeInCurve.keys);
-                FadeOut = fadeOut;
-                FadeOutDuration = fadeOutDuration;
-                FadeOutCurve = fadeOutCurve == null ? null : new AnimationCurve(fadeOutCurve.keys);
-                AdjustVolume = adjustVolume;
-                Volume = volume;
-                SilenceThreshold = silenceThreshold;
-                ProcessingExpanded = processingExpanded;
-                AdvancedExpanded = advancedExpanded;
-            }
-
-            internal bool HasSelection { get; }
-            internal float SelectionStart { get; }
-            internal float SelectionEnd { get; }
-            internal float Playhead { get; }
-            internal float Zoom { get; }
-            internal float ViewportStart { get; }
-            internal bool Loop { get; }
-            internal bool PlaySelection { get; }
-            internal bool Normalize { get; }
-            internal float NormalizeTarget { get; }
-            internal bool FadeIn { get; }
-            internal float FadeInDuration { get; }
-            internal AnimationCurve FadeInCurve { get; }
-            internal bool FadeOut { get; }
-            internal float FadeOutDuration { get; }
-            internal AnimationCurve FadeOutCurve { get; }
-            internal bool AdjustVolume { get; }
-            internal float Volume { get; }
-            internal float SilenceThreshold { get; }
-            internal bool ProcessingExpanded { get; }
-            internal bool AdvancedExpanded { get; }
         }
     }
 }

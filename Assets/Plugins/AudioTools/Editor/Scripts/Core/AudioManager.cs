@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using ImpossibleRobert.Common;
 using UnityEditor;
@@ -24,6 +25,89 @@ namespace AudioTool
         private static int _rangeStartSample;
         private static int _rangeEndSample;
         private static bool _isRangePlaying;
+        private static bool _currentLoop;
+        private static IEditorAudioPlayback _currentPlayback;
+        private static int _requestVersion;
+
+        public static EditorAudioMetadata? CurrentMetadata => _currentPlayback != null
+            ? _currentPlayback.Metadata
+            : _currentClip != null ? new EditorAudioMetadata(_currentClip.channels, _currentClip.frequency, _currentClip.samples) : (EditorAudioMetadata?)null;
+
+        /// <summary>Plays a materialized file using the project's available audio backend.</summary>
+        public static async Task<bool> PlayFileAsync(string path, bool loop = false, CancellationToken token = default)
+        {
+            StopAudio();
+            int version = _requestVersion;
+            try
+            {
+                IEditorAudioBackend backend = EditorAudioService.GetBackend();
+                IEditorAudioPlayback playback = await backend.PlayFileAsync(path, 0, long.MaxValue, loop, token);
+                if (token.IsCancellationRequested || version != _requestVersion)
+                {
+                    playback?.Dispose();
+                    return false;
+                }
+                _currentPlayback = playback;
+                _currentLoop = loop;
+                return playback != null;
+            }
+            catch (OperationCanceledException) { return false; }
+            catch (EditorAudioUnavailableException exception)
+            {
+                EditorAudioService.WarnUnavailableOnce(exception);
+                return false;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("Audio preview failed: " + exception.Message);
+                return false;
+            }
+        }
+
+        /// <summary>Plays processed interleaved samples without requiring a Unity AudioClip.</summary>
+        public static async Task<bool> PlaySamplesAsync(float[] samples, int channels, int frequency,
+            long startFrame, long endFrameExclusive, bool loop, CancellationToken token = default)
+        {
+            StopAudio();
+            int version = _requestVersion;
+            try
+            {
+                IEditorAudioBackend backend = EditorAudioService.GetBackend();
+                IEditorAudioPlayback playback = await backend.PlaySamplesAsync(samples, channels, frequency,
+                    startFrame, endFrameExclusive, loop, token);
+                if (token.IsCancellationRequested || version != _requestVersion)
+                {
+                    playback?.Dispose();
+                    return false;
+                }
+                _currentPlayback = playback;
+                _currentLoop = loop;
+                _rangeStartSample = (int)Math.Min(int.MaxValue, Math.Max(0, startFrame));
+                _rangeEndSample = (int)Math.Min(int.MaxValue, Math.Max(0, endFrameExclusive));
+                _isRangePlaying = _rangeEndSample > _rangeStartSample &&
+                    (startFrame > 0 || endFrameExclusive < samples.LongLength / channels);
+                return playback != null;
+            }
+            catch (OperationCanceledException) { return false; }
+            catch (EditorAudioUnavailableException exception)
+            {
+                EditorAudioService.WarnUnavailableOnce(exception);
+                return false;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("Processed audio preview failed: " + exception.Message);
+                return false;
+            }
+        }
+
+        /// <summary>Seeks the current editor audio preview to the specified sample frame.</summary>
+        /// <param name="frame">The zero-based sample frame at which playback should continue.</param>
+        public static void SeekCurrent(long frame)
+        {
+            if (_currentPlayback != null) _currentPlayback.Seek(frame);
+            else if (_currentClip != null) PlayClip(_currentClip, (int)Math.Min(int.MaxValue, Math.Max(0, frame)), _currentLoop);
+        }
 
         [InitializeOnLoadMethod]
         private static void RegisterEditorLifecycle()
@@ -63,6 +147,7 @@ namespace AudioTool
         public static async Task<AudioClip> LoadAudioFromFile(string filePath, bool allowStreaming = true)
         {
             if (!File.Exists(filePath)) return null;
+            if (CommonEditorAudioSettings.WarnIfDisabled()) return null;
 
             // workaround for Unity not supporting loading local files with # or + or unicode chars in the name
             if (filePath.Contains("#") || filePath.Contains("+") || filePath.IsUnicode())
@@ -160,7 +245,9 @@ namespace AudioTool
 #if !AUDIO_TOOL_NOAUDIO
             if (clip == null) return;
 
+            StopAudio();
             _currentClip = clip;
+            _currentLoop = loop;
             _isRangePlaying = false;
             EditorAudioUtility.StopAllPreviewClips();
             EditorAudioUtility.PlayPreviewClip(clip, startSample, loop);
@@ -181,7 +268,9 @@ namespace AudioTool
 #if !AUDIO_TOOL_NOAUDIO
             if (clip == null) return;
 
+            StopAudio();
             _currentClip = clip;
+            _currentLoop = loop;
             _rangeStartSample = startSample;
             _rangeEndSample = endSample;
             _isRangePlaying = true;
@@ -196,6 +285,8 @@ namespace AudioTool
         /// <returns>Current position in seconds, or 0 if not playing</returns>
         public static float GetCurrentPosition()
         {
+            if (_currentPlayback != null)
+                return (float)(_currentPlayback.PositionFrames / (double)_currentPlayback.Metadata.Frequency);
 #if !AUDIO_TOOL_NOAUDIO
             if (EditorAudioUtility.IsPreviewClipPlaying() && EditorAudioUtility.LastPlayedPreviewClip != null)
             {
@@ -211,6 +302,8 @@ namespace AudioTool
         /// <returns>Current sample position, or 0 if not playing</returns>
         public static int GetCurrentSamplePosition()
         {
+            if (_currentPlayback != null)
+                return (int)Math.Min(int.MaxValue, _currentPlayback.PositionFrames);
 #if !AUDIO_TOOL_NOAUDIO
             if (EditorAudioUtility.IsPreviewClipPlaying() && EditorAudioUtility.LastPlayedPreviewClip != null)
             {
@@ -228,6 +321,9 @@ namespace AudioTool
         /// <returns>True if range playback has completed</returns>
         public static bool HasReachedRangeEnd()
         {
+            if (_currentPlayback != null)
+                return _isRangePlaying && !_currentLoop &&
+                    (!_currentPlayback.IsPlaying || _currentPlayback.PositionFrames >= _rangeEndSample);
 #if !AUDIO_TOOL_NOAUDIO
             if (!_isRangePlaying) return false;
             if (!EditorAudioUtility.IsPreviewClipPlaying()) return true;
@@ -245,6 +341,7 @@ namespace AudioTool
         /// <returns>True if audio is playing</returns>
         public static bool IsPlaying()
         {
+            if (_currentPlayback != null) return _currentPlayback.IsPlaying;
 #if !AUDIO_TOOL_NOAUDIO
             return EditorAudioUtility.IsPreviewClipPlaying();
 #else
@@ -257,6 +354,11 @@ namespace AudioTool
         /// </summary>
         public static void PauseAudio()
         {
+            if (_currentPlayback != null)
+            {
+                _currentPlayback.Pause();
+                return;
+            }
 #if !AUDIO_TOOL_NOAUDIO
             if (EditorAudioUtility.LastPlayedPreviewClip != null)
             {
@@ -270,6 +372,11 @@ namespace AudioTool
         /// </summary>
         public static void ResumeAudio()
         {
+            if (_currentPlayback != null)
+            {
+                _currentPlayback.Resume();
+                return;
+            }
 #if !AUDIO_TOOL_NOAUDIO
             if (EditorAudioUtility.LastPlayedPreviewClip != null)
             {
@@ -283,10 +390,17 @@ namespace AudioTool
         /// </summary>
         public static void StopAudio()
         {
+            _requestVersion++;
+            if (_currentPlayback != null)
+            {
+                _currentPlayback.Dispose();
+                _currentPlayback = null;
+            }
 #if !AUDIO_TOOL_NOAUDIO
             EditorAudioUtility.StopAllPreviewClips();
 #endif
             _currentClip = null;
+            _currentLoop = false;
             _rangeStartSample = 0;
             _rangeEndSample = 0;
             _isRangePlaying = false;

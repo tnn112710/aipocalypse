@@ -51,7 +51,9 @@ namespace ImpossibleRobert.Common
                 case SerializedPropertyType.Bounds:
                     return "Set the " + lowerSubject + ".";
                 default:
-                    return "Configure the " + lowerSubject + " settings.";
+                    return lowerSubject.EndsWith("settings", StringComparison.Ordinal)
+                        ? "Configure the " + lowerSubject + "."
+                        : "Configure the " + lowerSubject + " settings.";
             }
         }
     }

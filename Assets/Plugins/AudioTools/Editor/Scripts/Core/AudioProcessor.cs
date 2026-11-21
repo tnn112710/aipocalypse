@@ -227,66 +227,25 @@ namespace AudioTool
         /// <param name="use32BitFloat">Use 32-bit float format instead of 16-bit PCM</param>
         public static void ExportToWav(string outputPath, float[] samples, int channels, int frequency, bool use32BitFloat = false)
         {
+            ExportToWav(outputPath, samples, channels, frequency, use32BitFloat ? WavSampleFormat.Float32 : WavSampleFormat.Pcm16);
+        }
+
+        /// <summary>
+        /// Exports audio samples to a WAV file with the given sample encoding.
+        /// </summary>
+        /// <param name="outputPath">Output file path; missing folders are created.</param>
+        /// <param name="samples">Audio samples (interleaved for multi-channel)</param>
+        /// <param name="channels">Number of audio channels</param>
+        /// <param name="frequency">Sample rate in Hz</param>
+        /// <param name="format">16-bit or 24-bit PCM, rounded to the nearest step, or unclamped 32-bit float.</param>
+        public static void ExportToWav(string outputPath, float[] samples, int channels, int frequency, WavSampleFormat format)
+        {
             if (samples == null || samples.Length == 0)
             {
                 throw new ArgumentException("No audio samples to export");
             }
 
-            string directory = Path.GetDirectoryName(outputPath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            using (FileStream stream = new FileStream(outputPath, FileMode.Create))
-            using (BinaryWriter writer = new BinaryWriter(stream))
-            {
-                int bitsPerSample = use32BitFloat ? 32 : 16;
-                int bytesPerSample = bitsPerSample / 8;
-                int blockAlign = channels * bytesPerSample;
-                int byteRate = frequency * blockAlign;
-                int dataSize = samples.Length * bytesPerSample;
-
-                // RIFF header
-                writer.Write(new[] {'R', 'I', 'F', 'F'});
-                writer.Write(36 + dataSize); // File size minus 8 bytes
-                writer.Write(new[] {'W', 'A', 'V', 'E'});
-
-                // fmt subchunk
-                writer.Write(new[] {'f', 'm', 't', ' '});
-                writer.Write(16); // Subchunk1 size (16 for PCM)
-                writer.Write((short)(use32BitFloat ? 3 : 1)); // Audio format (1 = PCM, 3 = IEEE float)
-                writer.Write((short)channels);
-                writer.Write(frequency);
-                writer.Write(byteRate);
-                writer.Write((short)blockAlign);
-                writer.Write((short)bitsPerSample);
-
-                // data subchunk
-                writer.Write(new[] {'d', 'a', 't', 'a'});
-                writer.Write(dataSize);
-
-                if (use32BitFloat)
-                {
-                    // 32-bit float
-                    for (int i = 0; i < samples.Length; i++)
-                    {
-                        writer.Write(samples[i]);
-                    }
-                }
-                else
-                {
-                    // 16-bit PCM
-                    for (int i = 0; i < samples.Length; i++)
-                    {
-                        float sample = Mathf.Clamp(samples[i], -1f, 1f);
-                        short intSample = (short)(sample * 32767f);
-                        writer.Write(intSample);
-                    }
-                }
-            }
-
-            Debug.Log($"Audio exported to: {outputPath}");
+            AudioWavWriter.Write(outputPath, samples, channels, frequency, format);
         }
 
         /// <summary>

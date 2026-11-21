@@ -408,8 +408,15 @@ namespace ImpossibleRobert.Common
         public static string GetExtensionWithoutDot(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return string.Empty;
-            string ext = Path.GetExtension(path);
-            return string.IsNullOrEmpty(ext) ? string.Empty : ext.TrimStart('.');
+
+            // Same result as Path.GetExtension, which rejects characters such as < > | " on Windows that archive entries and online titles legitimately contain
+            for (int i = path.Length - 1; i >= 0; i--)
+            {
+                char c = path[i];
+                if (c == '.') return i < path.Length - 1 ? path.Substring(i + 1) : string.Empty;
+                if (c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar || c == Path.VolumeSeparatorChar) break;
+            }
+            return string.Empty;
         }
 
         public static string GetFileName(string path, bool returnOriginalOnError = true, bool quiet = true)

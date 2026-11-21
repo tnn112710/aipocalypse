@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'open Audio Tools', 'edit
 metadata:
   asset: "Audio Tools"
   publisher: "Impossible Robert"
-  asset-version: "1.2.0"
+  asset-version: "1.3.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/audio/audio-tools-356424"
   documentation-url: "https://www.wetzold.com/tools/audiotools/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-11-11"
 ---
 
 # Audio Tools Setup and Overview
@@ -33,7 +33,7 @@ Open the installed Audio Tools editor, confirm that a supported source is availa
 ## Quick start
 
 1. Open `Tools > Audio Tools > Audio Editor` for an empty editor.
-2. To load a project clip directly, select it and use `Assets > Edit Audio`.
+2. To load project clips directly, select one or more clips or folders and use `Assets > Edit Audio`; several files open together and share one set of settings.
 3. Confirm the waveform and source metadata load before editing.
 4. Continue with the sibling skill that matches preview, processing, or export.
 
@@ -41,9 +41,9 @@ Open the installed Audio Tools editor, confirm that a supported source is availa
 
 ### Workflow: Open a selected project clip
 
-1. Select one supported audio asset in the Project window.
+1. Select one supported audio asset in the Project window, or several assets or folders for a multi-file session.
 2. Choose `Assets > Edit Audio` and wait for waveform processing.
-3. Confirm the editor identifies the source and enables playback.
+3. Confirm the editor identifies the source and enables playback. With several files the header shows the position, such as `1 of 12`, and a Files list appears.
 
 ### Workflow: Open the standalone workspace
 
@@ -63,11 +63,11 @@ Open the installed Audio Tools editor, confirm that a supported source is availa
 - Menu: `Tools > Audio Tools > Audio Editor`.
 - Project context menu: `Assets > Edit Audio`.
 - `IAudioSource` and `FileAudioSource` represent materialized editor audio sources.
-- `AudioManager`, `AudioProcessor`, and `AudioWaveformRenderer` are the supported editor API surfaces.
+- `AudioManager`, `AudioProcessor`, and `AudioWaveformRenderer` are the supported editor API surfaces; batch saves, loudness and loop processing are window features.
 
 ## Common issues
 
-- **The context action is disabled:** Select exactly one supported audio asset or open the standalone editor.
+- **The context action is disabled:** Select at least one supported audio asset or a folder, or open the standalone editor.
 - **The waveform is still empty:** Wait for cancellable preview processing and check the Console for source-loading errors.
 - **The window opens after a domain reload:** Reload restoration does not restart playback; start preview explicitly.
 

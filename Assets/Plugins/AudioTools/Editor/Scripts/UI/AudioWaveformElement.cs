@@ -1,10 +1,25 @@
 using System;
+using System.Collections.Generic;
 using ImpossibleRobert.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace AudioTool
 {
+    /// <summary>What the current settings export, in normalized clip positions, drawn over the waveform.</summary>
+    internal sealed class AudioWaveformOverlay
+    {
+        /// <summary>Exported clips as (start, export end).</summary>
+        internal readonly List<Vector2> Segments = new List<Vector2>();
+        /// <summary>Loop tails folded into the clip start as (export end, end).</summary>
+        internal readonly List<Vector2> LoopTails = new List<Vector2>();
+        /// <summary>Parts of pauses that saving removes.</summary>
+        internal readonly List<Vector2> RemovedPauses = new List<Vector2>();
+        /// <summary>Dims audio outside the exported clips, for trimmed silence.</summary>
+        internal bool DimOutside;
+        internal bool DrawFades = true;
+    }
+
     internal sealed class AudioWaveformElement : VisualElement
     {
         private const float HandleHitWidth = 10f;
@@ -38,6 +53,7 @@ namespace AudioTool
         private readonly Label _playheadLabel;
         private AudioEditSession _session;
         private AudioWaveformPeakCache _peaks;
+        private AudioWaveformOverlay _overlay;
         private float _clipDuration = 1f;
         private float _pointerDownX;
         private float _pointerDownNormalized;
@@ -102,6 +118,12 @@ namespace AudioTool
             _peaks = peaks;
             _clipDuration = Mathf.Max(0.0001f, clipDuration);
             Refresh();
+        }
+
+        internal void SetOverlay(AudioWaveformOverlay overlay)
+        {
+            _overlay = overlay;
+            _canvas.MarkDirtyRepaint();
         }
 
         internal void Refresh()
@@ -306,6 +328,7 @@ namespace AudioTool
                 }
             }
 
+            DrawOverlay(rect);
             DrawFadeEnvelope(rect);
 
             if (_session.HasSelection)
@@ -336,12 +359,67 @@ namespace AudioTool
             _meshBuilder.Flush(context);
         }
 
+        private void DrawOverlay(Rect rect)
+        {
+            if (_overlay == null || _overlay.Segments.Count == 0) return;
+            Color dimColor = new Color(0.05f, 0.06f, 0.08f, 0.55f);
+            Color boundaryColor = new Color(0.32f, 0.76f, 1f, 0.55f);
+            Color tailColor = new Color(1f, 0.62f, 0.2f, 0.22f);
+            Color pauseColor = new Color(0.72f, 0.45f, 1f, 0.24f);
+
+            if (_overlay.DimOutside)
+            {
+                float previousEnd = 0f;
+                foreach (Vector2 segment in _overlay.Segments)
+                {
+                    AddNormalizedRect(rect, previousEnd, segment.x, dimColor);
+                    previousEnd = segment.y;
+                }
+
+                foreach (Vector2 tail in _overlay.LoopTails) previousEnd = Mathf.Max(previousEnd, tail.y);
+                AddNormalizedRect(rect, previousEnd, 1f, dimColor);
+            }
+
+            foreach (Vector2 tail in _overlay.LoopTails) AddNormalizedRect(rect, tail.x, tail.y, tailColor);
+            foreach (Vector2 pause in _overlay.RemovedPauses) AddNormalizedRect(rect, pause.x, pause.y, pauseColor);
+
+            if (_overlay.Segments.Count < 2) return;
+            foreach (Vector2 segment in _overlay.Segments)
+            {
+                AddBoundary(rect, segment.x, boundaryColor);
+                AddBoundary(rect, segment.y, boundaryColor);
+            }
+        }
+
+        private void AddNormalizedRect(Rect rect, float start, float end, Color color)
+        {
+            float left = Mathf.Clamp(NormalizedToX(start), 0f, rect.width);
+            float right = Mathf.Clamp(NormalizedToX(end), 0f, rect.width);
+            if (right - left >= 0.5f) _meshBuilder.AddRect(new Rect(left, 0f, right - left, rect.height), color);
+        }
+
+        private void AddBoundary(Rect rect, float position, Color color)
+        {
+            float x = NormalizedToX(position);
+            if (x >= 0f && x <= rect.width) _meshBuilder.AddRect(new Rect(x - 0.5f, 0f, 1f, rect.height), color);
+        }
+
         private void DrawFadeEnvelope(Rect rect)
         {
             if (_session == null || (!_session.FadeIn && !_session.FadeOut)) return;
+            if (_overlay != null && !_overlay.DrawFades) return;
 
-            float regionStart = _session.HasSelection ? _session.SelectionStart : 0f;
-            float regionEnd = _session.HasSelection ? _session.SelectionEnd : 1f;
+            if (_overlay != null && _overlay.Segments.Count > 0)
+            {
+                foreach (Vector2 segment in _overlay.Segments) DrawFadeEnvelope(rect, segment.x, segment.y);
+                return;
+            }
+
+            DrawFadeEnvelope(rect, _session.HasSelection ? _session.SelectionStart : 0f, _session.HasSelection ? _session.SelectionEnd : 1f);
+        }
+
+        private void DrawFadeEnvelope(Rect rect, float regionStart, float regionEnd)
+        {
             Color fadeColor = new Color(1f, 0.76f, 0.25f, 0.95f);
 
             if (_session.FadeIn)
@@ -364,12 +442,12 @@ namespace AudioTool
             {
                 float fadeStart = Mathf.Max(regionStart, regionEnd - _session.FadeOutDuration / _clipDuration);
                 float previousX = NormalizedToX(fadeStart);
-                float previousY = 2f;
+                float previousY = Mathf.Lerp(rect.height - 2f, 2f, Mathf.Clamp01(_session.FadeOutCurve.Evaluate(0f)));
                 for (int i = 1; i <= 24; i++)
                 {
                     float t = i / 24f;
                     float x = NormalizedToX(Mathf.Lerp(fadeStart, regionEnd, t));
-                    float y = Mathf.Lerp(2f, rect.height - 2f, t);
+                    float y = Mathf.Lerp(rect.height - 2f, 2f, Mathf.Clamp01(_session.FadeOutCurve.Evaluate(t)));
                     _meshBuilder.AddLine(new Vector2(previousX, previousY), new Vector2(x, y), 1.5f, fadeColor);
                     previousX = x;
                     previousY = y;

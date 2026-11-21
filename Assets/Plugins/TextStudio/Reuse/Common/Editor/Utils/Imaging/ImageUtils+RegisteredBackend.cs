@@ -9,10 +9,26 @@ namespace ImpossibleRobert.Common
     public static partial class ImageUtils
     {
         private static IImageUtilsBackend _registeredBackend;
+        private static IImageConversionBackend _registeredConversionBackend;
 
         public static void RegisterBackend(IImageUtilsBackend backend)
         {
             _registeredBackend = backend;
+        }
+
+        public static void RegisterConversionBackend(IImageConversionBackend backend)
+        {
+            _registeredConversionBackend = backend;
+        }
+
+        /// <summary>True when an image conversion backend such as Common Imaging is installed.</summary>
+        public static bool CanConvertImages => _registeredConversionBackend != null;
+
+        /// <summary>Converts encoded image data, for example WebP, to PNG. Safe to call from background threads.</summary>
+        public static bool TryConvertToPng(byte[] source, out byte[] png)
+        {
+            png = null;
+            return source != null && _registeredConversionBackend != null && _registeredConversionBackend.TryConvertToPng(source, out png) && png != null;
         }
 
         internal static bool TryResizeWithRegisteredBackend(string originalFile, string outputFile, int maxSize, bool scaleBeyondSize, string typeOverride)

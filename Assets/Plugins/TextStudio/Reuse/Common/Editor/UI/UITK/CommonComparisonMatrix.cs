@@ -113,6 +113,9 @@ namespace ImpossibleRobert.Common
         public IReadOnlyList<TRow> Rows => _rows;
         public IReadOnlyList<TColumn> Columns => _columns;
 
+        /// <summary>Optional row height override, evaluated when rebuilding or refreshing a row.</summary>
+        public Func<TRow, float> RowHeightSelector { get; set; }
+
         public void SetItems(IReadOnlyList<TRow> rows, IReadOnlyList<TColumn> columns)
         {
             _rows = rows ?? Array.Empty<TRow>();
@@ -134,19 +137,20 @@ namespace ImpossibleRobert.Common
             for (int rowIndex = 0; rowIndex < _rows.Count; rowIndex++)
             {
                 TRow rowItem = _rows[rowIndex];
+                float rowHeight = GetRowHeight(rowItem);
                 VisualElement row = CommonUITK.CreateContainer(_classes.RowClass);
                 row.style.width = matrixWidth;
-                row.style.height = _rowHeight;
+                row.style.height = rowHeight;
                 row.style.flexShrink = 0f;
 
-                VisualElement rowHeader = CreateSlot(_makeRowHeader(rowItem), _classes.RowHeaderClass, _rowHeaderWidth, _rowHeight);
+                VisualElement rowHeader = CreateSlot(_makeRowHeader(rowItem), _classes.RowHeaderClass, _rowHeaderWidth, rowHeight);
                 _rowHeaders[rowItem] = rowHeader;
                 row.Add(rowHeader);
 
                 for (int columnIndex = 0; columnIndex < _columns.Count; columnIndex++)
                 {
                     TColumn columnItem = _columns[columnIndex];
-                    VisualElement cell = CreateSlot(_makeCell(rowItem, columnItem), _classes.CellClass, _columnWidth, _rowHeight);
+                    VisualElement cell = CreateSlot(_makeCell(rowItem, columnItem), _classes.CellClass, _columnWidth, rowHeight);
                     _cells[new CellKey(rowItem, columnItem)] = cell;
                     row.Add(cell);
                 }
@@ -159,7 +163,15 @@ namespace ImpossibleRobert.Common
         {
             if (_rowHeaders.TryGetValue(row, out VisualElement rowHeader))
             {
+                float rowHeight = GetRowHeight(row);
+                rowHeader.parent.style.height = rowHeight;
+                rowHeader.style.height = rowHeight;
                 ReplaceSlotContent(rowHeader, _makeRowHeader(row));
+                for (int i = 0; i < _columns.Count; i++)
+                {
+                    CellKey key = new CellKey(row, _columns[i]);
+                    if (_cells.TryGetValue(key, out VisualElement cell)) cell.style.height = rowHeight;
+                }
             }
 
             for (int i = 0; i < _columns.Count; i++)
@@ -194,6 +206,11 @@ namespace ImpossibleRobert.Common
         {
             _cells.TryGetValue(new CellKey(row, column), out VisualElement cell);
             return cell;
+        }
+
+        private float GetRowHeight(TRow row)
+        {
+            return Mathf.Max(1f, RowHeightSelector?.Invoke(row) ?? _rowHeight);
         }
 
         private VisualElement BuildHeader(float matrixWidth)

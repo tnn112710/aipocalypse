@@ -321,13 +321,79 @@ namespace ImpossibleRobert.Common
         {
             VisualElement row = CommonUITK.CreateContainer("common-inspector-value-row");
             row.name = name;
-            row.Add(CommonUITK.CreateContainer("common-inspector-value-row__spacer"));
+            VisualElement spacer = CommonUITK.CreateContainer("common-inspector-value-row__spacer");
+            row.Add(spacer);
             if (content != null)
             {
                 content.AddToClassList("common-inspector-value-row__content");
                 row.Add(content);
             }
+            AlignWithFieldInputs(row, spacer);
             return row;
+        }
+
+        /// <summary>
+        /// Starts the row's content where the inputs of nearby aligned fields start. Inspectors size aligned labels in
+        /// code from their own width, which the spacer's stylesheet width only approximates, so once laid out the
+        /// spacer takes the measured offset and follows the reference field as it resizes.
+        /// </summary>
+        static void AlignWithFieldInputs(VisualElement row, VisualElement spacer)
+        {
+            VisualElement reference = null;
+
+            void Align()
+            {
+                if (row.panel == null || spacer.resolvedStyle.display == DisplayStyle.None)
+                    return;
+                if (reference == null || reference.panel == null || reference.resolvedStyle.display == DisplayStyle.None)
+                {
+                    reference = FindAlignedInput(row);
+                    reference?.RegisterCallback<GeometryChangedEvent>(_ => Align());
+                }
+                if (reference == null)
+                    return;
+
+                float offset = reference.worldBound.xMin - row.worldBound.xMin;
+                if (offset <= 0f || float.IsNaN(offset) || Mathf.Abs(spacer.resolvedStyle.width - offset) < 0.5f)
+                    return;
+                spacer.style.width = offset;
+                spacer.style.minWidth = offset;
+                spacer.style.maxWidth = offset;
+            }
+
+            row.RegisterCallback<GeometryChangedEvent>(_ => Align());
+        }
+
+        /// <summary>
+        /// The input of the laid-out aligned field closest above or below the row, searching its enclosing groups outward;
+        /// fields in indented foldouts can start their inputs elsewhere, so the nearest field is the row's neighbor.
+        /// </summary>
+        static VisualElement FindAlignedInput(VisualElement row)
+        {
+            float rowTop = row.worldBound.yMin;
+            VisualElement scope = row.parent;
+            for (int depth = 0; scope != null && depth < 4; depth++, scope = scope.parent)
+            {
+                VisualElement input = null;
+                float distance = float.MaxValue;
+                scope.Query(className: BaseField<int>.alignedFieldUssClassName).ForEach(field =>
+                {
+                    if (row.Contains(field) || field.resolvedStyle.display == DisplayStyle.None)
+                        return;
+                    VisualElement candidate = field.Q(className: BaseField<int>.inputUssClassName);
+                    if (candidate == null || candidate.worldBound.width <= 0f)
+                        return;
+                    float candidateDistance = Mathf.Abs(candidate.worldBound.center.y - rowTop);
+                    if (candidateDistance < distance)
+                    {
+                        distance = candidateDistance;
+                        input = candidate;
+                    }
+                });
+                if (input != null)
+                    return input;
+            }
+            return null;
         }
 
         public static VisualElement CreateCollectionCard(string name, int headerActionCount = 0)

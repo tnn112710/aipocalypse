@@ -11,6 +11,7 @@ namespace ImpossibleRobert.Common
             public string CustomizationClass;
             public string ControlsClass;
             public string MoveButtonClass;
+            public string MoveIconClass;
             public string BodyClass;
         }
 
@@ -29,27 +30,26 @@ namespace ImpossibleRobert.Common
             OrderedSectionClasses safeClasses = classes ?? new OrderedSectionClasses();
             CommonUITK.AddClasses(this, safeClasses.RootClass);
 
+            Body = CommonUITK.CreateContainer(safeClasses.BodyClass);
+            if (content != null) Body.Add(content);
+            Add(Body);
+
+            // Follows the body so that controls positioned over it stay on top and receive clicks.
             Controls = CommonUITK.CreateContainer(safeClasses.ControlsClass);
             Controls.style.display = customizationMode ? DisplayStyle.Flex : DisplayStyle.None;
             if (customizationMode)
             {
                 CommonUITK.AddClasses(this, safeClasses.CustomizationClass);
 
-                Button up = CommonUITK.CreateButton("^", moveUp, safeClasses.MoveButtonClass);
-                up.tooltip = "Move section up";
+                Button up = CommonUITK.CreateIconButton("Move section up", "scrollup", moveUp, safeClasses.MoveButtonClass, null, safeClasses.MoveIconClass);
                 up.SetEnabled(canMoveUp);
                 Controls.Add(up);
 
-                Button down = CommonUITK.CreateButton("v", moveDown, safeClasses.MoveButtonClass);
-                down.tooltip = "Move section down";
+                Button down = CommonUITK.CreateIconButton("Move section down", "scrolldown", moveDown, safeClasses.MoveButtonClass, null, safeClasses.MoveIconClass);
                 down.SetEnabled(canMoveDown);
                 Controls.Add(down);
             }
             Add(Controls);
-
-            Body = CommonUITK.CreateContainer(safeClasses.BodyClass);
-            if (content != null) Body.Add(content);
-            Add(Body);
         }
     }
 }
