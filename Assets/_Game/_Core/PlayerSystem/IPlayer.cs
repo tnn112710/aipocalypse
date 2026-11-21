@@ -35,6 +35,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         bool IgnoredByEnemies { get; set; }
         // Dev tools: plays the player instead of the keyboard, mouse and gamepad while set (null = InputService).
         IPlayerIntentSource IntentSource { get; set; }
+        // Dev tools: shows the speed and its parts on screen (player.speed; editor and cheat builds).
+        bool ShowMovementReadout { get; set; }
 
         // A scripted first-person moment is playing (dying, sleeping): the player can't act.
         bool InSequence { get; }

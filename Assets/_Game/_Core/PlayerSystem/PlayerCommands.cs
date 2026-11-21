@@ -15,5 +15,19 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         CommandResult Pos() => _players.Current is { } player
             ? CommandResult.Ok(CommandParser.Format(player.Transform.position))
             : CommandResult.Fail("No player in this scene");
+
+        [Command("Whether the movement readout is on")]
+        CommandResult Speed() => _players.Current is { } player
+            ? CommandResult.Ok(CommandParser.Format(player.ShowMovementReadout))
+            : CommandResult.Fail("No player in this scene");
+
+        [Command("Show the speed and every part that sets it (direction, mobility, aim, fatigue…) on screen")]
+        CommandResult Speed(bool on)
+        {
+            if (_players.Current is not { } player)
+                return CommandResult.Fail("No player in this scene");
+            player.ShowMovementReadout = on;
+            return Speed();
+        }
     }
 }

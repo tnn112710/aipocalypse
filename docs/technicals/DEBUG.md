@@ -7,6 +7,7 @@ Tools for testing in the editor and development builds. Release builds register 
 | Dev console | `` ` `` opens it: commands, cheats, and the Unity logs on request (`log.screen.*`). Usage, the command list and how to add one: [CONSOLE.md](CONSOLE.md) |
 | Screen log | Messages on screen, Unreal style (below) |
 | Debug hotkeys | N / M / K / L (below) |
+| Movement readout | `player.speed true`: the player's speed and every multiplier on it, two screen-log lines a frame (`MovementReadout`) |
 | `TargetDummy` | Shooting-range target: logs each hit, heals back when emptied, tips over from knockback ([WEAPONS.md](WEAPONS.md)) |
 | Odin buttons | On views and components, e.g. `Player.Revive`, a gun's **Jam gun (test)** |
 

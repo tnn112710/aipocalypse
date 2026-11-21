@@ -38,6 +38,7 @@ namespace MB13.Aipocalypse.Tests
             public bool Invulnerable { get; set; }
             public bool IgnoredByEnemies { get; set; }
             public IPlayerIntentSource IntentSource { get; set; }
+            public bool ShowMovementReadout { get; set; }
             public TargetKind Kind => TargetKind.Player;
             public bool IsTargetable => !IsDead;
             public DamageResult TakeDamage(in DamageInfo info) => default;

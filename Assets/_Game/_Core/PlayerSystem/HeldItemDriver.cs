@@ -56,6 +56,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _hands = hands;
         }
 
+        // Last tick's move speed parts (the movement readout shows them): aiming, the item in hand, an item being used.
+        public float AimSpeed { get; private set; } = 1f;
+        public float Mobility { get; private set; } = 1f;
+        public float UseSpeed { get; private set; } = 1f;
+
         // `ownsZoom` false while a pose sequence sets the field of view.
         public void Tick(in PlayerIntent intent, bool ownsZoom, float deltaTime)
         {
@@ -100,10 +105,12 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _zoom.SetHeldHidden(ownsZoom && held != null && held.Scope.HidesHeld);
             TickSway(intent, held, feel, deltaTime);
             // Slows in step with the gun rising to the sights, so a quick peek costs less than staying aimed.
-            float aimSpeed = held != null ? Mathf.Lerp(1f, tuning.AimMoveSpeedMultiplier, held.AimWeight) : 1f;
-            float mobility = held != null ? held.Mobility : 1f;
-            _motor.SpeedMultiplier = aimSpeed * mobility * (held != null ? held.MoveSpeedScale : 1f) * _fatigue.MoveSpeed;
-            _motor.SprintCostMultiplier = HoldFeel.SprintCostScale(mobility);
+            AimSpeed = held != null ? Mathf.Lerp(1f, tuning.AimMoveSpeedMultiplier, held.AimWeight) : 1f;
+            Mobility = held != null ? held.Mobility : 1f;
+            UseSpeed = held != null ? held.MoveSpeedScale : 1f;
+            _motor.SpeedMultiplier = AimSpeed * Mobility * UseSpeed * _fatigue.MoveSpeed;
+            _motor.SprintCostMultiplier = HoldFeel.SprintCostScale(Mobility);
+            _motor.AccelerationMultiplier = Mobility;
             _clearance.Tick(held, deltaTime);
             if (held != null)
                 held.LateTick();

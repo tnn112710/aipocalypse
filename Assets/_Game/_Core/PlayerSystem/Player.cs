@@ -1,5 +1,6 @@
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Debugging;
 using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.EnvironmentSystem;
 using MB13.Aipocalypse.Core.EquipmentSystem;
@@ -71,6 +72,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerLooting _looting;
         ItemMagnet _magnet;
         PlayerEffects _effects;
+        MovementReadout _readout;
         float _lastHurtTime = float.NegativeInfinity;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
@@ -107,6 +109,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         }
         public bool IgnoredByEnemies { get; set; }
         public IPlayerIntentSource IntentSource { get; set; }
+        public bool ShowMovementReadout { get; set; }
         public bool IsTargetable => !IsDead && !IgnoredByEnemies;
 
         Transform ITargetable.Transform => transform;
@@ -141,9 +144,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Inject]
         void Construct(InputService input, TimeService time, ControlSettings controls, IStatProvider stats, DamageService damage, AudioService audio,
             IPublisher<PlayerDied> died, IPublisher<PlayerDeathSequenceEnded> deathEnded, IPublisher<PlayerRevived> revived, PlayerRegistry registry,
-            IObjectResolver resolver, SurfaceService surfaces)
+            IObjectResolver resolver, SurfaceService surfaces, ScreenLog screenLog)
         {
             _input = input;
+            if (Cheats.Enabled)
+                _readout = new MovementReadout(screenLog);
             _time = time;
             _registry = registry;
 
@@ -262,6 +267,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _interactor.Clear();
             DrawGhost();
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
+            if (ShowMovementReadout)
+                _readout?.Show(_motor, _held, Fatigue);
             // After the held item, so the sequence's camera and field of view win over its kick and zoom.
             if (inSequence)
             {

@@ -66,6 +66,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float SpeedMultiplier { get; set; } = 1f;
         // Sprint stamina cost scale set by the player each frame (a heavy item in hand costs more).
         public float SprintCostMultiplier { get; set; } = 1f;
+        // Ground acceleration and braking scale set by the player each frame (a heavy item in hand gets going and stops slower).
+        public float AccelerationMultiplier { get; set; } = 1f;
+        // Last tick's speed share from the move's angle to the look (1 ahead), and the speed it steered towards (m/s).
+        public float DirectionShare { get; private set; }
+        public float TargetSpeed { get; private set; }
 
         public event Action Jumped;
         public event Action<LandingInfo> Landed;
@@ -244,25 +249,27 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Vector3 right = Vector3.ProjectOnPlane(_body.right, Vector3.up).normalized;
             Vector3 wishDirection = hasMove ? (right * move.x + forward * move.y).normalized : Vector3.zero;
 
-            float slowdown = hasMove
-                ? DirectionalSpeedScale(move.normalized, _tuning.StrafeSpeedMultiplier, _tuning.BackwardSpeedMultiplier) * SpeedMultiplier
-                : 0f;
+            DirectionShare = hasMove ? DirectionalSpeedScale(move.normalized, _tuning.StrafeSpeedMultiplier, _tuning.BackwardSpeedMultiplier) : 0f;
+            float slowdown = DirectionShare * SpeedMultiplier;
             if (_landingSlowLeft > 0f && _tuning.HeavyLandingRecoveryTime > 0f)
                 slowdown *= Mathf.Lerp(1f, _tuning.HeavyLandingSpeedMultiplier, _landingSlowLeft / _tuning.HeavyLandingRecoveryTime);
             float floorSpeed = WalkSpeed * _tuning.MinSpeedShare;
+            TargetSpeed = 0f;
 
             if (stableGround)
             {
                 float gaitSpeed = wantsSprint ? SprintSpeed : IsCrouching ? CrouchSpeed : WalkSpeed;
-                Vector3 target = wishDirection * (SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude);
+                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude;
+                Vector3 target = wishDirection * TargetSpeed;
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
-                _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate, deltaTime));
+                _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate * AccelerationMultiplier, deltaTime));
             }
             else if (hasMove)
             {
                 // Airborne: steer, keep momentum, never gain sprint speed mid-air; slowed like on foot, so hops don't outrun aiming.
                 float gaitSpeed = IsCrouching ? CrouchSpeed : WalkSpeed;
-                float speed = Mathf.Max(_horizontalVelocity.magnitude, SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude);
+                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude;
+                float speed = Mathf.Max(_horizontalVelocity.magnitude, TargetSpeed);
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, Damping.ByRate(_tuning.AirAcceleration, deltaTime));
             }
 
