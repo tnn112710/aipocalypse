@@ -2,10 +2,10 @@
 //   unity command script run --file AgentScripts/Animals/AnimalPlayCheck.cs --entry AnimalPlayCheck.Run --timeout 600
 // Steps: the herd (cows, sheep, chickens, pigs) is injected and penned; it grazes inside the pen; Tokens held show the coin,
 // walking up takes nothing, the Collect key bursts them out to the player; a grazing animal looks up at the player close
-// by and steps aside when walked into; opening the pen gate (and the home gate) sends them to the pasture, where they earn
+// by and steps aside when walked into; the bell by the home gate (no pen fence) sends them to the pasture, where they earn
 // at the roaming rate and the flocks keep round their leaders; E sends one animal home, where it stays, and lets it out
 // again; the sheep leader sent home hands the flock to another; a gunshot sends the animals near it running; the bell
-// brings them home, E speeding up only the one looked at; the pen gate shuts itself once all are in; at night they sleep
+// brings them home, E speeding up only the one looked at; the orders close once all are in; at night they sleep
 // where they are, the coin lower over them; a save section capture and restore puts an animal, its Tokens, its order and
 // the gate back. Animals are hurried (`animal.hurry`) where a walk at their own pace would take minutes.
 using System.Linq;
@@ -81,7 +81,7 @@ public static class AnimalPlayCheck
             Vector3 at = animal.transform.position + (away.sqrMagnitude > 0.01f ? away.normalized : Vector3.forward) * distance;
             player.Teleport(at, 0f);
         }
-        void Away() => player.Teleport(herd.Pen.Gate.transform.position + herd.Pen.Gate.transform.forward * 12f, 0f);
+        void Away() => player.Teleport(herd.Pen.WaitPoint + (herd.Pen.WaitPoint - herd.Pen.Center).normalized * 12f, 0f);
 
         commands.Execute("cheat.god on");
         commands.Execute("cheat.notarget on");
@@ -179,14 +179,14 @@ public static class AnimalPlayCheck
         else
             Check("walked into, it steps aside", false, "nobody grazed");
 
-        // 5. Release: pen gate and home gate open, the herd goes to the pasture.
+        // 5. Release: home gate open, the bell lets the herd out to the pasture.
         BarrierSegment homeGate = Object.FindObjectsByType<BarrierSegment>(FindObjectsInactive.Exclude).FirstOrDefault(s => s.Gate != null);
         if (homeGate != null && !homeGate.Gate.IsOpen)
             homeGate.Gate.Toggle(homeGate.transform.position - homeGate.transform.forward);
-        PenGate gate = herd.Pen.Gate;
-        gate.Interact(actor);
+        AnimalBell bell = Object.FindAnyObjectByType<AnimalBell>();
+        bell.Interact(actor);
         await Seconds(1f);
-        Check("opening the pen gate releases", gate.IsOpen && herd.Orders.Released);
+        Check("the bell lets the herd out", herd.Orders.Released);
         float deadline = Time.realtimeSinceStartup + 150f;
         while (Time.realtimeSinceStartup < deadline && herd.Animals.Count(a => a.IsRoaming) < herd.Animals.Count)
         {
@@ -276,8 +276,7 @@ public static class AnimalPlayCheck
             $"{ran} running; {target.name} moved {Vector3.Distance(targetAt, target.transform.position):0.0} m away, top speed {top:0.0} m/s (FleeSpeed {target.Definition.FleeSpeed})");
         await Seconds(4f);
 
-        // 8. The bell: called home, E speeds up only the one looked at, the pen gate shuts itself.
-        AnimalBell bell = Object.FindAnyObjectByType<AnimalBell>();
+        // 8. The bell: called home, E speeds up only the one looked at, the orders close once all are in.
         bell.Interact(actor);
         await Seconds(0.5f);
         Check("the bell calls home", herd.Orders.Called && !herd.Orders.Released);
@@ -290,7 +289,7 @@ public static class AnimalPlayCheck
         int hurried = herd.Animals.Count(a => a.Hurrying);
         Check("E speeds up only that one", hurried == 1 && cow.Hurrying, $"{hurried} hurrying");
         deadline = Time.realtimeSinceStartup + 150f;
-        while (Time.realtimeSinceStartup < deadline && (herd.CountHome() < herd.Animals.Count || gate.IsOpen))
+        while (Time.realtimeSinceStartup < deadline && (herd.CountHome() < herd.Animals.Count || herd.Orders.GateOpen))
         {
             foreach (Animal animal in herd.Animals)
                 if (!animal.IsHome)
@@ -298,7 +297,7 @@ public static class AnimalPlayCheck
             await Seconds(1f);
         }
         Check("the herd is home", herd.CountHome() == herd.Animals.Count, Where());
-        Check("the pen gate shut itself", !gate.IsOpen && !herd.Orders.GateOpen);
+        Check("the orders closed once all were home", !herd.Orders.GateOpen);
         await Seconds(1f);
         Check("nobody is still hurrying", herd.Animals.All(a => !a.Hurrying));
 
@@ -336,13 +335,13 @@ public static class AnimalPlayCheck
         saved.Earnings.Set(0f);
         saved.SetSentHome(false);
         saved.Mover.Teleport(herd.Pen.Center);
-        gate.Interact(actor);
+        herd.Orders.OpenGate();
         await Seconds(1f);
         section.Restore(data);
         await Seconds(0.5f);
         Check("restore puts an animal back with its Tokens and its order", Vector3.Distance(saved.transform.position, savedAt) < 0.6f && Mathf.Abs(saved.Earnings.Held - 7.5f) < 0.2f && saved.SentHome,
             $"{Vector3.Distance(saved.transform.position, savedAt):0.00} m off, holds {saved.Earnings.Held:0.00}, sent home {saved.SentHome}");
-        Check("restore shuts the gate that was saved shut", !gate.IsOpen && !herd.Orders.GateOpen);
+        Check("restore brings back the orders saved closed", !herd.Orders.GateOpen);
         saved.SetSentHome(false);
 
         commands.Execute("cheat.god off");

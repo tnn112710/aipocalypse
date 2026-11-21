@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
-    // Home of the herd: a box on the ground (local X × Z round this object) the animals stay in until the gate lets them
-    // out, and come back into at the bell.
+    // Home of the herd: a box on the ground (local X × Z round this object) the animals stay in until they're let out (the
+    // pen gate, or the bell where there is none), and come back into at the bell. Its fence and gate are optional.
     [DisallowMultipleComponent]
     public sealed class AnimalPen : MonoBehaviour
     {

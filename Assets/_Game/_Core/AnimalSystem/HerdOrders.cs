@@ -1,6 +1,7 @@
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
-    // What the herd was last told: opening the pen gate releases it to the pasture, the bell calls it home. Plain rules.
+    // What the herd was last told: opening the gate (the pen gate, or the bell where there is none) releases it to the
+    // pasture, the bell calls it home. Plain rules.
     public sealed class HerdOrders
     {
         public bool GateOpen { get; private set; }
@@ -36,6 +37,15 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             Called = true;
             Version++;
             return true;
+        }
+
+        // The bell at the home gate (no pen gate): calls the herd home while it's out, lets it out otherwise.
+        public void Bell()
+        {
+            if (Released)
+                Call();
+            else
+                OpenGate();
         }
 
         public void Restore(bool gateOpen, bool called)

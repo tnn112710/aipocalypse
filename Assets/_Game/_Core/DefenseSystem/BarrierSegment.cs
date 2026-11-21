@@ -41,6 +41,9 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         [SerializeField, Tooltip("The tall box the player can't climb over (layer Ignore Raycast: bullets and the interact cast pass)")]
         BoxCollider _blocker;
         [SerializeField, Min(0f), Tooltip("Metres from the centre line where attackers stand and swing")] float _standOff = 0.75f;
+        [SerializeField, Range(0f, 1f), Tooltip("Share of its health it starts a new game with; 0 = down to debris, rebuilt with the hammer. A save overrides it")]
+        float _startShare = 1f;
+        [SerializeField, Tooltip("Fence posts beside it, refreshed when it falls or stands")] FencePost[] _posts = System.Array.Empty<FencePost>();
 
         AudioService _audio;
         DamageService _damage;
@@ -106,6 +109,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
                 return;
             }
             _health = new BarrierHealth(_definition.MaxHealth);
+            _health.StartAt(_startShare);
             SpawnLook(_definition);
             Refresh(instant: true);
         }
@@ -327,6 +331,9 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
                 _blocker.enabled = blocking;
             if (_look != null)
                 _look.Show(HealthShare, IsBroken, instant);
+            foreach (FencePost post in _posts)
+                if (post != null)
+                    post.Refresh();
             if (changed)
                 WayChanged();
         }
@@ -365,7 +372,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         {
             if (!HoldsTool(actor))
                 return;
-            int mended = _registry != null ? _registry.RepairAll() : RepairFully() ? 1 : 0;
+            int mended = _registry != null ? _registry.RepairAll() : !IsBroken && RepairFully() ? 1 : 0;
             if (mended > 0)
                 _audio?.PlayAt(_definition.RepairSound, RepairPoint(actor.transform.position));
         }
@@ -376,7 +383,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             prompt = default;
             if (!HoldsTool(actor))
                 return false;
-            int damaged = _registry != null ? _registry.CountDamaged() : NeedsRepair ? 1 : 0;
+            int damaged = _registry != null ? _registry.CountDamaged() : NeedsRepair && !IsBroken ? 1 : 0;
             if (damaged == 0)
                 return false;
             prompt = new InteractionPrompt(RepairAllVerb.Text(), BarrierRegistry.RepairAllTarget(damaged));

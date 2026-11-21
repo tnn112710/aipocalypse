@@ -24,22 +24,23 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
 
         public void Remove(BarrierSegment segment) => _segments.Remove(segment);
 
+        // Standing barriers that need repair: the ones Repair All mends.
         public int CountDamaged()
         {
             int count = 0;
             foreach (BarrierSegment segment in _segments)
-                if (segment.NeedsRepair)
+                if (segment.NeedsRepair && !segment.IsBroken)
                     count++;
             return count;
         }
 
-        // Mends every damaged barrier at once; a broken one with something alive in its line stays down. How many were mended.
+        // Mends every damaged standing barrier at once. Broken ones are rebuilt one at a time (R), so a fence that starts
+        // down can't come back with one key. How many were mended.
         public int RepairAll()
         {
             int mended = 0;
-            // By index: a restored barrier publishes BarrierRestored, and listeners mustn't break the loop.
             for (int i = 0; i < _segments.Count; i++)
-                if (_segments[i].RepairFully())
+                if (!_segments[i].IsBroken && _segments[i].RepairFully())
                     mended++;
             return mended;
         }

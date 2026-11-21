@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Ghosts;
 using DG.Tweening;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace MB13.Aipocalypse.Core.DefenseSystem
 {
     // A barrier's model and how it shows damage: it leans further at each damage stage, away from the blows, shakes when hit,
-    // and falls over when broken. Of several model variants one is shown, picked (and maybe turned round) from where it
+    // and falls over when broken (then, with debris set, lies there as a few planks). Of several model variants one is shown, picked (and maybe turned round) from where it
     // stands, so a fence line doesn't repeat. A gate's model also names the hinges its leaves swing round (one, or two for a
     // double gate). Every pivot (a panel, or each leaf) leans and falls the same way.
     public sealed class BarrierLook : MonoBehaviour
@@ -32,15 +33,20 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         Transform[] _hinges = Array.Empty<Transform>();
         [SerializeField, Tooltip("Optional: models of which one is shown, picked by position")] GameObject[] _variants = Array.Empty<GameObject>();
         [SerializeField, Tooltip("The picked variant may also be turned 180° round Y")] bool _flipVariants = true;
+        [SerializeField, Tooltip("Optional, not under a pivot: what lies in the gap while it's down. The model falls, then is hidden and this shows")]
+        GameObject _debris;
 
         Quaternion[] _baseRotations;
         Vector3[] _basePositions;
         Tween[] _moves;
         Tween[] _drops;
         Tween[] _punchTweens;
+        Renderer[] _model;
+        Tween _toDebris;
         float _side = 1f;
 
         public Transform[] Hinges => _hinges;
+        public GameObject Debris => _debris;
 
         void Awake()
         {
@@ -74,6 +80,11 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         public void Show(float share, bool broken, bool instant = false)
         {
             Cache();
+            _toDebris?.Kill();
+            if (!broken || instant)
+                ShowDebris(broken);
+            else if (_debris != null)
+                _toDebris = DOVirtual.DelayedCall(_moveTime, () => ShowDebris(true), ignoreTimeScale: false).SetLink(gameObject);
             float angle = broken ? _fallenAngle : LeanFor(share);
             foreach (Collider solid in _solid)
                 if (solid != null)
@@ -118,6 +129,8 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             Vector3 position = transform.position;
             int hash = (Mathf.RoundToInt(position.x * 7.31f) * 73856093 ^ Mathf.RoundToInt(position.z * 5.17f) * 19349663) & int.MaxValue;
             int pick = hash % _variants.Length;
+            if (_debris != null)
+                _debris.transform.localRotation = Quaternion.Euler(0f, (hash >> 4) % 2 == 0 ? 0f : 180f, 0f);
             for (int i = 0; i < _variants.Length; i++)
             {
                 if (_variants[i] == null)
@@ -132,11 +145,37 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         public GhostShape CaptureStanding()
         {
             Cache();
-            return GhostShape.Capture(transform, RestLocal);
+            return WithoutDebris(() => GhostShape.Capture(transform, RestLocal));
         }
 
-        // Its shown model as it is now, following its lean and fall (the repair highlight).
-        public GhostShape CaptureLive() => GhostShape.CaptureLive(transform);
+        // Its model as it is now, following its lean and fall (the repair highlight); while it's down, where the model lies.
+        public GhostShape CaptureLive() => WithoutDebris(() => GhostShape.CaptureLive(transform));
+
+        // Down: the model is hidden (forceRenderingOff keeps it in ghost captures) and the debris shows; standing, the reverse.
+        void ShowDebris(bool down)
+        {
+            if (_debris == null)
+                return;
+            _debris.SetActive(down);
+            foreach (Renderer part in _model)
+                if (part != null)
+                    part.forceRenderingOff = down;
+        }
+
+        GhostShape WithoutDebris(Func<GhostShape> capture)
+        {
+            if (_debris == null || !_debris.activeSelf)
+                return capture();
+            _debris.SetActive(false);
+            try
+            {
+                return capture();
+            }
+            finally
+            {
+                _debris.SetActive(true);
+            }
+        }
 
         Matrix4x4? RestLocal(Transform t)
         {
@@ -162,13 +201,16 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             _moves = new Tween[_pivots.Length];
             _drops = new Tween[_pivots.Length];
             _punchTweens = new Tween[_shakes.Length];
+            var model = new List<Renderer>();
             for (int i = 0; i < _pivots.Length; i++)
             {
                 if (_pivots[i] == null)
                     continue;
                 _baseRotations[i] = _pivots[i].localRotation;
                 _basePositions[i] = _pivots[i].localPosition;
+                model.AddRange(_pivots[i].GetComponentsInChildren<Renderer>(true));
             }
+            _model = model.ToArray();
         }
     }
 }

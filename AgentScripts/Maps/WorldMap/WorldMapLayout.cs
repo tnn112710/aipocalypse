@@ -3367,6 +3367,8 @@ public static class Landmarks
                 var s = Put(parent, isGate ? GatePrefab : FencePrefab, a + dir * (seg * (isGate ? i + 1f : i + 0.5f)), yaw, 1f, -0.05f);
                 s.name = isGate ? "Gate" : $"Fence {side}-{i:00}";
                 s.transform.localScale = new Vector3(seg / SegmentWidth, 1f, 1f);
+                if (!isGate)
+                    SetStartShare(s, FenceStartShare(side, i, n));
                 foreach (var look in s.GetComponentsInChildren<MB13.Aipocalypse.Core.DefenseSystem.BarrierLook>(true))
                     look.PickVariant();
                 if (!isGate) count++;
@@ -3378,6 +3380,92 @@ public static class Landmarks
             }
         }
         log.Add($"fence: {count} segments + gate, {half.x * 2} x {half.y * 2} m yard turned {WorldMapLayout.HomeYaw}, gate in slot {gate} (local x {WorldMapLayout.GateLocalX:0.00})");
+        log.Add(LinkPosts(parent));
+    }
+
+    // Each post shows while a segment beside it stands (FencePost): it gets the one or two segments whose centres are half
+    // a slot from it, and they get it. Posts by the gate have none and stay as they are.
+    static string LinkPosts(Transform fence)
+    {
+        var segments = fence.GetComponentsInChildren<MB13.Aipocalypse.Core.DefenseSystem.BarrierSegment>(true).Where(s => s.Gate == null).ToList();
+        var postsOf = segments.ToDictionary(s => s, s => new List<MB13.Aipocalypse.Core.DefenseSystem.FencePost>());
+        int linked = 0;
+        foreach (Transform child in fence)
+        {
+            if (!child.name.StartsWith("FenceEnd"))
+                continue;
+            var near = segments.Where(s => Vector3.Distance(Flat(s.transform.position), Flat(child.position)) < WorldMapLayout.FencePanel * 0.7f).ToArray();
+            if (!child.TryGetComponent(out MB13.Aipocalypse.Core.DefenseSystem.FencePost post))
+                post = child.gameObject.AddComponent<MB13.Aipocalypse.Core.DefenseSystem.FencePost>();
+            var so = new SerializedObject(post);
+            var list = so.FindProperty("_segments");
+            list.arraySize = near.Length;
+            for (int i = 0; i < near.Length; i++)
+                list.GetArrayElementAtIndex(i).objectReferenceValue = near[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+            foreach (var s in near)
+                postsOf[s].Add(post);
+            if (near.Length > 0) linked++;
+        }
+        foreach (var (segment, posts) in postsOf)
+        {
+            var so = new SerializedObject(segment);
+            var list = so.FindProperty("_posts");
+            list.arraySize = posts.Count;
+            for (int i = 0; i < posts.Count; i++)
+                list.GetArrayElementAtIndex(i).objectReferenceValue = posts[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+        return $"posts: {linked} linked to their segments";
+    }
+
+    static Vector2 Flat(Vector3 p) => new(p.x, p.z);
+
+    // Links the posts of the fence already in the scene (LinkPosts) without rebuilding it; saves nothing.
+    public static object FencePosts()
+    {
+        var fence = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(g => g.name == "Environment")?.transform.Find("Landmarks/Home Base/Fence")
+            ?? throw new InvalidOperationException("No Environment/Landmarks/Home Base/Fence.");
+        string result = LinkPosts(fence);
+        EditorSceneManager.MarkSceneDirty(fence.gameObject.scene);
+        return result;
+    }
+
+    // A new game starts with the front half of the fence down to debris (user, 2026-11-22): the front side (2) and the
+    // halves of sides 1 and 3 that meet it. The gate stands.
+    static float FenceStartShare(int side, int i, int n) => side switch
+    {
+        2 => 0f,
+        1 => i >= n / 2 ? 0f : 1f,      // side 1 runs towards the front
+        3 => i < n / 2 ? 0f : 1f,       // side 3 runs away from it
+        _ => 1f,
+    };
+
+    static void SetStartShare(GameObject segment, float share)
+    {
+        var so = new SerializedObject(segment.GetComponent<MB13.Aipocalypse.Core.DefenseSystem.BarrierSegment>());
+        so.FindProperty("_startShare").floatValue = share;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Sets the start state on the fence already in the scene (FenceStartShare) without rebuilding it; saves nothing.
+    public static object FenceStart()
+    {
+        var fence = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(g => g.name == "Environment")?.transform.Find("Landmarks/Home Base/Fence")
+            ?? throw new InvalidOperationException("No Environment/Landmarks/Home Base/Fence.");
+        var segments = Enumerable.Range(0, fence.childCount).Select(i => fence.GetChild(i).gameObject)
+            .Where(g => g.name.StartsWith("Fence ") && g.name.Length == 10)
+            .Select(g => (go: g, side: g.name[6] - '0', i: int.Parse(g.name.Substring(8)))).ToList();
+        int down = 0;
+        foreach (var s in segments)
+        {
+            int n = segments.Where(o => o.side == s.side).Max(o => o.i) + 1;
+            float share = FenceStartShare(s.side, s.i, n);
+            SetStartShare(s.go, share);
+            if (share <= 0f) down++;
+        }
+        EditorSceneManager.MarkSceneDirty(fence.gameObject.scene);
+        return $"fence start: {down} of {segments.Count} segments down to debris";
     }
 
     // Rebuilds only Home Base/Fence (segments, gate, posts), keeping the rest of the home base; then re-bake the navmesh.

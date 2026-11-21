@@ -438,12 +438,80 @@ public static class DefenseSetup
             SetArray(so.FindProperty("_variants"), variants);
             SetArray(so.FindProperty("_solid"), solid);
             so.ApplyModifiedPropertiesWithoutUndo();
+            Debris(look);
             return PrefabUtility.SaveAsPrefabAsset(root, path).GetComponent<BarrierLook>();
         }
         finally
         {
             Object.DestroyImmediate(root);
         }
+    }
+
+    // Adds (or rebuilds) the debris on the existing fence look prefab, without touching the rest of the content.
+    public static string FenceDebris()
+    {
+        string path = FenceDir + "/WoodFence_Look.prefab";
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            Debris(root.GetComponent<BarrierLook>());
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+        return "fence debris: a few loose planks on " + path;
+    }
+
+    // What lies in the gap while a panel is down (start of game, or after it fell): a few loose planks on the ground, no
+    // colliders, outside the pivot so the model can be hidden on its own. Local X runs along the fence.
+    static void Debris(BarrierLook look)
+    {
+        Transform old = look.transform.Find("Debris");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        Transform debris = Child(look.transform, "Debris");
+        Material wood = DebrisMaterial();
+        // Only a hint (user, 2026-11-22): small, but propped up enough to peek out of the knee-high lawn. A short rail with
+        // one end up, a board leaning across the line, a snapped stub and a loose board.
+        (Vector3 at, Vector3 size, Vector3 euler)[] planks =
+        {
+            (new Vector3(-0.1f, 0.12f, 0.04f), new Vector3(0.8f, 0.06f, 0.1f), new Vector3(0f, 6f, 13f)),
+            (new Vector3(0.45f, 0.15f, -0.1f), new Vector3(0.11f, 0.4f, 0.04f), new Vector3(-50f, 12f, 8f)),
+            (new Vector3(-0.42f, 0.1f, 0.02f), new Vector3(0.1f, 0.22f, 0.04f), new Vector3(-8f, 0f, -6f)),
+            (new Vector3(0.2f, 0.05f, 0.22f), new Vector3(0.45f, 0.05f, 0.11f), new Vector3(0f, -22f, 0f)),
+        };
+        for (int i = 0; i < planks.Length; i++)
+        {
+            GameObject plank = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            plank.name = $"Plank_{i}";
+            Object.DestroyImmediate(plank.GetComponent<Collider>());
+            plank.transform.SetParent(debris, false);
+            plank.transform.SetLocalPositionAndRotation(planks[i].at, Quaternion.Euler(planks[i].euler));
+            plank.transform.localScale = planks[i].size;
+            plank.GetComponent<MeshRenderer>().sharedMaterial = wood;
+        }
+        debris.gameObject.SetActive(false);
+        var so = new SerializedObject(look);
+        so.FindProperty("_debris").objectReferenceValue = debris.gameObject;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Plain lit wood in the break effect's plank colour (WoodPlank.mat is a particle material).
+    static Material DebrisMaterial()
+    {
+        string path = MatDir + "/FenceDebris.mat";
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            AssetDatabase.CreateAsset(material, path);
+        }
+        material.SetColor("_BaseColor", new Color(0.6f, 0.39f, 0.24f));
+        material.SetFloat("_Smoothness", 0.1f);
+        Save(material);
+        return material;
     }
 
     // A taller frame than the fence (2.7 m posts and a beam across the top) over `slots` panel slots, round two-rail plank

@@ -87,6 +87,22 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Orders_TheGateBell_LetsTheHerdOutWhileHome_AndCallsItHomeWhileOut()
+        {
+            var orders = new HerdOrders();
+
+            orders.Bell();
+            Assert.IsTrue(orders.Released, "home: the bell lets them out");
+
+            orders.Bell();
+            Assert.IsTrue(orders.Called, "out: the bell calls them home");
+            Assert.IsFalse(orders.Released);
+
+            orders.Bell();
+            Assert.IsTrue(orders.Released, "on their way home: the bell lets them out again");
+        }
+
+        [Test]
         public void Orders_TheBellDoesNothingWhileTheGateIsShut()
         {
             var orders = new HerdOrders();

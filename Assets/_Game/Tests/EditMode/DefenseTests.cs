@@ -58,6 +58,35 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(health.Normalized, Is.EqualTo(0.75f).Within(0.001f));
         }
 
+        [Test]
+        public void Health_StartAt_ZeroIsDebris_ElseStandsAtTheShare()
+        {
+            var debris = new BarrierHealth(300f);
+            debris.StartAt(0f);
+            Assert.That(debris.IsBroken, Is.True);
+            Assert.That(debris.Current, Is.EqualTo(0f));
+
+            var worn = new BarrierHealth(300f);
+            worn.StartAt(0.4f);
+            Assert.That(worn.IsBroken, Is.False);
+            Assert.That(worn.Current, Is.EqualTo(120f).Within(0.001f));
+
+            var whole = new BarrierHealth(300f);
+            whole.StartAt(1f);
+            Assert.That(whole.IsWhole, Is.True);
+        }
+
+        [Test]
+        public void FenceLook_HasDebrisForWhenItsDown()
+        {
+            var segment = AssetDatabase.LoadAssetAtPath<GameObject>(FencePath).GetComponent<BarrierSegment>();
+            GameObject debris = segment.Look.Debris;
+            Assert.That(debris, Is.Not.Null, "debris");
+            Assert.That(debris.activeSelf, Is.False, "hidden while it stands");
+            Assert.That(debris.GetComponentsInChildren<Renderer>(true), Is.Not.Empty);
+            Assert.That(debris.GetComponentsInChildren<Collider>(true), Is.Empty, "nothing to snag on in the gap");
+        }
+
         [TestCase(FencePath, false)]
         [TestCase(GatePath, true)]
         [TestCase(DoubleGatePath, true)]

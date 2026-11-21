@@ -22,7 +22,8 @@ using Object = UnityEngine.Object;
 // Builds the farm animals: the Animals BroAudio library, Data/Animals/AnimalSettings and its "+N Tokens" number, the cow,
 // sheep, chicken (hen and rooster) and pig (definition, animator controller, model and entity prefabs from polyperfect Low
 // Poly Animated Animals), the pen pieces (rail, post, gate, bell from Lakefell parts), and in WorldMap the "Home Pen" root
-// (pen in the yard's west corner, pasture in front of the home gate, 2 cows, 6 sheep, a rooster, 3 hens, 2 pigs) plus the
+// (the herd's home in the yard's west corner with no pen fence, the bell by the home gate, pasture in front of it, 2 cows,
+// 6 sheep, a rooster, 3 hens, 2 pigs) plus the
 // AnimalInstaller. Safe to re-run: animals already in the scene are kept, missing ones from the list are added.
 // The tree is built apart: TreeKit.Build AgentScripts/Animals/Animal.tree.txt.
 // Run: unity command script run --file AgentScripts/Animals/AnimalSetup.cs --entry AnimalSetup.All
@@ -49,9 +50,8 @@ public static class AnimalSetup
 
     // Pen: this far along the two fence sides that meet in the yard's west corner (whole rail slots).
     const float SlotWidth = 2.25f;
-    const int SlotsAlongBack = 4;       // along side 0 (towards the south corner): the side with the gate
+    const int SlotsAlongBack = 4;       // along side 0 (towards the south corner)
     const int SlotsAlongSide = 8;       // along side 3 (towards the north corner); the cart stands just past it
-    const int GateSlot = 1;             // counted from the big fence
     const float RailMeshLength = 1.606f;    // Extension_1_Fence
     const float AgentRadius = 0.5f;         // the WorldMap bake's agent radius
     const float CutOverlap = 0.3f;
@@ -801,49 +801,43 @@ public static class AnimalSetup
         GameObject root = scene.GetRootGameObjects().FirstOrDefault(go => go.name == PenRootName);
         if (root == null)
             root = new GameObject(PenRootName);
+        // No pen fence (user, 2026-11-22): the herd lives loose in the yard's west corner, in the same box as the old pen,
+        // and the bell by the home gate lets it out and calls it home. PenRail / PenGate stay as content for other scenes.
         Transform fence = root.transform.Find("Fence");
         if (fence != null)
             Object.DestroyImmediate(fence.gameObject);
-        fence = Child(root.transform, "Fence");
 
-        // The front run (parallel to `back`, `lengthSide` up the side): rails, the gate in GateSlot; then the run back to
-        // the fence (parallel to `side`). +Z of every piece points out of the pen.
+        Transform homeGate = (GameObject.Find("Environment/Landmarks/Home Base/Fence/Gate") ?? throw new Exception("no home gate")).transform;
+        Transform homeFence = homeGate.parent;
+        Vector3 yard = Vector3.zero;
+        int segments = 0;
+        foreach (Transform child in homeFence)
+            if (child.name.StartsWith("Fence "))
+            {
+                yard += child.position;
+                segments++;
+            }
+        yard /= segments;
+        Vector3 inward = Vector3.ProjectOnPlane(yard - homeGate.position, Vector3.up).normalized;
+        Vector3 along = Vector3.ProjectOnPlane(homeGate.right, Vector3.up).normalized;
+
         Quaternion frontRotation = Quaternion.LookRotation(side, Vector3.up);
-        Quaternion flankRotation = Quaternion.LookRotation(back, Vector3.up);
-        Vector3 frontStart = corner + side * lengthSide;
-        Vector3 flankStart = corner + back * lengthBack;
-        PenGate gate = null;
-        for (int i = 0; i < SlotsAlongBack; i++)
-        {
-            Vector3 position = Ground(frontStart + back * ((i + 0.5f) * SlotWidth));
-            GameObject piece = Place(i == GateSlot ? "PenGate" : "PenRail", fence, position, frontRotation);
-            if (i == GateSlot)
-                gate = piece.GetComponent<PenGate>();
-            else if (i != GateSlot + 1)
-                Place("PenPost", fence, Ground(frontStart + back * (i * SlotWidth)), frontRotation);
-        }
-        for (int i = 0; i < SlotsAlongSide; i++)
-        {
-            Place("PenRail", fence, Ground(flankStart + side * ((i + 0.5f) * SlotWidth)), flankRotation);
-            Place("PenPost", fence, Ground(flankStart + side * (i * SlotWidth)), flankRotation);
-        }
-        Place("PenPost", fence, Ground(frontStart + back * lengthBack), frontRotation);
-
         Vector3 center = Ground(corner + side * (lengthSide * 0.5f) + back * (lengthBack * 0.5f));
         Transform penTransform = root.transform.Find("Pen") ?? Child(root.transform, "Pen");
         penTransform.SetPositionAndRotation(center, frontRotation);
+        // Where a called animal waits when the yard can't be reached: just outside the home gate.
         Transform wait = penTransform.Find("WaitPoint") ?? Child(penTransform, "WaitPoint");
-        wait.position = gate.transform.position + side * 1.8f;
+        wait.position = Ground(homeGate.position - inward * 2.5f);
         if (!penTransform.TryGetComponent(out AnimalPen pen))
             pen = penTransform.gameObject.AddComponent<AnimalPen>();
-        pen.Setup(new Vector2(lengthBack - 0.6f, lengthSide - 0.6f), gate, wait);
+        pen.Setup(new Vector2(lengthBack - 0.6f, lengthSide - 0.6f), null, wait);
         EditorUtility.SetDirty(pen);
 
         Transform bell = root.transform.Find("PenBell");
         if (bell != null)
             Object.DestroyImmediate(bell.gameObject);
-        // Outside the front run, on the far side of the gate from the big fence.
-        Place("PenBell", root.transform, Ground(frontStart + back * ((GateSlot + 1) * SlotWidth + 0.45f) + side * 0.55f), frontRotation);
+        // Inside the yard, beside the double gate (4.5 m wide), facing out.
+        Place("PenBell", root.transform, Ground(homeGate.position + along * (SlotWidth + 1f) + inward * 0.9f), Quaternion.LookRotation(-inward, Vector3.up));
 
         // The pasture: on the meadow in front of the home gate.
         GameObject zone = GameObject.Find("Raid/Spawn Zone (Front)") ?? throw new Exception("no Raid/Spawn Zone (Front): where is the home gate?");
@@ -911,7 +905,7 @@ public static class AnimalSetup
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        return $"scene: pen centre {center}, gate {gate.transform.position}, pasture {pasture.Center} r{PastureRadius}; " + string.Join(", ", log);
+        return $"scene: herd home centre {center}, bell by the home gate {homeGate.position}, pasture {pasture.Center} r{PastureRadius}; " + string.Join(", ", log);
     }
 
     static GameObject Place(string prefab, Transform parent, Vector3 position, Quaternion rotation)

@@ -60,6 +60,13 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             _broken = broken || _current <= 0f;
         }
 
+        // A new game: this share of the maximum, standing; 0 starts it down (debris to rebuild).
+        public void StartAt(float share)
+        {
+            share = Mathf.Clamp01(share);
+            Set(_max * share, share <= 0f);
+        }
+
         public void Restore()
         {
             _current = _max;

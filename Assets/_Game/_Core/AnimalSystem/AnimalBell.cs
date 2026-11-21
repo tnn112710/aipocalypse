@@ -8,12 +8,15 @@ using VContainer;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
-    // The bell by the pen: ringing it calls the released herd home (HerdOrders.Call). It only rings where it hangs.
+    // The herd's bell: ringing it calls the released herd home (HerdOrders.Call). With no pen gate (WorldMap: it hangs by
+    // the home gate) it also lets the herd out while it's home. It only rings where it hangs.
     [DisallowMultipleComponent]
     public sealed class AnimalBell : MonoBehaviour, IInteractable
     {
         static readonly LocalizedString Verb = Loc.Interaction("verb.ring");
         static readonly LocalizedString Name = Loc.Interaction("target.bell");
+        static readonly LocalizedString LetOutVerb = Loc.Interaction("verb.let_out");
+        static readonly LocalizedString HerdName = Loc.Interaction("target.herd");
 
         [SerializeField, Tooltip("Swings when rung; optional")] Transform _bell;
         [SerializeField, Min(0f), Tooltip("Seconds before it can ring again")] float _cooldown = 1.5f;
@@ -38,7 +41,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             prompt = default;
             if (_herd == null || !_herd.Enabled || Time.time < _readyAt)
                 return false;
-            prompt = new InteractionPrompt(Verb.Text(), Name.Text());
+            prompt = LetsOut()
+                ? new InteractionPrompt(LetOutVerb.Text(), HerdName.Text())
+                : new InteractionPrompt(Verb.Text(), Name.Text());
             return true;
         }
 
@@ -48,7 +53,10 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 return;
             _readyAt = Time.time + _cooldown;
             _audio?.PlayAt(_herd.Settings.BellSound, transform.position);
-            _herd.Orders.Call();
+            if (_herd.Pen.Gate != null)
+                _herd.Orders.Call();
+            else
+                _herd.Orders.Bell();
             if (_bell == null)
                 return;
             _swing?.Kill(true);
@@ -56,5 +64,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         }
 
         public void Setup(Transform bell) => _bell = bell;
+
+        bool LetsOut() => _herd.Pen.Gate == null && !_herd.Orders.Released;
     }
 }

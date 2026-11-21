@@ -33,13 +33,13 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             return $"{_herd.Animals.Count} animals, {_herd.CountHome()} home, {sent} sent home, {state}{(_herd.Asleep ? ", asleep" : "")}, {held:0.#} Tokens held";
         }
 
-        [Command("Open the pen gate: the herd goes out to graze")]
+        [Command("Let the herd out to graze (opens the pen gate where there is one)")]
         string Release()
         {
             PenGate gate = Gate();
             if (gate == null)
-                return "No pen gate in this scene.";
-            if (!gate.IsOpen)
+                _herd.Orders.OpenGate();
+            else if (!gate.IsOpen)
                 gate.Open(gate.transform.position + gate.transform.forward);
             else
                 _herd.Orders.OpenGate();

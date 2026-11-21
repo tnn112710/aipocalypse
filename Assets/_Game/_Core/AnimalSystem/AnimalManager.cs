@@ -76,8 +76,13 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             }
 
             HerdOrders orders = _herd.Orders;
-            if (orders.Called && orders.GateOpen && _herd.Pen.Gate != null && _herd.CountHome() == _herd.Animals.Count)
-                _herd.Pen.Gate.Close();
+            if (orders.Called && orders.GateOpen && _herd.CountHome() == _herd.Animals.Count)
+            {
+                if (_herd.Pen.Gate != null)
+                    _herd.Pen.Gate.Close();
+                else
+                    orders.CloseGate();
+            }
         }
 
         // Every animal near the shot runs from it, even out of its sleep; one walking home keeps walking.
