@@ -87,7 +87,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public override float Wobble => _accuracy != null ? _accuracy.Spread : 0f;
         public override Vector2 WobbleKick => _wobbleKick;
         public override float Spread => _gun != null ? Wobble + _item.Stats.SpreadAngle : 0f;
-        public override float MoveSpeedScale => _item != null ? _item.Stats.MoveSpeedScale : 1f;
+        public override float Mobility => _item != null ? HoldFeel.ClampMobility(base.Mobility * _item.Stats.MoveSpeedScale) : base.Mobility;
 
         // Live in the Inspector while playing (any scene), for tuning the hip feel: the envelope, its shot bloom, the stance's
         // recoil multiplier.

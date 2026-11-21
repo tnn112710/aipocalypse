@@ -60,7 +60,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // Up is positive; on the ground it holds the small stick-down speed, not a real fall.
         public float VerticalVelocity => _verticalVelocity;
         public float WalkSpeed => _stats.Get(StatId.WalkSpeed, _tuning.WalkSpeed);
-        public float SprintSpeed => _stats.Get(StatId.SprintSpeed, _tuning.SprintSpeed);
+        public float SprintSpeed => WalkSpeed * _tuning.SprintMultiplier * _stats.GetScale(StatId.SprintSpeedScale);
         public float CrouchSpeed => WalkSpeed * _tuning.CrouchSpeedMultiplier;
         // Ground speed scale set by the player each frame (slower while aiming down sights).
         public float SpeedMultiplier { get; set; } = 1f;
@@ -153,11 +153,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             }
         }
 
+        // Speed share by the angle between the move and the look: 1 straight ahead, strafe at 90°, backward at 180°.
         public static float DirectionalSpeedScale(Vector2 moveDirection, float strafeMultiplier, float backwardMultiplier)
         {
-            return moveDirection.y >= 0f
-                ? Mathf.Lerp(strafeMultiplier, 1f, moveDirection.y)
-                : Mathf.Lerp(strafeMultiplier, backwardMultiplier, -moveDirection.y);
+            float angle = Vector2.Angle(Vector2.up, moveDirection);
+            return angle <= 90f
+                ? Mathf.Lerp(1f, strafeMultiplier, angle / 90f)
+                : Mathf.Lerp(strafeMultiplier, backwardMultiplier, (angle - 90f) / 90f);
         }
 
         void UpdateTimers(bool jumpPressed, float deltaTime)

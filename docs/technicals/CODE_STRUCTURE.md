@@ -250,7 +250,7 @@ Assets/_Game/
 │  │  ├─ Items/ItemRarity.cs                Common, Uncommon, Rare, Epic, Legendary (slot border, tooltip colour)
 │  │  ├─ Items/CurrencyDefinition.cs        SO: money carried as an item (Tokens)
 │  │  ├─ Items/BackpackDefinition.cs        SO: worn in the Backpack gear slot: ExtraSlots, ExtraWeight
-│  │  ├─ Items/HoldFeel.cs                  per-item feel on top of the player's held-item tuning: AimMoveSpeedScale, SwayScale
+│  │  ├─ Items/HoldFeel.cs                  per-item feel on top of the player's held-item tuning: Mobility (move speed while held, 0.5–1, ClampMobility), SwayScale
 │  │  ├─ Items/ItemInstance.cs              one owned item or stack: Count, SpaceLeft, virtual Weight / Value, CanStackWith / CanMerge / Merge / MergeFrom (partial), Split, Consume, Changed, virtual Badge (stack count when it stacks); per-copy state goes in subclasses, which save it through WriteSave / ReadSave (GunInstance: rounds, jam; ConsumableInstance: uses left)
 │  │  │                                     virtual Attachments (items fitted to it, a gun's parts; saved by catalog id) + RestoreAttachment for loading
 │  │  ├─ Items/ItemBadge.cs                 what a slot shows under the icon: Visible, Count, Warning, Reserve (an AmmoType to look up)
@@ -313,7 +313,7 @@ Assets/_Game/
 │  │  ├─ IPlayerIntentSource.cs             Read(deltaTime) → PlayerIntent: plays the player instead of InputService while set on IPlayer.IntentSource (RaidAutopilot); read only while the player can act
 │  │  ├─ PlayerLife.cs                      Health, TakeDamage (nothing while Invulnerable), fall damage (OnLanded, through DamageService), Hurt event (DamageInfo, applied) on a hit that doesn't kill, Died event + PlayerDied, OnDeathSequenceEnded → PlayerDeathSequenceEnded, Revive (Reviving event + PlayerRevived), SpawnPosition / SpawnRotation
 │  │  ├─ PlayerFeedback.cs                  footstep per head-bob step (walk / sprint volume), jump and landing sounds, head-bob landing dip and held-sway jump / land kicks, pain grunt (rate-limited) and head-bob flinch on PlayerLife.Hurt (IDisposable)
-│  │  ├─ HeldItemDriver.cs                  the item in hand each frame: drop / select / cycle → Equipment.Tick → rig Tick → TickHeld → LookTurn + ViewKick → zoom (unless a pose sequence owns it), held model hidden while fully scoped (HeldItem.Scope.HidesHeld) → sway + aim → move speed (aim speed × HoldFeel × fatigue) → clearance → LateTick → hands
+│  │  ├─ HeldItemDriver.cs                  the item in hand each frame: drop / select / cycle → Equipment.Tick → rig Tick → TickHeld → LookTurn + ViewKick → zoom (unless a pose sequence owns it), held model hidden while fully scoped (HeldItem.Scope.HidesHeld) → sway + aim → move speed (aim speed × HeldItem.Mobility × MoveSpeedScale × fatigue) → clearance → LateTick → hands
 │  │  ├─ PlayerCameraRig.cs                 sole writer of the CameraRoot / CameraPitch transforms: SetLook(pitch, kick), SetHeadMotion(offset, pitch), Override / ReleaseOverride (pose sequences); applied as each share changes; EyeHeight
 │  │  ├─ PlayerScope.cs                     EntityScope on the prefab root; default IStatProvider
 │  │  ├─ LandedHitFeedback.cs               on the Player prefab (under GunJamFeedback, for its FeedbackContext) → DamageDealt from this player: a hit that staggered (DamageResult.Staggered) or a headshot kill plays its MMF_Player (MMF_HitStop + Cinemachine impulse), at most one per MinInterval (3 s real time: spraying a crowd made back-to-back hit stops read as stutter)
@@ -838,7 +838,7 @@ HeldItemDriver.Tick
   PlayerZoom.Tick    held.Zoom (skipped in a pose sequence)
   HeldItemSway.Tick  aim offset (breathing by Tiredness, bob in step with the head, spring lag / kicks) + model position / roll, calmed by held.AimWeight, × HoldFeel.SwayScale
                        → EquipmentRig.ApplyHandMotion (model extras); PlayerAim.Tick → CrosshairPosition / CrosshairSpread (world FOV), EquipmentRig.SetAimRotation (zoom-corrected)
-  PlayerMotor.SpeedMultiplier  aiming ? AimMoveSpeedMultiplier × HoldFeel.AimMoveSpeedScale : 1, × Fatigue.MoveSpeed
+  PlayerMotor.SpeedMultiplier  (aiming ? AimMoveSpeedMultiplier : 1) × HeldItem.Mobility (HoldFeel.Mobility; a gun's × its parts' MoveSpeed, clamped 0.5–1) × HeldItem.MoveSpeedScale (a consumable in use) × Fatigue.MoveSpeed
   HeldItemClearance  eye → normal model tip cast; blend an obstacle offset / tilt onto the hand (melee swings opt out)
   HeldItem.LateTick  model and camera are final: HeldGun spawns this frame's shots (muzzle flash, GunAim.Shot along the aim with the hip wobble, no hidden cone; BulletSystem.Fire per pellet within SpreadAngle)
                        from the muzzle as drawn, then GunRecoil.Kick (shows from next frame).

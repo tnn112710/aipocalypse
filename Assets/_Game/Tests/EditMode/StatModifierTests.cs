@@ -24,7 +24,7 @@ namespace MB13.Aipocalypse.Tests
             stats.Set("skill.sprinter", StatId.WalkSpeed, add: 1f, multiply: 2f);
 
             Assert.AreEqual((5f + 2f) * 3f, stats.Get(StatId.WalkSpeed, 5f), 1e-4f);
-            Assert.AreEqual(4f, stats.Get(StatId.SprintSpeed, 4f), "another stat is untouched");
+            Assert.AreEqual(4f, stats.Get(StatId.SprintSpeedScale, 4f), "another stat is untouched");
         }
 
         [Test]

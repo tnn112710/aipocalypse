@@ -5,10 +5,12 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     [CreateAssetMenu(fileName = "PlayerMovementTuning", menuName = "Aipocalypse/Player/Movement Tuning")]
     public sealed class PlayerMovementTuning : ScriptableObject
     {
-        [Header("Movement (m/s)"), SerializeField, Min(0f)] float _walkSpeed = 3.5f;
-        [SerializeField, Min(0f)] float _sprintSpeed = 6f;
-        [SerializeField, Range(0f, 1f)] float _strafeSpeedMultiplier = 0.9f;
-        [SerializeField, Range(0f, 1f)] float _backwardSpeedMultiplier = 0.6f;
+        [Header("Movement (m/s)"), SerializeField, Min(0f)] float _walkSpeed = 2.5f;
+        [SerializeField, Min(1f), Tooltip("Sprint speed as a multiple of walking speed")] float _sprintMultiplier = 2f;
+        [SerializeField, Range(0f, 1f), Tooltip("Speed share moving 90° off where you look; between forward and here it eases with the angle")]
+        float _strafeSpeedMultiplier = 0.75f;
+        [SerializeField, Range(0f, 1f), Tooltip("Speed share moving straight backward; between the side and here it eases with the angle")]
+        float _backwardSpeedMultiplier = 0.5f;
         [SerializeField, Range(0f, 1f), Tooltip("Forward stick/key amount needed to sprint")]
         float _sprintMinForwardInput = 0.5f;
         [SerializeField, Min(0f)] float _groundAcceleration = 10f;
@@ -49,7 +51,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _idleMaxSpeed = 0.2f;
 
         public float WalkSpeed => _walkSpeed;
-        public float SprintSpeed => _sprintSpeed;
+        public float SprintMultiplier => _sprintMultiplier;
         public float StrafeSpeedMultiplier => _strafeSpeedMultiplier;
         public float BackwardSpeedMultiplier => _backwardSpeedMultiplier;
         public float SprintMinForwardInput => _sprintMinForwardInput;

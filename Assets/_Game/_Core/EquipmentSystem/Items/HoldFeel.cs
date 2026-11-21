@@ -7,9 +7,14 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
     [Serializable]
     public sealed class HoldFeel
     {
-        [Range(0.1f, 1.5f), Tooltip("Multiplies the move speed while aiming down sights with it (lower = heavier)")]
-        public float AimMoveSpeedScale = 1f;
+        public const float MinMobility = 0.5f;
+        public const float MaxMobility = 1f;
+
+        [Range(MinMobility, MaxMobility), Tooltip("Multiplies walk and sprint speed while it's held (empty hands = 1; lower = heavier)")]
+        public float Mobility = 0.8f;
         [Range(0f, 3f), Tooltip("Multiplies the sway and bob while it's held (higher = heavier, less steady)")]
         public float SwayScale = 1f;
+
+        public static float ClampMobility(float mobility) => Mathf.Clamp(mobility, MinMobility, MaxMobility);
     }
 }

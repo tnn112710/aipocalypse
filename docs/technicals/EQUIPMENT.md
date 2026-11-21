@@ -189,7 +189,7 @@ AK47                 HeldGun, ItemHands                first-person side
 | --- | --- |
 | Switch speed for everything | `Data/Equipment/EquipmentConfig.asset` → `SwitchSpeed` (live in Play mode) |
 | One item's equip / holster time | `Content/<Kind>/<Item>/<Item>.asset` → `EquipTime` / `HolsterTime` |
-| How heavy one item feels (walk speed while aiming, sway) | `Content/<Kind>/<Item>/<Item>.asset` → Hold feel (`AimMoveSpeedScale`, `SwayScale`) |
+| How heavy one item feels (move speed while held, sway) | `Content/<Kind>/<Item>/<Item>.asset` → Hold feel (`Mobility` 0.5–1, default 0.8; `SwayScale`) |
 | How many fit in one slot, unlimited stacks | the item's asset → `MaxStack`, `UnlimitedStack` |
 | An item's weight, whether the magnet takes it | the item's asset → `Weight` (kg per unit), `AutoCollect` |
 | Which hotbar slots exist, what they take, their keys, starting items | `EquipmentConfig` → Slots (private serialized `_slots`, in display order; each with a `HotbarKey`) |

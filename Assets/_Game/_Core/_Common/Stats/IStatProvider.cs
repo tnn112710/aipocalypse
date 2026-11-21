@@ -6,8 +6,10 @@ namespace MB13.Aipocalypse.Core.Stats
     // Scales (…Scale suffix): multipliers with base 1, read with GetScale; a perk "+10%" returns 1.1.
     public enum StatId
     {
+        // Also speeds up sprint and crouch, which are multiples of it.
         WalkSpeed,
-        SprintSpeed,
+        // On top of the walk speed × the tuned sprint multiplier.
+        SprintSpeedScale,
         JumpHeight,
         MaxHealth,
         MaxStamina,

@@ -313,6 +313,23 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(0.9f, PlayerMotor.DirectionalSpeedScale(Vector2.right, 0.9f, 0.7f), 0.001f);
             Assert.AreEqual(0.7f, PlayerMotor.DirectionalSpeedScale(Vector2.down, 0.9f, 0.7f), 0.001f);
         }
+
+        [Test]
+        public void DirectionalSpeedScale_EasesWithTheAngle()
+        {
+            Vector2 forwardRight = new Vector2(1f, 1f).normalized;
+            Vector2 backLeft = new Vector2(-1f, -1f).normalized;
+            Assert.AreEqual(0.875f, PlayerMotor.DirectionalSpeedScale(forwardRight, 0.75f, 0.5f), 0.001f, "45°: halfway to the side");
+            Assert.AreEqual(0.625f, PlayerMotor.DirectionalSpeedScale(backLeft, 0.75f, 0.5f), 0.001f, "135°: halfway to backward");
+        }
+
+        [Test]
+        public void ClampMobility_KeepsItBetweenTheFloorAndEmptyHands()
+        {
+            Assert.AreEqual(0.5f, HoldFeel.ClampMobility(0.8f * 0.4f), 0.001f, "heavy parts can't go below the floor");
+            Assert.AreEqual(1f, HoldFeel.ClampMobility(0.8f * 1.5f), 0.001f, "light parts can't beat empty hands");
+            Assert.AreEqual(0.72f, HoldFeel.ClampMobility(0.8f * 0.9f), 0.001f);
+        }
     }
 
     public class PlayerVisionTests

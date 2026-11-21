@@ -107,7 +107,7 @@ namespace MB13.Aipocalypse.Tests
 
             effects.Use(adrenaline, new Health(100f));
             Assert.AreEqual(5f, effects.Get(StatId.WalkSpeed, 4f), 0.0001f);
-            Assert.AreEqual(4f, effects.Get(StatId.SprintSpeed, 4f), 0.0001f, "other stats untouched");
+            Assert.AreEqual(4f, effects.Get(StatId.SprintSpeedScale, 4f), 0.0001f, "other stats untouched");
             Assert.AreEqual(1, changed, "cached maxima are read again");
 
             effects.Tick(59f, null);

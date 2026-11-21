@@ -34,7 +34,9 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public virtual Vector2 WobbleKick => default;
         // Radius the crosshair's cross shows (degrees): the wobble plus pellet spread.
         public virtual float Spread => 0f;
-        // Multiplies the holder's move speed (using a consumable slows the walk): 1 = none.
+        // Multiplies the holder's move speed whenever it's in hand (HoldFeel.Mobility); a gun's parts change it.
+        public virtual float Mobility => Item?.Equippable?.HoldFeel.Mobility ?? 1f;
+        // Multiplies the holder's move speed for a while (using a consumable slows the walk): 1 = none.
         public virtual float MoveSpeedScale => 1f;
         // Multiplies the aim and model sway on top of the item's HoldFeel (a magnified scope calms it): 1 = none.
         public virtual float SwayScale => 1f;

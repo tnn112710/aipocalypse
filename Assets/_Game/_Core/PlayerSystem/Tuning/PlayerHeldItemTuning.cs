@@ -10,7 +10,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [Header("Guns"), SerializeField, Tooltip("Where bullets start: the muzzle along the barrel (follows the model and its kick), the screen centre, or the muzzle towards what the crosshair is on")]
         AimOrigin _aimFrom = AimOrigin.Muzzle;
         [SerializeField, Range(0.1f, 1f), Tooltip("Move speed multiplier while aiming down sights")]
-        float _aimMoveSpeedMultiplier = 0.6f;
+        float _aimMoveSpeedMultiplier = 0.5f;
         [SerializeField, Min(0f), Tooltip("Above this ground speed (m/s) the held item counts as moving (guns use their moving recoil)")]
         float _movingSpeed = 0.5f;
         [SerializeField, Min(0f), Tooltip("Hip wobble multiplier while walking")] float _walkSpreadScale = 1.5f;

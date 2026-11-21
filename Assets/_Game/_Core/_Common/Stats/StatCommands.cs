@@ -25,7 +25,7 @@ namespace MB13.Aipocalypse.Core.Stats
             return text.ToString().TrimEnd();
         }
 
-        [Command("Set the console's modifier on a stat: stat.set <stat> <multiply> [add] (stat.set SprintSpeed 1.5)")]
+        [Command("Set the console's modifier on a stat: stat.set <stat> <multiply> [add] (stat.set SprintSpeedScale 1.5)")]
         string Set(StatId stat, float multiply, float add = 0f)
         {
             _stats.Set(Source, stat, add, multiply);

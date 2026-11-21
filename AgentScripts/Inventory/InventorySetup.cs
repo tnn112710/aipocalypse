@@ -396,7 +396,7 @@ public static class InventorySetup
         var adrenaline = Asset<ConsumableDefinition>($"{ItemsDir}/Adrenaline/Adrenaline.asset");
         Define(adrenaline, "item.adrenaline", FlatIcons + "syringe1.png", maxStack: 3, weight: 0.2f);
         adrenaline.SetUse(1f, uses: 1, moveSpeedScale: 0.7f);
-        adrenaline.SetEffects(0f, 0f, 10f, buffSeconds: 60f, new Dictionary<StatId, float> { { StatId.WalkSpeed, 1.25f }, { StatId.SprintSpeed, 1.25f } });
+        adrenaline.SetEffects(0f, 0f, 10f, buffSeconds: 60f, new Dictionary<StatId, float> { { StatId.WalkSpeed, 1.25f } });
         SetPrefab(adrenaline, HeldPrefab($"{ItemsDir}/Adrenaline/Adrenaline.prefab", adrenaline, Medical + "SM_Injector_With_Adrenalin.prefab",
             heldPosition: new Vector3(0.1f, -0.06f, 0.26f), heldEuler: new Vector3(60f, 0f, -25f), heldScale: 1f,
             worldEuler: new Vector3(0f, 0f, 90f), worldScale: 1.4f));
