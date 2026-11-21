@@ -1,3 +1,4 @@
+using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,6 +10,18 @@ namespace MB13.Aipocalypse.Core.HandSystem
         TowardElbow,
         // Exactly this transform's rotation.
         AsAuthored,
+    }
+
+    // A place on the item where the hand may turn on its grip to meet the arm (ArmRig): round the part, and flat on the palm.
+    [Serializable]
+    public struct GripTurn
+    {
+        [Tooltip("The contact (forend hold, bolt handle). The turn fades as the grip moves away from it (HandSet > Turn Fade)")]
+        public Transform Contact;
+        [Min(0f), Tooltip("From the contact to the middle of the held part (m): the hand rolls round that line, so the fingers stay wrapped. 0 for a pinch")]
+        public float Radius;
+        [Tooltip("The most the hand turns there (degrees): x round the part (grip Z), y flat on the palm (grip Y)")]
+        public Vector2 Max;
     }
 
     // Where a hand holds an item, with its finger pose; parent it under the held part (mag, bolt) so the hand follows it.
@@ -23,6 +36,8 @@ namespace MB13.Aipocalypse.Core.HandSystem
         [SerializeField, Range(-180f, 180f), Tooltip("Extra turn round the held part (Z), after aiming")] float _roll;
         [SerializeField, Tooltip("Bake fit moves the palm onto the item's surface. Off for pinches (bolt, shell)")] bool _fitPalm = true;
         [SerializeField, Tooltip("Bake fit leaves these fingers at the pose's curl (trigger finger off the trigger…)")] FingerMask _keepFingers;
+        [SerializeField, Tooltip("Where the hand may turn to meet its arm: a hold made for other arms then doesn't fold the wrist. Empty = as held")]
+        GripTurn[] _turns = Array.Empty<GripTurn>();
 
         [FoldoutGroup("Fitted"), SerializeField, ReadOnly] bool _fitted;
         [FoldoutGroup("Fitted"), SerializeField, ReadOnly] HandShape _fittedShape;
@@ -35,6 +50,33 @@ namespace MB13.Aipocalypse.Core.HandSystem
         public FingerMask KeepFingers => _keepFingers;
 
         public void SetAnimatedShape(HandShape shape) => _animatedShape = shape;
+
+        // The turn allowed where the grip is now: the nearest contact's, its limits faded by the grip's distance from it.
+        public void GetTurn(Vector2 fade, out float radius, out Vector2 max)
+        {
+            radius = 0f;
+            max = Vector2.zero;
+            float best = 0f;
+            foreach (GripTurn turn in _turns)
+            {
+                if (turn.Contact == null)
+                    continue;
+                float weight = 1f - Mathf.InverseLerp(fade.x, fade.y, Vector3.Distance(transform.position, turn.Contact.position));
+                if (weight <= best)
+                    continue;
+                best = weight;
+                radius = turn.Radius;
+                max = turn.Max * weight;
+            }
+        }
+
+#if UNITY_EDITOR
+        public void SetTurns(GripTurn[] turns)
+        {
+            _turns = turns;
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+#endif
 
         // Where the rig's grip point goes, given the elbow this hand's forearm leads to.
         public void Resolve(HandRig rig, Vector3 elbow, out Vector3 position, out Quaternion rotation) =>

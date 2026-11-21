@@ -32,7 +32,6 @@ namespace MB13.Aipocalypse.Tests
             var plain = new SerializedObject(_rig.GetComponent<ArmRig>());
             plain.FindProperty("_wristShare").floatValue = 0f;
             plain.FindProperty("_shoulderGive").floatValue = 0f;
-            plain.FindProperty("_turnToArm").vector2Value = Vector2.zero;
             plain.ApplyModifiedPropertiesWithoutUndo();
             float sign = side == "Left" ? -1f : 1f;
             Vector3 shoulder = new(0.2f * sign, -0.4f, 0f);
@@ -67,9 +66,6 @@ namespace MB13.Aipocalypse.Tests
             Transform upper = hand.parent.parent;
             float upperLength = Vector3.Distance(upper.position, hand.parent.position);
             float lowerLength = Vector3.Distance(hand.parent.position, hand.position);
-            var so = new SerializedObject(_rig.GetComponent<ArmRig>());
-            so.FindProperty("_turnToArm").vector2Value = Vector2.zero;
-            so.ApplyModifiedPropertiesWithoutUndo();
 
             _rig.Place(far, Quaternion.identity, shoulder, shoulder + Vector3.down);
 
@@ -106,7 +102,7 @@ namespace MB13.Aipocalypse.Tests
 
         [TestCase("Left")]
         [TestCase("Right")]
-        public void Place_TurnToArm_StraightensTheWristTurningOnlyRoundThePartAndFlatOnThePalm(string side)
+        public void Place_Turn_StraightensTheWristTurningOnlyRoundThePartAndFlatOnThePalm(string side)
         {
             Load(side);
             float sign = side == "Left" ? -1f : 1f;
@@ -123,11 +119,12 @@ namespace MB13.Aipocalypse.Tests
             Quaternion handRotation = Quaternion.FromToRotation(Quaternion.Inverse(rest) * axis, new Vector3(0.1f * -sign, 0f, 1f).normalized);
             Quaternion grip = handRotation * (Quaternion.Inverse(arm.Hand.rotation) * _rig.GripPoint.rotation);
 
+            so.ApplyModifiedPropertiesWithoutUndo();
+            const float radius = 0.05f;
+
             float Bend(Vector2 turn)
             {
-                so.FindProperty("_turnToArm").vector2Value = turn;
-                so.ApplyModifiedPropertiesWithoutUndo();
-                _rig.Place(target, grip, shoulder, elbow);
+                _rig.Place(target, grip, shoulder, elbow, Quaternion.identity, radius, turn);
                 // Forearm against where a straight wrist would put it (its twist is the twist bone's job).
                 return Vector3.Angle(arm.Hand.position - arm.Hand.parent.position, arm.Hand.rotation * Quaternion.Inverse(rest) * axis);
             }
@@ -136,9 +133,9 @@ namespace MB13.Aipocalypse.Tests
             float turned = Bend(new Vector2(30f, 30f));
             Assert.That(turned, Is.LessThan(held - 10f));
             // Rolled round the part's middle line, turned flat on the palm: the grip point stays that far from the line.
-            Vector3 middle = target - grip * Vector3.up * so.FindProperty("_turnRadius").floatValue;
+            Vector3 middle = target - grip * Vector3.up * radius;
             Vector3 fromLine = Vector3.ProjectOnPlane(_rig.GripPoint.position - middle, grip * Vector3.forward);
-            Assert.That(fromLine.magnitude, Is.EqualTo(so.FindProperty("_turnRadius").floatValue).Within(0.001f));
+            Assert.That(fromLine.magnitude, Is.EqualTo(radius).Within(0.001f));
             Assert.That(Vector3.Dot(_rig.GripPoint.position - target, grip * Vector3.forward), Is.EqualTo(0f).Within(0.001f));
             // The palm stays on the part (its normal square to the part's axis), rolled round it no more than allowed.
             Vector3 part = grip * Vector3.forward;
@@ -160,7 +157,6 @@ namespace MB13.Aipocalypse.Tests
             so.FindProperty("_wristShare").floatValue = 0f;
             so.FindProperty("_maxGive").floatValue = 0.15f;
             so.FindProperty("_giveIntoView").vector2Value = new Vector2(0.02f, 0.02f);
-            so.FindProperty("_turnToArm").vector2Value = Vector2.zero;
             Transform upper = arm.Hand.parent.parent;
             // A hand that wants its forearm to come from above and in front: the give that would help most is capped.
             var targets = new[] { Quaternion.Euler(60f, -50f * sign, 30f), Quaternion.Euler(-70f, 20f * sign, 0f), Quaternion.Euler(10f, 170f, 40f * sign) };
@@ -267,6 +263,62 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void GetTurn_IsTheNearestContactsFadedByDistance()
+        {
+            var grip = new GameObject("Grip").AddComponent<HandGrip>();
+            var forend = new GameObject("Forend").transform;
+            var bolt = new GameObject("Bolt").transform;
+            try
+            {
+                bolt.position = new Vector3(0f, 0f, -0.3f);
+                grip.SetTurns(new[]
+                {
+                    new GripTurn { Contact = forend, Radius = 0.04f, Max = new Vector2(15f, 35f) },
+                    new GripTurn { Contact = bolt, Radius = 0f, Max = new Vector2(90f, 20f) },
+                });
+                var fade = new Vector2(0.02f, 0.08f);
+
+                grip.GetTurn(fade, out float radius, out Vector2 max);
+                Assert.That(radius, Is.EqualTo(0.04f));
+                Assert.That(max, Is.EqualTo(new Vector2(15f, 35f)));
+                grip.transform.position = new Vector3(0f, 0.05f, 0f);
+                grip.GetTurn(fade, out _, out max);
+                Assert.That(max.x, Is.EqualTo(7.5f).Within(0.01f), "half way through the fade");
+                grip.transform.position = new Vector3(0f, 0f, -0.15f);
+                grip.GetTurn(fade, out _, out max);
+                Assert.That(max, Is.EqualTo(Vector2.zero), "between contacts: held as authored");
+                grip.transform.position = bolt.position;
+                grip.GetTurn(fade, out radius, out max);
+                Assert.That(radius, Is.EqualTo(0f));
+                Assert.That(max, Is.EqualTo(new Vector2(90f, 20f)));
+            }
+            finally
+            {
+                Object.DestroyImmediate(grip.gameObject);
+                Object.DestroyImmediate(forend.gameObject);
+                Object.DestroyImmediate(bolt.gameObject);
+            }
+        }
+
+        // GripTurnSetup: a long gun's support hand may turn on its forend, so a hold made for other arms doesn't fold the wrist.
+        [TestCase("AK47")]
+        [TestCase("M4")]
+        [TestCase("SCAR")]
+        [TestCase("MP5")]
+        [TestCase("RPD")]
+        [TestCase("PumpShotgun")]
+        [TestCase("DoubleBarrel")]
+        public void LongGuns_LeftGripTurnsOnTheForend(string gun)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/_Game/Content/Weapons/{gun}/{gun}.prefab");
+            var turns = new SerializedObject(prefab.GetComponent<ItemHands>().GetGrip(HandSide.Left)).FindProperty("_turns");
+            Assert.That(turns.arraySize, Is.GreaterThan(0));
+            var forend = turns.GetArrayElementAtIndex(0);
+            Assert.That(forend.FindPropertyRelative("Contact").objectReferenceValue, Is.Not.Null);
+            Assert.That(forend.FindPropertyRelative("Radius").floatValue, Is.InRange(0.015f, 0.08f));
+        }
+
+        [Test]
         public void HandSet_HandsShowOnEveryGripOfTheAk47()
         {
             var set = AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
@@ -278,11 +330,7 @@ namespace MB13.Aipocalypse.Tests
                 HandGrip grip = hands.GetGrip(side);
                 grip.Resolve(_rig, set.Elbow(side), out Vector3 position, out Quaternion rotation);
                 _rig.Place(position, rotation, set.Shoulder(side), set.Elbow(side));
-                // On the grip, or rolled round the held part's middle line by no more than the arm allows.
-                var arm = new SerializedObject(_rig.GetComponent<ArmRig>());
-                float roll = arm.FindProperty("_turnToArm").vector2Value.x;
-                float slack = 2f * arm.FindProperty("_turnRadius").floatValue * Mathf.Sin(roll * 0.5f * Mathf.Deg2Rad);
-                Assert.That(Vector3.Distance(_rig.GripPoint.position, position), Is.LessThan(0.001f + slack), side.ToString());
+                Assert.That(Vector3.Distance(_rig.GripPoint.position, position), Is.LessThan(0.001f), side.ToString());
                 Object.DestroyImmediate(_rig.gameObject);
             }
         }

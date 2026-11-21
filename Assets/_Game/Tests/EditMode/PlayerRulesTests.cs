@@ -99,6 +99,26 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void RegenRate_FullStanding_AShareWalking_NoneOtherwise()
+        {
+            Assert.That(Stamina.RegenRate(18f, idle: true, walking: false, walkShare: 0.5f), Is.EqualTo(18f));
+            Assert.That(Stamina.RegenRate(18f, idle: false, walking: true, walkShare: 0.5f), Is.EqualTo(9f));
+            Assert.That(Stamina.RegenRate(18f, idle: false, walking: false, walkShare: 0.5f), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void Walking_RegeneratesAtItsShareAfterTheDelay()
+        {
+            var stamina = new Stamina(100f, regenDelay: 1f, recoverFraction: 0.3f);
+            stamina.Spend(50f);
+            float walk = Stamina.RegenRate(20f, idle: false, walking: true, walkShare: 0.5f);
+            stamina.Tick(1.1f, walk, resting: true);
+            Assert.That(stamina.Current, Is.EqualTo(50f).Within(0.01f), "the delay still runs first");
+            stamina.Tick(1f, walk, resting: true);
+            Assert.That(stamina.Current, Is.EqualTo(60f).Within(0.01f));
+        }
+
+        [Test]
         public void NoRegen_WhileNotResting_AndDelayRestartsOnceIdle()
         {
             var stamina = new Stamina(100f, regenDelay: 1f, recoverFraction: 0.3f);

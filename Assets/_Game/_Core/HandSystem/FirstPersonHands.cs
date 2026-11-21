@@ -68,7 +68,8 @@ namespace MB13.Aipocalypse.Core.HandSystem
             Vector3 shoulder = _view != null
                 ? _view.TransformPoint(_set.LimitShoulder(hand.Side, _view.InverseTransformPoint(item.Carry(_view.TransformPoint(_set.Shoulder(hand.Side))))))
                 : elbow;
-            hand.Rig.Place(position, rotation, shoulder, elbow, _view != null ? _view.rotation : Quaternion.identity);
+            grip.GetTurn(_set.TurnFade, out float turnRadius, out Vector2 maxTurn);
+            hand.Rig.Place(position, rotation, shoulder, elbow, _view != null ? _view.rotation : Quaternion.identity, turnRadius, maxTurn);
             hand.Rig.Apply(grip.Shape);
             hand.Rig.SetVisible(true);
         }

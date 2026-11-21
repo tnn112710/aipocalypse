@@ -240,8 +240,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             }
             if (!IsDead)
                 _effects.Tick(deltaTime, Health);
-            float regen = _stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond);
-            Stamina.Tick(deltaTime, _motor.IsWalking ? regen * _tuning.Vitals.WalkRegenShare : regen, _motor.IsIdle || _motor.IsWalking);
+            float regen = Stamina.RegenRate(_stats.Get(StatId.StaminaRegen, _tuning.Vitals.StaminaRegenPerSecond), _motor.IsIdle, _motor.IsWalking,
+                _tuning.Vitals.WalkRegenShare);
+            Stamina.Tick(deltaTime, regen, _motor.IsIdle || _motor.IsWalking);
             Fatigue.Tick(Stamina.Normalized, _stats.GetScale(StatId.FatiguePenaltyScale), deltaTime, Stamina.IsWinded);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
             _breathSound.Tick(_breathing, IsDead);

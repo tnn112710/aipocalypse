@@ -69,6 +69,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _exhausted = false;
         }
 
+        // Full regen standing, a share of it walking, none otherwise (sprinting, airborne).
+        public static float RegenRate(float perSecond, bool idle, bool walking, float walkShare) =>
+            idle ? perSecond : walking ? perSecond * walkShare : 0f;
+
         // A new maximum keeps the current share.
         public void SetMax(float max)
         {

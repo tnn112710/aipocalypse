@@ -114,7 +114,11 @@ namespace MB13.Aipocalypse.Core.HandSystem
             rig.transform.localScale = (prefab != null ? prefab.transform.localScale : Vector3.one) * (item != null ? item.HandScale : 1f);
             Vector3 elbow = Elbow(grip.transform, rig.Side);
             grip.Resolve(rig, elbow, out Vector3 position, out Quaternion rotation);
-            rig.Place(position, rotation, Shoulder(grip.transform, rig.Side), elbow);
+            float turnRadius = 0f;
+            Vector2 maxTurn = Vector2.zero;
+            if (Set != null)
+                grip.GetTurn(Set.TurnFade, out turnRadius, out maxTurn);
+            rig.Place(position, rotation, Shoulder(grip.transform, rig.Side), elbow, Quaternion.identity, turnRadius, maxTurn);
             rig.Apply(grip.Shape);
         }
 

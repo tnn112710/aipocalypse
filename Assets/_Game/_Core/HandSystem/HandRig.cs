@@ -47,8 +47,9 @@ namespace MB13.Aipocalypse.Core.HandSystem
         public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow) =>
             Place(position, rotation, shoulder, elbow, Quaternion.identity);
 
-        // `frame`: the viewer's rotation (ArmRig.Solve).
-        public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow, Quaternion frame)
+        // `frame`: the viewer's rotation (ArmRig.Solve); `turnRadius`, `maxTurn`: how the hand may turn on the grip (HandGrip.GetTurn).
+        public void Place(Vector3 position, Quaternion rotation, Vector3 shoulder, Vector3 elbow, Quaternion frame,
+            float turnRadius = 0f, Vector2 maxTurn = default)
         {
             if (_arm == null)
             {
@@ -60,7 +61,7 @@ namespace MB13.Aipocalypse.Core.HandSystem
             Quaternion inverseHand = Quaternion.Inverse(hand.rotation);
             Quaternion handRotation = rotation * Quaternion.Inverse(inverseHand * grip.rotation);
             _arm.Solve(shoulder, elbow, position - handRotation * (inverseHand * (grip.position - hand.position)), handRotation, frame,
-                position, rotation);
+                position, rotation, turnRadius, maxTurn);
         }
 
         // Moves the whole hand so its grip point sits at this pose.

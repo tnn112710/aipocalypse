@@ -287,9 +287,9 @@ Assets/_Game/
 │  ├─ HandSystem/                           MB13.Aipocalypse.Core.HandSystem — first-person hands on arms, see HANDS.md
 │  │  ├─ HandPose.cs                        HandSide, Finger, FingerShape / HandShape (Curl, Spread, Tip per finger); HandPose SO
 │  │  ├─ HandRig.cs                         root of a hand prefab: grip point, finger chains + Open / Closed / Spread / Fist calibration, bounded grip-to-fist blending, Place (with an ArmRig: the arm reaches for the grip from a shoulder), Apply, forearm axis, contact samples, setup buttons
-│  │  ├─ ArmRig.cs                          the arm behind a hand: two-bone solve from a shoulder point to the hand pose, elbow toward a hint, shoulder pulled along when out of reach, forearm twist bone, hand turned on its grip to meet the arm (round the held part and flat on the palm, TurnToArm), shoulder give and elbow swing that straighten the wrist (capped so the arm stays out of view); no Animator; Setup (builder hook)
-│  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows and shoulders (view space), preview item position
-│  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit or clip-authored shape); Resolve; Preview hand, Bake fit; FingerMask
+│  │  ├─ ArmRig.cs                          the arm behind a hand: two-bone solve from a shoulder point to the hand pose, elbow toward a hint, shoulder pulled along when out of reach, forearm twist bone, hand turned on its grip to meet the arm (round the held part and flat on the palm, within the grip's turn, TurnToArm), shoulder give and elbow swing that straighten the wrist (capped so the arm stays out of view); no Animator; Setup (builder hook)
+│  │  ├─ HandSet.cs                         SO: the left and right hand prefabs, implied elbows and shoulders (view space), turn fade, preview item position
+│  │  ├─ HandGrip.cs                        where a hand holds an item (side, pose, aim at elbow / as authored, roll, baked fit or clip-authored shape, turn contacts); Resolve; GetTurn (nearest GripTurn, faded); Preview hand, Bake fit; FingerMask, GripTurn
 │  │  ├─ ItemHands.cs                       on an item prefab: one grip per hand, per-item hand scale; Show hands preview, Bake fit for all grips
 │  │  ├─ FirstPersonHands.cs                on the player: spawns the HandSet, puts each hand on the item's grip (elbow-aimed, arm from the HandSet's shoulder) with its finger shape
 │  │  ├─ HandFit.cs                         editor only: Bake fit — palm onto the item, finger curl / tip search against its meshes (signed distance)
@@ -344,7 +344,7 @@ Assets/_Game/
 │  │  ├─ HeldItemClearance.cs               eye → normal model tip sphere cast; smooth hand retraction / tilt near obstacles, never moves the player
 │  │  ├─ FirstPersonView.cs                 on the world camera: the lens held models draw with (own FOV via SetFieldOfView: the aim zoom only, no shot punch or sprint; near 0.01 / far 10 m); HideHeld skips the held layer (a full scope's view covers the screen)
 │  │  ├─ FirstPersonRenderFeature.cs        URP renderer feature on PC_Renderer: draws the HeldWeapon layer in the world camera after transparents, depth cleared, with FirstPersonView's lens and SSAO zeroed (replaces the overlay camera); draws nothing while FirstPersonView.HideHeld
-│  │  ├─ Stamina.cs                         stamina meter: spend (pauses regen), regen only while resting after a delay, exhaustion, winded wait after running dry; SetMax keeps the current share
+│  │  ├─ Stamina.cs                         stamina meter: spend (pauses regen), regen only while resting after a delay (RegenRate: full standing, a share walking), exhaustion, winded wait after running dry; SetMax keeps the current share
 │  │  ├─ Fatigue.cs                         low-stamina tiers (+ FatigueSettings, FatigueTier) → eased recoil / melee power / move speed multipliers, slower still while winded; StatId.FatiguePenaltyScale
 │  │  ├─ PlayerBreathing.cs                 out of breath (+ BreathingSettings: Below, EaseTime): IsActive, eased Tiredness for the breath loop and the aim sway
 │  │  ├─ FallDamage.cs                      drop height → damage

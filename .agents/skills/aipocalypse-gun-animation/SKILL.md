@@ -36,6 +36,7 @@ All run with `unity command script run --file <path> --entry <Class.Method> --ar
 | `AgentScripts/Hands/ReloadRetarget.cs` | `Bake(gun)`, `Describe(gun)`, `SourceStrip(...)` | Pack reload → `<Gun>_Reloading` / `_ReloadingEmpty`, plus the idle forend hold. Needs a `Table` entry |
 | `AgentScripts/Hands/RepairClips.cs` | `Bake(gun)` | Reseat and Rack clips from the gun's own reloads |
 | `AgentScripts/Hands/HoldLike.cs` | `Apply(gun, like)` | Another gun's support-hand hold, fitted to this gun; for guns with no retarget |
+| `AgentScripts/Hands/GripTurnSetup.cs` | `All()`, `One(gun)`, `Measure(gun)` | Where the left hand may turn to meet the arm (forend, bolt), forend radius measured from the meshes |
 | `AgentScripts/Hands/ArmSetup.cs` | see HANDS.md | Builds and switches arm variants |
 | `AgentScripts/Weapons/AimReview.cs` | `Prepare`, `Hold`, `Fit`, `Aim`, `Pad`, `Hip`, `SaveHip`, `SetWork`, `SetSprint`, `Release` | Play-mode driving and pose tuning |
 | `AgentScripts/Hands/ArmPlayReview.cs` | `Action(kind, progresses, tag)`, `Still(tag)` | Play-mode captures of one action at chosen progress values |
@@ -49,7 +50,7 @@ All run with `unity command script run --file <path> --entry <Class.Method> --ar
 3. **Animate:** `GunAnimateSetup.Animate("<Gun>", "AK47")` for rifles and SMGs, `"Pistol"` for pistols. Check its report: parts it could not find by suffix (`Parts` table) are created as empty nodes and will not move.
 4. **Retarget the reloads:** add an `Entry` to `ReloadRetarget.Table` (pack weapon, its clips, and the pack's part names: `Mag`, `Charge` are `"Mag"` and `"Charge"`, `"ChargingHandle"` or `"Slider"` depending on the weapon; `Describe` lists them), then `Bake`.
 5. **Repair clips:** `RepairClips.Bake("<Gun>")`. Copy-pasted repair profiles carry the reference gun's `ShakeChance`.
-6. **Magazines in `AttachmentSetup`** become `"Magazine", "ReplacementMagazine"`; rerun `Mounts`.
+6. **Magazines in `AttachmentSetup`** become `"Magazine", "ReplacementMagazine"`; rerun `Mounts`. Then `GripTurnSetup.One("<Gun>")` (turn contacts on the left grip).
 7. **Tests:** add the gun to the `TestCase` lists in `WeaponAnimationTests` (clips bind, repair impacts, parts restored).
 8. **Review in play** (below) and tune: hip pose, work pose, aim depth. Sprint pose: `AimReview.SetSprint(gun, 10, -40, -30, 0.22, -0.2, 0.32)` for long guns, `(gun, 35, -10, -10, 0.12, -0.24, 0.45)` for pistols (rotation, then where the right grip sits from the eye).
 
@@ -95,7 +96,9 @@ What to check and what fixes it:
 | Support arm straight, hand only reaching the front of the gun | The forend is out of reach at that pose: bring the pose closer to the eye (MP5 hip z -0.36), don't move the contact off the handguard |
 | Support fingers drape over the barrel | The hold from the pack sits on the side with the fingers over the top: `HoldLike.Apply(gun, "AK47")` (palm under the forend; it rebases the gun's clips) |
 | Hands fill the ADS view | The Aim pose is too close: pistols at z -0.22, rifles about -0.4 to -0.68 |
-| Support wrist cocked at the hip, forearm rising almost straight up into the hand | The hold wants its forearm along the barrel: the left arms' `ArmRig > Turn To Arm` (15°, 35°) turns the hand on the forend to meet the arm (HANDS.md → Wrist comfort). Measure with a probe (forearm vs `hand.rotation * inverse(_handRest) * hand.localPosition`); more roll puts fingertips over the rail |
+| Support wrist cocked at the hip or on the bolt, forearm rising almost straight up into the hand | The gun's left grip lacks turn contacts: `GripTurnSetup.One(gun)` (forend 15°/35° round its measured middle, bolt pinch 90°/20°; HANDS.md → Wrist comfort). Measure with a probe (forearm vs `hand.rotation * inverse(_handRest) * hand.localPosition`); more forend roll puts fingertips over the rail |
+| Right wrist bent hard, grip close to the shoulder | The right shoulder point is too far forward (`HandSet`: (0.32, -0.24, -0.36)); a straight wrist needs the elbow behind the hand |
+| Support knuckles above the barrels in the sight picture | The borrowed hold wraps too high on a slim forend: roll the left grip (`HandGrip > Roll`; double barrel -30°) |
 | Hand folded at the wrist, forearm arriving from above | The solver gives way for the wrist (HANDS.md → Wrist comfort: `_shoulderGive`, `_wristShare`, and their into-view caps). If it is capped out, the hold itself is turned wrong: re-author or roll the hold, do not loosen the caps |
 | Upper arm or elbow blob at the bottom of the hip view | The caps are too loose (`_giveIntoView`, `_elbowIntoView`), or a grip authored for the floating hands asks for an arm from in front |
 | Palm sinks into the gun | `HandRig._palmThickness` (0.028 for the Sidekick arms), then re-bake |
@@ -118,7 +121,6 @@ What to check and what fixes it:
 ## Not done yet
 
 - Shotguns: reloads are still hand-keyed; their slap repair clips look wrong with arms, so they clear jams with the shake only.
-- The Rack repair bends the wrist hard on the M4, SCAR and Desert Eagle: the bolt hold needs rolling towards the elbow in `RepairClips`.
 - A fitted vertical or angled grip does not move the support hand (`GunMounts.SupportGrip` is ready; see HANDS.md → Known gaps).
 - The Glock's slide does not move (no separate part on the model).
 - `<Gun>_RepairEnd` is still the old hand-keyed clip.

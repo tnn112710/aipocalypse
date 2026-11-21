@@ -377,6 +377,7 @@ MonoBehaviour:
   _roll: 0
   _fitPalm: 1
   _keepFingers: 0
+  _turns: []
   _fitted: 0
   _fittedShape:
     Thumb:
@@ -1350,6 +1351,10 @@ MonoBehaviour:
   _roll: 0
   _fitPalm: 1
   _keepFingers: 0
+  _turns:
+  - Contact: {fileID: 1199978980306148557}
+    Radius: 0
+    Max: {x: 90, y: 20}
   _fitted: 0
   _fittedShape:
     Thumb:
