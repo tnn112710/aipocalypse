@@ -71,7 +71,7 @@ To add a skill: create `.agents/skills/<name>/SKILL.md` with `name` and `descrip
 - `Assets/_Placeholder/` — temporary storage for placeholder and AI-generated assets (e.g. borrowed audio). Tagged Avoid in ASSETS.md: nothing ships from here, don't add new references from `_Game`, and replace the existing ones with real assets.
 - `Assets/Plugins/` — third-party editor/runtime tooling (Odin Inspector, DOTween/Demigiant, GPUInstancerPro, etc.). Don't modify.
 - `Assets/_Game/Settings/` — the live URP assets (`PC_RPAsset`, `PC_Renderer`), volume profile, Input System config, audio import presets. `Assets/Settings/` holds only the Build Profiles and an unused URP global settings asset.
-- `Packages/` — embedded vendor packages (A*, GPU Instancer Pro, Behavior Designer Pro, COZY, MicroVerse, Spline Spawner, SC Screen Effects); treat as vendor code, listed in PLUGINS.md.
+- `Packages/` — embedded vendor packages (A*, GPU Instancer Pro, Behavior Designer Pro, COZY, MicroVerse, Spline Spawner, Spline Mesher, SC Screen Effects); treat as vendor code, listed in PLUGINS.md.
 - `AgentScripts/` — editor scripts outside `Assets/`, run with `unity command script run` (the map generator in `AgentScripts/Maps/<Map>/`, setup, review and perf scripts per feature). `Tools/` holds the same kind of one-off editor script (e.g. `HandFistReview.cs`).
 
 ## Key tech choices (from `Packages/manifest.json`)
