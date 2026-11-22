@@ -12,22 +12,23 @@ using VContainer;
 using VContainer.Unity;
 
 // Play-mode check of the player side in WorldMap (enter Play first). Gate prompts and toggle with empty hands; picks the
-// hammer up from the yard table; then, keys pressed through a scripted intent source: R repairs a dented gate and a fence
-// segment (looking away stops it), rebuilds a broken one, and E on a whole segment repairs all. Each `shot` step pauses so
+// hammer up from the yard table; then, keys pressed through a scripted intent source: holding the attack button repairs a
+// dented gate and a fence segment (looking away or letting go stops it), rebuilds a broken one, and E on a whole segment
+// repairs all. Each `shot` step pauses so
 // a Game view capture can be taken from outside (step names in the log).
 // Run: unity command script run --file AgentScripts/Defense/DefenseInteractCheck.cs --entry DefenseInteractCheck.Run --timeout 120
 public static class DefenseInteractCheck
 {
-    // Presses keys for one frame each, instead of the devices.
+    // Instead of the devices: the attack button stays held until let go; interact is pressed for one frame.
     sealed class Keys : IPlayerIntentSource
     {
-        public bool Reload;
+        public bool Fire;
         public bool Interact;
 
         public PlayerIntent Read(float deltaTime)
         {
-            var intent = new PlayerIntent { Reload = Reload, Interact = Interact };
-            Reload = Interact = false;
+            var intent = new PlayerIntent { Fire = Fire, Interact = Interact };
+            Interact = false;
             return intent;
         }
     }
@@ -62,7 +63,8 @@ public static class DefenseInteractCheck
             await Seconds(0.9f);
             log.AppendLine($"after E again: open {gate.Gate.IsOpen}");
 
-            BarrierSegment fence = barriers.Segments.Where(s => s.Gate == null)
+            // A standing segment: a new game starts with the front half down to debris (and the herd's bell by the gate).
+            BarrierSegment fence = barriers.Segments.Where(s => s.Gate == null && !s.IsBroken)
                 .OrderBy(s => (s.transform.position - gate.transform.position).sqrMagnitude).Skip(1).First();
             fence.DealDamage(200f);
             FaceFrom(player, fence, 1.6f);
@@ -75,44 +77,59 @@ public static class DefenseInteractCheck
                 return log.AppendLine("no Hammer pickup in the scene").ToString();
             log.AppendLine($"hammer pickup: {(hammer.TryGetPrompt(player.gameObject, out InteractionPrompt pick) ? pick.Verb + " " + pick.Target : "none")}");
             hammer.Interact(player.gameObject);
+            // Tools go to the backpack: put it in the first quick slot and raise it, as the player would.
+            Inventory inventory = player.Equipment.Inventory;
+            int carried = Enumerable.Range(0, inventory.Backpack.Count).First(i => inventory.Backpack[i]?.Definition.name == "Hammer");
+            int quick = Enumerable.Range(0, inventory.Hotbar.Count).First(i => inventory.Hotbar.CanPlace(i, inventory.Backpack[carried]) && inventory.Hotbar[i] == null);
+            inventory.TryMove(inventory.Backpack, carried, inventory.Hotbar, quick, out _);
+            player.Equipment.Select(quick);
             await Seconds(1f);
             log.AppendLine($"holding {player.HeldItem?.name} (tool {((IRepairer)player).HasTool}), slot {player.Equipment.SelectedIndex + 1} of {player.Equipment.Hotbar.Count}");
             player.IntentSource = keys;
 
-            // ---- R on a dented gate ----
+            // ---- holding LMB on a dented gate ----
             gate.DealDamage(260f);
             FaceFrom(player, gate, 1.8f);
             await Seconds(0.5f);
             log.AppendLine($"gate {gate.HealthShare:P0}, hammer: {Prompts(player)}");
             await Pause("shot1-gate-hammer", pauseForShots);
-            keys.Reload = true;
+            keys.Fire = true;
             await Seconds(1.2f);
-            log.AppendLine($"R: busy {((IRepairer)player).IsRepairing}, health {gate.HealthShare:P0}");
+            log.AppendLine($"LMB held: busy {((IRepairer)player).IsRepairing}, health {gate.HealthShare:P0}");
             await Pause("shot2-hammering", pauseForShots);
             await WhileRepairing(player, 12f);
             log.AppendLine($"done: gate {gate.HealthShare:P0}, busy {((IRepairer)player).IsRepairing}");
+            keys.Fire = false;
 
-            // ---- R on a fence segment; looking away stops it ----
+            // ---- holding LMB on a fence segment; letting go stops it, then looking away does ----
             FaceFrom(player, fence, 1.6f);
             await Seconds(0.5f);
             log.AppendLine($"fence {fence.HealthShare:P0}: {Prompts(player)}");
-            keys.Reload = true;
+            keys.Fire = true;
+            await Seconds(1.6f);
+            keys.Fire = false;
+            float released = fence.HealthShare;
+            await Seconds(1f);
+            log.AppendLine($"let go at {released:P0}: stopped {!((IRepairer)player).IsRepairing} at {fence.HealthShare:P0}");
+            keys.Fire = true;
             await Seconds(1.6f);
             float mid = fence.HealthShare;
             Teleport(player, player.transform.position, Quaternion.LookRotation(fence.transform.position - player.transform.position) * Quaternion.Euler(0f, 180f, 0f));
             await Seconds(1.5f);
             log.AppendLine($"looked away: repaired to {mid:P0}, then stopped {!((IRepairer)player).IsRepairing} at {fence.HealthShare:P0}");
+            keys.Fire = false;
 
-            // ---- R rebuilds a broken one (found through its Gap trigger) ----
+            // ---- holding LMB rebuilds a broken one (found through its Gap trigger) ----
             fence.DealDamage(10000f);
             FaceFrom(player, fence, 1.6f);
             await Seconds(0.8f);
             log.AppendLine($"broken {fence.IsBroken}: {Prompts(player)}");
             await Pause("shot3-fence-broken", pauseForShots);
-            keys.Reload = true;
+            keys.Fire = true;
             await Seconds(0.3f);
             await WhileRepairing(player, 15f);
             log.AppendLine($"rebuilt: broken {fence.IsBroken}, health {fence.HealthShare:P0}");
+            keys.Fire = false;
 
             // ---- E on a whole segment repairs all ----
             BarrierSegment[] others = barriers.Segments.Where(s => s.Gate == null && s != fence).Take(4).ToArray();
@@ -139,7 +156,7 @@ public static class DefenseInteractCheck
     {
         PlayerInteractor i = player.Interactor;
         PlayerRepair r = player.Repair;
-        return (r.HasPrompt ? $"R [{r.Prompt.Verb} {r.Prompt.Target}] " : "")
+        return (r.HasPrompt ? $"LMB [{r.Prompt.Verb} {r.Prompt.Target}] " : "")
             + (i.HasPrompt ? $"E [{i.Prompt.Verb} {i.Prompt.Target}]" : "E [none]")
             + (i.HasHoldPrompt ? $" hold E [{i.HoldPrompt.Verb} {i.HoldPrompt.Target}]" : "");
     }

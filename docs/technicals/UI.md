@@ -55,7 +55,7 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
       │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
-      │  ├─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[R] Repair Fence 63%")
+      │  ├─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[LMB] Repair Fence 63%", held)
       │  └─ CollectPrompt    InteractPrompt.prefab, 46 px below: the Collect key ("[C] Collect Tokens" on a farm animal)
       └─ ItemUse           nested Canvas · ItemUseHud: Root (Ring, radial Fill, Label) around the crosshair while a consumable is used
 LootMarkers                  full screen, nested Canvas · LootMarkerHud: Marker (inactive 56 px bag icon + Shadow, cloned 8 times), placed

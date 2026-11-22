@@ -164,9 +164,14 @@ namespace MB13.Aipocalypse.Input
         public string GetInteractKeyLabel() => GetKeyLabel(GameButton.Interact);
 
         // Key name for a button ("R"), follows rebinding. The key only: Interact's Hold interaction would read "Hold E".
+        // Its first keyboard / mouse binding only: Attack also has Enter and would read "LMB | Enter".
         // Allocates: call when it's shown, not per frame.
-        public string GetKeyLabel(GameButton button) =>
-            Action(button).GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup), InputBinding.DisplayStringOptions.DontIncludeInteractions);
+        public string GetKeyLabel(GameButton button)
+        {
+            InputAction action = Action(button);
+            int binding = action.GetBindingIndex(InputBinding.MaskByGroup(KeyboardMouseGroup));
+            return binding >= 0 ? action.GetBindingDisplayString(binding, InputBinding.DisplayStringOptions.DontIncludeInteractions) : string.Empty;
+        }
 
         InputAction Action(GameButton button) => button switch
         {

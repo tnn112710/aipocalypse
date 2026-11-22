@@ -7,7 +7,7 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.UI
 {
     // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it), plus, above it, what the
-    // hammer in hand would repair ("[R] Repair Fence 63%"), and below it what the focus offers to collect ("[C] Collect
+    // hammer in hand would repair while the attack button is held ("[LMB] Repair Fence 63%"), and below it what the focus offers to collect ("[C] Collect
     // Tokens"). Polled: the focus changes as the player looks around.
     public sealed class InteractPromptHud : PlayerHudView
     {
@@ -27,7 +27,7 @@ namespace MB13.Aipocalypse.Core.UI
             if (_toolView != null)
             {
                 _toolView.Hide();
-                _toolView.SetKey(_input?.GetKeyLabel(GameButton.Reload) ?? "R");
+                _toolView.SetKey(_input?.GetKeyLabel(GameButton.Attack) ?? "LMB");
             }
             if (_collectView != null)
             {

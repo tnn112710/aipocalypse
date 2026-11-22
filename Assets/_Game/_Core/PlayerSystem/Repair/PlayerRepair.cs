@@ -4,9 +4,10 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.PlayerSystem
 {
-    // Repair work with the hammer in hand (RepairTool): the reload key on an IRepairable in view starts knocking in a steady
-    // rhythm, one repair per knock, until it's whole. Stops early, finishing the swing, when the player looks away, walks off,
-    // sprints or presses a key (reload or interact again, fire, aim, jump); switching or dropping the hammer stops it at once.
+    // Repair work with the hammer in hand (RepairTool): holding the attack button on an IRepairable in view knocks in a steady
+    // rhythm, one repair per knock, until it's whole. Stops early, finishing the swing, when the button is let go, or the player
+    // looks away, walks off, sprints or presses interact, aim or jump; switching or dropping the hammer stops it at once.
+    // Still holding it, the next damaged one looked at starts at once.
     public sealed class PlayerRepair
     {
         readonly GameObject _actor;
@@ -37,7 +38,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public bool HasTool => Tool != null;
         public bool IsBusy => _target != null;
         public IRepairable Target => _target;
-        // What the reload key would repair now ("[R] Repair Fence 63%").
+        // What holding the attack button would repair now ("[LMB] Repair Fence 63%").
         public bool HasPrompt { get; private set; }
         public InteractionPrompt Prompt { get; private set; }
 
@@ -73,7 +74,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 return;
             HasPrompt = true;
             Prompt = prompt;
-            if (intent.Reload)
+            if (intent.Fire)
                 Start(target, tool);
         }
 
@@ -108,7 +109,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         bool ShouldStop(in PlayerIntent intent, float deltaTime)
         {
-            if (intent.Reload || intent.Interact || intent.FirePressed || intent.Aim || intent.Jump
+            if (!intent.Fire || intent.Interact || intent.Aim || intent.Jump
                 || intent.Sprint && intent.Move.sqrMagnitude > 0.01f)
                 return true;
             Vector3 point = _target.RepairPoint(_actor.transform.position);
