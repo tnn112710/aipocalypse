@@ -21,6 +21,17 @@ MonoBehaviour:
   _turnSpread: 0.5
   _maxTurnSpread: 2
   _turnSmoothing: 0.1
+  _aimWhileFiringLevel: 1
+  _aimWhileFiringLevels:
+  - AimSpeedScale: 0.4
+    RecoilScale: 1.6
+    WobbleScale: 2
+  - AimSpeedScale: 0.6
+    RecoilScale: 1.35
+    WobbleScale: 1.5
+  - AimSpeedScale: 0.8
+    RecoilScale: 1.15
+    WobbleScale: 1.2
   _keepHeldItemClear: 1
   _clearanceMargin: 0.05
   _clearanceRadius: 0.05
@@ -29,7 +40,7 @@ MonoBehaviour:
   _clearanceBlendSpeed: 14
   _clearanceLayers:
     serializedVersion: 2
-    m_Bits: 1083211827
+    m_Bits: 1083220019
   _aimSway:
     Breath: {x: 0.15, y: 0.2}
     BreathRate: 0.28

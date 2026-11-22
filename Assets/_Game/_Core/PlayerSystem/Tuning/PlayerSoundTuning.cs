@@ -26,6 +26,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         SoundID _hurtSound;
         [SerializeField, Min(0f), Tooltip("Seconds before another grunt")] float _hurtSoundCooldown = 0.4f;
 
+        [Header("Whistle"), SerializeField, Tooltip("The player's whistle (the whistle key), heard whether or not something answers")]
+        SoundID _whistleSound;
+
         [Header("Out of breath"), SerializeField, Tooltip("Looped while out of breath (turn Loop on in its entity), louder as stamina drops")]
         SoundID _breathSound;
         [SerializeField, InlineProperty, HideLabel, Tooltip("When it breathes heavily: PlayerVitalsTuning → Out of breath")]
@@ -40,6 +43,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float LandingSoundMinSpeed => _landingSoundMinSpeed;
         public float LandingSoundFullSpeed => _landingSoundFullSpeed;
         public SoundID HurtSound => _hurtSound;
+        public SoundID WhistleSound => _whistleSound;
         public float HurtSoundCooldown => _hurtSoundCooldown;
         public SoundID BreathSound => _breathSound;
         public BreathSoundSettings Breath => _breath;

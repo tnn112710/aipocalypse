@@ -26,5 +26,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public bool Reload;
         // The held gun's light switched on or off this frame.
         public bool GunLight;
+        // The whistle key pressed this frame: calls what the player aims at.
+        public bool Whistle;
     }
 }

@@ -38,6 +38,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _repairLookAwayGrace = 0.4f;
         [Header("Ghost"), SerializeField, Tooltip("How something looked at or being rebuilt shows as it will be (a broken fence standing)")]
         GhostStyle _ghost;
+        [Header("Whistle"), SerializeField, Min(0f), Tooltip("How far the whistle reaches what the player aims at (m)")]
+        float _whistleRange = 50f;
+        [SerializeField, Min(0f), Tooltip("Thickness of the whistle's aim ray (m)")]
+        float _whistleRadius = 0.35f;
+        [SerializeField, Tooltip("Layers the whistle's aim ray hits: whistle targets and anything that blocks the call")]
+        LayerMask _whistleMask = Physics.DefaultRaycastLayers;
+        [SerializeField, Min(0f), Tooltip("Seconds before the next whistle")]
+        float _whistleCooldown = 0.6f;
 
         public float InteractRange => _interactRange;
         public float InteractRadius => _interactRadius;
@@ -55,5 +63,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float RepairLookAngle => _repairLookAngle;
         public float RepairLookAwayGrace => _repairLookAwayGrace;
         public GhostStyle Ghost => _ghost;
+        public float WhistleRange => _whistleRange;
+        public float WhistleRadius => _whistleRadius;
+        public LayerMask WhistleMask => _whistleMask;
+        public float WhistleCooldown => _whistleCooldown;
     }
 }

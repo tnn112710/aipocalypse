@@ -62,6 +62,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         HeldItemSway _heldSway;
         PlayerZoom _zoom;
         PlayerInteractor _interactor;
+        PlayerWhistle _whistle;
         HeldItemClearance _heldClearance;
         PlayerBreathing _breathing;
         PlayerBreathSound _breathSound;
@@ -174,6 +175,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _zoom = new PlayerZoom(_camera, _firstPersonView, controls);
             _aim = new PlayerAim(_equipmentRig, _zoom);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
+            _whistle = new PlayerWhistle(_cameraPitch, gameObject, _tuning.Interaction, audio, _tuning.Sounds.WhistleSound);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);
             if (_visionLight != null && _tuning.Vision != null)
                 Vision = new PlayerVision(_visionLight, _tuning.Vision);
@@ -277,6 +279,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _interactor.Tick(intent.Interact, intent.InteractHold, intent.InteractReleased, intent.Collect);
             else
                 _interactor.Clear();
+            if (canAct)
+                _whistle.Tick(intent.Whistle, Time.time);
             DrawGhost();
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
             if (ShowMovementReadout)
@@ -441,6 +445,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Aim = _input.AimHeld,
             Reload = _input.ReloadPressed,
             GunLight = _input.GunLightPressed,
+            Whistle = _input.WhistlePressed,
         };
 
         // The hotbar slot a pressed key selects (EquipmentConfig), or null.

@@ -86,6 +86,8 @@ namespace MB13.Aipocalypse.Input
         public bool ReloadPressed => WasPressed(GameButton.Reload);
         // Switches the held gun's light (F, d-pad up).
         public bool GunLightPressed => _actions.Player.GunLight.WasPressedThisFrame();
+        // Whistles to call what the player aims at (Q, right stick press).
+        public bool WhistlePressed => _actions.Player.Whistle.WasPressedThisFrame();
 
         // Pressed this frame and not claimed by Consume.
         public bool WasPressed(GameButton button) => _consumedFrame[(int)button] != Time.frameCount && Action(button).WasPressedThisFrame();

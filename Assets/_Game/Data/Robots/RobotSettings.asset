@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dde23b3ca6fede5478683414fe9a74dc, type: 3}
+  m_Name: RobotSettings
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.RobotSystem.RobotSettings
+  Enabled: 1
+  ThinkInterval: 0.2
+  Awake:
+    On: 6
+    Off: 20
+    Fade: 0
+  BaseTemper:
+    StrollChance: 0.25
+    WaveChance: 0.6
+    FlourishChance: 0.05
+    Patience: 1
+  PersonalitySpread: 0.3
+  IdleTime: {x: 4, y: 9}
+  StrollRadius: 4
+  TravelTimeout: 4
+  DestinationAttempts: 8
+  WalkSpeed: 0.62
+  TrotSpeed: 1.3
+  FaceTurnSpeed: 240
+  NoticeRadius: 5
+  GreetHold: 2.5
+  WaveCooldown: 60
+  ArriveDistance: 1.8
+  CallWait: 20
+  LeaveDistance: 8
+  YardMargin: 1.2
+  BumpRadius: 0.9
+  StepAside: 1.5
+  NervousRadius: 6
+  NervousAngle: 6
+  NervousCooldown: 8
+  HitHold: 1.2
+  BlinkInterval: {x: 2.5, y: 6}
+  BlinkTime: 0.15
+  MoodInterval: {x: 6, y: 14}
+  HeadYawLimit: 70
+  HeadPitchLimit: 30
+  HeadTurnSpeed: 6
+  BeepGap: 1.5
+  SharedBeepGap: 0.5
+  Sounds:
+  - key: 0
+    value:
+      _entity: {fileID: 11400000, guid: 94ac1305a2c98234b86ee25b9c2ba99b, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 2
+    value:
+      _entity: {fileID: 11400000, guid: 55425696315178641842073a145c07a9, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 1
+    value:
+      _entity: {fileID: 11400000, guid: 484efd7d81f948b4a8e8d9e907fe75a1, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 7
+    value:
+      _entity: {fileID: 11400000, guid: 7140352ed9076ce44b256cee8026811d, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 3
+    value:
+      _entity: {fileID: 11400000, guid: cfc852d0ca6fc034bbcbffe40cdfe22f, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 5
+    value:
+      _entity: {fileID: 11400000, guid: 4dcb560391340574ba13c20b2ffcf9f4, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 4
+    value:
+      _entity: {fileID: 11400000, guid: a4df05c895cf5b14aa56e2e81ace5a5a, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 6
+    value:
+      _entity: {fileID: 11400000, guid: 5678811578e843549a6594c845104a96, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}

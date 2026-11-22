@@ -1,0 +1,41 @@
+# The service robots' tree (Rob15 and any later model): friendly helpers at home who will open the shop, upgrades and
+# other menus. Job: no fight. Be lively and easy to find: mostly idle at its spot, now and then a short stroll.
+# Aware of: the player (RobotRoster: where they are, where they look, whether they hold a gun), the world clock's waking
+# hours (RobotSettings.Awake). Never of enemies; raiders never target it.
+# Told by the player: E or a look (RobotManager → Robot.Greet), the whistle (Robot.TryWhistle → Robot.Call), walking into
+# it (Robot.RequestStep), shooting it (Robot.TakeDamage → Hit), a gun pointed at its head (Robot.MakeNervous).
+# Then: flinch; step aside; answer a whistle (react, trot to the meeting point inside the yard, wait, shrug, go home);
+# get nervous (face, shake its head; above greeting, so a gun pointed from close by isn't met with a wave);
+# greet (face the player, wave or talk); at night walk to its spot and stand by;
+# otherwise idle at its spot and sometimes stroll within its radius (never into a NoGo box) and back.
+# Warns: beeps for each moment (RobotSettings.Sounds, limited by BeepGap / SharedBeepGap), faces on its screen.
+# Gives up: a call when the wait runs out or the player walks away; a walk when it times out.
+# The aborts (Both) re-check their conditional every think: a hit cuts into everything below it, and so on down.
+# Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
+#        --args '["AgentScripts/Robots/Robot.tree.txt"]'
+# Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
+tree Assets/_Game/Content/Robots/_Shared/Robot.asset
+Repeater "Repeat forever"
+  Selector "Flinch, else step aside, else come, else nervous, else greet, else standby, else home life"
+    Sequence AbortType=Both "Flinch (aborts both ways)"
+      RobotIsHit "Hit?"
+      RobotFlinch "Stand while the hit plays"
+    Sequence AbortType=Both "Step aside (aborts both ways)"
+      RobotIsAskedToStep "Walked into?"
+      RobotStepAside "Trot out of the way"
+    Sequence AbortType=Both "Answer the whistle (aborts both ways)"
+      RobotIsCalled "Whistled?"
+      RobotAnswerCall "Come, wait, shrug"
+    Sequence AbortType=Both "Nervous (aborts both ways)"
+      RobotIsNervous "Gun pointed at it?"
+      RobotNervous "Worried, shake head"
+    Sequence AbortType=Both "Greet (aborts both ways)"
+      RobotIsGreeting "Looked at or E?"
+      RobotGreet "Face, wave or talk"
+    Sequence AbortType=Both "Standby (aborts both ways)"
+      RobotIsNight "Night?"
+      RobotGoToSpot "Walk to its spot"
+      RobotStandby "Stand by"
+    Sequence "Home life"
+      RobotIdle "Idle, look around"
+      RobotStroll "Stroll, or back to its spot"

@@ -237,6 +237,16 @@
                     "priority": 0
                 },
                 {
+                    "name": "Whistle",
+                    "type": "Button",
+                    "id": "215b739b-bc41-4d4e-a86c-e48bdd91ea48",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
                     "name": "Melee",
                     "type": "Button",
                     "id": "578d160d-00ba-42ef-a0a4-8fc63220684f",
@@ -892,6 +902,28 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "GunLight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "59876e52-9f1c-43b2-8570-40f6b4a2a962",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Whistle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b3788974-cd28-468b-bd75-7b071ca768bf",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Whistle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
