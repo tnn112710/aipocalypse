@@ -53,6 +53,7 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       │  ├─ (reticle)        spawned at runtime from CrosshairHud's reticle prefab (Prefabs/Widgets/Reticles, see Crosshair below)
       │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
+      ├─ CommandWheel        nested Canvas · CanvasGroup (alpha 0 until open) · CommandWheel (CommandWheelStyle): Backdrop + Slot0…7 (Label); the dog's orders, driven by CommandWheelPresenter (DOGS.md), built by DogSetup.Hud
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
       │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
       │  ├─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[LMB] Repair Fence 63%", held)

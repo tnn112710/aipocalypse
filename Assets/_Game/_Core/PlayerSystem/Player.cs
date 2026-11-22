@@ -176,7 +176,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _zoom = new PlayerZoom(_camera, _firstPersonView, controls);
             _aim = new PlayerAim(_equipmentRig, _zoom);
             _interactor = new PlayerInteractor(_cameraPitch, gameObject, _tuning.Interaction);
-            _whistle = new PlayerWhistle(_cameraPitch, gameObject, _tuning.Interaction, audio, _tuning.Sounds.WhistleSound);
+            // Optional: scenes without the dog have no whistle fallback.
+            resolver.TryResolve(out IWhistleFallback whistleFallback);
+            _whistle = new PlayerWhistle(_cameraPitch, gameObject, _tuning.Interaction, audio, _tuning.Sounds.WhistleSound, whistleFallback);
             _heldClearance = new HeldItemClearance(_cameraPitch, transform, _tuning.HeldItem, _equipmentRig);
             if (_visionLight != null && _tuning.Vision != null)
                 Vision = new PlayerVision(_visionLight, _tuning.Vision);

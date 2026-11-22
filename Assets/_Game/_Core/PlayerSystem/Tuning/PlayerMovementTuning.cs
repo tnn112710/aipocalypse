@@ -7,7 +7,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
     [CreateAssetMenu(fileName = "PlayerMovementTuning", menuName = "Aipocalypse/Player/Movement Tuning")]
     public sealed class PlayerMovementTuning : ScriptableObject
     {
-        [Header("Movement (m/s)"), SerializeField, Min(0f)] float _walkSpeed = 2.5f;
+        [Header("Movement (m/s)"), SerializeField, Min(0f)] float _walkSpeed = 3f;
         [SerializeField, Min(1f), Tooltip("Sprint speed as a multiple of walking speed")] float _sprintMultiplier = 2f;
         [SerializeField, Range(0f, 1f), Tooltip("Speed share moving 90° off where you look; between forward and here it eases with the angle")]
         float _strafeSpeedMultiplier = 0.75f;

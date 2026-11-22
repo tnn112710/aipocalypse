@@ -397,7 +397,10 @@ _Core/UI/Hud/DogHud  icon + StatBar for toughness, down state
 - **At home:** it sleeps in its dog house, as in Phase 1. When the player sleeps in bed, a following Loki goes home to its house. This replaces "near your bed" from behaviour 20, now that there's a dog house.
 - **Howl:** rarely, at most once a night, a 20% roll between 22:00 and 02:00 while at home, not during a raid.
 
-**Raids at home:** it barks toward the nearest raider or broken barrier, in bursts of 2–3 barks with 8–15 s gaps. When Active it fights raiders by the Phase 2 rules.
+**Raids at home** (user, 2026-11-23):
+- It barks toward the nearest raider or broken barrier, in bursts of 2–3 barks with 8–15 s gaps.
+- **Active:** it attacks raiders that get **inside the yard**, whether they know about the player or not, using bite and run and the Phase 2 rules. Raiders outside the fence only get barked at.
+- **Passive:** it only barks. It keeps away from raiders: it runs away from any raider within 6 m, to the side of the yard away from them, or into its dog house or the house. It never bites, so no raider ever has a reason to retaliate.
 
 ### Voice (bark budget)
 

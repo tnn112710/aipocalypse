@@ -333,7 +333,7 @@ public static class RobotPlayCheck
             return $"{path.CompleteState} end y {end.y:0.00} ({Flat(end - pip.Spot.Center):0.0} m from the spot)";
         }
         string walker = Path(MB13.Aipocalypse.Core.EnemySystem.NavTags.Walkers);
-        string robot = Path(MB13.Aipocalypse.Core.EnemySystem.NavTags.All);
+        string robot = Path(MB13.Aipocalypse.Core.EnemySystem.NavTags.Robots);
         bool ok = inside != null && inside.Tag == MB13.Aipocalypse.Core.EnemySystem.NavTags.RobotsOnly;
         return $"{(ok ? "PASS" : "FAIL")} interior tag {inside?.Tag}; walker path {walker}; robot path {robot}";
     }

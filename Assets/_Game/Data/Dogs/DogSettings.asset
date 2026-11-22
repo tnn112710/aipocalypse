@@ -1,0 +1,157 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffae4029807b0bd40b71d56c211c9876, type: 3}
+  m_Name: DogSettings
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogSettings
+  Enabled: 1
+  Name:
+    m_TableReference:
+      m_TableCollectionName: GUID:a787c9192f382f94ab219163507f97ef
+    m_TableEntryReference:
+      m_KeyId: 3635991639314432
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  OrdersVerb:
+    m_TableReference:
+      m_TableCollectionName: GUID:2a08767527ddaff4d9c1c41c86a721de
+    m_TableEntryReference:
+      m_KeyId: 3635984655798272
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  PetVerb:
+    m_TableReference:
+      m_TableCollectionName: GUID:2a08767527ddaff4d9c1c41c86a721de
+    m_TableEntryReference:
+      m_KeyId: 3635984689352704
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  CallVerb:
+    m_TableReference:
+      m_TableCollectionName: GUID:2a08767527ddaff4d9c1c41c86a721de
+    m_TableEntryReference:
+      m_KeyId: 3635984689352705
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  FollowLabel:
+    m_TableReference:
+      m_TableCollectionName: GUID:348f92dd2ecab5043acd67861ce36851
+    m_TableEntryReference:
+      m_KeyId: 3638869116407808
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  StayLabel:
+    m_TableReference:
+      m_TableCollectionName: GUID:348f92dd2ecab5043acd67861ce36851
+    m_TableEntryReference:
+      m_KeyId: 3638869116407809
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  PetLabel:
+    m_TableReference:
+      m_TableCollectionName: GUID:348f92dd2ecab5043acd67861ce36851
+    m_TableEntryReference:
+      m_KeyId: 3638869116407810
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  Icon: {fileID: 21300000, guid: c9e92ad87476f45238db528b4f9c0c70, type: 3}
+  ThinkInterval: 0.1
+  Awake:
+    On: 6
+    Off: 20
+    Fade: 0
+  WalkSpeed: 0.9
+  TrotSpeed: 1.8
+  CanterSpeed: 3.8
+  SprintSpeed: 7.5
+  InnerRadius: 3
+  OuterRadius: 8
+  SprintRadius: 15
+  CatchUpRadius: 40
+  NoPathTime: 3
+  ReappearMin: 10
+  ReappearMax: 15
+  ReactionDelay: {x: 0.3, y: 0.8}
+  SteadyTime: 2
+  Lead: {x: 4, y: 7}
+  SideSwap: {x: 20, y: 40}
+  AimCone: 12
+  AimClearance: 2
+  SniffRadius: 6
+  SitAfter: {x: 3, y: 6}
+  LieAfter: {x: 15, y: 25}
+  NapAfter: 60
+  CheckIn: {x: 30, y: 60}
+  CheckInDistance: 1.5
+  SwimDepth: 0.45
+  LookRange: 10
+  LookTime: 1
+  HeadTiltGap: 20
+  HearWhistleRange: 60
+  SpamWhistles: 4
+  SpamWindow: 5
+  AnnoyedTime: 6
+  StayRadius: 4
+  StayGoHomeDistance: 150
+  WheelTimeScale: 0.3
+  VoiceGap: 1.2
+  BarkGap: 6
+  BarkPerMinute: 3
+  WhineGap: 8
+  YelpGap: 1
+  Sounds:
+  - key: 0
+    value:
+      _entity: {fileID: 11400000, guid: 96e51d83adbe52e41a334221095ed721, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 1
+    value:
+      _entity: {fileID: 11400000, guid: dc16640043f3c1f4ba66fd2cead2bea1, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 2
+    value:
+      _entity: {fileID: 11400000, guid: 060cef20f89f7b642bde2825e161231a, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 3
+    value:
+      _entity: {fileID: 11400000, guid: 3394f62d3b041034894711e4e8161795, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 4
+    value:
+      _entity: {fileID: 11400000, guid: 48212b523ca9d6d4d9ba22a23c660bca, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 5
+    value:
+      _entity: {fileID: 11400000, guid: 311cf2afdf5d22243b0ad90d8092a036, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

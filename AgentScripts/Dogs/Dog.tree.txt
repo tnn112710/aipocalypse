@@ -1,0 +1,42 @@
+# The dog's tree (Loki, a Border Collie): a companion that follows the player like a dog, not a robot on a leash.
+# Job (Phase 1): keep the player company, be lively. No fighting yet (Phase 2 adds it above "Following").
+# Aware of: the player (DogRoster: where they are, look, how fast, how long they've stood still; DogManager plans where a
+# following dog wants to be into Dog.Plan), the world clock's waking hours (DogSettings.Awake), the yard and its dog house.
+# Told by the player: the command wheel (tap E: Follow, Stay, Pet), hold E (pet), the whistle (aimed at it, or a plain
+# whistle within 60 m: come), shots (a yelp and a flinch, set by Dog itself), looking at it (a head tilt, by DogManager).
+# Then: come to heel when whistled (annoyed by spam: a head shake, it walks over); be petted (happy, a roll, then sit);
+# told to stay: a little sad (whine, sit, lie down watching the player go); fallen far behind: appear near the player out
+# of sight; follow (DogFollowPlayer: return, scout ahead, run alongside, clear the aim; inside the comfort zone sniff, dig,
+# mark, look round, check in, settle while the player stands still); stay out in the world (sit, lie, nap, sniff about,
+# back to the spot; DogManager sends it home at night or when the player is far away); at home at night sleep in its dog
+# house; otherwise home life (stroll, sniff, visit spots, sit, nap in the doorway, zoomies).
+# Warns: barks, whines, pants (DogVoice keeps it rare).
+# Aborts: Both re-checks the conditional every think, so a whistle or a pet cuts into anything below.
+# Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
+#        --args '["AgentScripts/Dogs/Dog.tree.txt"]'
+# Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
+tree Assets/_Game/Content/Dogs/_Shared/Dog.asset
+Repeater "Repeat forever"
+  Selector "Come, petted, sad, catch up, follow, stay out, sleep at home, else home life"
+    Sequence AbortType=Both "Come to heel (aborts both ways)"
+      DogIsCalled "Whistled?"
+      DogComeToHeel "Run over, sit by the player"
+    Sequence AbortType=Both "Petted (aborts both ways)"
+      DogIsPetted "Petted?"
+      DogBePetted "Happy, then sit"
+    Sequence AbortType=Both "Told to stay (aborts both ways)"
+      DogIsSad "Just told to stay?"
+      DogSadStay "Whine, sit, lie down watching"
+    Sequence AbortType=Both "Catch up (aborts both ways)"
+      DogMustCatchUp "Far behind or cut off?"
+      DogCatchUp "Appear near the player out of sight"
+    Sequence AbortType=Both "Follow (aborts both ways)"
+      DogIsFollowing "Following?"
+      DogFollowPlayer "Return, scout, alongside, or dog things"
+    Sequence AbortType=Both "Stay out in the world (aborts both ways)"
+      DogIsStayingOut "Told to stay outside the yard?"
+      DogStayHere "Wait by the spot"
+    Sequence AbortType=Both "Sleep at home (aborts both ways)"
+      DogIsNight "Night?"
+      DogSleepInHouse "Into its dog house, asleep"
+    DogHomeLife "Stroll, sniff, visit, sit, nap, zoomies"

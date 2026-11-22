@@ -138,6 +138,22 @@ Assets/_Game/
 │  │  ├─ LanguageSettings.cs                [Serializable] on ProjectLifetimeScope: Offered locale codes (only "en" for now; vi / fr keep their text but are hidden)
 │  │  ├─ LanguageCommands.cs                console: lang.list, lang.set <code>, lang.next
 │  │  └─ LocalizationInstaller.cs           registers LanguageSettings, LanguageService (+ LanguageCommands in dev builds)
+│  ├─ DogSystem/                             MB13.Aipocalypse.Core.DogSystem — the companion dog Loki, see DOGS.md
+│  │  ├─ DogInstaller.cs                    SceneInstaller (_settings, _house, _yard, _visits; dogs collected on save / Play, injected): DogRoster, CommandWheelPresenter, DogManager (AsSelf, IWhistleFallback), DogSaveSection (+ DogCommands); needs EnemyInstaller and WorldTimeInstaller
+│  │  ├─ DogManager.cs                      ITickable + IWhistleFallback: night, the player into the roster, follow plans, swim, head tilt, wheel slices, whistles, sounds, home after death / sleep
+│  │  ├─ Dog.cs                             the entity bridge: IInteractable (wheel), IHoldInteractable (pet), IWhistleTarget, INameTagged, IDamageable (flinch only); animator; model offset into its house; swim float
+│  │  ├─ DogState.cs                        plain C#: order (sad after Stay), call, whistle spam, pet, head tilt, settle pose (DogStateTests)
+│  │  ├─ DogFollow.cs                       plain C#: FollowInput → FollowPlan (comfort zone, reaction delay, scout, side, aim cone, catch up, separated) (DogFollowTests)
+│  │  ├─ DogVoice.cs                        plain C#: the noise budget (DogStateTests)
+│  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
+│  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (come, petted, sad stay, catch up, follow, stay here, sleep in house, home life)
+│  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits
+│  │  ├─ DogHouse.cs, DogLinkInfo.cs        the dog house (door, bed); an off-mesh link's obstacle height and Via point
+│  │  ├─ DogRoster.cs                       scene service: the dog, house, yard, visits, night, the player
+│  │  ├─ DogSettings.cs, DogEnums.cs        tuning SO (Data/Dogs/DogSettings); DogOrder, DogStance, DogGait, DogPose, DogAct, DogSound, DogWhistle
+│  │  ├─ DogSaveSection.cs                  save "dog": order, position, facing, in yard, stay point
+│  │  ├─ DogCommands.cs                     console: dog.come, dog.order follow|stay, dog.where
+│  │  └─ Links/DogJump.cs                   own asmdef MB13.Aipocalypse.DogLinks: the dog's IOffMeshLinkHandler (hop, scramble, climb up, drop down)
 │  ├─ DefenseSystem/                         MB13.Aipocalypse.Core.DefenseSystem — fences and gates, DEFENSE.md
 │  │  ├─ DefenseInstaller.cs                SceneInstaller: BarrierRegistry, DefenseSaveSection, RepairHighlight (when it has a RepairHighlightStyle) (+ DefenseCommands in dev builds); injects the scene's BarrierSegments (collected on save / Play)
 │  │  ├─ DefenseSaveSection.cs            SaveSection "defense": each segment / gate by its SaveId: health, broken, gate open (upgrade tiers not saved)
@@ -482,6 +498,7 @@ Assets/_Game/
 │  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
 │  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point (+ TimeCommands in dev builds)
 │  ├─ UI/                                   MB13.Aipocalypse.Core.UI — rules and how-tos in UI.md
+│  │  ├─ Wheel/                             the command wheel: CommandWheelPresenter (ITickable: TryOpen / Pick / Close, time 0.3, UI input, closes on PlayerDied / RaidStarted), CommandWheel (view), WheelSlice, WheelMath, CommandWheelStyle (Data/UI)
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail, optional shape mask
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar; ShapeSprite clips the bar to an outline through the Bar's Mask
 │  │  ├─ Widgets/ShrinkToFit.cs             scales a stretched full-screen layout of fixed-size panels down on canvases shorter or narrower than 1920×1080 (21:9, 16:10), Play only
@@ -769,7 +786,11 @@ Assets/_Game/
    ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet; a hole sticks to the moving target it hit; a round between tracers still hits; tracer gap stays within TracerEvery; a magazine's last rounds are traced; far tracer width scale, less when zoomed
    ├─ StatModifierTests.cs                  StatModifiers: add then multiply across sources, Set replaces, Remove by source, Changed, Restore; PlayerEffects buffs stack on top
    ├─ AnimalTests.cs                        AnimalEarnings (day rate, cap, whole-Token collection, waking hours across nights and past midnight), HerdOrders (release, bell, version), the coin arc, animal prefab wiring (six prefabs, flee > hurry > walk), the HUD's [C] collect line
-   ├─ RobotTests.cs                         Whistle input on Q; PlayerWhistle (range 50 m, walls, heard through walls near the aim, cooldown, own body); RobotCall (meeting point, re-aim, leave rule, travel timeout), RobotBeeps, RobotCooldown, RobotPersonality, YardMath; a hit applies nothing and publishes nothing; RobotSpot; face set, settings sounds, services; robot prefabs and tree wiring (legs, animated off screen), tints; whistle prompt
+   ├─ DogTests.cs                           Loki prefab (no Malbers, no root motion), settings sounds, friendly fire applies nothing, DogJumpArc
+   ├─ DogStateTests.cs                      DogState (whistle spam, pet, head tilt, settle, call, sad stay, save round trip), DogVoice
+   ├─ DogFollowTests.cs                     DogFollow (zone, reaction delay, sprint, catch up, scout, turning, alongside, aim cone, side swap, keep up, separated)
+   ├─ WheelTests.cs                         WheelMath slices; CommandWheelPresenter gives time and input back on every close; disabled slices; not over another menu
+   ├─ RobotTests.cs                         Whistle input on Q; PlayerWhistle (range 50 m, walls, heard through walls near the aim, the dog fallback (no prompt), cooldown, own body); RobotCall (meeting point, re-aim, leave rule, travel timeout), RobotBeeps, RobotCooldown, RobotPersonality, YardMath; a hit applies nothing and publishes nothing; RobotSpot; face set, settings sounds, services; robot prefabs and tree wiring (legs, animated off screen), tints; whistle prompt
    ├─ RobotStateTests.cs                    RobotState (flinch, knockdown, sulk, pat, greet, night wake, step expiry, cheer, whistle spam, see off, chat), RobotManager.CheerFor, RobotHomecoming, NavTags, RobotCall.BegunAt
    ├─ SleepTests.cs                         SleepRules.Window: whole hours, never past a raid that hasn't run, refusals (raid running / coming / too close), after tonight's raid, DefaultWake
    └─ TestConsumableDefinition.cs           quick-use stackable ItemDefinition for EquipmentTests
@@ -801,6 +822,7 @@ GameLifetimeScope (scene) ── installs each SceneInstaller component on it:
    AnimalInstaller      → AnimalSettings, AnimalHerd, AnimalManager (WorldClock, PlayerRegistry, AudioService, ISubscriber<ShotFired>), AnimalSaveSection (+ AnimalCommands); injects the scene's Animals
                           (Construct: AnimalHerd, AnimalManager, AstarPath, AudioService; TryResolve GrassBendField), PenGates and AnimalBells; needs EnemyInstaller (AstarPath) + WorldTimeInstaller
    RobotInstaller       → RobotSettings, RobotRoster, RobotManager (WorldClock, PlayerRegistry, AudioService) (+ RobotCommands); injects the scene's Robots
+   DogInstaller         → DogSettings, DogRoster, CommandWheelPresenter, DogManager (+ IWhistleFallback), DogSaveSection (+ DogCommands); injects the scene's Dog
                           (Construct: RobotRoster, RobotManager, IPublisher<RobotServiceRequested>; RobotGroundLegs: AstarPath); needs EnemyInstaller (AstarPath) + WorldTimeInstaller
    (scene ConsoleCommands add themselves to the root CommandRegistry on Initialize and leave on Dispose)
    EnvironmentDirector ticks its reactors (scene list collected in the editor; injected spawns Register themselves)

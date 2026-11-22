@@ -313,6 +313,17 @@ namespace MB13.Aipocalypse.Tests
             Assert.IsTrue(NavTags.Allows(NavTags.All, NavTags.RobotsOnly));
         }
 
+        // Enemies and animals walk NavTags.Walkers (EnemyMover's default); robots NavTags.Robots; only the dog walks All.
+        [Test]
+        public void NavTags_DogOnlyIsOffForWalkersRobotsAndAnimals()
+        {
+            Assert.IsFalse(NavTags.Allows(NavTags.Walkers, NavTags.DogOnly));
+            Assert.IsFalse(NavTags.Allows(NavTags.Robots, NavTags.DogOnly));
+            Assert.IsTrue(NavTags.Allows(NavTags.Robots, NavTags.RobotsOnly));
+            Assert.IsTrue(NavTags.Allows(NavTags.Robots, 0));
+            Assert.IsTrue(NavTags.Allows(NavTags.All, NavTags.DogOnly));
+        }
+
         [Test]
         public void Call_SecondWhistleKeepsWhenItWasCalled()
         {

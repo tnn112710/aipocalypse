@@ -23,7 +23,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         public bool Settled => Mover.Settled;
 
         public void Begin(RobotSettings settings) =>
-            Mover.Initialize(_navigation, settings.WalkSpeed, StopDistance, holdGround: true, traversableTags: NavTags.All);
+            Mover.Initialize(_navigation, settings.WalkSpeed, StopDistance, holdGround: true, traversableTags: NavTags.Robots);
 
         public void SetSpeed(float speed) => Mover.SetSpeed(speed);
         public void MoveTo(Vector3 destination, float timeout) => Mover.MoveTo(destination, timeout);

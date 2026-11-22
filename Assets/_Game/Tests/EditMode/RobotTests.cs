@@ -1,6 +1,7 @@
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.RobotSystem;
 using MessagePipe;
@@ -70,6 +71,71 @@ namespace MB13.Aipocalypse.Tests
             scene.Wall(10f);
 
             Assert.AreSame(target, scene.Whistle.Tick(true, 0f), "3 degrees off the aim, behind a wall");
+        }
+
+        [Test]
+        public void Whistle_FallsBackToTheDogWhenNoRobotAnswers()
+        {
+            var dog = new GameObject("Dog").AddComponent<WhistleTargetStub>();
+            using var scene = new WhistleScene(new FallbackStub(dog));
+            scene.Track(dog.gameObject);
+
+            Assert.AreSame(dog, scene.Whistle.Tick(true, 0f), "nothing under the aim or heard: the dog");
+        }
+
+        [Test]
+        public void Whistle_FallbackShowsNoPrompt()
+        {
+            var dog = new GameObject("Dog").AddComponent<WhistleTargetStub>();
+            using var scene = new WhistleScene(new FallbackStub(dog));
+            scene.Track(dog.gameObject);
+
+            scene.Whistle.Tick(false, 0f);
+            Assert.AreSame(dog, scene.Whistle.Target);
+            Assert.IsFalse(scene.Whistle.HasPrompt, "no permanent [Q] prompt for a dog that isn't aimed at");
+        }
+
+        [Test]
+        public void Whistle_RobotUnderAimWinsOverDog()
+        {
+            var dog = new GameObject("Dog").AddComponent<WhistleTargetStub>();
+            using var scene = new WhistleScene(new FallbackStub(dog));
+            scene.Track(dog.gameObject);
+            WhistleTargetStub robot = scene.Target(10f);
+
+            Assert.AreSame(robot, scene.Whistle.Tick(true, 0f));
+            Assert.AreEqual(0, dog.Calls);
+        }
+
+        [Test]
+        public void Whistle_HeardRobotWinsOverDog()
+        {
+            var dog = new GameObject("Dog").AddComponent<WhistleTargetStub>();
+            using var scene = new WhistleScene(new FallbackStub(dog));
+            scene.Track(dog.gameObject);
+            WhistleTargetStub robot = scene.Target(30f, new Vector3(1.5f, 0f, 0f));
+            robot.gameObject.layer = HeardLayer;
+            scene.Hear(1 << HeardLayer, 10f);
+            scene.Wall(10f);
+
+            Assert.AreSame(robot, scene.Whistle.Tick(true, 0f));
+        }
+
+        [Test]
+        public void Whistle_HeardSkipsNonWhistleColliders()
+        {
+            using var scene = new WhistleScene();
+            WhistleTargetStub robot = scene.Target(30f, new Vector3(1.5f, 0f, 0f));
+            robot.gameObject.layer = HeardLayer;
+            GameObject animal = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            scene.Track(animal);
+            animal.layer = HeardLayer;
+            animal.transform.position = new Vector3(0.3f, 0f, 30f);
+            Physics.SyncTransforms();
+            scene.Hear(1 << HeardLayer, 10f);
+            scene.Wall(10f);
+
+            Assert.AreSame(robot, scene.Whistle.Tick(true, 0f), "the closer-to-aim collider has no IWhistleTarget");
         }
 
         [Test]
@@ -568,6 +634,19 @@ namespace MB13.Aipocalypse.Tests
         const int HeardLayer = 13;
 
         // An eye at the origin looking along +Z, the whistler's body around it, and whatever a test places in front.
+        sealed class FallbackStub : IWhistleFallback
+        {
+            readonly IWhistleTarget _target;
+
+            public FallbackStub(IWhistleTarget target) => _target = target;
+
+            public bool TryAnswer(GameObject actor, Vector3 eye, Vector3 aim, out IWhistleTarget target)
+            {
+                target = _target;
+                return target != null;
+            }
+        }
+
         sealed class WhistleScene : System.IDisposable
         {
             readonly System.Collections.Generic.List<Object> _made = new();
@@ -576,14 +655,16 @@ namespace MB13.Aipocalypse.Tests
             public GameObject Actor { get; }
             public PlayerWhistle Whistle { get; }
 
-            public WhistleScene()
+            public WhistleScene(IWhistleFallback fallback = null)
             {
                 Actor = Make("Whistler");
                 var eye = Make("Eye");
                 eye.transform.SetParent(Actor.transform, false);
-                Whistle = new PlayerWhistle(eye.transform, Actor, _tuning, null, default);
+                Whistle = new PlayerWhistle(eye.transform, Actor, _tuning, null, default, fallback);
                 _made.Add(_tuning);
             }
+
+            public void Track(Object made) => _made.Add(made);
 
             public WhistleTargetStub Target(float distance, Vector3 offset = default)
             {

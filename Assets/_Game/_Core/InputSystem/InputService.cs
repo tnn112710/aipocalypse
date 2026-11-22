@@ -141,6 +141,12 @@ namespace MB13.Aipocalypse.Input
         // gameplay ones (the Player map is off, but its actions still resolve their keys), so they follow the same bindings.
         public bool UiDropPressed => _actions.UI.enabled && KeyPressed(_actions.Player.Drop);
         public bool UiLockPressed => _actions.UI.Lock.WasPressedThisFrame();
+        // Radial menus (the command wheel): right click closes; the gameplay Interact key (E) closes too.
+        public bool UiRightClickPressed => _actions.UI.RightClick.WasPressedThisFrame();
+        public bool UiInteractKeyPressed => _actions.UI.enabled && KeyPressed(_actions.Player.Interact);
+        // Pointer position (screen pixels) and the navigate stick, while the UI map is on.
+        public Vector2 UiPoint => _actions.UI.Point.ReadValue<Vector2>();
+        public Vector2 UiNavigate => _actions.UI.Navigate.ReadValue<Vector2>();
 
         public HotbarKey? UiHotbarKeyPressed
         {

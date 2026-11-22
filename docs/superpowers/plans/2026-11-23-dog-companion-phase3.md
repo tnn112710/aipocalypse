@@ -33,9 +33,10 @@
 
 - **Optional links:** `AnimalSystem` and `RobotSystem` are optional to `DogSystem`. With either installer missing, the matching behaviours simply never run, and the Herding slice is hidden without a herd.
 
-## Open before starting (user)
+## Raids at home (user, 2026-11-23)
 
-- **Raids at home:** which raiders does an Active Loki fight? Under the Phase 2 rule (only enemies aware of the player within 15 m of the player), it would almost never fight raiders heading for the yard. Proposed: an Active Loki at home also engages raiders inside the yard or within 10 m of the fence. The retaliation, knock-down and self-rise rules stay as they are, so a raid never becomes "protect the dog". Waiting for the user's answer; Task 4 follows it.
+- **Active:** Loki attacks raiders that get inside the yard (`RobotYard.Contains`), aware of the player or not. Raiders outside the fence only get barked at.
+- **Passive:** Loki only barks, and runs away from any raider within 6 m: to the side of the yard away from them, or into its dog house or the house. It never bites.
 
 ## Review Focus
 
@@ -114,10 +115,12 @@
 **Files:**
 - Modify: `DogManager`:
   - on `RaidStarted` while Loki is home or Staying in the yard, raid barking: it faces the nearest raider or broken barrier, in bursts of 2–3 with 8–15 s gaps;
-  - engagement per the user's answer to "Open before starting". If the proposal is accepted, `DogCombat.PickTarget` gains a `homeDefence` input: raiders inside the yard or within 10 m of the fence count as engageable when Active.
+  - **Active:** `DogCombat.PickTarget` gains a `Yard` input; raiders inside the yard count as engageable, aware of the player or not.
+  - **Passive:** a new `DogAvoid` action runs away from any raider within 6 m, to the yard point farthest from the raiders, or into the dog house or the house; it never bites.
 - Test:
   - `DogStateTests.RaidBark_BurstsWithGaps`
-  - `DogCombatTests.HomeDefence_EngagesRaidersNearTheYardOnlyWhenActive`, if accepted.
+  - `DogCombatTests.HomeDefence_ActiveEngagesRaidersInsideTheYardOnly`
+  - `DogCombatTests.HomeDefence_PassiveNeverPicksAndFleesWithinSixMetres`
 
 - [ ] **Step 1:** Write the failing tests.
 - [ ] **Step 2:** Implement.
@@ -136,7 +139,8 @@
   | `SheepChase` | `dog.chase` cheat → the sheep flee, Loki comes back happy |
   | `Howl` | `dog.howl` cheat path, plus a roll check at 23:00 |
   | `RaidBark` | a raid starts → barks in bursts |
-  | `RaidDefence` | if accepted: a raider in the yard → an Active Loki engages |
+  | `RaidDefence` | a raider in the yard → an Active Loki engages; one outside the fence → barked at only |
+  | `RaidPassive` | Passive, a raider within 6 m → Loki runs away and never bites |
 
   Add the `dog.chase` and `dog.howl` cheats to `DogCommands` and CONSOLE.md.
 - Modify: `DOGS.md` (Phase 3), `ANIMALS.md` (the dog herds through `HerdOrders.Call` / `Hurry` / `Startle`), `ROBOTS.md` (`TryGreetVisitor`), `CODE_STRUCTURE.md`.

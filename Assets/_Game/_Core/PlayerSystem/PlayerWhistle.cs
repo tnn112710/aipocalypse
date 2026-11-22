@@ -7,7 +7,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // The whistle key: each frame finds the IWhistleTarget the player aims at within WhistleRange for the "[Q] Call" prompt
     // (a wall in the way takes the aim, except for targets on WhistleHeardMask near the aim: a whistle carries through
-    // walls); a press whistles (always, after a short cooldown) and calls it.
+    // walls; with neither, the optional fallback answers: the dog); a press whistles (always, after a short cooldown) and
+    // calls it.
     public sealed class PlayerWhistle
     {
         // Seconds between aim casts for the prompt (a 50 m sphere cast); a press always casts afresh.
@@ -18,13 +19,18 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly PlayerInteractionTuning _tuning;
         readonly AudioService _audio;
         readonly SoundID _sound;
+        readonly IWhistleFallback _fallback;
         readonly RaycastHit[] _hits = new RaycastHit[32];
         readonly Collider[] _heard = new Collider[16];
         float _readyAt = float.NegativeInfinity;
+        // The target came from the fallback (nothing aimed at or heard): it answers, but shows no prompt.
+        bool _fallbackTarget;
         float _nextAim = float.NegativeInfinity;
 
-        public PlayerWhistle(Transform eye, GameObject actor, PlayerInteractionTuning tuning, AudioService audio, SoundID sound)
+        public PlayerWhistle(Transform eye, GameObject actor, PlayerInteractionTuning tuning, AudioService audio, SoundID sound,
+            IWhistleFallback fallback = null)
         {
+            _fallback = fallback;
             _eye = eye;
             _actor = actor;
             _tuning = tuning;
@@ -47,7 +53,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 Target = FindTarget();
             }
             InteractionPrompt prompt = default;
-            HasPrompt = Target != null && Target.TryGetWhistlePrompt(_actor, out prompt);
+            HasPrompt = Target != null && !_fallbackTarget && Target.TryGetWhistlePrompt(_actor, out prompt);
             Prompt = prompt;
             if (!whistles)
                 return null;
@@ -66,13 +72,18 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         IWhistleTarget FindTarget()
         {
+            _fallbackTarget = false;
             Vector3 eye = _eye.position;
             Vector3 aim = _eye.forward;
             int count = Physics.SphereCastNonAlloc(new Ray(eye, aim), _tuning.WhistleRadius, _hits, _tuning.WhistleRange, _tuning.WhistleMask, QueryTriggerInteraction.Ignore);
             if (PhysicsQueries.Nearest(_hits, count, _actor.transform, out RaycastHit nearest)
                 && nearest.collider.GetComponentInParent<IWhistleTarget>() is { } aimed)
                 return aimed;
-            return Heard(eye, aim);
+            if (Heard(eye, aim) is { } heard)
+                return heard;
+            IWhistleTarget answer = null;
+            _fallbackTarget = _fallback != null && _fallback.TryAnswer(_actor, eye, aim, out answer);
+            return _fallbackTarget ? answer : null;
         }
 
         // Nothing callable under the aim (a wall, a near miss): the heard target nearest the aim, within WhistleHeardAngle.
