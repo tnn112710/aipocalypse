@@ -101,10 +101,14 @@ inventory.backpack_not_empty,2881891840054,Empty the backpack's extra slots firs
 tooltip.uses,2881891840055,Uses {0}/{1},Lượt dùng {0}/{1},Utilisations {0}/{1},"{0} = uses left, {1} = max"
 tooltip.value,2881891840056,Value {0:N0},Giá trị {0:N0},Valeur {0:N0},{0} = value in Tokens
 inventory.part_no_fit,371587535687680,Doesn't fit this gun,Không lắp vừa súng này,Ne va pas sur cette arme,Refusal: a gun part dropped on a gun it doesn't fit
-inventory.part_pick_gun,371587565047808,Click a gun to fit parts to it,Bấm vào một khẩu súng để lắp phụ kiện,Clique sur une arme pour y monter des pièces,Refusal: right-click on a gun part while no gun is inspected
+inventory.part_pick_gun,371587565047808,Click a gun to fit parts to it,Bấm vào một khẩu súng để lắp phụ kiện,Clique sur une arme pour y monter des pièces,Refusal: double-click on a gun part while no gun is inspected
 inventory.slot_gun,3466810428051456,Slot {0} takes a gun,Ô {0} chỉ chứa súng,La case {0} prend une arme à feu,Refusal above the hotbar: something else dropped on a gun slot; {0} = its key
 inventory.slot_melee,3466810486771712,Slot {0} takes a melee weapon,Ô {0} chỉ chứa vũ khí cận chiến,La case {0} prend une arme de mêlée,Refusal above the hotbar: something else dropped on the melee slot; {0} = its key
 inventory.slot_items,3466810486771713,Slot {0} takes usable items and tools,Ô {0} chỉ chứa vật phẩm dùng được và dụng cụ,La case {0} prend des objets utilisables et des outils,Refusal above the hotbar: a weapon (or other item) dropped on a quick slot; {0} = its key
+inventory.menu_use,3479115672932352,Use,Dùng,Utiliser,Item menu (right-click in the inventory): use a consumable
+inventory.menu_drop,3479115677126656,Drop,Vứt,Jeter,Item menu: throw the item on the ground
+inventory.menu_lock,3479115677126657,Lock,Khóa,Verrouiller,Item menu: a locked item can't be dropped
+inventory.menu_unlock,3479115677126658,Unlock,Mở khóa,Déverrouiller,Item menu: undo Lock
 inspector.hint,371587565047809,Click an item to inspect it,Bấm vào một món đồ để xem,Clique sur un objet pour l'inspecter,Inventory inspector with nothing selected
 inspector.info,371587565047810,{0}   |   {1:0.##} kg   |   {2:N0} Tokens,{0}   |   {1:0.##} kg   |   {2:N0} xu,{0}   |   {1:0.##} kg   |   {2:N0} jetons,"Inspector line under the item name; .NET format: {0} = rarity, {1} = weight, {2} = value"
 inspector.turn,371587565047811,"Drag to turn, scroll to zoom","Kéo để xoay, cuộn để phóng to","Glisse pour tourner, molette pour zoomer",Hint under the inspector's 3D view

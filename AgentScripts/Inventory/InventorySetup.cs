@@ -41,6 +41,8 @@ public static class InventorySetup
     const string StylePath = "Assets/_Game/Data/UI/InventoryStyle.asset";
     const string HotbarStylePath = "Assets/_Game/Data/UI/HotbarSlotStyle.asset";
     const string SlotPrefabPath = "Assets/_Game/_Core/UI/Prefabs/Widgets/ItemSlot.prefab";
+    const string HotbarSlotPath = "Assets/_Game/_Core/UI/Prefabs/Widgets/HotbarSlot.prefab";
+    const string LockIconPath = "Assets/_StoreAssets/UI/Layer Lab/GUI Pro-SurvivalClean/ResourcesData/Sprites/Components/Icon_PictoIcons(x2)/128/Icon_Lock.Png";
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
     const string FontPath = "Assets/_Game/Data/UI/Fonts/SairaBold.asset";
     const string Icons = "Assets/Synty/InterfaceApocalypseHUD/Sprites/";
@@ -849,6 +851,7 @@ public static class InventorySetup
             // Under the hover highlight: the item's rarity colour (hidden when empty).
             Image rarity = Img("RarityBorder", rect, Stretch(-1f));
             Image highlight = Img("Highlight", rect, Stretch(-2f));
+            Image locked = LockIcon(rect, new Vector2(1f, 0f), new Vector2(-4f, 22f), 16f);
             TMP_Text caption = Label("Caption", rect, font, 15f, TextAlignmentOptions.Top);
             Place(caption.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, -2f), new Vector2(20f, 22f));
 
@@ -866,6 +869,7 @@ public static class InventorySetup
             so.FindProperty("_caption").objectReferenceValue = caption;
             so.FindProperty("_hidden").objectReferenceValue = hidden.gameObject;
             so.FindProperty("_searchFill").objectReferenceValue = ring;
+            so.FindProperty("_lock").objectReferenceValue = locked;
             so.ApplyModifiedPropertiesWithoutUndo();
             view.ApplyStyle();
             return PrefabUtility.SaveAsPrefabAsset(root, SlotPrefabPath).GetComponent<ItemSlotView>();
@@ -894,6 +898,8 @@ public static class InventorySetup
         group.alpha = 0f;
         group.interactable = false;
         group.blocksRaycasts = false;
+        // The HUD root's group (HudVisibilityHud) isn't interactable: without this no button in the screen takes a click.
+        group.ignoreParentGroups = true;
 
         Image backdrop = Img("Backdrop", node, Stretch(0f), raycast: true);
         backdrop.color = style.BackdropColor;
@@ -977,6 +983,7 @@ public static class InventorySetup
         message.enabled = false;
 
         ItemTooltipView tooltip = Tooltip(node, style, font);
+        ItemContextMenu menu = ItemMenu(node, style, font);
 
         Image drag = Img("DragIcon", node, Stretch(0f));
         Place(drag.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(76f, 76f));
@@ -1007,7 +1014,7 @@ public static class InventorySetup
         Set(so, "_takeAllButton", takeAll);
         Set(so, "_dragIcon", drag);
         Set(so, "_tooltip", tooltip);
-        Set(so, "_backdrop", backdrop.gameObject);
+        Set(so, "_menu", menu);
         so.ApplyModifiedPropertiesWithoutUndo();
         WireHotbarDrops(hud);
     }
@@ -1015,6 +1022,143 @@ public static class InventorySetup
     // On the HUD prefab as it is: the HUD hotbar row is where the quick slots are set up while the inventory is open (the
     // screen raises it above its backdrop and drags in and out of it). Removes the old Quick panel, puts refusals just above
     // the row, keeps the drag icon and tooltip above the raised row, and wires the hotbar's raycaster and drop area.
+    // On the prefabs as they are: the inventory screen's right-click item menu (Use, Drop, Lock) and the lock icon on both
+    // slot prefabs (inventory tile and HUD hotbar tile).
+    public static string ItemMenuAndLocks()
+    {
+        var style = AssetDatabase.LoadAssetAtPath<InventoryStyle>(StylePath);
+        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        EditPrefab(SlotPrefabPath, root =>
+        {
+            Transform old = root.transform.Find("Lock");
+            if (old != null)
+                Object.DestroyImmediate(old.gameObject);
+            Image icon = LockIcon((RectTransform)root.transform, new Vector2(1f, 0f), new Vector2(-4f, 22f), 16f);
+            var so = new SerializedObject(root.GetComponent<ItemSlotView>());
+            Set(so, "_lock", icon);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        });
+        EditPrefab(HotbarSlotPath, root =>
+        {
+            var tile = (RectTransform)root.transform.Find("Tile");
+            Transform old = tile.Find("Lock");
+            if (old != null)
+                Object.DestroyImmediate(old.gameObject);
+            Image icon = LockIcon(tile, new Vector2(1f, 1f), new Vector2(-4f, -4f), 18f);
+            var so = new SerializedObject(root.GetComponent<HotbarSlotView>());
+            Set(so, "_lock", icon);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        });
+        EditPrefab(HudPath, root =>
+        {
+            var inventory = (RectTransform)(root.transform.Find("Inventory") ?? throw new Exception("HUD has no Inventory"));
+            ItemContextMenu menu = ItemMenu(inventory, style, font);
+            var so = new SerializedObject(inventory.GetComponent<InventoryScreen>());
+            Set(so, "_menu", menu);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            WireHotbarDrops(root.transform);
+            // The HUD root's group (HudVisibilityHud) isn't interactable: without this no button in the screen takes a click.
+            inventory.GetComponent<CanvasGroup>().ignoreParentGroups = true;
+        });
+        return "ItemSlot, HotbarSlot: lock icon; HUD: item menu, hotbar drop catcher removed";
+    }
+
+    static void EditPrefab(string path, Action<GameObject> edit)
+    {
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            edit(root);
+            PrefabUtility.SaveAsPrefabAsset(root, path, out bool saved);
+            if (!saved)
+                throw new Exception("failed to save " + path);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    // Layer Lab corner sizes (as AgentScripts/UI/LayerLabSetup sets them on what it skins): sliced corners scaled down until
+    // they fit `size`. Layout-driven rects are still 0 here, so the size they end up with is passed in.
+    const float PanelCorners = 2.5f, ButtonCorners = 3f;
+
+    static void FitCorners(Image image, Vector2 size, float corners)
+    {
+        Vector4 b = image.sprite != null ? image.sprite.border : Vector4.zero;
+        float ppu = Mathf.Max(corners, (b.x + b.z) / size.x, (b.y + b.w) / size.y);
+        image.pixelsPerUnitMultiplier = Mathf.Round(ppu * 100f) / 100f;
+    }
+
+    // A small lock in a corner (`corner` = anchor and pivot), off until its item is locked.
+    static Image LockIcon(RectTransform parent, Vector2 corner, Vector2 position, float size)
+    {
+        Image icon = Img("Lock", parent, Stretch(0f));
+        Place(icon.rectTransform, corner, corner, corner, position, new Vector2(size, size));
+        icon.sprite = Sprite(LockIconPath);
+        icon.preserveAspect = true;
+        icon.color = new Color(1f, 0.85f, 0.4f, 1f);
+        icon.enabled = false;
+        return icon;
+    }
+
+    // Right-click menu of a carried item: a clear full-screen blocker (a click off the buttons closes it) with a column of
+    // buttons, drawn above the raised hotbar row. The labels are set from the string tables when it opens.
+    static ItemContextMenu ItemMenu(RectTransform inventory, InventoryStyle style, TMP_FontAsset font)
+    {
+        Transform old = inventory.Find("ItemMenu");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        RectTransform root = Ui("ItemMenu", inventory);
+        Place(root, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        Image blocker = root.gameObject.AddComponent<Image>();
+        blocker.color = Color.clear;
+        blocker.raycastTarget = true;
+        var canvas = root.gameObject.AddComponent<Canvas>();
+        var canvasFields = new SerializedObject(canvas);
+        canvasFields.FindProperty("m_OverrideSorting").boolValue = true;
+        canvasFields.FindProperty("m_SortingOrder").intValue = inventory.GetComponent<Canvas>().sortingOrder + 20;
+        canvasFields.ApplyModifiedPropertiesWithoutUndo();
+        root.gameObject.AddComponent<GraphicRaycaster>();
+
+        const float buttonHeight = 38f, width = 180f, padding = 8f, spacing = 6f;
+        RectTransform panel = Panel("Panel", root, style);
+        Place(panel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 1f), Vector2.zero, new Vector2(width, 0f));
+        Column(panel, (int)padding, spacing);
+        panel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        Button sort = inventory.Find("Left/BackpackRow/Sort")?.GetComponent<Button>();
+        var buttons = new Button[3];
+        var labels = new TMP_Text[3];
+        string[] names = { "Use", "Drop", "Lock" };
+        for (int i = 0; i < names.Length; i++)
+        {
+            buttons[i] = Btn(names[i], panel, font, style);
+            Fixed((RectTransform)buttons[i].transform, buttonHeight);
+            FitCorners(buttons[i].image, new Vector2(width - 2f * padding, buttonHeight), ButtonCorners);
+            // Hover / pressed colours as LayerLabSetup gave the screen's other buttons.
+            if (sort != null)
+                buttons[i].colors = sort.colors;
+            labels[i] = buttons[i].GetComponentInChildren<TMP_Text>();
+            labels[i].text = string.Empty;
+        }
+
+        // Shortest it gets (Use hidden): two buttons.
+        FitCorners(panel.GetComponent<Image>(), new Vector2(width, 2f * buttonHeight + spacing + 2f * padding), PanelCorners);
+
+        var menu = root.gameObject.AddComponent<ItemContextMenu>();
+        var so = new SerializedObject(menu);
+        Set(so, "_panel", panel);
+        Set(so, "_use", buttons[0]);
+        Set(so, "_drop", buttons[1]);
+        Set(so, "_lock", buttons[2]);
+        Set(so, "_useLabel", labels[0]);
+        Set(so, "_dropLabel", labels[1]);
+        Set(so, "_lockLabel", labels[2]);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        root.gameObject.SetActive(false);
+        return menu;
+    }
+
     public static string HotbarDrops()
     {
         GameObject hud = PrefabUtility.LoadPrefabContents(HudPath);
@@ -1059,15 +1203,14 @@ public static class InventorySetup
         if (!row.TryGetComponent(out GraphicRaycaster raycaster))
             raycaster = row.AddComponent<GraphicRaycaster>();
         raycaster.enabled = false;
-        if (!row.TryGetComponent(out Image hitArea))
-            hitArea = row.AddComponent<Image>();
-        hitArea.color = Color.clear;
-        hitArea.raycastTarget = false;
-        hitArea.canvasRenderer.cullTransparentMesh = true;
+        // The clear drop catcher it once had: a drop between two tiles no longer throws the item away.
+        if (row.TryGetComponent(out Image hitArea))
+            Object.DestroyImmediate(hitArea);
+        if (row.TryGetComponent(out CanvasRenderer hitRenderer))
+            Object.DestroyImmediate(hitRenderer);
 
         var so = new SerializedObject(hotbar);
         Set(so, "_raycaster", raycaster);
-        Set(so, "_hitArea", hitArea);
         so.ApplyModifiedPropertiesWithoutUndo();
         so = new SerializedObject(inventory.GetComponent<InventoryScreen>());
         Set(so, "_hotbar", hotbar);

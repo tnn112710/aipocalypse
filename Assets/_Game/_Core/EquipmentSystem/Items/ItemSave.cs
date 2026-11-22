@@ -13,6 +13,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public int Rounds;
         public bool Jammed;
         public int Uses;
+        public bool Locked;
         // Catalog ids of the items fitted to it (a gun's parts).
         public List<string> Attachments;
     }
@@ -39,7 +40,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 Debug.LogError($"{item.Definition.name} is not in the Item Catalog and was not saved: select Data/Equipment/ItemCatalog and press Collect.", item.Definition);
                 return null;
             }
-            var save = new ItemSave { Id = id, Count = item.Count };
+            var save = new ItemSave { Id = id, Count = item.Count, Locked = item.Locked };
             item.WriteSave(save);
             if (item.Attachments != null)
             {
@@ -75,6 +76,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 }
             }
             item.ReadSave(save);
+            item.Locked = save.Locked;
             return item;
         }
 

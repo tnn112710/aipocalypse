@@ -397,7 +397,14 @@ public static class InventoryPlayTest
             ItemDefinition thrown = backpack[lastStack].Definition;
             int before = Inv.CountOf(thrown);
             DragOut(screen, backpack, lastStack);
-            log.AppendLine($"drag {thrown.name} onto the backdrop: carried {before} -> {Inv.CountOf(thrown)}, on the ground: {Latest(thrown) != null}");
+            log.AppendLine($"drag {thrown.name} off the panels: carried {before} -> {Inv.CountOf(thrown)} (stays)");
+            Menu(screen, backpack, lastStack, ItemContextMenu.Choice.Lock);
+            bool dropShown = MenuButton(screen, "_drop").interactable;
+            Menu(screen, backpack, lastStack, ItemContextMenu.Choice.Drop);
+            log.AppendLine($"lock it: locked={backpack[lastStack]?.Locked}, Drop clickable={dropShown}, menu Drop: carried {Inv.CountOf(thrown)}");
+            Menu(screen, backpack, lastStack, ItemContextMenu.Choice.Lock);
+            Menu(screen, backpack, lastStack, ItemContextMenu.Choice.Drop);
+            log.AppendLine($"unlock + Drop: carried {Inv.CountOf(thrown)}, on the ground: {Latest(thrown) != null}");
         }
         log.AppendLine($"weight {Inv.Weight:0.0}/{Inv.MaxWeight:0.0} kg, backpack {backpack.UsedSlots}/{backpack.Count}");
         return log.ToString();
@@ -840,15 +847,38 @@ public static class InventoryPlayTest
         Refresh(screen);
     }
 
+    // Dragged and let go over no slot.
     static void DragOut(InventoryScreen screen, ItemContainer from, int fromIndex)
     {
         ItemSlotView source = View(screen, from, fromIndex);
-        var backdrop = (GameObject)typeof(InventoryScreen).GetField("_backdrop", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(screen);
-        PointerEventData pointer = Pointer(PointerEventData.InputButton.Left, backdrop);
+        PointerEventData pointer = Pointer(PointerEventData.InputButton.Left, null);
         ExecuteEvents.Execute(source.gameObject, pointer, ExecuteEvents.beginDragHandler);
         ExecuteEvents.Execute(source.gameObject, pointer, ExecuteEvents.endDragHandler);
         Refresh(screen);
     }
+
+    // Right-click on the slot, then the menu's `choice` (its button's click; a greyed-out button does nothing).
+    static void Menu(InventoryScreen screen, ItemContainer container, int index, ItemContextMenu.Choice choice)
+    {
+        Click(screen, container, index, PointerEventData.InputButton.Right);
+        Button button = MenuButton(screen, choice switch
+        {
+            ItemContextMenu.Choice.Use => "_use",
+            ItemContextMenu.Choice.Drop => "_drop",
+            _ => "_lock",
+        });
+        if (button.interactable)
+            button.onClick.Invoke();
+        else
+            MenuOf(screen).Hide();
+        Refresh(screen);
+    }
+
+    static ItemContextMenu MenuOf(InventoryScreen screen) =>
+        (ItemContextMenu)typeof(InventoryScreen).GetField("_menu", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(screen);
+
+    static Button MenuButton(InventoryScreen screen, string field) =>
+        (Button)typeof(ItemContextMenu).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(MenuOf(screen));
 
     static void PressButton(InventoryScreen screen, string field)
     {

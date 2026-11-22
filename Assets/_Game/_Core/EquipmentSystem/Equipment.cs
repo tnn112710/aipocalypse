@@ -163,7 +163,8 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         // The caller puts it in the world.
         public ItemInstance DropHeld()
         {
-            int index = Switcher.Held != null ? Hotbar.IndexOf(Switcher.Held) : -1;
+            // A locked item stays (locked from the inventory screen).
+            int index = Switcher.Held != null && !Switcher.Held.Locked ? Hotbar.IndexOf(Switcher.Held) : -1;
             return index >= 0 ? Hotbar.Remove(index) : null;
         }
 

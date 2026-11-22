@@ -23,10 +23,12 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField, Tooltip("Hotbar key, top-left")] TMP_Text _key;
         [SerializeField, Tooltip("Slot name under the tile (equipment slots)")] TMP_Text _caption;
         [SerializeField, Tooltip("Shown while the item is still hidden by a search")] GameObject _hidden;
+        [SerializeField, Tooltip("Corner icon of a locked item (can't be dropped)")] Image _lock;
         [SerializeField, Tooltip("Radial Filled image inside Hidden: the reveal in progress")] Image _searchFill;
 
         bool _hasItem;
         bool _isHidden;
+        bool _locked;
         bool _hovered;
         bool _dragged;
         bool _marked;
@@ -52,9 +54,10 @@ namespace MB13.Aipocalypse.Core.UI
         void Awake() => ApplyStyle();
 
         // An item: `count` < 0 hides the count; `rarity` colours the border (alpha 0: none).
-        public void Show(Sprite icon, string itemName, int count, bool warning = false, Color rarity = default)
+        public void Show(Sprite icon, string itemName, int count, bool warning = false, Color rarity = default, bool locked = false)
         {
             _hasItem = true;
+            _locked = locked;
             SetHidden(false);
             if (_rarityBorder != null)
             {
@@ -201,6 +204,8 @@ namespace MB13.Aipocalypse.Core.UI
             if (_count != null && !_hasItem)
                 _count.enabled = false;
             _highlight.enabled = _hovered;
+            if (_lock != null)
+                _lock.enabled = _hasItem && _locked;
             if (_rarityBorder != null)
                 _rarityBorder.enabled = _hasItem && _rarityBorder.color.a > 0f;
             if (_style == null)

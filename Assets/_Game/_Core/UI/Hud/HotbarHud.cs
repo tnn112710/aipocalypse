@@ -18,8 +18,6 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField, Tooltip("Layout group the slot views are spawned into")] RectTransform _slotParent;
         [SerializeField, Tooltip("Off except while the inventory screen is open: then the slots take drags and drops")]
         GraphicRaycaster _raycaster;
-        [SerializeField, Tooltip("Clear image over the whole row: a drop between two tiles lands here instead of on the inventory's backdrop (which throws it away)")]
-        Graphic _hitArea;
 
         InputService _input;
         Equipment _equipment;
@@ -100,8 +98,6 @@ namespace MB13.Aipocalypse.Core.UI
             }
             if (_raycaster != null)
                 _raycaster.enabled = interactive;
-            if (_hitArea != null)
-                _hitArea.raycastTarget = interactive;
             if (_slots == null)
                 return;
             foreach (HotbarSlotView slot in _slots)
@@ -141,6 +137,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         void RefreshBadge(int index)
         {
+            _slots[index].SetLocked(_items[index] != null && _items[index].Locked);
             ItemBadge badge = _items[index]?.Badge ?? ItemBadge.None;
             if (!badge.Visible)
             {

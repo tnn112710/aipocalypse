@@ -66,7 +66,14 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
             Cancel();
             ItemInstance item = Item;
             consumer.Use(definition);
-            // The last use (or a single-use item) leaves the slot: the rig then drops this model.
+            // The last use leaves the slot: the rig then drops this model.
+            SpendUse(item);
+        }
+
+        // One use of a consumable (the hand's, or the inventory screen's Use): a multi-use kit counts down, a single-use item
+        // or the last use leaves its slot.
+        public static void SpendUse(ItemInstance item)
+        {
             if (item is ConsumableInstance multiUse)
             {
                 if (multiUse.UseOnce())

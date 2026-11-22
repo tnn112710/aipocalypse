@@ -252,16 +252,50 @@ namespace MB13.Aipocalypse.Tests
             var raycaster = (Behaviour)hotbarFields.FindProperty("_raycaster").objectReferenceValue;
             Assert.IsNotNull(raycaster);
             Assert.IsFalse(raycaster.enabled, "the HUD takes no clicks while the screen is closed");
-            Object hitArea = hotbarFields.FindProperty("_hitArea").objectReferenceValue;
-            Assert.IsNotNull(hitArea, "a drop between two tiles would land on the backdrop and throw the item away");
-            Assert.IsFalse(new SerializedObject(hitArea).FindProperty("m_RaycastTarget").boolValue);
             int screenOrder = screen.GetComponent<Canvas>().sortingOrder;
-            foreach (string follower in new[] { "DragIcon", "Tooltip" })
+            foreach (string follower in new[] { "DragIcon", "Tooltip", "ItemMenu" })
             {
                 Canvas canvas = screen.transform.Find(follower).GetComponent<Canvas>();
                 Assert.IsTrue(canvas != null && canvas.overrideSorting && canvas.sortingOrder > screenOrder + 1,
                     follower + " is drawn above the raised hotbar row");
             }
+        }
+
+        [Test]
+        public void InventoryScreen_HasTheItemMenu_AndSlotsShowALock()
+        {
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/UI/Prefabs/HUD.prefab");
+            var screen = hud.GetComponentInChildren<InventoryScreen>(true);
+            var menu = (ItemContextMenu)new SerializedObject(screen).FindProperty("_menu").objectReferenceValue;
+            Assert.IsNotNull(menu, "right-click opens the item menu");
+            Assert.IsFalse(menu.gameObject.activeSelf, "closed until a right-click");
+            var menuFields = new SerializedObject(menu);
+            foreach (string field in new[] { "_panel", "_use", "_drop", "_lock", "_useLabel", "_dropLabel", "_lockLabel" })
+                Assert.IsNotNull(menuFields.FindProperty(field).objectReferenceValue, field);
+            Assert.IsNotNull(menu.GetComponent("GraphicRaycaster"), "its own canvas needs a raycaster to take clicks");
+            Assert.IsTrue(screen.GetComponent<CanvasGroup>().ignoreParentGroups,
+                "the HUD root's group isn't interactable: inherited, no button in the screen takes a click");
+
+            foreach (string path in new[] { "Widgets/ItemSlot", "Widgets/HotbarSlot" })
+            {
+                var slot = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/_Game/_Core/UI/Prefabs/{path}.prefab");
+                Component view = (Component)slot.GetComponent<ItemSlotView>() ?? slot.GetComponent<HotbarSlotView>();
+                Assert.IsNotNull(new SerializedObject(view).FindProperty("_lock").objectReferenceValue, path + " shows a lock");
+            }
+        }
+
+        [Test]
+        public void LockedItem_StaysLockedThroughASplitAndASave()
+        {
+            ItemInstance rounds = _rounds.CreateInstance(20);
+            rounds.Locked = true;
+
+            Assert.IsTrue(rounds.Split(5).Locked, "half of a locked stack is locked too");
+            ItemCatalog catalog = Track(ScriptableObject.CreateInstance<ItemCatalog>());
+            catalog.GetType().GetField("_items", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .SetValue(catalog, new Dictionary<string, ItemDefinition> { ["rounds"] = _rounds });
+            Assert.IsTrue(ItemSaves.Read(ItemSaves.Write(rounds, catalog), catalog).Locked);
+            Assert.IsFalse(ItemSaves.Read(ItemSaves.Write(_rounds.CreateInstance(3), catalog), catalog).Locked);
         }
     }
 }

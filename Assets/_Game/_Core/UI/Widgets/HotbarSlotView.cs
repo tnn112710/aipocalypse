@@ -21,6 +21,7 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] Image _keyCap;
         [SerializeField] TMP_Text _keyLabel;
         [SerializeField, Tooltip("Magazine / reserve, bottom-right of the tile")] TMP_Text _ammoLabel;
+        [SerializeField, Tooltip("Corner icon of a locked item (can't be dropped)")] Image _lock;
 
         Sprite _iconSprite;
         bool _selected;
@@ -90,6 +91,12 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_style != null)
                 _ammoLabel.color = _shownWarning ? _style.AmmoWarningColor : _style.AmmoColor;
+        }
+
+        public void SetLocked(bool locked)
+        {
+            if (_lock != null && _lock.enabled != locked)
+                _lock.enabled = locked;
         }
 
         public void SetDragged(bool dragged)

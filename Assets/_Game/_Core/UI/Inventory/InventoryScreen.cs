@@ -24,10 +24,11 @@ namespace MB13.Aipocalypse.Core.UI
     // left, a searched crate or body on the right; the HUD hotbar along the bottom takes drags too. Opens with the inventory key
     // or a crate's / body's key press, whose hidden items it then reveals one by one (PlayerLooting). Pauses the game while
     // open, except during a raid: then the world goes on and a hit closes it.
-    // Drag to move, merge or swap; Shift-drag moves half a stack; right-click sends an item across (loot <-> backpack,
-    // backpack <-> a free active or gear slot); dropping on the backdrop throws it away.
+    // Drag to move, merge or swap; Shift-drag moves half a stack; double-click sends an item across (loot <-> backpack,
+    // backpack <-> a free active or gear slot). Right-click on a carried item opens its menu (Use, Drop, Lock); on a
+    // crate's item or a fitted part it does the double-click's move.
     // The centre inspects the item last clicked (the held one when the screen opens): in 3D, with a gun's part slots.
-    // Parts are fitted by dragging them onto a part slot or the 3D view, or by right-clicking them; taken off the same way.
+    // Parts are fitted by dragging them onto a part slot or the 3D view, or by double-clicking them; taken off the same way.
     public sealed class InventoryScreen : PlayerHudView
     {
         const ItemCategory WeaponSlots = ItemCategory.Gun | ItemCategory.Melee;
@@ -71,7 +72,7 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] Button _takeAllButton;
         [SerializeField, Tooltip("Follows the pointer while dragging")] Image _dragIcon;
         [SerializeField] ItemTooltipView _tooltip;
-        [SerializeField, Tooltip("Full-screen backdrop: an item dropped here is thrown away")] GameObject _backdrop;
+        [SerializeField, Tooltip("Right-click menu of a carried item")] ItemContextMenu _menu;
         [SerializeField, Tooltip("Optional: the centre panel inspecting the selected item, with a gun's part slots")]
         ItemInspectorView _inspector;
 
@@ -110,7 +111,9 @@ namespace MB13.Aipocalypse.Core.UI
         bool _rebuild;
         int _dragFrom = -1;
         int _dragAmount;
-        bool _droppedOnSlot;
+        // The slot and item the open menu is for: the item may have moved or gone by the time an option is picked.
+        SlotRef _menuSlot;
+        ItemInstance _menuItem;
         float _messageUntil;
 
         public bool IsOpen => _open;
@@ -144,6 +147,11 @@ namespace MB13.Aipocalypse.Core.UI
                 foreach (ItemSlotView view in _inspector.SlotViews)
                     Hook(view);
                 _inspector.StageDropped += OnStageDropped;
+            }
+            if (_menu != null)
+            {
+                _menu.Hide();
+                _menu.Chosen += OnMenuChosen;
             }
         }
 
@@ -198,6 +206,11 @@ namespace MB13.Aipocalypse.Core.UI
                     Open(null);
                 return;
             }
+            if (_menu != null && _menu.IsOpen && _input.UiCancelPressed && !_input.InventoryPressed)
+            {
+                _menu.Hide();
+                return;
+            }
             if (_input.InventoryPressed || _input.UiCancelPressed || Player == null || Player.Health == null || Player.Health.IsDead)
             {
                 Close();
@@ -248,6 +261,8 @@ namespace MB13.Aipocalypse.Core.UI
             _open = false;
             _looting?.Stop();
             CancelDrag();
+            if (_menu != null)
+                _menu.Hide();
             if (_tooltip != null)
                 _tooltip.Hide();
             _inspector?.Hide();
@@ -337,6 +352,8 @@ namespace MB13.Aipocalypse.Core.UI
         {
             _rebuild = false;
             CancelDrag();
+            if (_menu != null)
+                _menu.Hide();
             _slots.Clear();
 
             ItemContainer hotbar = _inventory.Hotbar;
@@ -471,7 +488,7 @@ namespace MB13.Aipocalypse.Core.UI
                 }
                 ItemBadge badge = item.Badge;
                 view.Show(item.Definition.Icon, item.Definition.DisplayName, badge.Visible ? badge.Count : -1, badge.Warning,
-                    _style != null ? _style.RarityColor(item.Definition.Rarity) : default);
+                    _style != null ? _style.RarityColor(item.Definition.Rarity) : default, item.Locked);
             }
 
             ItemContainer backpack = _inventory.Backpack;
@@ -528,7 +545,8 @@ namespace MB13.Aipocalypse.Core.UI
             _messageUntil = Time.unscaledTime + MessageSeconds;
         }
 
-        // Left-click: inspect the item. Right-click: send it across, or fit / take off a gun part.
+        // Left-click: inspect the item; double-click: send it across, or fit / take off a gun part. Right-click: the menu of
+        // a carried item; on a crate's item or a fitted part, the double-click's move.
         void OnSlotClicked(ISlotView view, PointerEventData eventData)
         {
             if (_dragFrom >= 0)
@@ -541,11 +559,26 @@ namespace MB13.Aipocalypse.Core.UI
             {
                 if (!slot.IsPart)
                     Inspect(item);
+                if (eventData.clickCount == 2)
+                    SendAcross(slot, item);
                 return;
             }
             if (eventData.button != PointerEventData.InputButton.Right)
                 return;
+            if (slot.IsPart || _menu == null || (_loot != null && slot.Container == _loot.Items))
+            {
+                SendAcross(slot, item);
+                return;
+            }
+            _menuSlot = slot;
+            _menuItem = item;
+            if (_tooltip != null)
+                _tooltip.Hide();
+            _menu.Show(eventData.position, item.Definition is ConsumableDefinition && Player is IConsumer, item.Locked);
+        }
 
+        void SendAcross(SlotRef slot, ItemInstance item)
+        {
             string refusal = null;
             GunInstance gun = _inspector != null ? _inspector.Gun : null;
             if (slot.IsPart)
@@ -622,10 +655,11 @@ namespace MB13.Aipocalypse.Core.UI
             if (item == null || IsHidden(slot))
                 return;
             _dragFrom = view.Index;
+            if (_menu != null)
+                _menu.Hide();
             if (item.Definition is AttachmentDefinition)
                 _inspector?.SetPreview(item);
             _dragAmount = _input.UiShiftHeld && item.Count > 1 ? item.Count / 2 : item.Count;
-            _droppedOnSlot = false;
             view.SetDragged(true);
             if (_tooltip != null)
                 _tooltip.Hide();
@@ -647,7 +681,6 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_dragFrom < 0 || target.Index == _dragFrom)
                 return;
-            _droppedOnSlot = true;
             SlotRef from = _slots[_dragFrom];
             SlotRef to = _slots[target.Index];
             GunInstance gun = _inspector != null ? _inspector.Gun : null;
@@ -691,7 +724,6 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_dragFrom < 0 || _slots[_dragFrom].IsPart || _inspector == null || _inspector.Gun == null)
                 return;
-            _droppedOnSlot = true;
             SlotRef from = _slots[_dragFrom];
             Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, _inspector.Gun, out string refusal), refusal, attached: true);
         }
@@ -710,24 +742,55 @@ namespace MB13.Aipocalypse.Core.UI
                 _inspector.Nudge(attached);
         }
 
+        // Let go anywhere but a slot: the item stays where it was (dropping is the menu's).
         void OnDragEnded(ISlotView view, PointerEventData eventData)
         {
             if (_dragFrom < 0)
                 return;
-            if (!_droppedOnSlot && !_slots[_dragFrom].IsPart && _backdrop != null && eventData.pointerCurrentRaycast.gameObject == _backdrop)
-                ThrowAway(_slots[_dragFrom]);
             CancelDrag();
             _dirty = true;
         }
 
-        void ThrowAway(SlotRef slot)
+        void OnMenuChosen(ItemContextMenu.Choice choice)
         {
-            if (!_inventory.TryRemove(slot.Container, slot.Index, out ItemInstance removed, out string refusal, _dragAmount))
+            SlotRef slot = _menuSlot;
+            ItemInstance item = _menuItem;
+            _menuItem = null;
+            if (item == null || _inventory == null || ItemAt(slot) != item)
+                return;
+            switch (choice)
+            {
+                case ItemContextMenu.Choice.Use:
+                    Use(item);
+                    break;
+                case ItemContextMenu.Choice.Drop:
+                    if (item.Locked)
+                        break;
+                    if (_inventory.TryRemove(slot.Container, slot.Index, out ItemInstance removed, out string refusal))
+                        Player?.ThrowAway(removed);
+                    else
+                        ShowMessage(refusal);
+                    break;
+                case ItemContextMenu.Choice.Lock:
+                    item.Locked = !item.Locked;
+                    Play(_style != null ? _style.PlaceSound : default);
+                    break;
+            }
+        }
+
+        // Uses a consumable straight from the screen, with the same refusals as in hand ("Health full").
+        void Use(ItemInstance item)
+        {
+            if (item.Definition is not ConsumableDefinition consumable || Player is not IConsumer consumer)
+                return;
+            string refusal = consumer.CannotUse(consumable);
+            if (refusal != null)
             {
                 ShowMessage(refusal);
                 return;
             }
-            Player?.ThrowAway(removed);
+            consumer.Use(consumable);
+            HeldConsumable.SpendUse(item);
         }
 
         void CancelDrag()
@@ -735,7 +798,6 @@ namespace MB13.Aipocalypse.Core.UI
             if (_dragFrom >= 0 && _dragFrom < _slots.Count)
                 _slots[_dragFrom].View.SetDragged(false);
             _dragFrom = -1;
-            _droppedOnSlot = false;
             if (_dragIcon != null)
                 _dragIcon.enabled = false;
             _inspector?.SetPreview(null);

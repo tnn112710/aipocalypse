@@ -26,6 +26,21 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
 
         public virtual ItemBadge Badge => Definition.Stacks ? new ItemBadge(Count) : ItemBadge.None;
 
+        // Set by the player from the inventory screen: a locked item can't be dropped (saved with it).
+        public bool Locked
+        {
+            get => _locked;
+            set
+            {
+                if (_locked == value)
+                    return;
+                _locked = value;
+                RaiseChanged();
+            }
+        }
+
+        bool _locked;
+
         // Items fitted to this one (a gun's parts), saved with it; null entries are empty places. Null = it takes none.
         public virtual IReadOnlyList<ItemInstance> Attachments => null;
 
@@ -65,6 +80,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
                 return null;
             ItemInstance part = Definition.CreateInstance();
             part.Count = amount;
+            part._locked = _locked;
             Count -= amount;
             RaiseChanged();
             return part;

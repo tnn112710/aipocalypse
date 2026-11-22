@@ -413,6 +413,19 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void DropHeld_KeepsALockedItem()
+        {
+            Equipment equipment = Empty(AnyWeapon());
+            equipment.TryPickUp(_rifle, out _);
+            equipment.Select(0);
+            Settle(equipment);
+            _rifle.Locked = true;
+
+            Assert.IsNull(equipment.DropHeld());
+            Assert.AreSame(_rifle, equipment.Hotbar[0]);
+        }
+
+        [Test]
         public void DropHeld_MidSwitch_DropsTheItemBeingPutAway()
         {
             Equipment equipment = Loaded();
