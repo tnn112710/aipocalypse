@@ -13,6 +13,24 @@ MonoBehaviour:
   m_Name: RobotSettings
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.RobotSystem.RobotSettings
   Enabled: 1
+  PatVerb:
+    m_TableReference:
+      m_TableCollectionName: Interaction
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: verb.robot_pat
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  CallVerb:
+    m_TableReference:
+      m_TableCollectionName: Interaction
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: verb.robot_call
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   ThinkInterval: 0.2
   Awake:
     On: 6
@@ -25,28 +43,47 @@ MonoBehaviour:
     Patience: 1
   PersonalitySpread: 0.3
   IdleTime: {x: 4, y: 9}
-  StrollRadius: 4
   TravelTimeout: 4
   DestinationAttempts: 8
   WalkSpeed: 0.62
   TrotSpeed: 1.3
-  FaceTurnSpeed: 240
+  BedtimePace: 0.75
+  LookAroundYaw: 70
+  LookAroundInterval: {x: 2, y: 4.5}
   NoticeRadius: 5
   GreetHold: 2.5
   WaveCooldown: 60
   ArriveDistance: 1.8
+  CallReactTime: 0.9
   CallWait: 20
   LeaveDistance: 8
   YardMargin: 1.2
   BumpRadius: 0.9
   StepAside: 1.5
+  StepExpiry: 0.5
+  StepTimeout: 2.5
   NervousRadius: 6
   NervousAngle: 6
+  NervousTime: 2.2
   NervousCooldown: 8
   HitHold: 1.2
+  NightWake: 12
+  KnockdownHits: 3
+  KnockdownWindow: 2.5
+  KnockdownLie: 2.6
+  KnockdownRise: 2
+  SulkTime: 10
+  PatHold: 3
+  BraveTime: 2.2
+  HideLookInterval: {x: 5, y: 9}
+  CheerTime: 5
+  WelcomeAway: 60
+  WelcomeRadius: 45
+  WelcomeLookTime: 1.8
   BlinkInterval: {x: 2.5, y: 6}
   BlinkTime: 0.15
   MoodInterval: {x: 6, y: 14}
+  NameTagHeight: 0.45
   HeadYawLimit: 70
   HeadPitchLimit: 30
   HeadTurnSpeed: 6
@@ -93,3 +130,6 @@ MonoBehaviour:
       _entity: {fileID: 11400000, guid: 5678811578e843549a6594c845104a96, type: 2}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

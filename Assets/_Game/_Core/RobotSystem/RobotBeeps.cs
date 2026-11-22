@@ -6,22 +6,14 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // once per sharedGap.
     public sealed class RobotBeeps
     {
-        readonly float _robotGap;
-        readonly float _sharedGap;
         readonly Dictionary<int, float> _lastByRobot = new();
         float _lastAny = float.NegativeInfinity;
 
-        public RobotBeeps(float robotGap, float sharedGap)
+        public bool TryPlay(int robot, float now, float robotGap, float sharedGap)
         {
-            _robotGap = robotGap;
-            _sharedGap = sharedGap;
-        }
-
-        public bool TryPlay(int robot, float now)
-        {
-            if (now - _lastAny < _sharedGap)
+            if (now - _lastAny < sharedGap)
                 return false;
-            if (_lastByRobot.TryGetValue(robot, out float last) && now - last < _robotGap)
+            if (_lastByRobot.TryGetValue(robot, out float last) && now - last < robotGap)
                 return false;
             _lastByRobot[robot] = now;
             _lastAny = now;

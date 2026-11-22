@@ -66,9 +66,12 @@ public static class RobotSetup
         Folder(ServicesDir);
         Folder(ModelDir + "/Model");
         var settings = LoadOrCreate<RobotSettings>(SettingsPath);
+        settings.PatVerb = Loc.Interaction("verb.robot_pat");
+        settings.CallVerb = Loc.Interaction("verb.robot_call");
         Save(settings);
-        Service("Shop", "verb.robot_shop", "robot.shop");
-        Service("Upgrades", "verb.robot_upgrades", "robot.upgrades");
+        // Job icons: placeholder map glyphs from Synty Interface Apocalypse HUD.
+        Service("Shop", "verb.robot_shop", "robot.shop", RobotMenu.Shop, MapIcons + "ICON_Apocalpyse_Map_GunShop_01.png");
+        Service("Upgrades", "verb.robot_upgrades", "robot.upgrades", RobotMenu.Upgrades, MapIcons + "ICON_Apocalpyse_Map_Star_01.png");
 
         // Emotions4.png: a strip of 10 eye frames over 10 mouth frames. Eyes: 0 square, 1 happy arcs, 2 closed (u u),
         // 3 lines, 4 rings, 5 crosses, 6 > <, 7 angry, 8 keyholes, 9 hearts. Mouths: 0 small smile, 1 big open smile,
@@ -77,6 +80,11 @@ public static class RobotSetup
         face.EyesRenderer = "Rob15_Eyes";
         face.MouthRenderer = "Rob15_mouth";
         face.Columns = 10;
+        // The scrolling speech line the vendor's TextureScroller drove (3 lines stacked, the middle one shown).
+        face.SpeechRenderer = "Rob15_mouthSpeech";
+        face.SpeechScroll = 0.2f;
+        face.SpeechTracks = 3;
+        face.SpeechTrack = 1;
         face.Frames = new Dictionary<RobotExpression, RobotFaceSet.Frame>
         {
             { RobotExpression.Neutral, Frame(0, 0) },
@@ -88,6 +96,10 @@ public static class RobotSetup
             { RobotExpression.Angry, Frame(7, 7) },
             { RobotExpression.Talk, Frame(0, 9) },
             { RobotExpression.Worried, Frame(8, 6) },
+            { RobotExpression.Dizzy, Frame(5, 6) },
+            { RobotExpression.Love, Frame(9, 1) },
+            { RobotExpression.Excited, Frame(6, 1) },
+            { RobotExpression.Yawn, Frame(2, 4) },
         };
         Save(face);
         return "data: settings, Shop, Upgrades, face set";
@@ -95,9 +107,13 @@ public static class RobotSetup
 
     static RobotFaceSet.Frame Frame(int eyes, int mouth) => new() { Eyes = eyes, Mouth = mouth };
 
-    static void Service(string name, string verbKey, string nameKey)
+    const string MapIcons = "Assets/Synty/InterfaceApocalypseHUD/Sprites/Icons_Map/";
+
+    static void Service(string name, string verbKey, string nameKey, RobotMenu menu, string icon)
     {
         var service = LoadOrCreate<RobotService>($"{ServicesDir}/{name}.asset");
+        service.Menu = menu;
+        service.Icon = AssetDatabase.LoadAllAssetsAtPath(icon).OfType<Sprite>().FirstOrDefault() ?? throw new Exception("no sprite " + icon);
         service.Verb = Loc.Interaction(verbKey);
         service.DisplayName = Loc.Creatures(nameKey);
         Save(service);
@@ -106,7 +122,7 @@ public static class RobotSetup
     // ---- Model and tints ----
 
     // A first-party copy of the vendor robot without its demo scripts, character controller and push collider; the
-    // Animator stays on the root with no controller (the entity assigns one), root motion off, culled off screen.
+    // Animator stays on the root with no controller (the entity assigns one), root motion off, animated off screen too.
     public static string Model()
     {
         Folder(ModelDir + "/Model");
@@ -127,7 +143,8 @@ public static class RobotSetup
             Animator animator = root.GetComponent<Animator>();
             animator.runtimeAnimatorController = null;
             animator.applyRootMotion = false;
-            animator.cullingMode = AnimatorCullingMode.CullCompletely;
+            // Always: the head turn goes on top of the animated pose, which a culled Animator stops rewriting (two robots).
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             foreach (SkinnedMeshRenderer skin in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 skin.updateWhenOffscreen = false;
             int layer = LayerMask.NameToLayer(Layer);
@@ -186,6 +203,8 @@ public static class RobotSetup
         controller.AddParameter("EmoteIndex", AnimatorControllerParameterType.Int);
         controller.AddParameter("Hit", AnimatorControllerParameterType.Trigger);
         controller.AddParameter("HitIndex", AnimatorControllerParameterType.Int);
+        controller.AddParameter("Knock", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Down", AnimatorControllerParameterType.Bool);
         controller.AddParameter("Standby", AnimatorControllerParameterType.Bool);
 
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
@@ -226,6 +245,9 @@ public static class RobotSetup
             (RobotEmote.Win, "EmoWin", 0.9f),
             (RobotEmote.Dance, "Dance1b", 2.9f),
             (RobotEmote.Jump, "Jump", 0.9f),
+            (RobotEmote.Cry, "EmoCry", 0.92f),
+            (RobotEmote.LookAround, "EmoLooking for", 0.92f),
+            (RobotEmote.Brave, "BattleIdle", 0.95f),
         };
         for (int i = 0; i < emotes.Length; i++)
         {
@@ -235,7 +257,38 @@ public static class RobotSetup
             enter.canTransitionToSelf = false;
             enter.AddCondition(AnimatorConditionMode.If, 0f, "Emote");
             enter.AddCondition(AnimatorConditionMode.Equals, (int)emotes[i].Emote, "EmoteIndex");
-            Exit(state.AddTransition(locomotion), emotes[i].Exit, 0.25f);
+            if (emotes[i].Emote != RobotEmote.Brave)
+            {
+                Exit(state.AddTransition(locomotion), emotes[i].Exit, 0.25f);
+                continue;
+            }
+            // Brave: the boxing stance, then a double punch.
+            AnimatorState punch = machine.AddState("Emote_" + (int)RobotEmote.Brave + "_Punch", new Vector3(850f, i * 50f));
+            punch.motion = Clip("BattleDoublePunch");
+            Exit(state.AddTransition(punch), emotes[i].Exit, 0.1f);
+            Exit(punch.AddTransition(locomotion), 0.9f, 0.25f);
+        }
+
+        // Knocked over (Knock, HitIndex 0 on its back, 1 on its face): the fall, then lying on the fall's last frame while
+        // Down, then getting up. Hits and emotes are held off by the robot while it's down.
+        string[,] falls = { { "fallBack", "riseBack" }, { "fallFront", "riseFront" } };
+        for (int i = 0; i < 2; i++)
+        {
+            AnimatorState fall = machine.AddState("Fall_" + i, new Vector3(0f, 200f + i * 120f));
+            fall.motion = Clip(falls[i, 0]);
+            AnimatorStateTransition enter = Quick(machine.AddAnyStateTransition(fall), 0.1f);
+            enter.canTransitionToSelf = false;
+            enter.AddCondition(AnimatorConditionMode.If, 0f, "Knock");
+            enter.AddCondition(AnimatorConditionMode.Equals, i, "HitIndex");
+            AnimatorState lie = machine.AddState("Lie_" + i, new Vector3(0f, 240f + i * 120f));
+            lie.motion = Clip(falls[i, 0]);
+            lie.speed = 0f;
+            lie.cycleOffset = 0.99f;
+            Exit(fall.AddTransition(lie), 0.98f, 0.02f);
+            AnimatorState rise = machine.AddState("Rise_" + i, new Vector3(0f, 280f + i * 120f));
+            rise.motion = Clip(falls[i, 1]);
+            Quick(lie.AddTransition(rise), 0.1f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Down");
+            Exit(rise.AddTransition(locomotion), 0.92f, 0.2f);
         }
 
         string[] hits = { "getHitFront", "getHitLeft", "getHitRight" };
@@ -366,11 +419,11 @@ public static class RobotSetup
             glowSo.FindProperty("_source").intValue = (int)MB13.Aipocalypse.Core.EnvironmentSystem.ReactorSource.Darkness;
             glowSo.ApplyModifiedPropertiesWithoutUndo();
 
+            if (!root.TryGetComponent(out RobotGroundLegs _))
+                root.AddComponent<RobotGroundLegs>();
             if (!root.TryGetComponent(out Robot robot))
                 robot = root.AddComponent<Robot>();
-            var robotSo = new SerializedObject(robot);
-            RobotService service = robotSo.FindProperty("_service").objectReferenceValue as RobotService;
-            robot.Setup(service, face, animator, head);
+            robot.Setup(robot.Role, face, animator, head);
 
             PrefabUtility.SaveAsPrefabAsset(root, BasePath, out bool saved);
             return saved ? "Robot" : "FAILED " + BasePath;
@@ -441,6 +494,15 @@ public static class RobotSetup
     static readonly Vector3 HouseSpotLocal = new(1.8f, 1f, -0.6f);
     static readonly Bounds HouseDoorway = new(new Vector3(-1.8f, 0f, 3.4f), new Vector3(2.4f, 4f, 2.4f));
     const float HouseRadius = 1.6f;
+    // The robots-only way through the door: the floor inside (the navmesh ends about 1 m short of the door), the sill,
+    // and the walkable patch outside beside the flower pots (the ground right in front of the door is blocked by them).
+    static readonly Vector3 DoorInsideLocal = new(-1.6f, 1f, 1.9f);
+    static readonly Vector3 DoorSillLocal = new(-1.6f, 1f, 2.95f);
+    static readonly Vector3 DoorOutsideLocal = new(-2.6f, 0f, 4.5f);
+    // The interior (and the sill) tagged robots-only, so no other walker plans into the house.
+    static readonly Vector3[] InteriorLocal = { new(-4.6f, 1f, -2.5f), new(4.5f, 1f, -2.5f), new(4.5f, 1f, 3.4f), new(-4.6f, 1f, 3.4f) };
+    // Where the garden robot hides during a raid: inside, by the wall left of the door.
+    static readonly Vector3 GardenShelterLocal = new(-0.4f, 1f, -1.3f);
     // In the yard's frame (gate at z = +13.5, the herd's corner at x = −12.5): east of the house, facing the gate side.
     static readonly Vector3 GardenSpotLocal = new(8.5f, 0f, 4f);
     const float GardenRadius = 4f;
@@ -487,7 +549,9 @@ public static class RobotSetup
         Transform garden = Child(root.transform, "Spot_Garden");
         garden.SetPositionAndRotation(Ground(yardCenter + yardTurn * GardenSpotLocal), yardTurn);
         RobotSpot gardenSpot = garden.GetComponent<RobotSpot>() ?? garden.gameObject.AddComponent<RobotSpot>();
-        gardenSpot.Setup(GardenRadius, Array.Empty<Bounds>());
+        Transform shelter = Child(root.transform, "Shelter_Garden");
+        shelter.SetPositionAndRotation(Floor(house.TransformPoint(GardenShelterLocal)), house.rotation);
+        gardenSpot.Setup(GardenRadius, Array.Empty<Bounds>(), shelter);
 
         Transform houseSpotObject = Child(root.transform, "Spot_House");
         Vector3 inside = house.TransformPoint(HouseSpotLocal);
@@ -496,6 +560,8 @@ public static class RobotSetup
         // The doorway box, from the house's frame into the spot's.
         Vector3 doorway = houseSpotObject.InverseTransformPoint(house.TransformPoint(HouseDoorway.center));
         houseSpot.Setup(HouseRadius, new[] { new Bounds(new Vector3(doorway.x, 0f, doorway.z), HouseDoorway.size) });
+
+        string door = Door(root.transform, house, Child);
 
         Transform camera = Child(root.transform, "RobotCam_House");
         camera.position = house.TransformPoint(new Vector3(-3.2f, 2.6f, -2.4f));
@@ -519,7 +585,56 @@ public static class RobotSetup
 
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
         UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
-        return $"scene: yard {yard.transform.position}, garden {garden.position}, house {houseSpotObject.position}, {shop.name}, {upgrades.name}; " + string.Join(", ", log);
+        return $"scene: yard {yard.transform.position}, garden {garden.position}, house {houseSpotObject.position}, {shop.name}, {upgrades.name}; {door}; " + string.Join(", ", log);
+    }
+
+    // The robot-only door: a NodeLink2 (tag RobotsOnly) from the floor inside to the ground outside, hopped by RobotDoorHop
+    // over the sill; a GraphUpdateScene tags the interior RobotsOnly; AstarPath names the tag.
+    static string Door(Transform root, Transform house, Func<Transform, string, Transform> child)
+    {
+        Transform link = child(root, "DoorLink_House");
+        link.SetPositionAndRotation(Floor(house.TransformPoint(DoorInsideLocal)), house.rotation);
+        Transform sill = child(link, "Sill");
+        sill.position = Floor(house.TransformPoint(DoorSillLocal));
+        Transform outside = child(link, "Outside");
+        outside.position = Ground(house.TransformPoint(DoorOutsideLocal));
+        var nodeLink = link.GetComponent<Pathfinding.NodeLink2>() ?? link.gameObject.AddComponent<Pathfinding.NodeLink2>();
+        nodeLink.end = outside;
+        nodeLink.oneWay = false;
+        nodeLink.costFactor = 1f;
+        nodeLink.pathfindingTag = MB13.Aipocalypse.Core.EnemySystem.NavTags.RobotsOnly;
+        EditorUtility.SetDirty(nodeLink);
+        var hop = link.GetComponent<RobotDoorHop>() ?? link.gameObject.AddComponent<RobotDoorHop>();
+        hop.Setup(sill);
+        EditorUtility.SetDirty(hop);
+
+        Transform interior = child(root, "RobotsOnly_House");
+        interior.SetPositionAndRotation(house.position, house.rotation);
+        var tagged = interior.GetComponent<Pathfinding.GraphUpdateScene>() ?? interior.gameObject.AddComponent<Pathfinding.GraphUpdateScene>();
+        tagged.points = InteriorLocal;
+        tagged.convex = true;
+        tagged.minBoundsHeight = 3f;
+        tagged.updatePhysics = false;
+        tagged.modifyWalkability = false;
+        tagged.modifyTag = true;
+        tagged.setTag = MB13.Aipocalypse.Core.EnemySystem.NavTags.RobotsOnly;
+        tagged.applyOnStart = true;
+        tagged.applyOnScan = true;
+        EditorUtility.SetDirty(tagged);
+
+        var astar = Object.FindAnyObjectByType<AstarPath>() ?? throw new Exception("no AstarPath");
+        var astarSo = new SerializedObject(astar);
+        SerializedProperty names = astarSo.FindProperty("tagNames");
+        if (names.arraySize < 32)
+        {
+            int old = names.arraySize;
+            names.arraySize = 32;
+            for (int i = old; i < 32; i++)
+                names.GetArrayElementAtIndex(i).stringValue = i == 0 ? "Basic Ground" : i.ToString();
+        }
+        names.GetArrayElementAtIndex(MB13.Aipocalypse.Core.EnemySystem.NavTags.RobotsOnly).stringValue = "Robots only";
+        astarSo.ApplyModifiedPropertiesWithoutUndo();
+        return $"door link {link.position} → sill {sill.position} → {outside.position}";
     }
 
     static Robot PlaceRobot(Transform parent, string name, RobotSpot spot)
@@ -537,17 +652,124 @@ public static class RobotSetup
         return robot;
     }
 
+    // What the ground casts hit: not the robots themselves (re-running would put a spot on its robot's head).
+    static int GroundMask => Physics.DefaultRaycastLayers & ~(1 << LayerMask.NameToLayer(Layer));
+
     // The ground under a point outside (terrain or props), from high above.
     static Vector3 Ground(Vector3 point) =>
-        Physics.Raycast(point + Vector3.up * 50f, Vector3.down, out RaycastHit hit, 100f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+        Physics.Raycast(point + Vector3.up * 50f, Vector3.down, out RaycastHit hit, 100f, GroundMask, QueryTriggerInteraction.Ignore)
             ? hit.point
             : point;
 
     // The floor under a point inside the house (cast from just above it, under the roof).
     static Vector3 Floor(Vector3 point) =>
-        Physics.Raycast(point + Vector3.up * 1.2f, Vector3.down, out RaycastHit hit, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+        Physics.Raycast(point + Vector3.up * 1.2f, Vector3.down, out RaycastHit hit, 3f, GroundMask, QueryTriggerInteraction.Ignore)
             ? hit.point
             : point;
+
+    // ---- HUD: the [Q] Call line under the [C] Collect one ----
+
+    const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
+
+    public static string Hud()
+    {
+        GameObject root = PrefabUtility.LoadPrefabContents(HudPath);
+        try
+        {
+            Transform interact = root.transform.Find("SafeFrame/Center/Interact") ?? throw new Exception("no SafeFrame/Center/Interact");
+            Transform prompt = interact.Find("InteractPrompt") ?? throw new Exception("no InteractPrompt");
+            Transform old = interact.Find("WhistlePrompt");
+            if (old != null)
+                Object.DestroyImmediate(old.gameObject);
+            GameObject whistle = Object.Instantiate(prompt.gameObject, interact, false);
+            whistle.name = "WhistlePrompt";
+            ((RectTransform)whistle.transform).anchoredPosition = new Vector2(0f, -92f);
+            var hud = interact.GetComponent<MB13.Aipocalypse.Core.UI.InteractPromptHud>();
+            var so = new SerializedObject(hud);
+            so.FindProperty("_whistleView").objectReferenceValue = whistle.GetComponent<MB13.Aipocalypse.Core.UI.InteractPromptView>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+            NameTag(root.transform);
+            PrefabUtility.SaveAsPrefabAsset(root, HudPath, out bool saved);
+            return saved ? "HUD.prefab: WhistlePrompt under CollectPrompt, NameTag" : "failed to save " + HudPath;
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    const string TagFontPath = "Assets/_Game/Data/UI/Fonts/SairaBold.asset";
+
+    // The name tag over an aimed-at robot: the job icon over its name, on its own canvas (it moves every frame), no layout
+    // groups (they'd leave overrides on the scene's HUD).
+    static void NameTag(Transform hud)
+    {
+        Transform old = hud.Find("NameTag");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        var node = new GameObject("NameTag", typeof(RectTransform)).GetComponent<RectTransform>();
+        node.SetParent(hud, false);
+        node.anchorMin = node.anchorMax = Vector2.zero;
+        node.pivot = new Vector2(0.5f, 0f);
+        node.sizeDelta = new Vector2(320f, 96f);
+        node.gameObject.AddComponent<Canvas>();
+        var group = node.gameObject.AddComponent<CanvasGroup>();
+        group.alpha = 0f;
+        group.blocksRaycasts = false;
+        group.interactable = false;
+
+        // The job icon on a dark disc, so a pale glyph reads against the sky.
+        var disc = new GameObject("IconDisc", typeof(RectTransform)).AddComponent<UnityEngine.UI.Image>();
+        disc.rectTransform.SetParent(node, false);
+        disc.rectTransform.anchorMin = disc.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+        disc.rectTransform.pivot = new Vector2(0.5f, 0f);
+        disc.rectTransform.anchoredPosition = new Vector2(0f, 34f);
+        disc.rectTransform.sizeDelta = new Vector2(60f, 60f);
+        disc.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+        disc.color = new Color(0f, 0f, 0f, 0.6f);
+        disc.raycastTarget = false;
+
+        var icon = new GameObject("Icon", typeof(RectTransform)).AddComponent<UnityEngine.UI.Image>();
+        icon.rectTransform.SetParent(node, false);
+        icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+        icon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        icon.rectTransform.anchoredPosition = new Vector2(0f, 64f);
+        icon.rectTransform.sizeDelta = new Vector2(42f, 42f);
+        icon.preserveAspect = true;
+        icon.raycastTarget = false;
+        icon.color = new Color(1f, 0.86f, 0.6f, 1f);
+        var iconShadow = icon.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+        iconShadow.effectColor = new Color(0f, 0f, 0f, 0.6f);
+        iconShadow.effectDistance = new Vector2(2f, -2f);
+
+        // A soft dark band behind the name so it reads against sky and grass (TMP outlines would edit the shared font material).
+        var band = new GameObject("Band", typeof(RectTransform)).AddComponent<UnityEngine.UI.Image>();
+        band.rectTransform.SetParent(node, false);
+        band.rectTransform.anchorMin = band.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+        band.rectTransform.pivot = new Vector2(0.5f, 0f);
+        band.rectTransform.anchoredPosition = new Vector2(0f, -2f);
+        band.rectTransform.sizeDelta = new Vector2(150f, 32f);
+        band.color = new Color(0f, 0f, 0f, 0.6f);
+        band.raycastTarget = false;
+
+        var name = new GameObject("Name", typeof(RectTransform)).AddComponent<TMPro.TextMeshProUGUI>();
+        name.rectTransform.SetParent(node, false);
+        name.rectTransform.anchorMin = new Vector2(0f, 0f);
+        name.rectTransform.anchorMax = new Vector2(1f, 0f);
+        name.rectTransform.pivot = new Vector2(0.5f, 0f);
+        name.rectTransform.anchoredPosition = Vector2.zero;
+        name.rectTransform.sizeDelta = new Vector2(0f, 28f);
+        name.font = Load<TMPro.TMP_FontAsset>(TagFontPath);
+        name.fontSize = 26f;
+        name.alignment = TMPro.TextAlignmentOptions.Center;
+        name.color = Color.white;
+        name.raycastTarget = false;
+        name.text = "";
+
+        var view = node.gameObject.AddComponent<MB13.Aipocalypse.Core.UI.NameTagHud>();
+        view.Setup(group, icon, name);
+        EditorUtility.SetDirty(view);
+    }
 
     // ---- Audio ----
 

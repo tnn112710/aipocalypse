@@ -22,6 +22,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         // Standing still (halted or facing) locks its local avoidance: others steer round it instead of nudging it, which
         // made crowded farm animals shake. Off for enemies.
         bool _holdGround;
+        int _traversableTags = NavTags.Walkers;
+        float _movedAt = float.NegativeInfinity;
 
         // Where it was when it started (wander circles around it), or where its last hunt for an objective ended (Rehome).
         public Vector3 Home { get; private set; }
@@ -29,6 +31,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public void Rehome() => Home = transform.position;
         public bool Arrived => _agent.reachedDestination;
         public bool TimedOut => Time.time >= _deadline;
+        // A walk is over: arrived (once the new path has had a moment to replace the old one's arrival) or timed out.
+        public bool Settled => TimedOut || (Time.time - _movedAt > 0.3f && Arrived);
         // World velocity (m/s), for animation.
         public Vector3 Velocity => _agent.velocity;
         // Its body's radius on the ground (the FollowerEntity's): whether it fits through a gap.
@@ -37,10 +41,12 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         public void Initialize(AstarPath navigation, EnemyDefinition definition, EnemyStats stats) =>
             Initialize(navigation, stats.Get(EnemyStat.MoveSpeed), definition.StopDistance);
 
-        // For walkers that aren't enemies (farm animals). `holdGround`: can't be pushed by others while standing still.
-        public void Initialize(AstarPath navigation, float speed, float stopDistance, bool holdGround = false)
+        // For walkers that aren't enemies (farm animals, robots). `holdGround`: can't be pushed by others while standing still.
+        // `traversableTags`: which A* tags it may walk (NavTags; robots alone walk RobotsOnly ground).
+        public void Initialize(AstarPath navigation, float speed, float stopDistance, bool holdGround = false, int traversableTags = NavTags.Walkers)
         {
             _holdGround = holdGround;
+            _traversableTags = traversableTags;
             _navigation = navigation;
             _agent = GetComponent<FollowerEntity>();
             if (!_avoidsRead)
@@ -49,6 +55,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 _avoidsRead = true;
             }
             _agent.enableLocalAvoidance = _avoids;
+            PathRequestSettings pathfinding = _agent.pathfindingSettings;
+            pathfinding.traversableTags = traversableTags;
+            _agent.pathfindingSettings = pathfinding;
             Home = transform.position;
             _agent.maxSpeed = speed;
             _agent.stopDistance = stopDistance;
@@ -88,7 +97,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             {
                 var offset = Random.insideUnitCircle * radius;
                 var nearest = _navigation.GetNearest(center + new Vector3(offset.x, 0f, offset.y), NearestNodeConstraint.Walkable);
-                if (nearest.node == null || !PathUtilities.IsPathPossible(origin.node, nearest.node))
+                if (nearest.node == null || !NavTags.Allows(_traversableTags, nearest.node.Tag) || !PathUtilities.IsPathPossible(origin.node, nearest.node))
                     continue;
                 if ((nearest.position - center).sqrMagnitude > radius * radius)
                     continue;
@@ -106,6 +115,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _agent.destination = destination;
             _facing = Vector3.zero;
             _deadline = Time.time + timeout;
+            _movedAt = Time.time;
             _agent.isStopped = false;
             Lock(false);
         }

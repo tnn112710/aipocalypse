@@ -1,40 +1,94 @@
+using System;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
+using MessagePipe;
 using UnityEngine;
 using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.RobotSystem
 {
-    // Runs the robots on scaled time: tells the roster about night and the player, starts greetings when the player looks
-    // at a robot, asks a robot walked into to step aside, makes one with a gun pointed at its head nervous, animates
-    // bodies and faces, thinks each robot's Manual tree every ThinkInterval, and after the Animators turns their heads.
-    // Beeps go through TryBeep, which keeps them from piling up.
-    public sealed class RobotManager : ITickable, ILateTickable
+    // Runs the robots on scaled time: night, raids (hide, then cheer or cry) and the player's comings and goings go to the
+    // roster and their states; a look greets, walking into one asks it to step aside, a gun at its head makes it nervous.
+    // Animates bodies and faces, thinks each Manual tree every ThinkInterval, turns heads after the Animators, limits beeps.
+    public sealed class RobotManager : ITickable, ILateTickable, IDisposable
     {
         readonly RobotRoster _roster;
         readonly RobotSettings _settings;
         readonly WorldClock _clock;
         readonly PlayerRegistry _players;
         readonly AudioService _audio;
-        readonly RobotBeeps _beeps;
+        readonly RobotBeeps _beeps = new();
+        readonly RobotHomecoming _homecoming = new();
+        readonly IDisposable _subscriptions;
         IInteractable _lastFocus;
+        bool _barrierBroken;
         int _nextId;
 
-        public RobotManager(RobotRoster roster, RobotSettings settings, WorldClock clock, PlayerRegistry players, AudioService audio)
+        public RobotManager(RobotRoster roster, RobotSettings settings, WorldClock clock, PlayerRegistry players, AudioService audio,
+            ISubscriber<RaidStarted> raidStarted, ISubscriber<RaidEnded> raidEnded, ISubscriber<BarrierBroken> barrierBroken)
         {
             _roster = roster;
             _settings = settings;
             _clock = clock;
             _players = players;
             _audio = audio;
-            _beeps = new RobotBeeps(settings.BeepGap, settings.SharedBeepGap);
+            _subscriptions = DisposableBag.Create(
+                raidStarted.Subscribe(_ => StartRaid()),
+                raidEnded.Subscribe(ended => EndRaid(ended.Reason)),
+                barrierBroken.Subscribe(_ => _barrierBroken |= _roster.Raid));
         }
 
         public int NextId() => _nextId++;
+
+        public void Dispose() => _subscriptions.Dispose();
+
+        // A good night: the raid was beaten or outlasted with every fence standing. A bad one: the player fell or a barrier
+        // broke. Ended by hand: no reaction.
+        public static RobotCheer CheerFor(RaidEndReason reason, bool barrierBroken) => reason switch
+        {
+            RaidEndReason.Stopped => RobotCheer.None,
+            RaidEndReason.Defeat => RobotCheer.Cry,
+            _ => barrierBroken ? RobotCheer.Cry : RobotCheer.Win,
+        };
+
+        public void StartRaid()
+        {
+            _roster.Raid = true;
+            _roster.RaidNumber++;
+            _barrierBroken = false;
+            for (int i = 0; i < _roster.Robots.Count; i++)
+                _roster.Robots[i].Call.End();
+        }
+
+        public void EndRaid(RaidEndReason reason)
+        {
+            if (!_roster.Raid)
+                return;
+            _roster.Raid = false;
+            RobotCheer cheer = CheerFor(reason, _barrierBroken);
+            float now = Time.time;
+            for (int i = 0; i < _roster.Robots.Count; i++)
+                _roster.Robots[i].State.CheerFor(cheer, now);
+        }
+
+        // Every awake robot near the player that isn't busy comes over to say hello.
+        public void WelcomeHome()
+        {
+            float now = Time.time;
+            for (int i = 0; i < _roster.Robots.Count; i++)
+            {
+                Robot robot = _roster.Robots[i];
+                if (robot.Asleep || robot.Call.Active || robot.State.Hit(now)
+                    || FlatDistance(robot.transform.position, _roster.PlayerPosition) > _settings.WelcomeRadius)
+                    continue;
+                robot.State.Welcome();
+            }
+        }
 
         public void Tick() => Advance(Time.deltaTime);
 
@@ -57,23 +111,22 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 _roster.PlayerPosition = player.Transform.position;
                 eyes = player.View.position;
                 aim = player.View.forward;
-                _roster.PlayerEyes = eyes;
                 focus = player.Interactor?.Focus;
                 holdsGun = player.HeldItem is HeldGun;
+                RobotYard yard = _roster.Yard;
+                if (yard != null && _homecoming.Update(yard.Contains(_roster.PlayerPosition), now, _settings.WelcomeAway)
+                    && !_roster.Night && !_roster.Raid)
+                    WelcomeHome();
             }
+            else
+                _homecoming.Forget();
 
             for (int i = _roster.Robots.Count - 1; i >= 0; i--)
             {
                 Robot robot = _roster.Robots[i];
                 robot.Advance(deltaTime, now);
-                bool lookedAt = hasPlayer && ReferenceEquals(focus, robot);
-                // A first look starts a fresh greeting; looking on keeps it going.
-                if (lookedAt)
-                    robot.Greet(now, fresh: !ReferenceEquals(_lastFocus, robot));
-                robot.LookedAt = lookedAt;
-
                 if (hasPlayer)
-                    React(robot, now, eyes, aim, holdsGun);
+                    React(robot, now, eyes, aim, holdsGun, ReferenceEquals(focus, robot));
                 else
                     robot.HasLookTarget = false;
 
@@ -86,24 +139,30 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             _lastFocus = focus;
         }
 
-        void React(Robot robot, float now, Vector3 eyes, Vector3 aim, bool holdsGun)
+        void React(Robot robot, float now, Vector3 eyes, Vector3 aim, bool holdsGun, bool lookedAt)
         {
+            RobotState state = robot.State;
             Vector3 position = robot.transform.position;
             Vector3 feet = _roster.PlayerPosition;
-            Vector3 flat = feet - position;
-            flat.y = 0f;
-            float distance = flat.magnitude;
+            float distance = FlatDistance(feet, position);
+            // Busy with something it can't break off for a wave or a frown: answering a call, a hit, a raid.
+            bool busy = robot.Call.Active || state.Hit(now) || _roster.Raid;
+
+            // A look greets an awake robot (a first look starts a fresh greeting; looking on keeps it going). A sleeping
+            // one only wakes for E, a pat or the whistle.
+            if (lookedAt && !busy && !robot.Asleep)
+                state.Greet(now, fresh: !ReferenceEquals(_lastFocus, robot));
 
             // Walked into: step aside, even while waiting by the player it was called to (never pin them), but not mid-flinch.
-            if (distance <= _settings.BumpRadius && !robot.Hit)
-                robot.RequestStep(feet);
+            if (distance <= _settings.BumpRadius && !state.Hit(now))
+                state.RequestStep(feet, now);
 
             Vector3 head = robot.Head != null ? robot.Head.position : position + Vector3.up * 1.1f;
-            if (holdsGun && !robot.Asleep && !robot.Nervous && robot.CanGetNervous(now) && distance <= _settings.NervousRadius
+            if (holdsGun && !busy && !robot.Asleep && !state.Nervous(now) && state.CanGetNervous(now) && distance <= _settings.NervousRadius
                 && Vector3.Angle(aim, head - eyes) <= _settings.NervousAngle)
-                robot.MakeNervous(now);
+                state.MakeNervous(now);
 
-            robot.HasLookTarget = distance <= _settings.NoticeRadius || robot.Greeting || robot.Call.Active || robot.Nervous;
+            robot.HasLookTarget = distance <= _settings.NoticeRadius || state.Greeting(now) || robot.Call.Active || state.Nervous(now);
             robot.LookTarget = eyes;
         }
 
@@ -112,17 +171,24 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             if (!_roster.Enabled)
                 return;
             float deltaTime = Time.deltaTime;
-            foreach (Robot robot in _roster.Robots)
-                robot.TurnHead(deltaTime);
+            float now = Time.time;
+            for (int i = 0; i < _roster.Robots.Count; i++)
+                _roster.Robots[i].TurnHead(deltaTime, now);
         }
 
         // Plays `sound` at the robot unless it (or any robot) beeped too recently.
         public bool TryBeep(Robot robot, RobotSound sound)
         {
-            if (!_settings.Sounds.TryGetValue(sound, out SoundID id) || !_beeps.TryPlay(robot.Id, Time.time))
+            if (!_settings.Sounds.TryGetValue(sound, out SoundID id) || !_beeps.TryPlay(robot.Id, Time.time, _settings.BeepGap, _settings.SharedBeepGap))
                 return false;
             _audio.PlayAt(id, robot.transform.position + Vector3.up);
             return true;
+        }
+
+        static float FlatDistance(Vector3 a, Vector3 b)
+        {
+            a.y = b.y;
+            return Vector3.Distance(a, b);
         }
     }
 }

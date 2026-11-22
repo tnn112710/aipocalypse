@@ -10,6 +10,12 @@ namespace MB13.Aipocalypse.Tests
         public int Calls { get; private set; }
         public bool Answers { get; set; } = true;
 
+        public bool TryGetWhistlePrompt(GameObject actor, out InteractionPrompt prompt)
+        {
+            prompt = new InteractionPrompt("Call", name);
+            return Answers;
+        }
+
         public bool TryWhistle(GameObject actor)
         {
             Calls++;

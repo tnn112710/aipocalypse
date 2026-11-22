@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.RobotSystem
 {
-    // A robot answering the player's whistle: where it meets them, and when it gives up waiting there (the wait ran out, or
-    // the player walked away from where they whistled; height ignored). The wait starts once it has arrived.
+    // A robot walking over to the player (whistled, or welcoming them home): where it meets them, and when it gives up
+    // waiting there (the wait ran out, or the player walked away; height ignored). The wait starts once it has arrived.
     public sealed class RobotCall
     {
         float _arrivedAt = float.NaN;
@@ -12,10 +12,16 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         public bool Arrived => Active && !float.IsNaN(_arrivedAt);
         public Vector3 MeetPoint { get; private set; }
         public Vector3 CalledFrom { get; private set; }
+        public RobotCallReason Reason { get; private set; }
+        // When it was first called (a second whistle while it comes doesn't restart its reaction).
+        public float BegunAt { get; private set; }
 
-        public void Begin(Vector3 meetPoint, Vector3 calledFrom, float now)
+        public void Begin(Vector3 meetPoint, Vector3 calledFrom, float now, RobotCallReason reason = RobotCallReason.Whistle)
         {
+            if (!Active)
+                BegunAt = now;
             Active = true;
+            Reason = reason;
             MeetPoint = meetPoint;
             CalledFrom = calledFrom;
             _arrivedAt = float.NaN;

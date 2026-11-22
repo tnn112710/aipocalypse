@@ -86,6 +86,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public AmmoReserve Ammo { get; private set; }
         public PlayerInteractor Interactor => _interactor;
         public PlayerRepair Repair => _repair;
+        public PlayerWhistle Whistle => _whistle;
         public PlayerLooting Looting => _looting;
         public PlayerEffects Effects => _effects;
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
@@ -281,6 +282,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _interactor.Clear();
             if (canAct)
                 _whistle.Tick(intent.Whistle, Time.time);
+            else
+                _whistle.Clear();
             DrawGhost();
             _held?.Tick(intent, ownsZoom: !inSequence, deltaTime);
             if (ShowMovementReadout)

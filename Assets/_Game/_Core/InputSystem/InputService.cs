@@ -19,6 +19,7 @@ namespace MB13.Aipocalypse.Input
         Attack,
         Jump,
         Collect,
+        Whistle,
     }
 
     // Editing keys of the dev console's line (Console map).
@@ -216,6 +217,7 @@ namespace MB13.Aipocalypse.Input
             GameButton.Jump => _actions.Player.Jump,
             GameButton.Reload => _actions.Player.Reload,
             GameButton.Collect => _actions.Player.Collect,
+            GameButton.Whistle => _actions.Player.Whistle,
             _ => throw new ArgumentOutOfRangeException(nameof(button), button, "no input action mapped"),
         };
 

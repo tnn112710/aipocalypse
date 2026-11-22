@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.RobotSystem
 {
-    // A robot's face screen: its mood (the expression it rests on), a held expression for a moment, blinks, and a brighter
-    // glow at night. Frames are picked by shifting the eye and mouth textures (a property block each, so the material
-    // asset is never written). Advanced by RobotManager: no Update.
+    // A robot's face screen: its mood, a held expression for a moment, blinks, a scrolling speech line while it talks, and a
+    // brighter glow at night. Frames are picked by shifting the textures in property blocks (the material asset is never
+    // written). Advanced by Robot: no Update.
     public sealed class RobotFace : MonoBehaviour
     {
         static readonly int BaseMapSt = Shader.PropertyToID("_BaseMap_ST");
@@ -15,23 +15,30 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         Renderer _eyes;
         Renderer _mouth;
+        Renderer _speech;
         MaterialPropertyBlock _block;
         Vector4 _eyesSt;
         Vector4 _mouthSt;
+        Vector4 _speechSt;
         Color _eyesEmission;
         Color _mouthEmission;
+        Color _speechEmission;
         RobotExpression _mood = RobotExpression.Neutral;
         RobotExpression _held;
         float _heldUntil = float.NegativeInfinity;
         float _nextBlink;
         float _blinkEnd;
         float _night;
+        float _speechScroll;
         int _shownEyes = -1;
         int _shownMouth = -1;
         float _shownNight = -1f;
+        bool _speaking;
 
         public RobotFaceSet Set => _set;
         public RobotExpression Mood => _mood;
+        // What the screen shows right now (a held expression, else the mood).
+        public RobotExpression Shown { get; private set; }
 
         void Awake()
         {
@@ -42,9 +49,18 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                     _eyes = candidate;
                 else if (candidate.name == _set.MouthRenderer)
                     _mouth = candidate;
+                else if (!string.IsNullOrEmpty(_set.SpeechRenderer) && candidate.name == _set.SpeechRenderer)
+                    _speech = candidate;
             _block = new MaterialPropertyBlock();
             Read(_eyes, out _eyesSt, out _eyesEmission);
             Read(_mouth, out _mouthSt, out _mouthEmission);
+            Read(_speech, out _speechSt, out _speechEmission);
+            if (_speech != null)
+            {
+                // The vendor model keeps it switched off; shown by turning the renderer on instead.
+                _speech.gameObject.SetActive(true);
+                _speech.enabled = false;
+            }
         }
 
         static void Read(Renderer renderer, out Vector4 st, out Color emission)
@@ -65,7 +81,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public void SetNight(float night) => _night = night;
 
-        public void Tick(float now, RobotSettings settings)
+        public void Tick(float now, float deltaTime, RobotSettings settings)
         {
             if (_set == null || _eyes == null || _mouth == null)
                 return;
@@ -74,16 +90,19 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 _blinkEnd = now + settings.BlinkTime;
                 _nextBlink = now + Random.Range(settings.BlinkInterval.x, settings.BlinkInterval.y);
             }
-            RobotExpression shown = now < _heldUntil ? _held : _mood;
-            if (!_set.Frames.TryGetValue(shown, out RobotFaceSet.Frame frame))
+            Shown = now < _heldUntil ? _held : _mood;
+            if (!_set.Frames.TryGetValue(Shown, out RobotFaceSet.Frame frame))
                 return;
             int eyes = frame.Eyes;
-            // Closed or sleepy eyes don't blink.
-            if (now < _blinkEnd && shown != RobotExpression.Sleepy && shown != RobotExpression.Blink
-                && _set.Frames.TryGetValue(RobotExpression.Blink, out RobotFaceSet.Frame blink))
+            // Closed eyes don't blink, nor do crossed or heart ones.
+            if (now < _blinkEnd && Blinks(Shown) && _set.Frames.TryGetValue(RobotExpression.Blink, out RobotFaceSet.Frame blink))
                 eyes = blink.Eyes;
             Show(eyes, frame.Mouth);
+            Speak(Shown == RobotExpression.Talk && _speech != null, deltaTime);
         }
+
+        static bool Blinks(RobotExpression shown) => shown is not (RobotExpression.Sleepy or RobotExpression.Blink or RobotExpression.Yawn
+            or RobotExpression.Dizzy or RobotExpression.Love or RobotExpression.Excited);
 
         void Show(int eyes, int mouth)
         {
@@ -92,15 +111,34 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             _shownEyes = eyes;
             _shownMouth = mouth;
             _shownNight = _night;
-            float glow = 1f + _nightGlow * _night;
-            Apply(_eyes, _eyesSt, eyes, _eyesEmission * glow);
-            Apply(_mouth, _mouthSt, mouth, _mouthEmission * glow);
+            float glow = Glow;
+            Apply(_eyes, new Vector4(_eyesSt.x, _eyesSt.y, _eyesSt.z + eyes / (float)_set.Columns, _eyesSt.w), _eyesEmission * glow);
+            Apply(_mouth, new Vector4(_mouthSt.x, _mouthSt.y, _mouthSt.z + mouth / (float)_set.Columns, _mouthSt.w), _mouthEmission * glow);
         }
 
-        void Apply(Renderer renderer, Vector4 st, int frame, Color emission)
+        float Glow => 1f + _nightGlow * _night;
+
+        // While it talks the mouth gives way to the speech line, scrolling.
+        void Speak(bool speaking, float deltaTime)
+        {
+            if (speaking != _speaking)
+            {
+                _speaking = speaking;
+                _mouth.enabled = !speaking;
+                if (_speech != null)
+                    _speech.enabled = speaking;
+            }
+            if (!speaking)
+                return;
+            _speechScroll = Mathf.Repeat(_speechScroll + _set.SpeechScroll * deltaTime, 1f);
+            Apply(_speech, new Vector4(_speechSt.x, _speechSt.y, _speechSt.z + _speechScroll, _speechSt.w + _set.SpeechTrack / (float)_set.SpeechTracks),
+                _speechEmission * Glow);
+        }
+
+        void Apply(Renderer renderer, Vector4 st, Color emission)
         {
             renderer.GetPropertyBlock(_block);
-            _block.SetVector(BaseMapSt, new Vector4(st.x, st.y, st.z + frame / (float)_set.Columns, st.w));
+            _block.SetVector(BaseMapSt, st);
             _block.SetColor(EmissionColor, emission);
             renderer.SetPropertyBlock(_block);
         }

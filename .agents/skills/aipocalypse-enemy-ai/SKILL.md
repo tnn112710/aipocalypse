@@ -63,6 +63,7 @@ Checked against `Content/Enemies/WanderCapsule/WanderCapsule.prefab` and `_Core/
 
 Follow `_Core/EnemySystem/WanderTasks.cs`:
 - Tasks are `ActionNode` / `ConditionalNode` in the namespace of the system that owns them (`MB13.Aipocalypse.Core.EnemySystem` today), with `[Category("Aipocalypse/<Subtree>")]`. A stackable `Action`/`Conditional` (the Movement Pack's tasks, many built-ins) only sits in a graph inside a `StackedAction`/`StackedConditional` node; TreeKit wraps it for you. Project code style applies (AGENTS.md → Code style), not Opsive's `m_` style.
+- **Robots-only ground.** `EnemyMover.Initialize` sets the agent's traversable tags; every walker but the home robots leaves out A* tag 1 (`NavTags.RobotsOnly`: the house interior and its door link), and `TryFindDestination` skips it too. Tag new ground only robots may walk the same way (ROBOTS.md).
 - Cache `EnemyBrain` and `EnemyMover` in `OnAwake`. Tuning comes from `_brain.Definition` (and the settings asset it links, e.g. `Definition.Wander`), never literals in the task or the graph.
 - Hand-offs between tasks go through brain properties (`EnemyBrain.Destination`), not blackboard variables; the trees have no shared variables today. Add a variable only when designers need to bind it.
 - Movement only through `EnemyMover`; add a method there rather than touching `FollowerEntity` from a task. Undo in `OnEnd` (`Halt()`), which also runs on aborts.

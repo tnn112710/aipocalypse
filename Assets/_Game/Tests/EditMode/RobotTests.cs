@@ -77,9 +77,38 @@ namespace MB13.Aipocalypse.Tests
         {
             using var scene = new WhistleScene();
             WhistleTargetStub target = scene.Target(30f);
-            scene.Actor.AddComponent<CapsuleCollider>();
+            // Something of the whistler's own in the line of aim, outside the cast's start (a held item).
+            var held = new GameObject("Held");
+            held.transform.SetParent(scene.Actor.transform, false);
+            held.transform.localPosition = new Vector3(0f, 0f, 1.5f);
+            held.AddComponent<BoxCollider>();
 
             Assert.AreSame(target, scene.Whistle.Tick(true, 0f));
+        }
+
+        [Test]
+        public void Whistle_PromptsForWhatTheAimIsOn()
+        {
+            using var scene = new WhistleScene();
+            WhistleTargetStub target = scene.Target(30f);
+
+            scene.Whistle.Tick(false, 0f);
+
+            Assert.AreSame(target, scene.Whistle.Target);
+            Assert.IsTrue(scene.Whistle.HasPrompt);
+            Assert.AreEqual("Call", scene.Whistle.Prompt.Verb);
+            Assert.AreEqual(0, target.Calls, "aiming alone doesn't call");
+        }
+
+        [Test]
+        public void Whistle_HasNoPromptBeyondRange()
+        {
+            using var scene = new WhistleScene();
+            scene.Target(60f);
+
+            scene.Whistle.Tick(false, 0f);
+
+            Assert.IsFalse(scene.Whistle.HasPrompt);
         }
 
         [Test]
@@ -228,21 +257,21 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Beeps_KeepAGapPerRobot()
         {
-            var beeps = new RobotBeeps(robotGap: 1.5f, sharedGap: 0f);
+            var beeps = new RobotBeeps();
 
-            Assert.IsTrue(beeps.TryPlay(0, 0f));
-            Assert.IsFalse(beeps.TryPlay(0, 1f));
-            Assert.IsTrue(beeps.TryPlay(0, 1.6f));
+            Assert.IsTrue(beeps.TryPlay(0, 0f, 1.5f, 0f));
+            Assert.IsFalse(beeps.TryPlay(0, 1f, 1.5f, 0f));
+            Assert.IsTrue(beeps.TryPlay(0, 1.6f, 1.5f, 0f));
         }
 
         [Test]
         public void Beeps_KeepASharedGap()
         {
-            var beeps = new RobotBeeps(robotGap: 1.5f, sharedGap: 0.5f);
+            var beeps = new RobotBeeps();
 
-            Assert.IsTrue(beeps.TryPlay(0, 0f));
-            Assert.IsFalse(beeps.TryPlay(1, 0.3f));
-            Assert.IsTrue(beeps.TryPlay(1, 0.6f));
+            Assert.IsTrue(beeps.TryPlay(0, 0f, 1.5f, 0.5f));
+            Assert.IsFalse(beeps.TryPlay(1, 0.3f, 1.5f, 0.5f));
+            Assert.IsTrue(beeps.TryPlay(1, 0.6f, 1.5f, 0.5f));
         }
 
         [Test]
@@ -323,7 +352,7 @@ namespace MB13.Aipocalypse.Tests
 
         static readonly string[] RobotPrefabs = { RobotsContent + "/Robot_Shop.prefab", RobotsContent + "/Robot_Upgrades.prefab" };
         static readonly string[] VendorScripts = { "Rob15Ctrl", "Rob11Ctrl", "RobotColorManager", "Rob11ColorManager", "EmotionChanger", "PushObjects", "PushDetection", "TextureScroller", "CamHolder", "RobotLift" };
-        static readonly string[] AnimatorParameters = { "Speed", "Turn", "Emote", "EmoteIndex", "Hit", "HitIndex", "Standby" };
+        static readonly string[] AnimatorParameters = { "Speed", "Turn", "Emote", "EmoteIndex", "Hit", "HitIndex", "Knock", "Down", "Standby" };
 
         [Test]
         public void RobotTree_IsBuiltAndAssigned()
@@ -352,11 +381,12 @@ namespace MB13.Aipocalypse.Tests
                 Assert.IsNotNull(prefab, path);
                 var robot = prefab.GetComponent<Robot>();
                 Assert.IsNotNull(robot, path + ": Robot");
-                Assert.IsNotNull(robot.Service, path + ": service");
+                Assert.IsNotNull(robot.Role, path + ": role");
                 Assert.IsNotNull(robot.Face, path + ": face");
                 Assert.IsNotNull(robot.Face.Set, path + ": face set");
                 Assert.IsNotNull(robot.Head, path + ": head bone");
-                Assert.IsNotNull(prefab.GetComponent<MB13.Aipocalypse.Core.EnemySystem.EnemyMover>(), path + ": EnemyMover");
+                Assert.IsNotNull(prefab.GetComponent<RobotGroundLegs>(), path + ": legs");
+                Assert.AreEqual(AnimatorCullingMode.AlwaysAnimate, robot.Animator.cullingMode, path + ": the head turn needs the pose written every frame");
                 Assert.IsNotNull(prefab.GetComponent<RobotFaceGlow>(), path + ": night glow");
                 var body = prefab.GetComponent<Collider>();
                 Assert.IsNotNull(body, path + ": body collider");
@@ -461,7 +491,6 @@ namespace MB13.Aipocalypse.Tests
 
                 Assert.AreEqual(0f, result.Applied);
                 Assert.AreEqual(0, published, "a hit on a robot shows no hit marker");
-                Assert.IsTrue(robot.Hit, "it reacts");
                 Assert.IsFalse(robot.IsDead);
             }
             finally

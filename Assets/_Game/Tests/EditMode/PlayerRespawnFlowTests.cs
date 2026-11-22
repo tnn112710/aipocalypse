@@ -28,6 +28,7 @@ namespace MB13.Aipocalypse.Tests
             public HeldItem HeldItem => null;
             public PlayerInteractor Interactor => null;
             public PlayerRepair Repair => null;
+            public PlayerWhistle Whistle => null;
             public PlayerLooting Looting => null;
             public PlayerEffects Effects => null;
             public bool IsSprinting => false;

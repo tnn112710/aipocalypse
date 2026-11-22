@@ -18,6 +18,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerInteractor Interactor { get; }
         // Hammer work: what its key would repair now, and whether it's knocking.
         PlayerRepair Repair { get; }
+        // The whistle: what the aim would call now ("[Q] Call Bolt").
+        PlayerWhistle Whistle { get; }
         // Searching a crate or body; Opened fires when its loot is shown.
         PlayerLooting Looting { get; }
         // Consumables at work: buffs and healing over time.

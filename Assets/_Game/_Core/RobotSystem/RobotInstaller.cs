@@ -10,10 +10,9 @@ using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.RobotSystem
 {
-    // Scene system: the service robots placed in the scene and the yard they stay in. Lists them automatically when the
-    // scene is saved or Play starts, and injects them. Needs the navmesh (EnemyInstaller) and WorldClock
-    // (WorldTimeInstaller) on the same scope. Remove the component (or turn RobotSettings.Enabled off) and the robots just
-    // stand there.
+    // Scene system: the robots placed in the scene (listed on save or Play, then injected) and the yard they stay in. Needs
+    // EnemyInstaller (navmesh) and WorldTimeInstaller on the same scope. Remove it, or turn RobotSettings.Enabled off, and the
+    // robots just stand there.
     public sealed partial class RobotInstaller : SceneInstaller
     {
         [SerializeField, InlineEditor] RobotSettings _settings;

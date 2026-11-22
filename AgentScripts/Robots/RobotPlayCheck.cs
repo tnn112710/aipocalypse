@@ -75,7 +75,7 @@ public static class RobotPlayCheck
         await Seconds(2.5f, () =>
         {
             Aim(robot.Head.position);
-            greeted |= robot.Greeting;
+            greeted |= robot.State.Greeting(Time.time);
         });
         float facing = Vector3.Angle(robot.transform.forward, Vector3.ProjectOnPlane(Player.transform.position - robot.transform.position, Vector3.up));
         string prompt = Player.Interactor.HasPrompt ? $"{Player.Interactor.Prompt.Verb} {Player.Interactor.Prompt.Target}" : "(none)";
@@ -225,7 +225,7 @@ public static class RobotPlayCheck
             string now = StateName(robot.Animator);
             if (now == "Emote_6")
                 state = now;
-            nervous |= robot.Nervous;
+            nervous |= robot.State.Nervous(Time.time);
         });
         return $"{(nervous && state == "Emote_6" ? "PASS" : "FAIL")} {name} nervous at a pointed gun: {nervous}, state {state}; {Line(robot)}";
     }
@@ -278,13 +278,245 @@ public static class RobotPlayCheck
     {
         float fromSpot = Flat(robot.transform.position - robot.Spot.Center);
         return $"{robot.name}: {fromSpot:0.0} m from spot, speed {robot.Mover.Velocity.magnitude:0.00}, state {StateName(robot.Animator)}, mood {robot.Face.Mood}, " +
-               $"called {robot.Call.Active}/{robot.Call.Arrived}, greeting {robot.Greeting}, hit {robot.Hit}, nervous {robot.Nervous}, asleep {robot.Asleep}";
+               $"called {robot.Call.Active}/{robot.Call.Arrived}, greeting {robot.State.Greeting(Time.time)}, hit {robot.State.Hit(Time.time)}, nervous {robot.State.Nervous(Time.time)}, asleep {robot.Asleep}";
+    }
+
+    // ---- Pass 2 ----
+
+    static Transform House => GameObject.Find("Environment/Landmarks/Home Base/House_1").transform;
+    static RobotManager Manager => Scope.Resolve<RobotManager>();
+
+    // Pip is whistled from in front of the house: it should come out through the door (hop down), meet the player outside,
+    // then, when the player walks off, go back in.
+    public static async Task<string> Door(float seconds)
+    {
+        Robot robot = Find("Robot_Upgrades");
+        Transform house = House;
+        float floor = robot.Spot.Center.y;
+        // Called as by the console (robot.call): aiming at it through the narrow door is a separate check (WhistleFromHouse).
+        Vector3 from = Ground(house.TransformPoint(new Vector3(-2.6f, 0f, 7.5f)));
+        PlacePlayer(from, robot.Head.position);
+        await Seconds(0.3f, null);
+        bool answered = robot.TryWhistle(Player.gameObject) && robot.Call.Active;
+        bool cameOut = false;
+        bool hopped = false;
+        await Seconds(seconds, () =>
+        {
+            Aim(robot.Head.position);
+            cameOut |= robot.transform.position.y < floor - 0.6f;
+            hopped |= StateName(robot.Animator) == "Emote_9";
+        });
+        bool arrived = robot.Call.Arrived;
+        float toPlayer = Flat(Player.transform.position - robot.transform.position);
+        // Walk off: it shrugs and goes home, back up through the door.
+        Vector3 away = Vector3.ProjectOnPlane(from - house.position, Vector3.up).normalized;
+        PlacePlayer(Ground(from + away * 12f), house.position);
+        bool wentIn = false;
+        await Seconds(seconds + 10f, () => wentIn |= robot.transform.position.y > floor - 0.2f && Flat(robot.transform.position - robot.Spot.Center) < 2.5f);
+        bool ok = answered && cameOut && arrived && wentIn;
+        return $"{(ok ? "PASS" : "FAIL")} Pip through the door: answered {answered}, came out {cameOut}, hop clip {hopped}, arrived {arrived} {toPlayer:0.0} m from the player, back inside {wentIn}; {Line(robot)}";
+    }
+
+    // The house interior is robots-only: a walker's path to the robot's spot ends outside; a robot's goes in.
+    public static string Tags()
+    {
+        Robot pip = Find("Robot_Upgrades");
+        GraphNode inside = AstarPath.active.GetNearest(pip.Spot.Center, NearestNodeConstraint.Walkable).node;
+        Vector3 start = Ground(House.TransformPoint(new Vector3(-1.4f, 0f, 9f)));
+        string Path(int tags)
+        {
+            ABPath path = ABPath.Construct(start, pip.Spot.Center, null);
+            path.enabledTags = tags;
+            AstarPath.StartPath(path);
+            path.BlockUntilCalculated();
+            Vector3 end = path.vectorPath.Count > 0 ? path.vectorPath[path.vectorPath.Count - 1] : Vector3.positiveInfinity;
+            return $"{path.CompleteState} end y {end.y:0.00} ({Flat(end - pip.Spot.Center):0.0} m from the spot)";
+        }
+        string walker = Path(MB13.Aipocalypse.Core.EnemySystem.NavTags.Walkers);
+        string robot = Path(MB13.Aipocalypse.Core.EnemySystem.NavTags.All);
+        bool ok = inside != null && inside.Tag == MB13.Aipocalypse.Core.EnemySystem.NavTags.RobotsOnly;
+        return $"{(ok ? "PASS" : "FAIL")} interior tag {inside?.Tag}; walker path {walker}; robot path {robot}";
+    }
+
+    // Aiming at a robot from `distance` m shows "[Q] Call <name>" (when E doesn't already reach it).
+    public static async Task<string> Prompt(string name, float distance, float bearing)
+    {
+        Robot robot = Find(name);
+        RobotYard yard = Object.FindAnyObjectByType<RobotYard>();
+        Vector3 from = Ground(robot.transform.position + Quaternion.Euler(0f, yard.transform.eulerAngles.y + bearing, 0f) * Vector3.forward * distance);
+        PlacePlayer(from, robot.Head.position);
+        await Seconds(0.4f, () => Aim(robot.Head.position));
+        PlayerWhistle whistle = Player.Whistle;
+        var hud = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.UI.InteractPromptHud>();
+        Transform line = hud != null ? hud.transform.Find("WhistlePrompt") : null;
+        string shown = line != null ? string.Join(" ", line.GetComponentsInChildren<TMPro.TMP_Text>().Where(t => t.isActiveAndEnabled).Select(t => t.text)) : "(no HUD line)";
+        bool ok = whistle.HasPrompt && ReferenceEquals(whistle.Target, robot) && shown.Contains(whistle.Prompt.Target);
+        return $"{(ok ? "PASS" : "FAIL")} prompt at {distance:0} m: {whistle.HasPrompt} \"{whistle.Prompt.Verb} {whistle.Prompt.Target}\", HUD \"{shown}\"";
+    }
+
+    // Three quick shots knock it over: crossed eyes while down, a fall, lying, getting up, then a sulk.
+    public static async Task<string> Knockdown(string name)
+    {
+        Robot robot = Find(name);
+        Vector3 chest = robot.transform.position + Vector3.up * 0.9f;
+        PlacePlayer(Ground(robot.transform.position + robot.transform.forward * 5f), chest);
+        await Seconds(0.3f, () => Aim(chest));
+        for (int i = 0; i < 3; i++)
+        {
+            chest = robot.transform.position + Vector3.up * 0.9f;
+            robot.TakeDamage(new DamageInfo(10f, DamageType.Gunshot, chest + robot.transform.forward * 0.2f, Vector3.zero, Player.gameObject));
+            await Seconds(0.3f, null);
+        }
+        var seen = new System.Collections.Generic.List<string>();
+        bool dizzy = false;
+        await Seconds(6f, () =>
+        {
+            string state = StateName(robot.Animator);
+            if (seen.Count == 0 || seen[seen.Count - 1] != state)
+                seen.Add(state);
+            dizzy |= robot.Face.Shown == RobotExpression.Dizzy;
+        });
+        bool sulking = robot.State.Sulking(Time.time);
+        bool ok = seen.Contains("Fall_0") && seen.Contains("Lie_0") && seen.Contains("Rise_0") && dizzy && sulking;
+        return $"{(ok ? "PASS" : "FAIL")} {name} knocked down: states {string.Join(" > ", seen)}, crossed eyes {dizzy}, sulking {sulking}; {Line(robot)}";
+    }
+
+    // Hold-E: heart eyes and a laugh; it forgives a sulk.
+    public static async Task<string> Pat(string name)
+    {
+        Robot robot = Find(name);
+        PlacePlayer(Ground(robot.transform.position + robot.transform.forward * 1.6f), robot.Head.position);
+        await Seconds(0.3f, () => Aim(robot.Head.position));
+        bool offered = robot.TryGetHoldPrompt(Player.gameObject, out var prompt);
+        robot.InteractHold(Player.gameObject);
+        bool love = false;
+        bool laugh = false;
+        await Seconds(2f, () =>
+        {
+            Aim(robot.Head.position);
+            love |= robot.Face.Shown == RobotExpression.Love;
+            laugh |= StateName(robot.Animator) == "Emote_4";
+        });
+        bool ok = offered && love && laugh && !robot.State.Sulking(Time.time);
+        return $"{(ok ? "PASS" : "FAIL")} {name} patted: prompt \"{prompt.Verb} {prompt.Target}\", hearts {love}, laugh {laugh}, sulking {robot.State.Sulking(Time.time)}; {Line(robot)}";
+    }
+
+    // A raid: brave boxing, then both hide at their shelters, worried; then the end: win and dance, or cry.
+    public static async Task<string> Raid(string outcome, float hideSeconds)
+    {
+        StandAway();
+        Robot[] robots = Robots;
+        var brave = robots.ToDictionary(r => r, _ => false);
+        Manager.StartRaid();
+        await Seconds(hideSeconds, () =>
+        {
+            foreach (Robot r in robots)
+                brave[r] |= StateName(r.Animator).StartsWith("Emote_11");
+        });
+        var sb = new StringBuilder();
+        foreach (Robot r in robots)
+        {
+            float fromShelter = Flat(r.transform.position - r.Shelter);
+            bool ok = brave[r] && fromShelter < 1f && r.Face.Shown == RobotExpression.Worried;
+            sb.AppendLine($"{(ok ? "PASS" : "FAIL")} {r.name} hides: brave {brave[r]}, {fromShelter:0.0} m from its shelter, face {r.Face.Shown}");
+        }
+        Manager.EndRaid(outcome == "lose" ? RaidEndReason.Defeat : RaidEndReason.Cleared);
+        var seen = robots.ToDictionary(r => r, _ => new System.Collections.Generic.HashSet<string>());
+        var faces = robots.ToDictionary(r => r, _ => new System.Collections.Generic.HashSet<RobotExpression>());
+        await Seconds(4.5f, () =>
+        {
+            foreach (Robot r in robots)
+            {
+                seen[r].Add(StateName(r.Animator));
+                faces[r].Add(r.Face.Shown);
+            }
+        });
+        foreach (Robot r in robots)
+        {
+            bool ok = outcome == "lose"
+                ? seen[r].Contains("Emote_10") && faces[r].Contains(RobotExpression.Sad)
+                : seen[r].Contains("Emote_7") && seen[r].Contains("Emote_8") && faces[r].Contains(RobotExpression.Excited);
+            sb.AppendLine($"{(ok ? "PASS" : "FAIL")} {r.name} after a {outcome}: {string.Join(", ", seen[r])}; faces {string.Join(", ", faces[r])}");
+        }
+        return sb.ToString().TrimEnd();
+    }
+
+    // The player is back from a trip: robots look round, then come over and greet with hearts.
+    public static async Task<string> Welcome(float seconds)
+    {
+        Robot robot = Find("Robot_Shop");
+        RobotYard yard = Object.FindAnyObjectByType<RobotYard>();
+        Vector3 at = Ground(yard.transform.TransformPoint(new Vector3(-4f, 0f, 6f)));
+        PlacePlayer(at, robot.Head.position);
+        await Seconds(0.3f, null);
+        Manager.WelcomeHome();
+        bool looked = false;
+        bool love = false;
+        await Seconds(seconds, () =>
+        {
+            looked |= StateName(robot.Animator) == "Emote_12";
+            love |= robot.Face.Shown == RobotExpression.Love;
+        });
+        bool ok = looked && robot.Call.Arrived && robot.Call.Reason == RobotCallReason.Welcome && love;
+        return $"{(ok ? "PASS" : "FAIL")} welcome home: looked round {looked}, came {robot.Call.Arrived} ({robot.Call.Reason}), hearts {love}, {Flat(Player.transform.position - robot.transform.position):0.0} m from the player; {Line(robot)}";
+    }
+
+    // Talking swaps the mouth for the scrolling speech line.
+    public static async Task<string> Speech(string name)
+    {
+        Robot robot = Find(name);
+        robot.Hold(RobotExpression.Talk, 2f);
+        await Seconds(0.3f, null);
+        Renderer[] renderers = robot.GetComponentsInChildren<Renderer>(true);
+        Renderer speech = renderers.First(r => r.name == "Rob15_mouthSpeech");
+        Renderer mouth = renderers.First(r => r.name == "Rob15_mouth");
+        var block = new MaterialPropertyBlock();
+        speech.GetPropertyBlock(block);
+        float x0 = block.GetVector("_BaseMap_ST").z;
+        await Seconds(0.5f, null);
+        speech.GetPropertyBlock(block);
+        float x1 = block.GetVector("_BaseMap_ST").z;
+        bool talking = speech.enabled && speech.gameObject.activeInHierarchy && !mouth.enabled && Mathf.Abs(x1 - x0) > 0.01f;
+        await Seconds(2f, null);
+        bool back = !speech.enabled && mouth.enabled;
+        bool ok = talking && back;
+        return $"{(ok ? "PASS" : "FAIL")} {name} speech line while talking {talking} (scroll {x0:0.00} > {x1:0.00}), mouth back after {back}";
+    }
+
+    // At night it stands by facing out from its spot; in the morning it hops awake.
+    public static async Task<string> NightFacing(float seconds)
+    {
+        StandAway();
+        Scope.Resolve<WorldClock>().JumpTo(23f);
+        // A raid may start at night: stopped, so the robots stand by instead of hiding.
+        await Seconds(1f, null);
+        var director = Scope.Resolve<MB13.Aipocalypse.Core.RaidSystem.RaidDirector>();
+        if (director.IsRunning)
+            director.Stop();
+        await Seconds(seconds, null);
+        var sb = new StringBuilder();
+        foreach (Robot r in Robots)
+        {
+            float off = Vector3.Angle(Vector3.ProjectOnPlane(r.transform.forward, Vector3.up), Vector3.ProjectOnPlane(r.HomeFacing, Vector3.up));
+            sb.AppendLine($"{(off < 20f ? "PASS" : "FAIL")} {r.name} stands by facing its spot's way: {off:0} deg off, {StateName(r.Animator)}");
+        }
+        Scope.Resolve<WorldClock>().JumpTo(7f);
+        var hopped = Robots.ToDictionary(r => r, _ => false);
+        await Seconds(3f, () =>
+        {
+            foreach (Robot r in Robots)
+                hopped[r] |= StateName(r.Animator) == "Emote_9";
+        });
+        foreach (Robot r in Robots)
+            sb.AppendLine($"{(hopped[r] ? "PASS" : "FAIL")} {r.name} wakes with a hop {hopped[r]}");
+        return sb.ToString().TrimEnd();
     }
 
     static string StateName(Animator animator)
     {
         AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
-        foreach (string state in new[] { "Locomotion", "Standby", "Hit_0", "Hit_1", "Hit_2" }.Concat(Enumerable.Range(1, 9).Select(i => "Emote_" + i)))
+        foreach (string state in new[] { "Locomotion", "Standby", "Hit_0", "Hit_1", "Hit_2", "Fall_0", "Fall_1", "Lie_0", "Lie_1", "Rise_0", "Rise_1", "Emote_11_Punch" }
+                     .Concat(Enumerable.Range(1, 12).Select(i => "Emote_" + i)))
             if (info.IsName(state))
                 return state;
         return info.shortNameHash.ToString();

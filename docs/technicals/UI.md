@@ -56,8 +56,11 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
       │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
       │  ├─ ToolPrompt       InteractPrompt.prefab, 46 px above: the held repair tool's key ("[LMB] Repair Fence 63%", held)
-      │  └─ CollectPrompt    InteractPrompt.prefab, 46 px below: the Collect key ("[C] Collect Tokens" on a farm animal)
+      │  ├─ CollectPrompt    InteractPrompt.prefab, 46 px below: the Collect key ("[C] Collect Tokens" on a farm animal)
+      │  └─ WhistlePrompt    InteractPrompt.prefab, 92 px below: the whistle ("[Q] Call Bolt" when aiming at a robot E doesn't reach)
       └─ ItemUse           nested Canvas · ItemUseHud: Root (Ring, radial Fill, Label) around the crosshair while a consumable is used
+NameTag                      nested Canvas · CanvasGroup · NameTagHud: IconDisc + Icon (the job icon) over a Band and Name, placed over the
+                             robot the player aims at (RobotSetup.Hud)
 LootMarkers                  full screen, nested Canvas · LootMarkerHud: Marker (inactive 56 px bag icon + Shadow, cloned 8 times), placed
                              over crates and bodies holding loot (see Loot markers and pickup feed below)
 Inventory                    the inventory screen, its own Canvas (sorting 50, off while closed) · GraphicRaycaster · CanvasGroup ·

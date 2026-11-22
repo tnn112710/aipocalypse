@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace MB13.Aipocalypse.Core.RobotSystem
 {
@@ -22,6 +23,8 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         }
 
         [Tooltip("Off: robots stand still and offer nothing")] public bool Enabled = true;
+        [Tooltip("Hold E prompt's verb (\"Pat\")")] public LocalizedString PatVerb;
+        [Tooltip("Whistle prompt's verb (\"Call\")")] public LocalizedString CallVerb;
         [Min(0.02f), Tooltip("Seconds between a robot's thinks")] public float ThinkInterval = 0.2f;
         [Tooltip("Awake inside these hours; standby at their spot outside them")] public TimeWindow Awake = new(6f, 20f);
 
@@ -31,12 +34,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         [Header("Home life")]
         [Tooltip("Seconds it idles between moves (min, max), times its patience")] public Vector2 IdleTime = new(4f, 9f);
-        [Min(0.5f), Tooltip("Strolls end within this far of its spot (m)")] public float StrollRadius = 4f;
         [Min(0f), Tooltip("Seconds a walk may take beyond 1.5× its straight-line time before it gives up")] public float TravelTimeout = 4f;
         [Min(1), Tooltip("Tries to find a reachable point for a walk")] public int DestinationAttempts = 8;
         [Min(0.1f), Tooltip("Walking pace (m/s): near the walk clip's own pace at the robot's size")] public float WalkSpeed = 0.62f;
         [Min(0.1f), Tooltip("Trotting pace when called or stepping aside (m/s)")] public float TrotSpeed = 1.3f;
-        [Min(1f), Tooltip("How fast it turns to face something (degrees per second)")] public float FaceTurnSpeed = 240f;
+        [Range(0.3f, 1f), Tooltip("Walking pace when it goes to its spot for the night (× WalkSpeed)")] public float BedtimePace = 0.75f;
+        [Tooltip("Degrees it turns its body either way when looking round while idle")] public float LookAroundYaw = 70f;
+        [Tooltip("Seconds between looks round while idle (min, max)")] public Vector2 LookAroundInterval = new(2f, 4.5f);
 
         [Header("Greeting")]
         [Min(0f), Tooltip("It notices the player this close (m): head turns, greetings hold")] public float NoticeRadius = 5f;
@@ -45,6 +49,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         [Header("Whistle")]
         [Min(0.5f), Tooltip("Stops this far from the player (m)")] public float ArriveDistance = 1.8f;
+        [Min(0f), Tooltip("Seconds it reacts (faces the player, thumbs-up) before setting off")] public float CallReactTime = 0.9f;
         [Min(0f), Tooltip("Seconds it waits by the player before going home")] public float CallWait = 20f;
         [Min(1f), Tooltip("Goes home early when the player walks this far from where they whistled (m)")] public float LeaveDistance = 8f;
         [Min(0f), Tooltip("Whistled from outside the yard, it stops this far inside the fence (m)")] public float YardMargin = 1.2f;
@@ -52,15 +57,41 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         [Header("Reactions")]
         [Min(0f), Tooltip("It steps aside from the player this close (m)")] public float BumpRadius = 0.9f;
         [Min(0.5f), Tooltip("How far it steps aside (m)")] public float StepAside = 1.5f;
+        [Min(0.1f), Tooltip("A walked-into request goes stale after this many seconds")] public float StepExpiry = 0.5f;
+        [Min(0.5f), Tooltip("Seconds a step aside may take")] public float StepTimeout = 2.5f;
         [Min(0f), Tooltip("A gun pointed at it this close makes it nervous (m)")] public float NervousRadius = 6f;
         [Range(1f, 30f), Tooltip("How close to its head the gun must point (degrees)")] public float NervousAngle = 6f;
+        [Min(0.5f), Tooltip("Seconds it stays nervous (head shake)")] public float NervousTime = 2.2f;
         [Min(0f), Tooltip("Seconds before it gets nervous again")] public float NervousCooldown = 8f;
         [Min(0.1f), Tooltip("Seconds a hit stops it")] public float HitHold = 1.2f;
+        [Min(0f), Tooltip("Seconds E, a pat, a whistle or a hit keeps it awake at night")] public float NightWake = 12f;
+
+        [Header("Knockdown")]
+        [Min(2), Tooltip("Hits in a row that knock it over")] public int KnockdownHits = 3;
+        [Min(0.1f), Tooltip("Seconds those hits must land within")] public float KnockdownWindow = 2.5f;
+        [Min(0.5f), Tooltip("Seconds from the knock to starting to get up (the fall clip, then lying, crossed eyes)")] public float KnockdownLie = 2.6f;
+        [Min(0.5f), Tooltip("Seconds getting up takes (the rise clips are 1.8–2 s)")] public float KnockdownRise = 2f;
+        [Min(0f), Tooltip("Seconds it sulks once up (angry; a look gets a head shake). A pat ends it")] public float SulkTime = 10f;
+
+        [Header("Pat")]
+        [Min(0.5f), Tooltip("Seconds its eyes stay hearts after a pat")] public float PatHold = 3f;
+
+        [Header("Raid")]
+        [Min(0f), Tooltip("Seconds of brave boxing before it runs to hide")] public float BraveTime = 2.2f;
+        [Tooltip("Seconds between looks round while hiding (min, max)")] public Vector2 HideLookInterval = new(5f, 9f);
+        [Min(0.5f), Tooltip("Seconds it cheers (win, dance) or cries when the raid ends")] public float CheerTime = 5f;
+
+        [Header("Welcome home")]
+        [Min(0f), Tooltip("The player must be out of the yard this long (s) to be welcomed back")] public float WelcomeAway = 60f;
+        [Min(0f), Tooltip("Robots this close to the player come over (m)")] public float WelcomeRadius = 45f;
+        [Min(0f), Tooltip("Seconds it looks round before it spots the player")] public float WelcomeLookTime = 1.8f;
 
         [Header("Face")]
         [Tooltip("Seconds between blinks (min, max)")] public Vector2 BlinkInterval = new(2.5f, 6f);
         [Min(0.02f), Tooltip("Seconds a blink lasts")] public float BlinkTime = 0.15f;
         [Tooltip("Seconds between small changes of look while idle (min, max)")] public Vector2 MoodInterval = new(6f, 14f);
+
+        [Min(0f), Tooltip("How far above its head the name tag sits (m)")] public float NameTagHeight = 0.45f;
 
         [Header("Head")]
         [Range(0f, 120f), Tooltip("How far its head turns left or right toward the player (degrees)")] public float HeadYawLimit = 70f;

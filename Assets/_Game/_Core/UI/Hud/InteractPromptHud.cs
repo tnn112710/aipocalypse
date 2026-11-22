@@ -7,13 +7,14 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.UI
 {
     // Shows what the active player can use right now ("[E] Pick up Rifle", and a hold use under it), plus, above it, what the
-    // hammer in hand would repair while the attack button is held ("[LMB] Repair Fence 63%"), and below it what the focus offers to collect ("[C] Collect
-    // Tokens"). Polled: the focus changes as the player looks around.
+    // hammer in hand would repair while the attack button is held ("[LMB] Repair Fence 63%"), below it what the focus offers to collect ("[C] Collect
+    // Tokens") and what the whistle would call from afar ("[Q] Call Bolt"). Polled: the focus changes as the player looks around.
     public sealed class InteractPromptHud : PlayerHudView
     {
         [SerializeField] InteractPromptView _view;
         [SerializeField, Tooltip("Optional: the repair tool's prompt, on its own key")] InteractPromptView _toolView;
         [SerializeField, Tooltip("Optional: what the focus offers to collect, on the Collect key")] InteractPromptView _collectView;
+        [SerializeField, Tooltip("Optional: what the whistle would call, on the Whistle key")] InteractPromptView _whistleView;
 
         InputService _input;
 
@@ -34,6 +35,11 @@ namespace MB13.Aipocalypse.Core.UI
                 _collectView.Hide();
                 _collectView.SetKey(_input?.GetKeyLabel(GameButton.Collect) ?? "C");
             }
+            if (_whistleView != null)
+            {
+                _whistleView.Hide();
+                _whistleView.SetKey(_input?.GetKeyLabel(GameButton.Whistle) ?? "Q");
+            }
             base.Start();
         }
 
@@ -44,6 +50,8 @@ namespace MB13.Aipocalypse.Core.UI
                 _toolView.Hide();
             if (_collectView != null)
                 _collectView.Hide();
+            if (_whistleView != null)
+                _whistleView.Hide();
         }
 
         // Hidden while a menu (the inventory) holds the UI: the player isn't looking around then.
@@ -53,6 +61,19 @@ namespace MB13.Aipocalypse.Core.UI
             ShowInteract(Player != null && !menu ? Player.Interactor : null);
             ShowTool(Player != null && !menu ? Player.Repair : null);
             ShowCollect(Player != null && !menu ? Player.Interactor : null);
+            ShowWhistle(Player != null && !menu ? Player : null);
+        }
+
+        // Not for what E already reaches: calling a robot standing right there means nothing.
+        void ShowWhistle(IPlayer player)
+        {
+            if (_whistleView == null)
+                return;
+            PlayerWhistle whistle = player?.Whistle;
+            if (whistle == null || !whistle.HasPrompt || ReferenceEquals(whistle.Target, player.Interactor?.Focus))
+                _whistleView.Hide();
+            else
+                _whistleView.Show(whistle.Prompt.Verb, whistle.Prompt.Target);
         }
 
         void ShowCollect(PlayerInteractor interactor)
