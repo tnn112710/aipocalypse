@@ -74,6 +74,8 @@ public static class AnimalSetup
         public string SleepClip = "Sleep";  // null: dozes standing, the idle slowed down
         public string LieDownClip, WakeUpClip;  // optional: into and out of Sleep, else a cross-fade
         public float ModelScale = 1f;
+        // Blend shape weights (0-100) set on the model over the vendor's, by blend shape name.
+        public Dictionary<string, float> BlendShapes = new();
         // Ground speed of the walk and run clips at model scale 1, measured by AgentScripts/Animals/AnimalStrideProbe (the
         // planted feet's backward speed); the clips play at speed / (authored * ModelScale), so the feet stay planted.
         public float AuthoredWalk, AuthoredRun;
@@ -138,6 +140,7 @@ public static class AnimalSetup
         ClipFbx = "TFP_Sheep 01_Anim_Source.fbx",
         ClipPrefix = "RIG_Sheep_01_",
         WalkClip = "Walk.001",
+        BlendShapes = { ["Wool Size"] = 100f },     // the pack's sheep: 35
         ModelScale = 0.85f,
         AuthoredWalk = 0.48f,
         AuthoredRun = 1.27f,        // a trot: no run clip, so fleeing plays it fast
@@ -348,7 +351,7 @@ public static class AnimalSetup
             for (int i = 0; i < kind.Looks.Length; i++)
             {
                 (string look, string vendor) = kind.Looks[i];
-                (GameObject model, bool reshaped) = Model(Tfp + $"Prefabs/Animals/{vendor}.prefab", $"{dir}/Model/{look}.prefab");
+                (GameObject model, bool reshaped) = Model(Tfp + $"Prefabs/Animals/{vendor}.prefab", $"{dir}/Model/{look}.prefab", kind.BlendShapes);
                 string entityName = i == 0 ? kind.Name : look;
                 AnimatorController controller = kind.LookClips.TryGetValue(look, out var clips)
                     ? Controller(definition, clips.Fbx, clips.Prefix, kind, $"{dir}/{entityName}.controller")
@@ -543,7 +546,7 @@ public static class AnimalSetup
     // A first-party copy of the vendor prefab with only the look left: the pack's switched-off look meshes and any vendor
     // components removed, its toon material kept, one Animator on the root with no controller. Reshaped: the saved prefab's
     // top-level children changed (another vendor model), so the entity nests it afresh instead of keeping stale overrides.
-    static (GameObject Model, bool Reshaped) Model(string vendorPath, string path)
+    static (GameObject Model, bool Reshaped) Model(string vendorPath, string path, Dictionary<string, float> blendShapes)
     {
         var before = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         GameObject root = PrefabUtility.LoadPrefabContents(vendorPath);
@@ -552,6 +555,13 @@ public static class AnimalSetup
             foreach (Transform child in root.transform.Cast<Transform>().ToArray())
                 if (!child.gameObject.activeSelf)
                     Object.DestroyImmediate(child.gameObject);
+            foreach (SkinnedMeshRenderer skin in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                foreach ((string shape, float weight) in blendShapes)
+                {
+                    int index = skin.sharedMesh.GetBlendShapeIndex(shape);
+                    if (index >= 0)
+                        skin.SetBlendShapeWeight(index, weight);
+                }
             bool reshaped = before == null || !ChildNames(before.transform).SequenceEqual(ChildNames(root.transform));
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
                 GameObjectUtility.RemoveMonoBehavioursWithMissingScript(child.gameObject);
