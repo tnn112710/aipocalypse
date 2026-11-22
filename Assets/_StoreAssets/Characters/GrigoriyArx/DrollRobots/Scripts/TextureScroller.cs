@@ -32,7 +32,7 @@ public class TextureScroller : MonoBehaviour
                 uvOffset.y = currentTrack * verticalStep; 
         }
 
-            targetRenderer.material.SetTextureOffset("_MainTex", uvOffset);
+            targetRenderer.material.SetTextureOffset("_BaseMap", uvOffset);
         
     }
 }
