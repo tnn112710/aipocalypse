@@ -125,8 +125,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8865887358241718963}
   - {fileID: 3052777453201565480}
+  - {fileID: 1276079381695883185}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &57553805586832007
@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.Animal
   _definition: {fileID: 11400000, guid: bbd75866754b9c2418dca37c964eab15, type: 2}
-  _animator: {fileID: 1652254260888211626}
+  _animator: {fileID: 8958084641280964008}
   _marker: {fileID: 170250384700900915}
 --- !u!114 &352326170874620567
 MonoBehaviour:
@@ -316,7 +316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.SaveSystem.SaveId
   _id: 
---- !u!1001 &5738211587251405914
+--- !u!1001 &2674654336324706648
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -326,15 +326,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3795352087395124969, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.8
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 3795352087395124969, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.8
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 3795352087395124969, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.8
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 3795352087395124969, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
       propertyPath: m_LocalPosition.x
@@ -389,13 +389,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
---- !u!95 &1652254260888211626 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 6435579504256128240, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
-  m_PrefabInstance: {fileID: 5738211587251405914}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &8865887358241718963 stripped
+--- !u!4 &1276079381695883185 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3795352087395124969, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
-  m_PrefabInstance: {fileID: 5738211587251405914}
+  m_PrefabInstance: {fileID: 2674654336324706648}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8958084641280964008 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 6435579504256128240, guid: 8e6bb10f9bc9e4044b094a1ed18952c6, type: 3}
+  m_PrefabInstance: {fileID: 2674654336324706648}
   m_PrefabAsset: {fileID: 0}

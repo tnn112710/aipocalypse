@@ -20,16 +20,15 @@ using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 // Builds the farm animals: the Animals BroAudio library, Data/Animals/AnimalSettings and its "+N Tokens" number, the cow,
-// sheep, chicken (hen and rooster) and pig (definition, animator controller, model and entity prefabs from polyperfect Low
-// Poly Animated Animals), the pen pieces (rail, post, gate, bell from Lakefell parts), and in WorldMap the "Home Pen" root
-// (the herd's home in the yard's west corner with no pen fence, the bell by the home gate, pasture in front of it, 2 cows,
-// 6 sheep, a rooster, 3 hens, 2 pigs) plus the
-// AnimalInstaller. Safe to re-run: animals already in the scene are kept, missing ones from the list are added.
+// sheep, chicken (hen and rooster) and pig (definition, animator controller, model and entity prefabs from the SICS Toon
+// Farm Pack, on its own toon material), the pen pieces (rail, post, gate, bell from Lakefell parts), and in WorldMap
+// the "Home Pen" root (the herd's home in the yard's west corner with no pen fence, the bell by the home gate, pasture in
+// front of it, 2 cows, 6 sheep, a rooster, 3 hens, 2 pigs) plus the AnimalInstaller. Safe to re-run: animals already in the scene are kept, missing ones from the list are added.
 // The tree is built apart: TreeKit.Build AgentScripts/Animals/Animal.tree.txt.
 // Run: unity command script run --file AgentScripts/Animals/AnimalSetup.cs --entry AnimalSetup.All
 public static class AnimalSetup
 {
-    const string PP = "Assets/_StoreAssets/Characters/polyperfect/Low Poly Animated Animals/";
+    const string Tfp = "Assets/_StoreAssets/Env/SICS/Toon Series/Toon Farm Pack/";
     const string GM = "Assets/_StoreAssets/Audio/Gamemaster Audio - Pro Sound Collection/";
     const string LV = "Assets/_StoreAssets/Env/Raygeas/Lakefell Village/Assets/Prefabs/";
     const string AudioDir = "Assets/_Game/Data/Audio";
@@ -64,19 +63,22 @@ public static class AnimalSetup
     sealed class Kind
     {
         public string Name;
-        public string[] Looks;              // vendor prefab names; the first is <Name>.prefab, the rest <Name>_<Look>.prefab
-        public string ClipFbx;
+        // Model name (Model/<Name>.prefab) and Toon Farm Pack prefab under Prefabs/Animals/. The first look's entity is
+        // <Kind>.prefab, the others' <Name>.prefab.
+        public (string Name, string Vendor)[] Looks;
+        public string ClipFbx;              // under the pack's Models/
         public string ClipPrefix;
-        public string IdleClip = "Idle";
-        // Looks whose clips live in another file (the rooster's): look -> (clip file, clip prefix, idle clip).
-        public Dictionary<string, (string Fbx, string Prefix, string Idle)> LookClips = new();
+        // Looks whose clips live in another file (the rooster's): look -> (clip file, clip prefix); same clip names.
+        public Dictionary<string, (string Fbx, string Prefix)> LookClips = new();
+        public string IdleClip = "Idle_01", WalkClip = "Walk", RunClip = "Trot", EatClip = "Eating_01";
+        public string SleepClip = "Sleep";  // null: dozes standing, the idle slowed down
+        public string LieDownClip, WakeUpClip;  // optional: into and out of Sleep, else a cross-fade
         public float ModelScale = 1f;
         // Ground speed of the walk and run clips at model scale 1, measured by AgentScripts/Animals/AnimalStrideProbe (the
         // planted feet's backward speed); the clips play at speed / (authored * ModelScale), so the feet stay planted.
         public float AuthoredWalk, AuthoredRun;
-        // Spare idle clips (Idle parameter 1..n), and optional clips for setting off and stopping.
+        // Spare idle clips (Idle parameter 1..n).
         public string[] Fidgets = Array.Empty<string>();
-        public string StartClip, StopClip;
         public float AgentRadius, AgentHeight;
         public float BodyRadius, BodyLength, BodyHeight;
         public float MarkerHeight;
@@ -86,14 +88,14 @@ public static class AnimalSetup
     static readonly Kind Cow = new()
     {
         Name = "Cow",
-        Looks = new[] { "Cow_White", "Cow_Brown" },
-        ClipFbx = PP + "Meshes/Animals/Cow/SKM_Cow_Animations.fbx",
-        ClipPrefix = "Cow_",
-        IdleClip = "Idle1",
-        ModelScale = 0.8f,
-        AuthoredWalk = 0.91f,
-        AuthoredRun = 5.3f,         // a gallop: no foot stays down long, read from the lowest foot
-        Fidgets = new[] { "Idle_2" },
+        Looks = new[] { ("Cow_White", "Cows/TFP_Cow_01E"), ("Cow_Brown", "Cows/TFP_Cow_01A") },
+        ClipFbx = "TFP_Cow 01_Anim_Source.fbx",
+        ClipPrefix = "RIG_Cow_01_",
+        SleepClip = null,
+        ModelScale = 0.7f,
+        AuthoredWalk = 1.23f,
+        AuthoredRun = 5.36f,        // a long-striding trot
+        Fidgets = new[] { "Idle_02", "Idle_03", "Idle_04", "Idle_05", "Idle_06" },
         AgentRadius = 0.6f,
         AgentHeight = 1.5f,
         BodyRadius = 0.42f,
@@ -125,21 +127,21 @@ public static class AnimalSetup
             d.Hurried = Id(AnimalAudioDir, "Cow_Hurried");
             d.Startled = Id(AnimalAudioDir, "Cow_Hurried");
             d.CallInterval = new Vector2(15f, 40f);
-            d.MarkerDropAsleep = 0.9f;
+            d.MarkerDropAsleep = 0.4f;     // sleeps standing
         },
     };
 
     static readonly Kind Sheep = new()
     {
         Name = "Sheep",
-        Looks = new[] { "Sheep_Wool" },
-        ClipFbx = PP + "Meshes/Animals/Sheep/SKM_Sheep_Wool_Animations.fbx",
-        ClipPrefix = "Sheep_Wool_",
-        AuthoredWalk = 0.43f,
-        AuthoredRun = 3.5f,
-        Fidgets = new[] { "Idle_2" },
-        StartClip = "Idle_to_Walk",
-        StopClip = "Walk_To_Idle",
+        Looks = new[] { ("Sheep_Wool", "Sheep/TFP_Sheep_01A") },
+        ClipFbx = "TFP_Sheep 01_Anim_Source.fbx",
+        ClipPrefix = "RIG_Sheep_01_",
+        WalkClip = "Walk.001",
+        ModelScale = 0.85f,
+        AuthoredWalk = 0.48f,
+        AuthoredRun = 1.27f,        // a trot: no run clip, so fleeing plays it fast
+        Fidgets = new[] { "Idle_02", "Idle_03", "Idle_04", "Idle_05" },
         AgentRadius = 0.4f,
         AgentHeight = 1.1f,
         BodyRadius = 0.28f,
@@ -180,14 +182,15 @@ public static class AnimalSetup
     static readonly Kind Chicken = new()
     {
         Name = "Chicken",
-        Looks = new[] { "Hen", "Rooster" },
-        ClipFbx = PP + "Meshes/Animals/Hen/SKM_Hen_Animations.fbx",
-        ClipPrefix = "Hen_",
-        IdleClip = "Idle Breathing",
-        LookClips = { ["Rooster"] = (PP + "Meshes/Animals/Rooster/SKM_Rooster_Animations.fbx", "Rooster_", "Idle_Breathing") },
-        AuthoredWalk = 0.28f,
+        Looks = new[] { ("Hen", "Chicken/TFP_Chicken_01A"), ("Rooster", "Chicken/TFP_Rooster_01A") },
+        ClipFbx = "TFP_Chicken_01.fbx",
+        ClipPrefix = "RIG_TFP_Chicken_01_",
+        LookClips = { ["Rooster"] = ("TFP_Rooster_01.fbx", "RIG_TFP_Rooster_01_") },
+        RunClip = "Run",
+        EatClip = "Eat",
+        AuthoredWalk = 0.25f,
         AuthoredRun = 1f,
-        Fidgets = new[] { "Idle_2", "Idle_3" },
+        Fidgets = new[] { "Idle_02", "WingFlap" },
         AgentRadius = 0.25f,
         AgentHeight = 0.7f,
         BodyRadius = 0.2f,
@@ -228,16 +231,16 @@ public static class AnimalSetup
     static readonly Kind Pig = new()
     {
         Name = "Pig",
-        Looks = new[] { "Pig" },
-        ClipFbx = PP + "Meshes/Animals/Pig/SKM_Pig_Animations.fbx",
-        ClipPrefix = "Pig_",
-        IdleClip = "Idle_Breathing",
-        ModelScale = 1.2f,
-        AuthoredWalk = 0.55f,
-        AuthoredRun = 2.62f,
-        Fidgets = new[] { "idle_2" },
-        StartClip = "Idle_To_Walk",
-        StopClip = "Walk_To_Idle",
+        Looks = new[] { ("Pig", "Pigs/TFP_Pig_01A") },
+        ClipFbx = "TFP_Pig_01_Anim_Source.fbx",
+        ClipPrefix = "RIG_TFP_Pig_01_",
+        EatClip = "Eat",
+        LieDownClip = "IdleToGround",
+        WakeUpClip = "GroundToIdle",
+        ModelScale = 0.85f,
+        AuthoredWalk = 0.81f,
+        AuthoredRun = 1.57f,        // a trot
+        Fidgets = new[] { "Idle_02", "Idle_03" },
         AgentRadius = 0.45f,
         AgentHeight = 1f,
         BodyRadius = 0.3f,
@@ -341,16 +344,16 @@ public static class AnimalSetup
             definition.Fidgets = kind.Fidgets.Length;
             Save(definition);
 
-            AnimatorController shared = Controller(definition, kind.ClipFbx, kind.ClipPrefix, kind.IdleClip, kind, $"{dir}/{kind.Name}.controller");
+            AnimatorController shared = Controller(definition, kind.ClipFbx, kind.ClipPrefix, kind, $"{dir}/{kind.Name}.controller");
             for (int i = 0; i < kind.Looks.Length; i++)
             {
-                string look = kind.Looks[i];
-                GameObject model = Model(PP + $"Prefabs/Animals/{look}.prefab", $"{dir}/Model/{look}.prefab");
+                (string look, string vendor) = kind.Looks[i];
+                (GameObject model, bool reshaped) = Model(Tfp + $"Prefabs/Animals/{vendor}.prefab", $"{dir}/Model/{look}.prefab");
                 string entityName = i == 0 ? kind.Name : look;
                 AnimatorController controller = kind.LookClips.TryGetValue(look, out var clips)
-                    ? Controller(definition, clips.Fbx, clips.Prefix, clips.Idle, kind, $"{dir}/{entityName}.controller")
+                    ? Controller(definition, clips.Fbx, clips.Prefix, kind, $"{dir}/{entityName}.controller")
                     : shared;
-                log.Add(Entity(kind, definition, controller, model, $"{dir}/{entityName}.prefab"));
+                log.Add(Entity(kind, definition, controller, model, reshaped, $"{dir}/{entityName}.prefab"));
             }
         }
         return "content: " + string.Join(", ", log);
@@ -380,14 +383,16 @@ public static class AnimalSetup
         return number;
     }
 
-    // Stand (the idle clip) is home: Eat, the spare idles (Idle = 1..n) and setting off branch from it. Locomotion blends
-    // idle → walk → run on Speed (walking, then fleeing speed; the clips retimed so the feet stay planted), entered through
-    // the start clip and left through the stop clip where the kind has them. Sleep from anywhere, then WakeUp to Stand.
-    static AnimatorController Controller(AnimalDefinition definition, string fbx, string prefix, string idle, Kind kind, string path)
+    // Stand (the idle clip) is home: Eat and the spare idles (Idle = 1..n) branch from it. Locomotion blends idle → walk →
+    // run on Speed (walking, then fleeing speed; the clips retimed so the feet stay planted). Sleep from any awake state,
+    // through the lie-down clip where the kind has one, and back to Stand through the wake-up clip or a cross-fade.
+    static AnimatorController Controller(AnimalDefinition definition, string fbx, string prefix, Kind kind, string path)
     {
         const float SetOff = 0.12f, Stopped = 0.06f, Moving = 0.25f;
-        var clips = AssetDatabase.LoadAllAssetsAtPath(fbx).OfType<AnimationClip>().ToDictionary(c => c.name);
+        var clips = AssetDatabase.LoadAllAssetsAtPath(Tfp + "Models/" + fbx).OfType<AnimationClip>().ToDictionary(c => c.name);
+        string animations = System.IO.Path.GetDirectoryName(path).Replace('\\', '/') + "/Animations";
         AnimationClip Clip(string name) => clips.TryGetValue(prefix + name, out AnimationClip clip) ? clip : throw new Exception($"no clip {prefix}{name} in {fbx}");
+        AnimationClip Loop(string name) => Looping(Clip(name), animations, prefix);
 
         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         if (controller == null)
@@ -411,75 +416,112 @@ public static class AnimalSetup
         controller.AddParameter("Idle", AnimatorControllerParameterType.Int);
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
         float scale = kind.ModelScale;
+        AnimationClip idle = Loop(kind.IdleClip);
 
         var tree = new BlendTree { name = "Locomotion", blendParameter = "Speed", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
         AssetDatabase.AddObjectToAsset(tree, controller);
-        tree.AddChild(Clip(idle), 0f);
-        tree.AddChild(Clip("Walk"), definition.WalkSpeed);
-        tree.AddChild(Clip("Run"), definition.FleeSpeed);
+        tree.AddChild(idle, 0f);
+        tree.AddChild(Loop(kind.WalkClip), definition.WalkSpeed);
+        tree.AddChild(Loop(kind.RunClip), definition.FleeSpeed);
         ChildMotion[] children = tree.children;
         children[1].timeScale = definition.WalkSpeed / (kind.AuthoredWalk * scale);
         children[2].timeScale = definition.FleeSpeed / (kind.AuthoredRun * scale);
         tree.children = children;
 
         AnimatorState stand = machine.AddState("Stand");
-        stand.motion = Clip(idle);
+        stand.motion = idle;
         machine.defaultState = stand;
         AnimatorState locomotion = machine.AddState("Locomotion");
         locomotion.motion = tree;
-
-        // Setting off and stopping.
-        if (kind.StartClip != null)
-        {
-            AnimatorState setOff = machine.AddState("Start");
-            setOff.motion = Clip(kind.StartClip);
-            Transition(stand.AddTransition(setOff), 0.1f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
-            Exit(setOff.AddTransition(locomotion), 0.8f, 0.15f);
-        }
-        else
-            Transition(stand.AddTransition(locomotion), 0.2f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
-        if (kind.StopClip != null)
-        {
-            AnimatorState stop = machine.AddState("Stop");
-            stop.motion = Clip(kind.StopClip);
-            Transition(locomotion.AddTransition(stop), 0.15f).AddCondition(AnimatorConditionMode.Less, Stopped, "Speed");
-            Exit(stop.AddTransition(stand), 0.85f, 0.15f);
-            Transition(stop.AddTransition(locomotion), 0.2f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
-        }
-        else
-            Transition(locomotion.AddTransition(stand), 0.25f).AddCondition(AnimatorConditionMode.Less, Stopped, "Speed");
+        Transition(stand.AddTransition(locomotion), 0.2f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
+        Transition(locomotion.AddTransition(stand), 0.25f).AddCondition(AnimatorConditionMode.Less, Stopped, "Speed");
+        var awake = new List<AnimatorState> { stand, locomotion };
 
         AnimatorState eat = machine.AddState("Eat");
-        eat.motion = Clip("Eat");
+        eat.motion = Loop(kind.EatClip);
         AnimatorStateTransition toEat = Transition(stand.AddTransition(eat), 0.4f);
         toEat.AddCondition(AnimatorConditionMode.If, 0f, "Eat");
         toEat.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
         Transition(eat.AddTransition(stand), 0.35f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Eat");
         Transition(eat.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+        awake.Add(eat);
 
         for (int i = 0; i < kind.Fidgets.Length; i++)
         {
             int number = i + 1;
             AnimatorState fidget = machine.AddState("Idle " + number);
-            fidget.motion = Clip(kind.Fidgets[i]);
+            fidget.motion = Loop(kind.Fidgets[i]);
             AnimatorStateTransition into = Transition(stand.AddTransition(fidget), 0.4f);
             into.AddCondition(AnimatorConditionMode.Equals, number, "Idle");
             into.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
             Transition(fidget.AddTransition(stand), 0.4f).AddCondition(AnimatorConditionMode.NotEqual, number, "Idle");
             Transition(fidget.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+            awake.Add(fidget);
         }
 
         AnimatorState sleep = machine.AddState("Sleep");
-        sleep.motion = Clip("Sleep");
-        AnimatorState wake = machine.AddState("WakeUp");
-        wake.motion = Clip("Sleep_Stand");
-        AnimatorStateTransition toSleep = Transition(machine.AddAnyStateTransition(sleep), 0.8f);
-        toSleep.canTransitionToSelf = false;
-        toSleep.AddCondition(AnimatorConditionMode.If, 0f, "Sleep");
-        Transition(sleep.AddTransition(wake), 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Sleep");
-        Exit(wake.AddTransition(stand), 0.85f, 0.25f);
+        if (kind.SleepClip != null)
+            sleep.motion = Loop(kind.SleepClip);
+        else
+        {
+            sleep.motion = idle;
+            sleep.speed = 0.4f;
+        }
+        AnimatorState fallAsleep = sleep;
+        if (kind.LieDownClip != null)
+        {
+            fallAsleep = machine.AddState("LieDown");
+            fallAsleep.motion = Clip(kind.LieDownClip);
+            Exit(fallAsleep.AddTransition(sleep), 0.95f, 0.2f);
+        }
+        // From each awake state, not Any State: a lie-down state would otherwise restart itself while Sleep stays on.
+        foreach (AnimatorState state in awake)
+            Transition(state.AddTransition(fallAsleep), fallAsleep == sleep ? 0.8f : 0.3f).AddCondition(AnimatorConditionMode.If, 0f, "Sleep");
+        if (kind.WakeUpClip != null)
+        {
+            AnimatorState wake = machine.AddState("WakeUp");
+            wake.motion = Clip(kind.WakeUpClip);
+            Transition(sleep.AddTransition(wake), 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Sleep");
+            if (fallAsleep != sleep)
+                Transition(fallAsleep.AddTransition(wake), 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Sleep");
+            Exit(wake.AddTransition(stand), 0.9f, 0.25f);
+        }
+        else
+        {
+            Transition(sleep.AddTransition(stand), 0.6f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Sleep");
+            if (fallAsleep != sleep)
+                Transition(fallAsleep.AddTransition(stand), 0.4f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Sleep");
+        }
         Save(controller);
         return controller;
+    }
+
+    // The vendor clip itself when it loops; otherwise a looping first-party copy in <Kind>/Animations/ (the sheep and
+    // rooster clips import as one-shots). A copy is rewritten in place, keeping its GUID.
+    static AnimationClip Looping(AnimationClip clip, string dir, string prefix)
+    {
+        if (clip.isLooping)
+            return clip;
+        Folder(dir);
+        string name = clip.name.Substring(prefix.Length).Split('.')[0];     // "Walk.001" -> "Walk"
+        if (prefix.Contains("Rooster"))
+            name = "Rooster_" + name;
+        string path = $"{dir}/{name}.anim";
+        AnimationClip copy = Object.Instantiate(clip);
+        copy.name = name;
+        AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(copy);
+        settings.loopTime = true;
+        AnimationUtility.SetAnimationClipSettings(copy, settings);
+        var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+        if (existing == null)
+        {
+            AssetDatabase.CreateAsset(copy, path);
+            return copy;
+        }
+        EditorUtility.CopySerialized(copy, existing);
+        Object.DestroyImmediate(copy);
+        Save(existing);
+        return existing;
     }
 
     static void Exit(AnimatorStateTransition transition, float exitTime, float duration)
@@ -498,13 +540,19 @@ public static class AnimalSetup
         return transition;
     }
 
-    // A first-party copy of the vendor prefab with only the look left: its wander script, CharacterController, NavMeshAgent
-    // and AudioSource removed, one Animator on the root with no controller.
-    static GameObject Model(string vendorPath, string path)
+    // A first-party copy of the vendor prefab with only the look left: the pack's switched-off look meshes and any vendor
+    // components removed, its toon material kept, one Animator on the root with no controller. Reshaped: the saved prefab's
+    // top-level children changed (another vendor model), so the entity nests it afresh instead of keeping stale overrides.
+    static (GameObject Model, bool Reshaped) Model(string vendorPath, string path)
     {
+        var before = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         GameObject root = PrefabUtility.LoadPrefabContents(vendorPath);
         try
         {
+            foreach (Transform child in root.transform.Cast<Transform>().ToArray())
+                if (!child.gameObject.activeSelf)
+                    Object.DestroyImmediate(child.gameObject);
+            bool reshaped = before == null || !ChildNames(before.transform).SequenceEqual(ChildNames(root.transform));
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
                 GameObjectUtility.RemoveMonoBehavioursWithMissingScript(child.gameObject);
             foreach (Component component in root.GetComponentsInChildren<Component>(true))
@@ -520,7 +568,7 @@ public static class AnimalSetup
             foreach (SkinnedMeshRenderer skin in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 skin.updateWhenOffscreen = false;
             SetLayer(root, LayerMask.NameToLayer(AnimalLayer));
-            return PrefabUtility.SaveAsPrefabAsset(root, path);
+            return (PrefabUtility.SaveAsPrefabAsset(root, path), reshaped);
         }
         finally
         {
@@ -528,10 +576,12 @@ public static class AnimalSetup
         }
     }
 
+    static IEnumerable<string> ChildNames(Transform t) => t.Cast<Transform>().Select(c => c.name);
+
     // The entity: the WanderCapsule's legs and tree (FollowerEntity, EnemyMover, Manual BehaviorTree) with the Animal on
     // top, the model nested as Model, a body collider to look at, the coin marker and a SaveId. An existing prefab is
     // updated in place.
-    static string Entity(Kind kind, AnimalDefinition definition, AnimatorController controller, GameObject model, string path)
+    static string Entity(Kind kind, AnimalDefinition definition, AnimatorController controller, GameObject model, bool reshaped, string path)
     {
         bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
         GameObject root = PrefabUtility.LoadPrefabContents(exists ? path : Template);
@@ -572,7 +622,7 @@ public static class AnimalSetup
             tree.ApplyModifiedPropertiesWithoutUndo();
 
             Transform modelRoot = root.transform.Find("Model");
-            if (modelRoot != null && PrefabUtility.GetCorrespondingObjectFromSource(modelRoot.gameObject) != model)
+            if (modelRoot != null && (reshaped || PrefabUtility.GetCorrespondingObjectFromSource(modelRoot.gameObject) != model))
             {
                 Object.DestroyImmediate(modelRoot.gameObject);
                 modelRoot = null;

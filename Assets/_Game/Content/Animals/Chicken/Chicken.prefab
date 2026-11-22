@@ -125,8 +125,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1976423975393292614}
   - {fileID: 4039379754974383455}
+  - {fileID: 2165060430447068568}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1843391844890519369
@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.Animal
   _definition: {fileID: 11400000, guid: c2f4c6263a53ef0479c00afdaddfed3d, type: 2}
-  _animator: {fileID: 3302571553629049822}
+  _animator: {fileID: 2932804928851289856}
   _marker: {fileID: 2943571731529197807}
 --- !u!114 &5089505148913265523
 MonoBehaviour:
@@ -316,7 +316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.SaveSystem.SaveId
   _id: 
---- !u!1001 &5574080059773038711
+--- !u!1001 &5205424049113564329
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -377,13 +377,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 493de52833f7e274a8d27710b2798409, type: 3}
---- !u!4 &1976423975393292614 stripped
+--- !u!4 &2165060430447068568 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6212354403152544049, guid: 493de52833f7e274a8d27710b2798409, type: 3}
-  m_PrefabInstance: {fileID: 5574080059773038711}
+  m_PrefabInstance: {fileID: 5205424049113564329}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &3302571553629049822 stripped
+--- !u!95 &2932804928851289856 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 6957510691687408553, guid: 493de52833f7e274a8d27710b2798409, type: 3}
-  m_PrefabInstance: {fileID: 5574080059773038711}
+  m_PrefabInstance: {fileID: 5205424049113564329}
   m_PrefabAsset: {fileID: 0}

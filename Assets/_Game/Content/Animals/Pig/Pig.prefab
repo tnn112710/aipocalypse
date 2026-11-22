@@ -125,8 +125,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 9160338279642060922}
   - {fileID: 4198707379845148855}
+  - {fileID: 5430436350228791629}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &2782545604260185624
@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.Animal
   _definition: {fileID: 11400000, guid: 457eecd3f9381654e8da5002bef9147f, type: 2}
-  _animator: {fileID: 5702392724476914513}
+  _animator: {fileID: 8889597481391501926}
   _marker: {fileID: 2201876223570881930}
 --- !u!114 &6253141241018242602
 MonoBehaviour:
@@ -316,7 +316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.SaveSystem.SaveId
   _id: 
---- !u!1001 &3926971699310961105
+--- !u!1001 &145137473487042790
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -326,15 +326,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5287059755352422827, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.2
+      value: 0.85
       objectReference: {fileID: 0}
     - target: {fileID: 5287059755352422827, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2
+      value: 0.85
       objectReference: {fileID: 0}
     - target: {fileID: 5287059755352422827, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.2
+      value: 0.85
       objectReference: {fileID: 0}
     - target: {fileID: 5287059755352422827, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -389,13 +389,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
---- !u!95 &5702392724476914513 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 8745304433514433152, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
-  m_PrefabInstance: {fileID: 3926971699310961105}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &9160338279642060922 stripped
+--- !u!4 &5430436350228791629 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5287059755352422827, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
-  m_PrefabInstance: {fileID: 3926971699310961105}
+  m_PrefabInstance: {fileID: 145137473487042790}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8889597481391501926 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8745304433514433152, guid: 1fbbaa62c9814f9439f18d971072e31f, type: 3}
+  m_PrefabInstance: {fileID: 145137473487042790}
   m_PrefabAsset: {fileID: 0}

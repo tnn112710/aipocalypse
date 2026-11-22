@@ -35,8 +35,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 289982842279491394}
   - {fileID: 2991728475003080415}
+  - {fileID: 6649067912056306562}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &4847349411897876965
@@ -211,7 +211,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.AnimalSystem.Animal
   _definition: {fileID: 11400000, guid: 4b420eb0eea7ad34292bb448f521af84, type: 2}
-  _animator: {fileID: 8010486111985434177}
+  _animator: {fileID: 3993271746798154369}
   _marker: {fileID: 7104696117111832295}
 --- !u!114 &4808099964976431424
 MonoBehaviour:
@@ -316,7 +316,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &5667110910311598235
+--- !u!1001 &1649894758669845595
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -328,6 +328,18 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 155457086b3723743aa9c42b12a93838, type: 2}
+    - target: {fileID: 5378325462501818329, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 5378325462501818329, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 5378325462501818329, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.85
+      objectReference: {fileID: 0}
     - target: {fileID: 5378325462501818329, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -377,13 +389,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
---- !u!4 &289982842279491394 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5378325462501818329, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
-  m_PrefabInstance: {fileID: 5667110910311598235}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &8010486111985434177 stripped
+--- !u!95 &3993271746798154369 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 2418268028204119770, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
-  m_PrefabInstance: {fileID: 5667110910311598235}
+  m_PrefabInstance: {fileID: 1649894758669845595}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6649067912056306562 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5378325462501818329, guid: fe601f93682964244b53cf9b0c8b68de, type: 3}
+  m_PrefabInstance: {fileID: 1649894758669845595}
   m_PrefabAsset: {fileID: 0}

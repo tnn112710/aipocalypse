@@ -1,7 +1,8 @@
 // Measures how fast each farm animal's walk and run clips move their planted feet backwards (the ground speed the clip was
 // made for, at model scale 1), so AnimalSetup's AuthoredWalk / AuthoredRun can be set from it instead of guessed:
 //   unity command script run --file AgentScripts/Animals/AnimalStrideProbe.cs --entry AnimalStrideProbe.Run
-// The feet are the bones that reach lowest during the cycle; a foot counts as planted while it is within 2 cm of its lowest.
+// The feet are the deform bones (Def_*: the rig also has static CTR_ controls) that reach lowest during the cycle; a foot
+// counts as planted while it is within 2 cm of its lowest.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,33 +13,36 @@ using Object = UnityEngine.Object;
 
 public static class AnimalStrideProbe
 {
-    const string PP = "Assets/_StoreAssets/Characters/polyperfect/Low Poly Animated Animals/";
+    const string Tfp = "Assets/_StoreAssets/Env/SICS/Toon Series/Toon Farm Pack/";
     const int Samples = 120;
     const float PlantedBand = 0.02f;
 
-    static readonly (string Prefab, string Fbx, string Prefix)[] Looks =
+    // Vendor prefab (under Prefabs/Animals/), clip file (under Models/), walk and run clip names.
+    static readonly (string Prefab, string Fbx, string Walk, string Run)[] Looks =
     {
-        ("Cow_White", "Cow/SKM_Cow_Animations", "Cow_"),
-        ("Sheep_Wool", "Sheep/SKM_Sheep_Wool_Animations", "Sheep_Wool_"),
-        ("Hen", "Hen/SKM_Hen_Animations", "Hen_"),
-        ("Rooster", "Rooster/SKM_Rooster_Animations", "Rooster_"),
-        ("Pig", "Pig/SKM_Pig_Animations", "Pig_"),
+        ("Cows/TFP_Cow_01E", "TFP_Cow 01_Anim_Source", "RIG_Cow_01_Walk", "RIG_Cow_01_Trot"),
+        ("Sheep/TFP_Sheep_01A", "TFP_Sheep 01_Anim_Source", "RIG_Sheep_01_Walk.001", "RIG_Sheep_01_Trot"),
+        ("Chicken/TFP_Chicken_01A", "TFP_Chicken_01", "RIG_TFP_Chicken_01_Walk", "RIG_TFP_Chicken_01_Run"),
+        ("Chicken/TFP_Rooster_01A", "TFP_Rooster_01", "RIG_TFP_Rooster_01_Walk", "RIG_TFP_Rooster_01_Run"),
+        ("Pigs/TFP_Pig_01A", "TFP_Pig_01_Anim_Source", "RIG_TFP_Pig_01_Walk", "RIG_TFP_Pig_01_Trot"),
+        ("Cows/TFP_Bull_01A", "TFP_Bull_01", "RIG_Bull_01_Trot", "RIG_Bull_01_Galop"),
     };
 
     public static string Run()
     {
         var sb = new StringBuilder();
-        foreach ((string prefab, string fbx, string prefix) in Looks)
+        foreach ((string prefab, string fbx, string walkClip, string runClip) in Looks)
         {
-            var clips = AssetDatabase.LoadAllAssetsAtPath(PP + "Meshes/Animals/" + fbx + ".fbx").OfType<AnimationClip>().ToDictionary(c => c.name);
-            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PP + "Prefabs/Animals/" + prefab + ".prefab"));
+            var clips = AssetDatabase.LoadAllAssetsAtPath(Tfp + "Models/" + fbx + ".fbx").OfType<AnimationClip>().ToDictionary(c => c.name);
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Tfp + "Prefabs/Animals/" + prefab + ".prefab"));
             try
             {
                 model.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
                 model.transform.localScale = Vector3.one;
-                string walk = Measure(model, clips[prefix + "Walk"]);
-                string run = Measure(model, clips[prefix + "Run"]);
-                sb.AppendLine($"{prefab}: walk {walk}; run {run}");
+                Bounds bounds = Size(model);
+                string walk = Measure(model, clips[walkClip]);
+                string run = Measure(model, clips[runClip]);
+                sb.AppendLine($"{prefab}: size {bounds.size:F2}; walk {walk}; run {run}");
             }
             finally
             {
@@ -48,10 +52,32 @@ public static class AnimalStrideProbe
         return sb.ToString();
     }
 
+    // The skinned meshes' real extent in the bind pose (their stored bounds are padded).
+    static Bounds Size(GameObject model)
+    {
+        var bounds = new Bounds();
+        bool first = true;
+        var baked = new Mesh();
+        foreach (SkinnedMeshRenderer skin in model.GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            skin.BakeMesh(baked, true);
+            foreach (Vector3 v in baked.vertices)
+            {
+                Vector3 p = skin.transform.TransformPoint(v);
+                if (first)
+                    bounds = new Bounds(p, Vector3.zero);
+                bounds.Encapsulate(p);
+                first = false;
+            }
+        }
+        Object.DestroyImmediate(baked);
+        return bounds;
+    }
+
     static string Measure(GameObject model, AnimationClip clip)
     {
         Transform root = model.transform;
-        Transform[] bones = model.GetComponentsInChildren<Transform>().Where(t => t != root && t.childCount <= 1).ToArray();
+        Transform[] bones = model.GetComponentsInChildren<Transform>().Where(t => t != root && t.childCount <= 1 && t.name.StartsWith("Def_")).ToArray();
         var heights = new float[bones.Length, Samples];
         var forward = new float[bones.Length, Samples];
         float dt = clip.length / Samples;
