@@ -6,8 +6,8 @@ using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.DefenseSystem
 {
-    // While the player holds a repair tool, every damaged barrier in range gets a see-through tint over its model, seen through
-    // walls and coloured by its health (RepairHighlightStyle), so the ones to mend stand out along a long fence.
+    // While the player holds a repair tool, every damaged barrier in range that still stands gets a see-through tint over its
+    // model, seen through walls and coloured by its health (RepairHighlightStyle), so the ones to mend stand out along a long fence.
     public sealed class RepairHighlight : ITickable
     {
         static readonly int ColorId = Shader.PropertyToID("_Color");
@@ -34,7 +34,8 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
             foreach (BarrierSegment segment in _barriers.Segments)
             {
                 float sqrDistance = (segment.transform.position - from).sqrMagnitude;
-                if (!segment.NeedsRepair || sqrDistance > range)
+                // Debris is its own hint: an overlay of its hidden fallen model would draw a full-size fence on the ground.
+                if (!segment.NeedsRepair || segment.IsBroken || sqrDistance > range)
                     continue;
                 GhostShape overlay = segment.Overlay;
                 if (overlay == null)

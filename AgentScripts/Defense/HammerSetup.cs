@@ -35,7 +35,7 @@ public static class HammerSetup
     // After the ghosts (3100, 3101): drawn over them.
     const int HighlightQueue = 3102;
     const int SlotCount = 4;
-    // As big as in the hand.
+    // Lying on the table (the held model is bigger: HeldScale).
     const float WorldScale = 1.3f;
     // Metres from the pistol, along the guns' length.
     const float HammerFromPistol = -0.3f;
@@ -86,7 +86,7 @@ public static class HammerSetup
 
             var tool = root.GetComponent<RepairTool>();
             tool.Setup(root.transform.Find("PosePivot"), root.transform.Find("Poses/Idle"), root.transform.Find("Poses/WindUp"),
-                root.transform.Find("Poses/Strike"));
+                root.transform.Find("Poses/Strike"), root.transform.Find("Poses/Sprint"));
             if (!root.TryGetComponent(out ItemHands _))
                 throw new Exception("the hammer has no ItemHands");
 
@@ -169,6 +169,72 @@ public static class HammerSetup
             result.Encapsulate(rotation * corner);
         }
         return result;
+    }
+
+    // ---------------- held poses: big and close in the lower right (Raft-like), face toward the target ----------------
+
+    // In-hand size, bigger than on the table so it reads at the screen edge and hides most of the arm.
+    const float HeldScale = 1.95f;
+    // Model turned round its handle so the striking face points ahead; lifted so the grip sits on the pose pivot.
+    const float HeldYaw = 90f;
+    const float GripY = -0.03f;
+    // Pose markers (rig space, metres / degrees): Idle, WindUp, Strike, Sprint.
+    static readonly (string Name, Vector3 Position, Vector3 Euler)[] Poses_ =
+    {
+        ("Idle", new Vector3(0.07f, -0.07f, -0.12f), new Vector3(-5f, 350f, 15f)),
+        ("WindUp", new Vector3(0.07f, -0.05f, -0.13f), new Vector3(-18f, 350f, 18f)),
+        ("Strike", new Vector3(0.04f, -0.1f, -0.07f), new Vector3(28f, 352f, 10f)),
+        ("Sprint", new Vector3(0.09f, -0.17f, -0.12f), new Vector3(35f, 340f, 30f)),
+    };
+
+    // Writes the model size and turn, the four pose markers and the knock timing into Hammer.prefab, then re-fits the grip.
+    public static string Poses()
+    {
+        GameObject root = PrefabUtility.LoadPrefabContents(PrefabPath);
+        try
+        {
+            Transform model = root.transform.Find("PosePivot/Model");
+            Transform grip = model.Find("Grip_R");
+            model.localScale = Vector3.one * HeldScale;
+            model.SetLocalPositionAndRotation(new Vector3(0f, -GripY * HeldScale, 0f), Quaternion.Euler(0f, HeldYaw, 0f));
+            grip.localPosition = new Vector3(0f, GripY, 0f);
+
+            Transform poses = root.transform.Find("Poses");
+            foreach ((string name, Vector3 position, Vector3 euler) in Poses_)
+            {
+                Transform marker = poses.Find(name);
+                if (marker == null)
+                {
+                    marker = new GameObject(name).transform;
+                    marker.SetParent(poses, false);
+                }
+                marker.SetLocalPositionAndRotation(position, Quaternion.Euler(euler));
+            }
+            Transform idle = poses.Find("Idle");
+            root.transform.Find("PosePivot").SetLocalPositionAndRotation(idle.localPosition, idle.localRotation);
+
+            var tool = root.GetComponent<RepairTool>();
+            tool.Setup(root.transform.Find("PosePivot"), idle, poses.Find("WindUp"), poses.Find("Strike"), poses.Find("Sprint"));
+            var so = new SerializedObject(tool);
+            so.FindProperty("_windUpEnd").floatValue = 0.45f;
+            so.FindProperty("_strikeAt").floatValue = 0.53f;
+            so.FindProperty("_recoverFrom").floatValue = 0.68f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            // HandFit is internal to the runtime assembly: the grip's own Bake fit button.
+            HandGrip handGrip = grip.GetComponent<HandGrip>();
+            typeof(HandGrip).GetMethod("BakeFit", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .Invoke(handGrip, null);
+            var gso = new SerializedObject(handGrip);
+            string fit = $"palm {gso.FindProperty("_palmOffset").floatValue:F3}";
+
+            PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out bool saved);
+            return saved ? $"{PrefabPath}: held x{HeldScale}, yaw {HeldYaw}, {Poses_.Length} poses, grip fitted ({fit})" : "failed to save " + PrefabPath;
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
     }
 
     // ---------------- player: the built-in hammer goes ----------------

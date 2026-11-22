@@ -143,6 +143,32 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Hammer_HasEveryPoseMarker()
+        {
+            var item = AssetDatabase.LoadAssetAtPath<RepairToolDefinition>(HammerPath);
+            var tool = new SerializedObject(item.HeldPrefab);
+            foreach (string field in new[] { "_posePivot", "_idlePose", "_windUpPose", "_strikePose", "_sprintPose" })
+                Assert.That(tool.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+        }
+
+        [Test]
+        public void RepairTool_HoldsOffASprintOnlyWhileKnocking()
+        {
+            var go = new GameObject("RepairTool");
+            try
+            {
+                var tool = go.AddComponent<RepairTool>();
+                Assert.That(tool.StopsSprint(false, false), Is.False, "resting");
+                tool.Cycle = 0.3f;
+                Assert.That(tool.StopsSprint(false, false), Is.True, "mid-knock");
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
         public void EquipmentConfig_HasASlotForTheHammer()
         {
             ItemContainer hotbar = AssetDatabase.LoadAssetAtPath<EquipmentConfig>(ConfigPath).CreateInventory().Hotbar;

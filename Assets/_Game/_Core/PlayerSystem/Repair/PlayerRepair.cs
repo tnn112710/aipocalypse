@@ -5,8 +5,8 @@ using UnityEngine;
 namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     // Repair work with the hammer in hand (RepairTool): the reload key on an IRepairable in view starts knocking in a steady
-    // rhythm, one repair per knock, until it's whole. Stops early, finishing the swing, when the player looks away, walks off
-    // or presses a key (reload or interact again, fire, aim, jump); switching or dropping the hammer stops it at once.
+    // rhythm, one repair per knock, until it's whole. Stops early, finishing the swing, when the player looks away, walks off,
+    // sprints or presses a key (reload or interact again, fire, aim, jump); switching or dropping the hammer stops it at once.
     public sealed class PlayerRepair
     {
         readonly GameObject _actor;
@@ -108,7 +108,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         bool ShouldStop(in PlayerIntent intent, float deltaTime)
         {
-            if (intent.Reload || intent.Interact || intent.FirePressed || intent.Aim || intent.Jump)
+            if (intent.Reload || intent.Interact || intent.FirePressed || intent.Aim || intent.Jump
+                || intent.Sprint && intent.Move.sqrMagnitude > 0.01f)
                 return true;
             Vector3 point = _target.RepairPoint(_actor.transform.position);
             Vector3 toPoint = point - _eye.position;
