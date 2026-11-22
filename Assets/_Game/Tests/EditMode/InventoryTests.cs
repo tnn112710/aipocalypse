@@ -3,9 +3,11 @@ using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WeaponSystem;
+using MB13.Aipocalypse.Input;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace MB13.Aipocalypse.Tests
 {
@@ -270,8 +272,13 @@ namespace MB13.Aipocalypse.Tests
             Assert.IsNotNull(menu, "right-click opens the item menu");
             Assert.IsFalse(menu.gameObject.activeSelf, "closed until a right-click");
             var menuFields = new SerializedObject(menu);
-            foreach (string field in new[] { "_panel", "_use", "_drop", "_lock", "_useLabel", "_dropLabel", "_lockLabel" })
+            foreach (string field in new[] { "_panel", "_pickup", "_use", "_drop", "_lock", "_pickupLabel", "_useLabel", "_dropLabel", "_lockLabel" })
                 Assert.IsNotNull(menuFields.FindProperty(field).objectReferenceValue, field);
+            var panel = (RectTransform)menuFields.FindProperty("_panel").objectReferenceValue;
+            Assert.IsNull(panel.GetComponent<UnityEngine.UI.Image>(),
+                "an Image on the panel sizes it to its sprite (204 px): its background is a child the column ignores");
+            var tooltip = screen.GetComponentInChildren<ItemTooltipView>(true);
+            Assert.IsNotNull(new SerializedObject(tooltip).FindProperty("_hint").objectReferenceValue, "the tooltip shows the controls");
             Assert.IsNotNull(menu.GetComponent("GraphicRaycaster"), "its own canvas needs a raycaster to take clicks");
             Assert.IsTrue(screen.GetComponent<CanvasGroup>().ignoreParentGroups,
                 "the HUD root's group isn't interactable: inherited, no button in the screen takes a click");
@@ -282,6 +289,37 @@ namespace MB13.Aipocalypse.Tests
                 Component view = (Component)slot.GetComponent<ItemSlotView>() ?? slot.GetComponent<HotbarSlotView>();
                 Assert.IsNotNull(new SerializedObject(view).FindProperty("_lock").objectReferenceValue, path + " shows a lock");
             }
+        }
+
+        // The inventory screen reads these keys while the UI map is on, when the Debug map is on too (editor, cheat builds):
+        // a shared key would also fire a cheat (L revives, and so heals, the player).
+        [Test]
+        public void InventoryKeys_AreNotDebugKeys()
+        {
+            var actions = new GameInputActions();
+            try
+            {
+                var inventoryKeys = new List<InputAction> { actions.UI.Lock, actions.Player.Drop, actions.Player.Melee };
+                for (int i = 1; i <= 9; i++)
+                    inventoryKeys.Add(actions.Player.Get().FindAction("Slot" + i, throwIfNotFound: true));
+                foreach (InputAction key in inventoryKeys)
+                    foreach (InputBinding binding in key.bindings)
+                        foreach (InputBinding debug in actions.Debug.Get().bindings)
+                            Assert.AreNotEqual(debug.path, binding.path, $"{key.name} shares its key with the Debug map's {debug.action}");
+            }
+            finally
+            {
+                Object.DestroyImmediate(actions.asset);
+            }
+        }
+
+        [Test]
+        public void RarityTextColor_IsOpaque_EvenForARarityWithNoBorder()
+        {
+            var style = Track(ScriptableObject.CreateInstance<InventoryStyle>());
+            style.SetRarityColor(ItemRarity.Common, new Color(0.6f, 0.6f, 0.6f, 0f));
+
+            Assert.AreEqual(new Color(0.6f, 0.6f, 0.6f, 1f), style.RarityTextColor(ItemRarity.Common));
         }
 
         [Test]

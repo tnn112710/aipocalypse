@@ -134,7 +134,7 @@ namespace MB13.Aipocalypse.Core.UI
 
             ItemDefinition definition = _item.Definition;
             _title.SetText(definition.DisplayName);
-            _title.color = _style != null ? _style.RarityColor(definition.Rarity) : Color.white;
+            _title.color = _style != null ? _style.RarityTextColor(definition.Rarity) : Color.white;
             if (_title.color.a <= 0f)
                 _title.color = _style != null ? _style.TextColor : Color.white;
             _info.SetText(InfoFormat.Format(InventoryScreen.RarityName(definition.Rarity), _item.Weight, _item.Value));

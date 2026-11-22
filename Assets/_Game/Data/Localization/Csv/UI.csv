@@ -100,6 +100,10 @@ inventory.still_searching,2881891840053,Still searching,Đang lục soát...,Fou
 inventory.backpack_not_empty,2881891840054,Empty the backpack's extra slots first,Dọn trống các ô thêm của ba lô trước,Vide d'abord les cases en plus du sac,Refusal: taking off a full backpack
 tooltip.uses,2881891840055,Uses {0}/{1},Lượt dùng {0}/{1},Utilisations {0}/{1},"{0} = uses left, {1} = max"
 tooltip.value,2881891840056,Value {0:N0},Giá trị {0:N0},Valeur {0:N0},{0} = value in Tokens
+tooltip.locked,3493062195105792,Locked,Đã khóa,Verrouillé,Item tooltip line of a locked item (can't be dropped)
+tooltip.hint_carried,3493062203494400,Right-click: options  ·  Double-click: move,Chuột phải: tùy chọn  ·  Nhấp đúp: chuyển,Clic droit : options  ·  Double-clic : déplacer,Item tooltip hint on a carried item
+tooltip.hint_loot,3493062203494401,Right-click: options  ·  Double-click: take,Chuột phải: tùy chọn  ·  Nhấp đúp: lấy,Clic droit : options  ·  Double-clic : prendre,Item tooltip hint on an item in a crate or body
+tooltip.hint_keys,3493062203494402,{0}: drop  ·  {1}: lock  ·  {2}: to the hotbar,{0}: vứt  ·  {1}: khóa  ·  {2}: lên thanh nhanh,{0} : jeter  ·  {1} : verrouiller  ·  {2} : vers la barre rapide,"Item tooltip hint on a carried item, keys on the hovered item; {0} = drop key, {1} = lock key, {2} = hotbar keys (""1-5"")"
 inventory.part_no_fit,371587535687680,Doesn't fit this gun,Không lắp vừa súng này,Ne va pas sur cette arme,Refusal: a gun part dropped on a gun it doesn't fit
 inventory.part_pick_gun,371587565047808,Click a gun to fit parts to it,Bấm vào một khẩu súng để lắp phụ kiện,Clique sur une arme pour y monter des pièces,Refusal: double-click on a gun part while no gun is inspected
 inventory.slot_gun,3466810428051456,Slot {0} takes a gun,Ô {0} chỉ chứa súng,La case {0} prend une arme à feu,Refusal above the hotbar: something else dropped on a gun slot; {0} = its key
@@ -109,6 +113,8 @@ inventory.menu_use,3479115672932352,Use,Dùng,Utiliser,Item menu (right-click in
 inventory.menu_drop,3479115677126656,Drop,Vứt,Jeter,Item menu: throw the item on the ground
 inventory.menu_lock,3479115677126657,Lock,Khóa,Verrouiller,Item menu: a locked item can't be dropped
 inventory.menu_unlock,3479115677126658,Unlock,Mở khóa,Déverrouiller,Item menu: undo Lock
+inventory.menu_pickup,3493062203494403,Pick up,Nhặt,Ramasser,"Item menu, on an item in a crate or body: take it into the inventory"
+inventory.drop_locked,3493062203494404,Locked: unlock it to drop it,Đã khóa: mở khóa để vứt,Verrouillé : déverrouillez-le pour le jeter,Refusal above the hotbar: the drop key on a locked item
 inspector.hint,371587565047809,Click an item to inspect it,Bấm vào một món đồ để xem,Clique sur un objet pour l'inspecter,Inventory inspector with nothing selected
 inspector.info,371587565047810,{0}   |   {1:0.##} kg   |   {2:N0} Tokens,{0}   |   {1:0.##} kg   |   {2:N0} xu,{0}   |   {1:0.##} kg   |   {2:N0} jetons,"Inspector line under the item name; .NET format: {0} = rarity, {1} = weight, {2} = value"
 inspector.turn,371587565047811,"Drag to turn, scroll to zoom","Kéo để xoay, cuộn để phóng to","Glisse pour tourner, molette pour zoomer",Hint under the inspector's 3D view

@@ -26,6 +26,7 @@ namespace MB13.Aipocalypse.Core.Bootstrap
     public sealed class ProjectLifetimeScope : LifetimeScope
     {
         [SerializeField] ControlSettings _controls = new();
+        [SerializeField, Tooltip("Languages players can pick; the others keep their text but are hidden")] LanguageSettings _languages = new();
         [SerializeField, Tooltip("Dev console (editor and development builds): Data/Debug/ConsoleSettings")] ConsoleSettings _consoleSettings;
         [SerializeField, Tooltip("_Debug/Console/Prefabs/DebugConsole")] ConsoleView _consoleOverlay;
         [SerializeField, Tooltip("Data/Save/SaveSettings: slots, autosave, the menu and world scenes")] SaveSettings _saveSettings;
@@ -50,7 +51,7 @@ namespace MB13.Aipocalypse.Core.Bootstrap
                 Debug.Log($"Build: {stamp}");
             builder.RegisterInstance(stamp);
 
-            new LocalizationInstaller().Install(builder);
+            new LocalizationInstaller(_languages).Install(builder);
             new InputInstaller(_controls).Install(builder);
             new ConsoleInstaller(_consoleSettings, _consoleOverlay).Install(builder);
             new AudioInstaller().Install(builder);

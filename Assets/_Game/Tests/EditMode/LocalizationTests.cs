@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Editor.Localization;
+using MessagePipe;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
@@ -51,10 +54,24 @@ namespace MB13.Aipocalypse.Tests
             Assert.AreEqual(lf[1][1], crlf[1][1]);
         }
 
+        // The languages players can pick (the root scope's LanguageSettings). Hidden ones may have empty cells: their text
+        // waits there, and an empty cell falls back to English.
+        static List<string> OfferedLanguages()
+        {
+            var scope = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/_Bootstrap/ProjectLifetimeScope.prefab")
+                .GetComponent<ProjectLifetimeScope>();
+            SerializedProperty offered = new SerializedObject(scope).FindProperty("_languages.Offered");
+            var codes = new List<string>();
+            for (int i = 0; i < offered.arraySize; i++)
+                codes.Add(offered.GetArrayElementAtIndex(i).stringValue);
+            return codes.Count > 0 ? codes : Languages.ToList();
+        }
+
         [Test]
-        public void Csvs_EveryKeyHasEveryLanguage()
+        public void Csvs_EveryKeyHasEveryOfferedLanguage()
         {
             var gaps = new List<string>();
+            List<string> offered = OfferedLanguages();
             foreach (string csv in LocalizationCsv.CsvPaths())
             {
                 List<string[]> rows = LocalizationCsv.Parse(File.ReadAllText(csv));
@@ -64,6 +81,8 @@ namespace MB13.Aipocalypse.Tests
                 {
                     int column = Array.IndexOf(header, language);
                     Assert.GreaterOrEqual(column, 0, $"{csv} has no '{language}' column");
+                    if (!offered.Contains(language))
+                        continue;
                     foreach (string[] row in rows.Skip(1).Where(r => key < r.Length && r[key].Trim().Length > 0))
                         if (column >= row.Length || row[column].Length == 0)
                             gaps.Add($"{Path.GetFileName(csv)} {row[key]} [{language}]");
@@ -198,6 +217,25 @@ namespace MB13.Aipocalypse.Tests
         {
             FieldInfo field = typeof(InventoryScreen).GetField("RarityNames", BindingFlags.Static | BindingFlags.NonPublic);
             Assert.AreEqual(Enum.GetValues(typeof(ItemRarity)).Length, ((LocalizedString[])field.GetValue(null)).Length);
+        }
+
+        [Test]
+        public void LanguageService_OffersOnlyTheSettingsLanguages_InTheirOrder()
+        {
+            var english = new LanguageService(new NoPublisher(), new LanguageSettings());
+            Assert.AreEqual(1, english.Languages.Count);
+            Assert.AreEqual("en", english.Languages[0].Identifier.Code);
+
+            var two = new LanguageService(new NoPublisher(), new LanguageSettings { Offered = new List<string> { "fr", "en", "xx" } });
+            CollectionAssert.AreEqual(new[] { "fr", "en" }, two.Languages.Select(l => l.Identifier.Code).ToArray(), "unknown codes are skipped");
+
+            var all = new LanguageService(new NoPublisher(), new LanguageSettings { Offered = new List<string>() });
+            Assert.AreEqual(LocalizationSettings.AvailableLocales.Locales.Count, all.Languages.Count, "an empty list offers every locale");
+        }
+
+        sealed class NoPublisher : IPublisher<LanguageChanged>
+        {
+            public void Publish(LanguageChanged message) { }
         }
 
         [Test]

@@ -1,6 +1,6 @@
 # Localization
 
-Every piece of text the player reads comes from string tables (Unity Localization 1.5). The game ships in **English (en)**, **Vietnamese (vi)** and **French (fr)**; English is the default and the fallback.
+Every piece of text the player reads comes from string tables (Unity Localization 1.5). The tables hold **English (en)**, **Vietnamese (vi)** and **French (fr)**; English is the default and the fallback. **For now only English is offered** (user, 2026-11-22): Vietnamese and French keep their tables, CSV columns and existing text, but players can't pick them and new text needs only English (see Offered languages).
 
 **The CSV files are the source of truth.** Edit text there, never in Unity's table window: the next import overwrites the tables from the CSVs.
 
@@ -37,7 +37,7 @@ Keys are lower case and dotted, area first: `menu.resume`, `item.ak47`, `verb.pi
 - **New text:** add a row and leave `Id` empty. The import gives it an Id and writes that Id back into the file.
 - **Renaming a key:** change `Key` and keep `Id`. References in assets point at the Id, so they still work. Keys used in code (`Loc.UI("key")`) must be renamed in code too; `LocalizationTests` fails until they match.
 - **Deleting a row** removes the entry. Anything still pointing at it fails `LocalizationTests`.
-- Every key needs text in every language (tested). Keep the leading or trailing spaces some texts carry (suffixes like `" behind you"`, the `"Hold: "` prefix); the Context column says where they matter.
+- Every key needs text in every **offered** language (tested); the others may be left empty. While only English is offered, write new rows in English and leave `vi` / `fr` empty: an empty cell has no entry, so it shows the English text. Keep the leading or trailing spaces some texts carry (suffixes like `" behind you"`, the `"Hold: "` prefix); the Context column says where they matter.
 - **Line breaks** go inside a quoted cell. The import stores them as `\n` whatever the file's line endings (Git's `core.autocrlf` checks the CSVs out with CRLF on Windows), so every clone builds the same tables.
 - **Placeholders** `{0}`, `{1}` are filled by code. Two formats exist, and the Context column says which one a text uses: .NET `string.Format` (`Loc.Format`), or TextMeshPro's `SetText`, where `{0:1}` means one decimal. Smart Strings are off. A plural is two keys (`sleep.detail_one`, `sleep.detail_many`).
 - **Writing style:** short and natural, like a game HUD, not a literal translation. A translation should be about as long as the English. Vietnamese addresses the player as "bạn" and may use gamer slang ("Toi rồi!"); French uses "tu".
@@ -61,6 +61,7 @@ After adding text with **new characters** (a new letter or symbol), re-run `Font
 
 ## Switching language
 
+- **Offered languages:** `LanguageSettings.Offered` on the `ProjectLifetimeScope` prefab (locale codes in menu order; empty = every locale), today `en` only. `LanguageService.Languages` lists only those, the language button hides while there's one, and a saved or command-line language that isn't offered falls back to the first offered one without overwriting the saved choice. `lang.set vi` (console) still switches to a hidden language, to check it. To bring a language back: translate its empty cells (`LocalizationTests.Csvs_EveryKeyHasEveryOfferedLanguage` lists them once it's offered), then add its code to `Offered`.
 - `LanguageService` (root): `Languages`, `Current`, `Select(locale or code)`, `Step(±1)`, `NameOf(locale)`. `NameOf` gives each language's own name from `UI/language.name` in that language ("Tiếng Việt").
 - **Menus:** a Language button under Settings in the main menu and the pause menu ("LANGUAGE: TIẾNG VIỆT"). Each press moves to the next language, and everything updates at once.
 - **Console** (editor and cheat builds): `lang.list`, `lang.set vi`, `lang.next`.

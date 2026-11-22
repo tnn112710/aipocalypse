@@ -11,7 +11,8 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.UI
 {
     // A menu button that switches the game's language: each press moves to the next one, and the label names the current
-    // one in itself ("LANGUAGE: TIẾNG VIỆT"). The choice is kept for the next launch (LanguageService).
+    // one in itself ("LANGUAGE: TIẾNG VIỆT"). The choice is kept for the next launch (LanguageService). Hidden while only
+    // one language is offered.
     [RequireComponent(typeof(Button))]
     public sealed class LanguageButton : MonoBehaviour
     {
@@ -26,6 +27,8 @@ namespace MB13.Aipocalypse.Core.UI
         void Construct(LanguageService language, ISubscriber<LanguageChanged> changed)
         {
             _language = language;
+            if (language.Languages.Count < 2)
+                gameObject.SetActive(false);
             _subscription = changed.Subscribe(_ => Refresh());
             Refresh();
         }

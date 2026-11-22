@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace MB13.Aipocalypse.Core.UI
 {
     // The details of the hovered item, beside its slot: name (in its rarity's colour), then lines of facts (rarity, weight,
-    // value).
+    // value), then a dim line of what the mouse and keys do with it.
     public sealed class ItemTooltipView : MonoBehaviour
     {
         static readonly Vector3[] Corners = new Vector3[4];
@@ -13,13 +13,19 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] RectTransform _panel;
         [SerializeField] TMP_Text _title;
         [SerializeField] TMP_Text _details;
+        [SerializeField, Tooltip("Optional: small dim line of controls at the bottom")] TMP_Text _hint;
         [SerializeField, Tooltip("Gap between the slot and the tooltip (px at 1080p)")] Vector2 _offset = new(12f, 0f);
 
-        public void Show(RectTransform slot, string title, string details, Color titleColor)
+        public void Show(RectTransform slot, string title, string details, Color titleColor, string hint = null)
         {
             _title.SetText(title);
             _title.color = titleColor;
             _details.SetText(details);
+            if (_hint != null)
+            {
+                _hint.gameObject.SetActive(!string.IsNullOrEmpty(hint));
+                _hint.SetText(hint ?? string.Empty);
+            }
             gameObject.SetActive(true);
             // To the right of the slot, flipped left when it would leave the screen.
             slot.GetWorldCorners(Corners);

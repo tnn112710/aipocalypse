@@ -9,27 +9,64 @@ using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.LocalizationSystem
 {
-    // Root: the languages the game offers, the current one and switching it. The choice is kept in PlayerPrefs under the key
-    // LocalizationSettings' startup selector reads, so it comes back on the next launch. Views that build text from several
-    // strings listen to LanguageChanged; LocalizeStringEvent labels refresh by themselves.
+    // Root: the languages the game offers (LanguageSettings), the current one and switching it. The choice is kept in
+    // PlayerPrefs under the key LocalizationSettings' startup selector reads, so it comes back on the next launch. Views that
+    // build text from several strings listen to LanguageChanged; LocalizeStringEvent labels refresh by themselves.
     public sealed class LanguageService : IInitializable, IDisposable
     {
         public const string PlayerPrefsKey = "selected-locale";
         const string NameKey = "language.name";
 
         readonly IPublisher<LanguageChanged> _changed;
+        readonly LanguageSettings _settings;
         readonly Dictionary<Locale, string> _names = new();
+        readonly List<Locale> _offered = new();
 
-        public LanguageService(IPublisher<LanguageChanged> changed) => _changed = changed;
+        public LanguageService(IPublisher<LanguageChanged> changed, LanguageSettings settings = null)
+        {
+            _changed = changed;
+            _settings = settings;
+        }
 
-        public IReadOnlyList<Locale> Languages => LocalizationSettings.AvailableLocales.Locales;
+        // The offered languages that have a locale, in the settings' order.
+        public IReadOnlyList<Locale> Languages
+        {
+            get
+            {
+                if (_offered.Count > 0)
+                    return _offered;
+                if (_settings == null || _settings.Offered.Count == 0)
+                    return LocalizationSettings.AvailableLocales.Locales;
+                foreach (string code in _settings.Offered)
+                {
+                    Locale locale = LocalizationSettings.AvailableLocales.GetLocale(code);
+                    if (locale != null)
+                        _offered.Add(locale);
+                }
+                return _offered.Count > 0 ? _offered : LocalizationSettings.AvailableLocales.Locales;
+            }
+        }
+
         public Locale Current => LocalizationSettings.SelectedLocale;
 
         public void Initialize()
         {
             // Synchronous init (LocalizationSettings): the selected language's tables are loaded before any scene starts.
             LocalizationSettings.InitializationOperation.WaitForCompletion();
+            // A saved or command-line language that isn't offered: the first offered one, not saved, so the player's choice
+            // comes back once that language is offered again.
+            IReadOnlyList<Locale> languages = Languages;
+            if (languages.Count > 0 && !Contains(languages, Current))
+                LocalizationSettings.SelectedLocale = languages[0];
             LocalizationSettings.SelectedLocaleChanged += OnSelectedLocaleChanged;
+        }
+
+        static bool Contains(IReadOnlyList<Locale> languages, Locale locale)
+        {
+            for (int i = 0; i < languages.Count; i++)
+                if (languages[i] == locale)
+                    return true;
+            return false;
         }
 
         public void Dispose() => LocalizationSettings.SelectedLocaleChanged -= OnSelectedLocaleChanged;
@@ -43,6 +80,7 @@ namespace MB13.Aipocalypse.Core.LocalizationSystem
             PlayerPrefs.Save();
         }
 
+        // Any locale, offered or not (the console uses it to check a hidden language).
         public bool Select(string code)
         {
             Locale locale = LocalizationSettings.AvailableLocales.GetLocale(code);

@@ -311,7 +311,7 @@ public static class InventoryPlayTest
         return $"searching={Player.Looting.IsSearching} slot {Player.Looting.RevealingSlot} progress={Player.Looting.Progress:P0}, hidden {crate.HiddenCount}";
     }
 
-    // With the crate open: right-click take, drag-merge, drag-swap a gun, drag to a quick slot, a refused backpack move,
+    // With the crate open: right-click menu Pick up, drag-merge, drag-swap a gun, drag to a quick slot, a refused backpack move,
     // take all, sort, and drag-out-to-throw. Everything through pointer events on the slot views.
     public static string DragDrop()
     {
@@ -326,8 +326,8 @@ public static class InventoryPlayTest
         if (lootTokens >= 0)
         {
             int carried = Inv.CountOf(loot[lootTokens].Definition);
-            Click(screen, loot, lootTokens, PointerEventData.InputButton.Right);
-            log.AppendLine($"right-click loot tokens: loot slot now {loot[lootTokens]?.Count.ToString() ?? "empty"}, carried {carried} -> {Inv.CountOf(Find(backpack, d => d.AutoCollect) >= 0 ? backpack[Find(backpack, d => d.AutoCollect)].Definition : null)}");
+            Menu(screen, loot, lootTokens, ItemContextMenu.Choice.Pickup);
+            log.AppendLine($"Pick up loot tokens: loot slot now {loot[lootTokens]?.Count.ToString() ?? "empty"}, carried {carried} -> {Inv.CountOf(Find(backpack, d => d.AutoCollect) >= 0 ? backpack[Find(backpack, d => d.AutoCollect)].Definition : null)}");
         }
 
         int lootPistol = Find(loot, d => d.name == "PistolAmmo");
@@ -865,6 +865,7 @@ public static class InventoryPlayTest
         {
             ItemContextMenu.Choice.Use => "_use",
             ItemContextMenu.Choice.Drop => "_drop",
+            ItemContextMenu.Choice.Pickup => "_pickup",
             _ => "_lock",
         });
         if (button.interactable)

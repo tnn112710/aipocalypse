@@ -1098,6 +1098,16 @@ namespace MB13.Aipocalypse.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Lock"",
+                    ""type"": ""Button"",
+                    ""id"": ""7d409015-e737-48ea-8ad9-d399a71a7ff4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -1538,6 +1548,17 @@ namespace MB13.Aipocalypse.Input
                     ""processors"": """",
                     ""groups"": ""XR"",
                     ""action"": ""TrackedDeviceOrientation"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d275aad7-a091-4751-a04e-944b27d71f5c"",
+                    ""path"": ""<Keyboard>/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Lock"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -2138,6 +2159,7 @@ namespace MB13.Aipocalypse.Input
             m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
             m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
             m_UI_Inventory = m_UI.FindAction("Inventory", throwIfNotFound: true);
+            m_UI_Lock = m_UI.FindAction("Lock", throwIfNotFound: true);
             // Debug
             m_Debug = asset.FindActionMap("Debug", throwIfNotFound: true);
             m_Debug_NextHour = m_Debug.FindAction("NextHour", throwIfNotFound: true);
@@ -2628,6 +2650,7 @@ namespace MB13.Aipocalypse.Input
         private readonly InputAction m_UI_TrackedDevicePosition;
         private readonly InputAction m_UI_TrackedDeviceOrientation;
         private readonly InputAction m_UI_Inventory;
+        private readonly InputAction m_UI_Lock;
         /// <summary>
         /// Provides access to input actions defined in input action map "UI".
         /// </summary>
@@ -2683,6 +2706,10 @@ namespace MB13.Aipocalypse.Input
             /// Provides access to the underlying input action "UI/Inventory".
             /// </summary>
             public InputAction @Inventory => m_Wrapper.m_UI_Inventory;
+            /// <summary>
+            /// Provides access to the underlying input action "UI/Lock".
+            /// </summary>
+            public InputAction @Lock => m_Wrapper.m_UI_Lock;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -2742,6 +2769,9 @@ namespace MB13.Aipocalypse.Input
                 @Inventory.started += instance.OnInventory;
                 @Inventory.performed += instance.OnInventory;
                 @Inventory.canceled += instance.OnInventory;
+                @Lock.started += instance.OnLock;
+                @Lock.performed += instance.OnLock;
+                @Lock.canceled += instance.OnLock;
             }
 
             /// <summary>
@@ -2786,6 +2816,9 @@ namespace MB13.Aipocalypse.Input
                 @Inventory.started -= instance.OnInventory;
                 @Inventory.performed -= instance.OnInventory;
                 @Inventory.canceled -= instance.OnInventory;
+                @Lock.started -= instance.OnLock;
+                @Lock.performed -= instance.OnLock;
+                @Lock.canceled -= instance.OnLock;
             }
 
             /// <summary>
@@ -3559,6 +3592,13 @@ namespace MB13.Aipocalypse.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnInventory(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Lock" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLock(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Debug" which allows adding and removing callbacks.

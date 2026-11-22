@@ -24,6 +24,7 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Slot")] public Color HighlightColor = new(1f, 0.85f, 0.55f, 1f);
         [BoxGroup("Slot")] public Color IconColor = Color.white;
         [BoxGroup("Slot"), Tooltip("Faded silhouette in an empty equipment slot")] public Color EmptyIconColor = new(1f, 1f, 1f, 0.18f);
+        [BoxGroup("Slot"), Tooltip("Lock icon of a locked item, and its tooltip's Locked line")] public Color LockedColor = new(1f, 0.85f, 0.4f, 1f);
         [BoxGroup("Slot"), Range(0f, 1f), Tooltip("Icon alpha of the slot an item is being dragged out of")] public float DraggedAlpha = 0.35f;
         [BoxGroup("Slot"), Min(1f)] public float NameFontSize = 13f;
         [BoxGroup("Slot"), Min(1f)] public float CountFontSize = 16f;
@@ -60,6 +61,13 @@ namespace MB13.Aipocalypse.Core.UI
 
         public Color RarityColor(ItemRarity rarity) =>
             _rarityColors != null && _rarityColors.TryGetValue(rarity, out Color color) ? color : TextColor;
+
+        // For an item name: the rarity colour, opaque (Common's is clear so its slots get no border, which hid the name).
+        public Color RarityTextColor(ItemRarity rarity)
+        {
+            Color color = RarityColor(rarity);
+            return new Color(color.r, color.g, color.b, 1f);
+        }
 
         // The silhouette for an empty slot that takes `accepts`: the first category with one.
         public Sprite EmptyIcon(ItemCategory accepts)

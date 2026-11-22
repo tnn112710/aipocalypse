@@ -25,8 +25,9 @@ namespace MB13.Aipocalypse.Core.UI
     // or a crate's / body's key press, whose hidden items it then reveals one by one (PlayerLooting). Pauses the game while
     // open, except during a raid: then the world goes on and a hit closes it.
     // Drag to move, merge or swap; Shift-drag moves half a stack; double-click sends an item across (loot <-> backpack,
-    // backpack <-> a free active or gear slot). Right-click on a carried item opens its menu (Use, Drop, Lock); on a
-    // crate's item or a fitted part it does the double-click's move.
+    // backpack <-> a free active or gear slot). Right-click opens an item's menu (carried: Use, Drop, Lock; a crate's: Pick
+    // up, Use); on a fitted part it does the double-click's move. Keys on the hovered item: Drop, Lock, and a hotbar key
+    // moves it to that slot.
     // The centre inspects the item last clicked (the held one when the screen opens): in 3D, with a gun's part slots.
     // Parts are fitted by dragging them onto a part slot or the 3D view, or by double-clicking them; taken off the same way.
     public sealed class InventoryScreen : PlayerHudView
@@ -45,6 +46,11 @@ namespace MB13.Aipocalypse.Core.UI
         static readonly LocalizedString SlotItems = Loc.UI("inventory.slot_items");
         static readonly LocalizedString UsesFormat = Loc.UI("tooltip.uses");
         static readonly LocalizedString ValueFormat = Loc.UI("tooltip.value");
+        static readonly LocalizedString LockedText = Loc.UI("tooltip.locked");
+        static readonly LocalizedString HintCarried = Loc.UI("tooltip.hint_carried");
+        static readonly LocalizedString HintLoot = Loc.UI("tooltip.hint_loot");
+        static readonly LocalizedString HintKeys = Loc.UI("tooltip.hint_keys");
+        static readonly LocalizedString DropLocked = Loc.UI("inventory.drop_locked");
         // Indexed by ItemRarity.
         static readonly LocalizedString[] RarityNames =
         {
@@ -72,7 +78,7 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] Button _takeAllButton;
         [SerializeField, Tooltip("Follows the pointer while dragging")] Image _dragIcon;
         [SerializeField] ItemTooltipView _tooltip;
-        [SerializeField, Tooltip("Right-click menu of a carried item")] ItemContextMenu _menu;
+        [SerializeField, Tooltip("An item's right-click menu")] ItemContextMenu _menu;
         [SerializeField, Tooltip("Optional: the centre panel inspecting the selected item, with a gun's part slots")]
         ItemInspectorView _inspector;
 
@@ -115,6 +121,9 @@ namespace MB13.Aipocalypse.Core.UI
         SlotRef _menuSlot;
         ItemInstance _menuItem;
         float _messageUntil;
+        // The tooltip's control hints, made when the screen opens (key names allocate).
+        string _hintCarried;
+        string _hintLoot;
 
         public bool IsOpen => _open;
         public LootContainer Loot => _loot;
@@ -216,6 +225,8 @@ namespace MB13.Aipocalypse.Core.UI
                 Close();
                 return;
             }
+            if (_menu == null || !_menu.IsOpen)
+                HandleShortcuts();
             TickSearch();
             if (_rebuild)
                 Rebuild();
@@ -239,6 +250,8 @@ namespace MB13.Aipocalypse.Core.UI
                 if (_pausing)
                     _time?.RequestPause(this);
                 Play(_style != null ? _style.OpenSound : default);
+                _hintCarried = HintCarried.Text() + "\n" + HintKeys.Format(_input.GetDropKeyLabel(), _input.GetLockKeyLabel(), HotbarKeyRange());
+                _hintLoot = HintLoot.Text();
                 _input.RequestUI(this);
                 if (_eventSystem != null)
                     _eventSystem.SetActive(true);
@@ -420,6 +433,25 @@ namespace MB13.Aipocalypse.Core.UI
 
         string Key(int hotbarSlot) => _input.GetKeyLabel(_equipment.KeyOf(hotbarSlot));
 
+        // "1-5": the number keys of the hotbar's slots.
+        string HotbarKeyRange()
+        {
+            int first = int.MaxValue;
+            int last = -1;
+            for (int i = 0; i < _inventory.Hotbar.Count; i++)
+            {
+                var key = (int)_equipment.KeyOf(i);
+                if (key > (int)HotbarKey.Key9)
+                    continue;
+                first = Math.Min(first, key);
+                last = Math.Max(last, key);
+            }
+            if (last < 0)
+                return string.Empty;
+            string from = _input.GetKeyLabel((HotbarKey)first);
+            return first == last ? from : from + "-" + _input.GetKeyLabel((HotbarKey)last);
+        }
+
         static bool IsWeaponSlot(ItemContainer hotbar, int index) =>
             (hotbar.AcceptsAt(index) & WeaponSlots) != 0 && (hotbar.AcceptsAt(index) & ~WeaponSlots) == 0;
 
@@ -527,7 +559,10 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         // Not revealed yet by the search: it can't be moved, swapped, merged into or inspected.
-        bool IsHidden(SlotRef slot) => _loot != null && !slot.IsPart && slot.Container == _loot.Items && _loot.IsHidden(slot.Index);
+        bool IsHidden(SlotRef slot) => IsLoot(slot) && _loot.IsHidden(slot.Index);
+
+        // In the open crate or body: not carried yet.
+        bool IsLoot(SlotRef slot) => _loot != null && !slot.IsPart && slot.Container == _loot.Items;
 
         void Play(SoundID sound) => _audio?.Play(sound);
 
@@ -545,8 +580,8 @@ namespace MB13.Aipocalypse.Core.UI
             _messageUntil = Time.unscaledTime + MessageSeconds;
         }
 
-        // Left-click: inspect the item; double-click: send it across, or fit / take off a gun part. Right-click: the menu of
-        // a carried item; on a crate's item or a fitted part, the double-click's move.
+        // Left-click: inspect the item; double-click: send it across, or fit / take off a gun part. Right-click: the item's
+        // menu; on a fitted part, the double-click's move.
         void OnSlotClicked(ISlotView view, PointerEventData eventData)
         {
             if (_dragFrom >= 0)
@@ -565,7 +600,7 @@ namespace MB13.Aipocalypse.Core.UI
             }
             if (eventData.button != PointerEventData.InputButton.Right)
                 return;
-            if (slot.IsPart || _menu == null || (_loot != null && slot.Container == _loot.Items))
+            if (slot.IsPart || _menu == null)
             {
                 SendAcross(slot, item);
                 return;
@@ -574,7 +609,7 @@ namespace MB13.Aipocalypse.Core.UI
             _menuItem = item;
             if (_tooltip != null)
                 _tooltip.Hide();
-            _menu.Show(eventData.position, item.Definition is ConsumableDefinition && Player is IConsumer, item.Locked);
+            _menu.Show(eventData.position, IsLoot(slot), item.Definition is ConsumableDefinition && Player is IConsumer, item.Locked);
         }
 
         void SendAcross(SlotRef slot, ItemInstance item)
@@ -764,18 +799,90 @@ namespace MB13.Aipocalypse.Core.UI
                     Use(item);
                     break;
                 case ItemContextMenu.Choice.Drop:
-                    if (item.Locked)
-                        break;
-                    if (_inventory.TryRemove(slot.Container, slot.Index, out ItemInstance removed, out string refusal))
-                        Player?.ThrowAway(removed);
-                    else
-                        ShowMessage(refusal);
+                    Drop(slot, item);
                     break;
                 case ItemContextMenu.Choice.Lock:
-                    item.Locked = !item.Locked;
-                    Play(_style != null ? _style.PlaceSound : default);
+                    ToggleLock(item);
+                    break;
+                case ItemContextMenu.Choice.Pickup:
+                    Pickup(slot, item);
                     break;
             }
+        }
+
+        // Keys on the hovered item: Drop and Lock (carried items), a hotbar key (moves it to that slot, from the crate too).
+        void HandleShortcuts()
+        {
+            if (_dragFrom >= 0)
+                return;
+            bool drop = _input.UiDropPressed;
+            bool toggleLock = _input.UiLockPressed;
+            HotbarKey? key = _input.UiHotbarKeyPressed;
+            if (!drop && !toggleLock && key == null)
+                return;
+            SlotRef slot = default;
+            bool hovered = false;
+            foreach (SlotRef candidate in _slots)
+                if (candidate.View.IsHovered)
+                {
+                    slot = candidate;
+                    hovered = true;
+                    break;
+                }
+            ItemInstance item = hovered ? ItemAt(slot) : null;
+            if (item == null || slot.IsPart || IsHidden(slot))
+                return;
+            if (key != null)
+                ToHotbar(slot, key.Value);
+            else if (IsLoot(slot))
+                return;
+            else if (drop)
+                Drop(slot, item);
+            else
+                ToggleLock(item);
+        }
+
+        void Drop(SlotRef slot, ItemInstance item)
+        {
+            if (item.Locked)
+            {
+                ShowMessage(DropLocked.Text());
+                return;
+            }
+            if (_inventory.TryRemove(slot.Container, slot.Index, out ItemInstance removed, out string refusal))
+                Player?.ThrowAway(removed);
+            else
+                ShowMessage(refusal);
+        }
+
+        void ToggleLock(ItemInstance item)
+        {
+            item.Locked = !item.Locked;
+            Play(_style != null ? _style.PlaceSound : default);
+        }
+
+        // As much of a crate's stack as fits.
+        void Pickup(SlotRef slot, ItemInstance item)
+        {
+            int count = item.Count;
+            int taken = _inventory.TakeFrom(slot.Container, slot.Index);
+            if (taken > 0)
+                Play(_style != null ? _style.PlaceSound : default);
+            if (taken < count)
+                ShowMessage(taken == 0 ? NoRoom.Text() : BackpackFull.Text());
+        }
+
+        // Moves the whole stack to the hotbar slot `key` selects (swapping with what's there), as a drag onto it would.
+        void ToHotbar(SlotRef from, HotbarKey key)
+        {
+            int index = _equipment.SlotOf(key);
+            if (index < 0 || (from.Container == _inventory.Hotbar && from.Index == index))
+                return;
+            var to = new SlotRef { Container = _inventory.Hotbar, Index = index };
+            if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal))
+                Play(_style != null ? _style.PlaceSound : default);
+            else
+                ShowMessage(refusal ?? WrongSlot(from, to));
         }
 
         // Uses a consumable straight from the screen, with the same refusals as in hand ("Health full").
@@ -823,9 +930,13 @@ namespace MB13.Aipocalypse.Core.UI
                     ? $"{item.Count:N0} x {definition.Weight:0.###} kg = {item.Weight:0.##} kg"
                     : $"{definition.Weight:0.##} kg";
                 string uses = item is ConsumableInstance multiUse ? "\n" + UsesFormat.Format(multiUse.UsesLeft, multiUse.Consumable.Uses) : null;
-                string details = $"{RarityName(definition.Rarity)}\n{weight}{uses}\n{ValueFormat.Format(item.Value)}{PartDetails(item)}";
-                Color title = _style != null ? _style.RarityColor(definition.Rarity) : Color.white;
-                _tooltip.Show(slot.View.Rect, definition.DisplayName, details, title);
+                string locked = item.Locked
+                    ? $"\n<color=#{ColorUtility.ToHtmlStringRGB(_style != null ? _style.LockedColor : Color.white)}>{LockedText.Text()}</color>"
+                    : null;
+                string details = $"{RarityName(definition.Rarity)}\n{weight}{uses}\n{ValueFormat.Format(item.Value)}{PartDetails(item)}{locked}";
+                Color title = _style != null ? _style.RarityTextColor(definition.Rarity) : Color.white;
+                string hint = slot.IsPart ? null : IsLoot(slot) ? _hintLoot : _hintCarried;
+                _tooltip.Show(slot.View.Rect, definition.DisplayName, details, title, hint);
                 return;
             }
             _tooltip.Hide();

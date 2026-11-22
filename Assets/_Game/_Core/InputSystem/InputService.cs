@@ -4,7 +4,9 @@ using System.Text;
 using MB13.Aipocalypse.Core.Debugging;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem.Utilities;
 using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Input
@@ -132,6 +134,33 @@ namespace MB13.Aipocalypse.Input
             }
         }
 
+        // Inventory screen shortcuts on the hovered item, read while the UI map is on. Drop and the hotbar keys are the
+        // gameplay ones (the Player map is off, but its actions still resolve their keys), so they follow the same bindings.
+        public bool UiDropPressed => _actions.UI.enabled && KeyPressed(_actions.Player.Drop);
+        public bool UiLockPressed => _actions.UI.Lock.WasPressedThisFrame();
+
+        public HotbarKey? UiHotbarKeyPressed
+        {
+            get
+            {
+                if (!_actions.UI.enabled)
+                    return null;
+                for (int i = 0; i < _hotbarKeys.Length; i++)
+                    if (KeyPressed(_hotbarKeys[i]))
+                        return (HotbarKey)i;
+                return null;
+            }
+        }
+
+        static bool KeyPressed(InputAction action)
+        {
+            ReadOnlyArray<InputControl> controls = action.controls;
+            for (int i = 0; i < controls.Count; i++)
+                if (controls[i] is KeyControl { wasPressedThisFrame: true })
+                    return true;
+            return false;
+        }
+
         // +1 next slot, -1 previous slot (mouse wheel, d-pad), 0 none.
         public int CycleDirection =>
             _actions.Player.Next.WasPressedThisFrame() ? 1 :
@@ -166,9 +195,14 @@ namespace MB13.Aipocalypse.Input
         // Key name for a button ("R"), follows rebinding. The key only: Interact's Hold interaction would read "Hold E".
         // Its first keyboard / mouse binding only: Attack also has Enter and would read "LMB | Enter".
         // Allocates: call when it's shown, not per frame.
-        public string GetKeyLabel(GameButton button)
+        public string GetKeyLabel(GameButton button) => KeyLabel(Action(button));
+
+        // The inventory screen's Drop and Lock keys ("G", "X"), as GetKeyLabel(GameButton).
+        public string GetDropKeyLabel() => KeyLabel(_actions.Player.Drop);
+        public string GetLockKeyLabel() => KeyLabel(_actions.UI.Lock);
+
+        static string KeyLabel(InputAction action)
         {
-            InputAction action = Action(button);
             int binding = action.GetBindingIndex(InputBinding.MaskByGroup(KeyboardMouseGroup));
             return binding >= 0 ? action.GetBindingDisplayString(binding, InputBinding.DisplayStringOptions.DontIncludeInteractions) : string.Empty;
         }
