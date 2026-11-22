@@ -91,7 +91,6 @@ inventory.tokens,2881891840043,TOKENS,XU,JETONS,Inventory header next to the cur
 inventory.equipment,2881891840044,EQUIPMENT,TRANG BỊ,ÉQUIPEMENT,Inventory panel title
 inventory.sort,2881891840045,Sort,Xếp,Trier,Inventory button
 inventory.take_all,2881891840046,Take all,Lấy hết,Tout prendre,Loot panel button
-inventory.hint,2881891840047,Drag items into slots 3-9 to set up your hotbar,Kéo đồ vào ô 3-9 để xếp thanh dùng nhanh,Glisse des objets dans les cases 3 à 9 pour ta barre rapide,Under the quick slots
 inventory.backpack_title,2881891840048,Backpack ({0}/{1}),Ba lô ({0}/{1}),Sac à dos ({0}/{1}),"{0} = used slots, {1} = slots"
 inventory.weight,2881891840049,Weight {0:1} / {1:1} kg,Nặng {0:1} / {1:1} kg,Poids {0:1} / {1:1} kg,"{0:1} = carried, {1:1} = max, one decimal (TextMeshPro format)"
 inventory.no_room,2881891840050,No room,Hết chỗ,Pas de place,Refusal
@@ -103,6 +102,9 @@ tooltip.uses,2881891840055,Uses {0}/{1},Lượt dùng {0}/{1},Utilisations {0}/{
 tooltip.value,2881891840056,Value {0:N0},Giá trị {0:N0},Valeur {0:N0},{0} = value in Tokens
 inventory.part_no_fit,371587535687680,Doesn't fit this gun,Không lắp vừa súng này,Ne va pas sur cette arme,Refusal: a gun part dropped on a gun it doesn't fit
 inventory.part_pick_gun,371587565047808,Click a gun to fit parts to it,Bấm vào một khẩu súng để lắp phụ kiện,Clique sur une arme pour y monter des pièces,Refusal: right-click on a gun part while no gun is inspected
+inventory.slot_gun,3466810428051456,Slot {0} takes a gun,Ô {0} chỉ chứa súng,La case {0} prend une arme à feu,Refusal above the hotbar: something else dropped on a gun slot; {0} = its key
+inventory.slot_melee,3466810486771712,Slot {0} takes a melee weapon,Ô {0} chỉ chứa vũ khí cận chiến,La case {0} prend une arme de mêlée,Refusal above the hotbar: something else dropped on the melee slot; {0} = its key
+inventory.slot_items,3466810486771713,Slot {0} takes usable items and tools,Ô {0} chỉ chứa vật phẩm dùng được và dụng cụ,La case {0} prend des objets utilisables et des outils,Refusal above the hotbar: a weapon (or other item) dropped on a quick slot; {0} = its key
 inspector.hint,371587565047809,Click an item to inspect it,Bấm vào một món đồ để xem,Clique sur un objet pour l'inspecter,Inventory inspector with nothing selected
 inspector.info,371587565047810,{0}   |   {1:0.##} kg   |   {2:N0} Tokens,{0}   |   {1:0.##} kg   |   {2:N0} xu,{0}   |   {1:0.##} kg   |   {2:N0} jetons,"Inspector line under the item name; .NET format: {0} = rarity, {1} = weight, {2} = value"
 inspector.turn,371587565047811,"Drag to turn, scroll to zoom","Kéo để xoay, cuộn để phóng to","Glisse pour tourner, molette pour zoomer",Hint under the inspector's 3D view

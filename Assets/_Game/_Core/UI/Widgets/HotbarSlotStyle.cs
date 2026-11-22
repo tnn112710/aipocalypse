@@ -17,6 +17,10 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Selected")] public Color FrameColor = new(1f, 0.72f, 0.6f, 1f);
         [BoxGroup("Selected"), Min(0.5f), Tooltip("Tile scale while selected")] public float SelectedScale = 1.06f;
 
+        [BoxGroup("Inventory open"), Tooltip("Frame on the slot under the pointer while the inventory screen is open")]
+        public Color HoverFrameColor = new(1f, 1f, 1f, 0.6f);
+        [BoxGroup("Inventory open"), Range(0f, 1f), Tooltip("Icon alpha while its item is being dragged")] public float DraggedIconAlpha = 0.35f;
+
         [BoxGroup("Key")] public Sprite KeySprite;
         [BoxGroup("Key")] public Color KeyColor = new(0.95f, 0.95f, 0.95f, 0.95f);
         [BoxGroup("Key")] public Color SelectedKeyColor = new(1f, 0.72f, 0.6f, 1f);

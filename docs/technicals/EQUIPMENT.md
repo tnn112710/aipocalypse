@@ -256,7 +256,7 @@ The visible hands are separate from this: `HandSystem/FirstPersonHands` puts flo
 
 - Picking up, throwing and searching have no animation. Sounds are placeholders from PlaceHolder Inc (ASSETS.md); throwing has none.
 - No weight slowdown yet, no head / body / face items, no buying or selling, no bank for Tokens, no death loss or grave: the inventory survives death. No save / load.
-- The hammer and consumables go to the backpack when picked up: they need dragging to a quick slot once.
+- The hammer and consumables go to the backpack when picked up: they need dragging to a quick slot once (the HUD hotbar row, with the inventory open).
 - Using a consumable has no animation or sound; the held poses of the bandage and shots are rough.
 - Item icons mix two styles: Synty's colour renders (guns, ammo, Tokens, backpack, tools) and the Kat Grabowska white flat set (consumables).
 

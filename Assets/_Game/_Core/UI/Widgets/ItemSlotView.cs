@@ -9,7 +9,7 @@ namespace MB13.Aipocalypse.Core.UI
 {
     // One inventory slot: an item's icon, name and count on a tile with a border in its rarity's colour, an optional key and caption, a silhouette when
     // empty, and a "?" with a filling circle while a search hasn't revealed its item yet. Reports pointer and drag events to its presenter; knows nothing about items or containers.
-    public sealed class ItemSlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
+    public sealed class ItemSlotView : MonoBehaviour, ISlotView, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
         IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
     {
         [SerializeField, InlineEditor] InventoryStyle _style;
@@ -37,16 +37,16 @@ namespace MB13.Aipocalypse.Core.UI
         string _shownKey;
         string _shownCaption;
 
-        public event Action<ItemSlotView, PointerEventData> Clicked;
-        public event Action<ItemSlotView, PointerEventData> DragStarted;
-        public event Action<ItemSlotView, PointerEventData> Dragging;
-        public event Action<ItemSlotView, PointerEventData> DragEnded;
-        public event Action<ItemSlotView, PointerEventData> DroppedOn;
-        public event Action<ItemSlotView> HoverChanged;
+        public event Action<ISlotView, PointerEventData> Clicked;
+        public event Action<ISlotView, PointerEventData> DragStarted;
+        public event Action<ISlotView, PointerEventData> Dragging;
+        public event Action<ISlotView, PointerEventData> DragEnded;
+        public event Action<ISlotView, PointerEventData> DroppedOn;
+        public event Action<ISlotView> HoverChanged;
 
         public InventoryStyle Style => _style;
         public bool IsHovered => _hovered;
-        // Set by the presenter to find what this view shows.
+        public RectTransform Rect => (RectTransform)transform;
         public int Index { get; set; }
 
         void Awake() => ApplyStyle();
@@ -140,7 +140,6 @@ namespace MB13.Aipocalypse.Core.UI
             _caption.SetText(caption);
         }
 
-        // The item is being dragged out of this slot: its icon fades.
         public void SetDragged(bool dragged)
         {
             _dragged = dragged;

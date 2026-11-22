@@ -37,7 +37,6 @@ namespace MB13.Aipocalypse.Editor.Localization
             (Hud, "Inventory/Left/EquipmentTitle", Loc.UITable, "inventory.equipment"),
             (Hud, "Inventory/Left/BackpackRow/Sort/Label", Loc.UITable, "inventory.sort"),
             (Hud, "Inventory/Loot/LootRow/Takeall/Label", Loc.UITable, "inventory.take_all"),
-            (Hud, "Inventory/Quick/Hint", Loc.UITable, "inventory.hint"),
             (Hud, "PauseMenu/Page/Title", Loc.UITable, "menu.paused"),
             (Hud, "PauseMenu/Page/Buttons/Resume/Label", Loc.UITable, "menu.resume"),
             (Hud, "PauseMenu/Page/Buttons/Save/Label", Loc.UITable, "menu.save_game"),

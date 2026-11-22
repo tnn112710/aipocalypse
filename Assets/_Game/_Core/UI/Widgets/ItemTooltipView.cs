@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
 {
@@ -25,8 +26,15 @@ namespace MB13.Aipocalypse.Core.UI
             float scale = _panel.lossyScale.x;
             Vector3 right = Corners[2] + new Vector3(_offset.x * scale, _offset.y * scale, 0f);
             bool flip = right.x + _panel.rect.width * scale > Screen.width;
-            _panel.pivot = new Vector2(flip ? 1f : 0f, 1f);
-            _panel.position = flip ? Corners[1] - new Vector3(_offset.x * scale, -_offset.y * scale, 0f) : right;
+            Vector3 position = flip ? Corners[1] - new Vector3(_offset.x * scale, -_offset.y * scale, 0f) : right;
+            // Hangs down from the slot's top; beside a slot near the bottom (the hotbar row) it would leave the screen, so its
+            // bottom lines up with the slot's instead. Its height comes from a ContentSizeFitter: the new text is laid out first.
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_panel);
+            bool up = position.y - _panel.rect.height * scale < 0f;
+            if (up)
+                position.y = Corners[0].y;
+            _panel.pivot = new Vector2(flip ? 1f : 0f, up ? 0f : 1f);
+            _panel.position = position;
         }
 
         public void Hide() => gameObject.SetActive(false);

@@ -21,7 +21,7 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.UI
 {
     // The inventory screen, after Escape from Duckov's: equipment (active gun and melee slots, gear) and the backpack on the
-    // left, a searched crate or body on the right, the quick slots (keys 3-9) along the bottom. Opens with the inventory key
+    // left, a searched crate or body on the right; the HUD hotbar along the bottom takes drags too. Opens with the inventory key
     // or a crate's / body's key press, whose hidden items it then reveals one by one (PlayerLooting). Pauses the game while
     // open, except during a raid: then the world goes on and a hit closes it.
     // Drag to move, merge or swap; Shift-drag moves half a stack; right-click sends an item across (loot <-> backpack,
@@ -39,6 +39,9 @@ namespace MB13.Aipocalypse.Core.UI
         static readonly LocalizedString BackpackFull = Loc.UI("inventory.backpack_full");
         static readonly LocalizedString StillSearching = Loc.UI("inventory.still_searching");
         static readonly LocalizedString PickGun = Loc.UI("inventory.part_pick_gun");
+        static readonly LocalizedString SlotGun = Loc.UI("inventory.slot_gun");
+        static readonly LocalizedString SlotMelee = Loc.UI("inventory.slot_melee");
+        static readonly LocalizedString SlotItems = Loc.UI("inventory.slot_items");
         static readonly LocalizedString UsesFormat = Loc.UI("tooltip.uses");
         static readonly LocalizedString ValueFormat = Loc.UI("tooltip.value");
         // Indexed by ItemRarity.
@@ -55,7 +58,8 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] RectTransform _equipmentGrid;
         [SerializeField] RectTransform _backpackGrid;
         [SerializeField] RectTransform _lootGrid;
-        [SerializeField] RectTransform _quickRow;
+        [SerializeField, Tooltip("The HUD hotbar: while the screen is open its row is drawn above it and its slots take drags (the quick slots live there)")]
+        HotbarHud _hotbar;
         [SerializeField] GameObject _lootPanel;
         [SerializeField] TMP_Text _backpackTitle;
         [SerializeField] TMP_Text _lootTitle;
@@ -74,7 +78,7 @@ namespace MB13.Aipocalypse.Core.UI
         // What each slot view shows: a slot of one of the containers, or a part slot of the inspected gun.
         struct SlotRef
         {
-            public ItemSlotView View;
+            public ISlotView View;
             public ItemContainer Container;
             public int Index;
             public bool IsPart;
@@ -86,8 +90,9 @@ namespace MB13.Aipocalypse.Core.UI
         // views on every open cost ~5 ms, a hitch now that the screen doesn't pause during raids.
         readonly List<ItemSlotView> _equipmentViews = new();
         readonly List<ItemSlotView> _backpackViews = new();
-        readonly List<ItemSlotView> _quickViews = new();
         readonly List<ItemSlotView> _lootViews = new();
+        // The hotbar row last hooked: the HUD makes new slot views when it binds another player.
+        IReadOnlyList<ISlotView> _hookedHotbar;
         Canvas _canvas;
         InputService _input;
         TimeService _time;
@@ -225,6 +230,8 @@ namespace MB13.Aipocalypse.Core.UI
                 if (_eventSystem != null)
                     _eventSystem.SetActive(true);
                 SetVisible(true);
+                if (_hotbar != null)
+                    _hotbar.SetInteractive(true, (_canvas != null ? _canvas.sortingOrder : 0) + 1);
                 Rebuild();
                 // Opening shows the item in hand, as Duckov does.
                 HeldItem held = Player?.HeldItem;
@@ -246,6 +253,8 @@ namespace MB13.Aipocalypse.Core.UI
             _inspector?.Hide();
             SetLoot(null);
             SetVisible(false);
+            if (_hotbar != null)
+                _hotbar.SetInteractive(false, 0);
             if (_eventSystem != null)
                 _eventSystem.SetActive(false);
             _input?.ReleaseUI(this);
@@ -286,8 +295,8 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
             _looting.Tick(Time.unscaledDeltaTime);
             int slot = _looting.Searching == _loot ? _looting.RevealingSlot : -1;
-            if (slot >= 0 && _lootStart + slot < _slots.Count)
-                _slots[_lootStart + slot].View.SetSearchProgress(_looting.Progress);
+            if (slot >= 0 && _lootStart + slot < _slots.Count && _slots[_lootStart + slot].View is ItemSlotView view)
+                view.SetSearchProgress(_looting.Progress);
         }
 
         void SetLoot(LootContainer loot)
@@ -344,11 +353,22 @@ namespace MB13.Aipocalypse.Core.UI
                 AddSlot(_backpackViews, _backpackGrid, i, _inventory.Backpack, i, null, null);
             HideFrom(_backpackViews, _inventory.Backpack.Count);
 
-            used = 0;
-            for (int i = 0; i < hotbar.Count; i++)
-                if (!IsWeaponSlot(hotbar, i))
-                    AddSlot(_quickViews, _quickRow, used++, hotbar, i, null, Key(i));
-            HideFrom(_quickViews, used);
+            IReadOnlyList<ISlotView> row = _hotbar != null ? _hotbar.Slots : null;
+            if (row != null)
+            {
+                if (!ReferenceEquals(row, _hookedHotbar))
+                {
+                    foreach (ISlotView view in row)
+                        Hook(view);
+                    _hookedHotbar = row;
+                }
+                for (int i = 0; i < row.Count && i < hotbar.Count; i++)
+                {
+                    row[i].Index = _slots.Count;
+                    row[i].SetDragged(false);
+                    _slots.Add(new SlotRef { View = row[i], Container = hotbar, Index = i });
+                }
+            }
 
             _lootStart = _slots.Count;
             int loot = _loot != null ? _loot.Items.Count : 0;
@@ -412,7 +432,7 @@ namespace MB13.Aipocalypse.Core.UI
                     views[i].gameObject.SetActive(false);
         }
 
-        void Hook(ItemSlotView view)
+        void Hook(ISlotView view)
         {
             view.Clicked += OnSlotClicked;
             view.DragStarted += OnDragStarted;
@@ -433,21 +453,24 @@ namespace MB13.Aipocalypse.Core.UI
 
             foreach (SlotRef slot in _slots)
             {
+                // The HUD hotbar shows its own items.
+                if (slot.View is not ItemSlotView view)
+                    continue;
                 ItemInstance item = ItemAt(slot);
                 if (IsHidden(slot))
                 {
                     bool revealing = _looting != null && _looting.Searching == _loot && _looting.RevealingSlot == slot.Index;
-                    slot.View.ShowHidden(revealing ? _looting.Progress : -1f);
+                    view.ShowHidden(revealing ? _looting.Progress : -1f);
                     continue;
                 }
                 if (item == null)
                 {
-                    slot.View.ShowEmpty(slot.IsPart || slot.Container.AcceptsAnything ? null
+                    view.ShowEmpty(slot.IsPart || slot.Container.AcceptsAnything ? null
                         : _style != null ? _style.EmptyIcon(slot.Container.AcceptsAt(slot.Index)) : null);
                     continue;
                 }
                 ItemBadge badge = item.Badge;
-                slot.View.Show(item.Definition.Icon, item.Definition.DisplayName, badge.Visible ? badge.Count : -1, badge.Warning,
+                view.Show(item.Definition.Icon, item.Definition.DisplayName, badge.Visible ? badge.Count : -1, badge.Warning,
                     _style != null ? _style.RarityColor(item.Definition.Rarity) : default);
             }
 
@@ -506,7 +529,7 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         // Left-click: inspect the item. Right-click: send it across, or fit / take off a gun part.
-        void OnSlotClicked(ItemSlotView view, PointerEventData eventData)
+        void OnSlotClicked(ISlotView view, PointerEventData eventData)
         {
             if (_dragFrom >= 0)
                 return;
@@ -590,7 +613,7 @@ namespace MB13.Aipocalypse.Core.UI
             return false;
         }
 
-        void OnDragStarted(ItemSlotView view, PointerEventData eventData)
+        void OnDragStarted(ISlotView view, PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left)
                 return;
@@ -614,13 +637,13 @@ namespace MB13.Aipocalypse.Core.UI
             }
         }
 
-        void OnDragging(ItemSlotView view, PointerEventData eventData)
+        void OnDragging(ISlotView view, PointerEventData eventData)
         {
             if (_dragFrom >= 0 && _dragIcon != null)
                 _dragIcon.rectTransform.position = eventData.position;
         }
 
-        void OnDroppedOn(ItemSlotView target, PointerEventData eventData)
+        void OnDroppedOn(ISlotView target, PointerEventData eventData)
         {
             if (_dragFrom < 0 || target.Index == _dragFrom)
                 return;
@@ -639,7 +662,28 @@ namespace MB13.Aipocalypse.Core.UI
             else if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal, _dragAmount))
                 Play(_style != null ? _style.PlaceSound : default);
             else
-                ShowMessage(refusal);
+                ShowMessage(refusal ?? WrongSlot(from, to));
+        }
+
+        // A move the containers refused without a reason: a hotbar slot that doesn't take that kind of item, either the one
+        // dropped on or, for a swap, the one it came from.
+        string WrongSlot(SlotRef from, SlotRef to)
+        {
+            ItemContainer hotbar = _inventory.Hotbar;
+            ItemInstance moved = ItemAt(from);
+            ItemInstance swapped = ItemAt(to);
+            if (to.Container == hotbar && moved != null && !hotbar.CanPlace(to.Index, moved))
+                return SlotTakes(to.Index);
+            if (from.Container == hotbar && swapped != null && !hotbar.CanPlace(from.Index, swapped))
+                return SlotTakes(from.Index);
+            return null;
+        }
+
+        string SlotTakes(int hotbarSlot)
+        {
+            ItemCategory accepts = _inventory.Hotbar.AcceptsAt(hotbarSlot);
+            LocalizedString text = accepts == ItemCategory.Gun ? SlotGun : accepts == ItemCategory.Melee ? SlotMelee : SlotItems;
+            return text.Format(Key(hotbarSlot));
         }
 
         // A part dropped on the inspected gun's 3D view goes to its own slot.
@@ -666,7 +710,7 @@ namespace MB13.Aipocalypse.Core.UI
                 _inspector.Nudge(attached);
         }
 
-        void OnDragEnded(ItemSlotView view, PointerEventData eventData)
+        void OnDragEnded(ISlotView view, PointerEventData eventData)
         {
             if (_dragFrom < 0)
                 return;
@@ -697,7 +741,7 @@ namespace MB13.Aipocalypse.Core.UI
             _inspector?.SetPreview(null);
         }
 
-        void OnHoverChanged(ItemSlotView view) => RefreshTooltip();
+        void OnHoverChanged(ISlotView view) => RefreshTooltip();
 
         internal static string RarityName(ItemRarity rarity) => (int)rarity < RarityNames.Length ? RarityNames[(int)rarity].Text() : rarity.ToString();
 
@@ -719,7 +763,7 @@ namespace MB13.Aipocalypse.Core.UI
                 string uses = item is ConsumableInstance multiUse ? "\n" + UsesFormat.Format(multiUse.UsesLeft, multiUse.Consumable.Uses) : null;
                 string details = $"{RarityName(definition.Rarity)}\n{weight}{uses}\n{ValueFormat.Format(item.Value)}{PartDetails(item)}";
                 Color title = _style != null ? _style.RarityColor(definition.Rarity) : Color.white;
-                _tooltip.Show((RectTransform)slot.View.transform, definition.DisplayName, details, title);
+                _tooltip.Show(slot.View.Rect, definition.DisplayName, details, title);
                 return;
             }
             _tooltip.Hide();

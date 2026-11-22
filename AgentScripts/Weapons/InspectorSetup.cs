@@ -123,7 +123,7 @@ public static class InspectorSetup
         }
     }
 
-    // Centre column between the equipment panel (x 40-580) and the loot panel (from x 1340), above the quick slots.
+    // Centre column between the equipment panel (x 40-580) and the loot panel (from x 1340), above the hotbar.
     static ItemInspectorView Inspector(Transform inventory, InventoryStyle style, TMP_FontAsset font, ItemSlotView slotPrefab)
     {
         Transform old = inventory.Find("Inspector");
@@ -131,7 +131,7 @@ public static class InspectorSetup
             Object.DestroyImmediate(old.gameObject);
         RectTransform root = Ui("Inspector", inventory);
         // Under the tooltip, drag icon and message, which follow it.
-        root.SetSiblingIndex(inventory.Find("Quick").GetSiblingIndex() + 1);
+        root.SetSiblingIndex(inventory.Find("Loot").GetSiblingIndex() + 1);
         Place(root, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -40f), new Vector2(720f, 740f));
         var panel = root.gameObject.AddComponent<Image>();
         panel.sprite = style.PanelSprite;

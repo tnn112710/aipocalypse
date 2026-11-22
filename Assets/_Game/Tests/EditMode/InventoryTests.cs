@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.LocalizationSystem;
+using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEditor;
@@ -235,6 +236,32 @@ namespace MB13.Aipocalypse.Tests
             reserve.Infinite = true;
             Assert.AreEqual(100, reserve.Take(_rounds, 100));
             Assert.AreEqual(15, reserve.Count(_rounds), "infinite never runs it down");
+        }
+
+        [Test]
+        public void InventoryScreen_SetsUpQuickSlotsOnTheHudHotbar()
+        {
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/_Core/UI/Prefabs/HUD.prefab");
+            var screen = hud.GetComponentInChildren<InventoryScreen>(true);
+            var hotbar = hud.GetComponentInChildren<HotbarHud>(true);
+            var screenFields = new SerializedObject(screen);
+            var hotbarFields = new SerializedObject(hotbar);
+
+            Assert.AreSame(hotbar, screenFields.FindProperty("_hotbar").objectReferenceValue, "the screen drags in and out of the HUD row");
+            Assert.IsNull(screen.transform.Find("Quick"), "no second row of quick slots");
+            var raycaster = (Behaviour)hotbarFields.FindProperty("_raycaster").objectReferenceValue;
+            Assert.IsNotNull(raycaster);
+            Assert.IsFalse(raycaster.enabled, "the HUD takes no clicks while the screen is closed");
+            Object hitArea = hotbarFields.FindProperty("_hitArea").objectReferenceValue;
+            Assert.IsNotNull(hitArea, "a drop between two tiles would land on the backdrop and throw the item away");
+            Assert.IsFalse(new SerializedObject(hitArea).FindProperty("m_RaycastTarget").boolValue);
+            int screenOrder = screen.GetComponent<Canvas>().sortingOrder;
+            foreach (string follower in new[] { "DragIcon", "Tooltip" })
+            {
+                Canvas canvas = screen.transform.Find(follower).GetComponent<Canvas>();
+                Assert.IsTrue(canvas != null && canvas.overrideSorting && canvas.sortingOrder > screenOrder + 1,
+                    follower + " is drawn above the raised hotbar row");
+            }
         }
     }
 }

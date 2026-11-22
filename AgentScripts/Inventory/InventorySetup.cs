@@ -972,24 +972,8 @@ public static class InventorySetup
         RectTransform lootGrid = Grid("LootGrid", loot, new Vector2(10f, 10f));
         lootGrid.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
 
-        // Bottom: the quick slots (keys 3-9).
-        RectTransform quick = Panel("Quick", node, style);
-        Place(quick, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 140f), new Vector2(760f, 140f));
-        Column(quick, 12, 8);
-        TMP_Text hint = Label("Hint", quick, font, 16f, TextAlignmentOptions.Center);
-        hint.text = "Drag items into slots 3-9 to set up your hotbar";
-        hint.color = style.DimTextColor;
-        Fixed(hint.rectTransform, 22f);
-        RectTransform quickRow = Ui("QuickRow", quick);
-        Fixed(quickRow, 88f);
-        var row = quickRow.gameObject.AddComponent<HorizontalLayoutGroup>();
-        row.spacing = 10f;
-        row.childAlignment = TextAnchor.MiddleCenter;
-        row.childControlWidth = row.childControlHeight = false;
-        row.childForceExpandWidth = row.childForceExpandHeight = false;
-
+        // The quick slots are the HUD hotbar's own row along the bottom (WireHotbarDrops).
         TMP_Text message = Label("Message", node, font, 24f, TextAlignmentOptions.Center);
-        Place(message.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -60f), new Vector2(1000f, 40f));
         message.enabled = false;
 
         ItemTooltipView tooltip = Tooltip(node, style, font);
@@ -1012,7 +996,6 @@ public static class InventorySetup
         Set(so, "_equipmentGrid", equipment);
         Set(so, "_backpackGrid", backpack);
         Set(so, "_lootGrid", lootGrid);
-        Set(so, "_quickRow", quickRow);
         Set(so, "_lootPanel", loot.gameObject);
         Set(so, "_backpackTitle", backpackTitle);
         Set(so, "_lootTitle", lootTitle);
@@ -1025,6 +1008,69 @@ public static class InventorySetup
         Set(so, "_dragIcon", drag);
         Set(so, "_tooltip", tooltip);
         Set(so, "_backdrop", backdrop.gameObject);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        WireHotbarDrops(hud);
+    }
+
+    // On the HUD prefab as it is: the HUD hotbar row is where the quick slots are set up while the inventory is open (the
+    // screen raises it above its backdrop and drags in and out of it). Removes the old Quick panel, puts refusals just above
+    // the row, keeps the drag icon and tooltip above the raised row, and wires the hotbar's raycaster and drop area.
+    public static string HotbarDrops()
+    {
+        GameObject hud = PrefabUtility.LoadPrefabContents(HudPath);
+        try
+        {
+            WireHotbarDrops(hud.transform);
+            PrefabUtility.SaveAsPrefabAsset(hud, HudPath, out bool saved);
+            return saved ? "HUD.prefab: hotbar takes inventory drags, Quick panel removed" : "failed to save " + HudPath;
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(hud);
+        }
+    }
+
+    static void WireHotbarDrops(Transform hud)
+    {
+        Transform inventory = hud.Find("Inventory") ?? throw new Exception("HUD has no Inventory");
+        var hotbar = hud.GetComponentInChildren<HotbarHud>(true) ?? throw new Exception("HUD has no HotbarHud");
+        Transform quick = inventory.Find("Quick");
+        if (quick != null)
+            Object.DestroyImmediate(quick.gameObject);
+
+        // Bottom centre above the hotbar row (122 px slots), clear of a hovered slot's tooltip beside it.
+        var message = (RectTransform)(inventory.Find("Message") ?? throw new Exception("Inventory has no Message"));
+        Place(message, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 270f), new Vector2(1000f, 40f));
+
+        // The open screen draws the hotbar at its own order + 1: these follow the pointer over it, so they go above that.
+        foreach (string name in new[] { "DragIcon", "Tooltip" })
+        {
+            GameObject node = (inventory.Find(name) ?? throw new Exception("Inventory has no " + name)).gameObject;
+            if (!node.TryGetComponent(out Canvas canvas))
+                canvas = node.AddComponent<Canvas>();
+            // Serialized directly: Canvas.overrideSorting ignores the setter on an inactive object (the tooltip).
+            var canvasFields = new SerializedObject(canvas);
+            canvasFields.FindProperty("m_OverrideSorting").boolValue = true;
+            canvasFields.FindProperty("m_SortingOrder").intValue = inventory.GetComponent<Canvas>().sortingOrder + 10;
+            canvasFields.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        GameObject row = hotbar.gameObject;
+        if (!row.TryGetComponent(out GraphicRaycaster raycaster))
+            raycaster = row.AddComponent<GraphicRaycaster>();
+        raycaster.enabled = false;
+        if (!row.TryGetComponent(out Image hitArea))
+            hitArea = row.AddComponent<Image>();
+        hitArea.color = Color.clear;
+        hitArea.raycastTarget = false;
+        hitArea.canvasRenderer.cullTransparentMesh = true;
+
+        var so = new SerializedObject(hotbar);
+        Set(so, "_raycaster", raycaster);
+        Set(so, "_hitArea", hitArea);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        so = new SerializedObject(inventory.GetComponent<InventoryScreen>());
+        Set(so, "_hotbar", hotbar);
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
