@@ -98349,6 +98349,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ad25b51980ce4e43a08d895f1bb4d7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.RobotSystem.RobotFaceGlow
+--- !u!114 &355819889 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 271260805493674186, guid: 0779abae84040884fb34bc2c740fea06, type: 3}
+  m_PrefabInstance: {fileID: 355819885}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff00f45c9055c1f43ab1e14618c47e7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnvironmentSystem.TimeOfDayLight
 --- !u!1001 &356043090
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -378874,6 +378885,8 @@ MonoBehaviour:
   - {fileID: 443037605}
   - {fileID: 443037606}
   - {fileID: 1730420358}
+  - {fileID: 2122370998}
+  - {fileID: 355819889}
   - {fileID: 1884464648}
   - {fileID: 1464587852}
   - {fileID: 355819888}
@@ -598023,12 +598036,12 @@ MonoBehaviour:
           meridiem: 1
     cloudsCirrusMainTexture:
       constantValue:
-        value: {fileID: 0}
+        value: {fileID: 2800000, guid: c3b458ab8eb972f48819c41a1aca6c9c, type: 3}
       overrideValue: 1
       interpolateValue: 0
       interpolatedValue:
       - value:
-          value: {fileID: 0}
+          value: {fileID: 2800000, guid: c3b458ab8eb972f48819c41a1aca6c9c, type: 3}
         time:
           hours: 12
           minutes: 0
@@ -608902,6 +608915,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ad25b51980ce4e43a08d895f1bb4d7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.RobotSystem.RobotFaceGlow
+--- !u!114 &2122370998 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5809961554033362536, guid: d5f235f627110264bbcb3b065f27dfb4, type: 3}
+  m_PrefabInstance: {fileID: 2122370994}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff00f45c9055c1f43ab1e14618c47e7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.EnvironmentSystem.TimeOfDayLight
 --- !u!1001 &2122417347
 PrefabInstance:
   m_ObjectHideFlags: 0

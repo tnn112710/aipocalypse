@@ -512,6 +512,161 @@ public static class RobotPlayCheck
         return sb.ToString().TrimEnd();
     }
 
+    // ---- Pass 3 ----
+
+    // From beside the house, a wall between the player and Pip: aiming near Pip still finds it (prompt, then the whistle).
+    public static async Task<string> HeardThroughWall()
+    {
+        Robot robot = Find("Robot_Upgrades");
+        Vector3 from = Ground(House.TransformPoint(new Vector3(8f, 0f, -0.6f)));
+        PlacePlayer(from, robot.Head.position);
+        await Seconds(0.5f, () => Aim(robot.Head.position));
+        Transform eye = Camera.main.transform;
+        string firstHit = Physics.SphereCast(eye.position, 0.35f, eye.forward, out RaycastHit seen, 50f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+            ? seen.collider.name : "nothing";
+        PlayerWhistle whistle = Player.Whistle;
+        bool prompted = ReferenceEquals(whistle.Target, robot) && whistle.HasPrompt;
+        var target = whistle.Tick(true, Time.time + 100f);
+        bool answered = ReferenceEquals(target, robot) && robot.Call.Active;
+        string got = target is Component c ? c.name : "nobody";
+        robot.Call.End();
+        bool ok = prompted && answered && firstHit != robot.name;
+        return $"{(ok ? "PASS" : "FAIL")} whistle heard through a wall: aim hits {firstHit}, prompt {prompted} (\"{whistle.Prompt.Verb} {whistle.Prompt.Target}\"), " +
+               $"answered by {got}, coming {robot.Call.Active || answered}; {Line(robot)}";
+    }
+
+    // The player walks out of the yard near Bolt: it turns to them and waves goodbye.
+    public static async Task<string> SeeOff()
+    {
+        Robot robot = Find("Robot_Shop");
+        RobotYard yard = Object.FindAnyObjectByType<RobotYard>();
+        Vector3 local = yard.transform.InverseTransformPoint(robot.transform.position);
+        Vector3 inside = Ground(yard.transform.TransformPoint(new Vector3(local.x, 0f, yard.HalfSize.z - 2f)));
+        Vector3 outside = Ground(yard.transform.TransformPoint(new Vector3(local.x, 0f, yard.HalfSize.z + 3f)));
+        Vector3 away = outside + (outside - inside) * 3f;
+        PlacePlayer(inside, away);
+        await Seconds(1f, () => Aim(away));
+        PlacePlayer(outside, away);
+        bool sawOff = false;
+        bool waved = false;
+        await Seconds(2.5f, () =>
+        {
+            Aim(away);
+            sawOff |= robot.State.SeeingOff(Time.time);
+            waved |= StateName(robot.Animator) == "Emote_1";
+        });
+        float facing = Vector3.Angle(robot.transform.forward, Vector3.ProjectOnPlane(Player.transform.position - robot.transform.position, Vector3.up));
+        bool ok = sawOff && waved && facing < 30f;
+        return $"{(ok ? "PASS" : "FAIL")} see off: seeing off {sawOff}, waved {waved}, facing off {facing:0} deg, {Flat(Player.transform.position - robot.transform.position):0.0} m away; {Line(robot)}";
+    }
+
+    // Pip is put 2.5 m from Bolt: both stop, face each other, one waves, the other talks, then they swap (talk, laugh).
+    public static async Task<string> Chat()
+    {
+        StandAway();
+        Robot bolt = Find("Robot_Shop");
+        Robot pip = Find("Robot_Upgrades");
+        Vector3 beside = bolt.transform.position + bolt.transform.right * 2.5f;
+        if (!pip.Mover.TryFindDestination(beside, 1f, 0f, 8, out Vector3 point))
+            return "FAIL no ground beside Bolt";
+        pip.GetComponent<FollowerEntity>().Teleport(point);
+        var seen = new System.Collections.Generic.Dictionary<Robot, System.Collections.Generic.HashSet<string>>
+        {
+            [bolt] = new(),
+            [pip] = new(),
+        };
+        bool chatting = false;
+        await Seconds(4.5f, () =>
+        {
+            chatting |= bolt.State.Chatting(Time.time) && pip.State.Chatting(Time.time);
+            foreach (Robot r in seen.Keys)
+                seen[r].Add(StateName(r.Animator));
+        });
+        float Facing(Robot r, Robot other) => Vector3.Angle(r.transform.forward, Vector3.ProjectOnPlane(other.transform.position - r.transform.position, Vector3.up));
+        string Clips(Robot r) => string.Join(" ", seen[r].Where(n => n.StartsWith("Emote")));
+        bool talked = seen.Values.Any(v => v.Contains("Emote_2")) && seen.Values.Any(v => v.Contains("Emote_1"));
+        bool ok = chatting && talked && Facing(bolt, pip) < 35f && Facing(pip, bolt) < 35f;
+        string result = $"{(ok ? "PASS" : "FAIL")} chat: both chatting {chatting}, leader Bolt {bolt.State.ChatLeads}, clips Bolt [{Clips(bolt)}] Pip [{Clips(pip)}], " +
+                        $"facing off {Facing(bolt, pip):0}/{Facing(pip, bolt):0} deg";
+        // Pip walks home again.
+        await Seconds(1f, null);
+        return result;
+    }
+
+    // Whistled four times in a row: annoyed (a head shake, angry, it stops coming), the next whistle is ignored; a pat
+    // forgives it and it comes again.
+    public static async Task<string> WhistleSpam(string name)
+    {
+        Robot robot = Find(name);
+        Vector3 from = Ground(robot.transform.position + robot.transform.forward * 8f);
+        PlacePlayer(from, robot.Head.position);
+        await Seconds(0.3f, null);
+        bool cameFirst = false;
+        for (int i = 0; i < 4; i++)
+        {
+            robot.TryWhistle(Player.gameObject);
+            cameFirst |= i == 0 && robot.Call.Active;
+            await Seconds(0.7f, null);
+        }
+        bool annoyed = robot.State.Annoyed(Time.time) && !robot.Call.Active;
+        bool shook = false;
+        bool angry = false;
+        await Seconds(1.5f, () =>
+        {
+            shook |= StateName(robot.Animator) == "Emote_6";
+            angry |= robot.Face.Shown == RobotExpression.Angry;
+        });
+        robot.TryWhistle(Player.gameObject);
+        bool ignored = !robot.Call.Active;
+        robot.InteractHold(Player.gameObject);
+        await Seconds(0.5f, null);
+        robot.TryWhistle(Player.gameObject);
+        bool forgiven = robot.Call.Active;
+        robot.Call.End();
+        bool ok = cameFirst && annoyed && shook && angry && ignored && forgiven;
+        return $"{(ok ? "PASS" : "FAIL")} {name} whistle spam: came at first {cameFirst}, annoyed {annoyed}, head shake {shook}, angry {angry}, next ignored {ignored}, comes after a pat {forgiven}";
+    }
+
+    // The night light fades in at night and out by day; bullets on a robot sound like metal.
+    public static async Task<string> NightLight()
+    {
+        var sb = new StringBuilder();
+        var surfaces = Scope.Resolve<MB13.Aipocalypse.Core.SurfaceSystem.SurfaceService>();
+        foreach (Robot r in Robots)
+        {
+            var kind = surfaces.KindOf(r.GetComponent<Collider>(), r.transform.position + Vector3.up);
+            sb.AppendLine($"{(kind == MB13.Aipocalypse.Core.SurfaceSystem.SurfaceKind.Metal ? "PASS" : "FAIL")} {r.name} is {kind} to bullets");
+        }
+        var clock = Scope.Resolve<WorldClock>();
+        clock.JumpTo(23f);
+        await Seconds(3f, null);
+        var director = Scope.Resolve<MB13.Aipocalypse.Core.RaidSystem.RaidDirector>();
+        if (director.IsRunning)
+            director.Stop();
+        foreach (Robot r in Robots)
+        {
+            Light light = r.GetComponentInChildren<Light>(true);
+            bool on = light != null && light.enabled && light.intensity > 0.5f;
+            sb.AppendLine($"{(on ? "PASS" : "FAIL")} {r.name} night light on at 23:00 ({(light != null ? light.intensity.ToString("0.00") : "none")})");
+        }
+        return sb.ToString().TrimEnd();
+    }
+
+    public static async Task<string> DayLight()
+    {
+        Scope.Resolve<WorldClock>().JumpTo(12f);
+        // The sky's daylight eases in, then the light fades over its response time.
+        await Seconds(8f, null);
+        var sb = new StringBuilder();
+        foreach (Robot r in Robots)
+        {
+            Light light = r.GetComponentInChildren<Light>(true);
+            bool off = light != null && !light.enabled;
+            sb.AppendLine($"{(off ? "PASS" : "FAIL")} {r.name} night light off at noon");
+        }
+        return sb.ToString().TrimEnd();
+    }
+
     static string StateName(Animator animator)
     {
         AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);

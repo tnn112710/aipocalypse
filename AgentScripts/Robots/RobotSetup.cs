@@ -39,6 +39,28 @@ public static class RobotSetup
 
     public static string All() => string.Join("\n", RobotLayer(), Data(), Model(), Controller());
 
+    // ---- Shared settings: the whistle carries through walls to robots; robots are metal to bullets ----
+
+    const string InteractionTuningPath = "Assets/_Game/Data/Player/PlayerInteractionTuning.asset";
+    const string SurfaceSettingsPath = "Assets/_Game/Data/Surfaces/SurfaceSettings.asset";
+
+    public static string Shared()
+    {
+        var tuning = Load<MB13.Aipocalypse.Core.PlayerSystem.PlayerInteractionTuning>(InteractionTuningPath);
+        var so = new SerializedObject(tuning);
+        so.FindProperty("_whistleHeardMask").intValue = 1 << LayerMask.NameToLayer(Layer);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        Save(tuning);
+
+        var surfaces = Load<MB13.Aipocalypse.Core.SurfaceSystem.SurfaceSettings>(SurfaceSettingsPath);
+        // First, so no later keyword in a robot's name or its parents' wins.
+        if (!surfaces.Rules.Any(r => r.Keyword == "Robot"))
+            surfaces.Rules.Insert(0, new MB13.Aipocalypse.Core.SurfaceSystem.SurfaceRule { Keyword = "Robot", Kind = MB13.Aipocalypse.Core.SurfaceSystem.SurfaceKind.Metal });
+        Save(surfaces);
+        var metal = surfaces.Look(MB13.Aipocalypse.Core.SurfaceSystem.SurfaceKind.Metal);
+        return $"shared: whistle heard mask {so.FindProperty("_whistleHeardMask").intValue}, surface rule Robot = Metal, metal look {(metal != null ? "set" : "MISSING")}";
+    }
+
     // ---- Layer ----
 
     public static string RobotLayer()
@@ -123,9 +145,50 @@ public static class RobotSetup
 
     // A first-party copy of the vendor robot without its demo scripts, character controller and push collider; the
     // Animator stays on the root with no controller (the entity assigns one), root motion off, animated off screen too.
+    // Less gloss than the vendor's 0.5: the robots looked like wet plastic, worst under lights at night.
+    const float BodySmoothness = 0.3f;
+    const float GlassSmoothness = 0.15f;
+    const string EyesMeshPath = ModelDir + "/Model/Rob15_Eyes_Joined.asset";
+
+    // Our copies of the vendor's glass and face materials: no highlights or reflections on the face (only the emoji glow),
+    // a matte-ish glass.
+    static readonly (string Vendor, string Copy, bool Screen)[] FaceMaterials =
+    {
+        ("Rob15Glass", "Rob15Glass_Matte", false),
+        ("Rob15Emo_eyes", "Rob15Emo_eyes_Screen", true),
+        ("Rob15Emo_mouth", "Rob15Emo_mouth_Screen", true),
+        ("Rob15Emo_speak", "Rob15Emo_speak_Screen", true),
+    };
+
     public static string Model()
     {
         Folder(ModelDir + "/Model");
+        Folder(MaterialsDir);
+        var copies = new Dictionary<Material, Material>();
+        foreach ((string vendor, string copyName, bool screen) in FaceMaterials)
+        {
+            var source = Load<Material>($"{Vendor}Art/Materials/Robots/Rob15/{vendor}.mat");
+            string path = $"{MaterialsDir}/{copyName}.mat";
+            var copy = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (copy == null)
+            {
+                copy = new Material(source);
+                AssetDatabase.CreateAsset(copy, path);
+            }
+            copy.CopyPropertiesFromMaterial(source);
+            copy.SetFloat("_Smoothness", screen ? 0f : GlassSmoothness);
+            copy.SetFloat("_SpecularHighlights", 0f);
+            copy.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+            if (screen)
+            {
+                copy.SetFloat("_EnvironmentReflections", 0f);
+                copy.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+            }
+            Save(copy);
+            copies[source] = copy;
+        }
+        Mesh eyes = JoinedEyes();
+
         GameObject root = PrefabUtility.LoadPrefabContents(VendorPrefab);
         try
         {
@@ -150,6 +213,18 @@ public static class RobotSetup
             int layer = LayerMask.NameToLayer(Layer);
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
                 child.gameObject.layer = layer;
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                for (int i = 0; i < materials.Length; i++)
+                    if (materials[i] != null && copies.TryGetValue(materials[i], out Material copy))
+                        materials[i] = copy;
+                renderer.sharedMaterials = materials;
+                if (renderer.name == "Rob15_Eyes" && renderer is SkinnedMeshRenderer skin)
+                    skin.sharedMesh = eyes;
+                else if (renderer.name == "Rob15_Eyes" && renderer.TryGetComponent(out MeshFilter filter))
+                    filter.sharedMesh = eyes;
+            }
             root.name = "Rob15_Model";
             PrefabUtility.SaveAsPrefabAsset(root, ModelPath, out bool saved);
             if (!saved)
@@ -160,7 +235,6 @@ public static class RobotSetup
             PrefabUtility.UnloadPrefabContents(root);
         }
 
-        Folder(MaterialsDir);
         var body = Load<Material>(VendorBody);
         foreach ((string name, Color tint) in Tints)
         {
@@ -173,9 +247,41 @@ public static class RobotSetup
             }
             material.CopyPropertiesFromMaterial(body);
             material.SetColor("_BaseColor", tint);
+            material.SetFloat("_Smoothness", BodySmoothness);
             Save(material);
         }
-        return "model: " + ModelPath + ", tints " + string.Join(", ", Tints.Select(t => t.Name));
+        return "model: " + ModelPath + ", tints " + string.Join(", ", Tints.Select(t => t.Name)) + ", face " + string.Join(", ", copies.Values.Select(m => m.name)) + ", eyes " + eyes.name;
+    }
+
+    // The vendor's eye screen is two quads with a 2.4 cm gap down the middle (a dark line, emoji cut in two): a copy with
+    // the inner edges moved to the centre, meeting at the same texture column.
+    static Mesh JoinedEyes()
+    {
+        Mesh source = AssetDatabase.LoadAllAssetsAtPath(VendorFbx).OfType<Mesh>().First(m => m.name == "Rob15_Eyes");
+        Mesh joined = Object.Instantiate(source);
+        joined.name = "Rob15_Eyes_Joined";
+        Vector3[] vertices = joined.vertices;
+        Vector2[] uv = joined.uv;
+        var inner = Enumerable.Range(0, vertices.Length).Where(i => Mathf.Abs(vertices[i].x) < 0.05f).ToArray();
+        float middle = inner.Average(i => uv[i].x);
+        foreach (int i in inner)
+        {
+            vertices[i].x = 0f;
+            uv[i].x = middle;
+        }
+        joined.vertices = vertices;
+        joined.uv = uv;
+        joined.RecalculateBounds();
+        var existing = AssetDatabase.LoadAssetAtPath<Mesh>(EyesMeshPath);
+        if (existing == null)
+        {
+            AssetDatabase.CreateAsset(joined, EyesMeshPath);
+            return joined;
+        }
+        EditorUtility.CopySerialized(joined, existing);
+        Object.DestroyImmediate(joined);
+        Save(existing);
+        return existing;
     }
 
     public static string BodyMaterialPath(int tint) => $"{MaterialsDir}/{Tints[tint].Name}.mat";
@@ -418,6 +524,7 @@ public static class RobotSetup
             var glowSo = new SerializedObject(glow);
             glowSo.FindProperty("_source").intValue = (int)MB13.Aipocalypse.Core.EnvironmentSystem.ReactorSource.Darkness;
             glowSo.ApplyModifiedPropertiesWithoutUndo();
+            NightLight(root.transform, modelRoot);
 
             if (!root.TryGetComponent(out RobotGroundLegs _))
                 root.AddComponent<RobotGroundLegs>();
@@ -432,6 +539,59 @@ public static class RobotSetup
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+    }
+
+    // A small spot light that fades in at night (TimeOfDayLight on Darkness), in the screen's colour: from the chest, down
+    // and forward, it lights a patch of ground in front and never the robot (its face and glass would glare).
+    const float NightLightHeight = 0.85f;
+    const float NightLightForward = 0.3f;
+    const float NightLightPitch = 60f;
+    const float NightLightAngle = 100f;
+    const float NightLightRange = 5f;
+    const float NightLightIntensity = 2f;
+
+    static void NightLight(Transform root, Transform model)
+    {
+        Transform child = root.Find("Night Light");
+        if (child == null)
+        {
+            child = new GameObject("Night Light").transform;
+            child.SetParent(root, false);
+        }
+        child.gameObject.layer = root.gameObject.layer;
+        child.localPosition = new Vector3(0f, NightLightHeight, NightLightForward);
+        child.localRotation = Quaternion.Euler(NightLightPitch, 0f, 0f);
+        if (!child.TryGetComponent(out Light light))
+            light = child.gameObject.AddComponent<Light>();
+        light.type = LightType.Spot;
+        light.spotAngle = NightLightAngle;
+        light.innerSpotAngle = NightLightAngle * 0.5f;
+        light.range = NightLightRange;
+        light.intensity = NightLightIntensity;
+        light.shadows = LightShadows.None;
+        light.color = ScreenColour(model);
+        // URP adds this to every light it renders; on the prefab, so scene instances don't each get it as an override.
+        if (!child.TryGetComponent(out UnityEngine.Rendering.Universal.UniversalAdditionalLightData _))
+            child.gameObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalLightData>();
+        if (!child.TryGetComponent(out MB13.Aipocalypse.Core.EnvironmentSystem.TimeOfDayLight fade))
+            fade = child.gameObject.AddComponent<MB13.Aipocalypse.Core.EnvironmentSystem.TimeOfDayLight>();
+        var so = new SerializedObject(fade);
+        so.FindProperty("_source").intValue = (int)MB13.Aipocalypse.Core.EnvironmentSystem.ReactorSource.Darkness;
+        SerializedProperty lights = so.FindProperty("_lights");
+        lights.arraySize = 1;
+        lights.GetArrayElementAtIndex(0).objectReferenceValue = light;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // The eyes' emission colour at full brightness, half mixed with white (a pure green light would dye the yard).
+    static Color ScreenColour(Transform model)
+    {
+        var face = Load<RobotFaceSet>(FacePath);
+        Renderer eyes = model.GetComponentsInChildren<Renderer>(true).FirstOrDefault(r => r.name == face.EyesRenderer);
+        Material material = eyes != null ? eyes.sharedMaterial : null;
+        Color colour = material != null && material.HasProperty("_EmissionColor") ? material.GetColor("_EmissionColor") : Color.white;
+        float max = Mathf.Max(colour.r, colour.g, colour.b);
+        return max > 0.01f ? Color.Lerp(Color.white, new Color(colour.r / max, colour.g / max, colour.b / max), 0.5f) : Color.white;
     }
 
     // A prefab variant of the base: its service, and the vendor body material swapped for its tint on every renderer.

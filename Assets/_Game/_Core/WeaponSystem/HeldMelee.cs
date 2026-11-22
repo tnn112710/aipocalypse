@@ -148,6 +148,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             Vector3 force = direction * (swing.Knockback * power);
             _struck.Clear();
             bool hitSurface = false;
+            bool bleeds = false;
             // Nearest first: up to MaxTargets things that take damage; anything else in the way ends the swing there.
             while (_struck.Count < swing.MaxTargets && TakeNearest(ref count, origin, direction, out RaycastHit hit))
             {
@@ -166,6 +167,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 if (_struck.Contains(target))
                     continue;
                 _struck.Add(target);
+                bleeds |= target is IShowsOwnHits;
                 _damage?.DealHit(hit, new DamageInfo(swing.Damage * power, DamageType.Melee, hit.point, force, _user.Root.gameObject));
                 if (target is not IShowsOwnHits)
                     SpawnImpact(hit);
@@ -173,7 +175,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
             if (_struck.Count == 0 && !hitSurface)
                 return;
-            Play(_struck.Count > 0 ? _definition.Sounds.HitFlesh : _definition.Sounds.HitSurface);
+            // Flesh only on what bleeds (enemies); a robot or a fence sounds like any other surface.
+            Play(bleeds ? _definition.Sounds.HitFlesh : _definition.Sounds.HitSurface);
             _hitKick = new Vector3(swing.HitViewKick * 0.5f, _mirrored ? swing.HitViewKick : -swing.HitViewKick, 0f);
         }
 

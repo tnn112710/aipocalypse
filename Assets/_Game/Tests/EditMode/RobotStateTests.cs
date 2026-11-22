@@ -24,6 +24,13 @@ namespace MB13.Aipocalypse.Tests
             _settings.StepExpiry = 0.5f;
             _settings.NightWake = 12f;
             _settings.CheerTime = 5f;
+            _settings.SpamWhistles = 4;
+            _settings.SpamWindow = 5f;
+            _settings.AnnoyedTime = 8f;
+            _settings.SeeOffTime = 3f;
+            _settings.SeeOffCooldown = 30f;
+            _settings.ChatTime = 4f;
+            _settings.ChatCooldown = 90f;
         }
 
         [TearDown]
@@ -192,11 +199,11 @@ namespace MB13.Aipocalypse.Tests
         {
             var homecoming = new RobotHomecoming();
 
-            Assert.IsFalse(homecoming.Update(true, 0f, 60f), "first sighting");
-            Assert.IsFalse(homecoming.Update(false, 10f, 60f), "left");
-            Assert.IsFalse(homecoming.Update(false, 50f, 60f));
-            Assert.IsTrue(homecoming.Update(true, 70f, 60f), "back after 60 s");
-            Assert.IsFalse(homecoming.Update(true, 71f, 60f), "once");
+            Assert.AreEqual(YardCrossing.None, homecoming.Update(true, 0f, 60f), "first sighting");
+            Assert.AreEqual(YardCrossing.Left, homecoming.Update(false, 10f, 60f));
+            Assert.AreEqual(YardCrossing.None, homecoming.Update(false, 50f, 60f));
+            Assert.AreEqual(YardCrossing.Back, homecoming.Update(true, 70f, 60f), "back after 60 s");
+            Assert.AreEqual(YardCrossing.None, homecoming.Update(true, 71f, 60f), "once");
         }
 
         [Test]
@@ -206,7 +213,7 @@ namespace MB13.Aipocalypse.Tests
             homecoming.Update(true, 0f, 60f);
             homecoming.Update(false, 10f, 60f);
 
-            Assert.IsFalse(homecoming.Update(true, 30f, 60f));
+            Assert.AreEqual(YardCrossing.None, homecoming.Update(true, 30f, 60f));
         }
 
         [Test]
@@ -214,9 +221,88 @@ namespace MB13.Aipocalypse.Tests
         {
             var homecoming = new RobotHomecoming();
 
-            homecoming.Update(false, 0f, 60f);
+            Assert.AreEqual(YardCrossing.None, homecoming.Update(false, 0f, 60f), "first seen outside: not a leaving");
 
-            Assert.IsFalse(homecoming.Update(true, 5f, 60f), "only 5 s outside since it was first seen");
+            Assert.AreEqual(YardCrossing.None, homecoming.Update(true, 5f, 60f), "only 5 s outside since it was first seen");
+        }
+
+        [Test]
+        public void Whistle_SpamAnnoysItThenItIgnoresWhistles()
+        {
+            var state = new RobotState(_settings);
+
+            for (int i = 0; i < 3; i++)
+                Assert.AreEqual(RobotWhistle.Come, state.Whistle(i));
+            Assert.AreEqual(RobotWhistle.Annoyed, state.Whistle(3f), "the 4th within 5 s");
+
+            Assert.IsTrue(state.Sulking(3.1f));
+            Assert.AreEqual(RobotWhistle.Ignored, state.Whistle(4f));
+            Assert.AreEqual(RobotWhistle.Come, state.Whistle(11.1f), "AnnoyedTime later");
+        }
+
+        [Test]
+        public void Whistle_SpreadOutIsNeverSpam()
+        {
+            var state = new RobotState(_settings);
+
+            for (int i = 0; i < 8; i++)
+                Assert.AreEqual(RobotWhistle.Come, state.Whistle(i * 2f));
+        }
+
+        [Test]
+        public void Pat_ForgivesWhistleSpam()
+        {
+            var state = new RobotState(_settings);
+            for (int i = 0; i < 4; i++)
+                state.Whistle(i);
+
+            state.Pat(5f);
+
+            Assert.IsFalse(state.Sulking(5f));
+            Assert.AreEqual(RobotWhistle.Come, state.Whistle(6f));
+        }
+
+        [Test]
+        public void SeeOff_WavesThenWaitsTheCooldown()
+        {
+            var state = new RobotState(_settings);
+            int version = state.SeeOffVersion;
+
+            Assert.IsTrue(state.SeeOff(0f));
+            Assert.AreEqual(version + 1, state.SeeOffVersion);
+            Assert.IsTrue(state.SeeingOff(2.9f));
+            Assert.IsFalse(state.SeeingOff(3.1f));
+            Assert.IsFalse(state.SeeOff(10f), "within the cooldown");
+            Assert.IsTrue(state.SeeOff(30.1f));
+        }
+
+        [Test]
+        public void Chat_LastsChatTimeThenWaitsTheCooldown()
+        {
+            var state = new RobotState(_settings);
+
+            Assert.IsTrue(state.CanChat(0f));
+            state.Chat(Vector3.one, leads: true, 0f);
+
+            Assert.IsTrue(state.Chatting(3.9f));
+            Assert.IsFalse(state.Chatting(4.1f));
+            Assert.AreEqual(Vector3.one, state.ChatWith);
+            Assert.IsTrue(state.ChatLeads);
+            Assert.IsFalse(state.CanChat(50f));
+            Assert.IsTrue(state.CanChat(90.1f));
+        }
+
+        [Test]
+        public void Hit_CutsAChatAndASeeOff()
+        {
+            var state = new RobotState(_settings);
+            state.Chat(Vector3.one, leads: false, 0f);
+            state.SeeOff(0f);
+
+            state.TakeHit(1f, 0);
+
+            Assert.IsFalse(state.Chatting(1.1f));
+            Assert.IsFalse(state.SeeingOff(1.1f));
         }
 
         [Test]

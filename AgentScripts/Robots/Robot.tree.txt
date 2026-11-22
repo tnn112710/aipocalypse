@@ -3,10 +3,12 @@
 # Aware of: the player (RobotRoster: where they are, where they look, whether they hold a gun, whether they come home), the
 # world clock's waking hours (RobotSettings.Awake), raids (RaidStarted / RaidEnded, a barrier broken). Never targeted.
 # Told by the player: E or a look (greet), hold E (pat), the whistle (Robot.Call), walking into it (step), shooting it (a
-# flinch; KnockdownHits in a row knock it over, then it sulks), a gun pointed at its head (nervous).
+# flinch; KnockdownHits in a row knock it over, then it sulks), a gun pointed at its head (nervous), too many whistles
+# (annoyed: it sulks and ignores whistles for a while), walking out of the yard (a wave goodbye).
 # Then: flinch or lie knocked over; step aside; hide from a raid (brave for a moment, then its shelter); answer a call
 # (whistle or welcome home: react, trot to a meeting point inside the yard, wait, shrug, go home); get nervous; greet (wave
-# or talk; a pat: heart eyes; sulking: a head shake); cheer or cry after a raid; welcome the player home (look round,
+# or talk; a pat: heart eyes; sulking: a head shake); cheer or cry after a raid; see the player off (a wave); chat with
+# another free robot close by (wave or talk, then answer); welcome the player home (look round,
 # spot them, come over); at night yawn, walk slowly to its spot and stand by (morning: a hop); work (its job, if any);
 # otherwise idle at its spot and sometimes stroll within its radius (never into a NoGo box) and back.
 # Warns: beeps for each moment (RobotSettings.Sounds, limited by BeepGap / SharedBeepGap), faces on its screen.
@@ -18,7 +20,7 @@
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
 tree Assets/_Game/Content/Robots/_Shared/Robot.asset
 Repeater "Repeat forever"
-  Selector "Flinch, step aside, hide, come, nervous, greet, cheer, welcome, standby, work, else home life"
+  Selector "Flinch, step aside, hide, come, nervous, greet, cheer, see off, chat, welcome, standby, work, else home life"
     Sequence AbortType=Both "Flinch or knocked down (aborts both ways)"
       RobotIsHit "Hit?"
       RobotFlinch "Stand, or lie and get up"
@@ -40,6 +42,12 @@ Repeater "Repeat forever"
     Sequence AbortType=Both "Cheer or cry (aborts both ways)"
       RobotIsCheering "Raid over?"
       RobotCelebrate "Win and dance, or cry"
+    Sequence AbortType=Both "See the player off (aborts both ways)"
+      RobotIsSeeingOff "Player left the yard?"
+      RobotSeeOff "Wave goodbye"
+    Sequence AbortType=Both "Chat (aborts both ways)"
+      RobotIsChatting "Another robot close by?"
+      RobotChat "Wave or talk, then answer"
     Sequence AbortType=LowerPriority "Welcome home (aborts lower)"
       RobotIsWelcoming "Player back?"
       RobotWelcome "Look round, spot, come over"

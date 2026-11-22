@@ -27,6 +27,8 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         static readonly int StandbyParameter = Animator.StringToHash("Standby");
         const float SpeedDamping = 0.15f;
         const float TurnDamping = 0.1f;
+        // A fallback meeting point this much above or below the player is on another floor (the house's is 1 m up).
+        const float MeetHeightSlack = 0.6f;
 
         [SerializeField, FormerlySerializedAs("_service"), Tooltip("Its job: a RobotService (menu) or a RobotJob (work)")] RobotRole _role;
         [SerializeField] RobotFace _face;
@@ -239,6 +241,19 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 Beep(RobotSound.Nervous);
                 return true;
             }
+            switch (State.Whistle(now))
+            {
+                // Whistled at too often: a grumpy head shake, and it stops coming.
+                case RobotWhistle.Annoyed:
+                    Call.End();
+                    Emote(RobotEmote.No);
+                    Hold(RobotExpression.Angry, 2.5f);
+                    Beep(RobotSound.Shrug);
+                    return true;
+                case RobotWhistle.Ignored:
+                    Hold(RobotExpression.Angry, 1.5f);
+                    return true;
+            }
             Vector3 player = actor.transform.position;
             // No way to the player: it waves from here.
             if (!TryPlanMeet(player, out Vector3 point))
@@ -269,6 +284,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             float snap = settings.YardMargin * 0.5f;
             for (int i = 0; i < 3; i++)
                 if (Mover.TryFindDestination(target, snap, 0f, settings.DestinationAttempts, out point) && (yard == null || yard.Contains(point, snap)))
+                    return true;
+            // Nothing walkable there (the player against a wall, whistling through it): anywhere reachable near them, on
+            // their floor (not the house floor behind the wall).
+            float around = settings.ArriveDistance * 2f;
+            for (int i = 0; i < 3; i++)
+                if (Mover.TryFindDestination(player, around, 0f, settings.DestinationAttempts, out point) && (yard == null || yard.Contains(point, snap))
+                    && Mathf.Abs(point.y - player.y) < MeetHeightSlack)
                     return true;
             point = default;
             return false;

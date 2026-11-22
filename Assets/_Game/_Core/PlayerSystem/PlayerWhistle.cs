@@ -5,8 +5,9 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.PlayerSystem
 {
-    // The whistle key: each frame finds the IWhistleTarget the player aims at within WhistleRange (anything else in the way,
-    // a wall, takes the aim) for the "[Q] Call" prompt; a press whistles (always, after a short cooldown) and calls it.
+    // The whistle key: each frame finds the IWhistleTarget the player aims at within WhistleRange for the "[Q] Call" prompt
+    // (a wall in the way takes the aim, except for targets on WhistleHeardMask near the aim: a whistle carries through
+    // walls); a press whistles (always, after a short cooldown) and calls it.
     public sealed class PlayerWhistle
     {
         // Seconds between aim casts for the prompt (a 50 m sphere cast); a press always casts afresh.
@@ -18,6 +19,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly AudioService _audio;
         readonly SoundID _sound;
         readonly RaycastHit[] _hits = new RaycastHit[32];
+        readonly Collider[] _heard = new Collider[16];
         float _readyAt = float.NegativeInfinity;
         float _nextAim = float.NegativeInfinity;
 
@@ -64,11 +66,37 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         IWhistleTarget FindTarget()
         {
-            Ray ray = new(_eye.position, _eye.forward);
-            int count = Physics.SphereCastNonAlloc(ray, _tuning.WhistleRadius, _hits, _tuning.WhistleRange, _tuning.WhistleMask, QueryTriggerInteraction.Ignore);
-            return PhysicsQueries.Nearest(_hits, count, _actor.transform, out RaycastHit nearest)
-                ? nearest.collider.GetComponentInParent<IWhistleTarget>()
-                : null;
+            Vector3 eye = _eye.position;
+            Vector3 aim = _eye.forward;
+            int count = Physics.SphereCastNonAlloc(new Ray(eye, aim), _tuning.WhistleRadius, _hits, _tuning.WhistleRange, _tuning.WhistleMask, QueryTriggerInteraction.Ignore);
+            if (PhysicsQueries.Nearest(_hits, count, _actor.transform, out RaycastHit nearest)
+                && nearest.collider.GetComponentInParent<IWhistleTarget>() is { } aimed)
+                return aimed;
+            return Heard(eye, aim);
+        }
+
+        // Nothing callable under the aim (a wall, a near miss): the heard target nearest the aim, within WhistleHeardAngle.
+        IWhistleTarget Heard(Vector3 eye, Vector3 aim)
+        {
+            if (_tuning.WhistleHeardMask == 0)
+                return null;
+            float range = _tuning.WhistleRange;
+            int count = Physics.OverlapSphereNonAlloc(eye, range, _heard, _tuning.WhistleHeardMask, QueryTriggerInteraction.Ignore);
+            IWhistleTarget best = null;
+            float bestAngle = _tuning.WhistleHeardAngle;
+            for (int i = 0; i < count; i++)
+            {
+                Collider candidate = _heard[i];
+                Vector3 toward = candidate.bounds.center - eye;
+                float angle = Vector3.Angle(aim, toward);
+                if (angle > bestAngle || toward.sqrMagnitude > range * range || candidate.transform.IsChildOf(_actor.transform))
+                    continue;
+                if (candidate.GetComponentInParent<IWhistleTarget>() is not { } target)
+                    continue;
+                best = target;
+                bestAngle = angle;
+            }
+            return best;
         }
     }
 }

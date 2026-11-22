@@ -12,9 +12,10 @@ using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.RobotSystem
 {
-    // Runs the robots on scaled time: night, raids (hide, then cheer or cry) and the player's comings and goings go to the
-    // roster and their states; a look greets, walking into one asks it to step aside, a gun at its head makes it nervous.
-    // Animates bodies and faces, thinks each Manual tree every ThinkInterval, turns heads after the Animators, limits beeps.
+    // Runs the robots on scaled time: night, raids (hide, then cheer or cry) and the player's comings and goings (a wave
+    // goodbye, a welcome home) go to the roster and their states; a look greets, walking into one asks it to step aside, a
+    // gun at its head makes it nervous, two free robots close together chat. Animates bodies and faces, thinks each Manual
+    // tree every ThinkInterval, turns heads after the Animators, limits beeps.
     public sealed class RobotManager : ITickable, ILateTickable, IDisposable
     {
         readonly RobotRoster _roster;
@@ -83,12 +84,25 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             for (int i = 0; i < _roster.Robots.Count; i++)
             {
                 Robot robot = _roster.Robots[i];
-                if (robot.Asleep || robot.Call.Active || robot.State.Hit(now)
-                    || FlatDistance(robot.transform.position, _roster.PlayerPosition) > _settings.WelcomeRadius)
-                    continue;
-                robot.State.Welcome();
+                if (Answers(robot, now, _settings.WelcomeRadius))
+                    robot.State.Welcome();
             }
         }
+
+        // The player walked out of the yard: every awake robot near them that isn't busy waves goodbye.
+        public void SeeOff()
+        {
+            float now = Time.time;
+            for (int i = 0; i < _roster.Robots.Count; i++)
+            {
+                Robot robot = _roster.Robots[i];
+                if (Answers(robot, now, _settings.SeeOffRadius))
+                    robot.State.SeeOff(now);
+            }
+        }
+
+        bool Answers(Robot robot, float now, float radius) => !robot.Asleep && !robot.Call.Active && !robot.State.Hit(now)
+            && FlatDistance(robot.transform.position, _roster.PlayerPosition) <= radius;
 
         public void Tick() => Advance(Time.deltaTime);
 
@@ -114,9 +128,11 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 focus = player.Interactor?.Focus;
                 holdsGun = player.HeldItem is HeldGun;
                 RobotYard yard = _roster.Yard;
-                if (yard != null && _homecoming.Update(yard.Contains(_roster.PlayerPosition), now, _settings.WelcomeAway)
-                    && !_roster.Night && !_roster.Raid)
+                YardCrossing crossing = yard != null ? _homecoming.Update(yard.Contains(_roster.PlayerPosition), now, _settings.WelcomeAway) : YardCrossing.None;
+                if (crossing == YardCrossing.Back && !_roster.Night && !_roster.Raid)
                     WelcomeHome();
+                else if (crossing == YardCrossing.Left && !_roster.Raid)
+                    SeeOff();
             }
             else
                 _homecoming.Forget();
@@ -136,8 +152,46 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                     robot.Think();
                 }
             }
+            StartChats(now);
             _lastFocus = focus;
         }
+
+        // Two free robots close together start a chat (each pair checked; there are only a few robots at home).
+        void StartChats(float now)
+        {
+            if (_roster.Raid)
+                return;
+            float reach = _settings.ChatRadius * _settings.ChatRadius;
+            for (int i = 0; i < _roster.Robots.Count; i++)
+            {
+                Robot a = _roster.Robots[i];
+                if (!FreeToChat(a, now))
+                    continue;
+                for (int j = i + 1; j < _roster.Robots.Count; j++)
+                {
+                    Robot b = _roster.Robots[j];
+                    Vector3 between = b.transform.position - a.transform.position;
+                    between.y = 0f;
+                    if (between.sqrMagnitude > reach || !FreeToChat(b, now))
+                        continue;
+                    a.State.Chat(HeadOf(b), leads: true, now);
+                    b.State.Chat(HeadOf(a), leads: false, now);
+                    break;
+                }
+            }
+        }
+
+        // Awake and doing nothing it was asked to: not called, hit, greeted, nervous, cheering, welcoming, seeing the player
+        // off, working or already chatting.
+        static bool FreeToChat(Robot robot, float now)
+        {
+            RobotState state = robot.State;
+            return state.CanChat(now) && !robot.Asleep && !robot.Call.Active && !state.Hit(now) && !state.Greeting(now)
+                && !state.Nervous(now) && !state.Cheering(now) && !state.WelcomePending && !state.SeeingOff(now)
+                && !state.Chatting(now) && !state.StepRequested(now) && (robot.Work == null || !robot.Work.WantsToWork(now));
+        }
+
+        static Vector3 HeadOf(Robot robot) => robot.Head != null ? robot.Head.position : robot.transform.position + Vector3.up * 1.1f;
 
         void React(Robot robot, float now, Vector3 eyes, Vector3 aim, bool holdsGun, bool lookedAt)
         {
@@ -162,8 +216,15 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 && Vector3.Angle(aim, head - eyes) <= _settings.NervousAngle)
                 state.MakeNervous(now);
 
-            robot.HasLookTarget = distance <= _settings.NoticeRadius || state.Greeting(now) || robot.Call.Active || state.Nervous(now);
+            robot.HasLookTarget = distance <= _settings.NoticeRadius || state.Greeting(now) || robot.Call.Active || state.Nervous(now)
+                || state.SeeingOff(now);
             robot.LookTarget = eyes;
+            // Chatting, it looks at the other robot unless the player greets it.
+            if (state.Chatting(now) && !state.Greeting(now))
+            {
+                robot.HasLookTarget = true;
+                robot.LookTarget = state.ChatWith;
+            }
         }
 
         public void LateTick()

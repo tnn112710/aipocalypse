@@ -58,6 +58,9 @@ MonoBehaviour:
   CallWait: 20
   LeaveDistance: 8
   YardMargin: 1.2
+  SpamWhistles: 4
+  SpamWindow: 5
+  AnnoyedTime: 8
   BumpRadius: 0.9
   StepAside: 1.5
   StepExpiry: 0.5
@@ -80,6 +83,12 @@ MonoBehaviour:
   WelcomeAway: 60
   WelcomeRadius: 45
   WelcomeLookTime: 1.8
+  SeeOffRadius: 25
+  SeeOffTime: 3
+  SeeOffCooldown: 60
+  ChatRadius: 3.5
+  ChatTime: 4
+  ChatCooldown: 90
   BlinkInterval: {x: 2.5, y: 6}
   BlinkTime: 0.15
   MoodInterval: {x: 6, y: 14}

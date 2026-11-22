@@ -61,6 +61,29 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Whistle_HeardThroughAWallOnItsLayerNearTheAim()
+        {
+            using var scene = new WhistleScene();
+            WhistleTargetStub target = scene.Target(30f, new Vector3(1.5f, 0f, 0f));
+            target.gameObject.layer = HeardLayer;
+            scene.Hear(1 << HeardLayer, 10f);
+            scene.Wall(10f);
+
+            Assert.AreSame(target, scene.Whistle.Tick(true, 0f), "3 degrees off the aim, behind a wall");
+        }
+
+        [Test]
+        public void Whistle_HeardOnlyNearTheAim()
+        {
+            using var scene = new WhistleScene();
+            WhistleTargetStub target = scene.Target(10f, new Vector3(10f, 0f, 0f));
+            target.gameObject.layer = HeardLayer;
+            scene.Hear(1 << HeardLayer, 10f);
+
+            Assert.IsNull(scene.Whistle.Tick(true, 0f), "45 degrees off the aim");
+        }
+
+        [Test]
         public void Whistle_RespectsCooldown()
         {
             using var scene = new WhistleScene();
@@ -541,6 +564,9 @@ namespace MB13.Aipocalypse.Tests
             }
         }
 
+        // A layer no wall in these tests is on (the robots' in the game).
+        const int HeardLayer = 13;
+
         // An eye at the origin looking along +Z, the whistler's body around it, and whatever a test places in front.
         sealed class WhistleScene : System.IDisposable
         {
@@ -559,13 +585,21 @@ namespace MB13.Aipocalypse.Tests
                 _made.Add(_tuning);
             }
 
-            public WhistleTargetStub Target(float distance)
+            public WhistleTargetStub Target(float distance, Vector3 offset = default)
             {
                 GameObject target = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 _made.Add(target);
-                target.transform.position = new Vector3(0f, 0f, distance);
+                target.transform.position = new Vector3(0f, 0f, distance) + offset;
                 Physics.SyncTransforms();
                 return target.AddComponent<WhistleTargetStub>();
+            }
+
+            public void Hear(int layers, float angle)
+            {
+                var tuning = new UnityEditor.SerializedObject(_tuning);
+                tuning.FindProperty("_whistleHeardMask").intValue = layers;
+                tuning.FindProperty("_whistleHeardAngle").floatValue = angle;
+                tuning.ApplyModifiedPropertiesWithoutUndo();
             }
 
             public void Wall(float distance)

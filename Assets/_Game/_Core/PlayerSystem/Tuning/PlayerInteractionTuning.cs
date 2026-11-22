@@ -46,6 +46,10 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         LayerMask _whistleMask = Physics.DefaultRaycastLayers;
         [SerializeField, Min(0f), Tooltip("Seconds before the next whistle")]
         float _whistleCooldown = 0.6f;
+        [SerializeField, Tooltip("Layers whose whistle targets hear it through walls when the aim is near them (the robots)")]
+        LayerMask _whistleHeardMask;
+        [SerializeField, Range(0f, 30f), Tooltip("How near the aim a target heard through walls must be (degrees)")]
+        float _whistleHeardAngle = 8f;
 
         public float InteractRange => _interactRange;
         public float InteractRadius => _interactRadius;
@@ -67,5 +71,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float WhistleRadius => _whistleRadius;
         public LayerMask WhistleMask => _whistleMask;
         public float WhistleCooldown => _whistleCooldown;
+        public LayerMask WhistleHeardMask => _whistleHeardMask;
+        public float WhistleHeardAngle => _whistleHeardAngle;
     }
 }

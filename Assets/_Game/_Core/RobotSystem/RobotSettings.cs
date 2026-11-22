@@ -53,6 +53,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         [Min(0f), Tooltip("Seconds it waits by the player before going home")] public float CallWait = 20f;
         [Min(1f), Tooltip("Goes home early when the player walks this far from where they whistled (m)")] public float LeaveDistance = 8f;
         [Min(0f), Tooltip("Whistled from outside the yard, it stops this far inside the fence (m)")] public float YardMargin = 1.2f;
+        [Min(2), Tooltip("This many whistles at one robot within SpamWindow annoy it")] public int SpamWhistles = 4;
+        [Min(0.5f), Tooltip("Seconds those whistles must come within")] public float SpamWindow = 5f;
+        [Min(0f), Tooltip("Seconds an annoyed robot sulks and ignores whistles (a pat forgives it)")] public float AnnoyedTime = 8f;
 
         [Header("Reactions")]
         [Min(0f), Tooltip("It steps aside from the player this close (m)")] public float BumpRadius = 0.9f;
@@ -85,6 +88,16 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         [Min(0f), Tooltip("The player must be out of the yard this long (s) to be welcomed back")] public float WelcomeAway = 60f;
         [Min(0f), Tooltip("Robots this close to the player come over (m)")] public float WelcomeRadius = 45f;
         [Min(0f), Tooltip("Seconds it looks round before it spots the player")] public float WelcomeLookTime = 1.8f;
+
+        [Header("Seeing off")]
+        [Min(0f), Tooltip("Robots this close to the player wave when they leave the yard (m)")] public float SeeOffRadius = 25f;
+        [Min(0.5f), Tooltip("Seconds it faces the player and waves")] public float SeeOffTime = 3f;
+        [Min(0f), Tooltip("Seconds before it sees the player off again (walking in and out of the gate)")] public float SeeOffCooldown = 60f;
+
+        [Header("Chat")]
+        [Min(0f), Tooltip("Two free robots this close chat (m)")] public float ChatRadius = 3.5f;
+        [Min(1f), Tooltip("Seconds a chat lasts (a wave and talk, then the other talks back)")] public float ChatTime = 4f;
+        [Min(0f), Tooltip("Seconds before a robot chats again")] public float ChatCooldown = 90f;
 
         [Header("Face")]
         [Tooltip("Seconds between blinks (min, max)")] public Vector2 BlinkInterval = new(2.5f, 6f);

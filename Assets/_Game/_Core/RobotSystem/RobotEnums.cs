@@ -72,4 +72,20 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         Whistle,
         Welcome,
     }
+
+    // What a whistle gets: it comes, it gets annoyed (too many whistles too fast), or it ignores it (still annoyed).
+    public enum RobotWhistle
+    {
+        Come,
+        Annoyed,
+        Ignored,
+    }
+
+    // The player crossing the yard's edge: out, or back in after long enough away.
+    public enum YardCrossing
+    {
+        None,
+        Left,
+        Back,
+    }
 }

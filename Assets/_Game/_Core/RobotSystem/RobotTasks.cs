@@ -489,6 +489,108 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         public override void OnEnd() => _robot.ClearMood();
     }
 
+    // ---- See the player off ----
+
+    [Category("Aipocalypse/Robots")]
+    public sealed class RobotIsSeeingOff : ConditionalNode
+    {
+        Robot _robot;
+
+        public override void OnAwake() => _robot = GetComponent<Robot>();
+        public override TaskStatus OnUpdate() => _robot.State.SeeingOff(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+    }
+
+    // The player walked out of the yard: it stops, turns to them and waves goodbye, happy for a moment, then a little sad.
+    [Category("Aipocalypse/Robots")]
+    public sealed class RobotSeeOff : ActionNode
+    {
+        Robot _robot;
+
+        public override void OnAwake() => _robot = GetComponent<Robot>();
+
+        public override void OnStart()
+        {
+            _robot.Mover.Halt();
+            _robot.Emote(RobotEmote.Hello);
+            _robot.SetMood(RobotExpression.Sad);
+            _robot.Hold(RobotExpression.Happy, 1.5f);
+            _robot.Beep(RobotSound.Greet);
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            if (!_robot.State.SeeingOff(Time.time))
+                return TaskStatus.Success;
+            _robot.Mover.Face(_robot.Roster.PlayerPosition);
+            return TaskStatus.Running;
+        }
+
+        public override void OnEnd() => _robot.ClearMood();
+    }
+
+    // ---- Chat with another robot ----
+
+    [Category("Aipocalypse/Robots")]
+    public sealed class RobotIsChatting : ConditionalNode
+    {
+        Robot _robot;
+
+        public override void OnAwake() => _robot = GetComponent<Robot>();
+        public override TaskStatus OnUpdate() => _robot.State.Chatting(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+    }
+
+    // Another robot close by: it stops and faces them. The one that starts waves, then talks; the other talks first, then
+    // laughs.
+    [Category("Aipocalypse/Robots")]
+    public sealed class RobotChat : ActionNode
+    {
+        Robot _robot;
+        bool _answered;
+
+        public override void OnAwake() => _robot = GetComponent<Robot>();
+
+        public override void OnStart()
+        {
+            _robot.Mover.Halt();
+            _robot.Mover.Face(_robot.State.ChatWith);
+            _robot.SetMood(RobotExpression.Happy);
+            _answered = false;
+            if (_robot.State.ChatLeads)
+                _robot.Emote(RobotEmote.Hello);
+            else
+                Talk();
+            _robot.Beep(RobotSound.Chirp);
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            RobotState state = _robot.State;
+            float now = Time.time;
+            if (!state.Chatting(now))
+                return TaskStatus.Success;
+            if (!_answered && now >= state.ChatStartedAt + _robot.Settings.ChatTime * 0.5f)
+            {
+                _answered = true;
+                if (state.ChatLeads)
+                    Talk();
+                else
+                {
+                    _robot.Emote(RobotEmote.Laugh);
+                    _robot.Hold(RobotExpression.Happy, 2f);
+                }
+            }
+            return TaskStatus.Running;
+        }
+
+        void Talk()
+        {
+            _robot.Emote(RobotEmote.Talk);
+            _robot.Hold(RobotExpression.Talk, _robot.Settings.ChatTime * 0.5f);
+        }
+
+        public override void OnEnd() => _robot.ClearMood();
+    }
+
     // ---- Welcome home ----
 
     [Category("Aipocalypse/Robots")]
@@ -631,7 +733,8 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         public override void OnAwake() => _robot = GetComponent<Robot>();
         public override void OnStart() => _robot.Work.Begin(Time.time);
         public override TaskStatus OnUpdate() => _robot.Work.Tick(Time.time) ? TaskStatus.Running : TaskStatus.Success;
-        public override void OnEnd() => _robot.Work.End(Time.time);
+        // Stopping the tree (a scene unload) ends every task, even on a robot with no job.
+        public override void OnEnd() => _robot?.Work?.End(Time.time);
     }
 
     // ---- Home life ----

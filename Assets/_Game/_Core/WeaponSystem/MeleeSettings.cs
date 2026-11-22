@@ -41,7 +41,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         [Range(0f, 1f), Tooltip("Scales every sound of this weapon")] public float Volume = 1f;
         [Tooltip("When it starts being raised")] public SoundID Equip;
         public SoundID Swing;
-        [Tooltip("Hit something that takes damage")] public SoundID HitFlesh;
+        [Tooltip("Hit something that bleeds (an enemy)")] public SoundID HitFlesh;
         [Tooltip("Hit anything else")] public SoundID HitSurface;
     }
 }
