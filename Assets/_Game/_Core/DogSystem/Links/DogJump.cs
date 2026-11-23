@@ -63,14 +63,23 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
             float rise = end.y - from.y;
             float obstacle = info != null ? info.ObstacleHeight : 0f;
-            JumpKind kind = DogJumpArc.Pick(rise, obstacle);
+            DogSettings settings = _dog != null ? _dog.Settings : null;
+            JumpKind kind = DogJumpArc.Pick(rise, obstacle, settings != null ? settings.LeapHeight : 3f);
             Vector3 a = from, b = end;
             float peak = DogJumpArc.Peak(kind, a, b, obstacle);
             float duration = DogJumpArc.Duration(kind, Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z)));
             quaternion toward = Facing(context, from, end, up);
+            // A leap: it stands squared up a moment first (the clip's own crouch is part of the move).
+            float pause = kind == JumpKind.Leap && settings != null ? settings.LeapPause : 0f;
+            for (float t = 0f; t < pause; t += context.deltaTime)
+            {
+                context.transform.Position = from;
+                context.transform.Rotation = Turn(context, toward);
+                yield return null;
+            }
             if (_dog != null)
-                _dog.PlayJump(DogJumpArc.AnimatorKind(kind, rise));
-            for (float t = 0f; t < WindUp; t += context.deltaTime)
+                _dog.PlayJump(DogJumpArc.AnimatorKind(kind, rise, _dog.ModelScale));
+            for (float t = 0f; t < (kind == JumpKind.Leap ? 0f : WindUp); t += context.deltaTime)
             {
                 context.transform.Position = from;
                 context.transform.Rotation = Turn(context, toward);

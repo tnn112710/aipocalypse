@@ -227,6 +227,80 @@ public static class DogPlayCheck
         return $"{Pass(ok)} gap: {sb}{Line(dog)}";
     }
 
+    // The body rig (DogBody), its brain held: the head turns toward the player standing off to its side; paws held planted
+    // through a sit-down don't move (the clip alone slides them about 12 / 16 / 54 / 36 cm at 2×, front L / R, hind L / R:
+    // the hind ones step over instead); set panting, the jaw opens. Ends standing, panting, the player in front of its face (for a shot).
+    public static async Task<string> Body()
+    {
+        Dog dog = Dog;
+        var body = dog.GetComponentInChildren<DogBody>();
+        Transform[] bones = dog.GetComponentsInChildren<Transform>();
+        Transform Bone(string name) => bones.First(b => b.name == name);
+        Transform head = Bone("Head"), jaw = Bone("Jaw");
+        Transform[] paws = { Bone("L Finger0"), Bone("R Finger0"), Bone("L Toe0"), Bone("R Toe0") };
+        dog.NextThinkAt = float.MaxValue;
+        dog.Legs.Halt();
+        dog.SetPose(DogPose.Stand);
+        for (int i = 0; i < 40 && !dog.Standing; i++)
+            await Seconds(0.25f, null);
+        Vector3 at = Yard(-10f, 2f);
+        dog.Legs.Warp(at);
+        dog.transform.rotation = Quaternion.LookRotation(YardRight);
+        // The player 5 m off its left front, then its right front: the head's yaw against the body's differs between them.
+        float HeadYaw() => Vector3.SignedAngle(Vector3.ProjectOnPlane(dog.transform.forward, Vector3.up), Vector3.ProjectOnPlane(head.up, Vector3.up), Vector3.up);
+        PlacePlayer(Ground(at + Quaternion.AngleAxis(-55f, Vector3.up) * YardRight * 5f), at);
+        await Seconds(2f, null);
+        float left = HeadYaw();
+        PlacePlayer(Ground(at + Quaternion.AngleAxis(55f, Vector3.up) * YardRight * 5f), at);
+        await Seconds(2f, null);
+        float right = HeadYaw();
+        bool looks = right - left > 30f;
+
+        var slide = new float[paws.Length];
+        var last = paws.Select(p => p.position).ToArray();
+        // Slide: a paw moving while held planted (a step lifts it over on purpose and is counted apart).
+        FieldInfo plantField = typeof(DogBody).GetField("_plant", Private);
+        var steps = new int[paws.Length];
+        var wasStepping = new bool[paws.Length];
+        dog.SetPose(DogPose.Sit);
+        await Seconds(3f, () =>
+        {
+            var plant = (Array)plantField.GetValue(body);
+            for (int i = 0; i < paws.Length; i++)
+            {
+                Vector3 p = paws[i].position;
+                string state = plant.GetValue(i).ToString();
+                if (state == "Held")
+                    slide[i] += Flat(p - last[i]);
+                bool stepping = state == "Stepping";
+                if (stepping && !wasStepping[i])
+                    steps[i]++;
+                wasStepping[i] = stepping;
+                last[i] = p;
+            }
+        });
+        bool planted = slide.All(s => s < 0.05f);
+        dog.SetPose(DogPose.Stand);
+        for (int i = 0; i < 40 && !dog.Standing; i++)
+            await Seconds(0.25f, null);
+        await Seconds(0.5f, null);
+
+        var pant = (DogPant)typeof(DogBody).GetField("_pant", Private).GetValue(body);
+        FieldInfo until = typeof(DogPant).GetField("_until", Private);
+        until.SetValue(pant, float.NegativeInfinity);
+        await Seconds(1.5f, null);
+        Quaternion rest = jaw.localRotation;
+        until.SetValue(pant, Time.time + 20f);
+        float open = 0f;
+        await Seconds(2.5f, () => open = Mathf.Max(open, Quaternion.Angle(rest, jaw.localRotation)));
+        bool pants = open > 8f;
+        Vector3 face = Ground(dog.transform.position + dog.transform.forward * 2.6f);
+        PlacePlayer(face, head.position);
+        dog.NextThinkAt = 0f;
+        return $"{Pass(looks && planted && pants)} body: head yaw {left:0}° with the player left, {right:0}° right; sit-down: held paws slid " +
+               string.Join(" / ", slide.Select(s => (s * 100f).ToString("0.0"))) + " cm, steps " + string.Join(" / ", steps) + $"; jaw opens {open:0}° panting; {Line(dog)}";
+    }
+
     // The player goes into the house: the dog follows through the door (the robots' link) and back out.
     public static async Task<string> Indoors()
     {

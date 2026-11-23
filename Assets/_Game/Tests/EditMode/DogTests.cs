@@ -1,3 +1,4 @@
+using System.Linq;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.DogSystem;
 using NUnit.Framework;
@@ -65,11 +66,88 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void JumpArc_PicksByRiseAndObstacle()
         {
-            Assert.That(DogJumpArc.Pick(0f, 2f), Is.EqualTo(JumpKind.Scramble), "a 2 m fence, both sides level");
-            Assert.That(DogJumpArc.Pick(1f, 0f), Is.EqualTo(JumpKind.ClimbUp));
-            Assert.That(DogJumpArc.Pick(-1.2f, 0f), Is.EqualTo(JumpKind.DropDown));
-            Assert.That(DogJumpArc.Pick(0.3f, 0f), Is.EqualTo(JumpKind.Hop));
-            Assert.That(DogJumpArc.Pick(0.3f, 0.5f), Is.EqualTo(JumpKind.Hop), "a low log is hopped");
+            Assert.That(DogJumpArc.Pick(0f, 2f, 3f), Is.EqualTo(JumpKind.Leap), "a 2 m fence: leapt over");
+            Assert.That(DogJumpArc.Pick(0f, 3f, 3f), Is.EqualTo(JumpKind.Leap), "up to the leap height");
+            Assert.That(DogJumpArc.Pick(0f, 3.5f, 3f), Is.EqualTo(JumpKind.Scramble), "a taller wall: climbed");
+            Assert.That(DogJumpArc.Pick(1.5f, 0f, 3f), Is.EqualTo(JumpKind.Leap), "up onto a block");
+            Assert.That(DogJumpArc.Pick(3.5f, 0f, 3f), Is.EqualTo(JumpKind.ClimbUp));
+            Assert.That(DogJumpArc.Pick(-1.2f, 0f, 3f), Is.EqualTo(JumpKind.DropDown));
+            Assert.That(DogJumpArc.Pick(0.3f, 0f, 3f), Is.EqualTo(JumpKind.Hop));
+            Assert.That(DogJumpArc.Pick(0.3f, 0.5f, 3f), Is.EqualTo(JumpKind.Hop), "a low log is hopped");
+        }
+
+        [Test]
+        public void JumpArc_LeapWaitsForTakeOffThenClearsAndLands()
+        {
+            var start = new UnityEngine.Vector3(0f, 1f, 0f);
+            const float fence = 2f;
+            foreach (var end in new[] { new UnityEngine.Vector3(0f, 1f, 4f), new UnityEngine.Vector3(0f, 3.5f, 4f) })
+            {
+                float peak = DogJumpArc.Peak(JumpKind.Leap, start, end, end.y > start.y ? 0f : fence);
+                float takeOff = DogJumpArc.LeapTakeOff / DogJumpArc.Duration(JumpKind.Leap, 4f);
+                Assert.That(DogJumpArc.Position(JumpKind.Leap, start, end, peak, takeOff * 0.9f), Is.EqualTo(start), "still crouching");
+                float overMiddle = float.MinValue;
+                for (float t = 0f; t <= 1f; t += 0.005f)
+                {
+                    UnityEngine.Vector3 p = DogJumpArc.Position(JumpKind.Leap, start, end, peak, t);
+                    if (UnityEngine.Mathf.Abs(p.z - 2f) < 0.05f)
+                        overMiddle = UnityEngine.Mathf.Max(overMiddle, p.y);
+                }
+                float top = end.y > start.y ? end.y : start.y + fence;
+                Assert.That(overMiddle, Is.GreaterThan(top), "above the fence or the block edge at the middle");
+                Assert.That(DogJumpArc.Position(JumpKind.Leap, start, end, peak, 1f), Is.EqualTo(end), "lands on the far side or on top");
+            }
+        }
+
+        [Test]
+        public void JumpArc_LedgeClipIsPickedForTheModelSize()
+        {
+            Assert.That(DogJumpArc.AnimatorKind(JumpKind.ClimbUp, 1f), Is.EqualTo(3), "1×: the 1.0 m ledge clip");
+            Assert.That(DogJumpArc.AnimatorKind(JumpKind.ClimbUp, 1f, 2f), Is.EqualTo(2), "2×: a 1 m step is the 0.5 m clip");
+            Assert.That(DogJumpArc.AnimatorKind(JumpKind.ClimbUp, 4f, 2f), Is.EqualTo(5));
+        }
+
+        // The leap's body path follows its clip: takeoff and touchdown where the vendor take leaves and meets the ground
+        // (its Root height), and JumpKind 7 starts it.
+        [Test]
+        public void Controller_LeapClipMatchesTheBodyPath()
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>("Assets/_Game/Content/Dogs/BorderCollie/BorderCollie.controller");
+            var leap = controller.layers[0].stateMachine.states.Select(s => s.state).First(s => s.name == "Leap");
+            Assert.That(controller.layers[0].stateMachine.anyStateTransitions.Any(t => t.destinationState == leap
+                && t.conditions.Any(c => c.parameter == "JumpKind" && c.threshold == 7f)));
+            var vendor = AssetDatabase.LoadAllAssetsAtPath("Assets/_StoreAssets/Characters/Malbers Animations/Animals Packs/04 Pets/Dog (Border Collie)/Animations/Jump/Dog_Jump_Walk.fbx")
+                .OfType<UnityEngine.AnimationClip>().First(c => c.name == "Dog_Jump_Walk");
+            var y = AnimationUtility.GetEditorCurve(vendor, EditorCurveBinding.FloatCurve("Root", typeof(UnityEngine.Transform), "m_LocalPosition.y"));
+            float off = -1f, down = -1f;
+            for (float t = 0f; t <= vendor.length; t += 0.005f)
+            {
+                if (off < 0f && y.Evaluate(t) > 0.02f)
+                    off = t;
+                if (off >= 0f && down < 0f && y.Evaluate(t) < 0.02f)
+                    down = t;
+            }
+            Assert.That(((UnityEngine.AnimationClip)leap.motion).length, Is.EqualTo(vendor.length).Within(0.01f));
+            Assert.That(DogJumpArc.LeapTakeOff, Is.EqualTo(off / leap.speed).Within(0.05f), "takeoff");
+            Assert.That(DogJumpArc.LeapTakeOff + DogJumpArc.LeapFlight, Is.EqualTo(down / leap.speed).Within(0.05f), "touchdown");
+        }
+
+        // The fence scramble's clips, as the controller plays them, take the time the body's path over the fence does.
+        [Test]
+        public void Controller_ScrambleClipsMatchTheBodyPath()
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>("Assets/_Game/Content/Dogs/BorderCollie/BorderCollie.controller");
+            var states = controller.layers[0].stateMachine.states.Select(s => s.state).ToDictionary(s => s.name);
+            float Played(string name)
+            {
+                var state = states[name];
+                var exit = state.transitions.First(t => t.hasExitTime);
+                return ((UnityEngine.AnimationClip)state.motion).length * exit.exitTime / state.speed;
+            }
+            float up = Played("ScrambleGrab") + Played("ScrambleClimb");
+            Assert.That(up, Is.EqualTo(DogJumpArc.ScrambleUpTime).Within(0.1f), "grab + climb");
+            Assert.That(Played("FromEdge"), Is.EqualTo(DogJumpArc.ScrambleDownTime).Within(0.1f), "drop off the far side");
+            Assert.That(states["ScrambleClimb"].transitions.Any(t => t.destinationState == states["FromEdge"]));
         }
 
         // Crossings along a fence on z = 0 (the dog at z = -3, the player at z = +10): near end, far end, whether it stands.

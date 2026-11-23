@@ -351,6 +351,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _animator.SetBool(SwimParameter, swimming);
         }
 
+        // The model's size against the clips' (DogSetup.ModelScale).
+        public float ModelScale => _model != null ? _model.localScale.y : 1f;
+
         public void PlayJump(int animatorKind)
         {
             if (_animator == null)

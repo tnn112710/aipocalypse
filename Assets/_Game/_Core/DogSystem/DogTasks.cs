@@ -1163,8 +1163,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
     }
 
-    // Cut off by the shut fence: trots to the best crossing (the shortest way to the player over it), scrambles over by
-    // hand (the body on the arc, the agent waiting) and lands on the far side's navmesh.
+    // Cut off by the shut fence: trots to the best crossing (the shortest way to the player over it), stands squared up a
+    // moment, then leaps over (a fence up to LeapHeight; taller: scrambles over) by hand (the body on the arc, the agent
+    // waiting) and lands on the far side's navmesh.
     [Category("Aipocalypse/Dogs")]
     public sealed class DogScramble : ActionNode
     {
@@ -1172,8 +1173,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         Dog _dog;
         DogLinkInfo _crossing;
+        JumpKind _kind;
         Vector3 _from, _to;
         float _startedAt;
+        float _readyAt;
         float _nextGo;
         bool _over;
 
@@ -1183,6 +1186,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             _over = false;
             _nextGo = 0f;
+            _readyAt = -1f;
             DogRoster roster = _dog.Roster;
             Vector3 at = _dog.transform.position;
             _crossing = roster.ScrambleCrossing(at, roster.PlayerPosition, _dog.Manager.HasPathToPlayer);
@@ -1191,6 +1195,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             bool inside = roster.InYard(at);
             _from = inside ? _crossing.Inside : _crossing.Outside;
             _to = inside ? _crossing.Outside : _crossing.Inside;
+            _kind = DogJumpArc.Pick(_to.y - _from.y, _crossing.ObstacleHeight, roster.Settings.LeapHeight);
         }
 
         public override TaskStatus OnUpdate()
@@ -1221,22 +1226,26 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     return TaskStatus.Running;
                 }
                 _dog.Legs.Halt();
+                // Sizing it up: a moment squared up before a leap.
+                if (_readyAt < 0f)
+                    _readyAt = now + (_kind == JumpKind.Leap ? _dog.Roster.Settings.LeapPause : 0f);
+                if (now < _readyAt)
+                    return TaskStatus.Running;
                 _over = true;
                 _dog.Scrambling = true;
                 _startedAt = now;
-                _dog.PlayJump(DogJumpArc.AnimatorKind(JumpKind.Scramble, 0f));
+                _dog.PlayJump(DogJumpArc.AnimatorKind(_kind, _to.y - _from.y, _dog.ModelScale));
             }
             Vector3 start = _dog.transform.position;
-            float obstacle = 2f;
-            float peak = DogJumpArc.Peak(JumpKind.Scramble, start, _to, obstacle);
-            float duration = DogJumpArc.Duration(JumpKind.Scramble, DogWalk.Flat(_to - start));
+            float peak = DogJumpArc.Peak(_kind, start, _to, _crossing.ObstacleHeight);
+            float duration = DogJumpArc.Duration(_kind, DogWalk.Flat(_to - start));
             float k = (now - _startedAt) / duration;
             Vector3 across = _to - start;
             across.y = 0f;
             Quaternion facing = across.sqrMagnitude > 0.001f ? Quaternion.LookRotation(across) : _dog.transform.rotation;
             if (k < 1f)
             {
-                _dog.SetBody(DogJumpArc.Position(JumpKind.Scramble, start, _to, peak, k) - start, facing);
+                _dog.SetBody(DogJumpArc.Position(_kind, start, _to, peak, k) - start, facing);
                 return TaskStatus.Running;
             }
             _dog.Legs.Warp(_to);

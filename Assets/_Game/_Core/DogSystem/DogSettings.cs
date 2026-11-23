@@ -104,6 +104,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("...for this long (s, time to go through a gap nearby first): it scrambles over")] public float ScrambleAfter = 2.5f;
         [Min(0f), Tooltip("A gap (fallen or unbuilt segment, open gate) at most this much longer way round (m) is walked through instead")]
         public float GapDetour = 10f;
+        [Min(0f), Tooltip("A fence, wall or surface up to this high (m) is leapt over or onto; taller is climbed")] public float LeapHeight = 3f;
+        [Min(0f), Tooltip("Seconds it stands squared up to what it's about to leap before the jump")] public float LeapPause = 0.4f;
 
         [Header("The farm")]
         [Min(0f), Tooltip("Herding: it stands this far behind an animal (from home) and barks it on (m)")] public float HerdBehind = 3f;
@@ -140,7 +142,20 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("Push a bite gives (N·s, for the hit reaction side)")] public float BitePush = 2f;
         [Range(0f, 1f), Tooltip("Player health below this: it whines and keeps close")] public float PlayerHurtBelow = 0.3f;
 
+        [Header("Body (DogBody)")]
+        [Tooltip("Paws on the ground stay planted while it stands still (sitting, lying, getting up)")] public bool PlantPaws = true;
+        [Min(0f), Tooltip("It turns its head to a foe, or to the player while calm, within this (m)")] public float HeadLookRange = 10f;
+        [Min(0f), Tooltip("...the player only while slower than this (m/s)")] public float LookCalmSpeed = 2.5f;
+        [Range(0f, 180f), Tooltip("Nothing further round than this from its facing (deg)")] public float LookMaxAngle = 100f;
+        [Range(0f, 1f), Tooltip("How far the head turns toward what it looks at (1: all the way, within the neck's limits)")] public float LookWeight = 0.85f;
+        [Min(0f), Tooltip("Running at this (m/s) or faster...")] public float PantRunSpeed = 5f;
+        [Min(0f), Tooltip("...for this long (s) sets it panting...")] public float PantAfter = 4f;
+        [Min(0f), Tooltip("...for this long (s) after the run")] public float PantFor = 12f;
+        [Range(0f, 40f), Tooltip("Jaw open while panting (deg)")] public float PantJaw = 14f;
+        [Min(0f), Tooltip("Breaths per second while panting")] public float PantRate = 3f;
+
         [Header("HUD")]
+        [Tooltip("Show its toughness bar on the HUD (hidden by request, 2026-11-24)")] public bool ShowBar;
         [Min(0f), Tooltip("The toughness bar shows while it follows within this (m) or fights")] public float HudRange = 40f;
         [Range(0f, 1f), Tooltip("Warning colour below this share of toughness")] public float HudWarnBelow = 0.3f;
 

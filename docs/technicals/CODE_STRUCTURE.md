@@ -146,7 +146,9 @@ Assets/_Game/
 │  │  ├─ DogState.cs                        plain C#: welcome home (player away and back), order (sad after Stay), call, whistle spam, pet, head tilt, settle pose; stance, toughness, Hit → DogHit, down / help up / limp, regen, retreat, takedown rolls, bite cooldown (DogStateTests, DogCombatTests)
 │  │  ├─ DogFollow.cs                       plain C#: FollowInput → FollowPlan (comfort zone, reaction delay, the sprint reaction, scout, side, aim cone, catch up, separated, a gait ramp up one gait at a time) (DogFollowTests)
 │  │  ├─ DogVoice.cs                        plain C#: the noise budget (DogStateTests)
-│  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
+│  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick (hop, leap up to LeapHeight, scramble, climb, drop), body path timed to the clips, duration (DogTests)
+│  │  ├─ DogBody.cs                         on the model, LateUpdate: paws planted while still (own two-bone solve), the head turned (Look rig target), panting (jaw, tongue, sound)
+│  │  ├─ DogLook.cs                         plain C#: DogLook (what it turns its head to), DogPant (panting after a run) (DogBodyTests)
 │  │  ├─ DogStats.cs                        DogStat enum, DogStatBlock SO (Data/Dogs/DogStatBlock: base values), IDogUpgradeSource, DogStatSheet (base + upgrades, class index) (DogCombatTests)
 │  │  ├─ DogTurn.cs                         plain C#: a big turn to face something is a walked arc (WantsArc, Landing, KeepsNear: DogTurnTests); a quick turn on the spot plays a slow walk (DogStateTests)
 │  │  ├─ DogWetness.cs                      plain C#: rain soaks it; out of it after a soaking, one shake (DogStateTests)
@@ -158,7 +160,7 @@ Assets/_Game/
 │  │  ├─ DogSettings.cs, DogEnums.cs        tuning SO (Data/Dogs/DogSettings); DogOrder, DogStance, DogGait, DogPose, DogAct, DogSound, DogWhistle
 │  │  ├─ DogSaveSection.cs                  save "dog": order, position, facing, in yard, stay point
 │  │  ├─ DogCommands.cs                     console: dog.come, dog.order follow|stay, dog.where
-│  │  └─ Links/DogJump.cs                   own asmdef MB13.Aipocalypse.DogLinks: the dog's IOffMeshLinkHandler (hop, scramble, climb up, drop down)
+│  │  └─ Links/DogJump.cs                   own asmdef MB13.Aipocalypse.DogLinks: the dog's IOffMeshLinkHandler (hop, leap after a pause, scramble, climb up, drop down)
 │  ├─ DefenseSystem/                         MB13.Aipocalypse.Core.DefenseSystem — fences and gates, DEFENSE.md
 │  │  ├─ DefenseInstaller.cs                SceneInstaller: BarrierRegistry, DefenseSaveSection, RepairHighlight (when it has a RepairHighlightStyle) (+ DefenseCommands in dev builds); injects the scene's BarrierSegments (collected on save / Play)
 │  │  ├─ DefenseSaveSection.cs            SaveSection "defense": each segment / gate by its SaveId: health, broken, gate open (upgrade tiers not saved)
@@ -503,7 +505,7 @@ Assets/_Game/
 │  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
 │  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point (+ TimeCommands in dev builds)
 │  ├─ UI/                                   MB13.Aipocalypse.Core.UI — rules and how-tos in UI.md
-│  │  ├─ Hud/DogHud.cs                      the dog's toughness StatBar (paw icon): shown while following within HudRange, fighting or down; warning below HudWarnBelow
+│  │  ├─ Hud/DogHud.cs                      the dog's toughness StatBar (paw icon), only with DogSettings.ShowBar: shown while following within HudRange, fighting or down; warning below HudWarnBelow
 │  │  ├─ Wheel/                             the command wheel: CommandWheelPresenter (ITickable: TryOpen / Pick / Close, time 0.3, UI input, closes on PlayerDied / RaidStarted), CommandWheel (view), WheelSlice, WheelMath, CommandWheelStyle (Data/UI)
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail, optional shape mask
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar; ShapeSprite clips the bar to an outline through the Bar's Mask
@@ -793,7 +795,8 @@ Assets/_Game/
    ├─ BulletSystemTests.cs                  bullets stop at range / at a wall and skip the shooter; capped EffectPool recycles the oldest; a recycled tracer follows only its new bullet; a hole sticks to the moving target it hit; a round between tracers still hits; tracer gap stays within TracerEvery; a magazine's last rounds are traced; far tracer width scale, less when zoomed
    ├─ StatModifierTests.cs                  StatModifiers: add then multiply across sources, Set replaces, Remove by source, Changed, Restore; PlayerEffects buffs stack on top
    ├─ AnimalTests.cs                        AnimalEarnings (day rate, cap, whole-Token collection, waking hours across nights and past midnight), HerdOrders (release, bell, version), the coin arc, animal prefab wiring (six prefabs, flee > hurry > walk), the HUD's [C] collect line
-   ├─ DogTests.cs                           Loki prefab (no Malbers, no root motion), settings sounds, friendly fire applies nothing, DogJumpArc
+   ├─ DogTests.cs                           Loki prefab (no Malbers, no root motion), settings sounds, friendly fire applies nothing, DogJumpArc (pick, leap, ledge clip by scale), the controller's leap and scramble timing against the body path, fence crossings (gaps walked through)
+   ├─ DogBodyTests.cs                       DogLook (fight target, foe, calm player, behind), DogPant (after a run, short dashes, rest)
    ├─ DogStateTests.cs                      DogState (whistle spam, pet, head tilt, settle, call, sad stay, save round trip), DogVoice
    ├─ DogFollowTests.cs                     DogFollow (zone, reaction delay, sprint, catch up, scout, turning, alongside, aim cone, side swap, keep up, separated)
    ├─ DogCombatTests.cs                     DogStats (every stat has a base, upgrades add, class clamp), toughness / down / help up / limp / retreat, DogState.Hit, takedown chance / class / cooldown, DogCombat target choice, openings, home defence

@@ -6,7 +6,8 @@ using VContainer;
 namespace MB13.Aipocalypse.Core.UI
 {
     // The companion dog's toughness bar with its icon: shown while it follows within HudRange or fights, faded out
-    // otherwise; the warning colour below HudWarnBelow; a dimmed icon while it's down. Scenes without a dog: hidden.
+    // otherwise; the warning colour below HudWarnBelow; a dimmed icon while it's down. Hidden unless DogSettings.ShowBar,
+    // and in scenes without a dog.
     public sealed class DogHud : MonoBehaviour
     {
         const float FadeSpeed = 4f;
@@ -42,7 +43,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             Dog dog = _roster?.Dog;
             bool show = false;
-            if (dog != null && dog.Active && _manager != null && _roster.Enabled)
+            if (dog != null && dog.Active && _manager != null && _roster.Enabled && _roster.Settings.ShowBar)
             {
                 DogSettings settings = _roster.Settings;
                 float distance = _roster.HasPlayer ? Vector3.Distance(dog.transform.position, _roster.PlayerPosition) : float.MaxValue;

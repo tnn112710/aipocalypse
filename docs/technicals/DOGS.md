@@ -25,12 +25,17 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Stopping and setting off:** the agent eases over 0.9 s (`slowdownTime`), and the legs follow the real speed, so it takes a slower step or two instead of braking. Following, it speeds up a gait at a time (trot, canter, sprint), `GaitRamp` 0.4 s each; slowing down is immediate (`DogFollow.Ramp`).
    - **Standing about** for `IdleActAfter` 8 s (nothing going on: no fight, raid, call, pet or welcome), every `IdleActGap` 10–20 s it does one of `IdleActs` (by weight: a look round, a look left or right, an ear scratch, a yawn) (`DogManager.IdleActs`).
    - **Ears and tail** lag the body a little: an Animation Rigging `DampedTransform` per ear tip and tail bone on the model's Animator (`DogSetup.Jiggle`, a RigBuilder on the model prefab: one unique character, so it's allowed).
-   - **Turning while moving:** 200°/s, at most 260°/s, the drawn rotation smoothed over 0.2 s: a big dog turns in arcs. Link jumps and the fence scramble turn it at 360°/s at most, and it squares up to the fence before the leap (`DogScramble`).
+   - **Body** (`DogBody` on the model, `LateUpdate` after the Animator; built by `DogSetup.Body`):
+     - **Planted paws:** while it stands still (sitting, lying, getting up, `PlantPaws`), a paw that touches down stays where and how it landed (a two-bone solve per leg: upper arm / forearm / hand, calf / hock / foot); one the pose pulls 10 cm away (at 1×) steps over to the clip's spot. The clips alone slide them 12 / 16 / 54 / 36 cm through a sit-down (at 2×); planted, under 1 cm (`DogPlayCheck.Body`). The legs are solved in code, not in the RigBuilder: a rig attached to the Animator has already run by `LateUpdate`, so the paws couldn't be read as animated.
+     - **Head turn:** the neck and head (`Look` rig: Multi-Aim on `Neck2` 0.4 and `Head` 0.75, ±60°) turn toward its fight target, else the nearest foe, else the player's head while it's calm (slower than `LookCalmSpeed` 2.5 m/s), within `HeadLookRange` 10 m and `LookMaxAngle` 100° of its facing (`DogLook`); not mid-act, asleep, down or over the fence. `LookWeight` 0.85.
+     - **Panting:** after running at `PantRunSpeed` 5 m/s or more for `PantAfter` 4 s (short dashes don't add up), it pants for `PantFor` 12 s: the jaw opens `PantJaw` 14° at `PantRate` 3 breaths/s, the tongue droops, and the pant sound plays every 3.5 s (`DogPant`). Not while swimming or down. The pack has no panting clip.
+   - **Turning while moving:** 200°/s, at most 260°/s, the drawn rotation smoothed over 0.2 s: a big dog turns in arcs. Link jumps and the fence crossing turn it at 360°/s at most, and it squares up to the fence before the leap (`DogScramble`).
 4. **Jumping:**
-   - **The fence:** cut off from a player within 25 m by the fence, it scrambles over by a crossing point: at once with no walkable way round, else after 2.5 s.
+   - **Leaping** (user, 2026-11-24): a fence, wall or surface from 0.6 m up to `LeapHeight` 3 m is leapt over or onto (`JumpKind.Leap`): it stands squared up `LeapPause` 0.4 s, then a standing jump (`Dog_Jump_Walk`: a crouch, 0.38 s, then 0.89 s in the air) lands it on the far side or on top. The body follows the clip's own timing (`DogJumpArc.LeapTakeOff` / `LeapFlight`, checked against the clip by `DogTests`). Taller walls are scrambled over (paws up, climb, drop: `ScrambleGrab` / `ScrambleClimb` / `FromEdge`, timed the same way) and taller steps climbed (the ledge clip by height over the model's scale); a drop past 0.6 m falls from the edge; below 0.6 m it hops. `DogPreview.Jumps` renders each as the game plays it.
+   - **The fence:** cut off from a player within 25 m by the fence, it crosses by a crossing point (the 2 m fence: leapt): at once with no walkable way round, else after 2.5 s.
      - Only where the fence stands: each crossing knows its segment, and a fallen or not-yet-built segment or an open gate is a gap, never climbed. With a walkable way round, a gap at most `GapDetour` (10 m) longer than the way over is walked through instead of scrambling (`DogRoster.ScrambleCrossing`); a segment that falls while the dog trots to it ends the scramble.
      - The crossing points are the 53 `DogLinkInfo` markers in `Home Dog/Fence Links`, one per segment and the gate, each linked to its `BarrierSegment`.
-     - The scramble is scripted (`DogScramble`): the model on the arc, paws up the 2 m fence, climb, drop off the far side; then the agent is placed on the far side.
+     - The crossing is scripted (`DogScramble`, named for the scramble it was first): the model on the leap's arc; then the agent is placed on the far side.
      - There are no NodeLink2s: a link would join the shut yard's navmesh island to the outside for every agent, so raiders would stop breaking in.
    - **The house door:** it uses the robots' door link, walking to the sill and hopping the 1 m step.
    - Anywhere else it can't reach, it catches up by appearing near the player out of sight (a spot the player can walk to, retried every 0.5 s).
@@ -87,8 +92,9 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Retreat:** below 25% (or limping) in a fight, it backs off behind the player, whimpering.
 9. **The player hurt:** below 30% health, it keeps close and whines now and then.
 10. **The wheel's stance slice** shows Active or Passive and switches it.
-11. **HUD:** `SafeFrame/BottomLeft/DogBar`, a `StatBar` with the paw icon (`Data/UI/DogToughness.asset`).
-    - It shows while it follows within 40 m, fights or is down.
+11. **HUD:** `SafeFrame/BottomLeft/DogBar`, a `StatBar` with the paw icon (`Data/UI/DogToughness.asset`). Hidden (user, 2026-11-24): `DogSettings.ShowBar` off.
+    - With `ShowBar` on, it shows while it follows within 40 m, fights or is down.
+    - **Minimap:** a small teal paw (`Data/Map/Dog.asset`, a `MapMarker` on the dog prefab, set up by `DogSetup.Prefabs`) while it's within the minimap's range; not pinned to the rim, where it would sit on the home icon while it stays at home.
     - Warning colour below 30%.
 12. **Saved:** stance, toughness, down, and limp time left.
 
@@ -165,7 +171,7 @@ Also:
 - **Clips:** the collie's clips move their Root bone (the whole body) as root motion. Played as they are, the Animator drops that and puts the body wherever its default lands (it was 2 cm forward and 7 cm sideways of standing at Loki's size), so `DogSetup` writes a copy of every clip to `Content/Dogs/BorderCollie/Animations` with the body placed on one spot over the agent: `Standing`, the vendor's standing Root offset (z 0.237; sitting down starts there, standing up ends there, the acts stand there). Loops lose their forward drift and are centred on it, their bob kept; one-shots are held on it (jumps and ledges: the code moves the body); a clip that doesn't move the Root is pinned on it (`PlaceRoot`). The pose chain (sit, lie, sleep and their transitions) and the knockdown (fall, get up) keep the Root as authored (`keepRoot`): sitting puts the body back over planted paws and the knockdown shifts it sideways, each clip starting where the last ended, from and back to `Standing`. Before, locomotion clips sat up to 5 cm off standing, a hop's landing 4.8 m forward and the climb-up 43 cm back, and sitting slid the paws forward. The bite used both ways has two copies (`Dog_Attack_Bite_Pin` for the loop).
   - **Size:** the vendor imports the clips uncompressed (a key per bone and frame), so the copies are thinned (`DogSetup.Reduce`): a key goes when the curve from its neighbours' own values and slopes stays within 0.0015 (quaternion component) / 1 mm of the original, checked at every key and halfway between. The folder is 169 MB (1.1 GB unthinned; Look Around 194 MB → 5 MB); every bone but Root stays within 0.34° and 1.5 mm of the vendor clips. Most of what's left is the editor-only float and Euler copies Unity writes into every text `.anim`.
 - **Clip check:** `AgentScripts/Dogs/DogClipCheck.cs` (editor, no Play): `Roots` lists where every state's clip puts the body and flags `OFF` any non-pose clip off `Standing` or played straight from the vendor; `Accuracy` samples every copy against its vendor clip (every bone but Root; 2026-11-24: within 0.34° and 1.5 mm); `Paws` measures paw slide through the sit / lie transitions with the Root kept against held.
-- **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides) to a path outside Assets.
+- **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides, `Jumps`: every jump as played, the real controller stepped beside a box of the obstacle) to a path outside Assets.
 - **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, WhistleAtDogNearEnemy, BackOff, Down, Warn, WarnInterrupted (spawn goblins with `enemy.spawn`, the player invulnerable); the farm: Herd, RobotGreet, RobotGreetBusy, SheepChase, RaidHome active / passive, RaidNight; polish: TurnInPlace, RainShake, WelcomeHome, Bedtime, SpuriousEnd (each guarded task's `OnEnd` called without a start changes nothing), NightHowl, HerdAfterLoad.
   - Probe traps: Follow takes 20 m (12 m ends under the house floor: `Ground()` keeps terrain hits only); Swim needs a radius of about 350 m to find a wadeable stream; WarnInterrupted needs 30 s since the last warning (WarnGap); SheepChase needs the herd out; Herd needs 90 s when the animals are far out; a real raid at 21:00 kills an idle player (a dead one isn't looked at or followed): probes that need the player start at 10:00 with enemies cleared; Follow, HeadTilt and Takedown wait for it to get up (a still player has a dog dozing off within seconds); RainShake holds the weather with the console's `weather.set` (the weather rules replace a plain `WeatherService.Set`).
   - All passed on 2026-11-23 (Phases 1–3, then the polish and fix passes). NightHouse stops a raid if one starts at 23:00.
@@ -192,14 +198,19 @@ Updating or reimporting the pack (or changing its import settings) needs the dog
    frame). `Reduce` thins the copies; `DogClipCheck.Accuracy` should stay within about 0.35° and 1.5 mm. A pack that
    imports compressed or sparse curves is fine: `Reduce` keeps their slopes and checks between keys. Check the folder
    size (169 MB on 2026-11-24); a 100 MB+ file means `Reduce` didn't run.
-4. **Bone names:** `Root` (the motion node), `Ear01/02 L/R`, `Tail01`–`Tail06` (`DogSetup.Jiggle`: it throws on a
-   missing bone), `L/R Finger0`, `L/R Toe0` (`DogClipCheck.Paws`).
-5. **Clip names and loops:** the states name vendor files and takes (`Source`); a renamed take throws "no clip". Two
+4. **Bone names:** `Root` (the motion node), `Ear01/02 L/R`, `Tail01`–`Tail06` (`DogSetup.Jiggle`), the legs
+   `L/R UpperArm`, `Forearm`, `Hand`, `Finger0` and `L/R Calf`, `HorseLink`, `Foot`, `Toe0`, `Neck2`, `Head`, `Jaw`,
+   `Tongue`–`Tongue03` (`DogSetup.Body`; both throw on a missing bone). The head's forward is local +Y on this rig
+   (`Body` picks the aim axes from the bind pose).
+5. **Jump timing:** the leap's takeoff and touchdown (`DogJumpArc.LeapTakeOff` / `LeapFlight`) and the scramble's
+   (`ScrambleUpTime` / `ScrambleDownTime`) are read off the clips; `DogTests.Controller_LeapClipMatchesTheBodyPath` and
+   `Controller_ScrambleClipsMatchTheBodyPath` fail when a new pack moves them. Check `DogPreview.Jumps` by eye.
+6. **Clip names and loops:** the states name vendor files and takes (`Source`); a renamed take throws "no clip". Two
    states using the same take one looping and one not need their own `copyName` (the bite: Attack 0 and `Pin`).
-6. **Speeds:** the Move thresholds come from each locomotion clip's Root drift (`Controller` logs them: walk 0.96,
+7. **Speeds:** the Move thresholds come from each locomotion clip's Root drift (`Controller` logs them: walk 0.96,
    trot 2.30, canter 5.95, run 7.50, sprint 9.82). If they change, retune `DogSettings` speeds.
-7. **Play check:** Follow, Whistle, Pet, TurnInPlace, Scramble, Gap, WelcomeHome (`DogPlayCheck`), and a look at the sit,
-   the roll, a hop and a ledge climb in game.
+8. **Play check:** Follow, Whistle, Pet, TurnInPlace, Scramble, Gap, Body, WelcomeHome (`DogPlayCheck`), and a look at the
+   sit, the roll and a leap in game.
 
 ## Known gaps
 

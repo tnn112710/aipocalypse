@@ -2,13 +2,14 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.DogSystem
 {
-    // The animator's JumpKind is this, then (ClimbUp only) the ledge height: 2–5 = 0.5 / 1.0 / 1.5 / 2.0 m; 6 = drop.
+    // The animator's JumpKind: 0 hop, 1 scramble, 2–5 climb (by ledge height: 0.5 / 1.0 / 1.5 / 2.0 m at 1×), 6 drop, 7 leap.
     public enum JumpKind
     {
         Hop,
         Scramble,
         ClimbUp,
         DropDown,
+        Leap,
     }
 
     // How the dog crosses an off-mesh link: which move (by the rise and anything in the way) and the path its body takes.
@@ -19,13 +20,27 @@ namespace MB13.Aipocalypse.Core.DogSystem
         const float ObstacleClearance = 0.1f;
         const float HopArc = 0.35f;
         const float LedgeArc = 0.15f;
-        // The scramble's share of its time spent getting on top of the obstacle (the rest is the drop off the far side).
-        const float ScrambleUp = 0.55f;
+        // The scramble's clips (BorderCollie.controller: ScrambleGrab, ScrambleClimb at ScrambleClipSpeed, then FromEdge) take
+        // ScrambleUpTime to get on top and ScrambleDownTime to drop off the far side; the body follows the same timing.
+        public const float ScrambleClipSpeed = 1.2f;
+        public const float ScrambleUpTime = 1.7f;
+        public const float ScrambleDownTime = 0.67f;
+        const float ScrambleUp = ScrambleUpTime / (ScrambleUpTime + ScrambleDownTime);
         const float ClimbShare = 0.65f;
+        // The leap (BorderCollie.controller's Leap, Dog_Jump_Walk): it crouches LeapTakeOff s, is in the air LeapFlight s,
+        // then takes LeapRecover s to absorb the landing before moving on; the body follows the same timing (DogTests).
+        public const float LeapTakeOff = 0.38f;
+        public const float LeapFlight = 0.89f;
+        const float LeapRecover = 0.3f;
+        const float LeapClearance = 0.25f;
 
-        // `rise`: the end's height above the start; `obstacle`: the top of what's in between, above the start.
-        public static JumpKind Pick(float rise, float obstacle)
+        // `rise`: the end's height above the start; `obstacle`: the top of what's in between, above the start. Anything
+        // from HopLimit up to `maxLeap` high (a fence, a wall, a block to land on) is leapt; taller is climbed.
+        public static JumpKind Pick(float rise, float obstacle, float maxLeap)
         {
+            float height = Mathf.Max(rise, obstacle);
+            if (height > HopLimit && height <= maxLeap)
+                return JumpKind.Leap;
             if (obstacle > HopLimit && Mathf.Abs(rise) <= HopLimit)
                 return JumpKind.Scramble;
             if (rise > HopLimit)
@@ -38,14 +53,16 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             JumpKind.Scramble => start.y + obstacle + ObstacleClearance,
             JumpKind.ClimbUp => end.y + LedgeArc,
+            JumpKind.Leap => Mathf.Max(start.y, end.y, start.y + obstacle) + LeapClearance,
             _ => Mathf.Max(start.y, end.y, start.y + obstacle) + HopArc,
         };
 
         // Seconds the move takes over `distance` metres (flat).
         public static float Duration(JumpKind kind, float distance) => kind switch
         {
-            JumpKind.Scramble => 2.4f,
+            JumpKind.Scramble => ScrambleUpTime + ScrambleDownTime,
             JumpKind.ClimbUp => 1.6f,
+            JumpKind.Leap => LeapTakeOff + LeapFlight + LeapRecover,
             JumpKind.DropDown => 0.75f + distance * 0.05f,
             _ => 0.55f + distance * 0.05f,
         };
@@ -92,24 +109,34 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     on.y = Mathf.Lerp(peak, end.y, k2);
                     return on;
                 }
-                // A parabola over the straight line, peaking at `peak` halfway.
-                default:
+                // Crouched at the start until takeoff, the parabola through the air, then the landing absorbed at the end.
+                case JumpKind.Leap:
                 {
-                    Vector3 flat = Vector3.Lerp(start, end, t);
-                    float line = Mathf.Lerp(start.y, end.y, t);
-                    float lift = 4f * (peak - Mathf.Lerp(start.y, end.y, 0.5f)) * t * (1f - t);
-                    flat.y = line + lift;
-                    return flat;
+                    float k = (t * Duration(JumpKind.Leap, 0f) - LeapTakeOff) / LeapFlight;
+                    return k <= 0f ? start : k >= 1f ? end : Arc(start, end, peak, k);
                 }
+                default:
+                    return Arc(start, end, peak, t);
             }
         }
 
-        // The animator's JumpKind number for a move (ClimbUp picks the ledge clip nearest the rise).
-        public static int AnimatorKind(JumpKind kind, float rise) => kind switch
+        // A parabola over the straight line, peaking at `peak` halfway.
+        static Vector3 Arc(Vector3 start, Vector3 end, float peak, float t)
+        {
+            Vector3 flat = Vector3.Lerp(start, end, t);
+            float line = Mathf.Lerp(start.y, end.y, t);
+            flat.y = line + 4f * (peak - Mathf.Lerp(start.y, end.y, 0.5f)) * t * (1f - t);
+            return flat;
+        }
+
+        // The animator's JumpKind number for a move (ClimbUp picks the ledge clip nearest the rise; the clips are named for
+        // the model at 1×, so a dog scaled `scale` divides the rise by it first).
+        public static int AnimatorKind(JumpKind kind, float rise, float scale = 1f) => kind switch
         {
             JumpKind.Hop => 0,
             JumpKind.Scramble => 1,
-            JumpKind.ClimbUp => 2 + Mathf.Clamp(Mathf.RoundToInt(rise / 0.5f) - 1, 0, 3),
+            JumpKind.ClimbUp => 2 + Mathf.Clamp(Mathf.RoundToInt(rise / Mathf.Max(scale, 0.01f) / 0.5f) - 1, 0, 3),
+            JumpKind.Leap => 7,
             _ => 6,
         };
     }

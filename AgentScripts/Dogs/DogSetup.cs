@@ -142,7 +142,7 @@ public static class DogSetup
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
                 child.gameObject.layer = layer;
             root.name = "BorderCollie_Model";
-            Jiggle(root);
+            Body(root);
             PrefabUtility.SaveAsPrefabAsset(root, ModelPath, out bool saved);
             return saved ? "model: " + ModelPath : "model FAILED";
         }
@@ -193,20 +193,105 @@ public static class DogSetup
         return (copy, speed);
     }
 
-    // Secondary motion on the model's Animator: each ear tip and tail bone follows the bone above it with a lag (the
-    // constraints run in hierarchy order, root to tip). A unique character, so a RigBuilder is fine (animation-rigging skill).
-    static void Jiggle(GameObject model)
+    // The model's body: DogBody (paws planted by its own two-bone solve, panting, and where to look) and a RigBuilder with
+    // Look (neck and head aimed at DogBody's target) then Jiggle (ear and tail lag). A unique character, so a RigBuilder is
+    // fine (animation-rigging skill).
+    static void Body(GameObject model)
     {
-        Transform old = model.transform.Find("Jiggle");
-        if (old != null)
-            Object.DestroyImmediate(old.gameObject);
+        foreach (string name in new[] { "Look", "Jiggle" })
+        {
+            Transform old = model.transform.Find(name);
+            if (old != null)
+                Object.DestroyImmediate(old.gameObject);
+        }
         foreach (RigBuilder stale in model.GetComponents<RigBuilder>())
             Object.DestroyImmediate(stale);
+        Transform[] bones = model.GetComponentsInChildren<Transform>(true);
+        Transform Bone(string name) => bones.FirstOrDefault(b => b.name == name) ?? throw new Exception("no bone " + name);
+
+        // Each paw's rest height (its contact bone above the ground, standing): sampled from the idle, the pose put back.
+        var saved = bones.Select(b => (b, b.localPosition, b.localRotation, b.localScale)).ToArray();
+        Load<AnimationClip>(ClipDir + "/Dog_Idle.anim").SampleAnimation(model, 0.3f);
+        float Rest(string contact) => Bone(contact).position.y - model.transform.position.y;
+        (string Name, string Root, string Mid, string Tip, string Contact)[] legs =
+        {
+            ("Front L", "L UpperArm", "L Forearm", "L Hand", "L Finger0"), ("Front R", "R UpperArm", "R Forearm", "R Hand", "R Finger0"),
+            ("Hind L", "L Calf", "L HorseLink", "L Foot", "L Toe0"), ("Hind R", "R Calf", "R HorseLink", "R Foot", "R Toe0"),
+        };
+        float[] rests = legs.Select(l => Rest(l.Contact)).ToArray();
+        foreach ((Transform b, Vector3 position, Quaternion rotation, Vector3 scale) in saved)
+        {
+            b.localPosition = position;
+            b.localRotation = rotation;
+            b.localScale = scale;
+        }
+
+        var legData = legs.Select((l, i) => new DogBody.Leg
+        {
+            Root = Bone(l.Root), Mid = Bone(l.Mid), Tip = Bone(l.Tip), Contact = Bone(l.Contact), Rest = rests[i],
+        }).ToArray();
+
+        // Neck then head, each aimed along its own forward (local +Y on this rig), kept upright to the scene's up.
+        Rig lookRig = NewRig(model, "Look");
+        Transform head = Bone("Head");
+        var lookTarget = new GameObject("Target").transform;
+        lookTarget.SetParent(lookRig.transform, false);
+        lookTarget.position = head.position + model.transform.forward * 3f;
+        (string Bone, float Share)[] aims = { ("Neck2", 0.4f), ("Head", 0.75f) };
+        var look = new MultiAimConstraint[aims.Length];
+        for (int i = 0; i < aims.Length; i++)
+        {
+            Transform bone = Bone(aims[i].Bone);
+            var go = new GameObject(aims[i].Bone);
+            go.transform.SetParent(lookRig.transform, false);
+            var aim = go.AddComponent<MultiAimConstraint>();
+            aim.weight = 0f;
+            aim.data.constrainedObject = bone;
+            var sources = new WeightedTransformArray { new WeightedTransform(lookTarget, 1f) };
+            aim.data.sourceObjects = sources;
+            aim.data.aimAxis = Axis(bone.InverseTransformDirection(model.transform.forward));
+            aim.data.upAxis = Axis(bone.InverseTransformDirection(model.transform.up));
+            aim.data.worldUpType = MultiAimConstraintData.WorldUpType.SceneUp;
+            aim.data.maintainOffset = false;
+            aim.data.limits = new Vector2(-60f, 60f);
+            aim.data.constrainedXAxis = aim.data.constrainedYAxis = aim.data.constrainedZAxis = true;
+            look[i] = aim;
+        }
+
+        Rig jiggle = Jiggle(model, Bone);
+        var builder = model.AddComponent<RigBuilder>();
+        builder.layers.Add(new RigLayer(lookRig, true));
+        builder.layers.Add(new RigLayer(jiggle, true));
+        var body = model.GetComponent<DogBody>() ?? model.AddComponent<DogBody>();
+        body.Setup(legData, look, aims.Select(a => a.Share).ToArray(), lookTarget, head, Bone("Jaw"),
+            new[] { Bone("Tongue"), Bone("Tongue02"), Bone("Tongue03") });
+    }
+
+    static Rig NewRig(GameObject model, string name)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(model.transform, false);
+        return go.AddComponent<Rig>();
+    }
+
+    // The bone axis nearest a direction given in the bone's space.
+    static MultiAimConstraintData.Axis Axis(Vector3 local)
+    {
+        Vector3 a = new(Mathf.Abs(local.x), Mathf.Abs(local.y), Mathf.Abs(local.z));
+        if (a.x >= a.y && a.x >= a.z)
+            return local.x >= 0f ? MultiAimConstraintData.Axis.X : MultiAimConstraintData.Axis.X_NEG;
+        if (a.y >= a.z)
+            return local.y >= 0f ? MultiAimConstraintData.Axis.Y : MultiAimConstraintData.Axis.Y_NEG;
+        return local.z >= 0f ? MultiAimConstraintData.Axis.Z : MultiAimConstraintData.Axis.Z_NEG;
+    }
+
+    // Secondary motion: each ear tip and tail bone follows the bone above it with a lag (the constraints run in hierarchy
+    // order, root to tip).
+    static Rig Jiggle(GameObject model, Func<string, Transform> Bone)
+    {
         var rigObject = new GameObject("Jiggle");
         rigObject.transform.SetParent(model.transform, false);
         Rig rig = rigObject.AddComponent<Rig>();
-        Transform[] bones = model.GetComponentsInChildren<Transform>(true);
-        Transform Bone(string name) => bones.FirstOrDefault(b => b.name == name) ?? throw new Exception("no bone " + name);
         void Damp(string constrained, string source, float damp)
         {
             var go = new GameObject(constrained);
@@ -222,8 +307,7 @@ public static class DogSetup
         Damp("Ear02 R", "Ear01 R", EarDamp);
         for (int i = 2; i <= 6; i++)
             Damp($"Tail{i:00}", $"Tail{i - 1:00}", TailDamp);
-        var builder = model.AddComponent<RigBuilder>();
-        builder.layers.Add(new RigLayer(rig, true));
+        return rig;
     }
 
     // Where the vendor's standing pose has the Root (sitting down starts here, standing up ends here; the acts stand here):
@@ -663,14 +747,21 @@ public static class DogSetup
             Once(machine, "Ledge 0.5", "Ledge_Grab/Dog_Ledge_0.50M"), Once(machine, "Ledge 1.0", "Ledge_Grab/Dog_Ledge_1.00M"),
             Once(machine, "Ledge 1.5", "Ledge_Grab/Dog_Ledge_1.50M"), ledge2,
         };
-        foreach (AnimatorState ledge in ledges.Take(3))
+        foreach (AnimatorState ledge in ledges)
             Then(ledge, climb);
-        // The scramble over a fence: paws up, climb, drop off the far side.
+        // The scramble over the 2 m fence: paws up (the 1 m ledge clip: the model is at 2×), climb, drop off the far side,
+        // sped up to DogJumpArc's timing (the body's path over the fence follows the same; DogTests checks they agree).
+        AnimatorState scrambleGrab = Once(machine, "ScrambleGrab", "Ledge_Grab/Dog_Ledge_1.00M");
         AnimatorState scrambleClimb = Once(machine, "ScrambleClimb", "Ledge_Grab/Dog_Ledge_Climb Up");
-        Then(ledge2, scrambleClimb);
+        scrambleGrab.speed = scrambleClimb.speed = DogJumpArc.ScrambleClipSpeed;
+        Then(scrambleGrab, scrambleClimb);
         Then(scrambleClimb, edge);
-        // JumpKind 0 hop, 1 scramble, 2–5 climb onto a 0.5 / 1.0 / 1.5 / 2.0 m ledge, 6 drop down.
-        var starts = new (int Kind, AnimatorState State)[] { (0, hop), (1, ledge2), (2, ledges[0]), (3, ledges[1]), (4, ledges[2]), (5, ledge2), (6, edge) };
+        // The leap over a fence or onto a block: a standing jump (crouch, leap, land; DogJumpArc times the body to it).
+        AnimatorState leap = Once(machine, "Leap", "Jump/Dog_Jump_Walk", "Dog_Jump_Walk");
+        Exit(leap.AddTransition(move), 0.94f, 0.2f);
+        // JumpKind 0 hop, 1 scramble, 2–5 climb onto a 0.5 / 1.0 / 1.5 / 2.0 m ledge (at 1×), 6 drop down, 7 leap.
+        var starts = new (int Kind, AnimatorState State)[]
+            { (0, hop), (1, scrambleGrab), (2, ledges[0]), (3, ledges[1]), (4, ledges[2]), (5, ledge2), (6, edge), (7, leap) };
         foreach ((int kind, AnimatorState state) in starts)
         {
             AnimatorStateTransition into = Quick(machine.AddAnyStateTransition(state), 0.1f);
@@ -824,6 +915,17 @@ public static class DogSetup
                 root.AddComponent<DogJump>();
             if (!root.TryGetComponent(out SaveId _))
                 root.AddComponent<SaveId>();
+            // Its paw on the minimap (registered when the dog is injected: DogInstaller injects the whole object).
+            Transform markerNode = root.transform.Find("Map Marker");
+            if (markerNode == null)
+            {
+                markerNode = new GameObject("Map Marker").transform;
+                markerNode.SetParent(root.transform, false);
+            }
+            var marker = markerNode.GetComponent<MB13.Aipocalypse.Core.MapSystem.MapMarker>() ?? markerNode.gameObject.AddComponent<MB13.Aipocalypse.Core.MapSystem.MapMarker>();
+            var markerSo = new SerializedObject(marker);
+            markerSo.FindProperty("_kind").objectReferenceValue = MapKind();
+            markerSo.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(root, BasePath, out bool saved);
             if (!saved)
                 return "prefabs FAILED " + BasePath;
@@ -833,6 +935,29 @@ public static class DogSetup
             PrefabUtility.UnloadPrefabContents(root);
         }
         return "prefabs: " + BasePath + ", " + Variant();
+    }
+
+    const string MapKindPath = "Assets/_Game/Data/Map/Dog.asset";
+    const string MapIconBackground = "Assets/Synty/InterfaceApocalypseHUD/Sprites/HUD/SPR_HUD_Apocalypse_Map_Icon_Background_01.png";
+
+    // The dog's minimap icon: a small paw on the map icon backing, teal (home is yellow, enemies red). Shown only within
+    // the minimap's range: pinned to the rim it would sit on the home icon whenever it stays at home.
+    static MB13.Aipocalypse.Core.MapSystem.MapMarkerKind MapKind()
+    {
+        var kind = AssetDatabase.LoadAssetAtPath<MB13.Aipocalypse.Core.MapSystem.MapMarkerKind>(MapKindPath);
+        if (kind == null)
+        {
+            kind = ScriptableObject.CreateInstance<MB13.Aipocalypse.Core.MapSystem.MapMarkerKind>();
+            AssetDatabase.CreateAsset(kind, MapKindPath);
+        }
+        kind.Background = Load<Sprite>(MapIconBackground);
+        kind.BackgroundColor = new Color(0.4f, 0.8f, 0.85f, 1f);
+        kind.Icon = AssetDatabase.LoadAllAssetsAtPath(PawIconPath).OfType<Sprite>().FirstOrDefault();
+        kind.IconColor = new Color(0.055f, 0.055f, 0.055f, 1f);
+        kind.Size = 22f;
+        kind.PinToEdge = false;
+        Save(kind);
+        return kind;
     }
 
     static string Variant()
