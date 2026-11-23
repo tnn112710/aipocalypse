@@ -264,6 +264,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             UpdateStance();
         }
 
+        public bool CombatStance => _combat;
+
         // The fighting stance (growling, low) while it skirmishes.
         public void SetCombat(bool combat)
         {

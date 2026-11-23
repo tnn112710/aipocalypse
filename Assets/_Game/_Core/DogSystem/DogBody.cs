@@ -56,7 +56,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         Vector3[] _heldAt, _stepFrom;
         Quaternion[] _heldRot, _stepFromRot;
         float[] _stepT, _weight;
-        int _groundMask;
+        Renderer[] _renderers;
         float _lastYaw;
         float _stillFor;
         float _lookWeight;
@@ -86,7 +86,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _stepFromRot = new Quaternion[count];
             _stepT = new float[count];
             _weight = new float[count];
-            _groundMask = ~(1 << gameObject.layer);
+            _renderers = GetComponentsInChildren<Renderer>();
         }
 
         void LateUpdate()
@@ -94,10 +94,30 @@ namespace MB13.Aipocalypse.Core.DogSystem
             DogSettings settings = _dog != null && _dog.Active ? _dog.Settings : null;
             if (settings == null)
                 return;
+            // Off-screen the Animator stops posing the bones (CullUpdateTransforms): nothing to plant on or add to, and the
+            // paws would lock onto last seen positions.
+            if (!Seen())
+            {
+                for (int i = 0; i < _plant.Length; i++)
+                {
+                    _plant[i] = Plant.Free;
+                    _weight[i] = 0f;
+                }
+                _stillFor = 0f;
+                return;
+            }
             float dt = Time.deltaTime;
             Paws(settings, dt);
             Look(settings, dt);
             Pant(settings, dt);
+        }
+
+        bool Seen()
+        {
+            foreach (Renderer r in _renderers)
+                if (r != null && r.isVisible)
+                    return true;
+            return false;
         }
 
         float FlatSpeed
@@ -128,7 +148,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 Transform tip = leg.Tip;
                 Vector3 animated = tip.position;
                 Quaternion animatedRot = tip.rotation;
-                float height = still ? GroundHeight(leg.Contact.position) / scale - leg.Rest : float.MaxValue;
+                float height = still ? GroundHeight(leg.Contact.position, settings.PawGround) / scale - leg.Rest : float.MaxValue;
                 bool down = height < PlantSlack;
                 bool up = height > LiftSlack;
                 switch (_plant[i])
@@ -198,8 +218,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         // The contact's height above the ground under it (far above when there's none within reach).
-        float GroundHeight(Vector3 contact) =>
-            Physics.Raycast(contact + Vector3.up * ProbeUp, Vector3.down, out RaycastHit hit, ProbeUp + ProbeDown, _groundMask, QueryTriggerInteraction.Ignore)
+        static float GroundHeight(Vector3 contact, LayerMask ground) =>
+            Physics.Raycast(contact + Vector3.up * ProbeUp, Vector3.down, out RaycastHit hit, ProbeUp + ProbeDown, ground, QueryTriggerInteraction.Ignore)
                 ? contact.y - hit.point.y
                 : float.MaxValue;
 
@@ -227,7 +247,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
         void Pant(DogSettings settings, float dt)
         {
             _pant.Tick(FlatSpeed, Time.time, dt, settings.PantRunSpeed, settings.PantAfter, settings.PantFor);
-            bool free = (_dog.Standing || _dog.Pose == DogPose.Sit || _dog.Pose == DogPose.Lie) && !_dog.Swimming && !_dog.State.Down;
+            // Not in the fighting stance: its growl works the jaw already.
+            bool free = (_dog.Standing || _dog.Pose == DogPose.Sit || _dog.Pose == DogPose.Lie) && !_dog.Swimming && !_dog.State.Down
+                && !_dog.CombatStance;
             _pantWeight = Mathf.MoveTowards(_pantWeight, free ? _pant.Level : 0f, dt / PantBlend);
             if (_pantWeight <= 0f || _jaw == null)
                 return;

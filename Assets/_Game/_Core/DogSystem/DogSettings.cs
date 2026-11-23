@@ -144,6 +144,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         [Header("Body (DogBody)")]
         [Tooltip("Paws on the ground stay planted while it stands still (sitting, lying, getting up)")] public bool PlantPaws = true;
+        [Tooltip("What a paw plants on (terrain and buildings; not props, items or debris)")] public LayerMask PawGround = 1;
         [Min(0f), Tooltip("It turns its head to a foe, or to the player while calm, within this (m)")] public float HeadLookRange = 10f;
         [Min(0f), Tooltip("...the player only while slower than this (m/s)")] public float LookCalmSpeed = 2.5f;
         [Range(0f, 180f), Tooltip("Nothing further round than this from its facing (deg)")] public float LookMaxAngle = 100f;
