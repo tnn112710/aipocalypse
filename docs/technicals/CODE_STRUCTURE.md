@@ -147,7 +147,7 @@ Assets/_Game/
 │  │  ├─ DogVoice.cs                        plain C#: the noise budget (DogStateTests)
 │  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
 │  │  ├─ DogStats.cs                        DogStat enum, DogStatBlock SO (Data/Dogs/DogStatBlock: base values), IDogUpgradeSource, DogStatSheet (base + upgrades, class index) (DogCombatTests)
-│  │  ├─ DogCombat.cs                       plain C#: FoeView; PickTarget (stance, sent, ranged first, home defence), CanBite, IsOpening, WarnTarget (DogCombatTests)
+│  │  ├─ DogCombat.cs                       plain C#: HerdView, FoeView; PickTarget (stance, sent, ranged first, home defence), CanBite, IsOpening, WarnTarget (DogCombatTests)
 │  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (come, petted, sad stay, catch up, follow, stay here, sleep in house, home life)
 │  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits
 │  │  ├─ DogHouse.cs, DogLinkInfo.cs        the dog house (door, bed); an off-mesh link's obstacle height and Via point

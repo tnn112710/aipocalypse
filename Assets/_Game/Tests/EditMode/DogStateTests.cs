@@ -187,6 +187,55 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Herding_GreyedWhenNothingOut()
+        {
+            Assert.That(DogState.CanHerd(0), Is.False);
+            Assert.That(DogState.CanHerd(2), Is.True);
+        }
+
+        [Test]
+        public void Herding_PicksFarthestAndSkipsStuckOrHome()
+        {
+            var animals = new[]
+            {
+                new HerdView(0, new Vector3(10f, 0f, 0f), 1f, false, 0f),
+                new HerdView(1, new Vector3(30f, 0f, 0f), 1f, false, 25f),
+                new HerdView(2, new Vector3(50f, 0f, 0f), 1f, true, 0f),
+                new HerdView(3, new Vector3(20f, 0f, 0f), 1f, false, 0f),
+            };
+            Assert.That(DogState.PickHerdTarget(animals, Vector3.zero), Is.EqualTo(3), "farthest out that isn't home or stuck");
+        }
+
+        [Test]
+        public void Herding_EndsWhenAllHomeOrAfterThreeMinutes()
+        {
+            Assert.That(DogState.HerdDone(14, 14, 0f, 10f), Is.True);
+            Assert.That(DogState.HerdDone(10, 14, 0f, 179f), Is.False);
+            Assert.That(DogState.HerdDone(10, 14, 0f, 181f), Is.True);
+        }
+
+        [Test]
+        public void SheepChase_EveryThreeToSixMinutesByDayAtHome()
+        {
+            Assert.That(_state.TryStartSheepChase(0f, true, true, false, 0f), Is.False, "the first one is 3 min away");
+            Assert.That(_state.TryStartSheepChase(181f, false, true, false, 0f), Is.False, "never at night");
+            Assert.That(_state.TryStartSheepChase(181f, true, true, true, 0f), Is.False, "never while herding");
+            Assert.That(_state.TryStartSheepChase(181f, true, true, false, 0f), Is.True);
+            Assert.That(_state.TryStartSheepChase(200f, true, true, false, 0f), Is.False);
+        }
+
+        [Test]
+        public void Howl_OncePerNightNotInRaid()
+        {
+            Assert.That(_state.TryHowl(3, 23f, true, true, 0f), Is.False, "raid");
+            Assert.That(_state.TryHowl(3, 21f, true, false, 0f), Is.False, "too early");
+            Assert.That(_state.TryHowl(3, 23f, true, false, 0.1f), Is.True);
+            Assert.That(_state.TryHowl(4, 1f, true, false, 0.1f), Is.False, "the same night (after midnight)");
+            Assert.That(_state.TryHowl(4, 23f, true, false, 0.5f), Is.False, "a failed roll uses the night up");
+            Assert.That(_state.TryHowl(5, 23f, true, false, 0.1f), Is.True);
+        }
+
+        [Test]
         public void SetOrder_StayRemembersThePoint()
         {
             Assert.That(_state.Order, Is.EqualTo(DogOrder.Follow));

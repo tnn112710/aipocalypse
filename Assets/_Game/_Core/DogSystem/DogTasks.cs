@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.AnimalSystem;
 using Opsive.BehaviorDesigner.Runtime.Tasks;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Actions;
 using Opsive.BehaviorDesigner.Runtime.Tasks.Conditionals;
@@ -470,6 +471,140 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     _dog.Legs.Face(player);
                 }
             }
+            return TaskStatus.Running;
+        }
+    }
+
+    // ---- The farm: herding ----
+
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogIsHerding : ConditionalNode
+    {
+        Dog _dog;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+        public override TaskStatus OnUpdate() => _dog.State.Order == DogOrder.Herding ? TaskStatus.Success : TaskStatus.Failure;
+    }
+
+    // Gets behind the animal farthest from home (from home's side), barks it on and hurries it; on to the next. All home,
+    // or HerdGiveUp: it stays at home.
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogHerd : ActionNode
+    {
+        Dog _dog;
+        float _nextGo;
+        float _nextBark;
+        readonly System.Collections.Generic.List<HerdView> _views = new();
+        readonly System.Collections.Generic.Dictionary<int, float> _bestDistance = new();
+        readonly System.Collections.Generic.Dictionary<int, float> _progressAt = new();
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override void OnStart()
+        {
+            _bestDistance.Clear();
+            _progressAt.Clear();
+            _dog.SetSniffing(false);
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            float now = Time.time;
+            DogManager manager = _dog.Manager;
+            var herd = manager.Herd;
+            if (herd == null || herd.Pen == null)
+                return Finish();
+            Vector3 home = herd.Pen.transform.position;
+            if (DogState.HerdDone(herd.CountHome(), herd.Animals.Count, manager.HerdStartedAt, now))
+                return Finish();
+            if (now < _nextGo)
+                return TaskStatus.Running;
+            _nextGo = now + 0.5f;
+            _views.Clear();
+            for (int i = 0; i < herd.Animals.Count; i++)
+            {
+                var animal = herd.Animals[i];
+                float distance = DogWalk.Flat(animal.transform.position - home);
+                if (!_bestDistance.TryGetValue(i, out float best) || distance < best - 0.5f)
+                {
+                    _bestDistance[i] = distance;
+                    _progressAt[i] = now;
+                }
+                _views.Add(new HerdView(i, animal.transform.position, animal.Mover.Velocity.magnitude, animal.IsHome || animal.Sleeping, now - _progressAt[i]));
+            }
+            int target = DogState.PickHerdTarget(_views, home);
+            if (target < 0)
+                return Finish();
+            var chosen = herd.Animals[target];
+            Vector3 away = chosen.transform.position - home;
+            away.y = 0f;
+            Vector3 behind = chosen.transform.position + (away.sqrMagnitude > 0.01f ? away.normalized : Vector3.forward) * _dog.Settings.HerdBehind;
+            if (!DogWalk.Near(_dog, behind, 1.5f))
+            {
+                DogWalk.Go(_dog, behind, DogGait.Canter);
+                return TaskStatus.Running;
+            }
+            _dog.Legs.Face(chosen.transform.position);
+            if (now >= _nextBark)
+            {
+                _nextBark = now + Random.Range(3f, 6f);
+                if (manager.TryPlay(_dog, DogSound.Bark) && _dog.Standing)
+                    _dog.Act(DogAct.Bark);
+            }
+            chosen.Hurry();
+            return TaskStatus.Running;
+        }
+
+        TaskStatus Finish()
+        {
+            DogRoster roster = _dog.Roster;
+            _dog.State.SetOrder(DogOrder.Stay, roster.Home(_dog));
+            _dog.Act(DogAct.Happy);
+            return TaskStatus.Success;
+        }
+    }
+
+    // ---- Raids at home, Passive: keep away ----
+
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogRaiderClose : ConditionalNode
+    {
+        Dog _dog;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+        public override TaskStatus OnUpdate() => _dog.Manager.RaiderClose(_dog, out _) ? TaskStatus.Success : TaskStatus.Failure;
+    }
+
+    // Runs to the spot in the yard farthest from the raider (never bites); barks from there.
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogAvoid : ActionNode
+    {
+        Dog _dog;
+        float _nextGo;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override TaskStatus OnUpdate()
+        {
+            float now = Time.time;
+            if (now < _nextGo)
+                return TaskStatus.Running;
+            _nextGo = now + 0.6f;
+            if (!_dog.Manager.RaiderClose(_dog, out Vector3 raider))
+                return TaskStatus.Success;
+            Vector3 best = _dog.transform.position;
+            float bestDistance = 0f;
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 p = DogWalk.InYard(_dog.Roster, _dog, 2f);
+                float d = DogWalk.Flat(p - raider);
+                if (d > bestDistance)
+                {
+                    bestDistance = d;
+                    best = p;
+                }
+            }
+            DogWalk.Go(_dog, best, DogGait.Sprint);
             return TaskStatus.Running;
         }
     }
@@ -1164,7 +1299,13 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public override void OnStart()
         {
             _step = 0;
-            if (_dog.Standing)
+            var clock = _dog.Manager.Clock;
+            if (clock != null && _dog.State.TryHowl(clock.Now.Day, clock.Now.Hour, true, _dog.Roster.Raid, Random.value))
+            {
+                _dog.Act(DogAct.Howl);
+                _dog.Manager.TryPlay(_dog, DogSound.Howl);
+            }
+            else if (_dog.Standing)
                 _dog.Act(DogAct.Yawn);
         }
 
@@ -1200,7 +1341,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
     [Category("Aipocalypse/Dogs")]
     public sealed class DogHomeLife : ActionNode
     {
-        enum Activity { None, Stroll, Sniff, Visit, Sit, Nap, Zoomies, Yawn }
+        enum Activity { None, Stroll, Sniff, Visit, Sit, Nap, Zoomies, Yawn, ChaseSheep, SniffRobot }
 
         // Relative weights of what it does next.
         static readonly (Activity Activity, float Weight)[] Choices =
@@ -1244,12 +1385,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (_activity != Activity.None && !Done(now))
                 return TaskStatus.Running;
             _dog.SetSniffing(false);
+            if (_activity == Activity.ChaseSheep || _activity == Activity.SniffRobot)
+                _dog.GreetedBy = null;
             // Up on its feet before the next thing (after sitting or lying), else a walk would be refused and end at once.
             if (_dog.Pose != DogPose.Stand)
                 _dog.SetPose(DogPose.Stand);
             if (!_dog.Standing)
                 return TaskStatus.Running;
-            Begin(Pick(), now);
+            Begin(Special(now) ?? Pick(), now);
             return TaskStatus.Running;
         }
 
@@ -1273,6 +1416,35 @@ namespace MB13.Aipocalypse.Core.DogSystem
                         return false;
                     }
                     return now >= _until;
+                case Activity.ChaseSheep:
+                    if (now >= _until || _sheep == null)
+                    {
+                        _dog.Act(DogAct.Happy);
+                        return true;
+                    }
+                    if (now >= _nextStartle)
+                    {
+                        _nextStartle = now + 0.5f;
+                        if (!_sheep.GoingHome)
+                            _sheep.Startle(_dog.transform.position, 4f, true);
+                        DogWalk.Go(_dog, _sheep.transform.position, DogGait.Sprint);
+                    }
+                    return false;
+                case Activity.SniffRobot:
+                    if (_dog.GreetedBy != null && !DogWalk.Near(_dog, _dog.GreetedBy.position, 1.4f) && now < _until)
+                        return false;
+                    if (_step == 0)
+                    {
+                        _step = 1;
+                        _dog.Legs.Halt();
+                        _dog.SetSniffing(true);
+                        _until = now + 2.5f;
+                        return false;
+                    }
+                    if (now < _until)
+                        return false;
+                    _dog.Act(DogAct.Happy);
+                    return true;
                 case Activity.Zoomies:
                     if (!_dog.Legs.Settled && now < _until)
                         return false;
@@ -1285,6 +1457,42 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 default:
                     return now >= _until;
             }
+        }
+
+        Animal _sheep;
+        float _nextStartle;
+
+        // A robot that just greeted it, or (every 3–6 min, by day) the sheep to chase.
+        Activity? Special(float now)
+        {
+            if (_dog.GreetedBy != null)
+                return Activity.SniffRobot;
+            bool day = !_dog.Roster.Night;
+            if (!_dog.State.TryStartSheepChase(now, day, true, false, Random.value))
+                return null;
+            _sheep = NearestSheep();
+            return _sheep != null ? Activity.ChaseSheep : null;
+        }
+
+        Animal NearestSheep()
+        {
+            var herd = _dog.Manager.Herd;
+            if (herd == null)
+                return null;
+            Animal best = null;
+            float bestDistance = _dog.Settings.ChaseRange;
+            foreach (Animal animal in herd.Animals)
+            {
+                if (animal.GoingHome || animal.Sleeping || !animal.Definition.name.Contains("Sheep"))
+                    continue;
+                float d = DogWalk.Flat(animal.transform.position - _dog.transform.position);
+                if (d < bestDistance)
+                {
+                    bestDistance = d;
+                    best = animal;
+                }
+            }
+            return best;
         }
 
         // Behaviour flavour, not a gameplay roll: UnityEngine.Random is fine here.
@@ -1338,6 +1546,15 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     _until = now + 6f;
                     if (Random.value < 0.5f)
                         _dog.Manager.TryPlay(_dog, DogSound.Bark);
+                    break;
+                case Activity.ChaseSheep:
+                    _until = now + 5f;
+                    _nextStartle = 0f;
+                    _dog.Manager.TryPlay(_dog, DogSound.Bark);
+                    break;
+                case Activity.SniffRobot:
+                    DogWalk.Go(_dog, _dog.GreetedBy.position, DogGait.Trot);
+                    _until = now + 6f;
                     break;
                 case Activity.Yawn:
                     _dog.Legs.Halt();

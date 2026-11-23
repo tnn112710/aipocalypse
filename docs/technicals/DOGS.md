@@ -1,6 +1,6 @@
 # Dog companion (Loki)
 
-Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exploring with the player. It follows like a dog, not a robot on a leash. Code in `_Core/DogSystem/` (namespace `MB13.Aipocalypse.Core.DogSystem`), the command wheel in `_Core/UI/Wheel/`. Design: `docs/superpowers/specs/2026-11-23-dog-companion-design.md`; plans per phase in `docs/superpowers/plans/2026-11-23-dog-companion-phase*.md`. **Phase 1 (a living dog) and Phase 2 (fighting) are built**; the farm (Phase 3) follows.
+Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exploring with the player. It follows like a dog, not a robot on a leash. Code in `_Core/DogSystem/` (namespace `MB13.Aipocalypse.Core.DogSystem`), the command wheel in `_Core/UI/Wheel/`. Design: `docs/superpowers/specs/2026-11-23-dog-companion-design.md`; plans per phase in `docs/superpowers/plans/2026-11-23-dog-companion-phase*.md`. **All three phases are built**: a living dog, fighting, the farm.
 
 ## How it plays
 
@@ -81,6 +81,24 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
     - Warning colour below 30%.
 12. **Saved:** stance, toughness, down, and limp time left.
 
+## The farm (Phase 3)
+
+1. **Herding** (a wheel slice, shown with an `AnimalInstaller`; greyed when every animal is home):
+   - It rings the herd home (`HerdOrders.Call`, like the bell).
+   - It runs behind the animal farthest from the pen (from the pen's side, 3 m back), barks within the budget, and hurries it (`Animal.Hurry`).
+   - It skips an animal that hasn't got closer for 20 s.
+   - When all are home, or after 3 min, it stays at home.
+2. **Robots:** a free, awake robot within 4 m greets it once per 90 s (`Robot.TryGreetVisitor`: it faces it, waves, heart eyes, a happy beep). The dog trots over and sniffs it.
+3. **Sheep chase:** at home by day, every 3–6 min, it runs at the nearest sheep within 25 m (never one going home or asleep).
+   - It startles the sheep every 0.5 s for 5 s (`Animal.Startle`, run), then comes back happy.
+   - The cheat is `dog.chase`.
+4. **Howl:** at most once a night, a 20% roll between 22:00 and 02:00 at home, never in a raid, as it goes to its house. The cheat is `dog.howl`.
+5. **Raids at home** (user's rule):
+   - **Barking:** it barks toward raiders in bursts of 2–3, 8–15 s apart.
+   - **Active:** it goes for raiders that got inside the yard, aware of the player or not, by the Phase 2 rules.
+   - **Passive:** it keeps 6 m away from raiders, running to the far side of the yard, and never bites.
+   - It doesn't sleep during a raid.
+
 ## Pieces
 
 ```
@@ -130,8 +148,8 @@ Also:
 - **Setup:** `AgentScripts/Dogs/DogSetup.cs`: `Data`, `Model` (a look-only copy of the Malbers Border Collie PolyArt, no Malbers scripts, root motion off), `Controller`, `Prefabs`, `Hud` (the wheel in HUD.prefab, the paw icon), `World`, `Audio`; `All` runs the first five.
 - **Clips:** the collie's clips move their Root bone forward, so `DogSetup` writes in-place copies to `Content/Dogs/BorderCollie/Animations` (loops: the Root's drift removed; jumps and ledges: the Root held, the code moves the body).
 - **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides) to a path outside Assets.
-- **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, BackOff, Down, Warn (spawn goblins with `enemy.spawn`, the player invulnerable).
-  - All passed on 2026-11-23 (Phases 1 and 2).
+- **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, BackOff, Down, Warn (spawn goblins with `enemy.spawn`, the player invulnerable); the farm: Herd, RobotGreet, SheepChase, RaidHome active / passive.
+  - All passed on 2026-11-23 (Phases 1–3). NightHouse stops a raid if one starts at 23:00.
 
 ## Known gaps
 

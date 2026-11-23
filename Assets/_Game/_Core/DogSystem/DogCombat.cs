@@ -33,6 +33,25 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
     }
 
+    // What the dog knows about one farm animal while herding.
+    public readonly struct HerdView
+    {
+        public readonly int Id;
+        public readonly Vector3 Position;
+        public readonly float Speed;
+        public readonly bool Home;
+        public readonly float NoProgressFor;
+
+        public HerdView(int id, Vector3 position, float speed, bool home, float noProgressFor)
+        {
+            Id = id;
+            Position = position;
+            Speed = speed;
+            Home = home;
+            NoProgressFor = noProgressFor;
+        }
+    }
+
     // The dog's fight rules in plain C# (tested): which enemy it goes for, whether it may bite it, when there's an opening.
     public static class DogCombat
     {

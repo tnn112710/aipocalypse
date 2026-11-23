@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MB13.Aipocalypse.Core.RobotSystem;
 using UnityEngine;
 
@@ -85,6 +86,65 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool Limping(float now) => now < _limpUntil;
 
         public void SetStance(DogStance stance) => Stance = stance;
+
+        // ---- The farm (Phase 3) ----
+
+        public const float HerdGiveUp = 180f;
+        public const float StuckTime = 20f;
+        float _nextSheepChase = float.NaN;
+        int _howledDay = -1;
+
+        public static bool CanHerd(int animalsOut) => animalsOut > 0;
+
+        // Cheats: the next home-life pick is a sheep chase.
+        public void ForceSheepChase() => _nextSheepChase = 0f;
+
+        // The animal to push next: the farthest from home among those out (ties: the slowest), skipping any stuck for StuckTime.
+        public static int PickHerdTarget(IReadOnlyList<HerdView> animals, Vector3 home)
+        {
+            int best = -1;
+            float bestScore = float.MinValue;
+            for (int i = 0; i < animals.Count; i++)
+            {
+                HerdView animal = animals[i];
+                if (animal.Home || animal.NoProgressFor >= StuckTime)
+                    continue;
+                float score = Vector2.Distance(new Vector2(animal.Position.x, animal.Position.z), new Vector2(home.x, home.z)) - animal.Speed * 0.01f;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = animal.Id;
+                }
+            }
+            return best;
+        }
+
+        public static bool HerdDone(int home, int total, float startedAt, float now) => home >= total || now - startedAt >= HerdGiveUp;
+
+        // At home in the day, not herding: a playful run at the sheep every 3–6 minutes (`roll` 0..1 picks when next).
+        public bool TryStartSheepChase(float now, bool day, bool atHome, bool herding, float roll)
+        {
+            if (float.IsNaN(_nextSheepChase))
+                _nextSheepChase = now + Mathf.Lerp(180f, 360f, roll);
+            if (!day || !atHome || herding || now < _nextSheepChase)
+                return false;
+            _nextSheepChase = now + Mathf.Lerp(180f, 360f, roll);
+            return true;
+        }
+
+        // A howl at most once a night: at home, between 22:00 and 02:00, no raid, a 20% roll (one roll per night).
+        public bool TryHowl(int day, float hour, bool atHome, bool raid, float roll)
+        {
+            bool lateNight = hour >= 22f || hour < 2f;
+            if (!lateNight || !atHome || raid)
+                return false;
+            // The small hours belong to the night that started the day before.
+            int night = hour < 2f ? day - 1 : day;
+            if (night == _howledDay)
+                return false;
+            _howledDay = night;
+            return roll < 0.2f;
+        }
 
         // When its next bite is ready (BiteCooldown after the last).
         public float BiteReadyAt { get; private set; }

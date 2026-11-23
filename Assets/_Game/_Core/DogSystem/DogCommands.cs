@@ -106,6 +106,27 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return $"Takedown chance now {DogState.TakedownChance(1f, _manager.Stats):0.00} (fresh enemy) to {DogState.TakedownChance(0f, _manager.Stats):0.00} (dying)";
         }
 
+        [Command("At home: run at the sheep now")]
+        string Chase()
+        {
+            Dog dog = _roster.Dog;
+            if (dog == null)
+                return "No dog.";
+            dog.State.ForceSheepChase();
+            return "Next: a sheep chase.";
+        }
+
+        [Command("Howl now")]
+        string Howl()
+        {
+            Dog dog = _roster.Dog;
+            if (dog == null)
+                return "No dog.";
+            dog.Act(DogAct.Howl);
+            _manager.TryPlay(dog, DogSound.Howl);
+            return "Awooo.";
+        }
+
         [Command("Where the dog is and what it's doing")]
         string Where()
         {

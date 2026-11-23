@@ -94,6 +94,15 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
+  HerdingLabel:
+    m_TableReference:
+      m_TableCollectionName: GUID:348f92dd2ecab5043acd67861ce36851
+    m_TableEntryReference:
+      m_KeyId: 3719247806156800
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   HelpUpVerb:
     m_TableReference:
       m_TableCollectionName: GUID:2a08767527ddaff4d9c1c41c86a721de
@@ -142,6 +151,11 @@ MonoBehaviour:
   AnnoyedTime: 6
   ScrambleRange: 25
   ScrambleAfter: 2.5
+  HerdBehind: 3
+  GreetRange: 4
+  ChaseRange: 25
+  AvoidRange: 6
+  RaidBarkGap: {x: 8, y: 15}
   StayRadius: 4
   StayGoHomeDistance: 150
   WheelTimeScale: 0.3

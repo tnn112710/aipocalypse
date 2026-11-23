@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.AudioSystem;
+using MB13.Aipocalypse.Core.AnimalSystem;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.RobotSystem;
 using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.Events;
@@ -56,6 +58,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _nextWarn;
         bool _wasDown;
         EnemyBrain _aimedEnemy;
+        readonly AnimalHerd _herd;
+        readonly RobotRoster _robots;
+        float _nextRaidBark;
+        int _raidBarksLeft;
+        float _nextBurstBark;
         readonly IDisposable _subscriptions;
         readonly List<WheelSlice> _slices = new();
         Vector3 _lastPlayerPosition;
@@ -80,6 +87,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Stats = new DogStatSheet(settings.Stats, settings.Classes != null ? settings.Classes.Length : 1);
             _random = resolver.TryResolve(out RandomService random) ? random.Stream("Dog") : new RandomStream(7);
             resolver.TryResolve(out _enemies);
+            resolver.TryResolve(out _herd);
+            resolver.TryResolve(out _robots);
             resolver.TryResolve(out _damage);
             resolver.TryResolve(out _time);
             resolver.TryResolve(out _water);
@@ -91,6 +100,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         public DogSettings Settings => _settings;
+        public WorldClock Clock => _clock;
         // Its fighting stats (base + upgrades; a levelling system adds an IDogUpgradeSource).
         public DogStatSheet Stats { get; }
 
@@ -142,6 +152,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 dog.Rise();
             _wasDown = dog.State.Down;
             Fenced(dog, dt);
+            RaidBarks(dog, now);
+            GreetRobots(dog, now);
             Swim(dog, now);
             LookedAt(dog, player, now, dt);
             dog.Advance(dt);
@@ -341,8 +353,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _sentId = -1;
             bool following = dog.State.Order == DogOrder.Follow && _roster.HasPlayer;
             bool limping = dog.State.Limping(now);
-            if (_sentId >= 0 || (following && !_heel && !limping && !dog.State.Retreating(Stats)))
-                TargetId = DogCombat.PickTarget(_foes, playerAt, dog.State.Stance, _sentId, false, Stats);
+            // A raid with the dog in the yard: Active, it goes for raiders that got in (aware of the player or not).
+            bool homeDefence = _roster.Raid && _roster.InYard(at) && dog.State.Stance == DogStance.Active;
+            if (_sentId >= 0 || ((following || homeDefence) && !_heel && !limping && !dog.State.Retreating(Stats)))
+                TargetId = DogCombat.PickTarget(_foes, playerAt, dog.State.Stance, _sentId, homeDefence, Stats);
             if (TargetId < 0 && now >= _nextWarn && !InFight)
                 WarnId = DogCombat.WarnTarget(_foes, at, sense);
         }
@@ -429,6 +443,69 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
         }
 
+        // ---- The farm ----
+
+        public AnimalHerd Herd => _herd;
+        public int AnimalsOut => _herd == null ? 0 : _herd.Animals.Count - _herd.CountHome();
+        public bool AtHome(Dog dog) => _roster.InYard(dog.transform.position);
+        public float HerdStartedAt { get; set; }
+
+        // Raiders near a Passive dog at home: it keeps away from them (never bites).
+        public bool RaiderClose(Dog dog, out Vector3 raider)
+        {
+            raider = default;
+            if (!_roster.Raid || dog.State.Stance != DogStance.Passive || !AtHome(dog))
+                return false;
+            float best = _settings.AvoidRange;
+            bool found = false;
+            for (int i = 0; i < _foes.Count; i++)
+            {
+                float d = Flat(_foes[i].Position - dog.transform.position);
+                if (d < best)
+                {
+                    best = d;
+                    raider = _foes[i].Position;
+                    found = true;
+                }
+            }
+            return found;
+        }
+
+        // A raid with the dog in the yard: bursts of 2–3 barks toward the nearest raider, RaidBarkGap apart.
+        void RaidBarks(Dog dog, float now)
+        {
+            if (!_roster.Raid || !AtHome(dog) || dog.State.Down || _foes.Count == 0)
+            {
+                _raidBarksLeft = 0;
+                return;
+            }
+            if (_raidBarksLeft == 0 && now >= _nextRaidBark)
+            {
+                _raidBarksLeft = 2 + (Roll() < 0.5f ? 1 : 0);
+                _nextRaidBark = now + Mathf.Lerp(_settings.RaidBarkGap.x, _settings.RaidBarkGap.y, Roll());
+            }
+            if (_raidBarksLeft > 0 && now >= _nextBurstBark)
+            {
+                _nextBurstBark = now + 1.3f;
+                _raidBarksLeft--;
+                if (TryPlay(dog, DogSound.Bark) && dog.Standing && Flat(dog.Legs.Velocity) < 0.5f)
+                    dog.Act(DogAct.Bark);
+            }
+        }
+
+        // A free robot close by greets the dog (it waves, heart eyes); the dog sniffs it (DogHomeLife picks it up).
+        void GreetRobots(Dog dog, float now)
+        {
+            if (_robots == null || dog.State.Down || InFight || _roster.Raid)
+                return;
+            for (int i = 0; i < _robots.Robots.Count; i++)
+            {
+                Robot robot = _robots.Robots[i];
+                if (Flat(robot.transform.position - dog.transform.position) <= _settings.GreetRange && robot.TryGreetVisitor(dog.transform.position, now))
+                    dog.GreetedBy = robot.transform;
+            }
+        }
+
         public void HelpUp(Dog dog)
         {
             dog.State.HelpUp(Time.time, Stats);
@@ -444,6 +521,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _slices.Add(new WheelSlice(_settings.FollowLabel.Text(), null, true, state.Order == DogOrder.Follow, () => Order(dog, DogOrder.Follow)));
             _slices.Add(new WheelSlice(_settings.StayLabel.Text(), null, true, state.Order == DogOrder.Stay, () => Order(dog, DogOrder.Stay)));
             _slices.Add(new WheelSlice(_settings.PetLabel.Text(), null, true, false, () => Pet(dog)));
+            if (_herd != null && _herd.Enabled)
+                _slices.Add(new WheelSlice(_settings.HerdingLabel.Text(), null, AnimalsOut > 0, state.Order == DogOrder.Herding, () => BringHerdHome(dog)));
             bool active = state.Stance == DogStance.Active;
             _slices.Add(new WheelSlice((active ? _settings.ActiveLabel : _settings.PassiveLabel).Text(), null, true, true,
                 () => state.SetStance(active ? DogStance.Passive : DogStance.Active)));
@@ -463,6 +542,18 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
             else
                 TryPlay(dog, DogSound.Whine);
+        }
+
+        // Bring the herd home: the bell's call, then the dog pushes the stragglers along.
+        public void BringHerdHome(Dog dog)
+        {
+            if (_herd == null || AnimalsOut == 0)
+                return;
+            _herd.Orders.Call();
+            dog.State.EndCall();
+            dog.State.SetOrder(DogOrder.Herding, dog.transform.position);
+            HerdStartedAt = Time.time;
+            TryPlay(dog, DogSound.Bark);
         }
 
         public void Pet(Dog dog)

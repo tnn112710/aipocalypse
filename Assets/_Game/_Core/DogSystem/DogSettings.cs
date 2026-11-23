@@ -17,7 +17,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Tooltip("Tap E prompt's verb (\"Orders\")")] public LocalizedString OrdersVerb;
         [Tooltip("Hold E prompt's verb (\"Pet\")")] public LocalizedString PetVerb;
         [Tooltip("Whistle prompt's verb (\"Call\")")] public LocalizedString CallVerb;
-        [Tooltip("Wheel slice labels")] public LocalizedString FollowLabel, StayLabel, PetLabel, ActiveLabel, PassiveLabel;
+        [Tooltip("Wheel slice labels")] public LocalizedString FollowLabel, StayLabel, PetLabel, ActiveLabel, PassiveLabel, HerdingLabel;
         [Tooltip("Hold E prompt's verb while it's down (\"Help up\")")] public LocalizedString HelpUpVerb;
         [Tooltip("Shown with its name tag and on the HUD")] public Sprite Icon;
         [Min(0.02f), Tooltip("Seconds between its thinks")] public float ThinkInterval = 0.1f;
@@ -65,6 +65,13 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Header("Over the fence")]
         [Min(0f), Tooltip("Cut off by the fence from a player this close (m)...")] public float ScrambleRange = 25f;
         [Min(0f), Tooltip("...for this long (s, time to go through a gap nearby first): it scrambles over")] public float ScrambleAfter = 2.5f;
+
+        [Header("The farm")]
+        [Min(0f), Tooltip("Herding: it stands this far behind an animal (from home) and barks it on (m)")] public float HerdBehind = 3f;
+        [Min(0f), Tooltip("Robots this close greet it (once per 90 s each, RobotSettings side)")] public float GreetRange = 4f;
+        [Min(0f), Tooltip("Sheep within this of the dog can be chased (m)")] public float ChaseRange = 25f;
+        [Min(0f), Tooltip("Raids: Passive, it keeps this far from raiders (m)")] public float AvoidRange = 6f;
+        [Tooltip("Raids: seconds between bark bursts (min, max)")] public Vector2 RaidBarkGap = new(8f, 15f);
 
         [Header("Stay")]
         [Min(0f), Tooltip("It keeps within this of where it was told to stay (m)")] public float StayRadius = 4f;

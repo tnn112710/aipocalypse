@@ -79,6 +79,7 @@ public static class DogSetup
             & LocalizationKit.Set(settings, "PetLabel", "UI", "wheel.dog_pet")
             & LocalizationKit.Set(settings, "ActiveLabel", "UI", "wheel.dog_active")
             & LocalizationKit.Set(settings, "PassiveLabel", "UI", "wheel.dog_passive")
+            & LocalizationKit.Set(settings, "HerdingLabel", "UI", "wheel.dog_herding")
             & LocalizationKit.Set(settings, "HelpUpVerb", "Interaction", "verb.dog_help_up");
         var stats = AssetDatabase.LoadAssetAtPath<DogStatBlock>(StatsPath);
         if (stats == null)

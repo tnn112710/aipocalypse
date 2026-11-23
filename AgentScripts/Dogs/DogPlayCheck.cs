@@ -395,7 +395,8 @@ public static class DogPlayCheck
         Scope.Resolve<DogManager>().Order(dog, DogOrder.Stay);
         PlacePlayer(Ground(Yard(-14f, -10f)), roster.House.transform.position);
         clock.JumpTo(23f);
-        await Seconds(30f, null);
+        // A quiet night (no raid: with one on it stays up and guards the yard).
+        await Seconds(30f, () => { if (Scope.Resolve<DogRoster>().Raid) Console("raid.stop"); });
         bool inside = dog.InHouse && Flat(dog.transform.Find("Model").position - roster.House.Bed) < 0.3f;
         DogPose pose = dog.Pose;
         clock.JumpTo(7f);
@@ -733,6 +734,111 @@ public static class DogPlayCheck
         await Seconds(0.3f, null);
         m.Stats.Remove(always);
         return $"{before} id {id} class {cls} bite→takedown {result} goblin dead {goblin == null || goblin.IsDead}";
+    }
+
+    // ---- The farm (Phase 3) ----
+
+    // The herd let out, then Herding: it brings them all home (or keeps at it), then stays at home.
+    public static async Task<string> Herd(float outFor, float herdFor)
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        var herd = Scope.Resolve<MB13.Aipocalypse.Core.AnimalSystem.AnimalHerd>();
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        if (!herd.Orders.Released)
+            herd.Orders.Bell();
+        await Seconds(outFor, null);
+        int outBefore = herd.Animals.Count - herd.CountHome();
+        DogManager manager = Scope.Resolve<DogManager>();
+        manager.BringHerdHome(dog);
+        bool herding = dog.State.Order == DogOrder.Herding;
+        int minOut = outBefore;
+        await Seconds(herdFor, () => minOut = Mathf.Min(minOut, herd.Animals.Count - herd.CountHome()));
+        int outAfter = herd.Animals.Count - herd.CountHome();
+        bool ok = herding && outBefore > 0 && (outAfter == 0 || outAfter < outBefore);
+        return $"{Pass(ok)} herd: out before {outBefore}, herding {herding}, out after {outAfter} (fewest {minOut}), order now {dog.State.Order}; {Line(dog)}";
+    }
+
+    // At home near Bolt: Bolt greets it and it goes over to sniff.
+    public static async Task<string> RobotGreet()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        Robot bolt = Object.FindObjectsByType<Robot>().First(r => r.name == "Robot_Shop");
+        Scope.Resolve<DogManager>().Order(dog, DogOrder.Stay);
+        await Seconds(7f, null);
+        dog.Legs.Warp(Ground(bolt.transform.position + bolt.transform.forward * 2.5f));
+        bool greeted = false;
+        bool sniffed = false;
+        await Seconds(8f, () =>
+        {
+            greeted |= dog.GreetedBy != null;
+            sniffed |= greeted && Flat(dog.transform.position - bolt.transform.position) < 2f;
+        });
+        return $"{Pass(greeted && sniffed)} robot greet: greeted by Bolt {greeted}, came to sniff {sniffed}; {Line(dog)}";
+    }
+
+    // dog.chase at home: it runs at a sheep, which flees.
+    public static async Task<string> SheepChase()
+    {
+        Dog dog = Dog;
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        var herd = Scope.Resolve<MB13.Aipocalypse.Core.AnimalSystem.AnimalHerd>();
+        var sheep = herd.Animals.Where(a => a.Definition.name.Contains("Sheep")).ToArray();
+        if (sheep.Length == 0)
+            return "FAIL sheep chase: no sheep";
+        Scope.Resolve<DogManager>().Order(dog, DogOrder.Stay);
+        await Seconds(7f, null);
+        dog.Legs.Warp(Ground(sheep[0].transform.position + YardRight * 6f));
+        Console("dog.chase");
+        bool startled = false;
+        await Seconds(9f, () => startled |= sheep.Any(a => a.Startled));
+        return $"{Pass(startled)} sheep chase: a sheep fled {startled}; {Line(dog)}";
+    }
+
+    // A raid with the dog at home: Active, it goes for a raider in the yard; Passive, it keeps away and never bites.
+    public static async Task<string> RaidHome(string stance)
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        DogManager manager = Scope.Resolve<DogManager>();
+        Player.Invulnerable = true;
+        Player.IgnoredByEnemies = true;
+        manager.Order(dog, DogOrder.Stay);
+        dog.State.SetStance(stance == "passive" ? DogStance.Passive : DogStance.Active);
+        dog.State.ResetToughness(manager.Stats);
+        Vector3 at = Ground(Yard(-12f, 6f));
+        PlacePlayer(at, Ground(Yard(0f, 6f)));
+        dog.Legs.Warp(Ground(Yard(-6f, 6f)));
+        await Seconds(7f, null);
+        Scope.Resolve<IPublisher<RaidStarted>>().Publish(new RaidStarted(1));
+        Console("enemy.spawn goblin 1");
+        await Seconds(1f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL raid home: no goblin";
+        goblin.Mover.Teleport(Ground(dog.transform.position + YardRight * 4f));
+        float ready = dog.State.BiteReadyAt;
+        bool bit = false;
+        float closest = float.MaxValue;
+        float far = 0f;
+        await Seconds(12f, () =>
+        {
+            bit |= dog.State.BiteReadyAt != ready;
+            if (goblin != null && !goblin.IsDead)
+            {
+                float d = Flat(goblin.transform.position - dog.transform.position);
+                closest = Mathf.Min(closest, d);
+                far = Mathf.Max(far, d);
+            }
+        });
+        Scope.Resolve<IPublisher<RaidEnded>>().Publish(new RaidEnded(1, RaidEndReason.Stopped));
+        Console("enemy.clear");
+        Player.IgnoredByEnemies = false;
+        bool ok = stance == "passive" ? !bit && far >= 6f : bit;
+        return $"{Pass(ok)} raid at home ({stance}): bit {bit}, closest {closest:0.0} m, farthest {far:0.0} m; {Line(dog)}";
     }
 
     // Renders the player camera to a PNG (outside Assets).

@@ -343,6 +343,21 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         // ---- Body, face, sound ----
 
+        float _visitorReadyAt;
+
+        // The dog (or another visitor) came close: a free, awake robot turns, waves and shows heart eyes, at most every 90 s.
+        public bool TryGreetVisitor(Vector3 at, float now)
+        {
+            if (!Usable || Asleep || Call.Active || Roster.Raid || now < _visitorReadyAt || State.Hit(now) || State.Greeting(now))
+                return false;
+            _visitorReadyAt = now + 90f;
+            Mover.Face(at);
+            Emote(RobotEmote.Hello);
+            Hold(RobotExpression.Love, 2f);
+            Beep(RobotSound.Happy);
+            return true;
+        }
+
         public void Emote(RobotEmote emote)
         {
             // Knocked over, nothing plays over the fall and the getting up.

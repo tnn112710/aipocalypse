@@ -269,6 +269,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _animator.SetTrigger(RiseParameter);
         }
 
+        // A robot that just greeted it (DogHomeLife goes over and sniffs it), cleared when done.
+        public Transform GreetedBy { get; set; }
+
         // The last requested bite: 0 not dealt yet, 1 a bite, 2 a takedown (DogManager.RequestBite).
         public int BiteLanded { get; set; }
 
