@@ -184,6 +184,7 @@ public static class DogSetup
             AnimationCurve curve = AnimationUtility.GetEditorCurve(copy, binding);
             AnimationUtility.SetEditorCurve(copy, binding, loop ? WithoutDrift(curve) : Held(curve));
         }
+        Reduce(copy);
         var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(copyPath);
         if (existing == null)
             AssetDatabase.CreateAsset(copy, copyPath);
@@ -251,6 +252,136 @@ public static class DogSetup
             keys[i].value -= slope * (keys[i].time - t0);
             keys[i].inTangent -= slope;
             keys[i].outTangent -= slope;
+        }
+        return new AnimationCurve(keys);
+    }
+
+    // The vendor imports these clips uncompressed: a key per bone, channel and frame (a 10 s copy was 194 MB of YAML).
+    // A key goes when the curve between its neighbours, drawn from their own values and slopes, stays within these
+    // tolerances of the original (checked at every key and halfway between). A bone's x/y/z (and a rotation's w) are
+    // thinned together so its keys stay on the same frames.
+    const float RotationTolerance = 0.0015f;
+    const float PositionTolerance = 0.001f;
+    const float ScaleTolerance = 0.001f;
+
+    static void Reduce(AnimationClip clip)
+    {
+        var bindings = new List<EditorCurveBinding>();
+        var curves = new List<AnimationCurve>();
+        foreach (IGrouping<(string, Type, string), EditorCurveBinding> group in AnimationUtility.GetCurveBindings(clip)
+                     .GroupBy(b => (b.path, b.type, Channel(b.propertyName))))
+        {
+            EditorCurveBinding[] members = group.ToArray();
+            AnimationCurve[] source = members.Select(b => AnimationUtility.GetEditorCurve(clip, b)).ToArray();
+            int count = source[0].length;
+            float tolerance = group.Key.Item3.Contains("Rotation") ? RotationTolerance
+                : group.Key.Item3.Contains("Scale") ? ScaleTolerance : PositionTolerance;
+            // Joint only when every member has its keys at the same times.
+            bool joint = source.All(c => c.length == count && c.keys.Select(k => k.time).SequenceEqual(source[0].keys.Select(k => k.time)));
+            AnimationCurve[][] sets = joint ? new[] { source } : source.Select(c => new[] { c }).ToArray();
+            foreach (AnimationCurve[] set in sets)
+            {
+                List<int> keep = Keep(set, tolerance);
+                foreach (AnimationCurve curve in set)
+                {
+                    bindings.Add(members[Array.IndexOf(source, curve)]);
+                    curves.Add(Thinned(curve, keep));
+                }
+            }
+        }
+        AnimationUtility.SetEditorCurves(clip, bindings.ToArray(), curves.ToArray());
+    }
+
+    // "m_LocalRotation.x" → "m_LocalRotation": the channel a bone's components share.
+    static string Channel(string property)
+    {
+        int dot = property.LastIndexOf('.');
+        return dot < 0 ? property : property.Substring(0, dot);
+    }
+
+    // Greedy: extend each segment while it still fits every curve of the set.
+    static List<int> Keep(AnimationCurve[] curves, float tolerance)
+    {
+        int count = curves[0].length;
+        var keep = new List<int> { 0 };
+        if (count <= 2)
+        {
+            for (int i = 1; i < count; i++)
+                keep.Add(i);
+            return keep;
+        }
+        Keyframe[][] keys = curves.Select(c => c.keys).ToArray();
+        if (Still(keys, tolerance))
+        {
+            keep.Add(count - 1);
+            return keep;
+        }
+        int from = 0;
+        for (int to = 2; to < count; to++)
+        {
+            if (Fits(curves, keys, from, to, tolerance))
+                continue;
+            keep.Add(to - 1);
+            from = to - 1;
+        }
+        keep.Add(count - 1);
+        return keep;
+    }
+
+    // A channel that never moves: every value within tolerance of the first, every slope flat.
+    static bool Still(Keyframe[][] keys, float tolerance)
+    {
+        foreach (Keyframe[] k in keys)
+        {
+            float span = Mathf.Max(k[^1].time - k[0].time, 1e-4f);
+            foreach (Keyframe key in k)
+                if (Mathf.Abs(key.value - k[0].value) > tolerance || Mathf.Abs(key.inTangent) * span > tolerance
+                    || Mathf.Abs(key.outTangent) * span > tolerance)
+                    return false;
+        }
+        return true;
+    }
+
+    // The segment from key `from` to key `to`, a Hermite on their own values and slopes, against the original curve at
+    // each skipped key and halfway between keys.
+    static bool Fits(AnimationCurve[] curves, Keyframe[][] keys, int from, int to, float tolerance)
+    {
+        for (int c = 0; c < curves.Length; c++)
+        {
+            Keyframe[] k = keys[c];
+            Keyframe a = k[from], b = k[to];
+            if (float.IsInfinity(a.outTangent) || float.IsInfinity(b.inTangent))
+                return false;
+            float span = b.time - a.time;
+            for (int i = from; i < to; i++)
+            {
+                if (i > from && !Near(curves[c], k[i].time, a, b, span, tolerance))
+                    return false;
+                if (!Near(curves[c], (k[i].time + k[i + 1].time) * 0.5f, a, b, span, tolerance))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    static bool Near(AnimationCurve original, float time, Keyframe a, Keyframe b, float span, float tolerance)
+    {
+        float s = span > 0f ? (time - a.time) / span : 0f;
+        float s2 = s * s, s3 = s2 * s;
+        float value = (2f * s3 - 3f * s2 + 1f) * a.value + (s3 - 2f * s2 + s) * span * a.outTangent
+                      + (-2f * s3 + 3f * s2) * b.value + (s3 - s2) * span * b.inTangent;
+        return Mathf.Abs(value - original.Evaluate(time)) <= tolerance;
+    }
+
+    // The kept keys with their own values and slopes (what Fits measured against); weights off.
+    static AnimationCurve Thinned(AnimationCurve curve, List<int> keep)
+    {
+        Keyframe[] source = curve.keys;
+        var keys = new Keyframe[keep.Count];
+        for (int i = 0; i < keep.Count; i++)
+        {
+            Keyframe key = source[keep[i]];
+            keys[i] = new Keyframe(key.time, key.value, key.inTangent, key.outTangent);
         }
         return new AnimationCurve(keys);
     }
